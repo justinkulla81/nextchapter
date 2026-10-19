@@ -25,7 +25,6 @@ import {
   isBoardAdvisoryWillingnessComplete,
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
-import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyWizard, type WizardPage } from '@/components/dashboard/SearchStrategyWizard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
 import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
@@ -38,10 +37,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { effectiveJourney, getJourney } from '@/lib/journey/journey'
 import { CultureFitForm } from '@/components/dashboard/CultureFitForm'
 import { parseCultureFit } from '@/lib/culture/culture-fit'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
 import { getCulturePreferences } from '@/lib/companies/culture-profile'
 import { CulturePreferencesForm } from '@/components/companies/CultureSurvey'
@@ -81,13 +79,7 @@ interface RejectionTrendsData {
   levelFitBreakdown: TrendBreakdownEntry[] | null
 }
 
-async function SearchStrategyGuidanceCard({
-  profile,
-  checklist,
-}: {
-  profile: CandidateProfile
-  checklist: SearchStrategyChecklist
-}) {
+async function SearchStrategyGuidanceCard({ profile }: { profile: CandidateProfile }) {
   const targetRoleComplete = isSearchGoalsComplete(profile)
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const goalsComplete = targetRoleComplete && blockersMotivationsComplete
@@ -117,99 +109,79 @@ async function SearchStrategyGuidanceCard({
     !blockersMotivationsComplete && 'Blockers and Motivations',
   ].filter((v): v is string => !!v)
 
+  if (!strategyGuidance) {
+    return (
+      <section aria-labelledby="victoria" className="space-y-2 rounded-2xl border border-border bg-white p-6">
+        <div className="flex items-center gap-3">
+          <VictoriaAvatar size={36} />
+          <h2 id="victoria" className="font-serif text-xl font-semibold text-navy">Victoria&apos;s read</h2>
+        </div>
+        <p className="text-base text-muted-foreground">
+          {missingSections.length > 0
+            ? `Answer ${missingSections.join(' and ')} below and Victoria will write your read.`
+            : 'Victoria is updating your read from your latest answers. Check back in a moment.'}
+        </p>
+      </section>
+    )
+  }
+
+  const rejectionGroups = rejectionTrends?.eligible
+    ? [
+        { label: 'Company size', breakdown: rejectionTrends.companySizeBreakdown },
+        { label: 'Industry', breakdown: rejectionTrends.industryBreakdown },
+        { label: 'Function', breakdown: rejectionTrends.functionBreakdown },
+        { label: 'Level fit', breakdown: rejectionTrends.levelFitBreakdown },
+      ].filter((g) => g.breakdown && g.breakdown.length > 0)
+    : []
+
   return (
-    <Accordion defaultValue={['strategy-guidance']}>
-      <AccordionItem value="strategy-guidance" className="border-brand/20 bg-brand/5">
-        <AccordionTrigger className="px-5 py-4 hover:text-foreground">
-          <div className="flex items-center gap-3">
-            <VictoriaAvatar size={36} />
-            <CardTitle className="text-sm font-medium text-foreground">Strategy Guidance from Victoria</CardTitle>
+    <section aria-labelledby="victoria" className="space-y-4 rounded-2xl border border-border bg-white p-6">
+      <div className="flex items-center gap-3">
+        <VictoriaAvatar size={36} />
+        <h2 id="victoria" className="font-serif text-xl font-semibold text-navy">Victoria&apos;s read</h2>
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-navy">What I&apos;d change</p>
+        <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-base text-foreground">
+          {strategyGuidance.suggestedChanges.map((point, i) => (
+            <li key={i}>{point}</li>
+          ))}
+        </ul>
+      </div>
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-primary underline underline-offset-4">What&apos;s working and what to watch</summary>
+        <div className="mt-3 grid gap-4 text-sm sm:grid-cols-2">
+          <div>
+            <p className="font-semibold text-navy">What&apos;s working</p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground">
+              {strategyGuidance.pros.map((point, i) => (
+                <li key={i}>{point}</li>
+              ))}
+            </ul>
           </div>
-        </AccordionTrigger>
-        <AccordionContent className="px-5 pb-5">
-        {strategyGuidance ? (
-          <div className="space-y-4">
-            <div className="space-y-3 text-sm">
-              <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-semibold tracking-wide text-success uppercase">What&apos;s working</p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
-                  {strategyGuidance.pros.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-semibold tracking-wide text-warning uppercase">What to watch</p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
-                  {strategyGuidance.cons.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-semibold tracking-wide text-brand uppercase">What I&apos;d change</p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
-                  {strategyGuidance.suggestedChanges.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            {checklist.incomplete.length > 0 && (
-              <div className="rounded-lg border border-dashed border-brand/40 bg-white p-3">
-                <p className="text-xs font-medium text-foreground">
-                  Answer these for even more personalized advice from me:
-                </p>
-                <ul className="mt-1.5 space-y-1">
-                  {checklist.incomplete.map((item) => (
-                    <li key={item.key}>
-                      <Link
-                        href={item.href}
-                        className="text-sm text-primary underline underline-offset-4"
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <div>
+            <p className="font-semibold text-navy">What to watch</p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground">
+              {strategyGuidance.cons.map((point, i) => (
+                <li key={i}>{point}</li>
+              ))}
+            </ul>
           </div>
-        ) : missingSections.length > 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Complete {missingSections.join(' and ')} below to get your Strategy Guidance from me.
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            I&apos;m updating your guidance based on your latest answers — check back in a moment.
-          </p>
+        </div>
+        {rejectionGroups.length > 0 && (
+          <div className="mt-4 text-sm">
+            <p className="font-semibold text-navy">Rejection patterns</p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground">
+              {rejectionGroups.map((group) => (
+                <li key={group.label}>
+                  <span className="font-medium">{group.label}:</span> {group.breakdown!.map((b) => `${b.label} (${b.count})`).join(', ')}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
-        {rejectionTrends?.eligible &&
-          (() => {
-            const groups = [
-              { label: 'Company size', breakdown: rejectionTrends.companySizeBreakdown },
-              { label: 'Industry', breakdown: rejectionTrends.industryBreakdown },
-              { label: 'Function', breakdown: rejectionTrends.functionBreakdown },
-              { label: 'Level fit', breakdown: rejectionTrends.levelFitBreakdown },
-            ].filter((g) => g.breakdown && g.breakdown.length > 0)
-            if (groups.length === 0) return null
-            return (
-              <div className="mt-4 rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-semibold tracking-wide text-foreground uppercase">Rejection patterns</p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-sm text-foreground">
-                  {groups.map((group) => (
-                    <li key={group.label}>
-                      <span className="font-medium">{group.label}:</span>{' '}
-                      {group.breakdown!.map((b) => `${b.label} (${b.count})`).join(', ')}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )
-          })()}
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+      </details>
+    </section>
   )
 }
 
@@ -294,7 +266,6 @@ export default async function SearchStrategyPage() {
   // "More of the same" default — a guess at the pivot target, not a
   // separate inference pass. Editable right here via SearchStrategyForm.
   const inferredFunction = profile.primaryFunction ?? null
-  const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries, searching: !effectiveJourney(profile) || getJourney(effectiveJourney(profile)!).searching, employed: !!effectiveJourney(profile) && getJourney(effectiveJourney(profile)!).employed })
 
   const independentWorkInitial = parseIndependentWorkExperience(profile.independentWorkExperience)
   const independentWorkSuggestions = suggestIndependentWork(
@@ -565,70 +536,51 @@ export default async function SearchStrategyPage() {
   const wizardPages = careerFirst(allWizardPages.filter((pg) => keep(pg.key)), (pg: WizardPage) => pg.key) as WizardPage[]
   const wizardPageContent = careerFirst(allWizardContent.filter((el) => keep(String(el.key))), (el: { key: string | null }) => String(el.key)) as typeof allWizardContent
 
-  const actionPlanCard = checklist.incomplete.length > 0 && (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Action Plan</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          {checklist.totalPointsRemaining} points left to complete — answer these below to sharpen your matches
-          and guidance.
-        </p>
-        <ul className="space-y-1.5">
-          {checklist.incomplete.map((item) => (
-            <li key={item.key} className="flex items-center justify-between gap-3">
-              <Link href={item.href} className="text-sm text-primary underline underline-offset-4">
-                {item.label}
-              </Link>
-              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
-                {item.points} pts
-              </span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  )
+  const incomplete = wizardPages.filter((pg) => !pg.items.every((i) => i.complete))
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Search Strategy</h1>
-        <p className="mt-1 text-muted-foreground">
-          {searchingJourney
-            ? 'A one-time setup for your Search Goals — editable any time your situation changes.'
-            : 'What you want from your career, and how you like to work with us. Editable any time. Job-search questions turn on if you start looking.'}
-        </p>
-        {searchingJourney && !hasAnsweredOnce && (
-          <p className="text-sm text-muted-foreground">
-            Once you&apos;ve answered Your Target Role &amp; Company and Blockers and Motivations
-            below, Victoria will review your search strategy and give you personalized feedback
-            right here on this page.
+    <div className="mx-auto max-w-3xl space-y-8">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1.5">
+          <h1 className="font-serif text-3xl leading-tight font-semibold tracking-tight text-navy">Your search strategy</h1>
+          <p className="max-w-xl text-base text-muted-foreground">
+            {searchingJourney
+              ? 'Victoria\u2019s read of where you stand, and the few answers it rests on.'
+              : 'What you want from your career, and how you like to work with us. Job-search questions turn on if you start looking.'}
           </p>
+        </div>
+        {incomplete.length > 0 && (
+          <a href="#answers" className="inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:brightness-95">
+            {hasAnsweredOnce ? `Answer ${incomplete.length} more` : 'Answer the first questions'}
+          </a>
         )}
-        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} hideDailyMessage />
-      </div>
+      </header>
 
-      <div className="space-y-4">
-        {hasAnsweredOnce && (
-          <Suspense fallback={null}>
-            <StrategyUnlockCard candidateId={profile.id} />
-          </Suspense>
-        )}
-        {hasAnsweredOnce ? (
+      {searchingJourney &&
+        (hasAnsweredOnce ? (
           <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>
-            <SearchStrategyGuidanceCard profile={profile} checklist={checklist} />
+            <SearchStrategyGuidanceCard profile={profile} />
           </Suspense>
         ) : (
           <Suspense fallback={null}>
             <SearchStrategyGuidanceTrigger profile={profile} />
           </Suspense>
-        )}
-      </div>
+        ))}
 
-      {actionPlanCard}
+      <section id="answers" aria-labelledby="answers-title" className="scroll-mt-4 space-y-2">
+        <h2 id="answers-title" className="font-serif text-xl font-semibold text-navy">What this rests on</h2>
+        <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
+          {wizardPageContent}
+        </SearchStrategyWizard>
+      </section>
 
+      {hasAnsweredOnce && (
+        <Suspense fallback={null}>
+          <StrategyUnlockCard candidateId={profile.id} />
+        </Suspense>
+      )}
+
+      <MoreDetails summary="More about your search">
       {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
       <Suspense fallback={null}>
         <PivotPathsTeaser profile={profile} />
@@ -652,12 +604,6 @@ export default async function SearchStrategyPage() {
         <MarketSizeSection member={profile} surface="search_strategy" />
       </Suspense>
 
-      <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
-        {wizardPageContent}
-      </SearchStrategyWizard>
-
-      {/* What the member wants in a culture — compared on each job's match with what
-          members who worked at that company said (src/lib/jobs/job-match.ts). */}
       {searchingJourney && (
         <Suspense fallback={null}>
           <IndustryRealityCheck candidateId={profile.id} currentIndustry={profile.industryContext} targetIndustries={profile.targetIndustries} fn={profile.targetFunction ?? profile.primaryFunction} />
@@ -707,6 +653,7 @@ export default async function SearchStrategyPage() {
           </CardContent>
         </Card>
       )}
+      </MoreDetails>
     </div>
   )
 }

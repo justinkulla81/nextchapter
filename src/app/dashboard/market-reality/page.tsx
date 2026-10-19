@@ -19,6 +19,7 @@ import { buildWeeklyChange, readStateOf } from '@/lib/reports/market-reality-bri
 import { previousReadState, saveReadState } from '@/lib/reports/market-reality-brief/read-state-store'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PrintFrame } from '@/components/market-reality/report-ui'
+import { BriefView } from '@/components/market-reality/brief-view'
 import { Cover, ExecutiveSummary, BasisSection } from '@/components/market-reality/summary-sections'
 import {
   ActivitySection,
@@ -64,7 +65,10 @@ export default async function MarketRealityReportPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const marketScope = (await searchParams).market === 'us' ? 'us' : 'state'
+  const sp = await searchParams
+  const marketScope = sp.market === 'us' ? 'us' : 'state'
+  // The one-screen brief is the default; the long report is ?view=full.
+  const full = sp.view === 'full'
   const profile = await getDashboardData()
   const [user, report] = await Promise.all([
     getVerifiedSessionUser(),
@@ -127,6 +131,7 @@ export default async function MarketRealityReportPage({
 
   after(() =>
     captureServerEvent(profile.id, 'market_reality_report_viewed', {
+      view: full ? 'full' : 'brief',
       changedSinceLastWeek: change ? change.hasChange : null,
       grade: brief.summary.grade,
       assessments: Object.fromEntries(brief.summary.scorecard.map((r) => [r.dimension, r.assessment])),
@@ -140,6 +145,15 @@ export default async function MarketRealityReportPage({
     })
   )
 
+  if (!full) {
+    return (
+      <div className="space-y-6">
+        {user && !user.email_confirmed_at && user.email && <EmailConfirmationBanner email={user.email} />}
+        <BriefView brief={brief} change={change} />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {user && !user.email_confirmed_at && user.email && (
@@ -147,6 +161,12 @@ export default async function MarketRealityReportPage({
           <EmailConfirmationBanner email={user.email} />
         </div>
       )}
+
+      <div className="mx-auto max-w-4xl print:hidden">
+        <Link href="/dashboard/market-reality" className="text-sm text-primary underline underline-offset-4">
+          Back to the short version
+        </Link>
+      </div>
 
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 print:hidden">
         <p className="max-w-xl text-sm text-muted-foreground">
