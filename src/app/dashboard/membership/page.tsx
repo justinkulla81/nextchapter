@@ -16,6 +16,12 @@ import { MembershipSignupButtons } from '@/components/dashboard/MembershipSignup
 import { MembershipReactivateButton } from '@/components/dashboard/MembershipReactivateButton'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { cn } from '@/lib/utils'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Module } from '@/components/candidate/Module'
+import { Section } from '@/components/candidate/ui'
+import { ActionLink } from '@/components/candidate/ActionLink'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 
 export const metadata: Metadata = { title: 'Membership' }
 
@@ -118,6 +124,206 @@ export default async function MembershipPage() {
   const isLapsed = subscription?.status === 'LAPSED'
 
   captureServerEvent(profile.id, 'membership_plans_page_viewed', {})
+
+  const becomeMemberBlock = isAlum && !subscription ? (
+        <div className="space-y-3 rounded-lg border border-border p-4">
+          <h2 className="font-semibold">Become a Member</h2>
+          <MembershipSignupButtons
+            monthlyLabel={monthlyPlan ? formatPrice(monthlyPlan.priceCents, 'MONTHLY') : '$19/mo'}
+            annualLabel={annualPlan ? formatPrice(annualPlan.priceCents, 'ANNUAL') : '$180/yr'}
+          />
+          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            {(monthlyPlan?.features as string[] | undefined)?.map((f) => <li key={f}>{f}</li>) ?? null}
+          </ul>
+          <p className="text-xs text-muted-foreground">No payment is collected yet — this creates your Membership record.</p>
+        </div>
+  ) : null
+
+  const subscriptionBlock = subscription ? (
+        <div className="space-y-4 rounded-lg border border-border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-semibold">
+              Membership —{' '}
+              <span className={isActive ? 'text-success' : isLapsed ? 'text-orange' : 'text-muted-foreground'}>
+                {subscription.status}
+              </span>
+            </h2>
+            {isLapsed && <MembershipReactivateButton />}
+          </div>
+
+          {subscription.freeUntil && (
+            <p className="text-sm text-muted-foreground">
+              Free through {formatDate(subscription.freeUntil)} — placed through a Premium outplacement seat.
+            </p>
+          )}
+
+          <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-xs text-muted-foreground">Annual Dossier refresh</dt>
+              <dd>{formatDate(subscription.lastDossierRefreshAt)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Quarterly market check</dt>
+              <dd>{formatDate(subscription.lastMarketCheckAt)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">Network nudge</dt>
+              <dd>{formatDate(subscription.lastNetworkNudgeSentAt)}</dd>
+            </div>
+          </dl>
+
+          {latestMarketCheck && (
+            <div className="rounded-md bg-off-white p-3 text-sm">
+              <p className="font-medium text-foreground">Latest market check ({formatDate(latestMarketCheck.checkedAt)})</p>
+              <p className="text-muted-foreground">
+                {latestMarketCheck.adzunaCount != null ? `${latestMarketCheck.adzunaCount} open roles found` : 'Job volume: no data yet'}
+                {latestMarketCheck.blsYoyChangePct != null ? ` · ${latestMarketCheck.blsYoyChangePct.toFixed(1)}% YoY employment trend` : ''}
+              </p>
+              {latestMarketCheck.compBenchmarkMid != null && (
+                <p className="text-muted-foreground">
+                  Comp benchmark (n={latestMarketCheck.compSampleSize}): ${latestMarketCheck.compBenchmarkMid.toLocaleString()}
+                  {latestMarketCheck.targetCompMin != null &&
+                    ` — your target minimum is $${latestMarketCheck.targetCompMin.toLocaleString()}`}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Priority coach booking</p>
+            <div className="flex gap-2">
+              <form action={setPriorityCoachBookingPreference.bind(null, true)}>
+                <SubmitButton
+                  variant={subscription.priorityCoachBooking ? 'default' : 'outline'}
+                  size="sm"
+                  pendingLabel="Saving…"
+                  disabled={!isActive}
+                >
+                  On
+                </SubmitButton>
+              </form>
+              <form action={setPriorityCoachBookingPreference.bind(null, false)}>
+                <SubmitButton
+                  variant={!subscription.priorityCoachBooking ? 'default' : 'outline'}
+                  size="sm"
+                  pendingLabel="Saving…"
+                  disabled={!isActive}
+                >
+                  Off
+                </SubmitButton>
+              </form>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Board and advisory listings are unlocked on{' '}
+            <Link href="/dashboard/find-my-job?types=part_time,contract,advisory#launch-phase-4" className="text-primary underline underline-offset-4">
+              Find Interim Work
+            </Link>{' '}
+            while your Membership is active. Benefits Network offers are redeemable from the{' '}
+            <Link href="/dashboard/benefits-network" className="text-primary underline underline-offset-4">
+              catalog
+            </Link>
+            .
+          </p>
+        </div>
+  ) : null
+
+  if (isRedesignOn(profile.email)) {
+    // Membership in the redesign: what you have, the Candidate+ step that effort earns, and what more would add.
+    const nextStep = candidatePlusSteps(plusStatus)[0]
+    const metCount = plusRequirements.filter((r) => r.met).length
+    const tierCard = (key: string) => {
+      const copy = TIER_COPY[key]
+      const plan = plans.find((p) => p.key === key)?.plan
+      return (
+        <section key={key} className="flex flex-col gap-3 rounded-2xl border border-border p-5">
+          <div>
+            <h3 className="text-base font-semibold text-ink">{copy.name}</h3>
+            <p className="font-display text-2xl font-semibold text-ink">
+              {plan ? (plan.priceCents === 0 ? 'Free' : `${formatUsd(plan.priceCents)}${plan.billingPeriod === 'MONTHLY' ? ' a month' : ''}`) : 'Price soon'}
+            </p>
+          </div>
+          <p className="text-sm text-ink">{copy.audience}</p>
+          <ul className="space-y-1.5">
+            {copy.features.map((f) => (
+              <li key={f} className="flex items-start gap-1.5 text-sm text-ink">
+                <Check className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-auto">
+            <MembershipTierWaitlistForm tier={key} source="membership_plans_page" knownContact={knownContact} ctaLabel="Join the waitlist" />
+          </div>
+        </section>
+      )
+    }
+    return (
+      <div className="space-y-8 pb-12">
+        <PageHeader
+          title="Membership"
+          intro="What you have, what it includes, and what more would add. No success fees, ever: NextChapter never takes a share of your salary."
+          action={nextStep ? <ActionLink href={nextStep.href} event="membership_candidate_plus_step_clicked" props={{ step: nextStep.key, remaining: dossierActionsRemaining }}>{nextStep.action}</ActionLink> : undefined}
+        />
+
+        {plusStatus.unlocked ? (
+          <section aria-labelledby="your-plan" className="space-y-2 rounded-2xl border border-border p-6">
+            <h2 id="your-plan" className="font-display text-xl font-semibold text-ink">Free, plus Candidate+ from your effort</h2>
+            <p className="max-w-xl text-base text-ink">You earned Candidate+ with real work, so recruiters and hiring managers can see it on your profile. Nothing to pay for it, and it stays.</p>
+          </section>
+        ) : (
+          <Module title={`Candidate+ is ${dossierActionsRemaining} of ${plusRequirements.length} steps away`} tone="dark">
+            <p className="text-base">Effort earns Candidate+, and recruiters and hiring managers see Candidate+ members. 1 point is 1 minute of real search work.</p>
+            <ol className="grid gap-2 sm:grid-cols-2">
+              {plusRequirements.map((r) => (
+                <li key={r.key} className={cn('flex items-start gap-2 rounded-lg p-3 text-sm', r.met ? 'bg-white/15' : 'bg-white/5')}>
+                  {r.met ? <Check className="mt-0.5 size-4 shrink-0" aria-hidden /> : <span className="mt-0.5 size-4 shrink-0 rounded-full border border-white/50" aria-hidden />}
+                  <span className={r.met ? '' : 'text-white/80'}>{r.label}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="text-sm text-white/80">{metCount} of {plusRequirements.length} done.</p>
+          </Module>
+        )}
+
+        {becomeMemberBlock}
+        {subscriptionBlock}
+
+        <Section id="more-support" title="Add more support">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {['dtc_coaching_plus', 'dtc_coaching_premium'].map(tierCard)}
+          </div>
+        </Section>
+
+        <MoreDetails summary="Show more: other plans, scholarships and Higher Education">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {['dtc_resume', 'dtc_executive'].map(tierCard)}
+          </div>
+          <div className="space-y-2 rounded-2xl bg-muted/60 p-5">
+            <h2 className="font-display text-lg font-semibold text-ink">Why timing matters</h2>
+            <p className="text-sm text-ink">
+              A search that drags on costs paychecks, momentum and confidence. Landing your next role even a few weeks sooner is worth more than a year of Coaching Premium at {dtcPlans[3] ? formatUsd(dtcPlans[3].priceCents) : '$599'} a month. What you see here is the whole cost.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-ink">Cost should not stand between you and support.</p>
+            <p className="text-sm text-ink">If you are facing real financial hardship, you may qualify for reduced or free access to Coaching Premium.</p>
+            <ActionLink href="/dashboard/plans/scholarship" variant="text" event="membership_scholarship_clicked" props={{ source: 'membership' }}>Apply for a scholarship</ActionLink>
+          </div>
+          <div className="space-y-1">
+            <h2 className="font-display text-lg font-semibold text-ink">Higher Education</h2>
+            <p className="text-sm text-ink">
+              Once you land your next role, you join NextChapter Higher Education, free for life. Your dossier stays live, you remain an insider, and you can give references and refer others. You may also qualify for a{' '}
+              <Link href="/dashboard/got-hired" className="font-medium text-brand underline underline-offset-4">$500 offer bonus</Link>.
+              {!isAlum && ' Higher Education and membership both open once you have landed.'}
+            </p>
+            {isAlum && <p className="text-sm font-medium text-success">You are a NextChapter alum.</p>}
+          </div>
+        </MoreDetails>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-5xl space-y-10 pb-12">
@@ -261,109 +467,9 @@ export default async function MembershipPage() {
         </div>
       )}
 
-      {isAlum && !subscription && (
-        <div className="space-y-3 rounded-lg border border-border p-4">
-          <h2 className="font-semibold">Become a Member</h2>
-          <MembershipSignupButtons
-            monthlyLabel={monthlyPlan ? formatPrice(monthlyPlan.priceCents, 'MONTHLY') : '$19/mo'}
-            annualLabel={annualPlan ? formatPrice(annualPlan.priceCents, 'ANNUAL') : '$180/yr'}
-          />
-          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-            {(monthlyPlan?.features as string[] | undefined)?.map((f) => <li key={f}>{f}</li>) ?? null}
-          </ul>
-          <p className="text-xs text-muted-foreground">No payment is collected yet — this creates your Membership record.</p>
-        </div>
-      )}
+      {becomeMemberBlock}
 
-      {subscription && (
-        <div className="space-y-4 rounded-lg border border-border p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold">
-              Membership —{' '}
-              <span className={isActive ? 'text-success' : isLapsed ? 'text-orange' : 'text-muted-foreground'}>
-                {subscription.status}
-              </span>
-            </h2>
-            {isLapsed && <MembershipReactivateButton />}
-          </div>
-
-          {subscription.freeUntil && (
-            <p className="text-sm text-muted-foreground">
-              Free through {formatDate(subscription.freeUntil)} — placed through a Premium outplacement seat.
-            </p>
-          )}
-
-          <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            <div>
-              <dt className="text-xs text-muted-foreground">Annual Dossier refresh</dt>
-              <dd>{formatDate(subscription.lastDossierRefreshAt)}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Quarterly market check</dt>
-              <dd>{formatDate(subscription.lastMarketCheckAt)}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Network nudge</dt>
-              <dd>{formatDate(subscription.lastNetworkNudgeSentAt)}</dd>
-            </div>
-          </dl>
-
-          {latestMarketCheck && (
-            <div className="rounded-md bg-off-white p-3 text-sm">
-              <p className="font-medium text-foreground">Latest market check ({formatDate(latestMarketCheck.checkedAt)})</p>
-              <p className="text-muted-foreground">
-                {latestMarketCheck.adzunaCount != null ? `${latestMarketCheck.adzunaCount} open roles found` : 'Job volume: no data yet'}
-                {latestMarketCheck.blsYoyChangePct != null ? ` · ${latestMarketCheck.blsYoyChangePct.toFixed(1)}% YoY employment trend` : ''}
-              </p>
-              {latestMarketCheck.compBenchmarkMid != null && (
-                <p className="text-muted-foreground">
-                  Comp benchmark (n={latestMarketCheck.compSampleSize}): ${latestMarketCheck.compBenchmarkMid.toLocaleString()}
-                  {latestMarketCheck.targetCompMin != null &&
-                    ` — your target minimum is $${latestMarketCheck.targetCompMin.toLocaleString()}`}
-                </p>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">Priority coach booking</p>
-            <div className="flex gap-2">
-              <form action={setPriorityCoachBookingPreference.bind(null, true)}>
-                <SubmitButton
-                  variant={subscription.priorityCoachBooking ? 'default' : 'outline'}
-                  size="sm"
-                  pendingLabel="Saving…"
-                  disabled={!isActive}
-                >
-                  On
-                </SubmitButton>
-              </form>
-              <form action={setPriorityCoachBookingPreference.bind(null, false)}>
-                <SubmitButton
-                  variant={!subscription.priorityCoachBooking ? 'default' : 'outline'}
-                  size="sm"
-                  pendingLabel="Saving…"
-                  disabled={!isActive}
-                >
-                  Off
-                </SubmitButton>
-              </form>
-            </div>
-          </div>
-
-          <p className="text-sm text-muted-foreground">
-            Board and advisory listings are unlocked on{' '}
-            <Link href="/dashboard/find-my-job?types=part_time,contract,advisory#launch-phase-4" className="text-primary underline underline-offset-4">
-              Find Interim Work
-            </Link>{' '}
-            while your Membership is active. Benefits Network offers are redeemable from the{' '}
-            <Link href="/dashboard/benefits-network" className="text-primary underline underline-offset-4">
-              catalog
-            </Link>
-            .
-          </p>
-        </div>
-      )}
+      {subscriptionBlock}
     </div>
   )
 }

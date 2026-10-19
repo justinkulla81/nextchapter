@@ -25,6 +25,10 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { MyRecruitersSection } from '@/components/dashboard/MyRecruitersSection'
 import { ConnectedAccountsSettings, type ConnectionState } from '@/components/dashboard/ConnectedAccountsSettings'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Section } from '@/components/candidate/ui'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 
 export const metadata: Metadata = { title: 'Privacy Settings' }
 
@@ -78,13 +82,17 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
   const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
   const SOURCE_LABEL = { PAGE: 'You sent your resume', NOT_FIT_LINK: 'You sent your resume', FORWARD: 'Your resume was forwarded' } as const
 
-  return (
-    <div className="space-y-8">
+  const headerBlock = (
+    <>
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Privacy</h1>
         <PageHeaderBoxes pageKey="privacy" candidateId={profile.id} />
       </div>
+    </>
+  )
 
+  const connectedBlock = (
+    <>
       <section id="connected-accounts" aria-labelledby="connected-accounts-h" className="space-y-3">
         <div>
           <h2 id="connected-accounts-h" className="text-lg font-semibold">Connected accounts</h2>
@@ -100,8 +108,17 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           connectHref={withOAuthReturnTo('/api/auth/google-connect/start', '/dashboard/privacy')}
         />
       </section>
-      <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
+    </>
+  )
 
+  const tierBlock = (
+    <>
+      <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
+    </>
+  )
+
+  const situationBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Your situation</h2>
@@ -121,9 +138,17 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           }}
         />
       </div>
+    </>
+  )
 
+  const affiliationsBlock = (
+    <>
       <AffiliationVisibilityCard affiliations={affiliations} />
+    </>
+  )
 
+  const confidentialBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Confidential Search Mode</h2>
@@ -141,7 +166,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         )}
         <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
       </div>
+    </>
+  )
 
+  const recruiterBlock = (
+    <>
       <div id="recruiter-matching" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Employer &amp; recruiter matching</h2>
@@ -157,13 +186,21 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           confidentialSearchMode={profile.confidentialSearchMode}
         />
       </div>
+    </>
+  )
 
+  const recruiterRequestsBlock = (
+    <>
       <p className="text-sm text-muted-foreground">
         <Link href="/dashboard/recruiter-requests" className="underline underline-offset-4">
           See recruiter requests waiting on your answer
         </Link>
       </p>
+    </>
+  )
 
+  const myRecruitersBlock = (
+    <>
       {intakeConnections.length > 0 && (
         <div id="my-recruiters" className="space-y-3 border-t border-border pt-8">
           <div>
@@ -184,7 +221,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           />
         </div>
       )}
+    </>
+  )
 
+  const resumeBookBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Resume Book</h2>
@@ -195,7 +236,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         </div>
         <ResumeBookOptIn optedIn={profile.resumeBookOptIn} />
       </div>
+    </>
+  )
 
+  const leaderboardBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <LeaderboardOptInSettings
           optedIn={profile.leaderboardOptIn}
@@ -203,7 +248,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           confidentialSearchMode={profile.confidentialSearchMode}
         />
       </div>
+    </>
+  )
 
+  const emailBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Email options</h2>
         <p className="text-sm text-muted-foreground">
@@ -221,7 +270,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         />
         <ActionWindowSelector current={profile.actionWindow} />
       </div>
+    </>
+  )
 
+  const supportNetworkBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Support Network</h2>
         <CommunitySettingsToggles
@@ -229,16 +282,28 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           encouragementGivingOptIn={profile.encouragementGivingOptIn}
         />
       </div>
+    </>
+  )
 
+  const whatTheySeeBlock = (
+    <>
       <WhatTheySeeSection candidateId={profile.id} />
+    </>
+  )
 
+  const coachBlock = (
+    <>
       {coach && (
         <div className="space-y-3 border-t border-border pt-8">
           <h2 className="text-lg font-semibold">Coach access</h2>
           <CoachAccessSettings coachName={coach.fullName} hasConsented={profile.coachDossierConsentedAt !== null} />
         </div>
       )}
+    </>
+  )
 
+  const accountBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Account</h2>
@@ -248,7 +313,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           Change my password
         </Button>
       </div>
+    </>
+  )
 
+  const dataBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Your data</h2>
@@ -261,7 +330,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           Download my data
         </Button>
       </div>
+    </>
+  )
 
+  const dangerBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold text-destructive">Danger zone</h2>
@@ -272,6 +345,93 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         </div>
         <DeleteAccountForm />
       </div>
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    // Account and privacy in the redesign: who can see your search and what we read come first. Every other control is
+    // still here, in the same form, one fold down.
+    return (
+      <div className="space-y-8">
+        <PageHeader title="Account and privacy" intro="You decide who can see your search and what we can read. Every choice here saves as you make it, and you can change it any time." />
+
+        <Section id="who-can-see" title="Who can see your search">
+          <div className="space-y-8 [&>div]:border-t-0 [&>div]:pt-0">
+            {confidentialBlock}
+            {tierBlock}
+            {recruiterBlock}
+          </div>
+        </Section>
+
+        {connectedBlock}
+
+        <MoreDetails summary="Show more: your situation, email, coach access, your data and your account">
+          <div className="space-y-8 [&>div]:border-t-0 [&>div]:pt-0">
+          {situationBlock}
+          {affiliationsBlock}
+          {recruiterRequestsBlock}
+          {myRecruitersBlock}
+          {resumeBookBlock}
+          {leaderboardBlock}
+          {emailBlock}
+          {supportNetworkBlock}
+          {whatTheySeeBlock}
+          {coachBlock}
+          <div className="space-y-3 border-t border-border pt-8">
+            <div>
+              <h2 className="text-lg font-semibold">Money help</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Choose whether NextChapter helps with money. It is off until you turn it on, and you can delete the pay and savings numbers you gave us.</p>
+            </div>
+            <Button nativeButton={false} render={<Link href="/dashboard/money-help" />} variant="outline">
+              Change money help
+            </Button>
+          </div>
+          {accountBlock}
+          {dataBlock}
+          {dangerBlock}
+          </div>
+        </MoreDetails>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {headerBlock}
+
+      {connectedBlock}
+
+      {tierBlock}
+
+      {situationBlock}
+
+      {affiliationsBlock}
+
+      {confidentialBlock}
+
+      {recruiterBlock}
+
+      {recruiterRequestsBlock}
+
+      {myRecruitersBlock}
+
+      {resumeBookBlock}
+
+      {leaderboardBlock}
+
+      {emailBlock}
+
+      {supportNetworkBlock}
+
+      {whatTheySeeBlock}
+
+      {coachBlock}
+
+      {accountBlock}
+
+      {dataBlock}
+
+      {dangerBlock}
     </div>
   )
 }
