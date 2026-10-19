@@ -24,13 +24,17 @@ const MORE: Array<{ key: CheckInAnswer; label: string }> = [
   { key: 'ready', label: 'I am ready to start applying' },
   { key: 'laid_off', label: 'I was laid off' },
   { key: 'landed', label: 'I started a new job' },
+  { key: 'promotion', label: 'I am going for a promotion' },
+  { key: 'career_change', label: 'I am changing careers' },
+  { key: 'time_off', label: 'I am taking time off' },
+  { key: 'building', label: 'I am starting something of my own' },
 ]
 
 export function JourneyCheckInDialog({ stageLabel }: { stageLabel: string }) {
   const posthog = usePostHog()
   const [open, setOpen] = useState(false)
   const [more, setMore] = useState(false)
-  const [done, setDone] = useState<{ next?: { href: string; label: string } } | null>(null)
+  const [done, setDone] = useState<{ message?: string; next?: { href: string; label: string } } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
   const ref = useRef<HTMLDivElement>(null)
@@ -95,7 +99,7 @@ export function JourneyCheckInDialog({ stageLabel }: { stageLabel: string }) {
       </div>
       {done ? (
         <div role="status" className="space-y-2 text-sm">
-          <p className="font-medium">Thanks, your plan now fits.</p>
+          <p className="font-medium">{done.message ?? 'Thanks, your plan now fits.'}</p>
           {done.next && (
             <Link href={done.next.href} className="font-medium text-brand underline underline-offset-4">
               {done.next.label}

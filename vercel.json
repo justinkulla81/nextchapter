@@ -205,6 +205,10 @@
       "schedule": "0 11 * * *"
     },
     {
+      "path": "/api/cron/win-back",
+      "schedule": "0 16 * * *"
+    },
+    {
       "path": "/api/cron/landed-to-managing",
       "schedule": "20 10 * * *"
     },

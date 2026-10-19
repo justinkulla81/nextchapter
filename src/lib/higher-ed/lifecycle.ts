@@ -413,9 +413,50 @@ export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasP
   if (opts.journey === 'PROMOTION' && stage !== 'PAUSED' && stage !== 'STAYING' && stage !== 'LANDED') keys = ['promotion', ...keys]
   if (opts.journey === 'EXPLORING_MOVE' && stage === 'EXPLORING') keys = ['worth', ...keys]
   if (stage === 'LANDED') keys = ['firstReview', ...keys]
+  // What this journey needs from a college comes first (everything links to a screen that exists).
+  const extra = journeyHelp(opts.journey ?? null, b)
+  const all = { ...items, ...Object.fromEntries(extra.map((e) => [e.key, e])) }
+  keys = [...new Set([...extra.map((e) => e.key), ...keys])]
   return keys.slice(0, 4)
-    .filter((k) => (k !== 'programs' || opts.hasPrograms) && (k !== 'officeHours' || opts.hasOfficeHours) && (k !== 'events' || opts.hasEvents) && (k !== 'jobs' || opts.hasJobs))
-    .map((k) => items[k])
+    .filter((k) => (k !== 'programs' || opts.hasPrograms) && (k !== 'growthPrograms' || opts.hasPrograms) && (k !== 'officeHours' || opts.hasOfficeHours) && (k !== 'events' || opts.hasEvents) && (k !== 'jobs' || opts.hasJobs))
+    .map((k) => all[k])
+}
+
+// Journey-specific cards for the college home. Each links to a screen the
+// college portal already has; the services that are still link-only
+// (src/lib/higher-ed/services.ts, builtIn: null) are not promised here.
+export function journeyHelp(journey: JourneyType | null, base: string): StageHelp[] {
+  switch (journey) {
+    case 'GROWING':
+      return [
+        { key: 'growthPrograms', title: 'Programs for your next level', detail: 'Executive education and certificates, matched to the skills your report says to build.', href: `${base}/programs` },
+        { key: 'sponsor', title: 'Find a sponsor or mentor', detail: 'Alumni a level or two above you who will take a call.', href: `${base}/mentors` },
+      ]
+    case 'PROMOTION':
+      return [{ key: 'sponsor', title: 'Find a sponsor', detail: 'An alum who has made the move you want, and what they would do differently.', href: `${base}/mentors` }]
+    case 'CAREER_CHANGE':
+      return [
+        { key: 'pivots', title: 'Where alumni moved next', detail: 'Roles people with your background moved into, and the skills each took.', href: '/dashboard/pivot-paths' },
+        { key: 'intros', title: 'Talk to someone in the new field', detail: 'An alum who made a similar change.', href: `${base}/network#intros` },
+      ]
+    case 'RETURNING':
+      return [{ key: 'reentry', title: 'Ease back in', detail: 'A mentor who restarted after a break, and short programs to refresh a skill.', href: `${base}/mentors` }]
+    case 'NEXT_ACT':
+      return [{ key: 'projectsBoards', title: 'Projects, boards and advisory roles', detail: 'Alumni post short projects, fractional roles and board seats for each other.', href: `${base}/jobs#projects-h` }]
+    case 'FRACTIONAL':
+      return [{ key: 'projectsClients', title: 'Find your next client among alumni', detail: 'Short projects and fractional roles posted by fellow alumni.', href: `${base}/jobs#projects-h` }]
+    case 'ENTREPRENEUR':
+      return [
+        { key: 'founders', title: 'Talk to alumni who built something', detail: 'Mentors and groups for founders, and projects that need your skills.', href: `${base}/mentors` },
+        { key: 'projectsClients', title: 'Projects from alumni', detail: 'Short paid work while you build.', href: `${base}/jobs#projects-h` },
+      ]
+    case 'TIME_OFF':
+      return [{ key: 'stayConnected', title: 'Stay connected, no pressure', detail: 'Your class and city groups, only when you want them.', href: `${base}/network` }]
+    case 'STUDENT_NEW_GRAD':
+      return [{ key: 'alumniInRoles', title: 'Alumni in the roles you want', detail: 'Ask for 20 minutes. Most first jobs come through someone.', href: `${base}/network#intros` }]
+    default:
+      return []
+  }
 }
 
 // A workforce program's participants: no alumni network, so local jobs,

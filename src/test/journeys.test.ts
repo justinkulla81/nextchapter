@@ -61,6 +61,24 @@ describe('journeys (Product Design doc, Journeys tab)', () => {
     expect(changeForAnswer('nothing', { journey: 'GROWING', stage: 'STAYING' })).toEqual({})
     expect(CHECK_IN_ANSWERS.map((a) => a.key)).not.toContain('break')
   })
+  it('a member who is not looking becomes a searcher when they say they are applying, interviewing or have an offer', () => {
+    const staying = (journey: 'GROWING' | 'FRACTIONAL' | 'ENTREPRENEUR' | 'TIME_OFF') => ({ journey, stage: 'STAYING' as const })
+    expect(changeForAnswer('ready', staying('GROWING'))).toEqual({ journey: 'EXPLORING_MOVE', stage: 'APPLYING' })
+    expect(changeForAnswer('ready', staying('FRACTIONAL'))).toEqual({ journey: 'EXPLORING_MOVE', stage: 'APPLYING' })
+    expect(changeForAnswer('interviewing', staying('ENTREPRENEUR'))).toEqual({ journey: 'EXPLORING_MOVE', stage: 'INTERVIEWING' })
+    expect(changeForAnswer('offer', staying('GROWING'))).toEqual({ journey: 'EXPLORING_MOVE', stage: 'OFFER' })
+    // Out of work on a break: a returner, not someone with a job to move from.
+    expect(changeForAnswer('ready', staying('TIME_OFF'))).toEqual({ journey: 'RETURNING', stage: 'APPLYING' })
+    // Searchers keep their journey.
+    expect(changeForAnswer('ready', { journey: 'PROMOTION', stage: 'PREPARING' })).toEqual({ stage: 'APPLYING' })
+    expect(changeForAnswer('interviewing', { journey: 'LAID_OFF', stage: 'APPLYING' })).toEqual({ stage: 'INTERVIEWING' })
+  })
+  it('the check-in can reach every journey', () => {
+    expect(changeForAnswer('promotion', { journey: 'GROWING', stage: 'STAYING' })).toEqual({ journey: 'PROMOTION', stage: 'PREPARING' })
+    expect(changeForAnswer('career_change', { journey: 'GROWING', stage: 'STAYING' })).toEqual({ journey: 'CAREER_CHANGE', stage: 'EXPLORING' })
+    expect(changeForAnswer('time_off', { journey: 'GROWING', stage: 'STAYING' })).toEqual({ journey: 'TIME_OFF', stage: 'STAYING' })
+    expect(changeForAnswer('building', { journey: 'GROWING', stage: 'STAYING' })).toEqual({ journey: 'ENTREPRENEUR', stage: 'STAYING' })
+  })
   it('check-ins come at the stage pace: weekly when applying, monthly when exploring', () => {
     const now = new Date('2026-10-12T00:00:00Z')
     const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000)

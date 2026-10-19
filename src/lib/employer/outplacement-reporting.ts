@@ -39,7 +39,7 @@ export interface CohortScope {
   asOf: Date // the point in time this snapshot reflects — "now" for monthly cohorts, the last complete quarter's end for quarterly ones
 }
 
-async function resolveScope(orgUser: CurrentOutplacementOrgUser, contractId: string): Promise<CohortScope | null> {
+export async function resolveScope(orgUser: CurrentOutplacementOrgUser, contractId: string): Promise<CohortScope | null> {
   const contract = await prisma.outplacementContract.findFirst({
     where: { id: contractId, orgId: orgUser.orgId },
     select: { id: true, cohortLabel: true, tier: true, seatCount: true },
@@ -104,7 +104,7 @@ export interface EngagementAggregates {
 // employerCandidateAggregates — the Phase 1 primitive that only exposes
 // count/aggregate/groupBy against CandidateProfile (never findMany). The
 // list itself never leaves this function.
-async function orgCandidateIds(contractId: string, asOf: Date): Promise<string[]> {
+export async function orgCandidateIds(contractId: string, asOf: Date): Promise<string[]> {
   const seats = await prisma.outplacementSeat.findMany({
     where: { contractId, status: 'ACTIVATED', activatedAt: { lte: asOf }, candidateId: { not: null } },
     select: { candidateId: true },
@@ -213,46 +213,6 @@ export async function getTimeToPlacementBenchmarks(orgUser: CurrentOutplacementO
   const visibleRows = suppressedRows.filter((r) => r.avgDaysToPlacement !== null)
 
   return { hasEnoughData: visibleRows.length > 0, rows: visibleRows }
-}
-
-export interface AlumniSentiment {
-  population: number
-  hasEnoughData: boolean
-  distribution: { mood: string; count: number | null }[]
-}
-
-// Aggregate mood distribution over the org's own candidates' daily
-// check-ins (the real sentiment-collection mechanism already in the
-// product — see DailyCheckIn/Mood in prisma/schema.prisma) — a thin but
-// real signal, not fabricated. groupBy's key here is `mood` (a 4-value
-// enum, not identity-resolvable), never candidateId.
-export async function getAlumniSentiment(orgUser: CurrentOutplacementOrgUser): Promise<AlumniSentiment> {
-  const seats = await prisma.outplacementSeat.findMany({
-    where: { contract: { orgId: orgUser.orgId }, status: 'ACTIVATED', candidateId: { not: null } },
-    select: { candidateId: true },
-  })
-  const candidateIds = seats.map((s) => s.candidateId).filter((id): id is string => !!id)
-  const population = candidateIds.length
-
-  if (population < EMPLOYER_MIN_CELL_SIZE) {
-    return { population, hasEnoughData: false, distribution: [] }
-  }
-
-  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-  const grouped = await prisma.dailyCheckIn.groupBy({
-    by: ['mood'],
-    where: { candidateId: { in: candidateIds }, checkedInAt: { gte: ninetyDaysAgo } },
-    _count: { _all: true },
-  })
-
-  return {
-    population,
-    hasEnoughData: true,
-    distribution: grouped.map((g) => ({
-      mood: g.mood,
-      count: suppressSmallCell(roundEmployerAggregate(g._count._all, population), g._count._all),
-    })),
-  }
 }
 
 export interface BoomerangSignal {

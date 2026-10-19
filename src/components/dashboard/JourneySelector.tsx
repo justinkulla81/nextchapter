@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
+import { situationFieldsFor } from '@/lib/journey/situation'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
-import { JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, type JourneyStage, type JourneyType, type MoveDriver } from '@/lib/journey/journey'
+import { ACTIVE_SEARCH_STAGES, JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, getStage, type JourneyStage, type JourneyType, type MoveDriver } from '@/lib/journey/journey'
 
 // "Your situation" on Privacy: why you're moving and how close you are to
 // applying. Your plan and check-ins follow both.
@@ -23,7 +24,7 @@ export function JourneySelector({
   stage: JourneyStage | null
   moveDriver: MoveDriver | null
   intensity: string | null
-  details: { returnDate: string; offering: string; openDays: string; engagementEnds: string }
+  details: { returnDate: string; offering: string; openDays: string; engagementEnds: string; venture: string; situation: Record<string, string> }
 }) {
   const [state, formAction, pending] = useActionState(updateJourney, undefined)
   const [j, setJ] = useState<JourneyType>(journey ?? 'EXPLORING_MOVE')
@@ -31,7 +32,9 @@ export function JourneySelector({
   const [d, setD] = useState<MoveDriver | null>(moveDriver)
   const [i, setI] = useState<string | null>(intensity === 'ACTIVELY_SEARCHING' ? 'ACTIVELY_SEARCHING' : intensity ? 'CASUALLY_LOOKING' : null)
   const initialI = intensity === 'ACTIVELY_SEARCHING' ? 'ACTIVELY_SEARCHING' : intensity ? 'CASUALLY_LOOKING' : null
-  const hasDetails = j === 'TIME_OFF' || j === 'FRACTIONAL'
+  const [sit, setSit] = useState<Record<string, string>>(details.situation)
+  const hasDetails = j === 'TIME_OFF' || j === 'FRACTIONAL' || j === 'ENTREPRENEUR' || situationFieldsFor(j).length > 0
+  const notASearch = !getJourney(j).searching && ACTIVE_SEARCH_STAGES.includes(s)
   const unchanged = j === journey && s === stage && (j !== 'EXPLORING_MOVE' || d === moveDriver) && i === initialI && !hasDetails
 
   return (
@@ -69,10 +72,34 @@ export function JourneySelector({
             ))}
           </select>
         </div>
-        <SubmitButton size="sm" variant="outline" disabled={unchanged} title={unchanged ? 'Change one of these to save' : undefined}>
+        <SubmitButton size="sm" variant="outline" disabled={unchanged || notASearch} title={unchanged ? 'Change one of these to save' : notASearch ? 'Choose a search situation or Managing your career first' : undefined}>
           Save situation
         </SubmitButton>
       </div>
+      <div className="rounded-md bg-muted/40 p-3 text-sm" aria-live="polite">
+        <p>
+          <span className="font-medium">Your goal: </span>
+          {getJourney(j).goal}
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          {getStage(s).plan}{' '}
+          {getJourney(j).confidentialByDefault
+            ? 'Most people in this situation keep Confidential Search Mode on.'
+            : 'Your activity can be visible to your colleges and coach where you have shared it.'}{' '}
+          {(j !== journey || s !== stage) && 'Saving changes your weekly plan, menu and emails right away.'}
+        </p>
+        {notASearch && (
+          <p role="alert" className="mt-1 text-destructive">
+            {getJourney(j).label} isn&apos;t a job search. To start applying, choose &ldquo;Thinking about a move&rdquo;, or pick &ldquo;Managing your career&rdquo; as where you are.
+          </p>
+        )}
+      </div>
+      {j === 'ENTREPRENEUR' && (
+        <div className="space-y-1.5">
+          <Label htmlFor="venture">What are you building, and where does it stand?</Label>
+          <Input id="venture" name="venture" maxLength={300} defaultValue={details.venture} />
+        </div>
+      )}
       {j === 'EXPLORING_MOVE' && (
         <div className="space-y-1.5">
           <Label>What&apos;s behind the move?</Label>
@@ -108,6 +135,20 @@ export function JourneySelector({
           </div>
         </div>
       )}
+      {situationFieldsFor(j).length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {situationFieldsFor(j).map((f) => (
+            <div key={f.key} className="space-y-1.5">
+              <Label htmlFor={`sit-${f.key}`}>{f.label}</Label>
+              {f.kind === 'choice' ? (
+                <ChoiceButtons name={f.key} options={(f.options ?? []).map((o) => ({ value: o.value, label: o.label }))} value={sit[f.key] ?? null} onChange={(v) => setSit((cur) => ({ ...cur, [f.key]: v }))} columns={3} responsive />
+              ) : (
+                <Input id={`sit-${f.key}`} name={f.key} type={f.kind === 'date' ? 'date' : f.kind === 'text' ? 'text' : 'number'} min={f.min} max={f.max} maxLength={f.kind === 'text' ? 120 : undefined} defaultValue={details.situation[f.key] ?? ''} />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       {getJourney(j).searching && s !== 'STAYING' && s !== 'LANDED' && (
         <div className="space-y-1.5">
           <Label>How actively are you looking?</Label>
@@ -122,6 +163,7 @@ export function JourneySelector({
         </div>
       )}
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state?.message && !state.error && <p role="status" className="text-sm text-brand">{state.message}</p>}
     </form>
   )
 }

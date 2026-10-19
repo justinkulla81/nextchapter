@@ -9,6 +9,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { PageContentView } from '@/lib/dashboard/page-content'
+import { effectiveJourney, getJourney } from '@/lib/journey/journey'
 
 export interface SearchStrategyChecklistItem {
   key: string
@@ -30,6 +31,10 @@ export interface SearchStrategyChecklistProfile {
   // yet, so treating them as still "incomplete" was a false nag: the
   // candidate sees 3 industries already sitting there and no reason to act.
   inferredIndustries?: string[]
+  // Not job searching (managing a career, on a break, fractional, building something): nothing here applies.
+  searching?: boolean
+  // Employed people are asked when they want to start applying, not how long they have searched.
+  employed?: boolean
 }
 
 const POINTS_PER_ITEM = 5
@@ -48,7 +53,7 @@ const FIELDS: {
     key: 'gapDuration',
     label: 'How long you have been searching',
     anchor: 'gapDuration',
-    isAnswered: (p) => !!p.gapDuration,
+    isAnswered: (p) => !!p.gapDuration || p.employed === true,
   },
   {
     key: 'targetIndustries',
@@ -88,6 +93,7 @@ export interface SearchStrategyChecklist {
 }
 
 export function computeSearchStrategyChecklist(profile: SearchStrategyChecklistProfile): SearchStrategyChecklist {
+  if (profile.searching === false) return { incomplete: [], totalPointsRemaining: 0 }
   const incomplete = FIELDS.filter((f) => !f.isAnswered(profile)).map((f) => ({
     key: f.key,
     label: f.label,
@@ -115,11 +121,14 @@ export async function getSearchStrategyDailyMessageOverride(candidateId: string)
       highestLevelReached: true,
       targetRoleType: true,
       remotePreference: true,
+      journey: true,
+      currentJobStatus: true,
     },
   })
   if (!profile?.searchStrategyFirstAnsweredAt) return null
 
-  const { incomplete } = computeSearchStrategyChecklist(profile)
+  const j = effectiveJourney(profile)
+  const { incomplete } = computeSearchStrategyChecklist({ ...profile, searching: j ? getJourney(j).searching : true, employed: j ? getJourney(j).employed : false })
   if (incomplete.length === 0) return null
 
   return {

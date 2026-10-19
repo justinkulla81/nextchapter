@@ -682,6 +682,9 @@ model CandidateProfile {
   // population/page.tsx, and src/lib/analytics/population-metrics.ts) —
   // those call sites now read this field directly instead.
   confidentialSearchMode          Boolean                     @default(false)
+  // Whether the member wants help with money (Finances and benefits, a runway, pay and savings questions).
+  // Null until asked. False: none of it is shown or asked. Added by hand: prisma/manual/2026-10-18-money-help.sql.
+  moneyHelp                       Boolean?
   // Candidate+ search-effort target in minutes for THIS member. Null uses the
   // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
   // Candidate+ stays on once earned (dossier-unlock.ts): when and how it was first met
@@ -1837,6 +1840,7 @@ model CandidateProfile {
   parallelPath      ParallelPath?
 
   // In-work track (Prisma-virtual back-relations; add no columns here).
+  careerEvents        CareerEvent[]
   inWorkProfile       InWorkProfile?
   inWorkWins          InWorkWin[]
   inWorkPreps         InWorkPrep[]
@@ -8156,6 +8160,10 @@ model OutplacementContract {
   programType OutplacementProgramType @default(OUTPLACEMENT)
 
   cohortLabel      String? // e.g. "RIF — Q1 2026 Engineering" — §A7 multi-cohort views
+  // The journey a seat starts (src/lib/journey/sponsored.ts). Null means
+  // outplacement: Laid off, applying. Career growth contracts set Managing my career,
+  // Promotion or Changing careers. No DDL rewrite of existing rows needed.
+  journey          JourneyType?
   tier             OutplacementTier
   seatCount        Int
   termStartAt      DateTime
@@ -15933,4 +15941,34 @@ model NativeJobApplication {
 
   @@unique([candidateId, postingId])
   @@index([postingId])
+}
+
+// One chapter of a member's career story (src/lib/career-story). Most of the story is derived
+// from work history, education, learning and journey changes and never stored here. A row is
+// either something the member added (sourceRef null) or their correction of a derived event
+// (sourceRef set, e.g. "work:<id>"): a new label or dates, or hidden. Private to the member:
+// never read by employer, college, recruiter or coach code, and never used for matching. The
+// reason is optional and sensitive.
+model CareerEvent {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // SCHOOL | WORK | VENTURE | PAUSE | LEARNING | MILESTONE
+  kind      String
+  label     String
+  detail    String?   @db.Text
+  startDate DateTime  @db.Date
+  endDate   DateTime? @db.Date
+  // FAMILY | HEALTH | REST | MOVE | OTHER, only for a pause, and always optional.
+  reason    String?
+  // Set when this row corrects an event we derived ("work:<id>", "edu:<id>", "gap:<yyyy-mm-dd>"). Null for something the member added.
+  sourceRef String?
+  hidden    Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([candidateId])
+  @@unique([candidateId, sourceRef])
 }

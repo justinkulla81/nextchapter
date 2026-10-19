@@ -12,6 +12,9 @@ import type {
   TrackRecordSizeBand,
 } from '@prisma/client'
 import {
+  APPROVAL_AUTHORITY_OPTIONS,
+  COMPANY_STAGE_HISTORY_OPTIONS,
+  OPERATING_SITUATION_OPTIONS,
   TRACK_RECORD_BOARD_EXPOSURE_LABELS,
   TRACK_RECORD_DOLLAR_BAND_LABELS,
   TRACK_RECORD_GEOGRAPHIC_SCOPE_LABELS,
@@ -31,6 +34,12 @@ export type CaseInput = {
     geographicScope: TrackRecordGeographicScope | null
     reportedToLevel: TrackRecordReportedToLevel | null
     ledThroughRestructuring: boolean | null
+    // Read so the case says everything they recorded.
+    approvalAuthority?: string[]
+    situationRanking?: string[]
+    mandateClarity?: number | null
+    stageHistory?: string[]
+    accomplishmentToConfirm?: string | null
   } | null
   workSamples: { title: string; outcome: string | null; beforeMetric: string | null; afterMetric: string | null }[]
   quotes: { theme: string; quoteText: string }[]
@@ -66,6 +75,14 @@ export function buildCase(input: CaseInput): Case {
     if (t.boardExposure && !none(t.boardExposure)) results.push(`Board exposure: ${TRACK_RECORD_BOARD_EXPOSURE_LABELS[t.boardExposure]}`)
     if (t.reportedToLevel && !none(t.reportedToLevel)) results.push(`Reported to: ${REPORTED_TO[t.reportedToLevel]}`)
     if (t.ledThroughRestructuring) results.push('Led a team through a restructuring')
+    const approvals = (t.approvalAuthority ?? []).filter((a) => a !== 'NONE').map((a) => APPROVAL_AUTHORITY_OPTIONS.find((o) => o.value === a)?.label.toLowerCase()).filter(Boolean)
+    if (approvals.length) results.push(`Can approve without escalation: ${approvals.join(', ')}`)
+    const mostOften = OPERATING_SITUATION_OPTIONS.find((o) => o.value === t.situationRanking?.[0])
+    if (mostOften) results.push(`Most often: ${mostOften.label.toLowerCase()}`)
+    if (t.mandateClarity === 1) results.push('Defined the mandate for the role yourself')
+    const stages = (t.stageHistory ?? []).map((s) => COMPANY_STAGE_HISTORY_OPTIONS.find((o) => o.value === s)?.label.toLowerCase()).filter(Boolean)
+    if (stages.length) results.push(`Worked at ${stages.join(', ')} companies`)
+    if (t.accomplishmentToConfirm?.trim()) results.push(`An accomplishment a reference can confirm: ${t.accomplishmentToConfirm.trim().slice(0, 160)}`)
   }
 
   const samples = input.workSamples.slice(0, 5).map((w) => ({

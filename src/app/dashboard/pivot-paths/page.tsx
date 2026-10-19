@@ -1,3 +1,14 @@
+import { after } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PathwayExplorer } from '@/components/dashboard/pathway/PathwayExplorer'
+import { LearningPathsCard } from '@/components/dashboard/pathway/LearningPathsCard'
+import { getLearningPaths } from '@/lib/journey/learning-paths-data'
+import { PIVOT_REASONS, ownedFunctionsFrom } from '@/lib/journey/pathway'
+import { activeTargets, pivotInterestsOf, pivotOf } from '@/lib/journey/pivot'
+import { pivotIdeas } from '@/lib/journey/pivot-ideas'
+import { PivotRadar } from '@/components/dashboard/pathway/PivotRadar'
+import { PivotIdeas } from '@/components/dashboard/pathway/PivotIdeas'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import Link from 'next/link'
@@ -44,7 +55,13 @@ export default async function PivotPathsPage({ searchParams }: { searchParams: P
         <p className="text-muted-foreground">
           Where your skills carry over, ranked by how well you fit, how many of these jobs are open near you and nationally, and what they pay.
         </p>
+        <p className="text-sm text-muted-foreground">
+          <Link href="/dashboard/my-career" className="text-primary underline underline-offset-4">
+            See these on your career timeline
+          </Link>
+        </p>
       </div>
+      <WhatItTakes profile={profile} target={first(params.target)} why={first(params.why)} />
       <Suspense
         fallback={
           <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
@@ -55,6 +72,52 @@ export default async function PivotPathsPage({ searchParams }: { searchParams: P
       >
         <PivotPathsBody profile={profile} params={params} />
       </Suspense>
+    </div>
+  )
+}
+
+// "What would it take?" and the member's learning paths. Works without the O*NET data.
+async function WhatItTakes({ profile, target, why }: { profile: Awaited<ReturnType<typeof getDashboardProfile>>; target: string; why: string }) {
+  const [tr, learning] = await Promise.all([
+    prisma.trackRecordResponse.findUnique({ where: { candidateId: profile.id }, select: { functionsOwnedOutsideCore: true, sectorHistory: true } }),
+    getLearningPaths(profile.id),
+  ])
+  const reason = PIVOT_REASONS.find((r) => r.key === why)?.key ?? null
+  const saved = activeTargets(pivotOf(profile.journeyDetails)).some((t) => t.function === target)
+  if (target) {
+    after(() => captureServerEvent(profile.id, 'pivot_pathway_viewed', { from: profile.primaryFunction, to: target, why: reason }))
+  }
+  const pivot = pivotOf(profile.journeyDetails)
+  const interests = pivotInterestsOf(profile.journeyDetails)
+  const ideas = pivotIdeas({
+    from: profile.primaryFunction,
+    keywords: [...profile.resumeKeywords, ...profile.confirmedSkillsHave],
+    ownedFunctions: ownedFunctionsFrom(tr?.functionsOwnedOutsideCore),
+    seniorLevel: (profile.levelRankScore ?? 0) >= 60,
+    currentIndustry: profile.industryContext,
+    sectorHistory: tr?.sectorHistory ?? [],
+    reason,
+    onRadar: (pivot?.targets ?? []).map((t) => t.function),
+    industriesOnRadar: interests.industries.map((i) => i.name),
+    skillsToBuild: profile.skillsToBuild,
+  })
+  return (
+    <div className="space-y-6">
+      <PivotRadar pivot={pivot} interests={interests} />
+      <PivotIdeas ideas={ideas} from={profile.primaryFunction} />
+      <PathwayExplorer
+        from={profile.primaryFunction}
+        keywords={[...profile.resumeKeywords, ...profile.confirmedSkillsHave]}
+        seniorLevel={(profile.levelRankScore ?? 0) >= 60}
+        ownedFunctions={ownedFunctionsFrom(tr?.functionsOwnedOutsideCore)}
+        target={target || null}
+        why={reason}
+        alreadySaved={saved}
+        currentIndustry={profile.industryContext}
+        targetIndustries={profile.targetIndustries}
+        sectorHistory={tr?.sectorHistory ?? []}
+      />
+      <LearningPathsCard paths={learning.paths} progress={learning.progress} />
     </div>
   )
 }

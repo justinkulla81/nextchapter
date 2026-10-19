@@ -6,6 +6,7 @@
 // client-safe. The setting is CandidateProfile.searchIntensity.
 
 import type { SearchIntensity } from '@prisma/client'
+import type { JourneyStage, JourneyType } from '@prisma/client'
 import type { ApplyTiming } from './journey'
 
 export const INTENSITY_OPTIONS = [
@@ -37,8 +38,24 @@ export function workingNowOf(details: unknown): boolean {
   return (details as { workingNow?: unknown } | null)?.workingNow === true
 }
 
+// Journeys that are not a job search, and the stage for people not looking right
+// now. Members here get a light pace and no progress-push emails whatever their
+// "search intensity" says (it is not asked of them, so it is empty).
+export const NOT_SEARCHING_JOURNEYS: readonly JourneyType[] = ['GROWING', 'ENTREPRENEUR', 'FRACTIONAL', 'TIME_OFF']
+
+export function isNotSearching(journey: JourneyType | null | undefined, stage: JourneyStage | null | undefined): boolean {
+  return (!!journey && NOT_SEARCHING_JOURNEYS.includes(journey)) || stage === 'STAYING' || stage === 'PAUSED'
+}
+
 // Prisma filter for the emails that push on weekly progress (daily action,
-// midweek check-in, Friday gap nudge): members looking casually are not sent
-// them. They still get the Monday plan, the Saturday check-in and job alerts.
-// Members with no setting yet (everyone from before) still get everything.
-export const NOT_CASUAL_WHERE = { OR: [{ searchIntensity: null }, { searchIntensity: 'ACTIVELY_SEARCHING' as const }] }
+// midweek check-in, Friday gap nudge): members looking casually, or not looking
+// at all, are not sent them. They still get the Monday plan, the Saturday
+// check-in and job alerts. Members with no setting yet (everyone from before)
+// still get everything.
+export const NOT_CASUAL_WHERE = {
+  AND: [
+    { OR: [{ searchIntensity: null }, { searchIntensity: 'ACTIVELY_SEARCHING' as const }] },
+    { OR: [{ journey: null }, { journey: { notIn: [...NOT_SEARCHING_JOURNEYS] } }] },
+    { OR: [{ journeyStage: null }, { journeyStage: { notIn: ['STAYING' as const, 'PAUSED' as const] } }] },
+  ],
+}

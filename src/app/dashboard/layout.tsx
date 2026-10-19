@@ -28,6 +28,9 @@ import { isInWorkMember } from '@/lib/in-work/constants'
 import { getFreshJobsPeek } from '@/lib/jobs/fresh-jobs-peek'
 import { timed } from '@/lib/perf/timed'
 import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
+import { RedesignNav } from '@/components/dashboard/RedesignNav'
+import { RedesignParts } from '@/components/dashboard/RedesignParts'
+import { isRedesignOn } from '@/lib/redesign/flag'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
 import { checkInDue, effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
 import { menuMode } from '@/lib/journey/menu'
@@ -78,6 +81,24 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   // follow up with, unread messages, and unread community posts.
   const messagesUnreadCount = candidateMessagesUnreadCount + peerUnreadCount
   const needsFollowUpCount = needsFollowUpList.length
+
+  if (isRedesignOn(profile.email)) {
+    const access = await accessFor(profileId)
+    return (
+      <>
+        <RedesignNav
+          badges={{ jobs: freshJobsCount, network: needsFollowUpCount + messagesUnreadCount + supportNetworkUnreadCount, help: helpRepliesWaiting, account: documentRequestCount }}
+          employed={isInWorkMember(profile)}
+          earlyCareer={earlyCareerAudience(profile) !== null}
+          // The redesign does not lock tabs behind connecting Gmail: connecting is offered where it helps, never required.
+          locks={{ hasEmailConnection: true, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
+          paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
+          moneyHelp={profile.moneyHelp}
+        />
+        <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
+      </>
+    )
+  }
 
   return (
     <>
@@ -150,6 +171,20 @@ async function PlaceTabsWithLocks({ profileId }: { profileId: string }) {
   )
 }
 
+// The redesigned part switches (Jobs, Not posted yet, ...), with the same locks as the tab row.
+async function RedesignPartsWithLocks({ profileId }: { profileId: string }) {
+  const [profile, gmailConnected, access] = await Promise.all([getDashboardProfile(), isGmailConnected(profileId), accessFor(profileId)])
+  return (
+    <RedesignParts
+      employed={isInWorkMember(profile)}
+      earlyCareer={earlyCareerAudience(profile) !== null}
+      locks={{ hasEmailConnection: true, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
+      paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
+      moneyHelp={profile.moneyHelp}
+    />
+  )
+}
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getDashboardProfile()
 
@@ -164,10 +199,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // a prerequisite to anything.
   const hardGateStatus = profile.subjectToHardGate ? getHardGateStatus(profile) : 'exempt'
 
+  const redesign = isRedesignOn(profile.email)
   const personName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email || 'You'
 
   return (
-    <div className="theme-candidate min-h-screen">
+    <div className={redesign ? 'theme-candidate theme-redesign min-h-screen' : 'theme-candidate min-h-screen'}>
       <IdentifyUser candidateId={profile.id} email={profile.email} />
       <DashboardActivityTracker />
       {/* "Retuning your search": shown after any save that changes matching, on whatever page it lands. */}
@@ -215,17 +251,23 @@ export default async function DashboardLayout({ children }: { children: React.Re
           viewport on short pages (e.g. the loading skeleton) — without it,
           the body's own --background (a light gray-blue, see globals.css)
           shows through below wherever this element's content ends. */}
-      <main className="min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
-        <div className="mx-auto max-w-4xl">
+      <main className="nc-main min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
+        <div className="nc-main-inner mx-auto max-w-4xl">
           <HardGateGate subjectToHardGate={profile.subjectToHardGate} status={hardGateStatus}>
             <Suspense fallback={null}>
               <GoogleConnectResultBanner />
             </Suspense>
-            <Suspense
-              fallback={<PlaceTabs employed={false} locks={{ hasEmailConnection: true, skillsAssessmentCompleted: true }} paidAccess={{ coaching: true, recruiters: true }} />}
-            >
-              <PlaceTabsWithLocks profileId={profile.id} />
-            </Suspense>
+            {redesign ? (
+              <Suspense fallback={null}>
+                <RedesignPartsWithLocks profileId={profile.id} />
+              </Suspense>
+            ) : (
+              <Suspense
+                fallback={<PlaceTabs employed={false} locks={{ hasEmailConnection: true, skillsAssessmentCompleted: true }} paidAccess={{ coaching: true, recruiters: true }} />}
+              >
+                <PlaceTabsWithLocks profileId={profile.id} />
+              </Suspense>
+            )}
             {children}
           </HardGateGate>
         </div>
