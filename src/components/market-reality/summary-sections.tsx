@@ -1,6 +1,6 @@
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import type { MarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
-import { SECTIONS, sectionNumber } from '@/lib/reports/market-reality-brief/sections'
+import { APPENDIX_SECTIONS, BODY_SECTIONS, sectionNumber } from '@/lib/reports/market-reality-brief/sections'
 import { buttonVariants } from '@/components/ui/button'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { firstStep } from '@/lib/reports/market-reality-brief/launchpad'
@@ -9,7 +9,7 @@ import { AssessmentMark, Estimate, ReportLink, ReportSection, ReportTable, SubHe
 export function Cover({ brief }: { brief: MarketRealityBrief }) {
   const target = brief.basis.rows.find((r) => r.label === 'Target role')?.value ?? null
   return (
-    <header className="space-y-10 print:break-after-page print:pb-16">
+    <header className="space-y-10 print:space-y-6">
       <div className="border-t-4 border-navy pt-6">
         <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">NextChapter</p>
         <h1 className="mt-4 font-serif text-4xl font-semibold tracking-tight text-navy">Market Reality Report</h1>
@@ -31,13 +31,18 @@ export function Cover({ brief }: { brief: MarketRealityBrief }) {
       <nav aria-label="Contents">
         <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Contents</p>
         <ol className="mt-3 grid gap-x-10 gap-y-1.5 text-sm sm:grid-cols-2">
-          <li>
-            <a href="#summary" className="flex gap-3 underline-offset-4 hover:underline">
-              <span className="w-6 tabular-nums text-muted-foreground">—</span>
-              <span className="text-foreground">Executive summary</span>
-            </a>
-          </li>
-          {SECTIONS.map((sec) => (
+          {[{ id: 'summary', title: 'Executive summary', n: '—' }, ...BODY_SECTIONS.map((x) => ({ ...x, n: sectionNumber(x.id) }))].map((sec) => (
+            <li key={sec.id}>
+              <a href={`#${sec.id}`} className="flex gap-3 underline-offset-4 hover:underline">
+                <span className="w-6 tabular-nums text-muted-foreground">{sec.n}</span>
+                <span className="text-foreground">{sec.title}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-5 text-xs font-semibold tracking-widest text-muted-foreground uppercase">Appendix</p>
+        <ol className="mt-2 grid gap-x-10 gap-y-1.5 text-sm sm:grid-cols-2">
+          {APPENDIX_SECTIONS.map((sec) => (
             <li key={sec.id}>
               <a href={`#${sec.id}`} className="flex gap-3 underline-offset-4 hover:underline">
                 <span className="w-6 tabular-nums text-muted-foreground">{sectionNumber(sec.id)}</span>

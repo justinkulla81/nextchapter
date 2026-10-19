@@ -1,10 +1,12 @@
 import { Suspense, type ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 import { ReviewerExplanationForm } from '@/components/dashboard/ReviewerExplanationForm'
 import { AdzunaMarketSection, AdzunaMarketSectionLoading } from '@/components/market/AdzunaMarketSection'
 import { isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 import type { MarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
 import { INTERVIEWS_PER_OFFER, PLAN_WEEKS } from '@/lib/reports/market-reality-brief/effort-plan'
 import { STANCE_LABEL, STANCE_MARK } from '@/lib/reports/market-reality-brief/evaluators'
+import { hiringCaseCounts, HIRING_STATUS_LABEL, type HiringStatus } from '@/lib/reports/market-reality-brief/hiring-case'
 import { sectionNumber } from '@/lib/reports/market-reality-brief/sections'
 import { buttonVariants } from '@/components/ui/button'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
@@ -187,7 +189,7 @@ export function ExperienceSection({ brief }: { brief: MarketRealityBrief }) {
       ? `${x.careerYears} years across ${x.roleCount} roles. The history reads cleanly on every check a recruiter runs.`
       : `${x.careerYears} years across ${x.roleCount} roles. ${x.developmentCount} of ${x.findings.length} checks a recruiter runs would draw a question.`
   return (
-    <ReportSection id="experience" number={sectionNumber('experience')} title="Experience" finding={finding}>
+    <ReportSection id="experience" number={sectionNumber('experience')} title="Experience in detail" finding={finding}>
       {x.assessable ? (
         <ReportTable
           label="Experience checks"
@@ -275,7 +277,7 @@ export function SkillsSection({ brief }: { brief: MarketRealityBrief }) {
         ? `None of the ${s.employers} employers with jobs that fit you ask for a specific AI skill yet.`
         : `${s.employersAskingAi} of the ${s.employers} employers with jobs that fit you ask for a specific AI skill. ${aiGaps === 0 ? 'Each one asked for is on your profile.' : `${aiGaps} ${aiGaps === 1 ? 'is' : 'are'} not on your profile.`}`
   return (
-    <ReportSection id="skills" number={sectionNumber('skills')} title="Skills" finding={finding}>
+    <ReportSection id="skills" number={sectionNumber('skills')} title="Skills in detail" finding={finding}>
       {s?.marketLine && <p className="text-sm text-muted-foreground">{s.marketLine}</p>}
 
       {s && s.ai.length > 0 && (
@@ -349,7 +351,7 @@ export function ResumeSection({ brief }: { brief: MarketRealityBrief }) {
       ? 'No high-impact issues were found on the current resume.'
       : `${r.fixes.length + r.moreFixes} fixes identified, ordered by how much each improves the resume.`
   return (
-    <ReportSection id="resume" number={sectionNumber('resume')} title="Resume" finding={finding}>
+    <ReportSection id="resume" number={sectionNumber('resume')} title="Resume in detail" finding={finding}>
       {r && r.fixes.length > 0 && (
         <>
           <ReportTable
@@ -450,54 +452,10 @@ export function DirectionSection({ brief }: { brief: MarketRealityBrief }) {
             </ul>
           )}
 
-          {p.industries.length > 0 && (
-            <div>
-              <SubHeading>Industry: the same work elsewhere</SubHeading>
-              <ReportTable
-                label="Industry options"
-                head={['Option', 'Open roles', 'Trend']}
-                className="mt-2"
-                rows={p.industries.map((r) => ({
-                  key: r.label,
-                  cells: [
-                    r.href ? (
-                      <ReportLink key="l" href={r.href} event="market_reality_market_option_clicked" properties={{ label: r.label, kind: 'industry', openRoles: r.openRoles }}>
-                        {r.label}
-                      </ReportLink>
-                    ) : (
-                      r.label
-                    ),
-                    n(r.openRoles),
-                    <Muted key="t">{r.trend ?? '—'}</Muted>,
-                  ],
-                }))}
-              />
-            </div>
-          )}
-
-          {p.places.length > 0 && (
-            <div>
-              <SubHeading>Geography: a wider area</SubHeading>
-              <ReportTable
-                label="Geography options"
-                head={['Option', 'Open roles', 'Trend']}
-                className="mt-2"
-                rows={p.places.map((r) => ({
-                  key: r.label,
-                  cells: [
-                    r.href ? (
-                      <ReportLink key="l" href={r.href} event="market_reality_market_option_clicked" properties={{ label: r.label, kind: 'place', openRoles: r.openRoles }}>
-                        {r.label}
-                      </ReportLink>
-                    ) : (
-                      r.label
-                    ),
-                    n(r.openRoles),
-                    <Muted key="t">{r.trend ?? '—'}</Muted>,
-                  ],
-                }))}
-              />
-            </div>
+          {(p.industries.length > 0 || p.places.length > 0) && (
+            <p className="text-sm text-foreground">
+              <span className="font-semibold">Industry and place.</span> The options with the most open roles are the rows marked “Widens most” under Market (section {sectionNumber('market')}). Changing one limit at a time is the lowest-risk move.
+            </p>
           )}
 
           {p.functions.length > 0 && (
@@ -713,11 +671,8 @@ export function MethodNotes() {
     <footer className="border-t border-navy/20 pt-6 text-xs leading-relaxed text-muted-foreground">
       <p className="font-semibold tracking-widest text-navy uppercase">Method and limits</p>
       <ul className="mt-2 list-disc space-y-1 pl-4">
-        <li>Everything here is read from your profile and activity and computed by fixed rules. Nothing is written by a model, so a sentence cannot disagree with the number beside it.</li>
-        <li>Open-role counts are live postings on the NextChapter board. Trends compare each market with the whole board, because the number of sources grows over time.</li>
-        <li>Odds per application, volumes and the grade are working estimates. They sharpen as more candidates use the product and as your own results come in, and they are not predictions of an outcome.</li>
-        <li>Experience norms are the screening rules of thumb recruiters use, not statistics about your market. A short stint or a gap is never a verdict on a person.</li>
-        <li>Private notes you share with a coach, such as blockers and motivations, never enter this report.</li>
+        <li>Open-role counts are live postings on the NextChapter board; trends compare each market with the whole board. Odds, volumes and the grade are working estimates that sharpen as your own results come in, not predictions.</li>
+        <li>Experience norms are the screening rules of thumb recruiters use. A short stint or a gap is never a verdict on a person. Private notes shared with a coach never enter this report.</li>
       </ul>
     </footer>
   )
@@ -799,6 +754,7 @@ export function ObjectionsSection({ brief }: { brief: MarketRealityBrief }) {
       {o.length > 0 && (
         <ReportTable
           label="Likely objections and suggested answers"
+          widths={['30%', '58%', '12%']}
           head={['What they will ask', 'How to answer', 'From']}
           rows={o.map((x) => ({
             key: x.key,
@@ -814,36 +770,83 @@ export function ObjectionsSection({ brief }: { brief: MarketRealityBrief }) {
   )
 }
 
-// ── Case for you ───────────────────────────────────────────────────────────
+// ── Reasons an employer would hire you ─────────────────────────────────────
 
-export function CaseSection({ brief }: { brief: MarketRealityBrief }) {
-  const c = brief.caseForYou
+/** The same four-state mark the whole report uses: filled, half, empty, and a question mark. */
+function HiringStatusMark({ status }: { status: HiringStatus }) {
+  if (status === 'unknown') {
+    return (
+      <span className="inline-flex items-start gap-2 text-foreground">
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" className="mt-0.5 shrink-0">
+          <circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2.2 2" className="text-navy" />
+        </svg>
+        {HIRING_STATUS_LABEL[status]}
+      </span>
+    )
+  }
+  const value = status === 'in_place' ? 'strength' : status === 'issue' ? 'adequate' : 'development'
+  return <AssessmentMark value={value} label={HIRING_STATUS_LABEL[status]} className={cn('items-start whitespace-normal', status === 'missing' && 'font-semibold')} />
+}
+
+export function HiringCaseSection({ brief }: { brief: MarketRealityBrief }) {
+  const rows = brief.hiringCase
+  const c = hiringCaseCounts(rows)
+  const c2 = brief.caseForYou
   return (
     <ReportSection
-      id="case"
-      number={sectionNumber('case')}
-      title="The case for you"
-      finding={
-        c.items.length > 0
-          ? `${c.items.length} ${c.items.length === 1 ? 'thing' : 'things'} in the record a buyer would pay for. Each one cites its evidence and says where to lead with it. These are tools to use, so use them in the resume, in outreach and in the first minute of an interview.`
-          : 'The record does not yet carry a lead differentiator a reader can verify on the page. That is a finding, not a judgment: the actions in this report are what build one, and this section fills in as they land.'
-      }
+      id="hire"
+      number={sectionNumber('hire')}
+      title="Reasons an employer would hire you"
+      finding={`An employer hires for ${rows.length} things. ${c.in_place} ${c.in_place === 1 ? 'is' : 'are'} in place. ${c.issue} ${c.issue === 1 ? 'needs' : 'need'} fixing, ${c.missing} ${c.missing === 1 ? 'is' : 'are'} not yet built, and ${c.unknown} we cannot tell because we do not have the answer yet. Each row names where in NextChapter to add it, fix it or answer it. Gaps come first.`}
     >
-      {c.items.length > 0 && (
-        <ReportTable
-          label="The case for you"
-          head={['Strength', 'Evidence', 'Lead with it in']}
-          rows={c.items.map((x) => ({
-            key: x.key,
-            cells: [x.headline, <span key="e" className="font-normal text-foreground">{x.evidence}</span>, <Muted key="l">{x.leadWith}</Muted>],
-          }))}
-        />
-      )}
-      {c.positioningLine && (
-        <div className="border-l-2 border-navy/30 pl-5">
-          <SubHeading>A draft positioning line</SubHeading>
-          <p className="mt-2 font-serif text-base leading-relaxed text-navy">{c.positioningLine}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Built only from facts on your profile. Edit it until it sounds like you, then use it as the top line of the resume, the LinkedIn headline and every first message.</p>
+      <ReportTable
+        label="Reasons an employer would hire you"
+        widths={['18%', '17%', '27%', '38%']}
+        head={['Employers hire people who…', 'Status', 'What we see', 'Add, fix or answer in NextChapter']}
+        rows={rows.map((r) => ({
+          key: r.key,
+          cells: [
+            r.reason,
+            <HiringStatusMark key="s" status={r.status} />,
+            <span key="w" className="font-normal text-muted-foreground">{r.seen}</span>,
+            <div key="n" className="space-y-1 font-normal">
+              <p className="text-foreground">{r.next}</p>
+              <p className="print:hidden">
+                <ReportLink href={r.href} event="market_reality_hiring_case_clicked" properties={{ key: r.key, status: r.status, tool: r.tool }}>
+                  {r.status === 'in_place' ? `See it in ${r.tool}` : `Open ${r.tool}`}
+                </ReportLink>
+                {r.minutes ? <span className="text-xs text-muted-foreground"> · about {r.minutes} min</span> : null}
+              </p>
+              <p className="hidden text-xs text-muted-foreground print:block">{r.tool}{r.minutes ? ` · about ${r.minutes} min` : ''}</p>
+            </div>,
+          ],
+        }))}
+      />
+      <p className="text-xs text-muted-foreground">
+        <span className="font-semibold text-foreground">Not yet built</span> means it does not exist for you yet, so it is something to add.{' '}
+        <span className="font-semibold text-foreground">We do not know yet</span> means we lack the input, so it is something to answer.
+      </p>
+      {(c2.items.length > 0 || c2.positioningLine) && (
+        <div className="grid gap-6 sm:grid-cols-2 break-inside-avoid">
+          {c2.items.length > 0 && (
+            <div>
+              <SubHeading>Lead with these</SubHeading>
+              <ul className="mt-2 space-y-1.5 text-sm text-foreground">
+                {c2.items.slice(0, 3).map((x) => (
+                  <li key={x.key}>
+                    <span className="font-semibold">{x.headline}.</span> {x.evidence}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {c2.positioningLine && (
+            <div className="border-l-2 border-navy/30 pl-5">
+              <SubHeading>A draft positioning line</SubHeading>
+              <p className="mt-2 font-serif text-base leading-relaxed text-navy">{c2.positioningLine}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Built only from facts on your profile. Edit it, then use it as the top line of the resume, the LinkedIn headline and every first message.</p>
+            </div>
+          )}
         </div>
       )}
     </ReportSection>
@@ -867,27 +870,59 @@ export function ProfileSection({ brief }: { brief: MarketRealityBrief }) {
           : `${rows.length} dimensions a reviewer reads, in the groups they think in. ${dev === 0 ? 'None is a development area.' : `${dev} ${dev === 1 ? 'is a development area' : 'are development areas'}; the observation beside each says what to change first.`}`
       }
     >
-      {groups.map((g) => (
-        <div key={g.title} className="break-inside-avoid">
-          <SubHeading>{g.title}</SubHeading>
-          <ReportTable
-            label={g.title}
-            head={['Dimension', 'What a reviewer reads', 'Rating']}
-            className="mt-2"
-            rows={g.rows.map((r) => ({
-              key: r.key,
-              cells: [
-                r.label,
-                <div key="r" className="space-y-1">
-                  <p className="font-normal text-muted-foreground">{r.reads}</p>
-                  {r.observation && <p className="font-normal text-foreground">{r.observation}</p>}
-                </div>,
-                <AssessmentMark key="a" value={r.assessment} />,
-              ],
-            }))}
-          />
+      {groups.length > 0 && (
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="w-full min-w-[34rem] table-fixed border-collapse text-sm" aria-label="Competency profile">
+            <colgroup>
+              <col style={{ width: '22%' }} />
+              <col style={{ width: '56%' }} />
+              <col style={{ width: '22%' }} />
+            </colgroup>
+            <thead>
+              <tr className="border-b-2 border-navy text-left">
+                {['Dimension', 'What a reviewer reads', 'Rating'].map((h) => (
+                  <th key={h} scope="col" className="py-2 pr-4 text-xs font-semibold tracking-wide text-navy uppercase last:pr-0">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            {groups.map((g) => (
+              <tbody key={g.title}>
+                <tr>
+                  <th colSpan={3} scope="colgroup" className="pt-4 pb-1 text-left text-xs font-semibold tracking-widest text-muted-foreground uppercase print:break-after-avoid">
+                    {g.title}
+                  </th>
+                </tr>
+                {g.rows.map((r) => (
+                  <tr key={r.key} className="break-inside-avoid border-b border-border align-top">
+                    <td className="py-2 pr-4 font-medium text-foreground print:py-1">{r.label}</td>
+                    <td className="py-2 pr-4 print:py-1">
+                      <p className="text-muted-foreground">{r.reads}</p>
+                      {r.observation && <p className="text-foreground">{r.observation}</p>}
+                    </td>
+                    <td className="py-2 print:py-1">
+                      <AssessmentMark value={r.assessment} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            ))}
+          </table>
         </div>
-      ))}
+      )}
     </ReportSection>
+  )
+}
+
+export function AppendixDivider() {
+  return (
+    <div className="space-y-2 border-t-4 border-navy pt-6 print:break-before-page">
+      <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Appendix</p>
+      <h2 className="font-serif text-2xl font-semibold tracking-tight text-navy">Supporting detail</h2>
+      <p className="max-w-2xl text-sm text-muted-foreground print:hidden">
+        The evidence behind the findings above: the profile this was read against, how each resume dimension scored, and the detail on experience, skills, the resume and search activity.
+      </p>
+    </div>
   )
 }

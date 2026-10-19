@@ -27,7 +27,7 @@ export function ReportSection({
   className?: string
 }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className={cn('scroll-mt-24 border-t border-navy/20 pt-8', className)}>
+    <section id={id} aria-labelledby={`${id}-title`} className={cn('scroll-mt-24 border-t border-navy/20 pt-8 print:pt-4', className)}>
       <div className="print:break-inside-avoid print:break-after-avoid">
         <div className="flex items-baseline gap-3">
           {number && <span className="text-sm font-semibold tabular-nums text-muted-foreground">{number}</span>}
@@ -37,7 +37,7 @@ export function ReportSection({
         </div>
         {finding && <p className="mt-3 max-w-3xl text-[0.95rem] leading-relaxed text-foreground">{finding}</p>}
       </div>
-      <div className="mt-5 space-y-6 print:break-before-avoid">{children}</div>
+      <div className="mt-5 space-y-6 print:mt-3 print:space-y-4 print:break-before-avoid">{children}</div>
     </section>
   )
 }
@@ -52,15 +52,25 @@ export function ReportTable({
   head,
   rows,
   className,
+  widths,
 }: {
   label: string
   head: string[]
   rows: { key: string; cells: ReactNode[] }[]
   className?: string
+  /** Column widths (CSS), to keep a long text column from squeezing a short one. */
+  widths?: string[]
 }) {
   return (
     <div className={cn('overflow-x-auto print:overflow-visible', className)}>
-      <table className="w-full min-w-[34rem] border-collapse text-sm" aria-label={label}>
+      <table className={cn('w-full min-w-[34rem] border-collapse text-sm', widths && 'table-fixed')} aria-label={label}>
+        {widths && (
+          <colgroup>
+            {widths.map((w, i) => (
+              <col key={i} style={{ width: w }} />
+            ))}
+          </colgroup>
+        )}
         <thead>
           <tr className="border-b-2 border-navy text-left">
             {head.map((h) => (
@@ -74,7 +84,7 @@ export function ReportTable({
           {rows.map((r) => (
             <tr key={r.key} className="break-inside-avoid border-b border-border align-top">
               {r.cells.map((c, i) => (
-                <td key={i} className={cn('py-3 pr-4 last:pr-0', i === 0 && 'font-medium text-foreground')}>
+                <td key={i} className={cn('py-3 pr-4 last:pr-0 print:py-1.5', i === 0 && 'font-medium text-foreground')}>
                   {c}
                 </td>
               ))}

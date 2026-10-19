@@ -38,6 +38,8 @@ import { demandLine } from '@/lib/pivots/scoring'
 import { analyzeExperience, type ExperienceAnalysis } from './experience'
 import { buildEffortPlan, competitivenessFor, INTERVIEWS_PER_OFFER, PLAN_WEEKS, type EffortPlan } from './effort-plan'
 import { buildPriorities } from './priorities'
+import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
+import { buildHiringCase, type HiringReason } from './hiring-case'
 import { buildCaseForYou, type CaseForYou } from './case'
 import { buildProfile, type ProfileGroup } from './profile'
 import { buildLaunchpad, type LaunchStep } from './launchpad'
@@ -180,6 +182,7 @@ export interface MarketRealityBrief {
   experience: ExperienceAnalysis
   evaluators: EvaluatorView[]
   caseForYou: CaseForYou
+  hiringCase: HiringReason[]
   profile: ProfileGroup[]
   objections: Objection[]
   recruiterRead: RecruiterReadItem[]
@@ -323,9 +326,10 @@ export async function loadMarketRealityBrief(
   const asOf = new Date()
   const d28 = new Date(asOf.getTime() - 28 * DAY)
 
-  const [stand, latestAnalysis, gmailConnected, completedReferences, workHistory, education, resumeFixes, ats, recruiterRead, marketLoaded, skills, diagnosis, applicationsLast28] = await Promise.all([
+  const [stand, latestAnalysis, dossierCompleteness, gmailConnected, completedReferences, workHistory, education, resumeFixes, ats, recruiterRead, marketLoaded, skills, diagnosis, applicationsLast28] = await Promise.all([
     safe('where you stand', getWhereYouStand(id)),
     prisma.resumeAnalysis.findFirst({ where: { candidateId: id }, orderBy: { createdAt: 'desc' }, select: { dimensionScores: true, dimensionFindings: true, firstGlanceResult: true, firstGlanceTopFix: true } }),
+    safe('dossier', computeDossierCompleteness(id)),
     safe('gmail', isGmailConnected(id)),
     prisma.reference.count({ where: { candidateId: id, status: 'COMPLETED' } }),
     prisma.workHistoryEntry.findMany({ where: { candidateId: id } }),
@@ -558,6 +562,19 @@ export async function loadMarketRealityBrief(
     effort,
     experience,
     evaluators: buildEvaluatorViews(evaluatorInput),
+    hiringCase: buildHiringCase({
+      experience,
+      dims,
+      hasResume: latestAnalysis !== null,
+      targetRole: profile.targetRoleType,
+      ai: evaluatorInput.ai,
+      completedReferences,
+      skillsAssessmentDone: profile.skillsAssessmentCompletedAt !== null,
+      linkedInConfirmed: profile.linkedInConfirmedAt !== null,
+      dossier: dossierCompleteness ? { met: dossierCompleteness.metCount, total: dossierCompleteness.totalCount } : null,
+      conversationsPerWeek: evaluatorInput.conversationsPerWeek,
+      payFloor: profile.targetCompMin,
+    }),
     caseForYou: buildCaseForYou({
       experience,
       dims,

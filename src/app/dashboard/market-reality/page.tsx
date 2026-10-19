@@ -19,7 +19,8 @@ import { Cover, ExecutiveSummary, BasisSection } from '@/components/market-reali
 import {
   ActivitySection,
   DirectionSection,
-  CaseSection,
+  AppendixDivider,
+  HiringCaseSection,
   EvaluatorSection,
   ObjectionsSection,
   ProfileSection,
@@ -151,22 +152,23 @@ export default async function MarketRealityReportPage({
         </div>
       )}
 
-      <article className="mx-auto max-w-4xl space-y-10 border border-border bg-white px-6 py-8 sm:px-12 sm:py-12 print:max-w-none print:space-y-8 print:border-0 print:p-0">
+      <article className="mx-auto max-w-4xl space-y-10 border border-border bg-white px-6 py-8 sm:px-12 sm:py-12 print:max-w-none print:space-y-4 print:border-0 print:p-0 print:[zoom:0.75]">
         <Cover brief={brief} />
         <ExecutiveSummary brief={brief} />
+        <HiringCaseSection brief={brief} />
         <EvaluatorSection brief={brief} />
-        <CaseSection brief={brief} />
         <ObjectionsSection brief={brief} />
-        <ProfileSection brief={brief} />
-        <BasisSection brief={brief} />
         <MarketSection brief={brief} marketScope={marketScope} candidateId={profile.id} />
         <RequirementsSection brief={brief} />
+        <DirectionSection brief={brief} />
+        <LaunchpadSection brief={brief} />
+        <AppendixDivider />
+        <BasisSection brief={brief} />
+        <ProfileSection brief={brief} />
         <ExperienceSection brief={brief} />
         <SkillsSection brief={brief} />
         <ResumeSection brief={brief} />
-        <DirectionSection brief={brief} />
         <ActivitySection brief={brief} />
-        <LaunchpadSection brief={brief} />
         <MethodNotes />
       </article>
     </div>

@@ -121,7 +121,7 @@ export function buildEvaluatorViews(i: EvaluatorInput): EvaluatorView[] {
     firstImpression: latest
       ? `${latest.title}, ${latest.company}${latest.current ? '' : ' (most recent)'}, ${months(latest.months)}.${x.facts.priorEmployers.length > 0 ? ` Before that: ${x.facts.priorEmployers.join(', ')}.` : ''}`
       : 'No work history on file to read.',
-    thinking: recruiterThinking,
+    thinking: recruiterThinking.slice(0, 3),
     questions: [
       'What are you looking for, and why now?',
       ...objectionsFor(x, ['tenure', 'gaps']),
@@ -155,7 +155,7 @@ export function buildEvaluatorViews(i: EvaluatorInput): EvaluatorView[] {
     firstImpression: noNumbers
       ? 'Responsibilities are described; the size of the results is not. Scope has to be inferred from titles.'
       : 'Results carry numbers, so scope can be read from the page.',
-    thinking: hmThinking,
+    thinking: hmThinking.slice(0, 3),
     questions: [
       'Walk me through the largest result you owned and how it was measured.',
       ...objectionsFor(x, ['level_fit', 'progression']),
@@ -186,7 +186,7 @@ export function buildEvaluatorViews(i: EvaluatorInput): EvaluatorView[] {
     firstImpression: latest
       ? `${x.careerYears ?? 'Multiple'} years, ${x.roleCount} roles at ${x.employerCount} employer${x.employerCount === 1 ? '' : 's'}${x.facts.longest ? `; longest tenure ${months(x.facts.longest.months)} at ${x.facts.longest.company}` : ''}.`
       : 'No work history on file to read.',
-    thinking: partnerThinking,
+    thinking: partnerThinking.slice(0, 5),
     questions: [
       ...objectionsFor(x, ['progression', 'plateau', 'level_fit', 'industry']),
       'Where else are you in process, and what are you weighing?',

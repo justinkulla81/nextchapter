@@ -437,7 +437,7 @@ describe('buildLaunchpad', () => {
 
 import { buildCaseForYou, type CaseInput } from '@/lib/reports/market-reality-brief/case'
 import { buildProfile, ratingFor } from '@/lib/reports/market-reality-brief/profile'
-import { SECTIONS, sectionNumber } from '@/lib/reports/market-reality-brief/sections'
+import { APPENDIX_SECTIONS, BODY_SECTIONS, SECTIONS, sectionNumber } from '@/lib/reports/market-reality-brief/sections'
 
 const caseInput = (over: Partial<CaseInput> = {}): CaseInput => ({
   experience: run([role('Manager', d(2008, 1), d(2016, 1), { teamSize: 40 }), role('Director', d(2016, 2), null)], { targetRole: 'Director' }),
@@ -498,8 +498,68 @@ describe('buildProfile', () => {
 })
 
 describe('sections', () => {
-  it('numbers every section once, in order', () => {
-    expect(SECTIONS.map((s) => sectionNumber(s.id))).toEqual(SECTIONS.map((_, i) => String(i + 1).padStart(2, '0')))
+  it('numbers the body 01.. and lettures the appendix A.. , each once', () => {
+    expect(BODY_SECTIONS.map((s) => sectionNumber(s.id))).toEqual(BODY_SECTIONS.map((_, i) => String(i + 1).padStart(2, '0')))
+    expect(APPENDIX_SECTIONS.map((s) => sectionNumber(s.id))).toEqual(APPENDIX_SECTIONS.map((_, i) => String.fromCharCode(65 + i)))
     expect(new Set(SECTIONS.map((s) => s.id)).size).toBe(SECTIONS.length)
+  })
+})
+
+import { buildHiringCase, hiringCaseCounts, type HiringCaseInput } from '@/lib/reports/market-reality-brief/hiring-case'
+
+const hire = (over: Partial<HiringCaseInput> = {}): HiringCaseInput => ({
+  experience: run([role('Analyst', d(2010, 1), d(2014, 1)), role('Manager of Finance', d(2014, 2), d(2019, 6)), role('Director of Finance', d(2019, 7), null)], { targetRole: 'Director of Finance', highestLevelReached: 'Director' }),
+  dims: { quantification: 80, relevanceRecency: 80, skillCurrency: 80, narrativePositioning: 80, atsLegibility: 80, contactability: 90 },
+  hasResume: true,
+  targetRole: 'Director of Finance',
+  ai: { employersAsking: 5, of: 8, haveAny: true },
+  completedReferences: 3,
+  skillsAssessmentDone: true,
+  linkedInConfirmed: true,
+  dossier: { met: 8, total: 10 },
+  conversationsPerWeek: 4,
+  payFloor: 200000,
+  ...over,
+})
+const reason = (rows: ReturnType<typeof buildHiringCase>, key: string) => rows.find((r) => r.key === key)!
+
+describe('buildHiringCase', () => {
+  it('puts every reason in place for a complete member', () => {
+    const rows = buildHiringCase(hire())
+    expect(rows.length).toBe(13)
+    expect(hiringCaseCounts(rows)).toEqual({ in_place: 13, issue: 0, missing: 0, unknown: 0 })
+  })
+
+  it('tells a brand-new member what we do not know, not what they lack', () => {
+    const rows = buildHiringCase(hire({ hasResume: false, dims: null, targetRole: null, ai: null, completedReferences: 0, skillsAssessmentDone: false, linkedInConfirmed: false, dossier: null, conversationsPerWeek: null, payFloor: null, experience: run([]) }))
+    // Nothing is judged without input. The one thing that plainly does not exist yet is references.
+    expect(rows.filter((r) => r.status !== 'unknown').map((r) => r.key)).toEqual(['references'])
+    expect(reason(rows, 'references').status).toBe('missing')
+  })
+
+  it('separates not yet built from needs fixing', () => {
+    const rows = buildHiringCase(hire({ completedReferences: 0, conversationsPerWeek: 0, ai: { employersAsking: 5, of: 8, haveAny: false }, dossier: { met: 0, total: 10 } }))
+    for (const k of ['references', 'access', 'ai', 'proof']) expect(reason(rows, k).status).toBe('missing')
+    const some = buildHiringCase(hire({ completedReferences: 1, conversationsPerWeek: 1, dims: { quantification: 30, relevanceRecency: 80, skillCurrency: 80, narrativePositioning: 30, atsLegibility: 80, contactability: 90 } }))
+    for (const k of ['references', 'access', 'results', 'positioning']) expect(reason(some, k).status).toBe('issue')
+  })
+
+  it('flags stability when a reviewer would ask', () => {
+    expect(reason(buildHiringCase(hire({ experience: shaky() })), 'stability').status).toBe('issue')
+  })
+
+  it('sorts gaps first, then what is unknown, then what is in place', () => {
+    const rows = buildHiringCase(hire({ completedReferences: 0, payFloor: null, dims: { quantification: 30, relevanceRecency: 80, skillCurrency: 80, narrativePositioning: 80, atsLegibility: 80, contactability: 90 } }))
+    const order = { missing: 0, issue: 1, unknown: 2, in_place: 3 }
+    const idx = rows.map((r) => order[r.status])
+    expect(idx).toEqual([...idx].sort((a, b) => a - b))
+  })
+
+  it('links every row to the NextChapter tool that adds, fixes or answers it', () => {
+    for (const r of buildHiringCase(hire({ completedReferences: 0, payFloor: null }))) {
+      expect(r.tool.length).toBeGreaterThan(0)
+      expect(r.href).toMatch(/^(\/dashboard|#)/)
+      expect(r.next.length).toBeGreaterThan(0)
+    }
   })
 })
