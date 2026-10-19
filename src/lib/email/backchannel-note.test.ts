@@ -39,7 +39,7 @@ describe('draftBackchannelNote', () => {
   it('degrades cleanly without a role or sender name', () => {
     const { subject, body } = draftBackchannelNote({ contactName: 'Dana', role: null, companyName: 'Acme', senderFirstName: null })
     expect(subject).toBe('Quick favor: Acme')
-    expect(body).toContain('applied for a role at Acme')
+    expect(body).toContain('applied to Acme')
   })
 })
 
