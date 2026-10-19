@@ -21,6 +21,7 @@ export const NOT_DUPLICATES = new Set<string>([])
 
 /** A group containing any of these names is left alone, with the reason shown in review.json. */
 export const HOLD: Record<string, string> = {
+  'Nace.AI': 'Confirmed by Justin: NACE (the college-employers association) and Nace.AI are different organizations.',
   'SAP.iO': 'Confirmed by Justin: SAP.iO and SAP are different companies.',
   'The Help Company': 'Different companies: Help USA vs The Help Company.',
   'Deluxe (media services)': 'Deluxe Corp (checks, payments) and Deluxe Media are different companies.',
