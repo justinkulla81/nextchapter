@@ -99,14 +99,16 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
         href: board!.website || `${SITE}/support/admin/crm/workforce-boards/${board!.id}`,
       }))
     : []
+  // The American Job Centers the board oversees: comprehensive first, and the business-services inbox (the employer-facing contact) before the general one.
   const centers = board
-    ? await prisma.workforceBoardPartner.findMany({ where: { boardId: board.id }, orderBy: [{ distanceMiles: 'asc' }, { name: 'asc' }], take: 12 })
+    ? await prisma.americanJobCenter.findMany({ where: { workforceBoardId: board.id }, orderBy: [{ centerType: 'asc' }, { name: 'asc' }], take: 12 })
     : []
   const centerCards: ContactCard[] = centers
-    .sort((a, b) => Number(b.kind === 'Comprehensive') - Number(a.kind === 'Comprehensive'))
+    .sort((a, b) => Number(b.centerType === 'Comprehensive') - Number(a.centerType === 'Comprehensive'))
     .map((c) => ({
-      name: c.name, title: c.kind ? `${c.kind} center` : 'American Job Center', org: c.address,
-      email: c.email || c.businessEmail || null, phone: c.phone, strength: null, href: c.website,
+      name: c.name, title: c.businessEmail ? `${c.centerType ?? 'American Job'} center, business services` : `${c.centerType ?? 'American Job'} center`,
+      org: [c.street, c.city].filter(Boolean).join(', ') || null,
+      email: c.businessEmail || c.generalEmail || null, phone: c.phone, strength: null, href: c.detailsUrl,
     }))
 
   const econ = state
@@ -126,7 +128,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
     : []
 
   // Chambers, economic development and workforce nonprofits in the layoff's county (the geography lead list).
-  const county = place.county?.replace(/\s+county$/i, '').trim() || null
+  const county =place.county?.replace(/\s+county$/i, '').trim() || null
   const geo = state && county
     ? await prisma.geoOrgLead.findMany({
         where: { state, dismissedAt: null, geoArea: { name: { startsWith: county, mode: 'insensitive' } } },
@@ -149,7 +151,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
     group('hr_team', 'Other HR and outplacement buyers', 'Total rewards, employee relations, talent acquisition, HR partners.', 'Hunter domain search with the HR filter finds these.', hrTeam, orgHref),
     group('rapid_response', `State Rapid Response${state ? ` (${state})` : ''}`, 'Meets the employer within days and offers state services.', 'Add the state coordinator from the Department of Labor directory.', rapid.map((p) => card(p, p.affiliations[0]?.title ?? 'Rapid Response contact', p.affiliations[0]?.org.name ?? null))),
     group('workforce_board', board ? `Local workforce board: ${board.name}` : 'Local workforce board', 'Funds dislocated-worker services in the area and joins the Rapid Response meeting.', 'No board matched this notice yet.', boardCards),
-    group('job_centers', 'American Job Centers nearby', 'Where laid-off people walk in. Shared inboxes, not named managers.', 'No centers listed for this board.', centerCards),
+    group('job_centers', 'American Job Centers nearby', 'Where laid-off people walk in. The business-services inbox is the employer-facing contact.', 'No centers listed for this board.', centerCards),
     group('economic_development', `Economic development, chambers and workforce groups${county ? ` in ${county} County` : state ? ` in ${state}` : ''}`, 'Local relationships and some incentive money. Organizations without a named contact are listed by name and website.', 'Add the local development group.', econCards),
   ]
   if (others.length) {

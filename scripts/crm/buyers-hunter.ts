@@ -22,7 +22,7 @@ import { goalsForRoles } from '../../src/lib/crm/goals'
 const KEY = process.env.HUNTER_API_KEY
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-type Cat = 'association' | 'union' | 'gov_association' | 'restructuring' | 'benefits' | 'career_nonprofit' | 'funder' | 'pivot_learning' | 'outplacement'
+type Cat = 'association' | 'union' | 'gov_association' | 'restructuring' | 'benefits' | 'career_nonprofit' | 'funder' | 'pivot_learning' | 'outplacement' | 'research' | 'career_dev' | 'policy_assoc'
 const CAT: Record<Cat, { label: string; orgType: string; role: CrmPersonRole }> = {
   association: { label: 'professional association', orgType: 'NONPROFIT', role: 'BD_PARTNER' },
   union: { label: 'union', orgType: 'NONPROFIT', role: 'BD_PARTNER' },
@@ -33,6 +33,9 @@ const CAT: Record<Cat, { label: string; orgType: string; role: CrmPersonRole }> 
   funder: { label: 'funder', orgType: 'FOUNDATION', role: 'GRANTS' },
   pivot_learning: { label: 'career-pivot learning company', orgType: 'VENDOR', role: 'GTM_PARTNER' },
   outplacement: { label: 'outplacement firm', orgType: 'OUTPLACEMENT_FIRM', role: 'BD_PARTNER' },
+  research: { label: 'research or policy organization on work, unemployment and AI displacement', orgType: 'THINK_TANK', role: 'POLICY_ANALYST' },
+  career_dev: { label: 'career-development, career-exploration or talent-skills organization', orgType: 'VENDOR', role: 'BD_PARTNER' },
+  policy_assoc: { label: 'association of state legislators, governments or workforce professionals', orgType: 'NONPROFIT', role: 'BD_PARTNER' },
 }
 
 const ORGS: [string, string, Cat][] = [
@@ -82,6 +85,34 @@ const ORGS: [string, string, Cat][] = [
   ['Right Management', 'right.com', 'outplacement'], ['Korn Ferry', 'kornferry.com', 'outplacement'], ['Challenger, Gray & Christmas', 'challengergray.com', 'outplacement'], ['FutureFit AI', 'futurefit.ai', 'outplacement'],
 ]
 
+// BUYERS_SET=2: research and policy organizations (AI displacement, unemployment insurance, white-collar work), career-development
+// and career-exploration organizations, and associations of legislators and workforce professionals.
+const ORGS_2: [string, string, Cat][] = [
+  ['Brookings Institution', 'brookings.edu', 'research'], ['Urban Institute', 'urban.org', 'research'], ['Economic Policy Institute', 'epi.org', 'research'],
+  ['Center on Budget and Policy Priorities', 'cbpp.org', 'research'], ['National Employment Law Project', 'nelp.org', 'research'], ['The Century Foundation', 'tcf.org', 'research'],
+  ['W.E. Upjohn Institute', 'upjohn.org', 'research'], ['New America', 'newamerica.org', 'research'], ['Aspen Institute', 'aspeninstitute.org', 'research'],
+  ['Burning Glass Institute', 'burningglassinstitute.org', 'research'], ['Lightcast', 'lightcast.io', 'research'], ['World Economic Forum', 'weforum.org', 'research'],
+  ['The Conference Board', 'conference-board.org', 'research'], ['Center for American Progress', 'americanprogress.org', 'research'], ['AI Now Institute', 'ainowinstitute.org', 'research'],
+  ['Partnership on AI', 'partnershiponai.org', 'research'], ['Roosevelt Institute', 'rooseveltinstitute.org', 'research'], ['Economic Innovation Group', 'eig.org', 'research'],
+  ['Opportunity America', 'opportunityamericaonline.org', 'research'], ['National Fund for Workforce Solutions', 'nfwsolutions.org', 'research'], ['Bipartisan Policy Center', 'bipartisanpolicy.org', 'research'],
+  ['Third Way', 'thirdway.org', 'research'], ['Progressive Policy Institute', 'progressivepolicy.org', 'research'], ['American Enterprise Institute', 'aei.org', 'research'],
+  ['Federal Reserve Bank of Atlanta', 'atlantafed.org', 'research'], ['Federal Reserve Bank of St. Louis', 'stlouisfed.org', 'research'], ['Federal Reserve Bank of Minneapolis', 'minneapolisfed.org', 'research'],
+  ['Federal Reserve Bank of Cleveland', 'clevelandfed.org', 'research'], ['Federal Reserve Bank of New York', 'newyorkfed.org', 'research'], ['Federal Reserve Bank of Boston', 'bostonfed.org', 'research'],
+  ['Federal Reserve Bank of Philadelphia', 'philadelphiafed.org', 'research'], ['Federal Reserve Bank of Kansas City', 'kansascityfed.org', 'research'], ['Federal Reserve Bank of Richmond', 'richmondfed.org', 'research'],
+  ['Federal Reserve Bank of Dallas', 'dallasfed.org', 'research'], ['Federal Reserve Bank of Chicago', 'chicagofed.org', 'research'], ['Federal Reserve Bank of San Francisco', 'frbsf.org', 'research'],
+  ['Indeed Hiring Lab', 'hiringlab.org', 'research'], ['Revelio Labs', 'reveliolabs.com', 'research'], ['ADP Research', 'adpresearch.com', 'research'],
+  ['National Conference of State Legislatures', 'ncsl.org', 'policy_assoc'], ['Council of State Governments', 'csg.org', 'policy_assoc'], ['National Association of Workforce Development Professionals', 'nawdp.org', 'policy_assoc'],
+  ['NACE', 'naceweb.org', 'career_dev'], ['Career Thought Leaders', 'careerthoughtleaders.com', 'career_dev'], ['Professional Association of Resume Writers and Career Coaches', 'parw.com', 'career_dev'],
+  ['International Coaching Federation', 'coachingfederation.org', 'career_dev'], ['SIOP', 'siop.org', 'career_dev'], ['Training Industry', 'trainingindustry.com', 'career_dev'],
+  ['Degreed', 'degreed.com', 'career_dev'], ['Eightfold AI', 'eightfold.ai', 'career_dev'], ['Gloat', 'gloat.com', 'career_dev'], ['Fuel50', 'fuel50.com', 'career_dev'],
+  ['Pluralsight', 'pluralsight.com', 'career_dev'], ['edX', 'edx.org', 'career_dev'], ['Udemy', 'udemy.com', 'career_dev'], ['Handshake', 'joinhandshake.com', 'career_dev'],
+  ['Teal', 'tealhq.com', 'career_dev'], ['The Ladders', 'theladders.com', 'career_dev'], ['Upwork', 'upwork.com', 'career_dev'], ['Cornerstone OnDemand', 'cornerstoneondemand.com', 'career_dev'],
+  ['Skillsoft', 'skillsoft.com', 'career_dev'], ['Chief Learning Officer', 'clomedia.com', 'career_dev'], ['Association for Career and Technical Education', 'acteonline.org', 'career_dev'],
+  ['American Counseling Association', 'counseling.org', 'career_dev'], ['National Board for Certified Counselors', 'nbcc.org', 'career_dev'],
+]
+const SET = process.env.BUYERS_SET === '2' ? ORGS_2 : ORGS
+const RESEARCH = /economist|research|fellow|labor|workforce|employment|unemployment|future of work|policy|insurance|program|director|president|executive|head of|lead\b/i
+const RESEARCH_BAD = /communications|media|fundrais|finance|legal|marketing|events|operations|development director|human resources|assistant/i
 const TITLE = /partnership|alliance|business development|workforce|career|talent|transition|member|program|strategy|innovation|executive director|president|ceo|chief executive|managing director|head of|vice president|\bvp\b|director|chief (people|human|strategy|operating|growth|revenue|impact)|grant|philanthrop|community|impact|public sector|government|learning|education/i
 const BAD = /sales (rep|associate|development rep)|account executive|engineer|developer|recruiter|intern|assistant|paralegal|software|designer|analyst|accountant|counsel|attorney/i
 // At import, narrower than the search: a leader, or someone whose work is partnerships, workforce, careers, programs or strategy,
@@ -89,7 +120,9 @@ const BAD = /sales (rep|associate|development rep)|account executive|engineer|de
 const EXEC = /executive director|(?<!vice )(?<!svp )president|\bceo\b|chief executive|managing director|founder/i
 const REL = /partnership|alliance|business development|workforce|career|talent|transition|member|program|strategy|innovation|chief (strategy|impact|growth|people|human)|public sector|government|community|impact|philanthrop|grant|learning|education/i
 const NOT = /finance|financial|legislative|marketing|content|sustainab|legal|counsel|\bit\b|technolog|security|communicat|public affairs|policy|risk|audit|tax|account|operations|procurement|real estate|facilit|editor|publish|research/i
-const relevant = (t: string) => EXEC.test(t) || (REL.test(t) && !NOT.test(t))
+const relevant = (t: string, cat?: Cat) => cat === 'research'
+  ? EXEC.test(t) || (/economist|research|fellow|labor|workforce|employment|unemployment|future of work|policy|insurance|program/i.test(t) && !RESEARCH_BAD.test(t))
+  : EXEC.test(t) || (REL.test(t) && !NOT.test(t))
 const score = (t: string) => /executive director|president|ceo|chief executive|managing director/i.test(t) ? 0 : /partnership|alliance|business development|workforce|career|talent|transition|public sector|government/i.test(t) ? 1 : /director|vice president|\bvp\b|head of/i.test(t) ? 2 : 3
 
 async function hunter(path: string, params: Record<string, string>): Promise<any> {
@@ -109,16 +142,16 @@ interface Row { org: string; domain: string; cat: Cat; found: number; hits: Hit[
 
 async function search(out: string) {
   if (!KEY) throw new Error('HUNTER_API_KEY is not set')
-  const queue = [...ORGS]
+  const queue = [...SET]
   const rows: Row[] = []
   const worker = async () => {
     for (let o = queue.shift(); o; o = queue.shift()) {
       const j = await hunter('domain-search', { domain: o[1], limit: '10', seniority: 'senior,executive', type: 'personal' }).catch(() => null)
       const emails: any[] = j?.data?.emails ?? []
       const hits = emails
-        .filter((e) => e.first_name && e.last_name && e.position && TITLE.test(e.position) && !BAD.test(e.position) && (e.confidence ?? 0) >= 70)
+        .filter((e) => e.first_name && e.last_name && e.position && (o[2] === 'research' ? RESEARCH.test(e.position) && !RESEARCH_BAD.test(e.position) : TITLE.test(e.position) && !BAD.test(e.position)) && (e.confidence ?? 0) >= 70)
         .sort((a, b) => score(a.position) - score(b.position) || (b.confidence ?? 0) - (a.confidence ?? 0))
-        .slice(0, 3)
+        .slice(0, o[2] === 'research' ? 4 : 3)
         .map((e) => ({ name: `${e.first_name} ${e.last_name}`, title: e.position, email: e.value, confidence: e.confidence, status: e.verification?.status ?? null, linkedin: e.linkedin ?? null }))
       rows.push({ org: o[0], domain: o[1], cat: o[2], found: emails.length, hits })
       await sleep(250)
@@ -139,7 +172,7 @@ async function importFile(file: string, apply: boolean) {
     const cat = CAT[r.cat]
     const org = apply ? await ensureOrg({ name: r.org, type: cat.orgType as never, website: `https://${r.domain}` }) : { id: '', name: r.org }
     tally.orgs++
-    for (const h of r.hits.filter((x) => relevant(x.title))) {
+    for (const h of r.hits.filter((x) => relevant(x.title, r.cat))) {
       tally.people++
       const valid = h.status === 'valid'
       const guess = !valid && h.confidence >= 85 && h.status !== 'invalid' && h.status !== 'disposable'
