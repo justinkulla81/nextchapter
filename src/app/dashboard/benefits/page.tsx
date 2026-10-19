@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
+import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { BenefitsPressureForm } from '@/components/dashboard/BenefitsPressureForm'
 import { BenefitsActionPlanCard } from '@/components/dashboard/BenefitsActionPlanCard'
 import { getBenefitsActionPlanItems } from '@/lib/benefits/action-plan'
@@ -132,7 +133,7 @@ const ACTION_PLAN_LINK_TOPICS = ['Unemployment insurance', 'Health insurance bri
 
 export default async function BenefitsPage() {
   const profile = await getDashboardProfile()
-  const isSenior = isBoardReady(profile) && !profile.isPivoting
+  const isSenior = isBoardReady(profile) && !isPivotingProfile(profile)
   const budgetingIndex = TOPICS.findIndex((t) => t.title === 'Budgeting through a search')
   const topics = [...TOPICS.slice(0, budgetingIndex), getWioaTopic(isSenior), ...TOPICS.slice(budgetingIndex)]
   const actionPlanLinks = topics.filter((t) => ACTION_PLAN_LINK_TOPICS.includes(t.title)).flatMap(

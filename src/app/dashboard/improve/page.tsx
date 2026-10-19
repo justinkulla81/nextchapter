@@ -7,6 +7,7 @@ import { computeMatchState } from '@/lib/personalization/match-compute'
 import { signalInputsFor } from '@/lib/personalization/know-you'
 import { buildSignals, type Signal } from '@/lib/personalization/signals'
 import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { getCandidateWeekNumber, getMondayOfWeek } from '@/lib/weekly/sprint'
 import { buildTailored } from '@/lib/redesign/tailored'
 import { PageHeader } from '@/components/candidate/PageHeader'
@@ -48,7 +49,7 @@ export default async function ImprovePage() {
     confidential: profile.confidentialSearchMode,
     skillsConfirmed: profile.confirmedSkillsHave.length,
     skillsToBuild: profile.skillsToBuild.length,
-    exploringOtherRoles: profile.isPivoting,
+    exploringOtherRoles: isPivotingProfile({ ...profile, journey: effectiveJourney(profile) }),
   })
   after(() => captureServerEvent(profile.id, 'improve_search_viewed', { open: groups.flatMap((g) => g.rows).filter((r) => !r.done).length, best: best?.key ?? null }))
 

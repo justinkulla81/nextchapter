@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase, ChevronDown } from 'lucide-react'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
+import { isRedesignOn } from '@/lib/redesign/flag'
 import { prisma } from '@/lib/prisma'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { getWhereYouStand } from '@/lib/reports/market-reality-sections'
@@ -72,6 +73,7 @@ function gradeAccent(grade: Grade): StatTileAccent {
 
 export default async function YourStatsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const profile = await getDashboardProfile()
+  const redesign = isRedesignOn(profile.email)
   const weekStartDate = getMondayOfWeek(new Date())
   const params = await searchParams
   const bandParam = typeof params.band === 'string' ? params.band : null
@@ -218,14 +220,16 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           <StatTile icon={Flame} value={`${profile.currentStreak}`} label="day streak" accent="warning" />
           <StatTile icon={Trophy} value={`${profile.longestStreak}`} label="longest streak" accent="brand" />
-          <StatTile
-            icon={TrendingUp}
-            value={whereYouStand?.grade ?? '—'}
-            valueClassName={whereYouStand ? GRADE_TEXT_COLOR[whereYouStand.grade] : undefined}
-            label="Market Reality Assessment"
-            accent={whereYouStand ? gradeAccent(whereYouStand.grade) : 'brand'}
-            href="#market-reality"
-          />
+          {!redesign && (
+            <StatTile
+              icon={TrendingUp}
+              value={whereYouStand?.grade ?? '—'}
+              valueClassName={whereYouStand ? GRADE_TEXT_COLOR[whereYouStand.grade] : undefined}
+              label="Market Reality Assessment"
+              accent={whereYouStand ? gradeAccent(whereYouStand.grade) : 'brand'}
+              href="#market-reality"
+            />
+          )}
           <StatTile
             icon={Target}
             value={`${weeklyEngineData.weeklyPoints} / ${weeklyEngineData.weeklyPointsTarget}`}
@@ -321,6 +325,19 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         </CardContent>
       </Card>
 
+      {redesign ? (
+        // One market report only: the grade tiles and the week-by-week grade archive are gone from this page.
+        <Card id="market-reality" className="scroll-mt-4">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
+            <p className="max-w-xl text-sm text-muted-foreground">
+              Your market report always shows where you stand today, with the facts behind it. Regenerate it after you make improvements.
+            </p>
+            <Link href="/dashboard/market-reality" className="text-sm font-medium text-primary underline underline-offset-4">
+              Open your market report
+            </Link>
+          </CardContent>
+        </Card>
+      ) : (
       <Card id="market-reality" className="scroll-mt-4">
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality</CardTitle>
@@ -404,6 +421,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
           )}
         </CardContent>
       </Card>
+      )}
 
       <Card id="actions" className="scroll-mt-4">
         <CardHeader>

@@ -38,6 +38,15 @@ import { PivotViewTracker } from '@/components/dashboard/pivot/PivotViewTracker'
 import { RoleLookup } from '@/components/dashboard/pivot/RoleLookup'
 import { ClearCareerChoicesForm } from '@/components/dashboard/pivot/ClearCareerChoicesForm'
 import { OnetAttribution } from '@/components/OnetAttribution'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Module } from '@/components/candidate/Module'
+import { SectionPills } from '@/components/candidate/SectionPills'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { setTargetFunction } from './actions'
+import { isPivotingProfile, pivotTargetOf } from '@/lib/journey/pivot-target'
+import { PIVOT_PARTS, parsePivotPart, pivotPartHref, transferFacts, type PivotPart } from '@/lib/journey/pivot-parts'
 import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
 
 export const metadata: Metadata = { title: 'Pivot paths' }
@@ -48,6 +57,7 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 export default async function PivotPathsPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams
   const profile = await getDashboardProfile()
+  if (isRedesignOn(profile.email)) return <RedesignedPivot profile={profile} params={params} />
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -76,23 +86,22 @@ export default async function PivotPathsPage({ searchParams }: { searchParams: P
   )
 }
 
-// "What would it take?" and the member's learning paths. Works without the O*NET data.
-async function WhatItTakes({ profile, target, why }: { profile: Awaited<ReturnType<typeof getDashboardProfile>>; target: string; why: string }) {
+type Profile = Awaited<ReturnType<typeof getDashboardProfile>>
+
+// What the pivot pages all read: the radar, the ideas with their reasons, the member's learning paths.
+async function pivotContext(profile: Profile, why: string) {
   const [tr, learning] = await Promise.all([
     prisma.trackRecordResponse.findUnique({ where: { candidateId: profile.id }, select: { functionsOwnedOutsideCore: true, sectorHistory: true } }),
     getLearningPaths(profile.id),
   ])
   const reason = PIVOT_REASONS.find((r) => r.key === why)?.key ?? null
-  const saved = activeTargets(pivotOf(profile.journeyDetails)).some((t) => t.function === target)
-  if (target) {
-    after(() => captureServerEvent(profile.id, 'pivot_pathway_viewed', { from: profile.primaryFunction, to: target, why: reason }))
-  }
   const pivot = pivotOf(profile.journeyDetails)
   const interests = pivotInterestsOf(profile.journeyDetails)
+  const ownedFunctions = ownedFunctionsFrom(tr?.functionsOwnedOutsideCore)
   const ideas = pivotIdeas({
     from: profile.primaryFunction,
     keywords: [...profile.resumeKeywords, ...profile.confirmedSkillsHave],
-    ownedFunctions: ownedFunctionsFrom(tr?.functionsOwnedOutsideCore),
+    ownedFunctions,
     seniorLevel: (profile.levelRankScore ?? 0) >= 60,
     currentIndustry: profile.industryContext,
     sectorHistory: tr?.sectorHistory ?? [],
@@ -101,6 +110,16 @@ async function WhatItTakes({ profile, target, why }: { profile: Awaited<ReturnTy
     industriesOnRadar: interests.industries.map((i) => i.name),
     skillsToBuild: profile.skillsToBuild,
   })
+  return { tr, learning, reason, pivot, interests, ownedFunctions, ideas }
+}
+
+// "What would it take?" and the member's learning paths. Works without the O*NET data.
+async function WhatItTakes({ profile, target, why }: { profile: Profile; target: string; why: string }) {
+  const { tr, learning, reason, pivot, interests, ideas, ownedFunctions } = await pivotContext(profile, why)
+  const saved = activeTargets(pivot).some((t) => t.function === target)
+  if (target) {
+    after(() => captureServerEvent(profile.id, 'pivot_pathway_viewed', { from: profile.primaryFunction, to: target, why: reason }))
+  }
   return (
     <div className="space-y-6">
       <PivotRadar pivot={pivot} interests={interests} />
@@ -109,8 +128,161 @@ async function WhatItTakes({ profile, target, why }: { profile: Awaited<ReturnTy
         from={profile.primaryFunction}
         keywords={[...profile.resumeKeywords, ...profile.confirmedSkillsHave]}
         seniorLevel={(profile.levelRankScore ?? 0) >= 60}
-        ownedFunctions={ownedFunctionsFrom(tr?.functionsOwnedOutsideCore)}
+        ownedFunctions={ownedFunctions}
         target={target || null}
+        why={reason}
+        alreadySaved={saved}
+        currentIndustry={profile.industryContext}
+        targetIndustries={profile.targetIndustries}
+        sectorHistory={tr?.sectorHistory ?? []}
+      />
+      <LearningPathsCard paths={learning.paths} progress={learning.progress} />
+    </div>
+  )
+}
+
+// ── The redesigned page: three parts, one at a time (docs/open-decisions.md, item 11) ─────────────────
+
+const PART_BUTTON = 'inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95'
+
+async function RedesignedPivot({ profile, params }: { profile: Profile; params: Params }) {
+  const part = parsePivotPart(params.part)
+  const meta = PIVOT_PARTS.find((p) => p.key === part)!
+  const target = pivotTargetOf(profile)
+  after(() =>
+    captureServerEvent(profile.id, 'pivot_part_viewed', {
+      candidateId: profile.id,
+      part,
+      hasTarget: target !== null,
+      pivoting: isPivotingProfile(profile),
+      radarCount: activeTargets(pivotOf(profile.journeyDetails)).length,
+      source: first(params.target) ? 'explore_link' : 'menu',
+    }),
+  )
+  return (
+    <div className="mx-auto max-w-4xl space-y-8">
+      <PageHeader title={meta.label} intro={meta.intro} />
+      <SectionPills label="Parts of your move" current={part} items={PIVOT_PARTS.map((p) => ({ key: p.key, label: p.label, href: pivotPartHref(p.key) }))} />
+      <Suspense
+        fallback={
+          <div className="flex items-center gap-2 rounded-2xl border border-border p-6 text-sm text-muted-foreground">
+            <Spinner size={16} />
+            Matching your skills to the job market…
+          </div>
+        }
+      >
+        {part === 'now' && <NowPart profile={profile} params={params} />}
+        {part === 'go' && <GoPart profile={profile} params={params} />}
+        {part === 'plan' && <PlanPart profile={profile} params={params} />}
+      </Suspense>
+    </div>
+  )
+}
+
+function NextPart({ to, children }: { to: PivotPart; children: React.ReactNode }) {
+  return (
+    <div>
+      <Link href={pivotPartHref(to)} className={PART_BUTTON}>
+        {children}
+      </Link>
+    </div>
+  )
+}
+
+// Where you are now: what transfers, with the fact each line rests on.
+async function NowPart({ profile, params }: { profile: Profile; params: Params }) {
+  // "Not right? Change it" for the occupation the comparison starts from keeps its existing chooser.
+  if (first(params.change) === '1') return <PivotPathsBody profile={profile} params={params} />
+  const { tr, ownedFunctions } = await pivotContext(profile, '')
+  const facts = transferFacts({
+    from: profile.primaryFunction,
+    level: profile.highestLevelReached,
+    yearsExperience: profile.yearsExperience,
+    skills: [...profile.confirmedSkillsHave, ...profile.resumeKeywords],
+    ownedFunctions,
+    industries: [profile.industryContext ?? '', ...(tr?.sectorHistory ?? [])],
+  })
+  return (
+    <div className="space-y-6">
+      <Module title={facts.headline}>
+        {facts.rows.length === 0 ? (
+          <p className="text-base text-ink">
+            Add your resume and your skills and this fills in with what carries over.{' '}
+            <Link href="/dashboard/resume" className="font-medium text-brand underline underline-offset-4">
+              Open your resume
+            </Link>
+          </p>
+        ) : (
+          <dl className="divide-y divide-border">
+            {facts.rows.map((r) => (
+              <div key={r.label} className="space-y-0.5 py-3 first:pt-0 last:pb-0">
+                <dt className="text-sm font-medium text-muted-foreground">{r.label}</dt>
+                <dd className="text-base font-semibold text-ink">{r.value}</dd>
+                <dd className="text-sm text-muted-foreground">{r.why}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        <p className="border-t border-border pt-4 text-sm text-muted-foreground">
+          Starting from the wrong place?{' '}
+          <Link href="/dashboard/pivot-paths?part=now&change=1" className="font-medium text-brand underline underline-offset-4">
+            Change what we compare with
+          </Link>
+        </p>
+      </Module>
+      <NextPart to="go">See where you could go</NextPart>
+    </div>
+  )
+}
+
+// Where you could go: other roles, each with the reason it fits.
+async function GoPart({ profile, params }: { profile: Profile; params: Params }) {
+  const { ideas } = await pivotContext(profile, first(params.why))
+  return (
+    <div className="space-y-6">
+      <PivotIdeas ideas={ideas} from={profile.primaryFunction} positive />
+      <ShowMore label="See every role, with pay and openings" event="pivot_show_more_toggled" properties={{ part: 'go' }}>
+        <PivotPathsBody profile={profile} params={params} />
+      </ShowMore>
+      <NextPart to="plan">Plan your way there</NextPart>
+    </div>
+  )
+}
+
+// The plan: the radar, what the move would take, and the member's learning paths. One primary action.
+async function PlanPart({ profile, params }: { profile: Profile; params: Params }) {
+  const { tr, learning, reason, pivot, interests, ownedFunctions } = await pivotContext(profile, first(params.why))
+  const current = pivotTargetOf(profile)
+  const chosen = first(params.target)
+  const shown = chosen || current || null
+  const saved = activeTargets(pivot).some((t) => t.function === shown)
+  if (chosen) after(() => captureServerEvent(profile.id, 'pivot_pathway_viewed', { from: profile.primaryFunction, to: chosen, why: reason }))
+  return (
+    <div className="space-y-6">
+      {shown && shown !== current ? (
+        <form action={setTargetFunction}>
+          <input type="hidden" name="target" value={shown} />
+          <input type="hidden" name="source" value="pivot_plan" />
+          <SubmitButton className={PART_BUTTON}>Make {shown} my target</SubmitButton>
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">Your searches, suggestions and weekly plan will aim at {shown}. You can change it any time.</p>
+        </form>
+      ) : current ? (
+        <div className="space-y-2">
+          <Link href="/dashboard/find-my-job" className={PART_BUTTON}>
+            Find {current} jobs
+          </Link>
+          <p className="max-w-xl text-sm text-muted-foreground">Your target is {current}. Jobs are ranked for it, and your steps below build toward it.</p>
+        </div>
+      ) : (
+        <NextPart to="go">Choose a role to plan for</NextPart>
+      )}
+      <PivotRadar pivot={pivot} interests={interests} positive />
+      <PathwayExplorer
+        from={profile.primaryFunction}
+        keywords={[...profile.resumeKeywords, ...profile.confirmedSkillsHave]}
+        seniorLevel={(profile.levelRankScore ?? 0) >= 60}
+        ownedFunctions={ownedFunctions}
+        target={shown}
         why={reason}
         alreadySaved={saved}
         currentIndustry={profile.industryContext}
