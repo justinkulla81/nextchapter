@@ -371,10 +371,10 @@ export async function getMoveTheNeedle(candidateId: string): Promise<MoveTheNeed
     href: '/dashboard/resume',
   })
 
-  // Recruiter network and exclusive roles.
+  // Recruiter network and unposted roles.
   levers.push({
     key: 'RECRUITER_NETWORK',
-    label: 'Recruiter network and exclusive roles',
+    label: 'Recruiter network and unposted roles',
     need: candidate?.connectedWithRecruiters ? 15 : 55,
     copy: candidate?.connectedWithRecruiters
       ? "You're already connected with recruiters — keep that relationship active for roles that never get posted."

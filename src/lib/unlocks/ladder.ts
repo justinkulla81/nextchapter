@@ -9,7 +9,7 @@ import {
 } from '@/lib/scoring/dossier-targets'
 import type { DossierCompleteness, DossierLadderTier, DossierUnlockStatus, ModuleGateStatus } from '@/lib/scoring/dossier-unlock'
 
-export type RungKey = 'jobDetail' | 'taking_shape' | 'candidatePlus' | 'recruiterIntros' | 'unposted'
+export type RungKey = 'community' | 'taking_shape' | 'candidatePlus' | 'recruiterIntros' | 'unposted'
 export type RungState = 'open' | 'next' | 'locked'
 
 export interface Rung {
@@ -65,7 +65,8 @@ export function candidatePlusSteps(status: DossierUnlockStatus): CandidatePlusRe
 export function buildUnlockLadder({ gates, tier, completeness, status }: LadderInput): Rung[] {
   const gate = (key: string) => gates.find((g) => g.key === key)
 
-  const jobDetailOpen = gate('matchedJobsFullDetail')?.unlocked === true && gate('community')?.unlocked === true
+  // Every member sees every job in full (owner, 2026-10-18): no rung gates jobs.
+  const communityOpen = gate('community')?.unlocked === true
   const shapeOpen = atLeast(tier, 'PREVIEW')
   const plusOpen = status.unlocked
   const introsOpen = atLeast(tier, 'RECRUITER_INTROS')
@@ -80,14 +81,11 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
 
   const raw: Array<Omit<Rung, 'state'> & { open: boolean }> = [
     {
-      key: 'jobDetail',
-      label: 'Full job detail and Community',
-      open: jobDetailOpen,
-      opens: ['matched jobs in full detail', 'Community'],
-      needs: [
-        ...(gate('matchedJobsFullDetail')?.unlocked ? [] : ['one reference request sent']),
-        ...(gate('community')?.unlocked ? [] : ['one thing finished in your plan']),
-      ],
+      key: 'community',
+      label: 'Community',
+      open: communityOpen,
+      opens: ['Community'],
+      needs: communityOpen ? [] : ['one thing finished in your plan'],
     },
     {
       key: 'taking_shape',
