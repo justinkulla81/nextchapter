@@ -10,6 +10,8 @@ import { TuneQuestion, TuneDone, DeepDiveIntro, ReceiptHome, ReceiptNetwork } fr
 import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, EmptyJobs, EmptyNetwork, EmptyEffort, OnboardingMoney, AccountMoney } from './moments'
 import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 import { CareerStoryReal } from './career-story'
+import { SearchStrategySimple } from './strategy'
+import { MarketReportShort } from './report-short'
 
 export interface Mockup {
   /** The address after /dev-preview/. */
@@ -60,6 +62,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },
   { path: 'help/questions', place: 'Help', title: 'Questions and feedback', replaces: '/dashboard/help', Component: HelpQuestions },
   { path: 'home/tailored', place: 'Home', title: 'Improve your search', replaces: 'new: every personalization in one place', Component: TailoredForYou },
+  { path: 'home/strategy', place: 'Home', title: 'Search strategy, simplified', replaces: '/dashboard/search-strategy (about twelve blocks down to three)', Component: SearchStrategySimple },
+  { path: 'jobs/market/report', place: 'Jobs', title: 'Market reality report: the one-screen brief', replaces: '/dashboard/market-reality (12 pages down to one screen; the full report stays behind a button)', Component: MarketReportShort },
   { path: 'home/stalled', place: 'Home', title: 'Today: week 4, no interviews, widen the search', replaces: 'new: time-driven personalization', Component: HomeStalled },
   { path: 'home/checkin', place: 'Home', title: 'The check-in in three tones', replaces: 'mood pop-up and Still searching dialog, merged', Component: CheckIn },
   { path: 'home/journey/entrepreneur', place: 'Home', title: 'Today: building something of my own', replaces: '/dashboard for ENTREPRENEUR', Component: HomeEntrepreneur },
