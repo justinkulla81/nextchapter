@@ -79,6 +79,9 @@ export async function mergeOrganizations(
     await tx.productCompetitor.updateMany({ where: { crmOrgId: sourceId }, data: { crmOrgId: survivorId } })
     await tx.localCollege.updateMany({ where: { crmOrgId: sourceId }, data: { crmOrgId: survivorId } })
     await tx.geoOrgLead.updateMany({ where: { crmOrganizationId: sourceId }, data: { crmOrganizationId: survivorId } })
+    // Layoff notices promoted to a lead point at the organization by plain id (no foreign key), as do search-firm reviews.
+    await tx.warnNotice.updateMany({ where: { promotedOrgId: sourceId }, data: { promotedOrgId: survivorId } })
+    await tx.searchFirm.updateMany({ where: { reviewOrgId: sourceId }, data: { reviewOrgId: survivorId } })
     // Funding notices name their issuing organization; the table is applied by hand.
     await tx.$executeRaw`UPDATE "FundingOpportunity" SET "orgId" = ${survivorId} WHERE "orgId" = ${sourceId}`.catch(() => 0)
 
