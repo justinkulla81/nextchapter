@@ -1,0 +1,135 @@
+import 'server-only'
+import type { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
+import { classifyLocation } from '@/lib/jobs/us-location'
+
+// The homepage job board: an anonymous, unpersonalized search over the same live
+// board members see. No fit score, no ranking by who you are — newest first, then
+// the words you typed. Personalization needs an account (see HomepageJobBoard).
+//
+// Reads the narrow BoardLightRow copy (see board-light-rows.ts), then checks the
+// handful of rows it returns against ExclusiveJobPosting for the two things the
+// copy doesn't carry: disclosure (CONFIDENTIAL listings never show on a public
+// page) and the posting URL.
+
+export const PUBLIC_BOARD_PAGE_SIZE = 12
+const MAX_WORDS = 5
+const OVERFETCH = PUBLIC_BOARD_PAGE_SIZE * 5
+
+export interface PublicBoardJob {
+  id: string
+  title: string
+  company: string
+  location: string | null
+  postedAt: string | null
+  salaryMin: number | null
+  salaryMax: number | null
+  url: string
+}
+
+export interface PublicBoardResult {
+  total: number
+  jobs: PublicBoardJob[]
+}
+
+export interface PublicBoardQuery {
+  q: string
+  loc: string
+  remote: boolean
+}
+
+export function cleanPublicQuery(raw: { q?: string | null; loc?: string | null; remote?: string | null }): PublicBoardQuery {
+  const clean = (v: string | null | undefined) => (v ?? '').replace(/\s+/g, ' ').trim().slice(0, 100)
+  let loc = clean(raw.loc)
+  let remote = raw.remote === '1' || raw.remote === 'true'
+  if (/^remote$/i.test(loc)) {
+    loc = ''
+    remote = true
+  }
+  return { q: clean(raw.q), loc, remote }
+}
+
+function publicWhere(query: PublicBoardQuery): Prisma.BoardLightRowWhereInput {
+  const and: Prisma.BoardLightRowWhereInput[] = []
+  for (const word of query.q.split(' ').filter(Boolean).slice(0, MAX_WORDS)) {
+    and.push({
+      OR: [
+        { title: { contains: word, mode: 'insensitive' } },
+        { companyName: { contains: word, mode: 'insensitive' } },
+      ],
+    })
+  }
+  if (query.loc) and.push({ location: { contains: query.loc, mode: 'insensitive' } })
+  if (query.remote) {
+    and.push({ OR: [{ targetRemotePolicy: 'remote' }, { location: { contains: 'remote', mode: 'insensitive' } }] })
+  }
+  return {
+    status: 'approved',
+    archivedAt: null,
+    institutionScopeId: null,
+    distribution: 'OPEN',
+    OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    ...(and.length ? { AND: and } : {}),
+  }
+}
+
+export async function searchPublicBoard(query: PublicBoardQuery): Promise<PublicBoardResult> {
+  const where = publicWhere(query)
+  // Internships live in the Higher Ed portals, not on member surfaces; the copy has no type column, so drop them by title.
+  const noIntern: Prisma.BoardLightRowWhereInput = {
+    NOT: {
+      OR: [
+        { title: { contains: 'internship', mode: 'insensitive' } },
+        { title: { startsWith: 'intern ', mode: 'insensitive' } },
+        { title: { contains: ' intern ', mode: 'insensitive' } },
+        { title: { endsWith: ' intern', mode: 'insensitive' } },
+      ],
+    },
+  }
+  const [total, rows] = await Promise.all([
+    prisma.boardLightRow.count({ where: { AND: [where, noIntern] } }),
+    prisma.boardLightRow.findMany({
+      where: { AND: [where, noIntern] },
+      orderBy: [{ postedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+      take: OVERFETCH, // headroom: non-US and confidential rows are dropped below
+      select: { id: true, title: true, companyName: true, location: true, postedAt: true, createdAt: true, salaryMin: true, salaryMax: true },
+    }),
+  ])
+  if (rows.length === 0) return { total, jobs: [] }
+
+  // The member board drops jobs confidently outside the US (board-shortlist keepRelevant);
+  // do the same here. The count can't be filtered in SQL, so it is scaled by the US share
+  // of the rows fetched and rounded, and the page says "about".
+  const usRows = rows.filter((r) => classifyLocation(r.location) !== 'non_us')
+  const approxTotal = roundCount(Math.round(total * (usRows.length / rows.length)))
+
+  const wide = await prisma.exclusiveJobPosting.findMany({
+    where: { id: { in: usRows.map((r) => r.id) }, disclosure: 'OPEN' },
+    select: { id: true, url: true },
+  })
+  const urlById = new Map(wide.map((w) => [w.id, w.url]))
+
+  const jobs: PublicBoardJob[] = []
+  for (const r of usRows) {
+    const url = urlById.get(r.id)
+    if (!url) continue
+    jobs.push({
+      id: r.id,
+      title: r.title,
+      company: r.companyName,
+      location: r.location,
+      postedAt: (r.postedAt ?? r.createdAt).toISOString(),
+      salaryMin: r.salaryMin,
+      salaryMax: r.salaryMax,
+      url,
+    })
+    if (jobs.length === PUBLIC_BOARD_PAGE_SIZE) break
+  }
+  return { total: approxTotal, jobs }
+}
+
+function roundCount(n: number): number {
+  if (n < 100) return n
+  const step = n < 1000 ? 10 : n < 10000 ? 100 : 1000
+  return Math.round(n / step) * step
+}

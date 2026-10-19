@@ -9,6 +9,7 @@ import { AudienceRouter } from '@/components/marketing/AudienceRouter'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { PERSONAS } from '@/lib/constants/personas'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
+import { HomepageJobBoard } from '@/components/home/HomepageJobBoard'
 import { NewsFeed } from '@/components/news/NewsFeed'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -162,6 +163,9 @@ export default async function Home() {
 
         <div className="h-1.5 w-full bg-orange" />
       </section>
+
+      {/* 1b — Job board: search without an account, personalize with one */}
+      <HomepageJobBoard />
 
       {/* 2 — The problem, in one screen (§C3.1.2) */}
       <section className="bg-off-white py-20">
