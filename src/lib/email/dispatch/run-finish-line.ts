@@ -2,6 +2,8 @@ import 'server-only'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { shouldSendRotationEmail } from '@/lib/email/notification-tier'
+import { loadEngagementStates } from '@/lib/email/engagement'
+import { rotationAllowedForEngagement } from '@/lib/email/engagement-state'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendFinishLineEmail } from '@/lib/email/send-finish-line-email'
 import { checkInDue } from '@/lib/journey/journey'
@@ -39,10 +41,14 @@ export async function runFinishLine(introCopy: string | null, eligiblePrivacyTie
     },
   })
 
+  // Members who have stopped using the product get less email (see engagement-state.ts).
+  const engagement = await loadEngagementStates(eligible.map((c) => c.id))
+
   let sentCount = 0
   for (const candidate of eligible) {
     try {
       if (!shouldSendRotationEmail(candidate.notificationTier, 'FINISH_LINE')) continue
+      if (!rotationAllowedForEngagement(engagement.get(candidate.id) ?? 'active', 'FINISH_LINE')) continue
       if (await hasAlreadySentToday(candidate.id, 'FINISH_LINE')) continue
 
       const [encouragementCount, coachSessionCount] = await Promise.all([

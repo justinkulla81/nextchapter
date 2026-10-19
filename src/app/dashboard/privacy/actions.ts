@@ -13,6 +13,7 @@ import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import type { PrivacyTier, NotificationTier } from '@prisma/client'
+import { EMAIL_TOPICS, type EmailTopicField } from '@/lib/constants/notifications'
 
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
 const VALID_NOTIFICATION_TIERS: NotificationTier[] = ['FULL', 'ESSENTIALS', 'MINIMAL']
@@ -104,6 +105,33 @@ export async function updateNotificationTier(
   })
 
   captureServerEvent(profile.id, 'notification_tier_updated', { tier })
+
+  revalidatePath('/dashboard/privacy')
+}
+
+export async function updateEmailTopics(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'You need to be logged in to change this.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  // A checked box means "send me these", so the opt-out flag is its inverse.
+  const data = Object.fromEntries(EMAIL_TOPICS.map((t) => [t.field, formData.get(t.field) !== 'on'])) as Record<EmailTopicField, boolean>
+
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data })
+
+  captureServerEvent(profile.id, 'email_topics_updated', {
+    receiving: EMAIL_TOPICS.filter((t) => !data[t.field]).map((t) => t.field),
+  })
 
   revalidatePath('/dashboard/privacy')
 }

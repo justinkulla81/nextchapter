@@ -3,6 +3,8 @@ import 'server-only'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { shouldSendRotationEmail } from '@/lib/email/notification-tier'
+import { loadEngagementStates } from '@/lib/email/engagement'
+import { rotationAllowedForEngagement } from '@/lib/email/engagement-state'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendMidweekCheckin } from '@/lib/email/send-midweek-checkin'
 import { computeWeeklyGap } from '@/lib/email/weekly-gap'
@@ -29,10 +31,14 @@ export async function runMidweekCheckin(introCopy: string | null, eligiblePrivac
     },
   })
 
+  // Members who have stopped using the product get less email (see engagement-state.ts).
+  const engagement = await loadEngagementStates(eligible.map((c) => c.id))
+
   let sentCount = 0
   for (const candidate of eligible) {
     try {
       if (!shouldSendRotationEmail(candidate.notificationTier, 'MIDWEEK_CHECKIN')) continue
+      if (!rotationAllowedForEngagement(engagement.get(candidate.id) ?? 'active', 'MIDWEEK_CHECKIN')) continue
       if (await hasAlreadySentToday(candidate.id, 'MIDWEEK_CHECKIN')) continue
 
       // Behind this week's target? The email says by how much (it replaces the Friday Close the Gap email).
