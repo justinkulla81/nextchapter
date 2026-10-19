@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import { after } from 'next/server'
 import { getDashboardData, getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { resendMyMarketRealityReportEmail, unlockReportRefresh } from './actions'
+import { resendMyMarketRealityReportEmail } from './actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { EmailConfirmationBanner } from '@/components/dashboard/EmailConfirmationBanner'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { getUnlockStatus } from '@/lib/effort/load'
-import { UnlockProgress } from '@/components/effort/UnlockProgress'
+import Link from 'next/link'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { claimReportGeneration } from '@/lib/reports/report-generation-lock'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
@@ -88,7 +88,7 @@ export default async function MarketRealityReportPage({
     )
   }
 
-  const reportUnlock = await getUnlockStatus(profile.id, 'REPORT')
+  const unlock = await getUnlockStatus(profile.id)
 
   const suggestedActions = await getCandidateWeekNumber(profile.id, getMondayOfWeek(new Date())).then((weekNumber) =>
     getSuggestedActions(profile.id, weekNumber)
@@ -133,7 +133,7 @@ export default async function MarketRealityReportPage({
 
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 print:hidden">
         <p className="max-w-xl text-sm text-muted-foreground">
-          Every section updates as your profile and activity change. A full refresh of the resume rewrites and the weekly action plan is earned with effort points, below.
+          Every section updates as your profile and activity change. A full refresh of the resume rewrites and the weekly action plan comes with your next strategy.
         </p>
         <div className="flex shrink-0 flex-wrap gap-2">
           <PrintReportButton event="market_reality_report_printed" properties={{ grade: brief.summary.grade }} />
@@ -151,17 +151,12 @@ export default async function MarketRealityReportPage({
         <PageHeaderBoxes pageKey="market-reality" candidateId={profile.id} />
       </div>
 
-      <div className="mx-auto max-w-4xl print:hidden">
-        <UnlockProgress
-          status={reportUnlock}
-          title="Unlock a full report refresh"
-          what="Refreshes your resume rewrites and your weekly action plan from everything you have done since the last refresh. The sections on this page already update live."
-          action={unlockReportRefresh}
-          buttonLabel="Refresh my report"
-          pendingLabel="Refreshing…"
-          event="report_refresh_unlock_clicked"
-        />
-      </div>
+      <p className="mx-auto max-w-4xl text-sm text-muted-foreground print:hidden">
+        {unlock.unlocked ? 'Your next strategy is earned, and it refreshes this report with it. ' : `${unlock.score.total} of ${unlock.bar.points} strategy credits toward your next strategy and a full refresh of this report. `}
+        <Link href="/dashboard/search-strategy#unlock" className="text-primary underline underline-offset-4">
+          {unlock.unlocked ? 'Generate it' : 'See how to earn the rest'}
+        </Link>
+      </p>
 
       {!report && (
         <div className="mx-auto max-w-4xl print:hidden">

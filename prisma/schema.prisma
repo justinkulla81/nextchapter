@@ -4090,25 +4090,16 @@ model CandidateVisitDay {
   @@id([candidateId, day])
 }
 
-enum EffortCycleKind {
-  STRATEGY
-  REPORT
-}
-
 // The window unlock points are counted in: from startedAt until the member unlocks and generates
-// the next strategy (or report), which starts a new cycle. Only that action resets it, so editing
-// goals never throws away earned points. baselineAnswered is how many personalization questions were
-// answered when the cycle began, so only new answers earn points.
+// their next strategy (which also refreshes their report), which starts a new cycle. Only that action
+// resets it, so editing goals never throws away earned points. baselineAnswered is how many
+// personalization questions were answered when the cycle began, so only new answers earn points.
 model EffortCycle {
-  id               String           @id @default(cuid())
-  candidateId      String
+  candidateId      String           @id
   candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  kind             EffortCycleKind
   startedAt        DateTime
   baselineAnswered Int              @default(0)
   updatedAt        DateTime         @updatedAt
-
-  @@unique([candidateId, kind])
 }
 
 enum MarketResponseType {

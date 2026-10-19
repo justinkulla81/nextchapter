@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { barFor, CAPS, POINT_VALUES, scoreEffort, unlockStatus, weekKey, type EffortActivity } from '@/lib/effort/points'
+import { UNLOCK_BAR, CAPS, POINT_VALUES, scoreEffort, unlockStatus, weekKey, type EffortActivity } from '@/lib/effort/points'
 
 const DAY = 86_400_000
 // Monday 2026-10-12, noon UTC.
@@ -68,11 +68,8 @@ describe('scoreEffort', () => {
 })
 
 describe('the bar', () => {
-  it('is 30 for a strategy and 40 for a report, two thirds for a casual search', () => {
-    expect(barFor('STRATEGY', false)).toEqual({ points: 30, minDays: 14, minKinds: 2 })
-    expect(barFor('REPORT', false).points).toBe(40)
-    expect(barFor('STRATEGY', true).points).toBe(20)
-    expect(barFor('REPORT', true).points).toBe(27)
+  it('is one bar: 30 credits, two kinds of real work, fourteen days', () => {
+    expect(UNLOCK_BAR).toEqual({ points: 30, minDays: 14, minKinds: 2 })
   })
 })
 
@@ -81,7 +78,7 @@ describe('unlockStatus', () => {
   const strong: EffortActivity = { ...none, loginDays: days(5), applications: days(5), networking: days(4), learning: days(1), partnerJobs: days(1) }
 
   it('unlocks when the points, the kinds of work and the days are all there', () => {
-    const st = unlockStatus('STRATEGY', scoreEffort(strong, now), { casual: false, cycleStartedAt: longAgo, now })
+    const st = unlockStatus(scoreEffort(strong, now), { cycleStartedAt: longAgo, now })
     // A full week of everything: 5 + 10 + 12 + 2 + 4 = 33.
     expect(st.score.total).toBe(5 + 10 + 12 + 2 + 4)
     expect(st.unlocked).toBe(true)
@@ -90,7 +87,7 @@ describe('unlockStatus', () => {
 
   it('does not unlock on logins alone, however many', () => {
     const logins = Array.from({ length: 8 }, (_, w) => days(5, new Date(monday.getTime() + w * 7 * DAY))).flat()
-    const st = unlockStatus('STRATEGY', scoreEffort({ ...none, loginDays: logins }, now), { casual: false, cycleStartedAt: longAgo, now })
+    const st = unlockStatus(scoreEffort({ ...none, loginDays: logins }, now), { cycleStartedAt: longAgo, now })
     expect(st.score.total).toBe(40)
     expect(st.unlocked).toBe(false)
     expect(st.kindsShort).toBe(2)
@@ -98,33 +95,31 @@ describe('unlockStatus', () => {
   })
 
   it('holds the unlock until enough days have passed, and says how many', () => {
-    const st = unlockStatus('STRATEGY', scoreEffort(strong, now), { casual: false, cycleStartedAt: new Date(now.getTime() - 5 * DAY), now })
+    const st = unlockStatus(scoreEffort(strong, now), { cycleStartedAt: new Date(now.getTime() - 5 * DAY), now })
     expect(st.unlocked).toBe(false)
     expect(st.daysLeft).toBe(9)
     expect(st.blockers.join(' ')).toMatch(/9 more days/)
   })
 
-  it('says how many points are short, and the casual bar is lower', () => {
+  it('says how many credits are short', () => {
     const some: EffortActivity = { ...none, loginDays: days(3), applications: days(2), networking: days(2) }
-    const active = unlockStatus('STRATEGY', scoreEffort(some, now), { casual: false, cycleStartedAt: longAgo, now })
+    const active = unlockStatus(scoreEffort(some, now), { cycleStartedAt: longAgo, now })
     expect(active.pointsShort).toBe(30 - (3 + 4 + 6))
-    const casual = unlockStatus('STRATEGY', scoreEffort(some, now), { casual: true, cycleStartedAt: longAgo, now })
-    expect(casual.pointsShort).toBe(20 - 13)
   })
 
   it('needs two kinds of real work even when the points are there', () => {
     const one: EffortActivity = { ...none, networking: [...days(4), ...days(4, new Date(monday.getTime() + 7 * DAY))], loginDays: [...days(5), ...days(5, new Date(monday.getTime() + 7 * DAY))] }
-    const st = unlockStatus('STRATEGY', scoreEffort(one, now), { casual: false, cycleStartedAt: longAgo, now })
+    const st = unlockStatus(scoreEffort(one, now), { cycleStartedAt: longAgo, now })
     expect(st.pointsShort).toBe(0)
     expect(st.kindsShort).toBe(1)
     expect(st.unlocked).toBe(false)
   })
 
   it('suggests the highest-value things first and skips what is capped out this week', () => {
-    const st = unlockStatus('STRATEGY', scoreEffort({ ...none, partnerJobs: days(2) }, now), { casual: false, cycleStartedAt: longAgo, now })
+    const st = unlockStatus(scoreEffort({ ...none, partnerJobs: days(2) }, now), { cycleStartedAt: longAgo, now })
     expect(st.suggestions.map((s) => s.kind)).toEqual(['networking', 'application', 'reference'])
     expect(st.suggestions[0].points).toBe(3)
-    const fresh = unlockStatus('STRATEGY', scoreEffort(none, now), { casual: false, cycleStartedAt: longAgo, now })
+    const fresh = unlockStatus(scoreEffort(none, now), { cycleStartedAt: longAgo, now })
     expect(fresh.suggestions[0].kind).toBe('partnerJob')
   })
 })
@@ -147,7 +142,7 @@ describe('time to unlock', () => {
     // After two: 44, which clears the points and, from the 14th day, the floor.
     const start = new Date(monday.getTime())
     const at14 = new Date(start.getTime() + 14 * DAY)
-    const st = unlockStatus('STRATEGY', scoreEffort(merge(2), at14), { casual: false, cycleStartedAt: start, now: at14 })
+    const st = unlockStatus(scoreEffort(merge(2), at14), { cycleStartedAt: start, now: at14 })
     expect(st.score.total).toBe(44)
     expect(st.unlocked).toBe(true)
   })

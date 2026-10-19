@@ -1,5 +1,5 @@
-// Unlock points: how much real effort a member has put in since their last strategy (or report),
-// and whether that earns the next one. Pure.
+// Unlock points: how much real effort a member has put in since their last strategy, and whether
+// that earns the next one (which also refreshes their report). Pure.
 //
 // This is deliberately a different, coarser scale from the Weekly Search Score (src/lib/weekly/
 // action-effort.ts, where 1 point = 1 minute and an A is hundreds of points). Here a handful of
@@ -68,25 +68,20 @@ export const KIND_LABEL: Record<EffortKind, { one: string; many: string; verb: s
   question: { one: 'question answered', many: 'questions answered', verb: 'Answer a personalization question' },
 }
 
-export type UnlockKind = 'STRATEGY' | 'REPORT'
-
 export interface UnlockBar {
   points: number
-  /** Days since the last one before the next can unlock. */
+  /** Days since the last unlock before the next can happen. */
   minDays: number
   /** Kinds of real work (not logging in) that must have earned something. */
   minKinds: number
 }
 
-const ACTIVE_STRATEGY = 30
-const ACTIVE_REPORT = 40
-/** Looking casually or exploring: two thirds of the bar, same shape. */
-const CASUAL_SHARE = 2 / 3
-
-export function barFor(kind: UnlockKind, casual: boolean): UnlockBar {
-  const base = kind === 'STRATEGY' ? ACTIVE_STRATEGY : ACTIVE_REPORT
-  return { points: casual ? Math.round(base * CASUAL_SHARE) : base, minDays: 14, minKinds: 2 }
-}
+/**
+ * One bar for everyone: 30 points unlocks the next strategy and a refresh of the report together.
+ * At least two kinds of real work besides logging in, and 14 days since the last, so the new read
+ * rests on fresh evidence.
+ */
+export const UNLOCK_BAR: UnlockBar = { points: 30, minDays: 14, minKinds: 2 }
 
 // ── Scoring ────────────────────────────────────────────────────────────────
 
@@ -174,7 +169,6 @@ export function scoreEffort(a: EffortActivity, now: Date = new Date()): EffortSc
 // ── Unlocking ──────────────────────────────────────────────────────────────
 
 export interface UnlockStatus {
-  kind: UnlockKind
   bar: UnlockBar
   score: EffortScore
   unlocked: boolean
@@ -190,16 +184,16 @@ export interface UnlockStatus {
   suggestions: { kind: EffortKind; verb: string; points: number }[]
 }
 
-export function unlockStatus(kind: UnlockKind, score: EffortScore, opts: { casual: boolean; cycleStartedAt: Date; now?: Date }): UnlockStatus {
+export function unlockStatus(score: EffortScore, opts: { cycleStartedAt: Date; now?: Date }): UnlockStatus {
   const now = opts.now ?? new Date()
-  const bar = barFor(kind, opts.casual)
+  const bar = UNLOCK_BAR
   const pointsShort = Math.max(0, bar.points - score.total)
   const daysLeft = Math.max(0, Math.ceil((opts.cycleStartedAt.getTime() + bar.minDays * DAY - now.getTime()) / DAY))
   const kindsShort = Math.max(0, bar.minKinds - score.workKinds)
   const unlocked = pointsShort === 0 && daysLeft === 0 && kindsShort === 0
 
   const blockers: string[] = []
-  if (pointsShort > 0) blockers.push(`${pointsShort} more point${pointsShort === 1 ? '' : 's'}`)
+  if (pointsShort > 0) blockers.push(`${pointsShort} more strategy credit${pointsShort === 1 ? '' : 's'}`)
   if (kindsShort > 0) blockers.push(`${kindsShort} more kind${kindsShort === 1 ? '' : 's'} of real work besides logging in`)
   if (daysLeft > 0) blockers.push(`${daysLeft} more day${daysLeft === 1 ? '' : 's'}, so the new read has fresh evidence to use`)
 
@@ -211,5 +205,5 @@ export function unlockStatus(kind: UnlockKind, score: EffortScore, opts: { casua
     .sort((a, b) => b.points - a.points)
     .slice(0, 3)
     .map(({ kind: k, verb, points }) => ({ kind: k, verb, points }))
-  return { kind, bar, score, unlocked, pointsShort, daysLeft, kindsShort, blockers, suggestions }
+  return { bar, score, unlocked, pointsShort, daysLeft, kindsShort, blockers, suggestions }
 }

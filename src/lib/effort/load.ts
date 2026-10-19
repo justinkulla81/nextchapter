@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
 import { isSet, spineFor, type ProfileLike } from '@/lib/personalization/spine'
 import { isPoorFitApplication } from '@/lib/scoring/market-reality/attempts'
-import { scoreEffort, unlockStatus, type EffortActivity, type UnlockKind, type UnlockStatus } from './points'
+import { scoreEffort, unlockStatus, type EffortActivity, type UnlockStatus } from './points'
 
 const NETWORKING_EMAIL_TYPES = ['THANK_YOU', 'FOLLOW_UP', 'CHECK_IN', 'INTRO_REQUEST', 'NETWORKING_OUTREACH'] as const
 const startOfUTCDay = (d: Date) => {
@@ -29,17 +29,26 @@ async function soft<T>(work: Promise<T>, fallback: T): Promise<T> {
   }
 }
 
-async function getCycle(candidateId: string, kind: UnlockKind, profile: { registrationCompletedAt: Date | null; createdAt: Date }) {
-  const row = await soft(prisma.effortCycle.findUnique({ where: { candidateId_kind: { candidateId, kind } }, select: { startedAt: true, baselineAnswered: true } }), null)
+/** Members who registered before this date start their first cycle the first time it is read, not at registration. */
+export const EFFORT_LAUNCH_DATE = new Date('2026-10-19T00:00:00Z')
+
+async function getCycle(candidateId: string, profile: { registrationCompletedAt: Date | null; createdAt: Date } & Record<string, unknown>) {
+  const row = await soft(prisma.effortCycle.findUnique({ where: { candidateId }, select: { startedAt: true, baselineAnswered: true } }), null)
   if (row) return row
-  // First time: the window runs from registration, so real work already done counts.
-  return { startedAt: profile.registrationCompletedAt ?? profile.createdAt, baselineAnswered: 0 }
+  const registered = profile.registrationCompletedAt ?? profile.createdAt
+  // New members: the window runs from registration, so real work already done counts.
+  if (registered >= EFFORT_LAUNCH_DATE) return { startedAt: registered, baselineAnswered: 0 }
+  // Long-time members would otherwise unlock instantly on years of history (and trigger many model
+  // calls at once), so their first cycle starts now and what they have already answered is not counted.
+  const first = { startedAt: new Date(), baselineAnswered: answeredAfterSignup(profile) }
+  await soft(prisma.effortCycle.createMany({ data: [{ candidateId, ...first }], skipDuplicates: true }), null)
+  return first
 }
 
-/** What the member has done in the cycle and whether it earns the next strategy or report. */
-export async function getUnlockStatus(candidateId: string, kind: UnlockKind): Promise<UnlockStatus> {
+/** What the member has done in the cycle and whether it earns the next strategy and report refresh. */
+export async function getUnlockStatus(candidateId: string): Promise<UnlockStatus> {
   const profile = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
-  const cycle = await getCycle(candidateId, kind, profile)
+  const cycle = await getCycle(candidateId, profile as unknown as Parameters<typeof getCycle>[1])
   const since = cycle.startedAt
   const now = new Date()
 
@@ -72,19 +81,18 @@ export async function getUnlockStatus(candidateId: string, kind: UnlockKind): Pr
     partnerJobs: partner.map((s) => s.reactedAt).filter((d): d is Date => !!d),
     questionsAnswered: Math.max(0, answeredAfterSignup(profile as unknown as Record<string, unknown>) - cycle.baselineAnswered),
   }
-  const casual = !!profile.searchIntensity && profile.searchIntensity !== 'ACTIVELY_SEARCHING'
-  return unlockStatus(kind, scoreEffort(activity, now), { casual, cycleStartedAt: since, now })
+  return unlockStatus(scoreEffort(activity, now), { cycleStartedAt: since, now })
 }
 
 /** Starts the next cycle once the member has used their unlock. Only this resets the window. */
-export async function startNewCycle(candidateId: string, kind: UnlockKind): Promise<void> {
+export async function startNewCycle(candidateId: string): Promise<void> {
   try {
     const profile = await prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId } })
     const baselineAnswered = answeredAfterSignup(profile as unknown as Record<string, unknown>)
     const now = new Date()
     await prisma.effortCycle.upsert({
-      where: { candidateId_kind: { candidateId, kind } },
-      create: { candidateId, kind, startedAt: now, baselineAnswered },
+      where: { candidateId },
+      create: { candidateId, startedAt: now, baselineAnswered },
       update: { startedAt: now, baselineAnswered },
     })
   } catch (error) {

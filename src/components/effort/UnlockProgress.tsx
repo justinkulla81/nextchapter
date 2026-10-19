@@ -15,7 +15,7 @@ const KIND_HREF: Record<EffortKind, string> = {
 }
 
 /**
- * "Unlock your next strategy (or report)": how many effort points the member has earned since the
+ * "Unlock your next strategy": how many strategy credits the member has earned since the
  * last one, where they came from, what still stands in the way, and the quickest ways to earn the rest.
  * Plain ink on white, no streak or score to chase: one bar, one number, one button when it is earned.
  */
@@ -39,17 +39,17 @@ export function UnlockProgress({
   const { score, bar } = status
   const pct = Math.min(100, Math.round((score.total / bar.points) * 100))
   return (
-    <section aria-labelledby={`unlock-${status.kind}`} className="space-y-4 rounded-lg border border-navy/20 bg-white p-5">
+    <section id="unlock" aria-labelledby="unlock-title" className="space-y-4 rounded-lg border border-navy/20 bg-white p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id={`unlock-${status.kind}`} className="font-serif text-lg font-semibold tracking-tight text-navy">
+        <h2 id="unlock-title" className="font-serif text-lg font-semibold tracking-tight text-navy">
           {title}
         </h2>
         <p className="text-sm tabular-nums text-foreground">
-          <span className="font-semibold">{Math.min(score.total, bar.points)}</span> of {bar.points} points
+          <span className="font-semibold">{Math.min(score.total, bar.points)}</span> of {bar.points} strategy credits
         </p>
       </div>
       <p className="max-w-2xl text-sm text-muted-foreground">{what}</p>
-      <div role="progressbar" aria-valuemin={0} aria-valuemax={bar.points} aria-valuenow={Math.min(score.total, bar.points)} aria-label={`${title}: ${score.total} of ${bar.points} points`} className="h-2 w-full rounded-full bg-muted">
+      <div role="progressbar" aria-valuemin={0} aria-valuemax={bar.points} aria-valuenow={Math.min(score.total, bar.points)} aria-label={`${title}: ${score.total} of ${bar.points} strategy credits`} className="h-2 w-full rounded-full bg-muted">
         <div className="h-2 rounded-full bg-navy" style={{ width: `${pct}%` }} />
       </div>
 
@@ -65,13 +65,13 @@ export function UnlockProgress({
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[26rem] border-collapse text-sm" aria-label="Where your points came from">
+        <table className="w-full min-w-[26rem] border-collapse text-sm" aria-label="Where your strategy credits came from">
           <thead>
             <tr className="border-b border-navy text-left text-xs font-semibold tracking-wide text-navy uppercase">
               <th scope="col" className="py-1.5 pr-3">Activity</th>
               <th scope="col" className="py-1.5 pr-3">Each</th>
               <th scope="col" className="py-1.5 pr-3">Counted</th>
-              <th scope="col" className="py-1.5 text-right">Points</th>
+              <th scope="col" className="py-1.5 text-right">Credits</th>
             </tr>
           </thead>
           <tbody>

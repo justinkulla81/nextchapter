@@ -236,13 +236,13 @@ function SearchStrategyGuidanceSkeleton() {
 // searchStrategyFirstAnsweredAt, and the next page load renders the real
 // SearchStrategyGuidanceCard above instead of this.
 async function StrategyUnlockCard({ candidateId }: { candidateId: string }) {
-  const status = await getUnlockStatus(candidateId, 'STRATEGY')
-  captureServerEvent(candidateId, 'unlock_progress_viewed', { kind: 'STRATEGY', points: status.score.total, bar: status.bar.points, unlocked: status.unlocked, workKinds: status.score.workKinds })
+  const status = await getUnlockStatus(candidateId)
+  captureServerEvent(candidateId, 'unlock_progress_viewed', { points: status.score.total, bar: status.bar.points, unlocked: status.unlocked, workKinds: status.score.workKinds })
   return (
     <UnlockProgress
       status={status}
-      title="Unlock your next search strategy"
-      what="Victoria writes a new read of your strategy from the work you have done since the last one: who you talked to, what you applied for, what you learned and what you told us. Earn it with effort, not time alone."
+      title="Unlock your next strategy and report refresh"
+      what="Victoria writes a new read of your strategy, and your Market Reality Report is refreshed with it, from the work you have done since the last one: who you talked to, what you applied for, what you learned and what you told us. Earn strategy credits with effort, not time alone."
       action={unlockNextStrategy}
       buttonLabel="Generate my next strategy"
       pendingLabel="Writing your strategy…"

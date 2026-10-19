@@ -4,61 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
 import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-report'
-import { getUnlockStatus, startNewCycle } from '@/lib/effort/load'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { resolveReviewerDetection } from '@/lib/scoring/market-reality/reviewer-detections'
-
-export async function regenerateMarketRealityReport() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return
-
-  const profile = await getOrCreateCandidateProfile(user.id)
-
-  // Earned with effort points (src/lib/effort/points.ts), checked here as well as on the page: the
-  // button is only shown when unlocked, but the action is still callable.
-  const status = await getUnlockStatus(profile.id, 'REPORT')
-  if (!status.unlocked) return
-
-  // User-initiated — run synchronously so the page can show a loading state,
-  // unlike the onboarding auto-trigger which defers via after(). Does not
-  // re-send the email (only the first auto-generated report is emailed) to
-  // avoid spamming candidates who click regenerate repeatedly.
-  await generateMarketRealityReport(profile.id)
-  await startNewCycle(profile.id, 'REPORT')
-
-  captureServerEvent(profile.id, 'market_reality_report_regenerated', { points: status.score.total })
-
-  revalidatePath('/dashboard/market-reality')
-}
-
-export type ReportUnlockState = { ok?: true; error?: string } | undefined
-
-/** The same refresh as above, as a form action that reports back, for the unlock card. */
-export async function unlockReportRefresh(_prev: ReportUnlockState, _formData: FormData): Promise<ReportUnlockState> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Please sign in again to continue.' }
-  const profile = await getOrCreateCandidateProfile(user.id)
-  const status = await getUnlockStatus(profile.id, 'REPORT')
-  if (!status.unlocked) return { error: `Your report refresh is not unlocked yet: ${status.blockers.join(', ')}.` }
-  try {
-    await generateMarketRealityReport(profile.id)
-  } catch (error) {
-    console.error('Report refresh failed', error)
-    return { error: 'We could not refresh your report just now. Nothing was used up, so please try again in a moment.' }
-  }
-  await startNewCycle(profile.id, 'REPORT')
-  captureServerEvent(profile.id, 'market_reality_report_regenerated', { points: status.score.total })
-  revalidatePath('/dashboard/market-reality')
-  return { ok: true }
-}
 
 export async function resendMyMarketRealityReportEmail() {
   const supabase = await createClient()
