@@ -268,6 +268,9 @@ async function HomeWeeklyPlan({
         <WeeklyFocusCard
           candidateId={profile.id}
           locked={!bothConnectedUnlocked}
+          hasEmailConnection={hasEmailConnection}
+          hasCalendarConnection={hasCalendarConnection}
+          linkedInConnected={linkedInConnected}
           weeklyPoints={weeklyProgress.weeklyPoints}
           weeklyPointsTarget={weeklyProgress.weeklyPointsTarget}
         />
