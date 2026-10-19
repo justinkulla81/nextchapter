@@ -16,4 +16,8 @@ describe('isRedesignOn', () => {
     expect(isRedesignOn('stranger@example.com', env)).toBe(false)
     expect(isRedesignOn(null, env)).toBe(false)
   })
+
+  it('is always on for the owner, with no settings', () => {
+    expect(isRedesignOn('Justin.Kulla@gmail.com', {})).toBe(true)
+  })
 })
