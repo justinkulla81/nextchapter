@@ -100,7 +100,8 @@ export async function mergeCompanies(
       create: { aliasKey: source.canonicalNameNormalized, companyId: survivorId, status: 'CONFIRMED', createdByEmail: actorEmail },
       update: { status: 'CONFIRMED' },
     })
-  })
+    // A company with thousands of postings or notices outlasts Prisma's 5-second default.
+  }, { timeout: 120_000, maxWait: 20_000 })
 
   // Both companies' CRM organizations are now linked to the survivor; they are the same organization.
   let orgNote = ''
