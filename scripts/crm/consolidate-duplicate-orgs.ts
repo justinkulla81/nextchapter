@@ -94,14 +94,27 @@ const GENERIC_WORDS = new Set([
 /** Further organizations folded into the group of the first name (legal entities that file WARN notices as Amazon). */
 const EXTRA_MERGES: string[][] = [['Amazon', 'Amazon Data Services', 'Amazon Technologies', 'Amazon Development Center U.S.']]
 
+/** Retries a call when the database connection drops (Prisma P1017 / P1001), which the pooler does now and then. */
+async function retry<T>(fn: () => Promise<T>, tries = 5): Promise<T> {
+  for (let i = 1; ; i++) {
+    try { return await fn() } catch (e) {
+      const code = (e as { code?: string }).code
+      if (i >= tries || (code !== 'P1017' && code !== 'P1001' && code !== 'P2024')) throw e
+      console.log(`  connection dropped (${code}), retry ${i}/${tries - 1}`)
+      await prisma.$disconnect().catch(() => {})
+      await new Promise((r) => setTimeout(r, 1500 * i))
+    }
+  }
+}
+
 async function main() {
   mkdirSync(OUT, { recursive: true })
-  const all = await prisma.crmOrganization.findMany({
+  const all = await retry(() => prisma.crmOrganization.findMany({
     select: {
       id: true, name: true, website: true, canonicalNameNormalized: true, companyId: true, hiringClient: true, createdAt: true, orgTypes: true,
       _count: { select: { affiliations: true, opportunities: true, mandates: true } },
     },
-  })
+  }))
   console.log(`loaded ${all.length} organizations`)
 
   const groups = new Map<string, typeof all>()
@@ -154,7 +167,7 @@ async function main() {
   let done = 0, refused = 0
   for (const m of merges) {
     for (const id of m.mergeIds) {
-      const r = await mergeOrganizations(m.keepId, id, 'consolidate-duplicate-orgs')
+      const r = await retry(() => mergeOrganizations(m.keepId, id, 'consolidate-duplicate-orgs'))
       log.push({ key: m.key, keepId: m.keepId, sourceId: id, sourceName: byId.get(id)?.name, ...r })
       if (r.ok) done++
       else { refused++; console.log(`  refused: ${r.reason}`) }
