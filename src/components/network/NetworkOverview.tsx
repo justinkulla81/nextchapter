@@ -46,9 +46,11 @@ const STATE_LABEL: Record<CircleState, string> = { active: 'Active', started: 'S
 export interface NextMove {
   title: string
   why: string
-  /** A ready-to-send message, so starting takes one tap. */
-  note: string
+  /** A ready-to-send message, so starting takes one tap. Omitted when the draft is made on the next screen. */
+  note?: string
   sendLabel: string
+  /** Where the primary action goes. */
+  href: string
 }
 
 export interface Moment {
@@ -64,7 +66,7 @@ export interface Moment {
 
 // The whole network on one screen, in three parts: your next move (how to build it), your five
 // circles from closest to widest (where support comes from), and the moments you are working toward.
-export function NetworkOverview({ circles, headline, next, moments }: { circles: CircleData[]; headline: string; next: NextMove; moments: Moment[] }) {
+export function NetworkOverview({ circles, headline, next, moments }: { circles: CircleData[]; headline: string; next: NextMove | null; moments: Moment[] }) {
   return (
     <>
       <header className="space-y-1.5">
@@ -72,17 +74,18 @@ export function NetworkOverview({ circles, headline, next, moments }: { circles:
         <p className="max-w-xl text-base text-muted-foreground">{headline}</p>
       </header>
 
-      <section aria-labelledby="next" className="space-y-4 rounded-2xl border border-border bg-white p-7">
-        <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Your next move</p>
-        <h2 id="next" className="font-display text-2xl leading-tight font-semibold text-ink text-balance">{next.title}</h2>
-        <p className="max-w-2xl text-base text-ink"><span className="font-semibold">Why:</span> {next.why}</p>
-        <blockquote className="max-w-2xl rounded-xl bg-muted/60 p-4 text-base text-ink">{next.note}</blockquote>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <a href="#" className="inline-flex h-12 items-center rounded-full bg-action px-8 text-base font-semibold text-action-foreground hover:brightness-95">{next.sendLabel}</a>
-          <a href="#" className="text-sm font-medium text-brand underline underline-offset-4">Edit the note</a>
-          <a href="#" className="text-sm font-medium text-brand underline underline-offset-4">See this week&apos;s plan</a>
-        </div>
-      </section>
+      {next && (
+        <section aria-labelledby="next" className="space-y-4 rounded-2xl border border-border bg-white p-7">
+          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Your next move</p>
+          <h2 id="next" className="font-display text-2xl leading-tight font-semibold text-ink text-balance">{next.title}</h2>
+          <p className="max-w-2xl text-base text-ink"><span className="font-semibold">Why:</span> {next.why}</p>
+          {next.note && <blockquote className="max-w-2xl rounded-xl bg-muted/60 p-4 text-base text-ink">{next.note}</blockquote>}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <a href={next.href} className="inline-flex h-12 items-center rounded-full bg-action px-8 text-base font-semibold text-action-foreground hover:brightness-95">{next.sendLabel}</a>
+            <a href="/dashboard/network/this-week" className="text-sm font-medium text-brand underline underline-offset-4">See this week&apos;s plan</a>
+          </div>
+        </section>
+      )}
 
       <section aria-labelledby="circles" className="space-y-4">
         <h2 id="circles" className="font-display text-xl font-semibold text-ink">Your five circles</h2>
@@ -111,6 +114,7 @@ export function NetworkOverview({ circles, headline, next, moments }: { circles:
         </div>
       </section>
 
+      {moments.length > 0 && (
       <section aria-labelledby="moments" className="space-y-4">
         <h2 id="moments" className="font-display text-xl font-semibold text-ink">Moments you are working toward</h2>
         <ul className="grid gap-4 sm:grid-cols-2">
@@ -130,6 +134,7 @@ export function NetworkOverview({ circles, headline, next, moments }: { circles:
           ))}
         </ul>
       </section>
+      )}
     </>
   )
 }

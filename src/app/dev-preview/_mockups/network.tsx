@@ -33,6 +33,7 @@ export function NetworkOverviewMock() {
           why: 'Priya is a VP of Operations at Northwind, where you applied last week. A warm introduction there counts for more than the application.',
           note: 'Hi Priya, I applied for the Director of Operations role on your team and would love 15 minutes to hear how you see it. I led a similar turnaround at my last company. Would Thursday work?',
           sendLabel: 'Send it',
+          href: '#',
         }}
         moments={[
           { key: 'intro', title: 'Your first warm introduction', payoff: 'Someone you know introduces you to a person who can hire.', progress: 'One more conversation', pct: 80 },
