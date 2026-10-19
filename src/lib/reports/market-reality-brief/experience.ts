@@ -79,6 +79,16 @@ export interface ExperienceAnalysis {
   openQuestions: number
   /** Plain facts the evaluator lenses quote. */
   facts: ExperienceFacts
+  /** Roles and gaps as time spans, for the career timeline chart. */
+  chart: TimelineChart
+}
+
+export interface TimelineChart {
+  /** ms since epoch. */
+  from: number
+  to: number
+  bars: { label: string; title: string; start: number; end: number; contract: boolean; current: boolean }[]
+  gaps: { start: number; end: number; months: number; explained: boolean }[]
 }
 
 export interface ExperienceFacts {
@@ -194,8 +204,12 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
     longest: longestRole ? { company: longestRole.e.companyName, months: longestRole.months } : null,
   }
 
+  const chartBars: TimelineChart['bars'] = roles.map((r) => ({ label: r.e.companyName, title: r.e.roleTitle, start: r.start.getTime(), end: r.end.getTime(), contract: r.contract, current: r.e.isCurrent }))
+  let chartGaps: TimelineChart['gaps'] = []
+  const chart = (): TimelineChart => ({ from: roles.length > 0 ? roles[0].start.getTime() : asOf.getTime(), to: asOf.getTime(), bars: chartBars, gaps: chartGaps })
+
   if (roles.length < 2) {
-    return { assessable: false, careerYears, roleCount: roles.length, employerCount, findings: [], timeline, developmentCount: 0, openQuestions: 0, facts }
+    return { assessable: false, careerYears, roleCount: roles.length, employerCount, findings: [], timeline, developmentCount: 0, openQuestions: 0, facts, chart: chart() }
   }
 
   const findings: ExperienceFinding[] = []
@@ -263,6 +277,7 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
         coveredRole = r
       }
     }
+    chartGaps = gaps.map((g) => ({ start: g.from.getTime(), end: g.to.getTime(), months: g.months, explained: g.explained }))
     const working = roles.some((r) => r.e.isCurrent)
     const lastEnd = roles.reduce((m, r) => (r.end > m ? r.end : m), roles[0].end)
     const currentGap = working ? 0 : monthsBetween(lastEnd, asOf)
@@ -461,5 +476,5 @@ export function analyzeExperience(input: ExperienceInput): ExperienceAnalysis {
   }
 
   const developmentCount = findings.filter((f) => f.assessment === 'development').length
-  return { assessable: true, careerYears, roleCount: roles.length, employerCount, findings, timeline, developmentCount, openQuestions, facts }
+  return { assessable: true, careerYears, roleCount: roles.length, employerCount, findings, timeline, developmentCount, openQuestions, facts, chart: chart() }
 }

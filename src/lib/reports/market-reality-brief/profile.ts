@@ -13,6 +13,8 @@ export interface ProfileRow {
   key: DimensionKey
   label: string
   assessment: Assessment
+  /** 0-100, for the scale chart only. Never printed as a number. */
+  score: number
   /** What a reviewer reads off this dimension. */
   reads: string
   /** The most valuable observation, from the analysis's own finding; null when nothing is flagged. */
@@ -68,6 +70,7 @@ export function buildProfile(
           key: k,
           label: DIMENSION_LABEL[k],
           assessment: ratingFor(scores[k]!),
+          score: scores[k]!,
           reads: READS[k],
           observation: top && top.estimatedPointGain > 0 ? top.candidateFacingCopy : null,
         }

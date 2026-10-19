@@ -24,6 +24,7 @@ export const APPENDIX_SECTIONS = [
   { id: 'skills', title: 'Skills in detail' },
   { id: 'resume', title: 'Resume in detail' },
   { id: 'activity', title: 'Search activity to date' },
+  { id: 'rubric', title: 'How ratings are set' },
 ] as const
 
 export const SECTIONS = [...BODY_SECTIONS, ...APPENDIX_SECTIONS] as const

@@ -7,6 +7,9 @@ import type { MarketRealityBrief } from '@/lib/reports/market-reality-brief/load
 import { INTERVIEWS_PER_OFFER, PLAN_WEEKS } from '@/lib/reports/market-reality-brief/effort-plan'
 import { STANCE_LABEL, STANCE_MARK } from '@/lib/reports/market-reality-brief/evaluators'
 import { hiringCaseCounts, HIRING_STATUS_LABEL, type HiringStatus } from '@/lib/reports/market-reality-brief/hiring-case'
+import { ADEQUATE_AT, STRENGTH_AT } from '@/lib/reports/market-reality-brief/profile'
+import { GAP_LONG_MONTHS, GAP_REPORT_MONTHS, LOOKBACK_YEARS, RECENT_YEARS, SHORT_STINT_MONTHS } from '@/lib/reports/market-reality-brief/experience'
+import { CareerTimeline, PaceBars, ProfileScale } from './charts'
 import { sectionNumber } from '@/lib/reports/market-reality-brief/sections'
 import { buttonVariants } from '@/components/ui/button'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
@@ -161,6 +164,8 @@ export function RequirementsSection({ brief }: { brief: MarketRealityBrief }) {
           </p>
         </div>
       )}
+
+      {pace.activityObserved && <PaceBars plan={plan} />}
 
       <div>
         <SubHeading>Current pace, last four weeks</SubHeading>
@@ -666,14 +671,31 @@ export function LaunchpadSection({ brief }: { brief: MarketRealityBrief }) {
   )
 }
 
+export function RubricSection() {
+  const rows: [string, string][] = [
+    ['Tenure', `A completed full-time role under ${SHORT_STINT_MONTHS} months inside the last ${LOOKBACK_YEARS} years is a short stint, unless a layoff, closure or acquisition is on file. Three unexplained, or two inside ${RECENT_YEARS} years, is a pattern. Interim and contract work never counts as a short stint.`],
+    ['Gaps', `A gap of ${GAP_REPORT_MONTHS} months or more is reported. One of ${GAP_LONG_MONTHS} months or more with no reason on file, or being out of work that long now, is a development area. Gaps covered by school, a leave or a layoff on file are treated as explained.`],
+    ['Progression', 'Two levels at once, or about one level a year, is rapid and needs scope numbers beside it. A step down inside five years needs a stated reason. Ten years at one level is a plateau.'],
+    ['Resume dimensions', `Rated from the resume analysis: ${STRENGTH_AT} and above is a strength, ${ADEQUATE_AT} to ${STRENGTH_AT - 1} adequate, below ${ADEQUATE_AT} a development area.`],
+    ['Recruiter view', 'Starts from the resume’s first-screen result, then steps down for each of an unexplained tenure pattern and an unexplained gap.'],
+    ['Hiring manager view', 'Averages four dimensions: quantification, scope, relevance and recency, and skill currency. 70 and above advances, 45 and above advances with reservations. Capped at reservations when the target level has not been held.'],
+    ['Executive recruiter view', 'Counts development areas across tenure, gaps, progression, level, industry breadth and plateau, plus a missing target line. None advances, one reserves, two or more pause.'],
+    ['Search volume', `Applications and conversations per interview come from your estimated odds per application. About ${INTERVIEWS_PER_OFFER} interviews are assumed to produce one offer, over ${PLAN_WEEKS} weeks. A conversation is weighted several times an application.`],
+    ['Status of these rules', 'They are the screening rules of thumb recruiters use, set by NextChapter. They have not yet been validated against employer outcomes or calibrated against a reference population, and they will change as that evidence arrives.'],
+  ]
+  return (
+    <ReportSection id="rubric" number={sectionNumber('rubric')} title="How ratings are set">
+      <ReportTable label="How ratings are set" widths={['22%', '78%']} head={['Measure', 'Rule']} rows={rows.map(([k, v]) => ({ key: k, cells: [k, <span key="v" className="font-normal text-muted-foreground">{v}</span>] }))} />
+    </ReportSection>
+  )
+}
+
 export function MethodNotes() {
   return (
-    <footer className="border-t border-navy/20 pt-6 text-xs leading-relaxed text-muted-foreground">
-      <p className="font-semibold tracking-widest text-navy uppercase">Method and limits</p>
-      <ul className="mt-2 list-disc space-y-1 pl-4">
-        <li>Open-role counts are live postings on the NextChapter board; trends compare each market with the whole board. Odds, volumes and the grade are working estimates that sharpen as your own results come in, not predictions.</li>
-        <li>Experience norms are the screening rules of thumb recruiters use. A short stint or a gap is never a verdict on a person. Private notes shared with a coach never enter this report.</li>
-      </ul>
+    <footer className="border-t border-navy/20 pt-4 text-xs leading-relaxed text-muted-foreground">
+      <p>
+        Open-role counts are live postings on the NextChapter board, and trends compare each market with the whole board. Odds, volumes and the grade are working estimates that sharpen as your own results come in. A short stint or a gap is never a verdict on a person. Private notes shared with a coach never enter this report.
+      </p>
     </footer>
   )
 }
@@ -686,8 +708,16 @@ export function EvaluatorSection({ brief }: { brief: MarketRealityBrief }) {
       id="read"
       number={sectionNumber('read')}
       title="How you will be read"
-      finding="Three people decide whether this search moves forward, and each reads for something different. What follows is the likely first read from each, built from the evidence in this report. It is a read of the page and the record, not of the person, and not a prediction of any decision."
+      finding="Three people decide whether this search moves forward, and each reads for something different. What follows is the likely first read from each, built from the evidence in this report using common screening practice. It is a read of the page and the record, not of the person. It has not yet been validated against any employer's actual decisions, so treat the stances as a guide to what to fix, not a forecast."
     >
+      {brief.experience.chart.bars.length > 1 && (
+        <div>
+          <SubHeading>What the record looks like at a glance</SubHeading>
+          <div className="mt-2">
+            <CareerTimeline chart={brief.experience.chart} />
+          </div>
+        </div>
+      )}
       <div className="space-y-8">
         {brief.evaluators.map((e) => (
           <article key={e.key} className="break-inside-avoid space-y-3 border-l-2 border-navy/30 pl-5">
@@ -870,6 +900,7 @@ export function ProfileSection({ brief }: { brief: MarketRealityBrief }) {
           : `${rows.length} dimensions a reviewer reads, in the groups they think in. ${dev === 0 ? 'None is a development area.' : `${dev} ${dev === 1 ? 'is a development area' : 'are development areas'}; the observation beside each says what to change first.`}`
       }
     >
+      {groups.length > 0 && <ProfileScale groups={groups} />}
       {groups.length > 0 && (
         <div className="overflow-x-auto print:overflow-visible">
           <table className="w-full min-w-[34rem] table-fixed border-collapse text-sm" aria-label="Competency profile">
@@ -898,7 +929,7 @@ export function ProfileSection({ brief }: { brief: MarketRealityBrief }) {
                   <tr key={r.key} className="break-inside-avoid border-b border-border align-top">
                     <td className="py-2 pr-4 font-medium text-foreground print:py-1">{r.label}</td>
                     <td className="py-2 pr-4 print:py-1">
-                      <p className="text-muted-foreground">{r.reads}</p>
+                      <p className="text-muted-foreground print:hidden">{r.reads}</p>
                       {r.observation && <p className="text-foreground">{r.observation}</p>}
                     </td>
                     <td className="py-2 print:py-1">

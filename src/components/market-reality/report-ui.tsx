@@ -152,3 +152,9 @@ export function Estimate() {
     </span>
   )
 }
+
+/** Print-only running footer with page numbers, via CSS page margin boxes. */
+export function PrintFrame({ label }: { label: string }) {
+  const css = `@page { size: Letter; margin: 0.6in 0.7in 0.75in; @bottom-left { content: "${label.replace(/"/g, '')}"; font: 8pt Inter, Helvetica, sans-serif; color: #8892a0; } @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt Inter, Helvetica, sans-serif; color: #8892a0; } }`
+  return <style media="print" dangerouslySetInnerHTML={{ __html: css }} />
+}

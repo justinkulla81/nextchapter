@@ -563,3 +563,57 @@ describe('buildHiringCase', () => {
     }
   })
 })
+
+// ── Overall read, timeline chart data ──────────────────────────────────────
+
+import { buildOverallRead, type NarrativeInput } from '@/lib/reports/market-reality-brief/narrative'
+
+const narr = (over: Partial<NarrativeInput> = {}): NarrativeInput => ({
+  experience: cleanHistory(),
+  strengths: [{ key: 'a', headline: 'Scale of leadership', evidence: 'Led a team of up to 52.', leadWith: '', weight: 80 }, { key: 'b', headline: 'A steady climb', evidence: 'IC to Director.', leadWith: '', weight: 60 }],
+  hiringCase: buildHiringCase(hire({ completedReferences: 0, conversationsPerWeek: 0 })),
+  market: { prompt: 'too_few', openRoles: 24, trend: null },
+  effort: { applicationsPerInterview: 83, conversationsPerInterview: 21, competitiveness: 'Competitive' },
+  topPriority: { title: 'Finish your Search Strategy goals' },
+  firstStep: { title: 'Finish your Search Strategy goals' },
+  targetRole: 'CFO',
+  ...over,
+})
+
+describe('buildOverallRead', () => {
+  it('reads who you are, what holds it back, the market and what to do first', () => {
+    const p = buildOverallRead(narr())
+    expect(p).toHaveLength(4)
+    expect(p[0]).toMatch(/scale of leadership/i)
+    expect(p[1]).toMatch(/references/)
+    expect(p[2]).toMatch(/24 open roles/)
+    expect(p[3]).toMatch(/finish your search strategy goals/i)
+  })
+
+  it('changes with the data rather than repeating a template', () => {
+    const strong = buildOverallRead(narr({ hiringCase: buildHiringCase(hire()), market: { prompt: 'healthy', openRoles: 400, trend: null }, effort: { applicationsPerInterview: 12, conversationsPerInterview: 3, competitiveness: 'Favorable' } }))
+    expect(strong[1]).toMatch(/All 13 things employers hire for are in place/)
+    expect(strong[2]).toMatch(/workable/)
+    const thin = buildOverallRead(narr({ strengths: [] }))
+    expect(thin[0]).toMatch(/does not yet carry a strength/)
+  })
+
+  it('says unknowns are not counted against the member', () => {
+    const p = buildOverallRead(narr({ hiringCase: buildHiringCase(hire({ skillsAssessmentDone: false, completedReferences: 0 })) }))
+    expect(p[1]).toMatch(/not counted against you/)
+  })
+
+  it('skips the market paragraph when the market is not sized', () => {
+    expect(buildOverallRead(narr({ market: null, effort: null }))).toHaveLength(3)
+  })
+})
+
+describe('timeline chart data', () => {
+  it('exposes each role and each gap as a span', () => {
+    const a = run([role('Manager', d(2016, 1), d(2022, 1)), role('Director', d(2022, 10), null)])
+    expect(a.chart.bars).toHaveLength(2)
+    expect(a.chart.gaps).toHaveLength(1)
+    expect(a.chart.gaps[0].months).toBe(9)
+    expect(a.chart.from).toBe(d(2016, 1).getTime())
+  })
+})

@@ -15,6 +15,7 @@ import { sendMarketRealityReportEmail } from '@/lib/email/send-market-reality-re
 import { getSuggestedActions, getMondayOfWeek, getCandidateWeekNumber } from '@/lib/weekly/sprint'
 import { loadMarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { PrintFrame } from '@/components/market-reality/report-ui'
 import { Cover, ExecutiveSummary, BasisSection } from '@/components/market-reality/summary-sections'
 import {
   ActivitySection,
@@ -27,6 +28,7 @@ import {
   ExperienceSection,
   MarketSection,
   MethodNotes,
+  RubricSection,
   RequirementsSection,
   ResumeSection,
   SkillsSection,
@@ -152,6 +154,7 @@ export default async function MarketRealityReportPage({
         </div>
       )}
 
+      <PrintFrame label={`NextChapter · Confidential · Market Reality Report · ${brief.candidateName}`} />
       <article className="mx-auto max-w-4xl space-y-10 border border-border bg-white px-6 py-8 sm:px-12 sm:py-12 print:max-w-none print:space-y-4 print:border-0 print:p-0 print:[zoom:0.75]">
         <Cover brief={brief} />
         <ExecutiveSummary brief={brief} />
@@ -169,6 +172,7 @@ export default async function MarketRealityReportPage({
         <SkillsSection brief={brief} />
         <ResumeSection brief={brief} />
         <ActivitySection brief={brief} />
+        <RubricSection />
         <MethodNotes />
       </article>
     </div>

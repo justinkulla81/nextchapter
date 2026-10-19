@@ -40,6 +40,8 @@ import { buildEffortPlan, competitivenessFor, INTERVIEWS_PER_OFFER, PLAN_WEEKS, 
 import { buildPriorities } from './priorities'
 import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
 import { buildHiringCase, type HiringReason } from './hiring-case'
+import { buildOverallRead } from './narrative'
+import { firstStep } from './launchpad'
 import { buildCaseForYou, type CaseForYou } from './case'
 import { buildProfile, type ProfileGroup } from './profile'
 import { buildLaunchpad, type LaunchStep } from './launchpad'
@@ -174,6 +176,8 @@ export interface MarketRealityBrief {
     grade: Grade | null
     difficulty: string | null
     headline: string | null
+    /** A few paragraphs a consultant would open with, composed from the findings below. */
+    overallRead: string[]
     scorecard: ScorecardRow[]
     priorities: PriorityAction[]
   }
@@ -547,7 +551,7 @@ export async function loadMarketRealityBrief(
     pivotsRecommended: !!pivots && (pivots.functions.length > 0 || lowGrade),
   })
 
-  return {
+  const brief: MarketRealityBrief = {
     asOf,
     candidateName: [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Candidate',
     basis: { rows: basisRows.filter((r) => r.value || !OPTIONAL.has(r.label)), unconfirmed, goalsComplete },
@@ -555,6 +559,7 @@ export async function loadMarketRealityBrief(
       grade,
       difficulty: grade ? DIFFICULTY_LABEL[grade] : null,
       headline: stand ? `${stand.headline.strongestLine} ${stand.headline.constraintLine}` : null,
+      overallRead: [],
       scorecard,
       priorities,
     },
@@ -614,4 +619,16 @@ export async function loadMarketRealityBrief(
       pivotsShown: pivots !== null,
     }),
   }
+
+  const overallRead = buildOverallRead({
+    experience: brief.experience,
+    strengths: brief.caseForYou.items,
+    hiringCase: brief.hiringCase,
+    market: market ? { prompt: market.prompt, openRoles: market.openRoles, trend: market.trend } : null,
+    effort: effort ? { applicationsPerInterview: effort.plan.applicationsPerInterview, conversationsPerInterview: effort.plan.conversationsPerInterview, competitiveness: effort.competitiveness.label } : null,
+    topPriority: brief.summary.priorities[0] ?? null,
+    firstStep: firstStep(brief.launchpad),
+    targetRole: profile.targetRoleType,
+  })
+  return { ...brief, summary: { ...brief.summary, overallRead } }
 }

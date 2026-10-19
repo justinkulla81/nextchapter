@@ -63,7 +63,7 @@ export function Cover({ brief }: { brief: MarketRealityBrief }) {
 }
 
 export function ExecutiveSummary({ brief }: { brief: MarketRealityBrief }) {
-  const { grade, difficulty, headline, scorecard, priorities } = brief.summary
+  const { grade, difficulty, headline, overallRead, scorecard, priorities } = brief.summary
   return (
     <ReportSection id="summary" title="Executive summary" className="border-t-0 pt-0">
       {grade && difficulty ? (
@@ -76,7 +76,15 @@ export function ExecutiveSummary({ brief }: { brief: MarketRealityBrief }) {
               <Estimate />
             </p>
           </div>
-          {headline && <p className="max-w-2xl text-[0.95rem] leading-relaxed text-foreground">{headline}</p>}
+          {overallRead.length > 0 ? (
+            <div className="max-w-2xl space-y-3 text-[0.95rem] leading-relaxed text-foreground">
+              {overallRead.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+          ) : (
+            headline && <p className="max-w-2xl text-[0.95rem] leading-relaxed text-foreground">{headline}</p>
+          )}
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">
