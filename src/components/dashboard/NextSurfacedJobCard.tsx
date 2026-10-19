@@ -14,7 +14,7 @@ import { classifyWorkType } from '@/lib/jobs/work-type'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
 
-const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
+export const REASON_OPTIONS: { value: NotInterestedReason; label: string }[] = [
   { value: 'WRONG_FUNCTION', label: 'Wrong function' },
   { value: 'WRONG_INDUSTRY', label: 'Wrong industry' },
   { value: 'COMP_TOO_LOW', label: 'Compensation too low' },

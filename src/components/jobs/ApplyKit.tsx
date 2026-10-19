@@ -13,7 +13,7 @@ import { loadApplyKit, markAppliedFromKit, type ApplyKitResult } from '@/app/das
  * résumé version to send, a link to the Who to contact note, and "I applied". Loads
  * when opened, so a board list makes no extra queries.
  */
-export function ApplyKit({ postingId, surface }: { postingId: string; surface: 'job_page' | 'job_card' }) {
+export function ApplyKit({ postingId, surface }: { postingId: string; surface: 'job_page' | 'job_card' | 'find_pane' }) {
   const [kit, setKit] = useState<Extract<ApplyKitResult, { ok: true }> | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, startLoading] = useTransition()

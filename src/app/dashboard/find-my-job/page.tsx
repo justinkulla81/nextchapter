@@ -146,6 +146,12 @@ import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { FindTwoPane } from '@/components/dashboard/find/FindTwoPane'
+import { boardEntry, surfacedEntry } from '@/components/dashboard/find/entries'
+import { MaybeShowMore } from '@/components/dashboard/find/MaybeShowMore'
+import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
+import { AddJobAction } from '@/components/dashboard/find/AddJobAction'
 import { FindParts, parseFindPart, type FindPart } from '@/components/dashboard/FindParts'
 import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
 import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
@@ -433,8 +439,11 @@ async function JobRecommendationsSection({
   search,
   urlParams,
   aiView,
+  redesign,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
+  /** The redesigned page: the list and the open job side by side (components/dashboard/find). */
+  redesign: boolean
   /** AI / Non-AI / All (ai-view.ts): partner-search jobs carry no AI data, so they show under All only. */
   aiView: AiView
   /** Candidate+ (isDossierUnlocked): the extras on each job. Every member sees every job. */
@@ -719,19 +728,44 @@ async function JobRecommendationsSection({
     const gap = skillGapFor(posting)
     const bridge = bridgeFor(posting)
     const searchRank = search ? (shortlistOrder.get(posting.id) ?? shortlistOrder.size) : null
+    const competition = competitionFor(posting)
+    const why = whyFor(posting, match, gap, bridge, assessment.level)
+    const searchResult = searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined
     return {
+      entry: redesign
+        ? boardEntry({
+            posting,
+            fitBucket,
+            why,
+            bridge,
+            competition,
+            contacts: contactsByPosting.get(posting.id),
+            skillGap: gap,
+            skillsFit: skillsFitFor?.(posting.title),
+            match,
+            explainGapsEnabled: isExplainGapsEnabled(),
+            insiders: insidersFor(posting),
+            track: myJobs.cardStates.get(trackKey('job_board', posting.id)),
+            watched: watchedFor(posting.companyName),
+            employer: employerSignalsOf(posting),
+            benefits: benefitsByPosting.get(posting.id),
+            searchResult,
+            matchReason: reasons.get(posting.id),
+            candidatePlus,
+          })
+        : null,
       // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
       rank:
         searchRank !== null
           ? searchRank
           : reasonRank(posting.id) * 1000 +
-            boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competitionFor(posting).level], matchesParallelPath(posting, parallelPaths)) -
+            boardRank(FIT_BUCKET_SORT_RANK[fitBucket], COMPETITION_SORT_RANK[competition.level], matchesParallelPath(posting, parallelPaths)) -
             (local?.isLocal(posting.location) ? 0.5 : 0),
       node: (
         <DiscoverJobCard
           key={posting.id}
           posting={posting}
-          competition={competitionFor(posting)}
+          competition={competition}
           contacts={contactsByPosting.get(posting.id)}
           skillGap={gap}
           skillsFit={skillsFitFor?.(posting.title)}
@@ -744,15 +778,41 @@ async function JobRecommendationsSection({
           fitBucket={fitBucket}
           employer={employerSignalsOf(posting)}
           benefits={benefitsByPosting.get(posting.id)}
-          searchResult={searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined}
+          searchResult={searchResult}
           matchReason={reasons.get(posting.id)}
           bridge={bridge}
-          why={whyFor(posting, match, gap, bridge, assessment.level)}
+          why={why}
         />
       ),
     }
   }
   const searchResultCount = board.openTotal + surfacedJobs.length
+
+  // The redesign shows the same jobs in the same order as two panes: a list row and the open job for each.
+  // Bridge jobs ("Worth a look") follow the strong matches; partner-search jobs rank as they always have.
+  const findEntries = redesign
+    ? [
+        ...strongBoardPostings.map((p) => boardCard(p)).map((c) => ({ rank: c.rank, entry: c.entry! })),
+        ...bridgeBoardPostings.map((p) => boardCard(p)).map((c) => ({ rank: 1_000_000 + c.rank, entry: c.entry! })),
+        ...visibleSurfacedJobs.map((job) => {
+          const fitBucket = computeSurfacedJobFitBucket(profile, job, companySizeBandFor(job.companyName))
+          const worksHere = worksHereFor(job.companyName)
+          return {
+            rank: (search ? shortlistOrder.size + 1 : 0) + boardRank(FIT_BUCKET_SORT_RANK[fitBucket], 1, matchesParallelPath(job, parallelPaths)),
+            entry: surfacedEntry({
+              job,
+              fitBucket,
+              worksHereContacts: worksHere.contacts.map((c) => ({ id: c.id, name: c.name })),
+              worksHereTotalCount: worksHere.totalCount,
+              track: myJobs.cardStates.get(trackKey('surfaced', job.id)),
+              watched: watchedFor(job.companyName),
+            }),
+          }
+        }),
+      ]
+        .sort((a, b) => a.rank - b.rank)
+        .map((e) => e.entry)
+    : []
 
   return (
     <div className="space-y-4">
@@ -848,13 +908,21 @@ async function JobRecommendationsSection({
               </a>
             </p>
           )}
-          {surfacedJobs.length > 0 && (
+          {!redesign && surfacedJobs.length > 0 && (
             <p className="text-xs font-medium text-muted-foreground">
               Showing {visibleSurfacedJobs.length} of {totalUnreactedCount} match
               {totalUnreactedCount === 1 ? '' : 'es'} from your automated search partners
             </p>
           )}
 
+          {redesign ? (
+            <FindTwoPane
+              items={findEntries.map((e) => e.item)}
+              details={Object.fromEntries(findEntries.map((e) => [e.item.id, e.detail]))}
+              summary={`${findEntries.length} ${search?.active ? 'matching ' : ''}${findEntries.length === 1 ? 'job' : 'jobs'}, best fit first`}
+            />
+          ) : (
+          <>
           {bridgeBoardPostings.length > 0 && (
             <h3 className="text-sm font-semibold text-foreground">Strong matches ({strongBoardPostings.length})</h3>
           )}
@@ -910,6 +978,8 @@ async function JobRecommendationsSection({
               </div>
             </section>
           )}
+          </>
+          )}
 
           {board.breadth.goodMoreIds.length > 0 && <GoodMatchesMore ids={board.breadth.goodMoreIds} surface="find_my_job" />}
         </div>
@@ -964,8 +1034,10 @@ export default async function JobFitPage({
     cleared && 'cleared',
     allParams.ai && parseAiView(allParams.ai) !== 'all' && 'ai',
   ].filter((f): f is string => !!f)
+  // `job` (the open job in the two-pane list) belongs to the list alone: links built from the other parameters
+  // start without it, so a new filter or search never reopens an old job.
   const urlParams = Object.fromEntries(
-    Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string')
+    Object.entries(allParams).filter((e): e is [string, string] => typeof e[1] === 'string' && e[0] !== 'job')
   )
   const greatFilters = parseGreatParam(great)
   // Function, employer sector and hard-requirement filters (job-functions.ts,
@@ -1001,7 +1073,19 @@ export default async function JobFitPage({
     <div className="space-y-10">
       <MarkWatchlistViewedOnMount />
       {redesign ? (
-        <PageHeader title="Find a job" intro="Roles that fit your background. For each one, we tell you why." />
+        tab === 'my_jobs' ? (
+          <PageHeader
+            title="My jobs"
+            intro="Every job you have saved or applied to, with the next step for each."
+            action={
+              <AddJobAction
+                atCap={profile.jobPostings.filter((j) => j.source === 'MANUAL' && j.interviewLandedAt === null && j.offerReceivedAt === null).length >= MAX_ACTIVE_FIT_CHECK_SLOTS}
+              />
+            }
+          />
+        ) : (
+          <PageHeader title="Find a job" intro="Roles that fit your background. For each one, we tell you why." />
+        )
       ) : (
         <div className="space-y-3">
           <h1 className="text-2xl font-semibold tracking-tight">Find a job</h1>
@@ -1452,42 +1536,7 @@ async function FindMyJobBody({
       <ReconnectBanner candidateId={profile.id} returnTo="/dashboard/find-my-job" />
       <GoogleConnectPrompt candidateId={profile.id} email={profile.email} returnTo="/dashboard/find-my-job" />
 
-      {!onBoard && <MyJobsPanel view={myJobs} />}
-
-      {!onBoard && emailConnection && !emailConnection.needsReconnectAt && (
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-2">
-            <p>
-              Job stats from email
-              {emailConnection.lastSyncAt && <> · last checked {emailConnection.lastSyncAt.toLocaleString()}</>}
-            </p>
-            <EmailSyncWatcher initialLastSyncAt={preSyncLastSyncAt} />
-          </div>
-          <EmailActivitySyncButton />
-        </div>
-      )}
-
-      {!onBoard && (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {/* Expandable like the tiles beside it, so a misread "application"
-            can be spotted and removed (with a reason) instead of just counted. */}
-        <NetworkStatTile
-          label={`Applications sent · ${applicationsThisWeek} this week`}
-          items={allApplications.map((j) => ({
-            id: j.id,
-            kind: 'application' as const,
-            label: [j.title, j.companyName].filter(Boolean).join(' — ') || 'Application',
-            date: j.appliedAt!,
-            detectedAs: 'APPLICATION',
-          }))}
-        />
-        {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
-          <NetworkStatTile key={type} label={label} items={jobStatTileItems[type] ?? []} />
-        ))}
-        <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
-      </div>
-      )}
-
+      {!onBoard && (redesign ? <MyJobsRedesign view={myJobs} /> : <MyJobsPanel view={myJobs} />)}
 
       {onBoard && !redesign && !profile.recruiterVisibilityConfirmedAt && (
         <Card className="border-warning/40 bg-warning/5">
@@ -1517,7 +1566,123 @@ async function FindMyJobBody({
         </Card>
       )}
 
-      {onBoard && show('jobs') && (
+      {onBoard && redesign && show('jobs') && (
+        <div id="apply-new-jobs" className="scroll-mt-4 space-y-6">
+          <BoardSearchBar />
+          {board.breadth.classifier && (
+            <Suspense fallback={null}>
+              <TuneStripSection profile={profile} />
+            </Suspense>
+          )}
+          {pivotFilter && (
+            <PivotBoardBanner
+              target={pivotFilter.target}
+              label={pivotFilter.label}
+              openTotal={board.openTotal}
+              clearHref={boardHrefWithout(urlParams, ['pivot'], { pathname: '/dashboard/find-my-job', hash: 'job-recommendations' })}
+            />
+          )}
+          <details className="rounded-lg border border-border px-3 py-2">
+            <summary className="cursor-pointer text-sm font-medium text-ink">Filters and views</summary>
+            <div className="mt-3 space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <PastJobsToggle />
+                <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                {board.breadth.classifier && breadthMode !== 'off' && (
+                  <BreadthToggle surface="find_my_job" current={breadthMode} counts={{ narrow: board.breadth.narrowTotal, wide: board.breadth.wideTotal }} />
+                )}
+                {aiIds && (
+                  <AiViewToggle
+                    surface="find_my_job"
+                    kind="jobs"
+                    current={appliedAiView}
+                    counts={{ ai: board.keptCounts.ai ?? 0, other: board.keptCounts.other ?? 0, all: board.keptCounts.all ?? 0 }}
+                  />
+                )}
+                <BoardViewToggle surface="find_my_job" />
+                <GreatEmployerFilter surface="find_my_job" />
+                <SeniorityFilter surface="find_my_job" />
+                <FunctionFilter surface="find_my_job" />
+                <EmployerSectorFilter surface="find_my_job" shown={boardFilters.sectorsShown} />
+                <RequirementFilters surface="find_my_job" hideBlockers={boardFilters.hideBlockers} clearedOnly={boardFilters.clearedOnly} holdsClearance={holdsClearance(profile)} />
+              </div>
+              {board.breadth.classifier && breadthMode !== 'off' && !searchView?.active && (
+                <p className="text-sm text-muted-foreground" aria-live="polite">
+                  {relevanceLine({
+                    breadth: breadthMode,
+                    relevant: board.breadth.relevantTotal,
+                    shown: breadthMode === 'narrow' && !board.breadth.autoWidened ? board.breadth.narrowTotal : board.breadth.wideTotal,
+                    autoWidened: board.breadth.autoWidened,
+                    extras: board.breadth.extrasTotal,
+                    field: `${subFunctionLabel(board.breadth.classifier.member.subFunction) ?? board.breadth.classifier.member.functionLabel ?? 'matching'}`,
+                    place: placePhrase(profile, board.breadth.classifier.member),
+                  })}{' '}
+                  <a href={boardHref(urlParams, { breadth: breadthMode === 'narrow' ? 'wide' : 'narrow' }, { hash: 'job-recommendations' })} className="text-primary underline underline-offset-4">
+                    {breadthMode === 'narrow' ? 'Widen' : 'Narrow it'}
+                  </a>
+                </p>
+              )}
+            </div>
+          </details>
+          <div id="job-recommendations" className="scroll-mt-4">
+            <Suspense fallback={<JobRecommendationsSkeleton />}>
+              <JobRecommendationsSection
+                redesign
+                profile={boardProfile}
+                pivotFilter={pivotFilter}
+                candidatePlus={isCandidatePlus}
+                board={board}
+                contacts={contacts}
+                seniorityGroup={seniorityGroup}
+                boardView={boardView}
+                workTypes={workTypes}
+                parallelPaths={parallelPaths}
+                greatFilters={greatFilters}
+                boardFilters={boardFilters}
+                myJobs={myJobs}
+                expertNetworks={expertNetworks}
+                search={searchView}
+                urlParams={urlParams}
+                aiView={appliedAiView}
+              />
+            </Suspense>
+          </div>
+          {(board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0)) || !pivotFilter ? (
+            <ShowMore event="find_more_options_opened" properties={{ part: 'jobs' }} label="Jobs you passed on and other ways to search">
+              {board.dismiss.rules && (board.dismiss.rules.preferences.length > 0 || passedOnJobs.length > 0) && (
+                <PassedOnPanel
+                  because={becauseLine(board.dismiss.rules.preferences)}
+                  hiddenCount={board.dismiss.hidden}
+                  preferences={board.dismiss.rules.preferences.map((p) => ({
+                    id: p.id,
+                    kind: p.kind,
+                    label: p.label,
+                    count: p.count,
+                    action: p.action,
+                    ask: shouldAskToHide(p),
+                  }))}
+                  jobs={passedOnJobs.map((j) => ({
+                    jobId: j.sourceId,
+                    title: j.title,
+                    companyName: j.companyName,
+                    reasons: j.dismissReasons.map((r) => DISMISS_REASON_LABEL.get(r) ?? r),
+                    dismissedOn: j.dismissedAt!.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                  }))}
+                />
+              )}
+              {!pivotFilter && (
+                <Suspense fallback={null}>
+                  <PivotBoardPrompt profile={profile} />
+                </Suspense>
+              )}
+            </ShowMore>
+          ) : null}
+        </div>
+      )}
+
+      {onBoard && !redesign && show('jobs') && (
       <div id="apply-new-jobs" className="scroll-mt-4 space-y-3">
         {!redesign && (
         <div className="space-y-2">
@@ -1696,6 +1861,7 @@ async function FindMyJobBody({
           <div className="mt-3">
             <Suspense fallback={<JobRecommendationsSkeleton />}>
               <JobRecommendationsSection
+                redesign={false}
                 profile={boardProfile}
                 pivotFilter={pivotFilter}
                 candidatePlus={isCandidatePlus}
@@ -1734,6 +1900,7 @@ async function FindMyJobBody({
       )}
 
       {onBoard && show('jobs') && (
+      <MaybeShowMore enabled={redesign} label="Roles posted directly by employers" event="find_more_options_opened" properties={{ part: 'jobs', section: 'employer_matched_roles' }}>
       <div id="employer-matched-roles" className="scroll-mt-4 space-y-3">
         {/* Old Interim Work anchor (role-match emails link here). */}
         <span id="board-advisory-work" className="block scroll-mt-4" aria-hidden />
@@ -1749,6 +1916,7 @@ async function FindMyJobBody({
           emptyMessage="No employer-posted roles match your background yet — check back soon."
         />
       </div>
+      </MaybeShowMore>
       )}
 
       {onBoard && show('independent') && showIndependentToolkit && (
@@ -1756,6 +1924,43 @@ async function FindMyJobBody({
           <IndependentWorkSections profile={profile} types={workTypes} />
         </Suspense>
       )}
+
+      <MaybeShowMore enabled={redesign && !onBoard} label="Applications, email activity and company tracker" event="my_jobs_more_opened" properties={{ section: 'tracker' }}>
+      {!onBoard && emailConnection && !emailConnection.needsReconnectAt && (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2">
+            <p>
+              Job stats from email
+              {emailConnection.lastSyncAt && <> · last checked {emailConnection.lastSyncAt.toLocaleString()}</>}
+            </p>
+            <EmailSyncWatcher initialLastSyncAt={preSyncLastSyncAt} />
+          </div>
+          <EmailActivitySyncButton />
+        </div>
+      )}
+
+      {!onBoard && (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {/* Expandable like the tiles beside it, so a misread "application"
+            can be spotted and removed (with a reason) instead of just counted. */}
+        <NetworkStatTile
+          label={`Applications sent · ${applicationsThisWeek} this week`}
+          items={allApplications.map((j) => ({
+            id: j.id,
+            kind: 'application' as const,
+            label: [j.title, j.companyName].filter(Boolean).join(' — ') || 'Application',
+            date: j.appliedAt!,
+            detectedAs: 'APPLICATION',
+          }))}
+        />
+        {Object.entries(JOB_EMAIL_LABEL).map(([type, label]) => (
+          <NetworkStatTile key={type} label={label} items={jobStatTileItems[type] ?? []} />
+        ))}
+        <NetworkStatTile label="Resumes shared" items={resumesSharedItems.map(jobEmailItem)} />
+      </div>
+      )}
+
+
 
       {!onBoard && (
       <div id="jobs-applied" className="scroll-mt-4 space-y-4">
@@ -2324,6 +2529,27 @@ async function FindMyJobBody({
 
       )}
 
+      {onBoard && show('resources') && (
+      <div id="add-contacts-for-matching" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Get Warm Intro Matches</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Knowing someone inside is the single biggest way to stand out among hundreds of other
+            applicants. Add people to your contact list with where they work, and we&apos;ll flag
+            it automatically whenever a job you&apos;ve applied to or a recommendation matches
+            their company.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/network/contacts"
+          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+        >
+          Add contacts →
+        </Link>
+      </div>
+
+      )}
+
       {!onBoard && (
       <div id="company-tracker" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
@@ -2342,27 +2568,6 @@ async function FindMyJobBody({
             <CompanyWatchlist entries={watchlistView} />
           </CardContent>
         </Card>
-      </div>
-
-      )}
-
-      {onBoard && show('resources') && (
-      <div id="add-contacts-for-matching" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Get Warm Intro Matches</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Knowing someone inside is the single biggest way to stand out among hundreds of other
-            applicants. Add people to your contact list with where they work, and we&apos;ll flag
-            it automatically whenever a job you&apos;ve applied to or a recommendation matches
-            their company.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/network/contacts"
-          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
-        >
-          Add contacts →
-        </Link>
       </div>
 
       )}
@@ -2386,6 +2591,7 @@ async function FindMyJobBody({
       </div>
 
       )}
+      </MaybeShowMore>
 
       {onBoard && show('resources') && (
       <div id="job-boards" className="scroll-mt-4 space-y-3 border-t border-border pt-8">

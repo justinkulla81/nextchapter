@@ -21,7 +21,7 @@ export function FindParts({ current, independent, urlParams }: { current: FindPa
       {FIND_PARTS.filter((p) => p.key !== 'independent' || independent).map((p) => (
         <Link
           key={p.key}
-          href={boardHref(urlParams, { part: p.key === 'jobs' ? undefined : p.key })}
+          href={boardHref(urlParams, { part: p.key === 'jobs' ? undefined : p.key, job: null })}
           aria-current={current === p.key ? 'page' : undefined}
           className={cn('rounded-full border px-4 py-1.5 text-sm font-medium', current === p.key ? 'border-ink bg-ink text-white' : 'border-border text-muted-foreground hover:text-ink')}
         >

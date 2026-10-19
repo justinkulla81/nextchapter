@@ -19,7 +19,10 @@ export function DismissJobButton({
   title,
   companyName,
   onDismissed,
+  label,
 }: {
+  /** Text for the button ("Not for me"); without it the button is the small X of a list card. */
+  label?: string
   jobId: string
   title: string
   companyName: string | null
@@ -61,9 +64,13 @@ export function DismissJobButton({
           e.stopPropagation()
           setOpen(true)
         }}
-        className="flex size-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+        className={
+          label
+            ? 'text-sm font-medium text-brand underline underline-offset-4'
+            : 'flex size-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground'
+        }
       >
-        <X className="size-4" aria-hidden />
+        {label ?? <X className="size-4" aria-hidden />}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogPopup className="w-[min(92vw,28rem)] rounded-xl border border-border bg-background p-5 shadow-lg">
