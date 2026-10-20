@@ -8,7 +8,7 @@ const tab = AUDIENCE_TABS.find((t) => t.id === 'nonprofits')!
 export const metadata: Metadata = {
   title: 'Partnerships, Funding & Research for Nonprofits',
   description:
-    'Serve your community at no cost to them, and partner on consent-based research into what actually gets people back to work. Grants, pilots, and co-design. Join the waitlist.',
+    'NextChapter, the leading job transition platform, lets you serve your community at no cost to them, and partner on consent-based research and AI training for what actually gets people back to work. Grants, pilots, and co-design. Join the waitlist.',
   alternates: { canonical: '/nonprofits' },
   openGraph: {
     title: 'Partnerships, Funding & Research — NextChapter for Nonprofits & Academia',

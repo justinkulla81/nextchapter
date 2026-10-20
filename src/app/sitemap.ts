@@ -30,6 +30,8 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/how-it-works', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/why-stuck', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/pricing', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
+  { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
+  { path: '/ai-training', updated: '2026-10-20', freq: 'monthly', priority: 0.6 },
   { path: '/dossier', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/faq', updated: '2026-10-02', freq: 'monthly', priority: 0.5 },
   { path: '/contact', updated: '2026-09-29', freq: 'yearly', priority: 0.5 },

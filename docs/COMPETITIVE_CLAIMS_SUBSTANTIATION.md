@@ -95,3 +95,9 @@ indexing:
 |---|---|---|---|---|
 | 15 | "The best coach you've ever had, built on all your data" (homepage hero) | `src/app/page.tsx` | A subjective superlative (puffery), not a comparison with a named competitor. The factual part is real: the coach reads the member's résumé and references, Gmail/Calendar application tracking, contacts and outreach, and assessments and learning (`src/lib/journey/engagement-data.ts`, `src/lib/coach/generate-reply.ts`). The coach is disclosed as AI (Victoria). | **NEEDS REVIEW** before launch: confirm legal is comfortable with the superlative, and keep the "built on all your data" half true (it depends on the member connecting Gmail and Calendar). |
 | 16 | "Members who connect their accounts and do the work get the most" | homepage, emails, dashboard card | The platform's gates are tied to connecting and proving work (A-List jobs, Offer Bonus, Dossier sharing, recruiter visibility: `isDossierUnlocked`). No outcome data is claimed. | OK as written; do not add an outcome statistic without a source. |
+
+## Added 2026-10-20: category positioning
+
+| # | Claim | Where | Basis | Status |
+|---|---|---|---|---|
+| 17 | "The leading job transition platform" (site and page descriptions, JSON-LD, llms.txt, outreach, pitches, onboarding welcome) | `src/lib/seo/facts.ts` (`POSITIONING`), `src/app/layout.tsx`, B2B page metadata | A market-position claim, so it is not plain puffery. The owner approved it on 2026-10-20 ("i think we are leading"). No third-party ranking or share-of-market figure supports it today, and none should be implied. Keep it as a category description; never pair it with a number, a ranking or a named competitor. | OK as written; first review 2027-01-18 (90 days). Re-check against what competitors publish before using it in paid ads or a named comparison. |

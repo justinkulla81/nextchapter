@@ -23,6 +23,9 @@ import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { boardListingFitBucketFor, emailFitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
+import { skillTerms } from '@/lib/profile/skill-matrix'
+import { aiSkillItem, memberAiSkillIds } from '@/lib/skills/ai-skills'
+import { aiMarketLine, suggestedAiItems } from '@/lib/skills/ai-skill-market'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
 import { CHECKIN_BUCKETS, CHECKIN_BUCKET_LABEL, checkInUrl, checkInWeekKey } from '@/lib/activity-log/weekly-checkin'
 import type { LogKind } from '@/lib/activity-log/progress'
@@ -542,6 +545,8 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
         .map((s) => s.itemKey.slice(prefix.length))
     )
   }
+  const myAi = memberAiSkillIds(skillTerms(candidate))
+  const aiGapId = suggestedAiItems(candidate.primaryFunction, [], 3).find((id) => !myAi.has(id)) ?? null
   const ctx: RotationContext = {
     skillsAssessmentDone: !!candidate.skillsAssessmentCompletedAt,
     dossierUnlocked: dossier.unlocked,
@@ -556,6 +561,9 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     // Owed follow-ups only — counting every stale contact makes the button a chore.
     followUpCount: applications.length + repliesOwed.length + starred.length,
     newJobCount: jobItems.length + freshJobItems.length,
+    aiSkillCount: myAi.size,
+    aiMarketText: aiMarketLine(candidate.primaryFunction)?.text ?? null,
+    aiGapLabel: aiGapId ? (aiSkillItem(aiGapId)?.label ?? null) : null,
   }
   const dateSeed = `${candidate.id}:${now.toISOString().slice(0, 10)}`
   const pickFrom = <T>(pool: T[], salt: string): T | null =>
@@ -570,7 +578,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     ? {
         key: `unlock:${unlockPick.id}`,
         title: unlockPick.title,
-        detail: unlockPick.detail,
+        detail: unlockPick.detailFor?.(ctx) ?? unlockPick.detail,
         href: withSrc(unlockPick.path),
       }
     : null

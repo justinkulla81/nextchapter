@@ -8,7 +8,7 @@ import { OrganizationsHub } from '@/components/marketing/OrganizationsHub'
 export const metadata: Metadata = {
   title: 'For Organizations and Coaches',
   description:
-    'What NextChapter gives employers, recruiters, coaches, colleges, nonprofits and workforce agencies, in plain terms. Free for the people you serve.',
+    'What NextChapter, the leading job transition platform, gives employers, recruiters, coaches, colleges, nonprofits and workforce agencies, in plain terms. Free for the people you serve.',
   alternates: { canonical: '/for-organizations' },
   openGraph: {
     title: 'For Organizations and Coaches — NextChapter',

@@ -8,7 +8,7 @@ const tab = AUDIENCE_TABS.find((t) => t.id === 'government')!
 export const metadata: Metadata = {
   title: 'Workforce & WIOA Partnerships for Agencies',
   description:
-    'Help the people you serve get back to work faster — free to every jobseeker, with the placement data your programs report on. Built for WIOA and workforce agencies. Join the waitlist.',
+    'NextChapter, the leading job transition platform, helps the people you serve get back to work faster — free to every jobseeker, with the placement data your programs report on and AI training for career services. Built for WIOA and workforce agencies. Join the waitlist.',
   alternates: { canonical: '/government-workforce' },
   openGraph: {
     title: 'Workforce & WIOA Partnerships — NextChapter for Agencies',

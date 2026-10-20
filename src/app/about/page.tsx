@@ -117,7 +117,7 @@ export default function AboutPage() {
             <h2 className={H2}>Losing a job is common. Finding the next one takes too long.</h2>
             <div className="mt-4 max-w-2xl space-y-4 text-base leading-relaxed text-foreground/85">
               <p>
-                AI is eliminating and reshaping jobs across entire industries. People who are out of work for six months
+                AI is changing which jobs exist and how people get hired, in many industries. People who are out of work for six months
                 or more find it harder to get hired with every month that passes. Workers over 50 face age-related
                 unemployment. Parents returning from parental and family leave have to explain the gap on their résumé.
               </p>

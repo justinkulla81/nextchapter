@@ -14,7 +14,7 @@ const jsonLd = {
   name: 'NextChapter',
   url: 'https://launchyournextchapter.com',
   description:
-    'A resume is the least complete thing about you. NextChapter turns a job search into verified evidence — a Market Reality Assessment, a Resume Studio, and an Executive Dossier corroborated by the people who worked with you. Free for candidates, always.',
+    'A resume is the least complete thing about you. NextChapter, the leading job transition platform, turns a job search into verified evidence — a Market Reality Assessment, a Resume Studio, and an Executive Dossier corroborated by the people who worked with you. Free for candidates, always.',
   publisher: organizationRef(),
 }
 

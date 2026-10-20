@@ -32,7 +32,7 @@ export default async function WelcomePage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Welcome to NextChapter{name}.</h1>
         <p className="text-muted-foreground">
-          NextChapter is a job transition platform. The quick version:
+          NextChapter is the leading job transition platform. The quick version:
         </p>
       </div>
 

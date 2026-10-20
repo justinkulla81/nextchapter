@@ -206,7 +206,7 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
         'ai',
         gaps,
         skillsToBuild,
-        'AI fluency is fast becoming table stakes across every function.',
+        'Postings in many functions now ask for a specific AI skill; this builds one.',
         completionCounts
       ),
     ])

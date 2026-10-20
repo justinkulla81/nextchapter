@@ -8,11 +8,14 @@ export const SITE_URL = 'https://launchyournextchapter.com'
 
 export const ORGANIZATION_ID = `${SITE_URL}/#organization`
 
+/** The category line. Use it once at a natural intro (site and page descriptions, first contact), not in every paragraph. docs/BRANDING.md. */
+export const POSITIONING = 'the leading job transition platform'
+
 export const FACTS = {
   name: 'NextChapter',
   url: SITE_URL,
   /** One line: what it is. */
-  tagline: 'The leading job transition platform for white-collar workers.',
+  tagline: `${POSITIONING[0].toUpperCase()}${POSITIONING.slice(1)} for white-collar workers.`,
   /** Who it is for. */
   audience:
     'Experienced professionals between jobs or planning a move, and the organizations that serve them: employers running layoffs, outplacement buyers, recruiters, coaches, workforce boards and nonprofits.',

@@ -36,6 +36,7 @@ export function OrganizationPageTemplate({
   const extraLinks = [
     ...(tab.id === 'coaches' ? [{ href: '/coach-platform', label: 'Your own branded platform' }] : []),
     ...(tab.id === 'government' ? [{ href: '/reports/latest', label: 'White Collar Employment Report and WIOA data' }] : []),
+    ...(['outplacement', 'government', 'nonprofits'].includes(tab.id) ? [{ href: '/ai-training', label: 'AI training we build for your people' }] : []),
     ...(footerLinks ?? []),
   ]
 
