@@ -6,7 +6,7 @@
  * For the date (default today): every step-1 email on the calendar, and any follow-up that is due. A person is skipped, for every step, when they
  * replied, were passed, bounced or complained, are on the do-not-contact list, or have already been sent that step. Sent with the tag `outreach`
  * (so bounces and complaints stop mail through the Resend webhook), a Reply-To of justin@, and a one-click mailto unsubscribe header.
- * Env: OUTREACH_FROM (default "Justin Kulla <justin@updates.launchyournextchapter.com>"), OUTREACH_REPLY_TO, OUTREACH_MAX (hard cap per run, default 30).
+ * Env: OUTREACH_BCC (a copy of each first email, default justin@launchyournextchapter.com; "none" for no copy; each copy counts against the email plan's quota), OUTREACH_FROM (default "Justin Kulla <justin@updates.launchyournextchapter.com>"), OUTREACH_REPLY_TO, OUTREACH_MAX (hard cap per run, default 30).
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
@@ -58,6 +58,7 @@ async function main() {
   if (apply && !key) throw new Error('RESEND_API_KEY is not set')
   const from = process.env.OUTREACH_FROM ?? 'Justin Kulla <justin@updates.launchyournextchapter.com>'
   const replyTo = process.env.OUTREACH_REPLY_TO ?? 'justin@launchyournextchapter.com'
+  const bcc = process.env.OUTREACH_BCC === 'none' ? null : process.env.OUTREACH_BCC ?? 'justin@launchyournextchapter.com'
   const MAX = Number(process.env.OUTREACH_MAX ?? 30)
 
   const templates = JSON.parse(readFileSync('scripts/crm/outreach-templates.json', 'utf8')) as { signature: string; footer: string[] }
@@ -99,7 +100,7 @@ async function main() {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from, to: [email], subject, html, text, reply_to: replyTo,
+        from, to: [email], bcc: bcc && step === 1 ? [bcc] : undefined, subject, html, text, reply_to: replyTo,
         headers: { 'List-Unsubscribe': `<mailto:${replyTo}?subject=no>` },
         tags: [{ name: 'outreach', value: tag(m.template) }, { name: 'variant', value: tag(m.variant) }, { name: 'step', value: String(step) }],
       }),

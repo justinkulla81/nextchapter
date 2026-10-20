@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { suppress } from '@/lib/mailing/lists'
 import type { ResendEvent } from '@/lib/mailing/tracking'
-import { bareAddress, isOutreachEvent, isPermanentBounce } from './event-rules'
+import { bareAddress, isAutomatedClick, isOutreachEvent, isPermanentBounce } from './event-rules'
 
 /**
  * Cold outreach sent with the Resend tag `outreach` reports back here. A permanent bounce marks the
@@ -19,11 +19,13 @@ export async function applyOutreachEvent(event: ResendEvent): Promise<'applied' 
 
   if (event.type === 'email.opened' || event.type === 'email.clicked') {
     // Directional only: opens are inflated by mail privacy features, so compare variants against each other, never to a benchmark.
-    const mark = event.type === 'email.opened' ? ', opened' : ', clicked'
-    const send = event.data.email_id ? await prisma.crmActivity.findFirst({ where: { sourceRef: `resend:${event.data.email_id}` }, select: { id: true, outcome: true, personId: true } }) : null
-    if (!send || (send.outcome ?? '').includes(mark)) return 'ignored'
+    const send = event.data.email_id ? await prisma.crmActivity.findFirst({ where: { sourceRef: `resend:${event.data.email_id}` }, select: { id: true, outcome: true, personId: true, occurredAt: true } }) : null
+    // A click within two minutes of the send is almost always a mail scanner following the link, not a person.
+    const seconds = send ? ((event.created_at ? Date.parse(event.created_at) : Date.now()) - send.occurredAt.getTime()) / 1000 : 0
+    const mark = event.type === 'email.opened' ? ', opened' : isAutomatedClick(seconds) ? ', clicked_auto' : ', clicked'
+    if (!send || (send.outcome ?? '').includes(`${mark},`) || (send.outcome ?? '').endsWith(mark)) return 'ignored'
     await prisma.crmActivity.update({ where: { id: send.id }, data: { outcome: `${send.outcome ?? ''}${mark}` } })
-    captureServerEvent(send.personId ?? 'outreach', event.type === 'email.opened' ? 'outreach_email_opened' : 'outreach_email_clicked', {})
+    captureServerEvent(send.personId ?? 'outreach', event.type === 'email.opened' ? 'outreach_email_opened' : mark === ', clicked' ? 'outreach_email_clicked' : 'outreach_email_clicked_auto', {})
     return 'applied'
   }
 

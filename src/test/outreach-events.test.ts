@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bareAddress, isOutreachEvent, isPermanentBounce } from '@/lib/outreach/event-rules'
+import { bareAddress, isAutomatedClick, isOutreachEvent, isPermanentBounce } from '@/lib/outreach/event-rules'
 
 const ev = (extra: object, bounce?: object) => ({ type: 'email.bounced', data: { email_id: 'e1', to: ['a@b.com'], bounce, ...extra } })
 
@@ -20,5 +20,10 @@ describe('outreach events', () => {
     expect(bareAddress('UD Office of Personal Career Development <career@udallas.edu>')).toBe('career@udallas.edu')
     expect(bareAddress('Jane@Example.com')).toBe('jane@example.com')
     expect(bareAddress(undefined)).toBeNull()
+  })
+  it('treats a click within two minutes as a scanner', () => {
+    expect(isAutomatedClick(4)).toBe(true)
+    expect(isAutomatedClick(119)).toBe(true)
+    expect(isAutomatedClick(300)).toBe(false)
   })
 })
