@@ -7,6 +7,7 @@ import { loadEngagementStates } from '@/lib/email/engagement'
 import { sendJobSearchDaily } from '@/lib/email/send-job-search-daily'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
+import { sendsToday } from '@/lib/email/send-days'
 
 export const maxDuration = 300
 
@@ -27,6 +28,9 @@ const DEADLINE_MS = 240_000
 //    only if urgent and at most once a week; none once dormant (63+ days).
 // Own opt-out flag, own send-log key.
 export const GET = withCronRun('job-search-daily', async () => {
+  // Dial-back switch: JOB_SEARCH_DAILY_DAYS="1,3,5" sends only on those weekdays (0 = Sunday), to leave room under the email plan's
+  // daily cap while cold outreach runs. Unset the variable to go back to every day.
+  if (!sendsToday(process.env.JOB_SEARCH_DAILY_DAYS, new Date())) return NextResponse.json({ paused: 'weekday', days: process.env.JOB_SEARCH_DAILY_DAYS })
 
   const breakCutoff = new Date(Date.now() - BREAK_ANSWER_WINDOW_DAYS * 24 * 60 * 60 * 1000)
   // Does the weekly rotation send something today (an active row for this weekday)?
