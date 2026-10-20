@@ -3,6 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { skillTerms } from '@/lib/profile/skill-matrix'
 import { computeCohortAiGap, type CohortAiGap } from '@/lib/skills/cohort-ai-gap'
 
+// Identity guard (src/lib/employer/candidate-identity-guard.ts): employer code is meant to read
+// CandidateProfile only through count/aggregate/groupBy. Matching a person's skill list against
+// the 24 AI skills (whole-word aliases) cannot be written as one of those, so this reads exactly
+// five non-identity columns (function and skill arrays), never a name, email, id or userId, keeps
+// no row, and returns only the counts in CohortAiGap. Anything under MIN_COHORT people returns
+// null before any count leaves this file. staff-programs.ts already reads this table the same
+// way for the Growth and Learning reports.
+
 /**
  * The AI-skill gap for a group of members (ids come from the caller's own scoped seats or
  * alumni, never from the request). Null when fewer than MIN_COHORT can be counted, or when
