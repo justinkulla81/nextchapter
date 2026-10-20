@@ -6,6 +6,7 @@
 
 import { CARD_VERDICT_LABEL, type CardVerdict } from '@/lib/jobs/job-card'
 import { MATCH_DIMENSION_LABEL, MATCH_DIMENSION_ORDER, type JobMatch, type MatchDimensionKey } from '@/lib/jobs/job-match-types'
+import { POSTING_SIGNAL_TAG, type PostingSignal } from '@/lib/jobs/posting-signals'
 
 export interface JobListItem {
   /** The id the URL (`?job=`) and PostHog carry: the board posting id, or the partner-search job id. */
@@ -22,6 +23,8 @@ export interface JobListItem {
   reason: string
   /** The single fact that matters most for this job right now. */
   fact: string | null
+  /** When the fact is a posting-signal tag ("Open to career changers"), which one — the row shows it as the tag. */
+  signal?: PostingSignal | null
   /** The job's open page, used when the detail cannot render. */
   href: string
 }
@@ -53,9 +56,22 @@ export function reasonLine(why: { fits: string[]; gap: string | null } | null | 
  * The one fact on a row: when the estimate says fewer people will apply, that, with the facts it rests on
  * (a competition claim is never a bare tag); otherwise when it was posted; otherwise the pay or work type.
  */
-export function oneFact(input: { posted: string | null; fewerApplicants?: { label: string; because: string } | null; pay?: string | null; extra?: string[] }): string | null {
-  const { fewerApplicants, posted, pay } = input
+export function oneFact(input: {
+  posted: string | null
+  fewerApplicants?: { label: string; because: string } | null
+  pay?: string | null
+  extra?: string[]
+  /**
+   * The job's posting-signal tag (posting-signals.ts). It takes the fact's place from the posted date
+   * (still shown in the open job), and from the fewer-applicants claim too when `signalFirst`.
+   */
+  signal?: PostingSignal | null
+  signalFirst?: boolean
+}): string | null {
+  const { fewerApplicants, posted, pay, signal } = input
+  if (signal && input.signalFirst) return POSTING_SIGNAL_TAG[signal]
   if (fewerApplicants) return `${fewerApplicants.label}: ${fewerApplicants.because.charAt(0).toLowerCase()}${fewerApplicants.because.slice(1)}`
+  if (signal) return POSTING_SIGNAL_TAG[signal]
   if (posted) return posted
   if (pay) return pay
   return input.extra?.[0] ?? null
@@ -71,6 +87,7 @@ export function listItemOf(input: {
   verdict: CardVerdict | null
   why: { fits: string[]; gap: string | null } | null | undefined
   fact: string | null
+  signal?: PostingSignal | null
 }): JobListItem {
   return {
     id: input.id,
@@ -82,6 +99,7 @@ export function listItemOf(input: {
     verdictLabel: input.verdict ? CARD_VERDICT_LABEL[input.verdict] : null,
     reason: reasonLine(input.why, input.verdict),
     fact: input.fact,
+    signal: input.signal && input.fact === POSTING_SIGNAL_TAG[input.signal] ? input.signal : null,
     href: input.kind === 'board' ? `/dashboard/jobs/${input.id}?src=board` : '/dashboard/find-my-job',
   }
 }

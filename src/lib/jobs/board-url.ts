@@ -1,11 +1,11 @@
 // Links and toggles inside the job board change one or two URL parameters and keep
 // every other one: the search (q, loc, remote, sort), the view, work types,
-// seniority, great-pay / great-benefits, AI / Non-AI, the pivot path and the tab. Every in-board
+// seniority, great-pay / great-benefits, AI / Non-AI, open to career changers, the pivot path and the tab. Every in-board
 // link and toggle builds its URL here, so none of them drops an active search or
 // filter. Pure (no I/O): used by server-rendered links and client toggles alike.
 
 /** The board's own URL parameters (anything else on the URL is kept too). */
-export const BOARD_URL_PARAMS = ['q', 'loc', 'remote', 'sort', 'view', 'types', 'seniority', 'great', 'pivot', 'tab', 'fn', 'sectors', 'blockers', 'cleared', 'breadth', 'ai', 'part', 'job'] as const
+export const BOARD_URL_PARAMS = ['q', 'loc', 'remote', 'sort', 'view', 'types', 'seniority', 'great', 'pivot', 'tab', 'fn', 'sectors', 'blockers', 'cleared', 'breadth', 'ai', 'open', 'part', 'job'] as const
 export type BoardUrlParam = (typeof BOARD_URL_PARAMS)[number]
 
 /** The search's parameters, for "Clear the search". */

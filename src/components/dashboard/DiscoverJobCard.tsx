@@ -18,6 +18,8 @@ import { JobMetaLine, JobVerdict, JobWhyLine } from '@/components/jobs/JobCardPa
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { posthog } from '@/lib/posthog/client'
+import { PostingSignalTag } from '@/components/jobs/PostingSignalTag'
+import { postingSignalTag, tagTakesHintSlot } from '@/lib/jobs/posting-signals'
 import { RepostNote } from '@/components/jobs/RepostNote'
 import { WhoToContactPanel } from '@/components/dashboard/WhoToContactPanel'
 import { ApplyKit } from '@/components/jobs/ApplyKit'
@@ -226,7 +228,10 @@ export function DiscoverJobCard({
   why,
   dismissible = true,
   candidatePlus = false,
+  signalLift = false,
 }: {
+  /** The member is changing careers or early in their career: the welcome tag wins the meta line's quiet slot (posting-signals.ts). */
+  signalLift?: boolean
   /** Candidate+ (isDossierUnlocked): shows who to contact, the apply kit and explain-my-gaps; others see one line each. */
   candidatePlus?: boolean
   /** Wide's one-relaxed jobs (relevance.ts): what transfers, what's missing, how to close it. */
@@ -275,6 +280,10 @@ export function DiscoverJobCard({
   const meta = cardMetaParts({ posted: postedAgo(posting), location: posting.location, remote, pay: payLabel, workType, title: posting.title, verifiedAt: posting.lastVerifiedAt, stillListed: isStillListed(posting) })
   // Say less rather than something generic: a field match without `why` adds nothing.
   const fallbackWhy = !why && matchReason && matchReason.kind !== 'field' ? { fits: [matchReason.label], gap: null } : null
+  // One quiet slot after the meta line: the competition hint, or the posting-signal tag (posting-signals.ts).
+  const signal = postingSignalTag(posting.postingSignals, { lift: signalLift })
+  const hint = fewerApplicantsHint(competition)
+  const metaHint = signal && tagTakesHintSlot(signal, signalLift) ? null : hint
 
   function handleClick() {
     if (searchResult) posthog.capture('job_search_result_clicked', { jobId: posting.id, rank: searchResult.rank, q: searchResult.q, loc: searchResult.loc })
@@ -357,7 +366,12 @@ export function DiscoverJobCard({
               />
             )}
             {/* One quiet meta line, with the competition hint only when the estimate is low. */}
-            <JobMetaLine parts={meta} hint={fewerApplicantsHint(competition)} jobId={posting.id} />
+            <JobMetaLine
+              parts={meta}
+              hint={metaHint}
+              tag={signal ? <PostingSignalTag jobId={posting.id} signal={signal} surface="board_card" /> : null}
+              jobId={posting.id}
+            />
           </span>
           <span className="flex shrink-0 items-center gap-2">
             <JobVerdict verdict={verdict} className="hidden sm:inline-block" />

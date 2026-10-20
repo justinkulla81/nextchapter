@@ -49,6 +49,10 @@ import { becauseLine, DISMISS_REASONS, shouldAskToHide } from '@/lib/jobs/job-di
 import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
 import { parseAiView, type AiView } from '@/lib/jobs/ai-view'
 import { aiViewKeep, loadAiPostingIds } from '@/lib/jobs/ai-view-server'
+import { loadPostingSignalMap } from '@/lib/jobs/posting-signals-server'
+import { isOpenToChangers, parseOpenParam, wantsChangerLift } from '@/lib/jobs/posting-signals'
+import { isPivotingProfile } from '@/lib/journey/pivot-target'
+import { OpenToChangersFilter } from '@/components/dashboard/OpenToChangersFilter'
 import { AiViewToggle } from '@/components/dashboard/AiViewToggle'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
 import { FunctionFilter } from '@/components/dashboard/FunctionFilter'
@@ -377,7 +381,7 @@ function BoardSearchEmpty({ search }: { search: BoardSearchView }) {
   if (search.filtersActive.length > 0) {
     broaden.push({
       label: 'Turn off the other filters',
-      href: boardHrefWithout(search.urlParams, ['seniority', 'view', 'great', 'pivot', 'types', 'ai'], at),
+      href: boardHrefWithout(search.urlParams, ['seniority', 'view', 'great', 'pivot', 'types', 'ai', 'open'], at),
     })
   }
   if (p.q && (p.loc || p.remote)) broaden.push({ label: `Search “${p.q}” everywhere`, href: boardHrefWithout(search.urlParams, ['loc', 'remote'], at) })
@@ -422,6 +426,14 @@ function JobRecommendationsSkeleton() {
 // (a live LLM call for any company name seen here for the first time) — in
 // its own Suspense boundary so the rest of the page (stats, Interview
 // Tracking, Application Tracker, Company Tracker) never blocks on them.
+/**
+ * Members whose board ranks welcoming jobs first within a fit level, and whose job tags lead with the
+ * welcome (posting-signals.ts): changing careers (the flag, a pivot target or the journey) or early career.
+ */
+function changerLiftFor(profile: Awaited<ReturnType<typeof getDashboardData>>): boolean {
+  return wantsChangerLift({ pivoting: !!profile.isPivoting || isPivotingProfile(profile), earlyCareer: earlyCareerAudience(profile) !== null })
+}
+
 async function JobRecommendationsSection({
   profile,
   candidatePlus,
@@ -439,9 +451,12 @@ async function JobRecommendationsSection({
   search,
   urlParams,
   aiView,
+  openFilter = false,
   redesign,
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
+  /** "Open to career changers / AI-upskilled" (posting-signals.ts): partner-search jobs carry no signals, so they hide. */
+  openFilter?: boolean
   /** The redesigned page: the list and the open job side by side (components/dashboard/find). */
   redesign: boolean
   /** AI / Non-AI / All (ai-view.ts): partner-search jobs carry no AI data, so they show under All only. */
@@ -545,8 +560,10 @@ async function JobRecommendationsSection({
       // of those filters on they can't be shown as matching it. With no sector
       // known they read as private.
       surfacedPassesBoardFilters(boardFilters) &&
-      aiView === 'all'
+      aiView === 'all' &&
+      !openFilter
   )
+  const signalLift = changerLiftFor(profile)
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
   // Per selected type: anything to show at all? (drives the per-type empty notes)
   const shownTypes = new Set<WorkType>([
@@ -752,6 +769,7 @@ async function JobRecommendationsSection({
             searchResult,
             matchReason: reasons.get(posting.id),
             candidatePlus,
+            signalLift,
           })
         : null,
       // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
@@ -782,6 +800,7 @@ async function JobRecommendationsSection({
           matchReason={reasons.get(posting.id)}
           bridge={bridge}
           why={why}
+          signalLift={signalLift}
         />
       ),
     }
@@ -867,7 +886,9 @@ async function JobRecommendationsSection({
         <BoardSearchEmpty search={search} />
       ) : visibleBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
         <div className="space-y-1 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
-          {aiView !== 'all' ? (
+          {openFilter ? (
+            <p>No jobs that fit you say they welcome career changers or people learning AI with these filters yet. Turn off Open to career changers to see every job.</p>
+          ) : aiView !== 'all' ? (
             <p>
               No {aiView === 'ai' ? 'jobs that ask for a specific AI skill' : 'jobs without an AI skill ask'} fit you with these filters yet.
               Choose All to see every job.
@@ -1013,6 +1034,7 @@ export default async function JobFitPage({
     cleared?: string
     breadth?: string
     ai?: string
+    open?: string
   }>
 }) {
   const profile = await getDashboardData()
@@ -1033,6 +1055,7 @@ export default async function JobFitPage({
     blockers && 'blockers',
     cleared && 'cleared',
     allParams.ai && parseAiView(allParams.ai) !== 'all' && 'ai',
+    parseOpenParam(allParams.open) && 'open',
   ].filter((f): f is string => !!f)
   // `job` (the open job in the two-pane list) belongs to the list alone: links built from the other parameters
   // start without it, so a new filter or search never reopens an old job.
@@ -1115,6 +1138,7 @@ export default async function JobFitPage({
           boardFilters={boardFilters}
           breadthMode={breadthMode}
           aiView={parseAiView(allParams.ai)}
+          openFilter={parseOpenParam(allParams.open)}
           redesign={redesign}
           part={part}
         />
@@ -1166,9 +1190,12 @@ async function FindMyJobBody({
   boardFilters,
   breadthMode,
   aiView,
+  openFilter,
   redesign,
   part,
 }: {
+  /** "Open to career changers / AI-upskilled" (the `open` URL parameter, posting-signals.ts). */
+  openFilter: boolean
   profile: Awaited<ReturnType<typeof getDashboardData>>
   /** The redesigned page (docs/candidate-redesign.md): one part at a time, no stacked sections. */
   redesign: boolean
@@ -1198,6 +1225,8 @@ async function FindMyJobBody({
   // While a pivot filter is on, jobs are ranked as if the member were already in
   // the target function (their own function would rate every one a weak fit).
   const boardProfile = pivotFilter ? { ...profile, ...pivotFilter.candidateOverride } : profile
+  // Changing careers or early career: welcoming jobs rank first within a fit level (posting-signals.ts).
+  const changerLift = changerLiftFor(profile)
   // Job-application-related email activity (confirmations, recruiter
   // outreach, interview invites, rejections, offers) — auto-detected via
   // the same Gmail connection managed on the Network with My Contacts page.
@@ -1284,6 +1313,7 @@ async function FindMyJobBody({
     greatSets,
     searchMatcher,
     aiIds,
+    signalMap,
   ] = await Promise.all([
     emailConnectionPromise,
     // §4.8 — only fetched (and only ever true) for Confidential Search Mode
@@ -1322,7 +1352,15 @@ async function FindMyJobBody({
       console.error('AI job ids unavailable, AI / Non-AI buttons hidden:', error)
       return null
     }) : Promise.resolve(null),
+    // Posting signals (posting-signals-server.ts, cached): the open-to-changers filter and the welcome lift.
+    onBoard && (openFilter || changerLift) ? loadPostingSignalMap().catch((error) => {
+      console.error('Posting signals unavailable, open-to-changers filter and lift off:', error)
+      return null
+    }) : Promise.resolve(null),
   ])
+  // With no signals the filter can't be applied: show every job rather than none.
+  const appliedOpenFilter = openFilter && !!signalMap
+  const keepOpen = appliedOpenFilter ? (p: { id: string }) => isOpenToChangers(signalMap!.get(p.id)) : null
   // With no AI ids the choice can't be applied: show every job rather than none.
   const appliedAiView: AiView = aiIds ? aiView : 'all'
   if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
@@ -1382,6 +1420,7 @@ async function FindMyJobBody({
       workTypes,
       keep: combineKeeps([
         keepGreat,
+        keepOpen,
         pivotFilter ? (p) => pivotFilter.matchesTitle(p.title) : null,
         ...requirementKeeps(boardFilters, profile),
       ]),
@@ -1397,6 +1436,8 @@ async function FindMyJobBody({
       views: aiIds
         ? { current: appliedAiView, keeps: { ai: aiViewKeep('ai', aiIds), other: aiViewKeep('other', aiIds), all: null } }
         : undefined,
+      // The welcome lift: a tie-break within a fit level, after the level gate (board-shortlist.ts).
+      lift: changerLift && signalMap ? (p) => isOpenToChangers(signalMap.get(p.id)) : undefined,
     }),
     matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id),
@@ -1607,6 +1648,7 @@ async function FindMyJobBody({
                 <FunctionFilter surface="find_my_job" />
                 <EmployerSectorFilter surface="find_my_job" shown={boardFilters.sectorsShown} />
                 <RequirementFilters surface="find_my_job" hideBlockers={boardFilters.hideBlockers} clearedOnly={boardFilters.clearedOnly} holdsClearance={holdsClearance(profile)} />
+                <OpenToChangersFilter surface="find_my_job" on={appliedOpenFilter} count={appliedOpenFilter ? board.openTotal : null} />
               </div>
               {board.breadth.classifier && breadthMode !== 'off' && !searchView?.active && (
                 <p className="text-sm text-muted-foreground" aria-live="polite">
@@ -1646,6 +1688,7 @@ async function FindMyJobBody({
                 search={searchView}
                 urlParams={urlParams}
                 aiView={appliedAiView}
+                openFilter={appliedOpenFilter}
               />
             </Suspense>
           </div>
@@ -1753,6 +1796,7 @@ async function FindMyJobBody({
               clearedOnly={boardFilters.clearedOnly}
               holdsClearance={holdsClearance(profile)}
             />
+                <OpenToChangersFilter surface="find_my_job" on={appliedOpenFilter} count={appliedOpenFilter ? board.openTotal : null} />
           </div>
           )}
           {redesign && (
@@ -1789,6 +1833,7 @@ async function FindMyJobBody({
               clearedOnly={boardFilters.clearedOnly}
               holdsClearance={holdsClearance(profile)}
             />
+                <OpenToChangersFilter surface="find_my_job" on={appliedOpenFilter} count={appliedOpenFilter ? board.openTotal : null} />
           </>
                 </>
               </div>
@@ -1878,6 +1923,7 @@ async function FindMyJobBody({
                 search={searchView}
                 urlParams={urlParams}
                 aiView={appliedAiView}
+                openFilter={appliedOpenFilter}
               />
             </Suspense>
           </div>

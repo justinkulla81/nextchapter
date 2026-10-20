@@ -5312,6 +5312,11 @@ model ExclusiveJobPosting {
   aiSkillItems      String[] @default([])
   aiToolsNamed      String[] @default([])
   aiCertsNamed      String[] @default([])
+  // Who the posting says it welcomes (crawler ncrawl/posting_signals.py, read from the FULL text):
+  // career_changer_welcome / ai_upskilled_welcome / high_eq (src/lib/jobs/posting-signals.ts). Empty = none
+  // found. Board tag, "Open to career changers / AI-upskilled" filter, welcome lift.
+  // prisma/manual/2026-10-20-posting-signals.sql.
+  postingSignals    String[] @default([])
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])

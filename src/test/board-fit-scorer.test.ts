@@ -96,6 +96,17 @@ describe('board fit scorer (one member against many rows)', () => {
     // Competition still counts the whole board.
     expect([...kept.countByCompany]).toEqual([...all.countByCompany])
   })
+
+  it('the welcome lift only reorders within a fit level: same jobs, same totals (posting-signals.ts)', () => {
+    const rows = lightRows()
+    const c = snapshot.candidates[0]
+    const all = rankBoardRows(rows, { candidate: c, isCandidatePlus: true, size: 1000 })
+    const lifted = new Set(rows.filter((_, i) => i % 7 === 0).map((p) => p.id))
+    const withLift = rankBoardRows(rows, { candidate: c, isCandidatePlus: true, size: 1000, lift: (p) => lifted.has(p.id) })
+    expect(new Set(withLift.openIds)).toEqual(new Set(all.openIds))
+    expect(withLift.openTotal).toBe(all.openTotal)
+    expect(rankBoardRows(rows, { candidate: c, isCandidatePlus: true, size: 1000, lift: () => false })).toEqual(all)
+  })
 })
 
 describe('role families', () => {
