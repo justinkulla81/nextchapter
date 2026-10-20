@@ -89,8 +89,7 @@ export async function loadApplyKit(postingId: string): Promise<ApplyKitResult> {
   const session = await getSession()
   if (!session) return { ok: false, error: NOT_SIGNED_IN }
   const { profile } = session
-  // The apply kit is a Candidate+ extra (candidate-plus-extras.ts).
-  if (!(await isDossierUnlocked(profile.id)).unlocked) return { ok: false, error: candidatePlusRequiredMessage('apply_kit') }
+  // The apply kit is open to every member (candidate-plus-extras.ts).
   const posting = await loadVisiblePosting(postingId)
   if (!posting) return { ok: false, error: NOT_FOUND }
   const [resumes, tracked] = await Promise.all([

@@ -1002,7 +1002,6 @@ export async function explainJobGaps(postingId: string): Promise<ExplainGapsResu
   if (!isExplainGapsEnabled()) return { ok: false, error: 'This feature is not available yet.' }
   const profile = await getAuthedProfile()
   if (!profile) return { ok: false, error: 'Sign in again to see this explanation.' }
-  if (!(await isDossierUnlocked(profile.id)).unlocked) return { ok: false, error: candidatePlusRequiredMessage('explain_gaps') }
   const posting = await prisma.exclusiveJobPosting.findUnique({
     where: { id: postingId },
     include: { company: { select: { sizeBand: true, ownershipType: true } } },

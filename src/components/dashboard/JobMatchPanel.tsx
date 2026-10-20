@@ -150,7 +150,7 @@ export function JobMatchDetails({
           Based on your profile and what this posting says. Pay marked as an estimate is ours, not the employer&apos;s.
         </p>
         {explainEnabled &&
-          (candidatePlus ? <ExplainGaps jobId={jobId} /> : <CandidatePlusExtraLine extra="explain_gaps" jobId={jobId} surface="job_match" />)}
+          <ExplainGaps jobId={jobId} />}
       </div>
     </details>
   )
