@@ -4,11 +4,12 @@ import { contactStrength } from '@/lib/crm/contact-strength'
 import { isHrLeaderTitle } from '@/lib/crm/org-domains'
 import { pickBoard } from '@/lib/workforce/match'
 import { cityFromAddress } from '@/lib/workforce/places'
-import type { ContactCard, ContactGroup } from './layoff-alert-rules'
+import { orderGroups, type ContactCard, type ContactGroup } from './layoff-alert-rules'
 
 const SITE = 'https://launchyournextchapter.com'
-/** Cards shown per group; the rest are counted and linked. */
-const SHOWN = 5
+/** Cards shown per group, the people worth a call or email; the rest are counted and linked. */
+const SHOWN = 3
+const SHOWN_BY_GROUP: Record<string, number> = { head_hr: 2, hr_team: 3, rapid_response: 2, workforce_board: 2, job_centers: 2, economic_development: 3, employer_other: 2 }
 /** Notes written by scripts/crm/rapid-response-import.ts on each state coordinator. */
 const RAPID_RESPONSE_NOTE = 'State Rapid Response Coordinators page'
 /** The rest of an HR department, by title: rewards, relations, talent, partners, learning. */
@@ -41,7 +42,7 @@ const best = (cards: ContactCard[]) => [...cards].sort((a, b) => rank(a) - rank(
 
 function group(key: string, label: string, why: string, emptyHint: string, all: ContactCard[], moreHref: string | null = null): ContactGroup {
   const sorted = best(all)
-  return { key, label, why, emptyHint, cards: sorted.slice(0, SHOWN), more: Math.max(0, sorted.length - SHOWN) || undefined, moreHref }
+  return { key, label, why, emptyHint, cards: sorted.slice(0, SHOWN_BY_GROUP[key] ?? SHOWN), more: Math.max(0, sorted.length - (SHOWN_BY_GROUP[key] ?? SHOWN)) || undefined, moreHref }
 }
 
 export interface LayoffPlace {
@@ -162,5 +163,5 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
   }
 
   const placeLabel = [place.county, state].filter(Boolean).join(', ') || null
-  return { groups, placeLabel }
+  return { groups: orderGroups(groups), placeLabel }
 }

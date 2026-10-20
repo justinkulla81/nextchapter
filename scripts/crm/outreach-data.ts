@@ -13,16 +13,23 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
 import { isHrLeaderTitle } from '../../src/lib/crm/org-domains'
+import { cityFromAddress } from '../../src/lib/workforce/places'
 
 const STATES: Record<string, string> = { AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'the District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming' }
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 const n0 = (v: number | null | undefined) => (v == null ? '' : Math.round(v).toLocaleString('en-US'))
 const pct = (v: number | null | undefined, d = 1) => (v == null ? '' : `${v.toFixed(d)}%`)
-const cleanName = (name: string) => name.replace(/\*[^*]*\*/g, '').replace(/\s+-\s+.*$/, '').replace(/(?<=\S)\s+\d{3,}\b.*$/, '').replace(/,\s*[A-Z]{2},?\s*\d{5}.*$/, '')
+const cleanName = (name: string) => name.replace(/&amp;/gi, '&').replace(/&#0?39;|&apos;/gi, "'").replace(/\*[^*]*\*/g, '').replace(/\s+-\s+.*$/, '').replace(/(?<=\S)\s+\d{3,}\b.*$/, '').replace(/,\s*[A-Z]{2},?\s*\d{5}.*$/, '')
 const clean = (name: string) => cleanName(name).replace(/\([^)]*\)/g, '').replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+20\d\d\b/gi, '').replace(/,?\s*et\s?al\.?/i, '').replace(/[’']s\b/g, '')
   .replace(/,?\s+(inc|llc|l\.l\.c|corp|corporation|co|company|ltd|plc|lp|llp)\.?\s*$/i, '').replace(/\s+/g, ' ').trim()
 const q = (v: unknown) => '"' + String(v ?? '').replace(/"/g, '""') + '"'
+const cityOf = (n: Notice | undefined, state: string) => {
+  const c = n ? cityFromAddress(n.address, state) : null
+  // A real city, not "Various locations in Washington" or the state's own name.
+  return c && !/various|multiple|locations?|statewide|remote|nationwide|\bin\b|^n\/?a$/i.test(c) && c.toLowerCase() !== (STATES[state] ?? '').toLowerCase() ? c : null
+}
+const ARM_LABELS = ['C1a', 'C1b', 'C2a', 'C2b']
 const countyBase = (c: string | null | undefined) => (c ?? '').replace(/\s+(county|parish)$/i, '').trim().toLowerCase()
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 // The greeting: the first name, with honorifics and initials dropped; a doctor, judge or reverend is greeted as "Dr. Last".
@@ -42,7 +49,7 @@ const poss = (n: string) => (/s$/i.test(n) ? `${n}'` : `${n}'s`)
 const list = (a: string[]) => (a.length <= 1 ? a.join('') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
 
 interface Area { id: string; name: string; state: string; unemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
-interface Notice { employer: string; employees: number; county: string | null; state: string; effective: Date | null; board: string | null }
+interface Notice { employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; board: string | null }
 type Row = Record<string, string>
 
 const tpl = JSON.parse(readFileSync(new URL('./outreach-templates.json', import.meta.url), 'utf8')) as {
@@ -72,18 +79,20 @@ async function main() {
   const boardNames = new Map((await prisma.workforceBoard.findMany({ select: { id: true, name: true } })).map((b) => [b.id, b.name]))
   const notices = await prisma.warnNotice.findMany({
     where: { source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: since, lte: now }, employees: { not: null } },
-    select: { employer: true, employees: true, county: true, state: true, effectiveDate: true, promotedOrgId: true, workforceBoardId: true },
+    select: { employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, promotedOrgId: true, workforceBoardId: true },
   })
   const bigger = (a: Notice | undefined, b: Notice) => (!a || b.employees > a.employees ? b : a)
   const byOrg = new Map<string, Notice>(), byBoard = new Map<string, Notice>(), byCounty = new Map<string, Notice>(), byState = new Map<string, Notice>()
   let top: Notice | undefined
+  const stateAll = new Map<string, Notice[]>()
   const stateTotals = new Map<string, { notices: number; jobs: number }>()
   for (const w of notices) {
-    const nt: Notice = { employer: clean(w.employer), employees: w.employees!, county: w.county, state: w.state!, effective: w.effectiveDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
+    const nt: Notice = { employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
     if (w.promotedOrgId) byOrg.set(w.promotedOrgId, bigger(byOrg.get(w.promotedOrgId), nt))
     if (w.workforceBoardId) byBoard.set(w.workforceBoardId, bigger(byBoard.get(w.workforceBoardId), nt))
     if (w.county) { const k = `${w.state}|${countyBase(w.county)}`; byCounty.set(k, bigger(byCounty.get(k), nt)) }
     byState.set(w.state!, bigger(byState.get(w.state!), nt))
+    stateAll.set(w.state!, [...(stateAll.get(w.state!) ?? []), nt])
     top = bigger(top, nt)
     const t = stateTotals.get(w.state!) ?? { notices: 0, jobs: 0 }
     t.notices++; t.jobs += w.employees!; stateTotals.set(w.state!, t)
@@ -132,7 +141,7 @@ async function main() {
     const row: Row = {
       template, first_name: who.first, email: who.email, recipient_org: who.org, recipient_title: who.title, org: who.org,
       company: ctx.notice && ctx.notice.employer.length <= 45 ? ctx.notice.employer : '', employees: ctx.notice ? n0(ctx.notice.employees) : '',
-      county: area?.name ?? ctx.notice?.county ?? stateName, state: stateName, state_code: state,
+      county: area?.name ?? ctx.notice?.county ?? (cityOf(ctx.notice, state) ? `${cityOf(ctx.notice, state)}, ${stateName}` : stateName), state: stateName, state_code: state,
       state_poss: poss(stateName),
       company_poss: ctx.notice && ctx.notice.employer.length <= 45 ? poss(ctx.notice.employer) : '',
       state_notices_phrase: st ? `${n0(st.notices)} ${st.notices === 1 ? 'notice' : 'notices'} covering ${n0(st.jobs)} jobs` : '',
@@ -145,15 +154,26 @@ async function main() {
     const region = op ?? nat
     const scope = op ? `in ${stateName}` : 'nationally'
     row.line_timing = effDays != null && effDays >= 1 && effDays <= 150 ? `The notice takes effect on ${row.effective_date}, ${effDays} days from now.` : ''
-    row.line_open_roles = `Our crawler tracks ${n0(region.mgr)} open manager-level roles ${scope}.`
+    // All the white-collar openings we hold: the national total, plus the state's when it is at least three times the layoff beside it.
+    const layoffSize = Number(String(row.employees ?? '').replace(/,/g, '')) || st?.jobs || 0
+    row.line_open_roles = op && op.roles >= 3 * layoffSize
+      ? `Our national job database holds ${n0(nat.roles)} open white-collar roles, ${n0(op.roles)} of them in ${stateName}.`
+      : `Our national job database holds ${n0(nat.roles)} open white-collar roles.`
     row.line_top_functions = region.fns.length ? `The most common functions are ${list(region.fns)}.` : ''
     row.line_ai_roles = region.ai ? `${n0(region.ai)} open roles ${scope} mention AI in the title.` : ''
-    row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers within days of a notice.` : row.board ? `${row.board} typically meets employers within days of a notice.` : ''
+    row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers soon after a notice.` : row.board ? `${row.board} typically meets employers soon after a notice.` : ''
+    // The state's three largest notices, one per employer, as a proof point that we watch their state.
+    const seenEmp = new Set<string>()
+    const tops = [...(stateAll.get(state ?? '') ?? [])].sort((a, b) => b.employees - a.employees).filter((x) => { const k = x.employer.toLowerCase(); if (seenEmp.has(k)) return false; seenEmp.add(k); return true }).slice(0, 3)
+    row.line_top_notices = tops.length >= 2 ? `The largest were ${list(tops.map((x) => `${poss(x.employer)} ${n0(x.employees)}`))}.` : ''
     row.line_local = area && area.j12 > 0
       ? (area.j12 === area.j90 || area.j90 === 0
         ? `${area.name} employers filed notices for ${n0(area.j12)} jobs ${area.j90 === 0 ? 'over the last 12 months' : 'in the last 90 days'}, and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`
         : `${area.name} employers filed notices for ${n0(area.j12)} jobs over the last 12 months (${n0(area.j90)} in the last 90 days), and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`)
       : st ? `${stateName} employers filed notices for ${n0(st.jobs)} jobs in the last 90 days.` : ''
+    // When the company is most of the state's notices, restating the state total just repeats the layoff.
+    const own = Number(String(row.employees ?? '').replace(/,/g, '')) || 0
+    if (own && (st?.jobs ?? 0) < 2 * own) row.line_local = ''
     row.line_majors = area?.majors.length ? `The largest local employers include ${list(area.majors)}.` : ''
     const cName = area?.name ?? ctx.notice?.county ?? ''
     row.line_company = row.company ? `That includes ${poss(row.company)} ${n0(ctx.notice!.employees)} jobs.` : ''
@@ -169,8 +189,8 @@ async function main() {
     row.opening_line = opening
     const bodyBase = fill(t.body, row)
     const bodyText = opening ? bodyBase.replace('\n\n', `\n\n${opening}\n\n`) : bodyBase
-    const text = [bodyText, tpl.signature, fill(t.ps, row), tpl.footer.join('\n')].join('\n\n')
-    const html = '<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111">' + esc([bodyText, tpl.signature, fill(t.ps, row)].join('\n\n')).replace(/\n/g, '<br>')
+    const text = [bodyText, tpl.signature, fill(t.ps, row), tpl.footer.join('\n')].filter(Boolean).join('\n\n')
+    const html = '<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111">' + esc([bodyText, tpl.signature, fill(t.ps, row)].filter(Boolean).join('\n\n')).replace(/\n/g, '<br>')
       + `<span style="${FOOT_STYLE}">${esc(tpl.footer.join('\n')).replace(/\n/g, '<br>')}</span></div>`
     // Subjects: the first one whose figures are all present leads; a template is ready when at least one subject can be filled.
     const subjOk = t.subjects.map((x) => tokens(x).filter((k) => !k.startsWith('line_') && !row[k]).length === 0)
@@ -181,6 +201,11 @@ async function main() {
     const cand = [t.subjects[order[0]], t.subjects[order[1]], t.subject_fallback].map((x) => fill(x, row)).filter((x, i) => i === 2 || tokens([t.subjects[order[0]], t.subjects[order[1]]][i]).every((k) => k.startsWith('line_') || row[k]))
     const fits = cand.filter((x) => x.length <= 62)
     row.subject_a = fits[0] ?? cand[cand.length - 1]; row.subject_b = fits[1] ?? fits[0] ?? cand[cand.length - 1]; row.preview_text = fill(t.preview, row)
+    // Four subjects = two concepts with two wordings each (C1a, C1b: outcome; C2a, C2b: market data). Keep each that is complete and short.
+    if (t.subjects.length === 4) ARM_LABELS.forEach((lab, i) => {
+      const sbj = fill(t.subjects[i], row)
+      row['arm_' + lab] = tokens(t.subjects[i]).every((k) => k.startsWith('line_') || row[k]) && sbj.length <= 62 ? sbj : ''
+    })
     row.followup_1 = fill(t.fu1, row); row.followup_2 = fill(t.fu2, row)
     row.email_text = text; row.email_html = html
     row.ready = missing.length ? 'no' : 'yes'; row.missing = missing.join(' ')
@@ -256,15 +281,23 @@ async function main() {
     const why = p.passedAt ? 'passed' : p.firstRepliedAt ? 'replied' : 'already contacted'
     for (const e of [p.email, ...p.emails]) if (e) suppress.set(e.toLowerCase(), why)
   }
+  for (const m of await prisma.mailingSuppression.findMany({ select: { email: true, reason: true } })) suppress.set(m.email.toLowerCase(), m.reason === 'COMPLAINED' ? 'spam complaint' : 'bounced')
   try { for (const l of readFileSync('/Users/salitkulla/nc-hunter-results/suppress.txt', 'utf8').split('\n')) if (l.trim()) suppress.set(l.trim().toLowerCase(), 'do not contact') } catch { /* no list yet */ }
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
-  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
-  const HEAD = ['template', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
+  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); const h = [...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
+    if (r.arm_C1a !== undefined) {
+      // Two concepts by two wordings; an arm whose subject does not fit falls back to the other wording of the same concept.
+      const lab = ARM_LABELS[h % 4], mate = ARM_LABELS[(h % 4) ^ 1]
+      const pick = r['arm_' + lab] ? lab : r['arm_' + mate] ? mate : null
+      r.variant = pick ?? 'F'; r.concept = pick ? pick.slice(0, 2) : ''; r.subject = pick ? r['arm_' + pick] : r.subject_a
+    } else { r.variant = h % 2 ? 'B' : 'A'; r.concept = ''; r.subject = r.variant === 'B' ? r.subject_b : r.subject_a }
+     r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
+  const HEAD = ['template', 'variant', 'concept', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
     'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective']
   writeFileSync(out, [HEAD.map(q).join(','), ...rows.map((r) => HEAD.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   // The send list: only rows that are ready, unique and not suppressed, with just what a mail merge needs.
-  const SEND = ['template', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
+  const SEND = ['template', 'variant', 'concept', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
   const sendRows = rows.filter((r) => r.send === 'yes')
   writeFileSync(out.replace(/\.csv$/, '') + '.send.csv', [SEND.map(q).join(','), ...sendRows.map((r) => SEND.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   console.log(`send list: ${sendRows.length} rows`)

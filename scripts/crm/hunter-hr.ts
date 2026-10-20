@@ -74,7 +74,7 @@ async function search(max: number, out: string) {
     _sum: { employees: true },
   })
   const targets = new Map<string, { employees: number; mode: 'warn' | 'leads' }>()
-  for (const w of warn) if ((w._sum.employees ?? 0) >= 100) targets.set(w.promotedOrgId!, { employees: w._sum.employees ?? 0, mode: 'warn' })
+  for (const w of warn) if ((w._sum.employees ?? 0) >= Number(process.env.WARN_MIN ?? 100)) targets.set(w.promotedOrgId!, { employees: w._sum.employees ?? 0, mode: 'warn' })
   const leads = await prisma.crmOrganization.findMany({
     where: { leadQuality: 'A', outplacementProfile: { isNot: null }, usState: { not: null } },
     select: { id: true, outplacementProfile: { select: { headcountAffected: true } } },
@@ -82,6 +82,12 @@ async function search(max: number, out: string) {
   for (const l of leads) if (!targets.has(l.id)) targets.set(l.id, { employees: l.outplacementProfile?.headcountAffected ?? 0, mode: 'leads' })
   const orgs = await prisma.crmOrganization.findMany({ where: { id: { in: [...targets.keys()] } }, select: { id: true, name: true, emailDomain: true, website: true } })
   const queue = orgs.map((o) => ({ o, t: targets.get(o.id)! })).sort((a, b) => b.t.employees - a.t.employees)
+  // ONLY_NO_LEADER=1: skip any organization that already has a head of HR in the CRM.
+  if (process.env.ONLY_NO_LEADER) {
+    const aff = await prisma.crmAffiliation.findMany({ where: { orgId: { in: orgs.map((o) => o.id) }, person: { deletedAt: null } }, select: { orgId: true, title: true } })
+    const has = new Set(aff.filter((a) => a.title && isHrLeaderTitle(a.title)).map((a) => a.orgId))
+    for (let i = queue.length - 1; i >= 0; i--) if (has.has(queue[i].o.id)) queue.splice(i, 1)
+  }
   console.log(`${queue.length} organizations; up to ${max} searches`)
 
   const rows: Row[] = []

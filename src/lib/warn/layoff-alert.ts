@@ -5,6 +5,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { contactStrength } from '@/lib/crm/contact-strength'
 import { withAudienceHtml } from '@/lib/email/audience-tag'
 import { alertBody, alertSubject, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
+import { enrichLayoffHr } from './layoff-hr-enrich'
 import { layoffPeople } from './layoff-alert-people'
 
 /** The only recipient: Justin's NextChapter inbox, never a personal address. */
@@ -61,8 +62,11 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
       where: { id: l.noticeId },
       select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true },
     }).catch(() => null)
-    const related = await layoffPeople(org?.id ?? notice?.promotedOrgId ?? null, {
-      state: notice?.state ?? null, county: notice?.county ?? null, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null,
+    // Find the people to call now, so the email is not empty: one Hunter search for a company with no head of HR on file.
+    const orgId = (await enrichLayoffHr(l.employer, org?.id ?? notice?.promotedOrgId ?? null)) ?? org?.id ?? notice?.promotedOrgId ?? null
+    const orgState = orgId ? (await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { usState: true } }))?.usState ?? null : null
+    const related = await layoffPeople(orgId, {
+      state: notice?.state ?? orgState ?? null, county: notice?.county ?? null, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null,
     }).catch((e) => { console.error('Layoff alert people failed for', l.employer, e); return null })
     if (related) { input.groups = related.groups; input.place = related.placeLabel }
 

@@ -34,8 +34,8 @@ const PAGES: Record<string, { title: string; html: string }> = {
 <h2>What you get</h2>
 <ul><li>A single link or QR code to include in your announcement or severance packet</li><li>A counts-only report: how many joined and, among those who choose to share it, how many are interviewing or have landed. Nothing about any one person unless they choose to share it with you.</li></ul>
 <h2>How it works</h2>
-<ul><li>Week 0: we set up a company group and send you a link</li><li>Weeks 1 to 12: people join on their own time</li><li>Day 45 and day 90: counts report</li></ul>
-<div class="terms"><b class="draft">Draft terms, for discussion</b><ul><li>Pilot cohort: one group, up to 12 weeks</li><li>Software only, priced per participant who joins, not per person invited. You pay for use.</li><li>No employee data is shared with you without that person’s consent; no data is sold or used for hiring decisions</li><li>Either side can end the pilot with 14 days’ notice</li></ul></div>`),
+<ul><li>Week 0: we set up a company group and send you a link</li><li>Your people join on their own time</li><li>Day 45 and day 90: counts report</li></ul>
+<div class="terms"><b>Terms</b><ul><li>A two-year platform subscription for your employees</li><li>You buy the platform for your employees. It includes the employer tools and reporting, and an account for every employee at no charge to them.</li><li>Additional services for selected groups of employees are optional, and you decide which.</li><li>No employee data is shared with you without that person’s consent; no data is sold or used for hiring decisions</li><li>Pricing on request</li></ul></div>`),
   },
   'partner-handout': {
     title: 'NextChapter for workforce partners',
@@ -62,8 +62,8 @@ const PAGES: Record<string, { title: string; html: string }> = {
 <h2>What we will report</h2>
 <ul><li>At day 45 and day 90: how many joined, and among those who choose to share it, how many are interviewing or have landed</li><li>Counts only, with small groups withheld; no individual data</li></ul>
 <h2>What we ask for</h2>
-<p>Funding for participants in the pilot, and an introduction to the local team that works with the layoff. We will agree the measure with you before it starts.</p>
-<div class="terms"><b class="draft">Draft budget, for discussion</b><p>Per-participant software cost, a small setup fee for the region, and a report. Figures to be set with Justin before this goes out.</p></div>`),
+<p>Funding for the platform for the pilot, and an introduction to the local team that works with the layoff. We will agree the measure with you before it starts.</p>
+<div class="terms"><b>Budget</b><p>A platform subscription that covers the regional tools, reporting, and an account for every participant at no charge to them. Additional services for selected groups are optional. Pricing on request.</p></div>`),
   },
 }
 
