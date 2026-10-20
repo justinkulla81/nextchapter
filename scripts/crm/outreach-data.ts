@@ -19,7 +19,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 
 const n0 = (v: number | null | undefined) => (v == null ? '' : Math.round(v).toLocaleString('en-US'))
 const pct = (v: number | null | undefined, d = 1) => (v == null ? '' : `${v.toFixed(d)}%`)
-const cleanName = (name: string) => name.replace(/\*[^*]*\*/g, '').replace(/\s+-\s+.*$/, '').replace(/(?<=\S)\s+\d{3,}\b.*$/, '').replace(/,\s*[A-Z]{2},?\s*\d{5}.*$/, '')
+const cleanName = (name: string) => name.replace(/&amp;/gi, '&').replace(/&#0?39;|&apos;/gi, "'").replace(/\*[^*]*\*/g, '').replace(/\s+-\s+.*$/, '').replace(/(?<=\S)\s+\d{3,}\b.*$/, '').replace(/,\s*[A-Z]{2},?\s*\d{5}.*$/, '')
 const clean = (name: string) => cleanName(name).replace(/\([^)]*\)/g, '').replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+20\d\d\b/gi, '').replace(/,?\s*et\s?al\.?/i, '').replace(/[’']s\b/g, '')
   .replace(/,?\s+(inc|llc|l\.l\.c|corp|corporation|co|company|ltd|plc|lp|llp)\.?\s*$/i, '').replace(/\s+/g, ' ').trim()
 const q = (v: unknown) => '"' + String(v ?? '').replace(/"/g, '""') + '"'
@@ -148,7 +148,7 @@ async function main() {
     row.line_open_roles = `Our crawler tracks ${n0(region.mgr)} open manager-level roles ${scope}.`
     row.line_top_functions = region.fns.length ? `The most common functions are ${list(region.fns)}.` : ''
     row.line_ai_roles = region.ai ? `${n0(region.ai)} open roles ${scope} mention AI in the title.` : ''
-    row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers within days of a notice.` : row.board ? `${row.board} typically meets employers within days of a notice.` : ''
+    row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers soon after a notice.` : row.board ? `${row.board} typically meets employers soon after a notice.` : ''
     row.line_local = area && area.j12 > 0
       ? (area.j12 === area.j90 || area.j90 === 0
         ? `${area.name} employers filed notices for ${n0(area.j12)} jobs ${area.j90 === 0 ? 'over the last 12 months' : 'in the last 90 days'}, and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`
