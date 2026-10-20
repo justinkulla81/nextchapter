@@ -423,20 +423,15 @@ export function DiscoverJobCard({
             insiders={confidential ? undefined : insiders}
           />
         )}
-        {candidatePlus ? (
-          <>
-            <div data-who-to-contact={posting.id}>
-              <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
-              <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
-            </div>
-            <ApplyKit postingId={posting.id} surface="job_card" />
-          </>
+        {candidatePlus || !confidential ? (
+          <div data-who-to-contact={posting.id}>
+            <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+            <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
+          </div>
         ) : (
-          <>
-            <CandidatePlusExtraLine extra={confidential ? 'request_intro' : 'who_to_contact'} jobId={posting.id} surface="job_card" />
-            <CandidatePlusExtraLine extra="apply_kit" jobId={posting.id} surface="job_card" />
-          </>
+          <CandidatePlusExtraLine extra="request_intro" jobId={posting.id} surface="job_card" />
         )}
+        <ApplyKit postingId={posting.id} surface="job_card" />
         {nativePosterOf(posting) && <NativeApply postingId={posting.id} size="sm" />}
 
         <div className="space-y-2 border-t border-border pt-3">

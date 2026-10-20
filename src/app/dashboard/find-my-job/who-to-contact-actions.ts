@@ -39,8 +39,7 @@ async function viewablePosting(postingId: string) {
 export async function loadWhoToContact(postingId: string): Promise<WhoToContactResult> {
   const profile = await authedProfile()
   if (!profile) return { ok: false, error: 'Sign in again to see who to contact.' }
-  // Who to contact is a Candidate+ extra; the job itself is open to everyone.
-  if (!(await isDossierUnlocked(profile.id)).unlocked) return { ok: false, error: candidatePlusRequiredMessage('who_to_contact') }
+  // Who to contact is open to every member (candidate-plus-extras.ts). The intro request below is still Candidate+.
   const posting = await viewablePosting(postingId)
   if (!posting) return { ok: false, error: 'This job is no longer on the board.' }
   // A confidential search names no employer: there is no one to look up.
