@@ -4,7 +4,7 @@ import { contactStrength } from '@/lib/crm/contact-strength'
 import { isHrLeaderTitle } from '@/lib/crm/org-domains'
 import { pickBoard } from '@/lib/workforce/match'
 import { cityFromAddress } from '@/lib/workforce/places'
-import type { ContactCard, ContactGroup } from './layoff-alert-rules'
+import { orderGroups, type ContactCard, type ContactGroup } from './layoff-alert-rules'
 
 const SITE = 'https://launchyournextchapter.com'
 /** Cards shown per group, the people worth a call or email; the rest are counted and linked. */
@@ -163,5 +163,5 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
   }
 
   const placeLabel = [place.county, state].filter(Boolean).join(', ') || null
-  return { groups, placeLabel }
+  return { groups: orderGroups(groups), placeLabel }
 }

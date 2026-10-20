@@ -163,3 +163,10 @@ export function layoffTypeLabel(o: { publishers: number; publisher: string | nul
     : `Reported by 1 publisher (${o.publisher ?? 'unknown'}) — unconfirmed`
   return o.percent ? `${base} · ${o.percent}% of staff` : base
 }
+
+
+/** Groups with a person we can email first, then groups with people but no address, then empty ones. Keeps the order within each. */
+export function orderGroups<T extends { cards: { email: string | null; guessed?: boolean }[] }>(groups: T[]): T[] {
+  const rank = (g: T) => (g.cards.some((c) => c.email && !c.guessed) ? 0 : g.cards.length ? 1 : 2)
+  return groups.map((g, i) => ({ g, i })).sort((a, b) => rank(a.g) - rank(b.g) || a.i - b.i).map((x) => x.g)
+}

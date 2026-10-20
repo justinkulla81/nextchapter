@@ -89,3 +89,18 @@ describe('the people tied to the layoff', () => {
     expect(alertBody(base, { source: null, org: null, notices: 'n' })).not.toContain('Who to contact')
   })
 })
+
+describe('orderGroups', () => {
+  const card = (email: string | null, guessed = false) => ({ email, guessed })
+  it('puts groups with an email first and empty groups last, keeping order within each', async () => {
+    const { orderGroups } = await import('@/lib/warn/layoff-alert-rules')
+    const groups = [
+      { key: 'a', cards: [] },
+      { key: 'b', cards: [card(null)] },
+      { key: 'c', cards: [card('x@y.com')] },
+      { key: 'd', cards: [card('g@y.com', true)] },
+      { key: 'e', cards: [card('z@y.com')] },
+    ]
+    expect(orderGroups(groups).map((g) => g.key)).toEqual(['c', 'e', 'b', 'd', 'a'])
+  })
+})
