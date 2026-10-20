@@ -118,3 +118,83 @@ export async function publishLinkedInPost(accessToken: string, personUrn: string
     throw new Error(`LinkedIn post publish failed: ${response.status} ${await response.text()}`)
   }
 }
+
+// ---- Admin queue posting: text, one image, then the link as a first comment ----
+
+export type LinkedInVisibility = 'PUBLIC' | 'CONNECTIONS'
+
+export async function fetchLinkedInProfile(accessToken: string): Promise<{ personUrn: string; name: string | null }> {
+  const response = await fetch(LINKEDIN_USERINFO_URL, { headers: { Authorization: `Bearer ${accessToken}` } })
+  if (!response.ok) throw new Error('Failed to fetch LinkedIn user info.')
+  const data = (await response.json()) as { sub: string; name?: string }
+  return { personUrn: `urn:li:person:${data.sub}`, name: data.name ?? null }
+}
+
+const liHeaders = (accessToken: string) => ({
+  Authorization: `Bearer ${accessToken}`,
+  'Content-Type': 'application/json',
+  'X-Restli-Protocol-Version': '2.0.0',
+})
+
+/** Uploads a PNG and returns its asset URN, ready to attach to a post. */
+async function uploadLinkedInImage(accessToken: string, personUrn: string, png: Buffer): Promise<string> {
+  const reg = await fetch('https://api.linkedin.com/v2/assets?action=registerUpload', {
+    method: 'POST',
+    headers: liHeaders(accessToken),
+    body: JSON.stringify({
+      registerUploadRequest: {
+        recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
+        owner: personUrn,
+        serviceRelationships: [{ relationshipType: 'OWNER', identifier: 'urn:li:userGeneratedContent' }],
+      },
+    }),
+  })
+  if (!reg.ok) throw new Error(`LinkedIn image registration failed: ${reg.status} ${await reg.text()}`)
+  const data = (await reg.json()) as {
+    value: { asset: string; uploadMechanism: Record<string, { uploadUrl: string }> }
+  }
+  const uploadUrl = data.value.uploadMechanism['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']?.uploadUrl
+  if (!uploadUrl) throw new Error('LinkedIn gave no image upload address.')
+  const put = await fetch(uploadUrl, { method: 'PUT', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'image/png' }, body: new Uint8Array(png) })
+  if (!put.ok) throw new Error(`LinkedIn image upload failed: ${put.status}`)
+  return data.value.asset
+}
+
+/** Publishes text with an optional image as the member. Returns the post URN. */
+export async function publishLinkedInShare(o: {
+  accessToken: string; personUrn: string; text: string; image?: Buffer; visibility: LinkedInVisibility
+}): Promise<string> {
+  const asset = o.image ? await uploadLinkedInImage(o.accessToken, o.personUrn, o.image) : null
+  const response = await fetch(LINKEDIN_UGC_POSTS_URL, {
+    method: 'POST',
+    headers: liHeaders(o.accessToken),
+    body: JSON.stringify({
+      author: o.personUrn,
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: { text: o.text },
+          shareMediaCategory: asset ? 'IMAGE' : 'NONE',
+          ...(asset ? { media: [{ status: 'READY', media: asset }] } : {}),
+        },
+      },
+      visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': o.visibility },
+    }),
+  })
+  if (!response.ok) throw new Error(`LinkedIn post publish failed: ${response.status} ${await response.text()}`)
+  const urn = response.headers.get('x-restli-id') ?? ((await response.json().catch(() => ({}))) as { id?: string }).id
+  if (!urn) throw new Error('LinkedIn published the post but gave no id.')
+  return urn
+}
+
+/** Adds a comment to a post as the member (used for the first comment with the link). */
+export async function commentOnLinkedInPost(accessToken: string, personUrn: string, postUrn: string, text: string): Promise<void> {
+  const response = await fetch(`https://api.linkedin.com/v2/socialActions/${encodeURIComponent(postUrn)}/comments`, {
+    method: 'POST',
+    headers: liHeaders(accessToken),
+    body: JSON.stringify({ actor: personUrn, message: { text } }),
+  })
+  if (!response.ok) throw new Error(`LinkedIn comment failed: ${response.status} ${await response.text()}`)
+}
+
+export const linkedInPostUrl = (postUrn: string) => `https://www.linkedin.com/feed/update/${postUrn}/`

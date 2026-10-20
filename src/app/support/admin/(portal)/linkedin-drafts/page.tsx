@@ -1,6 +1,8 @@
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { LinkedInDraftCard } from '@/components/admin/LinkedInDraftCard'
+import { LinkedInConnectionBar } from '@/components/admin/LinkedInConnectionBar'
+import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
 import type { DraftFacts } from '@/lib/linkedin/layoff-post-rules'
 
 const WHY: Record<DraftFacts['credibility'], string> = {
@@ -13,8 +15,10 @@ const WHY: Record<DraftFacts['credibility'], string> = {
 const slot = (d: Date) =>
   d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' ET'
 
-export default async function LinkedInDraftsPage() {
-  await requireAdmin()
+export default async function LinkedInDraftsPage({ searchParams }: { searchParams: Promise<{ linkedin?: string }> }) {
+  const admin = await requireAdmin()
+  const { linkedin } = await searchParams
+  const conn = admin.email ? await getAdminLinkedIn(admin.email) : null
   const [drafts, posted] = await Promise.all([
     prisma.linkedInPostDraft.findMany({ where: { status: 'DRAFT' }, orderBy: { scheduledFor: 'asc' } }),
     prisma.linkedInPostDraft.count({ where: { status: 'POSTED', postedAt: { gte: new Date(Date.now() - 7 * 86_400_000) } } }),
@@ -31,6 +35,11 @@ export default async function LinkedInDraftsPage() {
           nothing shows on the website. {posted} posted in the last 7 days.
         </p>
       </header>
+      <LinkedInConnectionBar
+        connectedAs={conn ? conn.memberName ?? 'your profile' : null}
+        expiresLabel={conn ? conn.expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null}
+        flash={linkedin ?? null}
+      />
       {drafts.length === 0 ? (
         <p className="rounded-lg border border-border p-6 text-sm text-muted-foreground">
           No drafts waiting. A draft appears when a credible layoff of 100 jobs or more is filed.
@@ -45,7 +54,7 @@ export default async function LinkedInDraftsPage() {
                 id: d.id, employer: f.employer, employees: f.employees, place: f.place,
                 credibilityLabel: WHY[f.credibility] ?? f.credibility, sourceUrl: f.sourceUrl, angle: d.angle,
                 body: d.body, firstComment: d.firstComment, slotLabel: slot(d.scheduledFor),
-                due: d.scheduledFor.getTime() <= now, rewritten: !!d.rewrittenAt, tags: f.tagSuggestions ?? [],
+                due: d.scheduledFor.getTime() <= now, rewritten: !!d.rewrittenAt, tags: f.tagSuggestions ?? [], canPost: !!conn,
               }}
             />
           )

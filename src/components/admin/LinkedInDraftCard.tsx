@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { CopyButton } from '@/components/ui/copy-button'
 import { Textarea } from '@/components/ui/textarea'
-import { markPosted, saveDraft, skipDraft } from '@/app/support/admin/(portal)/linkedin-drafts/actions'
+import { markPosted, postDraftToLinkedIn, saveDraft, skipDraft } from '@/app/support/admin/(portal)/linkedin-drafts/actions'
 
 export interface DraftCardData {
   id: string
@@ -21,14 +21,24 @@ export interface DraftCardData {
   due: boolean
   rewritten: boolean
   tags: { name: string; note: string; linkedinUrl: string | null }[]
+  /** LinkedIn is connected, so the draft can be posted from here. */
+  canPost: boolean
 }
 
 export function LinkedInDraftCard({ d }: { d: DraftCardData }) {
   const [body, setBody] = useState(d.body)
   const [comment, setComment] = useState(d.firstComment)
   const [note, setNote] = useState<string | null>(null)
+  const [postUrl, setPostUrl] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState(false)
   const [pending, start] = useTransition()
   const run = (fn: () => Promise<{ message: string }>) => start(async () => setNote((await fn()).message))
+  const post = (visibility: 'PUBLIC' | 'CONNECTIONS') => start(async () => {
+    setConfirming(false)
+    const r = await postDraftToLinkedIn(d.id, visibility)
+    setNote(r.message)
+    setPostUrl(r.url ?? null)
+  })
   const imageUrl = `/api/admin/linkedin-drafts/${d.id}/image`
 
   return (
@@ -56,9 +66,19 @@ export function LinkedInDraftCard({ d }: { d: DraftCardData }) {
           <CopyButton text={comment} label="Copy first comment" />
           <span className="text-xs text-muted-foreground">comment</span>
           <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => saveDraft(d.id, body, comment))}>Save edits</Button>
-          <Button size="sm" disabled={pending} onClick={() => run(() => markPosted(d.id))}>Mark as posted</Button>
+          {d.canPost && !confirming ? <Button size="sm" disabled={pending} onClick={() => setConfirming(true)}>Post to LinkedIn</Button> : null}
+          {confirming ? (
+            <span className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-2 text-sm">
+              Posts as you, now, with the image and the first comment.
+              <Button size="sm" disabled={pending} onClick={() => post('PUBLIC')}>Post publicly</Button>
+              <Button size="sm" variant="outline" disabled={pending} onClick={() => post('CONNECTIONS')}>Connections only</Button>
+              <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>Cancel</Button>
+            </span>
+          ) : null}
+          <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => markPosted(d.id))}>Mark as posted</Button>
           <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => skipDraft(d.id))}>Skip</Button>
           {note ? <span role="status" className="text-sm text-muted-foreground">{note}</span> : null}
+          {postUrl ? <a href={postUrl} target="_blank" rel="noreferrer" className="text-sm underline">Open the post</a> : null}
         </div>
       </div>
 
