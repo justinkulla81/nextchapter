@@ -9,7 +9,7 @@ import { WorkHistoryList } from '@/components/dashboard/WorkHistoryList'
 import { deleteWorkSample } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { AI_SAMPLE_SPECS, aiSampleChecks, isAiSampleType } from '@/lib/evidence/ai-work-samples'
 import { AiSampleReviewPanel } from '@/components/dashboard/AiSampleReviewPanel'
 import { isAiReviewOn } from '@/lib/evidence/ai-review-flag'
@@ -17,6 +17,24 @@ import { loadSampleReviews } from '@/lib/evidence/ai-sample-review-server'
 import { MAX_REVIEWS_PER_SAMPLE_PER_WEEK } from '@/lib/evidence/ai-sample-review'
 
 export const metadata: Metadata = { title: 'Work Samples' }
+
+// Work history feeds the Executive Dossier and What They See. Folded so the page leads with the samples.
+function WorkHistoryFold({ entries }: { entries: Parameters<typeof WorkHistoryList>[0]['entries'] }) {
+  return (
+    <MoreDetails summary="Your work history">
+      <p className="text-sm text-muted-foreground">
+        Feeds your Executive Dossier and What They See. Fractional, interim and consulting roles are never labeled as such externally, so add them here without hesitation. Landing your first interim or
+        fractional client also counts toward your Landed an Interim Role badge; see the full path on the{' '}
+        <a href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" className="text-primary underline underline-offset-4">
+          Interim Work
+        </a>{' '}
+        page.
+      </p>
+      <WorkHistoryList entries={entries} />
+      <WorkHistoryForm />
+    </MoreDetails>
+  )
+}
 
 
 export default async function WorkSamplesPage() {
@@ -27,30 +45,13 @@ export default async function WorkSamplesPage() {
       <div className="space-y-8">
         <div className="space-y-3">
           <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
-          <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
         <Suspense fallback={null}>
           <EvidenceCard candidateId={profile.id} />
         </Suspense>
 
-        <div className="space-y-4 border-t border-border pt-8">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Feeds your Certified Executive Dossier and What They See — fractional/interim/consulting roles
-              are never labeled as such externally, so add them here without hesitation. Landing your
-              first interim or fractional client also counts toward your Landed an Interim Role
-              badge — see the full path on the{' '}
-              <a href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" className="text-primary underline underline-offset-4">
-                Interim Work
-              </a>{' '}
-              page.
-            </p>
-          </div>
-          <WorkHistoryList entries={profile.workHistory} />
-          <WorkHistoryForm />
-        </div>
+      <WorkHistoryFold entries={profile.workHistory} />
       </div>
     )
   }
@@ -60,30 +61,13 @@ export default async function WorkSamplesPage() {
       <div className="space-y-4">
         <div className="space-y-3">
           <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
-          <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
         </div>
         <WorkSampleTypeGateForm alreadyAwarded={!!profile.workSampleTypeBonusAt} />
         <Suspense fallback={null}>
           <EvidenceCard candidateId={profile.id} />
         </Suspense>
 
-        <div className="space-y-4 border-t border-border pt-8">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Feeds your Certified Executive Dossier and What They See — fractional/interim/consulting roles
-              are never labeled as such externally, so add them here without hesitation. Landing your
-              first interim or fractional client also counts toward your Landed an Interim Role
-              badge — see the full path on the{' '}
-              <a href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" className="text-primary underline underline-offset-4">
-                Interim Work
-              </a>{' '}
-              page.
-            </p>
-          </div>
-          <WorkHistoryList entries={profile.workHistory} />
-          <WorkHistoryForm />
-        </div>
+      <WorkHistoryFold entries={profile.workHistory} />
       </div>
     )
   }
@@ -99,7 +83,6 @@ export default async function WorkSamplesPage() {
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Work Samples</h1>
-        <PageHeaderBoxes pageKey="work-samples" candidateId={profile.id} />
         <p className="text-sm text-muted-foreground">
           AI work samples with a measured result: {aiWorkflowCount} of 3. Employers look for hands-on AI use in your own function, shown with a
           measured result — an automation with a before and after, an AI policy or use-case portfolio, or a RAG or agent project with an eval.
@@ -176,23 +159,7 @@ export default async function WorkSamplesPage() {
         </div>
       )}
 
-      <div className="space-y-4 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Your work history</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Feeds your Certified Executive Dossier and What They See — fractional/interim/consulting roles
-            are never labeled as such externally, so add them here without hesitation. Landing your
-            first interim or fractional client also counts toward your Landed an Interim Role
-            badge — see the full path on the{' '}
-            <a href="/dashboard/find-my-job?types=part_time,contract,advisory#independent-work" className="text-primary underline underline-offset-4">
-              Interim Work
-            </a>{' '}
-            page.
-          </p>
-        </div>
-        <WorkHistoryList entries={profile.workHistory} />
-        <WorkHistoryForm />
-      </div>
+      <WorkHistoryFold entries={profile.workHistory} />
     </div>
   )
 }

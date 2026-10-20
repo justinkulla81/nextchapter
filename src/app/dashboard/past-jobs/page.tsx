@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getAlumniNetworks, getParallelPaths, getPastJobs } from '@/lib/job-reviews/data'
 import { JobReviewCard } from '@/components/job-reviews/JobReviewCard'
@@ -54,6 +55,7 @@ export default async function PastJobsPage() {
         )}
       </section>
 
+      <MoreDetails summary="Work you do alongside your search and your alumni networks">
       <section className="space-y-3" aria-labelledby="parallel-heading">
         <div>
           <h2 id="parallel-heading" className="text-lg font-semibold tracking-tight">
@@ -108,6 +110,7 @@ export default async function PastJobsPage() {
           </ul>
         )}
       </section>
+      </MoreDetails>
     </div>
   )
 }
