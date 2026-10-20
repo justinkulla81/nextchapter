@@ -144,7 +144,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     key: 'help',
     label: 'Help',
     href: '/dashboard/support',
-    tabs: [legacy('/dashboard/support'), tab('A hard situation at work', '/dashboard/work-help'), tab('Scam watch', '/dashboard/scam-watch'), legacy('/dashboard/help')],
+    tabs: [legacy('/dashboard/support'), tab('A hard situation at work', '/dashboard/work-help', { employedOnly: true }), tab('Scam watch', '/dashboard/scam-watch'), legacy('/dashboard/help')],
     groups: [
       { label: 'Talk to someone', hrefs: ['/dashboard/support'] },
       { label: 'A hard situation at work', hrefs: ['/dashboard/work-help'] },

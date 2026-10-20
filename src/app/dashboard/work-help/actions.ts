@@ -10,6 +10,7 @@ import { analyzeSituation } from '@/lib/work-help/analyze'
 import { prepareAnonymousQuestion } from '@/lib/work-help/anonymize'
 import { findLeak } from '@/lib/work-help/leak'
 import { canSeeQuestion } from '@/lib/work-help/eligibility'
+import { canUseWorkHelp } from '@/lib/work-help/access'
 import { currentCompanies, knownIdentifiers, moderateText, seniorityBandOf, viewerFor } from '@/lib/work-help/questions'
 import {
   MAX_BODY_CHARS,
@@ -28,6 +29,7 @@ import {
 const PATH = '/dashboard/work-help'
 const DAY_MS = 24 * 60 * 60 * 1000
 const SIGNED_OUT = { ok: false as const, error: 'You need to be signed in to do this.' }
+const NOT_EMPLOYED = { ok: false as const, error: 'This is for members who currently have a job. You can update your situation on your profile.' }
 const GENERIC_ERROR = { ok: false as const, error: 'Something went wrong. What you typed is still here. Try again.' }
 
 async function authedProfile() {
@@ -37,6 +39,15 @@ async function authedProfile() {
   } = await supabase.auth.getUser()
   if (!user) return null
   return getOrCreateCandidateProfile(user.id)
+}
+
+// Every action checks this server-side, so the menu and page being hidden is never the only gate.
+type Gate = { profile: NonNullable<Awaited<ReturnType<typeof authedProfile>>>; fail?: undefined } | { profile?: undefined; fail: typeof SIGNED_OUT | typeof NOT_EMPLOYED }
+async function employedProfile(): Promise<Gate> {
+  const profile = await authedProfile()
+  if (!profile) return { fail: SIGNED_OUT }
+  if (!canUseWorkHelp(profile)) return { fail: NOT_EMPLOYED }
+  return { profile }
 }
 
 function checkSituation(kind: unknown, text: unknown): { kind: WorkKind; text: string } | { error: string } {
@@ -49,8 +60,9 @@ function checkSituation(kind: unknown, text: unknown): { kind: WorkKind; text: s
 
 // Private: the text is sent to the model and the answer comes back. Nothing is saved, and the analytics event carries no text.
 export async function analyzeSituationAction(input: { kind: string; text: string }): Promise<ActionResult<{ analysis: WorkAnalysis }>> {
-  const profile = await authedProfile()
-  if (!profile) return SIGNED_OUT
+  const gate = await employedProfile()
+  if (!gate.profile) return gate.fail
+  const { profile } = gate
   const v = checkSituation(input.kind, input.text)
   if ('error' in v) return { ok: false, error: v.error }
   try {
@@ -63,8 +75,9 @@ export async function analyzeSituationAction(input: { kind: string; text: string
 }
 
 export async function prepareQuestionAction(input: { kind: string; text: string }): Promise<ActionResult<{ question: PreparedQuestion }>> {
-  const profile = await authedProfile()
-  if (!profile) return SIGNED_OUT
+  const gate = await employedProfile()
+  if (!gate.profile) return gate.fail
+  const { profile } = gate
   const v = checkSituation(input.kind, input.text)
   if ('error' in v) return { ok: false, error: v.error }
   try {
@@ -86,8 +99,9 @@ export interface PostResult {
 }
 
 export async function postQuestionAction(input: { kind: string; title: string; body: string }): Promise<ActionResult<PostResult>> {
-  const profile = await authedProfile()
-  if (!profile) return SIGNED_OUT
+  const gate = await employedProfile()
+  if (!gate.profile) return gate.fail
+  const { profile } = gate
   if (!isWorkKind(input.kind)) return { ok: false, error: 'Choose who it is about first.' }
   const title = input.title.trim()
   const body = input.body.trim()
@@ -139,6 +153,7 @@ export async function postQuestionAction(input: { kind: string; title: string; b
 }
 
 export async function deleteQuestionAction(questionId: string): Promise<ActionResult> {
+  // Not limited to employed members: someone who has since left a job can still delete what they posted.
   const profile = await authedProfile()
   if (!profile) return SIGNED_OUT
   try {
@@ -156,8 +171,9 @@ export async function deleteQuestionAction(questionId: string): Promise<ActionRe
 }
 
 export async function replyToQuestionAction(input: { questionId: string; body: string }): Promise<ActionResult<{ held: boolean }>> {
-  const profile = await authedProfile()
-  if (!profile) return SIGNED_OUT
+  const gate = await employedProfile()
+  if (!gate.profile) return gate.fail
+  const { profile } = gate
   const body = input.body.trim()
   if (body.length < 10) return { ok: false, error: 'Write a little more so your reply helps.' }
   if (body.length > MAX_REPLY_CHARS) return { ok: false, error: `Keep your reply under ${MAX_REPLY_CHARS} characters. What you typed is still here.` }
@@ -195,8 +211,9 @@ export async function replyToQuestionAction(input: { questionId: string; body: s
 }
 
 export async function reportWorkItemAction(input: { type: 'question' | 'reply'; id: string; reason?: string }): Promise<ActionResult> {
-  const profile = await authedProfile()
-  if (!profile) return SIGNED_OUT
+  const gate = await employedProfile()
+  if (!gate.profile) return gate.fail
+  const { profile } = gate
   const data = { reportedAt: new Date(), reportedByCandidateId: profile.id, reportReason: input.reason?.trim().slice(0, 500) || null }
   try {
     const count =
