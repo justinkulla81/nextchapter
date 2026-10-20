@@ -8,14 +8,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { submitBountyClaim } from '@/app/dashboard/got-hired/actions'
 
-export function BountyClaimForm({ redesign = false }: { redesign?: boolean }) {
+export function BountyClaimForm() {
   const [state, formAction, pending] = useActionState(submitBountyClaim, undefined)
 
   if (state?.submitted) {
     return (
-      <div className={redesign ? 'space-y-1' : 'rounded-lg border border-success/30 bg-success/5 p-6'}>
-        <p className={redesign ? 'font-display text-xl font-semibold text-ink' : 'text-lg font-semibold text-foreground'}>Congratulations!</p>
-        <p className={redesign ? 'max-w-2xl text-base text-ink' : 'mt-2 text-sm text-foreground'}>
+      <div className="space-y-1">
+        <p className="font-display text-xl font-semibold text-ink">Congratulations!</p>
+        <p className="max-w-2xl text-base text-ink">
           Thank you for letting us know. We&apos;ll be reaching out with confirmation and payment
           next steps.
         </p>

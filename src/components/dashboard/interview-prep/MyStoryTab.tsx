@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CopyButton } from '@/components/ui/copy-button'
 import { cn } from '@/lib/utils'
 import { generateCoreStatement, generateStoryAdaptations, updateCoreStatement } from '@/app/dashboard/interview-prep/actions'
@@ -14,7 +13,6 @@ export function MyStoryTab({
   coreStatement,
   adaptations,
   linkedin,
-  redesign = false,
 }: {
   coreStatement: string | null
   adaptations: NarrativeAdaptations | null
@@ -22,7 +20,6 @@ export function MyStoryTab({
   // renderer of this shared tab) never shows the LinkedIn direct-post
   // button, since posting isn't this page's job.
   linkedin?: { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
-  redesign?: boolean
 }) {
   const [isPending, startTransition] = useTransition()
   const [draft, setDraft] = useState(coreStatement ?? '')
@@ -45,113 +42,54 @@ export function MyStoryTab({
     })
   }
 
-  if (redesign) {
-    return (
-      <div className={cn('space-y-6', isPending && 'cursor-wait [&_*]:cursor-wait')}>
-        <section aria-labelledby="story-h" className="space-y-3">
-          <div className="space-y-1">
-            <h2 id="story-h" className="font-display text-xl font-semibold text-ink">
-              Your story in two or three sentences
-            </h2>
-            <p className="max-w-2xl text-base text-muted-foreground">Every answer you give in an interview starts from this, so it is worth getting right once.</p>
-          </div>
-          {!coreStatement ? (
-            <div className="space-y-3">
-              <p className="max-w-2xl text-base text-ink">We draft it from your profile, and you edit it. Everything else on this tab adapts from it.</p>
-              <Button type="button" variant="outline" onClick={handleGenerate} disabled={isPending}>
-                {isPending ? 'Drafting your story' : 'Draft my story'}
-              </Button>
-            </div>
-          ) : editing ? (
-            <div className="space-y-3">
-              <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={4} aria-label="Your story" />
-              <div className="flex gap-3">
-                <Button type="button" variant="outline" onClick={handleSaveEdit} disabled={isPending}>
-                  {isPending ? 'Saving your story' : 'Save and update the versions below'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setDraft(coreStatement)
-                    setEditing(false)
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="max-w-2xl font-display text-xl leading-snug text-ink">{coreStatement}</p>
-              <div className="flex gap-3">
-                <Button type="button" variant="outline" onClick={() => setEditing(true)}>
-                  Edit
-                </Button>
-                <CopyButton text={coreStatement} />
-              </div>
-            </div>
-          )}
-        </section>
-        {adaptations && <WaysToSayIt adaptations={adaptations} linkedin={linkedin} redesign />}
-      </div>
-    )
-  }
-
   return (
     <div className={cn('space-y-6', isPending && 'cursor-wait [&_*]:cursor-wait')}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Core Narrative Statement
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {!coreStatement ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                One 2-3 sentence statement of who you are professionally — Victoria drafts it from
-                your profile, and everything else on this tab adapts from it.
-              </p>
-              <Button type="button" onClick={handleGenerate} disabled={isPending}>
-                {isPending ? 'Drafting…' : 'Draft my Core Narrative Statement'}
+      <section aria-labelledby="story-h" className="space-y-3">
+        <div className="space-y-1">
+          <h2 id="story-h" className="font-display text-xl font-semibold text-ink">
+            Your story in two or three sentences
+          </h2>
+          <p className="max-w-2xl text-base text-muted-foreground">Every answer you give in an interview starts from this, so it is worth getting right once.</p>
+        </div>
+        {!coreStatement ? (
+          <div className="space-y-3">
+            <p className="max-w-2xl text-base text-ink">We draft it from your profile, and you edit it. Everything else on this tab adapts from it.</p>
+            <Button type="button" variant="outline" onClick={handleGenerate} disabled={isPending}>
+              {isPending ? 'Drafting your story' : 'Draft my story'}
+            </Button>
+          </div>
+        ) : editing ? (
+          <div className="space-y-3">
+            <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={4} aria-label="Your story" />
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={handleSaveEdit} disabled={isPending}>
+                {isPending ? 'Saving your story' : 'Save and update the versions below'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setDraft(coreStatement)
+                  setEditing(false)
+                }}
+              >
+                Cancel
               </Button>
             </div>
-          ) : editing ? (
-            <div className="space-y-3">
-              <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={4} />
-              <div className="flex gap-2">
-                <Button type="button" size="sm" onClick={handleSaveEdit} disabled={isPending}>
-                  {isPending ? 'Saving…' : 'Save & regenerate adaptations'}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setDraft(coreStatement)
-                    setEditing(false)
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="max-w-2xl font-display text-xl leading-snug text-ink">{coreStatement}</p>
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={() => setEditing(true)}>
+                Edit
+              </Button>
+              <CopyButton text={coreStatement} />
             </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-foreground">{coreStatement}</p>
-              <div className="flex gap-2">
-                <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
-                  Edit
-                </Button>
-                <CopyButton text={coreStatement} />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {adaptations && <WaysToSayIt adaptations={adaptations} linkedin={linkedin} />}
+          </div>
+        )}
+      </section>
+      {adaptations && <WaysToSayIt adaptations={adaptations} linkedin={linkedin} redesign />}
     </div>
   )
 }

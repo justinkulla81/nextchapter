@@ -89,7 +89,7 @@ export function AdzunaMarketRedesign({
         <PlainNote>
           Live job-posting data for <span className="font-semibold">{role}</span> in {placeLabel}.
         </PlainNote>
-        {stateName && <MarketScopeToggle redesign stateName={stateName} current={stateScoped ? 'state' : 'us'} />}
+        {stateName && <MarketScopeToggle stateName={stateName} current={stateScoped ? 'state' : 'us'} />}
       </div>
 
       {!anyData ? (

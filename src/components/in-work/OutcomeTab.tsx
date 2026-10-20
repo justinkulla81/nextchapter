@@ -105,7 +105,7 @@ export function OutcomeTab({ data }: { data: WorkspaceData }) {
         {data.outcomes.length === 0 ? (
           <p className={cn('text-muted-foreground', t.body)}>No reviews logged yet.</p>
         ) : (
-          <ul className={t.redesign ? 'divide-y divide-border' : 'space-y-4'}>
+          <ul className="divide-y divide-border">
             {data.outcomes.map((o) => (
               <OutcomeEntry key={o.id} outcome={o} />
             ))}
@@ -125,10 +125,10 @@ function OutcomeEntry({ outcome: o }: { outcome: OutcomeView }) {
     o.promoted ? (o.newTitle ? `Promoted to ${o.newTitle}` : 'Promoted') : null,
   ].filter(Boolean)
   return (
-    <li className={cn('space-y-2', t.body, t.redesign ? 'py-4 first:pt-0' : 'rounded-lg border border-border p-3', r.pending && 'cursor-wait')}>
-      <p className={cn('font-medium', t.redesign ? 'font-display text-lg font-semibold text-ink' : 'text-foreground')}>{formatDate(o.reviewedOn)}</p>
-      {bits.length > 0 && <p className={t.redesign ? 'text-ink' : 'text-foreground/80'}>{bits.join(t.redesign ? '. ' : ' · ')}</p>}
-      {o.notes && <p className={t.redesign ? 'max-w-2xl text-ink' : 'text-foreground/80'}>{o.notes}</p>}
+    <li className={cn('space-y-2 py-4 first:pt-0', t.body, r.pending && 'cursor-wait')}>
+      <p className="font-display text-lg font-semibold text-ink">{formatDate(o.reviewedOn)}</p>
+      {bits.length > 0 && <p className="text-ink">{bits.join('. ')}</p>}
+      {o.notes && <p className="max-w-2xl text-ink">{o.notes}</p>}
       {o.followUps.length > 0 && (
         <ul className="space-y-1">
           {o.followUps.map((f) => (

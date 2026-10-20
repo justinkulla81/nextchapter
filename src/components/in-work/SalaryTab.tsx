@@ -94,7 +94,7 @@ export function SalaryTab() {
           {marketError && <p className={cn('text-destructive', t.body)}>{marketError}</p>}
           {market && market.available && market.low && market.high && (
             <div className={cn('space-y-1', t.body)}>
-              <p className={cn('text-base font-semibold', t.redesign ? 'text-ink' : 'text-foreground')}>
+              <p className="text-base font-semibold text-ink">
                 {formatUsd(market.low)} to {formatUsd(market.high)}
               </p>
               <p className="text-muted-foreground">
@@ -155,15 +155,15 @@ export function SalaryTab() {
 
           {result && !result.ok && <p className={cn('text-destructive', t.body)}>{result.error}</p>}
           {result?.ok && (
-            <div className={cn('space-y-3', t.redesign ? 'rounded-2xl border border-border p-6' : 'rounded-lg border border-border bg-off-white p-4')}>
-              <div className={cn('grid gap-3 sm:grid-cols-3', !t.redesign && 'text-center')}>
+            <div className="space-y-3 rounded-2xl border border-border p-6">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <Figure label="Lowest to accept" value={formatUsd(result.range.floor)} />
                 <Figure label="Your target" value={formatUsd(result.range.target)} strong />
                 <Figure label="Open with" value={formatUsd(result.range.stretch)} />
               </div>
               <div className={cn('space-y-1', t.body)}>
-                <p className={cn('font-medium', t.redesign ? 'text-ink' : 'text-foreground')}>Why these numbers</p>
-                <ul className={cn('list-disc space-y-1 pl-5', t.redesign ? 'text-ink' : 'text-foreground/80')}>
+                <p className="font-medium text-ink">Why these numbers</p>
+                <ul className="list-disc space-y-1 pl-5 text-ink">
                   {result.range.rationale.map((r) => (
                     <li key={r}>{r}</li>
                   ))}
@@ -171,8 +171,8 @@ export function SalaryTab() {
               </div>
               {result.range.cautions.length > 0 && (
                 <div className={cn('space-y-1', t.body)}>
-                  <p className={cn('font-medium', t.redesign ? 'text-ink' : 'text-foreground')}>Watch for</p>
-                  <ul className={cn('list-disc space-y-1 pl-5', t.redesign ? 'text-ink' : 'text-foreground/80')}>
+                  <p className="font-medium text-ink">Watch for</p>
+                  <ul className="list-disc space-y-1 pl-5 text-ink">
                     {result.range.cautions.map((r) => (
                       <li key={r}>{r}</li>
                     ))}
@@ -195,7 +195,7 @@ export function SalaryTab() {
           label="Script situation"
         />
         <div className={cn('space-y-3', t.body)}>
-          <p className={cn('text-base font-semibold', t.redesign ? 'font-display text-lg text-ink' : 'text-foreground')}>{script.title}</p>
+          <p className="font-display text-lg font-semibold text-ink">{script.title}</p>
           <dl className="space-y-2">
             <div>
               <dt className="font-medium text-foreground">Who</dt>
@@ -235,7 +235,7 @@ export function SalaryTab() {
       </Section>
 
       <Section title="Practice with feedback">
-        <p className={cn(t.body, t.redesign ? 'max-w-2xl text-ink' : 'text-foreground/80')}>
+        <p className={cn(t.body, 'max-w-2xl text-ink')}>
           The counter-offer practice tool gives written feedback on your draft ask. It lives on each job in your list under
           Find a Full-time Job, and it uses an AI model to read your draft.
         </p>
@@ -247,20 +247,11 @@ export function SalaryTab() {
   )
 }
 
-function Figure({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
-  const t = useType()
-  if (t.redesign) {
-    return (
-      <div>
-        <p className="text-2xl font-semibold text-ink tabular-nums">{value}</p>
-        <p className="text-sm text-muted-foreground">{label}</p>
-      </div>
-    )
-  }
+function Figure({ label, value }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className={cn('rounded-lg border bg-background px-3 py-3', strong ? 'border-brand' : 'border-border')}>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn('mt-1 font-semibold text-foreground', strong ? 'text-xl' : 'text-lg')}>{value}</p>
+    <div>
+      <p className="text-2xl font-semibold text-ink tabular-nums">{value}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
     </div>
   )
 }

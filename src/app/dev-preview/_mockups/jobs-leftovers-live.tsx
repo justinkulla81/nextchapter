@@ -192,14 +192,14 @@ export function CompanySectionsLive() {
       <div className="space-y-10">
         <PageHeader title="Harbor Health" />
         <CompanyHiringIndexView companyId="c1" viewer="candidate" data={HIRING} redesign />
-        <CompanyIntelPanelsView d={INTEL} redesign />
+        <CompanyIntelPanelsView d={INTEL} />
         <SectionBlock id="culture-h" title="What people who worked here say" why="Combined answers from members who worked here. Nobody's answers are shown on their own.">
           <div className="space-y-6">
             <CultureProfileBars profile={CULTURE} redesign />
             <CultureSurveyOwnEntry companyId="c1" companyName="Harbor Health" companySlug="harbor-health" initial={null} isCurrent={false} redesign />
             <div className="space-y-2">
               <h3 className="font-display text-lg font-semibold text-ink">Ratings and reviews</h3>
-              <ReviewSummaryPanel summary={REVIEWS} canReview redesign />
+              <ReviewSummaryPanel summary={REVIEWS} canReview />
             </div>
           </div>
         </SectionBlock>
@@ -224,7 +224,7 @@ export function CompanyCultureEmptyLive() {
         <SectionBlock id="culture-h" title="What people who worked here say" why="Combined answers from members who worked here. Nobody's answers are shown on their own.">
           <div className="space-y-6">
             <CultureProfileBars profile={{ ...CULTURE, shown: false, respondentCount: 1, dimensions: [] }} redesign />
-            <ReviewSummaryPanel summary={{ ...REVIEWS, shown: false, respondentCount: 1 }} canReview={false} redesign />
+            <ReviewSummaryPanel summary={{ ...REVIEWS, shown: false, respondentCount: 1 }} canReview={false} />
           </div>
         </SectionBlock>
         <CompanyHowToRedesign companyId="c1" slug="harbor-health" intel={[]} />
@@ -250,7 +250,6 @@ export function InterviewTabsLive() {
             elevatorPitchReady={75}
             hasJobDescription
             jobHoppingFlag
-            redesign
           />
         </section>
       </div>
@@ -327,7 +326,7 @@ const WORKSPACE: WorkspaceData = {
 export function InWorkLive({ tab }: { tab: InWorkTab }) {
   return (
     <PreviewShell place="jobs" entry="offers">
-      <InWorkWorkspace data={WORKSPACE} initialTab={tab} redesign />
+      <InWorkWorkspace data={WORKSPACE} initialTab={tab} />
     </PreviewShell>
   )
 }
@@ -339,14 +338,14 @@ export function FormsLive() {
     <PreviewShell place="jobs" entry="offers">
       <div className="space-y-12">
         <SectionBlock id="settle-h" title="Settle three things before you walk in" why="Write them down once. Everything you save here is private to you.">
-          <ConversationForm draft={EMPTY_DRAFT} suggestions={['Cut setup time from 9 days to 3', 'Mentored two managers to promotion']} redesign />
+          <ConversationForm draft={EMPTY_DRAFT} suggestions={['Cut setup time from 9 days to 3', 'Mentored two managers to promotion']} />
         </SectionBlock>
         <SectionBlock id="how-h" title="Tell us how it came together" why="This helps us show what works for people at your stage. It is separate from the Offer Bonus and needs no offer letter.">
-          <HireOutcomeForm redesign />
+          <HireOutcomeForm />
         </SectionBlock>
         <SectionBlock id="stage-h" title="Where you are in your search" why="Add your last day worked so we compare you with people at the same stage, not with everyone.">
-          <LastJobEndedForm current={null} redesign />
-          <AgeBandForm current={null} redesign />
+          <LastJobEndedForm current={null} />
+          <AgeBandForm current={null} />
         </SectionBlock>
         <ResumeUploadForm narratives={[{ id: 'n1', label: 'Operations leader' }]} resumeBookOptIn redesign />
       </div>

@@ -37,14 +37,14 @@ export function CompanyHowToRedesign({ companyId, slug, intel }: { companyId: st
                   {i.roleLevelAtTime ? `A former ${i.roleLevelAtTime}` : 'A member'}
                   {i.recencyBucket ? `, ${TENURE_LABEL[i.recencyBucket] ?? i.recencyBucket}` : ''}. {i.helpfulCount} found this helpful.
                 </p>
-                <MarkHelpfulButton intelId={i.id} companyPageId={slug} redesign />
+                <MarkHelpfulButton intelId={i.id} companyPageId={slug} />
               </div>
             </div>
           ))}
         </ShowMoreList>
       )}
       <h3 className="pt-2 font-display text-lg font-semibold text-ink">Share what you know</h3>
-      <SubmitIntelForm companyId={companyId} companyPageId={slug} redesign />
+      <SubmitIntelForm companyId={companyId} companyPageId={slug} />
     </SectionBlock>
   )
 }

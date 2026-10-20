@@ -55,18 +55,18 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
         intro={`${completion.done} of ${completion.total} steps done.${prep?.completedAt ? ' You finished this prep.' : ''}`}
       >
         {(data.carry.recap || data.carry.openFollowUps.length > 0 || data.carry.lastGoals) && (
-          <div className={cn('space-y-2', t.body, t.redesign ? 'max-w-2xl rounded-2xl border border-border p-5' : 'rounded-lg border border-border bg-off-white p-3')}>
+          <div className={cn('max-w-2xl space-y-2 rounded-2xl border border-border p-5', t.body)}>
             <p className="font-medium text-foreground">Starting from last time</p>
-            {data.carry.recap && <p className={t.redesign ? 'text-ink' : 'text-foreground/80'}>{data.carry.recap}</p>}
+            {data.carry.recap && <p className="text-ink">{data.carry.recap}</p>}
             {data.carry.lastGoals && (
-              <p className={t.redesign ? 'text-ink' : 'text-foreground/80'}>
+              <p className="text-ink">
                 <span className="font-medium">Goals you set last time:</span> {data.carry.lastGoals}
               </p>
             )}
             {data.carry.openFollowUps.length > 0 && (
               <div>
                 <p className="font-medium">Follow-ups still open</p>
-                <ul className={cn('list-disc pl-5', t.redesign ? 'text-ink' : 'text-foreground/80')}>
+                <ul className="list-disc pl-5 text-ink">
                   {data.carry.openFollowUps.map((f) => (
                     <li key={f}>{f}</li>
                   ))}
@@ -112,7 +112,7 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
             <Textarea rows={4} maxLength={2000} value={evidence} onChange={(e) => setEvidence(e.target.value)} />
           </Field>
           <div className="space-y-2">
-            <p className={cn('font-medium', t.redesign ? 'text-base text-ink' : 'text-sm text-foreground')}>Three questions for your manager</p>
+            <p className="text-base font-medium text-ink">Three questions for your manager</p>
             {questions.map((q, i) => (
               <Input
                 key={i}

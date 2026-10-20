@@ -58,7 +58,6 @@ export function CompaniesLive() {
         buildHref={() => ''}
         more={
           <AiPayPremiumCard
-            redesign
             functionName="Operations"
             row={{ function: 'Operations', withAi: 38, withoutAi: 212, premiumPct: 9, medianWithAi: 215000, medianWithoutAi: 198000 }}
           />
@@ -268,7 +267,7 @@ export function InterviewsLive() {
             </ActionLink>
           }
         />
-        <JobDescriptionCard initialValue={null} redesign />
+        <JobDescriptionCard initialValue={null} />
         <section id="practice" aria-label="Practice" className="scroll-mt-4">
           <InterviewPrepTabs
             coreStatement="I turn complicated operations into things that run on time, and I build the teams that keep them running."
@@ -291,7 +290,6 @@ export function InterviewsLive() {
             elevatorPitchReady={3}
             hasJobDescription={false}
             jobHoppingFlag={false}
-            redesign
           />
         </section>
       </div>

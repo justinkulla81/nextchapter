@@ -107,8 +107,8 @@ export function ImpactLogTab({ data }: { data: WorkspaceData }) {
           <ul className="divide-y divide-border">
             {data.wins.map((w) => (
               <li key={w.id} className={cn('space-y-1 py-3', t.body)}>
-                <p className={cn('font-medium', t.redesign ? 'text-ink' : 'text-foreground')}>{w.what}</p>
-                <p className={t.redesign ? 'text-ink' : 'text-foreground/80'}>{w.result}</p>
+                <p className="font-medium text-ink">{w.what}</p>
+                <p className="text-ink">{w.result}</p>
                 <p className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground', t.meta)}>
                   <span>{formatDate(w.occurredOn)}</span>
                   {w.whoBenefited && <span>Helped {w.whoBenefited}</span>}

@@ -16,7 +16,7 @@ import {
 } from '@/lib/redesign/rounds'
 import { TRACK_RECORD_FIELD_IDS, TRACK_RECORD_FLOW, answersFromTrackRecord, trackRecordUpdate } from '@/lib/redesign/track-record-rounds'
 
-// The fields TrackRecordForm.tsx / updateTrackRecord save today. If the long form gains or loses one, this list must too.
+// The fields the track record saves. If the rounds gain or lose one, this list must too.
 const LEGACY_TRACK_RECORD_FIELDS = [
   'largestTeamManaged', 'largestOrgIndirect', 'budgetOwned', 'approvalAuthority', 'situationRanking', 'mandateClarity',
   'functionsOwnedOutsideCore', 'droveOutcomesThroughOthers', 'peopleHiredDirectly', 'ledThroughRestructuring', 'sectorHistory',

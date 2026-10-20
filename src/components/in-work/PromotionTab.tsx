@@ -97,7 +97,6 @@ export function PromotionTab({ data }: { data: WorkspaceData }) {
   const [plan90, setPlan90] = useState(p?.plan90 ?? '')
   const [visibilityItems, setVisibilityItems] = useState<CheckItem[]>(p?.visibilityItems ?? [])
   const { pending, notice, run } = useRunner()
-  const t = useType()
 
   const done = gapItems.filter((g) => g.done).length
 
@@ -107,7 +106,7 @@ export function PromotionTab({ data }: { data: WorkspaceData }) {
         <Field label="The title or level you want">
           <Input value={targetLevel} maxLength={300} onChange={(e) => setTargetLevel(e.target.value)} placeholder="Senior manager" />
         </Field>
-        <p className={cn('font-medium', t.redesign ? 'text-base text-ink' : 'text-sm text-foreground')}>
+        <p className="text-base font-medium text-ink">
           Gap checklist {gapItems.length > 0 && <span className="font-normal text-muted-foreground">({done} of {gapItems.length} shown)</span>}
         </p>
         <EditableList

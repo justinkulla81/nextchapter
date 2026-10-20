@@ -9,11 +9,11 @@ import { ComfortCheckTab } from './ComfortCheckTab'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
 const TABS = [
-  { id: 'story', label: 'My Story', redesignLabel: 'My story' },
-  { id: 'tough', label: 'Tough Questions', redesignLabel: 'Tough questions' },
-  { id: 'practice', label: 'Practice', redesignLabel: 'Practice' },
-  { id: 'thank-you', label: 'Thank You Emails', redesignLabel: 'Thank-you emails' },
-  { id: 'comfort', label: 'Comfort Check', redesignLabel: 'Comfort check' },
+  { id: 'story', label: 'My story' },
+  { id: 'tough', label: 'Tough questions' },
+  { id: 'practice', label: 'Practice' },
+  { id: 'thank-you', label: 'Thank-you emails' },
+  { id: 'comfort', label: 'Comfort check' },
 ] as const
 
 export function InterviewPrepTabs({
@@ -25,7 +25,6 @@ export function InterviewPrepTabs({
   elevatorPitchReady,
   hasJobDescription,
   jobHoppingFlag,
-  redesign = false,
 }: {
   coreStatement: string | null
   adaptations: NarrativeAdaptations | null
@@ -35,47 +34,41 @@ export function InterviewPrepTabs({
   elevatorPitchReady: number | null
   hasJobDescription: boolean
   jobHoppingFlag: boolean
-  /** Pill tabs and the quiet story panel, to match the redesigned pages. */
-  redesign?: boolean
 }) {
   return (
     <Tabs defaultValue="story">
       <div className="overflow-x-auto">
-        <TabsList variant={redesign ? 'line' : 'default'} className={redesign ? 'h-auto min-w-full justify-start gap-2 p-0' : 'h-auto min-w-full justify-start gap-1 bg-light-gray p-1'}>
+        <TabsList variant="line" className="h-auto min-w-full justify-start gap-2 p-0">
           {TABS.map((tab) => (
             <TabsTrigger
               key={tab.id}
               value={tab.id}
-              className={
-                redesign
-                  ? 'h-auto shrink-0 flex-none rounded-full border-border px-4 py-1.5 text-muted-foreground data-active:border-ink data-active:!bg-ink data-active:text-white group-data-[variant=line]/tabs-list:data-active:!bg-ink group-data-[variant=line]/tabs-list:data-active:!text-white'
-                  : 'shrink-0 px-3 py-2'
-              }
+              className="h-auto shrink-0 flex-none rounded-full border-border px-4 py-1.5 text-muted-foreground data-active:border-ink data-active:!bg-ink data-active:text-white group-data-[variant=line]/tabs-list:data-active:!bg-ink group-data-[variant=line]/tabs-list:data-active:!text-white"
             >
-              {redesign ? tab.redesignLabel : tab.label}
+              {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
       </div>
 
       <TabsContent value="story" className="mt-6">
-        <MyStoryTab coreStatement={coreStatement} adaptations={adaptations} redesign={redesign} />
+        <MyStoryTab coreStatement={coreStatement} adaptations={adaptations} />
       </TabsContent>
       <TabsContent value="tough" className="mt-6">
-        <ToughQuestionsTab hasJobDescription={hasJobDescription} jobHoppingFlag={jobHoppingFlag} redesign={redesign} />
+        <ToughQuestionsTab hasJobDescription={hasJobDescription} jobHoppingFlag={jobHoppingFlag} />
       </TabsContent>
       <TabsContent value="practice" className="mt-6">
-        <PracticeTab targetRoleType={targetRoleType} hasJobDescription={hasJobDescription} redesign={redesign} />
+        <PracticeTab targetRoleType={targetRoleType} hasJobDescription={hasJobDescription} />
       </TabsContent>
       <TabsContent value="thank-you" className="mt-6">
-        <ThankYouEmailTab hasJobDescription={hasJobDescription} redesign={redesign} />
+        <ThankYouEmailTab hasJobDescription={hasJobDescription} />
       </TabsContent>
       <TabsContent value="comfort" className="mt-6">
         <ComfortCheckTab
           storyComfort={storyComfort}
           interviewComfort={interviewComfort}
           elevatorPitchReady={elevatorPitchReady}
-          redesign={redesign}
+          redesign
         />
       </TabsContent>
     </Tabs>
