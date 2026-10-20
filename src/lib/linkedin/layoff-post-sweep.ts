@@ -1,11 +1,11 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import { Prisma, type WarnNotice } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import {
   ANGLES, LAYOUTS, MAX_AGE_DAYS, MIN_EMPLOYEES, WEEKLY_CAP,
   assignSlots, credibilityOf, draftText, eligibleAngles, leastRecent,
-  type Angle, type DraftFacts,
+  type Angle, type Credibility, type DraftFacts,
 } from './layoff-post-rules'
 
 const SENIOR = ['EXECUTIVE', 'VP', 'DIRECTOR', 'SENIOR_MANAGER', 'MANAGER']
@@ -71,42 +71,56 @@ export async function runLinkedInDraftSweep(now = new Date()): Promise<DraftSwee
     const scheduledFor = slots[i]
     if (!scheduledFor) { result.deferred++; continue }
 
-    const state = n.state
-    const [openRolesInState, openSeniorRolesInState, tagSuggestions] = await Promise.all([
-      state ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state } } }) : Promise.resolve(null),
-      state ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state }, seniorityGroup: { in: SENIOR } } }) : Promise.resolve(null),
-      tagSuggestionsFor(n.promotedOrgId, n.normalizedEmployer, n.workforceBoardId),
-    ])
-    const facts: DraftFacts = {
-      employer: n.employer, employees: n.employees ?? 0,
-      percent: percentFrom(n.layoffType),
-      place: n.county && state ? `${n.county.replace(/ county$/i, '')} County, ${state}` : state,
-      state, noticeDate: n.noticeDate?.toISOString() ?? null, effectiveDate: n.effectiveDate?.toISOString() ?? null,
-      industry: n.industry, sourceUrl: n.sourceUrl, credibility: why,
-      openRolesInState, openSeniorRolesInState, tagSuggestions,
-    }
-    const angle = leastRecent<Angle>(eligibleAngles(facts), recentAngles as Angle[], n.id)
-    const layout = leastRecent(LAYOUTS.map((_, k) => k), recentLayouts, n.id)
-    const text = draftText(angle, facts, n.id)
-    try {
-      await prisma.linkedInPostDraft.create({
-        data: {
-          noticeId: n.id, angle, layout, body: text.body, firstComment: text.firstComment,
-          scheduledFor, facts: facts as unknown as Prisma.InputJsonValue, credibility: why,
-        },
-      })
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') continue // another run made it first
-      throw e
-    }
-    recentAngles.unshift(angle)
-    recentLayouts.unshift(layout)
+    const made = await createDraft(n, why, scheduledFor, recentAngles, recentLayouts)
+    if (!made) continue // another run made it first
     result.created.push({ employer: n.employer, scheduledFor })
-    captureServerEvent('cron', 'linkedin_draft_created', {
-      noticeId: n.id, employer: n.employer, employees: n.employees, angle, layout, credibility: why, scheduledFor: scheduledFor.toISOString(),
-    })
   }
   return result
+}
+
+/**
+ * Builds and saves one draft: facts and stats, an angle and image layout not
+ * used lately, the template text. Returns false when the notice already has a
+ * draft (another run made it first). Also used by the admin's "sample draft".
+ * `recentAngles` and `recentLayouts` are newest first and are updated in place.
+ */
+export async function createDraft(
+  n: WarnNotice, why: Credibility, scheduledFor: Date, recentAngles: string[], recentLayouts: number[],
+): Promise<boolean> {
+  const state = n.state
+  const [openRolesInState, openSeniorRolesInState, tagSuggestions] = await Promise.all([
+    state ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state } } }) : Promise.resolve(null),
+    state ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state }, seniorityGroup: { in: SENIOR } } }) : Promise.resolve(null),
+    tagSuggestionsFor(n.promotedOrgId, n.normalizedEmployer, n.workforceBoardId),
+  ])
+  const facts: DraftFacts = {
+    employer: n.employer, employees: n.employees ?? 0,
+    percent: percentFrom(n.layoffType),
+    place: n.county && state ? `${n.county.replace(/ county$/i, '')} County, ${state}` : state,
+    state, noticeDate: n.noticeDate?.toISOString() ?? null, effectiveDate: n.effectiveDate?.toISOString() ?? null,
+    industry: n.industry, sourceUrl: n.sourceUrl, credibility: why,
+    openRolesInState, openSeniorRolesInState, tagSuggestions,
+  }
+  const angle = leastRecent<Angle>(eligibleAngles(facts), recentAngles as Angle[], n.id)
+  const layout = leastRecent(LAYOUTS.map((_, k) => k), recentLayouts, n.id)
+  const text = draftText(angle, facts, n.id)
+  try {
+    await prisma.linkedInPostDraft.create({
+      data: {
+        noticeId: n.id, angle, layout, body: text.body, firstComment: text.firstComment,
+        scheduledFor, facts: facts as unknown as Prisma.InputJsonValue, credibility: why,
+      },
+    })
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') return false
+    throw e
+  }
+  recentAngles.unshift(angle)
+  recentLayouts.unshift(layout)
+  captureServerEvent('cron', 'linkedin_draft_created', {
+    noticeId: n.id, employer: n.employer, employees: n.employees, angle, layout, credibility: why, scheduledFor: scheduledFor.toISOString(),
+  })
+  return true
 }
 
 /** "12% of staff" in a news layoff's label, the one place the share is kept. */

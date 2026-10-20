@@ -16268,6 +16268,8 @@ model LinkedInPostDraft {
   body        String
   /// Posted as the first comment, where the link does not cost the post reach.
   firstComment String
+  /// LinkedIn's id for the post once it was published from the queue, so it can be opened.
+  postUrn     String?
   /// When to post it: a staggered weekday slot picked when the draft was made.
   scheduledFor DateTime
   /// Set when the morning rewrite replaced the template wording.
@@ -16282,4 +16284,19 @@ model LinkedInPostDraft {
   skippedAt   DateTime?
 
   @@index([status, scheduledFor])
+}
+
+/// The admin's own LinkedIn connection, for posting queue drafts from the
+/// admin. One row per admin email; the access token is encrypted at rest and
+/// lasts about 60 days (LinkedIn issues no refresh token for this product), so
+/// a lapsed connection is reconnected, not refreshed.
+model LinkedInAdminConnection {
+  id             String    @id @default(cuid())
+  adminEmail     String    @unique
+  accessToken    String    @db.Text
+  personUrn      String
+  memberName     String?
+  expiresAt      DateTime
+  connectedAt    DateTime  @default(now())
+  disconnectedAt DateTime?
 }
