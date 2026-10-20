@@ -12,6 +12,8 @@ import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, Empty
 import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 import { CareerStoryReal } from './career-story'
 import { SearchStrategySimple } from './strategy'
+import { SearchStrategyApplicationMatch, ApplicationMatchFew } from './application-match'
+import { AdminSkillsMatch } from './admin-skills-match'
 import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
 
@@ -68,6 +70,9 @@ export const MOCKUPS: Mockup[] = [
   { path: 'help/scams', place: 'Help', title: 'Scam watch', replaces: '/dashboard/scam-watch', Component: HelpScams },
   { path: 'help/questions', place: 'Help', title: 'Questions and feedback', replaces: '/dashboard/help', Component: HelpQuestions },
   { path: 'home/tailored', place: 'Home', title: 'Improve your search', replaces: 'new: every personalization in one place', Component: TailoredForYou },
+  { path: 'home/strategy/application-match', place: 'Home', title: 'Search strategy: your applications, match and gaps (sample data)', replaces: 'new section; the unlock card moves into More about your search', Component: SearchStrategyApplicationMatch },
+  { path: 'home/strategy/application-match-few', place: 'Home', title: 'Applications match: two applications, failed add (sample data)', replaces: 'the same section, early and error states', Component: ApplicationMatchFew },
+  { path: 'admin/skills-match', place: 'Admin', title: 'Admin: skills match and gaps in applications (sample data)', replaces: 'new: support/admin/jobs/skills-match', Component: AdminSkillsMatch },
   { path: 'home/strategy', place: 'Home', title: 'Search strategy, simplified', replaces: '/dashboard/search-strategy (about twelve blocks down to three)', Component: SearchStrategySimple },
   { path: 'jobs/market/report', place: 'Jobs', title: 'Market reality report: the one-screen brief', replaces: '/dashboard/market-reality (12 pages down to one screen; the full report stays behind a button)', Component: MarketReportShort },
   { path: 'home/stalled', place: 'Home', title: 'Today: week 4, no interviews, widen the search', replaces: 'new: time-driven personalization', Component: HomeStalled },

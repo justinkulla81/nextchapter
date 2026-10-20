@@ -20,6 +20,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { linkApplicationToBoard } from '@/lib/jobs/application-posting-link'
 import { draftCoverNote, type CoverNoteResult } from '@/lib/jobs/cover-note'
 import { explainGaps, isExplainGapsEnabled, type ExplainGapsResult } from '@/lib/jobs/explain-gaps'
+import { loadApplicationGapSummary } from '@/lib/applications/skill-snapshot-data'
 import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
 import { isPoorFitApplication } from '@/lib/scoring/market-reality/attempts'
 import {
@@ -1014,6 +1015,8 @@ export async function explainJobGaps(postingId: string): Promise<ExplainGapsResu
     company: confidential ? null : posting.companyName,
     excerpt: job.description,
     match: matchJobToCandidate(profile, job),
+    // One source of truth for gaps: the same application gaps Search Strategy shows.
+    applicationGaps: ((await loadApplicationGapSummary(profile.id))?.gaps ?? []).map((g) => ({ term: g.term, applications: g.applications })),
   })
   if (result.ok) captureServerEvent(profile.id, 'job_gaps_explained', { postingId, reused: result.reused })
   return result

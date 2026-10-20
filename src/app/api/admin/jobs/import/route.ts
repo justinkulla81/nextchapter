@@ -15,6 +15,7 @@ import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isEmployerSector } from '@/lib/jobs/employer-sector'
 import { parseRequirementFlags, requirementTagsFor } from '@/lib/jobs/requirements'
 import { importAiSkillFields } from '@/lib/skills/ai-skills'
+import { importPostingSignalFields } from '@/lib/jobs/posting-signals'
 import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
 import { parseYearsRequired } from '@/lib/jobs/years-required'
 import { Prisma } from '@prisma/client'
@@ -126,6 +127,9 @@ interface ImportJobInput {
   aiSkillItems?: unknown
   aiToolsNamed?: unknown
   aiCertsNamed?: unknown
+  // Who the posting says it welcomes (ncrawl/posting_signals.py): career_changer_welcome /
+  // ai_upskilled_welcome / high_eq. Optional; left out, the stored value stays; [] clears it.
+  postingSignals?: unknown
   // When the crawler last confirmed the posting is up (ISO; ncrawl jobs.last_seen or a live
   // liveness check, whichever is later). Stored as lastVerifiedAt; optional.
   lastVerifiedAt?: string | null
@@ -235,6 +239,8 @@ function rowData({ job, level }: Screened) {
     ...requirementFieldsOf(job),
     // AI skills (ai-skills.ts): known ids only; groups follow from the items.
     ...importAiSkillFields(job),
+    // Posting signals (posting-signals.ts): known ids only.
+    ...importPostingSignalFields(job),
     ...(typeof job.directListing === 'boolean' ? { directListing: job.directListing } : {}),
   }
 }
@@ -422,7 +428,7 @@ export async function POST(request: NextRequest) {
       requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
       targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
-      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, directListing: true,
+      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, postingSignals: true, directListing: true,
       archivedAt: true, closeReason: true,
     },
   })

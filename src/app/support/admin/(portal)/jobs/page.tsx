@@ -29,6 +29,9 @@ export default async function AdminJobsPage() {
         <Link href="/support/admin/jobs/apply-fit" className="mt-2 inline-block text-sm text-primary underline underline-offset-4">
           Application fit — who’s reaching or underselling
         </Link>
+        <Link href="/support/admin/jobs/skills-match" className="mt-1 block text-sm text-primary underline underline-offset-4">
+          Skills match and gaps in applications — by industry, function, level and geography
+        </Link>
       </div>
 
       <Card>

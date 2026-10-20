@@ -6,6 +6,7 @@ import { kindsForCustomerType } from '@/lib/funding-opportunities/eligibility'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { resolveBrand, type ColorMode } from './brand'
 import { loadRuleSet } from './store'
+import { pitchApplicationGapLine } from '@/lib/applications/skill-snapshot-data'
 import { CUSTOMER_TYPES, type CustomerType, type Deck, type PersonCard } from './types'
 
 export type Params = Record<string, string | string[] | undefined>
@@ -105,7 +106,9 @@ export async function buildFromParams(sp: Params, headshotOrigin?: string): Prom
   const funding: FundingInput[] = (await opportunitiesForKinds(kindsForCustomerType(type), { limit: 5, state: loaded?.area.state ?? null }).catch(() => []))
     .map((o) => ({ title: o.title, agency: o.agency, closesAt: o.closesAt, eligibility: o.eligibility, url: o.url }))
 
-  const deck = buildDeck({ rules, brand, area: loaded?.area ?? null, warn: loaded?.warn, funding, people })
+  // Members' application skill gaps, for {{appGapLine}} (src/lib/applications); only used once citable.
+  const applicationGaps = await pitchApplicationGapLine(loaded?.area.state ?? null)
+  const deck = buildDeck({ rules, brand, area: loaded?.area ?? null, warn: loaded?.warn, funding, people, applicationGaps })
   return { deck, edited, brandNote: note, options, lead: lead ? { id: lead.id, name: lead.name } : null }
 }
 

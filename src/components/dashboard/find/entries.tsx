@@ -4,6 +4,7 @@ import { cardMetaParts, cardVerdict } from '@/lib/jobs/job-card'
 import { fewerApplicantsHint, isFresh, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
 import { listItemOf, nextStepFor, oneFact, type JobListItem } from '@/lib/jobs/find-list'
 import { classifyWorkType, payBasisLabel } from '@/lib/jobs/work-type'
+import { postingSignalTag, tagTakesHintSlot } from '@/lib/jobs/posting-signals'
 import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
 import type { WhyThisJob } from '@/lib/personalization/why-this-job'
@@ -45,8 +46,11 @@ export function boardEntry(a: {
   searchResult?: { rank: number; q: string; loc: string }
   matchReason?: MatchReason
   candidatePlus: boolean
+  /** Changing careers or early career: the welcome tag wins the row's one fact (posting-signals.ts). */
+  signalLift?: boolean
 }): FindEntry {
   const { posting } = a
+  const signal = postingSignalTag(posting.postingSignals, { lift: !!a.signalLift })
   const confidential = posting.disclosure === 'CONFIDENTIAL'
   const workType = classifyWorkType(posting)
   const remote = /\bremote\b/i.test(posting.location ?? '') || (posting.targetRemotePolicy ?? '').toLowerCase() === 'remote'
@@ -59,7 +63,14 @@ export function boardEntry(a: {
     place: posting.location || (remote ? 'Remote' : null),
     verdict: cardVerdict(a.fitBucket, { bridge: !!a.bridge }),
     why: a.why,
-    fact: oneFact({ posted: postedAgo(posting), fewerApplicants: fewerApplicantsHint(a.competition), pay: payBasisLabel({ ...posting, workType }) }),
+    fact: oneFact({
+      posted: postedAgo(posting),
+      fewerApplicants: fewerApplicantsHint(a.competition),
+      pay: payBasisLabel({ ...posting, workType }),
+      signal,
+      signalFirst: !!signal && tagTakesHintSlot(signal, !!a.signalLift),
+    }),
+    signal,
   })
   const nextStep = nextStepFor({
     blocker: a.match.requirements.find((r) => r.status === 'blocker')?.label ?? null,

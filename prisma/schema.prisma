@@ -1596,6 +1596,7 @@ model CandidateProfile {
   resumeWalkthroughSession       ResumeWalkthroughSession?
   resumes                        Resume[]
   jobPostings                    JobPosting[]
+  applicationSkillSnapshots      ApplicationSkillSnapshot[]
   communityPosts                 CommunityPost[]
   workQuestions                  WorkQuestion[]
   workQuestionReplies            WorkQuestionReply[]
@@ -3648,6 +3649,8 @@ model JobPosting {
   // double-logs; non-null = self-reported (admin shows it so). prisma/manual/2026-10-17-log-prompts.sql.
   selfReportKey String?
 
+  skillSnapshot ApplicationSkillSnapshot?
+
   @@unique([candidateId, selfReportKey])
 
   @@index([candidateId, createdAt])
@@ -5312,6 +5315,11 @@ model ExclusiveJobPosting {
   aiSkillItems      String[] @default([])
   aiToolsNamed      String[] @default([])
   aiCertsNamed      String[] @default([])
+  // Who the posting says it welcomes (crawler ncrawl/posting_signals.py, read from the FULL text):
+  // career_changer_welcome / ai_upskilled_welcome / high_eq (src/lib/jobs/posting-signals.ts). Empty = none
+  // found. Board tag, "Open to career changers / AI-upskilled" filter, welcome lift.
+  // prisma/manual/2026-10-20-posting-signals.sql.
+  postingSignals    String[] @default([])
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
@@ -16155,4 +16163,47 @@ model AiShareSnapshot {
 
   @@unique([weekOf, fn])
   @@index([fn, weekOf])
+}
+
+// What each applied job asked for and how the member's skills lined up, frozen at application time
+// (src/lib/applications/skill-snapshot.ts, prisma/manual/2026-10-20-application-skill-snapshots.sql).
+// basis: posting (linked board posting) | inferred (title's O*NET occupation tools; weaker, labelled).
+// matched / missing / matchPct never change; current* are recomputed when the member's skills change.
+model ApplicationSkillSnapshot {
+  id                String           @id @default(cuid())
+  jobPostingId      String           @unique
+  jobPosting        JobPosting       @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  candidateId       String
+  candidate         CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  appliedAt         DateTime
+  basis             String
+  boardJobId        String?
+  socCode           String?
+  socTitle          String?
+  title             String?
+  companyName       String?
+  skills            String[]         @default([])
+  tools             String[]         @default([])
+  aiSkills          String[]         @default([])
+  industry          String?
+  jobFunction       String?
+  subFunction       String?
+  level             String?
+  locationState     String?
+  region            String?
+  employerSector    String?
+  matched           String[]         @default([])
+  missing           String[]         @default([])
+  matchPct          Int?
+  skillsHash        String
+  currentMatched    String[]         @default([])
+  currentMissing    String[]         @default([])
+  currentMatchPct   Int?
+  currentSkillsHash String
+  currentAt         DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @default(now()) @updatedAt
+
+  @@index([candidateId, appliedAt])
+  @@index([appliedAt])
 }
