@@ -277,6 +277,10 @@ export function importAiSkillFields(job: ImportAiInput): {
   aiBasis?: string | null
 } {
   if (!('aiSkillItems' in job) || job.aiSkillItems === undefined) return {}
+  // Since 2026-10-20 the crawler sends the AI fields together with the exposure fields
+  // (ai_skills.py v4). A payload without them comes from an older exporter run, whose skill
+  // reading is superseded: leave the stored AI fields as they are.
+  if (job.aiExposed === undefined) return {}
   const items = cleanAiSkillItems(job.aiSkillItems)
   // Groups follow from the items (never trusted on their own).
   const groups = AI_SKILL_GROUPS.map((g) => g.key).filter((g) => items.some((i) => BY_ID.get(i)!.group === g))

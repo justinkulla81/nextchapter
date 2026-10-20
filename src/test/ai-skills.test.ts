@@ -21,13 +21,23 @@ describe('AI skill taxonomy', () => {
       aiSkillGroups: ['applied'],
       aiToolsNamed: ['Claude', ' Claude ', ''],
       aiCertsNamed: ['IAPP AIGP'],
+      aiExposed: true,
+      aiExposureWhy: ['skill'],
+      aiMention: true,
+      aiBasis: 'full',
     })
     expect(f).toEqual({
       aiSkillGroups: ['leadership', 'builder'],
       aiSkillItems: ['b_rag', 'l_governance'],
       aiToolsNamed: ['Claude'],
       aiCertsNamed: ['IAPP AIGP'],
+      aiExposed: true,
+      aiExposureWhy: ['skill'],
+      aiMention: true,
+      aiBasis: 'full',
     })
+    // An older exporter (no exposure fields) no longer overwrites the AI fields.
+    expect(importAiSkillFields({ aiSkillItems: ['a_prompt'] })).toEqual({})
     // Not sent → nothing returned, so a row keeps what it holds.
     expect(importAiSkillFields({})).toEqual({})
   })
