@@ -1,234 +1,234 @@
 {
- "signature": "Justin\n\nJustin Kulla\nFounder, NextChapter. Former CTO, Edgenuity.\nlaunchyournextchapter.com",
- "footer": [
-  "NextChapter · 2248 Broadway #1838, New York, NY 10024",
-  "If you'd rather not hear from me, reply \"no\" and I won't write again."
- ],
- "templates": [
-  {
-   "id": "head_hr",
-   "who": "Employer: head of HR (CHRO, chief people officer)",
-   "why": "Opens on their own filing, adds the timing and the local Rapid Response context, then asks for the owner of the transition.",
-   "subjects": [
-    "{{company}}: {{employees}} jobs, {{county}}",
-    "{{company}}: the market its people face"
-   ],
-   "preview": "{{state_open_mgr_roles}} open manager roles in {{state}}, and a link your team can paste.",
-   "body": "{{first_name}},\n\n{{company}} filed a notice for {{employees}} jobs in {{county}}. {{line_timing}} Nationally there is about one job opening per unemployed person (1.01 in August, BLS).\n\nNextChapter gives laid-off professionals local job listings, a skills-gap plan and AI training, free to them. {{line_open_roles}} It sits beside your outplacement vendor and covers people the package leaves out. {{line_board}}\n\nI'll set up a pilot with a link your team can paste into existing comms. People opt in, you share no employee data, and you get counts only.\n\nAre you the right person for the one-page summary, or should I send it to whoever owns the transition?",
-   "fu1": "{{first_name}}, one concrete thing I can send: the three-sentence note your team would paste to the {{employees}} affected employees, with the link already in it. Want it?",
-   "fu2": "{{first_name}}, I'll stop here so I don't clutter your inbox. If the timing changes, the offer stands: a pilot for the people leaving {{company}}.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "{{employees}} jobs: the market its people face"
-  },
-  {
-   "id": "rewards",
-   "who": "Employer: total rewards, compensation and benefits",
-   "why": "They own the severance and vendor budget. Opens on the size of the layoff and the cost of a slow market; terms go in the one-pager.",
-   "subjects": [
-    "{{company_poss}} outplacement: a local-jobs layer",
-    "An add-on beside your current vendor"
-   ],
-   "preview": "Reaches people the package leaves out, with a counts-only report.",
-   "body": "{{first_name}},\n\nIf you own the severance and outplacement budget for the {{employees}} people leaving {{company}}, here is an add-on to consider. {{line_timing}}\n\nThey face about one opening per unemployed person (1.01 in August, BLS), and 39% of unemployment claimants used up their benefits in the 12 months to August (Labor Department). NextChapter gives each person local jobs, a skills-gap plan and AI training, free to them, and reaches people the package leaves out. {{line_open_roles}}\n\nYou get a counts-only report and share no employee data. Want the one-page summary, with terms?",
-   "fu1": "{{first_name}}, the summary is one page: what each of the {{employees}} people gets, how the pilot works, and the report you would receive. Should I send it?",
-   "fu2": "{{first_name}}, closing the loop so I don't keep writing. If {{company}} wants a pilot later, reply to this thread and I'll set it up.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "A local-jobs add-on beside your outplacement"
-  },
-  {
-   "id": "er",
-   "who": "Employer: employee relations, HR business partner",
-   "why": "They run the separation packet and field employee questions. Offers a paragraph they can paste today.",
-   "subjects": [
-    "A resource for the separation packet at {{company}}",
-    "One paragraph for {{company_poss}} transition notes"
-   ],
-   "preview": "Independent, opt-in, and no employee data leaves your team.",
-   "body": "{{first_name}},\n\nIf you are handling the transition for the {{employees}} people leaving {{company}}, I have a paragraph for the separation notes. {{line_timing}}\n\nIt points people to NextChapter: local job listings, a skills-gap plan and AI training, free to them. {{line_open_roles}} It is independent of your outplacement vendor, people opt in, and you share no names. {{line_board}}\n\nI can send the paragraph and link today. Who on your team should receive it?",
-   "fu1": "{{first_name}}, the paragraph is four sentences and the link is ready. Shall I send it to you directly?",
-   "fu2": "{{first_name}}, I'll leave it there. If the transition notes are still open later, the paragraph is yours on request.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "A resource for the separation packet"
-  },
-  {
-   "id": "ta",
-   "who": "Employer: head of talent acquisition",
-   "why": "Not the buyer. Asks for an introduction to whoever owns the transition, with one data line to show the need.",
-   "subjects": [
-    "Who owns the transition at {{company}}?",
-    "A connection for {{company_poss}} layoff"
-   ],
-   "preview": "One question, and a resource for the people leaving.",
-   "body": "{{first_name}},\n\nQuick question: who owns the transition for the {{employees}} people leaving {{company}}? {{line_open_roles}}\n\nI run NextChapter, a job-search resource for them: local jobs, a skills-gap plan and AI training. You may know the right person better than any directory does. If you can point me to them, I'll take it from there and keep it to one short note.",
-   "fu1": "{{first_name}}, if the transition belongs to someone you'd rather not name, forward this and I'll introduce myself. Fine either way.",
-   "fu2": "{{first_name}}, I won't write again unless you'd like me to. Thank you for reading.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "Who owns the transition?"
-  },
-  {
-   "id": "rr",
-   "who": "State Rapid Response coordinator",
-   "why": "Opens on their state's own filings and the largest employer. Makes the referral easy and offers aggregate counts back.",
-   "subjects": [
-    "For the professionals in {{company_poss}} layoff",
-    "{{state}} Rapid Response: {{state_jobs_90d}} jobs in notices"
-   ],
-   "preview": "Free to every person you refer. Aggregate counts back to you.",
-   "body": "{{first_name}},\n\n{{state}} employers filed {{state_notices_phrase}} in the last 90 days{{line_largest}}. {{line_timing}} I am writing about the managers and professionals among them.\n\nNextChapter gives each person local jobs ranked first, a skills-gap plan and AI training, free to everyone you refer. {{line_open_roles}} It adds job matching for professionals to the benefits, training and job-center services you already coordinate.\n\nI can give your team a source-tagged link and a one-page handout, and report aggregate counts back. May I send the one-pager for your next employer meeting?",
-   "fu1": "{{first_name}}, the handout is one page and can be printed or emailed to affected employees at the meeting. Should I send it?",
-   "fu2": "{{first_name}}, I'll step back. If a layoff comes up where professionals need job matching, reply here and I'll set up the link the same day.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "For the professionals in this layoff"
-  },
-  {
-   "id": "board",
-   "who": "Local workforce board: executive director or chair",
-   "why": "Opens on the county's own numbers and the largest layoff in the area, then offers a demo built from their notices.",
-   "subjects": [
-    "{{county}}: {{county_jobs_12mo}} jobs in layoff notices",
-    "A pilot for {{board}}'s professional job seekers"
-   ],
-   "preview": "A demo built from your own notices. Free to every person you refer.",
-   "body": "{{first_name}},\n\n{{line_local}} {{line_company}} {{line_timing}}\n\nI built a working demo of NextChapter for {{board}}'s region from those public notices, so you can see what your professional job seekers would get: local jobs first, a skills-gap plan, AI training, and an account free to them. {{line_open_roles}}\n\nI would like to run a pilot with one shared measure: how many referred people joined and, among those who choose to share it, how many are interviewing at 45 days. Want the demo link?",
-   "fu1": "{{first_name}}, the demo is read-only and open for 30 days, so there is nothing to set up. Should I send the link?",
-   "fu2": "{{first_name}}, I'll close this out. If {{board}} sees a layoff where professionals need more than a general job board, reply and I'll start a pilot for it.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "A pilot for your professional job seekers"
-  },
-  {
-   "id": "ajc",
-   "who": "American Job Center: business-services contact or shared inbox",
-   "why": "Practical and short. Names their center and county, and asks only for a front-desk handout.",
-   "subjects": [
-    "For the professionals who visit {{center}}",
-    "A handout for {{center}}'s front desk"
-   ],
-   "preview": "Local-first, and the account stays free after they land.",
-   "body": "Hi {{first_name}} -\n\n{{line_local}} Some of the people who come to {{center}} after a layoff are managers and professionals who need more than a general job board.\n\nNextChapter gives them local job listings, a skills-gap plan and AI training, free, and the account stays free after they land. {{line_open_roles}}\n\nI can send a one-page handout with a QR code for your front desk, and a note you can share with the employers you work with. May I send them?",
-   "fu1": "Hi {{first_name}} - the handout is one page with a QR code. Should I email it?",
-   "fu2": "I won't follow up again. If it would help later, reply to this thread and I'll send the handout.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "A handout for your front desk"
-  },
-  {
-   "id": "edo",
-   "who": "Economic development group or chamber of commerce",
-   "why": "Frames it as keeping talent in their county, with the area's own layoff totals, largest employers and nearest college.",
-   "subjects": [
-    "Keeping laid-off talent in {{county}}",
-    "A resource for {{county}} employers facing layoffs"
-   ],
-   "preview": "Local jobs first, and a county demo built from public data.",
-   "body": "{{first_name}},\n\n{{line_local}} {{line_majors}} When skilled people leave a region to find work, the region loses the talent.\n\nNextChapter ranks local jobs first for laid-off professionals and shows which skills local employers are hiring for. It is free to the people affected. {{line_college}}\n\nI can give {{org}} a one-page note to share with member employers facing layoffs, and a working demo for {{county}} built from public notices and open postings. Would the demo for {{county}} be useful?",
-   "fu1": "{{first_name}}, the demo uses {{county}}'s real layoff notices and takes one click to open. Should I send the link?",
-   "fu2": "{{first_name}}, I'll leave it here. If a member employer announces a layoff, reply and I'll send the one-page note the same day.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "Keeping laid-off talent local"
-  },
-  {
-   "id": "state_ui",
-   "who": "State unemployment insurance or reemployment lead",
-   "why": "Speaks to their claimants: benefit exhaustion, the state's own notice totals, and a fit with reemployment services and RESEA.",
-   "subjects": [
-    "{{state}} claimants: what the data shows",
-    "A reemployment resource for white-collar claimants"
-   ],
-   "preview": "39% of claimants used up their benefits. Aggregate counts back to you.",
-   "body": "{{first_name}},\n\nIn the 12 months to August, 39% of unemployment claimants nationally used up their benefits, after drawing them for 15.8 weeks on average (Labor Department). In {{state}}, employers filed notices for {{state_jobs_90d}} jobs in the last 90 days.\n\nNextChapter helps the managers and professionals among them: local jobs ranked first, a skills-gap plan and AI training, free to claimants. {{line_open_roles}} It could sit alongside reemployment services and RESEA, with aggregate counts reported back.\n\nMay I send a two-paragraph summary and a demo built from {{state_poss}} own data?",
-   "fu1": "{{first_name}}, the summary is two paragraphs and the demo opens in one click. Which would be easier?",
-   "fu2": "{{first_name}}, I'll step back. If a colleague owns reemployment tools, a forward would be appreciated.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "A reemployment resource for white-collar claimants"
-  },
-  {
-   "id": "state_career",
-   "who": "State labor market information, career information, career pathways or adult learner lead",
-   "why": "Peer-to-peer on data. Offers to compare notes and shows how layoffs, open roles and AI roles turn into pivot paths.",
-   "subjects": [
-    "Career exploration tools built on {{state}} data",
-    "{{state}}: layoffs, open roles and AI skills"
-   ],
-   "preview": "Pivot paths from layoffs to growing roles, from public data.",
-   "body": "{{first_name}},\n\n{{state}} employers filed notices for {{state_jobs_90d}} jobs in the last 90 days, and our crawler lists {{state_open_roles}} open roles in the state. {{line_ai_roles}} {{line_top_functions}}\n\nNextChapter turns data like yours into pivot paths for laid-off professionals: which roles their skills fit, what is missing, and AI training to close the gap. We publish a monthly white-collar employment report from public data, with methods open.\n\nWould you compare notes on the data? I can send the latest report and the {{state}} cut.",
-   "fu1": "{{first_name}}, I can send the {{state}} cut as a one-page table, with the sources. Would that be useful?",
-   "fu2": "{{first_name}}, I'll leave it there. If a data request comes up, reply and I'll send the files.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "Career exploration tools built on state data"
-  },
-  {
-   "id": "state_agency",
-   "who": "State agency head, state workforce board director, economic development head, governor's adviser",
-   "why": "Policy level. Opens on the state's totals and largest layoff; asks for 20 minutes and the right person on their team.",
-   "subjects": [
-    "{{state}}: {{state_jobs_90d}} jobs in recent notices",
-    "A resource for dislocated professionals in {{state}}"
-   ],
-   "preview": "Local jobs first, aggregate counts only.",
-   "body": "{{first_name}},\n\nIn the last 90 days, {{state}} employers filed notices for {{state_jobs_90d}} jobs{{line_largest}}. Nationally there is about one opening per unemployed person (1.01 in August, BLS).\n\nNextChapter is a resource for the managers and professionals among them: local jobs ranked first, a skills-gap plan and AI training, with aggregate counts reported back. {{line_open_roles}}\n\nI would like 20 minutes to show a demo built from {{state_poss}} own data and hear where it would and would not fit your services. Is there someone on your team I should start with?",
-   "fu1": "{{first_name}}, I can send a two-paragraph summary and the demo link instead of a call. Which is easier?",
-   "fu2": "{{first_name}}, I'll step back. If a different person owns this, a forward would be appreciated.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "A resource for dislocated professionals"
-  },
-  {
-   "id": "funder",
-   "who": "Foundation or funder: program officer",
-   "why": "Makes a concrete, measurable ask. The budget goes in the one-pager, not the email.",
-   "subjects": [
-    "A pilot for 100 laid-off professionals in {{county}}",
-    "A small, measurable pilot for laid-off professionals"
-   ],
-   "preview": "Counts reported back: joined, plus interviewing and landed for those who opt in.",
-   "body": "{{first_name}},\n\n{{line_local}} {{line_company}} Nationally, 39% of unemployment claimants used up their benefits in the 12 months to August (Labor Department).\n\nA small grant would let 100 of those professionals use NextChapter for six months: local job matching, a skills-gap plan and AI training. You would receive a counts-only report: how many joined and, among those who choose to share it, how many are interviewing or have landed. I will not claim results beyond the counts.\n\nMay I send a one-page proposal with the budget?",
-   "fu1": "{{first_name}}, the proposal is one page with the budget and the report you would receive. Should I send it?",
-   "fu2": "{{first_name}}, I'll close this out. If {{org}} funds rapid response to layoffs, I would be glad to share the proposal at any point.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "A small, measurable pilot for laid-off professionals"
-  },
-  {
-   "id": "partner",
-   "who": "Outplacement firm, HR adviser or benefits firm (partner)",
-   "why": "Positions NextChapter as a layer that strengthens their program. Offers a test on one engagement.",
-   "subjects": [
-    "A local-jobs layer for your outplacement clients",
-    "A layer beside your program"
-   ],
-   "preview": "A test on one engagement. You keep the client.",
-   "body": "{{first_name}},\n\nLaid-off professionals face about one opening per unemployed person (1.01 in August, BLS), and 27% of the unemployed have been out of work 27 weeks or more. Program end dates matter.\n\nNextChapter is a layer beside your program: local job listings (our crawler tracks about 188,000 open manager-level roles), a skills-gap plan and AI training, and each person keeps a free account afterward. I would like to test it on one upcoming engagement; you keep the client.\n\nOpen to a 15-minute call?",
-   "fu1": "{{first_name}}, I can send a one-page summary of what your clients would see. Should I?",
-   "fu2": "{{first_name}}, I'll step back. If a client asks about local jobs or AI training, reply and I'll set up a test.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "A layer beside your program"
-  },
-  {
-   "id": "researcher",
-   "who": "Researcher or policy analyst (AI displacement, unemployment, white-collar work)",
-   "why": "Credibility through method: leads with a finding they can check and asks for review, not a sale.",
-   "subjects": [
-    "Data on white-collar layoffs and AI in filings",
-    "A method to review: AI in restructuring filings"
-   ],
-   "preview": "Open methods and data files. A one-line reply is enough.",
-   "body": "{{first_name}},\n\nWe publish a monthly white-collar employment report from public data, with methods and data files open. The September edition counted AI in restructuring filings: 16 of 170 this year (9.4%) cite it in the restructuring disclosure itself, and announced cuts cite it about 21% of the time. It also finds about one opening per unemployed person (1.01 in August).\n\n{{line_researcher_hook}} May I send the report and the data files? A one-line reply is enough.",
-   "fu1": "{{first_name}}, the data files are small and the method is two pages. Shall I send them?",
-   "fu2": "{{first_name}}, I'll leave it there. If a figure ever looks wrong to you, I would want to hear it.",
-   "ps": "P.S. The report counts what filings say and does not claim AI caused a layoff.",
-   "subject_fallback": "Data on white-collar layoffs and AI in filings"
-  },
-  {
-   "id": "career_dev",
-   "who": "Career-development, career-exploration or career-pivot organization",
-   "why": "Speaks to people at a career turning point. Offers a short demo and asks about a referral or co-branded fit.",
-   "subjects": [
-    "Career pivots after layoffs: local data for {{org}}",
-    "A pivot-path tool for {{org}}'s members"
-   ],
-   "preview": "Which roles their skills fit, what is missing, and the AI training to close it.",
-   "body": "{{first_name}},\n\nPeople changing careers after a layoff face a slow market: about one opening per unemployed person (1.01 in August, BLS). {{line_ai_roles}} {{line_top_functions}}\n\nNextChapter shows each person which roles their skills fit, what is missing, and AI training to close the gap, with local jobs ranked first. It is free to the individual.\n\nIf people {{org}} serves face a career change after a layoff, I would like to show you a short demo and hear whether a referral or co-branded version would fit. May I send it?",
-   "fu1": "{{first_name}}, the demo is three minutes and needs no sign-up. Should I send the link?",
-   "fu2": "{{first_name}}, I'll step back. If a member asks about career pivots after a layoff, reply and I'll send the demo.",
-   "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-   "subject_fallback": "Career pivots after layoffs: local data"
-  }
- ]
+  "signature": "Justin\n\nJustin Kulla\nFounder, NextChapter. Former CTO, Edgenuity.\nlaunchyournextchapter.com",
+  "footer": [
+    "NextChapter · 2248 Broadway #1838, New York, NY 10024",
+    "If you'd rather not hear from me, reply \"no\" and I won't write again."
+  ],
+  "templates": [
+    {
+      "id": "head_hr",
+      "who": "Employer: head of HR (CHRO, chief people officer)",
+      "why": "Opens on their own filing, adds the timing and the local Rapid Response context, then asks for the owner of the transition.",
+      "subjects": [
+        "{{company}}: {{employees}} jobs, {{county}}",
+        "{{company}}: the market its people face"
+      ],
+      "preview": "The first job transition platform, with a report on how many land.",
+      "body": "{{first_name}},\n\n{{company}} filed a notice for {{employees}} jobs in {{county}}. {{line_timing}} Most outplacement tools are dated and people do not use them, so you rarely learn whether anyone landed.\n\nNextChapter is the world's first job transition platform: career pivots, learning and retraining, networking support, and exclusive jobs and recruiters, in one place. {{line_open_roles}} You can track your people: how many engaged, interviewed and landed. They opt in and you see counts, never names. {{line_board}}\n\nIt works beside your current vendor or in place of it. I'll set up a pilot with a link your team can paste into existing comms, and an account for every affected employee is included.\n\nAre you the right person for the one-page summary, or should I send it to whoever owns the transition?",
+      "fu1": "{{first_name}}, one concrete thing I can send: the three-sentence note your team would paste to the {{employees}} affected employees, with the link already in it. Want it?",
+      "fu2": "{{first_name}}, I'll stop here so I don't clutter your inbox. If the timing changes, the offer stands: a pilot for the people leaving {{company}}.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "{{employees}} jobs: the market its people face"
+    },
+    {
+      "id": "rewards",
+      "who": "Employer: total rewards, compensation and benefits",
+      "why": "They own the severance and vendor budget. Opens on the size of the layoff and the cost of a slow market; terms go in the one-pager.",
+      "subjects": [
+        "{{company_poss}} outplacement: a local-jobs layer",
+        "An add-on beside your current vendor"
+      ],
+      "preview": "The first job transition platform, with reporting on who lands.",
+      "body": "{{first_name}},\n\nIf you own the severance and outplacement budget for the {{employees}} people leaving {{company}}, here is a different way to spend it. {{line_timing}}\n\nNextChapter is the world's first job transition platform: career pivots, learning and retraining, networking support, and exclusive jobs and recruiters. People actually use it, which the older tools struggle with. {{line_open_roles}} You pay for the platform, which includes the employer tools and reporting, and an account for every person is included. You can track how many engaged, interviewed and landed, as counts with no names.\n\nWant the one-page summary, with terms?",
+      "fu1": "{{first_name}}, the summary is one page: what each of the {{employees}} people gets, how the pilot works, and the report you would receive. Should I send it?",
+      "fu2": "{{first_name}}, closing the loop so I don't keep writing. If {{company}} wants a pilot later, reply to this thread and I'll set it up.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "A local-jobs add-on beside your outplacement"
+    },
+    {
+      "id": "er",
+      "who": "Employer: employee relations, HR business partner",
+      "why": "They run the separation packet and field employee questions. Offers a paragraph they can paste today.",
+      "subjects": [
+        "A resource for the separation packet at {{company}}",
+        "One paragraph for {{company_poss}} transition notes"
+      ],
+      "preview": "Accounts for everyone leaving, and you see counts, never names.",
+      "body": "{{first_name}},\n\nIf you are handling the transition for the {{employees}} people leaving {{company}}, I have a paragraph for the separation notes. {{line_timing}}\n\nIt points people to NextChapter, the world's first job transition platform: career pivots, learning and retraining, networking support, and exclusive jobs and recruiters. {{line_open_roles}} People opt in, and you share no names. {{line_board}}\n\nI can send the paragraph and link today. Who on your team should receive it?",
+      "fu1": "{{first_name}}, the paragraph is four sentences and the link is ready. Shall I send it to you directly?",
+      "fu2": "{{first_name}}, I'll leave it there. If the transition notes are still open later, the paragraph is yours on request.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "A resource for the separation packet"
+    },
+    {
+      "id": "ta",
+      "who": "Employer: head of talent acquisition",
+      "why": "Not the buyer. Asks for an introduction to whoever owns the transition, with one data line to show the need.",
+      "subjects": [
+        "Who owns the transition at {{company}}?",
+        "A connection for {{company_poss}} layoff"
+      ],
+      "preview": "One question, and a resource for the people leaving.",
+      "body": "{{first_name}},\n\nQuick question: who owns the transition for the {{employees}} people leaving {{company}}? {{line_open_roles}}\n\nI run NextChapter, the world's first job transition platform: career pivots, retraining, networking support, and exclusive jobs and recruiters. The older tools are dated and people do not like them. You may know the right person better than any directory does. If you can point me to them, I'll take it from there and keep it to one short note.",
+      "fu1": "{{first_name}}, if the transition belongs to someone you'd rather not name, forward this and I'll introduce myself. Fine either way.",
+      "fu2": "{{first_name}}, I won't write again unless you'd like me to. Thank you for reading.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "Who owns the transition?"
+    },
+    {
+      "id": "rr",
+      "who": "State Rapid Response coordinator",
+      "why": "Opens on their state's own filings and the largest employer. Makes the referral easy and offers aggregate counts back.",
+      "subjects": [
+        "For the professionals in {{company_poss}} layoff",
+        "{{state}} Rapid Response: {{state_jobs_90d}} jobs in notices"
+      ],
+      "preview": "Free to every person you refer. Aggregate counts back to you.",
+      "body": "{{first_name}},\n\n{{state}} employers filed {{state_notices_phrase}} in the last 90 days{{line_largest}}. {{line_timing}} I am writing about the managers and professionals among them.\n\nNextChapter gives each person local jobs ranked first, a skills-gap plan and AI training, free to everyone you refer. {{line_open_roles}} It adds job matching for professionals to the benefits, training and job-center services you already coordinate.\n\nI can give your team a source-tagged link and a one-page handout, and report aggregate counts back. May I send the one-pager for your next employer meeting?",
+      "fu1": "{{first_name}}, the handout is one page and can be printed or emailed to affected employees at the meeting. Should I send it?",
+      "fu2": "{{first_name}}, I'll step back. If a layoff comes up where professionals need job matching, reply here and I'll set up the link the same day.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "For the professionals in this layoff"
+    },
+    {
+      "id": "board",
+      "who": "Local workforce board: executive director or chair",
+      "why": "Opens on the county's own numbers and the largest layoff in the area, then offers a demo built from their notices.",
+      "subjects": [
+        "{{county}}: {{county_jobs_12mo}} jobs in layoff notices",
+        "A pilot for {{board}}'s professional job seekers"
+      ],
+      "preview": "A demo built from your own notices. Free to every person you refer.",
+      "body": "{{first_name}},\n\n{{line_local}} {{line_company}} {{line_timing}}\n\nI built a working demo of NextChapter for {{board}}'s region from those public notices, so you can see what your professional job seekers would get: local jobs first, a skills-gap plan, AI training, and an account free to them. {{line_open_roles}}\n\nI would like to run a pilot with one shared measure: how many referred people joined and, among those who choose to share it, how many are interviewing at 45 days. Want the demo link?",
+      "fu1": "{{first_name}}, the demo is read-only and open for 30 days, so there is nothing to set up. Should I send the link?",
+      "fu2": "{{first_name}}, I'll close this out. If {{board}} sees a layoff where professionals need more than a general job board, reply and I'll start a pilot for it.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "A pilot for your professional job seekers"
+    },
+    {
+      "id": "ajc",
+      "who": "American Job Center: business-services contact or shared inbox",
+      "why": "Practical and short. Names their center and county, and asks only for a front-desk handout.",
+      "subjects": [
+        "For the professionals who visit {{center}}",
+        "A handout for {{center}}'s front desk"
+      ],
+      "preview": "Local-first, and the account stays free after they land.",
+      "body": "Hi {{first_name}} -\n\n{{line_local}} Some of the people who come to {{center}} after a layoff are managers and professionals who need more than a general job board.\n\nNextChapter gives them local job listings, a skills-gap plan and AI training, free, and the account stays free after they land. {{line_open_roles}}\n\nI can send a one-page handout with a QR code for your front desk, and a note you can share with the employers you work with. May I send them?",
+      "fu1": "Hi {{first_name}} - the handout is one page with a QR code. Should I email it?",
+      "fu2": "I won't follow up again. If it would help later, reply to this thread and I'll send the handout.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "A handout for your front desk"
+    },
+    {
+      "id": "edo",
+      "who": "Economic development group or chamber of commerce",
+      "why": "Frames it as keeping talent in their county, with the area's own layoff totals, largest employers and nearest college.",
+      "subjects": [
+        "Keeping laid-off talent in {{county}}",
+        "A resource for {{county}} employers facing layoffs"
+      ],
+      "preview": "Local jobs first, and a county demo built from public data.",
+      "body": "{{first_name}},\n\n{{line_local}} {{line_majors}} When skilled people leave a region to find work, the region loses the talent.\n\nNextChapter ranks local jobs first for laid-off professionals and shows which skills local employers are hiring for. It is free to the people affected. {{line_college}}\n\nI can give {{org}} a one-page note to share with member employers facing layoffs, and a working demo for {{county}} built from public notices and open postings. Would the demo for {{county}} be useful?",
+      "fu1": "{{first_name}}, the demo uses {{county}}'s real layoff notices and takes one click to open. Should I send the link?",
+      "fu2": "{{first_name}}, I'll leave it here. If a member employer announces a layoff, reply and I'll send the one-page note the same day.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "Keeping laid-off talent local"
+    },
+    {
+      "id": "state_ui",
+      "who": "State unemployment insurance or reemployment lead",
+      "why": "Speaks to their claimants: benefit exhaustion, the state's own notice totals, and a fit with reemployment services and RESEA.",
+      "subjects": [
+        "{{state}} claimants: what the data shows",
+        "A reemployment resource for white-collar claimants"
+      ],
+      "preview": "39% of claimants used up their benefits. Aggregate counts back to you.",
+      "body": "{{first_name}},\n\nIn the 12 months to August, 39% of unemployment claimants nationally used up their benefits, after drawing them for 15.8 weeks on average (Labor Department). In {{state}}, employers filed notices for {{state_jobs_90d}} jobs in the last 90 days.\n\nNextChapter helps the managers and professionals among them: local jobs ranked first, a skills-gap plan and AI training, free to claimants. {{line_open_roles}} It could sit alongside reemployment services and RESEA, with aggregate counts reported back.\n\nMay I send a two-paragraph summary and a demo built from {{state_poss}} own data?",
+      "fu1": "{{first_name}}, the summary is two paragraphs and the demo opens in one click. Which would be easier?",
+      "fu2": "{{first_name}}, I'll step back. If a colleague owns reemployment tools, a forward would be appreciated.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "A reemployment resource for white-collar claimants"
+    },
+    {
+      "id": "state_career",
+      "who": "State labor market information, career information, career pathways or adult learner lead",
+      "why": "Peer-to-peer on data. Offers to compare notes and shows how layoffs, open roles and AI roles turn into pivot paths.",
+      "subjects": [
+        "Career exploration tools built on {{state}} data",
+        "{{state}}: layoffs, open roles and AI skills"
+      ],
+      "preview": "Pivot paths from layoffs to growing roles, from public data.",
+      "body": "{{first_name}},\n\n{{state}} employers filed notices for {{state_jobs_90d}} jobs in the last 90 days, and our crawler lists {{state_open_roles}} open roles in the state. {{line_ai_roles}} {{line_top_functions}}\n\nNextChapter turns data like yours into pivot paths for laid-off professionals: which roles their skills fit, what is missing, and AI training to close the gap. We publish a monthly white-collar employment report from public data, with methods open.\n\nWould you compare notes on the data? I can send the latest report and the {{state}} cut.",
+      "fu1": "{{first_name}}, I can send the {{state}} cut as a one-page table, with the sources. Would that be useful?",
+      "fu2": "{{first_name}}, I'll leave it there. If a data request comes up, reply and I'll send the files.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "Career exploration tools built on state data"
+    },
+    {
+      "id": "state_agency",
+      "who": "State agency head, state workforce board director, economic development head, governor's adviser",
+      "why": "Policy level. Opens on the state's totals and largest layoff; asks for 20 minutes and the right person on their team.",
+      "subjects": [
+        "{{state}}: {{state_jobs_90d}} jobs in recent notices",
+        "A resource for dislocated professionals in {{state}}"
+      ],
+      "preview": "Local jobs first, aggregate counts only.",
+      "body": "{{first_name}},\n\nIn the last 90 days, {{state}} employers filed notices for {{state_jobs_90d}} jobs{{line_largest}}. Nationally there is about one opening per unemployed person (1.01 in August, BLS).\n\nNextChapter is a resource for the managers and professionals among them: local jobs ranked first, a skills-gap plan and AI training, with aggregate counts reported back. {{line_open_roles}}\n\nI would like 20 minutes to show a demo built from {{state_poss}} own data and hear where it would and would not fit your services. Is there someone on your team I should start with?",
+      "fu1": "{{first_name}}, I can send a two-paragraph summary and the demo link instead of a call. Which is easier?",
+      "fu2": "{{first_name}}, I'll step back. If a different person owns this, a forward would be appreciated.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "A resource for dislocated professionals"
+    },
+    {
+      "id": "funder",
+      "who": "Foundation or funder: program officer",
+      "why": "Makes a concrete, measurable ask. The budget goes in the one-pager, not the email.",
+      "subjects": [
+        "A pilot for 100 laid-off professionals in {{county}}",
+        "A small, measurable pilot for laid-off professionals"
+      ],
+      "preview": "Counts reported back: joined, plus interviewing and landed for those who opt in.",
+      "body": "{{first_name}},\n\n{{line_local}} {{line_company}} Nationally, 39% of unemployment claimants used up their benefits in the 12 months to August (Labor Department).\n\nA small grant would let 100 of those professionals use NextChapter for six months: local job matching, a skills-gap plan and AI training. You would receive a counts-only report: how many joined and, among those who choose to share it, how many are interviewing or have landed. I will not claim results beyond the counts.\n\nMay I send a one-page proposal with the budget?",
+      "fu1": "{{first_name}}, the proposal is one page with the budget and the report you would receive. Should I send it?",
+      "fu2": "{{first_name}}, I'll close this out. If {{org}} funds rapid response to layoffs, I would be glad to share the proposal at any point.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "A small, measurable pilot for laid-off professionals"
+    },
+    {
+      "id": "partner",
+      "who": "Outplacement firm, HR adviser or benefits firm (partner)",
+      "why": "Positions NextChapter as a layer that strengthens their program. Offers a test on one engagement.",
+      "subjects": [
+        "A local-jobs layer for your outplacement clients",
+        "A layer beside your program"
+      ],
+      "preview": "A test on one engagement. You keep the client.",
+      "body": "{{first_name}},\n\nLaid-off professionals face about one opening per unemployed person (1.01 in August, BLS), and 27% of the unemployed have been out of work 27 weeks or more. Program end dates matter.\n\nNextChapter is a layer beside your program: local job listings (our crawler tracks about 188,000 open manager-level roles), a skills-gap plan and AI training, and each person keeps a free account afterward. I would like to test it on one upcoming engagement; you keep the client.\n\nOpen to a 15-minute call?",
+      "fu1": "{{first_name}}, I can send a one-page summary of what your clients would see. Should I?",
+      "fu2": "{{first_name}}, I'll step back. If a client asks about local jobs or AI training, reply and I'll set up a test.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "A layer beside your program"
+    },
+    {
+      "id": "researcher",
+      "who": "Researcher or policy analyst (AI displacement, unemployment, white-collar work)",
+      "why": "Credibility through method: leads with a finding they can check and asks for review, not a sale.",
+      "subjects": [
+        "Data on white-collar layoffs and AI in filings",
+        "A method to review: AI in restructuring filings"
+      ],
+      "preview": "Open methods and data files. A one-line reply is enough.",
+      "body": "{{first_name}},\n\nWe publish a monthly white-collar employment report from public data, with methods and data files open. The September edition counted AI in restructuring filings: 16 of 170 this year (9.4%) cite it in the restructuring disclosure itself, and announced cuts cite it about 21% of the time. It also finds about one opening per unemployed person (1.01 in August).\n\n{{line_researcher_hook}} May I send the report and the data files? A one-line reply is enough.",
+      "fu1": "{{first_name}}, the data files are small and the method is two pages. Shall I send them?",
+      "fu2": "{{first_name}}, I'll leave it there. If a figure ever looks wrong to you, I would want to hear it.",
+      "ps": "P.S. The report counts what filings say and does not claim AI caused a layoff.",
+      "subject_fallback": "Data on white-collar layoffs and AI in filings"
+    },
+    {
+      "id": "career_dev",
+      "who": "Career-development, career-exploration or career-pivot organization",
+      "why": "Speaks to people at a career turning point. Offers a short demo and asks about a referral or co-branded fit.",
+      "subjects": [
+        "Career pivots after layoffs: local data for {{org}}",
+        "A pivot-path tool for {{org}}'s members"
+      ],
+      "preview": "Which roles their skills fit, what is missing, and the AI training to close it.",
+      "body": "{{first_name}},\n\nPeople changing careers after a layoff face a slow market: about one opening per unemployed person (1.01 in August, BLS). {{line_ai_roles}} {{line_top_functions}}\n\nNextChapter shows each person which roles their skills fit, what is missing, and AI training to close the gap, with local jobs ranked first. It is free to the individual.\n\nIf people {{org}} serves face a career change after a layoff, I would like to show you a short demo and hear whether a referral or co-branded version would fit. May I send it?",
+      "fu1": "{{first_name}}, the demo is three minutes and needs no sign-up. Should I send the link?",
+      "fu2": "{{first_name}}, I'll step back. If a member asks about career pivots after a layoff, reply and I'll send the demo.",
+      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "subject_fallback": "Career pivots after layoffs: local data"
+    }
+  ]
 }
