@@ -112,14 +112,16 @@
       "who": "American Job Center: business-services contact or shared inbox",
       "why": "Practical and short. Names their center and county, and asks only for a front-desk handout.",
       "subjects": [
-        "For the white-collar workers who visit {{center}}",
-        "A handout for {{center}}'s front desk"
+        "A resource for white-collar job seekers in {{county}}",
+        "A one-page handout for your front desk",
+        "White-collar job searches are running longer",
+        "New data on white-collar job seekers in {{county}}"
       ],
-      "preview": "Local-first, and the account stays free after they land.",
-      "body": "Hi {{first_name}} -\n\n{{line_local}} Some of the people who come to {{center}} after a layoff are white-collar workers who need more than a general job board.\n\nNextChapter gives them local job listings, a skills-gap plan and AI training, free, and the account stays free after they land. {{line_open_roles}}\n\nI can send a one-page handout with a QR code for your front desk, and a note you can share with the employers you work with. May I send them?",
-      "fu1": "Hi {{first_name}} - the handout is one page with a QR code. Should I email it?",
+      "preview": "A free resource for your front desk, with counts of who landed.",
+      "body": "Hi {{first_name}} -\n\nCenters like {{center}} are measured on how many job seekers land and what they earn. White-collar workers are often the hardest to move: 28% of unemployed white-collar workers are still looking after 27 weeks, up from 23% a year ago (our monthly report: https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026). {{line_local}}\n\nI founded NextChapter, the leading job transition platform. Each person gets a pivot plan from their work history, retraining for the gaps (open AI-titled roles in our database advertise about a third more than others at the same level), networking outreach drafted, coaching, and exclusive jobs and recruiters. {{line_open_roles}}\n\nIt is free to the people you refer, and we report how many engaged, interviewed and landed, as counts only, so you can see the outcome you are measured on.\n\nI can send a one-page handout with a QR code for your front desk. May I send it?",
+      "fu1": "Hi {{first_name}} - the handout is one page with a QR code, and the counts report shows who landed. Should I email it?",
       "fu2": "I won't follow up again. If it would help later, reply to this thread and I'll send the handout.",
-      "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
+      "ps": "",
       "subject_fallback": "A handout for your front desk"
     },
     {

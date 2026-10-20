@@ -76,6 +76,9 @@ async function main() {
   const areaById = new Map(areas.map((a) => [a.id, a]))
   const areaByName = new Map(areas.map((a) => [`${a.state}|${countyBase(a.name)}`, a]))
 
+  // Metro growth for the workforce-board city test: boards of 0.5 to 2.5 million people, growing (up 4%+ since 2020) or flat (up 2.5% or less).
+  const boardGrowth = new Map<string, { pop: number; growth: number }>()
+  try { for (const x of JSON.parse(readFileSync('/Users/salitkulla/nc-hunter-results/board-growth.json', 'utf8')) as { id: string; pop: number; growth: number }[]) boardGrowth.set(x.id, x) } catch { /* no growth file: no city test */ }
   const boardNames = new Map((await prisma.workforceBoard.findMany({ select: { id: true, name: true } })).map((b) => [b.id, b.name]))
   const notices = await prisma.warnNotice.findMany({
     where: { source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: since, lte: now }, employees: { not: null } },
@@ -235,8 +238,16 @@ async function main() {
   for (const b of await prisma.workforceBoard.findMany({ select: { id: true, name: true, state: true, counties: true, directorName: true, directorTitle: true, directorEmail: true, chairName: true, chairEmail: true } })) {
     const notice = byBoard.get(b.id)
     const area = b.counties.map((c) => areaByName.get(`${b.state}|${countyBase(c)}`)).filter(Boolean).sort((x, y) => y!.j12 - x!.j12)[0]
+    let pilotDone = false
     for (const p of [{ n: b.directorName, t: b.directorTitle || 'Executive Director', e: b.directorEmail }, { n: b.chairName, t: 'Board Chair', e: b.chairEmail }]) {
-      if (p.n && p.e && p.n.trim().split(/\s+/).length >= 2) add('board', { first: first(p.n.trim(), null), email: p.e, org: b.name, title: p.t }, { notice, area, state: b.state, board: b.name })
+      if (p.n && p.e && p.n.trim().split(/\s+/).length >= 2) {
+        const g = boardGrowth.get(b.id)
+        const grp = g && g.pop >= 500_000 && g.pop <= 2_500_000 ? (g.growth >= 4 ? 'GROW' : g.growth <= 2.5 ? 'FLAT' : '') : ''
+        // The city-type pilot writes to one person per board, the director when there is one.
+        if (grp && pilotDone) continue
+        if (grp) pilotDone = true
+        add('board', { first: first(p.n.trim(), null), email: p.e, org: b.name, title: p.t }, { notice, area, state: b.state, board: b.name, extra: { board_group: grp, board_growth: g ? `${g.growth}%` : '' } })
+      }
     }
   }
 
@@ -311,7 +322,10 @@ async function main() {
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
   for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); const h = [...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
-    if (r.template === 'college') {
+    if (r.template === 'board' && r.board_group) {
+      // City-type pilot: the metro's growth, not a random split. The subject is held fixed (concept 1) so the comparison is clean.
+      r.variant = r.board_group; r.concept = 'C1'; r.subject = r.arm_C1a || r.subject_a
+    } else if (r.template === 'college') {
       // The comparison is the college's level, not a random split.
       r.variant = r.college_level === '2-year' ? 'CC' : '4YR'; r.concept = ''; r.subject = r.subject_a
     } else if (r.arm_C1a !== undefined) {
@@ -337,11 +351,11 @@ async function main() {
       }
     }
      r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
-  const HEAD = ['template', 'variant', 'concept', 'timing', 'timing_test', 'send_on', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
+  const HEAD = ['template', 'variant', 'concept', 'board_group', 'college_level', 'timing', 'timing_test', 'send_on', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
     'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective']
   writeFileSync(out, [HEAD.map(q).join(','), ...rows.map((r) => HEAD.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   // The send list: only rows that are ready, unique and not suppressed, with just what a mail merge needs.
-  const SEND = ['template', 'variant', 'concept', 'timing', 'timing_test', 'send_on', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
+  const SEND = ['template', 'variant', 'concept', 'board_group', 'college_level', 'timing', 'timing_test', 'send_on', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
   const sendRows = rows.filter((r) => r.send === 'yes')
   writeFileSync(out.replace(/\.csv$/, '') + '.send.csv', [SEND.map(q).join(','), ...sendRows.map((r) => SEND.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   console.log(`send list: ${sendRows.length} rows`)
