@@ -25,6 +25,7 @@ import {
 import { getSuggestedContactsToAdd } from '@/lib/network/suggested-contacts'
 import { SuggestedContactsCard } from '@/components/dashboard/SuggestedContactsCard'
 import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
+import { isSuppressed, loadSuppression } from '@/lib/network/suppressed-senders'
 import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { isRedesignOn } from '@/lib/redesign/flag'
@@ -196,6 +197,7 @@ export default async function ContactDirectoryPage({
     // candidates, so this is free for everyone else.
     profile.confidentialSearchMode ? getCurrentEmployerName(profile.id) : Promise.resolve(null),
   ])
+  const suppression = await loadSuppression(profile.id)
   const contacts = rawContacts.map((c) => ({
     ...c,
     hasReachedOut: c.outreachLogs.length > 0,
@@ -366,6 +368,7 @@ export default async function ContactDirectoryPage({
               pageSize={PAGE_SIZE}
               state={{ q, sort: sortKey, dir, pin, email: emailFilter, reached: reachedFilter, rel: relFilter, nc: ncFilter, page: Math.min(page, pageCount) }}
               hasAnyContacts={hasAnyContacts}
+              mutedIds={contacts.filter((c) => [c.email, ...c.emails].some((e) => isSuppressed(suppression, e))).map((c) => c.id)}
             />
           </Section>
         )}
