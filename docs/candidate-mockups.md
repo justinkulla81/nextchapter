@@ -52,6 +52,11 @@ Each row is one proposed screen and the live pages it absorbs. The Personalize p
 | Flows | A question, with the payoff shown (`/dev-preview/flows/tune-question`) | every one-off question on profile, search strategy, and onboarding |
 | Flows | The finish: what you just gained (`/dev-preview/flows/tune-done`) | new |
 | Flows | A long assessment as short rounds (`/dev-preview/flows/deep-dive`) | How I Work Best (57 items), What I Need (24), Track Record (19) |
+| Flows | Track record as short rounds: the start (`/dev-preview/flows/track-record-intro`) | /dashboard/track-record (built; the real component, sample answers) |
+| Flows | Track record as short rounds: a round (`/dev-preview/flows/track-record-round`) | /dashboard/track-record (resumed at round 6) |
+| Flows | Track record as short rounds: the finish (`/dev-preview/flows/track-record-done`) | /dashboard/track-record |
+| Flows | How I perform as short rounds: a round (`/dev-preview/flows/how-i-perform-round`) | /dashboard/how-i-perform (resumed at round 7) |
+| Flows | How I perform as short rounds: the last round, then the finish (`/dev-preview/flows/how-i-perform-last`) | /dashboard/how-i-perform |
 | Flows | Receipt: Home bundle (pace and tone) (`/dev-preview/flows/receipt-home`) | new |
 | Flows | Receipt: Network bundle (who you want to reach) (`/dev-preview/flows/receipt-network`) | new |
 | Moments | You earned Candidate+ (`/dev-preview/moments/candidate-plus`) | the unlock ladder and its locked rungs |

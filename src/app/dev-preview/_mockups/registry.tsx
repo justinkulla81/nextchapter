@@ -8,6 +8,7 @@ import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, Networ
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpScams, HelpQuestions } from './learn-help'
 import { HomeEntrepreneur, HomeTimeOff, HomeCareerChange, HomeFractional, HomeStalled, CheckIn, TailoredForYou } from './personalization'
 import { TuneQuestion, TuneDone, DeepDiveIntro, ReceiptHome, ReceiptNetwork } from './questionnaire'
+import { TrackRecordRound, TrackRecordIntro, TrackRecordDone, HowIPerformRound, HowIPerformDone } from './rounds'
 import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, EmptyJobs, EmptyNetwork, EmptyEffort, OnboardingMoney, AccountMoney } from './moments'
 import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 import { CareerStoryReal } from './career-story'
@@ -79,6 +80,11 @@ export const MOCKUPS: Mockup[] = [
   { path: 'flows/tune-question', place: 'Flows', title: 'A question, with the payoff shown', replaces: 'every one-off question on profile, search strategy, and onboarding', Component: TuneQuestion },
   { path: 'flows/tune-done', place: 'Flows', title: 'The finish: what you just gained', replaces: 'new', Component: TuneDone },
   { path: 'flows/deep-dive', place: 'Flows', title: 'A long assessment as short rounds', replaces: 'How I Work Best (57 items), What I Need (24), Track Record (19)', Component: DeepDiveIntro },
+  { path: 'flows/track-record-intro', place: 'Flows', title: 'Track record as short rounds: the start (the real component, sample answers)', replaces: '/dashboard/track-record (19 questions on one page)', Component: TrackRecordIntro },
+  { path: 'flows/track-record-round', place: 'Flows', title: 'Track record as short rounds: a round, resumed at round 6 (the real component, sample answers)', replaces: '/dashboard/track-record', Component: TrackRecordRound },
+  { path: 'flows/track-record-done', place: 'Flows', title: 'Track record as short rounds: the finish (the real component, sample answers)', replaces: '/dashboard/track-record', Component: TrackRecordDone },
+  { path: 'flows/how-i-perform-round', place: 'Flows', title: 'How I perform as short rounds: a round, resumed at round 7 (the real component, sample answers)', replaces: '/dashboard/how-i-perform (40 statements in 5 pages)', Component: HowIPerformRound },
+  { path: 'flows/how-i-perform-last', place: 'Flows', title: 'How I perform as short rounds: the last round, then the finish (the real component, sample answers)', replaces: '/dashboard/how-i-perform', Component: HowIPerformDone },
   { path: 'flows/receipt-home', place: 'Flows', title: 'Receipt: Home bundle (pace and tone)', replaces: 'new', Component: ReceiptHome },
   { path: 'flows/receipt-network', place: 'Flows', title: 'Receipt: Network bundle (who you want to reach)', replaces: 'new', Component: ReceiptNetwork },
   { path: 'moments/candidate-plus', place: 'Moments', title: 'You earned Candidate+', replaces: 'the unlock ladder and its locked rungs', Component: CandidatePlusUnlock },
