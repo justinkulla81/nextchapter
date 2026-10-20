@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import type { SupportNetworkContact } from '@prisma/client'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { SubmitButton } from '@/components/ui/submit-button'
 import { ActionSubmit } from '@/components/candidate/ActionSubmit'
 import { RelationshipTagsFieldset } from '@/components/dashboard/RelationshipTagsFieldset'
 import { TagInput } from '@/components/onboarding/TagInput'
@@ -41,21 +39,16 @@ export interface ContactRowData extends SupportNetworkContact {
 // Directory table row expansion) and as the main content of the dedicated
 // contact profile page (/dashboard/network/contacts/[id]), so editing a
 // contact works identically from either entry point.
-export function ContactDetailPanel({ contact, redesign = false }: { contact: ContactRowData; redesign?: boolean }) {
-  const referenceHref = `/dashboard/references?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(
-    contact.email ?? ''
-  )}`
-  const [dirty, setDirty] = useState(false)
-
+export function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
   return (
     <div
       className={cn(
         'space-y-4',
         // The redesigned look: sentence-case labels and inputs at body size, with the same fields and the same save.
-        redesign && '[&_input]:h-11 [&_input]:text-base [&_label]:text-sm [&_label]:font-semibold [&_label]:text-ink [&_p]:text-sm [&_textarea]:text-base'
+        '[&_input]:h-11 [&_input]:text-base [&_label]:text-sm [&_label]:font-semibold [&_label]:text-ink [&_p]:text-sm [&_textarea]:text-base'
       )}
     >
-      <div className={cn('space-y-1 rounded-lg border border-border bg-background p-3', redesign && 'hidden')}>
+      <div className={cn('space-y-1 rounded-lg border border-border bg-background p-3', 'hidden')}>
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Communications</p>
         {contact.outreachCount > 0 ? (
           <p className="text-sm text-foreground">
@@ -77,7 +70,6 @@ export function ContactDetailPanel({ contact, redesign = false }: { contact: Con
       <form
         action={updateContact.bind(null, contact.id)}
         className="space-y-3"
-        onChange={() => setDirty(true)}
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <LabeledInput name="name" label="Name" defaultValue={contact.name} required className="max-w-[220px]" />
@@ -120,24 +112,12 @@ export function ContactDetailPanel({ contact, redesign = false }: { contact: Con
           <Textarea id="notes" name="notes" defaultValue={contact.notes ?? ''} rows={2} />
         </div>
 
-        {redesign ? (
-          <ActionSubmit variant="secondary" pendingLabel="Saving…" event="contact_saved" props={{ contactId: contact.id }}>
-            Save changes
-          </ActionSubmit>
-        ) : (
-          <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
-            Save
-          </SubmitButton>
-        )}
+        <ActionSubmit variant="secondary" pendingLabel="Saving…" event="contact_saved" props={{ contactId: contact.id }}>
+          Save changes
+        </ActionSubmit>
       </form>
 
-      {!redesign && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-          <a href={referenceHref} className="text-sm font-medium text-primary underline underline-offset-4">
-            Request a reference from {contact.name} →
-          </a>
-        </div>
-      )}
+      
     </div>
   )
 }

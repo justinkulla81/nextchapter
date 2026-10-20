@@ -64,7 +64,7 @@ export function ContactDetails({
       </div>
 
       {editing ? (
-        <ContactDetailPanel contact={contact} redesign />
+        <ContactDetailPanel contact={contact} />
       ) : (
         <dl className="space-y-4">
           <Fact label="Role">

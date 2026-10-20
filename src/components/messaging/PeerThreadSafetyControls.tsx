@@ -24,14 +24,11 @@ export function PeerThreadSafetyControls({
   otherCandidateId,
   isBlocked,
   isReported,
-  redesign = false,
 }: {
   threadId: string
   otherCandidateId: string | null
   isBlocked: boolean
   isReported: boolean
-  /** The redesigned look: controls at body size, with the same report and block confirmations. */
-  redesign?: boolean
 }) {
   const [reporting, setReporting] = useState(false)
   const [confirmingBlock, setConfirmingBlock] = useState(false)
@@ -39,12 +36,12 @@ export function PeerThreadSafetyControls({
   const reported = isReported || (!!reportState && !reportState.error)
 
   return (
-    <div className={cn('flex shrink-0 items-center gap-3', redesign ? 'text-sm' : 'text-xs')}>
+    <div className={cn('flex shrink-0 items-center gap-3', 'text-sm')}>
       {!reported && !reporting && (
         <button
           type="button"
           onClick={() => setReporting(true)}
-          className={cn('font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground', redesign && 'text-sm')}
+          className={cn('font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground', 'text-sm')}
         >
           Report
         </button>
@@ -54,7 +51,7 @@ export function PeerThreadSafetyControls({
       {otherCandidateId &&
         (isBlocked ? (
           <form action={unblockPeerCandidateAction.bind(null, otherCandidateId)}>
-            <SubmitButton variant="ghost" size="sm" className={cn('h-auto p-0 font-medium', redesign ? 'text-sm' : 'text-xs')}>
+            <SubmitButton variant="ghost" size="sm" className={cn('h-auto p-0 font-medium', 'text-sm')}>
               Unblock
             </SubmitButton>
           </form>
@@ -62,7 +59,7 @@ export function PeerThreadSafetyControls({
           <button
             type="button"
             onClick={() => setConfirmingBlock(true)}
-            className={cn('font-medium text-destructive hover:underline', redesign ? 'text-sm' : 'text-xs')}
+            className={cn('font-medium text-destructive hover:underline', 'text-sm')}
           >
             Block
           </button>
@@ -73,12 +70,12 @@ export function PeerThreadSafetyControls({
           <div className="w-full max-w-sm space-y-3 rounded-lg border border-border bg-card p-4">
             <input type="hidden" name="threadId" value={threadId} />
             <p className="text-sm font-medium text-foreground">Report this conversation</p>
-            <p className={cn('text-muted-foreground', redesign ? 'text-sm' : 'text-xs')}>
+            <p className={cn('text-muted-foreground', 'text-sm')}>
               An admin will review it — this only opens the messages in this one conversation, not
               your others.
             </p>
             <Textarea name="reason" placeholder="What happened? (optional)" rows={3} />
-            {reportState?.error && <p className={cn('text-destructive', redesign ? 'text-sm' : 'text-xs')}>{reportState.error}</p>}
+            {reportState?.error && <p className={cn('text-destructive', 'text-sm')}>{reportState.error}</p>}
             <div className="flex justify-end gap-2">
               <button
                 type="button"
@@ -99,7 +96,7 @@ export function PeerThreadSafetyControls({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm space-y-3 rounded-lg border border-border bg-card p-4">
             <p className="text-sm font-medium text-foreground">Block this person?</p>
-            <p className={cn('text-muted-foreground', redesign ? 'text-sm' : 'text-xs')}>
+            <p className={cn('text-muted-foreground', 'text-sm')}>
               They won&apos;t be able to message you again, and you won&apos;t be able to message
               them. You can unblock them later from this conversation.
             </p>

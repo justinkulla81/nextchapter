@@ -91,7 +91,7 @@ export function ContactsLive({ empty = false }: { empty?: boolean }) {
         </Section>
       ) : (
         <>
-          <SuggestedContactsCard suggestions={SUGGESTED} redesign />
+          <SuggestedContactsCard suggestions={SUGGESTED} />
           <Section id="contacts-title" title="Your contacts">
             <ContactDirectory contacts={CONTACTS} totalCount={142} page={1} pageCount={3} state={{ ...DEFAULT_CONTACT_LIST }} />
           </Section>
@@ -123,7 +123,6 @@ export function ContactDetailLive() {
       <div className="mx-auto max-w-2xl space-y-8">
         <PageHeader title={c.name} intro="VP Operations at Northwind" action={<StarContactButton contactId={c.id} isPriority labeled />} />
         <OutreachCoach
-          redesign
           contactId={c.id}
           contactName={c.name}
           contactEmail={c.email}
@@ -178,14 +177,14 @@ export function CommunityLive() {
       <PageHeader title="Industry and function" intro="People in your field. Good for learning how others got hired, and for being found." />
       <NetworkParts current="industry" />
       <div className="space-y-8">
-        <CommunityAutoJoinBanner redesign notices={[{ membershipId: 'm1', label: 'Boston' }, { membershipId: 'm2', label: 'Finance' }]} />
+        <CommunityAutoJoinBanner notices={[{ membershipId: 'm1', label: 'Boston' }, { membershipId: 'm2', label: 'Finance' }]} />
         <Section id="post" title="Post to the community">
-          <CommunityPostForm redesign />
+          <CommunityPostForm />
         </Section>
         <Section id="feed" title="From your field">
           <div className="divide-y divide-border rounded-2xl border border-border">
             {STREAM.map((item) => (
-              <CommunityStreamItem redesign key={item.kind === 'post' ? item.post.id : item.item.id} item={item} candidateId="me" />
+              <CommunityStreamItem key={item.kind === 'post' ? item.post.id : item.item.id} item={item} candidateId="me" />
             ))}
           </div>
         </Section>
@@ -193,18 +192,17 @@ export function CommunityLive() {
           <Section id="filters" title="Filter by group">
             <div className="space-y-5">
               <CommunityGroupStrip
-                redesign
                 otherParams={{}}
                 groups={[
                   { dimension: 'metro', value: 'boston', label: 'Boston', memberCount: 312 },
                   { dimension: 'function', value: 'finance', label: 'Finance', memberCount: 1204 },
                 ] as never}
               />
-              <CommunityChips redesign communities={[{ membershipId: 'a', communityId: 'c1', label: 'Boston' }, { membershipId: 'b', communityId: 'c2', label: 'Finance' }]} activeCommunityId="c2" />
+              <CommunityChips communities={[{ membershipId: 'a', communityId: 'c1', label: 'Boston' }, { membershipId: 'b', communityId: 'c2', label: 'Finance' }]} activeCommunityId="c2" />
             </div>
           </Section>
           <Section id="encouragement" title="Send encouragement">
-            <SendEncouragementForm redesign />
+            <SendEncouragementForm />
           </Section>
         </ShowMore>
       </div>
@@ -239,7 +237,7 @@ export function MessagesLive() {
         <div className="min-w-0 flex-1 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-xl font-semibold text-ink">Dana Ortiz</h2>
-            <PeerThreadSafetyControls threadId="t1" otherCandidateId={null} isBlocked={false} isReported={false} redesign />
+            <PeerThreadSafetyControls threadId="t1" otherCandidateId={null} isBlocked={false} isReported={false} />
           </div>
           <div className="rounded-2xl border border-border">
             <MessageBubbles
@@ -292,13 +290,13 @@ export function PrivacyLive() {
           <div className="space-y-2">
             <h3 className="text-base font-semibold text-ink">Confidential Search Mode</h3>
             <p className="max-w-xl text-sm text-muted-foreground">This decides whether anyone outside NextChapter can see your search at all: the community, LinkedIn, outreach, email, Gmail and recruiter sharing.</p>
-            <ConfidentialModeToggle enabled={false} redesign />
+            <ConfidentialModeToggle enabled={false} />
           </div>
-          <PrivacyTierSelector currentTier="SEMI_PUBLIC" alreadyAwarded={false} redesign />
+          <PrivacyTierSelector currentTier="SEMI_PUBLIC" alreadyAwarded={false} />
           <div className="space-y-2">
             <h3 className="text-base font-semibold text-ink">Employers and recruiters</h3>
             <p className="max-w-xl text-sm text-muted-foreground">Whether employers using NextChapter&apos;s hiring tools can match you against open roles at all. It is separate from the visibility above.</p>
-            <RecruiterDatabaseOptIn optedIn dossierUnlocked={false} dossierReason="You are 2 steps from Candidate+." redesign />
+            <RecruiterDatabaseOptIn optedIn dossierUnlocked={false} dossierReason="You are 2 steps from Candidate+." />
           </div>
         </div>
       </Section>
@@ -306,7 +304,6 @@ export function PrivacyLive() {
         <h2 className="font-display text-xl font-semibold text-ink">What we can read</h2>
         <p className="max-w-xl text-base text-muted-foreground">Choose what NextChapter reads to count your search activity for you.</p>
         <ConnectedAccountsSettings
-          redesign
           gmail={{ status: 'expired', account: 'justin@example.com', lastChecked: 'Oct 12, 9:14 AM' }}
           calendar={{ status: 'connected', account: 'justin@example.com', lastChecked: 'Oct 12, 9:14 AM' }}
           connectHref="#"
@@ -317,14 +314,14 @@ export function PrivacyLive() {
           <section className="space-y-3">
             <h2 className="font-display text-xl font-semibold text-ink">Résumé Book</h2>
             <p className="max-w-xl text-base text-muted-foreground">On by default, and switched on the first time you upload a résumé. It does not depend on your dossier. Turn it off any time.</p>
-            <ResumeBookOptIn optedIn redesign />
+            <ResumeBookOptIn optedIn />
           </section>
           <section className="space-y-3">
             <h2 className="font-display text-xl font-semibold text-ink">Email</h2>
             <p className="max-w-xl text-base text-muted-foreground">How often you hear from us, and which emails. Your Market Reality Report and any reminder emails always send.</p>
             <div className="space-y-8">
-              <NotificationTierSelector currentTier="FULL" redesign />
-              <EmailTopicToggles redesign optedOut={{ weeklyReportOptedOut: false, marketDigestOptedOut: true, dailyEmailOptedOut: false, jobSearchDailyOptedOut: false }} />
+              <NotificationTierSelector currentTier="FULL" />
+              <EmailTopicToggles optedOut={{ weeklyReportOptedOut: false, marketDigestOptedOut: true, dailyEmailOptedOut: false, jobSearchDailyOptedOut: false }} />
               <ActionWindowField current="MORNING" />
             </div>
           </section>
@@ -365,10 +362,10 @@ export function BenefitsNetworkLive() {
   return (
     <PreviewShell place="account" entry="membership">
       <PageHeader title="Higher education benefits network" intro="Discounts and programs for NextChapter members, brought in by alumni who know the university, program or certification body." />
-      <BenefitsNetworkFilterBar redesign current={{ costType: 'Discounted' }} />
+      <BenefitsNetworkFilterBar current={{ costType: 'Discounted' }} />
       <div className="grid gap-4 sm:grid-cols-2">
-        <BenefitsNetworkListingCard redesign listing={LISTING} isRedeemed={false} isMember matchedSkillGap="healthcare finance" />
-        <BenefitsNetworkListingCard redesign listing={{ ...LISTING, id: 'l2', programName: 'Board readiness course' } as BenefitsNetworkListingWithAlum} isRedeemed={false} isMember={false} matchedSkillGap={null} />
+        <BenefitsNetworkListingCard listing={LISTING} isRedeemed={false} isMember matchedSkillGap="healthcare finance" />
+        <BenefitsNetworkListingCard listing={{ ...LISTING, id: 'l2', programName: 'Board readiness course' } as BenefitsNetworkListingWithAlum} isRedeemed={false} isMember={false} matchedSkillGap={null} />
       </div>
     </PreviewShell>
   )

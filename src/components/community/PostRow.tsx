@@ -68,7 +68,7 @@ export function PostRow({ post, isOwnPost, messageHref }: { post: PostRowPost; i
           <>
             {!isAutomated && <InterestButton action={expressInterest.bind(null, post.id)} postId={post.id} />}
             <CheerButton action={toggleCheerPostAction.bind(null, post.id)} cheered={post.reactions.length > 0} count={post._count.reactions} postId={post.id} />
-            {!isAutomated && <CommunityPostReportButton postId={post.id} isReported={!!post.reportedAt} redesign />}
+            {!isAutomated && <CommunityPostReportButton postId={post.id} isReported={!!post.reportedAt} />}
           </>
         )}
       </div>
