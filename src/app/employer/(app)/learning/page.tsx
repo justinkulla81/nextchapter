@@ -5,7 +5,9 @@ import { learningReport, orgProgramTypes } from '@/lib/employer/staff-programs'
 import { PROGRAM_TYPE_BLURB } from '@/lib/employer/program-type'
 import { NotOnProgram, StatTile, showCell } from '@/components/employer/StaffStats'
 import { AddCourseForm, CourseActiveToggle } from '@/components/employer/StaffProgramForms'
+import { CohortAiGapPanel } from '@/components/skills/CohortAiGapPanel'
 import { buttonVariants } from '@/components/ui/button'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = { title: 'Learning' }
@@ -15,6 +17,7 @@ export default async function EmployerLearningPage() {
   if (!(await orgProgramTypes(orgUser.orgId)).has('LEARNING')) return <NotOnProgram program="Learning" what={PROGRAM_TYPE_BLURB.LEARNING} />
   const r = await learningReport(orgUser.orgId)
   const isAdmin = orgUser.role === 'ADMIN'
+  captureServerEvent(orgUser.userId, 'org_ai_gap_viewed', { orgId: orgUser.orgId, surface: 'learning', shown: r.aiGap !== null, counted: r.aiGap?.counted ?? 0 })
 
   return (
     <div className="space-y-10">
@@ -47,6 +50,8 @@ export default async function EmployerLearningPage() {
           <StatTile label="Finished one of your courses" value={r.completed} />
         </div>
       </section>
+
+      <CohortAiGapPanel gap={r.aiGap} who="people" />
 
       {r.byTeam.length > 0 && (
         <section aria-labelledby="learning-teams" className="space-y-3">

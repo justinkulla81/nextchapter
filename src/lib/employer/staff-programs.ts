@@ -4,6 +4,8 @@ import type { OutplacementProgramType, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { EMPLOYER_MIN_CELL_SIZE } from '@/lib/employer/candidate-identity-guard'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { loadCohortAiGap } from '@/lib/skills/cohort-ai-gap-server'
+import type { CohortAiGap } from '@/lib/skills/cohort-ai-gap'
 
 // Growth and Learning: programs for an employer's current people (src/lib/employer/program-type.ts).
 // The employer sees counts only, each held back until at least
@@ -146,16 +148,19 @@ export type LearningReport = {
   completed: Cell
   courses: { id: string; title: string; provider: string | null; covered: string | null; isActive: boolean; started: Cell; completed: Cell }[]
   byTeam: { label: string; joined: number; started: Cell; completed: Cell }[]
+  // AI skills the joined group shows against what postings in their functions ask for; null under 10 people.
+  aiGap: CohortAiGap | null
 }
 
 export async function learningReport(orgId: string): Promise<LearningReport> {
   const seats = await programSeats(orgId, 'LEARNING')
   const ids = joinedIds(seats)
   const population = ids.length
-  const [active30, courses, progress] = await Promise.all([
+  const [active30, courses, progress, aiGap] = await Promise.all([
     activeIn30Days(ids),
     prisma.orgCourse.findMany({ where: { orgId }, orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }], select: { id: true, title: true, provider: true, covered: true, isActive: true } }),
     ids.length ? prisma.orgCourseProgress.findMany({ where: { candidateId: { in: ids }, course: { orgId } }, select: { candidateId: true, courseId: true, status: true } }) : [],
+    population >= EMPLOYER_MIN_CELL_SIZE ? loadCohortAiGap(ids) : Promise.resolve(null),
   ])
   const startedBy = (subset: Set<string>) => new Set(progress.filter((p) => subset.has(p.candidateId)).map((p) => p.candidateId)).size
   const completedBy = (subset: Set<string>) => new Set(progress.filter((p) => subset.has(p.candidateId) && p.status === 'COMPLETED').map((p) => p.candidateId)).size
@@ -166,6 +171,7 @@ export async function learningReport(orgId: string): Promise<LearningReport> {
     active30: cell(active30, population),
     started: cell(startedBy(all), population),
     completed: cell(completedBy(all), population),
+    aiGap,
     courses: courses.map((c) => ({
       ...c,
       started: cell(progress.filter((p) => p.courseId === c.id).length, population),
