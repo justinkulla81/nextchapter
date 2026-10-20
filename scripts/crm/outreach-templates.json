@@ -14,7 +14,7 @@
         "{{company}}: {{employees}} people, one search at once"
       ],
       "preview": "Logins are easy to report. Landed is the number that matters.",
-      "body": "{{first_name}},\n\nYour outplacement vendor will report how many of the {{employees}} people leaving {{company}} logged in. Few will report how many landed. {{line_timing}}\n\nThat gap is the problem. Our monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed professionals still searching after 27 weeks, up from 23% a year ago. Most packages end at 90 days.\n\nThat's why I founded NextChapter, the leading job transition platform. Each affected person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} You get the number that matters: how many engaged, interviewed and landed, as counts, never names.\n\nIt works beside your vendor or replaces it. Is this yours, or should I send the one-pager to whoever owns the transition?",
+      "body": "{{first_name}},\n\nYour outplacement vendor will report how many of the {{employees}} people leaving {{company}} logged in. Few will report how many landed. {{line_timing}}\n\nThat gap is the problem. Our monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed white-collar workers still searching after 27 weeks, up from 23% a year ago. Most packages end at 90 days.\n\nThat's why I founded NextChapter, the leading job transition platform. Each affected person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} You get the number that matters: how many engaged, interviewed and landed, as counts, never names.\n\nIt works beside your vendor or replaces it. Is this yours, or should I send the one-pager to whoever owns the transition?",
       "fu1": "{{first_name}}, one concrete thing I can send: the three-sentence note your team would paste to the {{employees}} affected employees, with the link already in it. Want it?",
       "fu2": "{{first_name}}, I'll stop here so I don't clutter your inbox. If the timing changes, the offer stands: a pilot for the people leaving {{company}}.",
       "ps": "",
@@ -29,7 +29,7 @@
         "{{employees}} people, 90 days of coaching, then what?"
       ],
       "preview": "Hold your vendor to one number: landed.",
-      "body": "{{first_name}},\n\nIf you own the outplacement budget for the {{employees}} people leaving {{company}}, hold your vendor to one number: how many landed. Logins and workshop attendance are easy to report. Landing is what matters. {{line_timing}}\n\nOur monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed professionals still searching after 27 weeks, up from 23% a year ago. A 90-day package ends before that search does.\n\nThat's why I founded NextChapter, the leading job transition platform. Each affected person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} Every affected employee gets two years of access, and you get counts of who engaged, interviewed and landed, never names.\n\nWant the one-page summary, with terms?",
+      "body": "{{first_name}},\n\nIf you own the outplacement budget for the {{employees}} people leaving {{company}}, hold your vendor to one number: how many landed. Logins and workshop attendance are easy to report. Landing is what matters. {{line_timing}}\n\nOur monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed white-collar workers still searching after 27 weeks, up from 23% a year ago. A 90-day package ends before that search does.\n\nThat's why I founded NextChapter, the leading job transition platform. Each affected person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} Every affected employee gets two years of access, and you get counts of who engaged, interviewed and landed, never names.\n\nWant the one-page summary, with terms?",
       "fu1": "{{first_name}}, the summary is one page: what each of the {{employees}} people gets, how the pilot works, and the report you would receive. Should I send it?",
       "fu2": "{{first_name}}, closing the loop so I don't keep writing. If {{company}} wants a pilot later, reply to this thread and I'll set it up.",
       "ps": "",
@@ -44,7 +44,7 @@
         "One paragraph for {{company_poss}} transition notes"
       ],
       "preview": "A paragraph for the separation notes, ready to paste.",
-      "body": "{{first_name}},\n\nFor the separation notes at {{company}}: one paragraph that points the {{employees}} people leaving to a platform built for the long search. {{line_timing}} Our monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed professionals still searching after 27 weeks, up from 23% a year ago. Most outplacement ends at 90 days.\n\nNextChapter, the leading job transition platform, gives each person a pivot plan from each person's work history, retraining for the gaps, networking with the outreach drafted, coaching, and exclusive jobs and recruiters, for two years. {{line_open_roles}} People opt in, and you share no names.\n\nI can send the paragraph and link today. Who on your team should receive it?",
+      "body": "{{first_name}},\n\nFor the separation notes at {{company}}: one paragraph that points the {{employees}} people leaving to a platform built for the long search. {{line_timing}} Our monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed white-collar workers still searching after 27 weeks, up from 23% a year ago. Most outplacement ends at 90 days.\n\nNextChapter, the leading job transition platform, gives each person a pivot plan from each person's work history, retraining for the gaps, networking with the outreach drafted, coaching, and exclusive jobs and recruiters, for two years. {{line_open_roles}} People opt in, and you share no names.\n\nI can send the paragraph and link today. Who on your team should receive it?",
       "fu1": "{{first_name}}, the paragraph is four sentences and the link is ready. Shall I send it to you directly?",
       "fu2": "{{first_name}}, I'll leave it there. If the transition notes are still open later, the paragraph is yours on request.",
       "ps": "",
@@ -59,7 +59,7 @@
         "A connection for {{company_poss}} layoff"
       ],
       "preview": "One question, and a resource for the people leaving.",
-      "body": "{{first_name}},\n\nQuick question: who owns the transition for the {{employees}} people leaving {{company}}? Their outplacement vendor can report logins. We show who lands.\n\nI founded NextChapter, the leading job transition platform, for exactly that: a pivot plan from each person's work history, retraining for the gaps, networking with the outreach drafted, coaching, and exclusive jobs and recruiters. Our monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed professionals still searching after 27 weeks, up from 23% a year ago. A 90-day package often ends before the search does.\n\nYou may know the right person better than any directory does. If you point me to them, I'll keep it to one short note.",
+      "body": "{{first_name}},\n\nQuick question: who owns the transition for the {{employees}} people leaving {{company}}? Their outplacement vendor can report logins. We show who lands.\n\nI founded NextChapter, the leading job transition platform, for exactly that: a pivot plan from each person's work history, retraining for the gaps, networking with the outreach drafted, coaching, and exclusive jobs and recruiters. Our monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed white-collar workers still searching after 27 weeks, up from 23% a year ago. A 90-day package often ends before the search does.\n\nYou may know the right person better than any directory does. If you point me to them, I'll keep it to one short note.",
       "fu1": "{{first_name}}, if the transition belongs to someone you'd rather not name, forward this and I'll introduce myself. Fine either way.",
       "fu2": "{{first_name}}, I won't write again unless you'd like me to. Thank you for reading.",
       "ps": "",
@@ -70,15 +70,15 @@
       "who": "State Rapid Response coordinator",
       "why": "Opens on their state's own filings and the largest employer. Makes the referral easy and offers aggregate counts back.",
       "subjects": [
-        "Which of {{state_poss}} layoffs are mostly professionals?",
+        "Which of {{state_poss}} layoffs are mostly white-collar workers?",
         "{{state}}: {{state_jobs_90d}} jobs in notices, and who they leave out"
       ],
-      "preview": "Managers and professionals are the people standard services reach least.",
-      "body": "{{first_name}},\n\nWhich of {{state_poss}} recent layoffs are mostly managers and professionals? They are the people standard services reach least. {{state}} employers filed {{state_notices_phrase}} in the last 90 days. {{line_top_notices}} {{line_timing}}\n\nOur monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed professionals still searching after 27 weeks, up from 23% a year ago. Many need a pivot, not a better résumé.\n\nI built NextChapter, the leading job transition platform. It adds what a first-month workshop cannot. Each person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} It is free to the people you refer, and you get counts back, never names.\n\nMay I send a one-page handout and a tagged link for your next employer meeting?",
+      "preview": "White-collar workers are often the hardest for standard services to reach.",
+      "body": "{{first_name}},\n\nWhich of {{state_poss}} recent layoffs hit white-collar workers, whether from AI or a mass layoff? They are often the hardest for standard services to reach. {{state}} employers filed {{state_notices_phrase}} in the last 90 days. {{line_top_notices}} {{line_timing}}\n\nOur monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed white-collar workers still searching after 27 weeks, up from 23% a year ago. Many need a pivot, not a better résumé.\n\nI built NextChapter, the leading job transition platform. It adds what a first-month workshop cannot. Each person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} It is free to the people you refer, and you get counts back, never names.\n\nMay I send a one-page handout and a tagged link for your next employer meeting?",
       "fu1": "{{first_name}}, the handout is one page and can be printed or emailed to affected employees at the meeting. Should I send it?",
-      "fu2": "{{first_name}}, I'll step back. If a layoff comes up where professionals need job matching, reply here and I'll set up the link the same day.",
+      "fu2": "{{first_name}}, I'll step back. If a layoff comes up where white-collar workers need job matching, reply here and I'll set up the link the same day.",
       "ps": "",
-      "subject_fallback": "For the professionals in this layoff"
+      "subject_fallback": "For the white-collar workers in this layoff"
     },
     {
       "id": "board",
@@ -86,25 +86,25 @@
       "why": "Opens on the county's own numbers and the largest layoff in the area, then offers a demo built from their notices.",
       "subjects": [
         "{{county}}: {{county_jobs_12mo}} jobs in layoff notices",
-        "A pilot for {{board}}'s professional job seekers"
+        "A pilot for {{board}}'s white-collar job seekers"
       ],
-      "preview": "Who is reaching the professionals in your region's layoffs?",
-      "body": "{{first_name}},\n\nWho is reaching the managers and professionals in {{county}}'s layoffs? {{line_local}} {{line_company}} {{line_timing}}\n\nOur monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed professionals still searching after 27 weeks, up from 23% a year ago.\n\nI built NextChapter, the leading job transition platform, for that long search. Each person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} It is free to the people you refer.\n\nI built a working demo for {{board}}'s region from those public notices. I would like to run a pilot with one shared measure: how many referred people joined and, among those who choose to share it, how many are interviewing at 45 days. Want the demo link?",
+      "preview": "Who is reaching the white-collar workers in your region's layoffs?",
+      "body": "{{first_name}},\n\nWho is reaching the white-collar workers in {{county}}'s layoffs, whether the cause is AI or a mass layoff? {{line_local}} {{line_company}} {{line_timing}}\n\nOur monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed white-collar workers still searching after 27 weeks, up from 23% a year ago.\n\nI built NextChapter, the leading job transition platform, for that long search. Each person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} It is free to the people you refer.\n\nI built a working demo for {{board}}'s region from those public notices. I would like to run a pilot with one shared measure: how many referred people joined and, among those who choose to share it, how many are interviewing at 45 days. Want the demo link?",
       "fu1": "{{first_name}}, the demo is read-only and open for 30 days, so there is nothing to set up. Should I send the link?",
-      "fu2": "{{first_name}}, I'll close this out. If {{board}} sees a layoff where professionals need more than a general job board, reply and I'll start a pilot for it.",
+      "fu2": "{{first_name}}, I'll close this out. If {{board}} sees a layoff where white-collar workers need more than a general job board, reply and I'll start a pilot for it.",
       "ps": "",
-      "subject_fallback": "A pilot for your professional job seekers"
+      "subject_fallback": "A pilot for your white-collar job seekers"
     },
     {
       "id": "ajc",
       "who": "American Job Center: business-services contact or shared inbox",
       "why": "Practical and short. Names their center and county, and asks only for a front-desk handout.",
       "subjects": [
-        "For the professionals who visit {{center}}",
+        "For the white-collar workers who visit {{center}}",
         "A handout for {{center}}'s front desk"
       ],
       "preview": "Local-first, and the account stays free after they land.",
-      "body": "Hi {{first_name}} -\n\n{{line_local}} Some of the people who come to {{center}} after a layoff are managers and professionals who need more than a general job board.\n\nNextChapter gives them local job listings, a skills-gap plan and AI training, free, and the account stays free after they land. {{line_open_roles}}\n\nI can send a one-page handout with a QR code for your front desk, and a note you can share with the employers you work with. May I send them?",
+      "body": "Hi {{first_name}} -\n\n{{line_local}} Some of the people who come to {{center}} after a layoff are white-collar workers who need more than a general job board.\n\nNextChapter gives them local job listings, a skills-gap plan and AI training, free, and the account stays free after they land. {{line_open_roles}}\n\nI can send a one-page handout with a QR code for your front desk, and a note you can share with the employers you work with. May I send them?",
       "fu1": "Hi {{first_name}} - the handout is one page with a QR code. Should I email it?",
       "fu2": "I won't follow up again. If it would help later, reply to this thread and I'll send the handout.",
       "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
@@ -119,7 +119,7 @@
         "A resource for {{county}} employers facing layoffs"
       ],
       "preview": "Local jobs first, and a county demo built from public data.",
-      "body": "{{first_name}},\n\n{{line_local}} {{line_majors}} When skilled people leave a region to find work, the region loses the talent.\n\nNextChapter ranks local jobs first for laid-off professionals and shows which skills local employers are hiring for. It is free to the people affected. {{line_college}}\n\nI can give {{org}} a one-page note to share with member employers facing layoffs, and a working demo for {{county}} built from public notices and open postings. Would the demo for {{county}} be useful?",
+      "body": "{{first_name}},\n\n{{line_local}} {{line_majors}} When skilled people leave a region to find work, the region loses the talent.\n\nNextChapter ranks local jobs first for laid-off white-collar workers and shows which skills local employers are hiring for. It is free to the people affected. {{line_college}}\n\nI can give {{org}} a one-page note to share with member employers facing layoffs, and a working demo for {{county}} built from public notices and open postings. Would the demo for {{county}} be useful?",
       "fu1": "{{first_name}}, the demo uses {{county}}'s real layoff notices and takes one click to open. Should I send the link?",
       "fu2": "{{first_name}}, I'll leave it here. If a member employer announces a layoff, reply and I'll send the one-page note the same day.",
       "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
@@ -134,7 +134,7 @@
         "A reemployment resource for white-collar claimants"
       ],
       "preview": "39% of claimants used up their benefits. Aggregate counts back to you.",
-      "body": "{{first_name}},\n\nNationally, 39% of unemployment claimants used up their benefits in the 12 months to August, after drawing them for 15.8 weeks on average (Labor Department). Our monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed professionals still searching after 27 weeks, up from 23% a year ago. {{state}} employers filed notices for {{state_jobs_90d}} jobs in the last 90 days.\n\nI built NextChapter, the leading job transition platform, for the claimants who outlast their benefits. Each person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} It is free to claimants and could sit alongside reemployment services and RESEA, with aggregate counts reported back.\n\nMay I send a two-paragraph summary and a demo built from {{state_poss}} own data?",
+      "body": "{{first_name}},\n\nNationally, 39% of unemployment claimants used up their benefits in the 12 months to August, after drawing them for 15.8 weeks on average (Labor Department). Our monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed white-collar workers still searching after 27 weeks, up from 23% a year ago. {{state}} employers filed notices for {{state_jobs_90d}} jobs in the last 90 days.\n\nI built NextChapter, the leading job transition platform, for the claimants who outlast their benefits. Each person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} It is free to claimants and could sit alongside reemployment services and RESEA, with aggregate counts reported back.\n\nMay I send a two-paragraph summary and a demo built from {{state_poss}} own data?",
       "fu1": "{{first_name}}, the summary is two paragraphs and the demo opens in one click. Which would be easier?",
       "fu2": "{{first_name}}, I'll step back. If a colleague owns reemployment tools, a forward would be appreciated.",
       "ps": "",
@@ -149,7 +149,7 @@
         "{{state}}: layoffs, open roles and AI skills"
       ],
       "preview": "Pivot paths from layoffs to growing roles, from public data.",
-      "body": "{{first_name}},\n\n{{state}} employers filed notices for {{state_jobs_90d}} jobs in the last 90 days, and our crawler lists {{state_open_roles}} open roles in the state. {{line_ai_roles}} {{line_top_functions}}\n\nNextChapter is the leading job transition platform that turns data like yours into pivot paths for laid-off professionals: which roles their skills fit, what is missing, and learning and retraining to close the gap, plus networking support, coaching, and exclusive jobs and recruiters. We publish a monthly white-collar employment report from public data, with methods open.\n\nWould you compare notes on the data? I can send the latest report and the {{state}} cut.",
+      "body": "{{first_name}},\n\n{{state}} employers filed notices for {{state_jobs_90d}} jobs in the last 90 days, and our crawler lists {{state_open_roles}} open roles in the state. {{line_ai_roles}} {{line_top_functions}}\n\nNextChapter is the leading job transition platform that turns data like yours into pivot paths for laid-off white-collar workers: which roles their skills fit, what is missing, and learning and retraining to close the gap, plus networking support, coaching, and exclusive jobs and recruiters. We publish a monthly white-collar employment report from public data, with methods open.\n\nWould you compare notes on the data? I can send the latest report and the {{state}} cut.",
       "fu1": "{{first_name}}, I can send the {{state}} cut as a one-page table, with the sources. Would that be useful?",
       "fu2": "{{first_name}}, I'll leave it there. If a data request comes up, reply and I'll send the files.",
       "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
@@ -161,29 +161,29 @@
       "why": "Policy level. Opens on the state's totals and largest layoff; asks for 20 minutes and the right person on their team.",
       "subjects": [
         "{{state}}: {{state_jobs_90d}} jobs in notices. How many will land?",
-        "A resource for dislocated professionals in {{state}}"
+        "A resource for dislocated white-collar workers in {{state}}"
       ],
       "preview": "Local jobs first, aggregate counts only.",
-      "body": "{{first_name}},\n\n{{state}} employers filed notices for {{state_jobs_90d}} jobs in the last 90 days. {{line_top_notices}} How many of those people will land?\n\nOur monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed professionals still searching after 27 weeks, up from 23% a year ago.\n\nI built NextChapter, the leading job transition platform, for that long search. Each person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} It reports aggregate counts back, never names.\n\nI would like 20 minutes to show a demo built from {{state_poss}} own data and hear where it would and would not fit your services. Who on your team should I start with?",
+      "body": "{{first_name}},\n\n{{state}} employers filed notices for {{state_jobs_90d}} jobs in the last 90 days. {{line_top_notices}} How many of those people will land?\n\nOur monthly report on white-collar unemployment (Census and BLS data, methods published) shows 28% of unemployed white-collar workers still searching after 27 weeks, up from 23% a year ago.\n\nI built NextChapter, the leading job transition platform, for that long search. Each person gets a search strategy, a pivot plan built from their work history, tailored jobs and a network to support them. That includes retraining for the gaps, networking outreach drafted for them, coaching, and exclusive jobs and recruiters. {{line_open_roles}} It reports aggregate counts back, never names.\n\nI would like 20 minutes to show a demo built from {{state_poss}} own data and hear where it would and would not fit your services. Who on your team should I start with?",
       "fu1": "{{first_name}}, I can send a two-paragraph summary and the demo link instead of a call. Which is easier?",
       "fu2": "{{first_name}}, I'll step back. If a different person owns this, a forward would be appreciated.",
       "ps": "",
-      "subject_fallback": "A resource for dislocated professionals"
+      "subject_fallback": "A resource for dislocated white-collar workers"
     },
     {
       "id": "funder",
       "who": "Foundation or funder: program officer",
       "why": "Makes a concrete, measurable ask. The budget goes in the one-pager, not the email.",
       "subjects": [
-        "A pilot for 100 laid-off professionals in {{county}}",
-        "A small, measurable pilot for laid-off professionals"
+        "A pilot for 100 laid-off white-collar workers in {{county}}",
+        "A small, measurable pilot for laid-off white-collar workers"
       ],
       "preview": "Counts reported back: joined, plus interviewing and landed for those who opt in.",
-      "body": "{{first_name}},\n\n{{line_local}} {{line_company}} Nationally, 39% of unemployment claimants used up their benefits in the 12 months to August (Labor Department).\n\nA small grant would let 100 of those professionals use NextChapter for six months: local job matching, a skills-gap plan and AI training. You would receive a counts-only report: how many joined and, among those who choose to share it, how many are interviewing or have landed. I will not claim results beyond the counts.\n\nMay I send a one-page proposal with the budget?",
+      "body": "{{first_name}},\n\n{{line_local}} {{line_company}} Nationally, 39% of unemployment claimants used up their benefits in the 12 months to August (Labor Department).\n\nA small grant would let 100 of those white-collar workers use NextChapter for six months: local job matching, a skills-gap plan and AI training. You would receive a counts-only report: how many joined and, among those who choose to share it, how many are interviewing or have landed. I will not claim results beyond the counts.\n\nMay I send a one-page proposal with the budget?",
       "fu1": "{{first_name}}, the proposal is one page with the budget and the report you would receive. Should I send it?",
       "fu2": "{{first_name}}, I'll close this out. If {{org}} funds rapid response to layoffs, I would be glad to share the proposal at any point.",
       "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
-      "subject_fallback": "A small, measurable pilot for laid-off professionals"
+      "subject_fallback": "A small, measurable pilot for laid-off white-collar workers"
     },
     {
       "id": "partner",
@@ -194,7 +194,7 @@
         "A layer beside your program"
       ],
       "preview": "A test on one engagement. You keep the client.",
-      "body": "{{first_name}},\n\nLaid-off professionals face about one opening per unemployed person (1.01 in August, BLS), and 27% of the unemployed have been out of work 27 weeks or more. Program end dates matter.\n\nNextChapter is a layer beside your program: local job listings (our crawler tracks about 188,000 open manager-level roles), a skills-gap plan and AI training, and each person keeps a free account afterward. I would like to test it on one upcoming engagement; you keep the client.\n\nOpen to a 15-minute call?",
+      "body": "{{first_name}},\n\nLaid-off white-collar workers face about one opening per unemployed person (1.01 in August, BLS), and 27% of the unemployed have been out of work 27 weeks or more. Program end dates matter.\n\nNextChapter is a layer beside your program: local job listings (our crawler tracks about 188,000 open white-collar roles), a skills-gap plan and AI training, and each person keeps a free account afterward. I would like to test it on one upcoming engagement; you keep the client.\n\nOpen to a 15-minute call?",
       "fu1": "{{first_name}}, I can send a one-page summary of what your clients would see. Should I?",
       "fu2": "{{first_name}}, I'll step back. If a client asks about local jobs or AI training, reply and I'll set up a test.",
       "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
