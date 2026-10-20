@@ -7,7 +7,9 @@ import { cn } from '@/lib/utils'
 import { setSearchExpansion } from '@/app/dashboard/market/actions'
 
 // One opt-in: add this to my job search, or take it back out.
-export function ExpansionToggle({ kind, value, on: initial, label }: { kind: 'remote' | 'state' | 'relocate' | 'role' | 'industry'; value: string; on: boolean; label: string }) {
+// `quiet` is for redesigned pages, where a list of these must not carry several orange buttons: both states are outlined,
+// and "in my search" is marked with a check and navy text instead of a filled button.
+export function ExpansionToggle({ kind, value, on: initial, label, quiet = false }: { kind: 'remote' | 'state' | 'relocate' | 'role' | 'industry'; value: string; on: boolean; label: string; quiet?: boolean }) {
   const [on, setOn] = useState(initial)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -15,7 +17,8 @@ export function ExpansionToggle({ kind, value, on: initial, label }: { kind: 're
     <span className={cn('inline-flex flex-wrap items-center gap-2', pending && 'cursor-wait')}>
       <Button
         size="sm"
-        variant={on ? 'default' : 'outline'}
+        variant={on && !quiet ? 'default' : 'outline'}
+        className={cn(quiet && on && 'border-ink font-semibold text-ink')}
         aria-pressed={on}
         aria-label={`${label}: ${on ? 'in your job search' : 'not in your job search'}`}
         disabled={pending}
@@ -31,7 +34,7 @@ export function ExpansionToggle({ kind, value, on: initial, label }: { kind: 're
           })
         }
       >
-        {on ? 'In my job search' : 'Add to my job search'}
+        {on ? (quiet ? '✓ In my job search' : 'In my job search') : 'Add to my job search'}
       </Button>
       {error && (
         <span role="alert" className="text-xs text-destructive">

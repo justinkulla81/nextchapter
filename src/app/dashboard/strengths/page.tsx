@@ -7,10 +7,8 @@ import { loadStrengths } from '@/lib/profile/strengths-load'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Spinner } from '@/components/ui/spinner'
 import { isRedesignOn } from '@/lib/redesign/flag'
-import { strengthStepHref } from '@/lib/redesign/jobs-pages'
-import { PageHeader } from '@/components/candidate/PageHeader'
-import { ShowMore } from '@/components/candidate/ShowMore'
-import { ActionLink } from '@/components/candidate/ActionLink'
+import { StrengthsRedesign, WhyHireView } from '@/components/dashboard/StrengthsRedesign'
+import { EmptyNote } from '@/components/candidate/Blocks'
 import { StrengthsViewed } from '@/components/dashboard/StrengthsViewed'
 
 export const metadata: Metadata = { title: 'Why hire me' }
@@ -139,34 +137,26 @@ export default async function StrengthsPage() {
   )
 
   if (isRedesignOn(profile.email)) {
-    const nextMissing = st.missing[0]
     return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Why hire me"
-          intro="Where you stand out, shown with the evidence behind it: your assessments, references, track record and skills. Your job matches, LinkedIn copy and dossier lead with these."
-          action={
-            nextMissing ? (
-              <ActionLink href={strengthStepHref(nextMissing)} kind="primary" event="strengths_next_step_clicked" props={{ step: nextMissing, shape: st.shape, evidenceCount: lead.length }}>
-                Add more evidence
-              </ActionLink>
-            ) : (
-              <ActionLink href="/dashboard/linkedin" kind="primary" event="strengths_use_clicked" props={{ shape: st.shape, evidenceCount: lead.length }}>
-                Use it on LinkedIn
-              </ActionLink>
+      <>
+        <StrengthsViewed shape={st.shape} peaks={st.peaks.map((p) => p.key)} />
+        <StrengthsRedesign
+          st={st}
+          whyHire={
+            st.shape === 'emerging' ? null : (
+              <Suspense
+                fallback={
+                  <p className="flex items-center gap-2 text-base text-muted-foreground">
+                    <Spinner size={14} /> Writing your “why hire me”
+                  </p>
+                }
+              >
+                <WhyHire candidateId={profile.id} redesign />
+              </Suspense>
             )
           }
         />
-        {block1}
-        {block2}
-        {block3}
-        {(st.weakSpots.length > 0 || st.missing.length > 0) && (
-          <ShowMore page="strengths" label="Show what to prepare and sharpen">
-            {block4}
-            {block5}
-          </ShowMore>
-        )}
-      </div>
+      </>
     )
   }
 
@@ -183,9 +173,10 @@ export default async function StrengthsPage() {
 }
 
 // The AI write-up: reused while the inputs are unchanged, rewritten when they change.
-async function WhyHire({ candidateId }: { candidateId: string }) {
+async function WhyHire({ candidateId, redesign = false }: { candidateId: string; redesign?: boolean }) {
   const st = await loadStrengths(candidateId, { writeUp: true })
-  if (!st.whyHire) return <p className="text-sm text-muted-foreground">We couldn’t write this just now. Refresh in a minute.</p>
+  if (!st.whyHire) return redesign ? <EmptyNote>We could not write this just now. Refresh in a minute.</EmptyNote> : <p className="text-sm text-muted-foreground">We couldn’t write this just now. Refresh in a minute.</p>
+  if (redesign) return <WhyHireView whyHire={st.whyHire} />
   return (
     <div className="space-y-2">
       <p className="text-base">{st.whyHire.statement}</p>

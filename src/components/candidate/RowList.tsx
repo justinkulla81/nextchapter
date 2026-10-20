@@ -7,9 +7,9 @@ export interface RowItem {
   /** Makes the title an external link, for example to a course. */
   href?: string
   /** Why this row is here, in a plain sentence. */
-  why?: string
+  why?: ReactNode
   /** One fact: a date, a time, a count. */
-  fact?: string
+  fact?: ReactNode
   actions?: ReactNode
   /** Opens under the row on demand. */
   detail?: ReactNode

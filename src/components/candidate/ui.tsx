@@ -4,8 +4,9 @@ import { cn } from '@/lib/utils'
 // Small pieces every mockup shares.
 
 const AVATAR_TONES = ['bg-ink/90 text-white', 'bg-brand text-white', 'bg-success text-white', 'bg-orange/70 text-ink', 'bg-muted text-ink']
-export function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 'lg' }) {
-  const tone = AVATAR_TONES[name.charCodeAt(0) % AVATAR_TONES.length]
+// `neutral` is for lists of real companies and people, where a green or blue tile would look like a status.
+export function Avatar({ name, size = 'md', neutral = false }: { name: string; size?: 'sm' | 'md' | 'lg'; neutral?: boolean }) {
+  const tone = neutral ? 'bg-muted text-ink' : AVATAR_TONES[name.charCodeAt(0) % AVATAR_TONES.length]
   const dim = size === 'lg' ? 'size-14 text-xl' : size === 'sm' ? 'size-8 text-sm' : 'size-11 text-base'
   return (
     <span aria-hidden className={cn('inline-flex shrink-0 items-center justify-center rounded-xl font-semibold', tone, dim)}>

@@ -59,16 +59,23 @@ export default async function InWorkPage({
     fromEmail: first(sp.src) === 'inwork_email',
   })
 
+  const redesign = isRedesignOn(profile.email)
+  const buildCaseLink = (
+    <p className={redesign ? 'text-sm text-muted-foreground' : 'mb-4 text-sm text-muted-foreground'}>
+      Going into a specific review, raise, promotion or offer conversation?{' '}
+      <Link href="/dashboard/review-prep" className="font-medium text-primary underline underline-offset-4">
+        Build your case for it
+      </Link>
+      .
+    </p>
+  )
+
+  // The redesigned page opens with its one headline; the link to Build your case follows the workspace instead of sitting above it.
   return (
     <>
-      <p className="mb-4 text-sm text-muted-foreground">
-        Going into a specific review, raise, promotion or offer conversation?{' '}
-        <Link href="/dashboard/review-prep" className="font-medium text-primary underline underline-offset-4">
-          Build your case for it
-        </Link>
-        .
-      </p>
-      <InWorkWorkspace data={data} initialTab={initialTab} redesign={isRedesignOn(profile.email)} />
+      {!redesign && buildCaseLink}
+      <InWorkWorkspace data={data} initialTab={initialTab} redesign={redesign} />
+      {redesign && buildCaseLink}
     </>
   )
 }

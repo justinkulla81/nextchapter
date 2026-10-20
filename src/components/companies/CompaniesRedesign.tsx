@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Avatar } from '@/components/candidate/ui'
 import { ShowMore } from '@/components/candidate/ShowMore'
+import { SectionPills } from '@/components/candidate/SectionPills'
 import { RankedCompanyLink, CompanyDirectoryViewed } from '@/components/companies/CompanyDirectoryAnalytics'
 import { companyRowText, type RankingText } from '@/lib/redesign/jobs-pages'
 
@@ -74,14 +75,14 @@ export function CompaniesRedesign({
         </div>
         <ShowMore page="companies" label="Filters and sort" defaultOpen={anyFilter || sort === 'az'}>
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Sort companies">
-              <Button nativeButton={false} render={<Link href={`/dashboard/companies?${buildHref({ sort: undefined, page: undefined })}`} />} variant={sort === 'fit' ? 'default' : 'outline'} size="sm" aria-pressed={sort === 'fit'}>
-                Best fit for me
-              </Button>
-              <Button nativeButton={false} render={<Link href={`/dashboard/companies?${buildHref({ sort: 'az', page: undefined })}`} />} variant={sort === 'az' ? 'default' : 'outline'} size="sm" aria-pressed={sort === 'az'}>
-                A–Z
-              </Button>
-            </div>
+            <SectionPills
+              label="Sort companies"
+              current={sort}
+              items={[
+                { key: 'fit', label: 'Best fit for me', href: `/dashboard/companies?${buildHref({ sort: undefined, page: undefined })}` },
+                { key: 'az', label: 'A–Z', href: `/dashboard/companies?${buildHref({ sort: 'az', page: undefined })}` },
+              ]}
+            />
             <div className="flex flex-wrap gap-x-5 gap-y-2">
               {filters.map(({ key, label, checked }) => (
                 <div key={key} className="flex items-center gap-2">
@@ -130,7 +131,7 @@ export function CompaniesRedesign({
                   className="flex items-center justify-between gap-4 p-4 hover:bg-muted/50"
                 >
                   <span className="flex min-w-0 items-center gap-4">
-                    <Avatar name={c.name} />
+                    <Avatar name={c.name} neutral />
                     <span className="min-w-0">
                       <span className="block truncate text-base font-semibold text-ink">{c.name}</span>
                       {c.ranking && <span className="block text-sm text-ink">{text.reason}</span>}

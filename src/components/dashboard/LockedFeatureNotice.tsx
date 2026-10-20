@@ -12,11 +12,23 @@ export function LockedFeatureNotice({
   title,
   requirement,
   status,
+  redesign = false,
 }: {
   title: string
   requirement: string
   status: string
+  /** Redesigned pages: plain words with the next step, no lock icon, no orange label, no dashed box. */
+  redesign?: boolean
 }) {
+  if (redesign) {
+    return (
+      <div className="space-y-1">
+        <p className="text-base font-semibold text-ink">{title} opens when you have done the work</p>
+        <p className="max-w-2xl text-base text-muted-foreground">{requirement}</p>
+        <p className="max-w-2xl text-base text-ink">{renderMarkdownLinks(status)}</p>
+      </div>
+    )
+  }
   return (
     <div className="rounded-lg border border-dashed border-light-gray bg-off-white p-4">
       <div className="flex items-center gap-2">

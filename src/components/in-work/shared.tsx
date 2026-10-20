@@ -1,8 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { createContext, useContext, useState, useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import type { ActionResult } from '@/app/dashboard/in-work/actions'
+
+// The workspace's seven tabs share these building blocks. The redesigned page provides `true` here once, and every tab
+// picks up the redesign look (no boxed sections, serif titles, ink instead of blue) without a prop on each of them.
+export const RedesignContext = createContext(false)
 
 export type Notice = { kind: 'ok' | 'error'; text: string } | null
 
@@ -31,15 +35,28 @@ export function useRunner() {
 }
 
 export function NoticeLine({ notice }: { notice: Notice }) {
+  const redesign = useContext(RedesignContext)
   if (!notice) return null
   return (
-    <p role="status" className={cn('text-sm', notice.kind === 'ok' ? 'text-success' : 'text-destructive')}>
+    <p role="status" className={cn('text-sm', notice.kind === 'ok' ? (redesign ? 'font-medium text-ink' : 'text-success') : 'text-destructive')}>
       {notice.text}
     </p>
   )
 }
 
 export function Section({ title, intro, children }: { title: string; intro?: string; children: React.ReactNode }) {
+  const redesign = useContext(RedesignContext)
+  if (redesign) {
+    return (
+      <section className="space-y-3">
+        <div className="space-y-1">
+          <h2 className="font-display text-xl font-semibold text-ink">{title}</h2>
+          {intro && <p className="max-w-2xl text-base text-muted-foreground">{intro}</p>}
+        </div>
+        {children}
+      </section>
+    )
+  }
   return (
     <section className="space-y-3 rounded-lg border border-border bg-background p-4">
       <div>
@@ -76,6 +93,7 @@ export function ChoiceButtons<T extends string>({
   onChange: (v: T) => void
   label: string
 }) {
+  const redesign = useContext(RedesignContext)
   return (
     <div role="group" aria-label={label} className="flex flex-wrap gap-2">
       {options.map((o) => (
@@ -86,7 +104,7 @@ export function ChoiceButtons<T extends string>({
           onClick={() => onChange(o.key)}
           className={cn(
             'rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
-            value === o.key ? 'border-brand bg-brand/10 text-brand' : 'border-border bg-background text-foreground/80 hover:bg-muted',
+            value === o.key ? (redesign ? 'border-ink bg-ink/5 font-semibold text-ink' : 'border-brand bg-brand/10 text-brand') : 'border-border bg-background text-foreground/80 hover:bg-muted',
           )}
         >
           {o.label}

@@ -32,7 +32,7 @@ export function InterestButton({ postingId, orgName, interested }: { postingId: 
   }
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+      <button type="button" onClick={() => setOpen(true)} className="rounded-md nc-action px-3 py-1.5 text-sm font-medium">
         I’m interested
       </button>
     )
@@ -47,7 +47,7 @@ export function InterestButton({ postingId, orgName, interested }: { postingId: 
       </label>
       <Textarea id={`note-${postingId}`} rows={2} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why this role, and when you could move." />
       <div className="flex items-center gap-3">
-        <button type="button" disabled={pending} onClick={() => run(true)} className={cn('rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90', pending && 'cursor-wait')}>
+        <button type="button" disabled={pending} onClick={() => run(true)} className={cn('rounded-md nc-action px-3 py-1.5 text-sm font-medium', pending && 'cursor-wait')}>
           {pending ? 'Sharing…' : `Share my name with ${orgName}`}
         </button>
         <button type="button" onClick={() => setOpen(false)} className="text-sm text-muted-foreground underline underline-offset-4">
