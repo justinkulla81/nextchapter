@@ -29,7 +29,7 @@ export function EvidenceView({ evidence, plusReason, reviews }: { evidence: Evid
   const tierTone = evidence.tier === 'CANDIDATE_PLUS_VERIFIED' ? 'bg-success/10 text-success' : evidence.tier === 'CANDIDATE_PLUS' ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'
 
   return (
-    <section className="space-y-5 rounded-2xl border border-orange/30 bg-orange/5 p-6" aria-labelledby="evidence-heading">
+    <section className="space-y-5 rounded-2xl border border-border bg-card p-6" aria-labelledby="evidence-heading">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="space-y-1">
           <h2 id="evidence-heading" className="font-serif text-2xl font-semibold tracking-tight text-navy">

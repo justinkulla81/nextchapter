@@ -20,7 +20,7 @@ export function WorkSampleTypeGateForm({ alreadyAwarded: _alreadyAwarded = false
   const [state, formAction, pending] = useActionState(submitWorkSampleType, undefined)
 
   return (
-    <section aria-labelledby="gate-heading" className={cn('space-y-5 rounded-2xl border border-orange/30 bg-orange/5 p-6', pending && 'cursor-progress [&_*]:cursor-progress')}>
+    <section aria-labelledby="gate-heading" className={cn('space-y-5 rounded-2xl border border-border bg-card p-6', pending && 'cursor-progress [&_*]:cursor-progress')}>
       <div className="space-y-1">
         <h2 id="gate-heading" className="font-serif text-2xl font-semibold tracking-tight text-navy">
           Do you have work you could show?
