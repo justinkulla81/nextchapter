@@ -11934,6 +11934,7 @@ model WarnNotice {
   /// Higher Ed: alumni whose employer matches this notice.
   institutionLayoffMatches LayoffMatch[]
   rapidResponses           RapidResponse[]
+  linkedinDraft            LinkedInPostDraft?
 
   @@unique([state, normalizedEmployer, noticeDate, employees])
   @@index([promotedAt, dismissedAt])
@@ -16239,4 +16240,46 @@ model AiMarketSnapshot {
   data       Json
 
   @@index([computedAt])
+}
+
+
+enum LinkedInDraftStatus {
+  DRAFT
+  POSTED
+  SKIPPED
+}
+
+/// A suggested LinkedIn post about a credible layoff, waiting for Justin to
+/// edit and post it by hand. One per notice. Created only by the sweep in
+/// src/lib/linkedin/layoff-post-sweep.ts after the credibility gate in
+/// layoff-post-rules.ts; never published anywhere automatically, and never
+/// shown on the website.
+model LinkedInPostDraft {
+  id          String              @id @default(cuid())
+  noticeId    String              @unique
+  notice      WarnNotice          @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  status      LinkedInDraftStatus @default(DRAFT)
+  /// Which angle the post takes (offer-help, first-week, ...), rotated so
+  /// consecutive posts differ.
+  angle       String
+  /// Which image layout was used, rotated the same way.
+  layout      Int
+  /// The post text, editable in the admin before posting.
+  body        String
+  /// Posted as the first comment, where the link does not cost the post reach.
+  firstComment String
+  /// When to post it: a staggered weekday slot picked when the draft was made.
+  scheduledFor DateTime
+  /// Set when the morning rewrite replaced the template wording.
+  rewrittenAt DateTime?
+  /// The facts the text and image were built from, so a reviewer can check
+  /// them: employer, employees, place, source URL, stats and where each came from.
+  facts       Json
+  /// Why it passed the gate: warn-filing, sec-filing, two-publishers, trusted-outlet.
+  credibility String
+  createdAt   DateTime            @default(now())
+  postedAt    DateTime?
+  skippedAt   DateTime?
+
+  @@index([status, scheduledFor])
 }

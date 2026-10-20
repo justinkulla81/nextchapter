@@ -3,6 +3,7 @@ import { runLayoffNewsCheck } from '@/lib/warn/news-check'
 import { runLayoffPrimarySweep } from '@/lib/warn/layoff-primary-run'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
+import { runLinkedInDraftSweep } from '@/lib/linkedin/layoff-post-sweep'
 
 export const maxDuration = 300
 
@@ -36,5 +37,12 @@ export const GET = withCronRun('layoff-news', async (_request: NextRequest) => {
   } catch (e) {
     primary = { error: e instanceof Error ? e.message : String(e) }
   }
-  return NextResponse.json({ news, primary })
+  // Suggested LinkedIn posts for the credible layoffs just filed (no model call; see the sweep).
+  let linkedin: Awaited<ReturnType<typeof runLinkedInDraftSweep>> | { error: string }
+  try {
+    linkedin = await runLinkedInDraftSweep()
+  } catch (e) {
+    linkedin = { error: e instanceof Error ? e.message : String(e) }
+  }
+  return NextResponse.json({ news, primary, linkedin })
 })

@@ -159,6 +159,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // Pending == not yet promoted to a lead or dismissed — the one
         // state on this page that is actually waiting on you.
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
+        { href: '/support/admin/linkedin-drafts', label: 'LinkedIn post drafts' },
         { href: '/support/admin/crm/economic-development', label: 'Econ development leads' },
         { href: '/support/admin/crm/geographies', label: 'Geographies' },
         { href: '/support/admin/crm/pitch', label: 'Pitch builder' },
