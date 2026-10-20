@@ -57,8 +57,9 @@ Leading AI teams has no course today (`docs/AI_SKILLS.md`, Known limits). A lead
 3. Scope one paid pilot with one college and one board; write each quote from the hours estimate above.
 4. Build the first course on a free-or-paid pilot basis only after a signed scope.
 
-## Decisions needed from you
+## Decisions (2026-10-20)
 
-- Whether to publish any price.
-- Whether the first build is the Applied track (recommended) or the leadership track.
-- Whether you want us to pursue the grant-partner route for the next AI-workforce notice, which means writing the training section for an applicant.
+- **Price:** none published. The public page says "quoted per program". Quote each program from the hours estimate until two scoping calls have been held, then revisit.
+- **First build:** the Applied track, "AI in your function". The leadership track is the second build.
+- **Grants:** pursue the grant-partner route when a specific AI-workforce or dislocated-worker notice opens, by writing the training section for the applicant. Do not chase grants speculatively.
+- **Capacity:** at most two paid builds at once.
