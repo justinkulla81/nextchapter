@@ -539,6 +539,35 @@ def crawl_ukg(src, log):
                  location_raw=ls[0], locations=ls, employment_type="Full-time" if o.get("FullTime") else "Part-time",
                  posted_at=o.get("PostedDate"), posted_precision="timestamp")
 
+def crawl_breezy(src, log):
+    """Breezy HR public JSON feed (https://<company>.breezy.hr/json). src: company, employer."""
+    for j in json.loads(http(f"https://{src['company']}.breezy.hr/json", timeout=60)):
+        l = j.get("location") or {}
+        loc = ", ".join(x for x in (l.get("city"), (l.get("state") or {}).get("id")) if x) or l.get("name", "")
+        if not in_metro(loc): continue
+        comp = (j.get("salary") or "") if isinstance(j.get("salary"), str) else ""
+        text = strip_html(j.get("description", "")) + (" Compensation: " + comp if comp else "")
+        yield mk(src, src.get("employer", src["company"]), j["id"], title=j.get("name", ""), url=j.get("url"), description=text,
+                 location_raw=loc, locations=[loc], employment_type=(j.get("type") or {}).get("name"),
+                 arrangement="remote" if l.get("is_remote") else None, posted_at=j.get("published_date"), posted_precision="timestamp")
+
+def crawl_applicantpro(src, log):
+    """ApplicantPro / iSolved Hire career sites. src: host (e.g. pointpark.applicantpro.com), domain_id, employer."""
+    from concurrent.futures import ThreadPoolExecutor
+    d = json.loads(http(f"https://{src['host']}/core/jobs/{src['domain_id']}?" + urllib.parse.urlencode({"getParams": json.dumps({"isInternal": 0})}), timeout=60))
+    jobs = d["data"]["jobs"]
+    log(f"  {src['name']}: {len(jobs)} postings on the site")
+    keep = [j for j in jobs if in_metro(f"{j.get('city','')}, {j.get('abbreviation','')}") or in_metro(j.get("jobLocation") or "")]
+    def detail(j):
+        try: return j, strip_html(http(j["jobUrl"], headers={"Accept": "text/html"}, timeout=40))
+        except Exception: return j, ""
+    for j, text in ThreadPoolExecutor(max_workers=6).map(detail, keep):
+        loc = f"{j.get('city','')}, {j.get('abbreviation','')}"
+        pay = " ".join(str(x) for x in (j.get("payDetails"), j.get("minSalary"), j.get("maxSalary")) if x)
+        yield mk(src, src.get("employer", src["host"]), j["id"], title=j.get("title", ""), url=j["jobUrl"],
+                 description=(text or j.get("title", "")) + (" Compensation: " + pay if pay else ""), location_raw=loc, locations=[loc],
+                 employment_type=j.get("employmentType"), arrangement=(j.get("workplaceType") or "").lower() or None)
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -704,14 +733,14 @@ def crawl_csod(src, log):
             got += 1
             locs = [f"{l.get('city','')}, {l.get('state','')}" for l in q.get("locations", [])]
             if not any(in_metro(l) for l in locs): continue
-            yield mk(src, src.get("employer", "Commonwealth of Kentucky"), q["requisitionId"], title=q.get("displayJobTitle", ""),
+            yield mk(src, src.get("employer", src["host"]), q["requisitionId"], title=q.get("displayJobTitle", ""),
                      url=f"https://{src['host']}/ux/ats/careersite/{src['site_id']}/home/requisition/{q['requisitionId']}?c={src['corp']}",
                      description=strip_html(q.get("externalDescription", "")), location_raw=locs[0], locations=locs,
                      posted_at=q.get("postingEffectiveDate"), posted_precision="date")
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "ashby": crawl_ashby, "ukg": crawl_ukg, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "ashby": crawl_ashby, "ukg": crawl_ukg, "breezy": crawl_breezy, "applicantpro": crawl_applicantpro, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 

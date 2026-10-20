@@ -352,5 +352,44 @@
     "type": "direct_ats",
     "employer": "Waymo",
     "token": "waymo"
+  },
+  {
+    "name": "csod-duquesne",
+    "adapter": "csod",
+    "type": "direct_ats",
+    "employer": "Duquesne University",
+    "host": "duq.csod.com",
+    "site_id": 1,
+    "corp": "duq"
+  },
+  {
+    "name": "gr-astrobotic",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Astrobotic",
+    "token": "voyagertechnologiesinc"
+  },
+  {
+    "name": "breezy-carnegie-robotics",
+    "adapter": "breezy",
+    "type": "direct_ats",
+    "employer": "Carnegie Robotics",
+    "company": "carnegie-robotics"
+  },
+  {
+    "name": "ap-point-park",
+    "adapter": "applicantpro",
+    "type": "direct_ats",
+    "employer": "Point Park University",
+    "host": "pointpark.applicantpro.com",
+    "domain_id": "17789"
+  },
+  {
+    "name": "ap-seegrid",
+    "adapter": "applicantpro",
+    "type": "direct_ats",
+    "employer": "Seegrid",
+    "host": "seegrid.isolvedhire.com",
+    "domain_id": "7019"
   }
 ]
