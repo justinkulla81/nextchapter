@@ -3,6 +3,7 @@ import { HomeToday, ProgressBuilt, ProgressTimeline } from './home'
 import { NetworkOverviewMock, CloseCircle } from './network'
 import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
+import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpScams, HelpQuestions } from './learn-help'
@@ -37,6 +38,14 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/find/resources', place: 'Jobs', title: 'Find a job: resources', replaces: 'Job boards, résumé book, guides on /dashboard/find-my-job', Component: FindResources },
   { path: 'jobs/mine', place: 'Jobs', title: 'My jobs', replaces: '/dashboard/find-my-job?tab=my_jobs', Component: MyJobs },
   { path: 'jobs/find/jobs-live', place: 'Jobs', title: 'Find a job: the built list and detail (sample data)', replaces: 'the code that ships, fed sample data', Component: FindJobsLive },
+  { path: 'jobs/find/unposted-live', place: 'Jobs', title: 'Find a job: not posted yet, built (sample data)', replaces: 'the code that ships, fed sample data', Component: FindUnpostedLive },
+  { path: 'jobs/find/unposted-empty-live', place: 'Jobs', title: 'Find a job: not posted yet, nothing yet (sample data)', replaces: 'the code that ships, fed sample data', Component: FindUnpostedEmptyLive },
+  { path: 'jobs/find/unposted-error-live', place: 'Jobs', title: 'Find a job: not posted yet, could not load (sample data)', replaces: 'the code that ships, fed sample data', Component: FindUnpostedErrorLive },
+  { path: 'jobs/find/independent-live', place: 'Jobs', title: 'Find a job: independent work, built (sample data)', replaces: 'the code that ships, fed sample data', Component: FindIndependentLive },
+  { path: 'jobs/find/independent-new-live', place: 'Jobs', title: 'Find a job: independent work, just starting (sample data)', replaces: 'the code that ships, fed sample data', Component: FindIndependentNewLive },
+  { path: 'jobs/find/independent-offer-live', place: 'Jobs', title: 'Find a job: independent work, define your offer (sample data)', replaces: 'the code that ships, fed sample data', Component: FindIndependentOfferLive },
+  { path: 'jobs/find/resources-live', place: 'Jobs', title: 'Find a job: resources, built (sample data)', replaces: 'the code that ships, fed sample data', Component: FindResourcesLive },
+  { path: 'jobs/find/resources-in-book-live', place: 'Jobs', title: 'Find a job: resources, résumé in the book (sample data)', replaces: 'the code that ships, fed sample data', Component: FindResourcesOptedInLive },
   { path: 'jobs/mine-live', place: 'Jobs', title: 'My jobs: the built list (sample data)', replaces: 'the code that ships, fed sample data', Component: MyJobsLive },
   { path: 'jobs/mine-empty-live', place: 'Jobs', title: 'My jobs: nothing yet (sample data)', replaces: 'the code that ships, fed sample data', Component: MyJobsEmptyLive },
   { path: 'jobs/companies', place: 'Jobs', title: 'Companies', replaces: '/dashboard/companies, /dashboard/company-tracker', Component: Companies },
