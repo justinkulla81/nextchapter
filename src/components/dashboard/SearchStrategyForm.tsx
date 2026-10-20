@@ -34,6 +34,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { MAX_TRAVEL_OPTIONS } from '@/lib/jobs/requirements'
+import { ChoiceField } from '@/components/candidate/ChoiceField'
 
 const MAX_TRAVEL_CHOICES = MAX_TRAVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))
 import type { CandidateProfile } from '@prisma/client'
@@ -43,7 +44,9 @@ import { useRetuneAfterSave } from '@/components/dashboard/RetuneMoment'
 // separate legend needed. Only used on the fields search-strategy-checklist.ts
 // tracks as real completeness gaps (see FIELDS there) — every other field on
 // this form is genuinely optional and shouldn't be flagged.
-function UnansweredBadge() {
+function UnansweredBadge({ redesign = false }: { redesign?: boolean }) {
+  // The redesign says it in words, not in a pill.
+  if (redesign) return <span className="ml-2 align-middle text-sm font-normal text-muted-foreground">Not answered yet</span>
   return (
     <span className="ml-2 rounded-full bg-warning/10 px-2 py-0.5 align-middle text-[10px] font-medium text-warning">
       Not answered yet
@@ -61,7 +64,10 @@ export function SearchStrategyForm({
   seniorLevel,
   canSwitchJourney,
   journey,
+  redesign = false,
 }: {
+  /** The redesigned look: choices of two to four are adjacent buttons (design-principles.md), and "not answered" is words. */
+  redesign?: boolean
   profile: CandidateProfile
   inferredIndustries: string[]
   inferredFunction: string | null
@@ -92,10 +98,22 @@ export function SearchStrategyForm({
       onSubmit={retune.onSubmit}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
+      {redesign ? (
+        <div id="gapDuration" className="scroll-mt-4 space-y-2">
+          <ChoiceField
+            name="gapDuration"
+            label="How long have you been searching?"
+            why="Keep this current as your search goes on. It is a real input to how your market reality grade reads a longer search."
+            options={Object.entries(GAP_DURATION_LABELS).map(([value, label]) => ({ value, label }))}
+            defaultValue={profile.gapDuration ?? undefined}
+          />
+          {!profile.gapDuration && <UnansweredBadge redesign />}
+        </div>
+      ) : (
       <div className="space-y-2">
         <Label htmlFor="gapDuration">
           How long have you been searching?
-          {!profile.gapDuration && <UnansweredBadge />}
+          {!profile.gapDuration && <UnansweredBadge redesign={redesign} />}
         </Label>
         <p className="text-xs text-muted-foreground">
           Keep this current as your search goes on — it&apos;s a real input to how your Market
@@ -121,6 +139,7 @@ export function SearchStrategyForm({
           </SelectContent>
         </Select>
       </div>
+      )}
 
       <div className="space-y-2">
         {inferredIndustries.length > 0 && (
@@ -132,7 +151,7 @@ export function SearchStrategyForm({
         )}
         <Label>
           Target industries
-          {profile.targetIndustries.length === 0 && inferredIndustries.length === 0 && <UnansweredBadge />}
+          {profile.targetIndustries.length === 0 && inferredIndustries.length === 0 && <UnansweredBadge redesign={redesign} />}
         </Label>
         <div id="targetIndustries" className="scroll-mt-4">
           <TagInput
@@ -147,7 +166,7 @@ export function SearchStrategyForm({
       <div className="space-y-2">
         <Label htmlFor="primaryFunction">
           Your primary job function
-          {!profile.primaryFunction && <UnansweredBadge />}
+          {!profile.primaryFunction && <UnansweredBadge redesign={redesign} />}
         </Label>
         <Select name="primaryFunction" defaultValue={profile.primaryFunction ?? undefined}>
           <SelectTrigger id="primaryFunction" className="w-full scroll-mt-4">
@@ -188,7 +207,7 @@ export function SearchStrategyForm({
         <div className="space-y-2">
           <Label htmlFor="highestLevelReached">
             Seniority — highest level reached
-            {!profile.highestLevelReached && <UnansweredBadge />}
+            {!profile.highestLevelReached && <UnansweredBadge redesign={redesign} />}
           </Label>
           <p className="text-xs text-muted-foreground">Drives how jobs are matched to you.</p>
           <Select name="highestLevelReached" defaultValue={profile.highestLevelReached ?? 'none'}>
@@ -211,7 +230,7 @@ export function SearchStrategyForm({
         <div className="space-y-2">
           <Label htmlFor="targetRoleType">
             Target role
-            {!profile.targetRoleType && <UnansweredBadge />}
+            {!profile.targetRoleType && <UnansweredBadge redesign={redesign} />}
           </Label>
           {/* Disabled inputs aren't included in FormData, so the real
               submitted value lives in this hidden input instead. */}
@@ -268,6 +287,14 @@ export function SearchStrategyForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
+        {redesign ? (
+          <ChoiceField
+            name="targetCompanySize"
+            label="Target company size"
+            options={COMPANY_SIZE_OPTIONS.map((size) => ({ value: size, label: size === 'Any' ? 'Any size' : `${size} employees` }))}
+            defaultValue={profile.targetCompanySize ?? 'Any'}
+          />
+        ) : (
         <div className="space-y-2">
           <Label htmlFor="targetCompanySize">Target company size</Label>
           <Select name="targetCompanySize" defaultValue={profile.targetCompanySize ?? 'Any'}>
@@ -287,6 +314,7 @@ export function SearchStrategyForm({
             </SelectContent>
           </Select>
         </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="targetCompanyStage">Target company type</Label>
           <Select name="targetCompanyStage" defaultValue={profile.targetCompanyStage ?? 'any'}>
@@ -308,10 +336,22 @@ export function SearchStrategyForm({
         </div>
       </div>
 
+      {redesign ? (
+        <div id="remotePreference" className="scroll-mt-4 space-y-2">
+          <ChoiceField
+            name="remotePreference"
+            label="Location preference"
+            options={LOCATION_PREFERENCE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+            value={remotePreference}
+            onChange={setRemotePreference}
+          />
+          {!profile.remotePreference && <UnansweredBadge redesign />}
+        </div>
+      ) : (
       <div className="space-y-2">
         <Label htmlFor="remotePreference">
           Location preference
-          {!profile.remotePreference && <UnansweredBadge />}
+          {!profile.remotePreference && <UnansweredBadge redesign={redesign} />}
         </Label>
         <Select
           name="remotePreference"
@@ -334,6 +374,7 @@ export function SearchStrategyForm({
           </SelectContent>
         </Select>
       </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="applicationVolumeGoal">
@@ -429,7 +470,7 @@ export function SearchStrategyForm({
         <div id="travel" className="scroll-mt-4 space-y-2">
           <Label className="font-normal">
             How much travel can you take on? (not the same as relocating)
-            {maxTravel === null && <UnansweredBadge />}
+            {maxTravel === null && <UnansweredBadge redesign={redesign} />}
           </Label>
           <ChoiceButtons
             name="maxTravelPct"

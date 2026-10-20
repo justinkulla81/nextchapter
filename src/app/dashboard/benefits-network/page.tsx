@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma'
 import { BenefitsNetworkFilterBar } from '@/components/dashboard/BenefitsNetworkFilterBar'
 import { BenefitsNetworkListingCard } from '@/components/dashboard/BenefitsNetworkListingCard'
 import { isRedesignOn } from '@/lib/redesign/flag'
+import { EmptyCard } from '@/components/candidate/EmptyCard'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ActionLink } from '@/components/candidate/ActionLink'
 import { MoreDetails } from '@/components/dashboard/MoreDetails'
@@ -46,6 +47,7 @@ export default async function BenefitsNetworkPage({ searchParams }: { searchPara
     // The benefits network in the redesign: a short list of offers with the reason each one fits, the rest behind one fold.
     const card = (listing: (typeof listings)[number]) => (
       <BenefitsNetworkListingCard
+        redesign
         key={listing.id}
         listing={listing}
         isRedeemed={redeemedListingIds.has(listing.id)}
@@ -61,14 +63,14 @@ export default async function BenefitsNetworkPage({ searchParams }: { searchPara
           action={isAlum ? <ActionLink variant="primary" href="/dashboard/benefits-network/propose" event="benefits_network_propose_clicked" props={{ source: 'benefits_network_header' }}>Propose an offer</ActionLink> : undefined}
         />
         {!isMember && (
-          <p className="rounded-2xl bg-muted/60 p-4 text-base text-ink">
+          <p className="text-base text-ink">
             Browsing is open to everyone. Redeeming an offer needs an active{' '}
             <Link href="/dashboard/membership" className="font-medium text-brand underline underline-offset-4">membership</Link>.
           </p>
         )}
-        <BenefitsNetworkFilterBar current={filters as Record<string, string | undefined>} />
+        <BenefitsNetworkFilterBar redesign current={filters as Record<string, string | undefined>} />
         {listings.length === 0 ? (
-          <p className="rounded-2xl border border-border p-6 text-base text-ink">No offers match those filters right now. Clear a filter, or check back soon as new ones are added.</p>
+          <EmptyCard title="No offers match those filters" why="Clear a filter, or check back soon as new ones are added." action={<a href="/dashboard/benefits-network" className="text-sm font-medium text-brand underline underline-offset-4">Clear filters</a>} />
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2">{listings.slice(0, 6).map(card)}</div>

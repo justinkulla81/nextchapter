@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import posthog from 'posthog-js'
-import { Card, CardContent } from '@/components/ui/card'
+import { stepCard } from '@/components/candidate/stepCard'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cushionMonths, RUNWAY_FACTS, uiWeeksLeft } from '@/lib/outcomes/runway'
@@ -21,7 +21,12 @@ export interface RunwayStateFacts {
 const num = (v: string) => (v.trim() === '' ? 0 : Number(v.replace(/[$,\s]/g, '')))
 
 // Savings numbers are computed here in the browser and never sent or stored.
-export function RunwayCard({ facts, weeksSinceLastJob }: { facts: RunwayStateFacts | null; weeksSinceLastJob: number | null }) {
+export function RunwayCard({ facts, weeksSinceLastJob, redesign = false }: { facts: RunwayStateFacts | null; weeksSinceLastJob: number | null; redesign?: boolean }) {
+  // The redesign: a plain section with a serif heading and body-size text, in place of the card with small grey text.
+  const { SCard, SContent } = stepCard(redesign)
+  const body = redesign ? 'text-base text-ink' : 'text-sm text-foreground'
+  const small = redesign ? 'text-sm text-muted-foreground' : 'text-xs text-muted-foreground'
+  const label = redesign ? 'text-base font-semibold text-ink' : 'text-sm font-medium text-foreground'
   const [savings, setSavings] = useState('')
   const [expenses, setExpenses] = useState('')
   const [income, setIncome] = useState('')
@@ -31,42 +36,42 @@ export function RunwayCard({ facts, weeksSinceLastJob }: { facts: RunwayStateFac
   const cushion = cushionMonths({ savingsUsd: num(savings), monthlyExpensesUsd: num(expenses), monthlyIncomeUsd: num(income) })
 
   return (
-    <Card>
-      <CardContent className="space-y-5 pt-6">
+    <SCard>
+      <SContent className={redesign ? "space-y-5" : "space-y-5 pt-6"}>
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">Your runway</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h2 className={redesign ? 'font-display text-xl font-semibold text-ink' : 'text-lg font-semibold tracking-tight'}>Your runway</h2>
+          <p className={redesign ? 'mt-1 text-base text-muted-foreground' : 'mt-1 text-sm text-muted-foreground'}>
             A rough picture of how long you can plan on, so you can decide what to do first. These are estimates, not advice.
           </p>
         </div>
 
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Unemployment insurance</p>
+          <p className={label}>Unemployment insurance</p>
           {facts ? (
             <>
-              <p className="text-sm text-foreground">
+              <p className={body}>
                 {facts.agencyName ?? facts.stateCode}: up to {facts.maxWeeks ?? 'an unconfirmed number of'} weeks
                 {facts.maxWeeklyBenefit ? `, up to $${facts.maxWeeklyBenefit} a week` : ''}.
                 {ui.known && ui.weeksLeft !== null && (
                   <> About <strong>{ui.weeksLeft} weeks</strong> may remain{ui.exhausted ? ' (the regular weeks may be used up)' : ''}.</>
                 )}
               </p>
-              <p className="text-xs text-muted-foreground">{ui.note}</p>
-              {facts.severanceNote && <p className="text-xs text-muted-foreground">Severance: {facts.severanceNote}</p>}
+              <p className={small}>{ui.note}</p>
+              {facts.severanceNote && <p className={small}>Severance: {facts.severanceNote}</p>}
               {facts.fileUrl && (
-                <a href={facts.fileUrl} target="_blank" rel="noreferrer" className="text-xs text-brand underline">
+                <a href={facts.fileUrl} target="_blank" rel="noreferrer" className={redesign ? 'text-sm font-medium text-brand underline underline-offset-4' : 'text-xs text-brand underline'}>
                   File or check your claim with your state agency
                 </a>
               )}
-              {facts.asOf && <p className="text-xs text-muted-foreground">State figures as of {facts.asOf}.</p>}
+              {facts.asOf && <p className={small}>State figures as of {facts.asOf}.</p>}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">Add your state in your profile to see your state&apos;s weeks and weekly amount.</p>
+            <p className={redesign ? 'text-base text-muted-foreground' : 'text-sm text-muted-foreground'}>Add your state in your profile to see your state&apos;s weeks and weekly amount.</p>
           )}
         </div>
 
         <div className="space-y-3">
-          <p className="text-sm font-medium text-foreground">Savings cushion</p>
+          <p className={label}>Savings cushion</p>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1.5">
               <Label htmlFor="runway-savings">Savings you can use</Label>
@@ -87,12 +92,12 @@ export function RunwayCard({ facts, weeksSinceLastJob }: { facts: RunwayStateFac
               setCalculated(true)
               posthog.capture('runway_calculated', { stateCode: facts?.stateCode ?? null, weeksLeft: ui.weeksLeft, hasCushion: cushion.months !== null })
             }}
-            className="inline-flex h-10 items-center justify-center rounded-md bg-brand px-5 text-sm font-medium text-white hover:bg-brand/90"
+            className={redesign ? 'inline-flex h-10 items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted' : 'inline-flex h-10 items-center justify-center rounded-md bg-brand px-5 text-sm font-medium text-white hover:bg-brand/90'}
           >
             Estimate my runway
           </button>
           {calculated && (
-            <p className="text-sm text-foreground" role="status">
+            <p className={body} role="status">
               {cushion.coveredByIncome
                 ? 'Your monthly income covers your expenses, so your savings are not being drawn down.'
                 : cushion.months === null
@@ -100,18 +105,18 @@ export function RunwayCard({ facts, weeksSinceLastJob }: { facts: RunwayStateFac
                   : `Your savings cover about ${cushion.months.toFixed(1)} months at this pace.`}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">These numbers stay on this page and are not saved.</p>
+          <p className={small}>These numbers stay on this page and are not saved.</p>
         </div>
 
         <ul className="space-y-2 border-t border-border pt-4">
           {RUNWAY_FACTS.map((f) => (
             <li key={f.text}>
-              <p className="text-sm text-foreground">{f.text}</p>
-              <p className="text-xs text-muted-foreground">Source: {f.source}</p>
+              <p className={body}>{f.text}</p>
+              <p className={small}>Source: {f.source}</p>
             </li>
           ))}
         </ul>
-      </CardContent>
-    </Card>
+      </SContent>
+    </SCard>
   )
 }

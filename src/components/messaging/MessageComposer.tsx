@@ -4,6 +4,8 @@ import { useActionState, useRef, useEffect, useState } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ChoiceField } from '@/components/candidate/ChoiceField'
+import { ActionSubmit } from '@/components/candidate/ActionSubmit'
 
 type SendMessageState = { error?: string } | undefined
 
@@ -14,7 +16,9 @@ export function MessageComposer({
   action,
   resumeOptions,
   defaultAttachedResumeId,
+  redesign = false,
 }: {
+  redesign?: boolean
   threadId: string
   action: (prevState: SendMessageState, formData: FormData) => Promise<SendMessageState>
   // Candidate-only — only ever passed by the peer-message composer (never
@@ -42,6 +46,48 @@ export function MessageComposer({
     }
     wasSubmitting.current = false
   }, [state])
+
+  // The redesign: a labelled box, "Attach a résumé" as buttons (or a dropdown past four), and one send action.
+  if (redesign) {
+    return (
+      <form
+        ref={formRef}
+        action={(formData) => {
+          wasSubmitting.current = true
+          return formAction(formData)
+        }}
+        className="space-y-4"
+      >
+        <input type="hidden" name="threadId" value={threadId} />
+        <div className="space-y-2">
+          <label htmlFor={`message-${threadId}`} className="block text-base font-semibold text-ink">
+            Your message
+          </label>
+          <Textarea id={`message-${threadId}`} name="body" required rows={3} className="text-base" />
+        </div>
+        {resumeOptions && resumeOptions.length > 0 && (
+          <>
+            <ChoiceField
+              name="attachedResumeIdChoice"
+              label="Attach a résumé"
+              options={[{ value: NO_ATTACHMENT_VALUE, label: 'None' }, ...resumeOptions.map((r) => ({ value: r.id, label: r.label }))]}
+              value={attachedResumeId}
+              onChange={(value) => setAttachedResumeId(value || NO_ATTACHMENT_VALUE)}
+            />
+            <input type="hidden" name="attachedResumeId" value={attachedResumeId === NO_ATTACHMENT_VALUE ? '' : attachedResumeId} />
+          </>
+        )}
+        {state?.error && (
+          <p role="alert" className="text-base text-destructive">
+            {state.error}
+          </p>
+        )}
+        <ActionSubmit pendingLabel="Sending…" event="message_sent" props={{ threadId, withResume: attachedResumeId !== NO_ATTACHMENT_VALUE }}>
+          Send message
+        </ActionSubmit>
+      </form>
+    )
+  }
 
   return (
     <form

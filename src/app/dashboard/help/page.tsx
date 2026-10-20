@@ -47,6 +47,7 @@ export default async function HelpAndFeedbackPage({ searchParams }: { searchPara
     const renderRequest = (r: (typeof requests)[number]) => (
       <li key={r.id}>
         <HelpConversation
+          redesign
           request={{
             id: r.id,
             subject: r.subject,

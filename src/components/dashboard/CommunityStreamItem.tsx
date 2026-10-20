@@ -10,6 +10,7 @@ import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CommunityPostReportButton } from '@/components/dashboard/CommunityPostReportButton'
 import { cn } from '@/lib/utils'
+import { ActivityRow, PostRow } from '@/components/community/PostRow'
 
 // One shared row shell for both real candidate posts and auto-generated
 // activity — same padding/typography, connected via divide-y in the parent
@@ -17,7 +18,14 @@ import { cn } from '@/lib/utils'
 // posts still stand out (avatar, name, actions); activity items are a
 // quieter icon + line, but they read as one continuous stream, not two
 // disconnected feature areas.
-export function CommunityStreamItem({ item, candidateId }: { item: UnifiedStreamItem; candidateId: string }) {
+export function CommunityStreamItem({ item, candidateId, redesign = false }: { item: UnifiedStreamItem; candidateId: string; redesign?: boolean }) {
+  // The redesign: the same stream, in rows (components/community/PostRow.tsx).
+  if (redesign) {
+    if (item.kind === 'feed') return <ActivityRow item={item.item} />
+    const isOwn = item.post.candidateId === candidateId
+    const messageHref = !isOwn && !isAutomatedPostType(item.post.postType) ? `/dashboard/community?tab=messages&relation=peers&with=${item.post.candidateId}` : null
+    return <PostRow post={item.post} isOwnPost={isOwn} messageHref={messageHref} />
+  }
   if (item.kind === 'feed') {
     const { icon: Icon, colorClass } = FEED_ITEM_STYLE[item.item.type]
     return (

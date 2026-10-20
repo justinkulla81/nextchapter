@@ -7,13 +7,14 @@ import { BENEFITS_PRESSURE_OPTIONS } from '@/lib/benefits/pressure-options'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { ActionSubmit } from '@/components/candidate/ActionSubmit'
 
-export function BenefitsPressureForm() {
+export function BenefitsPressureForm({ redesign = false }: { redesign?: boolean } = {}) {
   const [state, formAction] = useActionState(submitBenefitsPressures, undefined)
   const [pressures, setPressures] = useState<string[]>([])
 
   return (
-    <form action={formAction} className="space-y-4 rounded-lg border border-border p-4">
+    <form action={formAction} className={redesign ? 'space-y-4' : 'space-y-4 rounded-lg border border-border p-4'}>
       <div className="space-y-2">
         <Label>What&apos;s putting the most financial pressure on you right now? (select all that apply)</Label>
         <p className="text-sm text-muted-foreground">
@@ -34,7 +35,13 @@ export function BenefitsPressureForm() {
         </div>
       )}
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-      <SubmitButton pendingLabel="Building your plan…">Continue</SubmitButton>
+      {redesign ? (
+        <ActionSubmit variant="secondary" pendingLabel="Building your plan…" event="benefits_pressures_submitted" props={{ count: pressures.length }}>
+          Build my plan
+        </ActionSubmit>
+      ) : (
+        <SubmitButton pendingLabel="Building your plan…">Continue</SubmitButton>
+      )}
     </form>
   )
 }

@@ -66,3 +66,7 @@ Each row is one proposed screen and the live pages it absorbs. The Personalize p
 | Finances and benefits | Your runway (building something of my own) (`/dev-preview/money/runway-entrepreneur`) | new |
 | Moments | Onboarding: would you like help with money? (`/dev-preview/moments/onboarding-money`) | new |
 | Account | Money help (off state) (`/dev-preview/account/money`) | new |
+
+## Built Network and Account components, fed sample data
+
+These run the code that ships (see `docs/redesign-old-card-audit-network-account.md`): `/dev-preview/network/circles/know-live`, `know-empty-live`, `know-filters-live`, `know-detail-live`, `/dev-preview/network/circles/industry-live`, `/dev-preview/network/messages-live`, `/dev-preview/network/circles/close-match-live`, `close-matches-live`, `/dev-preview/account/visibility-live`, `/dev-preview/account/profile-live`, `/dev-preview/account/benefits-network-live`.

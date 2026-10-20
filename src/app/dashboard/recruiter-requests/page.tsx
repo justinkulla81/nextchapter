@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/candidate/PageHeader'
 import { ListRow, RowList } from '@/components/candidate/ListRow'
 import { EmptyCard } from '@/components/candidate/EmptyCard'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
+import { ActionSubmit } from '@/components/candidate/ActionSubmit'
 import { NetworkParts } from '@/components/network/NetworkParts'
 
 export const metadata: Metadata = { title: 'Recruiter requests' }
@@ -47,12 +48,14 @@ export default async function RecruiterRequestsPage() {
                 actions={
                   <>
                     <form action={answerRecruiterRequest.bind(null, r.id, true)}>
-                      <SubmitButton pendingLabel="Saving…">Yes, introduce us</SubmitButton>
+                      <ActionSubmit variant="secondary" pendingLabel="Saving…" event="recruiter_request_answered" props={{ requestId: r.id, answer: 'yes' }}>
+                        Yes, introduce us
+                      </ActionSubmit>
                     </form>
                     <form action={answerRecruiterRequest.bind(null, r.id, false)}>
-                      <SubmitButton variant="outline" pendingLabel="Saving…">
+                      <ActionSubmit variant="secondary" pendingLabel="Saving…" event="recruiter_request_answered" props={{ requestId: r.id, answer: 'no' }}>
                         No thanks
-                      </SubmitButton>
+                      </ActionSubmit>
                     </form>
                   </>
                 }

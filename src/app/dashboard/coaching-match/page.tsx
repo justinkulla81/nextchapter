@@ -11,6 +11,7 @@ import { prisma } from '@/lib/prisma'
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
+import { CoachPreferencesForm, CoachShortlistRedesign } from '@/components/coaching/CoachMatchRedesign'
 
 const RATING_CHOICES = [
   { value: 1, label: 'Not me' },
@@ -28,6 +29,8 @@ export const metadata: Metadata = { title: 'Coach Matching' }
 async function CoachShortlist({ candidateId, redesign }: { candidateId: string; redesign: boolean }) {
   const shortlist = await generateCoachShortlist(candidateId)
 
+  if (redesign) return <CoachShortlistRedesign shortlist={shortlist} />
+
   if (shortlist.length === 0) {
     return <p className="text-sm text-muted-foreground">No coaches are available to match right now — check back soon.</p>
   }
@@ -37,8 +40,7 @@ async function CoachShortlist({ candidateId, redesign }: { candidateId: string; 
         <div key={coach.id} className="rounded-lg border border-border p-4">
           <p className="font-medium text-foreground">
             {coach.fullName}
-            {coach.collegeName && redesign && <span className="font-normal text-muted-foreground"> · {coach.collegeName}</span>}
-            {coach.collegeName && !redesign && (
+            {coach.collegeName && (
               <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{coach.collegeName}</span>
             )}
           </p>
@@ -101,11 +103,22 @@ export default async function CoachingMatchPage({
     })
     const savedRatings = (saved?.itemRatings ?? {}) as Record<string, number>
     if (redesign) captureServerEvent(profile.id, 'coach_match_preferences_viewed', { hasSaved: Boolean(saved) })
+    if (redesign) {
+      return (
+        <div className="max-w-2xl space-y-8">
+          <PageHeader title="Get matched with a coach" intro="A few quick preferences help us suggest coaches who work the way you like. Everything here is optional, so skip anything you have no preference on." />
+          <CoachPreferencesForm
+            gender={profile.coachGenderPreference}
+            feedbackStyle={profile.coachCommunicationStylePreference}
+            language={profile.coachLanguagePreference}
+            timezone={profile.coachTimezonePreference}
+            savedRatings={savedRatings}
+          />
+        </div>
+      )
+    }
     return (
       <div className="mx-auto max-w-lg space-y-6">
-        {redesign ? (
-          <PageHeader title="Get matched with a coach" intro="A few quick preferences help us suggest coaches who work the way you like. Everything here is optional, so skip anything you have no preference on." />
-        ) : (
         <div className="space-y-1">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">Get matched with a coach</h1>
           <p className="text-muted-foreground">
@@ -113,7 +126,6 @@ export default async function CoachingMatchPage({
             preference on.
           </p>
         </div>
-        )}
         <form action={submitCoachPreferences} className="space-y-4">
           <div>
             <label className="text-sm font-medium text-foreground" htmlFor="genderPreference">
@@ -206,16 +218,22 @@ export default async function CoachingMatchPage({
   }
 
   if (redesign) captureServerEvent(profile.id, 'coach_matches_viewed')
+  if (redesign) {
+    return (
+      <div className="max-w-2xl space-y-8">
+        <PageHeader title="Your coach matches" intro="Chosen for your target role, your level and your preferences. Each one says why." />
+        <Suspense fallback={<p className="flex items-center gap-2 text-base text-ink"><Spinner size={16} />Finding your best coach matches…</p>}>
+          <CoachShortlist candidateId={profile.id} redesign />
+        </Suspense>
+      </div>
+    )
+  }
   return (
     <div className="mx-auto max-w-lg space-y-6">
-      {redesign ? (
-        <PageHeader title="Your coach matches" intro="Chosen for your target role, your level and your preferences. Each one says why." />
-      ) : (
       <div className="space-y-1">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">Your coach matches</h1>
         <p className="text-muted-foreground">Based on your target role, level, and preferences.</p>
       </div>
-      )}
       <Suspense fallback={<CoachShortlistSkeleton />}>
         <CoachShortlist candidateId={profile.id} redesign={redesign} />
       </Suspense>

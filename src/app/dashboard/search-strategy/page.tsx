@@ -56,6 +56,7 @@ import { US_STATE_CODES } from '@/lib/pay/market-pay'
 import { readMemberIndustries } from '@/lib/profile/industry-reading'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 import { isRedesignOn } from '@/lib/redesign/flag'
+import { stepCard } from '@/components/candidate/stepCard'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ActionLink } from '@/components/candidate/ActionLink'
 
@@ -389,19 +390,21 @@ export default async function SearchStrategyPage() {
     },
   ]
 
+  const redesign = isRedesignOn(profile.email)
+  const { SCard, SHeader, STitle, SContent } = stepCard(redesign)
   const allWizardContent = [
-    <Card key="target-role">
-      <CardHeader>
+    <SCard key="target-role">
+      <SHeader>
         <div className="flex items-center gap-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
+          <STitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</STitle>
           {targetRoleComplete && (
             <span className="text-success" aria-hidden>
               ✓
             </span>
           )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </SHeader>
+      <SContent className="space-y-4">
         {targetRoleComplete && (
           <p className="text-sm text-muted-foreground">
             Update this any time your target changes — a new role, a new industry, a different
@@ -410,6 +413,7 @@ export default async function SearchStrategyPage() {
           </p>
         )}
         <SearchStrategyForm
+          redesign={redesign}
           profile={profile}
           inferredIndustries={inferredIndustries}
           inferredFunction={inferredFunction}
@@ -427,81 +431,81 @@ export default async function SearchStrategyPage() {
           </p>
           <EmployerSectorFilter surface="search_strategy" shown={shownFromHidden(profile.hiddenEmployerSectors)} updateUrl={false} />
         </div>
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
 
-    <Card key="blockers-motivations">
-      <CardHeader>
+    <SCard key="blockers-motivations">
+      <SHeader>
         <div className="flex items-center gap-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Blockers and Motivations</CardTitle>
+          <STitle className="text-sm font-medium text-muted-foreground">Blockers and Motivations</STitle>
           {blockersMotivationsComplete && (
             <span className="text-success" aria-hidden>
               ✓
             </span>
           )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </SHeader>
+      <SContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
           {blockersMotivationsComplete
             ? "Update this any time it changes — Victoria's guidance above and her tone with you refresh to match."
             : "Required, alongside Your Target Role & Company, before Victoria will review your strategy — what's actually in your way, and what's pulling you forward, shapes her advice as much as your target role does."}
         </p>
         <PersonalContextForm profile={profile} />
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
 
     ...(showCulture
       ? [
-          <Card key="culture">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Culture &amp; Working Environment</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <SCard key="culture">
+            <SHeader>
+              <STitle className="text-sm font-medium text-muted-foreground">Culture &amp; Working Environment</STitle>
+            </SHeader>
+            <SContent>
               <p className="mb-4 text-sm text-muted-foreground">
                 If it matters to you, we turn it into questions to ask in interviews, checks on an offer and people to ask what a company is really like. If it
                 does not matter, we leave it out.
               </p>
               <CultureFitForm fit={parseCultureFit(profile.cultureFit)} />
-            </CardContent>
-          </Card>,
+            </SContent>
+          </SCard>,
         ]
       : []),
-    <Card key="marketing-networking">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Your Marketing &amp; Networking Plan</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SCard key="marketing-networking">
+      <SHeader>
+        <STitle className="text-sm font-medium text-muted-foreground">Your Marketing &amp; Networking Plan</STitle>
+      </SHeader>
+      <SContent>
         <p className="mb-4 text-sm text-muted-foreground">
           What you&apos;re willing to do publicly, and how you feel about reaching out — shapes your
           Marketing Plan and outreach scripts, and unlocks My Marketing Plan, LinkedIn, and My
           Network.
         </p>
         <MarketingNetworkingForm profile={profile} />
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
 
-    <Card key="negotiation-compensation">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <SCard key="negotiation-compensation">
+      <SHeader>
+        <STitle className="text-sm font-medium text-muted-foreground">
           Negotiation, Interview &amp; Compensation Readiness
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+        </STitle>
+      </SHeader>
+      <SContent>
         <p className="mb-4 text-sm text-muted-foreground">
           Where you&apos;re genuinely comfortable, and what matters to you beyond salary — shapes
           the skills and videos we surface, and helps your coach and recruiter contacts steer you
           toward offers that fit.
         </p>
         <NegotiationCompensationForm profile={profile} targetCompMin={profile.targetCompMin} />
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
 
-    <Card key="other-ways">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Other Ways to Strengthen Your Search</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SCard key="other-ways">
+      <SHeader>
+        <STitle className="text-sm font-medium text-muted-foreground">Other Ways to Strengthen Your Search</STitle>
+      </SHeader>
+      <SContent>
         <OtherSearchStrengthenersForm
           boardAdvisoryInitial={profile.boardAdvisoryWillingness}
           independentWorkInitial={independentWorkInitial}
@@ -514,21 +518,21 @@ export default async function SearchStrategyPage() {
             recruiterConnectionCount: profile.recruiterConnectionCount,
           }}
         />
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
     ...(showCareer
       ? [
-          <Card key="career">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">What You Want From Your Career</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <SCard key="career">
+            <SHeader>
+              <STitle className="text-sm font-medium text-muted-foreground">What You Want From Your Career</STitle>
+            </SHeader>
+            <SContent>
               <p className="mb-4 text-sm text-muted-foreground">
                 Your next review, the next level and whether pay or title matters most. Your weekly plan, your case for a review and your pay comparison use it.
               </p>
               <CareerGoalsForm initial={careerOf(profile.journeyDetails)} />
-            </CardContent>
-          </Card>,
+            </SContent>
+          </SCard>,
         ]
       : []),
   ]
@@ -547,7 +551,7 @@ export default async function SearchStrategyPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      {isRedesignOn(profile.email) ? (
+      {redesign ? (
         <PageHeader
           title="Your search strategy"
           intro={
@@ -642,22 +646,22 @@ export default async function SearchStrategyPage() {
       )}
 
       {searchingJourney && (
-      <Card id="culture-preferences" className="scroll-mt-4">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Culture you want</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <SCard id="culture-preferences" className="scroll-mt-4">
+        <SHeader>
+          <STitle className="text-sm font-medium text-muted-foreground">Culture you want</STitle>
+        </SHeader>
+        <SContent>
           <CulturePreferencesForm initial={culturePreferences} />
-        </CardContent>
-      </Card>
+        </SContent>
+      </SCard>
       )}
 
       {searchingJourney && stage === 'QUIETLY_LOOKING' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">While You&apos;re Still Employed</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+        <SCard>
+          <SHeader>
+            <STitle className="text-sm font-medium text-muted-foreground">While You&apos;re Still Employed</STitle>
+          </SHeader>
+          <SContent className="space-y-3 text-sm">
             <div>
               <p className="font-medium text-foreground">Being a Good Leaver</p>
               <p className="mt-1 text-muted-foreground">
@@ -681,8 +685,8 @@ export default async function SearchStrategyPage() {
             >
               Read the full Before You Go guide →
             </Link>
-          </CardContent>
-        </Card>
+          </SContent>
+        </SCard>
       )}
       </MoreDetails>
     </div>

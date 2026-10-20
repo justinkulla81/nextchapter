@@ -228,9 +228,9 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
 
         <Section id="steps" title={profile.benefitsPressures.length === 0 ? 'What is weighing on you?' : 'Your next steps'}>
           {profile.benefitsPressures.length === 0 ? (
-            <BenefitsPressureForm />
+            <BenefitsPressureForm redesign />
           ) : actionItems.length === 0 ? (
-            <p className="rounded-2xl border border-border p-5 text-base text-ink">No steps are open. If something changes, tell us and we will update your list.</p>
+            <p className="text-base text-ink">No steps are open. If something changes, tell us and we will update your list.</p>
           ) : (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
@@ -238,7 +238,7 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
               </p>
               <div className="space-y-2">
                 {actionItems.slice(0, 3).map((item) => (
-                  <BenefitsActionPlanCard key={item.id} item={item} completed={completedItemIds.has(item.id)} />
+                  <BenefitsActionPlanCard redesign key={item.id} item={item} completed={completedItemIds.has(item.id)} />
                 ))}
               </div>
               {actionItems.length > 3 && (
@@ -246,7 +246,7 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
                   <summary className="cursor-pointer font-medium text-brand underline underline-offset-4">Show the other {actionItems.length - 3} {actionItems.length - 3 === 1 ? 'step' : 'steps'}</summary>
                   <div className="mt-2 space-y-2">
                     {actionItems.slice(3).map((item) => (
-                      <BenefitsActionPlanCard key={item.id} item={item} completed={completedItemIds.has(item.id)} />
+                      <BenefitsActionPlanCard redesign key={item.id} item={item} completed={completedItemIds.has(item.id)} />
                     ))}
                   </div>
                 </details>
@@ -255,7 +255,7 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
           )}
         </Section>
 
-        <RunwayCard facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} />
+        <RunwayCard redesign facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} />
 
         <MoreDetails summary="Show more: the full benefits guide">
           {actionPlanLinks.length > 0 && (
@@ -297,7 +297,7 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
           <GuideCallout pageSlot="benefits" currentJobStatus={profile.currentJobStatus} />
         </MoreDetails>
 
-        <p className="text-xs text-muted-foreground">General information, not financial or legal advice. Rules differ by state. Only you see this page. <Link href="/dashboard/money-help" className="font-medium text-brand underline underline-offset-4">Money help settings</Link></p>
+        <p className="text-sm text-muted-foreground">General information, not financial or legal advice. Rules differ by state. Only you see this page. <Link href="/dashboard/money-help" className="font-medium text-brand underline underline-offset-4">Money help settings</Link></p>
       </div>
     )
   }
