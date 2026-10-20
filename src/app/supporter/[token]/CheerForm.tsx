@@ -19,7 +19,7 @@ export function CheerForm({ token }: { token: string }) {
         className="w-full rounded-md border border-input bg-background p-3 text-sm"
         placeholder="You are doing great. Proud of you."
       />
-      <button type="submit" disabled={pending} className="rounded-full bg-success px-5 py-2.5 text-sm font-semibold text-white hover:bg-success-hover disabled:cursor-wait">
+      <button type="submit" disabled={pending} className="rounded-full bg-action px-5 py-2.5 text-sm font-semibold text-action-foreground hover:brightness-95 disabled:cursor-wait">
         {pending ? 'Sending…' : 'Send cheer'}
       </button>
       {state?.ok && <p role="status" className="text-sm text-success">Sent. They will see it next time they open NextChapter.</p>}

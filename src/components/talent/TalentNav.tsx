@@ -78,7 +78,7 @@ function NavContent({
             className={cn(
               'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
               link.primary
-                ? 'bg-success text-white hover:bg-success/90'
+                ? 'bg-action text-action-foreground hover:brightness-95'
                 : isActive(link.href)
                   ? 'bg-white/15 text-white'
                   : 'text-white/70 hover:bg-white/10 hover:text-white'
