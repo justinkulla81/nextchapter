@@ -6,7 +6,7 @@
  *   npx tsx --conditions=react-server --env-file=.env.local scripts/crm/entity-finder.ts search <task> <out.json>
  *   npx tsx --conditions=react-server --env-file=.env.local scripts/crm/entity-finder.ts import <out.json> [--apply]
  *
- * task: foundations | counsel | libraries | localgov. Metered: one Claude Sonnet 5.5 request with the web search tool per target,
+ * task: foundations | counsel | libraries | localgov | cc (community colleges in counties with several layoffs). Metered: one Claude Sonnet 5.5 request with the web search tool per target,
  * about $0.12 each. A person is kept only with the page that names them and their title; each page is re-fetched and the name must
  * appear on it, otherwise the CRM note says so. Nothing comes from memory.
  */
@@ -19,16 +19,16 @@ import { goalsForRoles } from '../../src/lib/crm/goals'
 
 const MODEL = 'claude-sonnet-5-5'
 const PRICE_IN = 2 / 1e6, PRICE_OUT = 10 / 1e6, PRICE_SEARCH = 10 / 1000
-type Task = 'foundations' | 'counsel' | 'libraries' | 'localgov'
+type Task = 'foundations' | 'counsel' | 'libraries' | 'localgov' | 'cc'
 
-interface Target { key: string; label: string; state?: string; orgId?: string }
-interface Found { name: string; title: string; agency: string; kind: string; sourceUrl: string; sourceDate?: string | null; pageChecked?: 'yes' | 'no' | 'unreachable' }
+interface Target { key: string; label: string; state?: string; orgId?: string; unitid?: string; website?: string | null }
+interface Found { name: string; title: string; agency: string; kind: string; sourceUrl: string; email?: string | null; sourceDate?: string | null; pageChecked?: 'yes' | 'no' | 'unreachable' }
 interface Result { task: Task; target: Target; people: Found[]; cost: number; searches: number; error?: string }
 
 const STATES: [string, string][] = [['AL', 'Alabama'], ['AK', 'Alaska'], ['AZ', 'Arizona'], ['AR', 'Arkansas'], ['CA', 'California'], ['CO', 'Colorado'], ['CT', 'Connecticut'], ['DE', 'Delaware'], ['DC', 'District of Columbia'], ['FL', 'Florida'], ['GA', 'Georgia'], ['HI', 'Hawaii'], ['ID', 'Idaho'], ['IL', 'Illinois'], ['IN', 'Indiana'], ['IA', 'Iowa'], ['KS', 'Kansas'], ['KY', 'Kentucky'], ['LA', 'Louisiana'], ['ME', 'Maine'], ['MD', 'Maryland'], ['MA', 'Massachusetts'], ['MI', 'Michigan'], ['MN', 'Minnesota'], ['MS', 'Mississippi'], ['MO', 'Missouri'], ['MT', 'Montana'], ['NE', 'Nebraska'], ['NV', 'Nevada'], ['NH', 'New Hampshire'], ['NJ', 'New Jersey'], ['NM', 'New Mexico'], ['NY', 'New York'], ['NC', 'North Carolina'], ['ND', 'North Dakota'], ['OH', 'Ohio'], ['OK', 'Oklahoma'], ['OR', 'Oregon'], ['PA', 'Pennsylvania'], ['RI', 'Rhode Island'], ['SC', 'South Carolina'], ['SD', 'South Dakota'], ['TN', 'Tennessee'], ['TX', 'Texas'], ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'], ['WV', 'West Virginia'], ['WI', 'Wisconsin'], ['WY', 'Wyoming']]
 const FIRMS = ['Littler Mendelson', 'Jackson Lewis', 'Seyfarth Shaw', 'Ogletree Deakins', 'Fisher Phillips', 'Epstein Becker Green', 'Morgan Lewis', 'Proskauer Rose', 'Paul Hastings', 'Sidley Austin', 'Skadden', 'Orrick', 'DLA Piper', 'Baker McKenzie', 'Akin Gump', 'Holland & Knight', 'Greenberg Traurig', 'K&L Gates', 'Vedder Price', 'Faegre Drinker', 'Winston & Strawn', 'Constangy Brooks Smith & Prophete', 'Foley & Lardner', 'Duane Morris', 'Squire Patton Boggs', 'Venable', 'Hunton Andrews Kurth', 'McGuireWoods', 'Nixon Peabody', 'Polsinelli', 'Troutman Pepper', 'Sheppard Mullin', 'Gibson Dunn', 'Latham & Watkins', 'Ropes & Gray', 'Cooley', 'Goodwin Procter', 'Davis Wright Tremaine', 'Barnes & Thornburg', 'Husch Blackwell']
 
-const ROLES_FOR: Record<Task, { kinds: Record<string, string>; role: CrmPersonRole; orgType: 'GOVERNMENT' | 'VENDOR' | 'EMPLOYER'; ask: (t: Target) => string; scope: string }> = {
+const ROLES_FOR: Record<Task, { kinds: Record<string, string>; role: CrmPersonRole; orgType: 'GOVERNMENT' | 'VENDOR' | 'EMPLOYER' | 'UNIVERSITY'; ask: (t: Target) => string; scope: string }> = {
   foundations: {
     kinds: { corporate_foundation_head: "head of the company's corporate foundation or philanthropy", community_affairs_head: 'head of corporate social responsibility, community affairs or community investment' },
     role: 'GRANTS', orgType: 'EMPLOYER', scope: 'a U.S. company that has just announced a layoff',
@@ -43,6 +43,11 @@ const ROLES_FOR: Record<Task, { kinds: Record<string, string>; role: CrmPersonRo
     kinds: { state_librarian: 'the state librarian (head of the state library agency)', library_career_lead: 'the person leading career, workforce, business or employment resources for the state library or the statewide library network' },
     role: 'BD_PARTNER', orgType: 'GOVERNMENT', scope: 'a U.S. state government',
     ask: (t) => `State: ${t.label}. Find the current people in these roles.`,
+  },
+  cc: {
+    kinds: { workforce_ce_head: "the dean or director of workforce development, continuing education, or corporate and community training (the person who runs short-term job training)", career_services_head: 'the director of career services or career development' },
+    role: 'BD_PARTNER', orgType: 'UNIVERSITY', scope: 'a U.S. community college',
+    ask: (t) => `College: ${t.label}${t.website ? ` (${t.website})` : ''}. Find the current people in these roles. If an email address for the person is printed on a page you read, include it as "email"; never guess one.`,
   },
   localgov: {
     kinds: { county_leader: 'the county executive, county judge, or chair of the board of commissioners or supervisors', mayor: "the mayor of the county's largest city", local_economic_development: "the economic development director of the county or of the county's largest city" },
@@ -59,7 +64,7 @@ Roles wanted, with the "kind" value:
 ${Object.entries(ROLES_FOR[task].kinds).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
 
 At most one person per kind. A kind with no confirmed person is absent. Reply with one JSON object and nothing else:
-{"people": [{"name": "", "title": "", "agency": "", "kind": "", "sourceUrl": "", "sourceDate": "YYYY-MM" | null}]}`
+{"people": [{"name": "", "title": "", "agency": "", "kind": "", "sourceUrl": "", "email": "" | null, "sourceDate": "YYYY-MM" | null}]}`
 
 async function pageNamesPerson(url: string, name: string): Promise<'yes' | 'no' | 'unreachable'> {
   try {
@@ -105,6 +110,17 @@ async function lookup(claude: Anthropic, task: Task, target: Target): Promise<Re
 }
 
 async function targetsFor(task: Task): Promise<Target[]> {
+  if (task === 'cc') {
+    // Community colleges in counties with two or more employers in layoff notices (300+ jobs in all) in the last 90 days.
+    const notices = await prisma.warnNotice.findMany({ where: { source: 'WARN_FILING', dismissedAt: null, county: { not: null }, state: { not: null }, noticeDate: { gte: new Date(Date.now() - 90 * 86_400_000) }, employees: { not: null } }, select: { state: true, county: true, employees: true, normalizedEmployer: true } })
+    const base = (c: string) => c.replace(/\s+(county|parish)$/i, '').trim().toLowerCase()
+    const agg = new Map<string, { e: Set<string>; jobs: number }>()
+    for (const n of notices) { const k = `${n.state}|${base(n.county!)}`; const g = agg.get(k) ?? { e: new Set<string>(), jobs: 0 }; g.e.add(n.normalizedEmployer); g.jobs += n.employees!; agg.set(k, g) }
+    const areas = await prisma.geoArea.findMany({ where: { level: 'COUNTY' }, select: { id: true, name: true, state: true } })
+    const ids = areas.filter((a) => { const g = agg.get(`${a.state}|${base(a.name)}`); return g && g.e.size >= 2 && g.jobs >= 300 }).map((a) => a.id)
+    const cols = await prisma.collegeProfile.findMany({ where: { level: '2-year', countyFips: { in: ids } }, select: { unitid: true, name: true, state: true, website: true } })
+    return cols.map((c) => ({ key: c.unitid, label: `${c.name}, ${c.state}`, state: c.state, unitid: c.unitid, website: c.website }))
+  }
   if (task === 'libraries') return STATES.map(([code, name]) => ({ key: code, label: name, state: code }))
   if (task === 'counsel') return FIRMS.map((f) => ({ key: f, label: f }))
   if (task === 'localgov') {
@@ -154,6 +170,22 @@ async function importFile(file: string, apply: boolean) {
     for (const p of r.people) {
       tally.people++
       if (!apply) { console.log(`would add: ${p.name} | ${p.title} | ${p.agency} | ${r.task}`); continue }
+      if (r.task === 'cc' && r.target.unitid) {
+        const org = await ensureOrg({ name: r.target.label.replace(/,\s*[A-Z]{2}$/, ''), type: 'UNIVERSITY', state: r.target.state })
+        const res = await addContactToCrm({
+          fullName: p.name.trim(), title: p.title, email: p.email ?? null, orgId: org.id, orgName: org.name,
+          roles: [cfg.role], goals: goalsForRoles([cfg.role]), priority: 'P2',
+          note: `${p.title} at ${r.target.label}. Found by web search: ${p.sourceUrl}${p.sourceDate ? ` (page dated ${p.sourceDate})` : ''}. Community college in a county with several layoffs. ` + (p.pageChecked === 'yes' ? 'The name was found on that page.' : 'The source page could not be re-checked, so confirm the person and title before emailing.'),
+        })
+        if (res.outcome === 'removed') { tally.removed++; continue }
+        tally[res.outcome]++
+        await prisma.collegeContact.upsert({
+          where: { collegeId_role: { collegeId: r.target.unitid, role: p.kind === 'career_services_head' ? 'career' : 'execEd' } },
+          create: { collegeId: r.target.unitid, role: p.kind === 'career_services_head' ? 'career' : 'execEd', name: p.name.trim(), title: p.title, email: p.email ?? null, sourceUrl: p.sourceUrl, crmPersonId: res.personId },
+          update: { name: p.name.trim(), title: p.title, email: p.email ?? undefined, sourceUrl: p.sourceUrl, crmPersonId: res.personId },
+        })
+        continue
+      }
       const org = r.target.orgId
         ? { id: r.target.orgId, name: r.target.label }
         : await ensureOrg({ name: p.agency, type: cfg.orgType, state: r.target.state })
@@ -175,7 +207,7 @@ async function main() {
   const [cmd, a, b] = process.argv.slice(2)
   if (cmd === 'search') await search(a as Task, b ?? `${a}.json`)
   else if (cmd === 'import') await importFile(a, b === '--apply')
-  else console.log('usage: search <foundations|counsel|libraries|localgov> <out.json> | import <out.json> [--apply]')
+  else console.log('usage: search <foundations|counsel|libraries|localgov|cc> <out.json> | import <out.json> [--apply]')
   await prisma.$disconnect()
 }
 main().catch((e) => { console.error(e); process.exit(1) })
