@@ -12,9 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import { isRedesignOn } from '@/lib/redesign/flag'
-import { PageHeader } from '@/components/candidate/PageHeader'
-import { ShowMore } from '@/components/candidate/ShowMore'
-import { ActionLink } from '@/components/candidate/ActionLink'
+import { ResumeRedesign } from '@/components/dashboard/ResumeRedesign'
 import type { ResumeFeedbackItem } from '@/lib/resume/analyze-resume'
 
 export const metadata: Metadata = { title: 'My Resume' }
@@ -167,26 +165,7 @@ export default async function ResumePage({
   )
 
   if (isRedesignOn(profile.email)) {
-    return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Résumé"
-          intro="Keep a version for each kind of role, and fix what stops a recruiter reading further."
-          action={
-            <ActionLink href="/dashboard/resume/studio" kind="primary" event="resume_studio_opened" props={{ source: 'resume_page', versions: versions.length, openFixes: resumeFixes?.items.length ?? 0 }}>
-              Open resume studio
-            </ActionLink>
-          }
-        />
-        {block1}
-        {block2}
-        {block3}
-        <ShowMore page="resume">
-          {block5}
-          {block6}
-        </ShowMore>
-      </div>
-    )
+    return <ResumeRedesign versions={versions} fixes={resumeFixes?.items ?? []} narratives={narratives} resumeBookOptIn={profile.resumeBookOptIn} fromGap={fromGap} />
   }
 
   return (

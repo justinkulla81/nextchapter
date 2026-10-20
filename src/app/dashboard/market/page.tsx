@@ -10,10 +10,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
 import { MarketFlagsCard } from '@/components/dashboard/MarketFlagsCard'
 import { isRedesignOn } from '@/lib/redesign/flag'
-import { marketHeadline } from '@/lib/redesign/jobs-pages'
-import { PageHeader } from '@/components/candidate/PageHeader'
-import { ShowMore } from '@/components/candidate/ShowMore'
-import { ActionLink } from '@/components/candidate/ActionLink'
+import { MarketRedesign } from '@/components/market/MarketRedesign'
 
 export const metadata: Metadata = { title: 'Your job market' }
 
@@ -198,110 +195,7 @@ export default async function MarketPage() {
     </>
   )
 
-  if (redesign) {
-    const { headline, because } = marketHeadline(m)
-    // Three ways to widen, best first: each is one switch that adds jobs to the search. Nothing is added unless chosen.
-    const widen = [...places.slice(0, 1), ...roles.slice(0, 1), ...industries.slice(0, 1)]
-    const firstFlag = m.flags[0]
-    return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Your market"
-          intro="How many jobs fit you, and the quickest ways to see more. Nothing is added to your search unless you add it."
-          action={
-            <ActionLink href="/dashboard/find-my-job" kind="primary" event="market_see_jobs_clicked" props={{ source: 'market', marketReady: m.marketReady }}>
-              See the jobs that fit you
-            </ActionLink>
-          }
-        />
-        {!m.role ? (
-          body
-        ) : (
-          <>
-            <section aria-labelledby="size-h" className="space-y-3 rounded-2xl border border-border p-7">
-              <h2 id="size-h" className="font-display text-2xl font-semibold text-ink">
-                {headline}
-              </h2>
-              <p className="max-w-2xl text-base text-muted-foreground">
-                {m.role.label}, at your level. {because}
-              </p>
-              {m.marketReady && (
-                <dl className="flex flex-wrap gap-8 pt-2">
-                  {m.local !== null && (
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Open now in {m.placeLabel}</dt>
-                      <dd className="text-2xl font-semibold text-ink tabular-nums">{n(m.local)}</dd>
-                    </div>
-                  )}
-                  <div>
-                    <dt className="text-sm text-muted-foreground">Remote</dt>
-                    <dd className="text-2xl font-semibold text-ink tabular-nums">{n(m.remote)}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm text-muted-foreground">Nationally</dt>
-                    <dd className="text-2xl font-semibold text-ink tabular-nums">{n(m.national)}</dd>
-                  </div>
-                </dl>
-              )}
-            </section>
-
-            {widen.length > 0 && (
-              <section aria-labelledby="widen-h" className="space-y-3">
-                <h2 id="widen-h" className="font-display text-xl font-semibold text-ink">
-                  Where you could widen
-                </h2>
-                <ul className="divide-y divide-border rounded-2xl border border-border">
-                  {widen.map((e) => (
-                    <li key={e.kind + e.label} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                      <span>
-                        <span className="block text-base font-semibold text-ink">{e.label}</span>
-                        <span className="block text-sm text-muted-foreground">
-                          {e.open !== null && e.open !== undefined ? `${n(e.open)} more open roles` : 'More open roles'}
-                          {e.kind === 'role' && e.carry.length > 0 ? `. Your ${e.carry.slice(0, 2).join(' and ')} carry over.` : '.'}
-                        </span>
-                      </span>
-                      <ExpansionToggle
-                        kind={e.kind}
-                        value={e.kind === 'state' ? e.state : e.kind === 'role' ? e.role : e.kind === 'industry' ? e.industry : e.kind}
-                        on={e.kind === 'state' ? m.optedIn.states.includes(e.state) : e.kind === 'remote' ? m.optedIn.remote : e.kind === 'role' ? m.optedIn.roles.includes(e.role) : false}
-                        label={e.label}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {(firstFlag || m.ai) && (
-              <section aria-labelledby="know-h" className="space-y-2">
-                <h2 id="know-h" className="font-display text-xl font-semibold text-ink">
-                  Good to know
-                </h2>
-                {firstFlag && (
-                  <p className="max-w-2xl text-base text-ink">
-                    <span className="font-semibold">{firstFlag.title}.</span> {firstFlag.detail}
-                  </p>
-                )}
-                {m.ai && (
-                  <p className="max-w-2xl text-base text-ink">
-                    <span className="font-semibold">{AI_NEED_LABEL[m.ai.aiSkills]} for staying current in your field.</span> {m.ai.line}
-                  </p>
-                )}
-              </section>
-            )}
-          </>
-        )}
-        {m.role && (
-          <ShowMore page="market" label="Show every place, role and industry">
-            <Suspense fallback={null}>
-              <MarketFlagsCard candidateId={profile.id} />
-            </Suspense>
-            {body}
-          </ShowMore>
-        )}
-      </div>
-    )
-  }
+  if (redesign) return <MarketRedesign m={m} />
 
   return (
     <div className="space-y-8">

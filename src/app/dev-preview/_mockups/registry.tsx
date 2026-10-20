@@ -5,6 +5,7 @@ import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
 import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
+import { CompaniesLive, MarketLive, PayLive, ResumeLive, StrengthsLive, LocalLive, InterviewsLive } from './jobs-redesign-live'
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpScams, HelpQuestions } from './learn-help'
 import { HomeEntrepreneur, HomeTimeOff, HomeCareerChange, HomeFractional, HomeStalled, CheckIn, TailoredForYou } from './personalization'
@@ -54,6 +55,13 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/market/market', place: 'Jobs', title: 'Market: your market', replaces: '/dashboard/market, market-reality, market-intelligence', Component: MarketYours },
   { path: 'jobs/market/pay', place: 'Jobs', title: 'Market: know your worth', replaces: '/dashboard/pay', Component: MarketPay },
   { path: 'jobs/market/local', place: 'Jobs', title: 'Market: local market', replaces: '/dashboard/local-market', Component: MarketLocal },
+  { path: 'jobs/live/companies', place: 'Jobs', title: 'Companies (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: CompaniesLive },
+  { path: 'jobs/live/market', place: 'Jobs', title: 'Your market (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: MarketLive },
+  { path: 'jobs/live/pay', place: 'Jobs', title: 'Know your worth (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: PayLive },
+  { path: 'jobs/live/local', place: 'Jobs', title: 'Local market (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: LocalLive },
+  { path: 'jobs/live/resume', place: 'Jobs', title: 'Résumé (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: ResumeLive },
+  { path: 'jobs/live/whyhire', place: 'Jobs', title: 'Why hire me (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: StrengthsLive },
+  { path: 'jobs/live/interviews', place: 'Jobs', title: 'Interviews (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: InterviewsLive },
   { path: 'learn/path/roles', place: 'Learn', title: 'Market: other roles you could do', replaces: '/dashboard/pivot-paths, /dashboard/pivot', Component: MarketPivot },
   { path: 'jobs/interviews', place: 'Jobs', title: 'Interviews', replaces: '/dashboard/interview-prep, /dashboard/review-prep', Component: Interviews },
   { path: 'jobs/offers', place: 'Jobs', title: 'Offers', replaces: '/dashboard/got-hired, /dashboard/in-work', Component: Offers },

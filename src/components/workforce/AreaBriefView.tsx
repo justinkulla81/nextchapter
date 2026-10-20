@@ -1,6 +1,7 @@
 import { showCount } from '@/lib/workforce/area-brief'
 import type { AreaBrief } from '@/lib/workforce/area-brief-data'
 import { ShowMore } from '@/components/candidate/ShowMore'
+import { EmptyNote, FactList, PlainNote, SectionBlock, SourceLine } from '@/components/candidate/Blocks'
 
 function money(n: number): string {
   return n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`
@@ -157,13 +158,86 @@ export function AreaBriefView({ brief, audience, redesign = false }: { brief: Ar
   )
 
   if (redesign) {
+    // Three short sections: who is hiring, who is cutting, and how other members are doing. Each says what it rests on.
     return (
       <div className="space-y-8">
-        {hiring}
-        {layoffs}
-        {members}
-        <ShowMore page="local_market_news" label="Show local news">
-          {news}
+        <SectionBlock id="area-hiring" title="Companies hiring" why="Open roles on the NextChapter job board in this state. Not the whole market.">
+          {brief.hiring.openRoles === 0 ? (
+            <EmptyNote>No open roles on the NextChapter job board here right now. Check back, or widen your search on Your market.</EmptyNote>
+          ) : (
+            <>
+              <PlainNote>
+                <span className="font-semibold tabular-nums">{brief.hiring.openRoles.toLocaleString()}</span> open roles. These companies have the most.
+              </PlainNote>
+              <FactList label="Companies hiring" items={brief.hiring.companies.slice(0, 5).map((h) => ({ key: h.name, name: h.name, fact: `${h.roles} ${h.roles === 1 ? 'role' : 'roles'}` }))} />
+            </>
+          )}
+        </SectionBlock>
+        <SectionBlock id="area-layoffs" title="Layoffs filed" why={`Public WARN notices in ${brief.area.stateName}${brief.area.boardId ? ' for this board’s area' : ''}, last ${brief.layoffs.windowDays} days. Worth knowing before you apply.`}>
+          {brief.layoffs.companies.length === 0 ? (
+            <EmptyNote>No layoff notices on file for this period.</EmptyNote>
+          ) : (
+            <>
+              <PlainNote>
+                <span className="font-semibold tabular-nums">{brief.layoffs.totalWorkers.toLocaleString()}</span> workers named across {brief.layoffs.companies.length}{' '}
+                {brief.layoffs.companies.length === 1 ? 'employer' : 'employers'}.
+              </PlainNote>
+              <FactList
+                label="Layoffs filed"
+                items={brief.layoffs.companies.slice(0, 5).map((l) => ({
+                  key: l.employer,
+                  name: l.employer,
+                  fact: `${l.workers === null ? 'headcount not given' : `${l.workers.toLocaleString()} workers`}, filed ${day(l.latestFiled)}`,
+                }))}
+              />
+            </>
+          )}
+        </SectionBlock>
+        <SectionBlock id="area-members" title={`Other members in ${brief.candidatesScope === 'area' ? brief.area.name : brief.area.stateName}`} why="Counts only, never names. A group smaller than 10 is not shown, and people in Confidential Search Mode are not counted.">
+          {c.total === null ? (
+            <EmptyNote>Too few members here yet to show anything without pointing at a person.</EmptyNote>
+          ) : (
+            <>
+              <PlainNote>
+                <span className="font-semibold tabular-nums">{c.total.toLocaleString()}</span> members, and <span className="font-semibold">{showCount(c.landedRecently)}</span> started a new job in the last{' '}
+                {c.windowDays} days.
+              </PlainNote>
+            </>
+          )}
+        </SectionBlock>
+        <ShowMore page="local_market_news" label="Show more about members and local news">
+          {c.total !== null && (
+            <SectionBlock id="area-members-detail" title="Why members are moving, and where they are">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-ink">Why they are moving</h3>
+                  <FactList label="Why members are moving" items={c.byJourney.map((x) => ({ key: x.key, name: x.label, fact: showCount(x.count) }))} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-ink">Where they are</h3>
+                  <FactList label="Where members are" items={c.byStage.map((x) => ({ key: x.key, name: x.label, fact: showCount(x.count) }))} />
+                </div>
+              </div>
+            </SectionBlock>
+          )}
+          <SectionBlock id="area-news" title="News" why="Local articles on layoffs and AI at work.">
+            {brief.news.length === 0 ? (
+              <EmptyNote>No local articles found yet.</EmptyNote>
+            ) : (
+              <ul className="divide-y divide-border">
+                {brief.news.map((n) => (
+                  <li key={n.url} className="py-3">
+                    <a href={n.url} target="_blank" rel="noopener noreferrer" className="text-base font-medium text-brand underline underline-offset-4">
+                      {n.title}
+                    </a>
+                    <SourceLine>
+                      {[n.publisher, n.publishedAt ? day(n.publishedAt) : null].filter(Boolean).join(' · ')}
+                    </SourceLine>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionBlock>
         </ShowMore>
       </div>
     )

@@ -31,7 +31,7 @@ export interface ResumeVersionItem
 // it as a starting point for a new version. The Resume Fixer lives inside
 // the current version's row (not a separate card elsewhere on the page) so
 // the flow is: open the resume, see what's wrong, then launch the fixer.
-export function ResumeVersionsList({ versions, fromGap }: { versions: ResumeVersionItem[]; fromGap?: string }) {
+export function ResumeVersionsList({ versions, fromGap, redesign = false }: { versions: ResumeVersionItem[]; fromGap?: string; redesign?: boolean }) {
   // A Market Reality Report gap link lands here with ?fromGap=... — that
   // context (and the current version's issues it refers to) only exists in
   // the DOM once this row is expanded, so the deep link forces it open
@@ -44,10 +44,17 @@ export function ResumeVersionsList({ versions, fromGap }: { versions: ResumeVers
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        Your resume{versions.length > 1 ? ' versions' : ''}
-      </p>
-      <div className="divide-y divide-border rounded-lg border border-border">
+      {redesign ? (
+        <div className="space-y-1">
+          <h2 className="font-display text-xl font-semibold text-ink">Your résumé{versions.length > 1 ? ' versions' : ''}</h2>
+          <p className="max-w-2xl text-base text-muted-foreground">Keep one for each kind of role. Open one to see what to fix or to rename it.</p>
+        </div>
+      ) : (
+        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          Your resume{versions.length > 1 ? ' versions' : ''}
+        </p>
+      )}
+      <div className={cn('divide-y divide-border border border-border', redesign ? 'rounded-2xl' : 'rounded-lg')}>
         {versions.map((version) => (
           <ResumeVersionRow
             key={version.id}
@@ -55,6 +62,7 @@ export function ResumeVersionsList({ versions, fromGap }: { versions: ResumeVers
             isExpanded={expandedId === version.id}
             onToggle={() => setExpandedId((id) => (id === version.id ? null : version.id))}
             fromGap={version.isLatest ? fromGap : undefined}
+            redesign={redesign}
           />
         ))}
       </div>
@@ -64,6 +72,14 @@ export function ResumeVersionsList({ versions, fromGap }: { versions: ResumeVers
 
 function issueCount(version: ResumeVersionItem): number {
   return version.atsFeedback.length + version.resultsFeedback.length + version.experienceFeedback.length
+}
+
+/** One plain verdict per version, with the reason: how many things to fix, or that nothing was found. */
+function resumeVerdict(version: ResumeVersionItem): string {
+  if (version.analysisError) return 'We could not read this file. Try uploading it again.'
+  if (version.atsScore === null) return 'We are reading it now.'
+  const issues = issueCount(version)
+  return issues > 0 ? `${issues} ${issues === 1 ? 'thing' : 'things'} to fix so a recruiter reads further.` : 'Nothing to fix. A recruiter can read it as is.'
 }
 
 function ResumeStatusLine({ version }: { version: ResumeVersionItem }) {
@@ -89,18 +105,30 @@ function ResumeVersionRow({
   isExpanded,
   onToggle,
   fromGap,
+  redesign = false,
 }: {
   version: ResumeVersionItem
   isExpanded: boolean
   onToggle: () => void
   fromGap?: string
+  redesign?: boolean
 }) {
   const [, startTransition] = useTransition()
   const [dirty, setDirty] = useState(false)
 
   return (
-    <div className={cn('p-3', isExpanded && 'bg-muted/30')}>
+    <div className={cn(redesign ? 'p-5' : 'p-3', isExpanded && 'bg-muted/30')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
+        {redesign ? (
+          <div className="min-w-0 space-y-0.5">
+            <p className="truncate text-base font-semibold text-ink">{version.label || version.fileName}</p>
+            <p className="text-sm text-ink">{resumeVerdict(version)}</p>
+            <p className="truncate text-sm text-muted-foreground">
+              {version.isLatest ? 'Current version. ' : ''}
+              {version.description || `Uploaded ${version.uploadedAt.toLocaleDateString()}`}
+            </p>
+          </div>
+        ) : (
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-foreground">
             {version.label || version.fileName}
@@ -115,17 +143,18 @@ function ResumeVersionRow({
           </p>
           <ResumeStatusLine version={version} />
         </div>
-        <div className="flex shrink-0 items-center gap-3 text-xs font-medium">
+        )}
+        <div className={cn('flex shrink-0 items-center gap-3 font-medium', redesign ? 'text-sm' : 'text-xs')}>
           {version.signedUrl && (
             <ResumeViewButton
               signedUrl={version.signedUrl}
               title={version.label || version.fileName}
-              className="text-primary hover:underline"
+              className={redesign ? 'text-brand underline underline-offset-4' : 'text-primary hover:underline'}
             >
               View
             </ResumeViewButton>
           )}
-          <button type="button" onClick={onToggle} className="text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={onToggle} className={redesign ? 'text-brand underline underline-offset-4' : 'text-muted-foreground hover:text-foreground'}>
             {isExpanded ? 'Hide' : 'Details'}
           </button>
         </div>
@@ -207,7 +236,7 @@ function ResumeVersionRow({
                 placeholder="What's different about this one — e.g. tailored for VP Product roles"
               />
             </div>
-            <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
+            <SubmitButton size="sm" variant={dirty && !redesign ? 'success' : 'outline'}>
               Save
             </SubmitButton>
           </form>

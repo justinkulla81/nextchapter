@@ -25,6 +25,7 @@ export function InterviewPrepTabs({
   elevatorPitchReady,
   hasJobDescription,
   jobHoppingFlag,
+  redesign = false,
 }: {
   coreStatement: string | null
   adaptations: NarrativeAdaptations | null
@@ -34,13 +35,23 @@ export function InterviewPrepTabs({
   elevatorPitchReady: number | null
   hasJobDescription: boolean
   jobHoppingFlag: boolean
+  /** Pill tabs and the quiet story panel, to match the redesigned pages. */
+  redesign?: boolean
 }) {
   return (
     <Tabs defaultValue="story">
       <div className="overflow-x-auto">
-        <TabsList className="h-auto min-w-full justify-start gap-1 bg-light-gray p-1">
+        <TabsList variant={redesign ? 'line' : 'default'} className={redesign ? 'h-auto min-w-full justify-start gap-2 p-0' : 'h-auto min-w-full justify-start gap-1 bg-light-gray p-1'}>
           {TABS.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id} className="shrink-0 px-3 py-2">
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className={
+                redesign
+                  ? 'h-auto shrink-0 flex-none rounded-full border-border px-4 py-1.5 text-muted-foreground data-active:border-ink data-active:!bg-ink data-active:text-white group-data-[variant=line]/tabs-list:data-active:!bg-ink'
+                  : 'shrink-0 px-3 py-2'
+              }
+            >
               {tab.label}
             </TabsTrigger>
           ))}
@@ -48,7 +59,7 @@ export function InterviewPrepTabs({
       </div>
 
       <TabsContent value="story" className="mt-6">
-        <MyStoryTab coreStatement={coreStatement} adaptations={adaptations} />
+        <MyStoryTab coreStatement={coreStatement} adaptations={adaptations} redesign={redesign} />
       </TabsContent>
       <TabsContent value="tough" className="mt-6">
         <ToughQuestionsTab hasJobDescription={hasJobDescription} jobHoppingFlag={jobHoppingFlag} />

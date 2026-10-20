@@ -302,8 +302,8 @@ async function CompaniesDirectory({ params, profile, redesign }: { params: Searc
                 .
               </p>
             )}
-            <FeedbackRequests candidateId={profile.id} />
-            {aiPay && <AiPayPremiumCard row={aiPay} functionName={aiPay.function} />}
+            <FeedbackRequests candidateId={profile.id} redesign />
+            {aiPay && <AiPayPremiumCard row={aiPay} functionName={aiPay.function} redesign />}
           </>
         }
       />

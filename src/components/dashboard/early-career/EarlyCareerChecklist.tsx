@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 // (school added, résumé uploaded) show as done and can't be unchecked here;
 // the rest the member checks off. `compact` is the home-page version: the
 // next three open items only.
-export function EarlyCareerChecklist({ rows, compact = false }: { rows: ChecklistRow[]; compact?: boolean }) {
+export function EarlyCareerChecklist({ rows, compact = false, redesign = false }: { rows: ChecklistRow[]; compact?: boolean; redesign?: boolean }) {
   const [optimistic, setOptimistic] = useOptimistic(rows, (state, change: { id: string; done: boolean }) =>
     state.map((r) => (r.id === change.id ? { ...r, done: change.done } : r))
   )
@@ -44,11 +44,11 @@ export function EarlyCareerChecklist({ rows, compact = false }: { rows: Checklis
               title={row.auto ? 'Done: we can see this on your profile' : undefined}
               className="mt-0.5 shrink-0 rounded-full text-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-default"
             >
-              {row.done ? <CheckCircle2 className="size-5 text-success" /> : <Circle className="size-5 text-muted-foreground" />}
+              {row.done ? <CheckCircle2 className={cn('size-5', redesign ? 'text-ink' : 'text-success')} /> : <Circle className="size-5 text-muted-foreground" />}
             </button>
             <div className="min-w-0 flex-1">
-              <p className={cn('text-sm font-medium', row.done && 'text-muted-foreground line-through')}>{row.title}</p>
-              {!row.done && <p className="text-sm text-muted-foreground">{row.why}</p>}
+              <p className={cn(redesign ? 'text-base font-semibold text-ink' : 'text-sm font-medium', row.done && 'font-normal text-muted-foreground line-through')}>{row.title}</p>
+              {!row.done && <p className={redesign ? 'text-base text-muted-foreground' : 'text-sm text-muted-foreground'}>{row.why}</p>}
               {!row.done && (
                 <Link href={row.href} className="text-sm font-medium text-brand underline underline-offset-4">
                   {row.linkLabel}

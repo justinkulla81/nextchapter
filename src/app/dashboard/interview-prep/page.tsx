@@ -34,6 +34,7 @@ export default async function InterviewPrepPage() {
       elevatorPitchReady={profile.elevatorPitchReady}
       hasJobDescription={!!profile.activeJobDescription}
       jobHoppingFlag={profile.jobHoppingFlag}
+      redesign={isRedesignOn(profile.email)}
     />
   )
   const weakness = (
@@ -57,7 +58,7 @@ export default async function InterviewPrepPage() {
             </ActionLink>
           }
         />
-        <JobDescriptionCard initialValue={profile.activeJobDescription} />
+        <JobDescriptionCard initialValue={profile.activeJobDescription} redesign />
         <section id="practice" aria-label="Practice" className="scroll-mt-4">
           {tabs}
         </section>

@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 
 // School, degree, major and graduation year in one short form. Writes the
 // member's primary education entry, which also links them to their alumni.
-export function EducationForm({ initial }: { initial: EducationSummary | null }) {
+export function EducationForm({ initial, redesign = false }: { initial: EducationSummary | null; redesign?: boolean }) {
   const [state, formAction, pending] = useActionState<EducationFormState, FormData>(saveEducation, undefined)
   const initialDegree = initial?.degree && (DEGREE_CHOICES as readonly string[]).includes(initial.degree) ? initial.degree : initial ? 'Other' : "Bachelor's"
   const [degree, setDegree] = useState<string>(initialDegree)
@@ -34,7 +34,7 @@ export function EducationForm({ initial }: { initial: EducationSummary | null })
               onClick={() => setDegree(d)}
               className={cn(
                 'rounded-lg border-2 px-3 py-1.5 text-sm font-medium transition-colors',
-                degree === d ? 'border-brand bg-brand/5 text-brand' : 'border-border bg-white hover:border-brand/40'
+                degree === d ? (redesign ? 'border-ink bg-ink/5 text-ink' : 'border-brand bg-brand/5 text-brand') : redesign ? 'border-border bg-white hover:border-ink/40' : 'border-border bg-white hover:border-brand/40'
               )}
             >
               {d}
