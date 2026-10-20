@@ -21,3 +21,8 @@ export function bareAddress(to: string | undefined): string | null {
   const addr = (m ? m[1] : to).trim().toLowerCase()
   return /^[^@\s]+@[^@\s]+$/.test(addr) ? addr : null
 }
+
+/** A click this soon after the send is a mail scanner following the link, not a person. */
+export function isAutomatedClick(secondsAfterSend: number): boolean {
+  return secondsAfterSend < 120
+}
