@@ -10,10 +10,7 @@ import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
 import { cn } from '@/lib/utils'
 import { getMemberDisplayIdentity, buildMemberProfileSlug } from '@/lib/contacts/member-profile'
 import { isRedesignOn } from '@/lib/redesign/flag'
-import { PageHeader } from '@/components/candidate/PageHeader'
-import { Section, Meter } from '@/components/candidate/ui'
-import { ActionLink } from '@/components/candidate/ActionLink'
-import { RowList } from '@/components/candidate/RowList'
+import { ProfileHubRedesign } from '@/components/dashboard/ProfileHubRedesign'
 
 export const metadata: Metadata = { title: 'My Profile' }
 
@@ -163,58 +160,16 @@ export default async function ProfileHubPage() {
         ? { href: '/dashboard/resume', label: 'Update your résumé', key: '/dashboard/resume' }
         : null
     return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Your profile"
-          intro="The better we know you, the better your jobs. Each part says what it improves."
-          action={next ? <ActionLink variant="primary" href={next.href} event="profile_next_step_clicked" props={{ target: next.key, percentComplete }}>{next.label}</ActionLink> : undefined}
-        />
-        {totalItems > 0 && (
-          <div className="space-y-2">
-            <div className="flex flex-wrap justify-between gap-2 text-sm">
-              <span className="font-semibold text-ink">{percentComplete}% complete</span>
-              <span className="text-muted-foreground">
-                {firstIncompleteSection ? `Next: ${firstIncompleteSection.title.replace(/^My /, '').toLowerCase()}` : 'Everything is filled in. Update anything that has changed.'}
-              </span>
-            </div>
-            <Meter pct={percentComplete} label="Profile completion" tone={percentComplete === 100 ? 'good' : 'ink'} />
-          </div>
-        )}
-        <Section id="parts" title="Your profile, in parts">
-          <RowList
-            label="Profile parts"
-            items={[
-              ...sections.map((section) => ({
-                key: section.href,
-                title: section.title.replace(/^My /, ''),
-                why: section.description,
-                fact: section.completedAt ? `Last completed ${section.completedAt.toLocaleDateString()}` : section.allDone ? 'Complete' : 'Not finished yet',
-                actions: (
-                  <ActionLink href={section.href} variant="secondary" event="profile_section_opened" props={{ section: section.href, complete: section.allDone }}>
-                    {section.allDone ? 'Review' : 'Finish'}
-                  </ActionLink>
-                ),
-              })),
-              {
-                key: 'resume',
-                title: 'Résumé',
-                why: resumeWhy,
-                fact: resumeRow ? `Last uploaded ${resumeRow.uploadedAt.toLocaleDateString()}` : 'Not uploaded yet',
-                actions: (
-                  <ActionLink href="/dashboard/resume" variant="secondary" event="profile_section_opened" props={{ section: 'resume', complete: !!resumeRow }}>
-                    {resumeRow ? 'Update' : 'Upload'}
-                  </ActionLink>
-                ),
-                detailLabel: 'What you can do here',
-                detail: <p>Upload, rename and manage versions of your résumé, get it analyzed, and run the résumé fixer.</p>,
-              },
-            ]}
-          />
-        </Section>
-        <p className="text-sm">
-          <ActionLink href={publicProfileHref} variant="text" event="public_profile_opened" props={{ source: 'profile' }}>View my public profile</ActionLink>
-        </p>
-      </div>
+      <ProfileHubRedesign
+        parts={sections.map((sec) => ({ href: sec.href, title: sec.title.replace(/^My /, ''), description: sec.description, allDone: sec.allDone, completedAt: sec.completedAt }))}
+        resume={resumeRow ? { uploadedAt: resumeRow.uploadedAt } : null}
+        resumeWhy={resumeWhy}
+        percentComplete={percentComplete}
+        hasChecklist={totalItems > 0}
+        firstIncompleteTitle={firstIncompleteSection ? firstIncompleteSection.title.replace(/^My /, '').toLowerCase() : null}
+        next={next}
+        publicProfileHref={publicProfileHref}
+      />
     )
   }
 

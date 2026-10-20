@@ -10,6 +10,7 @@ import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ActionLink } from '@/components/candidate/ActionLink'
 import { RowList } from '@/components/candidate/RowList'
+import { EmptyCard } from '@/components/candidate/EmptyCard'
 
 export const metadata: Metadata = { title: 'Company courses' }
 
@@ -26,7 +27,7 @@ export default async function CompanyCoursesPage() {
             intro="When your employer offers NextChapter Learning, the courses they cover show up here, free to you."
             action={<ActionLink variant="primary" href="/dashboard/learning" event="company_courses_skills_plan_opened" props={{ hasPrograms: false }}>See your skills plan</ActionLink>}
           />
-          <p className="rounded-2xl border border-border p-6 text-base text-ink">Nothing is covered by an employer yet. Your skills plan has the courses that would do the most for your search.</p>
+          <EmptyCard title="Nothing is covered by an employer yet" why="Your skills plan has the courses that would do the most for your search." />
         </div>
       )
     }
@@ -64,7 +65,7 @@ export default async function CompanyCoursesPage() {
           action={<ActionLink variant="primary" href="/dashboard/learning" event="company_courses_skills_plan_opened" props={{ hasPrograms: true, courses: courses.length }}>See your skills plan</ActionLink>}
         />
         {courses.length === 0 ? (
-          <p className="rounded-2xl border border-border p-6 text-base text-ink">{names} has not listed any courses yet. Your skills plan has NextChapter’s suggestions in the meantime.</p>
+          <EmptyCard title={`${names} has not listed any courses yet`} why="Your skills plan has NextChapter’s suggestions in the meantime." />
         ) : (
           <RowList
             label="Courses your employer covers"
@@ -74,7 +75,7 @@ export default async function CompanyCoursesPage() {
               href: c.url ?? undefined,
               why: c.skills.length > 0 ? `Builds ${c.skills.join(', ')}.` : undefined,
               fact: [c.provider, c.covered, programs.length > 1 ? orgName.get(c.orgId) : null].filter(Boolean).join(' · ') || undefined,
-              actions: <CourseStatusButtons courseId={c.id} title={c.title} status={progress.get(c.id) ?? 'NONE'} />,
+              actions: <CourseStatusButtons redesign courseId={c.id} title={c.title} status={progress.get(c.id) ?? 'NONE'} />,
               detailLabel: c.note ? 'A note from your employer' : undefined,
               detail: c.note ? <p className="whitespace-pre-line">{c.note}</p> : undefined,
             }))}

@@ -26,6 +26,7 @@ export function ResumeUploadForm({
   narratives = [],
   showNarrativePicker = true,
   resumeBookOptIn = true,
+  redesign = false,
 }: {
   narratives?: ResumeUploadNarrativeOption[]
   // Off during onboarding (see /onboarding/resume) — a brand-new candidate
@@ -37,6 +38,8 @@ export function ResumeUploadForm({
   // brand-new onboarding visitor has no profile yet to read this from, and
   // true is also the schema default every new profile gets anyway.
   resumeBookOptIn?: boolean
+  /** Redesigned page: a titled section, no box, no green file button, and a reason beside the disabled Upload. */
+  redesign?: boolean
 }) {
   const [state, formAction, pending] = useActionState(uploadResume, undefined)
   const [hasFile, setHasFile] = useState(false)
@@ -69,10 +72,16 @@ export function ResumeUploadForm({
       <form
         action={formAction}
         className={cn(
-          'space-y-4 rounded-lg border border-border p-4',
+          redesign ? 'space-y-4' : 'space-y-4 rounded-lg border border-border p-4',
           pending && 'cursor-progress [&_*]:cursor-progress'
         )}
       >
+        {redesign && (
+          <div className="space-y-1">
+            <h2 className="font-display text-xl font-semibold text-ink">Upload a résumé</h2>
+            <p className="max-w-2xl text-base text-muted-foreground">We read it, say what to fix, and keep it as a version you can tailor.</p>
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="file">Upload your resume (PDF or DOCX, up to 10MB)</Label>
           {/* The "Choose File" pseudo-button (the input's ::file-selector-button)
@@ -88,7 +97,7 @@ export function ResumeUploadForm({
             disabled={pending}
             onChange={(e) => setHasFile(e.target.files !== null && e.target.files.length > 0)}
             className={cn(
-              !hasFile && 'file:bg-success file:text-white hover:file:bg-success-hover',
+              !hasFile && !redesign && 'file:bg-success file:text-white hover:file:bg-success-hover',
               pending && 'file:cursor-progress'
             )}
           />
@@ -155,9 +164,10 @@ export function ResumeUploadForm({
 
         {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-        <Button type="submit" disabled={pending || !hasFile} variant={hasFile ? 'success' : 'secondary'}>
+        <Button type="submit" disabled={pending || !hasFile} variant={hasFile ? (redesign ? 'default' : 'success') : 'secondary'}>
           {pending ? 'Uploading and analyzing…' : 'Upload resume'}
         </Button>
+        {redesign && !hasFile && !pending && <p className="text-sm text-muted-foreground">Choose a file above to turn on Upload.</p>}
         {pending && <InlineLoadingState label="This takes a few seconds — analyzing your resume…" />}
       </form>
       {showNarrativePicker && uploads > 0 && !pending && <ResumeReadback key={uploads} />}

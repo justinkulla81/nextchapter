@@ -157,6 +157,11 @@ import { MaybeShowMore } from '@/components/dashboard/find/MaybeShowMore'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
 import { AddJobAction } from '@/components/dashboard/find/AddJobAction'
 import { FindParts, parseFindPart, type FindPart } from '@/components/dashboard/FindParts'
+import { FIND_PART_HEADER } from '@/lib/jobs/find-part-copy'
+import { FindUnpostedSection } from '@/components/dashboard/find/FindUnpostedSection'
+import { FindIndependentSection } from '@/components/dashboard/find/FindIndependentSection'
+import { FindResourcesSection } from '@/components/dashboard/find/FindResourcesSection'
+import { FindPartLoading } from '@/components/dashboard/find/FindPartMessage'
 import { MyTabAnchors } from '@/components/dashboard/one-board/MyTabAnchors'
 import { PivotBoardBanner, PivotBoardPrompt } from '@/components/dashboard/pivots/PivotBoardBanner'
 import { pivotBoardFilter, type PivotBoardFilter } from '@/lib/pivots/board-filter'
@@ -1107,7 +1112,7 @@ export default async function JobFitPage({
             }
           />
         ) : (
-          <PageHeader title="Find a job" intro="Roles that fit your background. For each one, we tell you why." />
+          <PageHeader title={FIND_PART_HEADER[part].title} intro={FIND_PART_HEADER[part].intro} />
         )
       ) : (
         <div className="space-y-3">
@@ -1939,7 +1944,12 @@ async function FindMyJobBody({
       )}
 
       {/* SEC filings and news before a senior search: full-time searches. */}
-      {onBoard && show('unposted') && workTypes.includes('full_time') && (
+      {onBoard && show('unposted') && redesign && (
+        <Suspense fallback={<FindPartLoading label="Looking through filings and news for your background…" />}>
+          <FindUnpostedSection profile={profile} types={workTypes} urlParams={urlParams} />
+        </Suspense>
+      )}
+      {onBoard && show('unposted') && !redesign && workTypes.includes('full_time') && (
         <Suspense fallback={null}>
           <LikelyOpeningsSection profile={profile} />
         </Suspense>
@@ -1965,7 +1975,12 @@ async function FindMyJobBody({
       </MaybeShowMore>
       )}
 
-      {onBoard && show('independent') && showIndependentToolkit && (
+      {onBoard && show('independent') && showIndependentToolkit && redesign && (
+        <Suspense fallback={<FindPartLoading label="Loading independent work…" />}>
+          <FindIndependentSection profile={profile} types={workTypes} urlParams={urlParams} />
+        </Suspense>
+      )}
+      {onBoard && show('independent') && showIndependentToolkit && !redesign && (
         <Suspense fallback={null}>
           <IndependentWorkSections profile={profile} types={workTypes} />
         </Suspense>
@@ -2575,7 +2590,7 @@ async function FindMyJobBody({
 
       )}
 
-      {onBoard && show('resources') && (
+      {onBoard && !redesign && (
       <div id="add-contacts-for-matching" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Add Contacts to Get Warm Intro Matches</h2>
@@ -2639,7 +2654,7 @@ async function FindMyJobBody({
       )}
       </MaybeShowMore>
 
-      {onBoard && show('resources') && (
+      {onBoard && !redesign && (
       <div id="job-boards" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Job Boards</h2>
@@ -2654,7 +2669,7 @@ async function FindMyJobBody({
 
       )}
 
-      {onBoard && show('resources') && (
+      {onBoard && !redesign && (
       <div id="resume-book" className="scroll-mt-4 border-t border-border pt-8">
         {profile.resumeBookOptIn && profile.resumeBookOptInConfirmedAt ? (
           <div className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-3">
@@ -2681,7 +2696,7 @@ async function FindMyJobBody({
 
       )}
 
-      {onBoard && show('resources') && profile.recruiterVisibilityConfirmedAt && (
+      {onBoard && !redesign && profile.recruiterVisibilityConfirmedAt && (
         <div className="space-y-1.5 border-t border-border pt-6 text-xs text-muted-foreground">
           <p>Executive Recruiters: {profile.recruiterDatabaseOptIn ? 'opted in' : 'not opted in'}</p>
           <Link href="/dashboard/privacy" className="inline-block underline underline-offset-4">
@@ -2690,7 +2705,12 @@ async function FindMyJobBody({
         </div>
       )}
 
-      <GuideCallout pageSlot="find-my-job" currentJobStatus={profile.currentJobStatus} />
+      {onBoard && redesign && show('resources') && <FindResourcesSection profile={profile} />}
+
+      {/* In the redesign the guides sit in Resources, so the other parts do not repeat them below. */}
+      {!(redesign && onBoard && (part === 'resources' || part === 'unposted' || part === 'independent')) && (
+        <GuideCallout pageSlot="find-my-job" currentJobStatus={profile.currentJobStatus} />
+      )}
     </>
   )
 }

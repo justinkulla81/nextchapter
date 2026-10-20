@@ -52,6 +52,11 @@ Each row is one proposed screen and the live pages it absorbs. The Personalize p
 | Flows | A question, with the payoff shown (`/dev-preview/flows/tune-question`) | every one-off question on profile, search strategy, and onboarding |
 | Flows | The finish: what you just gained (`/dev-preview/flows/tune-done`) | new |
 | Flows | A long assessment as short rounds (`/dev-preview/flows/deep-dive`) | How I Work Best (57 items), What I Need (24), Track Record (19) |
+| Flows | Track record as short rounds: the start (`/dev-preview/flows/track-record-intro`) | /dashboard/track-record (built; the real component, sample answers) |
+| Flows | Track record as short rounds: a round (`/dev-preview/flows/track-record-round`) | /dashboard/track-record (resumed at round 6) |
+| Flows | Track record as short rounds: the finish (`/dev-preview/flows/track-record-done`) | /dashboard/track-record |
+| Flows | How I perform as short rounds: a round (`/dev-preview/flows/how-i-perform-round`) | /dashboard/how-i-perform (resumed at round 7) |
+| Flows | How I perform as short rounds: the last round, then the finish (`/dev-preview/flows/how-i-perform-last`) | /dashboard/how-i-perform |
 | Flows | Receipt: Home bundle (pace and tone) (`/dev-preview/flows/receipt-home`) | new |
 | Flows | Receipt: Network bundle (who you want to reach) (`/dev-preview/flows/receipt-network`) | new |
 | Moments | You earned Candidate+ (`/dev-preview/moments/candidate-plus`) | the unlock ladder and its locked rungs |
@@ -66,3 +71,7 @@ Each row is one proposed screen and the live pages it absorbs. The Personalize p
 | Finances and benefits | Your runway (building something of my own) (`/dev-preview/money/runway-entrepreneur`) | new |
 | Moments | Onboarding: would you like help with money? (`/dev-preview/moments/onboarding-money`) | new |
 | Account | Money help (off state) (`/dev-preview/account/money`) | new |
+
+## Built Network and Account components, fed sample data
+
+These run the code that ships (see `docs/redesign-old-card-audit-network-account.md`): `/dev-preview/network/circles/know-live`, `know-empty-live`, `know-filters-live`, `know-detail-live`, `/dev-preview/network/circles/industry-live`, `/dev-preview/network/messages-live`, `/dev-preview/network/circles/close-match-live`, `close-matches-live`, `/dev-preview/account/visibility-live`, `/dev-preview/account/profile-live`, `/dev-preview/account/benefits-network-live`.

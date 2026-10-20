@@ -26,6 +26,11 @@ function EmptyCarousel({ label = 'Nothing here yet — check back soon.' }: { la
   )
 }
 
+// The redesigned empty line: a sentence, not a bordered box.
+function NoneYet({ label = 'Nothing here yet. Check back soon.' }: { label?: string }) {
+  return <p className="text-base text-muted-foreground">{label}</p>
+}
+
 export default async function WebinarsPage() {
   const profile = await getDashboardProfile()
   const [webinars, registeredIds, { longForm, shorts, toolsForYou, aiTips }, podcasts, likedKeys, favorites] = await Promise.all([
@@ -74,7 +79,7 @@ export default async function WebinarsPage() {
         )}
 
         <Section id="watch" title="Watch when you have 10 minutes">
-          {watchNow.length === 0 ? <EmptyCarousel label="New videos are on the way. Check back soon." /> : videoRow(watchNow)}
+          {watchNow.length === 0 ? <NoneYet label="New videos are on the way. Check back soon." /> : videoRow(watchNow)}
         </Section>
 
         <MoreDetails summary="Show more: tips, tools, podcasts and your favorites">
@@ -85,31 +90,31 @@ export default async function WebinarsPage() {
             <Section id="more-advice" title="More career and interview advice">{videoRow(moreLong)}</Section>
           )}
           <Section id="tips" title="Career and interview tips">
-            {shorts.length === 0 ? <EmptyCarousel /> : videoRow(shorts)}
+            {shorts.length === 0 ? <NoneYet /> : videoRow(shorts)}
           </Section>
           <Section id="tools" title="Tools for you">
             {toolsForYou.length === 0
-              ? <EmptyCarousel />
+              ? <NoneYet />
               : videoRow(toolsForYou, (v) => {
                   const label = v.aiToolIndustry ?? v.aiToolFunction
                   return label ? `Recommended for ${label}${v.aiToolFocus ? `: ${v.aiToolFocus}` : ''}` : (v.aiToolFocus ?? 'General AI tip')
                 })}
           </Section>
           <Section id="ai" title="AI tips and tools">
-            {aiTips.length === 0 ? <EmptyCarousel /> : videoRow(aiTips, (v) => v.aiToolFocus ?? 'General AI tip')}
+            {aiTips.length === 0 ? <NoneYet /> : videoRow(aiTips, (v) => v.aiToolFocus ?? 'General AI tip')}
           </Section>
           {laterWebinars.length > 0 && (
             <Section id="webinars" title="More webinars">
               <div className="space-y-3">
                 {laterWebinars.map((w) => (
-                  <WebinarListItem key={w.id} webinar={w} isRegistered={registeredIds.has(w.id)} isLiked={liked('WEBINAR', w.id)} />
+                  <WebinarListItem redesign key={w.id} webinar={w} isRegistered={registeredIds.has(w.id)} isLiked={liked('WEBINAR', w.id)} />
                 ))}
               </div>
             </Section>
           )}
           <Section id="podcasts" title="Podcasts">
             {podcasts.length === 0 ? (
-              <EmptyCarousel />
+              <NoneYet />
             ) : (
               <div className="flex gap-4 overflow-x-auto pb-2">
                 {podcasts.map((podcast) => (
@@ -120,7 +125,7 @@ export default async function WebinarsPage() {
           </Section>
           <Section id="favorites" title="My favorites">
             {!hasFavorites ? (
-              <EmptyCarousel label="Nothing saved yet. Like a video, webinar or podcast to keep it here." />
+              <NoneYet label="Nothing saved yet. Like a video, webinar or podcast to keep it here." />
             ) : (
               <div className="space-y-4">
                 {videoRow(favorites.videos)}
@@ -132,7 +137,7 @@ export default async function WebinarsPage() {
                   </div>
                 )}
                 {favorites.webinars.map((w) => (
-                  <WebinarListItem key={w.id} webinar={w} isRegistered={registeredIds.has(w.id)} isLiked={liked('WEBINAR', w.id)} />
+                  <WebinarListItem redesign key={w.id} webinar={w} isRegistered={registeredIds.has(w.id)} isLiked={liked('WEBINAR', w.id)} />
                 ))}
               </div>
             )}

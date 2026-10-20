@@ -19,6 +19,8 @@ import { Logo } from '@/components/Logo'
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
+import { EmptyCard } from '@/components/candidate/EmptyCard'
+import { Meter } from '@/components/candidate/ui'
 
 // Two things this document deliberately never shows, per the spec's own
 // honesty rule (a false claim discovered once destroys the whole effect):
@@ -37,10 +39,44 @@ export const metadata: Metadata = { title: 'Certified Executive Dossier' }
 // Suspense boundary rather than blocking the rest of this page (candidate
 // name, effort summary, references, etc., all from the fast
 // getRecruiterReportData call) on either one.
-async function DossierCompletenessSection({ candidateId }: { candidateId: string }) {
+async function DossierCompletenessSection({ candidateId, redesign }: { candidateId: string; redesign: boolean }) {
   const dossier = await getDossierSections(candidateId)
   const sectionCompleteness = getDossierSectionCompleteness(dossier)
   const completedCount = sectionCompleteness.filter((s) => s.hasContent).length
+
+  // The redesign: one sentence and a bar. The ring, the boxed list with lock icons and the dashed empty state are gone;
+  // which sections are filled in opens on demand.
+  if (redesign) {
+    if (completedCount === 0) {
+      return (
+        <EmptyCard
+          title="Your dossier is empty so far"
+          why="Add a reference, log a work sample or finish How I work, and each one fills a section below. Nothing here is made up: a section stays blank until there is something real to show."
+        />
+      )
+    }
+    return (
+      <div className="space-y-3">
+        <p className="text-base text-ink">
+          <span className="font-semibold">
+            {completedCount} of {sectionCompleteness.length} sections are filled in.
+          </span>{' '}
+          Each one fills as you add real proof.
+        </p>
+        <Meter pct={Math.round((completedCount / sectionCompleteness.length) * 100)} label="Dossier sections filled in" tone={completedCount === sectionCompleteness.length ? 'good' : 'ink'} />
+        <details className="text-base">
+          <summary className="cursor-pointer text-sm font-medium text-brand underline underline-offset-4">Which sections</summary>
+          <ul className="mt-3 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+            {sectionCompleteness.map((s) => (
+              <li key={s.id} className="text-ink">
+                {s.title}: <span className="text-muted-foreground">{s.hasContent ? 'filled in' : 'empty'}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      </div>
+    )
+  }
 
   if (completedCount === 0) {
     return (
@@ -130,7 +166,7 @@ export default async function RecruiterReportPage() {
 
       <div className="print:hidden">
         <Suspense fallback={<DossierSkeleton />}>
-          <DossierCompletenessSection candidateId={profile.id} />
+          <DossierCompletenessSection candidateId={profile.id} redesign={redesign} />
         </Suspense>
       </div>
 

@@ -28,6 +28,9 @@ import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { ActionLink } from '@/components/candidate/ActionLink'
+import { RowList } from '@/components/candidate/RowList'
+import { EmptyNote, FactList, PlainNote, SectionBlock, SourceLine } from '@/components/candidate/Blocks'
+import { hiringSignalText } from '@/lib/redesign/jobs-pages'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
@@ -713,6 +716,169 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   )
 
   if (redesign) {
+    const signalText = latestSignal
+      ? hiringSignalText({
+          openRolesTotal: latestSignal.openRolesTotal,
+          openRolesDirectorPlus: latestSignal.openRolesDirectorPlus,
+          rolesDelta12wk: latestSignal.rolesDelta12wk,
+          trajectory: latestSignal.trajectory,
+          medianPostingAgeDays: latestSignal.medianPostingAgeDays,
+          topFunctions: topFunctions.map((f) => f.function),
+        })
+      : null
+    const rSignal = (
+      <SectionBlock id="signal-h" title="Is it hiring?" why={signalText ? undefined : 'We do not have active job board postings to compute a signal from yet. Check back as the company posts.'}>
+        {signalText && (
+          <>
+            <PlainNote>
+              <span className="font-semibold">{signalText.headline}</span> {signalText.because}
+            </PlainNote>
+            {signalText.facts.map((f) => (
+              <SourceLine key={f}>{f}</SourceLine>
+            ))}
+          </>
+        )}
+      </SectionBlock>
+    )
+    const rOwn = ownContactsHere.length > 0 && (
+      <SectionBlock id="own-h" title={`People you know here (${ownContactsHere.length})`} why="Ask them first: a warm introduction beats an application.">
+        <RowList
+          label="Your contacts at this company"
+          items={ownContactsHere.map((contact) => ({
+            key: contact.id,
+            title: contact.name,
+            why: contact.title ?? undefined,
+            fact: contact.employmentStatusAtCompany === 'CURRENT' ? 'Works there now.' : contact.employmentStatusAtCompany === 'FORMER' ? 'Used to work there.' : 'We have not confirmed whether they are still there.',
+            actions: (
+              <>
+                {contact.employmentStatusAtCompany === null && <ContactEmploymentStatusButtons contactId={contact.id} companyPageId={slug} />}
+                <ActionLink href={`/dashboard/network/contacts/${contact.id}`} event="company_contact_opened" props={{ companyId: id, contactId: contact.id }}>
+                  Open
+                </ActionLink>
+              </>
+            ),
+          }))}
+        />
+      </SectionBlock>
+    )
+    const rSecond = secondDegreeContacts.length > 0 && (
+      <SectionBlock id="second-h" title="People your contacts might know here" why="We show your contact and how many people they know here, never their names.">
+        <RowList
+          label="Contacts who know people here"
+          items={secondDegreeContacts.map(({ bridge, contactCount }) => ({
+            key: bridge.id,
+            title: bridge.name,
+            why: bridge.title ?? undefined,
+            fact: `Knows ${contactCount} ${contactCount === 1 ? 'person' : 'people'} here.`,
+            actions: (
+              <ActionLink href={`/dashboard/network/contacts/${bridge.id}`} event="company_bridge_opened" props={{ companyId: id, contactId: bridge.id }}>
+                Open
+              </ActionLink>
+            ),
+          }))}
+        />
+      </SectionBlock>
+    )
+    const rInsiders = (
+      <div id="insiders" className="scroll-mt-4">
+        <SectionBlock
+          id="insiders-h"
+          title="Members who know this company"
+          why={
+            otherMembersContactCount > 0
+              ? `${otherMembersContactCount} other NextChapter member${otherMembersContactCount === 1 ? ' has' : 's have'} a personal contact here too.`
+              : 'Members who worked here can answer what a job post cannot.'
+          }
+        >
+          {!alreadyTagged ? (
+            <div className="space-y-3">
+              <EmptyNote>Add where you have worked and you can see who else has worked here. Members who have worked somewhere can ask each other questions.</EmptyNote>
+              <ManualTagForm companyPageId={slug} defaultCompanyName={company.name} />
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {currentEmployerUntagged && <CurrentEmployerInsiderOptIn companyId={id} companyPageId={slug} />}
+              {!canInsiderNetwork ? (
+                <EmptyNote>
+                  Thank you for tagging your employer; that helps other members. Browsing and asking the members who worked here is part of {MARKET_INTEL_TIER_LABEL.PLUS} and above Market Intelligence.{' '}
+                  <a href="/dashboard/market-intelligence" className="font-medium text-brand underline underline-offset-4">
+                    See Market Intelligence
+                  </a>
+                </EmptyNote>
+              ) : insiders.length === 0 ? (
+                <EmptyNote>No members have tagged this employer yet. When one does, you can ask them a question here.</EmptyNote>
+              ) : (
+                <div className="space-y-3">
+                  <PlainNote>
+                    <span className="font-semibold">{insiders.length} member{insiders.length === 1 ? '' : 's'}</span> worked here.
+                  </PlainNote>
+                  <div className="divide-y divide-border rounded-2xl border border-border">
+                    <ShowMoreList pageSize={5}>
+                      {insiders.map((insider) => (
+                        <div key={insider.memberEmploymentId} className="space-y-2 p-5">
+                          <p className="text-base font-semibold text-ink">
+                            {insider.isCurrent ? `A current employee${insider.function ? `, ${insider.function}` : ''}` : `A former ${insider.roleLevel ?? 'employee'}${insider.function ? `, ${insider.function}` : ''}`}
+                          </p>
+                          {!insider.isCurrent && <p className="text-sm text-muted-foreground">Left {TENURE_LABEL[insider.tenureRecency]?.replace('left ', '') ?? 'a while ago'}.</p>}
+                          <AskInsiderForm companyId={id} insiderMemberEmploymentId={insider.memberEmploymentId} companyPageId={slug} />
+                        </div>
+                      ))}
+                    </ShowMoreList>
+                  </div>
+                </div>
+              )}
+              {askerRequestsHere.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-base font-semibold text-ink">Your questions</h3>
+                  <FactList
+                    label="Your questions"
+                    items={askerRequestsHere.map((r) => ({
+                      key: r.id,
+                      name: r.question,
+                      fact: r.status === 'answered' ? r.answer : r.status === 'expired' ? 'Expired: no response after 14 days.' : 'No response yet.',
+                    }))}
+                  />
+                </div>
+              )}
+              {pendingToAnswerHere.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-base font-semibold text-ink">Someone asked you about this company</h3>
+                  {pendingToAnswerHere.map((r) => (
+                    <div key={r.id} className="space-y-2 rounded-2xl border border-border p-5">
+                      <p className="text-base font-semibold text-ink">{r.question}</p>
+                      <AnswerInsiderRequestForm requestId={r.id} companyPageId={slug} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </SectionBlock>
+      </div>
+    )
+    const rFared = (
+      <SectionBlock id="fared-h" title="How members have fared" why="Tracked applications from NextChapter members. Groups under 5 are not shown.">
+        {!outcomeCell ? (
+          <EmptyNote>Not enough tracked applications to this company yet.</EmptyNote>
+        ) : isSuppressedCell(outcomeCell) ? (
+          <EmptyNote>Fewer than 5 members have applied here, so we do not show it.</EmptyNote>
+        ) : (
+          <>
+            <PlainNote>
+              <span className="font-semibold">{outcomeCell.applications} members applied.</span> {outcomeCell.responses} heard back and {outcomeCell.interviews} reached an interview
+              {outcomeCell.applications > 0 ? `, a ${Math.round((outcomeCell.responses / outcomeCell.applications) * 100)}% response rate` : ''}.
+            </PlainNote>
+            {(outcomeCell.avgDaysToInterview !== null || outcomeCell.avgDaysToRejection !== null) && (
+              <SourceLine>
+                {outcomeCell.avgDaysToInterview !== null
+                  ? `Averages ${outcomeCell.avgDaysToInterview} days from submission to interview${outcomeCell.avgDaysToRejection !== null ? `, ${outcomeCell.avgDaysToRejection} days to rejection` : ''}.`
+                  : `Averages ${outcomeCell.avgDaysToRejection} days from submission to rejection.`}
+              </SourceLine>
+            )}
+          </>
+        )}
+      </SectionBlock>
+    )
     return (
       <div className="space-y-8 pb-12">
         <PageHeader
@@ -733,15 +899,15 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             </p>
           )}
         </div>
-        {ownBlock}
-        {secondBlock}
-        {signalBlock}
-        {insidersBlock}
+        {rOwn}
+        {rSignal}
+        {rInsiders}
         <ShowMore page="company_profile">
+          {rSecond}
+          {rFared}
           {hiringBlock}
           {cultureBlock}
           {howToBlock}
-          {faredBlock}
           {recruitBlock}
         </ShowMore>
       </div>

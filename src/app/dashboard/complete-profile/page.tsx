@@ -21,6 +21,8 @@ import { Children } from 'react'
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { MoreDetails } from '@/components/dashboard/MoreDetails'
+import { ListRow } from '@/components/candidate/ListRow'
+import { ActionLink } from '@/components/candidate/ActionLink'
 
 export const metadata: Metadata = { title: 'Complete Your Profile' }
 
@@ -50,27 +52,40 @@ export default async function CompleteProfilePage() {
   const doneItems = items.filter((i) => i.complete)
 
   // Every open item, in order. The legacy page lists them all; the redesign shows the first two and keeps the rest one click away.
-  const blocks = (
-    <>
-        {isIncomplete('WORKING_STYLE_QUIZ') && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
-            <div>
-              <p className="text-sm font-medium text-foreground">Take the Behavioral Assessment</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                A short assessment of how you work best — takes about 10 minutes.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/retake-assessment"
-              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
-            >
-              Start — 25 pts
-            </Link>
+  const buildBlocks = (redesign: boolean) => {
+    const card = redesign ? 'space-y-3' : 'rounded-lg border border-border p-4'
+    // A task that is a link to another page: the old bordered box with a "+N pts" button, or a plain row in the redesign.
+    const linkTask = (key: string, title: string, note: string, href: string, pts: number, verb: string) =>
+      redesign ? (
+        <ul key={key} className="rounded-2xl border border-border">
+          <ListRow
+            title={title}
+            why={note.replace(/ — /g, '. ')}
+            fact={`Worth ${pts} minutes toward Candidate+.`}
+            actions={
+              <ActionLink href={href} variant="secondary" event="complete_profile_task_opened" props={{ task: key }}>
+                {verb}
+              </ActionLink>
+            }
+          />
+        </ul>
+      ) : (
+        <div key={key} className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">{title}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{note}</p>
           </div>
-        )}
+          <Link href={href} className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90">
+            {verb} — {pts} pts
+          </Link>
+        </div>
+      )
+    return (
+    <>
+        {isIncomplete('WORKING_STYLE_QUIZ') && linkTask('WORKING_STYLE_QUIZ', 'Take the Behavioral Assessment', 'A short assessment of how you work best — takes about 10 minutes.', '/dashboard/retake-assessment', 25, 'Start')}
 
         {isIncomplete('PROFILE_CONFIRM') && (
-          <div className="rounded-lg border border-border p-4">
+          <div className={card}>
             <ProfileConfirmForm
               firstName={profile.firstName}
               lastName={profile.lastName}
@@ -85,13 +100,13 @@ export default async function CompleteProfilePage() {
         )}
 
         {isIncomplete('INDUSTRY_CONFIRM') && (
-          <div className="rounded-lg border border-border p-4">
+          <div className={card}>
             <IndustryConfirmForm industryContext={profile.industryContext} confirmedAt={profile.industryConfirmedAt} prefilled={profile.resumePrefilledFields} />
           </div>
         )}
 
         {isIncomplete('FUNCTION_CONFIRM') && (
-          <div className="rounded-lg border border-border p-4">
+          <div className={card}>
             <FunctionConfirmForm
               primaryFunction={profile.primaryFunction}
               resumeLatestJobTitle={profile.resumeLatestJobTitle}
@@ -103,44 +118,18 @@ export default async function CompleteProfilePage() {
         )}
 
         {isIncomplete('SALARY_CONFIRM') && (
-          <div className="rounded-lg border border-border p-4">
+          <div className={card}>
             <SalaryConfirmForm lastSalary={profile.lastSalary} confirmedAt={profile.salaryConfirmedAt} />
           </div>
         )}
 
-        {isIncomplete('WORK_AUTHORIZATION') && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
-            <div>
-              <p className="text-sm font-medium text-foreground">Confirm your work authorization</p>
-              <p className="mt-1 text-xs text-muted-foreground">On the Screening Questions page.</p>
-            </div>
-            <Link
-              href="/dashboard/profile/screening#work-authorization"
-              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
-            >
-              Answer — 5 pts
-            </Link>
-          </div>
-        )}
+        {isIncomplete('WORK_AUTHORIZATION') && linkTask('WORK_AUTHORIZATION', 'Confirm your work authorization', 'On the Screening Questions page.', '/dashboard/profile/screening#work-authorization', 5, 'Answer')}
 
-        {isIncomplete('ANSWER_OPTIONAL_QUESTIONS') && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
-            <div>
-              <p className="text-sm font-medium text-foreground">Complete your Search Strategy questions</p>
-              <p className="mt-1 text-xs text-muted-foreground">On the Search Strategy page.</p>
-            </div>
-            <Link
-              href="/dashboard/search-strategy#optional-questions"
-              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
-            >
-              Answer — 5 pts
-            </Link>
-          </div>
-        )}
+        {isIncomplete('ANSWER_OPTIONAL_QUESTIONS') && linkTask('ANSWER_OPTIONAL_QUESTIONS', 'Complete your Search Strategy questions', 'On the Search Strategy page.', '/dashboard/search-strategy#optional-questions', 5, 'Answer')}
 
         {isIncomplete('PRIVACY_CONFIRMED') && (
-          <div className="rounded-lg border border-border p-4">
-            <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={false} />
+          <div className={card}>
+            <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={false} redesign={redesign} />
           </div>
         )}
 
@@ -156,13 +145,13 @@ export default async function CompleteProfilePage() {
         )}
 
         {isIncomplete('NETWORK_COMFORT_CONFIRMED') && (
-          <div className="rounded-lg border border-border p-4">
+          <div className={card}>
             <NetworkComfortCheck />
           </div>
         )}
 
         {isIncomplete('WORK_SAMPLE_TYPE_CONFIRMED') && (
-          <div className="rounded-lg border border-border p-4">
+          <div className={card}>
             <WorkSampleTypeGateForm alreadyAwarded={false} />
           </div>
         )}
@@ -174,12 +163,14 @@ export default async function CompleteProfilePage() {
         {isIncomplete('LINKEDIN_UNLOCK') && <LinkedInUnlockForm />}
 
         {isIncomplete('PROFILE_PICTURE_UPLOADED') && (
-          <div className="rounded-lg border border-border p-4">
+          <div className={card}>
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-sm font-medium text-foreground">Add a profile picture</p>
-              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                +5 pts, one time
-              </span>
+              {!redesign && (
+                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                  +5 pts, one time
+                </span>
+              )}
             </div>
             <p className="mb-3 text-sm text-muted-foreground">
               Shown to your coach and recruiter/employer contacts in messaging, and in weekly
@@ -196,52 +187,27 @@ export default async function CompleteProfilePage() {
         )}
 
         {isIncomplete('LINKEDIN_PROFILE_ADDED') && (
-          <div className="rounded-lg border border-border p-4">
+          <div className={card}>
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-sm font-medium text-foreground">Add your LinkedIn profile</p>
-              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                +25 pts, one time
-              </span>
+              {!redesign && (
+                <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                  +25 pts, one time
+                </span>
+              )}
             </div>
             <LinkedInConfirmForm />
           </div>
         )}
 
-        {isIncomplete('RED_FLAGS_CONFIRMED') && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
-            <div>
-              <p className="text-sm font-medium text-foreground">Complete Screening Questions</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Drug test, background check, and other deal-breakers — on the Screening Questions
-                page.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/profile/screening#screening-questions"
-              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
-            >
-              Answer — 5 pts
-            </Link>
-          </div>
-        )}
+        {isIncomplete('RED_FLAGS_CONFIRMED') && linkTask('RED_FLAGS_CONFIRMED', 'Complete Screening Questions', 'Drug test, background check, and other deal-breakers — on the Screening Questions page.', '/dashboard/profile/screening#screening-questions', 5, 'Answer')}
 
-        {isIncomplete('BENEFITS_PRIORITIES_CONFIRMED') && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-4">
-            <div>
-              <p className="text-sm font-medium text-foreground">Compensation &amp; benefits</p>
-              <p className="mt-1 text-xs text-muted-foreground">On the Search Strategy page.</p>
-            </div>
-            <Link
-              href="/dashboard/search-strategy#comp-benefits"
-              className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-sm font-medium text-white hover:bg-brand/90"
-            >
-              Answer — 10 pts
-            </Link>
-          </div>
-        )}
+        {isIncomplete('BENEFITS_PRIORITIES_CONFIRMED') && linkTask('BENEFITS_PRIORITIES_CONFIRMED', 'Compensation & benefits', 'On the Search Strategy page.', '/dashboard/search-strategy#comp-benefits', 10, 'Answer')}
     </>
-  )
-  const openBlocks = Children.toArray(blocks.props.children)
+    )
+  }
+  const blocks = buildBlocks(false)
+  const openBlocks = Children.toArray(buildBlocks(true).props.children)
 
   if (isRedesignOn(profile.email)) {
     return (

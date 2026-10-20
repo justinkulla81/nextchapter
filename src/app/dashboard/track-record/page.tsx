@@ -5,6 +5,11 @@ import { prisma } from '@/lib/prisma'
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { TrackRecordForm } from '@/components/dashboard/TrackRecordForm'
+import { RoundsFlow } from '@/components/rounds/RoundsFlow'
+import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import { nextOptionalQuestion } from '@/lib/onboarding/finish'
+import { answersFromTrackRecord } from '@/lib/redesign/track-record-rounds'
+import { saveTrackRecordRound } from './round-actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = { title: 'Track Record' }
@@ -17,18 +22,22 @@ export default async function TrackRecordPage() {
   })
 
   if (isRedesignOn(profile.email)) {
+    const journey = effectiveJourney(profile)
     return (
       <div className="space-y-8">
-        <PageHeader
-          title="Track record"
-          intro="Why we ask: scope and ownership are what a résumé cannot show. Your answers build your dossier, and one becomes a question we ask your references to confirm. Retake it any time your scope changes."
+        <PageHeader title="Track record" intro="Seven short rounds on the scope you have owned. Each one is saved as you go, so you can stop any time and pick up later." />
+        <RoundsFlow
+          flowId="track_record"
+          initialAnswers={answersFromTrackRecord(response, profile.isPeopleManager)}
+          completed={!!response?.completedAt}
+          completedOn={response?.completedAt ? response.completedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : null}
+          save={saveTrackRecordRound}
+          next={nextOptionalQuestion({ networkComfortLevel: profile.networkComfortLevel, searching: journey ? getJourney(journey).searching : true })}
+          doneHref="/dashboard/skills-assessments"
+          doneLabel="Back to how I work"
+          otherHref="/dashboard/how-i-perform"
+          otherLabel="How I perform: 40 statements in short rounds"
         />
-        <section aria-label="Your track record" className="rounded-2xl border border-border p-6">
-          <TrackRecordForm response={response} isPeopleManager={profile.isPeopleManager} />
-        </section>
-        <Link href="/dashboard/skills-assessments" className="inline-block text-sm font-medium text-brand underline underline-offset-4">
-          Back to skills and behavioral assessments
-        </Link>
       </div>
     )
   }

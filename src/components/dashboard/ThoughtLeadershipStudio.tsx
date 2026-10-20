@@ -25,10 +25,12 @@ function IdeaCard({
   idea,
   venues,
   linkedin,
+  redesign = false,
 }: {
   idea: PostIdea
   venues: ContentVenue[]
   linkedin?: LinkedInState
+  redesign?: boolean
 }) {
   const [draftState, draftAction, drafting] = useActionState(draftPostAction, undefined)
   const [venue, setVenue] = useState<ContentVenue>(venues[0])
@@ -46,9 +48,9 @@ function IdeaCard({
   }, [draftState])
 
   return (
-    <div className="rounded-lg border border-border p-4">
-      <p className="font-medium text-foreground">{idea.title}</p>
-      <p className="text-sm text-muted-foreground">{idea.angle}</p>
+    <div className={redesign ? 'rounded-2xl border border-border p-5' : 'rounded-lg border border-border p-4'}>
+      <p className={redesign ? 'text-base font-semibold text-ink' : 'font-medium text-foreground'}>{idea.title}</p>
+      <p className={redesign ? 'text-base text-muted-foreground' : 'text-sm text-muted-foreground'}>{idea.angle}</p>
 
       {venues.length > 1 && (
         <div className="mt-2 flex flex-wrap gap-2">
@@ -141,9 +143,11 @@ function ArticleGenerator() {
 export function ThoughtLeadershipStudio({
   venues,
   linkedin,
+  redesign = false,
 }: {
   venues: ContentVenue[]
   linkedin?: LinkedInState
+  redesign?: boolean
 }) {
   const [ideasState, generateAction, generating] = useActionState(generateIdeasAction, undefined)
 
@@ -151,7 +155,7 @@ export function ThoughtLeadershipStudio({
     <div className="space-y-4">
       <form action={generateAction}>
         <Button type="submit" disabled={generating} className={generating ? 'cursor-progress' : ''}>
-          {generating ? 'Generating…' : 'Generate 5 Ideas Tailored to my background and goals'}
+          {generating ? 'Generating…' : redesign ? 'Suggest five post ideas for me' : 'Generate 5 Ideas Tailored to my background and goals'}
         </Button>
         {generating && <InlineLoadingState label="Generating ideas tailored to your background…" />}
       </form>
@@ -160,7 +164,7 @@ export function ThoughtLeadershipStudio({
       {ideasState?.ideas && (
         <div className="space-y-3">
           {ideasState.ideas.map((idea, i) => (
-            <IdeaCard key={i} idea={idea} venues={venues} linkedin={linkedin} />
+            <IdeaCard key={i} idea={idea} venues={venues} linkedin={linkedin} redesign={redesign} />
           ))}
         </div>
       )}

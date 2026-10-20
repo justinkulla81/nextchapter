@@ -93,7 +93,7 @@ export default async function MyCoachingPage() {
           <EmptyCard title="Coaching is not part of your plan yet" why="Plans with coaching give you one-on-one time with someone who knows your field." />
         )}
         <ShowMore page="my_coaching" label="Have a code from your coach?">
-          <RedeemCoachCodeForm />
+          <RedeemCoachCodeForm redesign />
         </ShowMore>
       </div>
     )

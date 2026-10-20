@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
 
-export function CsvImportForm() {
+export function CsvImportForm({ redesign = false }: { redesign?: boolean } = {}) {
   const [state, formAction, pending] = useActionState(importConnectionsCsv, undefined)
   const [fileChosen, setFileChosen] = useState(false)
   const points = estimateActionEffort({ actionType: 'NETWORKING_LIST' }).points
@@ -29,7 +29,7 @@ export function CsvImportForm() {
       action={formAction}
       className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
-      <p className="text-xs text-muted-foreground">
+      <p className={redesign ? 'text-sm text-muted-foreground' : 'text-xs text-muted-foreground'}>
         We can analyze your network to surface warm introductions and the right people to reach
         out to for your target roles. We only read the file you upload here — we never log into
         your LinkedIn account.{' '}
@@ -48,13 +48,13 @@ export function CsvImportForm() {
         className={cn(
           'h-auto py-2 file:mr-4 file:h-9 file:px-4',
           pending && 'file:cursor-progress',
-          !fileChosen &&
-            'file:bg-success file:text-white hover:file:bg-success-hover active:file:bg-success-hover active:file:text-white'
+          !fileChosen && !redesign && 'file:bg-success file:text-white hover:file:bg-success-hover active:file:bg-success-hover active:file:text-white',
+          redesign && 'text-base file:rounded-full file:bg-muted file:text-ink'
         )}
       />
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state?.imported !== undefined && (
-        <p className="text-sm text-success">
+        <p role="status" className={redesign ? 'text-base text-ink' : 'text-sm text-success'}>
           {state.imported > 0
             ? `Added ${state.imported} new connection${state.imported === 1 ? '' : 's'}`
             : 'No new connections in that file'}
@@ -63,13 +63,28 @@ export function CsvImportForm() {
           .
         </p>
       )}
-      <div className="flex items-center gap-2">
-        <Button type="submit" variant={fileChosen ? 'success' : 'outline'} disabled={pending}>
-          {pending ? 'Importing…' : 'Import LinkedIn connections'}
-        </Button>
-        <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
-          +{points} pts for new contacts
-        </span>
+      <div className="flex flex-wrap items-center gap-3">
+        {redesign ? (
+          <>
+            <button
+              type="submit"
+              disabled={pending}
+              className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted disabled:cursor-progress disabled:opacity-70"
+            >
+              {pending ? 'Importing…' : 'Import LinkedIn connections'}
+            </button>
+            <span className="text-sm text-muted-foreground">New contacts count toward Candidate+ (1 point is 1 minute).</span>
+          </>
+        ) : (
+          <>
+            <Button type="submit" variant={fileChosen ? 'success' : 'outline'} disabled={pending}>
+              {pending ? 'Importing…' : 'Import LinkedIn connections'}
+            </Button>
+            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
+              +{points} pts for new contacts
+            </span>
+          </>
+        )}
       </div>
     </form>
   )

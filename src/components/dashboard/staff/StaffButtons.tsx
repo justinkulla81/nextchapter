@@ -32,7 +32,7 @@ export function InterestButton({ postingId, orgName, interested }: { postingId: 
   }
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+      <button type="button" onClick={() => setOpen(true)} className="rounded-md nc-action px-3 py-1.5 text-sm font-medium">
         I’m interested
       </button>
     )
@@ -47,7 +47,7 @@ export function InterestButton({ postingId, orgName, interested }: { postingId: 
       </label>
       <Textarea id={`note-${postingId}`} rows={2} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why this role, and when you could move." />
       <div className="flex items-center gap-3">
-        <button type="button" disabled={pending} onClick={() => run(true)} className={cn('rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90', pending && 'cursor-wait')}>
+        <button type="button" disabled={pending} onClick={() => run(true)} className={cn('rounded-md nc-action px-3 py-1.5 text-sm font-medium', pending && 'cursor-wait')}>
           {pending ? 'Sharing…' : `Share my name with ${orgName}`}
         </button>
         <button type="button" onClick={() => setOpen(false)} className="text-sm text-muted-foreground underline underline-offset-4">
@@ -65,7 +65,7 @@ const STATUS_OPTIONS: { value: CourseStatus; label: string }[] = [
   { value: 'COMPLETED', label: 'Finished' },
 ]
 
-export function CourseStatusButtons({ courseId, title, status }: { courseId: string; title: string; status: CourseStatus }) {
+export function CourseStatusButtons({ courseId, title, status, redesign = false }: { courseId: string; title: string; status: CourseStatus; redesign?: boolean }) {
   const [pending, start] = useTransition()
   const [value, setValue] = useState<CourseStatus>(status)
   const [error, setError] = useState<string | null>(null)
@@ -92,8 +92,8 @@ export function CourseStatusButtons({ courseId, title, status }: { courseId: str
               })
             }
             className={cn(
-              'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
-              value === o.value ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted',
+              redesign ? 'inline-flex h-10 items-center rounded-full border px-5 text-sm font-medium transition-colors' : 'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
+              value === o.value ? (redesign ? 'border-ink bg-ink text-white' : 'border-primary bg-primary text-primary-foreground') : 'border-border hover:bg-muted',
               pending && 'cursor-wait'
             )}
           >
@@ -101,7 +101,7 @@ export function CourseStatusButtons({ courseId, title, status }: { courseId: str
           </button>
         ))}
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p role="alert" className={redesign ? 'text-sm text-destructive' : 'text-xs text-destructive'}>{error}</p>}
     </div>
   )
 }

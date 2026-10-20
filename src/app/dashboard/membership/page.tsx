@@ -21,6 +21,7 @@ import { PageHeader } from '@/components/candidate/PageHeader'
 import { Module } from '@/components/candidate/Module'
 import { Section } from '@/components/candidate/ui'
 import { ActionLink } from '@/components/candidate/ActionLink'
+import { ActionSubmit } from '@/components/candidate/ActionSubmit'
 import { MoreDetails } from '@/components/dashboard/MoreDetails'
 
 export const metadata: Metadata = { title: 'Membership' }
@@ -229,6 +230,69 @@ export default async function MembershipPage() {
         </div>
   ) : null
 
+  // The redesign: the same two blocks without the bordered cards, the capitals status word and the small grey labels.
+  const becomeMemberBlockRedesign = isAlum && !subscription ? (
+    <Section id="become-member" title="Become a member">
+      <MembershipSignupButtons
+        monthlyLabel={monthlyPlan ? formatPrice(monthlyPlan.priceCents, 'MONTHLY') : '$19/mo'}
+        annualLabel={annualPlan ? formatPrice(annualPlan.priceCents, 'ANNUAL') : '$180/yr'}
+      />
+      <ul className="list-disc space-y-1 pl-5 text-base text-ink">
+        {(monthlyPlan?.features as string[] | undefined)?.map((f) => <li key={f}>{f}</li>) ?? null}
+      </ul>
+      <p className="text-sm text-muted-foreground">No payment is collected yet. This creates your membership record.</p>
+    </Section>
+  ) : null
+
+  const subscriptionBlockRedesign = subscription ? (
+    <Section id="your-membership" title="Your membership">
+      <p className="max-w-xl text-base text-ink">
+        {isActive ? 'Your membership is active.' : isLapsed ? 'Your membership has lapsed, so these perks are paused until you reactivate it.' : `Your membership is ${subscription.status.toLowerCase()}.`}
+        {subscription.freeUntil && ` It is free through ${formatDate(subscription.freeUntil)} because you were placed through a Premium outplacement seat.`}
+      </p>
+      {isLapsed && <MembershipReactivateButton />}
+      <dl className="grid gap-4 sm:grid-cols-3">
+        {[
+          ['Annual dossier refresh', subscription.lastDossierRefreshAt],
+          ['Quarterly market check', subscription.lastMarketCheckAt],
+          ['Network nudge', subscription.lastNetworkNudgeSentAt],
+        ].map(([label, date]) => (
+          <div key={label as string} className="space-y-0.5">
+            <dt className="text-sm text-muted-foreground">{label as string}</dt>
+            <dd className="text-base text-ink">{formatDate(date as Date | null)}</dd>
+          </div>
+        ))}
+      </dl>
+      {latestMarketCheck && (
+        <p className="max-w-xl text-base text-ink">
+          Latest market check ({formatDate(latestMarketCheck.checkedAt)}):{' '}
+          {latestMarketCheck.adzunaCount != null ? `${latestMarketCheck.adzunaCount} open roles found` : 'job volume: no data yet'}
+          {latestMarketCheck.blsYoyChangePct != null ? `, ${latestMarketCheck.blsYoyChangePct.toFixed(1)}% year-over-year employment trend` : ''}.
+          {latestMarketCheck.compBenchmarkMid != null && ` Pay benchmark (${latestMarketCheck.compSampleSize} people): $${latestMarketCheck.compBenchmarkMid.toLocaleString()}${latestMarketCheck.targetCompMin != null ? `, and your target minimum is $${latestMarketCheck.targetCompMin.toLocaleString()}` : ''}.`}
+        </p>
+      )}
+      <div className="space-y-2">
+        <p className="text-base font-semibold text-ink">Priority coach booking</p>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Priority coach booking">
+          {[true, false].map((on) => (
+            <form key={String(on)} action={setPriorityCoachBookingPreference.bind(null, on)}>
+              <ActionSubmit variant="secondary" pendingLabel="Saving…" event="priority_coach_booking_changed" props={{ on }}>
+                {on ? (subscription.priorityCoachBooking ? 'On (current)' : 'Turn on') : !subscription.priorityCoachBooking ? 'Off (current)' : 'Turn off'}
+              </ActionSubmit>
+            </form>
+          ))}
+        </div>
+        {!isActive && <p className="text-sm text-muted-foreground">Priority booking is available while your membership is active.</p>}
+      </div>
+      <p className="max-w-xl text-base text-ink">
+        Board and advisory listings are unlocked on{' '}
+        <Link href="/dashboard/find-my-job?types=part_time,contract,advisory#launch-phase-4" className="font-medium text-brand underline underline-offset-4">Find interim work</Link>{' '}
+        while your membership is active. Benefits network offers are redeemable from the{' '}
+        <Link href="/dashboard/benefits-network" className="font-medium text-brand underline underline-offset-4">catalog</Link>.
+      </p>
+    </Section>
+  ) : null
+
   if (isRedesignOn(profile.email)) {
     // Membership in the redesign: what you have, the Candidate+ step that effort earns, and what more would add.
     const nextStep = candidatePlusSteps(plusStatus)[0]
@@ -287,8 +351,8 @@ export default async function MembershipPage() {
           </Module>
         )}
 
-        {becomeMemberBlock}
-        {subscriptionBlock}
+        {becomeMemberBlockRedesign}
+        {subscriptionBlockRedesign}
 
         <Section id="more-support" title="Add more support">
           <div className="grid gap-4 sm:grid-cols-2">

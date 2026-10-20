@@ -63,10 +63,50 @@ const GROUPS: AdaptationGroup[] = [
 export function WaysToSayIt({
   adaptations,
   linkedin,
+  redesign = false,
 }: {
   adaptations: NarrativeAdaptations
   linkedin?: { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
+  /** Redesigned pages: a serif title, plain rows that open on demand, and no nested cards. */
+  redesign?: boolean
 }) {
+  if (redesign) {
+    return (
+      <section aria-labelledby="ways-h" className="space-y-3">
+        <div className="space-y-1">
+          <h2 id="ways-h" className="font-display text-xl font-semibold text-ink">
+            Ways to say it
+          </h2>
+          <p className="max-w-2xl text-base text-muted-foreground">The same story, worded for who you are talking to. Open one and copy it.</p>
+        </div>
+        <div className="divide-y divide-border rounded-2xl border border-border">
+          {GROUPS.map((group) => (
+            <details key={group.question} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-base font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                {group.question}
+                <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+              </summary>
+              <div className="space-y-5 px-5 pb-5">
+                {group.items.map((item) => (
+                  <div key={item.key} className="space-y-2">
+                    <h3 className="text-sm font-semibold text-ink">{item.label}</h3>
+                    <p className="whitespace-pre-line text-base text-ink">{adaptations[item.key]}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CopyButton text={adaptations[item.key]} />
+                      {item.showLinkedInPost && linkedin?.configured && (
+                        <PostToLinkedInButton text={adaptations[item.key]} connected={linkedin.connected} blockedByConfidentialMode={linkedin.blockedByConfidentialMode} />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-medium text-muted-foreground">Ways to say it</h2>

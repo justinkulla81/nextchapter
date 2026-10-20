@@ -1591,6 +1591,7 @@ model CandidateProfile {
   assessmentResponses            CandidateAssessmentResponse[]
   performanceAssessmentResponses PerformanceAssessmentResponse[]
   trackRecordResponse            TrackRecordResponse?
+  performanceAssessmentDraft     PerformanceAssessmentDraft?
   whatINeedResponse              WhatINeedResponse?
   workInterestsResponse          WorkInterestsResponse?
   resumeWalkthroughSession       ResumeWalkthroughSession?
@@ -2739,6 +2740,17 @@ model PerformanceAssessmentResponse {
 // separate column needed. Item 15's other migration source,
 // CandidateProfile.teamSizeManaged, is NOT written from here (it stays a
 // raw number, this is a band) — see the comment on that field.
+// Answers to How I perform saved a round at a time (the short-rounds flow), so closing the tab loses nothing.
+// One row per candidate: item id -> score 1-4. Deleted when the full forty are submitted as a
+// PerformanceAssessmentResponse. Added by prisma/manual/2026-10-20-performance-assessment-draft.sql.
+model PerformanceAssessmentDraft {
+  id          String           @id @default(cuid())
+  candidateId String           @unique
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  answers     Json
+  updatedAt   DateTime         @updatedAt
+}
+
 model TrackRecordResponse {
   id          String           @id @default(cuid())
   candidateId String           @unique

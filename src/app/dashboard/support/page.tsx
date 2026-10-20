@@ -48,7 +48,7 @@ export default async function SupportDuringTransitionPage() {
             </div>
           </div>
         </Section>
-        <p className="text-xs text-muted-foreground">General information, not a substitute for medical or mental health care. NextChapter does not charge for anything on this page.</p>
+        <p className="text-sm text-muted-foreground">General information, not a substitute for medical or mental health care. NextChapter does not charge for anything on this page.</p>
       </div>
     )
   }

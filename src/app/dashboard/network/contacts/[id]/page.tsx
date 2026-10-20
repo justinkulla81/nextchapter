@@ -19,6 +19,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
 import { ShowMore } from '@/components/candidate/ShowMore'
+import { ContactDetails } from '@/components/network/ContactDetails'
 
 export const metadata: Metadata = { title: 'Contact' }
 
@@ -74,8 +75,10 @@ export default async function ContactProfilePage({
 
   const referenceHref = `/dashboard/references?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(contact.email ?? '')}`
 
+  const redesign = isRedesignOn(profile.email)
   const coach = (
     <OutreachCoach
+      redesign={redesign}
       contactId={row.id}
       contactName={formatDisplayName(row.name)}
       contactEmail={row.email}
@@ -98,7 +101,7 @@ export default async function ContactProfilePage({
 
   // The redesign (docs/candidate-redesign.md): who they are and the message to write come first; the full
   // history, notes and details open on demand.
-  if (isRedesignOn(profile.email)) {
+  if (redesign) {
     captureServerEvent(profile.id, 'contact_viewed', { contactId: row.id, from: sp.from ?? null, reachedOut: row.hasReachedOut })
     const subtitle = [row.title, row.company ?? row.inferredCompany].filter(Boolean).join(' at ')
     return (
@@ -106,14 +109,13 @@ export default async function ContactProfilePage({
         <PageHeader
           title={row.name}
           intro={subtitle || 'Write a short, specific note. It is the surest way to turn a contact into a conversation.'}
-          action={<StarContactButton contactId={row.id} isPriority={row.isPriority} />}
+          action={<StarContactButton contactId={row.id} isPriority={row.isPriority} labeled />}
         />
         {coach}
         <ShowMore page="contact_detail" label="Details and history">
-          <ContactProfileView
+          <ContactDetails
             contact={row}
             membership={membership}
-            isAtCurrentEmployer={row.isAtCurrentEmployer}
             referenceHref={referenceHref}
             companyCardHref={companyCard ? `/dashboard/companies/${encodeURIComponent(companyCard.canonicalNameNormalized)}` : null}
             sharedCompany={sharedCompany}

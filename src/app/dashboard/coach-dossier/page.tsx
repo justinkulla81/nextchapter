@@ -14,6 +14,7 @@ import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
+import { Section } from '@/components/candidate/ui'
 
 export const metadata: Metadata = { title: 'Coach Dossier & Notes' }
 
@@ -124,6 +125,28 @@ export default async function CoachDossierPage() {
   }
 
   captureServerEvent(profile.id, 'coach_dossier_self_viewed')
+
+  // The redesign: the dossier first, the coaching notes under a plain heading (the uppercase grey label is gone), and the
+  // request for a different coach behind one control so it is not the last thing on a long page.
+  if (redesign) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="What your coach sees"
+          intro={`Exactly what ${coach?.fullName ?? 'your coach'} sees when preparing for your sessions. It stays in the app and cannot be downloaded or forwarded from here.`}
+        />
+        <Suspense fallback={<DossierSkeleton />}>
+          <DossierSection candidateId={profile.id} />
+        </Suspense>
+        <Section id="coaching-notes" title="Coaching notes">
+          <CoachingNotesPanel notes={coachingNotes!} />
+        </Section>
+        <ShowMore page="coach_dossier" label="Want a different coach?">
+          <CandidateReassignmentRequestForm />
+        </ShowMore>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

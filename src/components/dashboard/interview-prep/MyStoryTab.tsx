@@ -14,6 +14,7 @@ export function MyStoryTab({
   coreStatement,
   adaptations,
   linkedin,
+  redesign = false,
 }: {
   coreStatement: string | null
   adaptations: NarrativeAdaptations | null
@@ -21,6 +22,7 @@ export function MyStoryTab({
   // renderer of this shared tab) never shows the LinkedIn direct-post
   // button, since posting isn't this page's job.
   linkedin?: { configured: boolean; connected: boolean; blockedByConfidentialMode: boolean }
+  redesign?: boolean
 }) {
   const [isPending, startTransition] = useTransition()
   const [draft, setDraft] = useState(coreStatement ?? '')
@@ -41,6 +43,59 @@ export function MyStoryTab({
       await updateCoreStatement(draft)
       setEditing(false)
     })
+  }
+
+  if (redesign) {
+    return (
+      <div className={cn('space-y-6', isPending && 'cursor-wait [&_*]:cursor-wait')}>
+        <section aria-labelledby="story-h" className="space-y-3">
+          <div className="space-y-1">
+            <h2 id="story-h" className="font-display text-xl font-semibold text-ink">
+              Your story in two or three sentences
+            </h2>
+            <p className="max-w-2xl text-base text-muted-foreground">Every answer you give in an interview starts from this, so it is worth getting right once.</p>
+          </div>
+          {!coreStatement ? (
+            <div className="space-y-3">
+              <p className="max-w-2xl text-base text-ink">We draft it from your profile, and you edit it. Everything else on this tab adapts from it.</p>
+              <Button type="button" variant="outline" onClick={handleGenerate} disabled={isPending}>
+                {isPending ? 'Drafting your story' : 'Draft my story'}
+              </Button>
+            </div>
+          ) : editing ? (
+            <div className="space-y-3">
+              <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={4} aria-label="Your story" />
+              <div className="flex gap-3">
+                <Button type="button" variant="outline" onClick={handleSaveEdit} disabled={isPending}>
+                  {isPending ? 'Saving your story' : 'Save and update the versions below'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setDraft(coreStatement)
+                    setEditing(false)
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="max-w-2xl font-display text-xl leading-snug text-ink">{coreStatement}</p>
+              <div className="flex gap-3">
+                <Button type="button" variant="outline" onClick={() => setEditing(true)}>
+                  Edit
+                </Button>
+                <CopyButton text={coreStatement} />
+              </div>
+            </div>
+          )}
+        </section>
+        {adaptations && <WaysToSayIt adaptations={adaptations} linkedin={linkedin} redesign />}
+      </div>
+    )
   }
 
   return (

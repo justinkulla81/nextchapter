@@ -110,6 +110,7 @@ export default async function ReferencesPage({
           }
         />
         <ReferenceQuoteReview
+          redesign
           quotes={pendingQuotes.map((q) => ({
             id: q.id,
             theme: q.theme,
@@ -120,6 +121,7 @@ export default async function ReferencesPage({
         <div id="send-request" className="scroll-mt-4">
           <Section id="ask" title="Ask for a reference">
             <ReferenceRequestForm
+              redesign
               initialName={params.name}
               initialEmail={params.email}
               workHistoryEntries={workHistoryEntries}

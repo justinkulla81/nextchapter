@@ -88,14 +88,14 @@ export function AgeBandForm({ current }: { current: string | null }) {
   )
 }
 
-export function HireOutcomeForm() {
+export function HireOutcomeForm({ redesign = false }: { redesign?: boolean }) {
   const [state, formAction, pending] = useActionState<OutcomeFormState, FormData>(recordHireOutcome, undefined)
 
   if (state?.saved) {
     return (
-      <div className="rounded-lg border border-success/30 bg-success/5 p-6">
-        <p className="text-lg font-semibold text-foreground">Thank you</p>
-        <p className="mt-2 text-sm text-foreground">
+      <div className={redesign ? 'space-y-1' : 'rounded-lg border border-success/30 bg-success/5 p-6'}>
+        <p className={redesign ? 'font-display text-xl font-semibold text-ink' : 'text-lg font-semibold text-foreground'}>Thank you</p>
+        <p className={redesign ? 'max-w-2xl text-base text-ink' : 'mt-2 text-sm text-foreground'}>
           This helps us show what actually works for people at your stage of a search. It is never used to score or rank you.
         </p>
       </div>

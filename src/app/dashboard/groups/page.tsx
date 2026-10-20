@@ -95,9 +95,7 @@ export default async function GroupsPage() {
         )}
         <div id="join" className="scroll-mt-4">
           <Section id="join-title" title="Find more groups">
-            <div className="rounded-2xl border border-border">
-              <AlumniNetworkOptions candidateId={profile.id} />
-            </div>
+            <AlumniNetworkOptions candidateId={profile.id} redesign />
           </Section>
         </div>
         <TrackedAction variant="text" href="/dashboard/universities" event="universities_opened" properties={{ source: 'groups' }}>
