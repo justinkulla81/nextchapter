@@ -112,7 +112,7 @@ export function WorkSampleForm() {
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-      <Button type="submit" disabled={pending}>
+      <Button variant="cta" type="submit" disabled={pending}>
         {pending ? 'Uploading…' : 'Add work sample'}
       </Button>
     </form>

@@ -71,43 +71,81 @@ export default async function PremiumPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>What&apos;s included</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-6 sm:grid-cols-3">
-          {[
-            { icon: GraduationCap, title: coachLabel, items: COACH_INCLUDED },
-            { icon: Building2, title: recruiterLabel, items: recruiterIncluded },
-            { icon: LineChart, title: 'Market Intelligence', items: MARKET_INTEL_INCLUDED },
-          ].map(({ icon: Icon, title, items }) => (
-            <div key={title} className="space-y-2">
-              <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Icon className="size-4 text-orange" aria-hidden="true" />
-                {title}
-              </p>
-              <ul className="space-y-2">
-                {items.map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-sm text-foreground">
-                    <Check className="mt-0.5 size-4 shrink-0 text-orange" aria-hidden="true" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+      <Card className="border-orange/30 bg-orange/5">
+        <CardContent className="flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Proposed price</p>
+            <p className="mt-1 text-2xl font-bold text-navy">{PRICE_LABEL}</p>
+          </div>
+          <p className="max-w-sm text-xs text-muted-foreground">
+            This is a starting number to gauge interest, not a locked price — nothing is billed today. Joining
+            the waitlist doesn&apos;t commit you to anything.
+          </p>
         </CardContent>
       </Card>
 
-      <Card className="border-orange/30 bg-orange/5">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <GraduationCap className="size-4 text-orange" aria-hidden="true" />
+            {coachLabel}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {COACH_INCLUDED.map((item) => (
+              <li key={item} className="flex items-start gap-2 text-sm text-foreground">
+                <Check className="mt-0.5 size-4 shrink-0 text-orange" aria-hidden="true" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="size-4 text-orange" aria-hidden="true" />
+            {recruiterLabel}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {recruiterIncluded.map((item) => (
+              <li key={item} className="flex items-start gap-2 text-sm text-foreground">
+                <Check className="mt-0.5 size-4 shrink-0 text-orange" aria-hidden="true" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LineChart className="size-4 text-orange" aria-hidden="true" />
+            Market Intelligence
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {MARKET_INTEL_INCLUDED.map((item) => (
+              <li key={item} className="flex items-start gap-2 text-sm text-foreground">
+                <Check className="mt-0.5 size-4 shrink-0 text-orange" aria-hidden="true" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle>Join the Premium waitlist</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Proposed price <span className="font-semibold text-navy">{PRICE_LABEL}</span>. A starting number to gauge interest, not a locked price. Nothing is billed today, and joining
-            doesn&apos;t commit you to anything.
-          </p>
+        <CardContent>
           <CoachingWaitlistForm source="premium_bundle_dashboard" knownContact={knownContact} />
         </CardContent>
       </Card>
