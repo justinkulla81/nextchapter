@@ -47,7 +47,7 @@ export async function enrichLayoffHr(employer: string, orgId: string | null): Pr
 
     // A company new to the CRM is created now, so the people have somewhere to attach.
     const target = org ?? (picks.length ? await ensureOrg({ name: employer, type: 'EMPLOYER', website: domain }) : null)
-    let resolved = target?.id ?? null
+    const resolved = target?.id ?? null
     for (const { p, kind } of picks) {
       const roles = kind === 'head_hr' ? (['HIRING_MANAGER', 'OUTPLACEMENT_BUYER'] as const) : (['OUTPLACEMENT_BUYER'] as const)
       const trusted = isTrustedEmail(p.status, p.confidence)
