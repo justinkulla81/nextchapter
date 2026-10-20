@@ -85,8 +85,8 @@ export async function computeAiMarket(now = new Date()): Promise<AiMarketData> {
 }
 
 /** Compute and store a snapshot; keeps the last 60. */
-export async function rebuildAiMarketSnapshot() {
-  const data = await computeAiMarket()
+export async function rebuildAiMarketSnapshot(computed?: AiMarketData) {
+  const data = computed ?? (await computeAiMarket())
   await prisma.aiMarketSnapshot.create({ data: { data: data as object } })
   const old = await prisma.aiMarketSnapshot.findMany({ orderBy: { computedAt: 'desc' }, skip: 60, select: { id: true } })
   if (old.length) await prisma.aiMarketSnapshot.deleteMany({ where: { id: { in: old.map((o) => o.id) } } })

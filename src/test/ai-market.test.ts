@@ -105,6 +105,6 @@ describe('import of the AI-exposed fields', () => {
     expect(g.aiExposed).toBe(true)
     expect(g.aiMention).toBe(true)
     expect(g.aiBasis).toBeNull()
-    expect('aiExposed' in importAiSkillFields({ aiSkillItems: [] })).toBe(false)
+    expect(importAiSkillFields({ aiSkillItems: [] })).toEqual({})
   })
 })
