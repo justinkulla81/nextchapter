@@ -29,6 +29,14 @@ Whenever you mention a page, route or path of this app to the user, give the
 full URL (`https://launchyournextchapter.com/...`), never a bare path like
 `/support/admin/organizations`. This is a strict rule from the owner.
 
+## Adding or removing a top-level route
+
+`src/lib/app-top-level.ts` (`APP_TOP_LEVEL`, `PORTAL_ROOT_PAGES`) must list every
+top-level folder under `src/app`. `src/test/app-top-level.test.ts` fails CI on
+`main` if they drift (it did on 2026-10-19). When you add or remove a route
+folder, update that file in the same change and run `npx vitest run
+src/test/app-top-level.test.ts` before pushing.
+
 ## Candidate site redesign
 
 Every page under `src/app/dashboard` follows `docs/candidate-redesign.md`: the
