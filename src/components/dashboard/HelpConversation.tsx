@@ -80,7 +80,7 @@ export function HelpConversation({ request, defaultOpen }: { request: Conversati
               <button
                 type="submit"
                 disabled={pending}
-                className="mt-2 inline-flex items-center rounded-lg bg-success px-4 py-2 text-sm font-semibold text-white hover:bg-success-hover disabled:cursor-wait disabled:opacity-70"
+                className="mt-2 inline-flex items-center rounded-lg bg-action px-4 py-2 text-sm font-semibold text-action-foreground hover:brightness-95 disabled:cursor-wait disabled:opacity-70"
               >
                 {pending ? 'Sending…' : 'Send reply'}
               </button>

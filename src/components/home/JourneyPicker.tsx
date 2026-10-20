@@ -31,16 +31,20 @@ export function JourneyPicker() {
     const slug = state.slug ?? situation ?? ''
     return (
       <div role="status" className="mx-auto max-w-xl rounded-2xl border border-border bg-white p-6 text-center">
-        <h3 className="font-display text-2xl font-semibold text-ink">Check your inbox.</h3>
+        <h3 className="font-display text-2xl font-semibold text-ink">{state.capped ? 'We saved your answers.' : 'Check your inbox.'}</h3>
         <p className="mt-2 text-base text-muted-foreground">
-          Your first-week plan is on its way{state.email ? <> to <span className="font-medium text-ink">{state.email}</span></> : ''}. If it is not there in a few minutes, check spam.
+          {state.capped ? (
+            <>We send a limited number of plan emails each day and today&apos;s are used up, so yours has not gone out. Start now and your plan is ready in minutes.</>
+          ) : (
+            <>Your first-week plan is on its way{state.email ? <> to <span className="font-medium text-ink">{state.email}</span></> : ''}. If it is not there in a few minutes, check spam.</>
+          )}
         </p>
         <Link
           href={`/start/${slug}`}
           onClick={() => posthog.capture('journey_picker_continue_clicked', { situation: slug })}
           className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
         >
-          Or start now: get your Market Reality Assessment
+          {state.capped ? 'Get your Market Reality Assessment' : 'Or start now: get your Market Reality Assessment'}
         </Link>
       </div>
     )

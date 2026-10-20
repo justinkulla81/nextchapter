@@ -128,7 +128,7 @@ export function HelpFeedbackForm({
         type="submit"
         disabled={pending}
         onClick={() => posthog?.capture('help_form_send_clicked', { kind, page: contextPath })}
-        className="mt-4 inline-flex items-center justify-center rounded-lg bg-success px-5 py-2.5 text-sm font-semibold text-white hover:bg-success-hover disabled:cursor-wait disabled:opacity-70"
+        className="mt-4 inline-flex items-center justify-center rounded-lg bg-action px-5 py-2.5 text-sm font-semibold text-action-foreground hover:brightness-95 disabled:cursor-wait disabled:opacity-70"
       >
         {pending ? 'Sending…' : 'Send'}
       </button>

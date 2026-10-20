@@ -91,7 +91,7 @@ export function ConnectedAccountsSettings({
               <a
                 href={connectHref}
                 onClick={() => posthog?.capture('connected_account_connect_clicked', { kind: 'google', reconnect: status !== 'not_connected', from: 'privacy' })}
-                className="inline-flex items-center rounded-lg bg-success px-3 py-1.5 text-sm font-semibold text-white hover:bg-success-hover"
+                className="inline-flex items-center rounded-lg bg-action px-3 py-1.5 text-sm font-semibold text-action-foreground hover:brightness-95"
               >
                 {status === 'not_connected' ? 'Connect Google' : 'Reconnect'}
               </a>

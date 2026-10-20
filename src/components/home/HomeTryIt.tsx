@@ -25,11 +25,11 @@ export function HomeTryIt() {
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">No résumé and no account. Tell us where you are, or look around.</p>
         </div>
-        <div role="group" aria-label="Choose how to start" className="mt-6 flex items-center justify-center gap-2">
-          <Button type="button" size="default" variant={tab === 'journey' ? 'default' : 'outline'} aria-pressed={tab === 'journey'} className="rounded-full" onClick={() => pick('journey')}>
+        <div role="group" aria-label="Choose how to start" className="mt-6 flex flex-col items-stretch justify-center gap-2 sm:flex-row sm:items-center">
+          <Button type="button" size="default" variant={tab === 'journey' ? 'default' : 'outline'} aria-pressed={tab === 'journey'} className="h-auto min-h-10 whitespace-normal rounded-full py-2" onClick={() => pick('journey')}>
             Where are you in your search?
           </Button>
-          <Button type="button" size="default" variant={tab === 'search' ? 'default' : 'outline'} aria-pressed={tab === 'search'} className="rounded-full" onClick={() => pick('search')}>
+          <Button type="button" size="default" variant={tab === 'search' ? 'default' : 'outline'} aria-pressed={tab === 'search'} className="h-auto min-h-10 whitespace-normal rounded-full py-2" onClick={() => pick('search')}>
             Search jobs
           </Button>
         </div>

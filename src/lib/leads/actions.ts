@@ -16,13 +16,22 @@ import JourneyPlanEmail from '@/emails/journey-plan'
 //  - a saved job search on /jobs: stored for the alert emails, which are off. Nothing is
 //    sent for it yet.
 
-export type JourneyState = { error?: string; done?: boolean; email?: string; slug?: string } | undefined
+export type JourneyState = { error?: string; done?: boolean; email?: string; slug?: string; capped?: boolean } | undefined
 export type SavedSearchState = { error?: string; saved?: boolean; email?: string } | undefined
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const FOLLOWUPS = new Set(['just_starting', 'weeks', 'months', 'long'])
 const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const GENERIC_ERROR = 'Something went wrong. Try again in a minute.'
+
+// The Resend plan shares one daily limit (100 on the free tier) with every email the product
+// sends: digests, briefings, candidate mail. Plan emails get a slice of it, so a busy day of
+// signups can never crowd out the rest. Over the cap the lead is still saved (planSentAt stays
+// null) and the person is told, so no one is promised an email that will not come.
+const PLAN_DAILY_CAP = () => {
+  const n = Number(process.env.JOURNEY_PLAN_DAILY_CAP)
+  return Number.isFinite(n) && n >= 0 ? n : 25
+}
 
 const text = (formData: FormData, k: string, max: number) => ((formData.get(k) as string | null) ?? '').trim().slice(0, max)
 
@@ -66,7 +75,14 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
     const recentlySent = await prisma.homepageLead.count({
       where: { email, kind: 'journey', planSentAt: { gte: weekAgo } },
     })
+    let capped = false
     if (!lead.planSentAt && recentlySent === 0 && process.env.RESEND_API_KEY && !isUndeliverableAddress(email)) {
+      const startOfDay = new Date()
+      startOfDay.setUTCHours(0, 0, 0, 0)
+      const sentToday = await prisma.homepageLead.count({ where: { kind: 'journey', planSentAt: { gte: startOfDay } } })
+      capped = sentToday >= PLAN_DAILY_CAP()
+    }
+    if (!capped && !lead.planSentAt && recentlySent === 0 && process.env.RESEND_API_KEY && !isUndeliverableAddress(email)) {
       try {
         const plan = planFor(persona.slug)
         const unsubscribeUrl = `${APP_URL()}/api/unsubscribe/lead/${lead.unsubscribeToken}`
@@ -95,8 +111,8 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
       }
     }
 
-    captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, emailed, returning: !!existing })
-    return { done: true, email, slug: persona.slug }
+    captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, emailed, capped, returning: !!existing })
+    return { done: true, email, slug: persona.slug, capped }
   } catch (error) {
     console.error('journey lead failed:', error instanceof Error ? error.message : error)
     return { error: GENERIC_ERROR, email }
