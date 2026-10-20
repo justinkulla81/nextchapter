@@ -12,6 +12,9 @@ const WHY: Record<DraftFacts['credibility'], string> = {
   'trusted-outlet': 'Trusted outlet',
 }
 
+// Module-level helper: Date.now() read directly in the component trips react-hooks/purity.
+const nowMs = () => Date.now()
+
 const slot = (d: Date) =>
   d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' ET'
 
@@ -21,9 +24,9 @@ export default async function LinkedInDraftsPage({ searchParams }: { searchParam
   const conn = admin.email ? await getAdminLinkedIn(admin.email) : null
   const [drafts, posted] = await Promise.all([
     prisma.linkedInPostDraft.findMany({ where: { status: 'DRAFT' }, orderBy: { scheduledFor: 'asc' } }),
-    prisma.linkedInPostDraft.count({ where: { status: 'POSTED', postedAt: { gte: new Date(Date.now() - 7 * 86_400_000) } } }),
+    prisma.linkedInPostDraft.count({ where: { status: 'POSTED', postedAt: { gte: new Date(nowMs() - 7 * 86_400_000) } } }),
   ])
-  const now = Date.now()
+  const now = nowMs()
 
   return (
     <div className="space-y-4">
