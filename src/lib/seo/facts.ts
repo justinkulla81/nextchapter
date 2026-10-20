@@ -18,7 +18,7 @@ export const FACTS = {
     'Experienced professionals between jobs or planning a move, and the organizations that serve them: employers running layoffs, outplacement buyers, recruiters, coaches, workforce boards and nonprofits.',
   /** One paragraph: what it is and how it makes money. */
   summary:
-    'NextChapter is the AI platform for career transitions. Every job seeker gets a free Market Reality Assessment (a plain-language read on how the market sees their background), a weekly Search Sprint action plan, and an AI career coach. Revenue comes from employers, recruiters, outplacement buyers, workforce agencies and nonprofits, and from optional paid coaching and resume plans.',
+    'NextChapter is the leading job transition platform. Every job seeker gets a free Market Reality Assessment (a plain-language read on how the market sees their background), a weekly Search Sprint action plan, and an AI career coach. Revenue comes from employers, recruiters, outplacement buyers, workforce agencies and nonprofits, and from optional paid coaching and resume plans.',
   /** What candidates pay. */
   candidatePrice: 'Free for candidates, always. Optional paid coaching and resume plans are listed on /pricing.',
   founder: {
