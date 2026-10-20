@@ -39,6 +39,7 @@ import {
   GRADE_THREE_IC,
   MID_SPECIALTY_IC,
   IC_MANAGER,
+  IC_MANAGER_EARLY,
   PEOPLE_MANAGER_DESC,
   RECENT_GRAD,
   FRONTLINE,
@@ -318,11 +319,16 @@ const SENIOR_YEARS_MAX = 5
 
 const STAGE_RUNG = { ENTRY, EARLY, MID: { rung: 'MID_IC' as RungName, rank: MID_IC_RANK } }
 
-/** R1-R4 allowlists (ncrawl _mid_by_years_rule): a title that comes down to MID_IC at 5 years or fewer. */
-function midByYearsRule(title: string, rung: RungName, description: string): boolean {
-  if (rung === 'SENIOR_IC' && SENIOR_SECOND_GRADE.test(title)) return true
-  if (GRADE_THREE_IC.test(title) || MID_SPECIALTY_IC.test(title)) return true
-  return IC_MANAGER.test(title) && !PEOPLE_MANAGER_DESC.test(description)
+/**
+ * R1-R4 allowlists (ncrawl _years_rule_rung): the rung a SENIOR_IC / MANAGER title comes down to
+ * at 5 years or fewer — MID_IC, or EARLY_IC for an assistant / associate / level-I
+ * individual-contributor manager — or null.
+ */
+function yearsRuleRung(title: string, rung: RungName, description: string): { rung: RungName; rank: number } | null {
+  if (rung === 'SENIOR_IC' && SENIOR_SECOND_GRADE.test(title)) return STAGE_RUNG.MID
+  if (GRADE_THREE_IC.test(title) || MID_SPECIALTY_IC.test(title)) return STAGE_RUNG.MID
+  if (IC_MANAGER.test(title) && !PEOPLE_MANAGER_DESC.test(description)) return IC_MANAGER_EARLY.test(title) ? STAGE_RUNG.EARLY : STAGE_RUNG.MID
+  return null
 }
 
 /**
@@ -330,7 +336,8 @@ function midByYearsRule(title: string, rung: RungName, description: string): boo
  * its stage from the posting's years requirement ("Financial Analyst" asking
  * 0-2 years is entry, 2-3 early, 4+ mid). Never moves a job above MID_IC or
  * touches anything ranked above it, except an allowlisted SENIOR_IC / MANAGER title
- * (midByYearsRule, owner R1-R4) asking 5 years or fewer, which comes down to MID_IC.
+ * (yearsRuleRung, owner R1-R4) asking 5 years or fewer, which comes down to MID_IC (EARLY_IC
+ * for an assistant / associate / level-I individual-contributor manager).
  * Mirrors ncrawl refine_level_by_years.
  */
 export function refineLevelByYears(
@@ -339,11 +346,12 @@ export function refineLevelByYears(
   description: string | null | undefined
 ): { rung: RungName; rank: number } {
   // R1-R4 (owner, 2026-10-16 / 2026-10-19): allowlisted SENIOR_IC / MANAGER titles asking
-  // 5 years or fewer are mid-level (never lower). Mirrors ncrawl _mid_by_years_rule.
+  // 5 years or fewer are mid-level (never lower). Mirrors ncrawl _years_rule_rung.
   if (level.rung === 'SENIOR_IC' || level.rung === 'MANAGER') {
-    if (description && midByYearsRule(title, level.rung, description)) {
+    const target = description ? yearsRuleRung(title, level.rung, description) : null
+    if (target && description) {
       const m = yearsMin(description)
-      if (m !== null && m <= SENIOR_YEARS_MAX) return STAGE_RUNG.MID
+      if (m !== null && m <= SENIOR_YEARS_MAX) return target
     }
     return level
   }

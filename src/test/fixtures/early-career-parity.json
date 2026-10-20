@@ -1422,12 +1422,12 @@
 [
 "Project Manager I",
 "Qualifications: 3+ years of experience in a related role.",
-"MID_IC"
+"EARLY_IC"
 ],
 [
 "Project Manager I",
 "Requirements: minimum of 5 years of experience.",
-"MID_IC"
+"EARLY_IC"
 ],
 [
 "Project Manager I",
@@ -1632,7 +1632,7 @@
 [
 "Assistant Project Manager",
 "Requirements: 3+ years of experience.",
-"MID_IC"
+"EARLY_IC"
 ],
 [
 "Assistant Project Manager",
@@ -1642,11 +1642,151 @@
 [
 "Account Manager I, Business Development",
 "Requirements: 3+ years of experience.",
-"MID_IC"
+"EARLY_IC"
 ],
 [
 "Account Manager I, Business Development",
 "Requirements: 8+ years of experience.",
+"MANAGER"
+],
+[
+"Assistant Project Manager",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"MANAGER"
+],
+[
+"Account Manager I",
+"Requirements: 3+ years of experience.",
+"EARLY_IC"
+],
+[
+"Account Manager I",
+"Requirements: 8+ years of experience.",
+"MANAGER"
+],
+[
+"Account Manager I",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"MANAGER"
+],
+[
+"Associate Account Manager",
+"Requirements: 3+ years of experience.",
+"EARLY_IC"
+],
+[
+"Associate Account Manager",
+"Requirements: 8+ years of experience.",
+"MID_IC"
+],
+[
+"Associate Account Manager",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"EARLY_IC"
+],
+[
+"Ads Account Manager II",
+"Requirements: 3+ years of experience.",
+"EARLY_IC"
+],
+[
+"Ads Account Manager II",
+"Requirements: 8+ years of experience.",
+"EARLY_IC"
+],
+[
+"Ads Account Manager II",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"EARLY_IC"
+],
+[
+"Project Manager I/II",
+"Requirements: 3+ years of experience.",
+"MID_IC"
+],
+[
+"Project Manager I/II",
+"Requirements: 8+ years of experience.",
+"MANAGER"
+],
+[
+"Project Manager I/II",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"MANAGER"
+],
+[
+"Asst. Project Manager",
+"Requirements: 3+ years of experience.",
+"EARLY_IC"
+],
+[
+"Asst. Project Manager",
+"Requirements: 8+ years of experience.",
+"MID_IC"
+],
+[
+"Asst. Project Manager",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"EARLY_IC"
+],
+[
+"Assistant Category Manager",
+"Requirements: 3+ years of experience.",
+"EARLY_IC"
+],
+[
+"Assistant Category Manager",
+"Requirements: 8+ years of experience.",
+"MANAGER"
+],
+[
+"Assistant Category Manager",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"MANAGER"
+],
+[
+"Associate Relationship Manager",
+"Requirements: 3+ years of experience.",
+"EARLY_IC"
+],
+[
+"Associate Relationship Manager",
+"Requirements: 8+ years of experience.",
+"MID_IC"
+],
+[
+"Associate Relationship Manager",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"EARLY_IC"
+],
+[
+"Grants Manager I",
+"Requirements: 3+ years of experience.",
+"EARLY_IC"
+],
+[
+"Grants Manager I",
+"Requirements: 8+ years of experience.",
+"MANAGER"
+],
+[
+"Grants Manager I",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
+"MANAGER"
+],
+[
+"Spend Manager II",
+"Requirements: 3+ years of experience.",
+"MID_IC"
+],
+[
+"Spend Manager II",
+"Requirements: 8+ years of experience.",
+"MANAGER"
+],
+[
+"Spend Manager II",
+"Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
 "MANAGER"
 ]
 ]
