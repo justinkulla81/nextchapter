@@ -4386,6 +4386,27 @@ model ResumeSubmissionLead {
   @@index([email])
 }
 
+// A resume sent from /careers/apply for a NextChapter job (or "not listed"). Private: the file sits under careers/ in
+// the resumes bucket and is emailed to careers@. claimToken authorizes the one-time "register for NextChapter too"
+// step from the browser that applied; registration reuses this file (no second upload) and sets candidateId.
+model CareerApplication {
+  id                    String    @id @default(cuid())
+  createdAt             DateTime  @default(now())
+  fullName              String
+  email                 String
+  roleSlug              String? // null when the person chose "not listed"
+  roleTitle             String
+  note                  String? // for "not listed": what they would do here
+  filePath              String
+  fileName              String
+  claimToken            String
+  registrationStartedAt DateTime?
+  candidateId           String?
+
+  @@index([email])
+  @@index([createdAt])
+}
+
 model GuideLead {
   id          String            @id @default(cuid())
   candidateId String?
