@@ -7,6 +7,11 @@ import { Button } from '@/components/ui/button'
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { HOW_I_PERFORM_ITEMS } from '@/lib/constants/how-i-perform-items'
+import { RoundsFlow } from '@/components/rounds/RoundsFlow'
+import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import { nextOptionalQuestion } from '@/lib/onboarding/finish'
+import { answersFromScores } from '@/lib/redesign/performance-rounds'
+import { saveHowIPerformRound } from './round-actions'
 
 export const metadata: Metadata = { title: 'How I Perform' }
 
@@ -20,17 +25,24 @@ export default async function HowIPerformPage() {
   })
 
   if (isRedesignOn(profile.email)) {
+    // A round at a time is kept in a draft. If the draft table is not there yet, the flow still works and the browser keeps the answers.
+    const draft = await prisma.performanceAssessmentDraft.findUnique({ where: { candidateId: profile.id } }).catch(() => null)
+    const journey = effectiveJourney(profile)
     return (
       <div className="space-y-8">
-        <PageHeader
-          title="How I perform"
-          intro="Why we ask: hiring managers compare how you see yourself with how your references see you, and the match is what builds trust. 40 quick statements about how you decide, execute and work through others. Answer honestly; each one has a stronger end, and honest answers help most."
+        <PageHeader title="How I perform" intro="Forty statements about how you decide, execute and work through others, in short rounds of two or three. Each round is saved as you go." />
+        <RoundsFlow
+          flowId="how_i_perform"
+          initialAnswers={answersFromScores((draft?.answers ?? null) as Record<string, number> | null)}
+          completed={false}
+          completedOn={latestResponse ? latestResponse.completedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }) : null}
+          save={saveHowIPerformRound}
+          next={nextOptionalQuestion({ networkComfortLevel: profile.networkComfortLevel, searching: journey ? getJourney(journey).searching : true })}
+          doneHref="/dashboard/skills-assessments"
+          doneLabel="Back to how I work"
+          otherHref="/dashboard/track-record"
+          otherLabel="Track record: seven short rounds on the scope you have owned"
         />
-        {latestResponse && <p className="text-sm text-muted-foreground">Last completed {latestResponse.completedAt.toLocaleDateString()}.</p>}
-        <PerformanceAssessmentForm items={HOW_I_PERFORM_ITEMS} />
-        <Link href="/dashboard/skills-assessments" className="inline-block text-sm font-medium text-brand underline underline-offset-4">
-          Back to assessments
-        </Link>
       </div>
     )
   }
