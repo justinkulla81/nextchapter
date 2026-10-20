@@ -48,6 +48,7 @@ import { setTargetFunction } from './actions'
 import { isPivotingProfile, pivotTargetOf } from '@/lib/journey/pivot-target'
 import { PIVOT_PARTS, parsePivotPart, pivotPartHref, transferFacts, type PivotPart } from '@/lib/journey/pivot-parts'
 import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
+import { CareerOneStopCredit } from '@/components/attribution/CareerOneStopCredit'
 
 export const metadata: Metadata = { title: 'Pivot paths' }
 
@@ -403,6 +404,7 @@ async function PivotPathsBody({ profile, params }: { profile: Awaited<ReturnType
         role&apos;s share of new postings with the period before, and appear once there is enough history. Pay is the typical posted salary
         where enough jobs list one. Layoff notices are state WARN filings across all employers. Long-term outlook and median wages are national BLS figures (Employment Projections and OEWS) via CareerOneStop, refreshed yearly. What O*NET lists for each kind of work, and paths marked as related by O*NET, come from O*NET Web Services, refreshed yearly.
       </p>
+      <CareerOneStopCredit surface="pivot_paths_page" />
     </div>
   )
 }

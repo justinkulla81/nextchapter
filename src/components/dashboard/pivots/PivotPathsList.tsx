@@ -251,7 +251,7 @@ function PivotPathCard({
               </span>
             )}
           </p>
-          <p className="text-xs text-muted-foreground">Outlook: BLS projections via CareerOneStop ({s.outlook.occupation}).</p>
+          <p className="text-xs text-muted-foreground">Outlook: BLS projections for {s.outlook.occupation}.</p>
         </div>
       )}
 

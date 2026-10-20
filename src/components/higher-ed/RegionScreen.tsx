@@ -8,6 +8,7 @@
 
 import { ExternalLink, Landmark, MapPin, Newspaper, TrendingDown } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { CareerOneStopCredit } from '@/components/attribution/CareerOneStopCredit'
 import { regionAreas, type InstitutionProfile, type Sourced } from '@/lib/higher-ed/profile'
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -200,7 +201,7 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
                   )}
                 </li>
               ))}
-              <li className="text-[11px] text-muted-foreground">Source: CareerOneStop directory, synced by NextChapter</li>
+              <li><CareerOneStopCredit surface="higher_ed_region" label="Source: directory synced by NextChapter from" className="text-[11px]" /></li>
             </ul>
           ) : board ? (
             <div className="text-sm">
