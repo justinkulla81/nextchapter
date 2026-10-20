@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isOutreachEvent, isPermanentBounce } from '@/lib/outreach/event-rules'
+import { bareAddress, isOutreachEvent, isPermanentBounce } from '@/lib/outreach/event-rules'
 
 const ev = (extra: object, bounce?: object) => ({ type: 'email.bounced', data: { email_id: 'e1', to: ['a@b.com'], bounce, ...extra } })
 
@@ -15,5 +15,10 @@ describe('outreach events', () => {
   it('treats only a permanent bounce as final', () => {
     expect(isPermanentBounce(ev({}, { type: 'Permanent' }))).toBe(true)
     expect(isPermanentBounce(ev({}, { type: 'Transient' }))).toBe(false)
+  })
+  it('reads the bare address from a recipient with a display name', () => {
+    expect(bareAddress('UD Office of Personal Career Development <career@udallas.edu>')).toBe('career@udallas.edu')
+    expect(bareAddress('Jane@Example.com')).toBe('jane@example.com')
+    expect(bareAddress(undefined)).toBeNull()
   })
 })

@@ -253,11 +253,12 @@ async function main() {
 
   // 3. American Job Centers: the business-services inbox when there is one, else the general inbox.
   for (const c of await prisma.americanJobCenter.findMany({ select: { name: true, state: true, countyFips: true, generalEmail: true, businessEmail: true, workforceBoardId: true } })) {
-    const email = (c.businessEmail || c.generalEmail || '').trim()
+    const EMAIL_OK = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+    const email = [c.businessEmail, c.generalEmail].map((e) => (e ?? '').trim()).find((e) => EMAIL_OK.test(e)) ?? ''
     if (!email) continue
     const area = c.countyFips ? areaById.get(c.countyFips) : undefined
     const notice = area ? byCounty.get(`${c.state}|${countyBase(area.name)}`) : undefined
-    add('ajc', { first: 'team', email, org: c.name, title: c.businessEmail ? 'Business services' : 'General inbox' }, { notice, area, state: c.state, center: c.name, board: c.workforceBoardId ? boardNames.get(c.workforceBoardId) : undefined })
+    add('ajc', { first: 'team', email, org: c.name, title: email === (c.businessEmail ?? '').trim() ? 'Business services' : 'General inbox' }, { notice, area, state: c.state, center: c.name, board: c.workforceBoardId ? boardNames.get(c.workforceBoardId) : undefined })
   }
 
   // 3b. Colleges in a county with two or more employers in layoff notices (300+ jobs in all): the career, continuing-education and alumni contacts.
