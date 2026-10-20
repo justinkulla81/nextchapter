@@ -20,7 +20,7 @@ export const PITCH_DRAFTS: PitchDraft[] = [
     subject: 'Candidates for {firmName} searches, screened and free',
     body: `Hi {firstName},
 
-I run NextChapter, a career platform for senior professionals who were laid off: VPs, directors, and finance, operations and technology leaders. They are available now and actively interviewing.
+I run NextChapter, the leading job transition platform for senior professionals who were laid off: VPs, directors, and finance, operations and technology leaders. They are available now and actively interviewing.
 
 Send us an open or confidential search, such as {searchExample}. Within days we return a screened shortlist of members at the right level. Our AI reads every profile against your spec, and a person on our team reviews each name before it reaches you. Confidential searches stay confidential: members never see the client.
 
@@ -38,7 +38,7 @@ Founder, NextChapter`,
     subject: 'Free shortlists for your open roles',
     body: `Hi {firstName},
 
-NextChapter is a career platform for mid-level and senior professionals who were laid off. They are available now and they want to interview.
+NextChapter is the leading job transition platform for mid-level and senior professionals who were laid off. They are available now and they want to interview.
 
 If {firmName} has open roles, such as {searchExample}, send them to us. Within days we send back a screened shortlist of members who fit the level, function and location. AI does the first pass on every profile; a person checks every name before you see it.
 
@@ -56,7 +56,7 @@ Founder, NextChapter`,
     subject: 'Leaders for {firmName} searches, screened and free',
     body: `Hi {firstName},
 
-NextChapter is a career platform for experienced professionals who were laid off. Our members include finance, operations, HR, technology and advancement leaders, and many want mission-driven work at a nonprofit, college or university.
+NextChapter is the leading job transition platform for experienced professionals who were laid off. Our members include finance, operations, HR, technology and advancement leaders, and many want mission-driven work at a nonprofit, college or university.
 
 Send us an open or confidential search, such as {searchExample}. Within days we return a screened shortlist of members at the right level. AI reads each profile against your position description, and a person on our team reviews every name. When a search is confidential, members never see the institution.
 

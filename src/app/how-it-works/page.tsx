@@ -10,7 +10,7 @@ import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 export const metadata: Metadata = {
   title: 'How It Works',
   description:
-    "From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired, promoted, or ready for what's next, on NextChapter's free job transition platform.",
+    "From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired, promoted, or ready for what's next, on NextChapter, the leading job transition platform, free for candidates.",
   alternates: { canonical: '/how-it-works' },
 }
 
