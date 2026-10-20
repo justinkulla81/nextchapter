@@ -275,15 +275,16 @@ async function main() {
     const why = p.passedAt ? 'passed' : p.firstRepliedAt ? 'replied' : 'already contacted'
     for (const e of [p.email, ...p.emails]) if (e) suppress.set(e.toLowerCase(), why)
   }
+  for (const m of await prisma.mailingSuppression.findMany({ select: { email: true, reason: true } })) suppress.set(m.email.toLowerCase(), m.reason === 'COMPLAINED' ? 'spam complaint' : 'bounced')
   try { for (const l of readFileSync('/Users/salitkulla/nc-hunter-results/suppress.txt', 'utf8').split('\n')) if (l.trim()) suppress.set(l.trim().toLowerCase(), 'do not contact') } catch { /* no list yet */ }
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
-  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
-  const HEAD = ['template', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
+  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); r.variant = [...k].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 2 ? 'B' : 'A'; r.subject = r.variant === 'B' ? r.subject_b : r.subject_a; r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
+  const HEAD = ['template', 'variant', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
     'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective']
   writeFileSync(out, [HEAD.map(q).join(','), ...rows.map((r) => HEAD.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   // The send list: only rows that are ready, unique and not suppressed, with just what a mail merge needs.
-  const SEND = ['template', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
+  const SEND = ['template', 'variant', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
   const sendRows = rows.filter((r) => r.send === 'yes')
   writeFileSync(out.replace(/\.csv$/, '') + '.send.csv', [SEND.map(q).join(','), ...sendRows.map((r) => SEND.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   console.log(`send list: ${sendRows.length} rows`)

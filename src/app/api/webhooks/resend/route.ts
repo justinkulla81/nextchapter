@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server'
 import { verifyResendSignature } from '@/lib/mailing/webhook-signature'
 import { applyResendEvent, type ResendEvent } from '@/lib/mailing/tracking'
 import { applyHigherEdEvent } from '@/lib/higher-ed/email-events'
+import { applyOutreachEvent } from '@/lib/outreach/events'
 
 // Delivery, open, click, bounce and complaint events for list email (the
 // Monthly Update and other editions) and for college email to alumni
 // (Higher Ed OutreachSend, checked first). Configured in Resend → Webhooks with
 // the signing secret in RESEND_WEBHOOK_SECRET. Events for any other email
-// the account sends are acknowledged and ignored.
+// the account sends are acknowledged and ignored, except cold outreach tagged
+// `outreach`, whose bounces and spam complaints stop further mail.
 export async function POST(request: Request) {
   const secret = process.env.RESEND_WEBHOOK_SECRET
   if (!secret) return NextResponse.json({ error: 'not configured' }, { status: 503 })
@@ -30,6 +32,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: 'invalid json' }, { status: 400 })
   }
-  const result = (await applyHigherEdEvent(event)) === 'applied' ? 'applied' : await applyResendEvent(event)
+  let result: 'applied' | 'ignored' = (await applyHigherEdEvent(event)) === 'applied' ? 'applied' : await applyResendEvent(event)
+  if (result === 'ignored') result = await applyOutreachEvent(event)
   return NextResponse.json({ [result]: event.type })
 }
