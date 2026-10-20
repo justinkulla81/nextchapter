@@ -54,7 +54,7 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' }) {
+export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'ai-skills' | 'ai-training' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="border-b border-white/10">
@@ -94,6 +94,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           {' · '}<Link href="/scam-watch" className="underline underline-offset-4">Scam watch</Link>
           {' · '}<Link href="/news" className="underline underline-offset-4">News</Link>
           {' · '}<Link href="/reports/latest" className="underline underline-offset-4">White Collar Employment Report</Link>
+          {' · '}<Link href="/ai-skills" className="underline underline-offset-4">AI skills data</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>
           {' · '}<Link href="/editorial-standards" className="underline underline-offset-4">Editorial standards</Link>
           {' · '}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>

@@ -215,6 +215,10 @@ export const AUDIENCE_TABS: AudienceTab[] = [
         lead: 'Outcomes you can report.',
         body: 'Track engagement, progress, and placements — the data your leadership and board want, not vague "coaching hours delivered."',
       },
+      {
+        lead: 'AI skills for the people leaving.',
+        body: 'Each person sees which AI skills the jobs they want ask for and gets a short course for each gap. You see the whole group’s gap, counts only.',
+      },
     ],
     contrastLabel: 'vs. legacy outplacement (LHH, RiseSmart, Careerminds):',
     contrastBody:
@@ -255,6 +259,10 @@ export const AUDIENCE_TABS: AudienceTab[] = [
         lead: 'Outcomes you can report.',
         // [OWNER TO CONFIRM: which specific WIOA performance metrics we map to.]
         body: 'Track readiness, engagement, and placements — the entered-employment and retention data your performance measures depend on.',
+      },
+      {
+        lead: 'Career services that include AI training.',
+        body: 'We measure the AI-skill gap for your participants and build the courses that close it, for the career services and training funds and grants you already use. Approval rules differ by state, and we help you scope the training section.',
       },
     ],
     contrastLabel: 'vs. legacy case-management & job banks:',
@@ -309,6 +317,10 @@ export const AUDIENCE_TABS: AudienceTab[] = [
       {
         lead: 'Grants, pilots, and co-design.',
         body: 'We collaborate on funding proposals, pilot programs, and joint research that advance shared goals for fairer hiring.',
+      },
+      {
+        lead: 'AI training your alumni and constituents can use.',
+        body: 'For colleges: a certificate for mid-career alumni and local employers, built to your catalog, with the AI-skill gap for your alumni measured first. Career services, continuing education and grant budgets can pay for it.',
       },
     ],
     contrastLabel: 'Why partner with us:',
