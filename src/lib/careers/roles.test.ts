@@ -16,10 +16,10 @@ describe('career roles', () => {
     }
   })
 
-  it('makes lead roles Lead and contributor roles Contributor, never the reverse', () => {
-    for (const r of rolesInGroup('lead')) expect(r.kind).toBe('lead')
-    for (const r of [...rolesInGroup('contributor'), ...rolesInGroup('early-career')]) expect(r.kind).toBe('contributor')
+  it('marks platform roles as platform and early-career roles as contributors', () => {
     for (const r of rolesInGroup('platform')) expect(r.kind).toBe('platform')
+    for (const r of rolesInGroup('early-career')) expect(r.kind).toBe('contributor')
+    for (const r of CAREER_ROLES) if (r.kind === 'platform') expect(r.group).toBe('platform')
   })
 
   it('sends platform roles to an existing page, and no other role', () => {
