@@ -22,3 +22,11 @@ Name events `snake_case`, past-tense-ish and specific (`job_rated`, not
 `posthog.capture()` client-side for user-initiated actions; use
 `posthog-node` server-side for events that only happen in a Server Action
 (add the package when the first such event is needed).
+
+## Working style
+
+Do not add, offer or promise things the company is not required to provide in
+order to be a "good guy" (for example public commitments about how we hire,
+pay, screen or treat applicants, optional disclaimers, or extra statements).
+They can create unintended consequences. Include only what is required or what
+was explicitly asked for, and don't end replies with offers of further extras.

@@ -17,11 +17,9 @@ const AS: Record<string, ContactAudience> = {
   candidate: 'CANDIDATE', organization: 'ORGANIZATION', coach: 'COACH_RECRUITER', recruiter: 'COACH_RECRUITER', apply: 'JOB_APPLICANT', careers: 'JOB_APPLICANT', press: 'OTHER',
 }
 
-export default async function ContactPage({ searchParams }: { searchParams: Promise<{ as?: string; role?: string }> }) {
-  const { as, role } = await searchParams
+export default async function ContactPage({ searchParams }: { searchParams: Promise<{ as?: string }> }) {
+  const { as } = await searchParams
   const initialAudience = (as && AS[as.toLowerCase()]) || 'CANDIDATE'
-  // ?role= (from a careers page) fills the "Role you're interested in" field for applicants.
-  const initialRole = initialAudience === 'JOB_APPLICANT' && role ? role.slice(0, 120) : undefined
 
   return (
     <div className="flex flex-1 flex-col bg-white">
@@ -32,7 +30,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         <p className="mt-3 max-w-xl text-muted-foreground">We’ll send your note to the right person.</p>
 
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-          <ContactForm initialAudience={initialAudience} initialRole={initialRole} />
+          <ContactForm initialAudience={initialAudience} />
           <aside aria-label="Other ways to reach us" className="flex flex-col gap-6 self-start rounded-xl bg-off-white p-6 text-sm">
             <div>
               <h2 className="font-semibold text-navy">Email</h2>

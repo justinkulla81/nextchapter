@@ -1,13 +1,6 @@
 /**
  * Open roles shown on /careers. One typed list feeds the careers page, each
- * role page, the sitemap and the apply links, so a role is edited in one place.
- *
- * Before going live (see docs/hiring/DRAFT_job_postings_2026-10-20.md):
- *  - set `compensation` on every employee role (a pay range, or the structure
- *    stated plainly) — the page shows the line only when it is set;
- *  - have an employment lawyer review the wording, the internship terms and
- *    the equal-opportunity statement;
- *  - then set CAREERS_PAGE_LIVE=true. Until it is, /careers returns a 404.
+ * role page and the apply links, so a role is edited in one place.
  */
 
 export type RoleKind = 'lead' | 'contributor' | 'platform'
@@ -28,22 +21,12 @@ export interface CareerRole {
   bring: string[]
   bonus?: string[]
   firstNinetyDays?: string[]
-  /** Pay range or structure, stated plainly. Null until decided; never guessed. */
-  compensation: string | null
   employment: 'Full-time' | 'Internship' | 'Associate program' | 'Platform'
-  /** Job-board entry fields (admin → Job Board), so a listing can mirror this role. */
-  boardFunction?: string
-  boardLevel?: string
   /** Platform roles link out to the existing coach and recruiter pages. */
   externalHref?: string
 }
 
-export const CAREERS_LOCATION = 'New York City'
-
-/** The careers pages stay dark (404) until this is set, so nothing posts before pay and wording are ready. */
-export function careersPageLive(): boolean {
-  return process.env.CAREERS_PAGE_LIVE === 'true'
-}
+export const CAREERS_LOCATION = 'New York City, or remote'
 
 export const KIND_LABEL: Record<RoleKind, string> = {
   lead: 'Lead',
@@ -80,16 +63,6 @@ export const CAREER_VALUES: { title: string; body: string }[] = [
   { title: 'Comfort with AI (a plus)', body: 'We use AI for first drafts and research, and people for judgment and relationships.' },
 ]
 
-export const HIRING_STEPS: string[] = [
-  'A person reads every application. We do not use AI to screen or rank applicants.',
-  'Every candidate gets the same structured questions, scored on the values above.',
-  'We ask for a short work sample (about an hour) or a walk-through of work you already have. We do not pay for samples, and we never use them to get real work done.',
-  'We do not filter on school or brand-name employers.',
-]
-
-export const EEO_STATEMENT =
-  'NextChapter is an equal opportunity employer. We welcome applicants of every background. If you need an accommodation to apply or interview, tell us and we will work with you.'
-
 export const CAREER_ROLES: CareerRole[] = [
   {
     slug: 'editorial-lead',
@@ -116,10 +89,7 @@ export const CAREER_ROLES: CareerRole[] = [
       'Two report editions published.',
       'The five highest-traffic pages rewritten.',
     ],
-    compensation: null,
     employment: 'Full-time',
-    boardFunction: 'Marketing',
-    boardLevel: 'DIRECTOR',
   },
   {
     slug: 'b2b-sales-lead',
@@ -145,10 +115,7 @@ export const CAREER_ROLES: CareerRole[] = [
       'First demos booked.',
       'A first paid pilot proposal sent.',
     ],
-    compensation: null,
     employment: 'Full-time',
-    boardFunction: 'Sales',
-    boardLevel: 'DIRECTOR',
   },
   {
     slug: 'sales-development-representative',
@@ -169,10 +136,7 @@ export const CAREER_ROLES: CareerRole[] = [
     ],
     bonus: ['You are comfortable using AI to draft and research.'],
     firstNinetyDays: ['A steady weekly volume of outreach, with a measured reply rate and meetings booked.'],
-    compensation: null,
     employment: 'Full-time',
-    boardFunction: 'Sales',
-    boardLevel: 'ENTRY',
   },
   {
     slug: 'partnerships-lead',
@@ -197,10 +161,7 @@ export const CAREER_ROLES: CareerRole[] = [
       'A first pilot conversation with a workforce board or college.',
       'The first group of coaches and recruiters onboarded.',
     ],
-    compensation: null,
     employment: 'Full-time',
-    boardFunction: 'Business Development',
-    boardLevel: 'DIRECTOR',
   },
   {
     slug: 'product-lead',
@@ -226,10 +187,7 @@ export const CAREER_ROLES: CareerRole[] = [
       'A prioritized fix list drawn from user feedback.',
       'Billing and checkout scoped with engineering.',
     ],
-    compensation: null,
     employment: 'Full-time',
-    boardFunction: 'Product',
-    boardLevel: 'DIRECTOR',
   },
   {
     slug: 'technology-lead',
@@ -255,10 +213,7 @@ export const CAREER_ROLES: CareerRole[] = [
       'Billing and checkout delivered or scheduled.',
       'A written standard for how AI is used and approved.',
     ],
-    compensation: null,
     employment: 'Full-time',
-    boardFunction: 'Engineering',
-    boardLevel: 'DIRECTOR',
   },
   {
     slug: 'marketing-lead',
@@ -284,10 +239,7 @@ export const CAREER_ROLES: CareerRole[] = [
       'Three tested B2B sequences.',
       'The newsletter sent on time each month, with a first attribution report.',
     ],
-    compensation: null,
     employment: 'Full-time',
-    boardFunction: 'Marketing',
-    boardLevel: 'DIRECTOR',
   },
   {
     slug: 'internship',
@@ -305,10 +257,7 @@ export const CAREER_ROLES: CareerRole[] = [
       'No prior experience is required.',
     ],
     bonus: ['You are comfortable using AI tools.'],
-    compensation: null,
     employment: 'Internship',
-    boardFunction: 'Operations',
-    boardLevel: 'ENTRY',
   },
   {
     slug: 'associate-program',
@@ -327,10 +276,7 @@ export const CAREER_ROLES: CareerRole[] = [
       'The values listed on this page.',
     ],
     bonus: ['You are comfortable using AI tools.'],
-    compensation: null,
     employment: 'Associate program',
-    boardFunction: 'Operations',
-    boardLevel: 'ENTRY',
   },
   {
     slug: 'coach',
@@ -347,7 +293,6 @@ export const CAREER_ROLES: CareerRole[] = [
       'Training or credentials you can describe.',
       'References.',
     ],
-    compensation: null,
     employment: 'Platform',
     externalHref: '/coaches',
   },
@@ -365,7 +310,6 @@ export const CAREER_ROLES: CareerRole[] = [
       'A record of ethical, candidate-first work.',
       'References.',
     ],
-    compensation: null,
     employment: 'Platform',
     externalHref: '/recruiters',
   },

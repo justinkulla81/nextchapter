@@ -1,7 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PERSONAS } from '@/lib/constants/personas'
-import { CAREER_ROLES, careersPageLive } from '@/lib/careers/roles'
 import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
 import { getPublishedNews } from '@/lib/news/published'
 import { REPORT_EDITIONS, latestReport } from '@/lib/reports'
@@ -60,9 +59,6 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
 const PERSONAS_UPDATED = '2026-10-02'
 const COMPARISONS_UPDATED = '2026-08-25'
 
-// /careers and /careers/[slug] content lives in src/lib/careers/roles.ts; bump when a role changes.
-const CAREERS_UPDATED = '2026-10-20'
-
 // /reports/replication mirrors the replication repository's README.
 const REPLICATION_UPDATED = '2026-10-07'
 
@@ -93,11 +89,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // The homepage shows the latest News, so it changes when News does.
     entry('/', latestOf(['2026-10-06', ...(newestNews ? [newestNews] : [])]), 'weekly', 1),
     ...STATIC_PAGES.map((p) => entry(p.path, p.updated, p.freq, p.priority)),
-
-    // Careers: only once the pages are live (CAREERS_PAGE_LIVE); until then they 404.
-    ...(careersPageLive()
-      ? [entry('/careers', CAREERS_UPDATED, 'monthly', 0.5), ...CAREER_ROLES.map((r) => entry(`/careers/${r.slug}`, CAREERS_UPDATED, 'monthly', 0.4))]
-      : []),
 
     // The White Collar Employment Report: hub, the evergreen index, and every edition.
     // The index is refreshed with each edition.

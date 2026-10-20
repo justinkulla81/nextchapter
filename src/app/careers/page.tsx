@@ -1,29 +1,20 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { RoleBadge } from '@/components/careers/RoleBadge'
-import {
-  CAREERS_LOCATION, CAREER_VALUES, EEO_STATEMENT, GROUP_HEADING, GROUP_ORDER, HIRING_STEPS,
-  careersPageLive, rolesInGroup,
-} from '@/lib/careers/roles'
+import { CAREERS_EMAIL } from '@/lib/contact/constants'
+import { CAREERS_LOCATION, CAREER_VALUES, GROUP_HEADING, GROUP_ORDER, rolesInGroup } from '@/lib/careers/roles'
 
-const DESCRIPTION =
-  'Work on NextChapter. Lead roles, contributor roles, an internship and a new graduate associate program, plus how coaches and recruiters can join the platform.'
-
+// Not for search engines: kept out of results here and disallowed in robots.ts.
 export const metadata: Metadata = {
   title: 'Careers at NextChapter',
-  description: DESCRIPTION,
-  alternates: { canonical: '/careers' },
-  openGraph: { title: 'Careers at NextChapter', description: DESCRIPTION, url: 'https://launchyournextchapter.com/careers' },
+  robots: { index: false, follow: false },
 }
 
 const EYEBROW = 'text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground'
 const H2 = 'mt-2 max-w-2xl text-balance text-2xl font-bold tracking-tight text-navy sm:text-3xl'
 
 export default function CareersPage() {
-  if (!careersPageLive()) notFound()
-
   const groups = GROUP_ORDER.map((group) => ({ group, roles: rolesInGroup(group) })).filter((g) => g.roles.length > 0)
 
   return (
@@ -38,8 +29,20 @@ export default function CareersPage() {
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
             NextChapter helps professionals find their next role after a layoff or a career change, and helps the
-            employers, colleges, workforce boards, coaches and recruiters who support them. We are a small team in{' '}
-            {CAREERS_LOCATION}. Every role below says whether you would lead a function or work inside one.
+            employers, colleges, workforce boards, coaches and recruiters who support them. We are a small team based
+            in {CAREERS_LOCATION}. Every role below says whether you would lead a function or work inside one.
+          </p>
+          <p className="mt-4 max-w-2xl text-muted-foreground">
+            To apply, email your resume to{' '}
+            <TrackedLink
+              href={`mailto:${CAREERS_EMAIL}`}
+              event="careers_apply_clicked"
+              properties={{ slug: null, kind: null, group: null, destination: 'email', placement: 'intro' }}
+              className="font-semibold text-brand underline underline-offset-4 hover:text-navy"
+            >
+              {CAREERS_EMAIL}
+            </TrackedLink>
+            . Don’t see your role? Email us anyway and tell us what you would do here.
           </p>
         </section>
 
@@ -84,16 +87,6 @@ export default function CareersPage() {
               </div>
             ))}
           </dl>
-        </section>
-
-        <section aria-labelledby="how-we-hire" className="border-t border-border bg-off-white">
-          <div className="mx-auto max-w-6xl px-6 py-14">
-            <h2 id="how-we-hire" className={H2}>How we hire</h2>
-            <ul className="mt-6 max-w-2xl list-disc space-y-2 pl-5 text-muted-foreground">
-              {HIRING_STEPS.map((s) => <li key={s}>{s}</li>)}
-            </ul>
-            <p className="mt-8 max-w-2xl text-sm text-muted-foreground">{EEO_STATEMENT}</p>
-          </div>
         </section>
       </main>
 

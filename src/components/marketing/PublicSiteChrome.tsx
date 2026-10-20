@@ -4,7 +4,6 @@ import { Logo } from '@/components/Logo'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
-import { careersPageLive } from '@/lib/careers/roles'
 
 const NAV_LINK = 'hidden text-sm font-medium text-muted-foreground hover:text-foreground'
 
@@ -90,7 +89,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           © {new Date().getFullYear()} NextChapter
           {' · '}<Link href="/about" className="underline underline-offset-4">About</Link>
           {' · '}<Link href="/contact" className="underline underline-offset-4">Contact</Link>
-          {careersPageLive() && <>{' · '}<Link href="/careers" className="underline underline-offset-4">Careers</Link></>}
+          {' · '}<Link href="/careers" rel="nofollow" className="underline underline-offset-4">Careers</Link>
           {' · '}<Link href="/pricing" className="underline underline-offset-4">Pricing</Link>
           {' · '}<Link href="/security" className="underline underline-offset-4">Security</Link>
           {' · '}<Link href="/scam-watch" className="underline underline-offset-4">Scam watch</Link>

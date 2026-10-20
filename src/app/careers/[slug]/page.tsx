@@ -4,25 +4,19 @@ import { notFound } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { RoleBadge } from '@/components/careers/RoleBadge'
-import {
-  CAREERS_LOCATION, CAREER_ROLES, EEO_STATEMENT, KIND_EXPLAINER, careersPageLive, getRole,
-} from '@/lib/careers/roles'
+import { CAREERS_EMAIL } from '@/lib/contact/constants'
+import { CAREERS_LOCATION, CAREER_ROLES, KIND_EXPLAINER, getRole } from '@/lib/careers/roles'
 
 export function generateStaticParams() {
   return CAREER_ROLES.map((r) => ({ slug: r.slug }))
 }
 
+// Not for search engines: kept out of results here and disallowed in robots.ts.
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const role = getRole(slug)
-  if (!role || !careersPageLive()) return {}
-  const title = `${role.title}: careers at NextChapter`
-  return {
-    title,
-    description: role.summary,
-    alternates: { canonical: `/careers/${role.slug}` },
-    openGraph: { title, description: role.summary, url: `https://launchyournextchapter.com/careers/${role.slug}` },
-  }
+  if (!role) return {}
+  return { title: `${role.title}: careers at NextChapter`, robots: { index: false, follow: false } }
 }
 
 const H2 = 'text-xl font-semibold text-navy'
@@ -41,10 +35,11 @@ function Section({ title, items }: { title: string; items: string[] }) {
 export default async function CareerRolePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const role = getRole(slug)
-  if (!role || !careersPageLive()) notFound()
+  if (!role) notFound()
 
   const isPlatform = role.kind === 'platform'
-  const applyHref = `/contact?as=careers&role=${encodeURIComponent(role.title)}`
+  const applyHref = `mailto:${CAREERS_EMAIL}?subject=${encodeURIComponent(`Application: ${role.title}`)}`
+  const primary = 'inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover'
 
   return (
     <div className="flex flex-1 flex-col bg-white">
@@ -71,39 +66,30 @@ export default async function CareerRolePage({ params }: { params: Promise<{ slu
               href={role.externalHref}
               event="careers_apply_clicked"
               properties={{ slug: role.slug, kind: role.kind, group: role.group, destination: role.externalHref }}
-              className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
+              className={primary}
             >
               {role.slug === 'coach' ? 'Learn about the coach platform' : 'Learn about the recruiter portal'}
             </TrackedLink>
           ) : (
-            <TrackedLink
-              href={applyHref}
-              event="careers_apply_clicked"
-              properties={{ slug: role.slug, kind: role.kind, group: role.group, destination: 'contact_form' }}
-              className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
-            >
-              Apply for this role
-            </TrackedLink>
-          )}
-          {!isPlatform && (
-            <p className="mt-3 text-sm text-muted-foreground">You will add your LinkedIn profile and a note on why NextChapter.</p>
+            <>
+              <TrackedLink
+                href={applyHref}
+                event="careers_apply_clicked"
+                properties={{ slug: role.slug, kind: role.kind, group: role.group, destination: 'email', placement: 'role_page' }}
+                className={primary}
+              >
+                Email your resume
+              </TrackedLink>
+              <p className="mt-3 text-sm text-muted-foreground">Send your resume to {CAREERS_EMAIL}.</p>
+            </>
           )}
         </div>
-
-        {role.compensation && (
-          <section className="mt-10">
-            <h2 className={H2}>Pay</h2>
-            <p className="mt-3 text-muted-foreground">{role.compensation}</p>
-          </section>
-        )}
 
         {role.focus && <Section title="Who you work with" items={role.focus} />}
         <Section title={isPlatform ? 'How it works' : 'What you will do'} items={role.responsibilities} />
         <Section title="What you bring" items={role.bring} />
         {role.bonus && <Section title="A plus" items={role.bonus} />}
         {role.firstNinetyDays && <Section title="In your first 90 days" items={role.firstNinetyDays} />}
-
-        {!isPlatform && <p className="mt-12 text-sm text-muted-foreground">{EEO_STATEMENT}</p>}
       </main>
 
       <PublicSiteFooter page="careers" />

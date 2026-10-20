@@ -1,7 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import {
-  CAREER_ROLES, GROUP_ORDER, careersPageLive, getRole, rolesInGroup,
-} from '@/lib/careers/roles'
+import { describe, expect, it } from 'vitest'
+import { CAREER_ROLES, GROUP_ORDER, getRole, rolesInGroup } from '@/lib/careers/roles'
 
 describe('career roles', () => {
   it('has unique slugs', () => {
@@ -44,22 +42,5 @@ describe('career roles', () => {
   it('finds a role by slug and returns undefined for an unknown one', () => {
     expect(getRole('editorial-lead')?.title).toBe('Editorial lead')
     expect(getRole('nope')).toBeUndefined()
-  })
-})
-
-describe('careersPageLive', () => {
-  const original = process.env.CAREERS_PAGE_LIVE
-  afterEach(() => {
-    if (original === undefined) delete process.env.CAREERS_PAGE_LIVE
-    else process.env.CAREERS_PAGE_LIVE = original
-  })
-
-  it('is off unless the flag is exactly "true"', () => {
-    delete process.env.CAREERS_PAGE_LIVE
-    expect(careersPageLive()).toBe(false)
-    process.env.CAREERS_PAGE_LIVE = '1'
-    expect(careersPageLive()).toBe(false)
-    process.env.CAREERS_PAGE_LIVE = 'true'
-    expect(careersPageLive()).toBe(true)
   })
 })
