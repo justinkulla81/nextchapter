@@ -15,15 +15,19 @@ const WHY: Record<DraftFacts['credibility'], string> = {
 const slot = (d: Date) =>
   d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' ET'
 
+// Time helpers kept outside the component, as the mailing page does, so the render stays pure.
+const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000)
+const nowMs = () => Date.now()
+
 export default async function LinkedInDraftsPage({ searchParams }: { searchParams: Promise<{ linkedin?: string }> }) {
   const admin = await requireAdmin()
   const { linkedin } = await searchParams
   const conn = admin.email ? await getAdminLinkedIn(admin.email) : null
   const [drafts, posted] = await Promise.all([
     prisma.linkedInPostDraft.findMany({ where: { status: 'DRAFT' }, orderBy: { scheduledFor: 'asc' } }),
-    prisma.linkedInPostDraft.count({ where: { status: 'POSTED', postedAt: { gte: new Date(Date.now() - 7 * 86_400_000) } } }),
+    prisma.linkedInPostDraft.count({ where: { status: 'POSTED', postedAt: { gte: daysAgo(7) } } }),
   ])
-  const now = Date.now()
+  const now = nowMs()
 
   return (
     <div className="space-y-4">
