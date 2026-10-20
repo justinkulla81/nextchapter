@@ -4,7 +4,7 @@
  */
 
 export type RoleKind = 'lead' | 'contributor' | 'platform'
-export type RoleGroup = 'lead' | 'contributor' | 'early-career' | 'platform'
+export type RoleGroup = 'editorial' | 'sales' | 'partnerships' | 'product' | 'technology' | 'marketing' | 'early-career' | 'platform'
 
 export interface CareerRole {
   slug: string
@@ -40,14 +40,18 @@ export const KIND_EXPLAINER: Record<RoleKind, string> = {
   platform: 'You join the NextChapter platform. This is not an employment offer.',
 }
 
-export const GROUP_HEADING: Record<RoleGroup, { title: string; blurb: string }> = {
-  lead: { title: 'Lead roles', blurb: 'You own a function and set its direction.' },
-  contributor: { title: 'Contributor roles', blurb: 'You do the work inside a function and work with its lead.' },
-  'early-career': { title: 'Early career', blurb: 'For students and new graduates starting out.' },
-  platform: { title: 'Join the platform', blurb: 'Coaches and recruiters work with candidates through NextChapter. These are not jobs.' },
+export const GROUP_HEADING: Record<RoleGroup, string> = {
+  editorial: 'Editorial',
+  sales: 'Sales',
+  partnerships: 'Partnerships',
+  product: 'Product',
+  technology: 'Technology',
+  marketing: 'Marketing',
+  'early-career': 'Early career',
+  platform: 'Join the platform',
 }
 
-export const GROUP_ORDER: RoleGroup[] = ['lead', 'contributor', 'early-career', 'platform']
+export const GROUP_ORDER: RoleGroup[] = ['editorial', 'sales', 'partnerships', 'product', 'technology', 'marketing', 'early-career', 'platform']
 
 export const CAREER_VALUES: { title: string; body: string }[] = [
   { title: 'Emotional intelligence', body: 'You read people well, listen first, and stay steady with someone worried about their livelihood.' },
@@ -68,7 +72,7 @@ export const CAREER_ROLES: CareerRole[] = [
     slug: 'editorial-lead',
     title: 'Editorial lead',
     kind: 'lead',
-    group: 'lead',
+    group: 'editorial',
     summary: 'Own what NextChapter says in public: the monthly employment report, the website, the newsletter and marketing copy.',
     responsibilities: [
       'Edit and publish the monthly White Collar Employment Report: narrative, headline, brief and press angle.',
@@ -95,7 +99,7 @@ export const CAREER_ROLES: CareerRole[] = [
     slug: 'b2b-sales-lead',
     title: 'B2B sales lead',
     kind: 'lead',
-    group: 'lead',
+    group: 'sales',
     summary: 'Build and run how NextChapter sells to workforce boards, colleges, outplacement providers and employers.',
     focus: ['Workforce boards', 'Higher education', 'Outplacement firms', 'Employers and HR teams'],
     responsibilities: [
@@ -121,7 +125,7 @@ export const CAREER_ROLES: CareerRole[] = [
     slug: 'sales-development-representative',
     title: 'Sales development representative',
     kind: 'contributor',
-    group: 'contributor',
+    group: 'sales',
     summary: 'Research prospects, send outreach and book meetings for the B2B sales lead.',
     focus: ['Workforce boards', 'Higher education', 'Outplacement firms', 'Employers and HR teams'],
     responsibilities: [
@@ -142,7 +146,7 @@ export const CAREER_ROLES: CareerRole[] = [
     slug: 'partnerships-lead',
     title: 'Partnerships lead',
     kind: 'lead',
-    group: 'lead',
+    group: 'partnerships',
     summary: 'Build relationships with workforce boards, colleges, outplacement providers, employers, and research and academic partners.',
     focus: ['Workforce boards', 'Higher education', 'Outplacement and employers', 'Research and academic partners'],
     responsibilities: [
@@ -167,7 +171,7 @@ export const CAREER_ROLES: CareerRole[] = [
     slug: 'product-lead',
     title: 'Product lead',
     kind: 'lead',
-    group: 'lead',
+    group: 'product',
     summary: 'Decide what we build next across the candidate platform and the employer, college, coach and recruiter products.',
     focus: ['Candidate product', 'B2B products'],
     responsibilities: [
@@ -193,7 +197,7 @@ export const CAREER_ROLES: CareerRole[] = [
     slug: 'technology-lead',
     title: 'Technology lead',
     kind: 'lead',
-    group: 'lead',
+    group: 'technology',
     summary: 'Lead engineering and own how AI is used across the product and the company. Hands-on AI experience is required.',
     responsibilities: [
       'Own the technical direction of the platform, and keep it secure and reliable.',
@@ -219,7 +223,7 @@ export const CAREER_ROLES: CareerRole[] = [
     slug: 'marketing-lead',
     title: 'Marketing lead',
     kind: 'lead',
-    group: 'lead',
+    group: 'marketing',
     summary: 'Own how NextChapter reaches employers, partners and candidates: LinkedIn, B2B campaigns, and the monthly newsletter outreach.',
     responsibilities: [
       'Run the LinkedIn calendar for the company and the founder.',
