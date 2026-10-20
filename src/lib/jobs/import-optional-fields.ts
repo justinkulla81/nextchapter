@@ -27,6 +27,8 @@ export interface ImportSpecInput {
   locationState?: unknown
   locationCountry?: unknown
   locations?: unknown
+  /** Every US state the crawler resolved (ncrawl derive.resolve_location), primary first. */
+  locationStatesList?: unknown
   externalJobId?: unknown
   requisitionId?: unknown
   repostKey?: unknown
@@ -105,13 +107,18 @@ export function importSpecFields(
   if (has('locationState')) out.locationState = code(job.locationState, stateCodes)
   if (has('locationCity')) out.locationCity = out.locationState === null ? null : cityName(job.locationCity)
   if (has('locationCountry')) out.locationCountry = code(job.locationCountry)
-  if (has('locations') || has('locationState')) {
+  if (has('locations') || has('locationState') || has('locationStatesList')) {
     const states: string[] = []
     const add = (s: string | null | undefined) => {
       if (s && stateCodes.has(s) && !states.includes(s)) states.push(s)
     }
     add(out.locationState ?? code(job.locationState, stateCodes))
-    if (Array.isArray(job.locations)) {
+    if (Array.isArray(job.locationStatesList)) {
+      // The crawler's own resolution of every listed place — it reads multi-location
+      // strings, ZIPs and JobPosting data this side's text parser can't, so it is used
+      // instead of re-reading the locations here.
+      for (const s of job.locationStatesList.slice(0, 60)) add(code(s, stateCodes))
+    } else if (Array.isArray(job.locations)) {
       for (const l of job.locations.slice(0, 50)) {
         const text = importText(l, 200)
         if (text) for (const s of statesOf(text)) add(s)

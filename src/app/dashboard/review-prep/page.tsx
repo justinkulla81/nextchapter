@@ -6,6 +6,10 @@ import { buildCase } from '@/lib/review-prep/case'
 import { Button } from '@/components/ui/button'
 import { ConversationForm, EMPTY_DRAFT } from '@/components/dashboard/ConversationForm'
 import { ConversationOutcome } from '@/components/dashboard/ConversationOutcome'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { CONVERSATION_KINDS } from '@/lib/review-prep/conversation'
 
 export const metadata: Metadata = { title: 'Build your case' }
@@ -31,8 +35,8 @@ export default async function ReviewPrepPage() {
   ])
   const c = buildCase({ trackRecord, workSamples, quotes, completedReferences, learning })
 
-  return (
-    <div className="space-y-8">
+  const block0 = (
+    <>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Build your case</h1>
         <p className="mt-1 text-muted-foreground">
@@ -47,7 +51,11 @@ export default async function ReviewPrepPage() {
         </p>
         <p className="mt-2 text-sm font-medium text-foreground">{STRENGTH_COPY[c.strength]}</p>
       </div>
+    </>
+  )
 
+  const block1 = (
+    <>
       <section className="space-y-3" aria-labelledby="results">
         <h2 id="results" className="text-lg font-semibold">
           Results you can point to
@@ -71,7 +79,11 @@ export default async function ReviewPrepPage() {
           </ul>
         )}
       </section>
+    </>
+  )
 
+  const block2 = (
+    <>
       <section className="space-y-3" aria-labelledby="others">
         <h2 id="others" className="text-lg font-semibold">
           What others say
@@ -90,7 +102,11 @@ export default async function ReviewPrepPage() {
         )}
         {c.learning.length > 0 && <p className="text-sm text-muted-foreground">Learned this year: {c.learning.join(', ')}.</p>}
       </section>
+    </>
+  )
 
+  const block3 = (
+    <>
       {c.gaps.length > 0 && (
         <section className="space-y-3" aria-labelledby="gaps">
           <h2 id="gaps" className="text-lg font-semibold">
@@ -108,7 +124,11 @@ export default async function ReviewPrepPage() {
           </ul>
         </section>
       )}
+    </>
+  )
 
+  const block4 = (
+    <>
       <section className="space-y-4" aria-labelledby="settle">
         <h2 id="settle" className="text-lg font-semibold">
           Settle three things before you walk in
@@ -131,7 +151,11 @@ export default async function ReviewPrepPage() {
         <ConversationForm draft={EMPTY_DRAFT} suggestions={c.results.slice(0, 3)} />
         <p className="text-sm text-muted-foreground">Afterward, write down what was agreed and send it the same day. What you save here is private to you.</p>
       </section>
+    </>
+  )
 
+  const block5 = (
+    <>
       {conversations.length > 0 && (
         <section className="space-y-3" aria-labelledby="saved">
           <h2 id="saved" className="text-lg font-semibold">
@@ -169,10 +193,56 @@ export default async function ReviewPrepPage() {
           </ul>
         </section>
       )}
+    </>
+  )
 
+  const block6 = (
+    <>
       <Button nativeButton={false} render={<Link href="/dashboard/interview-prep" />}>
         Practice the conversation
       </Button>
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Build your case"
+          intro={`${STRENGTH_COPY[c.strength]} For a review, a raise, a promotion or an offer. What you save here is private to you.`}
+          action={
+            <ActionLink href="/dashboard/interview-prep" kind="primary" event="review_prep_practice_clicked" props={{ strength: c.strength, gaps: c.gaps.length, saved: conversations.length }}>
+              Practice the conversation
+            </ActionLink>
+          }
+        />
+        {block1}
+        {block4}
+        {block3}
+        <ShowMore page="review_prep">
+          {block2}
+          {block5}
+          <p className="text-sm text-muted-foreground">
+            Want to log wins as they happen, or prep for each review cycle?{' '}
+            <Link href="/dashboard/in-work" className="font-medium text-brand underline underline-offset-4">
+              Open Reviews and raises
+            </Link>
+            .
+          </p>
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {block0}
+      {block1}
+      {block2}
+      {block3}
+      {block4}
+      {block5}
+      {block6}
     </div>
   )
 }

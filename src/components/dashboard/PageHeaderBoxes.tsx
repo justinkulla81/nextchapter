@@ -5,6 +5,8 @@ import { getWatchlistAlertContent } from '@/lib/company-tracker/watchlist'
 import { getSearchStrategyDailyMessageOverride } from '@/lib/weekly/search-strategy-checklist'
 import { DailyMessageBox } from '@/components/dashboard/DailyMessageBox'
 import { ActionPlanBox } from '@/components/dashboard/ActionPlanBox'
+import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
+import { isRedesignOn } from '@/lib/redesign/flag'
 
 // Pages where a new watchlisted-company job posting should preempt the
 // admin-authored Daily Message rotation. Deliberately not every page in
@@ -39,6 +41,10 @@ export async function PageHeaderBoxes({
   // didn't already say.
   hideDailyMessage?: boolean
 }) {
+  // The redesign (docs/candidate-redesign.md): one note per page, and only on Home. Working pages carry no daily
+  // message and no action plan.
+  if (pageKey !== 'dashboard' && isRedesignOn((await getDashboardProfile()).email)) return null
+
   // A page-supplied override always wins over the computed/rotating message,
   // so none of the lookups that only feed that message are worth running then.
   const needsComputedMessage = !hideDailyMessage && !dailyMessageOverride

@@ -10,7 +10,11 @@ import { deleteWorkSample } from './actions'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
-import { AI_SAMPLE_SPECS, aiSampleChecks } from '@/lib/evidence/ai-work-samples'
+import { AI_SAMPLE_SPECS, aiSampleChecks, isAiSampleType } from '@/lib/evidence/ai-work-samples'
+import { AiSampleReviewPanel } from '@/components/dashboard/AiSampleReviewPanel'
+import { isAiReviewOn } from '@/lib/evidence/ai-review-flag'
+import { loadSampleReviews } from '@/lib/evidence/ai-sample-review-server'
+import { MAX_REVIEWS_PER_SAMPLE_PER_WEEK } from '@/lib/evidence/ai-sample-review'
 
 export const metadata: Metadata = { title: 'Work Samples' }
 
@@ -84,6 +88,11 @@ export default async function WorkSamplesPage() {
     )
   }
 
+  // AI reviews: owner-only until switched on (ai-review-flag.ts). Member-visible only.
+  const reviewOn = isAiReviewOn(profile.email)
+  const aiSamples = profile.workSamples.filter((w) => isAiSampleType(w.sampleType))
+  const reviews = reviewOn ? await loadSampleReviews(profile.id, aiSamples.map((w) => w.id)) : null
+
   const aiWorkflowCount = profile.workSamples.filter((w) => aiSampleChecks(w)?.hasMetric).length
 
   return (
@@ -146,6 +155,22 @@ export default async function WorkSamplesPage() {
                   </SubmitButton>
                 </form>
               </CardContent>
+              {reviews?.available && isAiSampleType(sample.sampleType) && (() => {
+                const rev = reviews.latest[sample.id]
+                const recent = (reviews.recent[sample.id] ?? []).sort((a, b) => a.getTime() - b.getTime())
+                const remaining = Math.max(0, MAX_REVIEWS_PER_SAMPLE_PER_WEEK - recent.length)
+                return (
+                  <CardContent className="pb-6">
+                    <AiSampleReviewPanel
+                      sampleId={sample.id}
+                      sampleType={sample.sampleType}
+                      review={rev ? { verdict: rev.verdict, checks: rev.checks, summary: rev.summary, suggestions: rev.suggestions, createdAt: rev.createdAt.toISOString() } : null}
+                      remaining={remaining}
+                      nextAvailable={remaining === 0 && recent[0] ? new Date(recent[0].getTime() + 7 * 24 * 3600 * 1000).toISOString() : null}
+                    />
+                  </CardContent>
+                )
+              })()}
             </Card>
           ))}
         </div>

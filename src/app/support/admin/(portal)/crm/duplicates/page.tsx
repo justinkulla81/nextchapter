@@ -4,6 +4,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { ttlCached } from '@/lib/admin/ttl-cache'
 import { findAbbreviationSuggestions, MIN_SQUASHED_LENGTH } from '@/lib/companies/company-duplicates'
 import { suggestKeeper } from '@/lib/duplicates/suggest'
+import { looseKey } from '@/lib/crm/org-duplicates'
 import { decidedAliasPairs } from '@/lib/companies/company-alias'
 import { DuplicateGroupList, AbbreviationActions, AliasForm } from '@/components/admin/CrmDuplicateActions'
 
@@ -18,6 +19,15 @@ const getAbbreviationSuggestions = ttlCached(10 * 60 * 1000, async () =>
     await prisma.company.findMany({ select: { id: true, name: true, canonicalNameNormalized: true } }),
   ),
 )
+const getOrganizationNameGroups = ttlCached(5 * 60 * 1000, async () => {
+  const all = await prisma.crmOrganization.findMany({ select: { id: true, name: true } })
+  const byKey = new Map<string, string[]>()
+  for (const o of all) {
+    const k = looseKey(o.name)
+    if (k) byKey.set(k, [...(byKey.get(k) ?? []), o.id])
+  }
+  return [...byKey.entries()].filter(([, ids]) => ids.length > 1).map(([squashed, ids]) => ({ squashed, ids }))
+})
 /** Names this short ("BA" vs "B&A") are as likely to be two companies as one. */
 const SHORT_NAME = 6
 
@@ -36,11 +46,10 @@ export default async function DuplicateOrganizationsPage() {
     .catch(() => new Set<string>())
   const abbreviations = allSuggestions.filter((a) => !decided.has(`${a.abbreviation.canonicalNameNormalized}|${a.fullName.id}`))
 
-  const groups = await prisma.$queryRaw<{ squashed: string; ids: string[] }[]>`
-    SELECT regexp_replace("canonicalNameNormalized", '[^a-z0-9]', '', 'g') AS squashed, array_agg(id) AS ids
-      FROM "CrmOrganization"
-     GROUP BY 1
-    HAVING count(*) > 1`
+  // Same company written two ways: spacing, "&", a legal suffix, ".com", a US suffix, an abbreviation in brackets,
+  // a site code. Everything the cleanup script (scripts/crm/consolidate-duplicate-orgs.ts) looks for, so a
+  // variant that an import creates later shows up here for a one-click merge.
+  const groups = await getOrganizationNameGroups()
   const orgs = await prisma.crmOrganization.findMany({
     where: { id: { in: groups.flatMap((g) => g.ids) } },
     select: {
@@ -103,7 +112,7 @@ export default async function DuplicateOrganizationsPage() {
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold">Duplicate organizations</h1>
         <p className="max-w-prose text-sm text-muted-foreground">
-          Organizations whose names differ only by spacing, punctuation or &quot;&amp;&quot;. Groups with people or deals
+          Organizations that look like the same company written two ways: spacing, punctuation, &quot;&amp;&quot;, &quot;.com&quot;, a US suffix, an abbreviation in brackets or a site code. Groups with people or deals
           attached are first. The record I&apos;d keep is pre-selected; choose another if you prefer, then merge, or mark the group as not duplicates. Companies and abbreviations are below.
         </p>
         <p className="text-sm text-muted-foreground">

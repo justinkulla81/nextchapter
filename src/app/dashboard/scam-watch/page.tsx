@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ScamAlertActions } from '@/components/dashboard/ScamAlertActions'
 import { cn } from '@/lib/utils'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 
 export const metadata: Metadata = { title: 'Scam watch' }
 
@@ -30,6 +33,50 @@ export default async function ScamWatchPage() {
 
   const open = alerts.filter((a) => !a.acknowledgedAt)
   const handled = alerts.filter((a) => a.acknowledgedAt)
+
+  if (isRedesignOn(profile.email)) {
+    // Scam watch in the redesign: whether it is on, anything that needs a look first, and handled alerts behind one fold.
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Scam watch"
+          intro="Fake recruiters target people who are job hunting. We check recruiter and interview emails in your connected Gmail and email you within minutes when one looks fake. Only the emails we flag are kept, never the whole message."
+        />
+        {!connection ? (
+          <EmptyState
+            icon={Mail}
+            title="Connect Gmail to turn on scam watch"
+            description="We can only warn you about emails we can see. Connecting Gmail is read-only, and you can disconnect any time."
+            cta={{ label: 'Connect Gmail in account and privacy', href: '/dashboard/privacy' }}
+          />
+        ) : connection.needsReconnectAt ? (
+          <EmptyState
+            icon={Mail}
+            title="Reconnect Gmail to keep scam watch running"
+            description="Your Gmail connection expired, so we are not seeing new mail right now."
+            cta={{ label: 'Reconnect Gmail in account and privacy', href: '/dashboard/privacy' }}
+          />
+        ) : open.length === 0 ? (
+          <EmptyState icon={ShieldCheck} title="Nothing suspicious right now" description="Scam watch is on. If a recruiter email looks fake, we email you and it shows up here." />
+        ) : null}
+        {open.length > 0 && (
+          <section aria-labelledby="open-alerts" className="space-y-4">
+            <h2 id="open-alerts" className="font-display text-xl font-semibold text-ink">Needs your attention</h2>
+            {open.map((a) => (
+              <AlertCard key={a.id} alert={a} showActions />
+            ))}
+          </section>
+        )}
+        {handled.length > 0 && (
+          <MoreDetails summary={`Show more: ${handled.length} already handled`}>
+            {handled.map((a) => (
+              <AlertCard key={a.id} alert={a} />
+            ))}
+          </MoreDetails>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">

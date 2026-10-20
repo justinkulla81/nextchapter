@@ -22,6 +22,11 @@ export function nativePosterOf(p: {
 export const SHORT_ANSWER_MAX = 600
 export const SHORT_ANSWER_COUNT = 2
 
+/** The Candidate+ mark is signaled to the poster when true, and never in Confidential Search Mode. */
+export function candidatePlusMarkFor(candidatePlus: boolean, confidentialSearchMode: boolean): boolean {
+  return candidatePlus && !confidentialSearchMode
+}
+
 /** Exactly what the poster receives — the member reviews this, field by field, before sending. */
 export interface ApplicationSnapshot {
   jobTitle: string
@@ -34,6 +39,10 @@ export interface ApplicationSnapshot {
   summary: string
   workAuthorization: string | null
   resume: { id: string; name: string } | null
+  /** Candidate+ mark for the poster: true only when the member has it AND is not in Confidential Search Mode. */
+  candidatePlus?: boolean
+  /** Link to the member's dossier. Present only when the member chose to attach it on this application. */
+  dossierUrl?: string | null
   answers: { question: string; answer: string }[]
 }
 
@@ -55,6 +64,8 @@ export function applicationMessage(s: ApplicationSnapshot): string {
     s.linkedInUrl && `LinkedIn: ${s.linkedInUrl}`,
     s.location && `Location: ${s.location}`,
     s.workAuthorization && `Work authorization: ${s.workAuthorization}`,
+    s.candidatePlus && 'Candidate+ member: this person has done the search work to earn the mark.',
+    s.dossierUrl && `Dossier (attached by the candidate): ${s.dossierUrl}`,
     s.resume ? `Résumé: ${s.resume.name} (attached below)` : 'Résumé: none on file',
     '',
     s.summary && 'Summary',

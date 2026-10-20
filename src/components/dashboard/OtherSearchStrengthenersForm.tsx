@@ -5,7 +5,6 @@ import { updateOtherSearchStrengtheners } from '@/app/dashboard/search-strategy/
 import { useAdvanceSearchStrategyPageOnSave } from '@/components/dashboard/SearchStrategyWizard'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { cn } from '@/lib/utils'
 import { IndependentWorkExperienceQuestion } from '@/components/dashboard/IndependentWorkExperienceQuestion'
@@ -136,16 +135,6 @@ export function OtherSearchStrengthenersForm({
             onChange={setConnectedWithRecruiters}
             columns={2}
           />
-          {connectedWithRecruiters === 'yes' && (
-            <Input
-              name="recruiterConnectionCount"
-              type="number"
-              min={0}
-              placeholder="How many?"
-              defaultValue={optionalQuestionsInitial?.recruiterConnectionCount ?? undefined}
-              className="max-w-32"
-            />
-          )}
         </div>
       </div>
 

@@ -682,6 +682,9 @@ model CandidateProfile {
   // population/page.tsx, and src/lib/analytics/population-metrics.ts) —
   // those call sites now read this field directly instead.
   confidentialSearchMode          Boolean                     @default(false)
+  // Whether the member wants help with money (Finances and benefits, a runway, pay and savings questions).
+  // Null until asked. False: none of it is shown or asked. Added by hand: prisma/manual/2026-10-18-money-help.sql.
+  moneyHelp                       Boolean?
   // Candidate+ search-effort target in minutes for THIS member. Null uses the
   // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
   // Candidate+ stays on once earned (dossier-unlock.ts): when and how it was first met
@@ -867,6 +870,12 @@ model CandidateProfile {
   // Part 1: Job search activity self-report — all optional, all self-reported.
   jobsAppliedBucket         String? // "0-20" | "20-100" | "100+"
   interviewsReceivedCount   Int?
+  // Where searches usually stall (src/lib/onboarding/search-stall.ts): NO_REPLIES |
+  // RECRUITER_SCREEN | HIRING_MANAGER | FINAL_ROUND | OFFER. Self-reported, one question, asked
+  // in onboarding only when the member has already applied. Read by the Market Reality Report.
+  searchStallPoint          String?
+  // Offers received so far, self-reported alongside the two counts above. Asked only after an interview.
+  offersReceivedCount       Int?
   networkingLevel           Int? // 1-4: Not much / Some but should do more / A lot / Can't do more
   learnedNewSkillsLevel     Int? // 1-3: Not yet / A little / Yes, actively
   triedPartTimeOrConsulting Boolean?
@@ -1588,6 +1597,8 @@ model CandidateProfile {
   resumes                        Resume[]
   jobPostings                    JobPosting[]
   communityPosts                 CommunityPost[]
+  workQuestions                  WorkQuestion[]
+  workQuestionReplies            WorkQuestionReply[]
   expressedInterests             CommunityPostInterest[]
   communityPostReactions         CommunityPostReaction[]
   contentLikes                   ContentLike[]
@@ -1608,6 +1619,9 @@ model CandidateProfile {
   sundayNightReports             SundayNightReport[]
   weeklyBadgesEarned             WeeklyBadgeEarned[]
   marketRealitySnapshots         MarketRealitySnapshot[]
+  marketRealityReadStates        MarketRealityReadState[]
+  visitDays                      CandidateVisitDay[]
+  effortCycles                   EffortCycle[]
   marketRealityCalibrationChecks MarketRealityCalibrationCheck[]
   encouragementNotesSent         EncouragementNote[]              @relation("EncouragementSent")
   encouragementNotesReceived     EncouragementNote[]              @relation("EncouragementReceived")
@@ -1837,6 +1851,7 @@ model CandidateProfile {
   parallelPath      ParallelPath?
 
   // In-work track (Prisma-virtual back-relations; add no columns here).
+  careerEvents        CareerEvent[]
   inWorkProfile       InWorkProfile?
   inWorkWins          InWorkWin[]
   inWorkPreps         InWorkPrep[]
@@ -3742,6 +3757,69 @@ model CommunityPost {
   @@index([moderationStatus, moderationCategory, createdAt])
 }
 
+// "A hard situation at work": a question a member asks others, written in general terms. It lives in
+// its own tables, apart from CommunityPost, so it never reaches the main feed, groups, leaderboards or
+// counts. The author is always shown as a generated handle. excludedCompanies holds the author's current
+// employers (normalized) so people who work there never see it; it is never rendered. The private text a
+// member types into the AI helper is never stored. Only the anonymized question is.
+model WorkQuestion {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  handle            String
+  kind              String // BOSS | REPORT | COWORKER | CULTURE
+  title             String
+  body              String
+  seniorityBand     String?
+  excludedCompanies String[] @default([])
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  moderationStatus     CommunityModerationStatus    @default(PENDING)
+  moderationCategory   CommunityModerationCategory?
+  moderationConfidence Float?
+  moderationReasoning  String?
+  moderatedAt          DateTime?
+
+  reportedAt            DateTime?
+  reportedByCandidateId String?
+  reportReason          String?
+
+  replies WorkQuestionReply[]
+
+  @@index([isActive, moderationStatus, createdAt])
+  @@index([candidateId, createdAt])
+}
+
+model WorkQuestionReply {
+  id         String       @id @default(cuid())
+  questionId String
+  question   WorkQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  handle    String
+  body      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  moderationStatus     CommunityModerationStatus    @default(PENDING)
+  moderationCategory   CommunityModerationCategory?
+  moderationConfidence Float?
+  moderationReasoning  String?
+  moderatedAt          DateTime?
+
+  reportedAt            DateTime?
+  reportedByCandidateId String?
+  reportReason          String?
+
+  @@index([questionId, createdAt])
+  @@index([candidateId, createdAt])
+}
+
 // Anonymous (by default) support note sent from one candidate to another
 // having a hard week, per The Circle's "small, human, real" support
 // mechanism. fromCandidateId is kept for abuse moderation but never shown
@@ -4051,6 +4129,46 @@ model MarketRealitySnapshot {
 
   @@unique([candidateId, weekStartDate])
   @@index([candidateId, generatedAt])
+}
+
+// One row per member per week: the Market Reality Report's read as it stood (which hiring-case rows
+// are in place, what is known, the market and pace numbers), saved when the report is viewed or the
+// weekly job runs. The next week's "what changed" note is the difference between two of these
+// (src/lib/reports/market-reality-brief/weekly-change.ts). MarketRealitySnapshot keeps only the grade,
+// so it cannot say what moved.
+model MarketRealityReadState {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime // Monday 00:00 UTC of the week this read belongs to
+  state         Json
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([candidateId, weekStartDate])
+  @@index([candidateId, weekStartDate])
+}
+
+// One row per member per UTC day they opened NextChapter. The "logged in" signal behind unlock
+// points (src/lib/effort/points.ts): a day counts once however many pages they open.
+model CandidateVisitDay {
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  day         DateTime // UTC midnight of the day
+  createdAt   DateTime         @default(now())
+
+  @@id([candidateId, day])
+}
+
+// The window unlock points are counted in: from startedAt until the member unlocks and generates
+// their next strategy (which also refreshes their report), which starts a new cycle. Only that action
+// resets it, so editing goals never throws away earned effort. baselineAnswered is how many
+// personalization questions were answered when the cycle began, so only new answers earn points.
+model EffortCycle {
+  candidateId      String           @id
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  startedAt        DateTime
+  baselineAnswered Int              @default(0)
+  updatedAt        DateTime         @updatedAt
 }
 
 enum MarketResponseType {
@@ -8156,6 +8274,10 @@ model OutplacementContract {
   programType OutplacementProgramType @default(OUTPLACEMENT)
 
   cohortLabel      String? // e.g. "RIF — Q1 2026 Engineering" — §A7 multi-cohort views
+  // The journey a seat starts (src/lib/journey/sponsored.ts). Null means
+  // outplacement: Laid off, applying. Career growth contracts set Managing my career,
+  // Promotion or Changing careers. No DDL rewrite of existing rows needed.
+  journey          JourneyType?
   tier             OutplacementTier
   seatCount        Int
   termStartAt      DateTime
@@ -15933,4 +16055,89 @@ model NativeJobApplication {
 
   @@unique([candidateId, postingId])
   @@index([postingId])
+}
+
+// One chapter of a member's career story (src/lib/career-story). Most of the story is derived
+// from work history, education, learning and journey changes and never stored here. A row is
+// either something the member added (sourceRef null) or their correction of a derived event
+// (sourceRef set, e.g. "work:<id>"): a new label or dates, or hidden. Private to the member:
+// never read by employer, college, recruiter or coach code, and never used for matching. The
+// reason is optional and sensitive.
+model CareerEvent {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // SCHOOL | WORK | VENTURE | PAUSE | LEARNING | MILESTONE
+  kind      String
+  label     String
+  detail    String?   @db.Text
+  startDate DateTime  @db.Date
+  endDate   DateTime? @db.Date
+  // FAMILY | HEALTH | REST | MOVE | OTHER, only for a pause, and always optional.
+  reason    String?
+  // Set when this row corrects an event we derived ("work:<id>", "edu:<id>", "gap:<yyyy-mm-dd>"). Null for something the member added.
+  sourceRef String?
+  hidden    Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([candidateId])
+  @@unique([candidateId, sourceRef])
+}
+
+// A model's written review of one AI work sample (src/lib/evidence/ai-sample-review.ts), shown only to the
+// member who wrote it: never to recruiters or employers, and never part of the evidence score. One row per
+// review; the weekly cap and the monthly budget are counted from here. Plain ids, no relations: the foreign
+// keys (cascade on delete) live in the hand-applied SQL, prisma/manual/2026-10-19-ai-sample-review.sql.
+model AiSampleReview {
+  id          String   @id @default(cuid())
+  candidateId String
+  sampleId    String
+  model       String
+  // 'needs_work' | 'solid' | 'strong'
+  verdict     String
+  // [{ key, met, reason }] in the sample type's check order (ai-work-samples.ts)
+  checks      Json
+  summary     String
+  suggestions String[] @default([])
+  inputTokens  Int
+  outputTokens Int
+  // Cost in millionths of a dollar (tokens x $/MTok), so a sum is exact.
+  costMicros  Int
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId, createdAt])
+  @@index([sampleId, createdAt])
+  @@index([createdAt])
+}
+
+/// A homepage lead who gave an email without an account: either the journey picker
+/// ("kind" = journey: where they are in their search, and a first-week plan sent once)
+/// or a saved job search ("kind" = job_alert: the search to email new matches for later).
+/// prisma/manual/2026-10-19-homepage-lead.sql. One row per email, kind and search.
+model HomepageLead {
+  id               String    @id @default(cuid())
+  email            String
+  kind             String // 'journey' | 'job_alert'
+  source           String // the page and box: 'home' | 'jobs' | 'start'
+  /// Journey: a persona slug (laid-off, career-change, ...). Empty for a saved search.
+  situation        String    @default("")
+  /// Journey: how long it has been going on (just_starting | weeks | months | long). Empty otherwise.
+  followup         String    @default("")
+  /// Saved search: the words, place and remote filter they searched. Empty for a journey lead.
+  searchQ          String    @default("")
+  searchLoc        String    @default("")
+  searchRemote     Boolean   @default(false)
+  unsubscribeToken String    @unique @default(cuid())
+  ip               String?
+  /// When the one-time plan email went out (journey only). Null = not sent.
+  planSentAt       DateTime?
+  unsubscribedAt   DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([email, kind, situation, searchQ, searchLoc, searchRemote])
+  @@index([ip, createdAt])
+  @@index([kind, createdAt])
 }

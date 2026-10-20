@@ -43,7 +43,7 @@ export default function WhyStuckPage() {
               href="#ask"
               event="why_stuck_ask_clicked"
               properties={{ placement: 'hero' }}
-              className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
+              className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
             >
               Ask us about your search
             </TrackedLink>

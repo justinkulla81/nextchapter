@@ -9,7 +9,7 @@ import {
 } from '@/lib/scoring/dossier-targets'
 import type { DossierCompleteness, DossierLadderTier, DossierUnlockStatus, ModuleGateStatus } from '@/lib/scoring/dossier-unlock'
 
-export type RungKey = 'jobDetail' | 'taking_shape' | 'candidatePlus' | 'recruiterIntros' | 'unposted'
+export type RungKey = 'community' | 'taking_shape' | 'candidatePlus' | 'recruiterIntros' | 'unposted'
 export type RungState = 'open' | 'next' | 'locked'
 
 export interface Rung {
@@ -27,6 +27,8 @@ export interface LadderInput {
   tier: DossierLadderTier
   completeness: DossierCompleteness
   status: DossierUnlockStatus
+  /** Rungs left out of the ladder. The redesign leaves out the two that made the dossier look locked. */
+  skip?: RungKey[]
 }
 
 const TIER_ORDER: DossierLadderTier[] = ['LOCKED', 'PREVIEW', 'COMPLETE', 'RECRUITER_INTROS', 'UNPOSTED_ROLES']
@@ -62,10 +64,11 @@ export function candidatePlusSteps(status: DossierUnlockStatus): CandidatePlusRe
   return candidatePlusRequirements(status).filter((r) => !r.met)
 }
 
-export function buildUnlockLadder({ gates, tier, completeness, status }: LadderInput): Rung[] {
+export function buildUnlockLadder({ gates, tier, completeness, status, skip = [] }: LadderInput): Rung[] {
   const gate = (key: string) => gates.find((g) => g.key === key)
 
-  const jobDetailOpen = gate('matchedJobsFullDetail')?.unlocked === true && gate('community')?.unlocked === true
+  // Every member sees every job in full (owner, 2026-10-18): no rung gates jobs.
+  const communityOpen = gate('community')?.unlocked === true
   const shapeOpen = atLeast(tier, 'PREVIEW')
   const plusOpen = status.unlocked
   const introsOpen = atLeast(tier, 'RECRUITER_INTROS')
@@ -80,14 +83,11 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
 
   const raw: Array<Omit<Rung, 'state'> & { open: boolean }> = [
     {
-      key: 'jobDetail',
-      label: 'Full job detail and Community',
-      open: jobDetailOpen,
-      opens: ['matched jobs in full detail', 'Community'],
-      needs: [
-        ...(gate('matchedJobsFullDetail')?.unlocked ? [] : ['one reference request sent']),
-        ...(gate('community')?.unlocked ? [] : ['one thing finished in your plan']),
-      ],
+      key: 'community',
+      label: 'Community',
+      open: communityOpen,
+      opens: ['Community'],
+      needs: communityOpen ? [] : ['one thing finished in your plan'],
     },
     {
       key: 'taking_shape',
@@ -124,7 +124,7 @@ export function buildUnlockLadder({ gates, tier, completeness, status }: LadderI
 
   // The first rung that is not open is "next"; every later one is locked.
   let nextSeen = false
-  return raw.map(({ open, ...r }) => {
+  return raw.filter((r) => !skip.includes(r.key)).map(({ open, ...r }) => {
     if (open) return { ...r, needs: [], state: 'open' as const }
     if (!nextSeen) {
       nextSeen = true

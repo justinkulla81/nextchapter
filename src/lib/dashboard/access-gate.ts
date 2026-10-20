@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { isSearchGoalsComplete, isBlockersAndMotivationsComplete } from '@/lib/search-strategy'
+import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import type { CurrentJobStatus, JourneyStage, JourneyType } from '@prisma/client'
 
 export type HardGateStatus = 'exempt' | 'search_strategy_required' | 'unlocked'
 
@@ -37,6 +39,10 @@ export async function isGmailConnected(candidateId: string): Promise<boolean> {
 // unconditionally and are never newly locked out.
 export function getHardGateStatus(profile: {
   subjectToHardGate: boolean
+  // Journey fields are optional so older callers keep working. Someone who is not job searching is never asked for job-search targets.
+  journey?: JourneyType | null
+  journeyStage?: JourneyStage | null
+  currentJobStatus?: CurrentJobStatus | null
   targetRoleType: string | null
   primaryFunction: string | null
   targetIndustries: string[]
@@ -51,6 +57,8 @@ export function getHardGateStatus(profile: {
   changeReadiness: Parameters<typeof isBlockersAndMotivationsComplete>[0]['changeReadiness']
 }): HardGateStatus {
   if (!profile.subjectToHardGate) return 'exempt'
+  const j = effectiveJourney({ journey: profile.journey, currentJobStatus: profile.currentJobStatus })
+  if (j && !getJourney(j).searching) return 'exempt'
   if (!isSearchStrategyGateComplete(profile)) return 'search_strategy_required'
   return 'unlocked'
 }

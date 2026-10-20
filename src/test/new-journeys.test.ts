@@ -29,7 +29,7 @@ describe('plans for the three', () => {
   it('each has its own plan in Managing your career, not the generic career plan', () => {
     expect(journeyPlanItems('FRACTIONAL', 'STAYING', 1).map((p) => p.text)).toContain('List your current engagements and when each one ends')
     expect(journeyPlanItems('TIME_OFF', 'STAYING', 1).map((p) => p.text)).toContain('Set your expected return date')
-    expect(journeyPlanItems('ENTREPRENEUR', 'STAYING', 1).map((p) => p.text)).toContain('Tell us what you are building and where it stands')
+    expect(journeyPlanItems('ENTREPRENEUR', 'STAYING', 1).map((p) => p.text)).toContain('Add what you are building and where it stands to your situation (Privacy)')
   })
   it('keeps the entrepreneur plan to tracking and checking in', () => {
     const t = journeyPlanItems('ENTREPRENEUR', 'STAYING', 3).map((p) => p.text).join(' ')
@@ -131,5 +131,27 @@ describe('engagement for the three', () => {
     expect(texts).toMatch(/2 open days a week/)
     expect(texts).toMatch(/I help SaaS teams cut churn/)
     expect(journeyDetailItems({ ...f, details: { ...f.details, engagementEnds: new Date('2027-02-01T12:00:00Z') } }, now).map((i) => i.text).join(' ')).not.toMatch(/engagement ends/)
+  })
+})
+
+describe('people who are not searching are not held to a search', () => {
+  it('knows who is not searching', async () => {
+    const { isNotSearching } = await import('@/lib/journey/intensity')
+    for (const j of ['GROWING', 'ENTREPRENEUR', 'FRACTIONAL', 'TIME_OFF'] as const) expect(isNotSearching(j, 'STAYING'), j).toBe(true)
+    expect(isNotSearching('EXPLORING_MOVE', 'STAYING')).toBe(true) // said they are not looking
+    expect(isNotSearching('EXPLORING_MOVE', 'APPLYING')).toBe(false)
+    expect(isNotSearching('LAID_OFF', 'APPLYING')).toBe(false)
+    expect(isNotSearching(null, null)).toBe(false)
+  })
+  it('the dashboard hard gate does not ask them for job-search targets', async () => {
+    const { getHardGateStatus } = await import('@/lib/dashboard/access-gate')
+    const empty = { subjectToHardGate: true, targetRoleType: null, primaryFunction: null, targetIndustries: [], targetCompanySize: null, targetCompanyStage: null, remotePreference: null, highestLevelReached: null, blockers: [], motivations: [], coachingStylePreference: null, changePacePreference: null, changeReadiness: null }
+    expect(getHardGateStatus({ ...empty, journey: 'GROWING' })).toBe('exempt')
+    expect(getHardGateStatus({ ...empty, journey: 'TIME_OFF' })).toBe('exempt')
+    expect(getHardGateStatus({ ...empty, journey: 'LAID_OFF' })).toBe('search_strategy_required')
+  })
+  it('changing careers sets the pivot flag', async () => {
+    const src = (await import('node:fs')).readFileSync('src/lib/journey/apply.ts', 'utf8')
+    expect(src).toMatch(/toJourney === 'CAREER_CHANGE'\) data\.isPivoting = true/)
   })
 })

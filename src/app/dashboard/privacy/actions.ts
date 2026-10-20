@@ -1,8 +1,10 @@
 'use server'
 
+import { parseSituationValue, situationFieldsFor } from '@/lib/journey/situation'
+import { changeMessage } from '@/lib/journey/change-message'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
-import { JOURNEYS, MOVE_DRIVERS, STAGES, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
+import { ACTIVE_SEARCH_STAGES, JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -18,7 +20,7 @@ import { EMAIL_TOPICS, type EmailTopicField } from '@/lib/constants/notification
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
 const VALID_NOTIFICATION_TIERS: NotificationTier[] = ['FULL', 'ESSENTIALS', 'MINIMAL']
 
-export type FormState = { error?: string } | undefined
+export type FormState = { error?: string; message?: string } | undefined
 
 export async function updatePrivacyTier(
   _prevState: FormState,
@@ -387,6 +389,13 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
   if (!journey || !JOURNEYS.some((j) => j.key === journey)) return { error: 'Please choose a valid situation.' }
   if (!stage || !STAGES.some((s) => s.key === stage)) return { error: 'Please choose where you are.' }
 
+  // A situation that isn't a job search can't be in an applying stage. Say what to do instead of guessing.
+  if (!getJourney(journey).searching && ACTIVE_SEARCH_STAGES.includes(stage)) {
+    return {
+      error: `"${getJourney(journey).label}" isn't a job search, so it can't be at ${stage.toLowerCase()}. Choose "Thinking about a move" (or another search situation) to start applying, or pick "Managing your career".`,
+    }
+  }
+
   const profile = await getOrCreateCandidateProfile(user.id)
   const intensityRaw = formData.get('searchIntensity') as string | null
   const searchIntensity = INTENSITY_OPTIONS.find((o) => o.key === intensityRaw)?.key ?? null
@@ -395,7 +404,11 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
   const moveDriver = MOVE_DRIVERS.find((d) => d.key === driverRaw)?.key ?? null
   // Situation details the spine asks for (src/lib/personalization/spine.ts). Blank means unchanged.
   const details: Record<string, unknown> = {}
+  // Details that belong to another situation don't linger and shape the plan.
+  if (journey !== 'EXPLORING_MOVE') details.moveDriver = null
+  if (journey !== 'TIME_OFF') details.returnDate = null
   if (journey === 'EXPLORING_MOVE' && moveDriver) details.moveDriver = moveDriver
+  if (journey === 'ENTREPRENEUR' && String(formData.get('venture') ?? '').trim()) details.venture = String(formData.get('venture')).trim().slice(0, 300)
   const validDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T12:00:00Z`).getTime())
   const text = (k: string) => String(formData.get(k) ?? '').trim()
   if (journey === 'TIME_OFF' && validDate(text('returnDate'))) details.returnDate = text('returnDate')
@@ -405,14 +418,20 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
     if (text('openDays') && Number.isInteger(days) && days >= 0 && days <= 5) details.openDays = days
     if (validDate(text('engagementEnds'))) details.engagementEnds = text('engagementEnds')
   }
-  await applyJourneyChange(profile.id, {
+  // Facts that make the plan specific for this situation (src/lib/journey/situation.ts). Blank leaves the old value.
+  for (const f of situationFieldsFor(journey)) {
+    const v = parseSituationValue(f, text(f.key))
+    if (v !== null) details[f.key] = v
+  }
+  const result = await applyJourneyChange(profile.id, {
     journey,
     stage,
-    details: Object.keys(details).length > 0 ? details : undefined,
+    details,
     source: 'SETTINGS',
     isCheckIn: true,
   })
 
   revalidatePath('/dashboard/privacy')
   revalidatePath('/dashboard')
+  return { message: changeMessage(result) ?? 'Saved.' }
 }

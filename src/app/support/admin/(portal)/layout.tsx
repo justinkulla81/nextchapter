@@ -7,6 +7,7 @@ import { countPeopleNeedingCompletion, countRemovedPeople } from '@/lib/admin/cr
 import { countRoutesToConfirm } from '@/lib/crm/route-review'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
+import { countWorkItemsForReview } from '@/lib/work-help/questions'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -23,7 +24,11 @@ async function AdminNavWithBadges() {
     mailingAttention,
   ] = await Promise.all([
     getAdminHomepageSummary(),
-    prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
+    // Peer conversations reported, plus work-situation questions and replies reported or held (same page).
+    Promise.all([
+      prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
+      countWorkItemsForReview(),
+    ]).then(([threads, work]) => threads + work),
     // Mirrors getModerationQueue's "needsReview" definition (moderation.ts)
     // without pulling post content — HELD posts plus unreviewed crisis
     // posts, §14's two highest-priority categories.

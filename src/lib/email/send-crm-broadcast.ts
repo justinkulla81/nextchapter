@@ -1,5 +1,4 @@
 import 'server-only'
-import type { Resend } from 'resend'
 import { createResend } from '@/lib/email/resend-client'
 
 /**

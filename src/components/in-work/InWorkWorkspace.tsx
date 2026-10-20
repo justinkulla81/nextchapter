@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { posthog } from '@/lib/posthog/client'
+import { PageHeader } from '@/components/candidate/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { saveReviewSettings } from '@/app/dashboard/in-work/actions'
@@ -28,11 +30,29 @@ const TAB_LABELS: { key: InWorkTab; label: string }[] = [
   { key: 'outcome', label: 'Review outcome' },
 ]
 
-export function InWorkWorkspace({ data, initialTab }: { data: WorkspaceData; initialTab: InWorkTab }) {
+export function InWorkWorkspace({ data, initialTab, redesign = false }: { data: WorkspaceData; initialTab: InWorkTab; redesign?: boolean }) {
   const [tab, setTab] = useState<InWorkTab>(initialTab)
 
   return (
     <div className="flex flex-col gap-6 pb-12">
+      {redesign ? (
+        <PageHeader
+          title="Reviews and raises"
+          intro="Prepare for reviews, ask for a raise, earn the next level and handle feedback. Everything here is private to you and never shown to an employer, recruiter or the community."
+          action={
+            <button
+              type="button"
+              onClick={() => {
+                posthog.capture('in_work_log_win_clicked', { fromTab: tab, winCount: data.wins.length })
+                setTab('impact')
+              }}
+              className="inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95"
+            >
+              Log a win
+            </button>
+          }
+        />
+      ) : (
       <div>
         <h1 className="font-heading text-2xl font-semibold text-foreground">In-work workspace</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -40,6 +60,7 @@ export function InWorkWorkspace({ data, initialTab }: { data: WorkspaceData; ini
           It is never shown to an employer, recruiter or the community.
         </p>
       </div>
+      )}
 
       {!data.inWorkJourney && (
         <p className="rounded-lg border border-border bg-off-white p-3 text-sm text-muted-foreground">

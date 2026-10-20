@@ -1,5 +1,7 @@
 import 'server-only'
 import { applyJourneyChange } from '@/lib/journey/apply'
+import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { shouldApplySponsoredStart, sponsoredStart } from '@/lib/journey/sponsored'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
@@ -9,7 +11,7 @@ import { sendOutplacementSeatInviteEmail, sendOutplacementSeatLinkedEmail } from
 import { orgProgram } from './program-server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { parseEnrollmentCsv } from '@/lib/employer/parse-enrollment-csv'
-import type { OutplacementEnrollmentMethod, OutplacementProgramType } from '@prisma/client'
+import type { JourneyType, OutplacementEnrollmentMethod, OutplacementProgramType } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { grantSeatAccess } from '@/lib/access/grants'
 import { applyOutplacementCensus } from '@/lib/census/outplacement'
@@ -35,6 +37,7 @@ export interface EnrollableContract {
   tier: string
   seatCount: number
   usedSeats: number
+  journey?: JourneyType | null
 }
 
 // Contracts this org can still enroll into — ACTIVE status and at least
@@ -48,6 +51,7 @@ export async function getEnrollableContracts(orgId: string): Promise<EnrollableC
       cohortLabel: true,
       tier: true,
       seatCount: true,
+      journey: true,
       _count: { select: { seats: { where: { status: { not: 'DEACTIVATED' } } } } },
     },
     orderBy: { createdAt: 'desc' },
@@ -58,6 +62,7 @@ export async function getEnrollableContracts(orgId: string): Promise<EnrollableC
     tier: c.tier,
     seatCount: c.seatCount,
     usedSeats: c._count.seats,
+    journey: c.journey,
   }))
 }
 
@@ -105,7 +110,7 @@ export async function enrollOneSeat(
       },
     })
     await grantSeatAccess(linked.id).catch(() => null)
-    await startProgramJourney(existing.id, programType)
+    await startProgramJourney(existing.id, contractId)
     await sendOutplacementSeatLinkedEmail(email, orgName, programType)
     return { email, outcome: 'linked' }
   }
@@ -245,7 +250,7 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
       data: { status: 'ACTIVATED', candidateId: nowRegistered.id, activatedAt: new Date() },
     })
     await grantSeatAccess(seat.id).catch(() => null)
-    await startProgramJourney(nowRegistered.id, await contractProgramType(seat.contractId))
+    await startProgramJourney(nowRegistered.id, seat.contractId)
     return {}
   }
 
@@ -258,7 +263,7 @@ export async function finishAcceptingOutplacementSeat(inviteToken: string): Prom
 
   const programType = await contractProgramType(seat.contractId)
   captureServerEvent(profile.id, 'outplacement_seat_activated', { contractId: seat.contractId, seatId: seat.id, programType })
-  await startProgramJourney(profile.id, programType)
+  await startProgramJourney(profile.id, seat.contractId)
 
   return {}
 }
@@ -268,17 +273,29 @@ async function contractProgramType(contractId: string): Promise<OutplacementProg
   return c?.programType ?? 'OUTPLACEMENT'
 }
 
-// An outplacement seat means the job ended: the member starts (or switches
-// to) the Laid off journey, actively applying (src/lib/journey).
-// A Growth or Learning seat means they're staying: Growing, managing their
-// career. Only when they haven't picked a journey themselves: an employee
-// quietly exploring a move keeps that, and their employer never knows.
-async function startProgramJourney(candidateId: string, programType: OutplacementProgramType): Promise<void> {
+// What a seat does to the member's journey (src/lib/journey/sponsored.ts).
+// Outplacement: the job ended, so Laid off, actively applying. Growth or
+// Learning: they are staying. A contract that names a journey (Promotion,
+// Changing careers) starts that one, never over someone already in a search;
+// otherwise Growing, only when they haven't picked a journey themselves: an
+// employee quietly exploring a move keeps that, and their employer never knows.
+async function startProgramJourney(candidateId: string, contractId: string): Promise<void> {
+  const [contract, profile] = await Promise.all([
+    prisma.outplacementContract.findUnique({ where: { id: contractId }, select: { programType: true, journey: true } }),
+    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true } }),
+  ])
+  const programType = contract?.programType ?? 'OUTPLACEMENT'
   if (programType === 'OUTPLACEMENT') {
     await applyJourneyChange(candidateId, { journey: 'LAID_OFF', stage: 'APPLYING', source: 'ONBOARDING', note: 'Outplacement seat' })
     return
   }
-  const p = await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true } })
-  if (p?.journey) return
-  await applyJourneyChange(candidateId, { journey: 'GROWING', stage: 'STAYING', source: 'ONBOARDING', note: `${programType === 'GROWTH' ? 'Growth' : 'Learning'} seat` })
+  const named = contract?.journey && contract.journey !== 'LAID_OFF' ? contract.journey : null
+  if (!named) {
+    if (profile?.journey) return
+    await applyJourneyChange(candidateId, { journey: 'GROWING', stage: 'STAYING', source: 'ONBOARDING', note: `${programType === 'GROWTH' ? 'Growth' : 'Learning'} seat` })
+    return
+  }
+  const start = sponsoredStart(named)
+  if (profile && !shouldApplySponsoredStart(start, effectiveJourney(profile), effectiveStage(profile))) return
+  await applyJourneyChange(candidateId, { journey: start.journey, stage: start.stage, source: 'ONBOARDING', note: `${programType === 'GROWTH' ? 'Growth' : 'Learning'} seat` })
 }

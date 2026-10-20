@@ -7,6 +7,10 @@ import { stateCode } from '@/lib/workforce/area-brief'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { visibleBoards } from '@/lib/workforce/board-area'
 import { AreaBriefView } from '@/components/workforce/AreaBriefView'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { WorkforceBoardPanel } from '@/components/workforce/WorkforceBoardPanel'
 
 export const metadata: Metadata = { title: 'Your local market' }
@@ -17,6 +21,26 @@ export const metadata: Metadata = { title: 'Your local market' }
 export default async function LocalMarketPage() {
   const profile = await getDashboardProfile()
   const code = stateCode(profile.currentState, STATE_NAMES)
+  const redesign = isRedesignOn(profile.email)
+
+  if (!code && redesign) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Local market"
+          intro="Who is hiring near you, so you can look in person as well as online."
+          action={
+            <ActionLink href="/dashboard/profile/personal" kind="primary" event="local_market_add_city_clicked" props={{ source: 'local_market' }}>
+              Add your city and state
+            </ActionLink>
+          }
+        />
+        <p className="max-w-2xl text-base text-muted-foreground">
+          Add your city and state and we will show you what is happening around you: layoffs, who is hiring, local news, and how other members are doing.
+        </p>
+      </div>
+    )
+  }
 
   if (!code) {
     return (
@@ -39,6 +63,37 @@ export default async function LocalMarketPage() {
   ])
   const boards = visibleBoards(stateBoards)
   const brief = await getAreaBrief(connections[0] ? { boardId: connections[0].boardId } : { state: code })
+
+  const boardPanel = (
+    <WorkforceBoardPanel
+      boards={boards.map((b) => ({ id: b.id, name: b.name, website: b.website }))}
+      connections={connections.map((c) => ({ boardId: c.boardId, name: c.board.name, shareOutcome: c.shareOutcome }))}
+    />
+  )
+
+  if (redesign) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Local market"
+          intro={`${brief ? `What is happening in ${brief.area.name}.` : 'What is happening where you live.'} Other members appear only as anonymous counts.`}
+          action={
+            <ActionLink href="/dashboard/find-my-job" kind="primary" event="local_market_see_jobs_clicked" props={{ source: 'local_market', area: brief?.area.name ?? null }}>
+              See jobs near you
+            </ActionLink>
+          }
+        />
+        {brief ? (
+          <AreaBriefView brief={brief} audience="member" redesign />
+        ) : (
+          <p className="text-base text-muted-foreground">We could not load your area just now. Reload the page in a few minutes and it will be here.</p>
+        )}
+        <ShowMore page="local_market" label="Show workforce boards near you">
+          {boardPanel}
+        </ShowMore>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

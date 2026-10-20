@@ -550,12 +550,6 @@ export async function getModuleGateStatus(candidateId: string): Promise<ModuleGa
 
   return [
     {
-      key: 'matchedJobsFullDetail',
-      label: 'Matched jobs full detail / apply',
-      unlocked: sentReferenceCount >= 1,
-      reason: sentReferenceCount >= 1 ? 'Unlocked — you sent a reference request.' : 'Send 1 reference request to unlock (~5 min).',
-    },
-    {
       key: 'recruiterIntroductions',
       label: 'Recruiter introductions',
       unlocked: ladder.tier === 'RECRUITER_INTROS' || ladder.tier === 'UNPOSTED_ROLES',

@@ -37,15 +37,29 @@ export function resolveTabHref(tab: PlaceTab, access: PaidAccess): string {
   return tab.paid && !access[tab.paid] ? PREMIUM_HREF : tab.href
 }
 
+// What the menu shows. Related tabs are grouped into one entry, so a place lists at
+// most six things. A group with several tabs shows them as small switches at the top
+// of its pages. Every tab belongs to exactly one group.
+export interface PlaceGroup {
+  label: string
+  /** The `href` of each tab in the group, first one is where the entry opens. */
+  hrefs: string[]
+}
+
 export interface Place {
   key: PlaceKey
   label: string
   // Where the place's nav item goes.
   href: string
   tabs: PlaceTab[]
+  // The menu entries for this place. Absent: one entry per tab.
+  groups?: PlaceGroup[]
   // Route prefixes with no tab of their own that still belong here.
   alsoPrefixes?: string[]
 }
+
+/** What the menu helpers need of a place, so the redesigned set (redesign-places.ts) shares them. */
+export type PlaceShape = Pick<Place, 'tabs' | 'groups'>
 
 export const PLACES: Place[] = [
   {
@@ -55,6 +69,10 @@ export const PLACES: Place[] = [
     tabs: [
       { label: 'Today', href: '/dashboard' },
       { label: 'Progress', href: '/dashboard/stats', alsoMatches: ['/dashboard/sprint', '/dashboard/plans'] },
+    ],
+    groups: [
+      { label: 'Today', hrefs: ['/dashboard'] },
+      { label: 'Progress', hrefs: ['/dashboard/stats'] },
     ],
     alsoPrefixes: ['/dashboard/checkin', '/dashboard/complete-profile'],
   },
@@ -76,6 +94,14 @@ export const PLACES: Place[] = [
       { label: 'Reviews and raises', href: '/dashboard/in-work', employedOnly: true },
       { menuKeys: ['offer', 'careerFirst90'], label: 'Got an offer', href: '/dashboard/got-hired' },
     ],
+    groups: [
+      { label: 'Find a job', hrefs: ['/dashboard/find-my-job', '/dashboard/alumni-jobs'] },
+      { label: 'Early career plan', hrefs: ['/dashboard/early-career'] },
+      { label: 'Companies', hrefs: ['/dashboard/companies'] },
+      { label: 'Market and pay', hrefs: ['/dashboard/market', '/dashboard/pay', '/dashboard/local-market', '/dashboard/pivot-paths'] },
+      { label: 'Interviews and reviews', hrefs: ['/dashboard/interview-prep', '/dashboard/review-prep'] },
+      { label: 'Offers and raises', hrefs: ['/dashboard/got-hired', '/dashboard/in-work'] },
+    ],
   },
   {
     key: 'network',
@@ -92,6 +118,14 @@ export const PLACES: Place[] = [
       { label: 'Coaching', href: '/dashboard/my-coaching', paid: 'coaching', alsoMatches: ['/dashboard/book-session', '/dashboard/coach', '/dashboard/coaching-match', '/dashboard/coaching-form', '/dashboard/coach-dossier'] },
       { menuKeys: ['recruiter'], label: 'Recruiters', href: '/dashboard/recruiter-requests', paid: 'recruiters', alsoMatches: [PREMIUM_HREF] },
     ],
+    groups: [
+      { label: 'This week', hrefs: ['/dashboard/network'] },
+      { label: 'Contacts', hrefs: ['/dashboard/network/contacts'] },
+      { label: 'Community', hrefs: ['/dashboard/community', '/dashboard/messages', '/dashboard/groups'] },
+      { label: 'References and supporters', hrefs: ['/dashboard/references', '/dashboard/supporters'] },
+      { label: 'Coaching', hrefs: ['/dashboard/my-coaching'] },
+      { label: 'Recruiters', hrefs: ['/dashboard/recruiter-requests'] },
+    ],
   },
   {
     key: 'learn',
@@ -100,6 +134,10 @@ export const PLACES: Place[] = [
     tabs: [
       { menuKeys: ['learning', 'growSkills'], label: 'Learn new skills', href: '/dashboard/learning' },
       { menuKeys: ['webinars'], label: 'Videos and webinars', href: '/dashboard/webinars' },
+    ],
+    groups: [
+      { label: 'Learn new skills', hrefs: ['/dashboard/learning'] },
+      { label: 'Videos and webinars', hrefs: ['/dashboard/webinars'] },
     ],
   },
   {
@@ -110,10 +148,18 @@ export const PLACES: Place[] = [
       { label: 'My story', href: '/dashboard/strengths', alsoMatches: ['/dashboard/track-record', '/dashboard/how-i-perform'] },
       { label: 'My profile', href: '/dashboard/profile', alsoMatches: ['/dashboard/resume', '/dashboard/linkedin', '/dashboard/portfolio'] },
       { menuKeys: ['assessments'], label: 'My work profile', href: '/dashboard/skills-assessments', alsoMatches: ['/dashboard/work-profile', '/dashboard/skills-assessment', '/dashboard/retake-assessment'] },
+      { label: 'Career timeline', href: '/dashboard/my-career' },
       { menuKeys: ['strategy'], label: 'My search', href: '/dashboard/search-strategy', alsoMatches: ['/dashboard/what-i-need', '/dashboard/marketing-plan', '/dashboard/platforms'] },
       { label: 'For recruiters', href: '/dashboard/recruiter-report', alsoMatches: ['/dashboard/privacy'] },
       { label: 'Documents', href: '/dashboard/documents' },
       { label: 'Membership', href: '/dashboard/membership' },
+    ],
+    groups: [
+      { label: 'My profile', hrefs: ['/dashboard/profile', '/dashboard/strengths', '/dashboard/skills-assessments'] },
+      { label: 'My search', hrefs: ['/dashboard/search-strategy'] },
+      { label: 'For recruiters', hrefs: ['/dashboard/recruiter-report'] },
+      { label: 'Documents', hrefs: ['/dashboard/documents'] },
+      { label: 'Membership', hrefs: ['/dashboard/membership'] },
     ],
   },
   {
@@ -126,10 +172,16 @@ export const PLACES: Place[] = [
       { label: 'Scam watch', href: '/dashboard/scam-watch' },
       { label: 'Questions and feedback', href: '/dashboard/help' },
     ],
+    groups: [
+      { label: 'Talk to someone', hrefs: ['/dashboard/support'] },
+      { label: 'Money and benefits', hrefs: ['/dashboard/benefits'] },
+      { label: 'Scam watch', hrefs: ['/dashboard/scam-watch'] },
+      { label: 'Questions and feedback', hrefs: ['/dashboard/help'] },
+    ],
   },
 ]
 
-function matches(pathname: string, href: string): boolean {
+export function matches(pathname: string, href: string): boolean {
   if (href === '/dashboard') return pathname === '/dashboard'
   return pathname === href || pathname.startsWith(`${href}/`)
 }
@@ -152,7 +204,7 @@ export function placeForPath(pathname: string): Place | null {
   return best?.place ?? null
 }
 
-export function activeTab(place: Place, pathname: string): PlaceTab | null {
+export function activeTab(place: PlaceShape, pathname: string): PlaceTab | null {
   let best: { tab: PlaceTab; len: number } | null = null
   for (const tab of place.tabs) {
     for (const h of [tab.href, ...(tab.alsoMatches ?? [])]) {
@@ -172,12 +224,12 @@ export function tabSituation(tab: PlaceTab, mode: MenuMode | null | undefined): 
   return states.includes('locked') ? 'locked' : 'hide'
 }
 
-export function visibleTabs(place: Place, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): PlaceTab[] {
+export function visibleTabs(place: PlaceShape, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): PlaceTab[] {
   return place.tabs.filter((t) => (!t.employedOnly || opts.employed) && (!t.earlyCareerOnly || !!opts.earlyCareer) && tabSituation(t, opts.mode) !== 'hide')
 }
 
 // Tabs the member's situation turns off for now, to name in the "Turn on more tools" box.
-export function statusLockedTabs(place: Place, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): string[] {
+export function statusLockedTabs(place: PlaceShape, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): string[] {
   return visibleTabs(place, opts).filter((t) => tabSituation(t, opts.mode) === 'locked').map((t) => t.label)
 }
 
@@ -210,7 +262,51 @@ export function lockReasonFor(href: string, locks: NavLocks, tab?: PlaceTab): st
 }
 
 // The first tab a member can actually open, so a place is never a dead end.
-export function entryHref(place: Place, locks: NavLocks, employed: boolean): string | null {
+export function entryHref(place: PlaceShape, locks: NavLocks, employed: boolean): string | null {
   const tab = visibleTabs(place, { employed, mode: locks.mode }).find((t) => !lockReasonFor(t.href, locks, t))
   return tab?.href ?? null
+}
+
+// ── Menu entries ────────────────────────────────────────────────────────────
+
+export interface MenuEntry {
+  label: string
+  /** Where it opens: the first of its tabs the member can use. Null when every tab is locked. */
+  href: string | null
+  /** The tabs that show now, in order. More than one means small switches on the page. */
+  tabs: PlaceTab[]
+  /** Why it is locked, when it is. */
+  lockReason: string | null
+  active: boolean
+  /** The tab the member is on, inside this entry. */
+  activeTab: PlaceTab | null
+}
+
+export function groupsOf(place: PlaceShape): PlaceGroup[] {
+  return place.groups ?? place.tabs.map((t) => ({ label: t.label, hrefs: [t.href] }))
+}
+
+/** The place's menu entries for this member and page: hidden tabs dropped, locks explained. */
+export function menuEntries(
+  place: PlaceShape,
+  pathname: string,
+  opts: { employed: boolean; earlyCareer?: boolean; locks: NavLocks; paidAccess: PaidAccess },
+): MenuEntry[] {
+  const shown = new Set(visibleTabs(place, { employed: opts.employed, earlyCareer: opts.earlyCareer, mode: opts.locks.mode }).map((t) => t.href))
+  const current = activeTab(place, pathname)
+  const entries: MenuEntry[] = []
+  for (const g of groupsOf(place)) {
+    const tabs = g.hrefs.map((h) => place.tabs.find((t) => t.href === h)).filter((t): t is PlaceTab => !!t && shown.has(t.href))
+    if (tabs.length === 0) continue
+    const open = tabs.find((t) => !lockReasonFor(t.href, opts.locks, t))
+    entries.push({
+      label: g.label,
+      href: open ? resolveTabHref(open, opts.paidAccess) : null,
+      tabs,
+      lockReason: open ? null : lockReasonFor(tabs[0].href, opts.locks, tabs[0]),
+      active: !!current && tabs.some((t) => t.href === current.href),
+      activeTab: tabs.find((t) => t.href === current?.href) ?? null,
+    })
+  }
+  return entries
 }

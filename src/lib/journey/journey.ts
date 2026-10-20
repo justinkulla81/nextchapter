@@ -294,21 +294,39 @@ export const CHECK_IN_ANSWERS = [
   { key: 'managing', label: "I'm not looking right now. I want to manage my career" },
   { key: 'back', label: "I'm back at work after a break" },
   { key: 'fractional', label: "I'm doing fractional work and I'm happy" },
+  { key: 'promotion', label: "I'm going for a promotion" },
+  { key: 'career_change', label: "I'm changing careers" },
+  { key: 'time_off', label: "I'm going on leave or taking time off" },
+  { key: 'building', label: "I'm starting something of my own" },
 ] as const
 export type CheckInAnswer = (typeof CHECK_IN_ANSWERS)[number]['key']
 
-export function changeForAnswer(answer: CheckInAnswer, _current: { journey: JourneyType | null; stage: JourneyStage | null }): { journey?: JourneyType; stage?: JourneyStage } {
+// Someone who is not looking (managing their career, on a break, happy with
+// fractional work, building something) who says they are now applying,
+// interviewing or have an offer is searching, whatever journey they started on.
+// Their journey becomes the one that fits: Returning if they were out of work
+// (a break), Thinking about a move otherwise. Anyone already searching keeps theirs.
+function searchingJourneyFor(current: JourneyType | null): JourneyType | undefined {
+  if (!current || getJourney(current).searching) return undefined
+  return getJourney(current).employed ? 'EXPLORING_MOVE' : 'RETURNING'
+}
+
+export function changeForAnswer(answer: CheckInAnswer, current: { journey: JourneyType | null; stage: JourneyStage | null }): { journey?: JourneyType; stage?: JourneyStage } {
+  const search = (stage: JourneyStage) => {
+    const journey = searchingJourneyFor(current.journey)
+    return journey ? { journey, stage } : { stage }
+  }
   switch (answer) {
     case 'nothing':
       return {}
     case 'ready':
-      return { stage: 'APPLYING' }
+      return search('APPLYING')
     case 'interviewing':
-      return { stage: 'INTERVIEWING' }
+      return search('INTERVIEWING')
     case 'laid_off':
       return { journey: 'LAID_OFF', stage: 'APPLYING' }
     case 'offer':
-      return { stage: 'OFFER' }
+      return search('OFFER')
     case 'landed':
       return { stage: 'LANDED' }
     case 'managing':
@@ -318,6 +336,14 @@ export function changeForAnswer(answer: CheckInAnswer, _current: { journey: Jour
       return { journey: 'GROWING', stage: 'STAYING' }
     case 'fractional':
       return { journey: 'FRACTIONAL', stage: 'STAYING' }
+    case 'promotion':
+      return { journey: 'PROMOTION', stage: 'PREPARING' }
+    case 'career_change':
+      return { journey: 'CAREER_CHANGE', stage: 'EXPLORING' }
+    case 'time_off':
+      return { journey: 'TIME_OFF', stage: 'STAYING' }
+    case 'building':
+      return { journey: 'ENTREPRENEUR', stage: 'STAYING' }
   }
 }
 

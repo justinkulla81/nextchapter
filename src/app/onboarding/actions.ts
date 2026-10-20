@@ -3,22 +3,18 @@
 import { redirect } from 'next/navigation'
 import { normalizeFunctionValue, normalizeLevelValue, normalizeRemotePreferenceValue } from '@/lib/constants/candidate-profile-normalize'
 import { revalidatePath } from 'next/cache'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
-import { createClient } from '@/lib/supabase/server'
-import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { ensureUser } from '@/lib/auth/ensure-user'
+import { requireCandidateId } from '@/lib/onboarding/require-candidate'
+import { saveSituation } from '@/lib/onboarding/save-situation'
 import { Prisma, type GapDurationBucket, type NetworkComfortLevel } from '@prisma/client'
 import {
   COACHING_STYLE_OPTIONS,
   CURRENT_ASSESSMENT_ROTATION_GROUP,
   GAP_DURATION_LABELS,
   SITUATION_TO_JOB_STATUS,
-  SITUATION_TO_JOURNEY,
   type SituationKey,
 } from '@/lib/constants/onboarding'
 import { INTENSITY_OPTIONS, intensityFromTiming } from '@/lib/journey/intensity'
-import { defaultConfidentialSearchMode } from '@/lib/confidential-mode'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { APPLY_TIMING, LAID_OFF_TIMING, MOVE_DRIVERS, effectiveJourney, getJourney, stageForLaidOffTiming, stageForTiming, type ApplyTiming, type JourneyStage, type LaidOffTiming, type MoveDriver } from '@/lib/journey/journey'
 import { DIMENSIONS, cleanCultureFit } from '@/lib/culture/culture-fit'
@@ -45,26 +41,6 @@ import { clearResumePrefillMarks } from '@/lib/resume/clear-prefill-marks'
 
 export type FormState = { error?: string } | undefined
 
-async function requireCandidateId() {
-  const supabase = await createClient()
-  // Your Path is now the first onboarding step a session-less visitor can
-  // reach (see #938 reorder) — lazily start an anonymous session here too,
-  // same as the resume upload always has, rather than redirecting away.
-  const user = await ensureUser(supabase)
-
-  // A coach's personal invite link stashes this cookie before handing off
-  // to onboarding (see /api/coach-invite/[token]/route.ts) — read it at
-  // whichever action creates the profile first, since that's now no longer
-  // always the resume upload. getOrCreateCandidateProfile only consumes
-  // `links` on the actual create, so this is a harmless no-op on every
-  // subsequent call for the same candidate.
-  const cookieStore = await cookies()
-  const coachId = cookieStore.get('nc_coach')?.value
-
-  const profile = await getOrCreateCandidateProfile(user.id, { coachId })
-  return profile.id
-}
-
 // The only real question in the pre-account assessment. Also finishes it
 // outright — there's nothing left to collect before the initial grade can
 // compute (the Experience/Goals/Circumstances steps were all removed over
@@ -83,47 +59,9 @@ export async function updateSituation(_prevState: FormState, formData: FormData)
     return { error: 'Please choose the option that best describes you.' }
   }
 
-  // Confidential Search Mode's onboarding default — set here, in the same
-  // write as currentJobStatus, since this is the one place that value gets
-  // finalized. See src/lib/confidential-mode.ts for the persona-mapping
-  // rationale (lossy — no real 4-value persona field exists yet).
-  const journey = SITUATION_TO_JOURNEY[situation]
-  const jobStatus = SITUATION_TO_JOB_STATUS[situation]
-  const confidentialSearchMode = getJourney(journey).confidentialByDefault || defaultConfidentialSearchMode(jobStatus)
-  // Journey and its starting stage first; the write below then sets the exact
-  // job status (a resignation stays RESIGNED).
-  await applyJourneyChange(candidateId, { journey, source: 'ONBOARDING' })
-
-  try {
-    await prisma.$transaction([
-      prisma.candidateProfile.update({
-        where: { id: candidateId },
-        data: {
-          currentJobStatus: jobStatus,
-          desireComplete: true,
-          part1Complete: true,
-          part3Complete: true,
-          part4Complete: true,
-          assessmentComplete: true,
-          assessmentCompletedAt: new Date(),
-          confidentialSearchMode,
-          confidentialSearchModeChangedAt: new Date(),
-          // §11 "persona changed" trigger baseline (src/lib/dashboard/
-          // passive-to-active-prompt.ts) — only meaningful while the mode
-          // is actually on, so left untouched (stays null) when it isn't.
-          ...(confidentialSearchMode ? { confidentialModeEnteredJobStatus: jobStatus } : {}),
-        },
-      }),
-      prisma.confidentialModeChangeLog.create({
-        data: { candidateId, enabled: confidentialSearchMode, source: 'ONBOARDING_DEFAULT' },
-      }),
-    ])
-  } catch {
-    return { error: 'Something went wrong saving your answer. Please try again.' }
-  }
-
-  captureServerEvent(candidateId, 'onboarding_started', { journey, situation })
-  if (journey === 'STUDENT_NEW_GRAD') captureServerEvent(candidateId, 'early_career_journey_selected', { audience: 'NEW_GRAD', journey, situation, source: 'situation_step' })
+  // The same write the first bundle makes (src/lib/onboarding/save-situation.ts).
+  const saved = await saveSituation(candidateId, situation)
+  if (!saved.ok) return { error: 'Something went wrong saving your answer. Please try again.' }
 
   revalidatePath('/onboarding', 'layout')
   // resume/page.tsx's own already-complete guard forwards on to /onboarding/contract
@@ -217,6 +155,9 @@ export async function updateResumeConfirm(_prevState: FormState, formData: FormD
 // while letting onboarding itself ask for a precise number instead of a
 // bucket, per the "we already answered this, don't ask twice with worse
 // precision" fix.
+import { payFloorFromBand } from '@/lib/onboarding/pay-floor'
+import { parseSearchStallPoint } from '@/lib/onboarding/search-stall'
+
 function deriveJobsAppliedBucket(count: number): '0-20' | '20-100' | '100+' {
   if (count <= 20) return '0-20'
   if (count <= 100) return '20-100'
@@ -289,6 +230,11 @@ export async function updateLocationAndSearchStatus(
   const jobsAppliedCount = justStartedSearch ? 0 : jobsAppliedCountRaw ? Number(jobsAppliedCountRaw) : null
   const interviewsCount = justStartedSearch ? 0 : interviewsCountRaw ? Number(interviewsCountRaw) : null
   const networkComfortLevel = formData.get('networkComfortLevel') as string | null
+  // New in onboarding: a pay-floor band (same field Search Strategy uses), where searches stall, offers.
+  const payFloor = payFloorFromBand(formData.get('payFloorBand'))
+  const offersRaw = String(formData.get('offersCount') ?? '').trim()
+  const offersCount = offersRaw !== '' && Number.isInteger(Number(offersRaw)) && Number(offersRaw) >= 0 ? Number(offersRaw) : null
+  const searchStallPoint = parseSearchStallPoint(formData.get('searchStallPoint'))
 
   if (!remotePreference) {
     return { error: 'Please tell us your work-location preference before continuing.' }
@@ -336,6 +282,10 @@ export async function updateLocationAndSearchStatus(
       gapDuration: employed || !searching ? null : (gapDuration as GapDurationBucket),
       jobsAppliedBucket: deriveJobsAppliedBucket(searching ? (jobsAppliedCount as number) : 0),
       interviewsReceivedCount: searching ? interviewsCount : 0,
+      // Only ever set from an answer, never cleared by skipping, so a floor set in Search Strategy survives a revisit.
+      ...(searching && payFloor ? { targetCompMin: payFloor } : {}),
+      ...(searching && !justStartedSearch && searchStallPoint ? { searchStallPoint } : {}),
+      ...(searching && !justStartedSearch && offersCount !== null ? { offersReceivedCount: offersCount } : {}),
       onboardingSearchStatusConfirmedAt: now,
       networkComfortLevel: networkComfortLevel as NetworkComfortLevel,
       ...(coachingStylePreference ? { coachingStylePreference } : {}),
@@ -439,6 +389,9 @@ export async function submitContract(_prevState: FormState, formData: FormData):
     data: {
       contractAccepted: intent === 'accept',
       contractAcceptedAt: new Date(),
+      // "Not right now" continues at a lower assumed intensity (the comment above), but never overrides
+      // an intensity they already chose.
+      ...(intent === 'decline' && (await prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { searchIntensity: true } }))?.searchIntensity == null && { searchIntensity: 'CASUALLY_LOOKING' as const }),
     },
   })
 

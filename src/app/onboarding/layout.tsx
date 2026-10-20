@@ -4,6 +4,7 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
 import { OnboardingStepper } from '@/components/onboarding/OnboardingStepper'
 import { Logo } from '@/components/Logo'
+import { flowOfProfile } from '@/lib/onboarding/flag'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -37,6 +38,9 @@ export default async function OnboardingLayout({ children }: { children: React.R
   }
 
   const profile = user ? await getOrCreateCandidateProfile(user.id) : null
+  // The short question bundles draw their own "Step 2 of 5" progress, so the classic four-step bar is not shown.
+  // A pre-account visitor has no email yet, so for them only ONBOARDING_BUNDLES decides.
+  const bundles = flowOfProfile(profile, user?.email) === 'bundles'
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -44,14 +48,16 @@ export default async function OnboardingLayout({ children }: { children: React.R
         <div className="mx-auto max-w-2xl px-6 pt-4">
           <Logo className="text-2xl" />
         </div>
-        <OnboardingStepper
-          completion={[
-            profile?.desireComplete ?? false,
-            profile?.resumeStepComplete ?? false,
-            !!profile?.onboardingResumeConfirmedAt,
-            !!profile?.onboardingLocationConfirmedAt,
-          ]}
-        />
+        {!bundles && (
+          <OnboardingStepper
+            completion={[
+              profile?.desireComplete ?? false,
+              profile?.resumeStepComplete ?? false,
+              !!profile?.onboardingResumeConfirmedAt,
+              !!profile?.onboardingLocationConfirmedAt,
+            ]}
+          />
+        )}
       </header>
       <main className="flex flex-1 justify-center px-6 py-12">
         <div className="w-full max-w-2xl">{children}</div>

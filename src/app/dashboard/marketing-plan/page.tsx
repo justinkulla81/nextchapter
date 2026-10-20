@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { ThoughtLeadershipStudio } from '@/components/dashboard/ThoughtLeadershipStudio'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CONTENT_TUTORIALS, CONTENT_VENUE_LABEL } from '@/lib/constants/content-venues'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { LinkedInConnectCard } from '@/components/dashboard/marketing-plan/LinkedInConnectCard'
@@ -21,8 +21,6 @@ import { isLinkedInPostingConfigured } from '@/lib/linkedin/oauth'
 import { shouldRouteHardQuestionsToCoach } from '@/lib/narrative/hard-questions'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
 import { formatRelativeTime } from '@/lib/format-relative-time'
-import { Check } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 import type { HardQuestionAnswers } from '@/lib/narrative/hard-questions'
 
@@ -35,22 +33,6 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 // Same checked/unchecked-circle row language as TierSummaryCard's MixRow
 // ("A well-rounded mix") — so the Action Plan reads consistently with the
 // rest of the dashboard's checklists instead of a plain link list.
-function ActionPlanRow({ href, label, done }: { href: string; label: string; done: boolean }) {
-  return (
-    <a href={href} className={cn('flex items-center gap-2 text-sm hover:underline', done ? 'text-success' : 'text-foreground')}>
-      <span
-        className={cn(
-          'flex size-4 shrink-0 items-center justify-center rounded-full border',
-          done ? 'border-success bg-success/10' : 'border-border'
-        )}
-      >
-        {done && <Check className="size-3" />}
-      </span>
-      {label}
-    </a>
-  )
-}
-
 export default async function MarketingPlanPage({
   searchParams,
 }: {
@@ -144,65 +126,15 @@ export default async function MarketingPlanPage({
   const directPostCount = profile.linkedInActivityLogs.filter((l) => l.source === 'DIRECT_POST').length
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">My Marketing Plan</h1>
-        <PageHeaderBoxes pageKey="marketing-plan" candidateId={profile.id} />
-      </div>
+    <div className="mx-auto max-w-3xl space-y-8">
+      <header className="space-y-1.5">
+        <h1 className="font-serif text-3xl leading-tight font-semibold tracking-tight text-navy">My marketing plan</h1>
+        <p className="max-w-xl text-base text-muted-foreground">Write your story once and everything else adapts from it.</p>
+      </header>
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
 
-      {/* Action Plan — quick links to every section on this page, in the
-          order a candidate would actually work through them, each checked
-          off once there's real signal it's done. */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Action Plan</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {[
-              ...(linkedin.configured
-                ? [{ href: '#linkedin', label: 'Connect LinkedIn', done: linkedin.connected }]
-                : []),
-              { href: '#linkedin', label: 'LinkedIn Posts', done: linkedInActivityCount > 0 },
-              { href: '#narrative', label: 'Narrative', done: narratives.length > 0 },
-              { href: '#outreach-prep', label: 'Outreach Prep', done: followUps.length === 0 },
-              { href: '#interview-prep', label: 'Interview Prep', done: profile.interviewComfort !== null },
-              ...(defaultNarrativeItem?.coreStatement
-                ? [{ href: '#hard-questions', label: 'Answer Hard Questions', done: hardQuestions !== null }]
-                : []),
-            ].map((item) => (
-              <li key={item.label}>
-                <ActionPlanRow href={item.href} label={item.label} done={item.done} />
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
-
-      {/* LinkedIn — connect status plus a compose box for writing your own
-          post (with idea generation underneath as a fallback) and the
-          activity status line right above it. Posting tips and tutorials
-          now live in the Learning section near the bottom of the page. */}
-      <div id="linkedin" className="scroll-mt-4 space-y-4 border-t border-border pt-8">
-        <SectionHeading>LinkedIn</SectionHeading>
-        {linkedin.configured && <LinkedInConnectCard connected={linkedin.connected} />}
-        <LinkedInComposer
-          linkedin={linkedin}
-          name={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
-          photoUrl={profile.profilePictureUrl}
-          activityCount={linkedInActivityCount}
-          directPostCount={directPostCount}
-        />
-      </div>
-
-      {/* Narrative — Core Narrative and every Tailored Narrative as one
-          minimized list (NarrativeManager): collapsed to a name and a
-          one-line summary by default, with "Ways to say it" grouped into
-          its own minimized accordions once a row is expanded. Adding a new
-          narrative collapses back into the list once drafted. */}
-      <div id="narrative" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
+      <div id="narrative" className="scroll-mt-4 space-y-3">
         <SectionHeading>Narrative</SectionHeading>
         <p className="text-sm text-muted-foreground">
           Your Core Narrative is your default professional story — draft it once and everything
@@ -221,8 +153,21 @@ export default async function MarketingPlanPage({
         )}
       </div>
 
+      <div id="linkedin" className="scroll-mt-4 space-y-4">
+        <SectionHeading>LinkedIn</SectionHeading>
+        {linkedin.configured && <LinkedInConnectCard connected={linkedin.connected} />}
+        <LinkedInComposer
+          linkedin={linkedin}
+          name={[profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'You'}
+          photoUrl={profile.profilePictureUrl}
+          activityCount={linkedInActivityCount}
+          directPostCount={directPostCount}
+        />
+      </div>
+
+      <MoreDetails summary="More ways to get your story out">
       {defaultNarrativeItem?.coreStatement && (
-        <div id="hard-questions" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
+        <div id="hard-questions" className="scroll-mt-4 space-y-3">
           <SectionHeading>Answers to the Hard Questions</SectionHeading>
           <HardQuestionsSection hardQuestions={hardQuestions} routeToCoach={routeHardQuestionsToCoach} />
         </div>
@@ -233,7 +178,7 @@ export default async function MarketingPlanPage({
           recruiter replies, unanswered applications). Every item links
           straight to where it's actioned — mostly My Network with
           Contacts, since that's where a candidate actually follows up. */}
-      <div id="outreach-prep" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
+      <div id="outreach-prep" className="scroll-mt-4 space-y-3">
         <SectionHeading>Outreach Prep</SectionHeading>
         <p className="text-sm text-muted-foreground">
           People and applications waiting on a reply from you — follow up before your story goes
@@ -296,7 +241,7 @@ export default async function MarketingPlanPage({
       </div>
 
       {isLowComfort && (
-        <div className="space-y-6 border-t border-border pt-8">
+        <div className="space-y-6">
           <div className="space-y-3">
             <SectionHeading>Practice quietly</SectionHeading>
             <p className="text-sm text-muted-foreground">
@@ -306,7 +251,7 @@ export default async function MarketingPlanPage({
             <LowComfortActions />
           </div>
           {otherVenues.length > 0 && (
-            <div className="space-y-3 border-t border-border pt-8">
+            <div className="space-y-3">
               <SectionHeading>When you&apos;re ready to post</SectionHeading>
               <p className="text-sm text-muted-foreground">
                 No pressure — these are here whenever being more public starts to feel okay.
@@ -318,13 +263,13 @@ export default async function MarketingPlanPage({
       )}
 
       {!isLowComfort && otherVenues.length > 0 && (
-        <div className="space-y-3 border-t border-border pt-8">
+        <div className="space-y-3">
           <SectionHeading>Post your story</SectionHeading>
           <ThoughtLeadershipStudio venues={otherVenues} linkedin={linkedin} />
         </div>
       )}
 
-      <div id="interview-prep" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
+      <div id="interview-prep" className="scroll-mt-4 space-y-3">
         <SectionHeading>Interview Prep</SectionHeading>
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm text-foreground">
@@ -344,7 +289,7 @@ export default async function MarketingPlanPage({
           place, near the bottom of the page above Resources, instead of
           split across the LinkedIn section and a separate venues block. */}
       {(linkedInTips.length > 0 || relevantTutorials.length > 0) && (
-        <div className="space-y-6 border-t border-border pt-8">
+        <div className="space-y-6">
           <SectionHeading>Learning</SectionHeading>
 
           {/* Writing/growth/engagement mechanics, not personalized (same
@@ -402,6 +347,8 @@ export default async function MarketingPlanPage({
           )}
         </div>
       )}
+
+      </MoreDetails>
 
       <GuideCallout pageSlot="marketing-plan" currentJobStatus={profile.currentJobStatus} />
     </div>

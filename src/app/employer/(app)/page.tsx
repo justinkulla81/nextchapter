@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PROGRAM_TYPE_LABEL, PROGRAM_TYPE_HOME } from '@/lib/employer/program-type'
+import { PRIVACY_NOTE, PROGRAM_KIND_BLURB, programKindOf } from '@/lib/employer/program-wording'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
 
@@ -68,6 +69,7 @@ export default async function EmployerOverviewPage() {
                       <CardDescription>
                         {PROGRAM_TYPE_LABEL[c.programType]} · {TIER_LABEL[c.tier]} · {c.seatCount} seats
                       </CardDescription>
+                      <p className="text-xs text-muted-foreground">{PROGRAM_KIND_BLURB[programKindOf(c.journey)]}</p>
                     </CardHeader>
                     <CardContent>
                       {util && !util.suppressed ? (
@@ -92,6 +94,7 @@ export default async function EmployerOverviewPage() {
               })}
             </div>
           )}
+          <p className="max-w-2xl text-xs text-muted-foreground">{PRIVACY_NOTE}</p>
           <Link href="/employer/reporting" className="text-sm text-muted-foreground underline underline-offset-4">
             Full reporting →
           </Link>

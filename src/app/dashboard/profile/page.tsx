@@ -9,6 +9,11 @@ import { prisma } from '@/lib/prisma'
 import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
 import { cn } from '@/lib/utils'
 import { getMemberDisplayIdentity, buildMemberProfileSlug } from '@/lib/contacts/member-profile'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Section, Meter } from '@/components/candidate/ui'
+import { ActionLink } from '@/components/candidate/ActionLink'
+import { RowList } from '@/components/candidate/RowList'
 
 export const metadata: Metadata = { title: 'My Profile' }
 
@@ -144,6 +149,74 @@ export default async function ProfileHubPage() {
       </ul>
     </div>
   )
+
+  if (isRedesignOn(profile.email)) {
+    // Profile in the redesign: how complete it is and why it matters, one next step, and the parts as plain rows.
+    const resumeRow = profile.resumes[0]
+    const resumeWhy = hasUnaddressedResumeFeedback
+      ? 'You have résumé feedback you have not acted on yet. Updating it is the quickest way to improve your matches.'
+      : 'Recruiters and hiring managers read this first, and your matches are built from it.'
+    const publicProfileHref = `/dashboard/contacts/members/${buildMemberProfileSlug(getMemberDisplayIdentity(profile).displayName, profile.id)}`
+    const next = firstIncompleteSection
+      ? { href: firstIncompleteSection.href, label: `Finish ${firstIncompleteSection.title.replace(/^My /, '').toLowerCase()}`, key: firstIncompleteSection.href }
+      : hasUnaddressedResumeFeedback
+        ? { href: '/dashboard/resume', label: 'Update your résumé', key: '/dashboard/resume' }
+        : null
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Your profile"
+          intro="The better we know you, the better your jobs. Each part says what it improves."
+          action={next ? <ActionLink variant="primary" href={next.href} event="profile_next_step_clicked" props={{ target: next.key, percentComplete }}>{next.label}</ActionLink> : undefined}
+        />
+        {totalItems > 0 && (
+          <div className="space-y-2">
+            <div className="flex flex-wrap justify-between gap-2 text-sm">
+              <span className="font-semibold text-ink">{percentComplete}% complete</span>
+              <span className="text-muted-foreground">
+                {firstIncompleteSection ? `Next: ${firstIncompleteSection.title.replace(/^My /, '').toLowerCase()}` : 'Everything is filled in. Update anything that has changed.'}
+              </span>
+            </div>
+            <Meter pct={percentComplete} label="Profile completion" tone={percentComplete === 100 ? 'good' : 'ink'} />
+          </div>
+        )}
+        <Section id="parts" title="Your profile, in parts">
+          <RowList
+            label="Profile parts"
+            items={[
+              ...sections.map((section) => ({
+                key: section.href,
+                title: section.title.replace(/^My /, ''),
+                why: section.description,
+                fact: section.completedAt ? `Last completed ${section.completedAt.toLocaleDateString()}` : section.allDone ? 'Complete' : 'Not finished yet',
+                actions: (
+                  <ActionLink href={section.href} variant="secondary" event="profile_section_opened" props={{ section: section.href, complete: section.allDone }}>
+                    {section.allDone ? 'Review' : 'Finish'}
+                  </ActionLink>
+                ),
+              })),
+              {
+                key: 'resume',
+                title: 'Résumé',
+                why: resumeWhy,
+                fact: resumeRow ? `Last uploaded ${resumeRow.uploadedAt.toLocaleDateString()}` : 'Not uploaded yet',
+                actions: (
+                  <ActionLink href="/dashboard/resume" variant="secondary" event="profile_section_opened" props={{ section: 'resume', complete: !!resumeRow }}>
+                    {resumeRow ? 'Update' : 'Upload'}
+                  </ActionLink>
+                ),
+                detailLabel: 'What you can do here',
+                detail: <p>Upload, rename and manage versions of your résumé, get it analyzed, and run the résumé fixer.</p>,
+              },
+            ]}
+          />
+        </Section>
+        <p className="text-sm">
+          <ActionLink href={publicProfileHref} variant="text" event="public_profile_opened" props={{ source: 'profile' }}>View my public profile</ActionLink>
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">

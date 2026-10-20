@@ -67,6 +67,8 @@ export interface MarketSizeView {
   prompt: MarketPrompt
   /** Nearby targets with room: other industries, related sub-functions, a wider place. */
   areas: MarketArea[]
+  /** Every nearby area with its count, before the best few are picked (the Market Reality Report tables them). */
+  allAreas: MarketArea[]
   /** For too many: the biggest industries inside the target. */
   slices: { label: string; openNow: number }[]
   /** Jobs relevant to them on every criterion (relevance.ts), the strong fits among them, and the market tier that applied. */
@@ -157,5 +159,5 @@ export async function loadMarketSize(m: MarketMember, relevant?: { count: number
       : []
   // The member's own count is the strict relevant one (relevance.ts) when the caller has it.
   const prompt = marketPrompt(relevant?.count ?? counts.openNow, growth)
-  return { target, counts, growth, prompt, areas: bestAreas(areas, 3), slices, relevant: relevant ?? null }
+  return { target, counts, growth, prompt, areas: bestAreas(areas, 3), allAreas: areas, slices, relevant: relevant ?? null }
 }

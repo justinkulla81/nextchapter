@@ -61,3 +61,11 @@ Steps 1 to 3 can be run without a laptop: Actions tab, **Import career taxonomy*
 - O*NET's broad skills barely separate one senior role from another, so for executives the tools and tasks do most of the work.
 - The importers were written against the documented O*NET and BLS file layouts and tested on small fixtures only. Run `--dry-run` first and check the counts.
 - The taxonomy and pay are held in memory for an hour per server instance.
+
+## Function overlap (the O*NET join)
+
+`src/lib/journey/onet-overlap.ts` holds a snapshot of how much each pair of job functions shares by O*NET skill and knowledge ratings (centred cosine, mean over a few representative occupations per function; O*NET 29.3). It adds one line to each "what it takes" path and, through `src/test/onet-overlap.test.ts`, checks the hand-written feasibility table: no "natural move" may share little (under 0.15) and no "rebuild" may share a lot (0.30 or more). The table stays the authority; a failing test means a row deserves a look. Product, Customer Success, Administration and Executive Leadership have no clear O*NET counterpart and are not covered. After a new O*NET load, recompute the pairs with the same method as `vectors.ts` (the representative occupations are listed in the snapshot's source query in the PR that added it) and update the numbers.
+
+## Content review status (feasibility, cost, time)
+
+Checked for sanity against public figures, not signed off by a domain expert: costs per function (certificates, bootcamps, certifications) and months per tier. One correction made: attorney roles (LICENSED) now say 36 to 54 months, since a law degree plus bar admission takes about that long. A human review by a career coach or recruiter is still worth doing before these ranges are quoted in sales material.

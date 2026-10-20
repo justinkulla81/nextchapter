@@ -21,8 +21,7 @@ const status = (over: Partial<DossierUnlockStatus> = {}): DossierUnlockStatus =>
   revoked: false,
   ...over,
 })
-const gates = (a: boolean, b: boolean) => [
-  { key: 'matchedJobsFullDetail', label: '', unlocked: a, reason: '' },
+const gates = (_unused: boolean, b: boolean) => [
   { key: 'community', label: '', unlocked: b, reason: '' },
 ]
 
@@ -40,6 +39,12 @@ describe('buildUnlockLadder', () => {
     const l = buildUnlockLadder({ gates: gates(true, true), tier: 'PREVIEW', completeness, status: status({ evidenceMet: false }) })
     expect(nextRung(l)?.needs).toContain('one assessment')
   })
+  it('has no rung that gates jobs: the first rung is Community and never mentions job detail', () => {
+    const l = buildUnlockLadder({ gates: gates(false, false), tier: 'LOCKED', completeness, status: status() })
+    expect(l[0].key).toBe('community')
+    expect(l[0].needs).toEqual(['one thing finished in your plan'])
+    expect(JSON.stringify(l)).not.toMatch(/job detail|matched jobs|exclusive|A-List/i)
+  })
   it('opens Candidate+ when the gate says unlocked', () => {
     const l = buildUnlockLadder({ gates: gates(true, true), tier: 'COMPLETE', completeness, status: status({ unlocked: true }) })
     expect(l[2].state).toBe('open')
@@ -54,5 +59,11 @@ describe('candidatePlusSteps', () => {
   })
   it('is empty once Candidate+ is on', () => {
     expect(candidatePlusSteps(status({ unlocked: true }))).toEqual([])
+  })
+
+  it('leaves out skipped rungs and makes the next open one next', () => {
+    const l = buildUnlockLadder({ gates: gates(false, false), tier: 'LOCKED', completeness, status: status(), skip: ['community', 'taking_shape'] })
+    expect(l.map((r) => r.key)).toEqual(['candidatePlus', 'recruiterIntros', 'unposted'])
+    expect(nextRung(l)?.key).toBe('candidatePlus')
   })
 })

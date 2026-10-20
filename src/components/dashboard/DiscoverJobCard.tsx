@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils'
 import { edgeTip, fewerApplicantsHint, postedAgo, type CompetitionScore } from '@/lib/jobs/competition'
 import { cardMetaParts, cardVerdict, isStillListed } from '@/lib/jobs/job-card'
 import { postingOpenHref } from '@/lib/jobs/posting-open-href'
+import { aggregatorKind } from '@/lib/jobs/liveness'
+import { ReportClosedButton } from '@/components/jobs/ReportClosedButton'
 import { JobMetaLine, JobVerdict, JobWhyLine } from '@/components/jobs/JobCardParts'
 import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
@@ -47,7 +49,7 @@ import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { DismissJobButton } from '@/components/dashboard/DismissJobButton'
 import { undoDismissBoardJob, type DismissResult } from '@/app/dashboard/find-my-job/dismiss-actions'
 
-const POSTING_TYPE_LABEL: Record<string, string> = {
+export const POSTING_TYPE_LABEL: Record<string, string> = {
   direct: 'Direct Employer',
   recruiter_search: 'Recruiter-Led Search',
 }
@@ -55,16 +57,16 @@ const POSTING_TYPE_LABEL: Record<string, string> = {
 // Jobs found through an aggregator (Himalayas, The Muse, Remote OK…) carry
 // a "Listed on X" badge from the import; their terms ask us to name them,
 // and "View posting" links to their listing.
-function attributionOf(posting: Pick<ExclusiveJobPosting, 'badges'>): string | null {
+export function attributionOf(posting: Pick<ExclusiveJobPosting, 'badges'>): string | null {
   return posting.badges.find((b) => b.startsWith('Listed on ')) ?? null
 }
 
 // The open card's honest read of the rules estimate (competition.ts) — never an applicant count.
-const COMPETITION_LABEL = { low: 'likely fewer applicants', medium: 'a typical number of applicants', high: 'likely many applicants' } as const
+export const COMPETITION_LABEL = { low: 'likely fewer applicants', medium: 'a typical number of applicants', high: 'likely many applicants' } as const
 
 // Why the card shows its pay / benefits badges, in the open card: the posting's
 // own benefits, the employer's posted pay, and the curated list's sources.
-function EmployerSignalsLine({
+export function EmployerSignalsLine({
   postingId,
   companyName,
   employer,
@@ -116,7 +118,7 @@ function EmployerSignalsLine({
 // Market pay for the role (function x seniority x state, from posted salaries). When
 // the job posts pay it is compared; when it doesn't, the market range is shown and
 // labelled as our estimate — never as the employer's pay.
-function MarketPayLine({ posting, workType }: { posting: ExclusiveJobPosting; workType: JobWorkType }) {
+export function MarketPayLine({ posting, workType }: { posting: ExclusiveJobPosting; workType: JobWorkType }) {
   if (!posting.marketPayLow || !posting.marketPayHigh) return null
   // Benchmarks are full-time salaries: contract, part-time, advisory and unpaid
   // roles aren't compared with them; hourly full-time pay is compared hourly.
@@ -148,7 +150,7 @@ function MarketPayLine({ posting, workType }: { posting: ExclusiveJobPosting; wo
 }
 
 // How the member's skills line up with what this job's own description asks for.
-function SkillGapLine({ gap }: { gap: JobSkillGap }) {
+export function SkillGapLine({ gap }: { gap: JobSkillGap }) {
   const scope = 'this role asks for'
   return (
     <p className="text-sm text-muted-foreground">
@@ -162,7 +164,7 @@ function SkillGapLine({ gap }: { gap: JobSkillGap }) {
 
 // Next to the fit badge, never part of it: how this kind of work lines up with the person's own,
 // from O*NET. A band, not a number. A title we cannot place says so instead of guessing.
-function SkillsFitLine({ fit }: { fit: SkillsFit }) {
+export function SkillsFitLine({ fit }: { fit: SkillsFit }) {
   if (fit.status === 'unmapped') {
     return (
       <p className="text-sm text-muted-foreground">
@@ -180,7 +182,7 @@ function SkillsFitLine({ fit }: { fit: SkillsFit }) {
   )
 }
 
-function BridgeDetails({ jobId, bridge }: { jobId: string; bridge: Bridge }) {
+export function BridgeDetails({ jobId, bridge }: { jobId: string; bridge: Bridge }) {
   const props = (step: string) => ({ jobId, step, relaxed: bridge.relaxed })
   return (
     <div className="space-y-1 rounded-md border border-border bg-muted/30 p-3 text-sm">
@@ -453,6 +455,7 @@ export function DiscoverJobCard({
               View posting
             </Button>
           )}
+          {!confidential && posting.source === 'ats_feed' && aggregatorKind(posting.url) && <ReportClosedButton jobId={posting.id} />}
           {state?.jobPostingId ? (
             <p className="text-sm text-success">Added to My Applications, with a full fit analysis below.</p>
           ) : (
@@ -479,7 +482,7 @@ export function DiscoverJobCard({
   )
 }
 
-function RequestIntroButton({ postingId }: { postingId: string }) {
+export function RequestIntroButton({ postingId }: { postingId: string }) {
   return (
     <form action={requestJobBoardIntro.bind(null, postingId)}>
       <SubmitButton variant="outline" size="sm" pendingLabel="Sending…">
@@ -490,7 +493,7 @@ function RequestIntroButton({ postingId }: { postingId: string }) {
 }
 
 // Drafted on click (an LLM call, capped per day — see cover-note.ts).
-function CoverNote({ postingId }: { postingId: string }) {
+export function CoverNote({ postingId }: { postingId: string }) {
   const [pending, startTransition] = useTransition()
   const [note, setNote] = useState<string | null>(null)
   const [remaining, setRemaining] = useState<number | null>(null)

@@ -9,6 +9,7 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { graceDaysFrom, openTransitionFlag, placeOpenFlag } from '@/lib/higher-ed/transition'
+import { rebuildCurrentWeekPlan } from '@/lib/weekly/sprint'
 import { effectiveJourney, effectiveStage, getJourney, type JourneyStage, type JourneyType } from './journey'
 import type { JourneyChangeSource } from '@prisma/client'
 import { appliesAcrossAffiliations } from '@/lib/affiliations/visibility'
@@ -56,9 +57,12 @@ export async function applyJourneyChange(candidateId: string, requested: Journey
     data.journeyStage = toStage
     if (stageChanged) data.journeyStageChangedAt = now
   }
+  // Changing careers means pivoting: ranking and the pivot steps read this flag.
+  if (journeyChanged && toJourney === 'CAREER_CHANGE') data.isPivoting = true
   if (change.details) data.journeyDetails = { ...((p.journeyDetails as Record<string, unknown>) ?? {}), ...change.details } as Prisma.InputJsonValue
   if (Object.keys(data).length) await prisma.candidateProfile.update({ where: { id: candidateId }, data })
 
+  let plan: { kept: number; replaced: number } | null = null
   if (journeyChanged || stageChanged) {
     await prisma.journeyEvent.create({
       data: { candidateId, fromJourney, toJourney, fromStage, toStage, source: change.source, note: change.note ?? null },
@@ -71,9 +75,15 @@ export async function applyJourneyChange(candidateId: string, requested: Journey
       source: change.source,
       moveDriver: (change.details as { moveDriver?: string } | undefined)?.moveDriver ?? null,
     })
+    // The plan follows at once; what they already did this week stays.
+    try {
+      plan = await rebuildCurrentWeekPlan(candidateId)
+    } catch (error) {
+      console.error('Could not rebuild the weekly plan after a journey change for', candidateId, error)
+    }
     await tellColleges(candidateId, { journeyChanged, toJourney, stageChanged, toStage, source: change.source, now })
   }
-  return { fromJourney, toJourney, fromStage, toStage, journeyChanged, stageChanged }
+  return { fromJourney, toJourney, fromStage, toStage, journeyChanged, stageChanged, plan }
 }
 
 // College alumni only, and only colleges they've joined. College-portal

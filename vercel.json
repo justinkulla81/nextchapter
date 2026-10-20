@@ -53,6 +53,10 @@
       "schedule": "20 20 * * 1"
     },
     {
+      "path": "/api/cron/weekly-read",
+      "schedule": "0 15 * * 2"
+    },
+    {
       "path": "/api/cron/interim-role-reverify",
       "schedule": "0 14 * * *"
     },
@@ -107,6 +111,14 @@
     {
       "path": "/api/cron/company-signals",
       "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/company-outcomes",
+      "schedule": "10 11 * * *"
+    },
+    {
+      "path": "/api/cron/company-graph",
+      "schedule": "20 11 * * *"
     },
     {
       "path": "/api/cron/company-hiring-index",
@@ -203,6 +215,10 @@
     {
       "path": "/api/cron/mailing-drafts",
       "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/win-back",
+      "schedule": "0 16 * * *"
     },
     {
       "path": "/api/cron/landed-to-managing",

@@ -1,5 +1,4 @@
 import 'server-only'
-import type { Resend } from 'resend'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'

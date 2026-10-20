@@ -10,6 +10,10 @@ import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
 import { Spinner } from '@/components/ui/spinner'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateReassignmentRequestForm } from '@/components/dashboard/CandidateReassignmentRequestForm'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { TrackedAction } from '@/components/candidate/TrackedAction'
 
 export const metadata: Metadata = { title: 'Coach Dossier & Notes' }
 
@@ -36,8 +40,22 @@ function DossierSkeleton() {
 
 export default async function CoachDossierPage() {
   const profile = await getDashboardProfile()
+  const redesign = isRedesignOn(profile.email)
 
   if (!profile.coachId) {
+    if (redesign) {
+      return (
+        <PageHeader
+          title="What your coach sees"
+          intro="This is where you see exactly what your coach sees about you. You do not have a coach yet, so there is nothing to share."
+          action={
+            <TrackedAction variant="primary" href="/dashboard/my-coaching" event="coaching_opened" properties={{ source: 'coach_dossier_no_coach' }}>
+              Find a coach
+            </TrackedAction>
+          }
+        />
+      )
+    }
     return (
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Coach Dossier &amp; Notes</h1>
@@ -56,6 +74,26 @@ export default async function CoachDossierPage() {
     prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } }),
     hasConsented ? getCoachingNotes(profile.id) : Promise.resolve(null),
   ])
+
+  if (!hasConsented && redesign) {
+    const coachName = coach?.fullName ?? 'your coach'
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="What your coach sees"
+          intro={`Sharing is off, so ${coachName} sees nothing yet. Turn it on and ${coachName} walks into every session knowing your background, which means less time re-explaining and more time coaching.`}
+          action={
+            <TrackedAction variant="primary" href="/dashboard/privacy" event="coach_sharing_started" properties={{ source: 'coach_dossier' }}>
+              Turn on sharing
+            </TrackedAction>
+          }
+        />
+        <ShowMore page="coach_dossier" label="Want a different coach?">
+          <CandidateReassignmentRequestForm />
+        </ShowMore>
+      </div>
+    )
+  }
 
   if (!hasConsented) {
     return (
@@ -89,6 +127,12 @@ export default async function CoachDossierPage() {
 
   return (
     <div className="space-y-6">
+      {redesign ? (
+        <PageHeader
+          title="What your coach sees"
+          intro={`Exactly what ${coach?.fullName ?? 'your coach'} sees when preparing for your sessions. It stays in the app and cannot be downloaded or forwarded from here.`}
+        />
+      ) : (
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Coach Dossier &amp; Notes</h1>
         <p className="mt-1 text-muted-foreground">
@@ -96,6 +140,7 @@ export default async function CoachDossierPage() {
           only, never downloadable, exportable, or forwardable from here.
         </p>
       </div>
+      )}
 
       <div className="space-y-5">
         <Suspense fallback={<DossierSkeleton />}>
