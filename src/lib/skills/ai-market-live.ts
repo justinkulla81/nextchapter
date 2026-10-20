@@ -101,7 +101,11 @@ export function loadAiMarket(now = Date.now()): Promise<AiMarketData | null> {
   if (held && now - held.at < TTL_MS) return held.data
   const data = prisma.aiMarketSnapshot
     .findFirst({ orderBy: { computedAt: 'desc' }, select: { data: true } })
-    .then((r) => (r ? (r.data as unknown as AiMarketData) : null))
+    .then((r) => {
+      // No snapshot yet: look again in a minute rather than holding "none" for 30.
+      if (!r && held?.data === data) held.at = now - TTL_MS + 60_000
+      return r ? (r.data as unknown as AiMarketData) : null
+    })
     .catch((error) => {
       console.error('AI market snapshot unavailable', error)
       return null
