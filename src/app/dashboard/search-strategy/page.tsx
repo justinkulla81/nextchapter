@@ -116,7 +116,7 @@ async function SearchStrategyGuidanceCard({ profile }: { profile: CandidateProfi
 
   if (!strategyGuidance) {
     return (
-      <section aria-labelledby="victoria" className="space-y-2 rounded-2xl border border-border bg-white p-6">
+      <section aria-labelledby="victoria" className="space-y-2 rounded-2xl border border-orange/30 bg-orange/5 p-6">
         <div className="flex items-center gap-3">
           <VictoriaAvatar size={36} />
           <h2 id="victoria" className="font-serif text-xl font-semibold text-navy">Victoria&apos;s read</h2>
@@ -140,7 +140,7 @@ async function SearchStrategyGuidanceCard({ profile }: { profile: CandidateProfi
     : []
 
   return (
-    <section aria-labelledby="victoria" className="space-y-4 rounded-2xl border border-border bg-white p-6">
+    <section aria-labelledby="victoria" className="space-y-4 rounded-2xl border border-orange/30 bg-orange/5 p-6">
       <div className="flex items-center gap-3">
         <VictoriaAvatar size={36} />
         <h2 id="victoria" className="font-serif text-xl font-semibold text-navy">Victoria&apos;s read</h2>
@@ -574,12 +574,12 @@ export default async function SearchStrategyPage() {
           </p>
         </div>
         {quickCount > 0 ? (
-          <Link href="/dashboard/search-strategy/questions" className="inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:brightness-95">
+          <Link href="/dashboard/search-strategy/questions" className="inline-flex h-10 items-center rounded-full nc-action px-6 text-sm font-semibold">
             {`Answer ${quickCount} quick ${quickCount === 1 ? 'question' : 'questions'}`}
           </Link>
         ) : (
           incomplete.length > 0 && (
-            <a href="#answers" className="inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:brightness-95">
+            <a href="#answers" className="inline-flex h-10 items-center rounded-full nc-action px-6 text-sm font-semibold">
               {hasAnsweredOnce ? `Answer ${incomplete.length} more` : 'Answer the first questions'}
             </a>
           )

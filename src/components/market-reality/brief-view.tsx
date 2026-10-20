@@ -5,7 +5,7 @@ import { firstStep } from '@/lib/reports/market-reality-brief/launchpad'
 import type { MarketRealityBrief } from '@/lib/reports/market-reality-brief/load'
 import type { WeeklyChange } from '@/lib/reports/market-reality-brief/weekly-change'
 
-const ACTION = 'inline-flex h-10 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:brightness-95'
+const ACTION = 'inline-flex h-10 items-center rounded-full nc-action px-6 text-sm font-semibold'
 const SECONDARY = 'inline-flex h-9 shrink-0 items-center rounded-full border border-border px-4 text-sm font-medium text-navy hover:bg-muted'
 
 /**
@@ -51,7 +51,7 @@ export function BriefView({ brief, change }: { brief: MarketRealityBrief; change
         )}
       </header>
 
-      <section aria-labelledby="short" className="space-y-4 rounded-2xl border border-border bg-white p-6">
+      <section aria-labelledby="short" className="space-y-4 rounded-2xl border border-orange/30 bg-orange/5 p-6">
         <h2 id="short" className="font-serif text-xl font-semibold text-navy">The short version</h2>
         {verdict ? (
           <p className="text-lg text-foreground">{verdict}</p>
@@ -64,7 +64,7 @@ export function BriefView({ brief, change }: { brief: MarketRealityBrief; change
         {numbers.length > 0 && (
           <dl className="grid gap-3 sm:grid-cols-3">
             {numbers.map((n) => (
-              <div key={n.label} className="rounded-xl bg-muted/70 p-4">
+              <div key={n.label} className="rounded-xl bg-white p-4">
                 <dd className="text-2xl font-semibold text-navy">{n.value}</dd>
                 <dt className="text-sm text-muted-foreground">{n.label}</dt>
               </div>

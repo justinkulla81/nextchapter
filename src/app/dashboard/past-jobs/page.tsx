@@ -17,10 +17,9 @@ export default async function PastJobsPage() {
   return (
     <div className="space-y-10">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Past jobs and alumni</h1>
-        <p className="text-sm text-muted-foreground">
-          Tell us how each job came about and how it was. It sharpens the jobs and companies we show you, and rating and recommending
-          places helps other members — which earns credit on your Dossier.
+        <h1 className="font-serif text-3xl font-semibold tracking-tight text-navy">Past jobs and alumni</h1>
+        <p className="max-w-xl text-base text-muted-foreground">
+          Tell us how you got each job and what it was like. Jobs and companies get better matched to you, and other members only ever see anonymous totals.
         </p>
       </div>
 
@@ -96,12 +95,12 @@ export default async function PastJobsPage() {
                 <div className="flex gap-3 text-sm">
                   {a.companySlug && (
                     <Link href={`/dashboard/companies/${a.companySlug}`} className="text-primary underline underline-offset-4">
-                      Company page and insiders
+                      See the company and ask people who worked there
                     </Link>
                   )}
                   {a.externalUrl && (
                     <a href={a.externalUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">
-                      Outside alumni group
+                      Join their alumni group
                     </a>
                   )}
                 </div>

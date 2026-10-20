@@ -231,6 +231,11 @@
      components get navy primary controls instead of green until the whole site moves over; the
      dashboard layout adopts this class once the redesign is wired in. Preview only for now. */
   .theme-redesign {
+    /* Primary buttons are the one action color (orange, navy text) rather than navy, so the pages are not
+       all navy and gray. Links keep --primary (navy): orange text on white fails contrast. */
+    --button-primary: var(--action);
+    --button-primary-foreground: var(--action-foreground);
+    --button-primary-hover: color-mix(in srgb, var(--action) 88%, black);
     --primary: var(--ink);
     --primary-foreground: #ffffff;
     --color-primary: var(--ink);
@@ -262,4 +267,13 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--ink);
+}
+
+/* A primary action that is not a <Button> (a link styled as one). Same colors as Button's default variant. */
+@utility nc-action {
+  background-color: var(--button-primary, var(--primary));
+  color: var(--button-primary-foreground, var(--primary-foreground));
+  &:hover {
+    background-color: var(--button-primary-hover, var(--primary));
+  }
 }
