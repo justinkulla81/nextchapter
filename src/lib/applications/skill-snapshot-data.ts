@@ -12,7 +12,7 @@ import { statesFromLocation } from '@/lib/pay/market-pay'
 import { JOB_INDUSTRY_KEY_BUCKET } from '@/lib/profile/industry-reading'
 import { AI_FUNCTION_STATS } from '@/lib/skills/ai-skill-market.data'
 import { functionCode } from '@/lib/skills/ai-skill-market'
-import { CRAWLER_FUNCTION_LABEL } from '@/lib/jobs/job-functions'
+import { CRAWLER_FUNCTION_LABEL, isCorporateDevelopmentTitle } from '@/lib/jobs/job-functions'
 import {
   buildSnapshot,
   censusRegion,
@@ -106,7 +106,7 @@ async function socFromBoardTitles(titles: string[]): Promise<Map<string, { socCo
 export async function snapshotApplications(
   appIds: string[],
   links?: Map<string, { postingId: string | null }>,
-  opts: { rebuildInferred?: boolean } = {},
+  opts: { rebuildInferred?: boolean; refreshFacts?: boolean } = {},
 ): Promise<{ posting: number; inferred: number; skipped: number }> {
   const out = { posting: 0, inferred: 0, skipped: 0 }
   if (appIds.length === 0) return out
@@ -181,7 +181,10 @@ export async function snapshotApplications(
             asks,
             facts: {
               industry: industryKey(companyIndustry.get(normalizeOrgName(app.companyName ?? '')) ?? null),
-              jobFunction: inferFunctionFromTitle(app.title) ?? board?.jobFunction ?? null,
+              // Corp dev / M&A is Strategy; the occupation's board majority would say Finance or Investment.
+              jobFunction: isCorporateDevelopmentTitle(app.title)
+                ? CRAWLER_FUNCTION_LABEL.strategy
+                : (inferFunctionFromTitle(app.title) ?? board?.jobFunction ?? null),
               subFunction: null,
               level: rung.rank > 0 ? rung.rung : null,
               locationState: statesFromLocation(app.location).states[0] ?? null,
@@ -199,6 +202,16 @@ export async function snapshotApplications(
       // --rebuild-inferred: an inferred row is our reading of the title, not the job's own record, so it may be re-read when the rules improve.
       const rebuild = opts.rebuildInferred && prior?.basis === 'inferred' && draft.basis === 'inferred'
       if (!rebuild && !shouldReplaceSnapshot(prior, draft)) {
+        // --refresh-facts: the same posting, re-classified since (its function, sub-function or
+        // occupation). Only those facts move; what it asked and the match at the time stay frozen.
+        if (opts.refreshFacts && prior?.basis === 'posting' && draft.basis === 'posting' && prior.boardJobId === draft.boardJobId) {
+          await prisma.applicationSkillSnapshot.update({
+            where: { jobPostingId: app.id },
+            data: { jobFunction: draft.jobFunction, subFunction: draft.subFunction, socCode: draft.socCode, socTitle: draft.socTitle },
+          })
+          out.posting++
+          continue
+        }
         out.skipped++
         continue
       }
@@ -347,12 +360,21 @@ export async function membersWithSnapshots(limit = 50): Promise<{ candidateId: s
 // ── Backfill ──
 
 /** Snapshots every applied application that has none (or whose link changed). Idempotent. */
-export async function backfillApplicationSnapshots(opts: { batch?: number; rebuildInferred?: boolean } = {}): Promise<{ applications: number; posting: number; inferred: number; skipped: number }> {
-  const apps = await prisma.jobPosting.findMany({ where: { appliedAt: { not: null } }, select: { id: true }, orderBy: { appliedAt: 'desc' } })
+export async function backfillApplicationSnapshots(
+  opts: { batch?: number; rebuildInferred?: boolean; refreshFacts?: boolean; appIds?: string[] } = {},
+): Promise<{ applications: number; posting: number; inferred: number; skipped: number }> {
+  const apps = await prisma.jobPosting.findMany({
+    where: { appliedAt: { not: null }, ...(opts.appIds ? { id: { in: opts.appIds } } : {}) },
+    select: { id: true },
+    orderBy: { appliedAt: 'desc' },
+  })
   const totals = { applications: apps.length, posting: 0, inferred: 0, skipped: 0 }
   const size = opts.batch ?? 100
   for (let i = 0; i < apps.length; i += size) {
-    const r = await snapshotApplications(apps.slice(i, i + size).map((a) => a.id), undefined, { rebuildInferred: opts.rebuildInferred })
+    const r = await snapshotApplications(apps.slice(i, i + size).map((a) => a.id), undefined, {
+      rebuildInferred: opts.rebuildInferred,
+      refreshFacts: opts.refreshFacts,
+    })
     totals.posting += r.posting
     totals.inferred += r.inferred
     totals.skipped += r.skipped

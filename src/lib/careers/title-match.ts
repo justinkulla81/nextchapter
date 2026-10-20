@@ -5,6 +5,14 @@
  * only a clear winner is accepted without a person or a constrained AI pick.
  */
 
+import { isCorporateDevelopmentTitle } from '@/lib/jobs/job-functions'
+
+// Corporate development / M&A titles: O*NET lists "Development Director" under Fundraising
+// Managers, so "Director, Corporate Development" could land there by token overlap.
+// O*NET files M&A work under Financial and Investment Analysts ("Mergers and Acquisitions
+// Associate", "M and A Banker"); the crawler's matcher (ncrawl/soc.py) uses the same code.
+export const CORP_DEV_SOC = '13-2051.00'
+
 const ABBREVIATIONS: Record<string, string> = {
   vp: 'vice president',
   svp: 'senior vice president',
@@ -157,6 +165,10 @@ export function matchTitle(index: TitleIndex, raw: string, limit = 8): TitleMatc
     .map(([socCode, score]) => ({ socCode, title: index.titles.get(socCode) ?? socCode, score }))
     .sort((a, b) => b.score - a.score || a.socCode.localeCompare(b.socCode))
     .slice(0, limit)
+
+  if (isCorporateDevelopmentTitle(raw) && index.titles.has(CORP_DEV_SOC)) {
+    return { kind: 'EXACT', socCode: CORP_DEV_SOC, title: index.titles.get(CORP_DEV_SOC)!, candidates }
+  }
 
   const exact = index.exact.get(normalized)
   if (exact && exact.size === 1) {

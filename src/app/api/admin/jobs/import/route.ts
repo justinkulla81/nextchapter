@@ -8,7 +8,7 @@ import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import { applyMarketPay } from '@/lib/companies/hiring-index'
 import { canonicalIndustry, importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
-import { functionLabelFor } from '@/lib/jobs/job-functions'
+import { functionLabelForTitle } from '@/lib/jobs/job-functions'
 import { subFunctionFor } from '@/lib/jobs/sub-functions'
 import { textSkillIds } from '@/lib/careers/text-skill-ids'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
@@ -209,7 +209,7 @@ function yearsRequiredOf(description: string | null | undefined) {
 
 function rowData({ job, level }: Screened) {
   const optional = importOptionalFields(job)
-  const sentFunction = 'function' in job && job.function !== undefined ? functionLabelFor(job.function) : null
+  const sentFunction = 'function' in job && job.function !== undefined ? functionLabelForTitle(job.function, job.title) : null
   return {
     // Sub-function (sub-functions.ts): allowlisted title patterns / O*NET codes within the job's function.
     subFunction: subFunctionFor({
@@ -238,7 +238,7 @@ function rowData({ job, level }: Screened) {
     sourceCount: typeof job.sourceCount === 'number' && job.sourceCount > 0 ? job.sourceCount : null,
     sourceName: job.sourceName?.trim() || null,
     industry: canonicalIndustry(job.industry),
-    ...('function' in job && job.function !== undefined ? { targetFunction: functionLabelFor(job.function) } : {}),
+    ...('function' in job && job.function !== undefined ? { targetFunction: functionLabelForTitle(job.function, job.title) } : {}),
     ...('employerSector' in job && job.employerSector !== undefined
       ? { employerSector: isEmployerSector(job.employerSector) ? job.employerSector : null }
       : {}),
