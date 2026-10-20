@@ -6,7 +6,8 @@ import { pickEarlyPay, type PayRow } from '@/lib/early-career/pay'
 import { parseEducationForm } from '@/lib/early-career/education-form'
 import { journeyPlanItems, shapePlan } from '@/lib/journey/plan'
 import { defaultWorkTypes } from '@/lib/jobs/work-type'
-import { PLACES, visibleTabs } from '@/lib/nav/places'
+import { visibleTabs } from '@/lib/nav/places'
+import { REDESIGN_PLACES } from '@/lib/nav/redesign-places'
 
 describe('earlyCareerAudience', () => {
   it('reads the student journey as a new grad, or early career with 2+ years', () => {
@@ -181,7 +182,7 @@ describe('job board and nav personalization', () => {
     expect(defaultWorkTypes({ journey: 'STUDENT_NEW_GRAD', jobBoardWorkTypes: ['full_time'] })).toEqual(['full_time'])
   })
   it('shows the Early career plan tab only to early-career members', () => {
-    const jobs = PLACES.find((p) => p.key === 'jobs')!
+    const jobs = REDESIGN_PLACES.find((p) => p.key === 'jobs')!
     expect(visibleTabs(jobs, { employed: false, earlyCareer: true }).some((t) => t.href === '/dashboard/early-career')).toBe(true)
     expect(visibleTabs(jobs, { employed: false }).some((t) => t.href === '/dashboard/early-career')).toBe(false)
   })
