@@ -20,7 +20,6 @@ import { nativePosterOf } from '@/lib/jobs/native-apply'
 import { cn } from '@/lib/utils'
 import { checkRequirements, parseRequirementFlags, requirementMemberOf } from '@/lib/jobs/requirements'
 import { JobRequirementDetails, JobRequirementLabels } from '@/components/dashboard/JobRequirementLabels'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { loadJobPageView } from '@/lib/jobs/job-page-view'
 import { FindJobDetail } from '@/components/dashboard/find/FindJobDetail'
 
@@ -59,11 +58,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const life = await loadPostingLifecycle(posting.id)
   if (!life) notFound()
 
-  // The redesign (docs/candidate-redesign.md): an open job opens as the same pane Find a job shows beside its
+  // An open job opens as the same pane Find a job shows beside its
   // list: one headline, apply as the one action, three sections, everything else behind "More about this job".
   // A closed job keeps the page below, with its banner and the open jobs like it. If the member's fit cannot be
   // worked out, the page below is shown instead of an error.
-  if (isRedesignOn(profile.email) && !life.isPast) {
+  if (!life.isPast) {
     const full = await prisma.exclusiveJobPosting.findUnique({ where: { id: posting.id } })
     const view = full ? await loadJobPageView(profile, full, dossier.unlocked).catch((error) => {
       console.error('Job page view unavailable, showing the plain page:', error)

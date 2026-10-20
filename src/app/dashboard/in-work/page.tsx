@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { loadWorkspace } from '@/lib/in-work/workspace-data'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { InWorkWorkspace, type InWorkTab } from '@/components/in-work/InWorkWorkspace'
 
 export const metadata: Metadata = { title: 'In-work workspace' }
@@ -59,9 +58,8 @@ export default async function InWorkPage({
     fromEmail: first(sp.src) === 'inwork_email',
   })
 
-  const redesign = isRedesignOn(profile.email)
   const buildCaseLink = (
-    <p className={redesign ? 'text-sm text-muted-foreground' : 'mb-4 text-sm text-muted-foreground'}>
+    <p className="text-sm text-muted-foreground">
       Going into a specific review, raise, promotion or offer conversation?{' '}
       <Link href="/dashboard/review-prep" className="font-medium text-primary underline underline-offset-4">
         Build your case for it
@@ -70,12 +68,11 @@ export default async function InWorkPage({
     </p>
   )
 
-  // The redesigned page opens with its one headline; the link to Build your case follows the workspace instead of sitting above it.
+  // The page opens with its one headline; the link to Build your case follows the workspace.
   return (
     <>
-      {!redesign && buildCaseLink}
-      <InWorkWorkspace data={data} initialTab={initialTab} redesign={redesign} />
-      {redesign && buildCaseLink}
+      <InWorkWorkspace data={data} initialTab={initialTab} />
+      {buildCaseLink}
     </>
   )
 }
