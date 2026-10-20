@@ -29,6 +29,7 @@ const cityOf = (n: Notice | undefined, state: string) => {
   // A real city, not "Various locations in Washington" or the state's own name.
   return c && !/various|multiple|locations?|statewide|remote|nationwide|\bin\b|^n\/?a$/i.test(c) && c.toLowerCase() !== (STATES[state] ?? '').toLowerCase() ? c : null
 }
+const ARM_LABELS = ['C1a', 'C1b', 'C2a', 'C2b']
 const countyBase = (c: string | null | undefined) => (c ?? '').replace(/\s+(county|parish)$/i, '').trim().toLowerCase()
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 // The greeting: the first name, with honorifics and initials dropped; a doctor, judge or reverend is greeted as "Dr. Last".
@@ -200,6 +201,11 @@ async function main() {
     const cand = [t.subjects[order[0]], t.subjects[order[1]], t.subject_fallback].map((x) => fill(x, row)).filter((x, i) => i === 2 || tokens([t.subjects[order[0]], t.subjects[order[1]]][i]).every((k) => k.startsWith('line_') || row[k]))
     const fits = cand.filter((x) => x.length <= 62)
     row.subject_a = fits[0] ?? cand[cand.length - 1]; row.subject_b = fits[1] ?? fits[0] ?? cand[cand.length - 1]; row.preview_text = fill(t.preview, row)
+    // Four subjects = two concepts with two wordings each (C1a, C1b: outcome; C2a, C2b: market data). Keep each that is complete and short.
+    if (t.subjects.length === 4) ARM_LABELS.forEach((lab, i) => {
+      const sbj = fill(t.subjects[i], row)
+      row['arm_' + lab] = tokens(t.subjects[i]).every((k) => k.startsWith('line_') || row[k]) && sbj.length <= 62 ? sbj : ''
+    })
     row.followup_1 = fill(t.fu1, row); row.followup_2 = fill(t.fu2, row)
     row.email_text = text; row.email_html = html
     row.ready = missing.length ? 'no' : 'yes'; row.missing = missing.join(' ')
@@ -279,12 +285,19 @@ async function main() {
   try { for (const l of readFileSync('/Users/salitkulla/nc-hunter-results/suppress.txt', 'utf8').split('\n')) if (l.trim()) suppress.set(l.trim().toLowerCase(), 'do not contact') } catch { /* no list yet */ }
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
-  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); r.variant = [...k].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 2 ? 'B' : 'A'; r.subject = r.variant === 'B' ? r.subject_b : r.subject_a; r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
-  const HEAD = ['template', 'variant', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
+  for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); const h = [...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
+    if (r.arm_C1a !== undefined) {
+      // Two concepts by two wordings; an arm whose subject does not fit falls back to the other wording of the same concept.
+      const lab = ARM_LABELS[h % 4], mate = ARM_LABELS[(h % 4) ^ 1]
+      const pick = r['arm_' + lab] ? lab : r['arm_' + mate] ? mate : null
+      r.variant = pick ?? 'F'; r.concept = pick ? pick.slice(0, 2) : ''; r.subject = pick ? r['arm_' + pick] : r.subject_a
+    } else { r.variant = h % 2 ? 'B' : 'A'; r.concept = ''; r.subject = r.variant === 'B' ? r.subject_b : r.subject_a }
+     r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
+  const HEAD = ['template', 'variant', 'concept', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
     'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective']
   writeFileSync(out, [HEAD.map(q).join(','), ...rows.map((r) => HEAD.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   // The send list: only rows that are ready, unique and not suppressed, with just what a mail merge needs.
-  const SEND = ['template', 'variant', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
+  const SEND = ['template', 'variant', 'concept', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
   const sendRows = rows.filter((r) => r.send === 'yes')
   writeFileSync(out.replace(/\.csv$/, '') + '.send.csv', [SEND.map(q).join(','), ...sendRows.map((r) => SEND.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   console.log(`send list: ${sendRows.length} rows`)

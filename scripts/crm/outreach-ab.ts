@@ -1,7 +1,7 @@
 /**
  * A/B results for cold outreach, read from the CRM. Each send logged by outreach-log.ts carries its template, test and variant.
- * A send counts as replied when that person has an inbound email within 14 days of it. Opens are not tracked (a pixel is
- * unreliable and hurts deliverability); reply rate is the measure.
+ * A send counts as replied when that person has an inbound email within 14 days of it. Opens come from Resend's open event and are
+ * directional only (mail privacy features inflate them), so compare variants with each other, never to a benchmark; replies are the real measure.
  *
  *   tsx --conditions=react-server --env-file=.env.local scripts/crm/outreach-ab.ts
  *
@@ -11,10 +11,10 @@
 import { prisma } from '../../src/lib/prisma'
 
 const REPLY_WINDOW_MS = 14 * 86_400_000
-type Cell = { sends: number; replies: number }
+type Cell = { sends: number; replies: number; opens: number }
 
 // Two-proportion z-test (pooled). Returns the two-sided p-value.
-function pValue(a: Cell, b: Cell): number {
+function pValue(a: { sends: number; replies: number }, b: { sends: number; replies: number }): number {
   const p = (a.replies + b.replies) / (a.sends + b.sends)
   const se = Math.sqrt(p * (1 - p) * (1 / a.sends + 1 / b.sends))
   if (!se) return 1
@@ -49,25 +49,31 @@ async function main() {
   for (const s of sends) {
     const { template, test, variant } = parse(s.outcome)
     const k = `${template}|${test}|${variant}`
-    const c = cells.get(k) ?? { sends: 0, replies: 0 }
+    const c = cells.get(k) ?? { sends: 0, replies: 0, opens: 0 }
     c.sends++
+    if ((s.outcome ?? '').includes(', opened')) c.opens++
     if ((repliedAt.get(s.personId!) ?? []).some((t) => t >= s.occurredAt && t.getTime() - s.occurredAt.getTime() <= REPLY_WINDOW_MS)) c.replies++
     cells.set(k, c)
   }
   if (!cells.size) { console.log('No tagged cold-outreach sends logged yet. Log them with outreach-log.ts sent <sends.csv> --apply (CSV needs template and variant).'); return }
 
-  const groups = new Set([...cells.keys()].map((k) => k.split('|').slice(0, 2).join('|')))
-  for (const g of [...groups].sort()) {
-    const A = cells.get(`${g}|A`) ?? { sends: 0, replies: 0 }, B = cells.get(`${g}|B`) ?? { sends: 0, replies: 0 }
-    const [template, test] = g.split('|')
-    const rate = (c: Cell) => (c.sends ? ((100 * c.replies) / c.sends).toFixed(1) + '%' : '-')
-    let verdict = 'waiting for both variants'
-    if (A.sends && B.sends) {
-      const p = pValue(A, B)
-      const n = needed(A.replies / A.sends, B.replies / B.sends)
-      verdict = p < 0.05 ? `real difference (p=${p.toFixed(3)}): ${A.replies / A.sends > B.replies / B.sends ? 'A' : 'B'} wins` : `keep testing (p=${p.toFixed(2)})${n ? `; about ${n} sends per variant to confirm a gap this size` : ''}`
+  // Pool wordings into concepts (C1 outcome, C2 market data); plain A/B tests compare the two variants directly.
+  const arms = [...cells.entries()].map(([k, c]) => ({ template: k.split('|')[0], test: k.split('|')[1], variant: k.split('|')[2], ...c }))
+  const pct = (n: number, d: number) => (d ? ((100 * n) / d).toFixed(1) + '%' : '-')
+  for (const template of [...new Set(arms.map((a) => a.template))].sort()) {
+    const mine = arms.filter((a) => a.template === template)
+    console.log(`\n${template}`)
+    for (const a of [...mine].sort((x, y) => x.variant.localeCompare(y.variant))) console.log(`  ${a.variant}: ${a.sends} sent, opened ${a.opens} (${pct(a.opens, a.sends)}), replied ${a.replies} (${pct(a.replies, a.sends)})`)
+    const pool = (prefix: string) => mine.filter((a) => a.variant.startsWith(prefix)).reduce((x, a) => ({ sends: x.sends + a.sends, replies: x.replies + a.replies, opens: x.opens + a.opens }), { sends: 0, replies: 0, opens: 0 })
+    const c1 = pool('C1'), c2 = pool('C2')
+    if (c1.sends && c2.sends) {
+      const po = pValue({ sends: c1.sends, replies: c1.opens }, { sends: c2.sends, replies: c2.opens })
+      const pr = pValue(c1, c2)
+      const need = needed(c1.replies / c1.sends, c2.replies / c2.sends)
+      console.log(`  concept C1 (outcome) vs C2 (market data): opens ${pct(c1.opens, c1.sends)} vs ${pct(c2.opens, c2.sends)} (p=${po.toFixed(2)}${po < 0.05 ? ', real' : ', keep testing'}); replies ${pct(c1.replies, c1.sends)} vs ${pct(c2.replies, c2.sends)} (p=${pr.toFixed(2)}${pr < 0.05 ? ', real' : ', keep testing'})${need && pr >= 0.05 ? `; about ${need} sends per concept to confirm a reply gap this size` : ''}`)
     }
-    console.log(`${template} / ${test}: A ${A.replies}/${A.sends} (${rate(A)}) vs B ${B.replies}/${B.sends} (${rate(B)}) — ${verdict}`)
+    const a = mine.find((x) => x.variant === 'A'), b = mine.find((x) => x.variant === 'B')
+    if (a && b) { const pr = pValue(a, b); console.log(`  A vs B replies p=${pr.toFixed(2)}${pr < 0.05 ? ' (real)' : ' (keep testing)'}`) }
   }
 }
 main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1) })

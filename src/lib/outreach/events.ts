@@ -17,6 +17,16 @@ export async function applyOutreachEvent(event: ResendEvent): Promise<'applied' 
   const to = event.data.to?.[0]?.toLowerCase()
   if (!to) return 'ignored'
 
+  if (event.type === 'email.opened' || event.type === 'email.clicked') {
+    // Directional only: opens are inflated by mail privacy features, so compare variants against each other, never to a benchmark.
+    const mark = event.type === 'email.opened' ? ', opened' : ', clicked'
+    const send = event.data.email_id ? await prisma.crmActivity.findFirst({ where: { sourceRef: `resend:${event.data.email_id}` }, select: { id: true, outcome: true, personId: true } }) : null
+    if (!send || (send.outcome ?? '').includes(mark)) return 'ignored'
+    await prisma.crmActivity.update({ where: { id: send.id }, data: { outcome: `${send.outcome ?? ''}${mark}` } })
+    captureServerEvent(send.personId ?? 'outreach', event.type === 'email.opened' ? 'outreach_email_opened' : 'outreach_email_clicked', {})
+    return 'applied'
+  }
+
   const person = await prisma.crmPerson.findFirst({
     where: { deletedAt: null, OR: [{ email: { equals: to, mode: 'insensitive' } }, { emails: { has: to } }] },
     select: { id: true },
