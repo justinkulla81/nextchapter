@@ -1,20 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
-import { ChevronDown } from 'lucide-react'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
-import { ContactDirectoryTable } from '@/components/dashboard/ContactDirectoryTable'
 import { NextChapterMembersSection } from '@/components/dashboard/NextChapterMembersSection'
 import { lookupNextChapterMemberships } from '@/lib/network/member-lookup'
-import { cn } from '@/lib/utils'
-import { CsvImportForm } from '@/components/dashboard/CsvImportForm'
 import { CopyableTemplateCard } from '@/components/dashboard/CopyableTemplateCard'
 import { GuideCard } from '@/components/dashboard/GuideCard'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { fillHelpScriptTemplate } from '@/lib/constants/help-script-template'
-import { NETWORK_CSV_AI_PROMPT_TEMPLATE } from '@/lib/constants/network-ai-prompt-template'
 import { GUIDES } from '@/lib/constants/guides'
 import { markAskedForHelp } from '@/app/dashboard/actions'
 import {
@@ -28,7 +21,6 @@ import { PRIORITY_CONTACT_TARGET_COUNT } from '@/lib/network/priority-contacts'
 import { isSuppressed, loadSuppression } from '@/lib/network/suppressed-senders'
 import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/network/current-employer-flag'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { contactsIntro } from '@/lib/redesign/network-pages'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
@@ -64,28 +56,11 @@ export default async function ContactDirectoryPage({
   // cost just because it happens to share a page with the contact
   // directory. scope=all still pays it (it genuinely needs both lists).
   if (scope === 'nextchapter') {
-    if (isRedesignOn(profile.email)) {
-      return (
-        <div className="space-y-8">
-          <PageHeader title="People you know" intro="Other members of NextChapter you can meet. Each one is a warm way in." />
-          <NetworkParts current="know" />
-          <SectionPills label="Which contacts" current={scope} items={CONTACT_SCOPES} />
-          <NextChapterMembersSection
-            redesign
-            viewerCandidateId={profile.id}
-            query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
-            page={Math.max(1, Number(sp.mpage) || 1)}
-          />
-        </div>
-      )
-    }
     return (
       <div className="space-y-8">
-        <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Contacts</h1>
-          <PageHeaderBoxes pageKey="network-contacts" candidateId={profile.id} />
-        </div>
-        <ScopeTabs scope={scope} />
+        <PageHeader title="People you know" intro="Other members of NextChapter you can meet. Each one is a warm way in." />
+        <NetworkParts current="know" />
+        <SectionPills label="Which contacts" current={scope} items={CONTACT_SCOPES} />
         <NextChapterMembersSection
           viewerCandidateId={profile.id}
           query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
@@ -213,287 +188,85 @@ export default async function ContactDirectoryPage({
 
   const networkScriptsGuide = GUIDES.find((g) => g.slug === 'network-scripts')
 
-  // Deep-linked from the "Build Your Networking List" button on the Network
-  // page (?buildList=1#import) — opens straight to the import form instead
-  // of landing on a collapsed accordion item. Also defaults open when the
-  // candidate has zero contacts, since it's the only actionable thing to
-  // do at that point (see hasAnyContacts below).
-  const buildListSection = (
-    <Accordion defaultValue={sp.buildList || !hasAnyContacts ? ['build-list'] : []}>
-      <AccordionItem value="build-list">
-        <AccordionTrigger>Build your list from LinkedIn</AccordionTrigger>
-        <AccordionContent>
-          <div className="space-y-4">
-            <div id="import" className="space-y-3 rounded-lg border border-border p-4">
-              <h3 className="text-sm font-medium text-foreground">Import your LinkedIn connections</h3>
-              <CsvImportForm />
-              <p className="text-xs text-muted-foreground">
-                What happens: safe to re-upload anytime. New people are added, and any blank
-                fields on people already on your list get filled in. Anyone you&apos;ve removed
-                stays removed.
-              </p>
-            </div>
-
-            <details className="group">
-              <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium text-primary underline underline-offset-4">
-                Need to export your connections first? See the step-by-step instructions.
-                <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-              </summary>
-              {/* Steps 1-2 are one workflow: export → clean up → (import above). The
-                  connecting line + numbered circles below are the only thing that
-                  changed visually from two separate cards — same components, wrapped
-                  in a positioned container so the "why" captions and connector read
-                  as one continuous task. */}
-              <div className="relative mt-4 space-y-6 border-l-2 border-border pl-6">
-                <div className="relative">
-                  <span className="absolute -left-[1.85rem] flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
-                    1
-                  </span>
-                  <div className="space-y-2 rounded-lg border border-border p-4">
-                    <h3 className="text-sm font-medium text-foreground">Export your LinkedIn connections</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Settings &amp; Privacy → Data Privacy → Get a copy of your data → Connections →
-                      Request archive. LinkedIn emails you a download link within 10-24 minutes.
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Why: this pulls in everyone you&apos;re connected to at once, instead of adding
-                      people one at a time.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <span className="absolute -left-[1.85rem] flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
-                    2
-                  </span>
-                  <CopyableTemplateCard
-                    title="Clean it up with AI (optional but worth it)"
-                    description="Paste your exported CSV into ChatGPT or Claude with this prompt to get it cleaned up and prioritized before you import it above."
-                    template={NETWORK_CSV_AI_PROMPT_TEMPLATE}
-                    templateType="csv_cleanup_prompt"
-                  />
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Why: your export includes everyone you&apos;ve ever connected with — this step
-                    surfaces the people actually worth reaching out to first.
-                  </p>
-                </div>
-              </div>
-            </details>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  )
-
-  const scriptsSection = (
-    <Accordion>
-      <AccordionItem value="scripts">
-        <AccordionTrigger>Scripts &amp; templates</AccordionTrigger>
-        <AccordionContent>
-          <div className="space-y-3">
-            {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} />}
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-foreground">Ready-to-send templates</h3>
-              <div className="space-y-3">
-                <CopyableTemplateCard
-                  title="Ask someone for help"
-                  description="Pick one person from your list above and send this."
-                  template={fillHelpScriptTemplate(profile)}
-                  templateType="ask_for_help"
-                  outreach
-                  onCopy={markAskedForHelp}
-                />
-                <CopyableTemplateCard
-                  title="Asking for an intro"
-                  template={fillIntroRequestTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
-                  templateType="intro_request"
-                  outreach
-                />
-                <CopyableTemplateCard
-                  title="Putting in a good word"
-                  template={fillGoodWordTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
-                  templateType="good_word"
-                  outreach
-                />
-                <CopyableTemplateCard
-                  title="Checking in about interim work"
-                  template={fillCheckingInTemplate({ ...profile, discreet: profile.confidentialSearchMode })}
-                  templateType="checking_in"
-                  outreach
-                />
-              </div>
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  )
-
   // The redesign (docs/candidate-redesign.md): People you know. One primary action, the directory and who to add
   // on the first view; importing, templates, the other lists and the tidy-up pages sit behind Show more.
-  if (isRedesignOn(profile.email)) {
-    captureServerEvent(profile.id, 'contacts_viewed', { total: totalCount, hasAnyContacts, suggestions: suggestions.length, starred: starredCount })
-    return (
-      <div className="space-y-8">
-        <PageHeader
-          title="People you know"
-          intro={contactsIntro(totalCount)}
-          action={
-            hasAnyContacts ? (
-              <TrackedAction variant="primary" href="/dashboard/network/this-week" event="this_week_opened" properties={{ source: 'contacts_primary' }}>
-                See who to write to first
-              </TrackedAction>
-            ) : (
-              <TrackedAction variant="primary" href="/dashboard/network/contacts?buildList=1#import" event="contacts_import_opened" properties={{ source: 'contacts_primary' }}>
-                Add people
-              </TrackedAction>
-            )
-          }
-        />
-        <NetworkParts current="know" />
-        {profile.confidentialSearchMode && <ConfidentialModeIndicator redesign />}
-        {!hasAnyContacts && (
-          <Section id="import-title" title="Add people from LinkedIn">
+  captureServerEvent(profile.id, 'contacts_viewed', { total: totalCount, hasAnyContacts, suggestions: suggestions.length, starred: starredCount })
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="People you know"
+        intro={contactsIntro(totalCount)}
+        action={
+          hasAnyContacts ? (
+            <TrackedAction variant="primary" href="/dashboard/network/this-week" event="this_week_opened" properties={{ source: 'contacts_primary' }}>
+              See who to write to first
+            </TrackedAction>
+          ) : (
+            <TrackedAction variant="primary" href="/dashboard/network/contacts?buildList=1#import" event="contacts_import_opened" properties={{ source: 'contacts_primary' }}>
+              Add people
+            </TrackedAction>
+          )
+        }
+      />
+      <NetworkParts current="know" />
+      {profile.confidentialSearchMode && <ConfidentialModeIndicator redesign />}
+      {!hasAnyContacts && (
+        <Section id="import-title" title="Add people from LinkedIn">
+          <ImportContacts />
+        </Section>
+      )}
+      <SuggestedContactsCard suggestions={suggestions} />
+      {hasAnyContacts && (
+        <Section id="contacts-title" title="Your contacts">
+          <ContactDirectory
+            contacts={contacts}
+            totalCount={totalCount}
+            page={Math.min(page, pageCount)}
+            pageCount={pageCount}
+            pageSize={PAGE_SIZE}
+            state={{ q, sort: sortKey, dir, pin, email: emailFilter, reached: reachedFilter, rel: relFilter, nc: ncFilter, page: Math.min(page, pageCount) }}
+            hasAnyContacts={hasAnyContacts}
+            mutedIds={contacts.filter((c) => [c.email, ...c.emails].some((e) => isSuppressed(suppression, e))).map((c) => c.id)}
+          />
+        </Section>
+      )}
+      <ShowMore page="contacts" label="Import, templates and other lists" defaultOpen={Boolean(sp.buildList) || scope === 'all'}>
+        {hasAnyContacts && starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
+          <p className="text-base text-ink">
+            {`Star ${PRIORITY_CONTACT_TARGET_COUNT} people and they rise to the top of your list, so the ones you most want to write to are always first. You have starred ${starredCount} so far.`}
+          </p>
+        )}
+        <SectionPills label="Which contacts" current={scope} items={CONTACT_SCOPES} />
+        {hasAnyContacts && (
+          <Section id="import-more-title" title="Add people from LinkedIn">
             <ImportContacts />
           </Section>
         )}
-        <SuggestedContactsCard suggestions={suggestions} redesign />
-        {hasAnyContacts && (
-          <Section id="contacts-title" title="Your contacts">
-            <ContactDirectory
-              contacts={contacts}
-              totalCount={totalCount}
-              page={Math.min(page, pageCount)}
-              pageCount={pageCount}
-              pageSize={PAGE_SIZE}
-              state={{ q, sort: sortKey, dir, pin, email: emailFilter, reached: reachedFilter, rel: relFilter, nc: ncFilter, page: Math.min(page, pageCount) }}
-              hasAnyContacts={hasAnyContacts}
-              mutedIds={contacts.filter((c) => [c.email, ...c.emails].some((e) => isSuppressed(suppression, e))).map((c) => c.id)}
-            />
-          </Section>
+        {scope === 'all' && (
+          <NextChapterMembersSection
+            viewerCandidateId={profile.id}
+            query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
+            page={Math.max(1, Number(sp.mpage) || 1)}
+          />
         )}
-        <ShowMore page="contacts" label="Import, templates and other lists" defaultOpen={Boolean(sp.buildList) || scope === 'all'}>
-          {hasAnyContacts && starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
-            <p className="text-base text-ink">
-              {`Star ${PRIORITY_CONTACT_TARGET_COUNT} people and they rise to the top of your list, so the ones you most want to write to are always first. You have starred ${starredCount} so far.`}
-            </p>
-          )}
-          <SectionPills label="Which contacts" current={scope} items={CONTACT_SCOPES} />
-          {hasAnyContacts && (
-            <Section id="import-more-title" title="Add people from LinkedIn">
-              <ImportContacts />
-            </Section>
-          )}
-          {scope === 'all' && (
-            <NextChapterMembersSection
-              redesign
-              viewerCandidateId={profile.id}
-              query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
-              page={Math.max(1, Number(sp.mpage) || 1)}
-            />
-          )}
-          <Section id="scripts-title" title="Scripts and templates">
-            <div className="space-y-4">
-              {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} redesign />}
-              <CopyableTemplateCard redesign title="Ask someone for help" description="Pick one person from your list and send this." template={fillHelpScriptTemplate(profile)} templateType="ask_for_help" outreach onCopy={markAskedForHelp} />
-              <CopyableTemplateCard redesign title="Asking for an intro" template={fillIntroRequestTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="intro_request" outreach />
-              <CopyableTemplateCard redesign title="Putting in a good word" template={fillGoodWordTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="good_word" outreach />
-              <CopyableTemplateCard redesign title="Checking in about interim work" template={fillCheckingInTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="checking_in" outreach />
-            </div>
-          </Section>
-          <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
-            <Link href="/dashboard/network/contacts/removed" className="font-medium text-brand underline underline-offset-4">
-              Removed contacts{removedCount > 0 ? ` (${removedCount})` : ''}
-            </Link>
-            <Link href="/dashboard/network/blocked-senders" className="font-medium text-brand underline underline-offset-4">
-              Blocked senders
-            </Link>
-          </p>
-        </ShowMore>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Contacts</h1>
-        <PageHeaderBoxes pageKey="network-contacts" candidateId={profile.id} />
-      </div>
-
-      <ScopeTabs scope={scope} />
-
-      {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
-
-      {hasAnyContacts && starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
-        <p className="rounded-lg border border-brand/30 bg-brand/5 p-3 text-sm text-foreground">
-          {`Star at least ${PRIORITY_CONTACT_TARGET_COUNT} people below as priority contacts to earn 5 points each — you've starred ${starredCount} of ${PRIORITY_CONTACT_TARGET_COUNT} so far.`}
+        <Section id="scripts-title" title="Scripts and templates">
+          <div className="space-y-4">
+            {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} redesign />}
+            <CopyableTemplateCard title="Ask someone for help" description="Pick one person from your list and send this." template={fillHelpScriptTemplate(profile)} templateType="ask_for_help" outreach onCopy={markAskedForHelp} />
+            <CopyableTemplateCard title="Asking for an intro" template={fillIntroRequestTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="intro_request" outreach />
+            <CopyableTemplateCard title="Putting in a good word" template={fillGoodWordTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="good_word" outreach />
+            <CopyableTemplateCard title="Checking in about interim work" template={fillCheckingInTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="checking_in" outreach />
+          </div>
+        </Section>
+        <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+          <Link href="/dashboard/network/contacts/removed" className="font-medium text-brand underline underline-offset-4">
+            Removed contacts{removedCount > 0 ? ` (${removedCount})` : ''}
+          </Link>
+          <Link href="/dashboard/network/blocked-senders" className="font-medium text-brand underline underline-offset-4">
+            Blocked senders
+          </Link>
         </p>
-      )}
-
-      <SuggestedContactsCard suggestions={suggestions} />
-
-      {/* With zero contacts, the import flow is the only thing worth doing
-          here — shown above the empty table (and expanded by default)
-          instead of buried below it. Once contacts exist, it reverts to
-          sitting below the table, collapsed unless deep-linked. */}
-      {!hasAnyContacts && buildListSection}
-
-      <ContactDirectoryTable
-        contacts={contacts}
-        totalCount={totalCount}
-        removedCount={removedCount}
-        page={Math.min(page, pageCount)}
-        pageCount={pageCount}
-        query={q}
-        sortKey={sortKey}
-        dir={dir}
-        pin={pin}
-        emailFilter={emailFilter}
-        reachedFilter={reachedFilter}
-        relFilter={relFilter}
-        ncFilter={ncFilter}
-        hasAnyContacts={hasAnyContacts}
-      />
-
-      {hasAnyContacts && buildListSection}
-
-      {scope === 'all' && (
-        <NextChapterMembersSection
-          viewerCandidateId={profile.id}
-          query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
-          page={Math.max(1, Number(sp.mpage) || 1)}
-        />
-      )}
-
-      {scriptsSection}
-    </div>
-  )
-}
-
-const SCOPE_TABS: { value: 'mine' | 'nextchapter' | 'all'; label: string }[] = [
-  { value: 'mine', label: 'Your Contacts' },
-  { value: 'nextchapter', label: 'NextChapter Contacts' },
-  { value: 'all', label: 'All' },
-]
-
-function ScopeTabs({ scope }: { scope: 'mine' | 'nextchapter' | 'all' }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {SCOPE_TABS.map((tab) => (
-        <Link
-          key={tab.value}
-          href={tab.value === 'mine' ? '/dashboard/network/contacts' : `/dashboard/network/contacts?scope=${tab.value}`}
-          className={cn(
-            'rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
-            scope === tab.value
-              ? 'border-brand bg-brand/10 text-foreground'
-              : 'border-border text-muted-foreground hover:text-foreground'
-          )}
-        >
-          {tab.label}
-        </Link>
-      ))}
+      </ShowMore>
     </div>
   )
 }

@@ -65,7 +65,7 @@ const STATUS_OPTIONS: { value: CourseStatus; label: string }[] = [
   { value: 'COMPLETED', label: 'Finished' },
 ]
 
-export function CourseStatusButtons({ courseId, title, status, redesign = false }: { courseId: string; title: string; status: CourseStatus; redesign?: boolean }) {
+export function CourseStatusButtons({ courseId, title, status }: { courseId: string; title: string; status: CourseStatus }) {
   const [pending, start] = useTransition()
   const [value, setValue] = useState<CourseStatus>(status)
   const [error, setError] = useState<string | null>(null)
@@ -92,8 +92,8 @@ export function CourseStatusButtons({ courseId, title, status, redesign = false 
               })
             }
             className={cn(
-              redesign ? 'inline-flex h-10 items-center rounded-full border px-5 text-sm font-medium transition-colors' : 'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
-              value === o.value ? (redesign ? 'border-ink bg-ink text-white' : 'border-primary bg-primary text-primary-foreground') : 'border-border hover:bg-muted',
+              'inline-flex h-10 items-center rounded-full border px-5 text-sm font-medium transition-colors',
+              value === o.value ? ('border-ink bg-ink text-white') : 'border-border hover:bg-muted',
               pending && 'cursor-wait'
             )}
           >
@@ -101,7 +101,7 @@ export function CourseStatusButtons({ courseId, title, status, redesign = false 
           </button>
         ))}
       </div>
-      {error && <p role="alert" className={redesign ? 'text-sm text-destructive' : 'text-xs text-destructive'}>{error}</p>}
+      {error && <p role="alert" className={'text-sm text-destructive'}>{error}</p>}
     </div>
   )
 }

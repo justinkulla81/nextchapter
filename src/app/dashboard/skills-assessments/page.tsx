@@ -1,14 +1,7 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { cn } from '@/lib/utils'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Section } from '@/components/candidate/ui'
 import { ActionLink } from '@/components/candidate/ActionLink'
@@ -152,162 +145,62 @@ export default async function SkillsAssessmentsPage() {
     return Number(!!a.completedAt) - Number(!!b.completedAt)
   })
 
-  if (isRedesignOn(profile.email)) {
-    // How I work in the redesign: one list, each row with its reason and its time, and the best next one as the action.
-    const rows = shapeAssessments(assessments)
-    const next = nextAssessment(rows)
-    const byKey = new Map(assessments.map((a) => [a.key, a]))
-    return (
-      <div className="space-y-8">
-        <PageHeader
-          title="How I work"
-          intro="Short assessments that sharpen your job matches and add proof to your dossier. Each one says what it gets you."
-          action={
-            next ? (
-              <ActionLink variant="primary" href={next.href} event="assessment_started" props={{ assessment: next.key, source: 'how_i_work_header' }}>
-                Start next: {next.title}
-              </ActionLink>
-            ) : undefined
-          }
-        />
-        {!next && <p className="rounded-2xl bg-muted/60 p-5 text-base text-ink">You have finished every assessment. Retake one any time your answers change, and your matches follow.</p>}
-        <Section id="assessments" title="Your assessments">
-          <RowList
-            label="Assessments"
-            items={rows.map((r) => {
-              const a = byKey.get(r.key)!
-              return {
-                key: r.key,
-                title: r.title,
-                why: r.why,
-                fact: r.fact,
-                actions: (
-                  <ActionLink href={r.href} variant="secondary" event="assessment_started" props={{ assessment: r.key, retake: r.done, source: 'how_i_work_row' }}>
-                    {r.ctaLabel}
-                  </ActionLink>
-                ),
-                detailLabel: 'Who sees this',
-                detail: (
-                  <>
-                    <p>{a.description}</p>
-                    <p>{a.feeds}</p>
-                    <p>{a.sharedWith}</p>
-                  </>
-                ),
-              }
-            })}
-          />
-          <p className="text-sm text-muted-foreground">1 point is 1 minute of real search work, so finishing an assessment also counts toward Candidate+.</p>
-        </Section>
-        <MoreDetails summary="Show more: a work sample you can share">
-          <div className="space-y-3">
-            <h2 className="font-display text-xl font-semibold text-ink">noexperienceneeded.ai: AI work-sample challenge</h2>
-            <p className="text-base text-ink">Produces a shareable work sample for your evidence file, so employers see what you can do. You can also start with the lesson.</p>
-            <div className="flex flex-wrap gap-3">
-              <ActionLink href="/noexperience/test?src=nc_assessment" variant="secondary" event="work_sample_challenge_started" props={{ source: 'how_i_work' }}>Take the challenge</ActionLink>
-              <ActionLink href="/noexperience/lesson?src=nc_assessment" variant="secondary" event="work_sample_lesson_started" props={{ source: 'how_i_work' }}>Take the lesson</ActionLink>
-            </div>
-          </div>
-        </MoreDetails>
-      </div>
-    )
-  }
-
+  // How I work in the redesign: one list, each row with its reason and its time, and the best next one as the action.
+  const rows = shapeAssessments(assessments)
+  const next = nextAssessment(rows)
+  const byKey = new Map(assessments.map((a) => [a.key, a]))
   return (
     <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Skills & Behavioral Assessments</h1>
-        <p className="text-muted-foreground">
-          Your skills and personality assessment for better job matches — these personalize your
-          Job Recommendations, Skills Recommendations, and Market Reality Report — the more current
-          they are, the better the matches.
-        </p>
-        <PageHeaderBoxes pageKey="skills-assessments" candidateId={profile.id} />
-      </div>
-
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">Your Assessments</h2>
-        <div className="space-y-2">
-          {assessments.map((assessment) => {
-            const statusLine =
-              'statusLabel' in assessment
-                ? assessment.statusLabel
-                : assessment.completedAt
-                  ? `Last completed ${assessment.completedAt.toLocaleDateString()}`
-                  : 'Not completed yet'
-
-            return (
-              <details key={assessment.key} className="group overflow-hidden rounded-lg border border-border">
-                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-foreground">{assessment.title}</p>
-                      {'priority' in assessment && assessment.priority && (
-                        <span className="shrink-0 rounded-full bg-orange/15 px-2 py-0.5 text-xs font-medium text-orange">
-                          Priority
-                        </span>
-                      )}
-                    </div>
-                    <p
-                      className={cn(
-                        'truncate text-xs',
-                        assessment.completedAt ? 'font-medium text-success' : 'text-muted-foreground'
-                      )}
-                    >
-                      {statusLine}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    {!assessment.completedAt && (
-                      <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand tabular-nums">
-                        +{assessment.points} pts
-                      </span>
-                    )}
-                    <Button nativeButton={false} render={<Link href={assessment.href} />} size="sm">
-                      {assessment.ctaLabel}
-                    </Button>
-                    <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
-                      See details
-                    </span>
-                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                  </div>
-                </summary>
-                <div className="space-y-3 border-t border-border px-4 py-3">
-                  <p className="text-sm text-muted-foreground">{assessment.description}</p>
-                  <p className="text-xs font-medium text-muted-foreground">{assessment.feeds}</p>
-                  <p className="text-xs font-medium text-muted-foreground">{assessment.sharedWith}</p>
-
-                  {assessment.key === 'skills' && (
-                    <p className="border-t border-border pt-3 text-xs text-muted-foreground">
-                      Skills You Have and Skills You Need to Build now live on the assessment itself —
-                      confirm them right after you answer the questions above.
-                    </p>
-                  )}
-                </div>
-              </details>
-            )
+      <PageHeader
+        title="How I work"
+        intro="Short assessments that sharpen your job matches and add proof to your dossier. Each one says what it gets you."
+        action={
+          next ? (
+            <ActionLink variant="primary" href={next.href} event="assessment_started" props={{ assessment: next.key, source: 'how_i_work_header' }}>
+              Start next: {next.title}
+            </ActionLink>
+          ) : undefined
+        }
+      />
+      {!next && <p className="rounded-2xl bg-muted/60 p-5 text-base text-ink">You have finished every assessment. Retake one any time your answers change, and your matches follow.</p>}
+      <Section id="assessments" title="Your assessments">
+        <RowList
+          label="Assessments"
+          items={rows.map((r) => {
+            const a = byKey.get(r.key)!
+            return {
+              key: r.key,
+              title: r.title,
+              why: r.why,
+              fact: r.fact,
+              actions: (
+                <ActionLink href={r.href} variant="secondary" event="assessment_started" props={{ assessment: r.key, retake: r.done, source: 'how_i_work_row' }}>
+                  {r.ctaLabel}
+                </ActionLink>
+              ),
+              detailLabel: 'Who sees this',
+              detail: (
+                <>
+                  <p>{a.description}</p>
+                  <p>{a.feeds}</p>
+                  <p>{a.sharedWith}</p>
+                </>
+              ),
+            }
           })}
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-medium text-foreground">noexperienceneeded.ai: AI Work-Sample Challenge</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Produces a shareable work sample for your Evidence file. Or start with the lesson.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button nativeButton={false} render={<Link href="/noexperience/test?src=nc_assessment" />} size="sm">
-              Take the challenge
-            </Button>
-            <Button nativeButton={false} render={<Link href="/noexperience/lesson?src=nc_assessment" />} size="sm" variant="outline">
-              Take the lesson
-            </Button>
+        />
+        <p className="text-sm text-muted-foreground">1 point is 1 minute of real search work, so finishing an assessment also counts toward Candidate+.</p>
+      </Section>
+      <MoreDetails summary="Show more: a work sample you can share">
+        <div className="space-y-3">
+          <h2 className="font-display text-xl font-semibold text-ink">noexperienceneeded.ai: AI work-sample challenge</h2>
+          <p className="text-base text-ink">Produces a shareable work sample for your evidence file, so employers see what you can do. You can also start with the lesson.</p>
+          <div className="flex flex-wrap gap-3">
+            <ActionLink href="/noexperience/test?src=nc_assessment" variant="secondary" event="work_sample_challenge_started" props={{ source: 'how_i_work' }}>Take the challenge</ActionLink>
+            <ActionLink href="/noexperience/lesson?src=nc_assessment" variant="secondary" event="work_sample_lesson_started" props={{ source: 'how_i_work' }}>Take the lesson</ActionLink>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </MoreDetails>
     </div>
   )
 }

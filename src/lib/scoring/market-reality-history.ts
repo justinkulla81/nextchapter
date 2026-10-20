@@ -27,41 +27,6 @@ function gradeScore(snapshot: MarketRealitySnapshotLike): number {
   return GRADE_VALUE[snapshot.grade as Grade] ?? 0
 }
 
-const ORDINAL_SUFFIX = (n: number): string => {
-  if (n % 10 === 1 && n % 100 !== 11) return `${n}st`
-  if (n % 10 === 2 && n % 100 !== 12) return `${n}nd`
-  if (n % 10 === 3 && n % 100 !== 13) return `${n}rd`
-  return `${n}th`
-}
-
-// One true sentence, or null if none of the real patterns apply — never a
-// filler sentence. Snapshots must be sorted oldest to newest.
-export function computeBestWeekSentence(snapshots: MarketRealitySnapshotLike[]): string | null {
-  if (snapshots.length < 2) return null
-  const scores = snapshots.map(gradeScore)
-  const latest = scores[scores.length - 1]
-
-  if (latest >= Math.max(...scores)) {
-    return 'Best week since you started.'
-  }
-
-  let upStreak = 1
-  for (let i = scores.length - 1; i > 0; i--) {
-    if (scores[i] > scores[i - 1]) upStreak++
-    else break
-  }
-  if (upStreak >= 3) return `${ORDINAL_SUFFIX(upStreak)} straight week up.`
-
-  let flatStreak = 1
-  for (let i = scores.length - 1; i > 0; i--) {
-    if (scores[i] === scores[i - 1]) flatStreak++
-    else break
-  }
-  if (flatStreak >= 4) return `Flat for ${flatStreak} weeks.`
-
-  return null
-}
-
 export interface GradeMovement {
   direction: 'up' | 'down'
   fromGrade: Grade

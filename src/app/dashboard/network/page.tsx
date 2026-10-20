@@ -29,7 +29,6 @@ import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackcha
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { getNeedsFollowUpList, parseAddress } from '@/lib/network/needs-follow-up'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { buildCircles, buildMoments, networkHeadline } from '@/lib/redesign/network-home'
 import { NetworkOverview } from '@/components/network/NetworkOverview'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
@@ -81,7 +80,6 @@ const NETWORKING_EMAIL_TYPES: EmailActivityType[] = [
   'INTRO_REQUEST',
   'NETWORKING_OUTREACH',
 ]
-
 
 function ErrorBanner({ code, kind }: { code: string; kind: 'gmail' | 'calendar' }) {
   const message = googleConnectErrorMessage(code, kind)
@@ -655,7 +653,7 @@ export default async function NetworkPage({
   // The redesign (docs/candidate-redesign.md): the five circles, one next move, the moments in reach. The
   // outreach tracker, Gmail and calendar connection results and the stats stay one link away (?view=all).
   const isOAuthReturn = Boolean(params.gmailConnected || params.gmailError || params.calendarConnected || params.calendarError)
-  if (isRedesignOn(profile.email) && params.view !== 'all' && !isOAuthReturn) {
+  if (params.view !== 'all' && !isOAuthReturn) {
     const [supporters, communities, plan] = await Promise.all([
       prisma.searchSupporter.count({ where: { candidateId: profile.id, revokedAt: null } }),
       prisma.communityMembership.count({ where: { candidateId: profile.id, leftAt: null } }),

@@ -1,18 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { PLACES, PREMIUM_HREF, activeTab, placeForPath, resolveTabHref, visibleTabs } from './places'
+import { PREMIUM_HREF, activeTab, resolveTabHref, visibleTabs } from './places'
+import { REDESIGN_PLACES, redesignPlaceForPath } from './redesign-places'
 
-describe('placeForPath', () => {
+const place = (key: string) => REDESIGN_PLACES.find((p) => p.key === key)!
+
+describe('redesignPlaceForPath', () => {
   it('puts the dashboard root in Home', () => {
-    expect(placeForPath('/dashboard')?.key).toBe('home')
+    expect(redesignPlaceForPath('/dashboard')?.key).toBe('home')
   })
   it('prefers the longest match', () => {
-    expect(placeForPath('/dashboard/network/contacts')?.key).toBe('network')
-    expect(activeTab(placeForPath('/dashboard/network/contacts')!, '/dashboard/network/contacts')?.label).toBe('Contacts')
+    expect(redesignPlaceForPath('/dashboard/network/contacts')?.key).toBe('network')
+    expect(activeTab(redesignPlaceForPath('/dashboard/network/contacts')!, '/dashboard/network/contacts')?.label).toBe('Contacts')
   })
-  it('places every old menu route', () => {
+  it('places every candidate menu route', () => {
     const routes: Record<string, string> = {
       '/dashboard/find-my-job': 'jobs',
-      '/dashboard/pivot-paths': 'jobs',
+      '/dashboard/pivot-paths': 'learn',
       '/dashboard/references': 'network',
       '/dashboard/messages': 'network',
       '/dashboard/universities': 'network',
@@ -20,38 +23,38 @@ describe('placeForPath', () => {
       '/dashboard/past-jobs': 'network',
       '/dashboard/learning': 'learn',
       '/dashboard/webinars': 'learn',
-      '/dashboard/profile': 'personalize',
-      '/dashboard/skills-assessments': 'personalize',
-      '/dashboard/marketing-plan': 'personalize',
-      '/dashboard/portfolio': 'personalize',
+      '/dashboard/profile': 'account',
+      '/dashboard/skills-assessments': 'learn',
+      '/dashboard/marketing-plan': 'home',
+      '/dashboard/portfolio': 'jobs',
       '/dashboard/stats': 'home',
       '/dashboard/support': 'help',
-      '/dashboard/benefits-network': 'help',
+      '/dashboard/benefits-network': 'money',
       '/dashboard/help': 'help',
       '/dashboard/scam-watch': 'help',
-      '/dashboard/documents': 'personalize',
+      '/dashboard/documents': 'account',
       '/dashboard/book-session': 'network',
       '/dashboard/my-coaching': 'network',
-      '/dashboard/pivot': 'jobs',
+      '/dashboard/pivot': 'learn',
       '/dashboard/recruiter-requests': 'network',
     }
-    for (const [path, key] of Object.entries(routes)) expect(placeForPath(path)?.key, path).toBe(key)
+    for (const [path, key] of Object.entries(routes)) expect(redesignPlaceForPath(path)?.key, path).toBe(key)
   })
-  it('returns null outside the six places', () => {
-    expect(placeForPath('/faq')).toBeNull()
+  it('returns null outside the places', () => {
+    expect(redesignPlaceForPath('/faq')).toBeNull()
   })
 })
 
 describe('visibleTabs', () => {
   it('hides employed-only tabs for everyone else', () => {
-    const jobs = PLACES.find((p) => p.key === 'jobs')!
+    const jobs = place('jobs')
     expect(visibleTabs(jobs, { employed: false }).some((t) => t.label === 'Reviews and raises')).toBe(false)
     expect(visibleTabs(jobs, { employed: true }).some((t) => t.label === 'Reviews and raises')).toBe(true)
   })
 })
 
 describe('resolveTabHref', () => {
-  const coaching = PLACES.find((p) => p.key === 'network')!.tabs.find((t) => t.label === 'Coaching')!
+  const coaching = place('network').tabs.find((t) => t.label === 'Coaching')!
   it('sends members without access to Premium', () => {
     expect(resolveTabHref(coaching, { coaching: false, recruiters: false })).toBe(PREMIUM_HREF)
   })

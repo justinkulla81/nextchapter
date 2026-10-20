@@ -1,22 +1,16 @@
 import type { Metadata } from 'next'
-import { Users } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { ReferenceRequestForm } from '@/components/references/ReferenceRequestForm'
 import { ReferenceDisputeControl } from '@/components/references/ReferenceDisputeControl'
 import { ReferenceQuoteReview } from '@/components/references/ReferenceQuoteReview'
 import { RELATIONSHIP_TYPE_LABELS } from '@/lib/constants/references'
-import { Card, CardContent } from '@/components/ui/card'
-import { EmptyState } from '@/components/ui/empty-state'
-import { cn } from '@/lib/utils'
 import type { ReferenceStatus } from '@prisma/client'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { gmailComposeHref } from '@/lib/email/gmail-compose-href'
 import { aggregatePerformance } from '@/lib/references/aggregate-performance'
 import { computeRequiredMix } from '@/lib/references/required-mix'
 import { ReferenceCheckSummary } from '@/components/references/ReferenceCheckSummary'
 import { ReferenceFollowUpLink } from '@/components/references/ReferenceFollowUpLink'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { referenceStatusText, referencesIntro } from '@/lib/redesign/network-pages'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
@@ -35,22 +29,6 @@ export const metadata: Metadata = { title: 'My References' }
 // DOSSIER_UNLOCK_REFERENCE_TARGET. Not a Candidate+ gate since 2026-10-16:
 // references count toward Candidate+ Verified (evidence score).
 const REFERENCE_TARGET_COUNT = 3
-
-const STATUS_STYLES: Record<ReferenceStatus, string> = {
-  REQUESTED: 'bg-muted text-muted-foreground',
-  REMINDER_SENT: 'bg-muted text-muted-foreground',
-  COMPLETED: 'bg-primary/10 text-primary',
-  DECLINED: 'bg-destructive/10 text-destructive',
-  EXPIRED: 'bg-destructive/10 text-destructive',
-}
-
-const STATUS_LABELS: Record<ReferenceStatus, string> = {
-  REQUESTED: 'Requested',
-  REMINDER_SENT: 'Reminder sent',
-  COMPLETED: 'Completed',
-  DECLINED: 'Declined',
-  EXPIRED: 'Expired',
-}
 
 // Only these two statuses are still realistically awaiting a response —
 // DECLINED/EXPIRED have nothing left to follow up on.
@@ -92,119 +70,22 @@ export default async function ReferencesPage({
 
   // The redesign (docs/candidate-redesign.md): ask, review, see where each request stands. The summary of what
   // references say about you sits behind Show more.
-  if (isRedesignOn(profile.email)) {
-    captureServerEvent(profile.id, 'references_viewed', {
-      total: allReferences.length,
-      completed: providedReferences.length,
-      pendingQuotes: pendingQuotes.length,
-    })
-    return (
-      <div className="space-y-8">
-        <PageHeader
-          title="References"
-          intro={referencesIntro(providedReferences.length, REFERENCE_TARGET_COUNT)}
-          action={
-            <TrackedAction variant="primary" href="#send-request" event="reference_ask_started" properties={{ source: 'references_primary', completed: providedReferences.length }}>
-              Ask someone
-            </TrackedAction>
-          }
-        />
-        <ReferenceQuoteReview
-          redesign
-          quotes={pendingQuotes.map((q) => ({
-            id: q.id,
-            theme: q.theme,
-            quoteText: q.quoteText,
-            refereeName: q.reference.refereeName,
-          }))}
-        />
-        <div id="send-request" className="scroll-mt-4">
-          <Section id="ask" title="Ask for a reference">
-            <ReferenceRequestForm
-              redesign
-              initialName={params.name}
-              initialEmail={params.email}
-              workHistoryEntries={workHistoryEntries}
-              confidentialSearchMode={profile.confidentialSearchMode}
-            />
-          </Section>
-        </div>
-        <div id="reference-status" className="scroll-mt-4">
-          <Section id="status" title="Where your requests stand">
-            {allReferences.length === 0 ? (
-              <EmptyCard title="No requests yet" why="Even one or two real references make your search more believable to a hiring manager. Ask someone who has seen your work up close." />
-            ) : (
-              <RowList label="Your references">
-                {allReferences.map((ref) => (
-                  <li key={ref.id} className="p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="min-w-0 space-y-0.5">
-                        <p className="text-base font-semibold text-ink">{ref.refereeName}</p>
-                        <p className="text-sm text-ink">{referenceStatusText(ref.status)}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {RELATIONSHIP_TYPE_LABELS[ref.relationshipType]}
-                          {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''} · Sent {dateFormatter.format(ref.requestedAt)}
-                        </p>
-                      </div>
-                      {AWAITING_RESPONSE_STATUSES.includes(ref.status) && (
-                        <ReferenceFollowUpLink
-                          referenceId={ref.id}
-                          href={gmailComposeHref(
-                            ref.refereeEmail,
-                            `Following up on your reference for ${candidateName}`,
-                            followUpBody(ref.refereeName, candidateName)
-                          )}
-                        />
-                      )}
-                    </div>
-                    {ref.status === 'COMPLETED' && (
-                      <ReferenceDisputeControl
-                        referenceId={ref.id}
-                        disputeNote={ref.candidateDisputeNote}
-                        disputedAt={ref.candidateDisputedAt}
-                        resolvedAt={ref.disputeResolvedAt}
-                      />
-                    )}
-                  </li>
-                ))}
-              </RowList>
-            )}
-          </Section>
-        </div>
-        {providedReferences.length > 0 && (
-          <ShowMore page="references" label="What your references say about you">
-            <ReferenceCheckSummary
-              dimensions={performanceAggregate.dimensions}
-              completedReferenceCount={performanceAggregate.completedReferenceCount}
-              confidenceTier={performanceAggregate.confidenceTier}
-              mix={mix}
-            />
-          </ShowMore>
-        )}
-      </div>
-    )
-  }
-
+  captureServerEvent(profile.id, 'references_viewed', {
+    total: allReferences.length,
+    completed: providedReferences.length,
+    pendingQuotes: pendingQuotes.length,
+  })
   return (
     <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">References</h1>
-        <PageHeaderBoxes
-          pageKey="references"
-          candidateId={profile.id}
-          lifetimeProgress={{
-            REFERENCE_ADDED: { current: providedReferences.length, target: REFERENCE_TARGET_COUNT },
-          }}
-        />
-      </div>
-
-      <ReferenceCheckSummary
-        dimensions={performanceAggregate.dimensions}
-        completedReferenceCount={performanceAggregate.completedReferenceCount}
-        confidenceTier={performanceAggregate.confidenceTier}
-        mix={mix}
+      <PageHeader
+        title="References"
+        intro={referencesIntro(providedReferences.length, REFERENCE_TARGET_COUNT)}
+        action={
+          <TrackedAction variant="primary" href="#send-request" event="reference_ask_started" properties={{ source: 'references_primary', completed: providedReferences.length }}>
+            Ask someone
+          </TrackedAction>
+        }
       />
-
       <ReferenceQuoteReview
         quotes={pendingQuotes.map((q) => ({
           id: q.id,
@@ -213,67 +94,43 @@ export default async function ReferencesPage({
           refereeName: q.reference.refereeName,
         }))}
       />
-
-      <div id="send-request" className="scroll-mt-4 space-y-2">
-        <h2 className="text-sm font-medium text-muted-foreground">Send a Reference Request</h2>
-        <ReferenceRequestForm
-          initialName={params.name}
-          initialEmail={params.email}
-          workHistoryEntries={workHistoryEntries}
-          confidentialSearchMode={profile.confidentialSearchMode}
-        />
-      </div>
-
-      {/* Always rendered with this id — REFERENCE_ADDED/REFERENCE_FOLLOW_UP
-          deep-link here, including from a candidate who has zero references
-          yet (exactly the moment "get a reference completed" is the live
-          action), so the id can't only exist once there's at least one. */}
-      <div id="reference-status" className="scroll-mt-4 space-y-2">
-        {allReferences.length === 0 ? (
-          <EmptyState
-            icon={Users}
-            title="No references requested yet"
-            description="Use the form above to request your first one — even 1-2 real references make a real difference to your Market Reality Assessment."
+      <div id="send-request" className="scroll-mt-4">
+        <Section id="ask" title="Ask for a reference">
+          <ReferenceRequestForm
+            initialName={params.name}
+            initialEmail={params.email}
+            workHistoryEntries={workHistoryEntries}
+            confidentialSearchMode={profile.confidentialSearchMode}
           />
-        ) : (
-          <>
-          <h2 className="text-sm font-medium text-muted-foreground">
-            Reference Requests / Completed ({allReferences.length})
-          </h2>
-          <Card>
-            <CardContent className="divide-y divide-border p-0">
+        </Section>
+      </div>
+      <div id="reference-status" className="scroll-mt-4">
+        <Section id="status" title="Where your requests stand">
+          {allReferences.length === 0 ? (
+            <EmptyCard title="No requests yet" why="Even one or two real references make your search more believable to a hiring manager. Ask someone who has seen your work up close." />
+          ) : (
+            <RowList label="Your references">
               {allReferences.map((ref) => (
-                <div key={ref.id} className="px-4 py-3">
-                  <div className="flex items-center justify-between gap-4">
+                <li key={ref.id} className="p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0 space-y-0.5">
-                      <p className="font-medium">{ref.refereeName}</p>
+                      <p className="text-base font-semibold text-ink">{ref.refereeName}</p>
+                      <p className="text-sm text-ink">{referenceStatusText(ref.status)}</p>
                       <p className="text-sm text-muted-foreground">
                         {RELATIONSHIP_TYPE_LABELS[ref.relationshipType]}
-                        {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''}
-                        {' · Sent '}
-                        {dateFormatter.format(ref.requestedAt)}
+                        {ref.refereeCompany ? ` · ${ref.refereeCompany}` : ''} · Sent {dateFormatter.format(ref.requestedAt)}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      {AWAITING_RESPONSE_STATUSES.includes(ref.status) && (
-                        <ReferenceFollowUpLink
-                          referenceId={ref.id}
-                          href={gmailComposeHref(
-                            ref.refereeEmail,
-                            `Following up on your reference for ${candidateName}`,
-                            followUpBody(ref.refereeName, candidateName)
-                          )}
-                        />
-                      )}
-                      <span
-                        className={cn(
-                          'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                          STATUS_STYLES[ref.status]
+                    {AWAITING_RESPONSE_STATUSES.includes(ref.status) && (
+                      <ReferenceFollowUpLink
+                        referenceId={ref.id}
+                        href={gmailComposeHref(
+                          ref.refereeEmail,
+                          `Following up on your reference for ${candidateName}`,
+                          followUpBody(ref.refereeName, candidateName)
                         )}
-                      >
-                        {STATUS_LABELS[ref.status]}
-                      </span>
-                    </div>
+                      />
+                    )}
                   </div>
                   {ref.status === 'COMPLETED' && (
                     <ReferenceDisputeControl
@@ -283,13 +140,22 @@ export default async function ReferencesPage({
                       resolvedAt={ref.disputeResolvedAt}
                     />
                   )}
-                </div>
+                </li>
               ))}
-            </CardContent>
-          </Card>
-          </>
-        )}
+            </RowList>
+          )}
+        </Section>
       </div>
+      {providedReferences.length > 0 && (
+        <ShowMore page="references" label="What your references say about you">
+          <ReferenceCheckSummary
+            dimensions={performanceAggregate.dimensions}
+            completedReferenceCount={performanceAggregate.completedReferenceCount}
+            confidenceTier={performanceAggregate.confidenceTier}
+            mix={mix}
+          />
+        </ShowMore>
+      )}
     </div>
   )
 }
