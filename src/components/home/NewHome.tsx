@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { HomeJobSearch } from '@/components/home/HomeJobSearch'
+import { HomeTryIt } from '@/components/home/HomeTryIt'
 import { HomeLearnMore } from '@/components/home/HomeLearnMore'
 
 // The redesigned homepage (docs/candidate-redesign.md page contract): one headline, one
@@ -72,7 +72,7 @@ export function NewHome() {
         </div>
       </section>
 
-      <HomeJobSearch />
+      <HomeTryIt />
 
       <HomeLearnMore />
 
