@@ -1,0 +1,249 @@
+/**
+ * Which layoffs get a suggested LinkedIn post, and what the post says. Pure,
+ * so the gate and the wording are testable without a database.
+ *
+ * The posts are suggestions for a person to read, edit and post by hand. The
+ * gate is deliberately stricter than the one that files a layoff in the
+ * tracker: a wrong row in the tracker is dismissed, a wrong public post is
+ * not taken back.
+ */
+import { isTrustedPublisher } from '@/lib/warn/news-trust'
+import { publisherKey } from '@/lib/warn/news-headline'
+
+/** Smaller layoffs are not worth a public post, and name too few people to be safe. */
+export const MIN_EMPLOYEES = 100
+/** A layoff first filed longer ago than this is old news. */
+export const MAX_AGE_DAYS = 10
+/** At most this many new drafts in any rolling seven days, biggest first. */
+export const WEEKLY_CAP = 5
+/** Posts link here, tagged so sign-ups from LinkedIn are countable. */
+export const POST_LINK = 'https://launchyournextchapter.com/layoffs?utm_source=linkedin&utm_medium=social&utm_campaign=layoff-post'
+
+export type Credibility = 'warn-filing' | 'sec-filing' | 'two-publishers' | 'trusted-outlet'
+
+export interface GateNotice {
+  source: 'WARN_FILING' | 'MANUAL_ANNOUNCEMENT'
+  sourceUrl: string | null
+  layoffType: string | null
+  employees: number | null
+  fetchedAt: Date
+  dismissedAt: Date | null
+}
+
+/**
+ * Why a notice is credible enough to post about, or null when it is not.
+ * Official records count on their own: a state WARN filing, or the company's
+ * own SEC 8-K. A news-sourced layoff counts only with two different
+ * publishers, or one outlet on the trusted list. Everything else waits; if a
+ * second publisher reports it later, the next sweep finds it qualifying.
+ */
+export function credibilityOf(n: GateNotice, mentionPublishers: (string | null)[], now = new Date()): Credibility | null {
+  if (n.dismissedAt) return null
+  if (n.employees == null || n.employees < MIN_EMPLOYEES) return null
+  if (now.getTime() - n.fetchedAt.getTime() > MAX_AGE_DAYS * 86_400_000) return null
+  if (n.source === 'WARN_FILING') return 'warn-filing'
+  if (/sec\.gov/i.test(n.sourceUrl ?? '') || /^SEC 8-K/i.test(n.layoffType ?? '')) return 'sec-filing'
+  const publishers = new Set(mentionPublishers.map(publisherKey).filter(Boolean))
+  if (publishers.size >= 2) return 'two-publishers'
+  if (mentionPublishers.some((p) => isTrustedPublisher(p))) return 'trusted-outlet'
+  return null
+}
+
+export const ANGLES = ['offer-help', 'first-week', 'local-market', 'senior-demand', 'timeline'] as const
+export type Angle = (typeof ANGLES)[number]
+
+export interface DraftFacts {
+  employer: string
+  employees: number
+  percent: number | null
+  /** "Harris County, TX", or just "TX", or null. */
+  place: string | null
+  state: string | null
+  noticeDate: string | null
+  effectiveDate: string | null
+  industry: string | null
+  sourceUrl: string | null
+  credibility: Credibility
+  /** Open roles on our board in the layoff's state, and the manager-and-above share of them. Null when not known. */
+  openRolesInState: number | null
+  openSeniorRolesInState: number | null
+  /** People and groups worth @-mentioning when posting: tagging is typed by hand on LinkedIn, so these are prompts. */
+  tagSuggestions: { name: string; note: string; linkedinUrl: string | null }[]
+}
+
+/** Angles the facts can support; the others would need a number or date we do not have. */
+export function eligibleAngles(f: DraftFacts): Angle[] {
+  return ANGLES.filter((a) => {
+    if (a === 'local-market') return f.openRolesInState != null && f.openRolesInState >= 50 && !!f.state
+    if (a === 'senior-demand') return f.openSeniorRolesInState != null && f.openSeniorRolesInState >= 25 && !!f.state
+    if (a === 'timeline') return f.credibility === 'warn-filing' && !!f.effectiveDate
+    return true
+  })
+}
+
+/** Stable small number from a string, so the same notice always gets the same wording. */
+export function hash(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619)
+  return h >>> 0
+}
+
+/**
+ * The option used least recently, given the most recent picks newest first.
+ * Never-used options win; among equals the seed decides, so two layoffs
+ * filed the same day do not always get the same pick.
+ */
+export function leastRecent<T>(options: T[], recentNewestFirst: T[], seed: string): T {
+  const age = (o: T) => { const i = recentNewestFirst.indexOf(o); return i === -1 ? Infinity : i }
+  const oldest = Math.max(...options.map(age))
+  const tied = options.filter((o) => age(o) === oldest)
+  return tied[hash(seed) % tied.length]
+}
+
+const fmt = (n: number) => n.toLocaleString('en-US')
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+function shortDate(iso: string): string {
+  const d = new Date(iso)
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`
+}
+
+/** What the post says first: the news itself, worded for how we know it. */
+function lead(f: DraftFacts, v: number): string {
+  const where = f.place ? ` in ${f.place}` : ''
+  const size = f.percent ? `${fmt(f.employees)} jobs (${f.percent}% of staff)` : `${fmt(f.employees)} jobs`
+  if (f.credibility === 'warn-filing') {
+    return [
+      `${f.employer} filed a WARN notice${f.state ? ` in ${f.state}` : ''}: ${size}${where}.`,
+      `A WARN notice just landed for ${f.employer}${where}. It covers ${size}.`,
+    ][v % 2]
+  }
+  if (f.credibility === 'sec-filing') {
+    return [
+      `${f.employer} disclosed a restructuring in an SEC filing that cuts ${size}.`,
+      `${f.employer}'s latest SEC filing confirms job cuts: ${size}.`,
+    ][v % 2]
+  }
+  return [
+    `${f.employer} is cutting ${size}${where}, according to news reports.`,
+    `${f.employer} has announced layoffs affecting ${size}${where}.`,
+  ][v % 2]
+}
+
+function body(angle: Angle, f: DraftFacts, v: number): string {
+  switch (angle) {
+    case 'first-week':
+      return [
+        `If you're one of them, the first week matters most:\n\n1. Read the severance and benefits terms before you sign anything.\n2. File for unemployment right away. Don't wait for severance to run out.\n3. Tell your network exactly what you're looking for, not just that you're looking.\n4. Update your résumé while the work is still fresh.`,
+        `If this is your team, here is what to do first:\n\n1. Get the severance offer in writing and read it before signing.\n2. Check your state's unemployment rules the same week, not later.\n3. Ask a manager or two for a reference now, while they're reachable.\n4. Write down your biggest wins from the last two years before you lose access to the details.`,
+      ][v % 2]
+    case 'local-market':
+      return `The market for the people affected is real. There are ${fmt(f.openRolesInState ?? 0)} open roles in ${f.state} on our job board today, and every one is a role someone is paid to fill. Knowing where the openings are is the first step to a plan.`
+    case 'senior-demand':
+      return [
+        `Experienced people are still being hired. ${fmt(f.openSeniorRolesInState ?? 0)} manager-and-above roles are open in ${f.state} on our board today. The work is finding the ones that fit, not wondering whether they exist.`,
+        `A layoff is one company's plan, not a verdict on the people. ${fmt(f.openSeniorRolesInState ?? 0)} senior roles are open in ${f.state} right now across the employers we track.`,
+      ][v % 2]
+    case 'timeline':
+      return `WARN notices generally give employees 60 days before a layoff takes effect. The date listed here is ${shortDate(f.effectiveDate ?? '')}. That window is the best time to start: quietly, with a plan, before the pressure of a last paycheck.`
+    case 'offer-help':
+    default:
+      return [
+        `If you or someone you know is affected, reach out. NextChapter helps people turn a layoff into a plan: where to look, who to talk to, and what to say.`,
+        `If this touches you or someone you know, we can help you build a plan for the next 30 days and find roles that fit your experience.`,
+      ][v % 2]
+  }
+}
+
+/**
+ * Closing asks, each written to earn a repost, a tag or a comment: people share
+ * a layoff post when it lets them help someone, so every ask hands the reader a
+ * specific thing to do. The link is not in the post (LinkedIn shows posts with
+ * outbound links to fewer people); it goes in the first comment.
+ */
+const CLOSINGS = [
+  (f: DraftFacts) => `Know someone at ${f.employer}? Tag them or send this along. A warm intro this week beats ten cold applications.`,
+  (f: DraftFacts) => `Hiring? If you have a role for someone coming out of ${f.employer}, say so in the comments so they can find you.`,
+  (f: DraftFacts) => `If you work at ${f.employer}, you don't have to say anything here. Send me a message and we'll start with what you need.`,
+  () => `Repost this so it reaches the people it affects. Most of them won't see it otherwise.`,
+]
+const TAGS = [['#Layoffs', '#CareerSupport'], ['#JobSearch', '#CareerTransition'], ['#Layoffs', '#JobSearch', '#WARN'], ['#CareerSupport', '#OpenToWork']]
+
+export interface DraftText {
+  body: string
+  /** Posted as the first comment, where the link does not cost the post its reach. */
+  firstComment: string
+}
+
+/**
+ * The post text: a lead built from the facts, an angle-specific body, a
+ * closing ask, and a few hashtags. Variants rotate on a hash of the seed, so
+ * wording differs from post to post without any model call. A person (or the
+ * morning rewrite) edits it before it goes anywhere.
+ */
+export function draftText(angle: Angle, f: DraftFacts, seed: string): DraftText {
+  const v = hash(seed)
+  const tags = TAGS[(v >>> 3) % TAGS.length].filter((t) => t !== '#WARN' || f.credibility === 'warn-filing')
+  return {
+    body: [lead(f, v >>> 1), body(angle, f, v >>> 2), CLOSINGS[(v >>> 5) % CLOSINGS.length](f), tags.join(' ')].join('\n\n'),
+    firstComment: `If it helps, this is where to start: ${POST_LINK}`,
+  }
+}
+
+// LinkedIn reach is best on weekday mornings, at lunch and early evening.
+// Eastern-time slot starts, as [hour, minute].
+const SLOTS_ET: [number, number][] = [[8, 15], [12, 10], [17, 20]]
+/** Never more than this many drafts due on one calendar day. */
+export const MAX_PER_DAY = 2
+/** Posts at least this far apart, so a feed never sees two from us back to back. */
+export const MIN_GAP_MS = 3 * 3_600_000
+
+/** Offset of US Eastern time from UTC at an instant, in hours (4 in daylight time, 5 otherwise). */
+function etOffsetHours(at: Date): number {
+  const h = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hourCycle: 'h23' }).format(at))
+  return (at.getUTCHours() - h + 24) % 24
+}
+
+/** The ET calendar day (YYYY-MM-DD) and weekday (0 = Sunday) of an instant. */
+function etDay(at: Date): { key: string; dow: number } {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' }).formatToParts(at)
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? ''
+  return { key: `${get('year')}-${get('month')}-${get('day')}`, dow: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(get('weekday')) }
+}
+
+/**
+ * When each new draft should go out: the next free weekday slot at least an
+ * hour from now, a few hours after the previous one, at most two a day.
+ * `taken` is when drafts already waiting are due. Returns one time per draft,
+ * in order, so the biggest layoff (passed first) gets the earliest slot.
+ */
+export function assignSlots(count: number, taken: Date[], now = new Date()): Date[] {
+  const scheduled = [...taken]
+  const out: Date[] = []
+  const earliest = now.getTime() + 3_600_000
+  for (let dayOffset = 0; out.length < count && dayOffset < 21; dayOffset++) {
+    const probe = new Date(now.getTime() + dayOffset * 86_400_000)
+    const { key, dow } = etDay(probe)
+    if (dow === 0 || dow === 6) continue
+    const [y, m, d] = key.split('-').map(Number)
+    for (const [hh, mm] of SLOTS_ET) {
+      if (out.length >= count) break
+      // Local noon-ish offset is stable within a day except across the DST switch; recompute at the slot.
+      const guess = new Date(Date.UTC(y, m - 1, d, hh + 5, mm))
+      const slot = new Date(Date.UTC(y, m - 1, d, hh + etOffsetHours(guess), mm))
+      if (slot.getTime() < earliest) continue
+      if (scheduled.some((t) => Math.abs(t.getTime() - slot.getTime()) < MIN_GAP_MS)) continue
+      if (scheduled.filter((t) => etDay(t).key === key).length >= MAX_PER_DAY) continue
+      out.push(slot)
+      scheduled.push(slot)
+    }
+  }
+  return out
+}
+
+/** Image layouts: [background, accent, text]. Rotated like angles so cards do not all look alike. */
+export const LAYOUTS: { bg: string; accent: string; ink: string; align: 'left' | 'center' }[] = [
+  { bg: '#14213D', accent: '#F4B860', ink: '#FFFFFF', align: 'left' },
+  { bg: '#F6F8FB', accent: '#0B7A75', ink: '#14213D', align: 'left' },
+  { bg: '#0B7A75', accent: '#FFFFFF', ink: '#FFFFFF', align: 'center' },
+  { bg: '#FFFFFF', accent: '#C2410C', ink: '#14213D', align: 'center' },
+]
