@@ -134,6 +134,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/warn/layoff-contacts-run.ts': 'admin WARN tooling',
     'src/lib/outreach/report.ts': 'admin outreach: reads cold-email sends and replies for the CRM Outreach tests page',
     'src/lib/outreach/events.ts': 'admin outreach: Resend webhook handler for tagged cold email; marks bounced or complaining addresses',
+    'src/lib/linkedin/layoff-post-sweep.ts': 'admin WARN tooling: imported only by the layoff-news cron and the LinkedIn drafts admin actions; reads CRM people at a layoff employer as tag suggestions for the owner',
     'src/lib/warn/layoff-hr-enrich.ts': 'admin WARN tooling: imported only by the layoff alert; adds HR people at the employer to the CRM when a layoff is filed',
     'src/lib/warn/layoff-alert-people.ts': 'admin WARN tooling: imported only by the layoff alert; lists the CRM and workforce contacts tied to one layoff',
     'src/lib/warn/layoff-alert.ts':'admin WARN tooling: emails the owner about a new layoff; imported only by WARN sync, news-check and the SEC 8-K check',
