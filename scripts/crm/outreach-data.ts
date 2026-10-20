@@ -13,6 +13,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
 import { isHrLeaderTitle } from '../../src/lib/crm/org-domains'
+import { cityFromAddress } from '../../src/lib/workforce/places'
 
 const STATES: Record<string, string> = { AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'the District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming' }
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -23,6 +24,11 @@ const cleanName = (name: string) => name.replace(/&amp;/gi, '&').replace(/&#0?39
 const clean = (name: string) => cleanName(name).replace(/\([^)]*\)/g, '').replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+20\d\d\b/gi, '').replace(/,?\s*et\s?al\.?/i, '').replace(/[’']s\b/g, '')
   .replace(/,?\s+(inc|llc|l\.l\.c|corp|corporation|co|company|ltd|plc|lp|llp)\.?\s*$/i, '').replace(/\s+/g, ' ').trim()
 const q = (v: unknown) => '"' + String(v ?? '').replace(/"/g, '""') + '"'
+const cityOf = (n: Notice | undefined, state: string) => {
+  const c = n ? cityFromAddress(n.address, state) : null
+  // A real city, not "Various locations in Washington" or the state's own name.
+  return c && !/various|multiple|locations?|statewide|remote|nationwide|\bin\b|^n\/?a$/i.test(c) && c.toLowerCase() !== (STATES[state] ?? '').toLowerCase() ? c : null
+}
 const countyBase = (c: string | null | undefined) => (c ?? '').replace(/\s+(county|parish)$/i, '').trim().toLowerCase()
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 // The greeting: the first name, with honorifics and initials dropped; a doctor, judge or reverend is greeted as "Dr. Last".
@@ -42,7 +48,7 @@ const poss = (n: string) => (/s$/i.test(n) ? `${n}'` : `${n}'s`)
 const list = (a: string[]) => (a.length <= 1 ? a.join('') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
 
 interface Area { id: string; name: string; state: string; unemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
-interface Notice { employer: string; employees: number; county: string | null; state: string; effective: Date | null; board: string | null }
+interface Notice { employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; board: string | null }
 type Row = Record<string, string>
 
 const tpl = JSON.parse(readFileSync(new URL('./outreach-templates.json', import.meta.url), 'utf8')) as {
@@ -72,7 +78,7 @@ async function main() {
   const boardNames = new Map((await prisma.workforceBoard.findMany({ select: { id: true, name: true } })).map((b) => [b.id, b.name]))
   const notices = await prisma.warnNotice.findMany({
     where: { source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: since, lte: now }, employees: { not: null } },
-    select: { employer: true, employees: true, county: true, state: true, effectiveDate: true, promotedOrgId: true, workforceBoardId: true },
+    select: { employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, promotedOrgId: true, workforceBoardId: true },
   })
   const bigger = (a: Notice | undefined, b: Notice) => (!a || b.employees > a.employees ? b : a)
   const byOrg = new Map<string, Notice>(), byBoard = new Map<string, Notice>(), byCounty = new Map<string, Notice>(), byState = new Map<string, Notice>()
@@ -80,7 +86,7 @@ async function main() {
   const stateAll = new Map<string, Notice[]>()
   const stateTotals = new Map<string, { notices: number; jobs: number }>()
   for (const w of notices) {
-    const nt: Notice = { employer: clean(w.employer), employees: w.employees!, county: w.county, state: w.state!, effective: w.effectiveDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
+    const nt: Notice = { employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
     if (w.promotedOrgId) byOrg.set(w.promotedOrgId, bigger(byOrg.get(w.promotedOrgId), nt))
     if (w.workforceBoardId) byBoard.set(w.workforceBoardId, bigger(byBoard.get(w.workforceBoardId), nt))
     if (w.county) { const k = `${w.state}|${countyBase(w.county)}`; byCounty.set(k, bigger(byCounty.get(k), nt)) }
@@ -134,7 +140,7 @@ async function main() {
     const row: Row = {
       template, first_name: who.first, email: who.email, recipient_org: who.org, recipient_title: who.title, org: who.org,
       company: ctx.notice && ctx.notice.employer.length <= 45 ? ctx.notice.employer : '', employees: ctx.notice ? n0(ctx.notice.employees) : '',
-      county: area?.name ?? ctx.notice?.county ?? stateName, state: stateName, state_code: state,
+      county: area?.name ?? ctx.notice?.county ?? (cityOf(ctx.notice, state) ? `${cityOf(ctx.notice, state)}, ${stateName}` : stateName), state: stateName, state_code: state,
       state_poss: poss(stateName),
       company_poss: ctx.notice && ctx.notice.employer.length <= 45 ? poss(ctx.notice.employer) : '',
       state_notices_phrase: st ? `${n0(st.notices)} ${st.notices === 1 ? 'notice' : 'notices'} covering ${n0(st.jobs)} jobs` : '',

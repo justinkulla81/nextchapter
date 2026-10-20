@@ -12,7 +12,7 @@ export const FACTS = {
   name: 'NextChapter',
   url: SITE_URL,
   /** One line: what it is. */
-  tagline: 'The AI platform for career transitions.',
+  tagline: 'The leading job transition platform for white-collar workers.',
   /** Who it is for. */
   audience:
     'Experienced professionals between jobs or planning a move, and the organizations that serve them: employers running layoffs, outplacement buyers, recruiters, coaches, workforce boards and nonprofits.',

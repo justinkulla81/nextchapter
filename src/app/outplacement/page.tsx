@@ -31,7 +31,7 @@ const TIER_ROWS: { label: string; core: string; plus: string; premium: string }[
 export const metadata: Metadata = {
   title: 'Outplacement That Relaunches Careers',
   description:
-    'Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — an estimated 35-40% less than typical incumbent outplacement pricing.',
+    'The leading job transition platform for white-collar workers. Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — an estimated 35-40% less than typical incumbent outplacement pricing.',
   alternates: { canonical: '/outplacement' },
   openGraph: {
     title: 'Outplacement That Relaunches Careers — NextChapter',
@@ -47,7 +47,7 @@ const jsonLd = {
   name: 'NextChapter for Outplacement',
   serviceType: 'Outplacement',
   description:
-    'Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — an estimated 35-40% less than typical incumbent outplacement pricing.',
+    'The leading job transition platform for white-collar workers. Outplacement that produces proof, not a portal. Verified Executive Dossiers, real coaching, live reporting, and compliance documentation — an estimated 35-40% less than typical incumbent outplacement pricing.',
   provider: { '@type': 'Organization', name: 'NextChapter' },
 }
 
