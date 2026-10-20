@@ -6,20 +6,12 @@ import { InterimListingGrid } from '@/components/dashboard/InterimListingGrid'
 import { InterimListingCarousel } from '@/components/dashboard/InterimListingCarousel'
 import { WorkHistoryForm } from '@/components/dashboard/WorkHistoryForm'
 import { WorkHistoryList } from '@/components/dashboard/WorkHistoryList'
-import { getInterimLaunchPlan } from '@/lib/gig-directory/interim-launch-plan'
-import { getRelevantMarketplaceCategories } from '@/lib/interim-work/marketplace-tailoring'
-import { isBoardReady } from '@/lib/interim-work/board-readiness'
-import { getActiveListings, getSignedUpListingIds } from '@/lib/interim-work/listings'
-import { InterimListingCategory } from '@prisma/client'
+import { loadIndependentWork } from '@/lib/interim-work/independent-work-data'
 import { setBoardDiversityListingsOptIn, markInterimMarketplaceSignup, answerBoardAdvisoryWillingness } from '@/app/dashboard/interim-work/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
-import { prisma } from '@/lib/prisma'
 import { signupCountToTier } from '@/lib/interim-work/signup-count-tier'
-import { computeMarketplaceSignupMix } from '@/lib/interim-work/marketplace-signup-mix'
-import { isActiveMember } from '@/lib/membership/subscription'
 import { GigDirectoryUnlockForm } from '@/components/dashboard/GigDirectoryUnlockForm'
-import { getPlatformActivity, statusByListing } from '@/lib/platforms/candidate-view'
 import { PlatformActivityPanel } from '@/components/dashboard/platforms/PlatformActivityPanel'
 import type { WorkType } from '@/lib/jobs/work-type'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
@@ -31,10 +23,6 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 // contract or advisory work is switched on; each part only for the types it serves.
 // Expert networks moved to the top of the Contract view (ExpertNetworkRow), and the
 // matched board and consulting roles into the board's employer-matched roles.
-
-function twoDaysAgo(): Date {
-  return new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-}
 
 function InterimSignupBreakdownContent({ signups }: { signups: { listing: { name: string } }[] }) {
   return (
@@ -53,45 +41,12 @@ export async function IndependentWorkSections({
   profile: Awaited<ReturnType<typeof getDashboardData>>
   types: WorkType[]
 }) {
-  const showIndependent = types.includes('part_time') || types.includes('contract')
-  const showAdvisory = types.includes('advisory')
-  if (!showIndependent && !showAdvisory) return null
-
-  const marketplaceCategories = getRelevantMarketplaceCategories(profile)
-  const boardReady = isBoardReady(profile)
-
-  const [phases, marketplaceListings, expertNetworkListings, allBoardListings, signedUpIds, interimSignups, isMember, oldClickThroughs, platformRows, gmailConnection] =
-    await Promise.all([
-      getInterimLaunchPlan(profile),
-      getActiveListings(marketplaceCategories),
-      getActiveListings([InterimListingCategory.EXPERT_NETWORK]),
-      getActiveListings([boardReady ? InterimListingCategory.BOARD_ADVISORY : InterimListingCategory.NONPROFIT_BOARD]),
-      getSignedUpListingIds(profile.id),
-      prisma.interimMarketplaceSignup.findMany({
-        where: { candidateId: profile.id },
-        select: { listing: { select: { name: true, category: true } } },
-        orderBy: { createdAt: 'desc' },
-      }),
-      isActiveMember(profile.id),
-      prisma.partnerClickThrough.findMany({
-        where: { candidateId: profile.id, section: 'interim_work', createdAt: { lt: twoDaysAgo() } },
-        select: { partnerName: true },
-        distinct: ['partnerName'],
-      }),
-      getPlatformActivity(profile.id, 'WORK'),
-      prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null }, select: { id: true } }),
-    ])
-  const platformStatuses = statusByListing([...marketplaceListings, ...expertNetworkListings, ...allBoardListings], platformRows)
-  const interimSignupMix = computeMarketplaceSignupMix(interimSignups.map((s) => s.listing.category))
-
-  const clickedPartnerNames = new Set(oldClickThroughs.map((c) => c.partnerName))
-  const clickedNotRegistered = [...marketplaceListings, ...expertNetworkListings, ...allBoardListings].filter(
-    (l) => clickedPartnerNames.has(l.name) && !signedUpIds.has(l.id)
-  )
-  const boardListings = allBoardListings.filter(
-    (l) => l.audienceFocus === 'GENERAL' || profile.boardDiversityListingsOptIn === true
-  )
-  const hasWomenFocusedListings = allBoardListings.some((l) => l.audienceFocus === 'WOMEN_FOCUSED')
+  const data = await loadIndependentWork(profile, types)
+  if (!data) return null
+  const {
+    showIndependent, showAdvisory, boardReady, phases, marketplaceListings, signedUpIds, interimSignups, isMember, platformRows, platformStatuses,
+    gmailConnected, interimSignupMix, clickedNotRegistered, boardListings, hasWomenFocusedListings,
+  } = data
 
   return (
     <div id="independent-work" className="scroll-mt-4 space-y-10 border-t border-border pt-8">
@@ -103,7 +58,7 @@ export async function IndependentWorkSections({
       </div>
       {/* Admin-edited header boxes from the old Interim Work page. */}
       <PageHeaderBoxes pageKey="interim-work" candidateId={profile.id} />
-      <PlatformActivityPanel kind="WORK" rows={platformRows} gmailConnected={!!gmailConnection} />
+      <PlatformActivityPanel kind="WORK" rows={platformRows} gmailConnected={gmailConnected} />
 
       {/* Second chance at the Board Advisory Work willingness question —
           shown only until answered yes here or on Search Strategy (a "no"

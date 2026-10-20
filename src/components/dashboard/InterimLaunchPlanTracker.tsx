@@ -6,7 +6,9 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
 import type { LaunchPhase } from '@/lib/gig-directory/interim-launch-plan'
 
-export function InterimLaunchPlanTracker({ phases }: { phases: LaunchPhase[] }) {
+// `skipFormsFor`: a phase whose form is already on the page elsewhere (the redesigned Independent work part shows the
+// next step's form up top), so it is not rendered a second time here.
+export function InterimLaunchPlanTracker({ phases, skipFormsFor }: { phases: LaunchPhase[]; skipFormsFor?: number }) {
   const completedCount = phases.filter((p) => p.completed).length
 
   return (
@@ -43,8 +45,8 @@ export function InterimLaunchPlanTracker({ phases }: { phases: LaunchPhase[] }) 
                     #gig-directory-unlock block) rather than duplicated here —
                     this row would otherwise render it a second time, hidden
                     inside this collapsed launch-plan details element. */}
-                {phase.number === 2 && !phase.completed && <InterimOfferDefinitionForm />}
-                {phase.number === 6 && !phase.completed && (
+                {phase.number === 2 && !phase.completed && phase.number !== skipFormsFor && <InterimOfferDefinitionForm />}
+                {phase.number === 6 && !phase.completed && phase.number !== skipFormsFor && (
                   <form action={markInterimOutreachStarted}>
                     <SubmitButton variant="outline" size="sm" pendingLabel="Saving…">
                       I&apos;ve started reaching out
