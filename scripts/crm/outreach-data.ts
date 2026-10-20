@@ -77,6 +77,7 @@ async function main() {
   const bigger = (a: Notice | undefined, b: Notice) => (!a || b.employees > a.employees ? b : a)
   const byOrg = new Map<string, Notice>(), byBoard = new Map<string, Notice>(), byCounty = new Map<string, Notice>(), byState = new Map<string, Notice>()
   let top: Notice | undefined
+  const stateAll = new Map<string, Notice[]>()
   const stateTotals = new Map<string, { notices: number; jobs: number }>()
   for (const w of notices) {
     const nt: Notice = { employer: clean(w.employer), employees: w.employees!, county: w.county, state: w.state!, effective: w.effectiveDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
@@ -84,6 +85,7 @@ async function main() {
     if (w.workforceBoardId) byBoard.set(w.workforceBoardId, bigger(byBoard.get(w.workforceBoardId), nt))
     if (w.county) { const k = `${w.state}|${countyBase(w.county)}`; byCounty.set(k, bigger(byCounty.get(k), nt)) }
     byState.set(w.state!, bigger(byState.get(w.state!), nt))
+    stateAll.set(w.state!, [...(stateAll.get(w.state!) ?? []), nt])
     top = bigger(top, nt)
     const t = stateTotals.get(w.state!) ?? { notices: 0, jobs: 0 }
     t.notices++; t.jobs += w.employees!; stateTotals.set(w.state!, t)
@@ -153,6 +155,10 @@ async function main() {
     row.line_top_functions = region.fns.length ? `The most common functions are ${list(region.fns)}.` : ''
     row.line_ai_roles = region.ai ? `${n0(region.ai)} open roles ${scope} mention AI in the title.` : ''
     row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers soon after a notice.` : row.board ? `${row.board} typically meets employers soon after a notice.` : ''
+    // The state's three largest notices, one per employer, as a proof point that we watch their state.
+    const seenEmp = new Set<string>()
+    const tops = [...(stateAll.get(state ?? '') ?? [])].sort((a, b) => b.employees - a.employees).filter((x) => { const k = x.employer.toLowerCase(); if (seenEmp.has(k)) return false; seenEmp.add(k); return true }).slice(0, 3)
+    row.line_top_notices = tops.length >= 2 ? `The largest were ${list(tops.map((x) => `${poss(x.employer)} ${n0(x.employees)}`))}.` : ''
     row.line_local = area && area.j12 > 0
       ? (area.j12 === area.j90 || area.j90 === 0
         ? `${area.name} employers filed notices for ${n0(area.j12)} jobs ${area.j90 === 0 ? 'over the last 12 months' : 'in the last 90 days'}, and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`
