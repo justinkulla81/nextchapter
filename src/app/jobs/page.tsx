@@ -3,6 +3,7 @@ import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { JobSearchForm } from '@/components/home/JobSearchForm'
 import { JobsViewedTracker } from '@/components/home/JobsViewedTracker'
+import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { buttonVariants } from '@/components/ui/button'
 import { allowByIp, HOUR_MS } from '@/lib/security/rate-limit'
 import { cleanPublicQuery, searchPublicBoard, type PublicBoardResult } from '@/lib/jobs/public-board'
@@ -123,7 +124,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             </TrackedLink>
           </aside>
 
-          <div>
+          <div className="space-y-4">
+            {!problem && <SaveSearchForm q={query.q} loc={query.loc} remote={query.remote} />}
             {problem ? (
               <div className="rounded-2xl border border-border bg-white p-6 text-sm">
                 <p>{problem}</p>

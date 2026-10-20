@@ -16112,3 +16112,32 @@ model AiSampleReview {
   @@index([sampleId, createdAt])
   @@index([createdAt])
 }
+
+/// A homepage lead who gave an email without an account: either the journey picker
+/// ("kind" = journey: where they are in their search, and a first-week plan sent once)
+/// or a saved job search ("kind" = job_alert: the search to email new matches for later).
+/// prisma/manual/2026-10-19-homepage-lead.sql. One row per email, kind and search.
+model HomepageLead {
+  id               String    @id @default(cuid())
+  email            String
+  kind             String // 'journey' | 'job_alert'
+  source           String // the page and box: 'home' | 'jobs' | 'start'
+  /// Journey: a persona slug (laid-off, career-change, ...). Empty for a saved search.
+  situation        String    @default("")
+  /// Journey: how long it has been going on (just_starting | weeks | months | long). Empty otherwise.
+  followup         String    @default("")
+  /// Saved search: the words, place and remote filter they searched. Empty for a journey lead.
+  searchQ          String    @default("")
+  searchLoc        String    @default("")
+  searchRemote     Boolean   @default(false)
+  unsubscribeToken String    @unique @default(cuid())
+  ip               String?
+  /// When the one-time plan email went out (journey only). Null = not sent.
+  planSentAt       DateTime?
+  unsubscribedAt   DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([email, kind, situation, searchQ, searchLoc, searchRemote])
+  @@index([ip, createdAt])
+  @@index([kind, createdAt])
+}
