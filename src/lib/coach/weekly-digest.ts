@@ -1,4 +1,5 @@
 import 'server-only'
+import { fitsMemberLevel } from '@/lib/jobs/email-level-fit'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCoachCaseload } from '@/lib/coach/caseload'
@@ -128,8 +129,12 @@ async function findNewStrongFitJobs(
     // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
     includeEarlyCareer: earlyCareerInEmails(),
+    // No seniority ring in an email (email-level-fit.ts).
+    seniorityRing: false,
   })
   const jobs = emailSafeJobs(board.open)
+    // Only jobs at the client's level (email-level-fit.ts).
+    .filter((p) => fitsMemberLevel(candidate, p))
     .filter((p) => !trackedUrls.has(normalizeUrl(p.url) ?? ''))
     .filter((p) => isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS_PER_CLIENT)
