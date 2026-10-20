@@ -164,3 +164,5 @@ home should read "log your first engagement" from D (the mockup already ends the
     `experience_question_viewed`. Server-side for saves.
 11. Add Work Samples' work history block to Résumé; update `docs/candidate-mockups.md`
     (add the screen row and "Replaces").
+
+_Note (2026-10-20): the product has 11 journeys, and the redesign has no Personalize place (its pieces are the strips and the Improve your search page). Where this file says otherwise, it quotes the terms as they were when it was written._

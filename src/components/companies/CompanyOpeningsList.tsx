@@ -52,6 +52,18 @@ function OpeningPay({ o }: { o: OpeningView }) {
   return <span>No pay posted</span>
 }
 
+// The pay of one opening in words, with the reason: the market range it was compared with, or that a figure is an estimate.
+function openingPayText(o: OpeningView): string {
+  const market = o.marketLow && o.marketHigh ? `${formatUsdK(o.marketLow)} to ${formatUsdK(o.marketHigh)}` : null
+  if (o.payMin && o.payMax) {
+    const posted = o.payMin === o.payMax ? formatUsdK(o.payMin) : `${formatUsdK(o.payMin)} to ${formatUsdK(o.payMax)}`
+    const verdict = o.payVsMarket ? `${PAY_VS_MARKET_LABEL[o.payVsMarket]}${market ? `: similar roles are posted at ${market}` : ''}` : null
+    return `${posted} posted${verdict ? `. ${verdict}.` : '.'}`
+  }
+  if (market) return `No pay posted. Our estimate for this role is ${market}, from salaries posted for similar roles.`
+  return 'No pay posted.'
+}
+
 export function CompanyOpeningsList({
   companyId,
   viewer,
@@ -59,6 +71,7 @@ export function CompanyOpeningsList({
   past,
   openTotal,
   pastTotal,
+  redesign = false,
 }: {
   companyId: string
   viewer: 'candidate' | 'admin' | 'crm'
@@ -66,6 +79,7 @@ export function CompanyOpeningsList({
   past: OpeningView[]
   openTotal: number
   pastTotal: number
+  redesign?: boolean
 }) {
   const [tab, setTab] = useState<Tab>(openTotal > 0 || pastTotal === 0 ? 'open' : 'past')
   const [expanded, setExpanded] = useState(false)
@@ -83,6 +97,81 @@ export function CompanyOpeningsList({
   function expand() {
     setExpanded(true)
     posthog.capture('company_past_openings_expanded', { companyId, tab, viewer, total, shown: rows.length })
+  }
+
+  if (redesign) {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Which openings to show">
+          {(
+            [
+              ['open', `Open now (${openTotal.toLocaleString('en-US')})`],
+              ['past', `Past (${pastTotal.toLocaleString('en-US')})`],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={tab === key}
+              onClick={() => selectTab(key)}
+              className={cn(
+                'inline-flex h-10 items-center rounded-full border px-5 text-sm font-medium select-none',
+                tab === key ? 'border-ink bg-ink text-white' : 'border-border text-ink hover:bg-muted'
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {rows.length === 0 ? (
+          <p className="max-w-2xl text-base text-muted-foreground">
+            {tab === 'open' ? 'No open roles on record right now.' : 'No closed openings on record yet. Past roles appear here once a listing comes down.'}
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {visible.map((o) => (
+              <li key={o.id} className="space-y-1 py-4 first:pt-0">
+                <a
+                  href={o.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => posthog.capture('company_opening_clicked', { companyId, openingId: o.id, tab, viewer })}
+                  className="inline-flex items-center gap-1 text-base font-semibold text-ink hover:underline"
+                >
+                  {o.title}
+                  <ExternalLink className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                  <span className="sr-only">(opens the original listing)</span>
+                </a>
+                <p className="text-base text-muted-foreground">
+                  {[
+                    o.location,
+                    groupLabel(o.seniorityGroup),
+                    o.closedAt ? `${o.closedLabel ?? 'Closed'}, open ${monthYear(o.openedAt)} to ${monthYear(o.closedAt)}` : `Posted ${monthYear(o.openedAt)}`,
+                    o.repostLine,
+                  ]
+                    .filter(Boolean)
+                    .join('. ')}
+                  .
+                </p>
+                <p className="text-base text-ink">{openingPayText(o)}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!expanded && rows.length > PAGE && (
+          <button type="button" onClick={expand} className="text-base font-medium text-brand underline underline-offset-4">
+            Show {rows.length < total ? `the latest ${rows.length}` : `all ${rows.length}`}
+          </button>
+        )}
+        {expanded && rows.length < total && (
+          <p className="text-sm text-muted-foreground">
+            Showing the latest {rows.length} of {total.toLocaleString('en-US')}.
+          </p>
+        )}
+      </div>
+    )
   }
 
   return (

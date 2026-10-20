@@ -60,7 +60,7 @@ community), **Learning**, **Working** (assets that exist: résumé, work samples
 
 | Bucket | What it is | Why it matters | Weekly engine |
 |---|---|---|---|
-| **Personalize** | Know yourself and your market: strategy, profile, assessments, Market Reality Report, your local market | Everything else is tailored from it; a plan built on a guess fails | Effort |
+| **Personalize** (a bucket of activities, not a place: it is now the strips and the Improve your search page) | Know yourself and your market: strategy, profile, assessments, Market Reality Report, your local market | Everything else is tailored from it; a plan built on a guess fails | Effort |
 | **Prove it** | References, portfolio and Dossier, résumé, marketing plan (LinkedIn) | Claims do not get hired; evidence does. This is also what unlocks A-List jobs, the Offer Bonus and recruiter visibility | Working |
 | **Search and apply** | Find and fit-check roles, companies, interview prep, offers and negotiation | The part everyone expects, and the part that fails first if the others are skipped | Effort / Working |
 | **Network** | Contacts, outreach, follow-ups, community, recruiters, colleges, workforce boards | Most roles are filled through people; it is also how a search stays human | Networking |
@@ -76,6 +76,8 @@ Points are minutes of effort from `src/lib/weekly/action-effort.ts`. "Stages" is
 strongest.
 
 ### Personalize
+
+Note: Personalize is no longer a place in the redesign: its pieces are the first strip on Home, Jobs, Network and Learn and the Improve your search page (see `docs/candidate-redesign.md`). This is the bucket of activities, not a menu place.
 | Activity | Pts | Stages | Why |
 |---|---|---|---|
 | Set your Search Strategy (goals, target role, industries, comp, deal breakers) | 35 | Exploring, Preparing | Targets drive matching, the report and the plan |

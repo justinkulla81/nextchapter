@@ -189,8 +189,8 @@ export default async function GotHiredPage() {
         </div>
         <ShowMore page="offers" label="Show where you are in your search">
           <SectionBlock id="stage-h" title="Where you are in your search" why="Add your last day worked so we compare you with people at the same stage, not with everyone.">
-            <LastJobEndedForm current={profile.lastJobEndedAt ? profile.lastJobEndedAt.toISOString().slice(0, 10) : null} />
-            <AgeBandForm current={profile.ageBand} />
+            <LastJobEndedForm current={profile.lastJobEndedAt ? profile.lastJobEndedAt.toISOString().slice(0, 10) : null} redesign />
+            <AgeBandForm current={profile.ageBand} redesign />
           </SectionBlock>
           <EmployerOutcomeSharingCard
             redesign

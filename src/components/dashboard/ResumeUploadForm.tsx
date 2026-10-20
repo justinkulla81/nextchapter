@@ -83,7 +83,7 @@ export function ResumeUploadForm({
           </div>
         )}
         <div className="space-y-2">
-          <Label htmlFor="file">Upload your resume (PDF or DOCX, up to 10MB)</Label>
+          <Label htmlFor="file" className={cn(redesign && 'text-base text-ink')}>Upload your resume (PDF or DOCX, up to 10MB)</Label>
           {/* The "Choose File" pseudo-button (the input's ::file-selector-button)
               starts green — the one thing to do — and turns gray once a file is
               picked, handing the "next action" spotlight to the Upload button
@@ -98,6 +98,7 @@ export function ResumeUploadForm({
             onChange={(e) => setHasFile(e.target.files !== null && e.target.files.length > 0)}
             className={cn(
               !hasFile && !redesign && 'file:bg-success file:text-white hover:file:bg-success-hover',
+              redesign && 'h-11 text-base',
               pending && 'file:cursor-progress'
             )}
           />
@@ -106,8 +107,8 @@ export function ResumeUploadForm({
         {showNarrativePicker && (
           <>
             <div className="space-y-2">
-              <Label htmlFor="narrativeChoice">Align to a narrative (optional)</Label>
-              <p className="text-xs text-muted-foreground">
+              <Label htmlFor="narrativeChoice" className={cn(redesign && 'text-base text-ink')}>Align to a narrative (optional)</Label>
+              <p className={redesign ? 'max-w-2xl text-base text-muted-foreground' : 'text-xs text-muted-foreground'}>
                 Pick one of your narratives and the analysis will ground its suggestions in that story —
                 e.g. flagging spots where the resume&apos;s framing doesn&apos;t match it.
               </p>
@@ -156,18 +157,18 @@ export function ResumeUploadForm({
             value="on"
             defaultChecked={resumeBookOptIn}
           />
-          <Label htmlFor="includeInResumeBook" className="font-normal">
+          <Label htmlFor="includeInResumeBook" className={cn('font-normal', redesign && 'items-start text-base leading-snug text-ink')}>
             Include my resume in the Resume Book, so recruiters and hiring managers can find it.
             You can change this any time in Privacy Settings.
           </Label>
         </div>
 
-        {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+        {state?.error && <p className={redesign ? 'text-base text-destructive' : 'text-sm text-destructive'}>{state.error}</p>}
 
         <Button type="submit" disabled={pending || !hasFile} variant={hasFile ? (redesign ? 'default' : 'success') : 'secondary'}>
           {pending ? 'Uploading and analyzing…' : 'Upload resume'}
         </Button>
-        {redesign && !hasFile && !pending && <p className="text-sm text-muted-foreground">Choose a file above to turn on Upload.</p>}
+        {redesign && !hasFile && !pending && <p className="text-base text-muted-foreground">Choose a file above to turn on Upload.</p>}
         {pending && <InlineLoadingState label="This takes a few seconds — analyzing your resume…" />}
       </form>
       {showNarrativePicker && uploads > 0 && !pending && <ResumeReadback key={uploads} />}

@@ -241,7 +241,7 @@ export default async function ReviewPrepPage() {
             <span className="font-semibold">Your alternatives.</span> What you will do if the answer is no. Knowing it changes how you ask.
           </li>
         </ol>
-        <ConversationForm draft={EMPTY_DRAFT} suggestions={c.results.slice(0, 3)} />
+        <ConversationForm draft={EMPTY_DRAFT} suggestions={c.results.slice(0, 3)} redesign />
         <SourceLine>Afterward, write down what was agreed and send it the same day.</SourceLine>
       </SectionBlock>
     )
@@ -295,6 +295,7 @@ export default async function ReviewPrepPage() {
                 <summary className="cursor-pointer font-medium text-brand underline underline-offset-4">Edit this conversation</summary>
                 <div className="mt-3">
                   <ConversationForm
+                    redesign
                     suggestions={[]}
                     draft={{
                       id: cv.id,

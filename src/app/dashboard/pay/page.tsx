@@ -46,7 +46,7 @@ export default async function PayPage() {
         market={
           isAdzunaInsightsEnabled() ? (
             <Suspense fallback={<AdzunaMarketSectionLoading />}>
-              <AdzunaMarketSection candidateId={profile.id} scope="state" />
+              <AdzunaMarketSection candidateId={profile.id} scope="state" redesign />
             </Suspense>
           ) : null
         }

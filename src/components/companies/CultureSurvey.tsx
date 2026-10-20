@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { ChoiceButtons as RedesignChoiceButtons } from '@/components/candidate/ChoiceButtons'
+import { EmptyNote, PlainNote } from '@/components/candidate/Blocks'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { CULTURE_DIMENSIONS, CULTURE_DIMENSION_BY_KEY, CULTURE_MIN_RESPONDENTS, CULTURE_PREF_DIMENSIONS, type CultureAnswers, type CultureDimensionKey } from '@/lib/companies/culture-survey'
@@ -26,6 +28,7 @@ export function CultureSurveyForm({
   initial,
   source,
   onSaved,
+  redesign = false,
 }: {
   companyId: string
   companyName: string
@@ -33,6 +36,7 @@ export function CultureSurveyForm({
   initial: CultureAnswers | null
   source: Source
   onSaved?: () => void
+  redesign?: boolean
 }) {
   const [answers, setAnswers] = useState<CultureAnswers>(initial ?? {})
   const [pending, startTransition] = useTransition()
@@ -56,6 +60,37 @@ export function CultureSurveyForm({
       setSaved(true)
       onSaved?.()
     })
+  }
+
+  if (redesign) {
+    return (
+      <div className={cn('space-y-5', pending && 'cursor-wait')} aria-busy={pending}>
+        {CULTURE_DIMENSIONS.map((d) => (
+          <fieldset key={d.key} className="space-y-2">
+            <legend className="text-base text-ink">{d.question}</legend>
+            <RedesignChoiceButtons
+              name={`culture-${d.key}`}
+              label={d.question}
+              options={d.options.map((label, i) => ({ value: String(i + 1), label }))}
+              value={answers[d.key] ? String(answers[d.key]) : ''}
+              onChange={(v) => setAnswers((a) => ({ ...a, [d.key]: Number(v) }))}
+            />
+          </fieldset>
+        ))}
+        <p className="max-w-2xl text-base text-muted-foreground">
+          Anonymous. Your answers are only ever shown combined with at least {CULTURE_MIN_RESPONDENTS - 1} other people&apos;s, never with your name, and never on their own. Skip anything you would rather not
+          answer.
+        </p>
+        <div className="space-y-2">
+          <Button variant="outline" onClick={save} disabled={pending || answered === 0} aria-busy={pending} className={pending ? 'cursor-wait' : ''}>
+            {pending ? 'Saving your answers' : initial ? 'Save changes' : 'Save answers'}
+          </Button>
+          {answered === 0 && <p className="text-base text-muted-foreground">Answer at least one question to save.</p>}
+          {saved && <p className="text-base text-ink">Saved. This helps members deciding whether to apply to {companyName}.</p>}
+          {error && <p className="text-base text-destructive">{error}</p>}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -193,12 +228,14 @@ export function CultureSurveyOwnEntry({
   companySlug,
   initial,
   isCurrent,
+  redesign = false,
 }: {
   companyId: string
   companyName: string
   companySlug: string
   initial: CultureAnswers | null
   isCurrent: boolean
+  redesign?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const shown = useRef(false)
@@ -207,6 +244,32 @@ export function CultureSurveyOwnEntry({
     shown.current = true
     posthog.capture('culture_survey_prompt_shown', { companyId, source: 'company_page', isCurrent })
   }, [companyId, initial, isCurrent])
+
+  if (redesign) {
+    if (open)
+      return (
+        <div className="space-y-3">
+          <h3 className="font-display text-lg font-semibold text-ink">Your view of {companyName}</h3>
+          <CultureSurveyForm companyId={companyId} companyName={companyName} companySlug={companySlug} initial={initial} source="company_page" redesign />
+        </div>
+      )
+    return (
+      <div className="space-y-3">
+        <PlainNote>
+          {initial ? 'You described this company. Your answers count toward the summary, never on their own.' : `You ${isCurrent ? 'work' : 'worked'} here. Add your view in 30 seconds.`}
+        </PlainNote>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setOpen(true)
+            posthog.capture('culture_survey_opened', { companyId, source: 'company_page', edit: !!initial })
+          }}
+        >
+          {initial ? 'Edit your answers' : 'Describe this company'}
+        </Button>
+      </div>
+    )
+  }
 
   if (open)
     return (
@@ -238,13 +301,48 @@ export function CultureSurveyOwnEntry({
 const SHARE_STYLE = ['bg-foreground/20', 'bg-foreground/45', 'bg-foreground/75']
 
 /** Aggregate bars, or "Not enough responses yet — N of 3". */
-export function CultureProfileBars({ profile }: { profile: CultureProfile }) {
+export function CultureProfileBars({ profile, redesign = false }: { profile: CultureProfile; redesign?: boolean }) {
   const logged = useRef(false)
   useEffect(() => {
     if (logged.current) return
     logged.current = true
     posthog.capture('company_culture_viewed', { companyId: profile.companyId, respondentCount: profile.respondentCount, shown: profile.shown })
   }, [profile.companyId, profile.respondentCount, profile.shown])
+
+  if (redesign) {
+    if (!profile.shown) {
+      return (
+        <EmptyNote>
+          Not enough responses yet: {Math.min(profile.respondentCount, CULTURE_MIN_RESPONDENTS - 1)} of {CULTURE_MIN_RESPONDENTS}. We show this once at least {CULTURE_MIN_RESPONDENTS} members who worked here have
+          answered, so no one&apos;s answers can be picked out.
+        </EmptyNote>
+      )
+    }
+    return (
+      <div className="space-y-4">
+        <PlainNote className="text-muted-foreground">From {profile.respondentCount} members who worked here. Combined answers only, never who said what.</PlainNote>
+        <dl className="space-y-4">
+          {profile.dimensions.map((agg) => {
+            const d = CULTURE_DIMENSION_BY_KEY[agg.key as CultureDimensionKey]
+            return (
+              <div key={agg.key} className="space-y-1.5">
+                <dt className="flex flex-wrap items-baseline justify-between gap-x-4 text-base">
+                  <span className="font-semibold text-ink">{d.label}</span>
+                  <span className="text-muted-foreground">{agg.typical ? `Most say: ${d.options[agg.typical - 1].toLowerCase()}` : 'Mixed views'}</span>
+                </dt>
+                <dd>
+                  <div className="flex h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
+                    {agg.shares.map((s, i) => (s > 0 ? <div key={i} className={SHARE_STYLE[i]} style={{ width: `${s}%` }} /> : null))}
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{d.options.map((o, i) => `${o} ${agg.shares[i]}%`).join(', ')}</p>
+                </dd>
+              </div>
+            )
+          })}
+        </dl>
+      </div>
+    )
+  }
 
   if (!profile.shown) {
     return (

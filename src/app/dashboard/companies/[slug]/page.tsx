@@ -45,6 +45,7 @@ import { LockedFeatureNotice } from '@/components/dashboard/LockedFeatureNotice'
 import { Briefcase } from 'lucide-react'
 import { toCandidateCompany } from '@/lib/companies/candidate-view'
 import { CompanyIntelPanels } from '@/components/companies/CompanyIntelPanels'
+import { CompanyHowToRedesign } from '@/components/companies/CompanyHowToRedesign'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 import { getCultureProfile, getCultureSurveyCompanies } from '@/lib/companies/culture-profile'
 import { CultureProfileBars, CultureSurveyOwnEntry } from '@/components/companies/CultureSurvey'
@@ -69,11 +70,13 @@ async function CompanyCultureSection({
   companyName,
   slug,
   candidateId,
+  redesign = false,
 }: {
   companyId: string
   companyName: string
   slug: string
   candidateId: string
+  redesign?: boolean
 }) {
   const [cultureProfile, ownCultureCompanies, reviewSummary] = await Promise.all([
     // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
@@ -82,6 +85,36 @@ async function CompanyCultureSection({
     getCompanyReviewSummary(id, candidateId),
   ])
   const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
+  if (redesign) {
+    return (
+      <div className="space-y-6">
+        <CultureProfileBars profile={cultureProfile} redesign />
+        {ownCulture && (
+          <CultureSurveyOwnEntry
+            companyId={id}
+            companyName={companyName}
+            companySlug={slug}
+            initial={ownCulture.answers}
+            isCurrent={ownCulture.isCurrent}
+            redesign
+          />
+        )}
+        <div className="space-y-2">
+          <h3 className="font-display text-lg font-semibold text-ink">Ratings and reviews</h3>
+          <ReviewSummaryPanel summary={reviewSummary} canReview={ownCulture !== null} redesign />
+        </div>
+        {cultureProfile.shown && (
+          <SourceLine>
+            Want specifics? Ask one of them directly in{' '}
+            <a href="#insiders" className="font-medium text-brand underline underline-offset-4">
+              Members who know this company
+            </a>
+            .
+          </SourceLine>
+        )}
+      </div>
+    )
+  }
   return (
     <>
       <CultureProfileBars profile={cultureProfile} />
@@ -856,6 +889,22 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </SectionBlock>
       </div>
     )
+    const rHiring = (
+      <>
+        <Suspense fallback={<CompanyHiringIndexSkeleton redesign />}>
+          <CompanyHiringIndex companyId={id} viewer="candidate" redesign />
+        </Suspense>
+        <CompanyIntelPanels companyId={id} redesign />
+      </>
+    )
+    const rCulture = (
+      <SectionBlock id="culture-h" title="What people who worked here say" why="Combined answers from members who worked here. Nobody's answers are shown on their own.">
+        <Suspense fallback={<SectionSkeleton label="Loading what people say…" />}>
+          <CompanyCultureSection companyId={id} companyName={company.name} slug={slug} candidateId={profile.id} redesign />
+        </Suspense>
+      </SectionBlock>
+    )
+    const rHowTo = <CompanyHowToRedesign companyId={id} slug={slug} intel={publishedIntel} />
     const rFared = (
       <SectionBlock id="fared-h" title="How members have fared" why="Tracked applications from NextChapter members. Groups under 5 are not shown.">
         {!outcomeCell ? (
@@ -905,9 +954,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         <ShowMore page="company_profile">
           {rSecond}
           {rFared}
-          {hiringBlock}
-          {cultureBlock}
-          {howToBlock}
+          {rHiring}
+          {rCulture}
+          {rHowTo}
           {recruitBlock}
         </ShowMore>
       </div>

@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { updateComfortCheck } from '@/app/dashboard/interview-prep/actions'
 import { cn } from '@/lib/utils'
+import { SectionBlock } from '@/components/candidate/Blocks'
+import { ChoiceButtons } from '@/components/candidate/ChoiceButtons'
 
 const STOPS = [
   { value: 25, label: 'Not really' },
@@ -52,10 +54,12 @@ export function ComfortCheckTab({
   storyComfort,
   interviewComfort,
   elevatorPitchReady,
+  redesign = false,
 }: {
   storyComfort: number | null
   interviewComfort: number | null
   elevatorPitchReady: number | null
+  redesign?: boolean
 }) {
   const [story, setStory] = useState(storyComfort)
   const [interview, setInterview] = useState(interviewComfort)
@@ -73,6 +77,34 @@ export function ComfortCheckTab({
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     })
+  }
+
+  if (redesign) {
+    const rows = [
+      { name: 'comfort-story', label: 'How comfortable are you telling your story out loud?', value: story, onChange: setStory },
+      { name: 'comfort-interview', label: 'How comfortable do you feel walking into an interview right now?', value: interview, onChange: setInterview },
+      { name: 'comfort-pitch', label: 'Do you have a ready elevator pitch you could give right now?', value: pitch, onChange: setPitch },
+    ]
+    return (
+      <div className={cn('space-y-6', isPending && 'cursor-wait [&_*]:cursor-wait')}>
+        <SectionBlock id="comfort-h" title="Comfort check" why="There are no wrong answers. Your answers tell Victoria where to focus with you." />
+        {rows.map((r) => (
+          <div key={r.name} className="space-y-2">
+            <p className="text-base text-ink">{r.label}</p>
+            <ChoiceButtons
+              name={r.name}
+              label={r.label}
+              options={STOPS.map((s) => ({ value: String(s.value), label: s.label }))}
+              value={r.value === null ? '' : String(r.value)}
+              onChange={(v) => r.onChange(Number(v))}
+            />
+          </div>
+        ))}
+        <Button type="button" variant="outline" onClick={handleSave} disabled={isPending}>
+          {isPending ? 'Saving your answers' : saved ? 'Saved' : 'Save my answers'}
+        </Button>
+      </div>
+    )
   }
 
   return (

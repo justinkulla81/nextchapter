@@ -121,3 +121,5 @@ Disconnect and status belong in Account and privacy (Connected accounts, plus th
 11. **Analytics (project rule).** Keep v2's events (`onboarding_google_started`, `_completed`, `_declined`, `scan_completed`, `scan_reveal_viewed`) and add `connect_prompt_shown { source }`, `contacts_import_accepted { count }`, `scan_item_dismissed { type }`. The v2 doc lists `onboarding_google_*` and `scan_completed` but the code fires only `scan_reveal_viewed`; check which exist.
 12. **Cleanup.** Delete the duplicate `google-oauth-split` and `calendar-accounts` branches. Leave the diane extension branch to the admin/CRM track and merge it separately.
 13. **Verification gate.** Record Google verification status in `docs/SETUP.md`. Until verified, the join page shows the `pending` state wording and the admin allow-list stays.
+
+_Note (2026-10-20): the product has 11 journeys, and the redesign has no Personalize place (its pieces are the strips and the Improve your search page). Where this file says otherwise, it quotes the terms as they were when it was written._

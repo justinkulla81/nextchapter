@@ -15,7 +15,7 @@ Free for candidates. People who connect, do the work and prove it get the most.
 
 *Claims to review before launch:* the "best coach" superlative (logged in `docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md`).
 
-## 2. Journeys (why you are moving): 11 (see `docs/JOURNEY_AUDIT.md`; the table below lists the first 8, plus Taking a break, Happy with fractional and Building something of my own)
+## 2. Journeys (why you are moving): 11 (the `JourneyType` enum in `prisma/schema.prisma`; see also `docs/JOURNEY_AUDIT.md`)
 
 | Journey | Starts at | Confidential by default | Goal |
 |---|---|---|---|
@@ -27,6 +27,9 @@ Free for candidates. People who connect, do the work and prove it get the most.
 | **Student or recent grad** | Preparing | No | Your first job, and a strong first year |
 | **Returning after a break** | Preparing | No | Back at work, gap explained |
 | **Planning the next act** | Exploring | No | Board, fractional, consulting or part-time work |
+| **Taking a break** (leave or time off) | Managing your career | No | A return on your terms, whenever you are ready |
+| **Happy with fractional work** | Managing your career | No | A steady pipeline of the right clients |
+| **Building something of my own** | Managing your career | Yes | Keep your options open while you build |
 
 - "Ready for a new job" was merged into *Thinking about a move*. An old value still reads correctly.
 - *Thinking about a move* asks **"What's behind the move?"** (keeping options open / ready to leave / worried about a
@@ -90,7 +93,7 @@ Each tool is **shown**, **locked** (turns on when your status changes; stays vis
 
 | Pillar | Tools |
 |---|---|
-| **Personalize** | Search strategy, profile, assessments, Market Reality Report |
+| **Personalize** (a group of tools, not a place: now the strips and the Improve your search page) | Search strategy, profile, assessments, Market Reality Report |
 | **Prove it** | References, portfolio, marketing plan (LinkedIn) |
 | **Search and apply** | Find a job, companies, interview prep, offer, market intelligence |
 | **Network** | Contacts, community, inbox, recruiters, universities, college benefits |

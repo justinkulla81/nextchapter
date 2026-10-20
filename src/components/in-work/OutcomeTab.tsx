@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { deleteOutcome, logOutcome, toggleOutcomeFollowUp } from '@/app/dashboard/in-work/actions'
 import type { OutcomeView, WorkspaceData } from '@/lib/in-work/workspace-data'
-import { ChoiceButtons, ConfirmDelete, Field, NoticeLine, Section, formatDate, today, useRunner } from './shared'
+import { ActionButton as Button, ChoiceButtons, ConfirmDelete, Field, NoticeLine, Section, formatDate, today, useRunner, useType } from './shared'
 
 type Tri = 'yes' | 'no' | 'unknown'
 const TRI = [
@@ -27,6 +26,7 @@ export function OutcomeTab({ data }: { data: WorkspaceData }) {
   const [notes, setNotes] = useState('')
   const [followUps, setFollowUps] = useState('')
   const log = useRunner()
+  const t = useType()
 
   return (
     <div className="space-y-6">
@@ -103,9 +103,9 @@ export function OutcomeTab({ data }: { data: WorkspaceData }) {
 
       <Section title="History">
         {data.outcomes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No reviews logged yet.</p>
+          <p className={cn('text-muted-foreground', t.body)}>No reviews logged yet.</p>
         ) : (
-          <ul className="space-y-4">
+          <ul className={t.redesign ? 'divide-y divide-border' : 'space-y-4'}>
             {data.outcomes.map((o) => (
               <OutcomeEntry key={o.id} outcome={o} />
             ))}
@@ -118,16 +118,17 @@ export function OutcomeTab({ data }: { data: WorkspaceData }) {
 
 function OutcomeEntry({ outcome: o }: { outcome: OutcomeView }) {
   const r = useRunner()
+  const t = useType()
   const bits = [
     o.rating ? `Rating: ${o.rating}` : null,
     o.raiseReceived === true ? (o.raisePercent != null ? `Raise of ${o.raisePercent}%` : 'Raise received') : o.raiseReceived === false ? 'No raise' : null,
     o.promoted ? (o.newTitle ? `Promoted to ${o.newTitle}` : 'Promoted') : null,
   ].filter(Boolean)
   return (
-    <li className={cn('space-y-2 rounded-lg border border-border p-3 text-sm', r.pending && 'cursor-wait')}>
-      <p className="font-medium text-foreground">{formatDate(o.reviewedOn)}</p>
-      {bits.length > 0 && <p className="text-foreground/80">{bits.join(' · ')}</p>}
-      {o.notes && <p className="text-foreground/80">{o.notes}</p>}
+    <li className={cn('space-y-2', t.body, t.redesign ? 'py-4 first:pt-0' : 'rounded-lg border border-border p-3', r.pending && 'cursor-wait')}>
+      <p className={cn('font-medium', t.redesign ? 'font-display text-lg font-semibold text-ink' : 'text-foreground')}>{formatDate(o.reviewedOn)}</p>
+      {bits.length > 0 && <p className={t.redesign ? 'text-ink' : 'text-foreground/80'}>{bits.join(t.redesign ? '. ' : ' · ')}</p>}
+      {o.notes && <p className={t.redesign ? 'max-w-2xl text-ink' : 'text-foreground/80'}>{o.notes}</p>}
       {o.followUps.length > 0 && (
         <ul className="space-y-1">
           {o.followUps.map((f) => (

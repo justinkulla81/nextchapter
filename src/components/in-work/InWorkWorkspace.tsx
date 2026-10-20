@@ -5,12 +5,11 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { posthog } from '@/lib/posthog/client'
 import { PageHeader } from '@/components/candidate/PageHeader'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { saveReviewSettings } from '@/app/dashboard/in-work/actions'
 import { MONTH_NAMES, REVIEW_CADENCES, type ReviewCadence } from '@/lib/in-work/constants'
 import type { WorkspaceData } from '@/lib/in-work/workspace-data'
-import { ChoiceButtons, Field, NoticeLine, RedesignContext, Section, formatDate, selectClass, useRunner } from './shared'
+import { ActionButton as Button, ChoiceButtons, Field, NoticeLine, RedesignContext, Section, formatDate, selectClass, useRunner, useType } from './shared'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { ImpactLogTab } from './ImpactLogTab'
 import { ReviewPrepTab } from './ReviewPrepTab'
@@ -182,11 +181,16 @@ function Overview({ data, go }: { data: WorkspaceData; go: (t: InWorkTab) => voi
 }
 
 function Stat({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
+  const redesign = useContext(RedesignContext)
   return (
     <li>
-      <button type="button" onClick={onClick} className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2 text-left hover:bg-muted">
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn('flex w-full items-center justify-between border border-border text-left hover:bg-muted', redesign ? 'rounded-2xl px-5 py-3' : 'rounded-lg px-3 py-2')}
+      >
         <span className="text-muted-foreground">{label}</span>
-        <span className="font-semibold text-foreground">{value}</span>
+        <span className={cn('font-semibold', redesign ? 'text-ink' : 'text-foreground')}>{value}</span>
       </button>
     </li>
   )
@@ -198,6 +202,7 @@ function ReviewSettings({ data }: { data: WorkspaceData }) {
   const [nextDate, setNextDate] = useState(data.settings.nextReviewDate ?? '')
   const [prompts, setPrompts] = useState(data.settings.promptsEnabled)
   const { pending, notice, run } = useRunner()
+  const t = useType()
 
   return (
     <Section
@@ -223,7 +228,7 @@ function ReviewSettings({ data }: { data: WorkspaceData }) {
             <Input type="date" value={nextDate} onChange={(e) => setNextDate(e.target.value)} />
           </Field>
         </div>
-        <label className="flex items-start gap-2 text-sm">
+        <label className={cn('flex items-start gap-2', t.body)}>
           <input type="checkbox" className="mt-1" checked={prompts} onChange={(e) => setPrompts(e.target.checked)} />
           <span>
             Email me before and after each review. Emails are plain, go only to you, and have a neutral subject line.

@@ -5,6 +5,7 @@ import { FindJobs } from './jobs-find'
 import { FindJobsLive, MyJobsLive, MyJobsEmptyLive } from './jobs-find-live'
 import { FindUnpostedLive, FindUnpostedEmptyLive, FindUnpostedErrorLive, FindIndependentLive, FindIndependentNewLive, FindIndependentOfferLive, FindResourcesLive, FindResourcesOptedInLive } from './jobs-find-parts-live'
 import { FindUnposted, FindIndependent, FindResources, MyJobs, Companies, CompanyProfile, MarketYours, MarketPay, MarketLocal, MarketPivot, Interviews, Offers } from './jobs-more'
+import { PayChartLive, CompanySectionsLive, CompanyCultureEmptyLive, InterviewTabsLive, InWorkLive, FormsLive } from './jobs-leftovers-live'
 import { CompaniesLive, MarketLive, PayLive, ResumeLive, StrengthsLive, LocalLive, InterviewsLive } from './jobs-redesign-live'
 import { PeopleYouKnow, AlumniGroups, IndustryFunction, RecruitersCircle, NetworkThisWeek, Messages } from './network-more'
 import { LearnSkills, LearnVideos, ProfileMock, ResumeMock, WhyHireMe, HowIWork, WhatRecruitersSee, DocumentsMock, MembershipMock, HelpTalk, HelpScams, HelpQuestions } from './learn-help'
@@ -68,6 +69,18 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/live/resume', place: 'Jobs', title: 'Résumé (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: ResumeLive },
   { path: 'jobs/live/whyhire', place: 'Jobs', title: 'Why hire me (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: StrengthsLive },
   { path: 'jobs/live/interviews', place: 'Jobs', title: 'Interviews (the built page, sample data)', replaces: 'the code that ships, fed sample data', Component: InterviewsLive },
+  { path: 'jobs/live/pay-chart', place: 'Jobs', title: 'Know your worth: the advertised-pay chart (sample data)', replaces: 'the code that ships, fed sample data', Component: PayChartLive },
+  { path: 'jobs/live/company-sections', place: 'Jobs', title: 'Company profile: hiring history, culture, how to get hired (sample data)', replaces: 'the code that ships, fed sample data', Component: CompanySectionsLive },
+  { path: 'jobs/live/company-empty', place: 'Jobs', title: 'Company profile: nothing yet (sample data)', replaces: 'the code that ships, fed sample data', Component: CompanyCultureEmptyLive },
+  { path: 'jobs/live/interview-tabs', place: 'Jobs', title: 'Interviews: tabs 2 to 5 (sample data)', replaces: 'the code that ships, fed sample data', Component: InterviewTabsLive },
+  { path: 'jobs/live/in-work-overview', place: 'Jobs', title: 'In-work: overview (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="overview" /> },
+  { path: 'jobs/live/in-work-impact', place: 'Jobs', title: 'In-work: impact log (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="impact" /> },
+  { path: 'jobs/live/in-work-prep', place: 'Jobs', title: 'In-work: review prep (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="prep" /> },
+  { path: 'jobs/live/in-work-salary', place: 'Jobs', title: 'In-work: salary and raise (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="salary" /> },
+  { path: 'jobs/live/in-work-promotion', place: 'Jobs', title: 'In-work: promotion and scope (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="promotion" /> },
+  { path: 'jobs/live/in-work-feedback', place: 'Jobs', title: 'In-work: feedback (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="feedback" /> },
+  { path: 'jobs/live/in-work-outcome', place: 'Jobs', title: 'In-work: review outcome (sample data)', replaces: 'the code that ships, fed sample data', Component: () => <InWorkLive tab="outcome" /> },
+  { path: 'jobs/live/forms', place: 'Jobs', title: 'Forms: conversation, hire outcome, résumé upload (sample data)', replaces: 'the code that ships, fed sample data', Component: FormsLive },
   { path: 'learn/path/roles', place: 'Learn', title: 'Market: other roles you could do', replaces: '/dashboard/pivot-paths, /dashboard/pivot', Component: MarketPivot },
   { path: 'jobs/interviews', place: 'Jobs', title: 'Interviews', replaces: '/dashboard/interview-prep, /dashboard/review-prep', Component: Interviews },
   { path: 'jobs/offers', place: 'Jobs', title: 'Offers', replaces: '/dashboard/got-hired, /dashboard/in-work', Component: Offers },

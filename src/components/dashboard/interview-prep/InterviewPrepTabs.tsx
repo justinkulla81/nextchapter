@@ -9,11 +9,11 @@ import { ComfortCheckTab } from './ComfortCheckTab'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
 
 const TABS = [
-  { id: 'story', label: 'My Story' },
-  { id: 'tough', label: 'Tough Questions' },
-  { id: 'practice', label: 'Practice' },
-  { id: 'thank-you', label: 'Thank You Emails' },
-  { id: 'comfort', label: 'Comfort Check' },
+  { id: 'story', label: 'My Story', redesignLabel: 'My story' },
+  { id: 'tough', label: 'Tough Questions', redesignLabel: 'Tough questions' },
+  { id: 'practice', label: 'Practice', redesignLabel: 'Practice' },
+  { id: 'thank-you', label: 'Thank You Emails', redesignLabel: 'Thank-you emails' },
+  { id: 'comfort', label: 'Comfort Check', redesignLabel: 'Comfort check' },
 ] as const
 
 export function InterviewPrepTabs({
@@ -48,11 +48,11 @@ export function InterviewPrepTabs({
               value={tab.id}
               className={
                 redesign
-                  ? 'h-auto shrink-0 flex-none rounded-full border-border px-4 py-1.5 text-muted-foreground data-active:border-ink data-active:!bg-ink data-active:text-white group-data-[variant=line]/tabs-list:data-active:!bg-ink'
+                  ? 'h-auto shrink-0 flex-none rounded-full border-border px-4 py-1.5 text-muted-foreground data-active:border-ink data-active:!bg-ink data-active:text-white group-data-[variant=line]/tabs-list:data-active:!bg-ink group-data-[variant=line]/tabs-list:data-active:!text-white'
                   : 'shrink-0 px-3 py-2'
               }
             >
-              {tab.label}
+              {redesign ? tab.redesignLabel : tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -62,19 +62,20 @@ export function InterviewPrepTabs({
         <MyStoryTab coreStatement={coreStatement} adaptations={adaptations} redesign={redesign} />
       </TabsContent>
       <TabsContent value="tough" className="mt-6">
-        <ToughQuestionsTab hasJobDescription={hasJobDescription} jobHoppingFlag={jobHoppingFlag} />
+        <ToughQuestionsTab hasJobDescription={hasJobDescription} jobHoppingFlag={jobHoppingFlag} redesign={redesign} />
       </TabsContent>
       <TabsContent value="practice" className="mt-6">
-        <PracticeTab targetRoleType={targetRoleType} hasJobDescription={hasJobDescription} />
+        <PracticeTab targetRoleType={targetRoleType} hasJobDescription={hasJobDescription} redesign={redesign} />
       </TabsContent>
       <TabsContent value="thank-you" className="mt-6">
-        <ThankYouEmailTab hasJobDescription={hasJobDescription} />
+        <ThankYouEmailTab hasJobDescription={hasJobDescription} redesign={redesign} />
       </TabsContent>
       <TabsContent value="comfort" className="mt-6">
         <ComfortCheckTab
           storyComfort={storyComfort}
           interviewComfort={interviewComfort}
           elevatorPitchReady={elevatorPitchReady}
+          redesign={redesign}
         />
       </TabsContent>
     </Tabs>

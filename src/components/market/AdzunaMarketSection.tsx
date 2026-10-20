@@ -17,6 +17,8 @@ import {
   type SalaryHistory,
 } from '@/lib/market/adzuna-insights'
 import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
+import { AdzunaMarketRedesign } from '@/components/market/AdzunaMarketRedesign'
+import { EmptyNote } from '@/components/candidate/Blocks'
 import { MarketScopeToggle } from '@/components/market/MarketScopeToggle'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
@@ -121,7 +123,7 @@ export function AdzunaMarketSectionLoading() {
 // the weekly shared cache in adzuna-insights.ts; render inside <Suspense>
 // with AdzunaMarketSectionLoading as the fallback, since a cold cache calls
 // Adzuna inline.
-export async function AdzunaMarketSection({ candidateId, scope }: { candidateId: string; scope: 'state' | 'us' }) {
+export async function AdzunaMarketSection({ candidateId, scope, redesign = false }: { candidateId: string; scope: 'state' | 'us'; redesign?: boolean }) {
   if (!isAdzunaInsightsEnabled()) return null
   const candidate = await prisma.candidateProfile.findUnique({
     where: { id: candidateId },
@@ -131,6 +133,17 @@ export async function AdzunaMarketSection({ candidateId, scope }: { candidateId:
 
   const role = memberMarketRole(candidate)
   if (!role) {
+    if (redesign) {
+      return (
+        <EmptyNote>
+          Add your target role on your{' '}
+          <Link href="/dashboard/profile" className="font-medium text-brand underline underline-offset-4">
+            profile
+          </Link>{' '}
+          and we show what employers are paying for it and who is hiring.
+        </EmptyNote>
+      )
+    }
     return (
       <p className="mt-4 text-sm text-muted-foreground">
         Add your target role on your{' '}
@@ -157,6 +170,9 @@ export async function AdzunaMarketSection({ candidateId, scope }: { candidateId:
       getDemandByState({ role }, { onMiss: 'fetch' }),
     ])
   } catch {
+    if (redesign) {
+      return <EmptyNote>We could not load market data for {role} just now. Reload the page in a few minutes to try again.</EmptyNote>
+    }
     return (
       <p className="mt-4 text-sm text-muted-foreground">
         We couldn&apos;t load market data for {role} just now. Reload the page in a few minutes to try again.
@@ -175,6 +191,23 @@ export async function AdzunaMarketSection({ candidateId, scope }: { candidateId:
     hasTopCompanies: !!top.data,
     hasDemandByState: !!geo.data,
   })
+
+  if (redesign) {
+    return (
+      <AdzunaMarketRedesign
+        role={role}
+        placeLabel={placeLabel}
+        stateName={stateName}
+        stateScoped={stateScoped}
+        targetCompMin={candidate.targetCompMin}
+        demand={demand.data}
+        histogram={histogram.data}
+        history={history.data}
+        top={top.data}
+        geo={geo.data}
+      />
+    )
+  }
 
   const anyData = histogram.data || history.data || top.data || demand.data || geo.data
   const topStates = geo.data?.states.slice(0, 8) ?? []

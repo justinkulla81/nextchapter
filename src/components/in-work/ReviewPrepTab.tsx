@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { savePrep } from '@/app/dashboard/in-work/actions'
@@ -10,7 +9,7 @@ import { PREP_CHECKLIST, PREP_QUESTION_STARTERS } from '@/lib/in-work/constants'
 import { buildReviewSummary, prepCompletion } from '@/lib/in-work/templates'
 import { parseDateOnly } from '@/lib/in-work/types'
 import type { WorkspaceData } from '@/lib/in-work/workspace-data'
-import { Field, NoticeLine, Section, formatDate, useRunner } from './shared'
+import { ActionButton as Button, Field, NoticeLine, Section, formatDate, useRunner, useType } from './shared'
 
 export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
   const cycleKey = data.prepCycleKey
@@ -25,6 +24,7 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
     return [q[0] ?? '', q[1] ?? '', q[2] ?? '']
   })
   const { pending, notice, run } = useRunner()
+  const t = useType()
 
   const keys = PREP_CHECKLIST.map((c) => c.key)
   const completion = prepCompletion(checklist, keys)
@@ -41,7 +41,7 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
   if (!cycleKey || !data.nextCycle) {
     return (
       <Section title="Review prep">
-        <p className="text-sm text-muted-foreground">
+        <p className={cn('text-muted-foreground', t.body)}>
           Set your review month on the Overview tab and the prep worksheet will be ready for your next cycle.
         </p>
       </Section>
@@ -55,18 +55,18 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
         intro={`${completion.done} of ${completion.total} steps done.${prep?.completedAt ? ' You finished this prep.' : ''}`}
       >
         {(data.carry.recap || data.carry.openFollowUps.length > 0 || data.carry.lastGoals) && (
-          <div className="space-y-2 rounded-lg border border-border bg-off-white p-3 text-sm">
+          <div className={cn('space-y-2', t.body, t.redesign ? 'max-w-2xl rounded-2xl border border-border p-5' : 'rounded-lg border border-border bg-off-white p-3')}>
             <p className="font-medium text-foreground">Starting from last time</p>
-            {data.carry.recap && <p className="text-foreground/80">{data.carry.recap}</p>}
+            {data.carry.recap && <p className={t.redesign ? 'text-ink' : 'text-foreground/80'}>{data.carry.recap}</p>}
             {data.carry.lastGoals && (
-              <p className="text-foreground/80">
+              <p className={t.redesign ? 'text-ink' : 'text-foreground/80'}>
                 <span className="font-medium">Goals you set last time:</span> {data.carry.lastGoals}
               </p>
             )}
             {data.carry.openFollowUps.length > 0 && (
               <div>
                 <p className="font-medium">Follow-ups still open</p>
-                <ul className="list-disc pl-5 text-foreground/80">
+                <ul className={cn('list-disc pl-5', t.redesign ? 'text-ink' : 'text-foreground/80')}>
                   {data.carry.openFollowUps.map((f) => (
                     <li key={f}>{f}</li>
                   ))}
@@ -78,7 +78,7 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
         <ul className="space-y-2">
           {PREP_CHECKLIST.map((c) => (
             <li key={c.key}>
-              <label className="flex items-start gap-2 text-sm">
+              <label className={cn('flex items-start gap-2', t.body)}>
                 <input
                   type="checkbox"
                   className="mt-1"
@@ -112,7 +112,7 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
             <Textarea rows={4} maxLength={2000} value={evidence} onChange={(e) => setEvidence(e.target.value)} />
           </Field>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">Three questions for your manager</p>
+            <p className={cn('font-medium', t.redesign ? 'text-base text-ink' : 'text-sm text-foreground')}>Three questions for your manager</p>
             {questions.map((q, i) => (
               <Input
                 key={i}
@@ -123,7 +123,7 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
                 onChange={(e) => setQuestions((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))}
               />
             ))}
-            <p className="text-xs text-muted-foreground">The grey text is a starting point. Replace it with your own.</p>
+            <p className={cn('text-muted-foreground', t.hint)}>The grey text is a starting point. Replace it with your own.</p>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -139,7 +139,7 @@ export function ReviewPrepTab({ data }: { data: WorkspaceData }) {
             </Button>
             <NoticeLine notice={notice} />
           </div>
-          <p className="text-xs text-muted-foreground">Review window opens {formatDate(data.nextCycle.windowStart)}.</p>
+          <p className={cn('text-muted-foreground', t.hint)}>Review window opens {formatDate(data.nextCycle.windowStart)}.</p>
         </div>
       </Section>
     </div>

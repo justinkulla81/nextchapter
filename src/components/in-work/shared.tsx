@@ -2,11 +2,34 @@
 
 import { createContext, useContext, useState, useTransition } from 'react'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import type { ActionResult } from '@/app/dashboard/in-work/actions'
 
 // The workspace's seven tabs share these building blocks. The redesigned page provides `true` here once, and every tab
 // picks up the redesign look (no boxed sections, serif titles, ink instead of blue) without a prop on each of them.
 export const RedesignContext = createContext(false)
+
+// Text sizes for the tab bodies: reading size (text-base) in the redesign, the small legacy sizes otherwise.
+export function useType() {
+  const redesign = useContext(RedesignContext)
+  return {
+    redesign,
+    /** Body copy and list rows. */
+    body: redesign ? 'text-base' : 'text-sm',
+    /** Hints, notes and meta lines. */
+    hint: redesign ? 'text-base' : 'text-xs',
+    /** Dates and other tiny facts. */
+    meta: redesign ? 'text-sm' : 'text-xs',
+  }
+}
+
+// A tab's buttons: the legacy green default, or in the redesign a quiet ink-outlined pill, because the page's one
+// orange action is "Log a win" in its header.
+export function ActionButton({ variant, size, className, ...props }: React.ComponentProps<typeof Button>) {
+  const redesign = useContext(RedesignContext)
+  if (!redesign) return <Button variant={variant} size={size} className={className} {...props} />
+  return <Button variant={variant === 'ghost' ? 'ghost' : 'outline'} className={cn('h-10 rounded-full px-5 text-sm', className)} {...props} />
+}
 
 export type Notice = { kind: 'ok' | 'error'; text: string } | null
 
@@ -38,7 +61,7 @@ export function NoticeLine({ notice }: { notice: Notice }) {
   const redesign = useContext(RedesignContext)
   if (!notice) return null
   return (
-    <p role="status" className={cn('text-sm', notice.kind === 'ok' ? (redesign ? 'font-medium text-ink' : 'text-success') : 'text-destructive')}>
+    <p role="status" className={cn(redesign ? 'text-base' : 'text-sm', notice.kind === 'ok' ? (redesign ? 'font-medium text-ink' : 'text-success') : 'text-destructive')}>
       {notice.text}
     </p>
   )
@@ -69,11 +92,12 @@ export function Section({ title, intro, children }: { title: string; intro?: str
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  const t = useType()
   return (
     <label className="block space-y-1">
-      <span className="text-sm font-medium text-foreground">{label}</span>
+      <span className={cn('font-medium', t.redesign ? 'text-base text-ink' : 'text-sm text-foreground')}>{label}</span>
       {children}
-      {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
+      {hint && <span className={cn('block text-muted-foreground', t.hint)}>{hint}</span>}
     </label>
   )
 }
@@ -116,12 +140,13 @@ export function ChoiceButtons<T extends string>({
 
 export function CopyBlock({ text, label, onCopy }: { text: string; label: string; onCopy?: () => void }) {
   const [copied, setCopied] = useState(false)
+  const redesign = useContext(RedesignContext)
   return (
     <div className="space-y-2">
-      <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-off-white p-3 text-sm whitespace-pre-wrap text-foreground">{text}</pre>
+      <pre className={cn('max-h-96 overflow-auto font-sans whitespace-pre-wrap', redesign ? 'max-w-2xl rounded-2xl border border-border p-5 text-base text-ink' : 'rounded-lg border border-border bg-off-white p-3 text-sm text-foreground')}>{text}</pre>
       <button
         type="button"
-        className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+        className={cn('border border-border text-sm font-medium hover:bg-muted', redesign ? 'h-10 rounded-full px-5 text-ink' : 'rounded-lg px-3 py-1.5')}
         onClick={async () => {
           try {
             await navigator.clipboard.writeText(text)
@@ -151,15 +176,16 @@ export function formatDate(iso: string): string {
 // Two-step delete: the first click asks, the second confirms.
 export function ConfirmDelete({ onConfirm, pending, what }: { onConfirm: () => void; pending?: boolean; what: string }) {
   const [asking, setAsking] = useState(false)
+  const t = useType()
   if (!asking) {
     return (
-      <button type="button" className="text-xs font-medium text-muted-foreground hover:text-destructive" onClick={() => setAsking(true)}>
+      <button type="button" className={cn('font-medium text-muted-foreground hover:text-destructive', t.meta)} onClick={() => setAsking(true)}>
         Delete
       </button>
     )
   }
   return (
-    <span className="flex items-center gap-2 text-xs">
+    <span className={cn('flex items-center gap-2', t.meta)}>
       <span className="text-muted-foreground">Delete this {what}?</span>
       <button type="button" disabled={pending} className="font-semibold text-destructive" onClick={onConfirm}>
         Yes, delete

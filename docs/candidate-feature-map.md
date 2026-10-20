@@ -76,6 +76,8 @@ only way in is a link inside another page.
 
 ## Personalize
 
+Note: Personalize is no longer a place in the redesign: its pieces are the first strip on Home, Jobs, Network and Learn and the Improve your search page (see `docs/candidate-redesign.md`). The rows below describe where these pages were in the old menu.
+
 | Page | What it does | How to reach it |
 |---|---|---|
 | https://launchyournextchapter.com/dashboard/strengths | My story: why hire me | Menu: Personalize, My story |
