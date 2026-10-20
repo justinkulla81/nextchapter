@@ -21,7 +21,7 @@ export default async function OutreachPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Outreach tests</h1>
         <p className="mt-1 text-muted-foreground">
           Cold email, by audience and arm. The measures are replies (within 14 days) and clicks on the report link. A click in the first two minutes is a mail scanner and is not counted.
-          Opens are not a result. {r.totalSent} first emails sent, {r.replies} replies ({pct(r.replies, r.totalSent)}), {r.clicks} real clicks ({pct(r.clicks, r.totalSent)}).
+          Opens are not a result. {r.totalSent} first emails sent, {r.replies} replies ({pct(r.replies, r.totalSent)}), of which {r.positive} positive or a referral ({pct(r.positive, r.totalSent)}), and {r.clicks} real clicks ({pct(r.clicks, r.totalSent)}). Out-of-office replies are not counted.
         </p>
       </div>
 
@@ -43,12 +43,12 @@ export default async function OutreachPage() {
           <h2 className="text-sm font-medium text-muted-foreground">{aud}</h2>
           <div className="overflow-x-auto rounded-md border border-border">
             <table className="w-full text-sm">
-              <thead className="text-left text-muted-foreground"><tr><th className="p-2">Arm</th><th className="p-2">Sent</th><th className="p-2">Replied</th><th className="p-2">Clicked</th><th className="p-2">Opened again</th><th className="p-2">Bounced</th></tr></thead>
+              <thead className="text-left text-muted-foreground"><tr><th className="p-2">Arm</th><th className="p-2">Sent</th><th className="p-2">Replied</th><th className="p-2">Positive</th><th className="p-2">Clicked</th><th className="p-2">Opened again</th><th className="p-2">Bounced</th></tr></thead>
               <tbody>
                 {r.arms.filter((a) => a.audience === aud).map((a) => (
                   <tr key={a.variant} className="border-t border-border">
                     <td className="p-2 font-medium">{a.variant}</td><td className="p-2">{a.sends}</td>
-                    <td className="p-2">{a.replies} ({pct(a.replies, a.sends)})</td><td className="p-2">{a.clicks} ({pct(a.clicks, a.sends)})</td>
+                    <td className="p-2">{a.replies} ({pct(a.replies, a.sends)})</td><td className="p-2">{a.positive} ({pct(a.positive, a.sends)})</td><td className="p-2">{a.clicks} ({pct(a.clicks, a.sends)})</td>
                     <td className="p-2">{a.reopens}</td><td className="p-2">{a.bounces}</td>
                   </tr>
                 ))}

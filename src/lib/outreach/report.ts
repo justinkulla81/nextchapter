@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { humanOpens } from './event-rules'
+import { replyClassOf, type ReplyClass } from './reply-class'
 import { pValue, sendsNeeded } from './stats'
 
 const REPLY_WINDOW_MS = 14 * 86_400_000
@@ -10,7 +11,7 @@ export const AUDIENCE_OF: Record<string, string> = {
   college: 'Higher ed', board: 'Workforce boards', ajc: 'American Job Centers',
 }
 
-export type ArmRow = { audience: string; variant: string; sends: number; replies: number; clicks: number; reopens: number; bounces: number }
+export type ArmRow = { audience: string; variant: string; sends: number; replies: number; positive: number; clicks: number; reopens: number; bounces: number }
 export type Compare = { audience: string; label: string; a: string; b: string; replyP: number; clickP: number; need: number | null }
 export type WarmPerson = { personId: string; name: string; org: string; email: string; humanOpens: number; clicked: boolean; sentAt: Date }
 
@@ -31,10 +32,17 @@ export async function outreachReport() {
     select: { personId: true, occurredAt: true, outcome: true },
   })
   const ids = [...new Set(sends.map((s) => s.personId!))]
-  const inbound = await prisma.crmActivity.findMany({ where: { type: 'EMAIL', direction: 'INBOUND', personId: { in: ids } }, select: { personId: true, occurredAt: true } })
+  const inbound = await prisma.crmActivity.findMany({ where: { type: 'EMAIL', direction: 'INBOUND', personId: { in: ids } }, select: { personId: true, occurredAt: true, outcome: true } })
   const inboundBy = new Map<string, Date[]>()
-  for (const r of inbound) inboundBy.set(r.personId!, [...(inboundBy.get(r.personId!) ?? []), r.occurredAt])
+  const classOf = new Map<string, ReplyClass>()
+  for (const r of inbound) {
+    inboundBy.set(r.personId!, [...(inboundBy.get(r.personId!) ?? []), r.occurredAt])
+    const c = replyClassOf(r.outcome)
+    if (c && (c === 'positive' || !classOf.has(r.personId!))) classOf.set(r.personId!, c)
+  }
   const replied = (personId: string, at: Date) => (inboundBy.get(personId) ?? []).some((t) => t >= at && t.getTime() - at.getTime() <= REPLY_WINDOW_MS)
+  // Out-of-office and other automatic mail is not a reply from a person, so it is not counted as one.
+  const realReply = (personId: string, at: Date) => replied(personId, at) && classOf.get(personId) !== 'auto'
 
   const arms = new Map<string, ArmRow>()
   const timing = new Map<string, ArmRow>()
@@ -42,10 +50,10 @@ export async function outreachReport() {
   for (const s of sends) {
     const { template, variant, timing: tm, timingTest } = parse(s.outcome)
     const audience = AUDIENCE_OF[template] ?? 'Other'
-    const row = (m: Map<string, ArmRow>, key: string, label: string) => { const r = m.get(key) ?? { audience, variant: label, sends: 0, replies: 0, clicks: 0, reopens: 0, bounces: 0 }; m.set(key, r); return r }
+    const row = (m: Map<string, ArmRow>, key: string, label: string) => { const r = m.get(key) ?? { audience, variant: label, sends: 0, replies: 0, positive: 0, clicks: 0, reopens: 0, bounces: 0 }; m.set(key, r); return r }
     const hit = (r: ArmRow) => {
       r.sends++
-      if (replied(s.personId!, s.occurredAt)) r.replies++
+      if (realReply(s.personId!, s.occurredAt)) { r.replies++; if (classOf.get(s.personId!) === 'positive' || classOf.get(s.personId!) === 'referral') r.positive++ }
       if (/, clicked(,|$)/.test(s.outcome ?? '')) r.clicks++
       if (humanOpens(s.outcome) >= 2) r.reopens++
       if (/, bounced/.test(s.outcome ?? '')) r.bounces++
@@ -82,7 +90,7 @@ export async function outreachReport() {
   })
   const rank = (a: ArmRow, b: ArmRow) => a.audience.localeCompare(b.audience) || a.variant.localeCompare(b.variant)
   return {
-    totalSent: sends.length, replies: [...arms.values()].reduce((n, r) => n + r.replies, 0), clicks: [...arms.values()].reduce((n, r) => n + r.clicks, 0),
+    totalSent: sends.length, replies: [...arms.values()].reduce((n, r) => n + r.replies, 0), positive: [...arms.values()].reduce((n, r) => n + r.positive, 0), clicks: [...arms.values()].reduce((n, r) => n + r.clicks, 0),
     arms: [...arms.values()].sort(rank), timing: [...timing.values()].sort((a, b) => a.variant.localeCompare(b.variant)), compares, warm,
   }
 }

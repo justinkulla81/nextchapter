@@ -19,6 +19,8 @@ import { CRM_ACTIVITY_CUTOFF, isAfterCrmCutoff } from './cutoff'
 import { canonicalEmail, findEmailOwner } from './email-owner'
 import { namesLookAlike } from '@/lib/text/person-name-match'
 import { detectReportEdition } from '@/lib/mailing/edition-parser'
+import { buildOutreachReplyEmails } from '@/lib/outreach/reply-context'
+import { classifyReply, replyOutcome } from '@/lib/outreach/reply-class'
 import { buildMailingSweepContext, markReportManual, onInboundMessage, type MailingSweepContext } from '@/lib/mailing/tracking'
 import { raiseListPrompt } from '@/lib/mailing/lists'
 
@@ -487,6 +489,8 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     // allowed to fail the sweep — the CRM log matters more.
     let mailingCtx: MailingSweepContext | null = null
     try { mailingCtx = await buildMailingSweepContext() } catch (e) { console.error('Mailing sweep context failed', e) }
+    let outreachEmails = new Set<string>()
+    try { outreachEmails = await buildOutreachReplyEmails() } catch (e) { console.error('Outreach reply context failed', e) }
 
     for (const [i, id] of ids.entries()) {
       const msg = headers[i]
@@ -501,7 +505,9 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
       // the notice is addressed — see appointmentBooker.
       const booking = appointmentBooker(msg.subject)
       const direction = booking ? 'INBOUND' : directionOf(fromEmail, ctx)
-      const relevant = booking ? true : mentionsNextChapter(msg.subject, msg.snippet)
+      // A reply from someone we cold-emailed is always logged, even if it never says NextChapter ("Thanks, send it over").
+      const outreachReply = direction === 'INBOUND' && !!fromEmail && outreachEmails.has(fromEmail)
+      const relevant = booking ? true : outreachReply || mentionsNextChapter(msg.subject, msg.snippet)
       if (direction === 'INBOUND' && mailingCtx && fromEmail && !booking) {
         await onInboundMessage(mailingCtx, { id, fromEmail, subject: msg.subject, snippet: msg.snippet, at: msg.internalDate })
           .catch((e) => console.error('Mailing inbound hook failed', id, e))
@@ -577,6 +583,8 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
             body: fullBody ?? snippetOf(msg.snippet),
             isAutoLogged: true,
             sourceRef: `${id}:${personId}`,
+            // A reply to cold outreach is labelled positive, a question, a referral, no, or automatic, for the Outreach tests page.
+            outcome: outreachReply ? replyOutcome(classifyReply(msg.subject, fullBody ?? msg.snippet)) : undefined,
             // Always false here — an INBOUND row only ever reaches this line
             // when `relevant` is true (see the guard above).
             needsReview,
@@ -592,6 +600,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
             body: fullBody, attachmentNames, needsReview,
           }).catch((e) => console.error('Mailing outbound hook failed', id, e))
         }
+        if (outreachReply && Date.now() - created.createdAt.getTime() < 5_000) captureServerEvent(personId, 'outreach_reply_received', { class: classifyReply(msg.subject, fullBody ?? msg.snippet) })
         if (isNewPerson) result.suggested++
         touched.add(personId)
         loggedForThisMessage = true
