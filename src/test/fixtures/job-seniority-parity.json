@@ -11731,8 +11731,8 @@
 ],
 [
 "Executive Director, Information Technology Services",
-"DIRECTOR",
-68
+"HEAD",
+72
 ],
 [
 "Executive Director I (226 Days)",
@@ -13488,8 +13488,8 @@ true
 ],
 [
 "Executive Director, Strategy",
-"C_SUITE",
-100
+"HEAD",
+72
 ],
 [
 "Program Director",
@@ -22270,5 +22270,120 @@ true
 "Medical Technologist - Recent Graduate (GS-5/7)",
 "OTHER",
 0
+],
+[
+"Executive Director-Cross Line Of Business Chase Engagement Marketing",
+"HEAD",
+72
+],
+[
+"Executive Director, Global Strategic Marketing - Fabry",
+"HEAD",
+72
+],
+[
+"STRIVE - Interim Executive Director - NYC",
+"C_SUITE",
+100
+],
+[
+"Sciencenter - Executive Director",
+"C_SUITE",
+100
+],
+[
+"Executive Director of Development",
+"C_SUITE",
+100
+],
+[
+"Executive Director of the Smith Family Foundation",
+"C_SUITE",
+100
+],
+[
+"Executive Director - Equity Research",
+"HEAD",
+72
+],
+[
+"Field CTO - North America",
+"VP",
+80
+],
+[
+"Client CTO",
+"VP",
+80
+],
+[
+"Regional Chief Technology Officer, NAMER West",
+"VP",
+80
+],
+[
+"Industry CTO, Financial Services",
+"VP",
+80
+],
+[
+"Chief Technology Officer",
+"C_SUITE",
+100
+],
+[
+"Chief of Staff, CEO",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"AVP, Chief of Staff to the CTO",
+"SR_MANAGER",
+52
+],
+[
+"Agency CMO Trader",
+"SENIOR_IC",
+45
+],
+[
+"CMO Structurer",
+"SENIOR_IC",
+45
+],
+[
+"Non-Agency CMO Analyst",
+"MID_IC",
+30
+],
+[
+"VP, Agency CMO Trading",
+"VP",
+80
+],
+[
+"Fractional CMO Strategist: Hybrid",
+"C_SUITE",
+100
+],
+[
+"Chief Marketing Officer (CMO)",
+"C_SUITE",
+100
+],
+[
+"Freelance VP/SVP Account Director",
+"VP",
+80
+],
+[
+"Freelance VP Account Director",
+"DIRECTOR",
+65
+],
+[
+"SVP, Group Account Director",
+"EVP_SVP",
+90
 ]
 ]

@@ -15,6 +15,7 @@ import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/leve
 import { ALL_STAGES_WINDOW, CAREER_STAGES, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageOfRung, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
 import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
 import { notInternshipWhere } from '@/lib/internships/exclude'
+import { emailLevelFit } from '@/lib/jobs/email-level-fit'
 import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
 import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, writeSnapshot, yieldToRequests, type SnapshotKind } from '@/lib/jobs/board-snapshot'
 import { decodeBoardPart, encodeBoardPart } from '@/lib/jobs/board-snapshot-codec'
@@ -795,9 +796,16 @@ export async function loadBoardShortlist(opts: {
       ? countRelevant(await loadLightBoardRows(boardLevelWindowWhere(undefined, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })), classifier.placeFresh)
       : undefined
   lap.inputs = Date.now() - t0
+  // Years fit (owner, 2026-10-19): an in-window job asking far more — or far fewer — years
+  // than the member has (email-level-fit.ts) ranks after the jobs that fit, never hidden.
+  // Ranked over a few more rows than shown, so a demoted job makes room for the next good one.
+  // Only the fit order (no explicit sort, no search tiers) and only with a member.
+  const size = opts.size ?? 300
+  const demoteYears = !!opts.candidate && (!opts.sort || opts.sort === 'best') && !opts.relevance
   const rankWith = (keepRow: typeof keep) =>
     rankBoardRows(light, {
       ...opts,
+      size: demoteYears ? size + Math.min(size, YEARS_DEMOTE_BUFFER) : opts.size,
       keep: keepRow,
       place: classifier?.place,
       breadth: breadth === 'off' ? undefined : breadth,
@@ -821,8 +829,11 @@ export async function loadBoardShortlist(opts: {
   // A slow shortlist (a cold instance, a board reload) says where the time went, in Vercel's logs.
   if (lap.total >= SLOW_SHORTLIST_MS) console.log('[board-timing]', JSON.stringify({ ...lap, jobs: light.length }))
 
+  let open = inOrder(ranked.openIds)
+  if (demoteYears) open = demoteYearsMismatch(opts.candidate as Parameters<typeof emailLevelFit>[0], open, size)
+
   return {
-    open: inOrder(ranked.openIds),
+    open,
     locked: inOrder(ranked.lockedIds),
     openTotal: ranked.openTotal,
     lockedTotal: ranked.lockedTotal,
@@ -890,6 +901,23 @@ export interface BridgeInfo {
   notes: string[]
 }
 
+/**
+ * The fit order with years mismatches last (email-level-fit.ts years_far / years_overqualified):
+ * stable within each part, cut to `size`. Pure; exported for tests.
+ */
+export function demoteYearsMismatch<T extends { level: string | null; description?: string | null }>(
+  member: Parameters<typeof emailLevelFit>[0],
+  jobs: T[],
+  size: number
+): T[] {
+  const fits: T[] = []
+  const later: T[] = []
+  for (const p of jobs) (emailLevelFit(member, p).startsWith('years_') ? later : fits).push(p)
+  return [...fits, ...later].slice(0, size)
+}
+
+/** Extra rows ranked past the shown size, so years-demoted jobs make room for the next good fit. */
+export const YEARS_DEMOTE_BUFFER = 30
 /** Rank of a job a search kept that neither breadth would show (after every breadth kind). */
 const MATCH_RANK_UNMATCHED = 9
 /** "Show more good matches": at most this many more ids, paged in on request (never by default). */

@@ -43,3 +43,17 @@ describe('every job email applies the member level window without the board ring
     })
   }
 })
+
+describe('board: years mismatches rank after the jobs that fit (never hidden)', () => {
+  it('moves overqualified in-window jobs below the good fits, keeping order', async () => {
+    const { demoteYearsMismatch } = await import('@/lib/jobs/board-shortlist')
+    const jobs = [
+      { id: 'a', level: 'DIRECTOR', description: '5+ years of experience in public finance.' }, // overqualified for 32y
+      { id: 'b', level: 'VP', description: '20+ years of experience.' },
+      { id: 'c', level: 'DIRECTOR', description: null },
+      { id: 'd', level: 'VP', description: null },
+    ]
+    expect(demoteYearsMismatch(vp32, jobs, 4).map((j) => j.id)).toEqual(['b', 'c', 'd', 'a'])
+    expect(demoteYearsMismatch(vp32, jobs, 3).map((j) => j.id)).toEqual(['b', 'c', 'd'])
+  })
+})
