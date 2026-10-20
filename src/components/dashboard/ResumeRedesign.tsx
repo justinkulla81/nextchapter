@@ -29,7 +29,7 @@ export function ResumeRedesign({
   const fixList = (items: typeof fixes) => (
     <div className="divide-y divide-border rounded-2xl border border-border">
       {items.map((item, i) => (
-        <ResumeFixCard key={item.dimension + i} item={item} redesign />
+        <ResumeFixCard key={item.dimension + i} item={item} />
       ))}
     </div>
   )
@@ -45,7 +45,7 @@ export function ResumeRedesign({
         }
       />
       {versions.length === 0 && upload}
-      {versions.length > 0 && <ResumeVersionsList versions={versions} fromGap={fromGap} redesign />}
+      {versions.length > 0 && <ResumeVersionsList versions={versions} fromGap={fromGap} />}
       {fixes.length > 0 && (
         <div id="resume-fixes" className="scroll-mt-4">
           <SectionBlock id="fixes-h" title="What to fix first" why={`From your market reality report. ${fixes.length === 1 ? 'It says' : 'Each one says'} what is wrong and how to fix it.`}>

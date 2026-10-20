@@ -1,8 +1,7 @@
 // The questions a member can answer in place, on the report, to sharpen it.
 // Each writes to a field that already exists and that the rest of NextChapter
 // already reads, so nothing is asked twice and nothing new needs a home. Pure:
-// the whitelist and validation live here so they are tested; the server action
-// (src/app/dashboard/market-reality/answer-actions.ts) only applies the result.
+// the whitelist and validation live here so they are tested.
 
 import { PAY_FLOOR_BANDS, payFloorFromBand } from '@/lib/onboarding/pay-floor'
 import { SEARCH_STALL_OPTIONS, parseSearchStallPoint } from '@/lib/onboarding/search-stall'

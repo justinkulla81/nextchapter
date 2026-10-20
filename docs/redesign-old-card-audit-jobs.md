@@ -40,13 +40,12 @@ component is unchanged (new look sits behind a `redesign` prop or in a sibling c
 | Track record, How I perform | Page wrappers are already redesigned; the legacy part is the form body | Not touched (another agent rebuilds both as short rounds) | n/a |
 | Early career `/dashboard/early-career` | Ten-step checklist in green on the first view, boxed school form, `text-lg` titles | Next three steps (ink checks), school form only until a school is saved, pay range with its reason | Every step, roles, promotion path, first offer, grad school |
 
-## Not done, and why
+## Follow-up done (2026-10-20)
 
-- Interview tabs 2 to 5, the advertised-pay chart (`AdzunaMarketSection`), company hiring history, culture, intel panels and
-  the "how to get hired" accordion, and the in-work tab bodies beyond the shared section and button look still carry some
-  legacy markup. All are behind a click, none on the first view. Follow-up work.
-- `ConversationForm`, `HireOutcomeForm` and `ResumeUploadForm` keep their field styling (labels and hints at `text-sm`
-  and `text-xs`). Only their wrappers, success states and buttons changed.
+Interview tabs 2 to 5, the advertised-pay chart, company hiring history, culture, intel panels and "how to get hired", the in-work
+tab bodies, and the field styling of `ConversationForm`, `HireOutcomeForm` and `ResumeUploadForm` now have a `redesign` look
+(serif titles, text-base body, ink buttons, no badges, plain boxes). The legacy render of each shared component is unchanged.
+Fixtures: `/dev-preview/jobs/live/interview-tabs`, `pay-chart`, `company-sections`, `company-empty`, `in-work-*`, `forms`.
 
 ## How it was checked
 

@@ -11,9 +11,8 @@ import { getPlatformActivity, statusByListing } from '@/lib/platforms/candidate-
 import { prisma } from '@/lib/prisma'
 import type { WorkType } from '@/lib/jobs/work-type'
 
-// Everything the independent-work toolkit shows, loaded once on the server. Both the live toolkit
-// (components/dashboard/one-board/IndependentWorkSections.tsx) and the redesigned part
-// (components/dashboard/find/FindIndependentSection.tsx) read it, so the two never drift.
+// Everything the independent-work toolkit shows, loaded once on the server. The independent-work part
+// (components/dashboard/find/FindIndependentSection.tsx) reads it.
 
 function twoDaysAgo(): Date {
   return new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)

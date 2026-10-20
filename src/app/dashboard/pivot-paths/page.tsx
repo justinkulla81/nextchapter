@@ -38,7 +38,6 @@ import { PivotViewTracker } from '@/components/dashboard/pivot/PivotViewTracker'
 import { RoleLookup } from '@/components/dashboard/pivot/RoleLookup'
 import { ClearCareerChoicesForm } from '@/components/dashboard/pivot/ClearCareerChoicesForm'
 import { OnetAttribution } from '@/components/OnetAttribution'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Module } from '@/components/candidate/Module'
 import { SectionPills } from '@/components/candidate/SectionPills'
@@ -58,33 +57,7 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 export default async function PivotPathsPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams
   const profile = await getDashboardProfile()
-  if (isRedesignOn(profile.email)) return <RedesignedPivot profile={profile} params={params} />
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Pivot paths</h1>
-        <p className="text-muted-foreground">
-          Where your skills carry over, ranked by how well you fit, how many of these jobs are open near you and nationally, and what they pay.
-        </p>
-        <p className="text-sm text-muted-foreground">
-          <Link href="/dashboard/my-career" className="text-primary underline underline-offset-4">
-            See these on your career timeline
-          </Link>
-        </p>
-      </div>
-      <WhatItTakes profile={profile} target={first(params.target)} why={first(params.why)} />
-      <Suspense
-        fallback={
-          <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
-            <Spinner size={16} />
-            Matching your skills to the job market…
-          </div>
-        }
-      >
-        <PivotPathsBody profile={profile} params={params} />
-      </Suspense>
-    </div>
-  )
+  return <RedesignedPivot profile={profile} params={params} />
 }
 
 type Profile = Awaited<ReturnType<typeof getDashboardProfile>>
@@ -114,35 +87,7 @@ async function pivotContext(profile: Profile, why: string) {
   return { tr, learning, reason, pivot, interests, ownedFunctions, ideas }
 }
 
-// "What would it take?" and the member's learning paths. Works without the O*NET data.
-async function WhatItTakes({ profile, target, why }: { profile: Profile; target: string; why: string }) {
-  const { tr, learning, reason, pivot, interests, ideas, ownedFunctions } = await pivotContext(profile, why)
-  const saved = activeTargets(pivot).some((t) => t.function === target)
-  if (target) {
-    after(() => captureServerEvent(profile.id, 'pivot_pathway_viewed', { from: profile.primaryFunction, to: target, why: reason }))
-  }
-  return (
-    <div className="space-y-6">
-      <PivotRadar pivot={pivot} interests={interests} />
-      <PivotIdeas ideas={ideas} from={profile.primaryFunction} />
-      <PathwayExplorer
-        from={profile.primaryFunction}
-        keywords={[...profile.resumeKeywords, ...profile.confirmedSkillsHave]}
-        seniorLevel={(profile.levelRankScore ?? 0) >= 60}
-        ownedFunctions={ownedFunctions}
-        target={target || null}
-        why={reason}
-        alreadySaved={saved}
-        currentIndustry={profile.industryContext}
-        targetIndustries={profile.targetIndustries}
-        sectorHistory={tr?.sectorHistory ?? []}
-      />
-      <LearningPathsCard paths={learning.paths} progress={learning.progress} />
-    </div>
-  )
-}
-
-// ── The redesigned page: three parts, one at a time (docs/open-decisions.md, item 11) ─────────────────
+// ── The page: three parts, one at a time (docs/open-decisions.md, item 11) ─────────────────
 
 const PART_BUTTON = 'inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95'
 

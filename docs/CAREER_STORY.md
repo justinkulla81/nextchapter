@@ -1,6 +1,6 @@
 # Your career story
 
-`/dashboard/my-career` (tab "Career timeline" under Personalize) and a compact copy in the Market Reality report.
+`/dashboard/my-career` (tab "Career timeline"; in the redesign it sits under Learn, Your path, since there is no Personalize place) and a compact copy in the Market Reality report.
 A private, visual timeline of school, work, ventures, pauses and learning, with "doors you could open" and a pause what-if.
 
 ## Where the data comes from

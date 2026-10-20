@@ -31,7 +31,7 @@ export interface ResumeVersionItem
 // it as a starting point for a new version. The Resume Fixer lives inside
 // the current version's row (not a separate card elsewhere on the page) so
 // the flow is: open the resume, see what's wrong, then launch the fixer.
-export function ResumeVersionsList({ versions, fromGap, redesign = false }: { versions: ResumeVersionItem[]; fromGap?: string; redesign?: boolean }) {
+export function ResumeVersionsList({ versions, fromGap }: { versions: ResumeVersionItem[]; fromGap?: string }) {
   // A Market Reality Report gap link lands here with ?fromGap=... — that
   // context (and the current version's issues it refers to) only exists in
   // the DOM once this row is expanded, so the deep link forces it open
@@ -44,17 +44,11 @@ export function ResumeVersionsList({ versions, fromGap, redesign = false }: { ve
 
   return (
     <div className="space-y-2">
-      {redesign ? (
-        <div className="space-y-1">
-          <h2 className="font-display text-xl font-semibold text-ink">Your résumé{versions.length > 1 ? ' versions' : ''}</h2>
-          <p className="max-w-2xl text-base text-muted-foreground">Keep one for each kind of role. Open one to see what to fix or to rename it.</p>
-        </div>
-      ) : (
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          Your resume{versions.length > 1 ? ' versions' : ''}
-        </p>
-      )}
-      <div className={cn('divide-y divide-border border border-border', redesign ? 'rounded-2xl' : 'rounded-lg')}>
+      <div className="space-y-1">
+        <h2 className="font-display text-xl font-semibold text-ink">Your résumé{versions.length > 1 ? ' versions' : ''}</h2>
+        <p className="max-w-2xl text-base text-muted-foreground">Keep one for each kind of role. Open one to see what to fix or to rename it.</p>
+      </div>
+      <div className="divide-y divide-border rounded-2xl border border-border">
         {versions.map((version) => (
           <ResumeVersionRow
             key={version.id}
@@ -62,7 +56,6 @@ export function ResumeVersionsList({ versions, fromGap, redesign = false }: { ve
             isExpanded={expandedId === version.id}
             onToggle={() => setExpandedId((id) => (id === version.id ? null : version.id))}
             fromGap={version.isLatest ? fromGap : undefined}
-            redesign={redesign}
           />
         ))}
       </div>
@@ -82,79 +75,41 @@ function resumeVerdict(version: ResumeVersionItem): string {
   return issues > 0 ? `${issues} ${issues === 1 ? 'thing' : 'things'} to fix so a recruiter reads further.` : 'Nothing to fix. A recruiter can read it as is.'
 }
 
-function ResumeStatusLine({ version }: { version: ResumeVersionItem }) {
-  if (version.analysisError) {
-    return <p className="text-xs text-destructive">Analysis failed</p>
-  }
-  if (version.atsScore === null) {
-    return <p className="text-xs text-muted-foreground">Analyzing…</p>
-  }
-  const issues = issueCount(version)
-  if (issues > 0) {
-    return (
-      <p className="text-xs font-medium text-amber-700">
-        {issues} issue{issues === 1 ? '' : 's'} found
-      </p>
-    )
-  }
-  return <p className="text-xs text-success">No issues found</p>
-}
-
 function ResumeVersionRow({
   version,
   isExpanded,
   onToggle,
   fromGap,
-  redesign = false,
 }: {
   version: ResumeVersionItem
   isExpanded: boolean
   onToggle: () => void
   fromGap?: string
-  redesign?: boolean
 }) {
   const [, startTransition] = useTransition()
-  const [dirty, setDirty] = useState(false)
 
   return (
-    <div className={cn(redesign ? 'p-5' : 'p-3', isExpanded && 'bg-muted/30')}>
+    <div className={cn('p-5', isExpanded && 'bg-muted/30')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {redesign ? (
-          <div className="min-w-0 space-y-0.5">
-            <p className="truncate text-base font-semibold text-ink">{version.label || version.fileName}</p>
-            <p className="text-sm text-ink">{resumeVerdict(version)}</p>
-            <p className="truncate text-sm text-muted-foreground">
-              {version.isLatest ? 'Current version. ' : ''}
-              {version.description || `Uploaded ${version.uploadedAt.toLocaleDateString()}`}
-            </p>
-          </div>
-        ) : (
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-foreground">
-            {version.label || version.fileName}
-            {version.isLatest && (
-              <span className="ml-1.5 rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-medium text-brand">
-                Current
-              </span>
-            )}
+        <div className="min-w-0 space-y-0.5">
+          <p className="truncate text-base font-semibold text-ink">{version.label || version.fileName}</p>
+          <p className="text-sm text-ink">{resumeVerdict(version)}</p>
+          <p className="truncate text-sm text-muted-foreground">
+            {version.isLatest ? 'Current version. ' : ''}
+            {version.description || `Uploaded ${version.uploadedAt.toLocaleDateString()}`}
           </p>
-          <p className="truncate text-xs text-muted-foreground">
-            {version.description || version.uploadedAt.toLocaleDateString()}
-          </p>
-          <ResumeStatusLine version={version} />
         </div>
-        )}
-        <div className={cn('flex shrink-0 items-center gap-3 font-medium', redesign ? 'text-sm' : 'text-xs')}>
+        <div className="flex shrink-0 items-center gap-3 text-sm font-medium">
           {version.signedUrl && (
             <ResumeViewButton
               signedUrl={version.signedUrl}
               title={version.label || version.fileName}
-              className={redesign ? 'text-brand underline underline-offset-4' : 'text-primary hover:underline'}
+              className="text-brand underline underline-offset-4"
             >
               View
             </ResumeViewButton>
           )}
-          <button type="button" onClick={onToggle} className={redesign ? 'text-brand underline underline-offset-4' : 'text-muted-foreground hover:text-foreground'}>
+          <button type="button" onClick={onToggle} className="text-brand underline underline-offset-4">
             {isExpanded ? 'Hide' : 'Details'}
           </button>
         </div>
@@ -217,7 +172,7 @@ function ResumeVersionRow({
             </div>
           )}
 
-          <form action={updateResumeDetails.bind(null, version.id)} className="space-y-2" onChange={() => setDirty(true)}>
+          <form action={updateResumeDetails.bind(null, version.id)} className="space-y-2">
             <div className="space-y-1">
               <label htmlFor={`label-${version.id}`} className="text-xs font-medium text-muted-foreground">
                 Name
@@ -236,7 +191,7 @@ function ResumeVersionRow({
                 placeholder="What's different about this one — e.g. tailored for VP Product roles"
               />
             </div>
-            <SubmitButton size="sm" variant={dirty && !redesign ? 'success' : 'outline'}>
+            <SubmitButton size="sm" variant="outline">
               Save
             </SubmitButton>
           </form>

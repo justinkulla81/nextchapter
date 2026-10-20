@@ -2,7 +2,7 @@
 
 Audit date: 2026-10-17. Read-only audit of the code on branch HEAD `1d5bd4b9`. Every statement below comes from code I read; where I looked and did not find something I say "not found". Code references are file paths in the repo. Pages are given as full URLs on https://launchyournextchapter.com.
 
-Older docs (`docs/CANDIDATE_JOURNEYS_AND_FEATURES.md` lists 8 journeys, `docs/CANDIDATE_MENU.md` marks "Reviews and raises" as shown to all) have drifted from the code. This file follows the code.
+Older docs (`docs/CANDIDATE_JOURNEYS_AND_FEATURES.md` listed 8 journeys (fixed 2026-10-20, it now lists all 11), `docs/CANDIDATE_MENU.md` marks "Reviews and raises" as shown to all) have drifted from the code. This file follows the code.
 
 ## Summary
 
@@ -444,7 +444,7 @@ In STAYING, GROWING/ENTREPRENEUR/FRACTIONAL/TIME_OFF each use their own plan and
 7. **Daily message** (admin-authored rotation) is not segmented by journey (`src/lib/dashboard/page-content.ts`).
 8. **Mood check-in and Support page** (`src/lib/daily/mood-labels.ts`: Stuck, Getting there, Moving, Fired up; https://launchyournextchapter.com/dashboard/support copy "Losing a job — or leaving one...") are not journey-specific. The Support copy fits LAID_OFF and a little RETURNING; it does not address leave, a venture, or a promotion that stalled.
 9. **Supporters** (https://launchyournextchapter.com/dashboard/supporters) are blocked in Confidential mode, which is the default for 5 journeys; the weekly note is about search effort.
-10. **Doc drift:** `docs/CANDIDATE_JOURNEYS_AND_FEATURES.md` still lists 8 journeys, and `docs/CANDIDATE_MENU.md` shows "Reviews and raises" as shown to everyone; the code shows it only for PROMOTION, EXPLORING_MOVE and NEXT_ACT.
+10. **Doc drift:** `docs/CANDIDATE_JOURNEYS_AND_FEATURES.md` listed 8 journeys (fixed 2026-10-20, it now lists all 11), and `docs/CANDIDATE_MENU.md` shows "Reviews and raises" as shown to everyone; the code shows it only for PROMOTION, EXPLORING_MOVE and NEXT_ACT.
 
 ## Matrix
 

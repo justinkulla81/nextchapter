@@ -1,5 +1,4 @@
-// How I perform as short rounds. The same forty statements as the long form
-// (src/components/dashboard/PerformanceAssessmentForm.tsx), each asked exactly once, scored the same way,
+// How I perform as short rounds. The forty statements, each asked exactly once, scored the same way,
 // in rounds of three at most (eight statements per dimension -> 3, 3, 2). Pure: question definitions, round
 // order, the payoff, the finish and the conversion to and from the saved answers. performance-rounds.test.ts covers it.
 

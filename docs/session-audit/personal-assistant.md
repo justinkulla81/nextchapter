@@ -174,3 +174,5 @@ working pages, and (d) writes the receipts. It has no menu entry of its own.
 3. Free to every candidate: confirm against Membership and Candidate+.
 4. Should phase 1 include the member autofill extension (needs Web Store account) or wait?
 5. Is the spec branch to be merged, or its content rewritten into `docs/specs/` here?
+
+_Note (2026-10-20): the product has 11 journeys, and the redesign has no Personalize place (its pieces are the strips and the Improve your search page). Where this file says otherwise, it quotes the terms as they were when it was written._

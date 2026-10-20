@@ -1,12 +1,28 @@
 'use client'
 
-import { createContext, useContext, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import type { ActionResult } from '@/app/dashboard/in-work/actions'
 
-// The workspace's seven tabs share these building blocks. The redesigned page provides `true` here once, and every tab
-// picks up the redesign look (no boxed sections, serif titles, ink instead of blue) without a prop on each of them.
-export const RedesignContext = createContext(false)
+// The workspace's seven tabs share these building blocks: reading-size text, serif titles, ink instead of blue.
+
+// Text sizes for the tab bodies.
+export function useType() {
+  return {
+    /** Body copy and list rows. */
+    body: 'text-base',
+    /** Hints, notes and meta lines. */
+    hint: 'text-base',
+    /** Dates and other tiny facts. */
+    meta: 'text-sm',
+  }
+}
+
+// A tab's buttons: a quiet ink-outlined pill, because the page's one orange action is "Log a win" in its header.
+export function ActionButton({ variant, size: _size, className, ...props }: React.ComponentProps<typeof Button>) {
+  return <Button variant={variant === 'ghost' ? 'ghost' : 'outline'} className={cn('h-10 rounded-full px-5 text-sm', className)} {...props} />
+}
 
 export type Notice = { kind: 'ok' | 'error'; text: string } | null
 
@@ -35,33 +51,20 @@ export function useRunner() {
 }
 
 export function NoticeLine({ notice }: { notice: Notice }) {
-  const redesign = useContext(RedesignContext)
   if (!notice) return null
   return (
-    <p role="status" className={cn('text-sm', notice.kind === 'ok' ? (redesign ? 'font-medium text-ink' : 'text-success') : 'text-destructive')}>
+    <p role="status" className={cn('text-base', notice.kind === 'ok' ? 'font-medium text-ink' : 'text-destructive')}>
       {notice.text}
     </p>
   )
 }
 
 export function Section({ title, intro, children }: { title: string; intro?: string; children: React.ReactNode }) {
-  const redesign = useContext(RedesignContext)
-  if (redesign) {
-    return (
-      <section className="space-y-3">
-        <div className="space-y-1">
-          <h2 className="font-display text-xl font-semibold text-ink">{title}</h2>
-          {intro && <p className="max-w-2xl text-base text-muted-foreground">{intro}</p>}
-        </div>
-        {children}
-      </section>
-    )
-  }
   return (
-    <section className="space-y-3 rounded-lg border border-border bg-background p-4">
-      <div>
-        <h2 className="font-heading text-lg font-semibold text-foreground">{title}</h2>
-        {intro && <p className="mt-1 text-sm text-muted-foreground">{intro}</p>}
+    <section className="space-y-3">
+      <div className="space-y-1">
+        <h2 className="font-display text-xl font-semibold text-ink">{title}</h2>
+        {intro && <p className="max-w-2xl text-base text-muted-foreground">{intro}</p>}
       </div>
       {children}
     </section>
@@ -69,11 +72,12 @@ export function Section({ title, intro, children }: { title: string; intro?: str
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  const t = useType()
   return (
     <label className="block space-y-1">
-      <span className="text-sm font-medium text-foreground">{label}</span>
+      <span className="text-base font-medium text-ink">{label}</span>
       {children}
-      {hint && <span className="block text-xs text-muted-foreground">{hint}</span>}
+      {hint && <span className={cn('block text-muted-foreground', t.hint)}>{hint}</span>}
     </label>
   )
 }
@@ -93,7 +97,6 @@ export function ChoiceButtons<T extends string>({
   onChange: (v: T) => void
   label: string
 }) {
-  const redesign = useContext(RedesignContext)
   return (
     <div role="group" aria-label={label} className="flex flex-wrap gap-2">
       {options.map((o) => (
@@ -104,7 +107,7 @@ export function ChoiceButtons<T extends string>({
           onClick={() => onChange(o.key)}
           className={cn(
             'rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
-            value === o.key ? (redesign ? 'border-ink bg-ink/5 font-semibold text-ink' : 'border-brand bg-brand/10 text-brand') : 'border-border bg-background text-foreground/80 hover:bg-muted',
+            value === o.key ? 'border-ink bg-ink/5 font-semibold text-ink' : 'border-border bg-background text-foreground/80 hover:bg-muted',
           )}
         >
           {o.label}
@@ -118,10 +121,10 @@ export function CopyBlock({ text, label, onCopy }: { text: string; label: string
   const [copied, setCopied] = useState(false)
   return (
     <div className="space-y-2">
-      <pre className="max-h-96 overflow-auto rounded-lg border border-border bg-off-white p-3 text-sm whitespace-pre-wrap text-foreground">{text}</pre>
+      <pre className="max-h-96 max-w-2xl overflow-auto rounded-2xl border border-border p-5 font-sans text-base whitespace-pre-wrap text-ink">{text}</pre>
       <button
         type="button"
-        className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+        className="h-10 rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted"
         onClick={async () => {
           try {
             await navigator.clipboard.writeText(text)
@@ -151,15 +154,16 @@ export function formatDate(iso: string): string {
 // Two-step delete: the first click asks, the second confirms.
 export function ConfirmDelete({ onConfirm, pending, what }: { onConfirm: () => void; pending?: boolean; what: string }) {
   const [asking, setAsking] = useState(false)
+  const t = useType()
   if (!asking) {
     return (
-      <button type="button" className="text-xs font-medium text-muted-foreground hover:text-destructive" onClick={() => setAsking(true)}>
+      <button type="button" className={cn('font-medium text-muted-foreground hover:text-destructive', t.meta)} onClick={() => setAsking(true)}>
         Delete
       </button>
     )
   }
   return (
-    <span className="flex items-center gap-2 text-xs">
+    <span className={cn('flex items-center gap-2', t.meta)}>
       <span className="text-muted-foreground">Delete this {what}?</span>
       <button type="button" disabled={pending} className="font-semibold text-destructive" onClick={onConfirm}>
         Yes, delete
