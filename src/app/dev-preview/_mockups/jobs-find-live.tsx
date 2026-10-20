@@ -7,6 +7,7 @@ import { AddJobAction } from '@/components/dashboard/find/AddJobAction'
 import { FindTwoPane } from '@/components/dashboard/find/FindTwoPane'
 import { boardEntry, surfacedEntry, type FindEntry } from '@/components/dashboard/find/entries'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
+import { OpenToChangersFilter } from '@/components/dashboard/OpenToChangersFilter'
 import type { JobMatch, MatchDimension, MatchDimensionKey, MatchStatus } from '@/lib/jobs/job-match-types'
 import type { MyJobItem, MyJobsView } from '@/lib/jobs/my-jobs-data'
 import type { JobStatus } from '@/lib/jobs/my-jobs'
@@ -25,7 +26,7 @@ function posting(p: Partial<ExclusiveJobPosting> & Pick<ExclusiveJobPosting, 'id
     level: 'C_SUITE', sourceCategory: 'search_firm', badges: [], postingType: 'recruiter_search', salaryMin: null, salaryMax: null, salaryCurrency: 'USD', payPeriod: 'year',
     status: 'approved', source: 'ats_feed', submittedByEmployerId: null, submittedByRecruiterId: null, disclosure: 'NAMED', companyId: null,
     lastVerifiedAt: hoursAgo(5), directListing: false, targetRemotePolicy: null, marketPayLow: null, marketPayHigh: null, marketPayMid: null, payVsMarket: null,
-    marketPayBasis: null, marketPaySample: null, repostCount: 0, reopenCount: 0, repostFirstSeenAt: null, duplicateCount: 0, skills: [], aiSkillItems: [],
+    marketPayBasis: null, marketPaySample: null, repostCount: 0, reopenCount: 0, repostFirstSeenAt: null, duplicateCount: 0, skills: [], aiSkillItems: [], postingSignals: [],
     ...p,
   } as unknown as ExclusiveJobPosting
 }
@@ -55,7 +56,7 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     candidatePlus: true,
   },
   {
-    posting: posting({ id: 'ed-byrdcliffe', title: 'Executive Director', companyName: 'Byrdcliffe', location: 'Remote', source: 'employer', submittedByEmployerId: 'emp-1', postingType: 'direct', sourceCategory: 'employer', salaryMin: 210000, salaryMax: 250000, description: DESCRIPTION, createdAt: hoursAgo(5), postedAt: hoursAgo(5), targetRemotePolicy: 'remote' }),
+    posting: posting({ id: 'ed-byrdcliffe', title: 'Executive Director', companyName: 'Byrdcliffe', location: 'Remote', source: 'employer', submittedByEmployerId: 'emp-1', postingType: 'direct', sourceCategory: 'employer', salaryMin: 210000, salaryMax: 250000, description: DESCRIPTION, createdAt: hoursAgo(5), postedAt: hoursAgo(5), targetRemotePolicy: 'remote', postingSignals: ['high_eq'] }),
     fitBucket: 'strong',
     why: { fits: ['your level', 'nonprofit board work'], gap: null },
     competition: { level: 'medium', reasons: ['Posted 5h ago'] },
@@ -75,7 +76,7 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     candidatePlus: false,
   },
   {
-    posting: posting({ id: 'pres-lemaitre', title: 'President', companyName: 'Lemaitre Vascular', location: 'Burlington, MA', salaryMin: 300000, salaryMax: 380000, description: DESCRIPTION, createdAt: daysAgo(5), postedAt: daysAgo(5) }),
+    posting: posting({ id: 'pres-lemaitre', title: 'President', companyName: 'Lemaitre Vascular', location: 'Burlington, MA', salaryMin: 300000, salaryMax: 380000, description: DESCRIPTION, createdAt: daysAgo(5), postedAt: daysAgo(5), postingSignals: ['ai_upskilled_welcome'] }),
     fitBucket: 'good',
     why: { fits: ['your level', 'a P&L in a regulated industry'], gap: null },
     competition: { level: 'medium', reasons: [] },
@@ -85,7 +86,7 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     candidatePlus: false,
   },
   {
-    posting: posting({ id: 'vp-harbor', title: 'VP Operations', companyName: 'Harbor Health', location: 'Hybrid, Boston', description: DESCRIPTION, createdAt: daysAgo(6), postedAt: daysAgo(6), level: 'VP' }),
+    posting: posting({ id: 'vp-harbor', title: 'VP Operations', companyName: 'Harbor Health', location: 'Hybrid, Boston', description: DESCRIPTION, createdAt: daysAgo(6), postedAt: daysAgo(6), level: 'VP', postingSignals: ['career_changer_welcome', 'high_eq'] }),
     fitBucket: 'good',
     why: { fits: ['your function'], gap: 'one industry over' },
     competition: { level: 'medium', reasons: [] },
@@ -103,7 +104,8 @@ const SURFACED = {
 
 function entries(): FindEntry[] {
   return [
-    ...BOARD.map((b) => boardEntry(b)),
+    // A member changing careers (signalLift): welcome tags lead (posting-signals.ts).
+    ...BOARD.map((b) => boardEntry({ ...b, signalLift: true })),
     surfacedEntry({ job: SURFACED, fitBucket: 'good', worksHereContacts: [{ id: 'c1', name: 'Priya Shah' }], worksHereTotalCount: 3, watched: false }),
   ]
 }
@@ -120,6 +122,12 @@ export function FindJobsLive() {
         asks={[{ ask: 'Add your tools.', gain: 'About 150 more jobs match.' }, { ask: 'Say if you would relocate.', gain: 'Opens Pittsburgh and Louisville.' }]}
         actionLabel="Answer two questions"
       />
+      <details open className="rounded-lg border border-border px-3 py-2">
+        <summary className="cursor-pointer text-sm font-medium text-ink">Filters and views</summary>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <OpenToChangersFilter surface="dev_preview" on={false} />
+        </div>
+      </details>
       <FindTwoPane items={all.map((e) => e.item)} details={Object.fromEntries(all.map((e) => [e.item.id, e.detail]))} summary={`${all.length} jobs, best fit first`} />
     </PreviewShell>
   )

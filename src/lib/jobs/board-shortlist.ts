@@ -752,6 +752,12 @@ export async function loadBoardShortlist(opts: {
    * Each other view is one more ranking pass over the rows already in memory, no database read.
    */
   views?: { current: string; keeps: Record<string, ((p: BoardRankRow) => boolean) | null> }
+  /**
+   * The welcome lift (posting-signals.ts): jobs this returns true for rank first WITHIN the same fit
+   * level and breadth rank — a tie-break, never a new job in the window (the level gate is applied first).
+   * The board passes it for members changing careers or early in their career.
+   */
+  lift?: (p: BoardRankRow) => boolean
 }): Promise<BoardShortlist> {
   // Only relevant jobs reach a member: not confidently outside the US, and not a
   // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
@@ -955,6 +961,8 @@ export function rankBoardRows(
     dismiss?: DismissRules
     /** The member's own level window: jobs one level beyond it are the seniority ring. Omitted: every row is in. */
     levelWindow?: StageWindow
+    /** Welcome lift: a tie-break within the same fit level (see loadBoardShortlist). */
+    lift?: (p: BoardRankRow) => boolean
   }
 ) {
   const defaultSize = opts.size ?? 300
@@ -984,6 +992,8 @@ export function rankBoardRows(
     cls: number
     /** Learned from the member's dismissals (job-dismiss.ts): higher ranks lower. 0 = none. */
     pen: number
+    /** Welcome lift (posting-signals.ts): 0 = lifted, 1 = not. Only breaks ties within a fit level. */
+    lift: number
     canOpen: boolean
     fresh: boolean
     low: boolean
@@ -1058,6 +1068,7 @@ export function rankBoardRows(
       pay: annualPayForSort(p.salaryMin, p.salaryMax) ?? -1,
       cls: placed === undefined ? 0 : placed === null || ring === null ? MATCH_RANK_UNMATCHED : ring === 0 ? placed.rank : 4 + ring,
       pen: opts.dismiss ? opts.dismiss.penalty(p) : 0,
+      lift: opts.lift && opts.lift(p) ? 0 : 1,
       canOpen: true, // every member sees every job (owner's rule, 2026-10-16): `locked` is always empty
       fresh: isFresh(p, now),
       low: competition === 'low',
@@ -1071,7 +1082,7 @@ export function rankBoardRows(
   // Selection (relevance.ts): the strict relevant set, the market tier's fit bar on it,
   // Narrow's best NARROW_SHOW.max by fit (the rest page in as "more good matches"), and
   // Wide's few one-relaxed extras with their bridges.
-  const byFit = (a: Entry, b: Entry) => a.rank - b.rank || a.pen - b.pen || a.gap - b.gap || a.crowd - b.crowd || b.at - a.at
+  const byFit = (a: Entry, b: Entry) => a.rank - b.rank || a.pen - b.pen || a.lift - b.lift || a.gap - b.gap || a.crowd - b.crowd || b.at - a.at
   const typeOk = (e: Entry) => !typeFilter || (e.workType !== null && typeFilter.has(e.workType))
   let selected: Entry[] = entries
   let relevantTotal = 0
@@ -1157,7 +1168,7 @@ export function rankBoardRows(
   // the whole list. If that leaves room, the held-back ones fill it.
   const best = (list: Entry[], size = defaultSize) => {
     const fit = (a: Entry, b: Entry) =>
-      a.cls - b.cls || a.pen - b.pen || a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
+      a.cls - b.cls || a.pen - b.pen || a.rank - b.rank || a.lift - b.lift || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
     // Search: newest / highest pay first, or relevance tier then fit. No search: fit, as always.
     const sorted = list.sort(
       opts.sort === 'newest'

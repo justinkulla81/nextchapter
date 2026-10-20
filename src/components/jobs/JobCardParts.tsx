@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { CARD_VERDICT_LABEL, type CardVerdict } from '@/lib/jobs/job-card'
@@ -52,18 +52,31 @@ export function JobWhyLine({ fits, gap, title }: { fits: string[]; gap: string |
 export function JobMetaLine({
   parts,
   hint,
+  tag,
   jobId,
 }: {
   parts: string[]
   hint?: { label: string; because: string } | null
+  /**
+   * The posting-signal tag (PostingSignalTag). It shares the hint's one quiet slot: shown only when
+   * no hint is — the caller drops the hint when the tag should win (posting-signals.ts).
+   */
+  tag?: ReactNode
   jobId: string
 }) {
   const [open, setOpen] = useState(false)
   const id = useId()
-  if (parts.length === 0 && !hint) return null
+  const showTag = !hint && !!tag
+  if (parts.length === 0 && !hint && !showTag) return null
   return (
     <span className="mt-0.5 block text-xs text-muted-foreground">
       {parts.join(' · ')}
+      {showTag && (
+        <>
+          {parts.length > 0 && ' · '}
+          {tag}
+        </>
+      )}
       {hint && (
         <>
           {parts.length > 0 && ' · '}
