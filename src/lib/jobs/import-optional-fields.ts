@@ -27,12 +27,18 @@ export interface ImportSpecInput {
   locationState?: unknown
   locationCountry?: unknown
   locations?: unknown
+  /** Every US state the crawler resolved (ncrawl derive.resolve_location), primary first. */
+  locationStatesList?: unknown
   externalJobId?: unknown
   requisitionId?: unknown
   repostKey?: unknown
   descHash?: unknown
   socCode?: unknown
   socTitle?: unknown
+  reopenCount?: unknown
+  repostCount?: unknown
+  repostFirstSeenAt?: unknown
+  duplicateCount?: unknown
 }
 
 export interface ImportSpecFields {
@@ -46,6 +52,24 @@ export interface ImportSpecFields {
   descHash?: string | null
   socCode?: string | null
   socTitle?: string | null
+  reopenCount?: number | null
+  repostCount?: number | null
+  repostFirstSeenAt?: Date | null
+  duplicateCount?: number | null
+}
+
+/** A whole count 0–10,000 (a numeric string is read), else null. */
+export function importCount(v: unknown): number | null {
+  const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v
+  return typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= 10_000 ? n : null
+}
+
+/** An ISO date/time from 2000 up to a day ahead, else null. */
+export function importDate(v: unknown, now: Date = new Date()): Date | null {
+  if (typeof v !== 'string' || !v.trim()) return null
+  const d = new Date(v.trim())
+  if (Number.isNaN(d.getTime()) || d.getUTCFullYear() < 2000 || d.getTime() > now.getTime() + 86_400_000) return null
+  return d
 }
 
 /** Trimmed single-line text up to `max` chars (longer is cut), else null. */
@@ -83,13 +107,18 @@ export function importSpecFields(
   if (has('locationState')) out.locationState = code(job.locationState, stateCodes)
   if (has('locationCity')) out.locationCity = out.locationState === null ? null : cityName(job.locationCity)
   if (has('locationCountry')) out.locationCountry = code(job.locationCountry)
-  if (has('locations') || has('locationState')) {
+  if (has('locations') || has('locationState') || has('locationStatesList')) {
     const states: string[] = []
     const add = (s: string | null | undefined) => {
       if (s && stateCodes.has(s) && !states.includes(s)) states.push(s)
     }
     add(out.locationState ?? code(job.locationState, stateCodes))
-    if (Array.isArray(job.locations)) {
+    if (Array.isArray(job.locationStatesList)) {
+      // The crawler's own resolution of every listed place — it reads multi-location
+      // strings, ZIPs and JobPosting data this side's text parser can't, so it is used
+      // instead of re-reading the locations here.
+      for (const s of job.locationStatesList.slice(0, 60)) add(code(s, stateCodes))
+    } else if (Array.isArray(job.locations)) {
       for (const l of job.locations.slice(0, 50)) {
         const text = importText(l, 200)
         if (text) for (const s of statesOf(text)) add(s)
@@ -108,5 +137,31 @@ export function importSpecFields(
     out.socCode = ok ? soc : null
     out.socTitle = ok ? importText(job.socTitle, 150) : null
   }
+  // How many times the crawler saw this listing close and come back (job-status.ts).
+  // Reposts and duplicates (crawler repost_groups.py): counts, and the role's original first-seen date.
+  if (has('reopenCount')) out.reopenCount = importCount(job.reopenCount)
+  if (has('repostCount')) out.repostCount = importCount(job.repostCount)
+  if (has('duplicateCount')) out.duplicateCount = importCount(job.duplicateCount)
+  if (has('repostFirstSeenAt')) out.repostFirstSeenAt = importDate(job.repostFirstSeenAt)
   return out
+}
+
+// Crawler industry keys the app knows (job-match.ts, hiring-index-data.ts). Older
+// exports carried a few stray labels; they fold into the canonical key here so the
+// board never holds both "finance" and "financial_services".
+const INDUSTRY_ALIASES: Record<string, string> = {
+  finance: 'financial_services',
+  manufacturing: 'industrial',
+  higher_education: 'education',
+  association: 'nonprofit',
+  hospitality: 'consumer',
+  defense: 'aerospace_defense',
+}
+
+/** The sender's industry key, trimmed and folded into the canonical list; null when blank. */
+export function canonicalIndustry(v: unknown): string | null {
+  if (typeof v !== 'string') return null
+  const t = v.trim().toLowerCase()
+  if (!t) return null
+  return INDUSTRY_ALIASES[t] ?? t
 }

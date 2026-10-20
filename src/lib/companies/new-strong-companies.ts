@@ -1,4 +1,5 @@
 import 'server-only'
+import { notInternshipWhere } from '@/lib/internships/exclude'
 import { prisma } from '@/lib/prisma'
 import { loadCompanyRankingData } from '@/lib/companies/company-ranking-data'
 import { rankCompanies, type RankingCandidate, type RankingCompany } from '@/lib/companies/company-ranking'
@@ -90,6 +91,7 @@ export async function countNewStrongCompanies(candidateId: string): Promise<numb
       archivedAt: null,
       institutionScopeId: null,
       OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+      AND: [notInternshipWhere()],
       createdAt: { gt: since },
     },
     select: { id: true },

@@ -7,13 +7,26 @@ import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
 import { applyMarketPay } from '@/lib/companies/hiring-index'
-import { importOptionalFields, importSpecFields } from '@/lib/jobs/import-optional-fields'
+import { canonicalIndustry, importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
+import { functionLabelFor } from '@/lib/jobs/job-functions'
+import { subFunctionFor } from '@/lib/jobs/sub-functions'
+import { textSkillIds } from '@/lib/careers/text-skill-ids'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { isEmployerSector } from '@/lib/jobs/employer-sector'
+import { parseRequirementFlags, requirementTagsFor } from '@/lib/jobs/requirements'
+import { importAiSkillFields } from '@/lib/skills/ai-skills'
 import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
 import { parseYearsRequired } from '@/lib/jobs/years-required'
 import { Prisma } from '@prisma/client'
 import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
 import { importBenefitsFields } from '@/lib/jobs/benefits'
 import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
+import { isInternshipJob } from '@/lib/jobs/work-type'
+import { DIRECT_MAX_AGE_DAYS, FRESH_DAYS_DEFAULT, FRESH_DAYS_SENIOR, seniorWindowLevels } from '@/lib/jobs/job-status'
+import { levelsInGroup, SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
+import { stampVerified } from '@/lib/jobs/liveness-store'
+
+const levelsInAnyGroup = () => SENIORITY_GROUPS.flatMap((g) => levelsInGroup(g.key))
 
 export const maxDuration = 300
 
@@ -78,6 +91,7 @@ interface ImportJobInput {
   locationState?: string | null
   locationCountry?: string | null
   locations?: string[] | null
+  locationStatesList?: string[] | null // loc_states: every US state the crawler resolved, primary first
   externalJobId?: string | null
   requisitionId?: string | null
   repostKey?: string | null
@@ -85,6 +99,39 @@ interface ImportJobInput {
   // O*NET-SOC occupation matched by the crawler (optional like the fields above).
   socCode?: string | null
   socTitle?: string | null
+  // Times the crawler saw this listing close and come back (jobs.reopen_count).
+  reopenCount?: number | null
+  // The same role seen before / listed twice (crawler repost_groups.py): times it came
+  // back, its original first-seen date (ISO), how many other copies this one stands
+  // for, and — on a second copy — the url of the copy shown. A second copy is never
+  // put on the board: it is archived as 'duplicate' (a current job, not a past one).
+  repostCount?: number | null
+  repostFirstSeenAt?: string | null
+  duplicateCount?: number | null
+  duplicateOf?: string | null
+  // The person the source names as the job's contact or poster (ncrawl jobs.recruiter_name).
+  // Optional like the fields above: left out, the stored value is untouched.
+  recruiterName?: string | null
+  // The crawler's function code (engineering, data_ai, …; ncrawl taxonomy + function_fallback),
+  // stored as its display label in targetFunction (job-functions.ts). Optional like the fields above.
+  function?: string | null
+  // private | government | nonprofit | academia (ncrawl/sector.py). Optional.
+  employerSector?: string | null
+  // Hard requirements read from the full posting (ncrawl/requirements.py): a list of
+  // { flag, …, evidence }. Optional; an empty list clears what the row held.
+  requirementFlags?: unknown
+  // AI skills read from the full posting (ncrawl/ai_skills.py): taxonomy item ids, their groups,
+  // and the AI tools / certifications the text names. Optional; left out, the stored values stay.
+  aiSkillGroups?: unknown
+  aiSkillItems?: unknown
+  aiToolsNamed?: unknown
+  aiCertsNamed?: unknown
+  // When the crawler last confirmed the posting is up (ISO; ncrawl jobs.last_seen or a live
+  // liveness check, whichever is later). Stored as lastVerifiedAt; optional.
+  lastVerifiedAt?: string | null
+  // From the employer's own careers site / ATS (ncrawl master-list.py direct_listing): never
+  // aged out by posted date while the crawl still sends it. Optional; left out, the row keeps it.
+  directListing?: boolean
 }
 
 interface ImportRequestBody {
@@ -119,6 +166,12 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
+    // Internships never go on the member board; they have their own table and
+    // import (/api/admin/internships/import) and show only in Higher Ed portals.
+    if (isInternshipJob({ title: job.title, employmentType: job.employmentType })) {
+      skipped.push({ url: job.url, reason: 'internship (use /api/admin/internships/import)' })
+      continue
+    }
     const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, description: job.description })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
@@ -145,15 +198,26 @@ function yearsRequiredOf(description: string | null | undefined) {
 }
 
 function rowData({ job, level }: Screened) {
+  const optional = importOptionalFields(job)
+  const sentFunction = 'function' in job && job.function !== undefined ? functionLabelFor(job.function) : null
   return {
-    ...importOptionalFields(job),
+    // Sub-function (sub-functions.ts): allowlisted title patterns / O*NET codes within the job's function.
+    subFunction: subFunctionFor({
+      title: job.title,
+      fn: sentFunction ?? inferFunctionFromTitle(job.title.trim()),
+      soc: (optional as { socCode?: string | null }).socCode ?? null,
+    }),
+    ...optional,
     ...importSpecFields(job, (l) => statesFromLocation(l).states, US_STATE_CODES),
     ...yearsRequiredOf(job.description),
+    ...('recruiterName' in job && job.recruiterName !== undefined ? { recruiterName: importText(job.recruiterName, 120) } : {}),
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
     description: excerptOf(job.description),
     skills: skillsFrom(job.title, job.description),
+    // O*NET skills / tools the full posting names (text-skill-ids.ts): the board's skills criterion.
+    skillIds: [...textSkillIds(job.title, job.description, skillsFrom(job.title, job.description).join(' , '))].sort(),
     level,
     sourceCategory: job.sourceCategory?.trim() || null,
     badges: job.badges ?? [],
@@ -163,7 +227,26 @@ function rowData({ job, level }: Screened) {
     postedAt: postedDate(job.postedAt),
     sourceCount: typeof job.sourceCount === 'number' && job.sourceCount > 0 ? job.sourceCount : null,
     sourceName: job.sourceName?.trim() || null,
-    industry: job.industry?.trim() || null,
+    industry: canonicalIndustry(job.industry),
+    ...('function' in job && job.function !== undefined ? { targetFunction: functionLabelFor(job.function) } : {}),
+    ...('employerSector' in job && job.employerSector !== undefined
+      ? { employerSector: isEmployerSector(job.employerSector) ? job.employerSector : null }
+      : {}),
+    ...requirementFieldsOf(job),
+    // AI skills (ai-skills.ts): known ids only; groups follow from the items.
+    ...importAiSkillFields(job),
+    ...(typeof job.directListing === 'boolean' ? { directListing: job.directListing } : {}),
+  }
+}
+
+// Requirement flags as sent, validated (requirements.ts), plus the tag string the
+// board filters on. Left out when the sender didn't send them, so a row keeps what it holds.
+function requirementFieldsOf(job: ImportJobInput) {
+  if (!('requirementFlags' in job) || job.requirementFlags === undefined) return {}
+  const flags = parseRequirementFlags(job.requirementFlags)
+  return {
+    requirementFlags: flags.length ? (flags as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
+    requirementTags: requirementTagsFor(flags),
   }
 }
 
@@ -220,12 +303,51 @@ async function recordBenefits(kept: Screened[]) {
   }
 }
 
+// A second copy of a listed role (job-status.ts 'duplicate'): a copy already on the
+// board is archived with closeReason 'duplicate' (its company-history row follows at the
+// next finalize or the nightly hiring index — closeArchivedOpenings); a new one is not created. Confirmed, so finalize leaves it be.
+async function collapseDuplicates(urls: string[], now: Date): Promise<number> {
+  if (urls.length === 0) return 0
+  const result = await prisma.exclusiveJobPosting.updateMany({
+    where: { url: { in: urls }, addedBy: 'ncrawl', OR: [{ archivedAt: null }, { closeReason: { not: 'duplicate' } }, { closeReason: null }] },
+    data: { archivedAt: now, closeReason: 'duplicate', lastConfirmedAt: now },
+  })
+  return result.count
+}
+
+// The crawler's "last seen up" time for a job, never in the future.
+function verifiedAtOf(k: Screened): Date | null {
+  const v = k.job.lastVerifiedAt
+  if (typeof v !== 'string' || !v) return null
+  const d = new Date(v)
+  return Number.isNaN(d.getTime()) || d.getTime() > Date.now() + 60_000 ? null : d
+}
+
 async function closeOpeningsSafely() {
   try {
     await closeArchivedOpenings()
   } catch (error) {
     console.error('jobs import: could not close archived openings', error)
   }
+}
+
+// Archives every ncrawl row the run didn't confirm and records WHY (job-status.ts):
+// past its freshness window (director and above 60 days, others 30, from the posted
+// date or else the import date; a direct employer listing only past the 365-day
+// backstop) → 'aged_out', since the crawl's export drops it even if it is still up;
+// otherwise the employer stopped listing it → 'removed'. One statement, the same rows
+// the old updateMany archived.
+async function archiveStale(startedAt: Date, now: Date): Promise<number> {
+  const senior = seniorWindowLevels(levelsInAnyGroup())
+  return prisma.$executeRaw`
+    UPDATE "ExclusiveJobPosting"
+    SET "archivedAt" = ${now},
+        "closeReason" = CASE
+          WHEN COALESCE("postedAt", "createdAt") < ${now}::timestamp - make_interval(days => CASE WHEN "directListing" THEN ${DIRECT_MAX_AGE_DAYS}::int WHEN "level" = ANY(${senior}::text[]) THEN ${FRESH_DAYS_SENIOR}::int ELSE ${FRESH_DAYS_DEFAULT}::int END)
+          THEN 'aged_out' ELSE 'removed' END
+    WHERE "addedBy" = 'ncrawl' AND "archivedAt" IS NULL
+      AND ("lastConfirmedAt" IS NULL OR "lastConfirmedAt" < ${startedAt})
+  `
 }
 
 async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
@@ -245,7 +367,7 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
     )
   }
   if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
-  const result = await prisma.exclusiveJobPosting.updateMany({ where: stale, data: { archivedAt: new Date() } })
+  const archivedCount = await archiveStale(startedAt, new Date())
   await closeOpeningsSafely()
   // The board's narrow copy of this table is kept in step by triggers; after a
   // full sync, check it (and repair any drift) once the response is sent.
@@ -254,7 +376,7 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
       .then((r) => console.log('jobs import: board light rows reconciled', r))
       .catch((error) => console.error('jobs import: board light rows reconcile failed', error))
   )
-  return NextResponse.json({ archived: result.count, live: live - result.count })
+  return NextResponse.json({ archived: archivedCount, live: live - archivedCount })
 }
 
 export async function POST(request: NextRequest) {
@@ -282,7 +404,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '"jobs" must be an array' }, { status: 400 })
   }
 
-  const { kept, skipped } = screen(body.jobs)
+  const screened = screen(body.jobs)
+  const skipped = screened.skipped
+  // Second copies of a role already listed elsewhere: collapsed, never on the board.
+  const isDuplicate = (k: Screened) => typeof k.job.duplicateOf === 'string' && !!k.job.duplicateOf.trim() && k.job.duplicateOf.trim() !== k.job.url
+  const duplicates = screened.kept.filter(isDuplicate)
+  const kept = screened.kept.filter((k) => !isDuplicate(k))
   const urls = kept.map((k) => k.job.url)
   const existing = await prisma.exclusiveJobPosting.findMany({
     where: { url: { in: urls } },
@@ -292,18 +419,31 @@ export async function POST(request: NextRequest) {
       postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
       employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
       locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
-      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true,
+      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
+      repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
+      targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
+      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, directListing: true,
+      archivedAt: true, closeReason: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
   const toCreate = kept.filter((k) => !existingByUrl.has(k.job.url))
-  const toUpdate = kept.filter((k) => existingByUrl.has(k.job.url))
+  // A posting our liveness check found dead (closeReason 'expired_checked': the crawler's
+  // check, or a member's click) stays closed unless the crawler has seen it up since.
+  const staysClosed = (k: Screened) => {
+    const e = existingByUrl.get(k.job.url)
+    if (!e?.archivedAt || e.closeReason !== 'expired_checked') return false
+    const seen = verifiedAtOf(k)
+    return !seen || seen <= e.archivedAt
+  }
+  const toUpdate = kept.filter((k) => existingByUrl.has(k.job.url) && !staysClosed(k))
 
   if (body.dryRun) {
     return NextResponse.json({
       dryRun: true,
       wouldCreate: toCreate.length,
       wouldUpdate: toUpdate.length,
+      wouldCollapse: duplicates.length,
       wouldArchive: body.fullSync
         ? await prisma.exclusiveJobPosting.count({ where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } } })
         : 0,
@@ -332,6 +472,7 @@ export async function POST(request: NextRequest) {
         contactName: null,
         expiresAt,
         lastConfirmedAt: now,
+        lastVerifiedAt: verifiedAtOf(k),
       })),
       skipDuplicates: true,
     })
@@ -342,7 +483,7 @@ export async function POST(request: NextRequest) {
   if (toUpdate.length > 0) {
     await prisma.exclusiveJobPosting.updateMany({
       where: { id: { in: toUpdate.map((k) => existingByUrl.get(k.job.url)!.id) } },
-      data: { archivedAt: null, expiresAt, lastConfirmedAt: now },
+      data: { archivedAt: null, closeReason: null, expiresAt, lastConfirmedAt: now },
     })
     for (const k of unlinked) {
       const companyId = companyIds.get(rowData(k).companyName)
@@ -364,18 +505,25 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  await recordOpenings(kept, (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
+  // lastVerifiedAt only ever moves forward (stampVerified keeps the later of the two).
+  await stampVerified(toUpdate.flatMap((k) => {
+    const at = verifiedAtOf(k)
+    return at ? [{ url: k.job.url, at }] : []
+  }))
+  const collapsed = await collapseDuplicates(duplicates.map((k) => k.job.url), now)
+  await recordOpenings(kept.filter((k) => !staysClosed(k)), (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
   await recordBenefits(kept)
 
   let archived = 0
   if (body.fullSync) {
     const result = await prisma.exclusiveJobPosting.updateMany({
       where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } },
-      data: { archivedAt: new Date() },
+      // Small single-call runs only; the batched finalize below tells removed from aged out.
+      data: { archivedAt: new Date(), closeReason: 'removed' },
     })
     archived = result.count
     await closeOpeningsSafely()
   }
 
-  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, skipped })
+  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, collapsed, skipped })
 }

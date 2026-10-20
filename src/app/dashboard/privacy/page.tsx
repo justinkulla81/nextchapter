@@ -1,9 +1,11 @@
+import { SITUATION_FIELDS } from '@/lib/journey/situation'
 import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
+import { EmailTopicToggles } from '@/components/candidates/EmailTopicToggles'
 import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
@@ -12,7 +14,9 @@ import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
-import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { loadAffiliations } from '@/lib/affiliations/load'
+import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVisibilityCard'
+import { effectiveJourney, effectiveStage, getJourney, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
 import { Button } from '@/components/ui/button'
@@ -21,6 +25,10 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { MyRecruitersSection } from '@/components/dashboard/MyRecruitersSection'
 import { ConnectedAccountsSettings, type ConnectionState } from '@/components/dashboard/ConnectedAccountsSettings'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Section } from '@/components/candidate/ui'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 
 export const metadata: Metadata = { title: 'Privacy Settings' }
 
@@ -38,24 +46,18 @@ const CONNECT_ERROR: Record<string, string> = {
 
 const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) : null
 
+function detailText(details: unknown, key: string): string {
+  const v = (details as Record<string, unknown> | null)?.[key]
+  return typeof v === 'string' || typeof v === 'number' ? String(v) : ''
+}
+
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardProfile()
-  const params = await searchParams
-  const [emailConn, calendarConn] = await Promise.all([
+  const [affiliations, params, emailConn, calendarConn, dossierStatus, coach, intakeConnections] = await Promise.all([
+    loadAffiliations(profile.id),
+    searchParams,
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
     prisma.calendarConnection.findUnique({ where: { candidateId: profile.id }, select: { connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
-  ])
-  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
-    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
-      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
-  // One Google sign-in creates both connections, so the calendar belongs to
-  // the same account as Gmail when they were connected together.
-  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
-    ? emailConn.connectedEmail : null
-  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
-  const calendarState = stateOf(calendarConn, calendarAccount)
-  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
-  const [dossierStatus, coach, intakeConnections] = await Promise.all([
     isDossierUnlocked(profile.id),
     profile.coachId
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
@@ -68,15 +70,29 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
       orderBy: { createdAt: 'desc' },
     }),
   ])
+  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
+    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
+      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
+  // One Google sign-in creates both connections, so the calendar belongs to
+  // the same account as Gmail when they were connected together.
+  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
+    ? emailConn.connectedEmail : null
+  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
+  const calendarState = stateOf(calendarConn, calendarAccount)
+  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
   const SOURCE_LABEL = { PAGE: 'You sent your resume', NOT_FIT_LINK: 'You sent your resume', FORWARD: 'Your resume was forwarded' } as const
 
-  return (
-    <div className="space-y-8">
+  const headerBlock = (
+    <>
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Privacy</h1>
         <PageHeaderBoxes pageKey="privacy" candidateId={profile.id} />
       </div>
+    </>
+  )
 
+  const connectedBlock = (
+    <>
       <section id="connected-accounts" aria-labelledby="connected-accounts-h" className="space-y-3">
         <div>
           <h2 id="connected-accounts-h" className="text-lg font-semibold">Connected accounts</h2>
@@ -92,19 +108,47 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           connectHref={withOAuthReturnTo('/api/auth/google-connect/start', '/dashboard/privacy')}
         />
       </section>
-      <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
+    </>
+  )
 
+  const tierBlock = (
+    <>
+      <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
+    </>
+  )
+
+  const situationBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Your situation</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Why you&apos;re moving and how close you are to applying. Your plan and check-ins follow these. Changing them
+            Why you&apos;re moving (or growing where you are) and how close you are to applying. Your plan and check-ins follow these. Changing them
             won&apos;t change your Confidential Search Mode setting below on its own.
           </p>
         </div>
-        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} />
+        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} moveDriver={moveDriverOf(profile.journeyDetails)} intensity={profile.searchIntensity}
+          details={{
+            returnDate: detailText(profile.journeyDetails, 'returnDate'),
+            offering: detailText(profile.journeyDetails, 'offering'),
+            openDays: detailText(profile.journeyDetails, 'openDays'),
+            engagementEnds: detailText(profile.journeyDetails, 'engagementEnds'),
+            venture: detailText(profile.journeyDetails, 'venture'),
+            situation: Object.fromEntries(SITUATION_FIELDS.map((f) => [f.key, detailText(profile.journeyDetails, f.key)])),
+          }}
+        />
       </div>
+    </>
+  )
 
+  const affiliationsBlock = (
+    <>
+      <AffiliationVisibilityCard affiliations={affiliations} />
+    </>
+  )
+
+  const confidentialBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Confidential Search Mode</h2>
@@ -114,10 +158,20 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
             email, Gmail, and recruiter sharing.
           </p>
         </div>
+        {!profile.confidentialSearchMode && effectiveJourney(profile) && getJourney(effectiveJourney(profile)!).employed && (
+          <p role="status" className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+            Your situation is one where you have a job. Confidential Search Mode is off, so other members and your colleges could see your search.
+            Turn it on below if you don&apos;t want anyone at work to find out.
+          </p>
+        )}
         <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
       </div>
+    </>
+  )
 
-      <div className="space-y-3 border-t border-border pt-8">
+  const recruiterBlock = (
+    <>
+      <div id="recruiter-matching" className="scroll-mt-4 space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Employer &amp; recruiter matching</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -132,13 +186,21 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           confidentialSearchMode={profile.confidentialSearchMode}
         />
       </div>
+    </>
+  )
 
+  const recruiterRequestsBlock = (
+    <>
       <p className="text-sm text-muted-foreground">
         <Link href="/dashboard/recruiter-requests" className="underline underline-offset-4">
           See recruiter requests waiting on your answer
         </Link>
       </p>
+    </>
+  )
 
+  const myRecruitersBlock = (
+    <>
       {intakeConnections.length > 0 && (
         <div id="my-recruiters" className="space-y-3 border-t border-border pt-8">
           <div>
@@ -159,7 +221,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           />
         </div>
       )}
+    </>
+  )
 
+  const resumeBookBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Resume Book</h2>
@@ -170,7 +236,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         </div>
         <ResumeBookOptIn optedIn={profile.resumeBookOptIn} />
       </div>
+    </>
+  )
 
+  const leaderboardBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <LeaderboardOptInSettings
           optedIn={profile.leaderboardOptIn}
@@ -178,17 +248,33 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           confidentialSearchMode={profile.confidentialSearchMode}
         />
       </div>
+    </>
+  )
 
+  const emailBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Email options</h2>
         <p className="text-sm text-muted-foreground">
-          How often you hear from us. Your Market Reality Report and any reminder emails always send
+          How often you hear from us, and which emails. Members who have not visited in a few weeks automatically get fewer. Your Market Reality Report and any reminder emails always send
           regardless of this setting.
         </p>
         <NotificationTierSelector currentTier={profile.notificationTier} />
+        <EmailTopicToggles
+          optedOut={{
+            weeklyReportOptedOut: profile.weeklyReportOptedOut,
+            marketDigestOptedOut: profile.marketDigestOptedOut,
+            dailyEmailOptedOut: profile.dailyEmailOptedOut,
+            jobSearchDailyOptedOut: profile.jobSearchDailyOptedOut,
+          }}
+        />
         <ActionWindowSelector current={profile.actionWindow} />
       </div>
+    </>
+  )
 
+  const supportNetworkBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <h2 className="text-lg font-semibold">Support Network</h2>
         <CommunitySettingsToggles
@@ -196,16 +282,28 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           encouragementGivingOptIn={profile.encouragementGivingOptIn}
         />
       </div>
+    </>
+  )
 
+  const whatTheySeeBlock = (
+    <>
       <WhatTheySeeSection candidateId={profile.id} />
+    </>
+  )
 
+  const coachBlock = (
+    <>
       {coach && (
         <div className="space-y-3 border-t border-border pt-8">
           <h2 className="text-lg font-semibold">Coach access</h2>
           <CoachAccessSettings coachName={coach.fullName} hasConsented={profile.coachDossierConsentedAt !== null} />
         </div>
       )}
+    </>
+  )
 
+  const accountBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Account</h2>
@@ -215,7 +313,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           Change my password
         </Button>
       </div>
+    </>
+  )
 
+  const dataBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold">Your data</h2>
@@ -228,7 +330,11 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           Download my data
         </Button>
       </div>
+    </>
+  )
 
+  const dangerBlock = (
+    <>
       <div className="space-y-3 border-t border-border pt-8">
         <div>
           <h2 className="text-lg font-semibold text-destructive">Danger zone</h2>
@@ -239,6 +345,93 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         </div>
         <DeleteAccountForm />
       </div>
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    // Account and privacy in the redesign: who can see your search and what we read come first. Every other control is
+    // still here, in the same form, one fold down.
+    return (
+      <div className="space-y-8">
+        <PageHeader title="Account and privacy" intro="You decide who can see your search and what we can read. Every choice here saves as you make it, and you can change it any time." />
+
+        <Section id="who-can-see" title="Who can see your search">
+          <div className="space-y-8 [&>div]:border-t-0 [&>div]:pt-0">
+            {confidentialBlock}
+            {tierBlock}
+            {recruiterBlock}
+          </div>
+        </Section>
+
+        {connectedBlock}
+
+        <MoreDetails summary="Show more: your situation, email, coach access, your data and your account">
+          <div className="space-y-8 [&>div]:border-t-0 [&>div]:pt-0">
+          {situationBlock}
+          {affiliationsBlock}
+          {recruiterRequestsBlock}
+          {myRecruitersBlock}
+          {resumeBookBlock}
+          {leaderboardBlock}
+          {emailBlock}
+          {supportNetworkBlock}
+          {whatTheySeeBlock}
+          {coachBlock}
+          <div className="space-y-3 border-t border-border pt-8">
+            <div>
+              <h2 className="text-lg font-semibold">Money help</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Choose whether NextChapter helps with money. It is off until you turn it on, and you can delete the pay and savings numbers you gave us.</p>
+            </div>
+            <Button nativeButton={false} render={<Link href="/dashboard/money-help" />} variant="outline">
+              Change money help
+            </Button>
+          </div>
+          {accountBlock}
+          {dataBlock}
+          {dangerBlock}
+          </div>
+        </MoreDetails>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {headerBlock}
+
+      {connectedBlock}
+
+      {tierBlock}
+
+      {situationBlock}
+
+      {affiliationsBlock}
+
+      {confidentialBlock}
+
+      {recruiterBlock}
+
+      {recruiterRequestsBlock}
+
+      {myRecruitersBlock}
+
+      {resumeBookBlock}
+
+      {leaderboardBlock}
+
+      {emailBlock}
+
+      {supportNetworkBlock}
+
+      {whatTheySeeBlock}
+
+      {coachBlock}
+
+      {accountBlock}
+
+      {dataBlock}
+
+      {dangerBlock}
     </div>
   )
 }

@@ -5,6 +5,8 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { Card, CardContent } from '@/components/ui/card'
 import { HowHeardCard } from '@/components/onboarding/HowHeardCard'
 import { prisma } from '@/lib/prisma'
+import { flowOfProfile } from '@/lib/onboarding/flag'
+import { progressOf } from '@/lib/onboarding/progress'
 import { INTRO_WELCOME_BONUS_POINTS } from '@/lib/weekly/sprint'
 
 export default async function WelcomePage() {
@@ -16,6 +18,8 @@ export default async function WelcomePage() {
   // should bounce to wherever the candidate actually belongs.
   if (!profile.registrationCompletedAt) redirect('/onboarding')
   if (profile.introCommittedAt) redirect('/dashboard')
+  // The short question bundles end with the Google reveal (optional, and skippable there), before this welcome.
+  if (flowOfProfile(profile) === 'bundles' && !progressOf(profile.journeyDetails).googleRevealAt) redirect('/onboarding/google')
 
   // Ask only when we don't already know: no invite/link/CRM source and no earlier answer.
   const referral = await prisma.candidateReferral.findUnique({ where: { candidateId: profile.id }, select: { setBy: true } })

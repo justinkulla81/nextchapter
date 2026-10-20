@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import type { UserAgentClass } from '@/lib/http/user-agent'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface VisitorSummary {
   ip: string
@@ -108,6 +109,7 @@ export default function HomepageVisitorDigestEmail({ date, visitors, adminUrl }:
       <a href={adminUrl} style={button}>
         View all visitors →
       </a>
+      <AudienceTag audience="admin" />
     </div>
   )
 }

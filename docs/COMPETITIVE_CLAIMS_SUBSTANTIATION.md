@@ -88,3 +88,10 @@ indexing:
    "typically," or remove the row).
 3. Re-run this review on every quarterly cycle even if nothing changes —
    per §D6, a stale claim is the risk, not only a false one.
+
+## Added 2026-10-13: homepage coach positioning
+
+| # | Claim | Where | Basis | Status |
+|---|---|---|---|---|
+| 15 | "The best coach you've ever had, built on all your data" (homepage hero) | `src/app/page.tsx` | A subjective superlative (puffery), not a comparison with a named competitor. The factual part is real: the coach reads the member's résumé and references, Gmail/Calendar application tracking, contacts and outreach, and assessments and learning (`src/lib/journey/engagement-data.ts`, `src/lib/coach/generate-reply.ts`). The coach is disclosed as AI (Victoria). | **NEEDS REVIEW** before launch: confirm legal is comfortable with the superlative, and keep the "built on all your data" half true (it depends on the member connecting Gmail and Calendar). |
+| 16 | "Members who connect their accounts and do the work get the most" | homepage, emails, dashboard card | The platform's gates are tied to connecting and proving work (A-List jobs, Offer Bonus, Dossier sharing, recruiter visibility: `isDossierUnlocked`). No outcome data is claimed. | OK as written; do not add an outcome statistic without a source. |

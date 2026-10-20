@@ -132,7 +132,7 @@ const LAID_OFF: PlaybookMilestone[] = [
   },
 ]
 
-const READY_TO_MOVE: PlaybookMilestone[] = [
+const EXPLORING_MOVE_MILESTONES: PlaybookMilestone[] = [
   {
     atWeek: 4,
     title: 'First month of searching: go through people',
@@ -305,10 +305,55 @@ const NEXT_ACT: PlaybookMilestone[] = [
   },
 ]
 
+// Students and new grads: campus recruiting runs early, most first jobs come
+// through people, and a first offer is negotiable. No claim here leans on
+// figures the September report does not carry.
+const STUDENT_NEW_GRAD: PlaybookMilestone[] = [
+  {
+    atWeek: 2,
+    title: 'Aim before you apply',
+    summary: 'Two or three target roles make every résumé line and application sharper than a hundred scattershot ones.',
+    actions: [
+      { text: 'Pick two or three target roles from your major.', href: '/dashboard/early-career#roles' },
+      { text: 'Track 10 employers you would like to work for.', href: '/dashboard/companies' },
+    ],
+  },
+  {
+    atWeek: 4,
+    title: 'Talk to people, not only portals',
+    summary: 'Most first jobs come through someone. Alumni are the people most likely to say yes to a 20-minute call.',
+    actions: [
+      { text: 'Ask three alumni for an informational interview.', href: '/dashboard/groups' },
+      { text: 'Ask each one who else you should talk to.' },
+    ],
+  },
+  {
+    atWeek: 8,
+    title: 'Practice the interview you will get',
+    summary: 'Entry-level interviews test how you think and work with people: behavioral, case and technical questions.',
+    actions: [{ text: 'Do two mock interviews for your target role.', href: '/dashboard/interview-prep' }],
+  },
+  {
+    atWeek: 12,
+    title: 'No interviews yet? Widen the door',
+    summary: 'Rotational programs, contract-to-hire and roles one step adjacent to your target are real ways in. Internships are listed in your college’s NextChapter portal.',
+    actions: [
+      { text: 'Look at entry-level roles near your target.', href: '/dashboard/find-my-job?seniority=ENTRY_LEVEL' },
+      { text: 'Have someone in the field read your résumé.', href: '/dashboard/resume' },
+    ],
+  },
+  {
+    atWeek: 20,
+    title: 'Keep a skill moving while you search',
+    summary: 'One finished course or project you can talk about keeps your story current and gives you something new to say.',
+    actions: [{ text: 'Finish one free course your target role asks for.', href: '/dashboard/learning' }],
+  },
+]
+
 export const PLAYBOOKS: Partial<Record<JourneyType, PlaybookMilestone[]>> = {
+  STUDENT_NEW_GRAD,
   LAID_OFF,
-  READY_TO_MOVE,
-  EXPLORING_MOVE: READY_TO_MOVE,
+  EXPLORING_MOVE: EXPLORING_MOVE_MILESTONES,
   PROMOTION,
   CAREER_CHANGE,
   RETURNING,

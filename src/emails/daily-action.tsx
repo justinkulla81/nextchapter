@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface WeeklyRecap {
   pointsEarned: number
@@ -162,6 +163,7 @@ export default function DailyActionEmail({
         </a>
         .
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

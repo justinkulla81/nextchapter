@@ -4,7 +4,7 @@ import path from 'path'
 
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
-vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () => new Map() }))
+vi.mock('@/lib/jobs/ghost-risk-data', () => ({ getClosedPostingCounts: async () => new Map(), getStillListedDirect: async () => new Map() }))
 
 import { boardListingFitBucketScorer, computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { legacyComputeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket-legacy'
@@ -42,6 +42,8 @@ const lightRows = (): BoardRankRow[] =>
     salaryMax: p.salaryMax,
     createdAt: new Date(p.createdAt),
     employmentType: null,
+    employerSector: null,
+    requirementTags: null,
   }))
 
 describe('board fit scorer (one member against many rows)', () => {

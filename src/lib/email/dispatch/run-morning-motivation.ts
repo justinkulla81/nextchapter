@@ -1,13 +1,15 @@
 import 'server-only'
-import { NOT_PAUSED_WHERE } from '@/lib/journey/journey'
 import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { shouldSendWeeklyExtraForTier } from '@/lib/email/notification-tier'
+import { shouldSendRotationEmail } from '@/lib/email/notification-tier'
+import { loadEngagementStates } from '@/lib/email/engagement'
+import { rotationAllowedForEngagement } from '@/lib/email/engagement-state'
 import { hasAlreadySentToday } from '@/lib/email/send-log'
 import { sendWeeklyGoalAssignedEmail } from '@/lib/email/send-weekly-goal-assigned'
 import { getMondayOfWeek } from '@/lib/weekly/sprint'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
+import { getPace } from '@/lib/weekly/pace'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { computeMarketRealityCompositeGrade } from '@/lib/scoring/market-reality/composite'
 import { CATEGORY_MINIMUM_SCORE_FLOOR } from '@/lib/scoring/grade'
@@ -35,8 +37,6 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
 
   const eligible = await prisma.candidateProfile.findMany({
     where: {
-      // Paused means no nudges (src/lib/journey).
-      AND: [NOT_PAUSED_WHERE],
       registrationCompletedAt: { not: null },
       isSampleData: false,
       weeklyReportOptedOut: false,
@@ -58,10 +58,14 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
     },
   })
 
+  // Members who have stopped using the product get less email (see engagement-state.ts).
+  const engagement = await loadEngagementStates(eligible.map((c) => c.id))
+
   let sentCount = 0
   for (const candidate of eligible) {
     try {
-      if (!shouldSendWeeklyExtraForTier(candidate.notificationTier)) continue
+      if (!shouldSendRotationEmail(candidate.notificationTier, 'MORNING_MOTIVATION')) continue
+      if (!rotationAllowedForEngagement(engagement.get(candidate.id) ?? 'active', 'MORNING_MOTIVATION')) continue
       if (await hasAlreadySentToday(candidate.id, 'MORNING_MOTIVATION')) continue
 
       const currentSprint = await prisma.weeklySprint.findUnique({
@@ -77,8 +81,9 @@ export async function runMorningMotivation(introCopy: string | null, eligiblePri
       const weekNumber = candidate._count.weeklySprints
       const priorActions = priorSprint.committedActions as unknown as CommittedAction[]
       const lastWeekPoints = priorActions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
-      const lastWeekTarget = pointsNeededForA(weekNumber - 1)
-      const thisWeekTarget = pointsNeededForA(weekNumber)
+      const pace = await getPace(candidate.id)
+      const lastWeekTarget = pointsNeededForA(weekNumber - 1, pace)
+      const thisWeekTarget = pointsNeededForA(weekNumber, pace)
       const completedLastWeek = actionLabels(priorActions.filter((a) => a.completed))
       const thisWeekPlan = actionLabels(currentSprint.committedActions as unknown as CommittedAction[]).slice(0, 5)
 

@@ -9,6 +9,7 @@ import {
   yearsGapBin,
   type ApplyFitMember,
   type ClassifiedApplication,
+  type YearsFit,
 } from '@/lib/admin/application-fit'
 import type { YearsRequirement } from '@/lib/jobs/years-required'
 
@@ -25,28 +26,33 @@ describe('classifyYears thresholds', () => {
     expect(classifyYears(10, null)).toEqual({ fit: 'unknown', gap: null })
     expect(classifyYears(null, req(5))).toEqual({ fit: 'unknown', gap: null })
   })
-  it('under by 1 is within', () => {
+  it('short by up to the tolerance is in line (lenient rule, years-fit.ts)', () => {
     expect(classifyYears(9, req(10))).toEqual({ fit: 'within', gap: -1 })
+    expect(classifyYears(7, req(10))).toEqual({ fit: 'within', gap: -3 })
+    expect(classifyYears(6, req(8, 15))).toEqual({ fit: 'within', gap: -2 })
   })
-  it('under by 2 is reach, 5 is big reach', () => {
-    expect(classifyYears(8, req(10)).fit).toBe('under')
+  it('short but at least half the minimum is a stretch; under half is far short', () => {
     expect(classifyYears(6, req(10)).fit).toBe('under')
-    expect(classifyYears(5, req(10)).fit).toBe('big_under')
+    expect(classifyYears(5, req(10)).fit).toBe('under')
+    expect(classifyYears(4, req(10)).fit).toBe('big_under')
+    expect(classifyYears(2, req(8, 15))).toEqual({ fit: 'big_under', gap: -6 })
   })
-  it('preferred / or-equivalent are one year softer', () => {
-    expect(classifyYears(8, req(10, null, { strength: 'preferred' })).fit).toBe('within')
-    expect(classifyYears(7, req(10, null, { strength: 'preferred' })).fit).toBe('under')
-    expect(classifyYears(5, req(10, null, { orEquivalent: true })).fit).toBe('under')
+  it('preferred / or-equivalent get one more year of tolerance', () => {
+    expect(classifyYears(6, req(10, null, { strength: 'preferred' })).fit).toBe('within')
+    expect(classifyYears(5, req(10, null, { strength: 'preferred' })).fit).toBe('under')
     expect(classifyYears(4, req(10, null, { orEquivalent: true })).fit).toBe('big_under')
   })
-  it('range: over by 5+ past the top is overqualified', () => {
+  it('range: overqualified needs min + 8 and more than twice the top', () => {
     expect(classifyYears(12, req(5, 10))).toEqual({ fit: 'within', gap: 2 })
-    expect(classifyYears(15, req(5, 10))).toEqual({ fit: 'over', gap: 5 })
+    expect(classifyYears(15, req(5, 10))).toEqual({ fit: 'within', gap: 5 })
+    expect(classifyYears(21, req(5, 10))).toEqual({ fit: 'over', gap: 11 })
     expect(classifyYears(8, req(5, 10))).toEqual({ fit: 'within', gap: 0 })
   })
-  it('no top: 8+ past the minimum is overqualified', () => {
+  it('no top: overqualified needs min + 8 and more than twice the minimum', () => {
     expect(classifyYears(12, req(5))).toEqual({ fit: 'within', gap: 7 })
     expect(classifyYears(13, req(5))).toEqual({ fit: 'over', gap: 8 })
+    expect(classifyYears(15, req(10)).fit).toBe('within')
+    expect(classifyYears(21, req(10)).fit).toBe('over')
   })
 })
 
@@ -61,14 +67,20 @@ describe('classifyApplication verdicts', () => {
     expect(r.seniority).toBe('up')
     expect(r.verdict).toBe('on_target')
   })
-  it('stretch plus a years reach is reaching', () => {
-    const r = classifyApplication(member({ yearsExperience: 8 }), { title: 'Vice President, Marketing', yearsRequired: req(15) })
+  it('one level up plus far short on years is reaching', () => {
+    const r = classifyApplication(member({ yearsExperience: 6 }), { title: 'Vice President, Marketing', yearsRequired: req(15) })
     expect(r.verdict).toBe('reaching')
   })
-  it('same level but too few years is reaching', () => {
-    const r = classifyApplication(member({ yearsExperience: 6 }), { title: 'Director of Finance', yearsRequired: req(10) })
-    expect(r.seniority).toBe('same')
-    expect(r.verdict).toBe('reaching')
+  it('one level up with a years stretch stays on target', () => {
+    const r = classifyApplication(member({ yearsExperience: 8 }), { title: 'Vice President, Marketing', yearsRequired: req(15) })
+    expect(r.years.fit).toBe('under')
+    expect(r.verdict).toBe('on_target')
+  })
+  it('same level, a years stretch is on target; far short is reaching', () => {
+    const stretch = classifyApplication(member({ yearsExperience: 6 }), { title: 'Director of Finance', yearsRequired: req(10) })
+    expect(stretch.seniority).toBe('same')
+    expect(stretch.verdict).toBe('on_target')
+    expect(classifyApplication(member({ yearsExperience: 2 }), { title: 'Director of Finance', yearsRequired: req(8, 15) }).verdict).toBe('reaching')
   })
   it('same level with more years than asked stays on target', () => {
     const r = classifyApplication(member({ yearsExperience: 25 }), { title: 'Director of Finance', yearsRequired: req(10) })
@@ -90,7 +102,7 @@ describe('classifyApplication verdicts', () => {
     expect(r.seniority).toBe('big_up')
   })
   it('years overqualified with unknown level is underselling', () => {
-    const r = classifyApplication(member({ yearsExperience: 20 }), { title: 'Analyst', yearsRequired: req(2, 4) })
+    const r = classifyApplication(member({ yearsExperience: 20 }), { title: 'Associate', yearsRequired: req(2, 4) })
     expect(r.seniority).toBe('unknown')
     expect(r.verdict).toBe('underselling')
   })
@@ -125,13 +137,14 @@ describe('pivot handling', () => {
 })
 
 describe('aggregate math', () => {
+  const fitOf = (gap: number | null): YearsFit => (gap === null ? 'unknown' : gap <= -5 ? 'big_under' : gap <= -3 ? 'under' : gap >= 8 ? 'over' : 'within')
   const row = (candidateId: string, verdict: 'reaching' | 'on_target' | 'underselling' | 'unknown', gap: number | null = null, level = 'Director', fn = 'Finance'): ClassifiedApplication => ({
     candidateId,
     memberLevel: level,
     memberFunction: fn,
     result: {
       verdict,
-      years: { fit: gap === null ? 'unknown' : 'within', gap },
+      years: { fit: fitOf(gap), gap },
       seniority: verdict === 'reaching' ? 'big_up' : verdict === 'underselling' ? 'big_down' : verdict === 'unknown' ? 'unknown' : 'same',
       pivotExplained: false,
       reason: '',
@@ -145,14 +158,12 @@ describe('aggregate math', () => {
     expect(shareOf(countVerdicts(['unknown']), 'reaching')).toBe(0)
   })
 
-  it('gap bins', () => {
-    expect(yearsGapBin(-7)).toBe('Under 5+')
-    expect(yearsGapBin(-2)).toBe('Under 2–4')
-    expect(yearsGapBin(-1)).toBe('Within ±1')
-    expect(yearsGapBin(1)).toBe('Within ±1')
-    expect(yearsGapBin(4)).toBe('Over 2–4')
-    expect(yearsGapBin(5)).toBe('Over 5–7')
-    expect(yearsGapBin(12)).toBe('Over 8+')
+  it('years bins follow the shared rule bands', () => {
+    expect(yearsGapBin('big_under')).toBe('Far short')
+    expect(yearsGapBin('under')).toBe('Stretch')
+    expect(yearsGapBin('within')).toBe('In line')
+    expect(yearsGapBin('over')).toBe('Overqualified')
+    expect(yearsGapBin('unknown')).toBeNull()
   })
 
   it('rolls up by level, function, histograms and members with a min sample', () => {
@@ -167,7 +178,7 @@ describe('aggregate math', () => {
     expect(agg.byFunction[0].key).toBe('Finance')
     expect(agg.yearsKnown).toBe(6)
     expect(Object.fromEntries(agg.yearsGap.map((g) => [g.bin, g.count]))).toEqual({
-      'Under 5+': 1, 'Under 2–4': 1, 'Within ±1': 2, 'Over 2–4': 0, 'Over 5–7': 0, 'Over 8+': 2,
+      'Far short': 1, Stretch: 1, 'In line': 2, Overqualified: 2,
     })
     expect(agg.seniority.find((s) => s.step === 'big_up')?.count).toBe(3)
     expect(agg.members.map((m) => m.candidateId)).toEqual(['a', 'b'])
@@ -182,8 +193,8 @@ describe('aggregate math', () => {
 describe('coachingSuggestion', () => {
   const m = member({ highestLevelReached: 'Manager', yearsExperience: 8 })
   const up2 = classifyApplication(m, { title: 'Chief Marketing Officer', yearsRequired: null })
-  const same = classifyApplication(m, { title: 'Marketing Manager', yearsRequired: null })
-  const yrsReach = classifyApplication(m, { title: 'Marketing Manager', yearsRequired: req(15) })
+  const same = classifyApplication(m, { title: 'Manager, Marketing', yearsRequired: null })
+  const yrsReach = classifyApplication(m, { title: 'Manager, Marketing', yearsRequired: req(20) })
   const down2 = classifyApplication(member({ highestLevelReached: 'VP' }), { title: 'Senior Analyst', yearsRequired: null })
 
   it('too few to read', () => {
@@ -195,7 +206,7 @@ describe('coachingSuggestion', () => {
     expect(s).toBe('8 of 10 applications are 2+ levels up — suggest adding stretch-appropriate roles (one level up).')
   })
   it('mostly a years reach', () => {
-    expect(coachingSuggestion([yrsReach, yrsReach, yrsReach, same], false)).toMatch(/^3 of 4 applications ask for more years/)
+    expect(coachingSuggestion([yrsReach, yrsReach, yrsReach, same], false)).toMatch(/^3 of 4 applications ask for more than twice their years/)
   })
   it('mostly underselling', () => {
     expect(coachingSuggestion([down2, down2, down2, same], false)).toMatch(/^Applying mostly below level/)

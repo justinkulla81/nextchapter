@@ -1,160 +1,108 @@
 import type { ReactNode } from 'react'
-import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
-import { Logo } from '@/components/Logo'
-import { Card, CardContent } from '@/components/ui/card'
 import { WaitlistForm } from '@/components/audience/WaitlistForm'
 import type { AudienceTab } from '@/components/audience/audience-data'
+import { ActionBand, AudienceSection, AudienceShell, Disclosure } from '@/components/organizations/AudienceShell'
 
-// Partners Master Build Script §C3.2: "every landing page follows one
-// structure: headline · subhead · the beats · one concrete artifact
-// (screenshot or sample output) · objection handling · CTA. No page ships
-// without a real artifact." `artifact` is an optional slot the caller
-// fills with a real, page-specific sample (a mockup, a rendered real
-// component with synthetic data, etc.) rather than baking it into the pure
-// data file.
-export function OrganizationPageTemplate({ tab, artifact }: { tab: AudienceTab; artifact?: ReactNode }) {
+// Partners Master Build Script §C3.2 asks for one structure on every landing page: headline,
+// subhead, the beats, one concrete artifact, objection handling, CTA. The redesign
+// (docs/candidate-redesign.md) keeps all of it and orders it by how much a visitor needs:
+// the headline and one action first, then what you get, then the proof and the evidence
+// folded under "Show more", then the form. `artifact` is the page-specific real sample.
+//
+// With a direct signup (hiring teams, coaches) the primary action is that signup; without
+// one it takes the visitor to the waitlist form at the bottom of the page.
+
+const VISIBLE_POINTS = 4
+
+export function OrganizationPageTemplate({
+  tab,
+  artifact,
+  parent,
+  footerLinks,
+}: {
+  tab: AudienceTab
+  artifact?: ReactNode
+  parent?: { href: string; label: string }
+  footerLinks?: { href: string; label: string }[]
+}) {
   const loginHref = tab.loginHref ?? tab.directSignupHref?.replace('/signup', '/login')
+  const primary = tab.directSignupHref
+    ? { label: tab.directSignupLabel ?? 'Get started free', href: tab.directSignupHref }
+    : { label: tab.formHeading, href: '#join' }
+
+  const shown = tab.points.slice(0, VISIBLE_POINTS)
+  const more = tab.points.slice(VISIBLE_POINTS)
+
+  const extraLinks = [
+    ...(tab.id === 'coaches' ? [{ href: '/coach-platform', label: 'Your own branded platform' }] : []),
+    ...(tab.id === 'government' ? [{ href: '/reports/latest', label: 'White Collar Employment Report and WIOA data' }] : []),
+    ...(footerLinks ?? []),
+  ]
 
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
-          <Link href="/" className="shrink-0">
-            <Logo className="text-2xl" />
-          </Link>
-          <div className="order-2 flex shrink-0 items-center gap-4 sm:order-3">
-            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-              For candidates
-            </Link>
-            {loginHref && (
-              <Link
-                href={loginHref}
-                className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:border-brand hover:text-brand"
-              >
-                Log in
-              </Link>
-            )}
-          </div>
-          <nav className="order-3 flex min-w-0 basis-full items-center gap-1.5 text-sm sm:order-2 sm:basis-auto">
-            <Link
-              href="/for-organizations"
-              className="shrink-0 font-medium text-brand hover:text-navy"
-            >
-              For Organizations
-            </Link>
-            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-            <span className="min-w-0 flex-1 truncate font-medium text-foreground sm:flex-none">
-              {tab.eyebrow}
-            </span>
-          </nav>
-        </div>
-      </header>
+    <AudienceShell
+      page={tab.id}
+      parent={parent}
+      eyebrow={tab.eyebrow}
+      headline={tab.headline}
+      subhead={tab.subhead}
+      primary={primary}
+      primaryNote={tab.directSignupHref ? 'Or join the waitlist at the bottom of the page for updates instead.' : undefined}
+      loginHref={loginHref}
+      footerLinks={extraLinks}
+    >
+      <AudienceSection title="What you get">
+        <ul className="space-y-4">
+          {shown.map((point) => (
+            <li key={point.lead} className="flex items-start gap-3">
+              <span aria-hidden className="mt-2.5 size-1.5 shrink-0 rounded-full bg-ink" />
+              <span className="text-base leading-relaxed">
+                <span className="font-semibold">{point.lead}</span> {point.body}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-6 rounded-2xl border border-border bg-muted/40 p-4 text-sm leading-relaxed text-muted-foreground">
+          <span className="font-semibold text-ink">{tab.contrastLabel}</span> {tab.contrastBody}
+        </p>
+      </AudienceSection>
 
-      <main className="mx-auto w-full max-w-5xl px-6 py-16">
-        {/* Headline/subhead paired with the CTA form side-by-side, so the form
-            (and its submit button) is visible without scrolling, not just the
-            supporting long-form content further down the page. */}
-        <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
-          <div>
-            <p className="text-sm font-semibold tracking-wide text-brand uppercase">
-              {tab.eyebrow}
-            </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-              {tab.headline}
-            </h1>
-            <p className="mt-4 text-lg text-muted-foreground">{tab.subhead}</p>
-          </div>
-
-          <Card className="h-fit border-brand/20 bg-off-white">
-            <CardContent className="space-y-4 pt-6">
-              {tab.directSignupHref && (
-                <div className="space-y-3 border-b border-border pb-4">
-                  <Link
-                    href={tab.directSignupHref}
-                    className="flex w-full items-center justify-center rounded-md bg-brand px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand/90"
-                  >
-                    {tab.directSignupLabel ?? 'Get started free'}
-                  </Link>
-                  <p className="text-center text-xs text-muted-foreground">
-                    Or join the waitlist below for updates instead.
-                  </p>
-                </div>
-              )}
-              <WaitlistForm tab={tab} />
-            </CardContent>
-          </Card>
-        </div>
-
-        {artifact && (
-          <div className="mt-12">
-            <h2 className="mb-6 text-center text-xl font-bold tracking-tight text-navy">See it, don&apos;t just take our word for it</h2>
-            {artifact}
-          </div>
-        )}
-
-        {tab.insightSection && (
-          <div className="mt-12 rounded-xl border border-border bg-off-white p-6">
-            <p className="text-sm font-semibold tracking-wide text-navy uppercase">
-              {tab.insightSection.heading}
-            </p>
-            <ul className="mt-4 grid gap-4 sm:grid-cols-2">
-              {tab.insightSection.items.map((item) => (
-                <li key={item.lead}>
-                  <p className="font-semibold text-foreground">{item.lead}</p>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="mt-12 max-w-2xl">
-          <ul className="space-y-4">
-            {tab.points.map((point) => (
-              <li key={point.lead} className="flex items-start gap-3">
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-success" />
-                <span className="text-base leading-relaxed text-foreground">
-                  <span className="font-semibold">{point.lead}</span> {point.body}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-8 rounded-lg border border-light-gray bg-off-white p-4">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground">{tab.contrastLabel}</span>{' '}
-              {tab.contrastBody}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-16 border-t border-border pt-6 text-sm text-muted-foreground">
-          <Link href="/for-organizations" className="underline underline-offset-4">
-            ← All organization types
-          </Link>
-          {' · '}
-          <Link href="/" className="underline underline-offset-4">
-            NextChapter for candidates
-          </Link>
-          {tab.id === 'coaches' && (
-            <>
-              {' · '}
-              <Link href="/coach-platform" className="underline underline-offset-4">
-                Want your own branded platform? →
-              </Link>
-            </>
+      {(artifact || tab.insightSection || more.length > 0) && (
+        <AudienceSection title="Show more" className="space-y-3">
+          {artifact && (
+            <Disclosure title="See it, don’t just take our word for it">
+              <div className="overflow-x-auto">{artifact}</div>
+            </Disclosure>
           )}
-          {tab.id === 'government' && (
-            <>
-              {' · '}
-              <Link href="/reports/latest" className="underline underline-offset-4">
-                Monthly White Collar Employment Report &amp; WIOA data →
-              </Link>
-            </>
+          {tab.insightSection && (
+            <Disclosure title={tab.insightSection.heading}>
+              <ul className="grid gap-5 sm:grid-cols-2">
+                {tab.insightSection.items.map((item) => (
+                  <li key={item.lead}>
+                    <p className="font-semibold">{item.lead}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+                  </li>
+                ))}
+              </ul>
+            </Disclosure>
           )}
-        </div>
-      </main>
-    </div>
+          {more.length > 0 && (
+            <Disclosure title={`${more.length} more thing${more.length === 1 ? '' : 's'} you get`}>
+              <ul className="space-y-4">
+                {more.map((point) => (
+                  <li key={point.lead} className="text-base leading-relaxed">
+                    <span className="font-semibold">{point.lead}</span> {point.body}
+                  </li>
+                ))}
+              </ul>
+            </Disclosure>
+          )}
+        </AudienceSection>
+      )}
+
+      <ActionBand id="join" title={tab.directSignupHref ? 'Not ready yet? Stay in touch.' : 'Tell us about you'}>
+        <WaitlistForm tab={tab} />
+      </ActionBand>
+    </AudienceShell>
   )
 }

@@ -120,7 +120,7 @@ export function ReportNewsletterPopup({ placement }: { placement: string }) {
               <div className="flex items-center gap-4">
                 <button
                   type="submit" disabled={pending}
-                  className={`inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-success px-5 text-sm font-semibold text-white hover:bg-success-hover ${pending ? 'cursor-wait opacity-70' : ''}`}
+                  className={`inline-flex h-11 flex-1 items-center justify-center rounded-lg bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
                 >
                   {pending ? 'Signing up…' : 'Get the report monthly'}
                 </button>

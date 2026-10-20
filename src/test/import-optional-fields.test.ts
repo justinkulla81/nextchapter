@@ -32,6 +32,18 @@ describe('importSpecFields', () => {
     ).toEqual({ locationCity: 'San Jose', locationState: 'CA', locationCountry: 'US', locationStates: ['CA', 'TX'] })
   })
 
+  it("uses the crawler's resolved state list instead of re-reading the locations", () => {
+    expect(
+      importSpecFields(
+        { locationState: 'NY', locations: ['Delaware, OH', 'Seattle, San Francisco, New York'], locationStatesList: ['NY', 'WA', 'CA', 'ZZ', 'WA'] },
+        statesOf,
+        codes
+      ).locationStates
+    ).toEqual(['NY', 'WA', 'CA'])
+    // A remote-only posting: no primary, the empty list is kept (not re-read from text).
+    expect(importSpecFields({ locationState: null, locations: ['Remote'], locationStatesList: [] }, statesOf, codes).locationStates).toEqual([])
+  })
+
   it('drops a junk city, a non-US state and a malformed country', () => {
     expect(importSpecFields({ locationCity: 'TUCSON-805 ~ 1151 E Hermans Rd', locationState: 'AZ1', locationCountry: 'USA' }, statesOf, codes)).toEqual({
       locationCity: null,
@@ -57,5 +69,21 @@ describe('importSpecFields: O*NET-SOC occupation', () => {
     })
     expect(importSpecFields({ socCode: '13-2051', socTitle: 'x' }, () => [], codes)).toEqual({ socCode: null, socTitle: null })
     expect(importSpecFields({ socCode: null, socTitle: null }, () => [], codes)).toEqual({ socCode: null, socTitle: null })
+  })
+})
+
+describe('repost and duplicate import fields', () => {
+  const codes = new Set(['CA'])
+  it('reads counts and the original first-seen date, only when sent', () => {
+    expect(importSpecFields({}, () => [], codes)).toEqual({})
+    const out = importSpecFields({ reopenCount: '2', repostCount: 3, duplicateCount: 1, repostFirstSeenAt: '2026-08-02T04:35:08.156822+00:00' }, () => [], codes)
+    expect(out.reopenCount).toBe(2)
+    expect(out.repostCount).toBe(3)
+    expect(out.duplicateCount).toBe(1)
+    expect(out.repostFirstSeenAt?.toISOString()).toBe('2026-08-02T04:35:08.156Z')
+  })
+  it('stores junk as null', () => {
+    const out = importSpecFields({ reopenCount: -1, repostCount: 'many', duplicateCount: 1.5, repostFirstSeenAt: 'yesterday' }, () => [], codes)
+    expect(out).toEqual({ reopenCount: null, repostCount: null, duplicateCount: null, repostFirstSeenAt: null })
   })
 })

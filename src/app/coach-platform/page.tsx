@@ -1,10 +1,6 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronRight } from 'lucide-react'
-import { Logo } from '@/components/Logo'
-import { Card, CardContent } from '@/components/ui/card'
-import { WaitlistForm } from '@/components/audience/WaitlistForm'
+import { OrganizationPageTemplate } from '@/components/organizations/OrganizationPageTemplate'
 import type { AudienceTab } from '@/components/audience/audience-data'
 import { canonical } from '@/lib/seo/canonical'
 
@@ -56,47 +52,12 @@ const TAB: AudienceTab = {
 
 export default function CoachPlatformPage() {
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-6">
-          <Link href="/" className="shrink-0">
-            <Logo className="text-2xl" />
-          </Link>
-          <Link
-            href="/"
-            className="order-2 shrink-0 text-sm text-muted-foreground hover:text-foreground sm:order-3"
-          >
-            For candidates
-          </Link>
-          <nav className="order-3 flex min-w-0 basis-full items-center gap-1.5 text-sm sm:order-2 sm:basis-auto">
-            <Link href="/coaches" className="shrink-0 font-medium text-brand hover:text-navy">
-              For Coaches
-            </Link>
-            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-            <span className="min-w-0 flex-1 truncate font-medium text-foreground sm:flex-none">
-              {TAB.eyebrow}
-            </span>
-          </nav>
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-5xl px-6 py-16">
-        <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
-          <div>
-            <p className="text-sm font-semibold tracking-wide text-brand uppercase">{TAB.eyebrow}</p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{TAB.headline}</h1>
-            <p className="mt-4 text-lg text-muted-foreground">{TAB.subhead}</p>
-          </div>
-
-          <Card className="h-fit border-brand/20 bg-off-white">
-            <CardContent className="pt-6">
-              <WaitlistForm tab={TAB} />
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-12 grid items-start gap-4 sm:grid-cols-2">
-          <div className="overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
+    <OrganizationPageTemplate
+      tab={TAB}
+      parent={{ href: '/coaches', label: 'For coaches' }}
+      artifact={
+        <div className="grid items-start gap-4 sm:grid-cols-2">
+          <div className="overflow-hidden rounded-xl border border-border bg-white">
             <Image
               src="/marketing/coach-full-client-view.png"
               width={1280}
@@ -105,7 +66,7 @@ export default function CoachPlatformPage() {
               className="w-full"
             />
           </div>
-          <div className="overflow-hidden rounded-xl border border-light-gray bg-white shadow-lg">
+          <div className="overflow-hidden rounded-xl border border-border bg-white">
             <Image
               src="/marketing/coach-client-list.png"
               width={1280}
@@ -115,36 +76,8 @@ export default function CoachPlatformPage() {
             />
           </div>
         </div>
-
-        <div className="mt-12 max-w-2xl">
-          <ul className="space-y-4">
-            {TAB.points.map((point) => (
-              <li key={point.lead} className="flex items-start gap-3">
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-success" />
-                <span className="text-base leading-relaxed text-foreground">
-                  <span className="font-semibold">{point.lead}</span> {point.body}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-8 rounded-lg border border-light-gray bg-off-white p-4">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground">{TAB.contrastLabel}</span> {TAB.contrastBody}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-16 border-t border-border pt-6 text-sm text-muted-foreground">
-          <Link href="/coaches" className="underline underline-offset-4">
-            ← Free coach tools
-          </Link>
-          {' · '}
-          <Link href="/" className="underline underline-offset-4">
-            NextChapter for candidates
-          </Link>
-        </div>
-      </main>
-    </div>
+      }
+      footerLinks={[{ href: '/coaches', label: 'Free coach tools' }]}
+    />
   )
 }

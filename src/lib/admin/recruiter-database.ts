@@ -17,7 +17,7 @@ export interface RecruiterDatabaseRow {
   resumeScore: number | null
   dossierUnlocked: boolean
   dossierReason: string
-  metRequirementCount: number // out of 4: references, evidence, outreach/applications, effort minutes
+  metRequirementCount: number // out of 3: assessment, outreach/applications, effort minutes
   onSprintTarget: boolean
   recruiterDatabaseOptIn: boolean
   recruiterNotifiedAt: Date | null
@@ -93,7 +93,8 @@ export async function getRecruiterDatabaseRows(): Promise<RecruiterDatabaseRow[]
       dossierUnlocked: status.unlocked,
       dossierReason: status.reason,
       metRequirementCount:
-        Number(status.referencesMet) + Number(status.evidenceMet) + Number(status.effortMet) + Number(status.minutesMet),
+        // Candidate+ gates (owner, 2026-10-16): assessment, outreach + applications, minutes. No references.
+        Number(status.evidenceMet) + Number(status.effortMet) + Number(status.minutesMet),
       onSprintTarget: c.weeklyBadgesEarned.length > 0,
       recruiterDatabaseOptIn: c.recruiterDatabaseOptIn,
       recruiterNotifiedAt: c.recruiterNotifiedAt,

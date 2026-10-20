@@ -1,8 +1,26 @@
 import {
+  ADMIN_CONTEXT_EXCLUDE,
+  ADMIN_FAMILY,
+  ALLOW_LOWER,
+  ALLOW_LOWER_STRICT,
+  ALLOW_MANAGEMENT,
+  ALLOW_TWO,
+  ALLOW_UPPER,
   BARE_PROFESSIONAL,
   BOARD,
   EARLY_ASSOCIATE,
+  EARLY_CAP,
+  EARLY_DEFAULT,
+  EARLY_DEFAULT_KEEP,
+  EARLY_ENTRY_FAMILY,
   EARLY_EXCLUDE,
+  EARLY_FAMILY,
+  EARLY_FAMILY_EXCLUDE,
+  EARLY_HARD_EXCLUDE,
+  ENTRY_FAMILY,
+  ENTRY_FAMILY_EXCLUDE,
+  EXEC_ASSISTANT,
+  RECRUIT_FAMILY,
   EARLY_IC_RANK,
   ENTRY_ANALYST,
   ENTRY_EXPLICIT,
@@ -12,6 +30,18 @@ import {
   ENTRY_PREFIX,
   ENTRY_WORDS,
   EXPLICIT_LEVEL,
+  BACHELOR,
+  DEGREE_GATED,
+  DEGREE_NOUN,
+  DEGREE_VETO,
+  FED_LIFT_VETO,
+  SENIOR_SECOND_GRADE,
+  GRADE_THREE_IC,
+  MID_SPECIALTY_IC,
+  IC_MANAGER,
+  IC_MANAGER_EARLY,
+  PEOPLE_MANAGER_DESC,
+  RECENT_GRAD,
   FRONTLINE,
   JUNIOR_MARK,
   LEVEL_ONE,
@@ -67,13 +97,20 @@ function stripReportingRef(title: string): string {
   return out || title
 }
 
-// Federal pay grade appended to USAJOBS titles ("Program Analyst (GS-14)"):
-// 13 = senior individual, 14 = senior manager, 15 = director; SES, SL, ST =
-// executive. A higher rank from the title itself wins (ties keep the title's).
+// Federal pay grade appended to USAJOBS titles ("Program Analyst (GS-14)", a
+// promotion ladder lowest grade first: "(GS-7/11)"). The LOWEST grade sets the
+// level. 13 = senior individual, 14 = senior manager, 15 = director; SES, SL,
+// ST = executive. A higher rank from the title itself wins (ties keep the title's).
 const GRADE_RANK: Record<number, { rung: RungName; rank: number }> = {
   13: { rung: 'SENIOR_IC', rank: 45 },
   14: { rung: 'SR_MANAGER', rank: 52 },
   15: { rung: 'DIRECTOR', rank: 65 },
+}
+const OTHER: { rung: RungName; rank: number } = { rung: 'OTHER', rank: 0 }
+
+/** Uniformed, clinical-floor, wage-style, clerical and frontline series are never lifted by grade. */
+function fedVetoed(bare: string): boolean {
+  return MID_GRADE_VETO.test(bare) || FED_LIFT_VETO.test(bare) || FRONTLINE.test(bare) || NEGATIVE.test(bare)
 }
 
 export type ClassifyOptions = {
@@ -86,24 +123,29 @@ export function classifyTitleRung(rawTitle: string | null | undefined, opts: Cla
   if (!m || !rawTitle) return classifyTitleOnly(rawTitle, opts)
   const bare = rawTitle.slice(0, m.index).trim()
   let base = classifyTitleOnly(bare, opts)
-  let grade = m[3] ? { rung: 'EVP_SVP' as RungName, rank: 90 } : (GRADE_RANK[Math.min(Number(m[2]), 15)] ?? { rung: 'OTHER' as RungName, rank: 0 })
-  if (!m[3]) {
-    const n = Number(m[2])
-    const gs = ['gs', 'gg', 'gm'].includes(m[1].toLowerCase()) // NH/ND bands use other numbers
-    // GS-11/12: mid-level professional, unless the series is uniformed,
-    // clinical-floor or frontline (or the title screens itself out).
-    if (gs && (n === 11 || n === 12) && !MID_GRADE_VETO.test(bare) && !FRONTLINE.test(bare) && !NEGATIVE.test(bare)) {
-      grade = { rung: 'MID_IC', rank: MID_IC_RANK }
-    }
-    // GS-10 and below are the federal entry grades: the title alone must not lift them to
-    // mid-level. A professional series at GS-5 to GS-8 is entry-level, at GS-9/10 early-career.
-    if (gs && n <= 10 && (base.rung === 'MID_IC' || base.rung === 'ENTRY_IC' || base.rung === 'EARLY_IC')) {
-      if (n >= 5 && n <= 8 && !MID_GRADE_VETO.test(bare)) base = { rung: 'ENTRY_IC', rank: ENTRY_IC_RANK }
-      else if (n >= 9 && !MID_GRADE_VETO.test(bare)) base = { rung: 'EARLY_IC', rank: EARLY_IC_RANK }
-      else base = { rung: 'OTHER', rank: 0 }
-    }
+  if (m[3]) return 90 > base.rank ? { rung: 'EVP_SVP', rank: 90 } : base
+  // A ladder topping out at GS-12 or below is levelled by its LOWEST grade (where a hire
+  // starts); one reaching GS-13+ by its highest, as before.
+  const nums = (m[0].match(/\d{1,2}/g) ?? []).map(Number)
+  const n = Math.max(...nums) <= 12 ? Math.min(...nums) : Math.max(...nums)
+  const graded = n >= 13 ? GRADE_RANK[Math.min(n, 15)] : OTHER
+  const gs = ['gs', 'gg', 'gm'].includes(m[1].toLowerCase()) // NH/ND bands use other numbers
+  // R6 (owner, 2026-10-19): a Pathways "Recent Graduate" posting on a GS-5/7 or GS-5/7/9
+  // ladder is entry-level, the one exception to "GS-6 and below stay out"; same vetoes.
+  if (gs && Math.min(...nums) === 5 && Math.max(...nums) >= 7 && Math.max(...nums) <= 9 && RECENT_GRAD.test(rawTitle) &&
+      base.rank <= MID_IC_RANK && !fedVetoed(bare)) {
+    const entry = { rung: 'ENTRY_IC' as RungName, rank: ENTRY_IC_RANK }
+    return graded.rank > entry.rank ? graded : entry
   }
-  return grade.rank > base.rank ? grade : base
+  if (gs && n <= 12 && base.rank <= MID_IC_RANK) {
+    // OPM education qualifications (owner, 2026-10-16): GS-7/8 entry-level,
+    // GS-9/10 early-career, GS-11/12 mid-level; GS-6 and below stay out.
+    if (n <= 6 || fedVetoed(bare)) base = OTHER
+    else if (n <= 8) base = { rung: 'ENTRY_IC', rank: ENTRY_IC_RANK }
+    else if (n <= 10) base = { rung: 'EARLY_IC', rank: EARLY_IC_RANK }
+    else base = { rung: 'MID_IC', rank: MID_IC_RANK }
+  }
+  return graded.rank > base.rank ? graded : base
 }
 
 /** Mid-level professional allowlist (ncrawl/taxonomy.py MID_IC), minus entry/support/frontline markers. */
@@ -138,7 +180,7 @@ function classifyTitleOnly(rawTitle: string | null | undefined, opts: ClassifyOp
   const fixed = titleOverride(title, !!opts.schoolContext)
   if (fixed && fixed.mode === 'set') return { rung: fixed.name, rank: fixed.rank }
   const base = ladder(title)
-  return fixed && fixed.rank > base.rank ? { rung: fixed.name, rank: fixed.rank } : base
+  return earlyBroaden(title, fixed && fixed.rank > base.rank ? { rung: fixed.name, rank: fixed.rank } : base)
 }
 
 function ladder(title: string): { rung: RungName; rank: number } {
@@ -185,7 +227,9 @@ function stripEntry(title: string): string {
 
 function isMidRole(residual: string, title: string): boolean {
   if (!residual || residual.toLowerCase() === title.toLowerCase()) return false
-  return BARE_PROFESSIONAL.test(residual) || classifyTitleOnly(residual).rung === 'MID_IC'
+  if (BARE_PROFESSIONAL.test(residual)) return true
+  const rung = classifyTitleOnly(residual).rung
+  return rung === 'MID_IC' || rung === 'EARLY_IC' || rung === 'ENTRY_IC'
 }
 
 const ENTRY: { rung: RungName; rank: number } = { rung: 'ENTRY_IC', rank: ENTRY_IC_RANK }
@@ -213,10 +257,42 @@ function earlyStage(title: string): { rung: RungName; rank: number } | null {
   return null
 }
 
+// ── Early-career broadening (ncrawl taxonomy.py _early_allow / _early_broaden, 2026-10-15) ──
+// 1. A title the ladder left at OTHER that is an allowlisted early professional office role
+//    (administrative assistants and coordinators, executive assistants, paralegals, programmers,
+//    designers, recruiters, buyers, planners, claims adjusters, writers, function associates and
+//    specialists) joins ENTRY_IC / EARLY_IC. Interns, temporary/hourly, clinical, childcare, retail,
+//    hospitality, warehouse and plant work never do.
+// 2. An unmarked MID_IC title in a family the market reads as 2-5 years ("Software Engineer",
+//    "Financial Analyst", "Recruiter") defaults to EARLY_IC. Nothing above MID_IC moves.
+const MID: { rung: RungName; rank: number } = { rung: 'MID_IC', rank: MID_IC_RANK }
+
+function earlyAllow(title: string): { rung: RungName; rank: number } | null {
+  if (EARLY_HARD_EXCLUDE.test(title) || FRONTLINE.test(title) || ALLOW_MANAGEMENT.test(title)) return null
+  const upper = ALLOW_UPPER.test(title)
+  const two = ALLOW_TWO.test(title)
+  if (ADMIN_FAMILY.test(title) && !ADMIN_CONTEXT_EXCLUDE.test(title)) {
+    return EXEC_ASSISTANT.test(title) || upper || two ? EARLY : ENTRY
+  }
+  if (RECRUIT_FAMILY.test(title)) return upper ? MID : ALLOW_LOWER_STRICT.test(title) ? ENTRY : EARLY
+  if (EARLY_FAMILY.test(title) && !EARLY_FAMILY_EXCLUDE.test(title)) {
+    return upper ? MID : two ? EARLY : ALLOW_LOWER.test(title) ? ENTRY : EARLY
+  }
+  if (EARLY_ENTRY_FAMILY.test(title)) return upper ? MID : EARLY
+  if (ENTRY_FAMILY.test(title) && !ENTRY_FAMILY_EXCLUDE.test(title)) return upper || two ? EARLY : ENTRY
+  return null
+}
+
+function earlyBroaden(title: string, base: { rung: RungName; rank: number }): { rung: RungName; rank: number } {
+  if (base.rank === 0) return earlyAllow(title) ?? base
+  if (base.rung === 'MID_IC' && EARLY_DEFAULT.test(title) && !EARLY_DEFAULT_KEEP.test(title)) return EARLY
+  return base
+}
+
 /**
  * The career stage a posting's years-of-experience requirement points to
  * (ncrawl years.py years_stage): ENTRY for 0-1 years ("0-2", "1+", "1-3"),
- * EARLY for a 2-4 year minimum, MID for 5+; null when the text names none.
+ * EARLY for a 2-3 year minimum, MID for 4+; null when the text names none.
  */
 export function yearsStage(description: string | null | undefined): 'ENTRY' | 'EARLY' | 'MID' | null {
   if (!description) return null
@@ -225,27 +301,89 @@ export function yearsStage(description: string | null | undefined): 'ENTRY' | 'E
   const y = parseYearsRequired(text)
   if (!y) return null
   if ((y.min <= 1 && (y.max === null || y.max <= 3)) || (y.max !== null && y.max <= 2)) return 'ENTRY'
-  if (y.min <= 4) return 'EARLY'
+  // About 2-4 years is early-career, 4-7 mid-level (owner, 2026-10-16): a 4-year minimum is mid.
+  if (y.min <= 3) return 'EARLY'
   return 'MID'
 }
+
+/** Minimum years a posting states (0 for "0-2 years" forms), or null (ncrawl years.py years_min). */
+export function yearsMin(description: string | null | undefined): number | null {
+  if (!description) return null
+  const text = description.replace(/\u00a0/g, ' ')
+  if (YEARS_ZERO_RANGE.test(text)) return 0
+  return parseYearsRequired(text)?.min ?? null
+}
+
+/** "Senior" titles asking this many years or fewer are mid-level. */
+const SENIOR_YEARS_MAX = 5
 
 const STAGE_RUNG = { ENTRY, EARLY, MID: { rung: 'MID_IC' as RungName, rank: MID_IC_RANK } }
 
 /**
+ * R1-R4 allowlists (ncrawl _years_rule_rung): the rung a SENIOR_IC / MANAGER title comes down to
+ * at 5 years or fewer — MID_IC, or EARLY_IC for an assistant / associate / level-I
+ * individual-contributor manager — or null.
+ */
+function yearsRuleRung(title: string, rung: RungName, description: string): { rung: RungName; rank: number } | null {
+  if (rung === 'SENIOR_IC' && SENIOR_SECOND_GRADE.test(title)) return STAGE_RUNG.MID
+  if (GRADE_THREE_IC.test(title) || MID_SPECIALTY_IC.test(title)) return STAGE_RUNG.MID
+  if (IC_MANAGER.test(title) && !PEOPLE_MANAGER_DESC.test(description)) return IC_MANAGER_EARLY.test(title) ? STAGE_RUNG.EARLY : STAGE_RUNG.MID
+  return null
+}
+
+/**
  * An early or mid-level professional title without its own level marker takes
  * its stage from the posting's years requirement ("Financial Analyst" asking
- * 0-2 years is entry, 3+ early, 5+ mid). Never moves a job above MID_IC or
- * touches anything ranked above it. Mirrors ncrawl refine_level_by_years.
+ * 0-2 years is entry, 2-3 early, 4+ mid). Never moves a job above MID_IC or
+ * touches anything ranked above it, except an allowlisted SENIOR_IC / MANAGER title
+ * (yearsRuleRung, owner R1-R4) asking 5 years or fewer, which comes down to MID_IC (EARLY_IC
+ * for an assistant / associate / level-I individual-contributor manager).
+ * Mirrors ncrawl refine_level_by_years.
  */
 export function refineLevelByYears(
   title: string,
   level: { rung: RungName; rank: number },
   description: string | null | undefined
 ): { rung: RungName; rank: number } {
+  // R1-R4 (owner, 2026-10-16 / 2026-10-19): allowlisted SENIOR_IC / MANAGER titles asking
+  // 5 years or fewer are mid-level (never lower). Mirrors ncrawl _years_rule_rung.
+  if (level.rung === 'SENIOR_IC' || level.rung === 'MANAGER') {
+    const target = description ? yearsRuleRung(title, level.rung, description) : null
+    if (target && description) {
+      const m = yearsMin(description)
+      if (m !== null && m <= SENIOR_YEARS_MAX) return target
+    }
+    return level
+  }
   if (!['ENTRY_IC', 'EARLY_IC', 'MID_IC'].includes(level.rung) || !description) return level
   if (EXPLICIT_LEVEL.test(title) || ENTRY_EXPLICIT.test(title)) return level
-  const stage = yearsStage(description)
+  let stage = yearsStage(description)
+  // Assistant and coordinator roles top out at early-career, however many years the posting asks for.
+  if (stage === 'MID' && EARLY_CAP.test(title)) stage = 'EARLY'
   return stage ? STAGE_RUNG[stage] : level
+}
+
+/**
+ * Bachelor's-degree signal (ncrawl taxonomy.py degree_lift, 2026-10-16): an excluded title whose
+ * posting asks for a bachelor's joins ENTRY_IC (EARLY_IC with a level-II marker, MID_IC when
+ * senior) when it is an allowlisted unsure professional title (DEGREE_GATED, DEGREE_NOUN). Never
+ * for frontline, clinical, retail, store, hourly or commission work, or a manager/supervisor title.
+ */
+export function degreeLift(title: string, description: string | null | undefined): { rung: RungName; rank: number } | null {
+  if (!title || !description || !BACHELOR.test(description)) return null
+  if (DEGREE_VETO.test(title) || EARLY_HARD_EXCLUDE.test(title) || FRONTLINE.test(title) || NEGATIVE.test(title) ||
+      ALLOW_MANAGEMENT.test(title) || /\bsupervisor\b/i.test(title)) return null
+  if (!DEGREE_GATED.test(title) && !DEGREE_NOUN.test(title)) return null
+  if (ALLOW_UPPER.test(title)) return MID
+  if (ALLOW_TWO.test(title)) return EARLY
+  return ENTRY
+}
+
+/** A posting's level (ncrawl level_for_posting): the title's rung, the bachelor's lift for an excluded title, then the years refinement. */
+export function levelForPosting(title: string, description: string | null | undefined, opts: ClassifyOptions = {}): { rung: RungName; rank: number } {
+  let level = classifyTitleRung(title, opts)
+  if (level.rank === 0) level = degreeLift(title, description) ?? level
+  return refineLevelByYears(title, level, description)
 }
 
 /** The seniority groups shown to people, most senior first. */

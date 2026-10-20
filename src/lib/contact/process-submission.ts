@@ -122,7 +122,7 @@ export async function emailContactSubmission(sub: ContactSubmission, crmPersonId
   ].join('\n')
 
   try {
-    const resend = createResend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY, 'admin')
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: FORWARD_TO,

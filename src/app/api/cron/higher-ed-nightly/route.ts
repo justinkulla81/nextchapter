@@ -7,6 +7,7 @@ import { scheduleCheckIns } from '@/lib/higher-ed/checkins'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runMonthlyEmails } from '@/lib/higher-ed/monthly'
+import { cleanupExpiredDemos } from '@/lib/workforce/demo'
 
 export const maxDuration = 300
 
@@ -22,6 +23,8 @@ export const maxDuration = 300
 export const GET = withCronRun('higher-ed-nightly', async () => {
   const startedAt = new Date()
   const grace = await clearEndedGrace(startedAt)
+  // Public workforce demos older than 30 days.
+  const demos = await cleanupExpiredDemos(startedAt).catch(() => ({ removed: 0 }))
   const colleges = await prisma.institution.findMany({ where: { isDemo: false }, select: { id: true } })
   const totals = { layoffMatches: 0, engagementEvents: 0, checkInsScheduled: 0, failed: 0 }
   for (const c of colleges) {
@@ -39,7 +42,7 @@ export const GET = withCronRun('higher-ed-nightly', async () => {
     console.error('[higher-ed-nightly] monthly email', err)
     return []
   })
-  const result = { ...grace, ...totals, colleges: colleges.length, monthlySent: monthly.reduce((n, m) => n + m.sent, 0) }
+  const result = { ...grace, ...totals, colleges: colleges.length, monthlySent: monthly.reduce((n, m) => n + m.sent, 0), demosRemoved: demos.removed }
   captureServerEvent('cron', 'he_nightly_ran', { ...result, ms: Date.now() - startedAt.getTime() })
   return NextResponse.json({ ok: true, ...result })
 })

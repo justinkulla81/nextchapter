@@ -7,6 +7,15 @@ import { getAlumniNetworkOptions } from '@/lib/community/alumni-networks'
 import { programForCandidate } from '@/lib/employer/program-server'
 import { AlumniNetworkOptions } from '@/components/community/AlumniNetworkOptions'
 import { EmptyState } from '@/components/ui/empty-state'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { groupsIntro } from '@/lib/redesign/network-pages'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Section } from '@/components/candidate/ui'
+import { ListRow, RowList } from '@/components/candidate/ListRow'
+import { EmptyCard } from '@/components/candidate/EmptyCard'
+import { TrackedAction } from '@/components/candidate/TrackedAction'
+import { NetworkParts } from '@/components/network/NetworkParts'
 
 export const metadata: Metadata = { title: 'My groups' }
 
@@ -28,6 +37,75 @@ export default async function GroupsPage() {
   ])
   const joined = networks.filter((n) => n.joined)
   const empty = !program && institutions.length === 0 && joined.length === 0
+
+  // The redesign (docs/candidate-redesign.md): every group in one list, then the ways to join more.
+  if (isRedesignOn(profile.email)) {
+    const count = (program ? 1 : 0) + institutions.length + joined.length
+    captureServerEvent(profile.id, 'groups_viewed', { groups: count, program: Boolean(program), institutions: institutions.length, alumni: joined.length })
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Alumni and groups"
+          intro={groupsIntro(count)}
+          action={
+            <TrackedAction variant="primary" href="#join" event="group_join_started" properties={{ source: 'groups_primary', groups: count }}>
+              Join a group
+            </TrackedAction>
+          }
+        />
+        <NetworkParts current="alumni" />
+        {count === 0 ? (
+          <EmptyCard
+            title="No groups yet"
+            why="If your employer, college or a program invited you, use the link in their email. Alumni networks open once five members share a school or past employer."
+          />
+        ) : (
+          <Section id="mine" title="Your groups">
+            <RowList label="Your groups">
+              {program && (
+                <ListRow
+                  title={program.name}
+                  why="Through a former employer."
+                  fact={`Provided by ${program.orgName}. They never see your search, only whether you land, if you choose to share it.`}
+                />
+              )}
+              {institutions.map(({ institution: i }) => (
+                <ListRow
+                  key={i.slug}
+                  name={i.programBrandName ?? i.name}
+                  title={i.programBrandName ?? i.name}
+                  why="College and career services."
+                  actions={
+                    <TrackedAction variant="secondary" href={`/i/${i.slug}/candidate`} event="group_portal_opened" properties={{ slug: i.slug, source: 'groups_list' }}>
+                      Open portal
+                    </TrackedAction>
+                  }
+                />
+              ))}
+              {joined.map((n) => (
+                <ListRow key={`${n.kind}:${n.refId}`} name={n.name} title={n.name} why={n.kind === 'SCHOOL' ? 'Alumni network for your school.' : 'Alumni network for a past employer.'} fact={`${n.memberCount} members`} />
+              ))}
+            </RowList>
+            {joined.length > 0 && (
+              <TrackedAction variant="text" href="/dashboard/community" event="community_opened" properties={{ source: 'groups' }}>
+                See posts from your groups
+              </TrackedAction>
+            )}
+          </Section>
+        )}
+        <div id="join" className="scroll-mt-4">
+          <Section id="join-title" title="Find more groups">
+            <div className="rounded-2xl border border-border">
+              <AlumniNetworkOptions candidateId={profile.id} />
+            </div>
+          </Section>
+        </div>
+        <TrackedAction variant="text" href="/dashboard/universities" event="universities_opened" properties={{ source: 'groups' }}>
+          See your schools and alumni counts
+        </TrackedAction>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

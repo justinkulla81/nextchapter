@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import type { ApplicationChannel, DeclineParty, JobReactionType, NotInterestedReason } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
@@ -16,6 +17,7 @@ import { surfaceNewJobs } from '@/lib/network/job-discovery'
 import { MAX_ACTIVE_FIT_CHECK_SLOTS } from '@/lib/constants/job-milestones'
 import { generateThankYouEmail } from '@/lib/interview-prep/generate-thank-you-email'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { linkApplicationToBoard } from '@/lib/jobs/application-posting-link'
 import { draftCoverNote, type CoverNoteResult } from '@/lib/jobs/cover-note'
 import { explainGaps, isExplainGapsEnabled, type ExplainGapsResult } from '@/lib/jobs/explain-gaps'
 import { matchJobToCandidate, toMatchJob } from '@/lib/jobs/job-match'
@@ -28,6 +30,10 @@ import {
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { classifyWorkType, isWorkType } from '@/lib/jobs/work-type'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { aggregatorKind } from '@/lib/jobs/liveness'
+import { archiveDeadPostings, closeOpeningsQuietly } from '@/lib/jobs/liveness-store'
+import { candidatePlusRequiredMessage } from '@/lib/jobs/candidate-plus-extras'
 
 export type FormState = { error?: string } | undefined
 
@@ -201,6 +207,8 @@ export async function addInterviewJob(_prevState: FormState, formData: FormData)
   await generateInterviewPrep(jobPosting.id, profile.id)
 
   captureServerEvent(profile.id, 'interview_landed', { jobId: jobPosting.id, source: 'interview_tracking_quick_add' })
+  // Link to the board posting for admin application fit (title / company come from analyzeJobFit above).
+  after(() => linkApplicationToBoard(jobPosting.id))
 
   revalidatePath('/dashboard/find-my-job')
 }
@@ -298,6 +306,7 @@ export async function markApplied(
     data: { appliedAt: new Date(), channel: channel ?? null },
   })
   captureServerEvent(profile.id, 'application_logged', { jobId: jobPostingId, channel })
+  after(() => linkApplicationToBoard(jobPostingId))
 
   // Real, verified signal — a specific tracked posting just moved to
   // Applied — so this earns the Search Action directly rather than relying
@@ -613,6 +622,8 @@ export async function updateApplicationDetails(jobPostingId: string, formData: F
   }
 
   await prisma.jobPosting.update({ where: { id: jobPostingId }, data: { title, url } })
+  // A corrected title or link can change which board posting this was.
+  if (jobPosting.appliedAt) after(() => linkApplicationToBoard(jobPostingId))
   revalidatePath('/dashboard/find-my-job')
 }
 
@@ -658,6 +669,29 @@ export async function refreshSurfacedJobs() {
 // never blocks or preventDefaults the navigation, just logs it. Denormalized
 // into JobClickEvent (not just the PostHog event) so admin can group by
 // company/title with a real Prisma groupBy — see the schema comment.
+// "This job is closed" on a job listed only through an aggregator (Jooble, Careerjet):
+// their terms bar us from fetching the listing to check it, so a member who lands on the
+// dead page is the one signal we get. The job is taken off the board for everyone
+// (closeReason 'expired_checked', which the crawler copies via the liveness endpoint, so the
+// next import doesn't bring it back). Direct employer / ATS jobs are never closed by a
+// report — the click-time check and the crawler verify those.
+export async function reportJobClosed(postingId: string): Promise<{ ok: boolean }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { ok: false }
+  const posting = await prisma.exclusiveJobPosting.findUnique({
+    where: { id: postingId },
+    select: { id: true, url: true, source: true, sourceName: true, archivedAt: true },
+  })
+  if (!posting || posting.source !== 'ats_feed' || !aggregatorKind(posting.url)) return { ok: false }
+  if (!posting.archivedAt) {
+    await archiveDeadPostings({ ids: [posting.id] })
+    after(closeOpeningsQuietly)
+  }
+  captureServerEvent(profile.id, 'job_reported_closed', { jobId: posting.id, aggregator: aggregatorKind(posting.url), source: posting.sourceName })
+  revalidatePath('/dashboard/find-my-job')
+  return { ok: true }
+}
+
 export async function recordJobClick(input: {
   // 'surfaced' | 'job_board' | 'matched_role' are jobs (tracked in My jobs);
   // 'platform' (an expert network / marketplace Join link) and 'likely_opening'
@@ -882,6 +916,8 @@ export async function promoteJobBoardListing(postingId: string, _prevState: Prom
 export async function requestJobBoardIntro(postingId: string) {
   const profile = await getAuthedProfile()
   if (!profile) return
+  // Request intro is part of Who to contact, a Candidate+ extra (candidate-plus-extras.ts).
+  if (!(await isDossierUnlocked(profile.id)).unlocked) return
 
   const posting = await prisma.exclusiveJobPosting.findFirst({
     where: { id: postingId, status: 'approved', archivedAt: null },

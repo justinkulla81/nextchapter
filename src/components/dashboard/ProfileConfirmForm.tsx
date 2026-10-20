@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { cn } from '@/lib/utils'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
 
 const POINTS = estimateActionEffort({ actionType: 'PROFILE_CONFIRM' }).points
 
@@ -19,7 +20,10 @@ export function ProfileConfirmForm({
   currentCity,
   currentState,
   confirmedAt,
+  prefilled = [],
 }: {
+  /** Fields filled from the résumé and not confirmed yet (resume-prefill.ts). */
+  prefilled?: string[]
   firstName: string | null
   lastName: string | null
   phone: string | null
@@ -85,6 +89,10 @@ export function ProfileConfirmForm({
         value={values.streetAddress}
         onChange={(e) => setValues((v) => ({ ...v, streetAddress: e.target.value }))}
       />
+      {(() => {
+        const fields = prefilled.filter((f) => f === 'currentCity' || f === 'currentState')
+        return <FromResumeTag show={fields.length > 0} section="basics" fields={fields} />
+      })()}
       <div className="grid grid-cols-2 gap-2">
         <Input
           name="currentCity"

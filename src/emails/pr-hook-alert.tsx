@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface PrHookAlertEmailProps {
   title: string | null
@@ -68,6 +69,7 @@ export default function PrHookAlertEmail({ title, url, summary, suggestedAction 
       <p style={footer}>
         Flagged by Market Pulse as high-priority — this does not wait for the weekly digest.
       </p>
+      <AudienceTag audience="admin" />
     </div>
   )
 }

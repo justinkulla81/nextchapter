@@ -1,6 +1,5 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { computeAiPayPremium, type FunctionPremium } from '@/lib/market/ai-pay-premium'
 
 // Computed from the live board, shared by every member (it is an aggregate, so it carries
@@ -23,11 +22,10 @@ export async function loadAiPayPremium(): Promise<FunctionPremium[]> {
     },
     select: {
       title: true, description: true, skills: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
-      audienceTier: true, source: true,
     },
     take: 60_000,
   })
-  const rows = computeAiPayPremium(postings.filter((p) => !isBoardPostingLockedForViewer(p, false)))
+  const rows = computeAiPayPremium(postings)
   cache = { at: Date.now(), rows }
   return rows
 }

@@ -1,15 +1,19 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { linkApplicationToBoard } from '@/lib/jobs/application-posting-link'
 import { autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { addCompanyToWatchlist } from '@/lib/company-tracker/watchlist'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import { applicationStatus, isApplicationStatus, statusChangeData, type ApplicationStatus, type PromptAnswer } from '@/lib/jobs/my-jobs'
+import { applicationStatus, isApplicationStatus, matchClickToApplication, statusChangeData, type ApplicationStatus, type PromptAnswer } from '@/lib/jobs/my-jobs'
+import { dismissBoardJob } from '@/app/dashboard/find-my-job/dismiss-actions'
+import { candidatePlusProgress } from '@/lib/activity-log/log'
 import { isWorkType, WORK_TYPES, type WorkType } from '@/lib/jobs/work-type'
 import type { TrackRef } from '@/lib/jobs/my-jobs-data'
 
@@ -103,7 +107,7 @@ export async function setJobSaved(rawRef: TrackRef, saved: boolean): Promise<Res
 export async function setJobStatus(
   rawRef: TrackRef,
   to: ApplicationStatus,
-  source: 'card' | 'my_jobs' | 'prompt' = 'card'
+  source: 'card' | 'my_jobs' | 'prompt' | 'apply_kit' | 'native' = 'card'
 ): Promise<Result> {
   const profile = await getProfile()
   if (!profile) return NOT_SIGNED_IN
@@ -112,7 +116,12 @@ export async function setJobStatus(
   return changeStatus(profile.id, ref, to, source)
 }
 
-async function changeStatus(candidateId: string, ref: TrackRef, to: ApplicationStatus, source: 'card' | 'my_jobs' | 'prompt' | 'email'): Promise<Result> {
+async function changeStatus(
+  candidateId: string,
+  ref: TrackRef,
+  to: ApplicationStatus,
+  source: 'card' | 'my_jobs' | 'prompt' | 'email' | 'apply_kit' | 'native'
+): Promise<Result> {
   const tracked = await upsertTracked(candidateId, ref)
   const now = new Date()
   let app = tracked.jobPosting
@@ -120,6 +129,22 @@ async function changeStatus(candidateId: string, ref: TrackRef, to: ApplicationS
   // promoted it for a fit check)? Use that row rather than a second one.
   if (!app && ref.url) {
     app = await prisma.jobPosting.findFirst({ where: { candidateId, url: ref.url, trackedJob: null } })
+  }
+  // Gmail already logged this application (a confirmation from the same company, and role
+  // when the email names one, around the click)? Link that row instead of adding a second.
+  if (!app && to === 'applied') {
+    const emailApps = await prisma.jobPosting.findMany({
+      where: { candidateId, source: 'EMAIL_DETECTED', appliedAt: { not: null }, trackedJob: null },
+      orderBy: { appliedAt: 'desc' },
+      take: 200,
+    })
+    const match = matchClickToApplication({ companyName: ref.companyName, title: ref.title, clickedAt: tracked.firstClickedAt ?? now }, emailApps)
+    const emailApp = match ? emailApps.find((a) => a.id === match.id) : undefined
+    if (emailApp) {
+      await prisma.trackedJob.update({ where: { id: tracked.id }, data: { jobPostingId: emailApp.id, appliedVia: 'email', dismissedAt: null } })
+      captureServerEvent(candidateId, 'application_auto_detected', { jobId: ref.sourceId, trackedJobId: tracked.id, jobPostingId: emailApp.id, source: ref.source, via: 'email', at: source })
+      return done()
+    }
   }
   const from = applicationStatus(app)
   if (from === to) return { ok: true }
@@ -149,10 +174,13 @@ async function changeStatus(candidateId: string, ref: TrackRef, to: ApplicationS
     where: { id: tracked.id },
     data: {
       jobPostingId: app.id,
-      appliedVia: tracked.appliedVia ?? (source === 'prompt' ? 'prompt' : source === 'email' ? 'email' : 'manual'),
+      appliedVia: tracked.appliedVia ?? (source === 'prompt' || source === 'email' || source === 'native' ? source : 'manual'),
       dismissedAt: null,
     },
   })
+
+  // Store the board link (the card itself) for admin application fit.
+  if (!from) after(() => linkApplicationToBoard(app.id))
 
   // Applying is a real, verified Search Action — same credit as Mark applied in the tracker.
   if (!from) {
@@ -178,38 +206,57 @@ async function changeStatus(candidateId: string, ref: TrackRef, to: ApplicationS
 
 /** "You opened the application for X — did you apply?" */
 export async function answerApplyPrompt(trackedJobId: string, answer: PromptAnswer): Promise<Result> {
+  const r = await answerApplyPrompts([trackedJobId], answer)
+  return r.ok ? { ok: true } : r
+}
+
+export type ApplyPromptsResult = { ok: true; progress: string | null } | { ok: false; error: string }
+
+/**
+ * The batched "Did you apply?" prompt on the board and Home: one answer for one or more
+ * opened jobs. Yes logs each as applied in My jobs (appliedVia 'prompt') — a JobPosting with
+ * appliedAt, which is exactly what Candidate+ counts — unless Gmail already logged it.
+ * Not interested goes through the board's dismiss flow.
+ */
+export async function answerApplyPrompts(trackedJobIds: string[], answer: PromptAnswer): Promise<ApplyPromptsResult> {
   const profile = await getProfile()
-  if (!profile) return NOT_SIGNED_IN
+  if (!profile) return { ok: false, error: 'Your session ended. Sign in again, then try once more.' }
   if (answer !== 'applied' && answer !== 'not_yet' && answer !== 'not_interested') return { ok: false, error: 'Pick one of the three answers.' }
-  const tracked = await prisma.trackedJob.findFirst({ where: { id: trackedJobId, candidateId: profile.id } })
-  if (!tracked) return { ok: false, error: 'We could not find that job. Refresh the page and try again.' }
+  const ids = [...new Set((Array.isArray(trackedJobIds) ? trackedJobIds : []).filter((id) => typeof id === 'string'))].slice(0, 10)
+  const tracked = await prisma.trackedJob.findMany({ where: { id: { in: ids }, candidateId: profile.id } })
+  if (tracked.length === 0) return { ok: false, error: 'We could not find that job. Refresh the page and try again.' }
 
   const now = new Date()
-  await prisma.trackedJob.update({
-    where: { id: tracked.id },
-    data: {
-      promptAnswer: answer,
-      promptAnsweredAt: now,
-      ...(answer === 'not_interested' ? { dismissedAt: now, savedAt: null } : {}),
-    },
-  })
-  captureServerEvent(profile.id, 'application_prompt_answered', { jobId: tracked.sourceId, trackedJobId: tracked.id, source: tracked.source, answer })
-  if (answer === 'applied') {
-    return changeStatus(
-      profile.id,
-      {
-        source: tracked.source as TrackRef['source'],
-        sourceId: tracked.sourceId,
-        title: tracked.title,
-        companyName: tracked.companyName,
-        url: tracked.url,
-        workType: isWorkType(tracked.workType) ? tracked.workType : 'full_time',
-      },
-      'applied',
-      'prompt'
-    )
+  for (const t of tracked) {
+    await prisma.trackedJob.update({
+      where: { id: t.id },
+      data: { promptAnswer: answer, promptAnsweredAt: now, ...(answer === 'not_interested' ? { dismissedAt: now, savedAt: null } : {}) },
+    })
+    captureServerEvent(profile.id, 'application_prompt_answered', { jobId: t.sourceId, trackedJobId: t.id, source: t.source, answer })
+    if (answer === 'not_interested' && t.source === 'job_board') {
+      await dismissBoardJob(t.sourceId, [], null)
+    } else if (answer === 'applied') {
+      const r = await changeStatus(
+        profile.id,
+        {
+          source: t.source as TrackRef['source'],
+          sourceId: t.sourceId,
+          title: t.title,
+          companyName: t.companyName,
+          url: t.url,
+          workType: isWorkType(t.workType) ? t.workType : 'full_time',
+        },
+        'applied',
+        'prompt'
+      )
+      if (!r.ok) return { ok: false, error: r.error }
+    }
   }
-  return done()
+  captureServerEvent(profile.id, 'apply_prompt_answered', { answer, count: tracked.length, jobIds: tracked.map((t) => t.sourceId) })
+  revalidatePath('/dashboard')
+  const progress = answer === 'applied' ? (await candidatePlusProgress(profile.id, 'applications')).line : null
+  done()
+  return { ok: true, progress }
 }
 
 /** Watch or stop watching a company (the Company Tracker watchlist). */

@@ -1,12 +1,12 @@
 'use server'
 
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
+import { getOrgUser } from '@/lib/supabase/get-current-user'
 import { prisma } from '@/lib/prisma'
 import { applyToRecruit } from '@/lib/higher-ed/employers'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export async function applyForCollege(slug: string): Promise<{ error?: string; status?: string }> {
-  const user = await getCurrentUser()
+  const user = await getOrgUser()
   if (!user) return { error: 'Sign in with your employer account first.' }
   const inst = await prisma.institution.findUnique({ where: { slug }, select: { id: true } })
   if (!inst) return { error: 'That college isn’t on NextChapter.' }

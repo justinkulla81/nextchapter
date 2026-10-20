@@ -3,10 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
 import { candidateWantsRole } from '@/lib/talent/candidate-discovery'
-import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { formatRoleComp } from '@/lib/matching/format-comp'
 import { sendRoleMatchEmail } from '@/lib/email/send-role-match-email'
 import { STRONG_FIT_THRESHOLD } from '@/lib/jobs/job-fit-bucket'
+import { CARD_VERDICT_LABEL, cardVerdict } from '@/lib/jobs/job-card'
 
 // Bounds email volume for a single posting — same "small, bounded fan-out"
 // convention as the 8/20-style limits elsewhere in this matching family.
@@ -77,7 +77,6 @@ export async function triggerRoleMatchNotifications(roleId: string): Promise<voi
 
   await Promise.allSettled(
     strongFits.map(async ({ candidate }) => {
-      const dossierStatus = await isDossierUnlocked(candidate.id)
       await sendRoleMatchEmail(
         candidate,
         {
@@ -87,8 +86,9 @@ export async function triggerRoleMatchNotifications(roleId: string): Promise<voi
           companyName: role.employer.companyName,
           description: role.description,
           compLabel,
-        },
-        dossierStatus.unlocked
+          // Only scores at or above STRONG_FIT_THRESHOLD get here: the board's "Strong fit".
+          verdict: CARD_VERDICT_LABEL[cardVerdict('strong')],
+        }
       )
     })
   )

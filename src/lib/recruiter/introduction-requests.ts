@@ -1,6 +1,8 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { loadVisibilityMany } from '@/lib/evidence/load'
 
 // The opt-in pool: candidates who turned on recruiter visibility can be FOUND by a
 // recruiter, but finding is not seeing. A recruiter sees a role-level description, asks
@@ -9,7 +11,12 @@ import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
 // everything downstream of a yes behaves exactly as it does today.
 //
 // Deliberately NOT here: any score, ranking or "match" label. Pool results are filtered
-// and ordered by recency only, so this surface cannot act as an automated screen.
+// and ordered by recency only, so this surface cannot act as an automated screen. The
+// Evidence badge is shown (a count of references, samples and reviews the member chose
+// to add), but it does not reorder the list.
+//
+// Candidate+ is the only gate (Justin, 2026-10-16): opted in AND Candidate+. Free members
+// are never shown to recruiters, whatever they opted into.
 
 /** A recruiter can have this many unanswered requests out at once. */
 export const MAX_PENDING_REQUESTS = 25
@@ -31,7 +38,7 @@ export async function listPoolCandidates(recruiterId: string, userId: string | n
   const own = userId ? await prisma.candidateProfile.findUnique({ where: { userId }, select: { id: true } }) : null
   const excluded = [...known.map((k) => k.candidateId), ...(own ? [own.id] : [])]
 
-  return prisma.candidateProfile.findMany({
+  const found = await prisma.candidateProfile.findMany({
     where: {
       recruiterDatabaseOptIn: true,
       confidentialSearchMode: false,
@@ -57,7 +64,7 @@ export async function listPoolCandidates(recruiterId: string, userId: string | n
       }),
     },
     orderBy: { updatedAt: 'desc' },
-    take: 50,
+    take: 200,
     select: {
       id: true,
       privacyTier: true,
@@ -69,6 +76,14 @@ export async function listPoolCandidates(recruiterId: string, userId: string | n
       currentState: true,
     },
   })
+  const visibility = await loadVisibilityMany(found.map((c) => c.id))
+  return found
+    .filter((c) => visibility.get(c.id)?.candidatePlus)
+    .slice(0, 50)
+    .map((c) => {
+      const v = visibility.get(c.id)!
+      return { ...c, verified: v.verified, evidenceScore: v.score }
+    })
 }
 
 export type RequestResult = { ok: true } | { ok: false; reason: 'limit' | 'not_available' }
@@ -95,6 +110,7 @@ export async function requestFromPool(recruiterId: string, candidateId: string):
   ) {
     return { ok: false, reason: 'not_available' }
   }
+  if (!(await isDossierUnlocked(candidateId)).unlocked) return { ok: false, reason: 'not_available' }
   if (pending >= MAX_PENDING_REQUESTS) return { ok: false, reason: 'limit' }
 
   const intro = await prisma.recruiterCandidateIntroduction.create({

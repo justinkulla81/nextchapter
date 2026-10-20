@@ -8,6 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Section } from '@/components/candidate/ui'
+import { ActionLink } from '@/components/candidate/ActionLink'
+import { RowList } from '@/components/candidate/RowList'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
+import { nextAssessment, shapeAssessments } from '@/lib/redesign/assessments'
 
 export const metadata: Metadata = { title: 'Skills & Behavioral Assessments' }
 
@@ -122,9 +129,9 @@ export default async function SkillsAssessmentsPage() {
       sharedWith:
         'Who sees it: always shared — the references you invite see and answer these questions about you, and, once your Executive Dossier is unlocked, hiring managers see the comparison to your own answers.',
       completedAt: completedReferenceCount > 0 ? new Date(0) : null,
-      // 3 matches DOSSIER_UNLOCK_REFERENCE_TARGET (dossier-unlock.ts) — the
-      // real Dossier-unlock gate — shown as a target here so candidates know
-      // how many more to request.
+      // 3 is the reference target (DOSSIER_UNLOCK_REFERENCE_TARGET) shown so
+      // candidates know how many to request. Not a Candidate+ gate since
+      // 2026-10-16; references count toward Candidate+ Verified.
       statusLabel:
         completedReferenceCount > 0 ? `${completedReferenceCount} / 3 references` : 'Not completed yet',
       points: estimateActionEffort({ actionType: 'REFERENCE_ADDED' }).points,
@@ -144,6 +151,67 @@ export default async function SkillsAssessmentsPage() {
     if (bPinned && !aPinned) return 1
     return Number(!!a.completedAt) - Number(!!b.completedAt)
   })
+
+  if (isRedesignOn(profile.email)) {
+    // How I work in the redesign: one list, each row with its reason and its time, and the best next one as the action.
+    const rows = shapeAssessments(assessments)
+    const next = nextAssessment(rows)
+    const byKey = new Map(assessments.map((a) => [a.key, a]))
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="How I work"
+          intro="Short assessments that sharpen your job matches and add proof to your dossier. Each one says what it gets you."
+          action={
+            next ? (
+              <ActionLink variant="primary" href={next.href} event="assessment_started" props={{ assessment: next.key, source: 'how_i_work_header' }}>
+                Start next: {next.title}
+              </ActionLink>
+            ) : undefined
+          }
+        />
+        {!next && <p className="rounded-2xl bg-muted/60 p-5 text-base text-ink">You have finished every assessment. Retake one any time your answers change, and your matches follow.</p>}
+        <Section id="assessments" title="Your assessments">
+          <RowList
+            label="Assessments"
+            items={rows.map((r) => {
+              const a = byKey.get(r.key)!
+              return {
+                key: r.key,
+                title: r.title,
+                why: r.why,
+                fact: r.fact,
+                actions: (
+                  <ActionLink href={r.href} variant="secondary" event="assessment_started" props={{ assessment: r.key, retake: r.done, source: 'how_i_work_row' }}>
+                    {r.ctaLabel}
+                  </ActionLink>
+                ),
+                detailLabel: 'Who sees this',
+                detail: (
+                  <>
+                    <p>{a.description}</p>
+                    <p>{a.feeds}</p>
+                    <p>{a.sharedWith}</p>
+                  </>
+                ),
+              }
+            })}
+          />
+          <p className="text-sm text-muted-foreground">1 point is 1 minute of real search work, so finishing an assessment also counts toward Candidate+.</p>
+        </Section>
+        <MoreDetails summary="Show more: a work sample you can share">
+          <div className="space-y-3">
+            <h2 className="font-display text-xl font-semibold text-ink">noexperienceneeded.ai: AI work-sample challenge</h2>
+            <p className="text-base text-ink">Produces a shareable work sample for your evidence file, so employers see what you can do. You can also start with the lesson.</p>
+            <div className="flex flex-wrap gap-3">
+              <ActionLink href="/noexperience/test?src=nc_assessment" variant="secondary" event="work_sample_challenge_started" props={{ source: 'how_i_work' }}>Take the challenge</ActionLink>
+              <ActionLink href="/noexperience/lesson?src=nc_assessment" variant="secondary" event="work_sample_lesson_started" props={{ source: 'how_i_work' }}>Take the lesson</ActionLink>
+            </div>
+          </div>
+        </MoreDetails>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

@@ -13,6 +13,7 @@
     "careers:import-onet": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-onet.ts",
     "careers:import-bls": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-bls.ts",
     "careers:build-aliases": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/build-skill-aliases.ts",
+    "careers:build-similarity": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/build-occupation-similarity.ts",
     "careers:tag-courses": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/tag-courses.ts",
     "careers:import-training": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-training-programs.ts",
     "crm:fix-headcounts": "tsx --env-file=.env.local scripts/crm/fix-headcounts.ts",
@@ -80,7 +81,10 @@
     "verify:v2": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-v2.ts",
     "verify:lifecycle": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-lifecycle.ts",
     "verify:community": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/verify-community.ts",
-    "check:he-screens": "node scripts/higher-ed/render/run.mjs"
+    "check:he-screens": "node scripts/higher-ed/render/run.mjs",
+    "docs:stages": "tsx scripts/docs/stage-guide.ts",
+    "docs:spine": "tsx scripts/docs/spine.ts",
+    "docs:menu": "tsx scripts/docs/menu.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

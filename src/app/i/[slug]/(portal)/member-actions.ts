@@ -51,7 +51,8 @@ export async function closeMyTransition(slug: string): Promise<{ error?: string 
   const { ctx, member } = await me(slug)
   if (!member) return { error: PREVIEW }
   if (await closeTransitionFlag(member.id)) captureServerEvent(ctx.userId, 'he_transition_closed', { institutionId: ctx.institution.id })
-  if (member.candidateId) await applyJourneyChange(member.candidateId, { stage: 'PAUSED', source: 'COLLEGE' })
+  // Closing the flag is this college's own status. It doesn't pause the member's
+  // search: their coach, outplacement and plan keep going (src/lib/affiliations).
   revalidatePath(`/i/${slug}`, 'layout')
   return {}
 }

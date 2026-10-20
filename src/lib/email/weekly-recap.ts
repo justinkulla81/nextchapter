@@ -1,6 +1,7 @@
 import 'server-only'
 import { getCurrentWeekSprint, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
+import { getPace } from '@/lib/weekly/pace'
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
 
 export interface WeeklyRecap {
@@ -29,7 +30,7 @@ export async function buildWeeklyRecap(candidateId: string): Promise<WeeklyRecap
 
   return {
     pointsEarned,
-    pointsTarget: pointsNeededForA(weekNumber),
+    pointsTarget: pointsNeededForA(weekNumber, await getPace(candidateId)),
     completedTexts,
   }
 }

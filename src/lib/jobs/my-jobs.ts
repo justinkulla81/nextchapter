@@ -3,6 +3,7 @@
 // rule is unit-tested (src/test/my-jobs.test.ts). Loading and saving live in
 // my-jobs-data.ts; the UI in components/dashboard/my-jobs/.
 
+import { isAiSkillLabel } from '@/lib/jobs/ai-view'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 
@@ -123,12 +124,16 @@ export function matchClickToApplication(click: ClickRef, apps: EmailApplication[
 
 // ── "did you apply?" ─────────────────────────────────────────────────────
 
-/** Ask this long after the click when no confirmation email has arrived. */
-export const PROMPT_AFTER_DAYS = 2
+/**
+ * Ask on the member's next visit to the board or Home after they open an employer's
+ * application — at least this long after the click, so it isn't asked while they're
+ * still on the employer's site.
+ */
+export const PROMPT_AFTER_MS = 10 * 60 * 1000
 /** Stop asking about clicks older than this. */
-export const PROMPT_UNTIL_DAYS = 21
+export const PROMPT_UNTIL_DAYS = 7
 /** "Not yet" asks again after this long (once the click is still recent enough). */
-export const PROMPT_SNOOZE_DAYS = 5
+export const PROMPT_SNOOZE_DAYS = 2
 
 export type PromptAnswer = 'applied' | 'not_yet' | 'not_interested'
 
@@ -143,8 +148,8 @@ export function shouldAskDidYouApply(
   now: Date
 ): boolean {
   if (!item.lastClickedAt || item.applied || item.dismissedAt) return false
-  const age = (now.getTime() - item.lastClickedAt.getTime()) / DAY_MS
-  if (age < PROMPT_AFTER_DAYS || age > PROMPT_UNTIL_DAYS) return false
+  const ageMs = now.getTime() - item.lastClickedAt.getTime()
+  if (ageMs < PROMPT_AFTER_MS || ageMs > PROMPT_UNTIL_DAYS * DAY_MS) return false
   if (item.promptAnswer === 'applied' || item.promptAnswer === 'not_interested') return false
   if (item.promptAnswer === 'not_yet' && item.promptAnsweredAt) {
     // A new click after "not yet" starts over; otherwise wait out the snooze.
@@ -185,8 +190,12 @@ export function myJobsFunnel(items: FunnelItem[]): MyJobsFunnel {
 export interface SkillsGapInsight {
   /** Saved/applied jobs with enough skill data to judge. */
   jobsWithData: number
-  /** Skills those jobs ask for that the member doesn't show, most common first. */
-  top: { skill: string; jobs: number }[]
+  /**
+   * Skills those jobs ask for that the member doesn't show, most common first: up to `limit`
+   * AI skills (one of the 24 items, ai-skills.ts) and up to `limit` others, so the AI / Other /
+   * All choice (ai-view.ts) has a list for each.
+   */
+  top: { skill: string; jobs: number; ai: boolean }[]
 }
 
 /** Below this many jobs with skill data, there's no pattern to call. */
@@ -201,11 +210,13 @@ export function skillsGapInsight(jobs: { id: string; gap: JobSkillGap }[], limit
   if (withData.length < MIN_JOBS_FOR_INSIGHT) return null
   const counts = new Map<string, Set<string>>()
   for (const j of withData) for (const s of j.gap.missing) (counts.get(s) ?? counts.set(s, new Set()).get(s)!).add(j.id)
-  const top = [...counts.entries()]
-    .map(([skill, ids]) => ({ skill, jobs: ids.size }))
+  const ranked = [...counts.entries()]
+    .map(([skill, ids]) => ({ skill, jobs: ids.size, ai: isAiSkillLabel(skill) }))
     .filter((s) => s.jobs >= MIN_JOBS_FOR_INSIGHT)
     .sort((a, b) => b.jobs - a.jobs || a.skill.localeCompare(b.skill))
-    .slice(0, limit)
+  const top = [...ranked.filter((s) => s.ai).slice(0, limit), ...ranked.filter((s) => !s.ai).slice(0, limit)].sort(
+    (a, b) => b.jobs - a.jobs || a.skill.localeCompare(b.skill)
+  )
   if (top.length === 0) return null
   return { jobsWithData: withData.length, top }
 }

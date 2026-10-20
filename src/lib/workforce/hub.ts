@@ -108,9 +108,18 @@ export async function memberCompanies(institutionId: string) {
   return rows.map((c) => ({ ...c, participants: c._count.people, joined: j.get(c.id) ?? 0, seatsGiven: c.layoffs.reduce((n, l) => n + (l.seats ?? 0), 0) }))
 }
 
+// Seat requests from member companies, waiting for an answer.
+export async function seatRequests(institutionId: string) {
+  return prisma.rapidResponse.findMany({
+    where: { institutionId, requestStatus: 'REQUESTED' },
+    orderBy: { requestedAt: 'asc' },
+    select: { id: true, seats: true, requestNote: true, requestedAt: true, memberCompany: { select: { name: true } } },
+  })
+}
+
 export async function hubLayoffs(institutionId: string) {
   return prisma.rapidResponse.findMany({
-    where: { institutionId, memberCompanyId: { not: null } },
+    where: { institutionId, memberCompanyId: { not: null }, OR: [{ requestStatus: null }, { requestStatus: 'APPROVED' }] },
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,

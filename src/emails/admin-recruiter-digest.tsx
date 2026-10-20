@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface DigestCandidate {
   name: string
@@ -77,6 +78,7 @@ export default function AdminRecruiterDigestEmail({
       <a href={adminUrl} style={button}>
         View Recruiter Database →
       </a>
+      <AudienceTag audience="admin" />
     </div>
   )
 }

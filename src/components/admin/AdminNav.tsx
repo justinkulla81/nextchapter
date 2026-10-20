@@ -99,7 +99,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
         { href: '/support/admin/crm/needs-review', label: 'Activity to review', badge: badgeFor('activityReview') },
         { href: '/support/admin/crm/company-links', label: 'Company links' },
-        { href: '/support/admin/school-links', label: 'School links' },
+        { href: '/support/admin/school-links', label: 'Higher education links' },
         { href: '/support/admin/crm/meeting-prep', label: 'Prep for tomorrow' },
       ],
     },
@@ -113,12 +113,30 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
+      // One section per kind of organization or person we work with, so the
+      // names here are the vocabulary used everywhere else in the CRM.
+      // Companies, recruiters and coaches are views over People and
+      // Organizations (a filter, not a separate table).
+      title: 'Ecosystem',
+      collapsible: true,
+      links: [
+        { href: '/support/admin/crm/organizations?rel=all', label: 'Companies' },
+        { href: '/support/admin/crm/colleges', label: 'Higher education' },
+        { href: '/support/admin/crm/workforce-boards', label: 'Workforce' },
+        { href: '/support/admin/crm?role=RECRUITER_PROSPECT', label: 'Recruiters' },
+        { href: '/support/admin/crm/mandates', label: 'Mandates' },
+        { href: '/support/admin/crm/search-firms', label: 'Search firms' },
+        { href: '/support/admin/crm?role=COACH_PROSPECT', label: 'Coaches' },
+      ],
+    },
+    {
       title: 'Records',
       collapsible: true,
       links: [
         { href: '/support/admin/crm', label: 'People', badge: countFor('peopleTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm/organizations', label: 'Organizations', badge: countFor('orgsTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm/research', label: 'Research' },
+        { href: '/support/admin/crm/duplicates', label: 'Duplicates' },
         { href: '/support/admin/crm/removed', label: 'Removed', badge: countFor('removedTotal'), badgeTone: 'count' },
       ],
     },
@@ -141,13 +159,10 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // Pending == not yet promoted to a lead or dismissed — the one
         // state on this page that is actually waiting on you.
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
-        { href: '/support/admin/crm/workforce-boards', label: 'Workforce boards' },
         { href: '/support/admin/crm/economic-development', label: 'Econ development leads' },
         { href: '/support/admin/crm/geographies', label: 'Geographies' },
         { href: '/support/admin/crm/pitch', label: 'Pitch builder' },
         { href: '/support/admin/crm/pitch-rules', label: 'Pitch rules' },
-        { href: '/support/admin/crm/colleges', label: 'Colleges' },
-        { href: '/support/admin/crm/search-firms', label: 'Search firms' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
       ],
     },
@@ -257,8 +272,10 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/employers`, label: 'Employers' },
         { href: `${A}/companies`, label: 'Companies' },
         { href: `${A}/exclusive-jobs`, label: 'Job Board', badge: badgeFor('jobBoard') },
+        { href: `${A}/job-flags`, label: 'Job Flags (ghost, red flags)' },
         { href: `${A}/jobs`, label: 'Jobs' },
         { href: `${A}/jobs/apply-fit`, label: 'Application fit' },
+        { href: `${A}/jobs/lifecycle`, label: 'Open vs closed jobs' },
         { href: `${A}/likely-openings`, label: 'Likely Openings' },
         { href: `${A}/adzuna`, label: 'Adzuna Market Data' },
         { href: `${A}/interim-listings`, label: 'Interim Work Listings' },
@@ -290,8 +307,9 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       title: 'Customers',
       collapsible: true,
       links: [
-        { href: `${A}/institutions`, label: 'Colleges' },
-        { href: `${A}/college-systems`, label: 'College systems (multi-campus)' },
+        { href: `${A}/organizations`, label: 'Organizations (all portals)' },
+        { href: `${A}/institutions`, label: 'Higher education' },
+        { href: `${A}/college-systems`, label: 'Higher education systems (multi-campus)' },
         { href: `${A}/outplacement-contracts`, label: 'Outplacement companies' },
       ],
     },

@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface GuideDeliveryEmailProps {
   firstName: string | null
@@ -51,6 +52,7 @@ export default function GuideDeliveryEmail({ firstName, guideTitle, downloadUrl 
       <p style={footer}>
         We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

@@ -1,11 +1,17 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
+/** One role, as the client's own board card says it (job-card.ts): verdict, meta line, why line. */
 export interface CoachDigestJob {
   title: string
   company: string
-  location: string | null
-  postedAgo: string
   url: string
+  /** "Strong fit" / "Good fit" / "Worth a look". */
+  verdict: string
+  /** "Posted 5 hours ago · Louisville, KY · Likely fewer applicants (search-firm listing)". */
+  meta: string
+  /** "Fits you: your level · finance — Gap: asks for SQL"; null when nothing specific is known. */
+  why: string | null
 }
 
 export interface CoachDigestClient {
@@ -19,7 +25,6 @@ export interface CoachDigestClient {
   interviews: number
   offers: number
   outreach: number
-  followUpsOwed: number
   pointsThisWeek: number
   pointsLastWeek: number
   daysSinceActive: number | null
@@ -153,21 +158,27 @@ function ClientCard({ c }: { c: CoachDigestClient }) {
       <p style={{ ...emailStyles.muted, margin: '2px 0 0' }}>
         {c.pointsThisWeek} points this week
         {c.pointsLastWeek > 0 || c.pointsThisWeek > 0 ? ` (${delta >= 0 ? '+' : ''}${delta} vs last week)` : ''}
-        {c.followUpsOwed > 0 ? ` · ${c.followUpsOwed} follow-up${c.followUpsOwed === 1 ? '' : 's'} owed` : ''}
       </p>
 
       <p style={label}>New roles that fit {c.firstName}</p>
       {c.newJobs.length === 0 ? (
-        <p style={{ ...emailStyles.muted, margin: 0 }}>No new strong fits this week.</p>
+        <p style={{ ...emailStyles.muted, margin: 0 }}>No new roles that fit this week.</p>
       ) : (
         <ul style={{ margin: 0, paddingLeft: '18px' }}>
           {c.newJobs.map((j) => (
             <li key={j.url} style={{ marginBottom: '6px' }}>
+              <span style={{ color: NAVY, fontWeight: 600 }}>{j.verdict}: </span>
               <a href={j.url} style={{ color: NAVY, fontWeight: 600 }}>
                 {j.title}
               </a>
               <br />
-              <span style={emailStyles.muted}>{[j.company, j.location, j.postedAgo].filter(Boolean).join(' · ')}</span>
+              <span style={emailStyles.muted}>{[j.company, j.meta].filter(Boolean).join(' · ')}</span>
+              {j.why && (
+                <>
+                  <br />
+                  <span style={emailStyles.muted}>{j.why.replace(/^Fits you:/, `Fits ${c.firstName}:`)}</span>
+                </>
+              )}
             </li>
           ))}
         </ul>
@@ -202,9 +213,9 @@ export default function MarketDigestCoachEmail({
           , {s.applications} application{s.applications === 1 ? '' : 's'} and {s.interviews} interview
           {s.interviews === 1 ? '' : 's'} across your caseload, and{' '}
           <strong>
-            {s.newRoles} new strong-fit role{s.newRoles === 1 ? '' : 's'}
-          </strong>{' '}
-          worth sending.
+            {s.newRoles} new role{s.newRoles === 1 ? '' : 's'} that fit
+          </strong>
+          , worth sending.
         </p>
       ) : (
         <p>None of your clients have shared their profile with you yet, so there&apos;s no client detail to show this week.</p>
@@ -254,6 +265,7 @@ export default function MarketDigestCoachEmail({
       <p style={{ marginTop: '32px', ...emailStyles.muted }}>
         <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>
       </p>
+      <AudienceTag audience="coach" />
     </div>
   )
 }

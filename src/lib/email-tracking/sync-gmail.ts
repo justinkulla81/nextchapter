@@ -100,6 +100,28 @@ const NETWORKING_EMAIL_TYPES = new Set(['THANK_YOU', 'FOLLOW_UP', 'CHECK_IN', 'I
 
 type ProcessResult = 'synced' | 'skipped' | 'insufficient_scope'
 
+/**
+ * The ids still to process for one slice. Mail the candidate sent to their own
+ * address is listed in both INBOX and SENT; it is recorded once, on the inbound
+ * pass. Leaving it in the sent list too made the second insert hit the
+ * (connectionId, externalMessageId) unique constraint on every run.
+ */
+export function selectNewMessageIds(
+  inboxIds: string[],
+  sentIds: string[],
+  existingIds: ReadonlySet<string>,
+): { newInboxIds: string[]; newSentIds: string[] } {
+  const inbox = new Set(inboxIds)
+  return {
+    newInboxIds: inboxIds.filter((id) => !existingIds.has(id)),
+    newSentIds: sentIds.filter((id) => !existingIds.has(id) && !inbox.has(id)),
+  }
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === 'P2002'
+}
+
 async function processMessage(
   connection: EmailConnection,
   messageId: string,
@@ -209,26 +231,34 @@ async function processMessage(
   // qualifies.
   const isRecruiterContact = isRecruiterRoleMention || isRecruiterOutreach
 
-  await prisma.trackedEmailActivity.create({
-    data: {
-      candidateId: connection.candidateId,
-      connectionId: connection.id,
-      externalMessageId: messageId,
-      threadId,
-      direction,
-      // When the email arrived, not when it was synced — a catch-up of
-      // months-old mail must not look like this week's activity.
-      detectedAt: emailDate,
-      activityType: classification.activityType,
-      confidence: classification.confidence,
-      companyName: classification.companyName,
-      subject,
-      fromAddress: direction === 'INBOUND' ? from : to,
-      hasResumeAttachment: resumeShared,
-      isRecruiterContact,
-      matchedRule: classification.rule?.slice(0, 300) ?? null,
-    },
-  })
+  try {
+    await prisma.trackedEmailActivity.create({
+      data: {
+        candidateId: connection.candidateId,
+        connectionId: connection.id,
+        externalMessageId: messageId,
+        threadId,
+        direction,
+        // When the email arrived, not when it was synced — a catch-up of
+        // months-old mail must not look like this week's activity.
+        detectedAt: emailDate,
+        activityType: classification.activityType,
+        confidence: classification.confidence,
+        companyName: classification.companyName,
+        subject,
+        fromAddress: direction === 'INBOUND' ? from : to,
+        hasResumeAttachment: resumeShared,
+        isRecruiterContact,
+        matchedRule: classification.rule?.slice(0, 300) ?? null,
+      },
+    })
+  } catch (error) {
+    // Another run (the hourly cron overlapping a manual "sync now") recorded
+    // this message between our dedupe check and here. It already did the
+    // follow-on work for it, so this is a no-op, not a failure.
+    if (isUniqueViolation(error)) return 'skipped'
+    throw error
+  }
 
   // Fake-recruiter / fake-job check (src/lib/scam-shield/). Runs on the same
   // inbound mail already fetched here, so a scam is caught on the sync that
@@ -237,6 +267,10 @@ async function processMessage(
   // senders the candidate marked non-job) and for anything with a
   // List-Unsubscribe header, which is bulk marketing, not a one-to-one scam.
   // A failure here must never block the sync.
+  // A flagged email is kept as a tracked row but must not seed the candidate's
+  // network contacts or application list: its company name is only a guess
+  // from the scammer's own domain.
+  let flaggedAsScam = false
   if (direction === 'INBOUND' && !isFromAtsOrJobBoard && !isFromNextChapterItself && !isSelfAddressed && !isNotJobRelated && !listUnsubscribe) {
     try {
       const assessment = assessRecruiterEmail({
@@ -248,6 +282,7 @@ async function processMessage(
         authResults: getHeader(message.payload?.headers, 'Authentication-Results'),
       })
       if (assessment.level !== 'none') {
+        flaggedAsScam = true
         await raiseScamAlert({
           candidateId: connection.candidateId,
           connectionId: connection.id,
@@ -269,7 +304,7 @@ async function processMessage(
   // just visible as a tracked email row — same "don't guess" bar as the
   // points below: only high-confidence classifications, so a NEEDS_REVIEW
   // guess never creates a noise contact.
-  if (classification.confidence === 'high') {
+  if (classification.confidence === 'high' && !flaggedAsScam) {
     const isNetworkingOutbound = direction === 'OUTBOUND' && NETWORKING_EMAIL_TYPES.has(classification.activityType)
     const autoTags: RelationshipTag[] = []
     if (isRecruiterContact) autoTags.push('RECRUITER')
@@ -343,7 +378,7 @@ async function processMessage(
   // Mirrors application confirmations/interview invites/rejections into the
   // candidate's My Applications list — see sync-job-postings.ts. Only for
   // high-confidence inbound mail, same bar as point-awarding below.
-  if (direction === 'INBOUND' && classification.confidence === 'high') {
+  if (direction === 'INBOUND' && classification.confidence === 'high' && !flaggedAsScam) {
     await syncJobPostingFromEmail(
       connection.candidateId,
       classification.activityType,
@@ -468,8 +503,7 @@ export async function syncGmailConnection(
       select: { externalMessageId: true },
     })
     const existingIds = new Set(existing.map((e) => e.externalMessageId))
-    const newInboxIds = inboxIds.filter((id) => !existingIds.has(id))
-    const newSentIds = sentIds.filter((id) => !existingIds.has(id))
+    const { newInboxIds, newSentIds } = selectNewMessageIds(inboxIds, sentIds, existingIds)
     // Out of budget for this run: stop before the day, leave the bookmark,
     // and pick up here next time rather than half-processing it. The first
     // day of a run is always processed, however large, so one very busy

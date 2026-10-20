@@ -6,6 +6,7 @@ import { LocalDemand } from '@/components/dashboard/pivot/LocalDemand'
 import { TrainingForOption } from '@/components/dashboard/pivot/TrainingForOption'
 import type { PivotOption } from '@/lib/careers/pivots'
 import { describePay, formatPay, OEWS_WAGE_CEILING } from '@/lib/careers/local-pay'
+import { aiMarketLineForOccupation } from '@/lib/skills/ai-skill-market'
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -70,6 +71,8 @@ export function PivotRoleDetail({
 }) {
   const skillsToAdd = [...option.toolGaps.map((t) => t.name), ...option.ratedGaps.filter((g) => g.kind === 'KNOWLEDGE').map((g) => g.name)]
   const broad = option.ratedGaps.filter((g) => g.kind !== 'KNOWLEDGE')
+  // From the AI-skills analysis: how often this occupation's postings ask for AI, and the premium (raw and like-for-like).
+  const ai = aiMarketLineForOccupation(option.socCode, option.title)
 
   return (
     <div className="space-y-4">
@@ -82,6 +85,8 @@ export function PivotRoleDetail({
           {option.annualOpenings === null ? 'Not available' : option.annualOpenings.toLocaleString('en-US')}
         </Fact>
       </dl>
+
+      {ai && <p className="text-xs text-muted-foreground">AI skills: {ai.text}</p>}
 
       {tasks.length > 0 && (
         <div className="space-y-1 text-sm">

@@ -45,7 +45,8 @@ export default async function ForAlumniPage({ params }: { params: Promise<{ slug
   const accent = inst.accentColor ?? '#2e7d5b'
   const brand = inst.programBrandName ?? inst.name
   const hero = profile.heroImageUrl ?? profile.photos?.[0]?.url ?? null
-  const moves = ['Laid off or between jobs', 'Ready for a new job, quietly', 'Going for a promotion', 'Changing careers', 'Returning after a break', 'Planning a next act']
+  const moves = ['Laid off or between jobs', 'Thinking about a move, quietly', 'Managing your career',
+    'Going for a promotion', 'Changing careers', 'Returning after a break', 'Planning a next act']
 
   return (
     <div className="min-h-screen bg-background" style={{ ['--primary' as string]: accent, ['--primary-foreground' as string]: readableTextOn(accent) }}>

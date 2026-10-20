@@ -7,7 +7,8 @@ import { useFormStatus } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
-import type { OutplacementRole } from '@prisma/client'
+import type { PartnerBrand } from '@/lib/partners/brand'
+import type { OutplacementProgramType, OutplacementRole } from '@prisma/client'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -35,8 +36,13 @@ interface NavLink {
 // items), the real enforcement is requireOutplacementRole at each page/
 // action (see src/lib/employer/outplacement-auth.ts's own comment on why
 // both exist).
-function buildLinks(role: OutplacementRole): NavLink[] {
+// Growth and Learning show only for an org with that program.
+function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[]): NavLink[] {
   const links: NavLink[] = [{ href: '/employer', label: 'Overview' }]
+  if (role === 'ADMIN' || role === 'VIEWER') {
+    if (programs.includes('GROWTH')) links.push({ href: '/employer/growth', label: 'Growth' })
+    if (programs.includes('LEARNING')) links.push({ href: '/employer/learning', label: 'Learning' })
+  }
   if (role === 'ADMIN') {
     links.push(
       { href: '/employer/enroll', label: 'Enroll' },
@@ -45,10 +51,11 @@ function buildLinks(role: OutplacementRole): NavLink[] {
       { href: '/employer/reporting', label: 'Reporting' },
       { href: '/employer/invoices', label: 'Invoices' },
       { href: '/employer/team', label: 'Team' },
+      { href: '/employer/activity', label: 'Downloads and activity' },
       { href: '/employer/connect', label: 'HR system and emails' }
     )
   } else if (role === 'VIEWER') {
-    links.push({ href: '/employer/reporting', label: 'Reporting' })
+    links.push({ href: '/employer/reporting', label: 'Reporting' }, { href: '/employer/activity', label: 'Downloads and activity' })
   } else if (role === 'LEGAL') {
     links.push({ href: '/employer/compliance', label: 'Compliance pack' })
   } else if (role === 'FINANCE') {
@@ -84,15 +91,15 @@ function NavContent({ pathname, links, onNavigate }: { pathname: string; links: 
   )
 }
 
-export function EmployerNav({ role }: { role: OutplacementRole }) {
+export function EmployerNav({ role, brand, programs = [] }: { role: OutplacementRole; brand?: PartnerBrand; programs?: OutplacementProgramType[] }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const links = buildLinks(role)
+  const links = buildLinks(role, programs)
   const current = links.find((link) => (link.href === '/employer' ? pathname === link.href : pathname === link.href || pathname.startsWith(`${link.href}/`)))
 
   return (
     <>
-      <PartnerTopBar surface="employer">
+      <PartnerTopBar surface="employer" brand={brand}>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -108,7 +115,7 @@ export function EmployerNav({ role }: { role: OutplacementRole }) {
       </PartnerTopBar>
 
       <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 bg-navy lg:block">
-        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" />
+        <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
         <NavContent pathname={pathname} links={links} />
       </aside>
 
@@ -116,7 +123,7 @@ export function EmployerNav({ role }: { role: OutplacementRole }) {
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
-            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" />
+            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
             <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
           </div>
         </div>

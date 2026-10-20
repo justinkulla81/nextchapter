@@ -8,6 +8,7 @@ import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm
 import { sendCoachClientInviteEmail } from '@/lib/email/send-coach-client-invite'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { coachSetSessions } from '@/lib/access/grants'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 export type CoachClientInviteState = { error?: string; sent?: boolean } | undefined
 
@@ -78,11 +79,10 @@ async function sendOrResendInvite(
         data: { coachId: coach.id, invitedEmail: email, invitedName: name, sessions: paid?.sessions ?? null, validDays: paid?.validDays ?? null },
       })
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
   const { actionLink, error: inviteError } = await createPreConfirmedInviteUser(
     email,
-    `${appUrl}/auth/callback?next=coach-invite&inviteToken=${invite.inviteToken}`,
+    `${callbackOriginForAppPath('/dashboard')}/auth/callback?next=coach-invite&inviteToken=${invite.inviteToken}`,
     { isFirstSend: !priorInvite }
   )
   if (inviteError || !actionLink) {

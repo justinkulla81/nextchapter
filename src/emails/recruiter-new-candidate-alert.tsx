@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface RecruiterNewCandidateAlertEmailProps {
   fullName: string
@@ -75,6 +76,7 @@ export default function RecruiterNewCandidateAlertEmail({
       <p style={footer}>
         <a href={unsubscribeUrl}>Unsubscribe from these alerts</a>
       </p>
+      <AudienceTag audience="recruiter" />
     </div>
   )
 }

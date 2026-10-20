@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface ResumeLeadConfirmationEmailProps {
   fullName: string
@@ -42,6 +43,7 @@ export default function ResumeLeadConfirmationEmail({ fullName }: ResumeLeadConf
         <a href="https://launchyournextchapter.com/onboarding/desire">get yours here</a>.
       </p>
       <p style={footer}>We&apos;ll also send occasional NextChapter updates. Unsubscribe anytime.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

@@ -8,6 +8,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import type { CurrentJobStatus } from '@prisma/client'
 import { cn } from '@/lib/utils'
+import { useRetuneAfterSave } from '@/components/dashboard/RetuneMoment'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
+import { CLEARANCE_HELD_OPTIONS, LICENSE_KEYS, LICENSE_LABEL, POLYGRAPH_HELD_OPTIONS } from '@/lib/jobs/requirements'
 
 const YES_NO_OPTIONS = [
   { value: 'yes', label: 'Yes' },
@@ -19,18 +22,60 @@ const PET_FRIENDLY_OPTIONS = [
   { value: 'no', label: 'No / Indifferent' },
 ] as const
 
-export function RedFlagsQuestionsForm({ currentJobStatus }: { currentJobStatus: CurrentJobStatus | null }) {
+const yesNo = (v: boolean | null | undefined) => (v === true ? 'yes' : v === false ? 'no' : '')
+
+/** What the member already answered, so editing (or adding the newer questions) never blanks an answer. */
+export interface RedFlagsInitial {
+  firedForCause: boolean | null
+  hasRestrictiveCovenant: boolean | null
+  restrictiveCovenantDetails: string | null
+  willingToTakeBackgroundCheck: boolean | null
+  willingToTakeDrugTest: boolean | null
+  wantsAnimalFriendlyWorkplace: boolean | null
+  clearanceLevel: string | null
+  clearanceActive: boolean | null
+  clearancePolygraph: string | null
+  licensesHeld: string[]
+  licensesAnsweredAt: Date | null
+}
+
+const CLEARANCE_STATUS_OPTIONS = [
+  { value: 'active', label: 'Active' },
+  { value: 'lapsed', label: 'Lapsed' },
+] as const
+
+export function RedFlagsQuestionsForm({
+  currentJobStatus,
+  initial,
+  prefilled = [],
+}: {
+  currentJobStatus: CurrentJobStatus | null
+  initial?: RedFlagsInitial
+  /** Fields filled from the résumé and not confirmed yet (resume-prefill.ts). */
+  prefilled?: string[]
+}) {
   const [state, formAction, pending] = useActionState<RedFlagsState, FormData>(answerRedFlags, undefined)
-  const [firedForCause, setFiredForCause] = useState('')
-  const [restrictiveCovenant, setRestrictiveCovenant] = useState('')
-  const [backgroundCheck, setBackgroundCheck] = useState('')
-  const [drugTest, setDrugTest] = useState('')
-  const [animalFriendly, setAnimalFriendly] = useState('')
+  const [firedForCause, setFiredForCause] = useState(yesNo(initial?.firedForCause))
+  const [restrictiveCovenant, setRestrictiveCovenant] = useState(yesNo(initial?.hasRestrictiveCovenant))
+  const [backgroundCheck, setBackgroundCheck] = useState(yesNo(initial?.willingToTakeBackgroundCheck))
+  const [drugTest, setDrugTest] = useState(yesNo(initial?.willingToTakeDrugTest))
+  const [animalFriendly, setAnimalFriendly] = useState(yesNo(initial?.wantsAnimalFriendlyWorkplace))
+  // Optional: matched against job requirements (requirements.ts). Blank = not asked yet.
+  const [clearance, setClearance] = useState(initial?.clearanceLevel ?? '')
+  const [clearanceStatus, setClearanceStatus] = useState(
+    initial?.clearanceActive === true ? 'active' : initial?.clearanceActive === false ? 'lapsed' : ''
+  )
+  const [polygraph, setPolygraph] = useState(initial?.clearancePolygraph ?? '')
+  const [licenses, setLicenses] = useState<string[]>(initial?.licensesHeld ?? [])
+  const [noLicenses, setNoLicenses] = useState(!!initial?.licensesAnsweredAt && (initial?.licensesHeld ?? []).length === 0)
+  const holdsClearance = clearance !== '' && clearance !== 'none'
 
   const askFiredForCause = currentJobStatus === 'LAID_OFF'
+  // A change to clearance or licenses re-runs the member's matches and shows what it changed.
+  const retune = useRetuneAfterSave('clearance', pending, !!state?.error, JSON.stringify([clearance, clearanceStatus, polygraph, [...licenses].sort(), noLicenses]))
 
   return (
-    <form action={formAction} className={cn('space-y-5', pending && 'cursor-progress [&_*]:cursor-progress')}>
+    <form action={formAction} onSubmit={retune.onSubmit} className={cn('space-y-5', pending && 'cursor-progress [&_*]:cursor-progress')}>
       {askFiredForCause && (
         <div className="space-y-2">
           <Label>Were you let go for cause, rather than a no-fault layoff?</Label>
@@ -56,7 +101,11 @@ export function RedFlagsQuestionsForm({ currentJobStatus }: { currentJobStatus: 
           columns={2}
         />
         {restrictiveCovenant === 'yes' && (
-          <Textarea name="restrictiveCovenantDetails" placeholder="What kind, and for how long?" />
+          <Textarea
+            name="restrictiveCovenantDetails"
+            placeholder="What kind, and for how long?"
+            defaultValue={initial?.restrictiveCovenantDetails ?? ''}
+          />
         )}
       </div>
 
@@ -91,6 +140,76 @@ export function RedFlagsQuestionsForm({ currentJobStatus }: { currentJobStatus: 
           onChange={setAnimalFriendly}
           columns={2}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label>
+          Do you hold a US security clearance? <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <p className="text-xs text-muted-foreground">
+          Some jobs require an active clearance. We use this to flag them for you and to show cleared roles.
+        </p>
+        <FromResumeTag show={prefilled.includes('clearanceLevel')} section="clearance" fields={['clearanceLevel']} submits={false} />
+        <ChoiceButtons name="clearanceLevel" options={CLEARANCE_HELD_OPTIONS} value={clearance || null} onChange={setClearance} columns={5} responsive compact />
+        {holdsClearance && (
+          <>
+            <ChoiceButtons
+              name="clearanceStatus"
+              options={CLEARANCE_STATUS_OPTIONS}
+              value={(clearanceStatus || null) as 'active' | 'lapsed' | null}
+              onChange={setClearanceStatus}
+              columns={2}
+            />
+            <ChoiceButtons name="clearancePolygraph" options={POLYGRAPH_HELD_OPTIONS} value={polygraph || null} onChange={setPolygraph} columns={3} responsive compact />
+          </>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label>
+          Which of these licenses do you hold? <span className="font-normal text-muted-foreground">(optional)</span>
+        </Label>
+        <FromResumeTag show={prefilled.includes('licensesHeld')} section="licenses" fields={['licensesHeld']} submits={false} />
+        <div role="group" aria-label="Licenses held" className="flex flex-wrap gap-2">
+          {LICENSE_KEYS.map((k) => {
+            const on = licenses.includes(k)
+            return (
+              <button
+                key={k}
+                type="button"
+                aria-pressed={on}
+                onClick={() => {
+                  setNoLicenses(false)
+                  setLicenses((cur) => (on ? cur.filter((x) => x !== k) : [...cur, k]))
+                }}
+                className={cn(
+                  'rounded-lg border-2 px-3 py-1.5 text-sm font-medium',
+                  on ? 'border-brand bg-brand/5 text-brand' : 'border-border bg-white text-foreground hover:border-brand/40'
+                )}
+              >
+                {LICENSE_LABEL[k]}
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            aria-pressed={noLicenses}
+            onClick={() => {
+              setNoLicenses(!noLicenses)
+              setLicenses([])
+            }}
+            className={cn(
+              'rounded-lg border-2 px-3 py-1.5 text-sm font-medium',
+              noLicenses ? 'border-brand bg-brand/5 text-brand' : 'border-border bg-white text-foreground hover:border-brand/40'
+            )}
+          >
+            None of these
+          </button>
+        </div>
+        {licenses.map((k) => (
+          <input key={k} type="hidden" name="licensesHeld" value={k} />
+        ))}
+        <input type="hidden" name="licensesAnswered" value={noLicenses || licenses.length > 0 ? '1' : ''} />
       </div>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}

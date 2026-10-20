@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { EvidenceBadge } from '@/components/evidence/EvidenceBadge'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -45,7 +46,7 @@ export default async function RecruiterPoolPage({
         </Link>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">Find candidates</h1>
         <p className="mt-1 text-muted-foreground">
-          People who have chosen to be found by recruiters. You see a role-level description only. Ask for an
+          Candidate+ members who have chosen to be found by recruiters. You see a role-level description only. Ask for an
           introduction and the candidate decides; their profile opens to you only if they say yes. You have{' '}
           {pending} of {MAX_PENDING_REQUESTS} requests waiting on an answer.
         </p>
@@ -94,10 +95,11 @@ export default async function RecruiterPoolPage({
           candidates.map((c) => (
             <div key={c.id} className="flex items-center justify-between gap-4 px-4 py-3">
               <div>
-                <p className="font-medium text-foreground">
+                <p className="flex items-center gap-2 font-medium text-foreground">
                   {c.privacyTier === 'PUBLIC' && c.firstName
                     ? `${c.firstName} ${c.lastName?.charAt(0) ?? ''}.`.trim()
                     : `${c.highestLevelReached ?? 'Experienced'} ${c.primaryFunction ?? 'professional'}`}
+                  <EvidenceBadge verified={c.verified} score={c.evidenceScore} />
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {[c.primaryFunction, c.highestLevelReached, c.currentCity, c.currentState].filter(Boolean).join(' · ')}

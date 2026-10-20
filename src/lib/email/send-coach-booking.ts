@@ -9,6 +9,8 @@ function escapeHtml(s: string): string {
 // the call failed), so a booking is never silent.
 export async function sendBookingEmail(params: {
   to: string
+  /** Who is receiving it: the client (default) or the coach. */
+  audience?: 'candidate' | 'coach'
   kind: 'booked' | 'cancelled'
   otherPartyName: string
   startsAt: Date
@@ -30,7 +32,7 @@ export async function sendBookingEmail(params: {
         }<p>To change or cancel it, use your NextChapter dashboard.</p>`
       : `<p>Your coaching session with ${who} on <strong>${escapeHtml(when)}</strong> was cancelled.</p><p>You can book another time from your NextChapter dashboard.</p>`
   try {
-    const resend = createResend(process.env.RESEND_API_KEY)
+    const resend = createResend(process.env.RESEND_API_KEY, params.audience ?? 'candidate')
     const { error } = await resend.emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: params.to,

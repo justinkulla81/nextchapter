@@ -11,6 +11,10 @@ import { ResumeFixCard } from '@/components/dashboard/ResumeFixCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { getResumeFixes } from '@/lib/reports/market-reality-sections'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import type { ResumeFeedbackItem } from '@/lib/resume/analyze-resume'
 
 export const metadata: Metadata = { title: 'My Resume' }
@@ -74,17 +78,29 @@ export default async function ResumePage({
     analysisError: resume.analysisError,
   }))
 
-  return (
-    <div className="space-y-8">
+  const block0 = (
+    <>
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Resume</h1>
         <PageHeaderBoxes pageKey="resume" candidateId={profile.id} />
       </div>
+    </>
+  )
 
+  const block1 = (
+    <>
       <ResumeVersionsList versions={versions} fromGap={fromGap} />
+    </>
+  )
 
+  const block2 = (
+    <>
       <ResumeUploadForm narratives={narratives} resumeBookOptIn={profile.resumeBookOptIn} />
+    </>
+  )
 
+  const block3 = (
+    <>
       {resumeFixes && resumeFixes.items.length > 0 && (
         <div id="resume-fixes" className="scroll-mt-4 space-y-4">
           <p className="text-sm font-medium text-muted-foreground">Itemized resume fixes</p>
@@ -97,7 +113,11 @@ export default async function ResumePage({
           </Card>
         </div>
       )}
+    </>
+  )
 
+  const block4 = (
+    <>
       <Card>
         <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
           <div className="space-y-1">
@@ -109,9 +129,17 @@ export default async function ResumePage({
           </Button>
         </CardContent>
       </Card>
+    </>
+  )
 
+  const block5 = (
+    <>
       <ResumeExportForm />
+    </>
+  )
 
+  const block6 = (
+    <>
       <div className="rounded-md border border-border bg-off-white p-3">
         <p className="text-sm text-foreground">
           Want a professional set of eyes on the writing and design, not just this automated read?
@@ -135,6 +163,41 @@ export default async function ResumePage({
           </a>
         </div>
       </div>
+    </>
+  )
+
+  if (isRedesignOn(profile.email)) {
+    return (
+      <div className="space-y-8">
+        <PageHeader
+          title="Résumé"
+          intro="Keep a version for each kind of role, and fix what stops a recruiter reading further."
+          action={
+            <ActionLink href="/dashboard/resume/studio" kind="primary" event="resume_studio_opened" props={{ source: 'resume_page', versions: versions.length, openFixes: resumeFixes?.items.length ?? 0 }}>
+              Open resume studio
+            </ActionLink>
+          }
+        />
+        {block1}
+        {block2}
+        {block3}
+        <ShowMore page="resume">
+          {block5}
+          {block6}
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+      {block0}
+      {block1}
+      {block2}
+      {block3}
+      {block4}
+      {block5}
+      {block6}
     </div>
   )
 }

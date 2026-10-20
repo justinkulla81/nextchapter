@@ -11,7 +11,6 @@ export interface FirmJobPosting {
   id: string
   title: string
   location: string | null
-  audienceTier: string
 }
 
 export interface RecruitingFirmData {
@@ -39,7 +38,7 @@ export async function getRecruitingFirmData(companyName: string): Promise<Recrui
 
   const jobs = await prisma.exclusiveJobPosting.findMany({
     where: { submittedByRecruiterId: { in: matched.map((r) => r.id) }, status: 'approved', archivedAt: null },
-    select: { id: true, title: true, location: true, audienceTier: true },
+    select: { id: true, title: true, location: true },
     orderBy: { createdAt: 'desc' },
   })
 

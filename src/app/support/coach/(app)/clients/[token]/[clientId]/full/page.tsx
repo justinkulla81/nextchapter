@@ -11,7 +11,7 @@ import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
 import { ResolveDirectiveForm } from '@/components/coach/ResolveDirectiveForm'
 import { CATEGORY_LABEL, CATEGORY_ORDER, type CategoryKey } from '@/lib/scoring/grade'
 import { getCoachJobsSnapshot } from '@/lib/coach/coach-jobs-view'
-import { FIT_BUCKET_LABEL } from '@/lib/jobs/fit-bucket-types'
+import { JobMetaLine, JobVerdict, JobWhyLine } from '@/components/jobs/JobCardParts'
 import { DimensionTrendLine } from '@/components/coach/DimensionTrendLine'
 import { SESSION_DIMENSIONS, SESSION_DIMENSION_LABEL } from '@/lib/coach/session-dimensions'
 import { ReassignmentRequestForm } from '@/components/coach/ReassignmentRequestForm'
@@ -29,11 +29,13 @@ export default async function FullClientViewPage({
   const candidate = await getCoachClient(coach.id, clientId)
   if (!candidate) notFound()
 
-  const view = await getFullClientView(candidate.id)
   const hasConsent = candidate.coachDossierConsentedAt !== null
-  const [dossier, coachingNotes, jobsSnapshot] = hasConsent
-    ? await Promise.all([getDossierSections(candidate.id), getCoachingNotes(candidate.id), getCoachJobsSnapshot(candidate.id)])
-    : [null, null, null]
+  const [view, [dossier, coachingNotes, jobsSnapshot]] = await Promise.all([
+    getFullClientView(candidate.id),
+    hasConsent
+      ? Promise.all([getDossierSections(candidate.id), getCoachingNotes(candidate.id), getCoachJobsSnapshot(candidate.id)])
+      : Promise.resolve([null, null, null] as const),
+  ])
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -225,27 +227,26 @@ export default async function FullClientViewPage({
                       <>
                         {jobsSnapshot.openPostings.map((p) => (
                           <div key={p.id} className="rounded-md border border-border p-2">
-                            <p className="text-foreground">
-                              {p.disclosure === 'CONFIDENTIAL' ? `${p.title} — confidential search` : `${p.title} at ${p.companyName}`}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{FIT_BUCKET_LABEL[p.fitBucket]}</p>
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="min-w-0 text-foreground">
+                                {p.disclosure === 'CONFIDENTIAL' ? `${p.title} — confidential search` : `${p.title} at ${p.companyName}`}
+                              </p>
+                              <JobVerdict verdict={p.card.verdict} className="shrink-0" />
+                            </div>
+                            <JobWhyLine fits={p.card.fits} gap={p.card.gap} />
+                            <JobMetaLine parts={p.card.meta} hint={p.card.fewerApplicantsHint} jobId={p.id} />
                           </div>
                         ))}
                         {jobsSnapshot.surfacedJobs.map((job) => (
                           <div key={job.id} className="rounded-md border border-dashed border-border p-2">
-                            <p className="text-foreground">{job.title}{job.companyName && ` at ${job.companyName}`}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Automated match · {FIT_BUCKET_LABEL[job.fitBucket]}
-                            </p>
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="min-w-0 text-foreground">{job.title}{job.companyName && ` at ${job.companyName}`}</p>
+                              <JobVerdict verdict={job.card.verdict} className="shrink-0" />
+                            </div>
+                            <JobMetaLine parts={['Partner search', ...job.card.meta]} jobId={job.id} />
                           </div>
                         ))}
                       </>
-                    )}
-                    {jobsSnapshot.lockedCount > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        +{jobsSnapshot.lockedCount} Candidate+-exclusive listing{jobsSnapshot.lockedCount === 1 ? '' : 's'} locked
-                        until {view.candidateName} unlocks Candidate+.
-                      </p>
                     )}
                   </div>
                 )}

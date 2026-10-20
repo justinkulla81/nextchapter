@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { requireWorkspace } from '@/lib/higher-ed/access'
-import { getWorkspace, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, labelFor, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
 import { ComingIn } from '@/components/higher-ed/ComingIn'
 import { COMING_DESCRIPTIONS, WORKSPACE_SCREENS, type ScreenSearchParams } from '@/components/higher-ed/screens'
@@ -23,18 +23,19 @@ export default async function WorkspacePage({
   if (!config || config.release !== 'V1') notFound()
 
   const ctx = await requireWorkspace(slug, config.key as WorkspaceKey)
-  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id))
+  const kind = orgKindOf(ctx.institution.orgType)
+  const tabs = tabsFor(ctx.tokens, config.key, await loadModules(ctx.institution.id), kind)
   const activeKey = tab?.[0] ?? tabs[0]?.key
   const active = tabs.find((t) => t.key === activeKey)
   if (!active || (tab && tab.length > 1)) notFound()
 
   const Screen = WORKSPACE_SCREENS[`${config.key}:${active.key}`]
-  const base = `/i/${slug}/${config.homePath}`
+  const base = `${orgBasePath(slug, ctx.institution.orgType)}/${config.homePath}`
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{config.label}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{labelFor(config, kind)}</h1>
         {ctx.readOnly && (
           <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
             <Eye className="size-3" aria-hidden="true" />
@@ -44,7 +45,7 @@ export default async function WorkspacePage({
       </div>
 
       {tabs.length > 1 && (
-        <nav aria-label={`${config.label} sections`} className="flex gap-1 overflow-x-auto border-b border-border">
+        <nav aria-label={`${labelFor(config, kind)} sections`} className="flex gap-1 overflow-x-auto border-b border-border">
           {tabs.map((t, i) => {
             const href = i === 0 ? base : `${base}/${t.key}`
             const isActive = t.key === active.key
@@ -58,7 +59,7 @@ export default async function WorkspacePage({
                   isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
                 )}
               >
-                {t.label}
+                {labelFor(t, kind)}
               </Link>
             )
           })}

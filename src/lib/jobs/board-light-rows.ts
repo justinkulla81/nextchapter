@@ -36,6 +36,10 @@ export const LIGHT_SELECT = {
   salaryMax: true,
   createdAt: true,
   employmentType: true,
+  // Sector filter / member sector preference (employer-sector.ts) and the
+  // requirement filters (hide hard blockers, cleared jobs — requirements.ts).
+  employerSector: true,
+  requirementTags: true,
 } satisfies Prisma.ExclusiveJobPostingSelect & Prisma.BoardLightRowSelect
 
 export type LightRow = Prisma.ExclusiveJobPostingGetPayload<{ select: typeof LIGHT_SELECT }>
@@ -112,6 +116,36 @@ export async function findLightRows(where: Prisma.ExclusiveJobPostingWhereInput)
     }
   }
   return prisma.exclusiveJobPosting.findMany({ where, select: LIGHT_SELECT })
+}
+
+/** One log line of the instance's memory after a big in-memory load, so Vercel's logs show what the board costs. */
+export function logBoardMemory(label: string, detail: Record<string, number>): void {
+  const m = process.memoryUsage()
+  const mb = (n: number) => Math.round(n / 1_048_576)
+  console.log(`[board-memory] ${label}`, JSON.stringify({ ...detail, rssMB: mb(m.rss), heapUsedMB: mb(m.heapUsed), externalMB: mb(m.external) }))
+}
+
+/**
+ * One id-ordered page of findLightRows: rows with an id after `afterId`, at most `take`.
+ * Loading the board a page at a time keeps one page (not the whole table, its filtered
+ * copy and its sorted copy) in memory beside the rows the board keeps.
+ */
+export async function findLightRowsPage(
+  where: Prisma.ExclusiveJobPostingWhereInput,
+  afterId: string | null,
+  take: number
+): Promise<(LightRow & { expiresAt: Date | null })[]> {
+  const paged: Prisma.ExclusiveJobPostingWhereInput = afterId === null ? where : { AND: [where, { id: { gt: afterId } }] }
+  // expiresAt too: the shared board drops a job the moment it expires (board-shortlist.ts stillLive).
+  const select = { ...LIGHT_SELECT, expiresAt: true } as const
+  if (mirrorCanAnswer(paged) && (await boardLightRowsReady())) {
+    try {
+      return await prisma.boardLightRow.findMany({ where: paged as Prisma.BoardLightRowWhereInput, select, orderBy: { id: 'asc' }, take })
+    } catch (error) {
+      console.error('Board light rows: page read failed, reading the wide table', error)
+    }
+  }
+  return prisma.exclusiveJobPosting.findMany({ where: paged, select, orderBy: { id: 'asc' }, take })
 }
 
 /**

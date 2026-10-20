@@ -162,18 +162,21 @@ enum SearchIntensity {
 }
 
 // Journeys (Product Design doc, Journeys tab): why someone is moving. One of
-// eight paths, each with its own onboarding follow-ups, to-dos and check-in
+// nine paths, each with its own onboarding follow-ups, to-dos and check-in
 // pace. Replaces CurrentJobStatus as the thing the product branches on;
 // CurrentJobStatus is still written alongside it (mapped) for older readers.
 enum JourneyType {
   LAID_OFF // laid off, let go, or resigned without the next job
-  READY_TO_MOVE // employed, wants a new job now
-  EXPLORING_MOVE // employed and thinking about it (includes "worried I'll be let go")
+  EXPLORING_MOVE // employed and thinking about a move: curious, unhappy, ready, or worried about a layoff (journeyDetails.moveDriver)
+  GROWING // employed and staying: reviews, raises, promotion, new skills, recession-proofing
   PROMOTION // the next level, inside or outside
   CAREER_CHANGE // new function or industry
   STUDENT_NEW_GRAD // internship or first job, up to five years out
   RETURNING // after caregiving, health, sabbatical, a move
   NEXT_ACT // 55+: board, fractional, consulting, nonprofit, part-time
+  ENTREPRENEUR // employed and starting something of their own: we track and check in
+  FRACTIONAL // happy doing fractional or interim work: a pipeline of clients, not a job search
+  TIME_OFF // on family leave or taking time off, with a return in mind (not laid off)
 }
 
 // How close someone is to applying. Shared by every journey; sets the plan
@@ -185,7 +188,8 @@ enum JourneyStage {
   INTERVIEWING
   OFFER
   LANDED
-  PAUSED
+  STAYING // managing your career: active in-job plan, menu and emails, no application targets
+  PAUSED // legacy: read as STAYING (normalizeStage); nothing writes it any more
 }
 
 // What changed a member's journey or stage (JourneyEvent.source).
@@ -196,6 +200,7 @@ enum JourneyChangeSource {
   SETTINGS // "Your situation" on Privacy & sharing
   GOT_HIRED // the Offer Bonus claim
   COLLEGE // a college portal action (I'm in transition / I got a job)
+  AUTOMATIC // the platform moved them on (for example, 90 days after landing)
 }
 
 enum CurrentJobStatus {
@@ -423,6 +428,9 @@ enum OutreachChannel {
   // Auto-logged from a detected calendar networking-call/interview with
   // this contact — see addAttendeesToNetwork in sync-google-calendar.ts.
   MEETING
+  // A message the member said they sent (the "Did you send it?" prompt or the weekly
+  // check-in), channel not asked.
+  OTHER
 }
 
 // "What's your biggest concern about reaching out?" — asked once, shapes
@@ -674,8 +682,19 @@ model CandidateProfile {
   // population/page.tsx, and src/lib/analytics/population-metrics.ts) —
   // those call sites now read this field directly instead.
   confidentialSearchMode          Boolean                     @default(false)
+  // Whether the member wants help with money (Finances and benefits, a runway, pay and savings questions).
+  // Null until asked. False: none of it is shown or asked. Added by hand: prisma/manual/2026-10-18-money-help.sql.
+  moneyHelp                       Boolean?
   // Candidate+ search-effort target in minutes for THIS member. Null uses the
   // product default (dossier-targets.ts). Set by an admin only; see effortTargetFor.
+  // Candidate+ stays on once earned (dossier-unlock.ts): when and how it was first met
+  // ('requirements' | 'streak'). candidatePlusRevokedAt is set only by an admin and turns
+  // it off until cleared. prisma/manual/2026-10-16-candidate-plus-permanent.sql.
+  candidatePlusUnlockedAt         DateTime?
+  candidatePlusUnlockSource       String?
+  candidatePlusRevokedAt          DateTime?
+  // The one-time Candidate+ unlock screen was shown (prisma/manual/2026-10-16-match-snapshots.sql).
+  candidatePlusUnlockSeenAt       DateTime?
   effortMinutesTargetOverride     Int?
   confidentialSearchModeChangedAt DateTime?
   confidentialModeChangeLog       ConfidentialModeChangeLog[]
@@ -815,6 +834,10 @@ model CandidateProfile {
   journeyChangedAt      DateTime?
   journeyStageChangedAt DateTime?
   journeyCheckedAt      DateTime? // last answered "Has anything changed?"
+  // Company culture and working environment: how much it matters, and, only if it
+  // does, what they want. { importance: 'NOT_IMPORTANT' | 'SOMEWHAT' | 'VERY', answers: {...}, mustHave, dealBreaker }.
+  // See src/lib/culture/culture-fit.ts.
+  cultureFit            Json?
   journeyDetails        Json?
   journeyEvents         JourneyEvent[]
   gapDuration           GapDurationBucket? // only asked if currentJobStatus != EMPLOYED_CONSIDERING_MOVE
@@ -847,6 +870,12 @@ model CandidateProfile {
   // Part 1: Job search activity self-report — all optional, all self-reported.
   jobsAppliedBucket         String? // "0-20" | "20-100" | "100+"
   interviewsReceivedCount   Int?
+  // Where searches usually stall (src/lib/onboarding/search-stall.ts): NO_REPLIES |
+  // RECRUITER_SCREEN | HIRING_MANAGER | FINAL_ROUND | OFFER. Self-reported, one question, asked
+  // in onboarding only when the member has already applied. Read by the Market Reality Report.
+  searchStallPoint          String?
+  // Offers received so far, self-reported alongside the two counts above. Asked only after an interview.
+  offersReceivedCount       Int?
   networkingLevel           Int? // 1-4: Not much / Some but should do more / A lot / Can't do more
   learnedNewSkillsLevel     Int? // 1-3: Not yet / A little / Yes, actively
   triedPartTimeOrConsulting Boolean?
@@ -973,22 +1002,29 @@ model CandidateProfile {
   negotiationComfort Int?
 
   // Part 4: Goals
-  remotePreference     String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
-  targetRoleType       String?
-  targetIndustries     String[]
-  targetFunction       String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
-  targetCompanySize    String?
-  targetCompanyStage   String?
-  targetCompMin        Int?
-  compFlexible         Boolean  @default(false)
-  willingToStartLower  Boolean  @default(false)
-  startLowerRationale  String?
-  openToRelocation     Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
-  relocationNotes      String?
-  travelWillingness    Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Stored now; not yet wired into job-matching filters, matching the other flexibility fields' current unused-for-filtering state.
-  aiDisplacementReason String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Stored now, not yet wired into search-strategy guidance — see AI_DISPLACEMENT_OPTIONS's comment.
-  equityImportant      Boolean  @default(false)
-  dealBreakers         String?
+  remotePreference      String? // "remote" | "hybrid" | "onsite" | "flexible" — moved here from Part 1 (Batch 24)
+  targetRoleType        String?
+  targetIndustries      String[]
+  targetFunction        String? // aspirational target function, PRIMARY_FUNCTION_OPTIONS — distinct from primaryFunction (current/resume-derived background)
+  targetCompanySize     String?
+  targetCompanyStage    String?
+  targetCompMin         Int?
+  compFlexible          Boolean  @default(false)
+  willingToStartLower   Boolean  @default(false)
+  startLowerRationale   String?
+  openToRelocation      Boolean  @default(false) // moved here so it follows "willing to start at a lower level" — both are flexibility signals
+  relocationNotes       String?
+  travelWillingness     Boolean  @default(false) // distinct from openToRelocation — willing to travel for the role, not moving. Kept in step with maxTravelPct below (true when maxTravelPct > 0) for older readers.
+  // The most travel the member will take on, in percent: 0 | 25 | 50 | 75 (75 = 75%+).
+  // Null = not asked yet (rows with travelWillingness=true were moved to 50). Read by
+  // the job requirement match (src/lib/jobs/requirements.ts) against a posting's travel %.
+  maxTravelPct          Int?
+  // Employer sectors the member turned off ('government' | 'nonprofit' | 'academia' |
+  // 'private'): the board and every job email leave those jobs out. Empty = all on.
+  hiddenEmployerSectors String[] @default([])
+  aiDisplacementReason  String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
+  equityImportant       Boolean  @default(false)
+  dealBreakers          String?
 
   // Personal Context: Blockers + Motivations (Prompt 47 rework, consolidated
   // onto Search Strategy as its own required "Blockers and Motivations"
@@ -1033,6 +1069,26 @@ model CandidateProfile {
   // best-effort — deliberately NOT part of isSearchStrategyGateComplete.
   boardAdvisoryWillingness        Boolean?
   isPivoting                      Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  // Job board breadth the member chose: 'narrow' (their field, pivots, close skills
+  // matches) or 'wide' (more adjacent work). Null = not chosen: the board defaults by
+  // career stage (senior Narrow, junior Wide) and job emails use Narrow
+  // (src/lib/jobs/search-breadth.ts). prisma/manual/2026-10-16-search-breadth.sql.
+  boardBreadth                    String?
+  jobDismissPreferences           JobDismissPreference[]
+  matchSnapshots                  MemberMatchSnapshot[]
+  // Industries the member confirmed on Search Strategy (industry-buckets.ts names) when their
+  // free-text industry read as several or none (src/lib/profile/industry-reading.ts).
+  // Empty = not confirmed: the reading of industryContext is used. prisma/manual/2026-10-16-relevance-and-ghost-review.sql.
+  industryBuckets                 String[]  @default([])
+  industryBucketsConfirmedAt      DateTime?
+  // When they last confirmed their tools ("Tools you use", skills page); the tools go into
+  // confirmedSkillsHave. Null = never: the board nudges once. prisma/manual/2026-10-16-tools-confirmed.sql.
+  toolsConfirmedAt                DateTime?
+  // The finer kind of work inside their function (src/lib/jobs/sub-functions.ts, e.g.
+  // 'ops_supply_chain'), from their latest title or occupation; re-derived and saved
+  // when the board loads. Null = function not split, or nothing on the allowlists
+  // matched. prisma/manual/2026-10-16-sub-functions.sql.
+  subFunction                     String?
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
   // targetIndustries, seeded from suggestions rather than freeform text.
@@ -1099,6 +1155,22 @@ model CandidateProfile {
   willingToTakeDrugTest           Boolean?
   willingToTakeBackgroundCheck    Boolean?
   wantsAnimalFriendlyWorkplace    Boolean?
+  // Security clearance and licenses held — matched against job requirement flags
+  // (src/lib/jobs/requirements.ts). Same nullable posture: null = not asked yet.
+  // clearanceLevel: 'none' | 'public_trust' | 'secret' | 'top_secret' | 'ts_sci';
+  // clearanceActive: true = active/current, false = lapsed; clearancePolygraph:
+  // 'none' | 'ci' | 'full_scope'. licensesHeld uses the requirement license keys
+  // (cpa, pe, bar, rn, pmp, series_7, …); licensesAnsweredAt tells "none" from "not asked".
+  clearanceLevel                  String?
+  clearanceActive                 Boolean?
+  clearancePolygraph              String?
+  licensesHeld                    String[]  @default([])
+  licensesAnsweredAt              DateTime?
+  // Fields last filled from the résumé and not yet confirmed by the member
+  // (src/lib/resume/resume-prefill.ts): shown as "From your résumé — confirm",
+  // and the only non-blank fields a later résumé may replace.
+  // prisma/manual/2026-10-16-resume-prefill.sql.
+  resumePrefilledFields           String[]  @default([])
   redFlagsBonusAt                 DateTime?
 
   // Benefits & Compensation Priorities — moved off Search Strategy
@@ -1239,6 +1311,10 @@ model CandidateProfile {
   // Which action-plan item ids the candidate has checked off — plain
   // completion tracking, not a Search Action, so no points/effort fields.
   benefitsActionPlanCompletedItems String[]       @default([])
+  // Early-career checklist item ids the member checked off (src/lib/early-career/checklist.ts).
+  // Plain completion tracking like the benefits plan above; items the profile
+  // already proves (school, résumé) are detected, never stored here.
+  earlyCareerChecklistDone         String[]       @default([])
   gigDirectoryUnlockAnswer         String? // target rate/openness question — gates the Gig Directory
   // One-time points award for answering the Gig Directory unlock question — mirrors privacyOpenedUpBonusAt
   gigDirectoryUnlockBonusAt        DateTime?
@@ -1483,6 +1559,8 @@ model CandidateProfile {
   jobClickEvents                 JobClickEvent[]
   trackedJobs                    TrackedJob[]
   workSamples                    WorkSample[]
+  externalReviewStats            ExternalReviewStat[]
+  clientReviews                  ClientReview[]
   interviewResponses             InterviewResponse[]
   peerNominations                PeerNomination[]
   learningBadges                 LearningBadge[]
@@ -1492,6 +1570,8 @@ model CandidateProfile {
   aiToolFamiliarity              CandidateAiToolFamiliarity[]
   employerInteractions           CandidateInteraction[]
   approvedEmployers              ApprovedEmployer[]
+  careerConversations            CareerConversation[]
+  workforceBoardConnections      WorkforceBoardConnection[]
   // Outplacement portal (Phase 5, §A7) — the one legitimate link between a
   // purchased seat and a real candidate. NEVER read directly by employer-
   // facing code; see src/lib/employer/candidate-identity-guard.ts and
@@ -1517,6 +1597,8 @@ model CandidateProfile {
   resumes                        Resume[]
   jobPostings                    JobPosting[]
   communityPosts                 CommunityPost[]
+  workQuestions                  WorkQuestion[]
+  workQuestionReplies            WorkQuestionReply[]
   expressedInterests             CommunityPostInterest[]
   communityPostReactions         CommunityPostReaction[]
   contentLikes                   ContentLike[]
@@ -1537,6 +1619,9 @@ model CandidateProfile {
   sundayNightReports             SundayNightReport[]
   weeklyBadgesEarned             WeeklyBadgeEarned[]
   marketRealitySnapshots         MarketRealitySnapshot[]
+  marketRealityReadStates        MarketRealityReadState[]
+  visitDays                      CandidateVisitDay[]
+  effortCycles                   EffortCycle[]
   marketRealityCalibrationChecks MarketRealityCalibrationCheck[]
   encouragementNotesSent         EncouragementNote[]              @relation("EncouragementSent")
   encouragementNotesReceived     EncouragementNote[]              @relation("EncouragementReceived")
@@ -1766,6 +1851,7 @@ model CandidateProfile {
   parallelPath      ParallelPath?
 
   // In-work track (Prisma-virtual back-relations; add no columns here).
+  careerEvents        CareerEvent[]
   inWorkProfile       InWorkProfile?
   inWorkWins          InWorkWin[]
   inWorkPreps         InWorkPrep[]
@@ -2374,11 +2460,66 @@ model WorkSample {
   aiToolsUsed      String?
   beforeMetric     String?
   afterMetric      String?
+  // The guided AI sample types (src/lib/evidence/ai-work-samples.ts): ai_workflow
+  // (automation with before/after), ai_policy (policy or use-case portfolio), ai_rag_eval
+  // (RAG / agent project with an eval). Their template answers: { field: value }.
+  // prisma/manual/2026-10-17-ai-skills.sql.
+  aiDetails        Json?
   verified         Boolean  @default(false)
   verifiedByEmail  String?
   createdAt        DateTime @default(now())
 
   @@index([candidateId])
+}
+
+/// Review stats a member brings from another fractional or freelance
+/// platform (Upwork, Toptal, ...). Counts as evidence for Candidate+ Verified.
+/// status: SELF_REPORTED (link given, not yet checked), LINK_CHECKED (one
+/// polite fetch of the public profile confirmed name and numbers),
+/// NEEDS_REVIEW (couldn't check: on the admin review list), CONFIRMED (an
+/// admin confirmed it), REJECTED (an admin could not; no credit).
+model ExternalReviewStat {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  platform      String // upwork | toptal | catalant | contra | ateam | fiverr_pro | malt | linkedin_services | other
+  platformLabel String? // what they typed when platform is "other"
+  profileUrl    String
+  rating        Float // 0-5
+  reviewCount   Int
+  jobsCompleted Int?
+  screenshotUrl String?
+  status        String           @default("SELF_REPORTED")
+  checkNote     String? // plain-language result of the link check or the admin decision
+  checkedAt     DateTime?
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([candidateId])
+  @@index([status])
+}
+
+/// A review from a NextChapter client after real work together (later: the
+/// fractional marketplace). Weighted highest in the evidence score. No UI yet;
+/// only PUBLISHED rows count.
+model ClientReview {
+  id              String           @id @default(cuid())
+  candidateId     String
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  employerId      String?
+  reviewerName    String
+  reviewerEmail   String?
+  reviewerCompany String?
+  rating          Float // 1-5
+  body            String?          @db.Text
+  engagementTitle String?
+  status          String           @default("PENDING") // PENDING | PUBLISHED | HIDDEN
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([candidateId, status])
 }
 
 model InterviewResponse {
@@ -2767,6 +2908,7 @@ model EmployerProfile {
   companyId            String?
   company              Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
   dossierIntroRequests DossierIntroRequest[]
+  memberCompany        MemberCompany?
 
   @@index([subscriptionTier, subscriptionStatus])
   @@index([companyId])
@@ -3489,6 +3631,25 @@ model JobPosting {
   // The board job this application came from, when it came from one (My jobs).
   trackedJob TrackedJob?
 
+  // The board posting (ExclusiveJobPosting.id) this application was for, found by
+  // src/lib/jobs/application-posting-match.ts at tracking time and by backfill:
+  // method 'board_card' | 'url' | 'ats_id' | 'company_title' | 'ambiguous' | 'none',
+  // confidence 0–1, boardMatchedAt = when it was last matched (null = never).
+  // Plain id, no relation. @ignore: added by hand (prisma/manual/2026-10-16-application-board-link.sql),
+  // so a full-row read never selects them; read and written with raw SQL once they
+  // exist (src/lib/jobs/application-posting-link.ts).
+  boardJobId           String?   @ignore
+  boardMatchMethod     String?   @ignore
+  boardMatchConfidence Float?    @ignore
+  boardMatchedAt       DateTime? @ignore
+
+  // Set only on self-reported applications from Job Search Daily's weekly check-in:
+  // 'weekly_checkin:<week>:applications:<n>'. Unique per candidate, so a second tap never
+  // double-logs; non-null = self-reported (admin shows it so). prisma/manual/2026-10-17-log-prompts.sql.
+  selfReportKey String?
+
+  @@unique([candidateId, selfReportKey])
+
   @@index([candidateId, createdAt])
 }
 
@@ -3594,6 +3755,69 @@ model CommunityPost {
   @@index([postMetroArea, postFunction, postIndustryBucket])
   @@index([postSeniorityBand, postFunction])
   @@index([moderationStatus, moderationCategory, createdAt])
+}
+
+// "A hard situation at work": a question a member asks others, written in general terms. It lives in
+// its own tables, apart from CommunityPost, so it never reaches the main feed, groups, leaderboards or
+// counts. The author is always shown as a generated handle. excludedCompanies holds the author's current
+// employers (normalized) so people who work there never see it; it is never rendered. The private text a
+// member types into the AI helper is never stored. Only the anonymized question is.
+model WorkQuestion {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  handle            String
+  kind              String // BOSS | REPORT | COWORKER | CULTURE
+  title             String
+  body              String
+  seniorityBand     String?
+  excludedCompanies String[] @default([])
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  moderationStatus     CommunityModerationStatus    @default(PENDING)
+  moderationCategory   CommunityModerationCategory?
+  moderationConfidence Float?
+  moderationReasoning  String?
+  moderatedAt          DateTime?
+
+  reportedAt            DateTime?
+  reportedByCandidateId String?
+  reportReason          String?
+
+  replies WorkQuestionReply[]
+
+  @@index([isActive, moderationStatus, createdAt])
+  @@index([candidateId, createdAt])
+}
+
+model WorkQuestionReply {
+  id         String       @id @default(cuid())
+  questionId String
+  question   WorkQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  handle    String
+  body      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  moderationStatus     CommunityModerationStatus    @default(PENDING)
+  moderationCategory   CommunityModerationCategory?
+  moderationConfidence Float?
+  moderationReasoning  String?
+  moderatedAt          DateTime?
+
+  reportedAt            DateTime?
+  reportedByCandidateId String?
+  reportReason          String?
+
+  @@index([questionId, createdAt])
+  @@index([candidateId, createdAt])
 }
 
 // Anonymous (by default) support note sent from one candidate to another
@@ -3905,6 +4129,46 @@ model MarketRealitySnapshot {
 
   @@unique([candidateId, weekStartDate])
   @@index([candidateId, generatedAt])
+}
+
+// One row per member per week: the Market Reality Report's read as it stood (which hiring-case rows
+// are in place, what is known, the market and pace numbers), saved when the report is viewed or the
+// weekly job runs. The next week's "what changed" note is the difference between two of these
+// (src/lib/reports/market-reality-brief/weekly-change.ts). MarketRealitySnapshot keeps only the grade,
+// so it cannot say what moved.
+model MarketRealityReadState {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekStartDate DateTime // Monday 00:00 UTC of the week this read belongs to
+  state         Json
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([candidateId, weekStartDate])
+  @@index([candidateId, weekStartDate])
+}
+
+// One row per member per UTC day they opened NextChapter. The "logged in" signal behind unlock
+// points (src/lib/effort/points.ts): a day counts once however many pages they open.
+model CandidateVisitDay {
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  day         DateTime // UTC midnight of the day
+  createdAt   DateTime         @default(now())
+
+  @@id([candidateId, day])
+}
+
+// The window unlock points are counted in: from startedAt until the member unlocks and generates
+// their next strategy (which also refreshes their report), which starts a new cycle. Only that action
+// resets it, so editing goals never throws away earned effort. baselineAnswered is how many
+// personalization questions were answered when the cycle began, so only new answers earn points.
+model EffortCycle {
+  candidateId      String           @id
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  startedAt        DateTime
+  baselineAnswered Int              @default(0)
+  updatedAt        DateTime         @updatedAt
 }
 
 enum MarketResponseType {
@@ -4714,6 +4978,18 @@ model OutreachLog {
   channel     OutreachChannel
   loggedAt    DateTime               @default(now())
 
+  // Where the entry came from (prisma/manual/2026-10-17-log-prompts.sql). null = the
+  // older paths (network log, Gmail/Calendar detection). 'who_to_contact' |
+  // 'outreach_template' | 'outreach_coach' — the "Did you send it?" prompt after a copy;
+  // 'weekly_checkin' — a self-reported count from Job Search Daily's weekly check-in.
+  logSource     String?
+  companyName   String?
+  contactKind   String? // 'posting_contact' | 'recruiter_or_manager' | 'contact' | the template type
+  jobId         String? // ExclusiveJobPosting.id when the note was for a board job
+  noteKey       String? // hash of the copied note, so one note counts once per 24h (activity-log/outreach.ts)
+  selfReportKey String? // 'weekly_checkin:<week>:outreach:<n>' — unique per candidate, so a second tap never double-logs
+
+  @@unique([candidateId, selfReportKey])
   @@index([candidateId, loggedAt])
 }
 
@@ -4862,6 +5138,17 @@ model ExclusiveJobPosting {
   // (src/app/api/cron/expire-job-postings) archives anything past this.
   expiresAt       DateTime?
   lastConfirmedAt DateTime?
+  // When we last confirmed the posting is still up: the crawler saw it in a re-crawl, its
+  // liveness check (ncrawl/liveness.py) or the click-time check (src/lib/jobs/liveness.ts)
+  // found it live. Unlike lastConfirmedAt (stamped on every row of every daily import) this
+  // is real evidence. Cards say "Last checked N days ago" past 3 days; a click re-checks it
+  // past 24 hours. prisma/manual/2026-10-17-job-liveness.sql.
+  lastVerifiedAt  DateTime?
+  // Taken straight from the employer's own careers site / ATS (ncrawl config.is_direct):
+  // exempt from the 30 / 60-day posted-date windows while the employer still lists it
+  // (only a 365-day backstop applies); cards add "still listed by the employer".
+  // prisma/manual/2026-10-19-direct-listing.sql.
+  directListing   Boolean   @default(false)
 
   // NC Job Board 2.0 — visibility model. Existing rows are backfilled to
   // audienceTier: 'A_LIST_ONLY' (see the db-push follow-up script) so
@@ -4894,6 +5181,10 @@ model ExclusiveJobPosting {
   // Higher Ed: an employer post visible only to this institution's members.
   // Null for every ordinary job-board posting.
   institutionScopeId String?
+  // An organization's internal role (Growth): only its own employees on a
+  // Growth seat see it, never the open board.
+  orgScopeId         String?
+  orgScope           OutplacementEmployerOrg? @relation("OrgInternalRoles", fields: [orgScopeId], references: [id], onDelete: Cascade)
   // From the crawler (ncrawl) import: the date the source says the job was
   // posted (createdAt is only when we imported it), how many of our sources
   // list it (1 = seen in few places — a low-competition signal), and the
@@ -4905,7 +5196,7 @@ model ExclusiveJobPosting {
   // YC tags…): technology, healthcare, financial_services, … — see
   // ncrawl/industry_map.py. Null for jobs posted directly on NextChapter.
   industry           String?
-  institutionScope   Institution? @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
+  institutionScope   Institution?             @relation(fields: [institutionScopeId], references: [id], onDelete: SetNull)
 
   // The directory company this posting is for. Set when the posting is added (see
   // linkPostingToCompany) and backfilled for older rows; null only when the
@@ -4918,6 +5209,9 @@ model ExclusiveJobPosting {
   // of which only a short excerpt is stored: ~15 MB for the whole board instead of
   // ~125 MB, and skills are what the skills gap and fit scoring actually use.
   skills String[] @default([])
+  // O*NET skills and tools (Skill.id, via SkillAlias) the title, description and skills name —
+  // the board's skills criterion (src/lib/jobs/relevance.ts). prisma/manual/2026-10-16-job-skill-ids.sql.
+  skillIds String[] @default([])
 
   // Market pay for this role (src/lib/pay/market-pay.ts), copied from its
   // CompanyJobOpening row nightly and at import. A benchmark for the role's
@@ -4959,34 +5253,82 @@ model ExclusiveJobPosting {
   // geo coverage and local counts. externalJobId / requisitionId are the
   // source's own ids; repostKey groups re-posts of the same role and descHash
   // identical texts. prisma/manual/2026-10-15-import-fields.sql.
-  locationCity    String?
-  locationState   String?
-  locationCountry String?
-  locationStates  String[] @default([])
-  externalJobId   String?
-  requisitionId   String?
-  repostKey       String?
-  descHash        String?
+  locationCity      String?
+  locationState     String?
+  locationCountry   String?
+  locationStates    String[]  @default([])
+  externalJobId     String?
+  requisitionId     String?
+  repostKey         String?
+  descHash          String?
   // Years-of-experience requirement read at import from the FULL posting text
   // (src/lib/jobs/years-required.ts) — only an excerpt of the text is stored, and
   // requirements often sit past it. Null = not read (older rows: parse the excerpt).
-  yearsRequired   Json?
+  yearsRequired     Json?
   // O*NET-SOC occupation the crawler matched the title to (ncrawl scripts/onet_tag_jobs.py:
   // O*NET alternate titles, local, no API call per job), e.g. "13-2051.00" / "Financial and
   // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
-  socCode         String?
-  socTitle        String?
+  socCode           String?
+  socTitle          String?
+  // Sub-function (src/lib/jobs/sub-functions.ts, e.g. 'ops_facilities'): allowlisted title
+  // patterns and O*NET codes within the job's function, set at import and backfilled
+  // (scripts/careers/backfill-sub-functions.ts). Null = not split / not on the lists.
+  subFunction       String?
+  // Current vs past (src/lib/jobs/job-status.ts): why the listing was archived —
+  // 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' — and how many times
+  // the crawler saw it close and come back. prisma/manual/2026-10-15-job-lifecycle.sql.
+  closeReason       String?
+  reopenCount       Int?
+  // The same role seen before / listed twice (crawler repost_groups.py): times it
+  // came back, its original first-seen date, and on the copy shown, how many other
+  // listings of it were collapsed into this one (those are archived 'duplicate').
+  repostCount       Int?
+  repostFirstSeenAt DateTime?
+  duplicateCount    Int?
+  // The person the source names as this job's contact or poster (ncrawl jobs.recruiter_name,
+  // e.g. SchoolSpring's contact). Public on the listing; shown in "Who to contact".
+  // Null = the source named no one. prisma/manual/2026-10-16-who-to-contact.sql.
+  recruiterName     String?
+  // Employer sector for the board's sector filter and the member's sector
+  // preference (src/lib/jobs/employer-sector.ts): 'private' | 'government' |
+  // 'nonprofit' | 'academia', from the crawler's ncrawl/sector.py (USAJOBS and
+  // state/local sources, IRS NTEE / 990 filers, IPEDS institutions). Null = not
+  // sent (read as private). prisma/manual/2026-10-16-board-function-requirements.sql.
+  employerSector    String?
+  // Hard requirements the crawler read from the full posting text with phrase
+  // patterns (ncrawl/requirements.py): clearance (level, active vs obtain,
+  // polygraph), US citizens only, no visa sponsorship, required licenses, travel %,
+  // relocation, onsite. requirementFlags is the list with labels and evidence;
+  // requirementTags the same as a compact comma list the board filters on in
+  // memory (src/lib/jobs/requirements.ts). Null = none found / not sent.
+  requirementFlags  Json?
+  requirementTags   String?
+  // AI skills the posting asks for, read by the crawler from the FULL posting text
+  // (ncrawl/ai_skills.py: 24 items in 3 groups — builder / applied / leadership — after a
+  // boilerplate filter; ~86% precision hand-checked). Ids and labels: src/lib/skills/ai-skills.ts.
+  // aiToolsNamed / aiCertsNamed are the AI tools and certifications the text names. Empty =
+  // none found or not read yet. prisma/manual/2026-10-17-ai-skills.sql.
+  aiSkillGroups     String[] @default([])
+  aiSkillItems      String[] @default([])
+  aiToolsNamed      String[] @default([])
+  aiCertsNamed      String[] @default([])
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
+  // Covers the admin "new listings, not rejected, last 7 days" count as an index-only scan.
+  @@index([createdAt, status])
   @@index([status, archivedAt])
   @@index([audienceTier, distribution])
   @@index([institutionScopeId])
+  @@index([orgScopeId])
   @@index([companyId])
   @@index([postedAt])
   @@index([industry])
   @@index([locationState])
   @@index([socCode])
+  // Application → posting matching looks ATS / requisition ids up (prisma/manual/2026-10-16-application-board-link.sql).
+  @@index([externalJobId])
+  @@index([requisitionId])
   // Deleting a candidate sets this to null; without the index that scans the whole board.
   @@index([submittedByCandidateId])
 }
@@ -5020,6 +5362,8 @@ model BoardLightRow {
   institutionScopeId String?
   distribution       String
   expiresAt          DateTime?
+  employerSector     String?
+  requirementTags    String?
 }
 
 // The "Request intro" action on a confidential recruiter listing (Discover
@@ -5035,6 +5379,9 @@ model JobBoardIntroRequest {
   posting      ExclusiveJobPosting @relation(fields: [postingId], references: [id], onDelete: Cascade)
   contactEmail String?
   status       String              @default("pending") // 'pending' | 'contacted' | 'closed'
+  // 'listing' — intro on a confidential listing; 'known_contact' — NextChapter knows someone
+  // at the employer and the member asked for an intro (Who to contact panel).
+  kind         String              @default("listing")
   createdAt    DateTime            @default(now())
 
   @@index([candidateId, createdAt])
@@ -5075,6 +5422,89 @@ model JobClickEvent {
 // Tracker, Gmail sync (interview / rejection emails) and every application stat
 // already read — so status lives there and is never kept twice. Gmail-detected
 // applications are linked here by company + title (src/lib/jobs/my-jobs.ts).
+// What the board learned from a member's dismissals (src/lib/jobs/job-dismiss.ts): kind
+// 'company' | 'industry' | 'title' | 'level' | 'location' | 'pay_floor', its value (a
+// normalised key; the floor in USD a year), how many dismissals said so, and what is done
+// with it: 'hide' (left off the board and emails), 'downweight' (ranked lower) or 'floor'.
+// askedAt: when the board last asked "Hide all X?". undoneAt: the member undid it.
+// prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+// What a member's matching read and what it gave them (src/lib/personalization/match-snapshot.ts):
+// 'baseline' (inputs just before a save that changes matching), 'retune' (the recompute after
+// it, with counts and reasons), 'daily' (Job Search Daily's count, for the weekly trend).
+// prisma/manual/2026-10-16-match-snapshots.sql.
+model MemberMatchSnapshot {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  trigger     String?
+  inputs      Json
+  checked     Int?
+  relevant    Int?
+  strong      Int?
+  detail      Json?
+  ms          Int?
+  createdAt   DateTime         @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
+model JobDismissPreference {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  value       String
+  label       String
+  count       Int              @default(0)
+  action      String           @default("downweight")
+  askedAt     DateTime?
+  undoneAt    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+
+  @@unique([candidateId, kind, value])
+}
+
+// A member said a board job looks like a ghost job ('ghost'), is too good to be true
+// ('too_good') or has red flags ('red_flags'). Feeds ghost risk (ghost-risk.ts) and the
+// admin review list (/support/admin/job-flags). No FK on postingId: a flag outlives the posting.
+model JobPostingFlag {
+  id          String    @id @default(cuid())
+  postingId   String
+  candidateId String
+  kind        String
+  note        String?
+  reviewedAt  DateTime?
+  // An admin's call (/support/admin/job-flags): 'confirmed_ghost' hides the job for everyone, 'dismissed' keeps it.
+  adminDecision String?
+  decidedAt     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([postingId, candidateId, kind])
+  @@index([kind, createdAt])
+}
+
+// Market size per function x sub-function x level band x industry bucket x geography
+// (a state code, 'remote', or ''), rebuilt nightly from the board (src/lib/market/
+// market-size-stats.ts). Recent = last 14 days, prior = the 28 before. '' = unknown / none;
+// fn '*' holds the whole board's totals.
+model MarketTargetStat {
+  fn           String
+  subFunction  String
+  band         String
+  industry     String
+  geo          String
+  openNow      Int      @default(0)
+  newRecent    Int      @default(0)
+  newPrior     Int      @default(0)
+  closedRecent Int      @default(0)
+  closedPrior  Int      @default(0)
+  computedAt   DateTime @default(now())
+
+  @@id([fn, subFunction, band, industry, geo])
+}
+
 model TrackedJob {
   id          String           @id @default(cuid())
   candidateId String
@@ -5099,6 +5529,11 @@ model TrackedJob {
   promptAnswer     String? // 'applied' | 'not_yet' | 'not_interested'
   promptAnsweredAt DateTime?
   dismissedAt      DateTime? // "Not interested" — hidden from My jobs
+  // Why they passed on it (board X, src/lib/jobs/job-dismiss.ts): 'company' | 'industry' |
+  // 'skills' | 'title' | 'level' | 'pay' | 'location' | 'ghost' | 'too_good' | 'red_flags' |
+  // 'applied_elsewhere' | 'other', and an optional note. prisma/manual/2026-10-16-dismiss-and-market-size.sql.
+  dismissReasons   String[]  @default([])
+  dismissNote      String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5190,7 +5625,9 @@ model Coach {
 
   // Weekly Market Digest opt-out — same convention as CandidateProfile's
   // marketDigestOptedOut, no other digest exists for coaches yet.
-  marketDigestOptedOut Boolean @default(false)
+  marketDigestOptedOut   Boolean   @default(false)
+  /// When the weekly coach digest last went out to this coach — lets a re-run of the cron skip coaches already sent this week.
+  marketDigestLastSentAt DateTime?
 
   // Coach-Candidate Matching System, Phase 1 — structured self-description
   // used only for shortlist ranking (src/lib/coach/matching.ts), framed as
@@ -5753,6 +6190,7 @@ enum CandidateEmailKey {
   SEARCH_CHECKIN // Sat — send-search-checkin-email.ts
   FINISH_LINE // Sun — send-finish-line-email.ts, now also carries the merged weekly community/coaching recap
   JOB_SEARCH_DAILY // every day, its own cron (job-search-daily) — not in CandidateEmailSchedule's one-per-weekday rotation
+  WIN_BACK // dormant members: up to three over about two months, its own cron (win-back)
 }
 
 // STILL_SEARCHING / TAKING_A_BREAK / GOT_AN_OFFER — the three answers to the
@@ -7200,6 +7638,7 @@ model Company {
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
+  aliases          CompanyAlias[]
   // WARN-notice back-relation (Prisma-virtual; adds no column to this table).
   warnNotices      WarnNotice[]
 
@@ -7224,6 +7663,8 @@ model Company {
   recruiterFirms     RecruiterFirm[]
   outplacementOrgs   OutplacementEmployerOrg[]
   institutionTargets InstitutionTargetCompany[]
+  recruitingDates    InstitutionRecruitingDate[]
+  earlyCareerRoles   InstitutionEarlyCareerRole[]
 
   workHistory      WorkHistoryEntry[]
   undatedEmployers UndatedEmployment[]
@@ -7247,6 +7688,34 @@ model Company {
 // other open sources). Keyed by the listing URL, same as ExclusiveJobPosting.
 // Employer/recruiter exclusives, confidential searches and institution-scoped jobs
 // are never written here, so every row is safe to show any member.
+/// A name that means a company ("AWS" for Amazon Web Services), decided by an admin.
+/// CONFIRMED aliases resolve new resume and posting names to the company; REJECTED
+/// ones record "these are not the same" so the pair is never suggested again.
+model CompanyAlias {
+  id             String   @id @default(cuid())
+  aliasKey       String // normalizeOrgName() of the abbreviation
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status         String   @default("CONFIRMED") // CONFIRMED | REJECTED
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([aliasKey, companyId])
+  @@index([aliasKey])
+}
+
+/// "These are not duplicates": a group of same-letter names an admin has dismissed
+/// from the Duplicates page. groupKey is the name with spacing, punctuation and "&" removed.
+model DuplicateDismissal {
+  id             String   @id @default(cuid())
+  kind           String // ORGANIZATION | COMPANY
+  groupKey       String
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([kind, groupKey])
+}
+
 model CompanyJobOpening {
   id             String    @id @default(cuid())
   companyId      String
@@ -7273,6 +7742,7 @@ model CompanyJobOpening {
   firstSeenAt    DateTime
   lastSeenAt     DateTime
   closedAt       DateTime? // null = still open
+  closeReason    String? // why it closed (job-status.ts); null = open, or closed before reasons were kept
   sourceName     String?
   source         String // 'import' | 'crawler_history' | 'board'
 
@@ -7767,8 +8237,10 @@ model OutplacementEmployerOrg {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  contracts OutplacementContract[]
-  orgUsers  OutplacementOrgUser[]
+  contracts     OutplacementContract[]
+  orgUsers      OutplacementOrgUser[]
+  courses       OrgCourse[]
+  internalRoles ExclusiveJobPosting[]  @relation("OrgInternalRoles")
 
   // Admin CRM back-relation (Prisma-virtual; adds no column to this table).
   crmOrganizations CrmOrganization[]
@@ -7784,12 +8256,28 @@ model OutplacementEmployerOrg {
 // A single purchase — seats, tier, term, PO/invoice reference. Admin-
 // managed per spec §A9 ("Employer contracts — seats, term, tier, discount,
 // PO, renewal date, utilization, renewal risk").
+// What a contract buys. OUTPLACEMENT: people leaving. GROWTH: current
+// employees' career tools and internal moves (retention). LEARNING: current
+// employees' learning plans and company-covered courses. Seats work the same
+// way for all three; the employer only ever sees counts.
+enum OutplacementProgramType {
+  OUTPLACEMENT
+  GROWTH
+  LEARNING
+}
+
 model OutplacementContract {
   id    String                  @id @default(cuid())
   orgId String
   org   OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
+  programType OutplacementProgramType @default(OUTPLACEMENT)
+
   cohortLabel      String? // e.g. "RIF — Q1 2026 Engineering" — §A7 multi-cohort views
+  // The journey a seat starts (src/lib/journey/sponsored.ts). Null means
+  // outplacement: Laid off, applying. Career growth contracts set Managing my career,
+  // Promotion or Changing careers. No DDL rewrite of existing rows needed.
+  journey          JourneyType?
   tier             OutplacementTier
   seatCount        Int
   termStartAt      DateTime
@@ -9887,19 +10375,24 @@ model CrmOrganization {
   // "Owl Ventures, LP" with "Owl Ventures", during the Phase 2 dry run.
   canonicalNameNormalized String @unique
 
-  orgTypes CrmOrgType[] @default([])
-  goals    CrmGoal[]    @default([])
-  website  String?
-  hqCity   String?
-  hqRegion String?
+  orgTypes       CrmOrgType[] @default([])
+  /// This company is a client we hire for or place candidates with. Distinct
+  /// from the EMPLOYER org type, which only says it employs people. Set by hand
+  /// (or backfilled from real employer accounts); never inferred from postings.
+  hiringClient   Boolean      @default(false)
+  hiringClientAt DateTime?
+  goals          CrmGoal[]    @default([])
+  website        String?
+  hqCity         String?
+  hqRegion       String?
   /// Two-letter state, or NATIONAL / GLOBAL. Derived from hqRegion, which is
   /// free text like "New York, NY" or "National / global" and therefore
   /// useless as a filter. State matters here because a real share of the
   /// funding list is state programmes you can only win with a presence there.
-  usState  String?
-  industry String?
-  focus    String?      @db.Text // what they invest in / care about, in their words
-  notes    String?      @db.Text
+  usState        String?
+  industry       String?
+  focus          String?      @db.Text // what they invest in / care about, in their words
+  notes          String?      @db.Text
 
   // Denormalised so the "All leads" view can sort organizations and people in
   // one list without a join through opportunities. Opportunities carry their
@@ -9941,6 +10434,7 @@ model CrmOrganization {
   updatedAt DateTime @updatedAt
 
   affiliations        CrmAffiliation[]
+  mandates            CrmMandate[]
   backgrounds         CrmBackground[]
   opportunities       CrmOpportunity[]
   activities          CrmActivity[]
@@ -9961,6 +10455,7 @@ model CrmOrganization {
   // 'KEPT_SEPARATE' (an admin decided these are different — never suggest again).
   companyLinkState String?
   institution      Institution?
+  organization     Organization?
 
   @@index([priorityScore(sort: Desc)])
   @@index([leadQuality])
@@ -9970,6 +10465,8 @@ model CrmOrganization {
 
 model CrmPerson {
   id                 String              @id @default(cuid())
+  /// Searches this person (a recruiter) is retained or engaged on, one row per company.
+  mandates           CrmMandate[]
   referredCandidates CandidateReferral[]
   referralLinks      ReferralLink[]
   firstName          String?
@@ -10238,6 +10735,37 @@ model CrmAffiliation {
   @@unique([personId, orgId, title])
   @@index([orgId])
   @@index([personId])
+}
+
+enum CrmMandateStatus {
+  ACTIVE
+  ON_HOLD
+  CLOSED
+}
+
+/// A recruiter's mandate at a company: the company has engaged them to fill
+/// roles. A recruiter can hold many, and a company can have several recruiters.
+/// `scope` is free text ("VP and above, finance") because mandates are narrow
+/// and rarely repeat; closing keeps the history, deleting does not.
+model CrmMandate {
+  id          String          @id @default(cuid())
+  recruiterId String
+  recruiter   CrmPerson       @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  orgId       String
+  org         CrmOrganization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  scope     String?
+  status    CrmMandateStatus @default(ACTIVE)
+  startedAt DateTime?
+  endedAt   DateTime?
+  notes     String?          @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([recruiterId])
+  @@index([orgId])
+  @@index([status])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -11476,6 +12004,8 @@ model WorkforceBoard {
   fitBreakdown Json?
   fitScoredAt  DateTime?
 
+  connections WorkforceBoardConnection[]
+
   @@index([state])
 }
 
@@ -12010,6 +12540,8 @@ model Institution {
   scopedJobPostings ExclusiveJobPosting[]
 
   targetCompanies      InstitutionTargetCompany[]
+  recruitingDates      InstitutionRecruitingDate[]
+  earlyCareerRoles     InstitutionEarlyCareerRole[]
   dossierIntroRequests DossierIntroRequest[]
   programs             Program[]
   corporateClients     CorporateClient[]
@@ -13229,16 +13761,67 @@ model LocalPartnerOrg {
 // somewhere to place alumni, or to build a relationship with. Private to that
 // institution — never shown to members, candidates, or other institutions.
 model InstitutionTargetCompany {
+  id                    String      @id @default(cuid())
+  institutionId         String
+  institution           Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  companyId             String
+  company               Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  note                  String?     @db.Text
+  createdBy             String? // Supabase auth.users id of the staff member who flagged it
+  createdAt             DateTime    @default(now())
+  /// A company that recruits this college's students every year (as opposed to one
+  /// the team merely wants to approach). Private to the institution.
+  coreRecruiter         Boolean     @default(false)
+  recruiterContactName  String?
+  recruiterContactEmail String?
+
+  @@unique([institutionId, companyId])
+  @@index([companyId])
+}
+
+/// A date a company is on, or recruiting at, this college: a career fair, an info
+/// session, on-campus interviews, an application deadline. kind is one of
+/// RECRUITING_DATE_KINDS (src/lib/higher-ed/recruiting.ts). Private to the institution.
+model InstitutionRecruitingDate {
   id            String      @id @default(cuid())
   institutionId String
   institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   companyId     String
   company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind          String
+  title         String
+  startsAt      DateTime
+  location      String?
+  url           String?
   note          String?     @db.Text
-  createdBy     String? // Supabase auth.users id of the staff member who flagged it
+  createdBy     String?
   createdAt     DateTime    @default(now())
 
-  @@unique([institutionId, companyId])
+  @@index([institutionId, startsAt])
+  @@index([companyId])
+}
+
+/// An internship, co-op or entry-level role a company has for this college's
+/// students and new graduates. kind is one of EARLY_CAREER_KINDS. Private to the institution.
+model InstitutionEarlyCareerRole {
+  id            String      @id @default(cuid())
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind          String
+  title         String
+  location      String?
+  applyUrl      String?
+  deadline      DateTime?
+  /// Graduating classes it is open to, free text ("2027, 2028").
+  classYears    String?
+  note          String?     @db.Text
+  archivedAt    DateTime?
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+
+  @@index([institutionId, archivedAt])
   @@index([companyId])
 }
 
@@ -13828,6 +14411,70 @@ model JourneyEvent {
   @@index([candidateId, createdAt])
 }
 
+// A review, raise, promotion or offer conversation the member is preparing for:
+// their ask, their reasons and their walk-away, and how it went. Private to the
+// member (src/lib/review-prep/conversation.ts, /dashboard/review-prep).
+enum CareerConversationKind {
+  REVIEW
+  RAISE
+  PROMOTION
+  OFFER
+}
+
+enum CareerConversationOutcome {
+  PENDING
+  GOT_IT
+  PARTIAL
+  NOT_NOW
+}
+
+model CareerConversation {
+  id           String                    @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile          @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind         CareerConversationKind
+  scheduledFor DateTime?
+  /// Dollars a year, when the ask is a number.
+  askAmount    Int?
+  /// A title or level, when the ask is a step up.
+  askLevel     String?
+  /// Up to three reasons, each a result they can point to.
+  reasons      String[]                  @default([])
+  walkAway     String?                   @db.Text
+  outcome      CareerConversationOutcome @default(PENDING)
+  outcomeNote  String?                   @db.Text
+  decidedAt    DateTime?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+
+  @@index([candidateId, createdAt])
+}
+
+// A member who says they are working with a workforce board (a local American
+// Job Center board). Member-initiated. By default the board sees nothing about
+// them; with shareOutcome on, the board's anonymous counts include that they
+// found work (never a name, never below the minimum group size).
+enum WorkforceBoardConnectionStatus {
+  ACTIVE
+  ENDED
+}
+
+model WorkforceBoardConnection {
+  id           String                         @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile               @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  boardId      String
+  board        WorkforceBoard                 @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  status       WorkforceBoardConnectionStatus @default(ACTIVE)
+  connectedAt  DateTime                       @default(now())
+  endedAt      DateTime?
+  shareOutcome Boolean                        @default(false)
+  updatedAt    DateTime                       @updatedAt
+
+  @@unique([candidateId, boardId])
+  @@index([boardId, status])
+}
+
 // One row per allowed request on a rate-limited public endpoint (email-sending
 // forms, the waitlist sink). `key` is an IP or a sha256 of a recipient email —
 // never a raw address. Counted over a sliding window by
@@ -14266,6 +14913,11 @@ model RapidResponse {
   memberCompanyId String?
   memberCompany   MemberCompany?      @relation(fields: [memberCompanyId], references: [id], onDelete: SetNull)
   seats           Int?
+  // A member company asking its workforce org for seats: REQUESTED until
+  // the org approves (seats given, sign-up page opens) or declines.
+  requestStatus   String?
+  requestNote     String?
+  requestedAt     DateTime?
   participants    InstitutionMember[] @relation("RapidResponseParticipants")
   warnNoticeId    String?
   warnNotice      WarnNotice?         @relation(fields: [warnNoticeId], references: [id], onDelete: SetNull)
@@ -14288,21 +14940,29 @@ model RapidResponse {
 // A company a workforce org (chamber, EDO, board) serves: when it has a
 // layoff, its people get NextChapter seats from the org's pool.
 model MemberCompany {
-  id             String      @id @default(cuid())
-  institutionId  String
-  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
-  name           String
-  industry       String?
-  city           String?
-  state          String?
-  contactName    String?
-  contactEmail   String?
+  id                String           @id @default(cuid())
+  institutionId     String
+  institution       Institution      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  name              String
+  industry          String?
+  city              String?
+  state             String?
+  contactName       String?
+  contactEmail      String?
   // Seats set aside for this company from the org's pool (Institution.includedSeats).
-  seatsAllocated Int         @default(0)
-  hiring         Boolean     @default(false) // sees opt-in Dossiers of the org's participants
-  isSampleData   Boolean     @default(false)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  seatsAllocated    Int              @default(0)
+  hiring            Boolean          @default(false) // sees opt-in Dossiers of the org's participants
+  // The company's hiring login (a NextChapter Talent employer account),
+  // connected through a one-time invite link the org sends its contact.
+  employerProfileId String?          @unique
+  employerProfile   EmployerProfile? @relation(fields: [employerProfileId], references: [id], onDelete: SetNull)
+  inviteToken       String?          @unique
+  invitedEmail      String?
+  invitedAt         DateTime?
+  connectedAt       DateTime?
+  isSampleData      Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   layoffs RapidResponse[]
   people  InstitutionMember[]
@@ -14787,6 +15447,26 @@ model OccupationRelated {
 // Which occupation a candidate's most recent job maps to. A cache of a
 // deterministic title match or of the candidate choosing from a short list.
 // There is no metered AI path: an ambiguous title is never guessed at.
+// Occupation-to-occupation similarity over every O*NET occupation (not only the
+// white-collar scope above), built offline from the O*NET file by
+// scripts/careers/build-occupation-similarity.ts; the board's skills-adjacent
+// matches read it (src/lib/jobs/search-breadth.ts). Each occupation keeps its
+// closest ~40 at score >= 0.55. prisma/manual/2026-10-16-search-breadth.sql.
+model OccupationSimilarity {
+  socCode        String
+  similarSocCode String
+  // 0-1: centred skill + knowledge profile cosine, lifted when O*NET relates the pair.
+  score          Float
+  related        Boolean  @default(false)
+  // What the two share, plain words, most specific first (tools, knowledge, skills).
+  sharedSkills   String[] @default([])
+  // O*NET titles, so a lookup needs no join to Occupation (which holds only the white-collar scope).
+  title          String
+  similarTitle   String
+
+  @@id([socCode, similarSocCode])
+}
+
 model CandidateOccupation {
   candidateId String           @id
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
@@ -15171,4 +15851,293 @@ model CoachAccessCode {
   updatedAt DateTime  @updatedAt
 
   @@index([coachId])
+}
+
+// ── ORGANIZATIONS (the customer behind one or many partner portals) ─────────
+// A customer is one Organization. It owns one workspace per portal type it
+// bought (higher ed, outplacement, workforce, coach, hiring, recruiter). The
+// existing per-portal tables (Institution, OutplacementEmployerOrg, Coach,
+// EmployerProfile, RecruiterFirm) stay as they are; a workspace points at one
+// of them by refId, so nothing is migrated. Brand set here overrides the brand
+// each portal stores for itself. Demo organizations carry sample data only.
+enum OrgWorkspaceType {
+  HIGHER_ED
+  OUTPLACEMENT
+  WORKFORCE
+  COACH
+  HIRING
+  RECRUITER
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Brand shown in every portal this organization owns.
+  brandName   String?
+  logoUrl     String?
+  accentColor String?
+  // Secondary (buttons, chips, highlights) and page background; any #rrggbb.
+  secondaryColor  String?
+  backgroundColor String?
+
+  // Demo: sample data only, never counted in real metrics, expires.
+  isDemo        Boolean   @default(false)
+  demoScenario  String?
+  demoExpiresAt DateTime?
+  isSampleData  Boolean   @default(false)
+
+  // Which cross-portal connections are turned on for this organization.
+  features Json @default("{}")
+
+  crmOrganizationId String?          @unique
+  crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
+
+  createdBy  String?
+  workspaces OrgWorkspace[]
+
+  @@index([isDemo, demoExpiresAt])
+}
+
+model OrgWorkspace {
+  id          String           @id @default(cuid())
+  orgId       String
+  org         Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  type        OrgWorkspaceType
+  // The portal's own record: Institution, OutplacementEmployerOrg, Coach,
+  // EmployerProfile or RecruiterFirm id. Null until it exists (a hiring team
+  // exists only once its first person signs up through the invite).
+  refId       String?
+  // ACTIVE | PENDING (waiting on the first sign-up) | SUSPENDED
+  status      String           @default("ACTIVE")
+  // For workspaces whose first admin signs up themselves.
+  inviteEmail String?
+  inviteToken String?          @unique
+  createdAt   DateTime         @default(now())
+
+  @@unique([orgId, type])
+  @@index([type, refId])
+}
+
+// Internships (owner rule: internships only appear in Higher Ed portals). Their
+// own table, never ExclusiveJobPosting, so no member board, email, alert, pivot
+// or company count can read one by accident. Written by the ncrawl internship
+// stream (/api/admin/internships/import), read only by the Higher Ed portal's
+// Internships tab (src/lib/internships/data.ts). institutionId NULL = shown to
+// every partner college's students and alumni; set = that college only.
+// Applied by hand: prisma/manual/2026-10-15-internship-postings.sql.
+model InternshipPosting {
+  id              String    @id @default(cuid())
+  url             String    @unique
+  title           String
+  companyName     String
+  companyId       String?
+  location        String?
+  locationState   String? // US 2-letter
+  remote          Boolean   @default(false)
+  // Field of study it suits (src/lib/internships/fields.ts): business, engineering, software, data, finance, ...
+  field           String?
+  // summer | fall | spring | winter | co_op | year_round (null = not stated)
+  term            String?
+  termYear        Int?
+  deadline        DateTime?
+  description     String? // excerpt
+  salaryMin       Int?
+  salaryMax       Int?
+  payPeriod       String? // hour | week | month | year
+  sourceName      String?
+  addedBy         String    @default("ncrawl")
+  institutionId   String?
+  postedAt        DateTime?
+  lastConfirmedAt DateTime?
+  expiresAt       DateTime?
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([archivedAt, field])
+  @@index([institutionId])
+  @@index([addedBy, lastConfirmedAt])
+}
+
+// Who did what in a partner portal: exports, brand and team changes, demo access.
+// One table for every portal type; portal + refId says whose it is (the portal's
+// own record id), so each partner sees only their own activity. Written best-effort
+// and never used to gate anything.
+model PartnerAuditEvent {
+  id          String           @id @default(cuid())
+  portal      OrgWorkspaceType
+  refId       String
+  actorUserId String?
+  actorLabel  String?
+  action      String
+  targetType  String?
+  targetId    String?
+  detail      Json?
+  createdAt   DateTime         @default(now())
+
+  @@index([portal, refId, createdAt])
+  @@index([actorUserId, createdAt])
+}
+
+// A course an organization covers for its people (Learning).
+model OrgCourse {
+  id           String                  @id @default(cuid())
+  orgId        String
+  org          OutplacementEmployerOrg @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title        String
+  provider     String?
+  url          String?
+  skills       String[]                @default([])
+  // What the company pays, in its words: "Fully covered", "Up to $500".
+  covered      String?
+  note         String?
+  isActive     Boolean                 @default(true)
+  isSampleData Boolean                 @default(false)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  progress OrgCourseProgress[]
+
+  @@index([orgId, isActive])
+}
+
+// An employee's own progress on a covered course. The employer sees counts only.
+model OrgCourseProgress {
+  id           String    @id @default(cuid())
+  courseId     String
+  course       OrgCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  candidateId  String
+  status       String // 'STARTED' | 'COMPLETED'
+  isSampleData Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([courseId, candidateId])
+  @@index([candidateId])
+}
+
+// An employee asking to be considered for an internal role. They choose to
+// share their name with the company for that one role; nothing else.
+model InternalRoleInterest {
+  id           String   @id @default(cuid())
+  postingId    String
+  candidateId  String
+  note         String?
+  isSampleData Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@unique([postingId, candidateId])
+  @@index([candidateId])
+}
+
+// Native one-click apply (src/lib/jobs/native-apply.ts): a member's application to
+// a job posted directly on NextChapter, delivered to the poster's inbox as a
+// message. `shared` is the exact snapshot the member reviewed and sent; the
+// application itself is the JobPosting row My jobs already reads (jobPostingId).
+// Added by hand: prisma/manual/2026-10-16-native-apply.sql.
+model NativeJobApplication {
+  id                    String   @id @default(cuid())
+  candidateId           String
+  postingId             String // ExclusiveJobPosting.id
+  jobPostingId          String? // JobPosting.id (My jobs / Application Tracker)
+  partnerType           String // 'employer' | 'recruiter'
+  partnerId             String
+  threadId              String // MessageThread.id the application was delivered to
+  resumeId              String?
+  shared                Json
+  confidentialConfirmed Boolean  @default(false)
+  createdAt             DateTime @default(now())
+
+  @@unique([candidateId, postingId])
+  @@index([postingId])
+}
+
+// One chapter of a member's career story (src/lib/career-story). Most of the story is derived
+// from work history, education, learning and journey changes and never stored here. A row is
+// either something the member added (sourceRef null) or their correction of a derived event
+// (sourceRef set, e.g. "work:<id>"): a new label or dates, or hidden. Private to the member:
+// never read by employer, college, recruiter or coach code, and never used for matching. The
+// reason is optional and sensitive.
+model CareerEvent {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // SCHOOL | WORK | VENTURE | PAUSE | LEARNING | MILESTONE
+  kind      String
+  label     String
+  detail    String?   @db.Text
+  startDate DateTime  @db.Date
+  endDate   DateTime? @db.Date
+  // FAMILY | HEALTH | REST | MOVE | OTHER, only for a pause, and always optional.
+  reason    String?
+  // Set when this row corrects an event we derived ("work:<id>", "edu:<id>", "gap:<yyyy-mm-dd>"). Null for something the member added.
+  sourceRef String?
+  hidden    Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([candidateId])
+  @@unique([candidateId, sourceRef])
+}
+
+// A model's written review of one AI work sample (src/lib/evidence/ai-sample-review.ts), shown only to the
+// member who wrote it: never to recruiters or employers, and never part of the evidence score. One row per
+// review; the weekly cap and the monthly budget are counted from here. Plain ids, no relations: the foreign
+// keys (cascade on delete) live in the hand-applied SQL, prisma/manual/2026-10-19-ai-sample-review.sql.
+model AiSampleReview {
+  id          String   @id @default(cuid())
+  candidateId String
+  sampleId    String
+  model       String
+  // 'needs_work' | 'solid' | 'strong'
+  verdict     String
+  // [{ key, met, reason }] in the sample type's check order (ai-work-samples.ts)
+  checks      Json
+  summary     String
+  suggestions String[] @default([])
+  inputTokens  Int
+  outputTokens Int
+  // Cost in millionths of a dollar (tokens x $/MTok), so a sum is exact.
+  costMicros  Int
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId, createdAt])
+  @@index([sampleId, createdAt])
+  @@index([createdAt])
+}
+
+/// A homepage lead who gave an email without an account: either the journey picker
+/// ("kind" = journey: where they are in their search, and a first-week plan sent once)
+/// or a saved job search ("kind" = job_alert: the search to email new matches for later).
+/// prisma/manual/2026-10-19-homepage-lead.sql. One row per email, kind and search.
+model HomepageLead {
+  id               String    @id @default(cuid())
+  email            String
+  kind             String // 'journey' | 'job_alert'
+  source           String // the page and box: 'home' | 'jobs' | 'start'
+  /// Journey: a persona slug (laid-off, career-change, ...). Empty for a saved search.
+  situation        String    @default("")
+  /// Journey: how long it has been going on (just_starting | weeks | months | long). Empty otherwise.
+  followup         String    @default("")
+  /// Saved search: the words, place and remote filter they searched. Empty for a journey lead.
+  searchQ          String    @default("")
+  searchLoc        String    @default("")
+  searchRemote     Boolean   @default(false)
+  unsubscribeToken String    @unique @default(cuid())
+  ip               String?
+  /// When the one-time plan email went out (journey only). Null = not sent.
+  planSentAt       DateTime?
+  unsubscribedAt   DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([email, kind, situation, searchQ, searchLoc, searchRemote])
+  @@index([ip, createdAt])
+  @@index([kind, createdAt])
 }

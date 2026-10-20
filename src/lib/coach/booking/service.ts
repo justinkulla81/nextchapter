@@ -180,7 +180,7 @@ export async function bookSlot(input: { coachId: string; candidateId: string; st
     if (!event) {
       const detail = { startsAt: booking.startsAt, timezone: settings.timezone, meetUrl }
       if (candidate.email) await sendBookingEmail({ to: candidate.email, kind: 'booked', otherPartyName: coach.fullName, ...detail })
-      await sendBookingEmail({ to: coach.workEmail, kind: 'booked', otherPartyName: clientName, ...detail })
+      await sendBookingEmail({ to: coach.workEmail, audience: 'coach', kind: 'booked', otherPartyName: clientName, ...detail })
     }
   } catch (error) {
     console.error(`Booking ${booking.id} was saved but its calendar event or email failed:`, error)
@@ -224,7 +224,7 @@ export async function cancelBooking(input: { bookingId: string; by: 'COACH' | 'C
     if (input.by === 'COACH' && booking.candidate.email) {
       await sendBookingEmail({ to: booking.candidate.email, kind: 'cancelled', otherPartyName: booking.coach.fullName, startsAt: booking.startsAt, timezone, meetUrl: null })
     } else if (input.by === 'CANDIDATE') {
-      await sendBookingEmail({ to: booking.coach.workEmail, kind: 'cancelled', otherPartyName: clientName, startsAt: booking.startsAt, timezone, meetUrl: null })
+      await sendBookingEmail({ to: booking.coach.workEmail, audience: 'coach', kind: 'cancelled', otherPartyName: clientName, startsAt: booking.startsAt, timezone, meetUrl: null })
     }
   }
   return { ok: true, coachId: booking.coachId, candidateId: booking.candidateId, calendarWarning }

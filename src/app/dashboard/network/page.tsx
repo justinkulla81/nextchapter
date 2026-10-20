@@ -23,11 +23,19 @@ import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialMo
 import { NetworkStatTile, type StatTileItem } from '@/components/dashboard/NetworkStatTile'
 import { BackchannelMatchesCard } from '@/components/dashboard/BackchannelMatchesCard'
 import { AlumniNetworkCarousel } from '@/components/dashboard/AlumniNetworkCarousel'
+import { RecruitersForYouCard } from '@/components/dashboard/RecruitersForYouCard'
 import { getMatchedAlumniGroups } from '@/lib/network/alumni-groups'
 import { MarkBackchannelViewedOnMount } from '@/components/dashboard/MarkBackchannelViewedOnMount'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { getBackchannelMatches } from '@/lib/network/backchannel'
 import { getNeedsFollowUpList, parseAddress } from '@/lib/network/needs-follow-up'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { buildCircles, buildMoments, networkHeadline } from '@/lib/redesign/network-home'
+import { NetworkOverview } from '@/components/network/NetworkOverview'
+import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
+import { getWeeklyOutreachPlan } from '@/lib/network/weekly-outreach'
+import { DOSSIER_UNLOCK_OUTREACH_TARGET } from '@/lib/scoring/dossier-unlock'
+import { captureServerEvent } from '@/lib/posthog/server'
 import {
   resolveSelfLoggedOutreach,
   type SelfLoggedOutreach,
@@ -88,6 +96,7 @@ type NetworkSearchParams = {
   gmailError?: string
   calendarConnected?: string
   calendarError?: string
+  view?: string
 }
 
 const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
@@ -96,6 +105,7 @@ const OUTREACH_CHANNEL_LABEL: Record<OutreachChannel, string> = {
   PHONE: 'Phone',
   TEXT: 'Text',
   MEETING: 'Meeting',
+  OTHER: 'Message',
 }
 
 // A contact counts as job-relevant two ways: manually flagged as able to
@@ -186,8 +196,31 @@ const loadAutomaticTrackingData = cache(async function loadAutomaticTrackingData
   const [emailActivities, calendarEvents, reconciliation] = await Promise.all([
     emailConnection
       ? prisma.trackedEmailActivity.findMany({
-          where: { candidateId: profile.id, dismissedAt: null },
+          // Only the rows the tiles below read, and only the columns they read: an account
+          // with years of synced mail has tens of thousands of rows, almost all of them
+          // job-alert and notification mail none of these filters match.
+          where: {
+            candidateId: profile.id,
+            dismissedAt: null,
+            OR: [
+              { direction: 'OUTBOUND', activityType: { in: NETWORKING_EMAIL_TYPES } },
+              { direction: 'OUTBOUND', hasResumeAttachment: true },
+              { activityType: { in: ['FOLLOW_UP', 'CHECK_IN', 'THANK_YOU', 'INTRO_REQUEST'] } },
+              { activityType: 'NETWORKING_OUTREACH', confidence: 'high' },
+            ],
+          },
           orderBy: { detectedAt: 'desc' },
+          select: {
+            id: true,
+            subject: true,
+            companyName: true,
+            detectedAt: true,
+            direction: true,
+            activityType: true,
+            confidence: true,
+            hasResumeAttachment: true,
+            fromAddress: true,
+          },
         })
       : Promise.resolve([]),
     calendarConnection
@@ -619,6 +652,59 @@ export default async function NetworkPage({
     outreachCount: c._count.outreachLogs,
   }))
 
+  // The redesign (docs/candidate-redesign.md): the five circles, one next move, the moments in reach. The
+  // outreach tracker, Gmail and calendar connection results and the stats stay one link away (?view=all).
+  const isOAuthReturn = Boolean(params.gmailConnected || params.gmailError || params.calendarConnected || params.calendarError)
+  if (isRedesignOn(profile.email) && params.view !== 'all' && !isOAuthReturn) {
+    const [supporters, communities, plan] = await Promise.all([
+      prisma.searchSupporter.count({ where: { candidateId: profile.id, revokedAt: null } }),
+      prisma.communityMembership.count({ where: { candidateId: profile.id, leftAt: null } }),
+      getWeeklyOutreachPlan(profile.id),
+    ])
+    const input = {
+      supporters,
+      hasCoach: Boolean(profile.coachId),
+      contacts: contactCount,
+      followUpsDue: needsFollowUp.length,
+      alumniGroups: alumniGroups.map((g) => g.name),
+      communities,
+      candidatePlus: Boolean(profile.candidatePlusUnlockedAt) && !profile.candidatePlusRevokedAt,
+      outreachSent: outreachLogs.length,
+      outreachTarget: DOSSIER_UNLOCK_OUTREACH_TARGET,
+      priorityStarred: starredCount,
+      priorityTarget: PRIORITY_CONTACT_TARGET_COUNT,
+    }
+    const top = plan[0]
+    const next = top
+      ? {
+          title: `Write to ${top.name}${top.company ? ` at ${top.company}` : ''}.`,
+          why: top.reason,
+          sendLabel: 'Draft the message',
+          href: `/dashboard/network/contacts/${top.contactId}?${new URLSearchParams({ purpose: top.purpose, ask: top.askSize, hook: top.hook, from: 'this-week', ...(top.roleTitle ? { role: top.roleTitle } : {}) }).toString()}#outreach-coach`,
+        }
+      : null
+    captureServerEvent(profile.id, 'network_home_viewed', {
+      supporters,
+      contacts: contactCount,
+      followUpsDue: needsFollowUp.length,
+      alumniGroups: alumniGroups.length,
+      communities,
+      hasNextMove: Boolean(top),
+      nextMoveContactId: top?.contactId ?? null,
+    })
+    return (
+      <div className="space-y-8">
+        <Suspense fallback={null}>
+          <TuneStripSection profile={profile} title="Warmer introductions: tune who you reach" />
+        </Suspense>
+        <NetworkOverview circles={buildCircles(input)} headline={networkHeadline(input)} next={next} moments={buildMoments(input)} />
+        <Link href="/dashboard/network?view=all" className="inline-block text-sm font-medium text-brand underline underline-offset-4">
+          See your outreach tracker and stats
+        </Link>
+      </div>
+    )
+  }
+
   if (!profile.networkComfortLevel) {
     return (
       <div className="space-y-6">
@@ -705,6 +791,10 @@ export default async function NetworkPage({
       <BackchannelMatchesCard matches={backchannelMatches} />
 
       <AlumniNetworkCarousel groups={alumniGroups} />
+
+      <Suspense fallback={null}>
+        <RecruitersForYouCard candidateId={profile.id} />
+      </Suspense>
 
       {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
       {/* §4.6 hard block leaves no EmailConnection row behind, so

@@ -58,6 +58,8 @@ export interface WeekPoint { weekStart: Date; applied: number; interviews: numbe
 export interface SearchDiagnosis {
   totals: { applications: number; interviews: number; rejections: number; offers: number; noReplyYet: number }
   interviewRate: number | null
+  /** Networking touches (logged outreach plus networking emails sent) in the last 28 days and the 28 before. */
+  outreach: { last28: number; prior28: number }
   checks: DiagnosisCheck[]
   ideas: string[]
   weeks: WeekPoint[]
@@ -344,6 +346,7 @@ export function diagnoseSearch(input: DiagnosisInput): SearchDiagnosis {
   return {
     totals: { applications: apps.length, interviews, rejections, offers, noReplyYet: noReply.length },
     interviewRate,
+    outreach: { last28: input.outreachLast28, prior28: input.outreachPrior28 },
     checks,
     ideas,
     weeks,

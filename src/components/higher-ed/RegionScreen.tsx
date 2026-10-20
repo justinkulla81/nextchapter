@@ -8,6 +8,7 @@
 
 import { ExternalLink, Landmark, MapPin, Newspaper, TrendingDown } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { CareerOneStopCredit } from '@/components/attribution/CareerOneStopCredit'
 import { regionAreas, type InstitutionProfile, type Sourced } from '@/lib/higher-ed/profile'
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -105,11 +106,24 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
   ])
 
   const board = profile.workforce?.board
+  // Many filings name no county: fall back to the region's states, and only
+  // blame coverage when a state has no filings on file at all.
+  const states = [...new Set(areas.map((a) => a.state))]
+  const stateWarn = warn.length
+    ? []
+    : await prisma.warnNotice.findMany({
+        where: { dismissedAt: null, noticeDate: { gte: since }, state: { in: states } },
+        orderBy: { noticeDate: 'desc' },
+        take: 10,
+        select: { id: true, employer: true, county: true, noticeDate: true, employees: true, sourceUrl: true },
+      })
+  const covered = warn.length || stateWarn.length ? true : (await prisma.warnNotice.count({ where: { state: { in: states } } })) > 0
+  const shownWarn = warn.length ? warn : stateWarn
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        {region.name}. Public figures with their sources; nothing here is about an individual alum.
+        {region.name}. Public figures with their sources; nothing here is about any one person.
       </p>
 
       {region.unemployment?.length ? (
@@ -187,7 +201,7 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
                   )}
                 </li>
               ))}
-              <li className="text-[11px] text-muted-foreground">Source: CareerOneStop directory, synced by NextChapter</li>
+              <li><CareerOneStopCredit surface="higher_ed_region" label="Source: directory synced by NextChapter from" className="text-[11px]" /></li>
             </ul>
           ) : board ? (
             <div className="text-sm">
@@ -221,9 +235,10 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
         </Panel>
 
         <Panel title="WARN layoff notices (last 12 months)" icon={TrendingDown}>
-          {warn.length > 0 ? (
+          {shownWarn.length > 0 ? (
             <ul className="divide-y divide-border text-sm">
-              {warn.map((w) => (
+              {!warn.length && <li className="py-1.5 text-muted-foreground">None name your counties; these are the latest across {states.join(' and ')}.</li>}
+              {shownWarn.map((w) => (
                 <li key={w.id} className="flex justify-between gap-3 py-1.5">
                   <span>
                     <span className="font-medium">{w.employer}</span>
@@ -238,8 +253,9 @@ export async function RegionScreen({ profile }: { profile: InstitutionProfile })
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">
-              None on file. NextChapter&apos;s WARN sync doesn&apos;t cover {areas.map((a) => a.state).join(' or ')} filings yet; once it does, notices for these counties appear
-              here and match against your alumni automatically.
+              {covered
+                ? 'No WARN filings in the last 12 months.'
+                : `None on file. NextChapter’s WARN sync doesn’t cover ${states.join(' or ')} filings yet; once it does, notices for these counties appear here automatically.`}
             </p>
           )}
         </Panel>

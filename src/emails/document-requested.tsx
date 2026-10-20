@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface DocumentRequestedEmailProps {
   requesterLabel: string
@@ -43,6 +44,7 @@ export default function DocumentRequestedEmail({ requesterLabel, title, instruct
         Upload the document
       </a>
       <p style={footer}>You can upload from your NextChapter dashboard under Documents. If you were not expecting this, you can ignore this email.</p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

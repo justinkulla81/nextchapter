@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import type { Course } from '@prisma/client'
 import type { LearningResource } from '@/lib/constants/learning-partners'
+import { aiSkillLabelsForCourse } from '@/lib/learning/ai-course-tags'
 
 export { COURSE_SKILL_LEVELS, COURSE_SKILL_LEVEL_LABELS, defaultSkillLevel } from '@/lib/constants/course-skill-level'
 
@@ -27,6 +28,7 @@ export function toLearningResource(course: Course): LearningResource {
     free: course.free,
     actionType: 'LEARNING_MODULE',
     logoUrl: course.logoUrl,
+    aiSkills: aiSkillLabelsForCourse(course.url),
   }
 }
 

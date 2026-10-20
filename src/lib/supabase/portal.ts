@@ -6,7 +6,7 @@
 // src/lib/auth/switch-role.ts's own comment for the spec this implements
 // ("Partners Master Build Script §A1.2.1" — separate sessions, explicit
 // re-auth, persistent context banner).
-export type PortalKey = 'recruiter' | 'coach' | 'talent' | 'employer' | 'nen' | 'eqoveriq' | 'admin'
+export type PortalKey = 'recruiter' | 'coach' | 'talent' | 'employer' | 'nen' | 'eqoveriq' | 'admin' | 'org'
 
 export const PORTAL_COOKIE_NAMES: Record<PortalKey, string> = {
   recruiter: 'sb-recruiter-auth-token',
@@ -16,6 +16,10 @@ export const PORTAL_COOKIE_NAMES: Record<PortalKey, string> = {
   nen: 'sb-nen-employer-auth-token',
   eqoveriq: 'sb-eqoveriq-auth-token',
   admin: 'sb-admin-auth-token',
+  // College and workforce org portals (/highered/<slug>, /workforce/<slug>,
+  // served from /i): staff, member companies and NextChapter admins.
+  // Members (alumni, participants) keep their candidate session there.
+  org: 'sb-org-auth-token',
 }
 
 // Longer/more specific prefixes first so a shorter one never shadows a more
@@ -29,6 +33,9 @@ export const PORTAL_PATH_PREFIXES: [string, PortalKey][] = [
   ['/employer', 'employer'],
   ['/noexperience/employers', 'nen'],
   ['/eqoveriq/contributors', 'eqoveriq'],
+  ['/highered', 'org'],
+  ['/workforce', 'org'],
+  ['/i', 'org'],
 ]
 
 // Boundary-aware — plain startsWith would treat '/employer' as a match for

@@ -9,13 +9,16 @@ import {
   matchClickToApplication,
   myJobsFunnel,
   shouldAskDidYouApply,
+  PROMPT_UNTIL_DAYS,
   skillsGapInsight,
   type ApplicationStatus,
   type JobStatus,
   type MyJobsFunnel,
   type SkillsGapInsight,
 } from '@/lib/jobs/my-jobs'
-import { classifyWorkType, isWorkType, type WorkType } from '@/lib/jobs/work-type'
+import { classifyWorkType, isWorkType, type JobWorkType } from '@/lib/jobs/work-type'
+import { loadPostingLifecycles } from '@/lib/jobs/past-jobs-data'
+import { lifecycleBadge, lifecycleSentence, type JobLifecycleStatus } from '@/lib/jobs/job-status'
 
 /** Which board a tracked job came from — same values as JobClickEvent.source. */
 export type TrackSource = 'job_board' | 'surfaced' | 'matched_role'
@@ -26,7 +29,7 @@ export interface TrackRef {
   title: string
   companyName: string | null
   url: string | null
-  workType: WorkType
+  workType: JobWorkType
 }
 
 export const trackKey = (source: string, sourceId: string) => `${source}:${sourceId}`
@@ -44,7 +47,7 @@ export interface MyJobItem {
   title: string
   companyName: string | null
   url: string | null
-  workType: WorkType | null
+  workType: JobWorkType | null
   status: JobStatus
   /** Where we learned of it: saved on the board, applied on the board, found in Gmail, or logged in the tracker. */
   origin: 'board' | 'email' | 'tracker'
@@ -53,6 +56,16 @@ export interface MyJobItem {
   date: Date
   nextStep: string
   ref: TrackRef | null
+  /** For a board job that has closed or aged out since it was saved (job-status.ts); null while it is live. */
+  listing: PastListing | null
+}
+
+/** A saved/applied board job that is no longer listed: shown with a status banner, never silently dropped. */
+export interface PastListing {
+  status: Extract<JobLifecycleStatus, 'closed' | 'expired'>
+  badge: string
+  sentence: string
+  closedAt: Date
 }
 
 export interface ApplyPrompt {
@@ -140,6 +153,37 @@ async function linkEmailApplications(candidateId: string, tracked: (TrackedJob &
   }
 }
 
+/** At most this many opened jobs in the one batched "Did you apply?" prompt. */
+export const MAX_APPLY_PROMPTS = 5
+
+/**
+ * The "Did you apply?" prompt for Home: only the jobs opened in the last 7 days with no
+ * application yet. Links Gmail-detected applications first (the same matcher My jobs runs),
+ * so a job Gmail already logged is never asked about.
+ */
+export async function loadApplyPrompts(candidateId: string, now: Date = new Date()): Promise<ApplyPrompt[]> {
+  const since = new Date(now.getTime() - PROMPT_UNTIL_DAYS * 86_400_000)
+  const tracked = await prisma.trackedJob.findMany({
+    where: { candidateId, lastClickedAt: { gte: since }, jobPostingId: null, dismissedAt: null },
+    include: { jobPosting: true },
+    orderBy: { lastClickedAt: 'desc' },
+    take: 50,
+  })
+  if (tracked.length === 0) return []
+  try {
+    const emailApps = await prisma.jobPosting.findMany({
+      where: { candidateId, source: 'EMAIL_DETECTED', appliedAt: { gte: new Date(since.getTime() - 86_400_000) }, trackedJob: null },
+    })
+    if (emailApps.length > 0) await linkEmailApplications(candidateId, tracked, emailApps)
+  } catch (error) {
+    console.error('Apply prompts: linking email applications failed', error)
+  }
+  return tracked
+    .filter((t) => shouldAskDidYouApply({ ...t, applied: !!applicationStatus(t.jobPosting) }, now))
+    .slice(0, MAX_APPLY_PROMPTS)
+    .map((t) => ({ trackedJobId: t.id, title: t.title, companyName: t.companyName, clickedAt: t.lastClickedAt! }))
+}
+
 export async function loadMyJobs(
   candidateId: string,
   memberKeywords: string[],
@@ -151,7 +195,8 @@ export async function loadMyJobs(
       where: { candidateId, reaction: 'INTERESTED' },
       select: { id: true, title: true, companyName: true, url: true, description: true, reactedAt: true, surfacedAt: true },
     }),
-    prisma.jobPosting.findMany({ where: { candidateId, appliedAt: { not: null } }, orderBy: { appliedAt: 'desc' }, take: 500 }),
+    // Weekly check-in counts are numbers, not jobs: they count toward Candidate+ but aren't listed.
+    prisma.jobPosting.findMany({ where: { candidateId, appliedAt: { not: null }, selfReportKey: null }, orderBy: { appliedAt: 'desc' }, take: 500 }),
     prisma.companyWatchlistEntry.findMany({ where: { candidateId }, select: { companyNameNormalized: true } }),
   ])
 
@@ -195,6 +240,7 @@ export async function loadMyJobs(
       date: dateOf(status, t.savedAt, app, t.updatedAt),
       nextStep: NEXT_STEP[status],
       ref: refOf(t),
+      listing: null,
     })
   }
 
@@ -218,6 +264,7 @@ export async function loadMyJobs(
       date: s.reactedAt ?? s.surfacedAt,
       nextStep: NEXT_STEP.saved,
       ref: { source: 'surfaced', sourceId: s.id, title: s.title, companyName: s.companyName, url: s.url, workType },
+      listing: null,
     })
   }
 
@@ -239,8 +286,11 @@ export async function loadMyJobs(
       date: dateOf(status, null, a, a.createdAt),
       nextStep: NEXT_STEP[status],
       ref: null,
+      listing: null,
     })
   }
+
+  await attachPastListings(items, now)
 
   const order: Record<JobStatus, number> = { offer: 0, interviewing: 1, applied: 2, saved: 3, closed: 4 }
   items.sort((x, y) => order[x.status] - order[y.status] || y.date.getTime() - x.date.getTime())
@@ -254,11 +304,32 @@ export async function loadMyJobs(
 
   return {
     items,
-    prompts: prompts.sort((a, b) => b.clickedAt.getTime() - a.clickedAt.getTime()).slice(0, 3),
+    prompts: prompts.sort((a, b) => b.clickedAt.getTime() - a.clickedAt.getTime()).slice(0, MAX_APPLY_PROMPTS),
     funnel,
     insight,
     cardStates,
     watchedCompanies: new Set(watch.map((w) => w.companyNameNormalized)),
+  }
+}
+
+/**
+ * Marks board jobs that have closed or aged out since the member saved or applied
+ * (job-status.ts) — My jobs shows them with a banner and alternatives instead of
+ * letting them silently disappear. Best-effort: a failed read leaves them unmarked.
+ */
+async function attachPastListings(items: MyJobItem[], now: Date) {
+  const ids = items.filter((i) => i.ref?.source === 'job_board').map((i) => i.ref!.sourceId)
+  if (ids.length === 0) return
+  try {
+    const lives = await loadPostingLifecycles(ids, now)
+    for (const i of items) {
+      if (i.ref?.source !== 'job_board') continue
+      const l = lives.get(i.ref.sourceId)
+      if (!l || !l.isPast || !l.closedAt || (l.status !== 'closed' && l.status !== 'expired')) continue
+      i.listing = { status: l.status, badge: lifecycleBadge(l), sentence: lifecycleSentence(l) ?? '', closedAt: l.closedAt }
+    }
+  } catch (error) {
+    console.error('My jobs: could not load listing status', error)
   }
 }
 
@@ -272,17 +343,17 @@ async function loadInsight(
   const live = items.filter((i) => i.status !== 'closed')
   const boardIds = live.filter((i) => i.ref?.source === 'job_board').map((i) => i.ref!.sourceId)
   const postings = boardIds.length
-    ? await prisma.exclusiveJobPosting.findMany({ where: { id: { in: boardIds } }, select: { id: true, title: true, description: true, skills: true } })
+    ? await prisma.exclusiveJobPosting.findMany({ where: { id: { in: boardIds } }, select: { id: true, title: true, description: true, skills: true, aiSkillItems: true } })
     : []
   const byId = new Map(postings.map((p) => [p.id, p]))
   const surfacedById = new Map(surfaced.map((s) => [s.id, s]))
   const appById = new Map(apps.map((a) => [a.id, a]))
   const gaps: { id: string; gap: JobSkillGap }[] = []
   for (const i of live) {
-    let input: { title: string; description: string | null; skills?: string[] } | null = null
+    let input: { title: string; description: string | null; skills?: string[]; aiSkillItems?: string[] } | null = null
     if (i.ref?.source === 'job_board') {
       const p = byId.get(i.ref.sourceId)
-      if (p) input = { title: p.title, description: p.description, skills: p.skills }
+      if (p) input = { title: p.title, description: p.description, skills: p.skills, aiSkillItems: p.aiSkillItems }
     } else if (i.ref?.source === 'surfaced') {
       const s = surfacedById.get(i.ref.sourceId)
       if (s) input = { title: s.title, description: s.description }

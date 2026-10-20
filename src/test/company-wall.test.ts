@@ -120,6 +120,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/candidates/lead-source.ts': 'attribution, writes only',
     'src/lib/candidates/link-invite.ts': 'attribution, writes only',
     'src/lib/companies/company-graph-sync.ts': 'nightly job: links CRM orgs to companies',
+    'src/lib/companies/merge-company.ts': 'admin-only: imported only by the CRM Duplicates actions; merges two companies and their CRM organizations',
     'src/lib/contact/process-submission.ts': 'contact form writes a CRM lead',
     'src/lib/geo/local-partners.ts': 'admin geography tooling',
     'src/lib/help/crm-note.ts': 'help request writes a CRM note',
@@ -131,7 +132,10 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/mailing/prompt-cards.ts': 'admin mailing',
     'src/lib/mailing/tracking.ts': 'admin mailing',
     'src/lib/warn/layoff-contacts-run.ts': 'admin WARN tooling',
-    'src/lib/warn/layoff-alert.ts': 'admin WARN tooling: emails the owner about a new layoff; imported only by WARN sync, news-check and the SEC 8-K check',
+    'src/lib/outreach/events.ts': 'admin outreach: Resend webhook handler for tagged cold email; marks bounced or complaining addresses',
+    'src/lib/warn/layoff-hr-enrich.ts': 'admin WARN tooling: imported only by the layoff alert; adds HR people at the employer to the CRM when a layoff is filed',
+    'src/lib/warn/layoff-alert-people.ts': 'admin WARN tooling: imported only by the layoff alert; lists the CRM and workforce contacts tied to one layoff',
+    'src/lib/warn/layoff-alert.ts':'admin WARN tooling: emails the owner about a new layoff; imported only by WARN sync, news-check and the SEC 8-K check',
     'src/lib/warn/layoff-primary-run.ts': 'admin WARN tooling: imported only by the warn-sync and layoff-news crons',
     'src/lib/warn/news-check.ts': 'admin WARN tooling: imported only by the warn-sync and layoff-news crons',
     'src/lib/warn/sync.ts': 'admin WARN tooling',
@@ -144,6 +148,12 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/app/i/[slug]/export/[kind]/route.ts': "not the CRM: logs crmExchangeRun for a college's own CSV export (Higher Ed)",
     'src/lib/higher-ed/roi.ts': "not the CRM: reads crmExchangeRun for the college's last gift import date (Higher Ed)",
     'src/lib/institution/admin.ts': 'admin-only: creates a college workspace and its CRM college record',
+    // The one reviewed CRM reader a member's page reaches (approved by Justin, 2026-10-15).
+    // It returns ONLY MemberOrgSignal: a yes/no "we know someone at this employer" and a
+    // guessed address for the posting's own named contact from the employer's email
+    // format. No CRM person, title, note, email or status leaves it — pinned below and in
+    // src/test/who-to-contact.test.ts.
+    'src/lib/jobs/who-to-contact-crm.ts': 'member Who to contact: yes/no + format-based guess only (MemberOrgSignal)',
   }
 
   // No known violations. job-contacts.ts used to read CRM affiliations and show real CRM
@@ -176,6 +186,17 @@ describe('no indirect route from CRM data to a candidate', () => {
       }
     }
     expect(offenders).toEqual([])
+  })
+
+  it('the Who to contact CRM reader returns only the member-safe signal', () => {
+    const src = stripComments(read(join(ROOT, 'src/lib/jobs/who-to-contact-crm.ts')))
+    // Every exported reader returns MemberOrgSignal, and does so through toMemberOrgSignal.
+    expect(src).toMatch(/export async function loadMemberOrgSignal\([\s\S]*?\): Promise<MemberOrgSignal>/)
+    expect(src).toContain('return toMemberOrgSignal(')
+    expect(src.match(/export async function/g)).toHaveLength(1)
+    // The member-facing action never imports the CRM library itself.
+    const action = read(join(ROOT, 'src/app/dashboard/find-my-job/who-to-contact-actions.ts'))
+    expect(action).not.toMatch(/@\/lib\/crm\//)
   })
 
   it('job-contacts.ts reads no CRM table', () => {

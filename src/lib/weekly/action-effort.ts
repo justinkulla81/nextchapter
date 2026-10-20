@@ -852,9 +852,20 @@ export function formatMinutes(minutes: number): string {
 // first Weekly Search Sprint).
 const WEEKLY_POINTS_RAMP = [60, 75, 90, 105, 120]
 
-export function pointsNeededForA(weekNumber: number): number {
+// Someone looking casually (open to the right opportunity, maybe already doing
+// fractional or interim work) works to half the target. The grade's own
+// thresholds are unchanged: the weekly effort is a bounded nudge on top of
+// proof (references, results, Dossier), and that proof is what earns an A.
+export const CASUAL_PACE = 0.5
+
+export function paceFor(casual: boolean): number {
+  return casual ? CASUAL_PACE : 1
+}
+
+export function pointsNeededForA(weekNumber: number, pace = 1): number {
   const index = Math.min(Math.max(weekNumber, 1), WEEKLY_POINTS_RAMP.length) - 1
-  return WEEKLY_POINTS_RAMP[index]
+  const base = WEEKLY_POINTS_RAMP[index]
+  return pace === 1 ? base : Math.max(5, Math.round((base * pace) / 5) * 5)
 }
 
 // Grade bands below A are a NextChapter judgment call — the vision doc only

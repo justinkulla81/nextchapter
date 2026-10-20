@@ -3,6 +3,8 @@ import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import WeeklyGapNudgeEmail from '@/emails/weekly-gap-nudge'
 import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { getEngagementLead } from '@/lib/journey/engagement-data'
+import { captureServerEvent } from '@/lib/posthog/server'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 
 export async function sendWeeklyGapNudgeEmail(
@@ -26,6 +28,7 @@ export async function sendWeeklyGapNudgeEmail(
   const unsubscribeUrl = candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly')
 
   const pointsToGo = Math.max(0, weeklyPointsTarget - weeklyPoints)
+  const engagement = await getEngagementLead(candidate.id).catch(() => null)
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
@@ -38,6 +41,8 @@ export async function sendWeeklyGapNudgeEmail(
     react: WeeklyGapNudgeEmail({
       firstName: candidate.firstName,
       introCopy: introCopy ?? null,
+      engagement,
+      appUrl,
       weeklyPoints,
       weeklyPointsTarget,
       dashboardUrl,
@@ -51,6 +56,14 @@ export async function sendWeeklyGapNudgeEmail(
   }
 
   await recordCandidateEmailSent(candidate.id, 'GAP_NUDGE')
+  if (engagement) {
+    captureServerEvent(candidate.id, 'engagement_lead_emailed', {
+      email: 'GAP_NUDGE',
+      level: engagement.level,
+      steps: engagement.steps.map((x) => x.key),
+      gate: engagement.gate?.headline ?? null,
+    })
+  }
 
   return { sent: true as const }
 }

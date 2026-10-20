@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
-import { AUDIENCE_TIER_OPTIONS, DISTRIBUTION_OPTIONS } from '@/lib/jobs/job-board-visibility'
+import { DISTRIBUTION_OPTIONS } from '@/lib/jobs/job-board-visibility'
 import { getBlockedJobHost } from '@/lib/jobs/blocked-job-hosts'
 import { cn } from '@/lib/utils'
 import type { PendingJobMatchCount } from '@/lib/jobs/job-fit-bucket'
@@ -25,7 +25,6 @@ export function ExclusiveJobPostingForm({
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
   const [postingType, setPostingType] = useState<'direct' | 'recruiter_search' | null>(null)
-  const [audienceTier, setAudienceTier] = useState<'ALL_CANDIDATES' | 'A_LIST_ONLY' | null>('A_LIST_ONLY')
   const [distribution, setDistribution] = useState<'OPEN' | 'TARGETED' | null>('OPEN')
 
   // Autofilled from the URL, then freely editable — the fetch/LLM pass just
@@ -229,16 +228,7 @@ export function ExclusiveJobPostingForm({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4">
-        <div className="space-y-2">
-          <Label>Who can see this?</Label>
-          <ChoiceButtons
-            name="audienceTier"
-            options={AUDIENCE_TIER_OPTIONS}
-            value={audienceTier}
-            onChange={setAudienceTier}
-          />
-        </div>
+      <div className="rounded-lg border border-border p-4">
         <div className="space-y-2">
           <Label>Distribution</Label>
           <ChoiceButtons

@@ -67,7 +67,7 @@ export async function sendCampaign(args: {
         data: { institutionId: args.institutionId, type: args.type, subject: args.subject, body: args.body, createdBy: args.createdBy, sentAt: new Date() },
         select: { id: true },
       })
-  const resend = !inst.isDemo && process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
+  const resend = !inst.isDemo && process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY, 'candidate') : null
   const brand = inst.programBrandName ?? inst.name
   const sender = emailSettingsFrom(inst.enabledFeatures, inst)
   const sendIds = new Map<string, string>()

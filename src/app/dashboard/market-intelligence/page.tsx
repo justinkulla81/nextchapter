@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { Lock, TrendingUp, TrendingDown, Minus, Users, DollarSign, Building2, Sparkles, Mail } from 'lucide-react'
 import type { CompanyOwnershipType, CompanySizeBand } from '@prisma/client'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -28,6 +30,7 @@ import { getDecisionMakerSignals } from '@/lib/market-intelligence/decision-make
 import { getWarmPathCandidateContacts, matchWarmPathContacts } from '@/lib/market-intelligence/warm-paths'
 import { getLatestWeeklyBrief } from '@/lib/market-intelligence/weekly-brief'
 import { generateWeeklyBriefAction } from './actions'
+import { SectionSkeleton } from '@/components/ui/section-skeleton'
 
 export const metadata: Metadata = { title: 'Market Intelligence' }
 
@@ -74,46 +77,11 @@ export default async function MarketIntelligencePage({
   }
   const hasAnyFilter = !!(filters.trajectory || filters.sizeBand || filters.ownershipType || filters.hqMetro)
 
-  const [compBand, availableMetros, targetCompanies, latestBrief] = await Promise.all([
-    canCompBands
-      ? computeCompBandWithMarketFallback({ targetFunction, role: memberMarketRole(profile), state: profile.currentState })
-      : Promise.resolve(null),
-    canTargetList ? listAvailableTargetMetros() : Promise.resolve([]),
-    canTargetList ? searchTargetCompanies(filters, 20) : Promise.resolve([]),
-    canWeeklyBrief ? getLatestWeeklyBrief(profile.id) : Promise.resolve(null),
-  ])
-
-  // Decision-maker + warm-path enrichment only for the (already bounded to
-  // 20) companies actually rendered — never for the full Company table.
-  // The candidate's contact list is fetched once here (not once per
-  // company) — matchWarmPathContacts below is then pure in-memory work.
-  const warmPathContacts =
-    canTargetList && canContactData ? await getWarmPathCandidateContacts(profile.id) : []
-  const enrichment =
-    canTargetList && (canDecisionMakers || canContactData)
-      ? await Promise.all(
-          targetCompanies.map(async (c) => {
-            const [decisionMakers, warmPaths] = await Promise.all([
-              canDecisionMakers ? getDecisionMakerSignals(c.id, profile.id) : Promise.resolve([]),
-              canContactData ? Promise.resolve(matchWarmPathContacts(warmPathContacts, c.name)) : Promise.resolve([]),
-            ])
-            return { companyId: c.id, decisionMakers, warmPaths }
-          })
-        )
-      : []
-  const enrichmentByCompany = new Map(enrichment.map((e) => [e.companyId, e]))
-
   return (
     <div className="flex flex-col gap-6 pb-12">
       <div>
         <h1 className="font-heading text-2xl font-semibold text-foreground">Market Intelligence</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Who&apos;s hiring at your level, who to talk to, and what it pays — built from real NextChapter data, not a
-          resold data license.
-        </p>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Your current access level: <span className="font-medium text-foreground">{MARKET_INTEL_TIER_LABEL[tier]}</span>
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Who&apos;s hiring at your level, what it pays and who to talk to.</p>
       </div>
 
       {/* ── Comp bands ── */}
@@ -125,49 +93,50 @@ export default async function MarketIntelligencePage({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {!canCompBands ? (
-            <LockedFeature
-              feature="comp_bands"
-              description="See the real posted-salary range for your target function, computed from our own posting data."
-            />
-          ) : !compBand || !compBand.sufficientData || compBand.low === null || compBand.high === null ? (
-            <p className="text-sm text-muted-foreground">
-              Insufficient data to show a reliable comp band right now
-              {compBand && compBand.sampleSize > 0 ? ` (only ${compBand.sampleSize} posted salary range${compBand.sampleSize === 1 ? '' : 's'} on file)` : ''}.
-              Check back as more postings with salary data come in.
-            </p>
-          ) : compBand.source === 'adzuna' ? (
-            <div className="space-y-1">
-              <p className="text-sm">
-                <span className="font-medium">
-                  ${compBand.low.toLocaleString()}–${compBand.high.toLocaleString()} base
-                </span>{' '}
-                advertised for {compBand.adzunaRole} in {compBand.adzunaPlace}.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                The middle half of {compBand.sampleSize.toLocaleString()} advertised salaries on job postings across the
-                market. We don&apos;t have enough NC Job Board salary data for your target yet, so this comes from
-                Adzuna instead.
-              </p>
-              <AdzunaAttribution surface="comp_band" />
-            </div>
-          ) : (
-            <div className="space-y-1">
-              <p className="text-sm">
-                <span className="font-medium">
-                  ${compBand.low.toLocaleString()}–${compBand.high.toLocaleString()} base
-                </span>{' '}
-                {compBand.matchedOnFunction ? `for ${targetFunction}` : 'across comparable director+ roles'}.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Based on {compBand.sampleSize} real posted salary range{compBand.sampleSize === 1 ? '' : 's'} on the NC Job Board
-                {compBand.matchedOnFunction ? '' : " — not enough of your specific target function yet, so this is our broader director+ pool"}.
-              </p>
-            </div>
-          )}
+          <Suspense fallback={<SectionSkeleton label="Loading your comp band…" />}>
+            <CompBandBody canCompBands={canCompBands} targetFunction={targetFunction} profile={profile} />
+          </Suspense>
         </CardContent>
       </Card>
 
+      {/* ── Weekly brief ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="size-4" aria-hidden="true" />
+            Your weekly market brief
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Suspense fallback={<SectionSkeleton label="Loading your weekly brief…" />}>
+            <WeeklyBriefBody canWeeklyBrief={canWeeklyBrief} candidateId={profile.id} />
+          </Suspense>
+        </CardContent>
+      </Card>
+
+      {/* ── Target list builder ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="size-4" aria-hidden="true" />
+            Target list builder
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Suspense fallback={<SectionSkeleton label="Loading target companies…" lines={5} />}>
+            <TargetListBody
+              canTargetList={canTargetList}
+              canDecisionMakers={canDecisionMakers}
+              canContactData={canContactData}
+              filters={filters}
+              hasAnyFilter={hasAnyFilter}
+              candidateId={profile.id}
+            />
+          </Suspense>
+        </CardContent>
+      </Card>
+
+      <MoreDetails summary="More ways to find the right people">
       {/* ── Insider network ── */}
       <Card>
         <CardHeader>
@@ -187,194 +156,6 @@ export default async function MarketIntelligencePage({
               Open any company page and tag where you&apos;ve worked to see who else has worked there and ask them a
               question.
             </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ── Weekly brief ── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="size-4" aria-hidden="true" />
-            Your weekly market brief
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!canWeeklyBrief ? (
-            <LockedFeature
-              feature="weekly_brief"
-              description="A generated weekly summary of openings, comp movement, and warm paths at the companies you're targeting."
-            />
-          ) : (
-            <div className="flex flex-col gap-3">
-              {latestBrief ? (
-                <div className="rounded-lg border border-border p-3">
-                  <p className="text-xs text-muted-foreground">
-                    Week of {latestBrief.weekStartDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-                  </p>
-                  <p className="mt-1 whitespace-pre-line text-sm">{latestBrief.content}</p>
-                </div>
-              ) : (
-                <EmptyState
-                  icon={Sparkles}
-                  title="No brief generated yet"
-                  description="Add companies to your watchlist and tag your work history for the richest brief, then generate this week's."
-                />
-              )}
-              <form action={generateWeeklyBriefAction} className="w-fit">
-                <SubmitButton pendingLabel="Generating…" variant="outline" size="sm">
-                  Generate this week&apos;s brief
-                </SubmitButton>
-              </form>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* ── Target list builder ── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="size-4" aria-hidden="true" />
-            Target list builder
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!canTargetList ? (
-            <LockedFeature
-              feature="target_list_builder"
-              description="Filter companies by hiring trajectory, size, ownership, and geography to build a real target list."
-            />
-          ) : (
-            <div className="flex flex-col gap-4">
-              <form method="get" className="flex flex-wrap items-end gap-3">
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="trajectory" className="text-xs font-medium text-muted-foreground">
-                    Trajectory
-                  </label>
-                  <select id="trajectory" name="trajectory" defaultValue={filters.trajectory ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
-                    <option value="">Any</option>
-                    <option value="growing">Growing</option>
-                    <option value="flat">Flat</option>
-                    <option value="contracting">Contracting</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="sizeBand" className="text-xs font-medium text-muted-foreground">
-                    Size
-                  </label>
-                  <select id="sizeBand" name="sizeBand" defaultValue={filters.sizeBand ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
-                    <option value="">Any</option>
-                    {Object.entries(SIZE_BAND_LABEL).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="ownershipType" className="text-xs font-medium text-muted-foreground">
-                    Ownership
-                  </label>
-                  <select id="ownershipType" name="ownershipType" defaultValue={filters.ownershipType ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
-                    <option value="">Any</option>
-                    {Object.entries(OWNERSHIP_LABEL).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="hqMetro" className="text-xs font-medium text-muted-foreground">
-                    Metro
-                  </label>
-                  <select id="hqMetro" name="hqMetro" defaultValue={filters.hqMetro ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
-                    <option value="">Any</option>
-                    {availableMetros.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <SubmitButton pendingLabel="Filtering…" size="sm">
-                  Apply filters
-                </SubmitButton>
-                {hasAnyFilter && (
-                  <Link href="/dashboard/market-intelligence" className="text-xs text-muted-foreground underline underline-offset-4">
-                    Clear filters
-                  </Link>
-                )}
-              </form>
-
-              <p className="text-xs text-muted-foreground">
-                Ownership is admin-confirmed only, not automatically detected — companies without a confirmed PE/VC
-                relationship on file show as Unknown rather than being guessed.
-              </p>
-
-              {targetCompanies.length === 0 ? (
-                <EmptyState icon={Building2} title="No matching companies" description="Try widening your filters, or none of our tracked companies match yet." />
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-border text-xs text-muted-foreground">
-                        <th className="py-2 pr-3">Company</th>
-                        <th className="py-2 pr-3">Trajectory</th>
-                        <th className="py-2 pr-3">Size</th>
-                        <th className="py-2 pr-3">Ownership</th>
-                        <th className="py-2 pr-3">Metro</th>
-                        {canDecisionMakers && <th className="py-2 pr-3">Decision-makers</th>}
-                        {canContactData && <th className="py-2 pr-3">Warm paths</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {targetCompanies.map((c) => {
-                        const Icon = c.trajectory ? TRAJECTORY_ICON[c.trajectory as keyof typeof TRAJECTORY_ICON] : Minus
-                        const enriched = enrichmentByCompany.get(c.id)
-                        return (
-                          <tr key={c.id} className="border-b border-border/60">
-                            <td className="py-2 pr-3">
-                              <Link href={`/dashboard/companies/${encodeURIComponent(c.canonicalNameNormalized)}`} className="font-medium text-primary underline underline-offset-4">
-                                {c.name}
-                              </Link>
-                            </td>
-                            <td className="py-2 pr-3">
-                              {c.trajectory ? (
-                                <span className="flex items-center gap-1">
-                                  <Icon className="size-3.5" aria-hidden="true" />
-                                  {c.trajectory}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground">No signal yet</span>
-                              )}
-                            </td>
-                            <td className="py-2 pr-3">{c.sizeBand ? SIZE_BAND_LABEL[c.sizeBand] : <span className="text-muted-foreground">Unknown</span>}</td>
-                            <td className="py-2 pr-3">
-                              {c.ownershipType ? OWNERSHIP_LABEL[c.ownershipType] : <span className="text-muted-foreground">Unknown</span>}
-                            </td>
-                            <td className="py-2 pr-3">{c.hqMetro ?? <span className="text-muted-foreground">Unknown</span>}</td>
-                            {canDecisionMakers && (
-                              <td className="py-2 pr-3">
-                                {enriched && enriched.decisionMakers.length > 0
-                                  ? `${enriched.decisionMakers.length} current employee insider${enriched.decisionMakers.length === 1 ? '' : 's'}`
-                                  : '—'}
-                              </td>
-                            )}
-                            {canContactData && (
-                              <td className="py-2 pr-3">
-                                {enriched && enriched.warmPaths.length > 0 ? `${enriched.warmPaths.length} in your network` : '—'}
-                              </td>
-                            )}
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
           )}
         </CardContent>
       </Card>
@@ -425,6 +206,285 @@ export default async function MarketIntelligencePage({
           </p>
         </CardContent>
       </Card>
+        <p className="text-xs text-muted-foreground">
+          Your current access level: <span className="font-medium text-foreground">{MARKET_INTEL_TIER_LABEL[tier]}</span>
+        </p>
+      </MoreDetails>
     </div>
+  )
+}
+
+type DashboardProfile = Awaited<ReturnType<typeof getDashboardProfile>>
+
+async function CompBandBody({
+  canCompBands,
+  targetFunction,
+  profile,
+}: {
+  canCompBands: boolean
+  targetFunction: DashboardProfile['targetFunction']
+  profile: DashboardProfile
+}) {
+  const compBand = canCompBands
+    ? await computeCompBandWithMarketFallback({ targetFunction, role: memberMarketRole(profile), state: profile.currentState })
+    : null
+  return (
+    <>
+    {!canCompBands ? (
+      <LockedFeature
+        feature="comp_bands"
+        description="See the real posted-salary range for your target function, computed from our own posting data."
+      />
+    ) : !compBand || !compBand.sufficientData || compBand.low === null || compBand.high === null ? (
+      <p className="text-sm text-muted-foreground">
+        Insufficient data to show a reliable comp band right now
+        {compBand && compBand.sampleSize > 0 ? ` (only ${compBand.sampleSize} posted salary range${compBand.sampleSize === 1 ? '' : 's'} on file)` : ''}.
+        Check back as more postings with salary data come in.
+      </p>
+    ) : compBand.source === 'adzuna' ? (
+      <div className="space-y-1">
+        <p className="text-sm">
+          <span className="font-medium">
+            ${compBand.low.toLocaleString()}–${compBand.high.toLocaleString()} base
+          </span>{' '}
+          advertised for {compBand.adzunaRole} in {compBand.adzunaPlace}.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          The middle half of {compBand.sampleSize.toLocaleString()} advertised salaries on job postings across the
+          market. We don&apos;t have enough NC Job Board salary data for your target yet, so this comes from
+          Adzuna instead.
+        </p>
+        <AdzunaAttribution surface="comp_band" />
+      </div>
+    ) : (
+      <div className="space-y-1">
+        <p className="text-sm">
+          <span className="font-medium">
+            ${compBand.low.toLocaleString()}–${compBand.high.toLocaleString()} base
+          </span>{' '}
+          {compBand.matchedOnFunction ? `for ${targetFunction}` : 'across comparable director+ roles'}.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Based on {compBand.sampleSize} real posted salary range{compBand.sampleSize === 1 ? '' : 's'} on the NC Job Board
+          {compBand.matchedOnFunction ? '' : " — not enough of your specific target function yet, so this is our broader director+ pool"}.
+        </p>
+      </div>
+    )}
+    </>
+  )
+}
+
+async function WeeklyBriefBody({ canWeeklyBrief, candidateId }: { canWeeklyBrief: boolean; candidateId: string }) {
+  const latestBrief = canWeeklyBrief ? await getLatestWeeklyBrief(candidateId) : null
+  return (
+    <>
+    {!canWeeklyBrief ? (
+      <LockedFeature
+        feature="weekly_brief"
+        description="A generated weekly summary of openings, comp movement, and warm paths at the companies you're targeting."
+      />
+    ) : (
+      <div className="flex flex-col gap-3">
+        {latestBrief ? (
+          <div className="rounded-lg border border-border p-3">
+            <p className="text-xs text-muted-foreground">
+              Week of {latestBrief.weekStartDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+            </p>
+            <p className="mt-1 whitespace-pre-line text-sm">{latestBrief.content}</p>
+          </div>
+        ) : (
+          <EmptyState
+            icon={Sparkles}
+            title="No brief generated yet"
+            description="Add companies to your watchlist and tag your work history for the richest brief, then generate this week's."
+          />
+        )}
+        <form action={generateWeeklyBriefAction} className="w-fit">
+          <SubmitButton pendingLabel="Generating…" variant="outline" size="sm">
+            Generate this week&apos;s brief
+          </SubmitButton>
+        </form>
+      </div>
+    )}
+    </>
+  )
+}
+
+async function TargetListBody({
+  canTargetList,
+  canDecisionMakers,
+  canContactData,
+  filters,
+  hasAnyFilter,
+  candidateId,
+}: {
+  canTargetList: boolean
+  canDecisionMakers: boolean
+  canContactData: boolean
+  filters: TargetListFilters
+  hasAnyFilter: boolean
+  candidateId: string
+}) {
+  // The metro list, the company search and the candidate's contact list are independent reads.
+  const [availableMetros, targetCompanies, warmPathContacts] = await Promise.all([
+    canTargetList ? listAvailableTargetMetros() : Promise.resolve([]),
+    canTargetList ? searchTargetCompanies(filters, 20) : Promise.resolve([]),
+    canTargetList && canContactData ? getWarmPathCandidateContacts(candidateId) : Promise.resolve([]),
+  ])
+  // Decision-maker + warm-path enrichment only for the (already bounded to
+  // 20) companies actually rendered — never for the full Company table.
+  // matchWarmPathContacts below is pure in-memory work.
+  const enrichment =
+    canTargetList && (canDecisionMakers || canContactData)
+      ? await Promise.all(
+          targetCompanies.map(async (c) => {
+            const [decisionMakers, warmPaths] = await Promise.all([
+              canDecisionMakers ? getDecisionMakerSignals(c.id, candidateId) : Promise.resolve([]),
+              canContactData ? Promise.resolve(matchWarmPathContacts(warmPathContacts, c.name)) : Promise.resolve([]),
+            ])
+            return { companyId: c.id, decisionMakers, warmPaths }
+          })
+        )
+      : []
+  const enrichmentByCompany = new Map(enrichment.map((e) => [e.companyId, e]))
+  return (
+    <>
+    {!canTargetList ? (
+      <LockedFeature
+        feature="target_list_builder"
+        description="Filter companies by hiring trajectory, size, ownership, and geography to build a real target list."
+      />
+    ) : (
+      <div className="flex flex-col gap-4">
+        <form method="get" className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="trajectory" className="text-xs font-medium text-muted-foreground">
+              Trajectory
+            </label>
+            <select id="trajectory" name="trajectory" defaultValue={filters.trajectory ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
+              <option value="">Any</option>
+              <option value="growing">Growing</option>
+              <option value="flat">Flat</option>
+              <option value="contracting">Contracting</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="sizeBand" className="text-xs font-medium text-muted-foreground">
+              Size
+            </label>
+            <select id="sizeBand" name="sizeBand" defaultValue={filters.sizeBand ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
+              <option value="">Any</option>
+              {Object.entries(SIZE_BAND_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="ownershipType" className="text-xs font-medium text-muted-foreground">
+              Ownership
+            </label>
+            <select id="ownershipType" name="ownershipType" defaultValue={filters.ownershipType ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
+              <option value="">Any</option>
+              {Object.entries(OWNERSHIP_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="hqMetro" className="text-xs font-medium text-muted-foreground">
+              Metro
+            </label>
+            <select id="hqMetro" name="hqMetro" defaultValue={filters.hqMetro ?? ''} className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm">
+              <option value="">Any</option>
+              {availableMetros.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+          <SubmitButton pendingLabel="Filtering…" size="sm">
+            Apply filters
+          </SubmitButton>
+          {hasAnyFilter && (
+            <Link href="/dashboard/market-intelligence" className="text-xs text-muted-foreground underline underline-offset-4">
+              Clear filters
+            </Link>
+          )}
+        </form>
+
+        <p className="text-xs text-muted-foreground">
+          Ownership is admin-confirmed only, not automatically detected — companies without a confirmed PE/VC
+          relationship on file show as Unknown rather than being guessed.
+        </p>
+
+        {targetCompanies.length === 0 ? (
+          <EmptyState icon={Building2} title="No matching companies" description="Try widening your filters, or none of our tracked companies match yet." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs text-muted-foreground">
+                  <th className="py-2 pr-3">Company</th>
+                  <th className="py-2 pr-3">Trajectory</th>
+                  <th className="py-2 pr-3">Size</th>
+                  <th className="py-2 pr-3">Ownership</th>
+                  <th className="py-2 pr-3">Metro</th>
+                  {canDecisionMakers && <th className="py-2 pr-3">Decision-makers</th>}
+                  {canContactData && <th className="py-2 pr-3">Warm paths</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {targetCompanies.map((c) => {
+                  const Icon = c.trajectory ? TRAJECTORY_ICON[c.trajectory as keyof typeof TRAJECTORY_ICON] : Minus
+                  const enriched = enrichmentByCompany.get(c.id)
+                  return (
+                    <tr key={c.id} className="border-b border-border/60">
+                      <td className="py-2 pr-3">
+                        <Link href={`/dashboard/companies/${encodeURIComponent(c.canonicalNameNormalized)}`} className="font-medium text-primary underline underline-offset-4">
+                          {c.name}
+                        </Link>
+                      </td>
+                      <td className="py-2 pr-3">
+                        {c.trajectory ? (
+                          <span className="flex items-center gap-1">
+                            <Icon className="size-3.5" aria-hidden="true" />
+                            {c.trajectory}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">No signal yet</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3">{c.sizeBand ? SIZE_BAND_LABEL[c.sizeBand] : <span className="text-muted-foreground">Unknown</span>}</td>
+                      <td className="py-2 pr-3">
+                        {c.ownershipType ? OWNERSHIP_LABEL[c.ownershipType] : <span className="text-muted-foreground">Unknown</span>}
+                      </td>
+                      <td className="py-2 pr-3">{c.hqMetro ?? <span className="text-muted-foreground">Unknown</span>}</td>
+                      {canDecisionMakers && (
+                        <td className="py-2 pr-3">
+                          {enriched && enriched.decisionMakers.length > 0
+                            ? `${enriched.decisionMakers.length} current employee insider${enriched.decisionMakers.length === 1 ? '' : 's'}`
+                            : '—'}
+                        </td>
+                      )}
+                      {canContactData && (
+                        <td className="py-2 pr-3">
+                          {enriched && enriched.warmPaths.length > 0 ? `${enriched.warmPaths.length} in your network` : '—'}
+                        </td>
+                      )}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    )}
+    </>
   )
 }

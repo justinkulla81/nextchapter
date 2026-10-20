@@ -53,13 +53,13 @@ export function unwrapFeedLink(link: string): string | null {
 }
 
 /** One topic's articles from the past week, as the news search returns them. */
-export async function searchTopic(query: string): Promise<DiscoveredArticle[]> {
+export async function searchTopic(query: string, opts: { anyTime?: boolean } = {}): Promise<DiscoveredArticle[]> {
   const url = new URL('https://www.bing.com/news/search')
   url.searchParams.set('q', query)
   url.searchParams.set('format', 'rss')
   url.searchParams.set('setlang', 'en-US')
   url.searchParams.set('cc', 'US')
-  url.searchParams.set('qft', 'interval="8"') // past week
+  if (!opts.anyTime) url.searchParams.set('qft', 'interval="8"') // past week; Bing has no past-year filter
   const res = await fetch(url, { signal: AbortSignal.timeout(10_000), headers: HEADERS })
   if (!res.ok) throw new Error(`News search failed: ${res.status}`)
   return parseFeed(await res.text())
@@ -91,9 +91,9 @@ export function parseGoogleFeed(xml: string): DiscoveredArticle[] {
 }
 
 /** One query's articles from the past week on Google News, a second source beside Bing. */
-export async function searchGoogleNews(query: string): Promise<DiscoveredArticle[]> {
+export async function searchGoogleNews(query: string, opts: { days?: number } = {}): Promise<DiscoveredArticle[]> {
   const url = new URL('https://news.google.com/rss/search')
-  url.searchParams.set('q', `${query} when:7d`)
+  url.searchParams.set('q', `${query} when:${opts.days ?? 7}d`)
   url.searchParams.set('hl', 'en-US')
   url.searchParams.set('gl', 'US')
   url.searchParams.set('ceid', 'US:en')

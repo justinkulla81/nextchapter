@@ -11,6 +11,7 @@ import { ApplyPrompts } from './ApplyPrompts'
 import { SkillsGapInsightCard } from './SkillsGapInsightCard'
 import { MyJobsViewed } from './MyJobsViewed'
 import { ApplicationStatusButtons } from './ApplicationStatusButtons'
+import { ClosedJobAlternatives } from '@/components/jobs/ClosedJobAlternatives'
 
 const STATUS_STYLE: Record<JobStatus, string> = {
   saved: 'bg-muted text-foreground',
@@ -22,7 +23,7 @@ const STATUS_STYLE: Record<JobStatus, string> = {
 
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
-function Funnel({ funnel }: { funnel: MyJobsView['funnel'] }) {
+export function MyJobsFunnel({ funnel }: { funnel: MyJobsView['funnel'] }) {
   const steps = [
     { label: 'Opened an application', n: funnel.clicked },
     { label: 'Applied', n: funnel.applied },
@@ -66,7 +67,7 @@ export function MyJobsPanel({ view }: { view: MyJobsView }) {
         </p>
       </div>
 
-      <Funnel funnel={view.funnel} />
+      <MyJobsFunnel funnel={view.funnel} />
 
       <ApplyPrompts prompts={view.prompts.map((p) => ({ trackedJobId: p.trackedJobId, title: p.title, companyName: p.companyName, clickedOn: fmt(p.clickedAt) }))} />
 
@@ -111,9 +112,23 @@ export function MyJobsPanel({ view }: { view: MyJobsView }) {
                         <Mail className="size-3" aria-hidden /> Found in your email
                       </span>
                     )}
+                    {item.listing && (
+                      <span className="rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground">{item.listing.badge}</span>
+                    )}
                     <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', STATUS_STYLE[item.status])}>{JOB_STATUS_LABEL[item.status]}</span>
                   </span>
                 </div>
+                {item.listing && item.ref && (
+                  <div role="status" className="space-y-1 rounded-md bg-muted px-3 py-2">
+                    <p className="text-sm text-foreground">
+                      {item.listing.sentence}{' '}
+                      <Link href={`/dashboard/jobs/${item.ref.sourceId}?src=my_jobs`} className="text-muted-foreground underline underline-offset-4">
+                        View the job
+                      </Link>
+                    </p>
+                    <ClosedJobAlternatives jobId={item.ref.sourceId} companyName={item.companyName} title={item.title} surface="my_jobs" />
+                  </div>
+                )}
                 {item.ref ? (
                   <JobTrackControls
                     jobRef={item.ref}

@@ -4,6 +4,7 @@ import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { getThreadWithMessages, markThreadRead } from '@/lib/messaging/threads'
 import { MessageBubbles } from '@/components/messaging/MessageBubbles'
 import { MessageComposer } from '@/components/messaging/MessageComposer'
+import { SharedResumeLinks } from '@/components/messaging/SharedResumeLinks'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { sendEmployerMessage } from '../actions'
 
@@ -35,6 +36,8 @@ export default async function EmployerThreadPage({ params }: { params: Promise<{
           <h1 className="text-2xl font-semibold tracking-tight">{candidateName}</h1>
         </div>
       </div>
+
+      <SharedResumeLinks messages={thread.messages} />
 
       <div className="rounded-lg border border-border">
         <MessageBubbles

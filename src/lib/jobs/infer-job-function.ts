@@ -199,6 +199,14 @@ export function inferFunctionFromTitle(title: string): string | null {
   return fn
 }
 
+/**
+ * Remembers a title's function worked out elsewhere by this same code (the board snapshot,
+ * board-snapshot.ts, carries each job's), so a cold instance doesn't work it out again.
+ */
+export function rememberTitleFunction(title: string, fn: string | null): void {
+  if (functionMemo.size < FUNCTION_MEMO_MAX) functionMemo.set(title, fn)
+}
+
 function inferFunctionFromTitleUncached(title: string): string | null {
   const lower = stripRetailFinancePhrases(stripExecutiveOfficePhrase(title.toLowerCase()))
   for (const entry of FUNCTION_KEYWORDS) {

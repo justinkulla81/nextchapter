@@ -23,7 +23,7 @@ export function UnlocksModule({
       <div>
         <p className="text-sm font-semibold">Your dossier is building</p>
         <p className="mt-1 text-sm text-white/80">
-          {evidenceAreas} of {evidenceTotal} areas have evidence so far. Everyone has one from day one. Finish it to become Candidate+.
+          {evidenceAreas} of {evidenceTotal} areas have evidence so far. Everyone has one from day one. Candidate+ comes from the work: outreach, applications, search effort and one assessment.
         </p>
       </div>
       {next ? (

@@ -1,20 +1,19 @@
 import 'server-only'
+import { adminGoogleClient } from '@/lib/google/admin-client'
 
 // Prompt 86 — admin-side write-scope Google Calendar connection, used only
-// to create webinar events with an auto-generated Meet link. Shares the
-// CANDIDATE_GOOGLE_OAUTH_CLIENT_ID/SECRET OAuth client with the candidate-
-// facing read-only Calendar Connect (Prompt 79) and Gmail (Prompt 76) — same
-// client, different scope and redirect URI. This satisfies the previously-
+// to create webinar events with an auto-generated Meet link. Uses the admin
+// Google OAuth client (see google/admin-client.ts), not the candidate one, so
+// these write/Docs scopes stay out of the candidate app's Google
+// verification. This satisfies the previously-
 // pending "Google Meet OAuth for coaches/recruiters" work by making it a
 // single NextChapter-owned connection (see AdminGoogleCalendarConnection)
 // rather than a per-coach OAuth flow, which would be a much larger lift.
 //
-// IMPORTANT — this OAuth client is still in Google's "Testing" publishing
-// status (see google-calendar-oauth.ts's comment), which caps consent to
-// explicitly-added test users. Whoever clicks "Connect Google Calendar" on
-// the admin Webinars page must be added as a test user on this OAuth
-// client's consent screen in Google Cloud Console first, or the consent
-// screen will reject them with "access blocked."
+// The admin client runs "In production" (unverified), so any admin Google
+// account can connect after clicking past the one-time unverified-app warning.
+// Until ADMIN_GOOGLE_OAUTH_CLIENT_ID is set it falls back to the candidate
+// client, which is in Testing — the connecting account must then be a test user.
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // Write scope — broader than Prompt 79's calendar.events.readonly, needed to
@@ -35,8 +34,8 @@ function getRedirectUri(): string {
 }
 
 export function buildAdminCalendarAuthUrl(state: string): string {
-  const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID
-  if (!clientId) throw new Error('CANDIDATE_GOOGLE_OAUTH_CLIENT_ID is not set.')
+  const { clientId } = adminGoogleClient()
+  if (!clientId) throw new Error('ADMIN_GOOGLE_OAUTH_CLIENT_ID (or CANDIDATE_GOOGLE_OAUTH_CLIENT_ID) is not set.')
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -61,10 +60,9 @@ interface GoogleTokenResponse {
 }
 
 function requireCredentials(): { clientId: string; clientSecret: string } {
-  const clientId = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_ID
-  const clientSecret = process.env.CANDIDATE_GOOGLE_OAUTH_CLIENT_SECRET
+  const { clientId, clientSecret } = adminGoogleClient()
   if (!clientId || !clientSecret) {
-    throw new Error('CANDIDATE_GOOGLE_OAUTH_CLIENT_ID/SECRET are not configured.')
+    throw new Error('Admin Google OAuth client ID/secret are not configured.')
   }
   return { clientId, clientSecret }
 }

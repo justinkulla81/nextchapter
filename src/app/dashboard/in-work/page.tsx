@@ -1,7 +1,9 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { loadWorkspace } from '@/lib/in-work/workspace-data'
+import { isRedesignOn } from '@/lib/redesign/flag'
 import { InWorkWorkspace, type InWorkTab } from '@/components/in-work/InWorkWorkspace'
 
 export const metadata: Metadata = { title: 'In-work workspace' }
@@ -57,5 +59,16 @@ export default async function InWorkPage({
     fromEmail: first(sp.src) === 'inwork_email',
   })
 
-  return <InWorkWorkspace data={data} initialTab={initialTab} />
+  return (
+    <>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Going into a specific review, raise, promotion or offer conversation?{' '}
+        <Link href="/dashboard/review-prep" className="font-medium text-primary underline underline-offset-4">
+          Build your case for it
+        </Link>
+        .
+      </p>
+      <InWorkWorkspace data={data} initialTab={initialTab} redesign={isRedesignOn(profile.email)} />
+    </>
+  )
 }

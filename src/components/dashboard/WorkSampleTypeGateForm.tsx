@@ -1,49 +1,61 @@
 'use client'
 
 import { useActionState } from 'react'
+import { Code2, Palette, PenLine, Sparkles } from 'lucide-react'
 import { submitWorkSampleType } from '@/app/dashboard/work-samples/actions'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const OPTIONS = [
-  { value: 'writing', label: 'Writing — articles, docs, proposals' },
-  { value: 'code', label: 'Code — projects, repos, tools' },
-  { value: 'design', label: 'Design — visual, product, UX work' },
-  { value: 'other', label: 'Something else' },
-  { value: 'none', label: "Nothing I'd want to share" },
-]
+  { value: 'writing', title: 'Writing', hint: 'Articles, docs, proposals', icon: PenLine },
+  { value: 'code', title: 'Code', hint: 'Projects, repos, tools', icon: Code2 },
+  { value: 'design', title: 'Design', hint: 'Visual, product, UX work', icon: Palette },
+  { value: 'other', title: 'Something else', hint: 'A deck, a case study, a model', icon: Sparkles },
+] as const
 
-export function WorkSampleTypeGateForm({ alreadyAwarded = false }: { alreadyAwarded?: boolean }) {
+/**
+ * "Do you have work you could show?" Four kinds are buttons; "nothing to share" is a quiet link rather
+ * than a fifth button. Plain words and one orange accent, in the style of the Premium page.
+ */
+export function WorkSampleTypeGateForm({ alreadyAwarded: _alreadyAwarded = false }: { alreadyAwarded?: boolean }) {
   const [state, formAction, pending] = useActionState(submitWorkSampleType, undefined)
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          Do you have real work you could show — writing, code, designs, a deck? A concrete sample
-          does more to prove what you can do than another line on a resume.
-        </p>
-        {!alreadyAwarded && (
-          <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-            +5 pts, one time
-          </span>
-        )}
+    <section aria-labelledby="gate-heading" className={cn('space-y-5 rounded-2xl border border-border bg-card p-6', pending && 'cursor-progress [&_*]:cursor-progress')}>
+      <div className="space-y-1">
+        <h2 id="gate-heading" className="font-serif text-2xl font-semibold tracking-tight text-navy">
+          Do you have work you could show?
+        </h2>
+        <p className="max-w-xl text-base text-muted-foreground">A real sample proves more than another line on a résumé.</p>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {OPTIONS.map((opt) => (
-          <form
-            key={opt.value}
-            action={formAction}
-            className={cn(pending && 'cursor-progress [&_*]:cursor-progress')}
-          >
-            <input type="hidden" name="workSampleType" value={opt.value} />
-            <Button type="submit" variant="outline" size="sm" disabled={pending}>
-              {opt.label}
-            </Button>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {OPTIONS.map(({ value, title, hint, icon: Icon }) => (
+          <form key={value} action={formAction}>
+            <input type="hidden" name="workSampleType" value={value} />
+            <button
+              type="submit"
+              disabled={pending}
+              className="flex w-full items-center gap-3 rounded-xl border border-border bg-white px-4 py-3.5 text-left transition-colors hover:border-orange hover:bg-white disabled:opacity-60"
+            >
+              <Icon className="size-5 shrink-0 text-orange" aria-hidden />
+              <span>
+                <span className="block text-base font-semibold text-navy">{title}</span>
+                <span className="block text-sm text-muted-foreground">{hint}</span>
+              </span>
+            </button>
           </form>
         ))}
       </div>
-      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
-    </div>
+      <form action={formAction}>
+        <input type="hidden" name="workSampleType" value="none" />
+        <button type="submit" disabled={pending} className="text-sm font-medium text-primary underline underline-offset-4 disabled:opacity-60">
+          Nothing I&apos;d want to share
+        </button>
+      </form>
+      {state?.error && (
+        <p role="alert" className="text-sm text-destructive">
+          {state.error}
+        </p>
+      )}
+    </section>
   )
 }

@@ -36,7 +36,7 @@ import {
 } from '@/lib/admin/stakeholder-relationships'
 import { StakeholderNotesCard } from '@/components/admin/StakeholderNotesCard'
 import { StakeholderCommunicationsCard } from '@/components/admin/StakeholderCommunicationsCard'
-import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource, setEffortMinutesTarget } from './actions'
+import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource, setEffortMinutesTarget, setCandidatePlusRevoked } from './actions'
 import { LEAD_SOURCES, LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 
 const NUDGE_TYPE_LABEL: Record<string, string> = {
@@ -234,6 +234,9 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     getStakeholderThreads(id, 'COACH'),
   ])
   stakeholderP.catch(() => {}) // avoid an unhandled rejection if notFound() throws first
+  // Also independent; used far down the JSX, so start it now instead of awaiting inline.
+  const grantsP = grantsFor(id)
+  grantsP.catch(() => {})
 
   const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports, applicationFit] =
     await Promise.all([
@@ -536,7 +539,11 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6 space-y-6">
-          <CandidateProgressPanel progress={progress} setEffortTarget={setEffortMinutesTarget.bind(null, id)} />
+          <CandidateProgressPanel
+            progress={progress}
+            setEffortTarget={setEffortMinutesTarget.bind(null, id)}
+            setCandidatePlusRevoked={setCandidatePlusRevoked.bind(null, id)}
+          />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6 space-y-6">
@@ -1164,7 +1171,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
             <CardContent>
               <AdminAccessPanel
                 candidateId={id}
-                grants={(await grantsFor(id)).map((g) => ({ id: g.id, feature: g.feature, source: g.source, sessionsTotal: g.sessionsTotal, sessionsUsed: g.sessionsUsed, endsAt: g.endsAt?.toISOString() ?? null, revokedAt: g.revokedAt?.toISOString() ?? null, revokedBy: g.revokedBy, createdBy: g.createdBy }))}
+                grants={(await grantsP).map((g) => ({ id: g.id, feature: g.feature, source: g.source, sessionsTotal: g.sessionsTotal, sessionsUsed: g.sessionsUsed, endsAt: g.endsAt?.toISOString() ?? null, revokedAt: g.revokedAt?.toISOString() ?? null, revokedBy: g.revokedBy, createdBy: g.createdBy }))}
               />
             </CardContent>
           </Card>

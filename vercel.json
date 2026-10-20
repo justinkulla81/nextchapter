@@ -21,12 +21,20 @@
       "schedule": "15 13 * * *"
     },
     {
+      "path": "/api/cron/win-back",
+      "schedule": "0 15 * * 3"
+    },
+    {
       "path": "/api/cron/job-search-daily",
       "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/candidate-email-dispatch",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/demo-expiry",
+      "schedule": "30 5 * * *"
     },
     {
       "path": "/api/cron/supporter-digest",
@@ -43,6 +51,10 @@
     {
       "path": "/api/cron/market-reality-snapshot",
       "schedule": "20 20 * * 1"
+    },
+    {
+      "path": "/api/cron/weekly-read",
+      "schedule": "0 15 * * 2"
     },
     {
       "path": "/api/cron/interim-role-reverify",
@@ -101,12 +113,24 @@
       "schedule": "0 11 * * *"
     },
     {
+      "path": "/api/cron/company-outcomes",
+      "schedule": "10 11 * * *"
+    },
+    {
+      "path": "/api/cron/company-graph",
+      "schedule": "20 11 * * *"
+    },
+    {
       "path": "/api/cron/company-hiring-index",
       "schedule": "40 7 * * *"
     },
     {
       "path": "/api/cron/pivot-market",
       "schedule": "20 8 * * *"
+    },
+    {
+      "path": "/api/cron/market-size",
+      "schedule": "50 8 * * *"
     },
     {
       "path": "/api/cron/funding-opportunities",
@@ -193,8 +217,12 @@
       "schedule": "0 11 * * *"
     },
     {
-      "path": "/api/cron/fresh-job-alerts",
-      "schedule": "30 13,16,19,22,1 * * *"
+      "path": "/api/cron/win-back",
+      "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/landed-to-managing",
+      "schedule": "20 10 * * *"
     },
     {
       "path": "/api/cron/likely-openings",

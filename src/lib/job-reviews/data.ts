@@ -89,6 +89,13 @@ export async function getParallelPaths(candidateId: string): Promise<string[] | 
   return row ? row.paths : null
 }
 
+/** Several members' answers at once (the coach's client list). Members who have not answered are absent from the map. */
+export async function getParallelPathsFor(candidateIds: string[]): Promise<Map<string, string[]>> {
+  if (candidateIds.length === 0) return new Map()
+  const rows = await prisma.parallelPath.findMany({ where: { candidateId: { in: candidateIds } }, select: { candidateId: true, paths: true } })
+  return new Map(rows.map((r) => [r.candidateId, r.paths]))
+}
+
 /** An empty list is a real answer: "nothing alongside the search". */
 export async function saveParallelPaths(candidateId: string, raw: unknown): Promise<string[]> {
   const paths = cleanParallelPaths(raw)

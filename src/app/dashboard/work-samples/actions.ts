@@ -10,10 +10,15 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { validateUpload } from '@/lib/uploads/validate-upload'
+import { after } from 'next/server'
+import { parseReviewForm } from '@/lib/evidence/external-reviews'
+import { checkExternalReview } from '@/lib/evidence/check-external-review'
+import { aiSampleChecks, isAiSampleType, readAiDetails } from '@/lib/evidence/ai-work-samples'
+import { Prisma } from '@prisma/client'
 
 export type FormState = { error?: string } | undefined
 
-const SAMPLE_TYPES = ['case_study', 'writing', 'code', 'design', 'presentation', 'other', 'ai_workflow']
+const SAMPLE_TYPES = ['case_study', 'writing', 'code', 'design', 'presentation', 'other', 'ai_workflow', 'ai_policy', 'ai_rag_eval']
 const PORTFOLIO_TYPES = ['writing', 'code', 'design', 'other', 'none']
 
 export async function submitWorkSampleType(_prevState: FormState, formData: FormData): Promise<FormState> {
@@ -107,6 +112,10 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
     fileUrl = admin.storage.from('work-samples').getPublicUrl(path).data.publicUrl
   }
 
+  // The guided AI types (ai-work-samples.ts): their template answers go in aiDetails.
+  const isAi = isAiSampleType(sampleType)
+  const aiDetails = isAi ? readAiDetails(sampleType, (k) => formData.get(k)) : null
+
   const sample = await prisma.workSample.create({
     data: {
       candidateId: profile.id,
@@ -119,12 +128,23 @@ export async function addWorkSample(_prevState: FormState, formData: FormData): 
       aiToolsUsed: sampleType === 'ai_workflow' ? ((formData.get('aiToolsUsed') as string | null)?.trim() || null) : null,
       beforeMetric: sampleType === 'ai_workflow' ? ((formData.get('beforeMetric') as string | null)?.trim() || null) : null,
       afterMetric: sampleType === 'ai_workflow' ? ((formData.get('afterMetric') as string | null)?.trim() || null) : null,
+      aiDetails: aiDetails && Object.keys(aiDetails).length > 0 ? aiDetails : Prisma.DbNull,
       fileUrl,
       externalUrl,
     },
   })
 
   captureServerEvent(profile.id, 'work_sample_added', { sampleId: sample.id, sampleType })
+  if (isAi) {
+    const checks = aiSampleChecks(sample)
+    captureServerEvent(profile.id, 'ai_work_sample_saved', {
+      sampleId: sample.id,
+      type: sampleType,
+      hasMetric: checks?.hasMetric ?? false,
+      checksPassed: checks?.passed.map((c) => c.key) ?? [],
+      checksMissing: checks?.missing.map((c) => c.key) ?? [],
+    })
+  }
   if (sampleType === 'ai_workflow') {
     captureServerEvent(profile.id, 'portfolio_ai_artifact_created', {
       sampleId: sample.id,
@@ -161,4 +181,61 @@ export async function deleteWorkSample(sampleId: string) {
 
   revalidatePath('/dashboard/work-samples')
   revalidatePath('/dashboard')
+}
+
+// Review stats from another fractional or freelance platform. They count as
+// evidence for Candidate+ Verified straight away ("self-reported with link");
+// one polite check of the public page runs after the response, and anything
+// it can't confirm goes on the admin review list.
+export async function addExternalReviews(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to do this.' }
+
+  const parsed = parseReviewForm(formData)
+  if (!parsed.ok) return { error: parsed.error }
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  const existing = await prisma.externalReviewStat.count({ where: { candidateId: profile.id } })
+  if (existing >= 10) return { error: 'You can add up to 10 platforms. Remove one to add another.' }
+
+  let screenshotUrl: string | null = null
+  const file = formData.get('screenshot') as File | null
+  if (file && file.size > 0) {
+    const check = await validateUpload(file, 'image', 5 * 1024 * 1024)
+    if (!check.ok) return { error: check.error }
+    const admin = createAdminClient()
+    const path = `${profile.id}/reviews/${crypto.randomUUID()}.${check.ext}`
+    const { error: uploadError } = await admin.storage.from('work-samples').upload(path, file, { contentType: check.contentType })
+    if (uploadError) return { error: 'Something went wrong uploading your screenshot. Try again, or save without it.' }
+    screenshotUrl = admin.storage.from('work-samples').getPublicUrl(path).data.publicUrl
+  }
+
+  const row = await prisma.externalReviewStat.create({
+    data: { candidateId: profile.id, ...parsed.value, screenshotUrl },
+    select: { id: true },
+  })
+  captureServerEvent(profile.id, 'external_reviews_added', {
+    platform: parsed.value.platform,
+    reviewCount: parsed.value.reviewCount,
+    rating: parsed.value.rating,
+    hasScreenshot: Boolean(screenshotUrl),
+  })
+  after(() => checkExternalReview(row.id).catch((e) => console.error('External review check failed', e)))
+
+  revalidatePath('/dashboard/work-samples')
+}
+
+export async function removeExternalReviews(id: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const removed = await prisma.externalReviewStat.deleteMany({ where: { id, candidateId: profile.id } })
+  if (removed.count > 0) captureServerEvent(profile.id, 'external_reviews_removed', { id })
+  revalidatePath('/dashboard/work-samples')
 }

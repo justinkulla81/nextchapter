@@ -9,13 +9,15 @@ import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { classifyTitleRung, type RungName } from '@/lib/jobs/job-seniority'
 import { calibratedLevelRank } from '@/lib/scoring/level-rank'
 import { statesFromLocation } from '@/lib/pay/market-pay'
+import { SHARED_METRO_STATES } from '@/lib/jobs/metro-states'
 import { normalizeCandidateProfileFields } from '@/lib/constants/candidate-profile-normalize'
 import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { roleFamiliesOf } from '@/lib/constants/role-family-keywords'
-import type { FitBucket } from '@/lib/jobs/fit-bucket-types'
+import type { FitBucket, LevelStep } from '@/lib/jobs/fit-bucket-types'
 import type { Grade } from '@/lib/scoring/grade'
 import { interestBonus } from '@/lib/work-interests/job-interest-fit'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
+import { assessYearsFit, quickYearsRange, type YearsRange } from '@/lib/jobs/years-fit'
 
 // The "Quick-read" fit signal shown on every Discover card — free, no LLM
 // call, computed for every candidate x listing pair. Deliberately a bucket,
@@ -179,7 +181,7 @@ const RUNG_LEVEL_POINTS: Partial<Record<RungName, number>> = {
   BOARD: 90,
 }
 
-export type LevelStep = 'same' | 'up' | 'big_up' | 'down' | 'big_down' | 'unknown'
+export type { LevelStep } from '@/lib/jobs/fit-bucket-types'
 
 // The member's level as a window: their stated level, widened by one step
 // toward their calibrated levelRankScore when that differs by 10+ points
@@ -388,23 +390,6 @@ function postingIsRemote(posting: Pick<FitPostingLike, 'targetRemotePolicy' | 'l
   return !!posting.description && /\b(fully remote|100% remote|remote[- ]first|this (?:is a|role is) remote)\b/i.test(posting.description)
 }
 
-// States that share a commuting metro with a neighbour (New York/Hoboken,
-// Washington/Arlington, Philadelphia/Camden, Boston/Nashua) — a job across
-// that line is local, not a move.
-const SHARED_METRO_STATES: Record<string, string[]> = {
-  NY: ['NJ', 'CT'],
-  NJ: ['NY', 'PA'],
-  CT: ['NY'],
-  PA: ['NJ', 'DE'],
-  DE: ['PA'],
-  DC: ['MD', 'VA'],
-  MD: ['DC', 'VA'],
-  VA: ['DC', 'MD'],
-  MA: ['NH', 'RI'],
-  NH: ['MA'],
-  RI: ['MA'],
-}
-
 function placeFit(m: FitCandidateContext, j: FitPostingContext): PlaceFit {
   if (j.remote) return 'remote'
   const cityHit = m.cityWord !== null && m.cityWord.test(j.placeLocation)
@@ -452,18 +437,21 @@ function keywordBonus(m: FitCandidateContext, postingTextLower: string): number 
   return Math.min(8, hits * 2)
 }
 
-// "5+ years", "3-5 years of experience" — null when nothing matches.
-function parseMinYearsRequired(text: string): number | null {
-  const match = text.match(/(\d{1,2})\+?\s*(?:-\s*\d{1,2}\s*)?\s*years?/i)
-  if (!match) return null
-  const years = parseInt(match[1], 10)
-  return Number.isNaN(years) ? null : years
-}
-
-function yearsBonus(candidateYears: number | null, required: number | null): number {
-  if (required === null || candidateYears === null) return 2
-  if (candidateYears >= required) return 5
-  return candidateYears >= required - 2 ? 2 : 0
+// Shared lenient years rule (years-fit.ts): roughly in line gets full credit,
+// a stretch (short, but at least half the minimum) the neutral 2, only far off
+// (under half the minimum) gets nothing. Unknown stays neutral.
+function yearsBonus(candidateYears: number | null | undefined, range: YearsRange | null): number {
+  switch (assessYearsFit(candidateYears, range).band) {
+    case 'in_line':
+    case 'overqualified':
+      return 5
+    case 'stretch':
+      return 2
+    case 'far':
+      return 0
+    default:
+      return 2
+  }
 }
 
 function payPoints(c: FitCandidate, posting: Pick<FitPostingLike, 'salaryMax'>): number {
@@ -567,7 +555,7 @@ interface FitPostingContext {
   titleWords?: Set<string>
   titleFamilies?: number[]
   credential: ReturnType<typeof detectRequiredCredential>
-  minYears: number | null
+  years: YearsRange | null
 }
 
 // Location -> US states it names. Locations repeat across jobs (~30k distinct over
@@ -607,7 +595,7 @@ function postingContext(posting: FitPostingInput): FitPostingContext {
     placeLocation,
     jobStates: jobStatesOf(placeLocation),
     credential: detectRequiredCredential(postingText),
-    minYears: parseMinYearsRequired(postingText),
+    years: quickYearsRange(postingText),
   }
 }
 
@@ -651,7 +639,7 @@ function assessFit(
     roleCredit +
     (industryMatch ? Math.round(10 * priorityMultiplier(c.priorityMission)) : 0) +
     keywordBonus(m, j.postingTextLower) +
-    yearsBonus(c.yearsExperience, j.minYears) +
+    yearsBonus(c.yearsExperience, j.years) +
     payPoints(c, posting) +
     companySizeMatchBonus(c, posting.companySizeBand) +
     interestBonus(c.interestAreas ?? [], j.jobFns)
@@ -699,7 +687,7 @@ function bucketFromScore(score: number): FitBucket {
 // a step or more below the member is Step Down ('below_level', or
 // 'overqualified' two or more steps down); otherwise Step Up ('stretch'),
 // which also covers missing level data.
-function bucketFromAssessment(a: FitAssessment): FitBucket {
+export function bucketFromAssessment(a: FitAssessment): FitBucket {
   const bucket = bucketFromScore(a.score)
   if (bucket !== 'stretch') return bucket
   if (a.level === 'big_down') return 'overqualified'

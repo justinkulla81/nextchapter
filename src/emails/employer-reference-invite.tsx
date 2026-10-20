@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface EmployerReferenceInviteEmailProps {
   managerName: string
@@ -66,6 +67,7 @@ export default function EmployerReferenceInviteEmail({
         Review {managerName.split(' ')[0]}&apos;s reference →
       </a>
       <p style={footer}>If you weren&apos;t expecting this, you can ignore this email.</p>
+      <AudienceTag audience="employer" />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import 'server-only'
+import { isInternshipJob } from '@/lib/jobs/work-type'
 import { isGenericTitle, roleFromDescription, roleFromFunction } from './pivot-map'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { rolesForTitle } from './market-stats'
@@ -44,12 +45,14 @@ export async function rebuildPivotMarketStats(now = new Date()): Promise<{ rowsR
         salaryMin: true,
         salaryMax: true,
         archivedAt: true,
+        employmentType: true,
       },
       orderBy: { id: 'asc' },
       take: PAGE_SIZE,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     })
-    rows.push(...page)
+    // Internships are Higher Ed portal only: never part of a member's pivot paths.
+    rows.push(...page.filter((r) => !isInternshipJob(r)))
     if (page.length < PAGE_SIZE) break
     cursor = page[page.length - 1].id
   }

@@ -4,18 +4,42 @@ import { prisma } from '@/lib/prisma'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { boardListingFitBucketScorerFor, type FitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { FIT_BUCKET_SORT_RANK } from '@/lib/jobs/fit-bucket-types'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
-import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
+import { inferFunctionFromTitle, inferLevelFromTitle, rememberTitleFunction } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
 import { COMPETITION_SORT_RANK, isFresh, scoreCompetition } from '@/lib/jobs/competition'
 import { classifyLocation } from '@/lib/jobs/us-location'
-import { ghostRisk, repostKey } from '@/lib/jobs/ghost-risk'
-import { getClosedPostingCounts } from '@/lib/jobs/ghost-risk-data'
+import { ghostRisk, repostKey, stillListedDirect } from '@/lib/jobs/ghost-risk'
+import { getClosedPostingCounts, getStillListedDirect } from '@/lib/jobs/ghost-risk-data'
 import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
-import { ALL_STAGES_WINDOW, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
-import { classifyWorkType, type WorkType } from '@/lib/jobs/work-type'
-import { findLightRows, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
+import { ALL_STAGES_WINDOW, CAREER_STAGES, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageOfRung, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
+import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
+import { notInternshipWhere } from '@/lib/internships/exclude'
+import { emailLevelFit } from '@/lib/jobs/email-level-fit'
+import { findLightRowsPage, logBoardMemory, LIGHT_SELECT, type LightRow } from '@/lib/jobs/board-light-rows'
+import { boardFingerprint, inBackground, readManifest, readParts, snapshotsDisabled, writeSnapshot, yieldToRequests, type SnapshotKind } from '@/lib/jobs/board-snapshot'
+import { decodeBoardPart, encodeBoardPart } from '@/lib/jobs/board-snapshot-codec'
+import { annualPayForSort, type BoardSort } from '@/lib/jobs/board-search'
+import { sectorKeep } from '@/lib/jobs/employer-sector'
+import { loadBreadthClassifier, type BreadthClassifier, type BreadthPlacement } from '@/lib/jobs/search-breadth-server'
+import { emailBreadthFor, type Breadth } from '@/lib/jobs/search-breadth'
+import {
+  marketTierFor,
+  MARKET_TIERS,
+  NARROW_SHOW,
+  RINGS,
+  ringKind,
+  ringNotes,
+  ringOf,
+  WIDE_EXTRAS_WHEN_FULL,
+  WIDE_TOTAL_WHEN_SHORT,
+  WIDE_SHORT_MAX_FIT_RANK,
+  AUTO_WIDEN_FILL,
+  type MarketTier,
+  type Relaxed,
+} from '@/lib/jobs/relevance'
+import { type DismissRules } from '@/lib/jobs/job-dismiss'
+import { loadDismissRules } from '@/lib/jobs/job-dismiss-server'
 
 type FitCandidate = Parameters<typeof computeBoardListingFitBucket>[0]
 
@@ -28,7 +52,10 @@ export function liveBoardWhere(extra: Prisma.ExclusiveJobPostingWhereInput = {})
     distribution: { not: 'EXCLUDED' },
     OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     // AND, not a spread: an extra OR must not replace the expiry OR above.
-    AND: [extra],
+    // Internships are never on a member surface (they live in the Higher Ed
+    // portals): rows the crawler typed as internships stay out here, and
+    // intern titles are dropped in keepRelevant.
+    AND: [notInternshipWhere(), extra],
   }
 }
 
@@ -44,7 +71,10 @@ const PER_COMPANY = 5
 //   alerts, Job Search Daily, coach digest; splitBoardWhere) — is cut from this one
 //   copy in memory instead of each loading its own. After the minute, the next
 //   caller still gets the held copy at once while a fresh one loads (up to
-//   SHARED_STALE_MS old); only a cold server instance waits.
+//   SHARED_STALE_MS old). The fresh one is the held copy again when the board hasn't
+//   changed since (board-snapshot.ts boardFingerprint) — no re-read — and a cold
+//   instance starts from the snapshot another instance wrote, when the board hasn't
+//   changed since it was read; only otherwise is the database read.
 // - Any other filter: its own rows from the wide table, keyed by the filter.
 //
 // Rows are read-only downstream; per-row work is memoised on them (rowFacts).
@@ -53,8 +83,11 @@ const SHARED_STALE_MS = 5 * 60_000
 const LIGHT_MAX_KEYS = 20
 const lightCache = new Map<string, { at: number; rows: Promise<LightRow[]> }>()
 
+/** A job's prior closures (ghost-risk.ts) for its company + title + location. */
+const priorClosures = (p: LightRow, closedCounts: Map<string, number>) => closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0
+
 /** Not confidently outside the US, and not a listing that looks evergreen or fake (ghost-risk.ts). */
-function keepRelevant(all: LightRow[], closedCounts: Map<string, number>): LightRow[] {
+function keepRelevant(all: LightRow[], closedCounts: Map<string, number>, listed: Map<string, number>): LightRow[] {
   const nowMs = Date.now()
   // Only relevant jobs reach a member. Excluded rows are kept in the database —
   // this filters the view, it deletes nothing — and the board totals are
@@ -62,18 +95,27 @@ function keepRelevant(all: LightRow[], closedCounts: Map<string, number>): Light
   // Locations repeat (~30k distinct over 150k jobs).
   const nonUs = new Map<string | null, boolean>()
   return all.filter((p) => {
+    // Internships only appear in Higher Ed portals, never on a member's board,
+    // emails, alerts or counts — all of which are cut from these rows.
+    if (isInternshipJob(p)) return false
     let outside = nonUs.get(p.location)
     if (outside === undefined) {
       outside = classifyLocation(p.location) === 'non_us'
       nonUs.set(p.location, outside)
     }
     if (outside) return false
-    const ghost = ghostRisk({
-      priorClosedCount: closedCounts.get(repostKey(p.companyName, p.title, p.location)) ?? 0,
-      ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000,
-    })
-    return ghost.level !== 'likely'
+    return notGhost(p, priorClosures(p, closedCounts), nowMs, listed)
   })
+}
+
+/** listed: direct listings confirmed still listed, id -> lastVerifiedAt ms (getStillListedDirect). */
+function notGhost(p: LightRow, priorClosedCount: number, nowMs: number, listed: Map<string, number>): boolean {
+  const verifiedAt = listed.get(p.id)
+  return ghostRisk({
+    priorClosedCount,
+    ageDays: (nowMs - p.createdAt.getTime()) / 86_400_000,
+    stillListed: verifiedAt !== undefined && stillListedDirect(true, verifiedAt, nowMs),
+  }).level !== 'likely'
 }
 
 // Postgres returns rows in storage order, which every import reshuffles; ranking
@@ -98,10 +140,9 @@ function sameRow(a: LightRow, b: LightRow): boolean {
 // instead of one per row (the shared board is ~160k rows).
 const REPEATED_COLUMNS = [
   'companyName', 'audienceTier', 'source', 'targetFunction', 'targetLevel', 'targetRemotePolicy',
-  'targetLocation', 'location', 'level', 'sourceCategory', 'employmentType',
+  'targetLocation', 'location', 'level', 'sourceCategory', 'employmentType', 'employerSector', 'requirementTags',
 ] as const satisfies readonly (keyof LightRow)[]
-function internRepeated(rows: LightRow[]): void {
-  const pool = new Map<string, string>()
+function internRepeated(rows: LightRow[], pool: Map<string, string>): void {
   for (const r of rows) {
     const row = r as Record<(typeof REPEATED_COLUMNS)[number], string | null>
     for (const k of REPEATED_COLUMNS) {
@@ -114,40 +155,203 @@ function internRepeated(rows: LightRow[]): void {
   }
 }
 
-function reuseUnchanged(rows: LightRow[], previous: Map<string, LightRow>): { rows: LightRow[]; byId: Map<string, LightRow> } {
-  internRepeated(rows)
+/**
+ * One shared board as held in memory: the kept rows (id order) and, per row, what the
+ * clock alone can change — its expiry (ms; NaN = none) and the prior closures its ghost
+ * risk was read with — so a held board can be brought up to now without a re-read.
+ */
+interface HeldBoard {
+  rows: LightRow[]
+  expires: Float64Array
+  priors: Uint32Array
+  byId: Map<string, LightRow>
+  /** The board's version when these rows were read (boardFingerprint); null = unknown, never reused. */
+  fingerprint: string | null
+  /** When the rows were read (ms). */
+  readAt: number
+}
+
+/**
+ * The held board as a read now would give it: jobs that expired since, or aged into
+ * likely ghost risk (listed: direct listings confirmed still listed, getStillListedDirect), dropped (the rest of the filter can't change without a write to
+ * the board). The same object when nothing dropped.
+ */
+export function stillLive<B extends Pick<HeldBoard, 'rows' | 'expires' | 'priors'>>(
+  board: B,
+  nowMs = Date.now(),
+  listed: Map<string, number> = new Map()
+): B {
+  const keepAt = (i: number) => !(board.expires[i] <= nowMs) && notGhost(board.rows[i], board.priors[i], nowMs, listed)
+  let drop = 0
+  for (let i = 0; i < board.rows.length; i++) if (!keepAt(i)) drop++
+  if (drop === 0) return board
+  const n = board.rows.length - drop
+  const rows: LightRow[] = new Array(n)
+  const expires = new Float64Array(n)
+  const priors = new Uint32Array(n)
+  let k = 0
+  for (let i = 0; i < board.rows.length; i++) {
+    if (!keepAt(i)) continue
+    rows[k] = board.rows[i]
+    expires[k] = board.expires[i]
+    priors[k++] = board.priors[i]
+  }
+  return { ...board, rows, expires, priors }
+}
+
+// The board is read a page at a time (findLightRowsPage), and each page is interned,
+// filtered and folded into the rows the board keeps before the next is read. Reading
+// the whole table into one array, then filtering and sorting copies of it, held the
+// board's rows two or three times over at every reload — the peak that ran instances
+// out of memory once the board grew past ~350k live jobs.
+const PAGE_ROWS = 20_000
+async function readSharedRows(
+  where: Prisma.ExclusiveJobPostingWhereInput,
+  closedCounts: Map<string, number>,
+  listed: Map<string, number>,
+  previous: Map<string, LightRow>
+): Promise<Omit<HeldBoard, 'fingerprint' | 'readAt'>> {
+  const pool = new Map<string, string>()
+  const rows: LightRow[] = []
+  const expiresAt: number[] = []
+  const priors: number[] = []
   const kept = new Map<string, LightRow>()
-  const out = rows.map((r) => {
-    const before = previous.get(r.id)
-    const keep = before && sameRow(before, r) ? before : r
-    kept.set(keep.id, keep)
-    return keep
+  let afterId: string | null = null
+  for (;;) {
+    const read = await findLightRowsPage(where, afterId, PAGE_ROWS)
+    if (read.length === 0) break
+    afterId = read[read.length - 1].id
+    const expiry = new Map<string, number>()
+    const page = read.map(({ expiresAt: at, ...row }) => {
+      if (at) expiry.set(row.id, at.getTime())
+      return row as LightRow
+    })
+    internRepeated(page, pool)
+    for (const r of keepRelevant(page, closedCounts, listed)) {
+      const before = previous.get(r.id)
+      const keep = before && sameRow(before, r) ? before : r
+      kept.set(keep.id, keep)
+      rows.push(keep)
+      expiresAt.push(expiry.get(r.id) ?? NaN)
+      priors.push(priorClosures(r, closedCounts))
+    }
+    if (read.length < PAGE_ROWS) break
+  }
+  // Already id-ordered by the pages; sorted anyway so ranking ties never depend on the database's collation.
+  const order = rows.map((_, i) => i).sort((a, b) => byId(rows[a], rows[b]))
+  return {
+    rows: order.map((i) => rows[i]),
+    expires: Float64Array.from(order, (i) => expiresAt[i]),
+    priors: Uint32Array.from(order, (i) => priors[i]),
+    byId: kept,
+  }
+}
+
+const SNAPSHOT_PART_ROWS = 50_000
+const SLOW_SHORTLIST_MS = 2_000
+
+/** Writes the held board as a snapshot (board-snapshot.ts) for the next cold instance. */
+function publishBoard(kind: SnapshotKind, board: HeldBoard): void {
+  const fingerprint = board.fingerprint
+  if (snapshotsDisabled()) return
+  if (!fingerprint) return console.log(`[board-snapshot] ${kind} not written: the board changed while it was read`)
+  inBackground(async () => {
+    const parts: unknown[] = []
+    for (let i = 0; i < board.rows.length || i === 0; i += SNAPSHOT_PART_ROWS) {
+      await yieldToRequests()
+      const end = Math.min(board.rows.length, i + SNAPSHOT_PART_ROWS)
+      parts.push(
+        encodeBoardPart({
+          rows: board.rows.slice(i, end),
+          expires: Array.from(board.expires.subarray(i, end), (x) => (Number.isNaN(x) ? null : x)),
+          priors: Array.from(board.priors.subarray(i, end)),
+          // Each title's function too: a cold instance would otherwise work it out for every job.
+          titleFns: board.rows.slice(i, end).map((r) => inferFunctionFromTitle(r.title)),
+        })
+      )
+    }
+    await writeSnapshot(kind, fingerprint, board.readAt, parts, board.rows.length)
   })
-  return { rows: out, byId: kept }
+}
+
+/** The snapshot of this board, when one was written at the board's current version; else null. */
+async function readBoardSnapshot(kind: SnapshotKind, fingerprint: Promise<string | null>): Promise<HeldBoard | null> {
+  const [manifest, now] = await Promise.all([readManifest(kind), fingerprint])
+  if (!manifest || !now || manifest.fingerprint !== now) return null
+  const encoded = await readParts(manifest)
+  if (!encoded) return null
+  const pool = new Map<string, string>()
+  const rows: LightRow[] = new Array(manifest.rows)
+  const expires = new Float64Array(manifest.rows)
+  const priors = new Uint32Array(manifest.rows)
+  let k = 0
+  for (let p = 0; p < encoded.length; p++) {
+    const part = decodeBoardPart(encoded[p], pool)
+    encoded[p] = null // the parsed JSON can go as soon as its rows are built
+    if (!part || k + part.rows.length > manifest.rows) return null
+    for (let i = 0; i < part.rows.length; i++, k++) {
+      if (part.titleFns) rememberTitleFunction(part.rows[i].title, part.titleFns[i])
+      rows[k] = part.rows[i]
+      expires[k] = part.expires[i] ?? NaN
+      priors[k] = part.priors[i]
+    }
+  }
+  if (k !== manifest.rows) return null
+  return {
+    rows,
+    expires,
+    priors,
+    byId: new Map(rows.map((r) => [r.id, r])),
+    fingerprint: manifest.fingerprint,
+    readAt: manifest.at,
+  }
 }
 
 // Two shared boards: the core one (everything but the early-career rungs) that
 // every view reads, and the early-career one (ENTRY_IC, EARLY_IC), loaded only
 // when a view's level window includes those rungs — so members who never see
 // early-career jobs, and every email path, don't pay to load them.
-function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, name: string): (closedCounts: Map<string, number>) => Promise<LightRow[]> {
-  let shared: { at: number; rows: Promise<LightRow[]> } | null = null
-  let loading: Promise<LightRow[]> | null = null
-  let previousById = new Map<string, LightRow>()
-  return (closedCounts) => {
+function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, kind: SnapshotKind): () => Promise<LightRow[]> {
+  const name = kind === 'board-core' ? 'core' : 'early career'
+  let shared: { at: number; board: HeldBoard } | null = null
+  let loading: Promise<HeldBoard> | null = null
+  const load = async (held: HeldBoard | null): Promise<HeldBoard> => {
+    const started = Date.now()
+    const fingerprint = snapshotsDisabled() ? Promise.resolve(null) : boardFingerprint()
+    // Unchanged since the held copy was read: the held copy, brought up to now.
+    // Read every load: a direct listing's still-listed confirmation moves without a board write.
+    const listed = getStillListedDirect()
+    if (held && held.fingerprint && (await fingerprint) === held.fingerprint) return stillLive(held, Date.now(), await listed)
+    // A cold instance: the snapshot another instance wrote, when the board hasn't changed since.
+    if (!held && !snapshotsDisabled()) {
+      const snap = await readBoardSnapshot(kind, fingerprint).catch((error) => {
+        console.error(`Board snapshot (${name}): unreadable, reading the database`, error)
+        return null
+      })
+      if (snap) {
+        logBoardMemory(`shared board (${name}) from snapshot`, { rows: snap.rows.length, ms: Date.now() - started })
+        return stillLive(snap, Date.now(), await listed)
+      }
+    }
+    const before = await fingerprint
+    const out = await readSharedRows(liveBoardWhere(extra), await getClosedPostingCounts(), await listed, held?.byId ?? new Map())
+    // Version unchanged across the whole read: these rows are that version, and can be reused / shared.
+    const after = before ? await boardFingerprint() : null
+    const board: HeldBoard = { ...out, fingerprint: before && before === after ? before : null, readAt: started }
+    logBoardMemory(`shared board (${name})`, { rows: board.rows.length, ms: Date.now() - started })
+    publishBoard(kind, board)
+    return board
+  }
+  return () => {
     const now = Date.now()
-    if (shared && now - shared.at < LIGHT_TTL_MS) return shared.rows
+    if (shared && now - shared.at < LIGHT_TTL_MS) return Promise.resolve(shared.board.rows)
     if (!loading) {
       const started = now
-      const next = (async () => {
-        const out = reuseUnchanged(keepRelevant(await findLightRows(liveBoardWhere(extra)), closedCounts).sort(byId), previousById)
-        previousById = out.byId
-        return out.rows
-      })()
+      const next = load(shared?.board ?? null)
       loading = next
       next.then(
-        () => {
-          shared = { at: started, rows: next }
+        (board) => {
+          shared = { at: started, board }
           loading = null
         },
         (error) => {
@@ -157,13 +361,13 @@ function sharedBoard(extra: Prisma.ExclusiveJobPostingWhereInput, name: string):
       )
     }
     // Past the minute: the held copy, while the new one loads.
-    if (shared && now - shared.at < SHARED_STALE_MS) return shared.rows
-    return loading
+    if (shared && now - shared.at < SHARED_STALE_MS) return Promise.resolve(shared.board.rows)
+    return loading.then((b) => b.rows)
   }
 }
 
-const loadCoreBoard = sharedBoard({ OR: [{ level: null }, { level: { notIn: EARLY_CAREER_RUNGS } }] }, 'core')
-const loadEarlyCareerBoard = sharedBoard({ level: { in: EARLY_CAREER_RUNGS } }, 'early career')
+const loadCoreBoard = sharedBoard({ OR: [{ level: null }, { level: { notIn: EARLY_CAREER_RUNGS } }] }, 'board-core')
+const loadEarlyCareerBoard = sharedBoard({ level: { in: EARLY_CAREER_RUNGS } }, 'board-early')
 
 // Both boards in one id-sorted array, kept while neither changes (so subsets cut
 // from it are reused too).
@@ -181,9 +385,9 @@ function mergeById(core: LightRow[], early: LightRow[]): LightRow[] {
   return rows
 }
 
-async function loadSharedBoard(closedCounts: Map<string, number>, withEarlyCareer: boolean): Promise<LightRow[]> {
-  if (!withEarlyCareer) return loadCoreBoard(closedCounts)
-  const [core, early] = await Promise.all([loadCoreBoard(closedCounts), loadEarlyCareerBoard(closedCounts)])
+async function loadSharedBoard(withEarlyCareer: boolean): Promise<LightRow[]> {
+  if (!withEarlyCareer) return loadCoreBoard()
+  const [core, early] = await Promise.all([loadCoreBoard(), loadEarlyCareerBoard()])
   return mergeById(core, early)
 }
 
@@ -319,16 +523,12 @@ export function splitBoardWhere(
   return levelOnlyFilter(where) ? { levelWhere: where, windows: [] } : null
 }
 
-async function loadLightBoardRows(
-  where: Prisma.ExclusiveJobPostingWhereInput | undefined,
-  closedCounts: Map<string, number>,
-  postedWithinHours?: number
-): Promise<LightRow[]> {
+async function loadLightBoardRows(where: Prisma.ExclusiveJobPostingWhereInput | undefined, postedWithinHours?: number): Promise<LightRow[]> {
   const split = splitBoardWhere(where)
   if (split) {
     const keep = levelOnlyFilter(split.levelWhere)!
     const withEarlyCareer = EARLY_CAREER_RUNGS.some((level) => keep({ level }))
-    const all = await loadSharedBoard(closedCounts, withEarlyCareer)
+    const all = await loadSharedBoard(withEarlyCareer)
     const byLevel = subsetOf(all, JSON.stringify(split.levelWhere ?? null), keep)
     const windows = [...split.windows, ...(postedWithinHours === undefined ? [] : [postedWithinFilter(postedWithinHours)])]
     if (windows.length === 0) return byLevel
@@ -343,8 +543,12 @@ async function loadLightBoardRows(
   if (hit && Date.now() - hit.at < LIGHT_TTL_MS) return hit.rows
 
   const rows = (async () => {
-    const all = await prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(where), select: LIGHT_SELECT })
-    return keepRelevant(all, closedCounts)
+    const [all, closedCounts, listed] = await Promise.all([
+      prisma.exclusiveJobPosting.findMany({ where: liveBoardWhere(where), select: LIGHT_SELECT }),
+      getClosedPostingCounts(),
+      getStillListedDirect(),
+    ])
+    return keepRelevant(all, closedCounts, listed)
   })()
 
   if (lightCache.size >= LIGHT_MAX_KEYS) lightCache.delete(lightCache.keys().next().value as string)
@@ -367,11 +571,24 @@ interface RowFacts {
   workType?: WorkType
 }
 const factsByRow = new WeakMap<BoardRankRow, RowFacts>()
+// Company names repeat (~55k distinct over the board): normalized once per name. Every
+// light row is counted per company, so this runs for the whole board on a cold instance.
+const COMPANY_KEYS_MAX = 200_000
+const companyKeys = new Map<string, string>()
+function companyKey(name: string | null): string {
+  if (!name) return ''
+  let key = companyKeys.get(name)
+  if (key === undefined) {
+    if (companyKeys.size >= COMPANY_KEYS_MAX) companyKeys.clear()
+    companyKeys.set(name, (key = normalizeOrgName(name)))
+  }
+  return key
+}
 function rowFacts(p: BoardRankRow): RowFacts {
   let f = factsByRow.get(p)
   if (!f) {
     f = {
-      company: p.companyName ? normalizeOrgName(p.companyName) : '',
+      company: companyKey(p.companyName),
       titleKey: p.title.trim().toLowerCase(),
       titleFunction: (inferFunctionFromTitle(p.title) ?? '').toLowerCase(),
       levelRank: calibratedLevelRank(p.targetLevel ?? candidateScaleLevel(p.level) ?? inferLevelFromTitle(p.title), null),
@@ -382,7 +599,8 @@ function rowFacts(p: BoardRankRow): RowFacts {
 }
 function workTypeOf(p: BoardRankRow): WorkType {
   const f = rowFacts(p)
-  if (!f.workType) f.workType = classifyWorkType({ title: p.title, employmentType: p.employmentType })
+  // keepRelevant already dropped internships; 'contract' only satisfies the type.
+  if (!f.workType) f.workType = memberWorkType({ title: p.title, employmentType: p.employmentType }) ?? 'contract'
   return f.workType
 }
 
@@ -394,7 +612,8 @@ function companyCounts(light: BoardRankRow[]): Map<string, number> {
   if (!counts) {
     counts = new Map()
     for (const p of light) {
-      const { company } = rowFacts(p)
+      // Not rowFacts: that works out every fact, and only the jobs a member could see need them.
+      const company = companyKey(p.companyName)
       if (company) counts.set(company, (counts.get(company) ?? 0) + 1)
     }
     companyCountsByRows.set(light, counts)
@@ -414,7 +633,7 @@ export function postedWithinWhere(hours: number): Prisma.ExclusiveJobPostingWher
 export interface BoardShortlist {
   /** Full rows of the best-fitting jobs the candidate can open, best first. */
   open: ExclusiveJobPosting[]
-  /** Full rows of the best-fitting Candidate+-only jobs they can't open yet, best first. */
+  /** Always empty now: every member sees every job (owner's rule, 2026-10-16). Kept so callers need no change. */
   locked: ExclusiveJobPosting[]
   openTotal: number
   lockedTotal: number
@@ -425,6 +644,35 @@ export interface BoardShortlist {
   countByCompany: ReadonlyMap<string, number>
   /** Jobs the candidate can open, per work type (work-type.ts), before the type filter; zeros unless workTypes was passed. */
   countByWorkType: Record<WorkType, number>
+  /**
+   * Search breadth (search-breadth.ts): the breadth applied (null = not narrowed: no
+   * basis, or turned off), jobs each breadth would show (open + locked, every other
+   * filter applied), and the member's classifier for the reason labels.
+   */
+  breadth: {
+    applied: Breadth | null
+    narrowTotal: number
+    wideTotal: number
+    /** Jobs relevant on every criterion (relevance.ts), before the market tier and the display cap. */
+    relevantTotal: number
+    /** The member's whole market (relevant in their own industries, their full level window) when this call saw only a date window of it; else relevantTotal. Null without breadth. */
+    marketSize: number | null
+    /** The market tier applied (relevance.ts MARKET_TIERS key); null = no breadth. */
+    marketTier: string | null
+    /** Wide's one-relaxed extras shown. */
+    extrasTotal: number
+    /** "Show more good matches": the next good matches by fit (ids, open jobs only), paged in on request. */
+    goodMoreIds: string[]
+    /** Narrow was short of the band, so it widened with bridge jobs (shown after the strong matches). */
+    autoWidened: boolean
+    /** Jobs shown that need a bridge, and the criterion each relaxes. */
+    bridges: ReadonlyMap<string, BridgeInfo>
+    classifier: BreadthClassifier | null
+  }
+  /** What the member's dismissals changed (job-dismiss.ts): jobs left out, and the rules, for "Because you passed on …". */
+  dismiss: { hidden: number; rules: DismissRules | null }
+  /** For each of opts.views: the jobs the board would show with that view (openTotal). */
+  keptCounts: Record<string, number>
 }
 
 /**
@@ -471,24 +719,121 @@ export async function loadBoardShortlist(opts: {
    * including the per-work-type counts — is over the kept jobs. Omitted keeps all.
    */
   keep?: (p: BoardRankRow) => boolean
+  /** Board search (board-search-index.ts): relevance tier per job (0 best), null drops it. Board only — never the emails. */
+  relevance?: (p: BoardRankRow) => number | null
+  /** Board sort; omitted or 'best' is the fit order (within relevance tiers when searching). */
+  sort?: BoardSort
+  /** Jobs per company before the rest are held back (default PER_COMPANY); a company: search lifts it. */
+  perCompany?: number
+  /**
+   * Employer sectors to leave out (employer-sector.ts). Omitted: the member's own
+   * saved choice (candidate.hiddenEmployerSectors) — so every email path, which
+   * passes the member's profile, never includes a sector they turned off.
+   */
+  hiddenSectors?: readonly string[]
+  /**
+   * Search breadth (search-breadth.ts). Omitted: Narrow unless the member chose Wide —
+   * what every job email gets. The board passes boardBreadthFor (URL, saved, stage
+   * default); 'off' shows every job in the window (a pivot path, an explicit function).
+   */
+  breadth?: Breadth | 'off'
+  /** Rank by breadth and label, but keep jobs neither breadth would show (a search: the member asked for them). */
+  breadthKeepUnmatched?: boolean
+  /** A short Narrow auto-widens with bridge jobs up to this many (relevance.ts AUTO_WIDEN_FILL by default). */
+  autoWidenTo?: number
+  /**
+   * Load one level beyond the member's window for the seniority ring. Default: on when the
+   * window is the member's own (stageWindow omitted); the board passes its own choice.
+   */
+  seniorityRing?: boolean
+  /**
+   * A choice of views on top of `keep` (the board's AI / Non-AI / All buttons): the board shows
+   * `current`, and keptCounts says how many jobs each view would show (null keep = every job).
+   * Each other view is one more ranking pass over the rows already in memory, no database read.
+   */
+  views?: { current: string; keeps: Record<string, ((p: BoardRankRow) => boolean) | null> }
 }): Promise<BoardShortlist> {
-  const closedCounts = await getClosedPostingCounts()
   // Only relevant jobs reach a member: not confidently outside the US, and not a
   // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
   // in the database — this filters the view, it deletes nothing — and the board
   // totals below are computed over what is kept, so they match what is shown.
   // The level window is part of the filter (and so of the light-row cache key).
   const window = opts.stageWindow ?? (opts.candidate ? memberStageWindow(opts.candidate) : ALL_STAGES_WINDOW)
-  const levelWhere = boardLevelWindowWhere(opts.where, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })
-  const light = await loadLightBoardRows(levelWhere, closedCounts, opts.postedWithinHours)
-  const ranked = rankBoardRows(light, opts)
+  const breadth = opts.breadth ?? (opts.candidate ? emailBreadthFor(opts.candidate) : 'off')
+  // The seniority ring (relevance.ts): with breadth on and the member's own window, load one
+  // level beyond it each side; jobs out there only show as that ring's bridge jobs.
+  const seniorityRing = breadth !== 'off' && !!opts.candidate && (opts.seniorityRing ?? opts.stageWindow === undefined)
+  const rowsWindow = seniorityRing ? { lo: Math.max(0, window.lo - 1), hi: Math.min(CAREER_STAGES.length - 1, window.hi + 1) } : window
+  const levelWhere = boardLevelWindowWhere(opts.where, { window: rowsWindow, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })
+  const hidden = opts.hiddenSectors ?? (opts.candidate as { hiddenEmployerSectors?: string[] | null } | null)?.hiddenEmployerSectors ?? []
+  const inSector = sectorKeep(hidden)
+  const baseKeep = inSector && opts.keep ? (p: BoardRankRow) => inSector(p) && opts.keep!(p) : (inSector ?? opts.keep)
+  const withView = (view: ((p: BoardRankRow) => boolean) | null | undefined) =>
+    view && baseKeep ? (p: BoardRankRow) => baseKeep(p) && view(p) : (view ?? baseKeep)
+  const keep = withView(opts.views?.keeps[opts.views.current])
+  // The member's classifier loads alongside the board (cold: the job-occupation read runs in parallel).
+  const candidateId = (opts.candidate as { id?: string | null } | null)?.id ?? null
+  const t0 = Date.now()
+  const lap: Record<string, number> = {}
+  const timed = <T,>(name: string, p: Promise<T>) => p.finally(() => (lap[name] = Date.now() - t0))
+  const [light, classifier, dismissRules] = await Promise.all([
+    timed('rows', loadLightBoardRows(levelWhere, opts.postedWithinHours)),
+    breadth === 'off' ? null : timed('classifier', loadBreadthClassifier(opts.candidate)).catch((error) => {
+      console.error('Search breadth unavailable, showing the whole window:', error)
+      return null
+    }),
+    // Dismissals (job-dismiss.ts) apply everywhere a member's jobs are picked: board and emails.
+    loadDismissRules(candidateId).catch((error) => {
+      console.error('Dismiss preferences unavailable:', error)
+      return null
+    }),
+  ])
+  // An email's date window sees only part of the member's market: the market tier is set
+  // from their whole window instead, so big markets get fewer, better jobs everywhere.
+  const windowed = opts.postedWithinHours !== undefined || (splitBoardWhere(opts.where)?.windows.length ?? 0) > 0
+  const marketSize =
+    classifier && windowed
+      ? countRelevant(await loadLightBoardRows(boardLevelWindowWhere(undefined, { window, includeMidLevel: opts.includeMidLevel, includeEarlyCareer: opts.includeEarlyCareer })), classifier.placeFresh)
+      : undefined
+  lap.inputs = Date.now() - t0
+  // Years fit (owner, 2026-10-19): an in-window job asking far more — or far fewer — years
+  // than the member has (email-level-fit.ts) ranks after the jobs that fit, never hidden.
+  // Ranked over a few more rows than shown, so a demoted job makes room for the next good one.
+  // Only the fit order (no explicit sort, no search tiers) and only with a member.
+  const size = opts.size ?? 300
+  const demoteYears = !!opts.candidate && (!opts.sort || opts.sort === 'best') && !opts.relevance
+  const rankWith = (keepRow: typeof keep) =>
+    rankBoardRows(light, {
+      ...opts,
+      size: demoteYears ? size + Math.min(size, YEARS_DEMOTE_BUFFER) : opts.size,
+      keep: keepRow,
+      place: classifier?.place,
+      breadth: breadth === 'off' ? undefined : breadth,
+      dismiss: dismissRules ?? undefined,
+      marketSize,
+      levelWindow: seniorityRing ? window : undefined,
+    })
+  const ranked = rankWith(keep)
+  lap.ranked = Date.now() - t0
+  // The other views' counts (the board's AI / Non-AI / All buttons): same rows, no read.
+  const keptCounts: Record<string, number> = {}
+  for (const [name, view] of Object.entries(opts.views?.keeps ?? {})) {
+    keptCounts[name] = name === opts.views!.current ? ranked.openTotal : rankWith(withView(view)).openTotal
+  }
+  if (opts.views) lap.viewCounts = Date.now() - t0
   const full = new Map(
     (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
   )
   const inOrder = (ids: string[]) => ids.map((id) => full.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
+  lap.total = Date.now() - t0
+  // A slow shortlist (a cold instance, a board reload) says where the time went, in Vercel's logs.
+  if (lap.total >= SLOW_SHORTLIST_MS) console.log('[board-timing]', JSON.stringify({ ...lap, jobs: light.length }))
+
+  let open = inOrder(ranked.openIds)
+  if (demoteYears) open = demoteYearsMismatch(opts.candidate as Parameters<typeof emailLevelFit>[0], open, size)
 
   return {
-    open: inOrder(ranked.openIds),
+    open,
     locked: inOrder(ranked.lockedIds),
     openTotal: ranked.openTotal,
     lockedTotal: ranked.lockedTotal,
@@ -496,6 +841,21 @@ export async function loadBoardShortlist(opts: {
     lowCompetitionOpenTotal: ranked.lowCompetitionOpenTotal,
     countByCompany: ranked.countByCompany,
     countByWorkType: ranked.countByWorkType,
+    breadth: {
+      applied: classifier && breadth !== 'off' && !opts.breadthKeepUnmatched ? breadth : null,
+      narrowTotal: ranked.narrowTotal,
+      wideTotal: ranked.wideTotal,
+      relevantTotal: ranked.relevantTotal,
+      marketSize: classifier ? (marketSize ?? ranked.relevantTotal) : null,
+      marketTier: ranked.marketTier,
+      extrasTotal: ranked.extrasTotal,
+      goodMoreIds: ranked.goodMoreIds,
+      autoWidened: ranked.autoWidened,
+      bridges: ranked.bridges,
+      classifier,
+    },
+    dismiss: { hidden: ranked.dismissedHidden, rules: dismissRules },
+    keptCounts,
   }
 }
 
@@ -514,6 +874,57 @@ export function boardLevelWindowWhere(
 
 export type BoardRankRow = LightRow
 
+/**
+ * Every live job in a member's own level window (mid-level and early-career rungs included),
+ * from the shared in-memory board: what their market size and the personalization read-backs
+ * (src/lib/personalization/match-compute.ts) count over.
+ */
+export async function loadMemberMarketRows(candidate: FitCandidate & StageMemberLike, window?: StageWindow): Promise<BoardRankRow[]> {
+  return loadLightBoardRows(boardLevelWindowWhere(undefined, { window: window ?? memberStageWindow(candidate), includeMidLevel: true, includeEarlyCareer: true }))
+}
+type StageMemberLike = Parameters<typeof memberStageWindow>[0]
+
+/** Jobs relevant on every criterion in their own industries (no fit needed): the member's market size for its tier. */
+export function countRelevant(rows: BoardRankRow[], place: (p: BoardRankRow) => BreadthPlacement | null): number {
+  let n = 0
+  for (const p of rows) {
+    const placed = place(p)
+    if (placed && ringOf(placed.crit, { strongFit: false, stage: 0 }) === 0) n++
+  }
+  return n
+}
+
+/** A bridge job: the ring it came from (relevance.ts RINGS), its kind, and what brought it in. */
+export interface BridgeInfo {
+  ring: number
+  kind: Relaxed
+  notes: string[]
+}
+
+/**
+ * The fit order with years mismatches last (email-level-fit.ts years_far / years_overqualified):
+ * stable within each part, cut to `size`. Pure; exported for tests.
+ */
+export function demoteYearsMismatch<T extends { level: string | null; description?: string | null }>(
+  member: Parameters<typeof emailLevelFit>[0],
+  jobs: T[],
+  size: number
+): T[] {
+  const fits: T[] = []
+  const later: T[] = []
+  for (const p of jobs) (emailLevelFit(member, p).startsWith('years_') ? later : fits).push(p)
+  return [...fits, ...later].slice(0, size)
+}
+
+/** Extra rows ranked past the shown size, so years-demoted jobs make room for the next good fit. */
+export const YEARS_DEMOTE_BUFFER = 30
+/** Rank of a job a search kept that neither breadth would show (after every breadth kind). */
+const MATCH_RANK_UNMATCHED = 9
+/** "Show more good matches": at most this many more ids, paged in on request (never by default). */
+export const GOOD_MORE_MAX = 450
+/** Rows one "Show more good matches" page loads. */
+export const GOOD_MORE_PAGE = 20
+
 /** The ranking step of loadBoardShortlist, pure — no database. Exported for tests and analysis. */
 export function rankBoardRows(
   light: BoardRankRow[],
@@ -526,9 +937,27 @@ export function rankBoardRows(
     now?: Date
     workTypes?: WorkType[]
     keep?: (p: BoardRankRow) => boolean
+    relevance?: (p: BoardRankRow) => number | null
+    sort?: BoardSort
+    perCompany?: number
+    /** Search breadth: each job's place (search-breadth-server.ts); null = on neither board. Omitted: no breadth. */
+    place?: (p: BoardRankRow) => BreadthPlacement | null
+    breadth?: Breadth
+    breadthKeepUnmatched?: boolean
+    /** Auto-widen a short Narrow up to this many jobs (emails pass their own count). Default AUTO_WIDEN_FILL. */
+    autoWidenTo?: number
+    /**
+     * The member's relevant-job count for the market tier (relevance.ts MARKET_TIERS), when
+     * this call sees only part of it (an email's date window). Omitted: this call's own count.
+     */
+    marketSize?: number
+    /** What the member's dismissals taught the board (job-dismiss.ts): jobs to leave out, and a rank penalty. */
+    dismiss?: DismissRules
+    /** The member's own level window: jobs one level beyond it are the seniority ring. Omitted: every row is in. */
+    levelWindow?: StageWindow
   }
 ) {
-  const size = opts.size ?? 300
+  const defaultSize = opts.size ?? 300
   const fitBucket = boardListingFitBucketScorerFor(opts.fitScoring ?? 'v2', opts.candidate)
   const countByCompany = companyCounts(light)
   // Within a fit level, roles nearest the candidate's own level come first
@@ -539,45 +968,186 @@ export function rankBoardRows(
   const functions = new Set(
     [opts.candidate.primaryFunction, opts.candidate.secondaryFunction].filter(Boolean).map((f) => f!.trim().toLowerCase())
   )
-  const open: { id: string; rank: number; offFunction: number; crowd: number; gap: number; at: number; company: string; title: string }[] = []
-  const locked: typeof open = []
+  type Entry = {
+    id: string
+    rank: number
+    offFunction: number
+    crowd: number
+    gap: number
+    at: number
+    company: string
+    title: string
+    rel: number
+    posted: number
+    pay: number
+    /** Breadth rank: relevant kinds 0-3, Wide's one-relaxed extras 4-6, kept-but-unmatched 9 (0 with no breadth). */
+    cls: number
+    /** Learned from the member's dismissals (job-dismiss.ts): higher ranks lower. 0 = none. */
+    pen: number
+    canOpen: boolean
+    fresh: boolean
+    low: boolean
+    workType: WorkType | null
+    placed: BreadthPlacement | null | undefined
+    /** Relevance ring (relevance.ts RINGS): 0 = relevant on every criterion; null = none reaches it. */
+    ring: number | null
+    /** What brought a ring job in ("45 mi away", "one level up"). */
+    notes: string[]
+  }
   const now = opts.now ?? new Date()
-  let freshOpenTotal = 0
-  let lowCompetitionOpenTotal = 0
-  const countByWorkType: Record<WorkType, number> = { full_time: 0, part_time: 0, contract: 0, advisory: 0 }
   const typeFilter = opts.workTypes && opts.workTypes.length > 0 ? new Set(opts.workTypes) : null
+  const breadthOn = !!opts.place && !!opts.breadth
+  const selecting = breadthOn && !opts.breadthKeepUnmatched
+
+  // Pass 1 (cheap, memoised per row for this member): the jobs that could show at all —
+  // relevant on every criterion (relevance.ts), or missing exactly one Wide may relax.
+  const candidates: { p: BoardRankRow; placed: BreadthPlacement | null | undefined }[] = []
+  let dismissedHidden = 0
   for (const p of light) {
     if (opts.keep && !opts.keep(p)) continue
-    if (typeFilter) {
-      const workType = workTypeOf(p)
-      if (!isBoardPostingLockedForViewer(p, opts.isCandidatePlus)) countByWorkType[workType]++
-      if (!typeFilter.has(workType)) continue
+    if (opts.dismiss?.hidden(p)) {
+      dismissedHidden++
+      continue
     }
+    const placed = breadthOn ? opts.place!(p) : undefined
+    if (selecting && !placed) continue
+    candidates.push({ p, placed })
+  }
+
+  // Pass 2: fit and the rest of the ranking facts, for those jobs only.
+  const entries: Entry[] = []
+  // Level relative to the member's own window: inside, one level beyond (the seniority ring), or farther.
+  const levelWindow = opts.levelWindow
+  const stageOf = (level: string | null): { stage: 0 | 1 | 2; direction: 'up' | 'down' | null } => {
+    if (!levelWindow) return { stage: 0, direction: null }
+    const st = stageOfRung(level)
+    if (!st) return { stage: 0, direction: null }
+    const i = CAREER_STAGES.indexOf(st)
+    if (i >= levelWindow.lo && i <= levelWindow.hi) return { stage: 0, direction: null }
+    if (i === levelWindow.hi + 1) return { stage: 1, direction: 'up' }
+    if (i === levelWindow.lo - 1) return { stage: 1, direction: 'down' }
+    return { stage: 2, direction: null }
+  }
+  for (const { p, placed } of candidates) {
+    const rel = opts.relevance ? opts.relevance(p) : 0
+    if (rel === null) continue
+    const fitRank = FIT_BUCKET_SORT_RANK[fitBucket(p)]
+    let ring: number | null = null
+    let notes: string[] = []
+    if (placed) {
+      const lvl = stageOf(p.level)
+      ring = ringOf(placed.crit, { strongFit: fitRank === 0, stage: lvl.stage })
+      if (ring !== null && ring > 0) notes = ringNotes(placed.crit, { strongFit: fitRank === 0, stageDirection: lvl.direction })
+    }
+    if (selecting && ring === null) continue
+    const workType = typeFilter ? workTypeOf(p) : null
     const facts = rowFacts(p)
     const company = facts.company
-    const canOpen = !isBoardPostingLockedForViewer(p, opts.isCandidatePlus)
-    const fresh = isFresh(p, now)
     const competition = scoreCompetition(p, countByCompany.get(company) ?? 0, now).level
-    const low = competition === 'low'
-    const rank = FIT_BUCKET_SORT_RANK[fitBucket(p)]
-    // The prompts count only jobs that fit (strong or good).
-    if (canOpen && fresh && rank <= 1) freshOpenTotal++
-    if (canOpen && low && rank <= 1) lowCompetitionOpenTotal++
-    if (opts.view === 'fresh' && !fresh) continue
-    if (opts.view === 'low_competition' && !low) continue
-    const entry = {
+    entries.push({
       id: p.id,
       company,
       title: facts.titleKey,
-      rank,
+      rank: fitRank,
       crowd: COMPETITION_SORT_RANK[competition],
       offFunction: functions.has(facts.titleFunction) ? 0 : 1,
       gap: calibratedLevelDistance(candidateLevel, facts.levelRank),
       at: p.createdAt.getTime(),
+      rel,
+      posted: (p.postedAt ?? p.createdAt).getTime(),
+      pay: annualPayForSort(p.salaryMin, p.salaryMax) ?? -1,
+      cls: placed === undefined ? 0 : placed === null || ring === null ? MATCH_RANK_UNMATCHED : ring === 0 ? placed.rank : 4 + ring,
+      pen: opts.dismiss ? opts.dismiss.penalty(p) : 0,
+      canOpen: true, // every member sees every job (owner's rule, 2026-10-16): `locked` is always empty
+      fresh: isFresh(p, now),
+      low: competition === 'low',
+      workType,
+      placed,
+      ring,
+      notes,
+    })
+  }
+
+  // Selection (relevance.ts): the strict relevant set, the market tier's fit bar on it,
+  // Narrow's best NARROW_SHOW.max by fit (the rest page in as "more good matches"), and
+  // Wide's few one-relaxed extras with their bridges.
+  const byFit = (a: Entry, b: Entry) => a.rank - b.rank || a.pen - b.pen || a.gap - b.gap || a.crowd - b.crowd || b.at - a.at
+  const typeOk = (e: Entry) => !typeFilter || (e.workType !== null && typeFilter.has(e.workType))
+  let selected: Entry[] = entries
+  let relevantTotal = 0
+  let narrowTotal = 0
+  let wideTotal = 0
+  let goodMoreIds: string[] = []
+  let marketTierKey: MarketTier['key'] | null = null
+  let extrasTotal = 0
+  let autoWidened = false
+  const bridges = new Map<string, BridgeInfo>()
+  const capByType = new Map<WorkType, number>()
+  if (selecting) {
+    const relevantAll = entries.filter((e) => e.ring === 0)
+    for (const e of relevantAll) if (e.workType && e.canOpen) capByType.set(e.workType, (capByType.get(e.workType) ?? 0) + 1)
+    const relevant = relevantAll.filter(typeOk)
+    relevantTotal = relevant.length
+    let tierIdx = MARKET_TIERS.indexOf(marketTierFor(opts.marketSize ?? relevant.length))
+    const passes = (e: Entry, t: MarketTier) =>
+      e.rank <= t.maxFitRank && (!t.requireIndustryAndStage || (e.placed!.crit.industry === 'own' && e.placed!.sameStage))
+    let good = relevant.filter((e) => passes(e, MARKET_TIERS[tierIdx]))
+    // The bar never leaves Narrow under its minimum while easier tiers would fill it.
+    while (good.length < NARROW_SHOW.min && tierIdx > 0) {
+      tierIdx--
+      good = relevant.filter((e) => passes(e, MARKET_TIERS[tierIdx]))
     }
+    marketTierKey = MARKET_TIERS[tierIdx].key
+    good.sort(byFit)
+    const narrowSel = good.slice(0, NARROW_SHOW.max)
+    goodMoreIds = good.slice(NARROW_SHOW.max, NARROW_SHOW.max + GOOD_MORE_MAX).filter((e) => e.canOpen).map((e) => e.id)
+    const full = good.length >= NARROW_SHOW.min
+    // A small strict market widens on its own (owner's rule), ring by ring in a fixed order —
+    // geography, similar industries, similar functions, one level beyond — until the band fills.
+    // Wide goes the same rings up to its cap; when Narrow is already full it adds only strong fits.
+    autoWidened = opts.breadth === 'narrow' && !full
+    const cap = full
+      ? WIDE_EXTRAS_WHEN_FULL
+      : Math.max(0, (autoWidened ? Math.max(NARROW_SHOW.min, opts.autoWidenTo ?? AUTO_WIDEN_FILL) : WIDE_TOTAL_WHEN_SHORT) - narrowSel.length)
+    const pool = entries.filter((e) => typeOk(e) && (e.ring ?? 0) > 0 && (full ? e.rank === 0 : e.rank <= WIDE_SHORT_MAX_FIT_RANK))
+    const extras: Entry[] = []
+    for (let r = 1; r < RINGS.length && extras.length < cap; r++) {
+      const ring = pool.filter((e) => e.ring === r).sort((a, b) => Number(a.rank > 1) - Number(b.rank > 1) || byFit(a, b))
+      extras.push(...ring.slice(0, cap - extras.length))
+      if (autoWidened && narrowSel.length + extras.length >= NARROW_SHOW.min) break
+    }
+    extrasTotal = extras.length
+    narrowTotal = narrowSel.length
+    wideTotal = narrowSel.length + extras.length
+    for (const e of extras) bridges.set(e.id, { ring: e.ring!, kind: ringKind(e.ring!), notes: e.notes })
+    selected = opts.breadth === 'narrow' && !autoWidened ? narrowSel : [...narrowSel, ...extras]
+  } else {
+    selected = entries.filter(typeOk)
+  }
+
+  // What the type chips and prompts count: the selection (the chips capped at what a mode can show).
+  const countByWorkType: Record<WorkType, number> = { full_time: 0, part_time: 0, contract: 0, advisory: 0 }
+  if (typeFilter) {
+    if (selecting) {
+      const cap = opts.breadth === 'narrow' ? NARROW_SHOW.max : NARROW_SHOW.max + WIDE_EXTRAS_WHEN_FULL
+      for (const [t, n] of capByType) countByWorkType[t] = Math.min(n, cap)
+    } else {
+      for (const e of entries) if (e.workType && e.canOpen && (e.placed !== null || opts.breadthKeepUnmatched)) countByWorkType[e.workType]++
+    }
+  }
+  let freshOpenTotal = 0
+  let lowCompetitionOpenTotal = 0
+  const open: Entry[] = []
+  const locked: Entry[] = []
+  for (const e of selected) {
+    // The prompts count only jobs that fit (strong or good).
+    if (e.canOpen && e.fresh && e.rank <= 1) freshOpenTotal++
+    if (e.canOpen && e.low && e.rank <= 1) lowCompetitionOpenTotal++
+    if (opts.view === 'fresh' && !e.fresh) continue
+    if (opts.view === 'low_competition' && !e.low) continue
     // Everyone can open everything except employer / recruiter exclusives.
-    if (canOpen) open.push(entry)
-    else locked.push(entry)
+    if (e.canOpen) open.push(e)
+    else locked.push(e)
   }
 
   // Best fit first, then own function, least competition, nearest level,
@@ -585,10 +1155,20 @@ export function rankBoardRows(
   // title per company (big employers post the same role in dozens of
   // places) and at most PER_COMPANY per company, so one employer can't fill
   // the whole list. If that leaves room, the held-back ones fill it.
-  const best = (list: typeof open) => {
+  const best = (list: Entry[], size = defaultSize) => {
+    const fit = (a: Entry, b: Entry) =>
+      a.cls - b.cls || a.pen - b.pen || a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
+    // Search: newest / highest pay first, or relevance tier then fit. No search: fit, as always.
     const sorted = list.sort(
-      (a, b) => a.rank - b.rank || a.offFunction - b.offFunction || a.crowd - b.crowd || a.gap - b.gap || b.at - a.at
+      opts.sort === 'newest'
+        ? (a, b) => b.posted - a.posted || fit(a, b)
+        : opts.sort === 'pay'
+          ? (a, b) => b.pay - a.pay || fit(a, b)
+          : opts.relevance
+            ? (a, b) => a.rel - b.rel || fit(a, b)
+            : fit
     )
+    const perCompanyCap = opts.perCompany ?? PER_COMPANY
     const picked: string[] = []
     const heldBack: string[] = []
     const seenTitles = new Set<string>()
@@ -599,7 +1179,7 @@ export function rankBoardRows(
       if (seenTitles.has(titleKey)) continue
       seenTitles.add(titleKey)
       const n = perCompany.get(e.company) ?? 0
-      if (e.company && n >= PER_COMPANY) {
+      if (e.company && n >= perCompanyCap) {
         if (heldBack.length < size) heldBack.push(e.id)
         continue
       }
@@ -612,11 +1192,20 @@ export function rankBoardRows(
   return {
     openIds: best(open),
     lockedIds: best(locked),
+    dismissedHidden,
+    relevantTotal,
+    marketTier: marketTierKey,
+    extrasTotal,
+    goodMoreIds,
+    autoWidened,
+    bridges,
     openTotal: open.length,
     lockedTotal: locked.length,
     freshOpenTotal,
     lowCompetitionOpenTotal,
     countByCompany,
     countByWorkType,
+    narrowTotal,
+    wideTotal,
   }
 }

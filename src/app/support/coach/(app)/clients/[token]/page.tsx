@@ -6,6 +6,8 @@ import { getCoachClientSummaries } from '@/lib/coach/client-summary'
 import { getCoachCaseload } from '@/lib/coach/caseload'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
+import { getParallelPathsFor } from '@/lib/job-reviews/data'
+import { parallelPathView } from '@/lib/job-reviews/constants'
 
 const SENTIMENT_TREND_ARROW: Record<'up' | 'down', string> = { up: '↑', down: '↓' }
 
@@ -35,20 +37,24 @@ export default async function CoachClientsPage({
     )
   }
 
-  const [clients, caseload] = await Promise.all([getCoachClientSummaries(coach.id), getCoachCaseload(coach.id)])
+  const [clients, caseload, clientProfiles] = await Promise.all([
+    getCoachClientSummaries(coach.id),
+    getCoachCaseload(coach.id),
+    prisma.candidateProfile.findMany({
+      where: { coachId: coach.id },
+      select: {
+        id: true,
+        targetRoleType: true,
+        primaryFunction: true,
+        highestLevelReached: true,
+        targetIndustries: true,
+      },
+    }),
+  ])
   const glance = new Map(caseload.map((c) => [c.id, c]))
   const stalled = caseload.filter((c) => c.isStalled)
-  const clientProfiles = await prisma.candidateProfile.findMany({
-    where: { coachId: coach.id },
-    select: {
-      id: true,
-      targetRoleType: true,
-      primaryFunction: true,
-      highestLevelReached: true,
-      targetIndustries: true,
-    },
-  })
   const profileById = new Map(clientProfiles.map((p) => [p.id, p]))
+  const pathsById = await getParallelPathsFor(clientProfiles.map((p) => p.id))
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
@@ -144,6 +150,7 @@ export default async function CoachClientsPage({
                 {detail && detail.targetIndustries.length > 0 && (
                   <p>Industries: {detail.targetIndustries.join(', ')}</p>
                 )}
+                <AlongsideLine paths={pathsById.get(client.id) ?? null} />
                 {!detail?.targetRoleType && !detail?.primaryFunction && !detail?.highestLevelReached && (
                   <p>Profile still being built out.</p>
                 )}
@@ -168,4 +175,12 @@ export default async function CoachClientsPage({
       </div>
     </div>
   )
+}
+
+// "Alongside the search: …" — what the client does besides looking for a job.
+function AlongsideLine({ paths }: { paths: string[] | null }) {
+  const view = parallelPathView(paths)
+  if (view.state === 'unanswered') return <p>Alongside the search: not answered yet</p>
+  if (view.state === 'none') return <p>Alongside the search: nothing</p>
+  return <p>Alongside the search: {view.labels.join(', ')}</p>
 }

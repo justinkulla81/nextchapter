@@ -1,20 +1,22 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
+import { fitsMemberLevel } from '@/lib/jobs/email-level-fit'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { classifyWorkType } from '@/lib/jobs/work-type'
-import { emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
+import { boardListingFitBucketFor, emailFitScoringVersion, isVeryStrongBoardFitFor } from '@/lib/jobs/email-fit-scoring'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
-import { postedAgo } from '@/lib/jobs/competition'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import { captureServerEvent } from '@/lib/posthog/server'
 import FreshJobAlertEmail from '@/emails/fresh-job-alert'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 import { claimFreshJobAlert, FRESH_ALERT_COOLDOWN_MS } from '@/lib/jobs/fresh-job-alert-cap'
+import { boardJobCardTexts } from '@/lib/jobs/job-card-server'
+import { metaLineText } from '@/lib/jobs/job-card'
 
 /**
  * Instant new-job alerts: when a strong-fit job is posted, email the member
@@ -32,7 +34,7 @@ import { claimFreshJobAlert, FRESH_ALERT_COOLDOWN_MS } from '@/lib/jobs/fresh-jo
  * Rules: at most one alert per member per day; only very strong fits
  * posted in the last 24 hours; at most 2 jobs; never a job already sent in an alert or
  * already shown in Job Search Daily; members who opted out of these alerts,
- * Job Search Daily, or are on a break don't get them.
+ * Job Search Daily, or who are managing their career rather than looking don't get them.
  */
 
 const MAX_JOBS = 2
@@ -62,10 +64,14 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     where: postedWithinWhere(WINDOW_HOURS),
     size: 30,
     fitScoring,
+    // A small strict market fills with bridge jobs (labelled) instead of going out near-empty.
+    autoWidenTo: 30,
     // Mid-level and early-career jobs stay out of emails until the owner turns on
     // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
     includeEarlyCareer: earlyCareerInEmails(),
+    // No seniority ring in an email (email-level-fit.ts).
+    seniorityRing: false,
   })
   const [alerted, shownDaily] = await Promise.all([
     prisma.freshJobAlertSend.findMany({ where: { candidateId }, select: { postingId: true } }),
@@ -76,6 +82,8 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     // Owner's rule (2026-10-15): alerts are full-time only; part-time, contract
     // and advisory roles stay on the board.
     .filter((p) => classifyWorkType(p) === 'full_time')
+    // Only jobs at the member's level (email-level-fit.ts).
+    .filter((p) => fitsMemberLevel(candidate, p))
     .filter((p) => !skip.has(p.id) && isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS)
   if (jobs.length === 0) return { sent: false, reason: 'no new strong fits', jobCount: 0 }
@@ -94,6 +102,8 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
   const claimed = new Set(claim.postingIds)
   jobs = jobs.filter((p) => claimed.has(p.id))
 
+  // Each job reads as it does on the board card (job-card.ts): verdict, why line, meta line.
+  const cards = boardJobCardTexts({ candidate, shortlist: board, postings: jobs, fitBucketFor: (p) => boardListingFitBucketFor(fitScoring, candidate, p) })
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const subject = neutralizeEmailSubject(
     jobs.length === 1 ? `Just posted: ${jobs[0].title}` : `${jobs.length} roles that fit you were just posted`,
@@ -106,12 +116,16 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     subject,
     react: FreshJobAlertEmail({
       firstName: candidate.firstName,
-      jobs: jobs.map((p) => ({
-        title: p.title,
-        company: p.disclosure === 'CONFIDENTIAL' ? 'Confidential search' : p.companyName,
-        location: p.location,
-        postedAgo: postedAgo(p),
-      })),
+      jobs: jobs.map((p) => {
+        const card = cards.get(p.id)!
+        return {
+          title: p.title,
+          company: p.disclosure === 'CONFIDENTIAL' ? 'Confidential search' : p.companyName,
+          verdict: card.verdictLabel,
+          meta: metaLineText(card),
+          why: card.whyLine || null,
+        }
+      }),
       boardUrl: `${appUrl}/dashboard/find-my-job?view=fresh&src=fresh_job_alert#job-recommendations`,
       unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'freshJobAlerts'),
     }),

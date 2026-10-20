@@ -1,3 +1,5 @@
+import { RetuneHost } from '@/components/dashboard/RetuneMoment'
+import { CandidatePlusUnlockLoader } from '@/components/dashboard/CandidatePlusUnlockLoader'
 import type { Metadata } from 'next'
 import { accessFor } from '@/lib/access/grants'
 import { Suspense } from 'react'
@@ -6,7 +8,6 @@ import { CollegeBar } from '@/components/higher-ed/CollegeBar'
 import { ProgramBar } from '@/components/dashboard/ProgramBar'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { countOpenRequestsForCandidate } from '@/lib/documents/requests'
-import { countNewStrongCompanies } from '@/lib/companies/new-strong-companies'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
@@ -22,13 +23,17 @@ import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
-import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
-import { FRESH_HOURS } from '@/lib/jobs/competition'
-import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
+import { getFreshJobsPeek } from '@/lib/jobs/fresh-jobs-peek'
+import { timed } from '@/lib/perf/timed'
 import { PlaceTabs } from '@/components/dashboard/PlaceTabs'
+import { RedesignNav } from '@/components/dashboard/RedesignNav'
+import { RedesignParts } from '@/components/dashboard/RedesignParts'
+import { isRedesignOn } from '@/lib/redesign/flag'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
-import { checkInDue, effectiveStage, getStage } from '@/lib/journey/journey'
+import { checkInDue, effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
+import { menuMode } from '@/lib/journey/menu'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -62,20 +67,38 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
     documentRequestCount,
     profile,
   ] = await Promise.all([
-    getSupportNetworkUnreadCountForBadge(profileId),
-    getCandidateUnreadCount(profileId),
-    getPeerUnreadCount(profileId),
-    getNeedsFollowUpList(profileId),
-    isGmailConnected(profileId),
-    getHelpRepliesWaiting(profileId),
-    getFreshJobsCountForBadge(profileId),
-    countOpenRequestsForCandidate(profileId),
+    timed('layout', 'supportNetworkUnread', profileId, getSupportNetworkUnreadCountForBadge(profileId)),
+    timed('layout', 'candidateUnread', profileId, getCandidateUnreadCount(profileId)),
+    timed('layout', 'peerUnread', profileId, getPeerUnreadCount(profileId)),
+    timed('layout', 'needsFollowUp', profileId, getNeedsFollowUpList(profileId)),
+    timed('layout', 'gmailConnected', profileId, isGmailConnected(profileId)),
+    timed('layout', 'helpReplies', profileId, getHelpRepliesWaiting(profileId)),
+    timed('layout', 'freshJobs', profileId, getFreshJobsCountForBadge()),
+    timed('layout', 'documentRequests', profileId, countOpenRequestsForCandidate(profileId)),
     getDashboardProfile(),
   ])
   // One badge per place. Network adds up its three live signals: people to
   // follow up with, unread messages, and unread community posts.
   const messagesUnreadCount = candidateMessagesUnreadCount + peerUnreadCount
   const needsFollowUpCount = needsFollowUpList.length
+
+  if (isRedesignOn(profile.email)) {
+    const access = await accessFor(profileId)
+    return (
+      <>
+        <RedesignNav
+          badges={{ jobs: freshJobsCount, network: needsFollowUpCount + messagesUnreadCount + supportNetworkUnreadCount, help: helpRepliesWaiting, account: documentRequestCount }}
+          employed={isInWorkMember(profile)}
+          earlyCareer={earlyCareerAudience(profile) !== null}
+          // The redesign does not lock tabs behind connecting Gmail: connecting is offered where it helps, never required.
+          locks={{ hasEmailConnection: true, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
+          paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
+          moneyHelp={profile.moneyHelp}
+        />
+        <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
+      </>
+    )
+  }
 
   return (
     <>
@@ -89,6 +112,7 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
       hasEmailConnection={gmailConnected}
       skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
       employed={isInWorkMember(profile)}
+      mode={menuMode(effectiveStage(profile), effectiveJourney(profile))}
     />
     {/* Help & feedback, in the corner of every portal page. */}
     <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
@@ -96,24 +120,11 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   )
 }
 
-// New jobs that fit the member, posted in the last 72 hours: the same count the
-// Home Jobs module's prompt shows, answered from the board's shared in-memory
-// copy. The badge is decoration: any error reads as "nothing new".
-async function getFreshJobsCountForBadge(profileId: string): Promise<number> {
-  try {
-    const [profile, dossier] = await Promise.all([getDashboardProfile(), isDossierUnlocked(profileId)])
-    const board = await loadBoardShortlist({
-      candidate: profile,
-      isCandidatePlus: dossier.unlocked,
-      postedWithinHours: FRESH_HOURS,
-      view: 'fresh',
-      size: 1,
-    })
-    return board.freshOpenTotal
-  } catch (error) {
-    console.error('Failed to count fresh jobs for nav badge:', error)
-    return 0
-  }
+// New jobs in the member's field from the last 72 hours: one small query (fresh-jobs-peek.ts),
+// never the whole board. The badge is decoration: any error reads as "nothing new".
+async function getFreshJobsCountForBadge(): Promise<number> {
+  const profile = await getDashboardProfile()
+  return (await getFreshJobsPeek(profile.primaryFunction, profile.secondaryFunction)).count
 }
 
 // getSupportNetworkUnreadCount needs a profile field beyond just the id
@@ -137,34 +148,39 @@ async function CheckInPromptLoader({ profileId }: { profileId: string }) {
   return <JourneyCheckInDialog stageLabel={getStage(stage).label} />
 }
 
-// Companies that newly became a strong fit since the member last opened the
-// directory. A badge is decoration: any error reads as "nothing new".
-async function getNewStrongCompaniesCountForBadge(profileId: string): Promise<number> {
-  try {
-    return await countNewStrongCompanies(profileId)
-  } catch (error) {
-    console.error('Failed to count new strong companies for tab badge:', error)
-    return 0
-  }
-}
-
 // The place tab row needs the connection flags to show the right locks and a
-// few live counts for tab badges; its own boundary keeps those queries off the
-// page's critical path.
+// live count for the documents badge; its own boundary keeps those queries off the
+// page's critical path. No Companies badge here: counting "new strong companies" ranked
+// the whole directory and every live posting (a second copy of the board) on every
+// page view, and ran instances out of memory.
 async function PlaceTabsWithLocks({ profileId }: { profileId: string }) {
-  const [profile, gmailConnected, access, newCompanies, documentRequests] = await Promise.all([
+  const [profile, gmailConnected, access, documentRequests] = await Promise.all([
     getDashboardProfile(),
     isGmailConnected(profileId),
     accessFor(profileId),
-    getNewStrongCompaniesCountForBadge(profileId),
     countOpenRequestsForCandidate(profileId),
   ])
   return (
     <PlaceTabs
       employed={isInWorkMember(profile)}
-      locks={{ hasEmailConnection: gmailConnected, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null }}
+      earlyCareer={earlyCareerAudience(profile) !== null}
+      locks={{ hasEmailConnection: gmailConnected, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
       paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
-      tabBadges={{ '/dashboard/companies': newCompanies, '/dashboard/documents': documentRequests }}
+      tabBadges={{ '/dashboard/documents': documentRequests }}
+    />
+  )
+}
+
+// The redesigned part switches (Jobs, Not posted yet, ...), with the same locks as the tab row.
+async function RedesignPartsWithLocks({ profileId }: { profileId: string }) {
+  const [profile, access] = await Promise.all([getDashboardProfile(), accessFor(profileId)])
+  return (
+    <RedesignParts
+      employed={isInWorkMember(profile)}
+      earlyCareer={earlyCareerAudience(profile) !== null}
+      locks={{ hasEmailConnection: true, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
+      paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
+      moneyHelp={profile.moneyHelp}
     />
   )
 }
@@ -183,12 +199,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // a prerequisite to anything.
   const hardGateStatus = profile.subjectToHardGate ? getHardGateStatus(profile) : 'exempt'
 
+  const redesign = isRedesignOn(profile.email)
   const personName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email || 'You'
 
   return (
-    <div className="theme-candidate min-h-screen">
+    <div className={redesign ? 'theme-candidate theme-redesign min-h-screen' : 'theme-candidate min-h-screen'}>
       <IdentifyUser candidateId={profile.id} email={profile.email} />
       <DashboardActivityTracker />
+      {/* "Retuning your search": shown after any save that changes matching, on whatever page it lands. */}
+      <RetuneHost />
       <HashScrollFix />
       {/* lg:pl matches DashboardNav's fixed w-72 sidebar (see DashboardNav.tsx)
           — without it, the sidebar paints over this banner's left edge on
@@ -214,6 +233,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
       >
         <DashboardNavWithBadges profileId={profile.id} />
       </Suspense>
+      {/* The one-time "Candidate+ unlocked" screen, with the member's own numbers. */}
+      {hardGateStatus !== 'search_strategy_required' && (
+        <Suspense fallback={null}>
+          <CandidatePlusUnlockLoader profileId={profile.id} />
+        </Suspense>
+      )}
       {/* Not over the Search Strategy gate: that screen has one job. */}
       {hardGateStatus !== 'search_strategy_required' && (
         <Suspense fallback={null}>
@@ -226,17 +251,23 @@ export default async function DashboardLayout({ children }: { children: React.Re
           viewport on short pages (e.g. the loading skeleton) — without it,
           the body's own --background (a light gray-blue, see globals.css)
           shows through below wherever this element's content ends. */}
-      <main className="min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
-        <div className="mx-auto max-w-4xl">
+      <main className="nc-main min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
+        <div className="nc-main-inner mx-auto max-w-4xl">
           <HardGateGate subjectToHardGate={profile.subjectToHardGate} status={hardGateStatus}>
             <Suspense fallback={null}>
               <GoogleConnectResultBanner />
             </Suspense>
-            <Suspense
-              fallback={<PlaceTabs employed={false} locks={{ hasEmailConnection: true, skillsAssessmentCompleted: true }} paidAccess={{ coaching: true, recruiters: true }} />}
-            >
-              <PlaceTabsWithLocks profileId={profile.id} />
-            </Suspense>
+            {redesign ? (
+              <Suspense fallback={null}>
+                <RedesignPartsWithLocks profileId={profile.id} />
+              </Suspense>
+            ) : (
+              <Suspense
+                fallback={<PlaceTabs employed={false} locks={{ hasEmailConnection: true, skillsAssessmentCompleted: true }} paidAccess={{ coaching: true, recruiters: true }} />}
+              >
+                <PlaceTabsWithLocks profileId={profile.id} />
+              </Suspense>
+            )}
             {children}
           </HardGateGate>
         </div>

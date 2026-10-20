@@ -7,10 +7,10 @@ import { Building2, MapPin, Users } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { regionNotices } from '@/lib/higher-ed/rapid-response'
-import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, participants, small, type LocalSplit } from '@/lib/workforce/hub'
+import { hubDashboard, hubLayoffs, keptInRegion, memberCompanies, participants, seatRequests, small, type LocalSplit } from '@/lib/workforce/hub'
 import { EmptyState } from '@/components/ui/empty-state'
 import { StatTile } from './StatTile'
-import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberCompanyForm, ParticipantForm } from './HubForms'
+import { HiringToggle, LayoffOpenToggle, LayoffSeatsForm, LocalAreaForm, MemberAccess, MemberCompanyForm, ParticipantForm, SeatRequestAnswer } from './HubForms'
 
 type Props = { ctx: WorkspaceContext; searchParams: { q?: string; company?: string }; base: string }
 
@@ -76,6 +76,7 @@ export async function HubCompanies({ ctx }: Props) {
                 <Th>Joined</Th>
                 <Th>Layoffs</Th>
                 <Th>Hiring</Th>
+                <Th>Portal access</Th>
               </tr>
             </thead>
             <tbody>
@@ -97,6 +98,15 @@ export async function HubCompanies({ ctx }: Props) {
                     )}
                   </td>
                   <td className="px-3 py-2">{ctx.readOnly ? (c.hiring ? 'Hiring' : '—') : <HiringToggle slug={slug} companyId={c.id} hiring={c.hiring} />}</td>
+                  <td className="px-3 py-2">
+                    {c.employerProfileId ? (
+                      <span className="text-xs text-emerald-800">Connected</span>
+                    ) : ctx.readOnly ? (
+                      <span className="text-xs text-muted-foreground">{c.invitedAt ? 'Invited' : '—'}</span>
+                    ) : (
+                      <MemberAccess slug={slug} companyId={c.id} contactEmail={c.contactEmail} invitedAt={c.invitedAt?.toISOString() ?? null} connected={false} />
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -109,16 +119,37 @@ export async function HubCompanies({ ctx }: Props) {
 
 export async function HubLayoffs({ ctx, searchParams }: Props) {
   const slug = ctx.institution.slug
-  const [rows, companies, notices, inst, given] = await Promise.all([
+  const [rows, companies, notices, inst, given, requests] = await Promise.all([
     hubLayoffs(ctx.institution.id),
     prisma.memberCompany.findMany({ where: { institutionId: ctx.institution.id }, orderBy: { name: 'asc' }, select: { id: true, name: true } }),
     regionNotices(ctx.institution.id).catch(() => []),
     prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { includedSeats: true } }),
     prisma.rapidResponse.aggregate({ where: { institutionId: ctx.institution.id, isActive: true, memberCompanyId: { not: null } }, _sum: { seats: true } }),
+    seatRequests(ctx.institution.id),
   ])
   const seatsLeft = inst.includedSeats - (given._sum.seats ?? 0)
   return (
     <div className="space-y-6">
+      {requests.length > 0 && (
+        <section aria-labelledby="requests" className="space-y-2">
+          <h2 id="requests" className="text-base font-semibold">
+            Seat requests from member companies
+          </h2>
+          <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+            {requests.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
+                <div>
+                  <p className="font-medium">
+                    {r.memberCompany?.name ?? 'A member company'} · {(r.seats ?? 0).toLocaleString()} people · asked {day(r.requestedAt)}
+                  </p>
+                  {r.requestNote && <p className="text-xs text-muted-foreground">“{r.requestNote}”</p>}
+                </div>
+                {ctx.readOnly ? <span className="text-xs text-muted-foreground">Waiting</span> : <SeatRequestAnswer slug={slug} id={r.id} requested={r.seats ?? 1} />}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {!ctx.readOnly && (
         <section className="space-y-3 rounded-lg border border-border bg-card p-4" aria-labelledby="open-seats">
           <h2 id="open-seats" className="text-base font-semibold">
@@ -326,6 +357,73 @@ export async function HubLocal({ ctx }: Props) {
           )}
         </>
       )}
+    </div>
+  )
+}
+
+// Admin › Overview for a workforce customer: its launch steps and license.
+export async function WorkforceOverview({ ctx }: Props) {
+  const id = ctx.institution.id
+  const base = `/i/${ctx.institution.slug}`
+  const [inst, companies, layoffs, staff, people, keys] = await Promise.all([
+    prisma.institution.findUniqueOrThrow({ where: { id }, select: { name: true, programBrandName: true, slug: true, orgType: true, includedSeats: true, licenseStartAt: true, licenseEndAt: true, enabledFeatures: true } }),
+    prisma.memberCompany.count({ where: { institutionId: id } }),
+    prisma.rapidResponse.count({ where: { institutionId: id, memberCompanyId: { not: null } } }),
+    prisma.institutionUser.count({ where: { institutionId: id, revokedAt: null } }),
+    prisma.institutionMember.count({ where: { institutionId: id, affiliation: 'PARTICIPANT' } }),
+    prisma.orgApiKey.count({ where: { orgKind: 'institution', orgId: id, revokedAt: null } }),
+  ])
+  const ef = (inst.enabledFeatures ?? {}) as { local?: unknown; services?: unknown }
+  const steps = [
+    { done: !!ef.local, label: 'Set your region', detail: 'A city and the miles around it. Local jobs rank first, and hires there count as kept.', href: `${base}/hub/local` },
+    { done: companies > 0, label: 'Add member companies', detail: companies ? `${companies} on your list.` : 'The companies you serve.', href: `${base}/hub/companies` },
+    { done: layoffs > 0, label: 'Give seats for a layoff', detail: 'A sign-up page for a member company’s people.', href: `${base}/hub/layoffs` },
+    { done: !!ef.services, label: 'Choose your services', detail: 'Switch on what you offer; each becomes a card for job seekers.', href: `${base}/admin/services` },
+    { done: staff > 0, label: 'Invite your team', detail: 'Program staff, business services, your career center.', href: `${base}/admin/users` },
+    { done: people > 0 || keys > 0, label: 'Load or connect your participants', detail: people ? `${people.toLocaleString()} participants.` : 'Upload a spreadsheet or connect your system.', href: `${base}/admin/roster` },
+  ]
+  const done = steps.filter((s) => s.done).length
+  const facts: [string, string][] = [
+    ['Name', inst.name],
+    ['Program name', inst.programBrandName ?? '—'],
+    ['Kind of organization', ({ WORKFORCE_BOARD: 'Workforce board', ECONOMIC_DEVELOPMENT: 'Economic development', CHAMBER: 'Chamber of commerce', COMMUNITY_ORG: 'Community organization', COLLEGE: 'College' } as const)[inst.orgType]],
+    ['Portal address', `/i/${inst.slug}`],
+    ['Seat pool', inst.includedSeats.toLocaleString()],
+    ['License', [inst.licenseStartAt, inst.licenseEndAt].filter(Boolean).map((d) => day(d as Date)).join(' – ') || '—'],
+  ]
+  return (
+    <div className="space-y-6">
+      <section aria-labelledby="wf-launch" className="space-y-3">
+        <h2 id="wf-launch" className="text-base font-semibold">
+          Launch checklist · {done} of {steps.length}
+        </h2>
+        <ol className="divide-y divide-border rounded-lg border border-border bg-card">
+          {steps.map((st) => (
+            <li key={st.label} className="flex items-start gap-3 px-4 py-3">
+              <span aria-label={st.done ? 'Done' : 'To do'} className={st.done ? 'text-emerald-700' : 'text-muted-foreground'}>
+                {st.done ? '✓' : '○'}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">{st.label}</p>
+                <p className="text-xs text-muted-foreground">{st.detail}</p>
+              </div>
+              {!st.done && (
+                <Link href={st.href} className="text-sm font-medium text-primary hover:underline">
+                  Do this
+                </Link>
+              )}
+            </li>
+          ))}
+        </ol>
+      </section>
+      <dl className="grid gap-x-6 gap-y-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2">
+        {facts.map(([k, v]) => (
+          <div key={k}>
+            <dt className="text-xs text-muted-foreground">{k}</dt>
+            <dd className="text-sm font-medium break-words">{v}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   )
 }

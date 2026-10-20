@@ -16,6 +16,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { grantRoleIfMissing } from '@/lib/auth/role-grants'
 import { TOKEN_TTL_DAYS, isTokenExpired } from '@/lib/security/token-ttl'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 export type JoinableMember = {
   id: string
@@ -54,9 +55,6 @@ export async function findMemberByEmail(institutionId: string, email: string): P
   return m ? { ...m, sendId: null } : null
 }
 
-function appUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-}
 
 // The one-click sign-in for a token holder: makes sure a confirmed login
 // exists for the roster email, and returns a magic link that lands on the
@@ -72,13 +70,13 @@ export async function joinLinkForToken(slug: string, token: string): Promise<{ u
   const { data, error } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email: member.email,
-    options: { redirectTo: `${appUrl()}/auth/callback?next=institution-join&joinTo=${encodeURIComponent(welcome)}` },
+    options: { redirectTo: `${callbackOriginForAppPath('/dashboard')}/auth/callback?next=institution-join&joinTo=${encodeURIComponent(welcome)}` },
   })
   if (error || !data.properties?.action_link) return { error: 'We couldn’t sign you in just now. Try the link again in a minute.' }
   return { url: data.properties.action_link }
 }
 
-export type JoinChoices = { shareOutcome: boolean; shareSearchDetail: boolean; takeCalls: boolean }
+export type JoinChoices = { shareOutcome: boolean; shareSearchDetail: boolean; takeCalls: boolean; shareDossier?: boolean }
 
 export async function completeJoin(args: { member: JoinableMember; userId: string; choices: JoinChoices }): Promise<{ candidateId: string }> {
   const { member, userId, choices } = args
@@ -91,6 +89,8 @@ export async function completeJoin(args: { member: JoinableMember; userId: strin
   const consents: [InstitutionConsentScope, boolean][] = [
     ['SHARE_OUTCOME', choices.shareOutcome],
     ['SHARE_SEARCH_DETAIL_WITH_CAREER', choices.shareSearchDetail],
+    // Asked only of a workforce org's participants (hiring member companies).
+    ...(choices.shareDossier !== undefined ? ([['SHARE_DOSSIER_WITH_EMPLOYERS', choices.shareDossier]] as [InstitutionConsentScope, boolean][]) : []),
   ]
   await prisma.institutionConsent.createMany({
     data: consents.map(([scope, granted]) => ({ memberId: member.id, scope, granted, source: 'CLAIM', changedAt: now })),

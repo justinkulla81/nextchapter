@@ -25,7 +25,7 @@ Access path key: **Direct** (NextChapter as grantee), **College or board** (insi
 | Ascendium Education Group | VERIFIED | Not stated | Invitation only; rare RFPs | Nonprofit partner |
 | Gates Foundation | VERIFIED | **Allows for-profits** in principle, with conditions | Invitation only; occasional RFPs | College or board |
 | Ballmer Group | VERIFIED | Not stated | Invitation only (no unsolicited applications) | Not accessible directly |
-| Markle Foundation | TO VERIFY | Unknown | Unknown | Not accessible (provisional) |
+| Markle Foundation | VERIFIED | Not stated | No application process published | Not accessible |
 | Google.org | TO VERIFY | Not stated on pages read | No public U.S. application route found | Nonprofit partner (provisional) |
 | JPMorganChase | TO VERIFY | Unknown (secondary says nonprofits only) | Invitation only (secondary) | Nonprofit partner (provisional) |
 
@@ -91,12 +91,12 @@ Access path key: **Direct** (NextChapter as grantee), **College or board** (insi
 - Access path: not accessible directly. Focus is children and families.
 - Source: https://ballmergroup.org/our-grants/
 
-### Markle Foundation: TO VERIFY
-- Program: Skillful and the Rework America Alliance. Search-result snippets from markle.org say Skillful is a nonprofit initiative of Markle and that the alliance was transferred to Jobs for the Future (scheduled December 2023). Secondary sources describe a focus on workers without four-year degrees.
-- Blocker: every markle.org URL returned HTTP 403 to WebFetch and to a plain browser-style request; the Internet Archive blocked automated access. No eligibility or application page was read. An archived FAQ from about 2006 said Markle had stopped accepting unsolicited applications (old, secondary).
-- Access path (provisional): not accessible. Population is a poor fit for mid-career professionals.
-- Next step: read markle.org in a normal browser.
-- Source tried: https://www.markle.org/
+### Markle Foundation: VERIFIED (2026-10-16)
+- Read on markle.org in a normal browser (home and About pages). Mission: economic security, health and national security. The only active initiative featured is AI for Disasters + Emergencies (AIDE), which Markle runs itself.
+- Who can apply: neither page names a grant program, eligible applicants or an application process, and neither mentions for-profits.
+- For-profit: does not state.
+- Access path: not accessible. Past workforce work (Skillful, Rework America Alliance) moved on; the alliance was transferred to Jobs for the Future. Not worth pursuing now.
+- Source: https://www.markle.org/about-markle/
 
 ### Google.org: TO VERIFY
 - Program: AI Opportunity Fund ($75 million U.S. workforce commitment, 2024), read on google.org, publicpolicy.google and blog.google. It funds "best-in-class workforce development and education organizations"; the final $10 million went to intermediaries (Project Evident, Tech:NYC Foundation, community foundations) serving nonprofits. The Generative AI Accelerator open call (2025 cohort chosen) is closed.
@@ -112,13 +112,13 @@ Access path key: **Direct** (NextChapter as grantee), **College or board** (insi
 
 ## What this means
 
-- Of the eight VERIFIED rows, one allows for-profits in principle (Gates, by invitation only), two exclude them by their own wording (Walmart.org and Siegel), and five do not say. Every route found is invitation only or not yet open.
+- Of the nine VERIFIED rows, one allows for-profits in principle (Gates, by invitation only), two exclude them by their own wording (Walmart.org and Siegel), and six do not say. Every route found is invitation only or not yet open.
 - **OpenAI Foundation:** the earlier "wide range of other organizations" line came from a news report and is not on the foundation's own page. No call had opened as of October 13, 2026. Its stated work covers job search support, translating experience into new roles and pilots, so watch its news page.
 - **Gates:** the 2026 AI Transformation Learning Grants (about $150,000 to $200,000 each, for broad-access colleges and universities) closed September 11, 2026.
 - **Practical route:** for a for-profit, funding runs mostly through college or nonprofit grantees, which fits the Texas pattern (colleges and boards win the grant, NextChapter is the professional-track provider inside it). Ascendium, Gates, Lumina and Strada all fund college and workforce-board grantees.
 - The most practical first step is not to ask any funder for a grant. It is to list the colleges, boards and nonprofits NextChapter works with that already hold these funders' grants, and ask whether a NextChapter provider line fits their next proposal.
 - **Still unverified, and why:**
-  - **Markle:** every markle.org page blocked the automated read (403). Someone needs to read it in a normal browser.
   - **Google.org and JPMorganChase:** no page that loaded says who can apply or how. Treat JPMorganChase as excluding for-profits until it is read on its own pages.
-  - Do not approach any of the three until they are read on the funders' own pages.
+  - Do not approach either until they are read on the funders' own pages.
+- **Markle** was read on its own site on 2026-10-16: no open application process and no current workforce-transitions program, so it is not a target.
 - **Removed:** the Panorama Innovative Postsecondary Models Fund was dropped on 2026-10-13. It was the only fund found that names for-profits as eligible, but the round closed September 14, 2026 and its model must award credentials, which NextChapter does not.

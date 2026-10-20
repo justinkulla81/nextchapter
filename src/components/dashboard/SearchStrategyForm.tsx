@@ -17,6 +17,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TagInput } from '@/components/onboarding/TagInput'
+import { RelocationField } from '@/components/dashboard/RelocationField'
+import { PivotOpennessField } from '@/components/dashboard/PivotOpennessField'
+import type { Relocation } from '@/lib/journey/relocation'
+import type { PivotTarget } from '@/lib/journey/pivot'
+import type { JourneyType } from '@prisma/client'
 import { TradeoffRanking } from '@/components/onboarding/TradeoffRanking'
 import {
   COMPANY_SIZE_OPTIONS,
@@ -27,7 +32,12 @@ import {
   HIGHEST_LEVEL_OPTIONS,
 } from '@/lib/constants/onboarding'
 import { cn } from '@/lib/utils'
+import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { MAX_TRAVEL_OPTIONS } from '@/lib/jobs/requirements'
+
+const MAX_TRAVEL_CHOICES = MAX_TRAVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))
 import type { CandidateProfile } from '@prisma/client'
+import { useRetuneAfterSave } from '@/components/dashboard/RetuneMoment'
 
 // A quiet visual flag next to a Label — not answered yet, in-context, no
 // separate legend needed. Only used on the fields search-strategy-checklist.ts
@@ -46,14 +56,26 @@ export function SearchStrategyForm({
   inferredIndustries,
   inferredFunction,
   completedReferencesCount,
+  relocation,
+  pivotTargets,
+  seniorLevel,
+  canSwitchJourney,
+  journey,
 }: {
   profile: CandidateProfile
   inferredIndustries: string[]
   inferredFunction: string | null
   completedReferencesCount?: number
+  relocation: Relocation
+  pivotTargets: PivotTarget[]
+  seniorLevel: boolean
+  // True when changing careers could become the member's journey.
+  canSwitchJourney: boolean
+  journey: JourneyType | null
 }) {
   const [state, formAction, pending] = useActionState(updateSearchStrategy, undefined)
   useAdvanceSearchStrategyPageOnSave(pending, !!state?.error)
+  const retune = useRetuneAfterSave('search_strategy', pending, !!state?.error)
   const [willingToStartLower, setWillingToStartLower] = useState(profile.willingToStartLower)
   const [isTargetFlexible, setIsTargetFlexible] = useState(profile.targetRoleType === 'Flexible')
   const [targetRoleType, setTargetRoleType] = useState(
@@ -62,12 +84,12 @@ export function SearchStrategyForm({
       : profile.resumeLatestJobTitle ?? ''
   )
   const [remotePreference, setRemotePreference] = useState(profile.remotePreference ?? '')
-  const [isPivoting, setIsPivoting] = useState(profile.isPivoting)
-  const [openToRelocation, setOpenToRelocation] = useState(profile.openToRelocation)
+  const [maxTravel, setMaxTravel] = useState<string | null>(profile.maxTravelPct === null ? null : String(profile.maxTravelPct))
 
   return (
     <form
       action={formAction}
+      onSubmit={retune.onSubmit}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <div className="space-y-2">
@@ -214,37 +236,13 @@ export function SearchStrategyForm({
         </div>
       </div>
 
-      <div className="flex items-start gap-2">
-        <Checkbox
-          id="isPivoting"
-          name="isPivoting"
-          value="on"
-          checked={isPivoting}
-          onCheckedChange={(checked) => setIsPivoting(checked === true)}
-        />
-        <Label htmlFor="isPivoting" className="font-normal">I&apos;m considering a <em>career pivot</em> to a different role or function, not just changing employers</Label>
-      </div>
-
-      {isPivoting && (
-        <div className="space-y-2">
-          <Label htmlFor="targetFunction">Target job function</Label>
-          <Select name="targetFunction" defaultValue={profile.targetFunction ?? inferredFunction ?? undefined}>
-            <SelectTrigger id="targetFunction" className="w-full">
-              <SelectValue placeholder="Select one" />
-            </SelectTrigger>
-            <SelectContent>
-              {PRIMARY_FUNCTION_OPTIONS.map((fn) => (
-                <SelectItem key={fn} value={fn}>
-                  {fn}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">
-            The function you want to be doing next — it can differ from your background.
-          </p>
-        </div>
-      )}
+      <PivotOpennessField
+        from={profile.primaryFunction ?? inferredFunction}
+        seniorLevel={seniorLevel}
+        initial={pivotTargets}
+        canSwitchJourney={canSwitchJourney}
+        switchDefault={journey !== 'LAID_OFF'}
+      />
 
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -427,31 +425,21 @@ export function SearchStrategyForm({
             Equity matters to me
           </Label>
         </div>
-        <div className="flex items-start gap-2">
-          <Checkbox
-            id="openToRelocation"
-            name="openToRelocation"
-            value="on"
-            checked={openToRelocation}
-            onCheckedChange={(checked) => setOpenToRelocation(checked === true)}
-          />
-          <Label htmlFor="openToRelocation" className="font-normal">
-            I&apos;m open to relocating for the right role
+        <RelocationField initial={relocation} notes={profile.relocationNotes} />
+        <div id="travel" className="scroll-mt-4 space-y-2">
+          <Label className="font-normal">
+            How much travel can you take on? (not the same as relocating)
+            {maxTravel === null && <UnansweredBadge />}
           </Label>
-        </div>
-        {openToRelocation && (
-          <Textarea
-            name="relocationNotes"
-            placeholder="Relocation notes (optional)"
-            defaultValue={profile.relocationNotes ?? ''}
-            rows={2}
+          <ChoiceButtons
+            name="maxTravelPct"
+            options={MAX_TRAVEL_CHOICES}
+            value={maxTravel}
+            onChange={setMaxTravel}
+            columns={4}
+            responsive
+            compact
           />
-        )}
-        <div className="flex items-start gap-2">
-          <Checkbox id="travelWillingness" name="travelWillingness" value="on" defaultChecked={profile.travelWillingness} />
-          <Label htmlFor="travelWillingness" className="font-normal">
-            I&apos;m willing to travel for a role (not the same as relocating)
-          </Label>
         </div>
         <div className="flex items-start gap-2">
           <Checkbox

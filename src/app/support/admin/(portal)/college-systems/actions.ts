@@ -40,7 +40,7 @@ export async function addSystemUser(systemId: string, _prev: SystemFormState, f:
   const url = `${process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'}/systems/${system.slug}`
   let emailed = false
   if (process.env.RESEND_API_KEY) {
-    const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({
+    const { error } = await createResend(process.env.RESEND_API_KEY, 'organization').emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: email,
       subject: `Your ${system.name} dashboard on NextChapter`,

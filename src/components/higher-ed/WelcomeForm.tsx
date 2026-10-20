@@ -34,6 +34,7 @@ export function WelcomeForm({ action, collegeName, workforce = false }: { action
   // Defaults per the spec: outcome sharing on, search detail off.
   const [shareOutcome, setShareOutcome] = useState(true)
   const [shareSearchDetail, setShareSearchDetail] = useState(false)
+  const [shareDossier, setShareDossier] = useState(false)
   const [takeCalls, setTakeCalls] = useState(false)
   return (
     <form action={formAction} className="space-y-4">
@@ -55,6 +56,15 @@ export function WelcomeForm({ action, collegeName, workforce = false }: { action
         value={shareSearchDetail}
         onChange={setShareSearchDetail}
       />
+      {workforce && (
+        <Choice
+          name="shareDossier"
+          label="Let hiring member companies see my Dossier"
+          help={`Local companies hiring through ${collegeName} can see your verified profile and ask for an introduction. You say yes or no each time.`}
+          value={shareDossier}
+          onChange={setShareDossier}
+        />
+      )}
       {!workforce && (
       <label className="flex items-start gap-3 rounded-lg border border-border bg-card p-4 text-sm">
         <input type="checkbox" name="takeCalls" checked={takeCalls} onChange={(e) => setTakeCalls(e.target.checked)} className="mt-0.5 size-4" />

@@ -9,6 +9,9 @@ import { requireWorkspace } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
 import { placeAt } from '@/lib/workforce/local'
 import { STATE_NAMES } from '@/lib/workforce/places'
+import { mainOrigin } from '@/lib/org-hosts'
+import { inviteMemberCompany, syncMemberAccess } from '@/lib/workforce/member-access'
+import { answerSeatRequest } from '@/lib/workforce/company-portal'
 
 type Result = { error?: string; ok?: boolean; message?: string }
 export type HubResult = Result | undefined
@@ -62,6 +65,7 @@ export async function setCompanyHiring(slug: string, companyId: string, hiring: 
   const ctx = await hub(slug)
   const r = await prisma.memberCompany.updateMany({ where: { id: companyId, institutionId: ctx.institution.id }, data: { hiring } })
   if (!r.count) return { error: 'That company is gone. Reload the page.' }
+  await syncMemberAccess(ctx.institution.id, companyId)
   captureServerEvent(ctx.userId, 'hub_member_company_hiring_set', { institutionId: ctx.institution.id, companyId, hiring })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true }
@@ -89,7 +93,7 @@ export async function openLayoffSeats(slug: string, _prev: HubResult, f: FormDat
   })
   captureServerEvent(ctx.userId, 'hub_layoff_seats_opened', { institutionId: ctx.institution.id, companyId: company.id, rapidResponseId: r.id, seats, fromWarn: !!warnNoticeId })
   revalidatePath(`/i/${slug}`, 'layout')
-  return { ok: true, message: `Seats open. Share the sign-up page: /i/${slug}/rapid/${r.id}` }
+  return { ok: true, message: `Seats open. Share the sign-up page: ${mainOrigin()}/i/${slug}/rapid/${r.id}` }
 }
 
 export async function setLayoffOpen(slug: string, id: string, isActive: boolean): Promise<Result> {
@@ -134,4 +138,24 @@ export async function saveLocalArea(slug: string, _prev: HubResult, f: FormData)
   captureServerEvent(ctx.userId, 'hub_local_area_saved', { institutionId: ctx.institution.id, anchorState, radiusMiles })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: `Saved. Jobs within ${radiusMiles} miles of ${anchorCity} now rank first for your participants.` }
+}
+
+// Give a member company a login to its portal (layoff seats, its people, hiring).
+export async function inviteMemberContact(slug: string, companyId: string, email: string): Promise<Result & { path?: string; sent?: boolean }> {
+  const ctx = await hub(slug)
+  const r = await inviteMemberCompany({ institutionId: ctx.institution.id, companyId, email })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, 'hub_member_company_invited', { institutionId: ctx.institution.id, companyId, emailed: r.sent })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true, sent: r.sent, path: r.path, message: r.sent ? `Invite sent to ${email.trim().toLowerCase()}.` : 'Demo: nothing is emailed. Share this link instead.' }
+}
+
+// A member company's seat request: approve with the seats given, or decline.
+export async function answerSeatRequestAction(slug: string, id: string, approve: boolean, seats?: number): Promise<Result> {
+  const ctx = await hub(slug)
+  const r = await answerSeatRequest({ institutionId: ctx.institution.id, id, approve, seats, orgBrand: ctx.institution.programBrandName ?? ctx.institution.name })
+  if ('error' in r) return { error: r.error }
+  captureServerEvent(ctx.userId, approve ? 'hub_seat_request_approved' : 'hub_seat_request_declined', { institutionId: ctx.institution.id, rapidResponseId: id, seats })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
 }

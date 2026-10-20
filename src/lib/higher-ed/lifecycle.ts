@@ -378,7 +378,8 @@ export async function programRecommendations(institutionId: string, candidateId:
 
 export type StageHelp = { key: string; title: string; detail: string; href: string }
 
-export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasPrograms: boolean; hasOfficeHours: boolean; hasEvents: boolean; hasJobs: boolean; journey?: JourneyType | null }): StageHelp[] {
+export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasPrograms: boolean; hasOfficeHours: boolean; hasEvents: boolean; hasJobs: boolean; journey?: JourneyType | null; workforce?: boolean }): StageHelp[] {
+  if (opts.workforce) return workforceStageHelp(stage, slug, opts.hasPrograms)
   const b = `/i/${slug}/candidate`
   const items: Record<string, StageHelp> = {
     outcomes: { key: 'outcomes', title: 'What alumni like you do', detail: 'Where grads with your major work, and their milestones.', href: `${b}/network` },
@@ -405,13 +406,81 @@ export function stageHelp(stage: JourneyStage | null, slug: string, opts: { hasP
     INTERVIEWING: ['interview', 'officeHours', 'mentors'],
     OFFER: ['offer', 'mentors'],
     LANDED: ['share', 'giveBack', 'groups'],
+    STAYING: ['mentors', 'groups', 'programs'],
     PAUSED: [],
   }
   let keys = stage ? by[stage] : by.EXPLORING
-  if (opts.journey === 'PROMOTION' && stage !== 'PAUSED' && stage !== 'LANDED') keys = ['promotion', ...keys]
+  if (opts.journey === 'PROMOTION' && stage !== 'PAUSED' && stage !== 'STAYING' && stage !== 'LANDED') keys = ['promotion', ...keys]
   if (opts.journey === 'EXPLORING_MOVE' && stage === 'EXPLORING') keys = ['worth', ...keys]
   if (stage === 'LANDED') keys = ['firstReview', ...keys]
+  // What this journey needs from a college comes first (everything links to a screen that exists).
+  const extra = journeyHelp(opts.journey ?? null, b)
+  const all = { ...items, ...Object.fromEntries(extra.map((e) => [e.key, e])) }
+  keys = [...new Set([...extra.map((e) => e.key), ...keys])]
   return keys.slice(0, 4)
-    .filter((k) => (k !== 'programs' || opts.hasPrograms) && (k !== 'officeHours' || opts.hasOfficeHours) && (k !== 'events' || opts.hasEvents) && (k !== 'jobs' || opts.hasJobs))
-    .map((k) => items[k])
+    .filter((k) => (k !== 'programs' || opts.hasPrograms) && (k !== 'growthPrograms' || opts.hasPrograms) && (k !== 'officeHours' || opts.hasOfficeHours) && (k !== 'events' || opts.hasEvents) && (k !== 'jobs' || opts.hasJobs))
+    .map((k) => all[k])
+}
+
+// Journey-specific cards for the college home. Each links to a screen the
+// college portal already has; the services that are still link-only
+// (src/lib/higher-ed/services.ts, builtIn: null) are not promised here.
+export function journeyHelp(journey: JourneyType | null, base: string): StageHelp[] {
+  switch (journey) {
+    case 'GROWING':
+      return [
+        { key: 'growthPrograms', title: 'Programs for your next level', detail: 'Executive education and certificates, matched to the skills your report says to build.', href: `${base}/programs` },
+        { key: 'sponsor', title: 'Find a sponsor or mentor', detail: 'Alumni a level or two above you who will take a call.', href: `${base}/mentors` },
+      ]
+    case 'PROMOTION':
+      return [{ key: 'sponsor', title: 'Find a sponsor', detail: 'An alum who has made the move you want, and what they would do differently.', href: `${base}/mentors` }]
+    case 'CAREER_CHANGE':
+      return [
+        { key: 'pivots', title: 'Where alumni moved next', detail: 'Roles people with your background moved into, and the skills each took.', href: '/dashboard/pivot-paths' },
+        { key: 'intros', title: 'Talk to someone in the new field', detail: 'An alum who made a similar change.', href: `${base}/network#intros` },
+      ]
+    case 'RETURNING':
+      return [{ key: 'reentry', title: 'Ease back in', detail: 'A mentor who restarted after a break, and short programs to refresh a skill.', href: `${base}/mentors` }]
+    case 'NEXT_ACT':
+      return [{ key: 'projectsBoards', title: 'Projects, boards and advisory roles', detail: 'Alumni post short projects, fractional roles and board seats for each other.', href: `${base}/jobs#projects-h` }]
+    case 'FRACTIONAL':
+      return [{ key: 'projectsClients', title: 'Find your next client among alumni', detail: 'Short projects and fractional roles posted by fellow alumni.', href: `${base}/jobs#projects-h` }]
+    case 'ENTREPRENEUR':
+      return [
+        { key: 'founders', title: 'Talk to alumni who built something', detail: 'Mentors and groups for founders, and projects that need your skills.', href: `${base}/mentors` },
+        { key: 'projectsClients', title: 'Projects from alumni', detail: 'Short paid work while you build.', href: `${base}/jobs#projects-h` },
+      ]
+    case 'TIME_OFF':
+      return [{ key: 'stayConnected', title: 'Stay connected, no pressure', detail: 'Your class and city groups, only when you want them.', href: `${base}/network` }]
+    case 'STUDENT_NEW_GRAD':
+      return [{ key: 'alumniInRoles', title: 'Alumni in the roles you want', detail: 'Ask for 20 minutes. Most first jobs come through someone.', href: `${base}/network#intros` }]
+    default:
+      return []
+  }
+}
+
+// A workforce program's participants: no alumni network, so local jobs,
+// coaching, practice and training, and telling the program where they landed.
+function workforceStageHelp(stage: JourneyStage | null, slug: string, hasPrograms: boolean): StageHelp[] {
+  const items: Record<string, StageHelp> = {
+    localJobs: { key: 'localJobs', title: 'Local jobs first', detail: 'Roles near you, ranked first, matched to your skills.', href: '/dashboard/find-my-job' },
+    coaching: { key: 'coaching', title: 'Talk to a coach', detail: 'One-to-one help with your plan and your story.', href: '/dashboard/coaching-match' },
+    practice: { key: 'practice', title: 'Résumé and interview practice', detail: 'An AI first pass, then a person.', href: '/dashboard/interview-prep' },
+    pivots: { key: 'pivots', title: 'Where people like you moved', detail: 'Next roles for your background, and the skills each takes.', href: '/dashboard/pivot-paths' },
+    programs: { key: 'programs', title: 'Close a gap', detail: 'Short courses, often free with WIOA funding.', href: `/i/${slug}/candidate/programs` },
+    worth: { key: 'worth', title: 'Know what you’re worth', detail: 'Your offer against the local market.', href: '/dashboard/in-work?tab=salary' },
+    landed: { key: 'landed', title: 'Tell us where you landed', detail: 'It helps the program show how many people stay local.', href: '/dashboard/got-hired' },
+    firstReview: { key: 'firstReview', title: 'Set up your first review', detail: 'Log wins as they happen, so your 90-day review writes itself.', href: '/dashboard/in-work?tab=impact' },
+  }
+  const by: Record<JourneyStage, string[]> = {
+    EXPLORING: ['localJobs', 'pivots', 'programs', 'coaching'],
+    PREPARING: ['programs', 'practice', 'coaching', 'localJobs'],
+    APPLYING: ['localJobs', 'practice', 'coaching'],
+    INTERVIEWING: ['practice', 'coaching'],
+    OFFER: ['worth', 'coaching'],
+    LANDED: ['landed', 'firstReview'],
+    STAYING: ['pivots', 'programs'],
+    PAUSED: [],
+  }
+  return (stage ? by[stage] : by.EXPLORING).filter((k) => k !== 'programs' || hasPrograms).map((k) => items[k])
 }

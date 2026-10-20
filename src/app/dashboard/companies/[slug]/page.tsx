@@ -24,6 +24,10 @@ import { getPublishedIntelForCompany, INTEL_TYPE_LABEL, type IntelType } from '@
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { suppressSmallCells, isSuppressedCell } from '@/lib/admin/cell-suppression'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isRedesignOn } from '@/lib/redesign/flag'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
@@ -43,6 +47,7 @@ import { getCultureProfile, getCultureSurveyCompanies } from '@/lib/companies/cu
 import { CultureProfileBars, CultureSurveyOwnEntry } from '@/components/companies/CultureSurvey'
 import { ReviewSummaryPanel } from '@/components/companies/ReviewSummaryPanel'
 import { getCompanyReviewSummary } from '@/lib/job-reviews/data'
+import { SectionSkeleton } from '@/components/ui/section-skeleton'
 import { findTopEmployer, knownForLabel, topEmployerSourceLine } from '@/lib/companies/top-employers'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -52,6 +57,51 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     select: { name: true },
   })
   return { title: company ? company.name : 'Company' }
+}
+
+// The culture aggregate and review summary are the slowest reads on this page
+// and nothing else depends on them, so they stream in behind the card.
+async function CompanyCultureSection({
+  companyId: id,
+  companyName,
+  slug,
+  candidateId,
+}: {
+  companyId: string
+  companyName: string
+  slug: string
+  candidateId: string
+}) {
+  const [cultureProfile, ownCultureCompanies, reviewSummary] = await Promise.all([
+    // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
+    getCultureProfile(id, candidateId),
+    getCultureSurveyCompanies(candidateId),
+    getCompanyReviewSummary(id, candidateId),
+  ])
+  const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
+  return (
+    <>
+      <CultureProfileBars profile={cultureProfile} />
+      {ownCulture && (
+        <CultureSurveyOwnEntry
+          companyId={id}
+          companyName={companyName}
+          companySlug={slug}
+          initial={ownCulture.answers}
+          isCurrent={ownCulture.isCurrent}
+        />
+      )}
+      <div className="space-y-2 border-t border-border pt-4">
+        <h3 className="text-sm font-semibold text-foreground">Ratings and reviews</h3>
+        <ReviewSummaryPanel summary={reviewSummary} canReview={ownCulture !== null} />
+      </div>
+      {cultureProfile.shown && (
+        <p className="text-xs text-muted-foreground">
+          Want specifics? Ask one of them directly in <a href="#insiders" className="text-primary underline underline-offset-4">People who know this company</a>.
+        </p>
+      )}
+    </>
+  )
 }
 
 const TENURE_LABEL: Record<string, string> = {
@@ -92,6 +142,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // fields (name, canonicalNameNormalized, atsPlatform), so `company` here
   // is just an alias, not a wait.
   const company = companyRow
+  const redesign = isRedesignOn(profile.email)
   // Real DB id, still needed for every FK-based query below — only the URL
   // itself is slug-based now (canonicalNameNormalized). `slug` (not `id`) is
   // what gets passed as companyPageId to child forms/actions below, so
@@ -104,13 +155,15 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   // (see autoTagAllWorkHistory's own comment). Awaited before the
   // hasTaggedEmployment check below so a first-ever visit already reads
   // as tagged, not "add where you've worked to unlock this."
-  await autoTagAllWorkHistory(profile.id)
+  // The tagging step only gates the hasTaggedEmployment read, so it is chained
+  // to that read inside the Promise.all below and the other, independent
+  // queries run alongside it instead of waiting behind it.
 
   const [latestSignal, latestOutcome, alreadyTagged, publishedIntel, marketIntelTier, ownContactsHere, secondDegreeContacts, otherMembersContactCount, recruitingFirmData, dossierStatus, ownOutcomeHere] =
     await Promise.all([
       prisma.companySignal.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
       prisma.companyApplicationOutcome.findFirst({ where: { companyId: id }, orderBy: { weekStartDate: 'desc' } }),
-      hasTaggedEmployment(profile.id),
+      autoTagAllWorkHistory(profile.id).then(() => hasTaggedEmployment(profile.id)),
       getPublishedIntelForCompany(id),
       getCandidateMarketIntelTier(profile.id),
       getCandidateContactsAtCompany(profile.id, company.name),
@@ -146,7 +199,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const topFunctions =
     (latestSignal?.topFunctionsHiring as unknown as { function: string; count: number }[] | undefined) ?? []
 
-  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment, cultureProfile, ownCultureCompanies, reviewSummary] = await Promise.all([
+  const [insiders, askerRequests, pendingToAnswer, ownCurrentEmployment] = await Promise.all([
     alreadyTagged && canInsiderNetwork ? getInsidersForCompany(id, profile.id) : Promise.resolve([]),
     getInsiderRequestsForAsker(profile.id),
     getPendingInsiderRequestsForInsider(profile.id),
@@ -154,12 +207,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
       where: { candidateId: profile.id, companyId: id, isCurrent: true },
       select: { visibleAsInsider: true },
     }),
-    // Aggregate only, viewer's own answer excluded (see culture-aggregate.ts).
-    getCultureProfile(id, profile.id),
-    getCultureSurveyCompanies(profile.id),
-    getCompanyReviewSummary(id, profile.id),
   ])
-  const ownCulture = ownCultureCompanies.find((c) => c.companyId === id) ?? null
 
   const askerRequestsHere = askerRequests.filter((r) => r.companyId === id)
   const pendingToAnswerHere = pendingToAnswer.filter((r) => r.companyId === id)
@@ -190,8 +238,8 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
   const TrajectoryIcon =
     latestSignal?.trajectory === 'growing' ? TrendingUp : latestSignal?.trajectory === 'contracting' ? TrendingDown : Minus
 
-  return (
-    <div className="flex flex-col gap-6 pb-12">
+  const headerBlock = (
+    <>
       {/* ── Header ── */}
       <div className="flex items-start gap-3">
         <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-muted">
@@ -213,13 +261,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </div>
       </div>
 
-      {/* ATS platform — no real per-employer ATS signal exists anywhere in
-          this codebase (see Company.atsPlatform's schema comment). Explicit
-          "not available yet" rather than a guess, per design-principles.md's
-          "never disable without explaining why" rule. */}
-      {/* The application system is now read from the postings' own URLs (see
-          CompanyIntelPanels' "How to apply"), so the old placeholder is gone. */}
+    </>
+  )
 
+  const signalBlock = (
+    <>
       {/* ── Hiring signal ── */}
       <Card>
         <CardHeader>
@@ -266,13 +312,23 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </CardContent>
       </Card>
 
+    </>
+  )
+
+  const hiringBlock = (
+    <>
       {/* ── Hiring history and pay: every opening we've seen, market pay ── */}
       <Suspense fallback={<CompanyHiringIndexSkeleton />}>
         <CompanyHiringIndex companyId={id} viewer="candidate" />
       </Suspense>
 
-      <CompanyIntelPanels companyId={id} isCandidatePlus={dossierStatus.unlocked} />
+      <CompanyIntelPanels companyId={id} />
 
+    </>
+  )
+
+  const cultureBlock = (
+    <>
       {/* ── Insider culture: combined answers of members who worked here ── */}
       <Card>
         <CardHeader>
@@ -282,34 +338,17 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <CultureProfileBars profile={cultureProfile} />
-          {ownCulture && (
-            <CultureSurveyOwnEntry
-              companyId={id}
-              companyName={company.name}
-              companySlug={slug}
-              initial={ownCulture.answers}
-              isCurrent={ownCulture.isCurrent}
-            />
-          )}
-          <div className="space-y-2 border-t border-border pt-4">
-            <h3 className="text-sm font-semibold text-foreground">Ratings and reviews</h3>
-            <ReviewSummaryPanel summary={reviewSummary} canReview={ownCulture !== null} />
-          </div>
-          {cultureProfile.shown && (
-            <p className="text-xs text-muted-foreground">
-              Want specifics? Ask one of them directly in <a href="#insiders" className="text-primary underline underline-offset-4">People who know this company</a>.
-            </p>
-          )}
+          <Suspense fallback={<SectionSkeleton label="Loading what people say…" />}>
+            <CompanyCultureSection companyId={id} companyName={company.name} slug={slug} candidateId={profile.id} />
+          </Suspense>
         </CardContent>
       </Card>
 
-      {/* ── Contraction signal ──
-          Removed entirely rather than showing a permanent "not built yet"
-          placeholder — no WARN-filing monitoring exists anywhere in this
-          codebase, so there is never a real signal to show here. Add this
-          card back only once a real WARN/layoff data source exists. */}
+    </>
+  )
 
+  const howToBlock = (
+    <>
       {/* ── How to get hired here ──
           Minimized by default — expanded automatically only once this
           candidate has actually interviewed and been rejected here
@@ -360,6 +399,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </AccordionItem>
       </Accordion>
 
+    </>
+  )
+
+  const faredBlock = (
+    <>
       {/* ── How members have fared ── */}
       <Card>
         <CardHeader>
@@ -398,6 +442,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </CardContent>
       </Card>
 
+    </>
+  )
+
+  const ownBlock = (
+    <>
       {/* ── Your own contacts at this company ──
           Grouped by employmentStatusAtCompany — candidate-confirmed only
           (see that field's schema comment for why this can't be inferred).
@@ -447,6 +496,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </Card>
       )}
 
+    </>
+  )
+
+  const secondBlock = (
+    <>
       {/* ── 2nd-degree connections — "who do I know who knows someone
           here?" Only the bridge contact's identity and a count are shown,
           never the bridge's own contacts' names — see
@@ -477,6 +531,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </Card>
       )}
 
+    </>
+  )
+
+  const insidersBlock = (
+    <>
       {/* ── People who know this company (insider network) ── */}
       <Card id="insiders" className="scroll-mt-4">
         <CardHeader>
@@ -580,6 +639,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </CardContent>
       </Card>
 
+    </>
+  )
+
+  const recruitBlock = (
+    <>
       {/* ── Recruiting firm sections — only when this company IS a
           recognized staffing/search firm (Recruiter.firmName or
           RecruiterFirm.name fuzzy-matches it). Recruiters have no FK to
@@ -587,9 +651,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
           every other company link in this codebase), so this section
           simply doesn't render for a company with zero matched recruiters,
           rather than showing an empty "0 recruiters here" card on every
-          ordinary employer's page. Both sections gate on the exact same
-          isDossierUnlocked() bar as the rest of the Executive Recruiter
-          Network. */}
+          ordinary employer's page. The jobs are open to every member (owner's
+          rule, 2026-10-16); the recruiter names stay on the isDossierUnlocked()
+          bar, like the rest of the Executive Recruiter Network. */}
       {recruitingFirmData.recruiters.length > 0 && (
         <>
           <Card>
@@ -602,7 +666,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
             <CardContent>
               {recruitingFirmData.jobs.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No open postings from this firm right now.</p>
-              ) : dossierStatus.unlocked ? (
+              ) : (
                 <ShowMoreList pageSize={5}>
                   {recruitingFirmData.jobs.map((job) => (
                     <div key={job.id} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
@@ -610,20 +674,9 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
                         <p className="text-sm font-medium text-foreground">{job.title}</p>
                         {job.location && <p className="text-xs text-muted-foreground">{job.location}</p>}
                       </div>
-                      {job.audienceTier === 'A_LIST_ONLY' && (
-                        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
-                          Exclusive
-                        </span>
-                      )}
                     </div>
                   ))}
                 </ShowMoreList>
-              ) : (
-                <LockedFeatureNotice
-                  title="Jobs this firm is hiring for"
-                  requirement={`${recruitingFirmData.jobs.length} posting${recruitingFirmData.jobs.length === 1 ? '' : 's'} ready to view once your Dossier unlocks.`}
-                  status={dossierStatus.reason}
-                />
               )}
             </CardContent>
           </Card>
@@ -656,6 +709,57 @@ export default async function CompanyPage({ params }: { params: Promise<{ slug: 
         </>
       )}
 
+    </>
+  )
+
+  if (redesign) {
+    return (
+      <div className="space-y-8 pb-12">
+        <PageHeader
+          title={company.name}
+          action={
+            <ActionLink href="#insiders" kind="primary" event="company_ask_someone_clicked" props={{ companyId: id, source: 'company_page' }}>
+              Ask someone there
+            </ActionLink>
+          }
+        />
+        <div className="space-y-2">
+          <Suspense fallback={<CompanyMetaLineSkeleton />}>
+            <CompanyMetaLine companyRow={companyRow} />
+          </Suspense>
+          {topEmployer && (
+            <p className="text-sm text-foreground">
+              <span className="font-medium">Known for:</span> {knownForLabel(topEmployer)}. <span className="text-muted-foreground">{topEmployerSourceLine(topEmployer)}</span>
+            </p>
+          )}
+        </div>
+        {ownBlock}
+        {secondBlock}
+        {signalBlock}
+        {insidersBlock}
+        <ShowMore page="company_profile">
+          {hiringBlock}
+          {cultureBlock}
+          {howToBlock}
+          {faredBlock}
+          {recruitBlock}
+        </ShowMore>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-6 pb-12">
+      {headerBlock}
+      {signalBlock}
+      {hiringBlock}
+      {cultureBlock}
+      {howToBlock}
+      {faredBlock}
+      {ownBlock}
+      {secondBlock}
+      {insidersBlock}
+      {recruitBlock}
     </div>
   )
 }
