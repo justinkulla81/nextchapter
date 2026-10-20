@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { RoleBadge } from '@/components/careers/RoleBadge'
-import { CAREERS_EMAIL } from '@/lib/contact/constants'
 import { CAREERS_LOCATION, CAREER_VALUES, GROUP_HEADING, GROUP_ORDER, rolesInGroup } from '@/lib/careers/roles'
 
 // Not for search engines: kept out of results here and disallowed in robots.ts.
@@ -25,16 +24,16 @@ export default function CareersPage() {
           <h1 className="text-balance text-3xl font-bold tracking-tight text-navy sm:text-4xl">Careers at NextChapter</h1>
           <p className="mt-3 text-muted-foreground">
             We help professionals through a layoff or career change, and the organizations that support them. A small
-            team based in {CAREERS_LOCATION}. To apply, email your resume to{' '}
+            team based in {CAREERS_LOCATION}. To apply,{' '}
             <TrackedLink
-              href={`mailto:${CAREERS_EMAIL}`}
+              href="/careers/apply"
               event="careers_apply_clicked"
-              properties={{ slug: null, kind: null, group: null, destination: 'email', placement: 'intro' }}
+              properties={{ slug: null, kind: null, group: null, destination: 'apply_form', placement: 'intro' }}
               className="font-semibold text-brand underline underline-offset-4 hover:text-navy"
             >
-              {CAREERS_EMAIL}
+              upload your resume
             </TrackedLink>
-            . Don’t see your role? Email us anyway.
+            . Don’t see your role? Apply anyway.
           </p>
         </section>
 
