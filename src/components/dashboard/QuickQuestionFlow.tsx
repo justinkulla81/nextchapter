@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import type { QueuedQuestion } from '@/lib/search-strategy/quick-questions'
 import { saveQuickAnswer } from '@/app/dashboard/search-strategy/questions/actions'
 
-const PRIMARY = 'inline-flex h-11 items-center rounded-full bg-primary px-7 text-base font-semibold text-primary-foreground hover:brightness-95'
+const PRIMARY = 'inline-flex h-11 items-center rounded-full nc-action px-7 text-base font-semibold'
 
 /**
  * One question at a time: why we ask first, the choice, what the answer gets the member, and a finish
@@ -99,7 +99,7 @@ export function QuickQuestionFlow({ questions, backHref }: { questions: QueuedQu
       </div>
 
       {q.why && (
-        <p className="rounded-xl bg-muted/60 px-4 py-3 text-sm text-foreground">
+        <p className="rounded-xl bg-orange/10 px-4 py-3 text-sm text-foreground">
           <span className="font-semibold">Why we ask:</span> {q.why}
         </p>
       )}
@@ -117,7 +117,7 @@ export function QuickQuestionFlow({ questions, backHref }: { questions: QueuedQu
                 onClick={() => save(o.value)}
                 className={cn(
                   'inline-flex min-h-11 items-center rounded-full border px-5 text-base transition-colors disabled:opacity-60',
-                  selected === o.value ? 'border-navy bg-navy text-white' : 'border-border text-foreground hover:bg-muted'
+                  selected === o.value ? 'border-navy bg-navy text-white' : 'border-border bg-white text-foreground hover:border-orange'
                 )}
               >
                 {o.label}
@@ -141,7 +141,7 @@ export function QuickQuestionFlow({ questions, backHref }: { questions: QueuedQu
       </div>
 
       {q.gain && (
-        <p className="rounded-2xl border border-border p-4 text-sm text-foreground">
+        <p className="rounded-2xl border border-orange/30 bg-orange/5 p-4 text-sm text-foreground">
           <span className="font-semibold">What you get:</span> {q.gain}
         </p>
       )}
