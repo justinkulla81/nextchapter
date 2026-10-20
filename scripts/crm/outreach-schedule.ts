@@ -9,7 +9,7 @@
  *   higher ed     community colleges vs four-year colleges
  *   boards        growing metros vs flat metros, one director per board
  *   job centers   support-offered vs new-data subject concepts, skipping centers whose board is in the pilot
- * Env: PRODUCT_PER_DAY (the product's own email a day, default 28), DAILY_CAP (default 100), PER_ARM (default 3).
+ * Env: SENT_FILE, WARMUP_DAYS (default 0), PRODUCT_PER_DAY (the product's own email a day, default 28), DAILY_CAP (default 100), PER_ARM (default 3).
  */
 import { readFileSync, writeFileSync } from 'node:fs'
 
@@ -58,10 +58,17 @@ const audiences: Aud[] = [
 
 type Out = { date: string; audience: string; arm: string; step: number; row: Row }
 const sched: Out[] = []
-const WEEKS = Number(process.env.WEEKS ?? 6)
+// SENT_FILE (lines "email,YYYY-MM-DD"): emails already sent. They stay on the calendar on that date, so their follow-ups are scheduled, and they use no new slots.
+const sentOn = new Map<string, string>()
+if (process.env.SENT_FILE) for (const l of readFileSync(process.env.SENT_FILE, 'utf8').split('\n')) { const [e, d] = l.trim().split(','); if (e && d) sentOn.set(e.toLowerCase(), d) }
+for (const a of audiences) for (const r of a.pool) {
+  const d = sentOn.get(r.email.toLowerCase()); const arm = a.armOf(r)
+  if (d && arm) { ;(r as Row & { _used?: string })._used = '1'; sched.push({ date: d, audience: a.name, arm, step: 1, row: r }) }
+}
+const WEEKS = Number(process.env.WEEKS ?? 6), WARMUP = Number(process.env.WARMUP_DAYS ?? 0)
 for (let t = start, day = 0; t < start + WEEKS * 7 * DAY; t += DAY) {
   if (isWeekend(t)) continue
-  const quota = day < 3 ? Math.max(1, PER_ARM - 1) : PER_ARM
+  const quota = day < WARMUP ? Math.max(1, PER_ARM - 1) : PER_ARM
   for (const a of audiences) for (const arm of a.arms) {
     let n = 0
     for (const r of a.pool) {
