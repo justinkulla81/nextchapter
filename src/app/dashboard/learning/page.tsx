@@ -1,5 +1,6 @@
 import { getLearningPaths } from '@/lib/journey/learning-paths-data'
 import { aiMarketLine } from '@/lib/skills/ai-skill-market'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { LearningPathsCard } from '@/components/dashboard/pathway/LearningPathsCard'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
@@ -208,12 +209,12 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       <PlatformActivityPanel kind="LEARNING" rows={platformRows} gmailConnected={!!gmailConnection} />
 
       <Suspense fallback={null}>
-        <AiSkillGapSection candidateId={profile.id} completedTitles={completedTitles} enrolledTitles={enrolledTitles} />
+        <AiSkillGapSection candidateId={profile.id} completedTitles={completedTitles} enrolledTitles={enrolledTitles} fn={profile.targetFunction ?? profile.primaryFunction} />
       </Suspense>
 
       <LearningSection
         title="AI Training"
-        description={aiMarketLine(profile.primaryFunction)?.text ?? 'How much AI matters depends on your function. The list above shows the AI skills your best-fit jobs ask for.'}
+        description={aiMarketLine(profile.primaryFunction, await loadAiMarket())?.text ?? 'How much AI matters depends on your function. The list above shows the AI skills your best-fit jobs ask for.'}
       >
         <AiTrainingTiers
           defaultTier={plan.aiTrainingTier}

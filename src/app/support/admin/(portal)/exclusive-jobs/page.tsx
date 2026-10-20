@@ -25,6 +25,21 @@ import { Input } from '@/components/ui/input'
 import { assessJobPosting } from '@/lib/scam-shield/assess-job-posting'
 import { countPendingJobMatches, loadAdminFitCandidates, rankCandidatesByFitCoverage } from '@/lib/jobs/job-fit-bucket'
 import { displayJobLocation } from '@/lib/jobs/us-location'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
+
+/** Both AI metrics from the daily snapshot, with a link to the full table. */
+async function AiCountsLine() {
+  const live = await loadAiMarket()
+  if (!live) return null
+  return (
+    <p className="text-sm text-muted-foreground">
+      AI-skill jobs {live.counts.aiSkill.toLocaleString()} · AI-exposed jobs {live.counts.aiExposed.toLocaleString()} (of {live.counts.live.toLocaleString()} live).{' '}
+      <Link href="/support/admin/ai-market" className="text-primary underline underline-offset-4">
+        AI jobs and pay
+      </Link>
+    </p>
+  )
+}
 
 export const maxDuration = 30
 
@@ -508,6 +523,9 @@ export default async function ExclusiveJobsAdminPage() {
 
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Active ({activeTotal.toLocaleString()})</h2>
+        <Suspense fallback={null}>
+          <AiCountsLine />
+        </Suspense>
         {activeAtsFeedCount > 0 && (
           <p className="text-sm text-muted-foreground">
             {activeAtsFeedCount.toLocaleString()} of those are ATS-fed listings, managed automatically by the daily

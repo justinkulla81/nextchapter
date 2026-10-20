@@ -133,6 +133,10 @@
       "schedule": "50 20 * * 1"
     },
     {
+      "path": "/api/cron/ai-market",
+      "schedule": "45 23 * * *"
+    },
+    {
       "path": "/api/cron/market-size",
       "schedule": "50 8 * * *"
     },

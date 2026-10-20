@@ -250,12 +250,31 @@ export function cleanAiSkillItems(v: unknown): string[] {
   return AI_SKILL_ITEMS.map((i) => i.id).filter((id) => seen.has(id))
 }
 
+export const AI_EXPOSURE_WHY = ['skill', 'title', 'function', 'tools'] as const
+export const AI_BASES = ['full', 'twin', 'excerpt'] as const
+
+/** What the import accepts from the crawler for the AI fields (import-jobs.py, from ai_skills_json). */
+export interface ImportAiInput {
+  aiSkillGroups?: unknown
+  aiSkillItems?: unknown
+  aiToolsNamed?: unknown
+  aiCertsNamed?: unknown
+  aiExposed?: unknown
+  aiExposureWhy?: unknown
+  aiMention?: unknown
+  aiBasis?: unknown
+}
+
 /** The fields the import stores, from what the crawler sent. Left out when not sent, so a row keeps what it holds. */
-export function importAiSkillFields(job: { aiSkillGroups?: unknown; aiSkillItems?: unknown; aiToolsNamed?: unknown; aiCertsNamed?: unknown }): {
+export function importAiSkillFields(job: ImportAiInput): {
   aiSkillGroups?: string[]
   aiSkillItems?: string[]
   aiToolsNamed?: string[]
   aiCertsNamed?: string[]
+  aiExposed?: boolean
+  aiExposureWhy?: string[]
+  aiMention?: boolean | null
+  aiBasis?: string | null
 } {
   if (!('aiSkillItems' in job) || job.aiSkillItems === undefined) return {}
   const items = cleanAiSkillItems(job.aiSkillItems)
@@ -265,12 +284,25 @@ export function importAiSkillFields(job: { aiSkillGroups?: unknown; aiSkillItems
     Array.isArray(v)
       ? [...new Set(v.filter((x): x is string => typeof x === 'string' && x.trim().length > 0).map((x) => x.trim().slice(0, len)))].slice(0, max)
       : []
-  return {
+  const out: ReturnType<typeof importAiSkillFields> = {
     aiSkillGroups: groups.filter((g) => GROUP_KEYS.has(g)),
     aiSkillItems: items,
     aiToolsNamed: names(job.aiToolsNamed, 40, 60),
     aiCertsNamed: names(job.aiCertsNamed, 20, 80),
   }
+  // The AI-exposed metric (sent by crawlers from 2026-10-20 on). A specific skill always counts
+  // as exposed; the other reasons are taken as sent when they are known ones.
+  if (job.aiExposed !== undefined) {
+    const sent = Array.isArray(job.aiExposureWhy) ? new Set(job.aiExposureWhy.filter((x): x is string => typeof x === 'string')) : new Set<string>()
+    if (items.length > 0) sent.add('skill')
+    else sent.delete('skill')
+    const why = AI_EXPOSURE_WHY.filter((w) => sent.has(w))
+    out.aiExposureWhy = why
+    out.aiExposed = why.length > 0
+    out.aiMention = typeof job.aiMention === 'boolean' ? job.aiMention || items.length > 0 : null
+    out.aiBasis = typeof job.aiBasis === 'string' && (AI_BASES as readonly string[]).includes(job.aiBasis) ? job.aiBasis : null
+  }
+  return out
 }
 
 // ── member side ──

@@ -4,6 +4,11 @@ import { ChevronDown } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { ContactForm } from '@/components/marketing/ContactForm'
 import { OrganizationsHub } from '@/components/marketing/OrganizationsHub'
+import { AiJobsStat } from '@/components/marketing/AiJobsStat'
+import { Suspense } from 'react'
+
+// The AI-jobs stat block reads the daily snapshot; refresh the page hourly.
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'For Organizations and Coaches',
@@ -54,6 +59,10 @@ export default function ForOrganizationsPage() {
       </header>
 
       <OrganizationsHub />
+
+      <Suspense fallback={null}>
+        <AiJobsStat variant="b2b" />
+      </Suspense>
 
       <section id="contact" className="scroll-mt-6 bg-ink py-16 text-white" aria-labelledby="org-contact-heading">
         <div className="mx-auto max-w-3xl px-6">

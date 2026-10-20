@@ -2,6 +2,7 @@ import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { growthPhrase, type MarketPrompt } from '@/lib/market/market-size'
 import type { MarketSizeView } from '@/lib/market/market-size-server'
 import { aiMarketLine } from '@/lib/skills/ai-skill-market'
+import type { AiMarketData } from '@/lib/skills/ai-market'
 
 /** Board search results this many or more: too many to work through. */
 export const SEARCH_TOO_MANY = 500
@@ -21,8 +22,11 @@ export function MarketSizeBlock({
   surface,
   searchCount,
   searchQuery,
+  aiMarket,
 }: {
   view: MarketSizeView
+  /** The live AI market snapshot (ai-market-live.ts); the static Oct 16 numbers when null. */
+  aiMarket?: AiMarketData | null
   surface: 'board_search' | 'search_strategy' | 'market_reality'
   /** On the board: the search's result count, which decides the prompt there. */
   searchCount?: number
@@ -34,7 +38,7 @@ export function MarketSizeBlock({
   const open = view.relevant?.count ?? view.counts.openNow
   const growth = growthPhrase(view.growth)
   // One line from the AI-skills analysis for the target's function: share asking, and the premium raw and like-for-like.
-  const ai = aiMarketLine(view.target.fn)
+  const ai = aiMarketLine(view.target.fn, aiMarket)
   const track = (step: string, area?: string) => ({ surface, prompt, step, area, target: view.target.label, openNow: open })
 
   const headline =

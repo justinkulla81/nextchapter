@@ -33,6 +33,7 @@ import { loadMemberSkillGapByKind } from '@/lib/jobs/skill-gap-data'
 import { getActiveCourses } from '@/lib/learning/courses'
 import { courseForAiSkill } from '@/lib/learning/ai-course-tags'
 import { aiMarketLine, suggestedAiTools } from '@/lib/skills/ai-skill-market'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { loadPivotPaths } from '@/lib/pivots/load'
 import { demandLine } from '@/lib/pivots/scoring'
 import { analyzeExperience, type ExperienceAnalysis } from './experience'
@@ -289,10 +290,10 @@ async function loadMarket(profile: CandidateProfile): Promise<{ section: MarketS
 }
 
 async function loadSkills(candidateId: string, profile: CandidateProfile): Promise<SkillsSection | null> {
-  const [data, catalog] = await Promise.all([loadMemberSkillGapByKind(candidateId), getActiveCourses()])
+  const [data, catalog, live] = await Promise.all([loadMemberSkillGapByKind(candidateId), getActiveCourses(), loadAiMarket()])
   const fn = profile.targetFunction ?? profile.primaryFunction
-  const marketLine = aiMarketLine(fn)?.text ?? null
-  const tools = suggestedAiTools(fn, profile.targetIndustries).slice(0, 6)
+  const marketLine = aiMarketLine(fn, live)?.text ?? null
+  const tools = suggestedAiTools(fn, profile.targetIndustries, live).slice(0, 6)
   if (!data || data.rows.length === 0) {
     return marketLine || tools.length > 0 ? { employers: 0, employersAskingAi: 0, marketLine, tools, ai: [], other: [] } : null
   }

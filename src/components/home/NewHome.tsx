@@ -3,6 +3,8 @@ import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { HomeTryIt } from '@/components/home/HomeTryIt'
 import { HomeLearnMore } from '@/components/home/HomeLearnMore'
+import { AiJobsStat } from '@/components/marketing/AiJobsStat'
+import { Suspense } from 'react'
 
 // The redesigned homepage (docs/candidate-redesign.md page contract): one headline, one
 // primary action, three sections (hero, jobs, what you get), then a row for everyone who
@@ -73,6 +75,10 @@ export function NewHome() {
       </section>
 
       <HomeTryIt />
+
+      <Suspense fallback={null}>
+        <AiJobsStat />
+      </Suspense>
 
       <HomeLearnMore />
 

@@ -130,6 +130,12 @@ interface ImportJobInput {
   // Who the posting says it welcomes (ncrawl/posting_signals.py): career_changer_welcome /
   // ai_upskilled_welcome / high_eq. Optional; left out, the stored value stays; [] clears it.
   postingSignals?: unknown
+  // The broader AI-exposed metric (ai_profile): exposed, which rules fired, any AI mention, and
+  // the text the AI fields were read from (full | twin | excerpt). Optional, like the above.
+  aiExposed?: unknown
+  aiExposureWhy?: unknown
+  aiMention?: unknown
+  aiBasis?: unknown
   // When the crawler last confirmed the posting is up (ISO; ncrawl jobs.last_seen or a live
   // liveness check, whichever is later). Stored as lastVerifiedAt; optional.
   lastVerifiedAt?: string | null
@@ -429,6 +435,7 @@ export async function POST(request: NextRequest) {
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
       targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
       aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, postingSignals: true, directListing: true,
+      aiExposed: true, aiExposureWhy: true, aiMention: true, aiBasis: true,
       archivedAt: true, closeReason: true,
     },
   })

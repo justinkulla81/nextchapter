@@ -8,6 +8,7 @@ import { CRAWLER_FUNCTION_LABEL } from '@/lib/jobs/job-functions'
 import { JOB_INDUSTRY_KEY_BUCKET } from '@/lib/profile/industry-reading'
 import { AI_CELL_TOP, AI_FUNCTION_ITEMS, AI_FUNCTION_STATS, AI_FUNCTION_TOOLS, AI_MARKET_AS_OF, AI_SOC_STATS } from './ai-skill-market.data'
 import { aiSkillItem, aiToolDisplayName } from './ai-skills'
+import { asOfText, premiumPhrase, type AiMarketData } from './ai-market'
 
 export { AI_MARKET_AS_OF } from './ai-skill-market.data'
 
@@ -49,10 +50,20 @@ export interface AiMarketLine {
  * higher raw, about 21% like-for-like (same level and industry). As of Oct 16, 2026."
  * The premium is shown only when both the raw and the like-for-like numbers exist — never one alone.
  */
-export function aiMarketLine(fn: string | null | undefined): AiMarketLine | null {
+export function aiMarketLine(fn: string | null | undefined, live?: AiMarketData | null): AiMarketLine | null {
   const code = functionCode(fn)
-  const s = code ? AI_FUNCTION_STATS[code] : undefined
-  if (!code || !s) return null
+  if (!code) return null
+  // The live board snapshot (ai-market-live.ts, recomputed daily) when it has the function.
+  const lf = live?.functions[code]
+  if (lf && lf.n >= 200) {
+    const name = CRAWLER_FUNCTION_LABEL[code]
+    const share = `In ${name} postings, ${Math.round(lf.sharePct)}% ask for a specific AI skill.`
+    const phrase = premiumPhrase(lf.premium)
+    const premium = phrase ? ` Where they do, ${phrase}.` : ' Too few postings with pay to compare like-for-like.'
+    return { fn: code, sharePct: lf.sharePct, hasPremium: !!phrase, text: `${share}${premium} Posted pay on our live board, as of ${asOfText(live!.asOf)}.` }
+  }
+  const s = AI_FUNCTION_STATS[code]
+  if (!s) return null
   const name = CRAWLER_FUNCTION_LABEL[code]
   const share = `In ${name} postings, ${Math.round(s.sharePct)}% ask for a specific AI skill.`
   const hasPremium = s.rawUsd !== undefined && s.rawPct !== undefined && s.likePct !== undefined && s.likeUsd !== undefined
@@ -86,7 +97,7 @@ export function aiMarketLineForOccupation(socCode: string | null | undefined, ti
 export const MAX_AI_TOOL_SUGGESTIONS = 8
 
 /** The AI tools postings in this function (and industry, when the cell is big enough) name most, as members call them. */
-export function suggestedAiTools(fn: string | null | undefined, industries: (string | null | undefined)[] = []): string[] {
+export function suggestedAiTools(fn: string | null | undefined, industries: (string | null | undefined)[] = [], live?: AiMarketData | null): string[] {
   const code = functionCode(fn)
   if (!code) return []
   const out: string[] = []
@@ -94,16 +105,18 @@ export function suggestedAiTools(fn: string | null | undefined, industries: (str
     const name = aiToolDisplayName(t)
     if (!out.includes(name)) out.push(name)
   }
+  for (const t of live?.functions[code]?.topTools ?? []) if (t.n >= 5) add(t.name)
   for (const ind of industryKeys(industries)) for (const t of AI_CELL_TOP[`${code}|${ind}`]?.tools ?? []) add(t)
   for (const t of AI_FUNCTION_TOOLS[code] ?? []) add(t)
   return out.slice(0, MAX_AI_TOOL_SUGGESTIONS)
 }
 
 /** The AI skill items (ids) postings in this function / cell ask for most. */
-export function suggestedAiItems(fn: string | null | undefined, industries: (string | null | undefined)[] = [], max = 4): string[] {
+export function suggestedAiItems(fn: string | null | undefined, industries: (string | null | undefined)[] = [], max = 4, live?: AiMarketData | null): string[] {
   const code = functionCode(fn)
   if (!code) return []
   const out: string[] = []
+  for (const i of live?.functions[code]?.topItems ?? []) if (i.n >= 5 && !out.includes(i.id)) out.push(i.id)
   for (const ind of industryKeys(industries)) for (const i of AI_CELL_TOP[`${code}|${ind}`]?.items ?? []) if (!out.includes(i)) out.push(i)
   for (const i of AI_FUNCTION_ITEMS[code] ?? []) if (!out.includes(i)) out.push(i)
   return out.filter((i) => aiSkillItem(i)).slice(0, max)

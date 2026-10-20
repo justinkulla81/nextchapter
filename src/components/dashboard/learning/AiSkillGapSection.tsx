@@ -8,6 +8,8 @@ import { LearningSection } from '@/components/dashboard/learning/LearningSection
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
 import { SkillGapViews } from '@/components/dashboard/learning/SkillGapViews'
 import type { LearningPlanItem } from '@/lib/learning/build-learning-plan'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
+import { AiPaysMoreNote, aiPayNoteFor } from '@/components/dashboard/learning/AiPaysMoreNote'
 
 /**
  * The skills the member's best-fit jobs ask for, AI skills marked apart (the 24 items of
@@ -15,11 +17,38 @@ import type { LearningPlanItem } from '@/lib/learning/build-learning-plan'
  * AI skills / Other skills / All buttons. Each AI gap links to the catalog course tagged
  * for it (ai-course-tags.ts). Rules only, no model call: job-skill-gap.ts skillGapByKind.
  */
-export async function AiSkillGapSection({ candidateId, completedTitles, enrolledTitles }: { candidateId: string; completedTitles: Set<string>; enrolledTitles: Set<string> }) {
-  const [data, catalog, apps] = await Promise.all([loadMemberSkillGapByKind(candidateId), getActiveCourses(), loadApplicationGapSummary(candidateId)])
+export async function AiSkillGapSection({
+  candidateId,
+  completedTitles,
+  enrolledTitles,
+  fn,
+}: {
+  candidateId: string
+  completedTitles: Set<string>
+  enrolledTitles: Set<string>
+  /** The member's target (else current) function, for the "AI pays more" note. */
+  fn?: string | null
+}) {
+  const [data, catalog, apps, live] = await Promise.all([
+    loadMemberSkillGapByKind(candidateId),
+    getActiveCourses(),
+    loadApplicationGapSummary(candidateId),
+    loadAiMarket(),
+  ])
   // The same gaps from the member's own applications (src/lib/applications), so both views agree.
   const appAsked = new Map((apps?.gaps ?? []).map((g) => [g.term.toLowerCase(), g.applications]))
-  if (!data || data.rows.length === 0) return null
+  // "AI pays more in your field" (live board, ai-market.ts): a note at the top of this existing
+  // section (no new section), only when the like-for-like comparison shows a premium.
+  const note = aiPayNoteFor(fn, live, catalog)
+  if (note) captureServerEvent(candidateId, 'ai_pay_note_viewed', { fn: note.fn, likePct: note.likePct, skills: note.skills.map((s) => s.id) })
+  const noteNode = note ? <AiPaysMoreNote note={note} surface="learning" /> : null
+  if (!data || data.rows.length === 0) {
+    return noteNode ? (
+      <LearningSection id="ai-skills-for-your-search" title="AI skills in your field">
+        {noteNode}
+      </LearningSection>
+    ) : null
+  }
 
   const rows = data.rows.map((r) => ({ ...r, course: r.ai && !r.have ? courseForAiSkill(r.term, catalog) : null }))
   captureServerEvent(candidateId, 'ai_skill_gap_viewed', {
@@ -85,6 +114,7 @@ export async function AiSkillGapSection({ candidateId, completedTitles, enrolled
       title="Skills your best-fit jobs ask for"
       description={`${data.employersAskingAi} of the ${n} employer${n === 1 ? '' : 's'} with jobs that fit you ask for a specific AI skill. Gaps first, each AI gap with a course that covers it.`}
     >
+      {noteNode}
       <SkillGapViews items={items} />
     </LearningSection>
   )

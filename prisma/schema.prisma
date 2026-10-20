@@ -5332,6 +5332,15 @@ model ExclusiveJobPosting {
   // found. Board tag, "Open to career changers / AI-upskilled" filter, welcome lift.
   // prisma/manual/2026-10-20-posting-signals.sql.
   postingSignals    String[] @default([])
+  // The broader "AI-exposed" metric (crawler ai_profile, prisma/manual/2026-10-20-ai-exposure.sql):
+  // a specific AI skill, an AI/ML title term, a data & AI role whose role text mentions AI, or an AI
+  // tool named in the role text. aiExposureWhy lists which rules fired (skill | title | function |
+  // tools). aiMention = any AI word anywhere (pay baseline: full-text rows without it). aiBasis =
+  // full | twin | excerpt — the text the AI fields were read from; null = not read yet.
+  aiExposed         Boolean  @default(false)
+  aiExposureWhy     String[] @default([])
+  aiMention         Boolean?
+  aiBasis           String?
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
@@ -16218,4 +16227,16 @@ model ApplicationSkillSnapshot {
 
   @@index([candidateId, appliedAt])
   @@index([appliedAt])
+}
+
+// Daily recompute of the AI job market from the live board (src/lib/skills/ai-market-live.ts,
+// cron /api/cron/ai-market): counts for both AI metrics, the AI-skill share and posted-pay premium
+// (raw and like-for-like) per function and function x level, and the top AI skills / tools per
+// function. One row per run; readers take the newest. prisma/manual/2026-10-20-ai-exposure.sql.
+model AiMarketSnapshot {
+  id         String   @id @default(cuid())
+  computedAt DateTime @default(now())
+  data       Json
+
+  @@index([computedAt])
 }
