@@ -146,7 +146,7 @@ Score each value 1–4 using the same questions and notes for every candidate. D
 
 **Notes on wording and fairness**
 - Avoid phrases such as "work hard, play hard," "unending hours," "digital native," "young and energetic," or "culture fit." They can discourage or screen out protected groups. We say "owns outcomes and gets it done" and score it with the questions above.
-- Use a work sample instead of a pedigree filter. Pay people for substantial sample work, or keep it under a couple of hours.
+- Use a work sample instead of a pedigree filter. We do not pay for samples, so keep them short (about an hour), or ask candidates to walk us through past work they already have. Never use a sample to get real company work done for free.
 - Do not use AI to score or rank applicants for NYC jobs without counsel (see below).
 - Ask every candidate the same questions in the same order. Write notes before the debrief.
 
