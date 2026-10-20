@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { suppress } from '@/lib/mailing/lists'
 import type { ResendEvent } from '@/lib/mailing/tracking'
-import { isOutreachEvent, isPermanentBounce } from './event-rules'
+import { bareAddress, isOutreachEvent, isPermanentBounce } from './event-rules'
 
 /**
  * Cold outreach sent with the Resend tag `outreach` reports back here. A permanent bounce marks the
@@ -14,7 +14,7 @@ import { isOutreachEvent, isPermanentBounce } from './event-rules'
  */
 export async function applyOutreachEvent(event: ResendEvent): Promise<'applied' | 'ignored'> {
   if (!isOutreachEvent(event)) return 'ignored'
-  const to = event.data.to?.[0]?.toLowerCase()
+  const to = bareAddress(event.data.to?.[0])
   if (!to) return 'ignored'
 
   if (event.type === 'email.opened' || event.type === 'email.clicked') {
@@ -33,7 +33,10 @@ export async function applyOutreachEvent(event: ResendEvent): Promise<'applied' 
   })
 
   if (event.type === 'email.bounced') {
-    if (!isPermanentBounce(event)) return 'ignored'
+    // Any bounce is noted on the send, so no follow-up goes to an address that bounced; only a permanent one stops all mail.
+    const sent = event.data.email_id ? await prisma.crmActivity.findFirst({ where: { sourceRef: `resend:${event.data.email_id}` }, select: { id: true, outcome: true } }) : null
+    if (sent && !(sent.outcome ?? '').includes(', bounced')) await prisma.crmActivity.update({ where: { id: sent.id }, data: { outcome: `${sent.outcome ?? ''}, bounced` } })
+    if (!isPermanentBounce(event)) return 'applied'
     const detail = [event.data.bounce?.type, event.data.bounce?.subType, event.data.bounce?.message].filter(Boolean).join(' · ')
     await suppress(to, 'BOUNCED', detail)
     if (person) await prisma.crmPerson.update({ where: { id: person.id }, data: { emailVerifiedStatus: 'invalid', emailVerifiedAt: new Date() } })
