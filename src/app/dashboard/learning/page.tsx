@@ -1,4 +1,5 @@
 import { getLearningPaths } from '@/lib/journey/learning-paths-data'
+import { aiMarketLine } from '@/lib/skills/ai-skill-market'
 import { LearningPathsCard } from '@/components/dashboard/pathway/LearningPathsCard'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
@@ -205,7 +206,7 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
 
       <LearningSection
         title="AI Training"
-        description="Working AI fluency is fast becoming table stakes across every function."
+        description={aiMarketLine(profile.primaryFunction)?.text ?? 'How much AI matters depends on your function. The list above shows the AI skills your best-fit jobs ask for.'}
       >
         <AiTrainingTiers
           defaultTier={plan.aiTrainingTier}

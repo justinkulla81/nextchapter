@@ -16,12 +16,20 @@ export interface RotationContext {
   topTodo: string | null
   followUpCount: number
   newJobCount: number
+  /** How many of the 24 AI skills the member's profile shows. */
+  aiSkillCount: number
+  /** "In Finance postings, 12% ask for a specific AI skill…" for the member's function; null when unknown. */
+  aiMarketText: string | null
+  /** The AI skill their function's postings ask for most that their profile doesn't show, with a course link target. */
+  aiGapLabel: string | null
 }
 
 export interface UnlockNudge {
   id: string
   title: string
   detail: string
+  /** A detail built from the member's own numbers; falls back to `detail`. */
+  detailFor?: (ctx: RotationContext) => string | null
   path: string
   done?: (ctx: RotationContext) => boolean
 }
@@ -41,8 +49,12 @@ export const UNLOCK_NUDGES: UnlockNudge[] = [
   },
   {
     id: 'learn-ai',
-    title: 'Add AI skills to your resume with one short course',
-    detail: 'Working AI fluency is fast becoming table stakes in every function. Pick one short course.',
+    title: 'Add an AI skill to your resume with one short course',
+    detail: 'How much AI matters depends on your function. Open Learning to see which AI skills your best-fit jobs ask for and pick one short course.',
+    detailFor: (c) =>
+      c.aiMarketText ? `${c.aiMarketText}${c.aiGapLabel ? ` The one asked for most that isn't on your profile: ${c.aiGapLabel}.` : ''} Pick one short course.` : null,
+    // Already shows several AI skills: the nudge has done its job.
+    done: (c) => c.aiSkillCount >= 3,
     path: '/dashboard/learning',
   },
   {
