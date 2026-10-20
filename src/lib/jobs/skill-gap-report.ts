@@ -12,7 +12,12 @@ import type { AggregatedSkillGap } from '@/lib/jobs/job-skill-gap'
 export const MIN_EMPLOYERS_FOR_GAP = 2
 export const MAX_GAP_ITEMS = 3
 
-const titleCase = (t: string) => t.replace(/\b([a-z])/g, (m) => m.toUpperCase()).replace(/\bFp&a\b/, 'FP&A')
+const titleCase = (t: string) =>
+  t
+    .replace(/\b([a-z])/g, (m) => m.toUpperCase())
+    .replace(/\bFp&a\b/, 'FP&A')
+    .replace(/\bM&a\b/, 'M&A')
+    .replace(/\b(Sql|Crm|Sap|Seo|Erp|Sox|Aws|Etl)\b/g, (m) => m.toUpperCase())
 
 export function significantMissing(agg: AggregatedSkillGap) {
   return agg.missing.filter((m) => m.jobs >= MIN_EMPLOYERS_FOR_GAP).slice(0, MAX_GAP_ITEMS)
@@ -82,4 +87,40 @@ export function addSkillGapActionItem<T extends PlanDay>(plan: T[], agg: Aggrega
   // Day 2 — after the first day's setup, early enough to matter this week.
   const idx = Math.min(1, plan.length - 1)
   return plan.map((d, i) => (i === idx ? { ...d, items: [...d.items, action] } : d))
+}
+
+// ── From the member's own applications (src/lib/applications) ──
+
+/** The application gaps the report may cite: asked by at least this many applications. */
+export const MIN_APPLICATIONS_FOR_GAP = 3
+
+interface ApplicationGapLike {
+  applications: number
+  matchPct: number | null
+  gaps: { term: string; applications: number; inferredOnly: boolean }[]
+}
+
+export function applicationGapPromptSection(apps: ApplicationGapLike | null): string {
+  const items = (apps?.gaps ?? []).filter((g) => g.applications >= MIN_APPLICATIONS_FOR_GAP)
+  if (!apps || items.length === 0) return 'Skills their own applications keep asking for: not enough applications to say.'
+  return `Skills the jobs they applied to keep asking for that their profile does not show (computed from ${apps.applications} applications; match ${apps.matchPct ?? 'n/a'}%): ${items
+    .map((g) => `${g.term} (${g.applications}${g.inferredOnly ? ', inferred from similar jobs' : ''})`)
+    .join('; ')}
+  Use these as stated; do not invent other skill gaps from them.`
+}
+
+/** Adds the top application gaps (not already named) to the report's gap analysis, after the market gaps. */
+export function mergeApplicationGapsIntoGapAnalysis<T extends GapAnalysis>(gapAnalysis: T, apps: ApplicationGapLike | null): T {
+  const items = (apps?.gaps ?? []).filter((g) => g.applications >= MIN_APPLICATIONS_FOR_GAP).slice(0, MAX_GAP_ITEMS)
+  if (!apps || items.length === 0) return gapAnalysis
+  const existing = gapAnalysis.gaps.map((g) => `${g.area} ${g.why}`.toLowerCase())
+  const added: GapItem[] = items
+    .filter((g) => !existing.some((e) => e.includes(g.term.toLowerCase())))
+    .map((g) => ({
+      area: `Skill: ${titleCase(g.term)}`,
+      why: `${g.applications} of the ${apps.applications} jobs you applied to ${g.inferredOnly ? 'are the kind that ask' : 'asked'} for it, and it is not on your profile.`,
+      remediation: 'If you have it, add it to your skills so your matches count it. If you do not, it is the most repeated gap in your own applications: build it or show a close equivalent.',
+      remediationType: 'upskilling' as const,
+    }))
+  return { ...gapAnalysis, gaps: [...gapAnalysis.gaps, ...added] }
 }

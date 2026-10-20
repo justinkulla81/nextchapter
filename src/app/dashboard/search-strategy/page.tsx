@@ -58,6 +58,7 @@ import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ActionLink } from '@/components/candidate/ActionLink'
+import { ApplicationMatchSection } from '@/components/dashboard/ApplicationMatchSection'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -249,7 +250,11 @@ export default async function SearchStrategyPage() {
     where: { candidateId: profile.id, kind: 'WORK' },
     select: { platformKey: true, stage: true, lastProgressAt: true, dismissedAt: true },
   })
-  const [culturePreferences, platformRows] = await Promise.all([culturePreferencesPromise, platformRowsPromise])
+  // Applications we could read (src/lib/applications): when there are any, "Your applications: match and gaps"
+  // takes the third first-view slot and the unlock card moves into "More about your search" (docs/candidate-redesign.md).
+  const appSnapshotsPromise = prisma.applicationSkillSnapshot.count({ where: { candidateId: profile.id } }).catch(() => 0)
+  const [culturePreferences, platformRows, appSnapshots] = await Promise.all([culturePreferencesPromise, platformRowsPromise, appSnapshotsPromise])
+  const showApplicationMatch = appSnapshots > 0
   const stage = getSearchStage(profile)
   const hasAnsweredOnce = !!profile.searchStrategyFirstAnsweredAt
   const targetRoleComplete = isSearchGoalsComplete(profile)
@@ -598,6 +603,12 @@ export default async function SearchStrategyPage() {
           </Suspense>
         ))}
 
+      {showApplicationMatch && (
+        <Suspense fallback={null}>
+          <ApplicationMatchSection candidateId={profile.id} />
+        </Suspense>
+      )}
+
       <section id="answers" aria-labelledby="answers-title" className="scroll-mt-4 space-y-2">
         <h2 id="answers-title" className="font-serif text-xl font-semibold text-navy">What this rests on</h2>
         <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
@@ -605,13 +616,18 @@ export default async function SearchStrategyPage() {
         </SearchStrategyWizard>
       </section>
 
-      {hasAnsweredOnce && (
+      {hasAnsweredOnce && !showApplicationMatch && (
         <Suspense fallback={null}>
           <StrategyUnlockCard candidateId={profile.id} />
         </Suspense>
       )}
 
       <MoreDetails summary="More about your search">
+      {hasAnsweredOnce && showApplicationMatch && (
+        <Suspense fallback={null}>
+          <StrategyUnlockCard candidateId={profile.id} />
+        </Suspense>
+      )}
       {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
       <Suspense fallback={null}>
         <PivotPathsTeaser profile={profile} />

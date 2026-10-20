@@ -16,6 +16,9 @@ import { LearningBadgeList, BADGE_TYPE_LABEL } from '@/components/dashboard/Lear
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
 import { aiGapCourseItems } from '@/lib/redesign/learn-ai-gap'
+import { applicationGapCourseItems } from '@/lib/redesign/learn-app-gap'
+import { loadApplicationSkillPlan } from '@/lib/applications/member-view'
+import { courseForSkill } from '@/lib/applications/skill-course'
 import { loadMemberSkillGapByKind } from '@/lib/jobs/skill-gap-data'
 import { getActiveCourses } from '@/lib/learning/courses'
 import { AiSkillGapSection } from '@/components/dashboard/learning/AiSkillGapSection'
@@ -117,10 +120,12 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
 
   if (redesign) {
     // AI skills the member's best-fit employers ask for and the member lacks, each with a tagged course and the reason.
-    const [aiGap, catalog] = await Promise.all([loadMemberSkillGapByKind(profile.id), getActiveCourses()])
+    const [aiGap, catalog, appPlan] = await Promise.all([loadMemberSkillGapByKind(profile.id), getActiveCourses(), loadApplicationSkillPlan(profile.id).catch(() => null)])
     const aiGapItems = aiGap ? aiGapCourseItems(aiGap.rows, aiGap.employersWithSkillData, catalog) : []
+    // Skills the member's own applications keep asking for come first (the same ranking as Search Strategy's "What to build next").
+    const appGapItems = appPlan ? applicationGapCourseItems(appPlan.recommendations, catalog, courseForSkill) : []
     const picks = pickLearnCourses(
-      [...aiGapItems, ...plan.sections.flatMap((s) => s.items), ...plan.functionTraining, ...plan.aiTrainingCoursesByLevel[plan.aiTrainingTier]],
+      [...appGapItems, ...aiGapItems, ...plan.sections.flatMap((s) => s.items), ...plan.functionTraining, ...plan.aiTrainingCoursesByLevel[plan.aiTrainingTier]],
       completedTitles,
       enrolledTitles,
     )
@@ -130,6 +135,8 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       featuredHasReason: !!picks.featured?.rationale,
       featuredIsAiGap: !!picks.featured && aiTitles.has(picks.featured.title),
       aiGapCourses: aiGapItems.length,
+      applicationGapCourses: appGapItems.length,
+      featuredIsApplicationGap: !!picks.featured && appGapItems.some((i) => i.title === picks.featured!.title),
       moreCount: picks.more.length,
       completedCount: badges.length,
     })

@@ -325,6 +325,10 @@ export async function linkApplicationToBoard(applicationId: string): Promise<App
         candidates: link.match?.candidateIds.length ?? null,
       })
     }
+    // Remember what the job asked for and how the member matched, now (skill-snapshot-data.ts).
+    // Imported lazily: that module reads this one's stored links.
+    const { snapshotApplication } = await import('@/lib/applications/skill-snapshot-data')
+    await snapshotApplication(app.id, link ? { postingId: link.postingId } : null)
     return link
   } catch (err) {
     console.error('[application-posting-link] link failed', applicationId, err)

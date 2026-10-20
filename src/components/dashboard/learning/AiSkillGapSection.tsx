@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { loadMemberSkillGapByKind } from '@/lib/jobs/skill-gap-data'
+import { loadApplicationGapSummary } from '@/lib/applications/skill-snapshot-data'
 import { getActiveCourses, toLearningResource } from '@/lib/learning/courses'
 import { courseForAiSkill } from '@/lib/learning/ai-course-tags'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -15,7 +16,9 @@ import type { LearningPlanItem } from '@/lib/learning/build-learning-plan'
  * for it (ai-course-tags.ts). Rules only, no model call: job-skill-gap.ts skillGapByKind.
  */
 export async function AiSkillGapSection({ candidateId, completedTitles, enrolledTitles }: { candidateId: string; completedTitles: Set<string>; enrolledTitles: Set<string> }) {
-  const [data, catalog] = await Promise.all([loadMemberSkillGapByKind(candidateId), getActiveCourses()])
+  const [data, catalog, apps] = await Promise.all([loadMemberSkillGapByKind(candidateId), getActiveCourses(), loadApplicationGapSummary(candidateId)])
+  // The same gaps from the member's own applications (src/lib/applications), so both views agree.
+  const appAsked = new Map((apps?.gaps ?? []).map((g) => [g.term.toLowerCase(), g.applications]))
   if (!data || data.rows.length === 0) return null
 
   const rows = data.rows.map((r) => ({ ...r, course: r.ai && !r.have ? courseForAiSkill(r.term, catalog) : null }))
@@ -49,6 +52,7 @@ export async function AiSkillGapSection({ candidateId, completedTitles, enrolled
         </div>
         <p className="text-xs text-muted-foreground">
           {r.employers} of {n} employer{n === 1 ? '' : 's'} with jobs that fit you ask for it.
+          {!r.have && appAsked.get(r.term.toLowerCase()) ? ` Also asked for in ${appAsked.get(r.term.toLowerCase())} of the ${apps!.applications} jobs you applied to.` : ''}
           {!r.have && (
             <>
               {' '}

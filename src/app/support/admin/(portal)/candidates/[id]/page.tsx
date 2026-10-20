@@ -10,6 +10,7 @@ import { rankPendingPostingsForCandidate, type AdminFitCandidate } from '@/lib/j
 import { displayJobLocation } from '@/lib/jobs/us-location'
 import { approveJobPosting } from '@/app/support/admin/(portal)/exclusive-jobs/actions'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { loadApplicationGapSummary } from '@/lib/applications/skill-snapshot-data'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
@@ -237,6 +238,8 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
   // Also independent; used far down the JSX, so start it now instead of awaiting inline.
   const grantsP = grantsFor(id)
   grantsP.catch(() => {})
+  // What their applications asked for and how they match (src/lib/applications); never throws.
+  const appGapsP = loadApplicationGapSummary(id)
 
   const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports, applicationFit] =
     await Promise.all([
@@ -302,6 +305,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     coachThreads,
   ] = await stakeholderP
 
+  const appGaps = await appGapsP
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <Link href="/support/admin/candidates" className="text-sm text-muted-foreground underline underline-offset-4">
@@ -689,6 +693,30 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
               )}
             </CardContent>
           </Card>
+
+          {appGaps && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Application skills match</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <p>
+                  {appGaps.matchPct ?? '—'}% match now ({appGaps.matchPctAtApply ?? '—'}% when applied) across {appGaps.applications} applications: {appGaps.fromPostings} read from a posting,{' '}
+                  {appGaps.inferred} inferred from the title.
+                </p>
+                {appGaps.best && <p className="text-muted-foreground">{appGaps.best.text}</p>}
+                {appGaps.gaps.length > 0 && (
+                  <p>
+                    <span className="text-muted-foreground">Keeps being asked for: </span>
+                    {appGaps.gaps.map((g) => `${g.term} (${g.applications})`).join(', ')}
+                  </p>
+                )}
+                <Link href="/support/admin/jobs/skills-match" className="text-primary underline underline-offset-4">
+                  All members, by segment
+                </Link>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>

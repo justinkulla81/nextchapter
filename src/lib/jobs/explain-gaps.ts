@@ -24,7 +24,14 @@ export function isExplainGapsEnabled(): boolean {
 export type ExplainGapsResult = { ok: true; body: string; reused: boolean } | { ok: false; error: string }
 
 /** The prompt, built only from the rules-based match and what the card already shows. Pure — tested. */
-export function buildExplainGapsPrompt(input: { title: string; company: string | null; excerpt: string | null; match: JobMatch }): string {
+export function buildExplainGapsPrompt(input: {
+  title: string
+  company: string | null
+  excerpt: string | null
+  match: JobMatch
+  /** Skills the member's own applications keep asking for that they don't list (src/lib/applications), most repeated first. */
+  applicationGaps?: { term: string; applications: number }[]
+}): string {
   const dims = MATCH_DIMENSION_ORDER.map((k) => {
     const d = input.match.dimensions[k]
     return `- ${MATCH_DIMENSION_LABEL[k]}: ${MATCH_STATUS_LABEL[d.status]} — ${d.evidence.join('; ')}`
@@ -45,6 +52,9 @@ ${dims}
 
 Gaps already identified:
 ${input.match.gaps.map((g) => `- ${g}`).join('\n') || '- none'}
+
+Skills the jobs they already applied to keep asking for that their profile does not show (mention one only if this job asks for it too):
+${(input.applicationGaps ?? []).map((g) => `- ${g.term} (${g.applications} applications)`).join('\n') || '- none recorded'}
 
 Hard requirements the posting states (a "red flag" is one the job seeker told us they don't meet — say so plainly first, and don't suggest working around a legal requirement):
 ${(input.match.requirements ?? []).map((r) => `- ${r.status === 'blocker' ? 'RED FLAG: ' : r.status === 'unknown' ? 'Not answered yet: ' : ''}${r.message}`).join('\n') || '- none'}`

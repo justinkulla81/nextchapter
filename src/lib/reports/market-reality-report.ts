@@ -42,7 +42,8 @@ import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probabilit
 import { buildMarketRealityHeadline } from '@/lib/scoring/market-reality/narrative'
 import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
 import { loadMemberSkillGap } from '@/lib/jobs/skill-gap-data'
-import { addSkillGapActionItem, mergeSkillGapIntoGapAnalysis, skillGapPromptSection } from '@/lib/jobs/skill-gap-report'
+import { addSkillGapActionItem, applicationGapPromptSection, mergeApplicationGapsIntoGapAnalysis, mergeSkillGapIntoGapAnalysis, skillGapPromptSection } from '@/lib/jobs/skill-gap-report'
+import { loadApplicationGapSummary } from '@/lib/applications/skill-snapshot-data'
 
 export const actionPlanItemTypes = [
   'NETWORKING_LIST',
@@ -394,6 +395,8 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
   // Skills the member's best-fit open roles ask for that their resume doesn't show.
   // Computed from real postings (no AI call of its own); null never fails the report.
   const skillGap = await loadMemberSkillGap(candidateId)
+  // And what the jobs they actually applied to asked for (src/lib/applications); null never fails the report.
+  const applicationGaps = await loadApplicationGapSummary(candidateId)
 
   const summary = `
 ${DIRECTNESS_INSTRUCTION[directnessLevel]}
@@ -540,6 +543,7 @@ Market facts: ${
 Openings matching their exact target title: ${titleSpecificCount !== null ? `${titleSpecificCount} listed` : 'not available — do not mention a specific count'}
 Openings matching their target function + industry: ${industrySpecificCount !== null ? `${industrySpecificCount} listed` : 'not available — do not mention a specific count'}
 ${skillGapPromptSection(skillGap)}
+${applicationGapPromptSection(applicationGaps)}
 
 --- Report-over-report change (for the Executive Summary section only) ---
 Is this the candidate's first-ever report: ${priorReport ? 'no' : 'yes'}
@@ -589,7 +593,7 @@ New data added since the previous report (credit these specifically, by name, on
       // The skills gap is merged in code, not left to the model: the counts come from
       // real open roles and must appear exactly, every time.
       actionPlan: addSkillGapActionItem(normalizeActionPlan(data.actionPlan), skillGap),
-      gapAnalysis: mergeSkillGapIntoGapAnalysis(data.gapAnalysis, skillGap),
+      gapAnalysis: mergeApplicationGapsIntoGapAnalysis(mergeSkillGapIntoGapAnalysis(data.gapAnalysis, skillGap), applicationGaps),
       marketConditions: marketConditions.dataAvailable
         ? {
             narrative: data.marketConditions?.narrative ?? [],
