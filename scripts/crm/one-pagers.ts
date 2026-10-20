@@ -35,7 +35,7 @@ const PAGES: Record<string, { title: string; html: string }> = {
 <ul><li>A single link or QR code to include in your announcement or severance packet</li><li>A counts-only report: how many joined and, among those who choose to share it, how many are interviewing or have landed. Nothing about any one person unless they choose to share it with you.</li></ul>
 <h2>How it works</h2>
 <ul><li>Week 0: we set up a company group and send you a link</li><li>Your people join on their own time</li><li>Day 45 and day 90: counts report</li></ul>
-<div class="terms"><b>Terms</b><ul><li>A two-year platform subscription for your employees</li><li>You buy the platform for your employees. It includes the employer tools and reporting, and an account for every employee at no charge to them.</li><li>Additional services for selected groups of employees are optional, and you decide which.</li><li>No employee data is shared with you without that person’s consent; no data is sold or used for hiring decisions</li><li>Either side can end the pilot with 14 days’ notice</li></ul></div>`),
+<div class="terms"><b>Terms</b><ul><li>A two-year platform subscription for your employees</li><li>You buy the platform for your employees. It includes the employer tools and reporting, and an account for every employee at no charge to them.</li><li>Additional services for selected groups of employees are optional, and you decide which.</li><li>No employee data is shared with you without that person’s consent; no data is sold or used for hiring decisions</li><li>Pricing on request</li></ul></div>`),
   },
   'partner-handout': {
     title: 'NextChapter for workforce partners',
