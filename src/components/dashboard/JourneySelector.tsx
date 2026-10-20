@@ -19,7 +19,10 @@ export function JourneySelector({
   moveDriver,
   intensity,
   details,
+  redesign = false,
 }: {
+  /** The redesigned look: the reason a disabled save is disabled is said in the page, not in a hover title. */
+  redesign?: boolean
   journey: JourneyType | null
   stage: JourneyStage | null
   moveDriver: MoveDriver | null
@@ -72,9 +75,20 @@ export function JourneySelector({
             ))}
           </select>
         </div>
-        <SubmitButton size="sm" variant="outline" disabled={unchanged || notASearch} title={unchanged ? 'Change one of these to save' : notASearch ? 'Choose a search situation or Managing your career first' : undefined}>
-          Save situation
-        </SubmitButton>
+        {redesign ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <SubmitButton variant="outline" className="h-10 rounded-full px-5 text-sm" disabled={unchanged || notASearch}>
+              Save situation
+            </SubmitButton>
+            {(unchanged || notASearch) && (
+              <span className="text-sm text-muted-foreground">{notASearch ? 'Choose a search situation, or Managing your career, to save.' : 'Change one of these to save.'}</span>
+            )}
+          </div>
+        ) : (
+          <SubmitButton size="sm" variant="outline" disabled={unchanged || notASearch} title={unchanged ? 'Change one of these to save' : notASearch ? 'Choose a search situation or Managing your career first' : undefined}>
+            Save situation
+          </SubmitButton>
+        )}
       </div>
       <div className="rounded-md bg-muted/40 p-3 text-sm" aria-live="polite">
         <p>

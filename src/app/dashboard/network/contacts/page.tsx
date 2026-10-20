@@ -34,6 +34,11 @@ import { PageHeader } from '@/components/candidate/PageHeader'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { NetworkParts } from '@/components/network/NetworkParts'
+import { ContactDirectory } from '@/components/network/ContactDirectory'
+import { ImportContacts } from '@/components/network/ImportContacts'
+import { SectionPills } from '@/components/candidate/SectionPills'
+import { Section } from '@/components/candidate/ui'
+import { CONTACT_SCOPES } from '@/lib/redesign/network-account'
 
 export const metadata: Metadata = { title: 'Contact Directory' }
 
@@ -63,8 +68,9 @@ export default async function ContactDirectoryPage({
         <div className="space-y-8">
           <PageHeader title="People you know" intro="Other members of NextChapter you can meet. Each one is a warm way in." />
           <NetworkParts current="know" />
-          <ScopeTabs scope={scope} />
+          <SectionPills label="Which contacts" current={scope} items={CONTACT_SCOPES} />
           <NextChapterMembersSection
+            redesign
             viewerCandidateId={profile.id}
             query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
             page={Math.max(1, Number(sp.mpage) || 1)}
@@ -343,41 +349,55 @@ export default async function ContactDirectoryPage({
           }
         />
         <NetworkParts current="know" />
-        {profile.confidentialSearchMode && <ConfidentialModeIndicator />}
-        {!hasAnyContacts && buildListSection}
-        <SuggestedContactsCard suggestions={suggestions} />
-        <ContactDirectoryTable
-          contacts={contacts}
-          totalCount={totalCount}
-          removedCount={removedCount}
-          page={Math.min(page, pageCount)}
-          pageCount={pageCount}
-          query={q}
-          sortKey={sortKey}
-          dir={dir}
-          pin={pin}
-          emailFilter={emailFilter}
-          reachedFilter={reachedFilter}
-          relFilter={relFilter}
-          ncFilter={ncFilter}
-          hasAnyContacts={hasAnyContacts}
-        />
-        <ShowMore page="contacts" label="Import, templates and other lists">
+        {profile.confidentialSearchMode && <ConfidentialModeIndicator redesign />}
+        {!hasAnyContacts && (
+          <Section id="import-title" title="Add people from LinkedIn">
+            <ImportContacts />
+          </Section>
+        )}
+        <SuggestedContactsCard suggestions={suggestions} redesign />
+        {hasAnyContacts && (
+          <Section id="contacts-title" title="Your contacts">
+            <ContactDirectory
+              contacts={contacts}
+              totalCount={totalCount}
+              page={Math.min(page, pageCount)}
+              pageCount={pageCount}
+              pageSize={PAGE_SIZE}
+              state={{ q, sort: sortKey, dir, pin, email: emailFilter, reached: reachedFilter, rel: relFilter, nc: ncFilter, page: Math.min(page, pageCount) }}
+              hasAnyContacts={hasAnyContacts}
+            />
+          </Section>
+        )}
+        <ShowMore page="contacts" label="Import, templates and other lists" defaultOpen={Boolean(sp.buildList) || scope === 'all'}>
           {hasAnyContacts && starredCount < PRIORITY_CONTACT_TARGET_COUNT && (
-            <p className="text-sm text-ink">
-              {`Star ${PRIORITY_CONTACT_TARGET_COUNT} people as priority contacts and they rise to the top of your list. You have starred ${starredCount} so far.`}
+            <p className="text-base text-ink">
+              {`Star ${PRIORITY_CONTACT_TARGET_COUNT} people and they rise to the top of your list, so the ones you most want to write to are always first. You have starred ${starredCount} so far.`}
             </p>
           )}
-          <ScopeTabs scope={scope} />
-          {hasAnyContacts && buildListSection}
+          <SectionPills label="Which contacts" current={scope} items={CONTACT_SCOPES} />
+          {hasAnyContacts && (
+            <Section id="import-more-title" title="Add people from LinkedIn">
+              <ImportContacts />
+            </Section>
+          )}
           {scope === 'all' && (
             <NextChapterMembersSection
+              redesign
               viewerCandidateId={profile.id}
               query={typeof sp.mq === 'string' ? sp.mq.trim() : ''}
               page={Math.max(1, Number(sp.mpage) || 1)}
             />
           )}
-          {scriptsSection}
+          <Section id="scripts-title" title="Scripts and templates">
+            <div className="space-y-4">
+              {networkScriptsGuide && <GuideCard guide={networkScriptsGuide} redesign />}
+              <CopyableTemplateCard redesign title="Ask someone for help" description="Pick one person from your list and send this." template={fillHelpScriptTemplate(profile)} templateType="ask_for_help" outreach onCopy={markAskedForHelp} />
+              <CopyableTemplateCard redesign title="Asking for an intro" template={fillIntroRequestTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="intro_request" outreach />
+              <CopyableTemplateCard redesign title="Putting in a good word" template={fillGoodWordTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="good_word" outreach />
+              <CopyableTemplateCard redesign title="Checking in about interim work" template={fillCheckingInTemplate({ ...profile, discreet: profile.confidentialSearchMode })} templateType="checking_in" outreach />
+            </div>
+          </Section>
           <p className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
             <Link href="/dashboard/network/contacts/removed" className="font-medium text-brand underline underline-offset-4">
               Removed contacts{removedCount > 0 ? ` (${removedCount})` : ''}

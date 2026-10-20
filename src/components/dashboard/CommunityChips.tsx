@@ -11,11 +11,43 @@ import { cn } from '@/lib/utils'
 export function CommunityChips({
   communities,
   activeCommunityId,
+  redesign = false,
 }: {
   communities: { membershipId: string; communityId: string; label: string }[]
   activeCommunityId?: string
+  redesign?: boolean
 }) {
   if (communities.length === 0) return null
+
+  // The redesign: each community is a choice with its own, labelled "Leave", instead of a tiny "×" inside the pill.
+  if (redesign) {
+    const pill = (on: boolean) => cn('inline-flex h-10 items-center rounded-full border px-5 text-sm font-medium', on ? 'border-ink bg-ink text-white' : 'border-border text-ink hover:bg-muted')
+    return (
+      <div className="space-y-2">
+        <p className="text-base font-semibold text-ink">Your communities</p>
+        <p className="text-sm text-muted-foreground">Based on your profile. Choose one to see only its posts, or leave any you do not want.</p>
+        <ul className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <li>
+            <Link href="/dashboard/community" aria-current={!activeCommunityId ? 'page' : undefined} className={pill(!activeCommunityId)}>
+              All
+            </Link>
+          </li>
+          {communities.map((community) => (
+            <li key={community.communityId} className="flex items-center gap-1">
+              <Link href={`/dashboard/community?community=${community.communityId}`} aria-current={activeCommunityId === community.communityId ? 'page' : undefined} className={pill(activeCommunityId === community.communityId)}>
+                {community.label}
+              </Link>
+              <form action={leaveCommunityAction.bind(null, community.communityId)}>
+                <SubmitButton variant="ghost" className="h-10 rounded-full px-3 text-sm font-medium text-muted-foreground" aria-label={`Leave ${community.label}`}>
+                  Leave
+                </SubmitButton>
+              </form>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2">

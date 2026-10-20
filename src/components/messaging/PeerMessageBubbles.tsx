@@ -18,6 +18,8 @@ interface PeerMessageBubblesProps {
   // Signed URL per attached resume's storage path — resolved once by the
   // parent for the whole thread rather than per-bubble (see community/page.tsx).
   attachmentUrls?: Map<string, string | null>
+  /** The redesigned look: message text at body size and dates no smaller than 12px. */
+  redesign?: boolean
 }
 
 export function PeerMessageBubbles({
@@ -26,9 +28,10 @@ export function PeerMessageBubbles({
   partnerName,
   partnerAvatarUrl,
   attachmentUrls,
+  redesign = false,
 }: PeerMessageBubblesProps) {
   if (messages.length === 0) {
-    return <p className="p-4 text-sm text-muted-foreground">No messages yet — say hello.</p>
+    return <p className={cn('p-4 text-muted-foreground', redesign ? 'text-base' : 'text-sm')}>No messages yet — say hello.</p>
   }
 
   return (
@@ -38,10 +41,11 @@ export function PeerMessageBubbles({
         const attachmentUrl = message.attachedResume ? attachmentUrls?.get(message.attachedResume.filePath) : null
         return (
           <div key={message.id} className={cn('flex items-end gap-2', isSelf ? 'justify-end' : 'justify-start')}>
-            {!isSelf && <AvatarDisplay name={partnerName} url={partnerAvatarUrl} size={24} />}
+            {!isSelf && <AvatarDisplay name={partnerName} url={partnerAvatarUrl} size={redesign ? 32 : 24} />}
             <div
               className={cn(
-                'max-w-[75%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap',
+                'max-w-[75%] px-3 py-2 whitespace-pre-wrap',
+                redesign ? 'rounded-2xl text-base' : 'rounded-lg text-sm',
                 isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
               )}
             >
@@ -49,7 +53,8 @@ export function PeerMessageBubbles({
               {message.attachedResume && (
                 <div
                   className={cn(
-                    'mt-2 flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs',
+                    'mt-2 flex items-center gap-1.5 rounded-md border px-2 py-1.5',
+                    redesign ? 'text-sm' : 'text-xs',
                     isSelf ? 'border-primary-foreground/30' : 'border-border'
                   )}
                 >
@@ -68,7 +73,7 @@ export function PeerMessageBubbles({
                   )}
                 </div>
               )}
-              <p className={cn('mt-1 text-[10px]', isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+              <p className={cn('mt-1', redesign ? 'text-xs' : 'text-[10px]', isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                 {message.createdAt.toLocaleString(undefined, {
                   month: 'short',
                   day: 'numeric',

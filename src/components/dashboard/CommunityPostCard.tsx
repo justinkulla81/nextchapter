@@ -9,10 +9,12 @@ import { AvatarDisplay } from '@/components/ui/avatar-display'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CommunityPostReportButton } from '@/components/dashboard/CommunityPostReportButton'
 import { cn } from '@/lib/utils'
+import { PostRow } from '@/components/community/PostRow'
 
 export function CommunityPostCard({
   post,
   isOwnPost,
+  redesign = false,
 }: {
   post: CommunityPost & {
     candidate: CommunityIdentitySource
@@ -20,7 +22,11 @@ export function CommunityPostCard({
     _count: { reactions: number }
   }
   isOwnPost: boolean
+  redesign?: boolean
 }) {
+  // The redesign: the same post as a row. (No direct message from here: that stays off, as in the old card.)
+  if (redesign) return <PostRow post={post} isOwnPost={isOwnPost} messageHref={null} />
+
   const { displayName: posterName, avatarUrl: posterAvatarUrl } = resolveCommunityIdentity(post.candidate)
   const isCheered = post.reactions.length > 0
   const cheerCount = post._count.reactions

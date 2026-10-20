@@ -19,7 +19,7 @@ function Tiles({ label, items }: { label: string; items: [string, string][] }) {
       {items.map(([v, l]) => (
         <div key={l} className="rounded-xl bg-muted/60 px-2 py-3">
           <dd className="text-2xl font-semibold text-ink tabular-nums">{v}</dd>
-          <dt className="text-xs text-muted-foreground">{l}</dt>
+          <dt className="text-sm text-muted-foreground">{l}</dt>
         </div>
       ))}
     </dl>
@@ -96,7 +96,7 @@ export async function StatsRedesign({ profile }: { profile: CandidateProfile }) 
             {weeks.map((w, i) => (
               <div key={w.weekStart.toISOString()} className="flex flex-1 flex-col items-center justify-end gap-1">
                 <div className={i === weeks.length - 1 ? 'w-full rounded-t bg-ink' : 'w-full rounded-t bg-ink/30'} style={{ height: `${Math.round((heights[i] / 100) * 112)}px` }} />
-                <span className="text-[10px] text-muted-foreground">{w.weekStart.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', timeZone: 'UTC' })}</span>
+                <span className="text-xs text-muted-foreground">{w.weekStart.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', timeZone: 'UTC' })}</span>
               </div>
             ))}
           </div>

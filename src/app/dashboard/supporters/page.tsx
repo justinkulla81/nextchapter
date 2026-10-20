@@ -86,7 +86,7 @@ export default async function SupportersPage() {
               <p className="max-w-xl text-sm text-muted-foreground">
                 They get one short note a week about your effort, in numbers only, and can send you a cheer. They never see names, companies or messages, and you can remove them any time.
               </p>
-              <InviteSupporterForm />
+              <InviteSupporterForm redesign />
             </Section>
           </div>
         )}

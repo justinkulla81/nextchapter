@@ -17,6 +17,10 @@ import { CareerStoryReal } from './career-story'
 import { SearchStrategySimple } from './strategy'
 import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
+import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
+
+const CoachMatchShortlistLive = () => <CoachMatchLive step="shortlist" />
+const ContactsEmptyLive = () => <ContactsLive empty />
 
 export interface Mockup {
   /** The address after /dev-preview/. */
@@ -115,6 +119,17 @@ export const MOCKUPS: Mockup[] = [
   { path: 'money/deadlines', place: 'Finances and benefits', title: 'Benefits and deadlines (laid off)', replaces: '/dashboard/benefits action plan, benefits-network', Component: MoneyDeadlines },
   { path: 'money/runway-entrepreneur', place: 'Finances and benefits', title: 'Your runway (building something of my own)', replaces: 'new', Component: MoneyEntrepreneur },
   { path: 'moments/money-first-visit', place: 'Moments', title: 'First time opening Finances and benefits: would you like help with money?', replaces: 'new (not asked in onboarding)', Component: OnboardingMoney },
+  { path: 'network/circles/know-live', place: 'Network', title: 'People you know: the built list (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactsLive },
+  { path: 'network/circles/know-empty-live', place: 'Network', title: 'People you know: no contacts yet (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactsEmptyLive },
+  { path: 'network/circles/know-filters-live', place: 'Network', title: 'People you know: filters on (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactsFiltersLive },
+  { path: 'network/circles/know-detail-live', place: 'Network', title: 'A contact: write to them (sample data)', replaces: 'the code that ships, fed sample data', Component: ContactDetailLive },
+  { path: 'network/circles/industry-live', place: 'Network', title: 'Industry and function: the built feed (sample data)', replaces: 'the code that ships, fed sample data', Component: CommunityLive },
+  { path: 'network/messages-live', place: 'Network', title: 'Messages: the built threads (sample data)', replaces: 'the code that ships, fed sample data', Component: MessagesLive },
+  { path: 'network/circles/close-match-live', place: 'Network', title: 'Coach matching: preferences (sample data)', replaces: 'the code that ships, fed sample data', Component: CoachMatchLive },
+  { path: 'network/circles/close-matches-live', place: 'Network', title: 'Coach matching: your matches (sample data)', replaces: 'the code that ships, fed sample data', Component: CoachMatchShortlistLive },
+  { path: 'account/visibility-live', place: 'Account', title: 'Account and privacy: the built controls (sample data)', replaces: 'the code that ships, fed sample data', Component: PrivacyLive },
+  { path: 'account/profile-live', place: 'Account', title: 'Profile: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: ProfileLive },
+  { path: 'account/benefits-network-live', place: 'Account', title: 'Higher education benefits network: the built offers (sample data)', replaces: 'the code that ships, fed sample data', Component: BenefitsNetworkLive },
   { path: 'account/money', place: 'Account', title: 'Money help (off state)', replaces: 'new', Component: AccountMoney },
 ]
 

@@ -53,7 +53,10 @@ export function SentItPrompt({
   note,
   copySignal = 0,
   reaskOnMount = false,
+  redesign = false,
 }: {
+  /** The redesigned look: body-size text and the same rounded buttons as the rest of the page. */
+  redesign?: boolean
   context: SentItContext
   /** The copied text. Omit for a re-ask-only prompt (it uses the stored note). */
   note?: string
@@ -125,30 +128,31 @@ export function SentItPrompt({
 
   if (mode === 'hidden') {
     return result ? (
-      <p role="status" className="text-xs text-success">
+      <p role="status" className={redesign ? 'text-sm text-ink' : 'text-xs text-success'}>
         {result}
       </p>
     ) : null
   }
 
+  const choice = redesign ? 'inline-flex h-10 items-center rounded-full border border-border bg-white px-5 text-sm font-medium text-ink hover:bg-muted' : buttonClass
   return (
     <div
       role="group"
       aria-label="Did you send it?"
       aria-live="polite"
-      className={cn('flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2', pending && 'cursor-wait')}
+      className={cn(redesign ? 'flex flex-wrap items-center gap-3 rounded-2xl bg-muted/60 p-5' : 'flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2', pending && 'cursor-wait')}
     >
-      <p className="text-sm text-foreground">{mode === 'reask' ? 'Did you send the note you copied last time?' : 'Did you send it?'}</p>
-      <div className="flex gap-1">
-        <button type="button" onClick={sent} disabled={pending} aria-busy={pending} className={cn(buttonClass, pending && 'cursor-wait')}>
-          {pending ? 'Logging…' : '✓ I sent it'}
+      <p className={redesign ? 'text-base text-ink' : 'text-sm text-foreground'}>{mode === 'reask' ? 'Did you send the note you copied last time?' : 'Did you send it?'}</p>
+      <div className={redesign ? 'flex gap-2' : 'flex gap-1'}>
+        <button type="button" onClick={sent} disabled={pending} aria-busy={pending} className={cn(choice, pending && 'cursor-wait')}>
+          {pending ? 'Logging…' : redesign ? 'Yes, I sent it' : '✓ I sent it'}
         </button>
-        <button type="button" onClick={notYet} disabled={pending} className={cn(buttonClass, pending && 'cursor-wait')}>
+        <button type="button" onClick={notYet} disabled={pending} className={cn(choice, pending && 'cursor-wait')}>
           Not yet
         </button>
       </div>
       {error && (
-        <p role="alert" className="w-full text-xs text-destructive">
+        <p role="alert" className={cn('w-full text-destructive', redesign ? 'text-sm' : 'text-xs')}>
           {error}
         </p>
       )}
