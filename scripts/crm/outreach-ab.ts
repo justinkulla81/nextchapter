@@ -46,6 +46,7 @@ async function main() {
   for (const r of replies) repliedAt.set(r.personId!, [...(repliedAt.get(r.personId!) ?? []), r.occurredAt])
 
   const cells = new Map<string, Cell>()
+  const timing = new Map<string, Cell>()
   for (const s of sends) {
     const { template, test, variant } = parse(s.outcome)
     const k = `${template}|${test}|${variant}`
@@ -54,6 +55,14 @@ async function main() {
     if ((s.outcome ?? '').includes(', opened')) c.opens++
     if ((repliedAt.get(s.personId!) ?? []).some((t) => t >= s.occurredAt && t.getTime() - s.occurredAt.getTime() <= REPLY_WINDOW_MS)) c.replies++
     cells.set(k, c)
+    const tm = /timing (T\d)/.exec(s.outcome ?? '')?.[1]
+    if (tm && /timing_test yes/.test(s.outcome ?? '')) {
+      const t = timing.get(tm) ?? { sends: 0, replies: 0, opens: 0 }
+      t.sends++
+      if ((s.outcome ?? '').includes(', opened')) t.opens++
+      if ((repliedAt.get(s.personId!) ?? []).some((x) => x >= s.occurredAt && x.getTime() - s.occurredAt.getTime() <= REPLY_WINDOW_MS)) t.replies++
+      timing.set(tm, t)
+    }
   }
   if (!cells.size) { console.log('No tagged cold-outreach sends logged yet. Log them with outreach-log.ts sent <sends.csv> --apply (CSV needs template and variant).'); return }
 
@@ -72,8 +81,19 @@ async function main() {
       const need = needed(c1.replies / c1.sends, c2.replies / c2.sends)
       console.log(`  concept C1 (outcome) vs C2 (market data): opens ${pct(c1.opens, c1.sends)} vs ${pct(c2.opens, c2.sends)} (p=${po.toFixed(2)}${po < 0.05 ? ', real' : ', keep testing'}); replies ${pct(c1.replies, c1.sends)} vs ${pct(c2.replies, c2.sends)} (p=${pr.toFixed(2)}${pr < 0.05 ? ', real' : ', keep testing'})${need && pr >= 0.05 ? `; about ${need} sends per concept to confirm a reply gap this size` : ''}`)
     }
+    if (template === 'college') { const cc = mine.find((x) => x.variant === 'CC'), fy = mine.find((x) => x.variant === '4YR'); if (cc && fy) console.log(`  community colleges vs four-year: replies ${pct(cc.replies, cc.sends)} (${cc.sends}) vs ${pct(fy.replies, fy.sends)} (${fy.sends}), p=${pValue(cc, fy).toFixed(2)}`) }
     const a = mine.find((x) => x.variant === 'A'), b = mine.find((x) => x.variant === 'B')
     if (a && b) { const pr = pValue(a, b); console.log(`  A vs B replies p=${pr.toFixed(2)}${pr < 0.05 ? ' (real)' : ' (keep testing)'}`) }
+  }
+  if (timing.size) {
+    const NAMES: Record<string, string> = { T1: 'right after (0-1 days)', T2: 'delayed (about 14 days)', T3: 'right before the effective date', T4: 'after the effective date' }
+    const pctT = (n: number, d: number) => (d ? ((100 * n) / d).toFixed(1) + '%' : '-')
+    console.log('\nTiming test (employer emails, clean assignments only)')
+    for (const [k, c] of [...timing.entries()].sort()) {
+      const rest = [...timing.entries()].filter(([x]) => x !== k).reduce((a, [, v]) => ({ sends: a.sends + v.sends, replies: a.replies + v.replies, opens: a.opens + v.opens }), { sends: 0, replies: 0, opens: 0 })
+      const po = rest.sends ? pValue({ sends: c.sends, replies: c.opens }, { sends: rest.sends, replies: rest.opens }) : 1
+      console.log(`  ${k} ${NAMES[k] ?? ''}: ${c.sends} sent, opened ${c.opens} (${pctT(c.opens, c.sends)}), replied ${c.replies} (${pctT(c.replies, c.sends)}); opens vs the other arms p=${po.toFixed(2)}${po < 0.05 ? ' (real)' : ' (keep testing)'}`)
+    }
   }
 }
 main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1) })

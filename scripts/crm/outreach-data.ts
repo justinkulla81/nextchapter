@@ -49,7 +49,7 @@ const poss = (n: string) => (/s$/i.test(n) ? `${n}'` : `${n}'s`)
 const list = (a: string[]) => (a.length <= 1 ? a.join('') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
 
 interface Area { id: string; name: string; state: string; unemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
-interface Notice { employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; board: string | null }
+interface Notice { employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; noticeDate: Date; board: string | null }
 type Row = Record<string, string>
 
 const tpl = JSON.parse(readFileSync(new URL('./outreach-templates.json', import.meta.url), 'utf8')) as {
@@ -79,20 +79,22 @@ async function main() {
   const boardNames = new Map((await prisma.workforceBoard.findMany({ select: { id: true, name: true } })).map((b) => [b.id, b.name]))
   const notices = await prisma.warnNotice.findMany({
     where: { source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: since, lte: now }, employees: { not: null } },
-    select: { employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, promotedOrgId: true, workforceBoardId: true },
+    select: { employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, noticeDate: true, promotedOrgId: true, workforceBoardId: true },
   })
   const bigger = (a: Notice | undefined, b: Notice) => (!a || b.employees > a.employees ? b : a)
   const byOrg = new Map<string, Notice>(), byBoard = new Map<string, Notice>(), byCounty = new Map<string, Notice>(), byState = new Map<string, Notice>()
   let top: Notice | undefined
   const stateAll = new Map<string, Notice[]>()
+  const countyAgg = new Map<string, { employers: Set<string>; jobs: number }>()
   const stateTotals = new Map<string, { notices: number; jobs: number }>()
   for (const w of notices) {
-    const nt: Notice = { employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
+    const nt: Notice = { employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, noticeDate: w.noticeDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
     if (w.promotedOrgId) byOrg.set(w.promotedOrgId, bigger(byOrg.get(w.promotedOrgId), nt))
     if (w.workforceBoardId) byBoard.set(w.workforceBoardId, bigger(byBoard.get(w.workforceBoardId), nt))
     if (w.county) { const k = `${w.state}|${countyBase(w.county)}`; byCounty.set(k, bigger(byCounty.get(k), nt)) }
     byState.set(w.state!, bigger(byState.get(w.state!), nt))
     stateAll.set(w.state!, [...(stateAll.get(w.state!) ?? []), nt])
+    if (w.county) { const k = `${w.state}|${countyBase(w.county)}`; const g = countyAgg.get(k) ?? { employers: new Set<string>(), jobs: 0 }; g.employers.add(nt.employer.toLowerCase()); g.jobs += w.employees!; countyAgg.set(k, g) }
     top = bigger(top, nt)
     const t = stateTotals.get(w.state!) ?? { notices: 0, jobs: 0 }
     t.notices++; t.jobs += w.employees!; stateTotals.set(w.state!, t)
@@ -131,7 +133,7 @@ async function main() {
   const counts: Record<string, { rows: number; ready: number }> = {}
   const examples: Record<string, Row[]> = {}
 
-  const add = (template: string, who: { first: string; email: string; org: string; title: string }, ctx: { notice?: Notice; area?: Area; state?: string; board?: string; center?: string }) => {
+  const add = (template: string, who: { first: string; email: string; org: string; title: string }, ctx: { notice?: Notice; area?: Area; state?: string; board?: string; center?: string; extra?: Record<string, string> }) => {
     const t = T.get(template)!
     const state = ctx.state ?? ctx.notice?.state ?? ''
     const area = ctx.area ?? (ctx.notice?.county && state ? areaByName.get(`${state}|${countyBase(ctx.notice.county)}`) : undefined)
@@ -151,6 +153,8 @@ async function main() {
       board: ctx.board ?? ctx.notice?.board ?? '', center: ctx.center ?? '', rr_agency: state ? rrAgency.get(state) ?? '' : '',
       effective_date: ctx.notice?.effective ? `${MONTHS[ctx.notice.effective.getUTCMonth()]} ${ctx.notice.effective.getUTCDate()}` : '', days_to_effective: effDays != null ? String(effDays) : '',
     }
+    if (ctx.notice) { row.notice_date = ctx.notice.noticeDate.toISOString().slice(0, 10); row.effective_iso = ctx.notice.effective ? ctx.notice.effective.toISOString().slice(0, 10) : '' }
+    if (ctx.extra) Object.assign(row, ctx.extra)
     const region = op ?? nat
     const scope = op ? `in ${stateName}` : 'nationally'
     row.line_timing = effDays != null && effDays >= 1 && effDays <= 150 ? `The notice takes effect on ${row.effective_date}, ${effDays} days from now.` : ''
@@ -245,6 +249,27 @@ async function main() {
     add('ajc', { first: 'team', email, org: c.name, title: c.businessEmail ? 'Business services' : 'General inbox' }, { notice, area, state: c.state, center: c.name, board: c.workforceBoardId ? boardNames.get(c.workforceBoardId) : undefined })
   }
 
+  // 3b. Colleges in a county with two or more employers in layoff notices (300+ jobs in all): the career, continuing-education and alumni contacts.
+  //     Community colleges and four-year colleges get the same email; the variant is the level, so the two can be compared.
+  const triggerCounties = [...countyAgg.entries()].filter(([, g]) => g.employers.size >= 2 && g.jobs >= 300)
+  const triggerAreas = triggerCounties.map(([k, g]) => ({ area: areaByName.get(k), g })).filter((x): x is { area: Area; g: { employers: Set<string>; jobs: number } } => !!x.area)
+  if (triggerAreas.length) {
+    const byFips = new Map(triggerAreas.map((x) => [x.area.id, x]))
+    const colleges = await prisma.collegeProfile.findMany({ where: { countyFips: { in: [...byFips.keys()] } }, select: { unitid: true, name: true, level: true, countyFips: true, state: true, careerContactName: true, careerContactEmail: true, alumniContactName: true, alumniContactEmail: true } })
+    const contacts = await prisma.collegeContact.findMany({ where: { collegeId: { in: colleges.map((c) => c.unitid) }, email: { not: null } }, select: { collegeId: true, role: true, name: true, title: true, email: true } })
+    const ROLE_ORDER = ['execEd', 'career', 'alumni', 'development']
+    for (const col of colleges) {
+      const t = byFips.get(col.countyFips!)!
+      const mine = contacts.filter((c) => c.collegeId === col.unitid).sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role))
+      const pick = mine[0] ?? (col.careerContactEmail ? { name: col.careerContactName, title: 'Career services', email: col.careerContactEmail } : col.alumniContactEmail ? { name: col.alumniContactName, title: 'Alumni relations', email: col.alumniContactEmail } : null)
+      if (!pick?.email) continue
+      add('college', { first: pick.name ? first(pick.name, null) : 'Hello', email: pick.email, org: col.name, title: pick.title ?? 'Career services' }, {
+        area: t.area, state: col.state,
+        extra: { college: clean(col.name.replace(/\s*[-–(]\s*Main Campus\)?/i, '')), college_level: col.level ?? '', employers_in_county: String(t.g.employers.size), college_county_jobs: n0(t.g.jobs) },
+      })
+    }
+  }
+
   // 4. People in the CRM with a published or verified address, by the kind of organization they are at.
   const ppl = await prisma.crmPerson.findMany({
     where: { deletedAt: null, mergedIntoId: null, email: { not: null }, OR: [
@@ -286,18 +311,37 @@ async function main() {
   // One address, one email: later rows for an address already used are flagged, so a mail merge can skip them.
   const seen = new Set<string>()
   for (const r of rows) { const k = r.email.toLowerCase(); r.duplicate = seen.has(k) ? 'yes' : ''; seen.add(k); const h = [...k].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7)
-    if (r.arm_C1a !== undefined) {
+    if (r.template === 'college') {
+      // The comparison is the college's level, not a random split.
+      r.variant = r.college_level === '2-year' ? 'CC' : '4YR'; r.concept = ''; r.subject = r.subject_a
+    } else if (r.arm_C1a !== undefined) {
       // Two concepts by two wordings; an arm whose subject does not fit falls back to the other wording of the same concept.
       const lab = ARM_LABELS[h % 4], mate = ARM_LABELS[(h % 4) ^ 1]
       const pick = r['arm_' + lab] ? lab : r['arm_' + mate] ? mate : null
       r.variant = pick ?? 'F'; r.concept = pick ? pick.slice(0, 2) : ''; r.subject = pick ? r['arm_' + pick] : r.subject_a
     } else { r.variant = h % 2 ? 'B' : 'A'; r.concept = ''; r.subject = r.variant === 'B' ? r.subject_b : r.subject_a }
+    // Timing test (employer emails only): right after the filing (0 to 1 days), delayed (about 14 days), right before the effective date, after it.
+    // Each recipient is randomised among the windows still open today; the test is clean only when all four are open (a filing from the last day).
+    r.timing = ''; r.send_on = ''; r.timing_test = ''
+    if (['head_hr', 'rewards', 'er', 'ta'].includes(r.template) && r.notice_date) {
+      const DAY = 86_400_000, today = Date.parse(now.toISOString().slice(0, 10)), nd = Date.parse(r.notice_date), ef = r.effective_iso ? Date.parse(r.effective_iso) : NaN
+      const wins: { k: string; start: number; end: number; on: number }[] = [
+        { k: 'T1', start: nd, end: nd + DAY, on: nd },
+        { k: 'T2', start: nd + 12 * DAY, end: nd + 16 * DAY, on: nd + 14 * DAY },
+        ...(Number.isNaN(ef) ? [] : [{ k: 'T3', start: ef - 7 * DAY, end: ef - 3 * DAY, on: ef - 5 * DAY }, { k: 'T4', start: ef + 7 * DAY, end: ef + 14 * DAY, on: ef + 10 * DAY }]),
+      ]
+      const open = wins.filter((w) => w.end >= today)
+      if (open.length) {
+        const w = open[(h >>> 3) % open.length]
+        r.timing = w.k; r.send_on = new Date(Math.max(w.on, today)).toISOString().slice(0, 10); r.timing_test = open.length === 4 ? 'yes' : 'no'
+      }
+    }
      r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
-  const HEAD = ['template', 'variant', 'concept', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
+  const HEAD = ['template', 'variant', 'concept', 'timing', 'timing_test', 'send_on', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
     'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective']
   writeFileSync(out, [HEAD.map(q).join(','), ...rows.map((r) => HEAD.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   // The send list: only rows that are ready, unique and not suppressed, with just what a mail merge needs.
-  const SEND = ['template', 'variant', 'concept', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
+  const SEND = ['template', 'variant', 'concept', 'timing', 'timing_test', 'send_on', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
   const sendRows = rows.filter((r) => r.send === 'yes')
   writeFileSync(out.replace(/\.csv$/, '') + '.send.csv', [SEND.map(q).join(','), ...sendRows.map((r) => SEND.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   console.log(`send list: ${sendRows.length} rows`)

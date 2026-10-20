@@ -245,6 +245,21 @@
       "fu2": "{{first_name}}, I'll step back. If a member asks about career pivots after a layoff, reply and I'll send the demo.",
       "ps": "P.S. Figures come from our monthly white-collar employment report (BLS, JOLTS and Labor Department data, methods published). Layoff totals are from state WARN filings and role counts from our own job crawler.",
       "subject_fallback": "Career pivots after layoffs: local data"
+    },
+    {
+      "id": "college",
+      "who": "College: continuing education, career services or alumni lead in a county with several layoffs",
+      "why": "Demand pilot. Community colleges and four-year colleges get the same email; compare who responds. Not free: a partnership to support local retraining and affected alumni.",
+      "subjects": [
+        "Supporting {{county}} workers affected by layoffs",
+        "{{employers_in_county}} layoffs in {{county}}: a role for {{college}}"
+      ],
+      "preview": "Retraining and affected alumni, with counts of who engaged and landed.",
+      "body": "{{first_name}},\n\n{{employers_in_county}} employers have filed layoff notices in {{county}} in the last 90 days, covering {{college_county_jobs}} jobs. Many of those workers live in {{college}}'s community, and some are likely its alumni. Their searches run long: 28% of unemployed white-collar workers are still looking after 27 weeks, up from 23% a year ago (our monthly report: https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026).\n\nI founded NextChapter, the leading job transition platform. We work with colleges to support the local workforce through retraining and to keep affected alumni engaged. Each person gets a pivot plan from their work history, retraining matched to their skill gaps (including your own programs), networking outreach drafted, coaching, and exclusive jobs and recruiters. Open AI-titled roles in our database advertise about a third more than others at the same level. You see counts of who engaged and landed, never names.\n\nIs {{college}} looking at how to serve these workers? I can send a one-page overview, or set up 20 minutes with whoever leads continuing education or career services.",
+      "fu1": "{{first_name}}, I can send the one-page overview: what the partnership covers, how affected alumni are reached, and the counts you would see. Should I send it?",
+      "fu2": "{{first_name}}, I'll leave it there. If {{county}}'s layoffs become a priority for {{college}}, the offer stands.",
+      "ps": "",
+      "subject_fallback": "Supporting {{county}} workers affected by layoffs"
     }
   ]
 }
