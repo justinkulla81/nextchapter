@@ -55,6 +55,8 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 **App / URLs**
 - `NEXT_PUBLIC_APP_URL` — the canonical site URL, used for building absolute links in emails etc. Must match the real production domain in Vercel's env config — a past bug came from this being misconfigured (see `IDEAS.md` history / task list "Phase 0: Check Vercel/Supabase URL config for dashboard load bug").
 
+- `CAREERS_PAGE_LIVE` — set to `true` to publish `/careers` and `/careers/[slug]` (role content is in `src/lib/careers/roles.ts`). Unset, those pages return 404 and are left out of the sitemap and footer. Read at build time, so changing it needs a redeploy. Fill each role's pay line and have the wording reviewed before turning it on (`docs/hiring/`).
+
 **Email**
 - `RESEND_API_KEY`
 

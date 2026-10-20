@@ -23,7 +23,7 @@ const LABEL = 'text-sm font-semibold text-navy'
  * recruiter for their practice, a job applicant for the role and LinkedIn. The action hands typed values back on an
  * error, so fields refill after React's post-submit reset.
  */
-export function ContactForm({ initialAudience, source }: { initialAudience: ContactAudience; source?: string }) {
+export function ContactForm({ initialAudience, source, initialRole }: { initialAudience: ContactAudience; source?: string; initialRole?: string }) {
   const posthog = usePostHog()
   const [audience, setAudience] = useState<ContactAudience>(initialAudience)
   const [state, action, pending] = useActionState<ContactFormState, FormData>(submitContactForm, undefined)
@@ -89,7 +89,7 @@ export function ContactForm({ initialAudience, source }: { initialAudience: Cont
         {showRole && (
           <div className="flex flex-col gap-1">
             <label htmlFor="contact-role" className={LABEL}>{applying ? 'Role you’re interested in' : 'Your role'}</label>
-            <input id="contact-role" name="role" autoComplete="organization-title" defaultValue={v?.role} className={FIELD} />
+            <input id="contact-role" name="role" autoComplete="organization-title" defaultValue={v ? v.role : initialRole} className={FIELD} />
           </div>
         )}
         {applying && (
