@@ -3,6 +3,7 @@ import { PageHeader } from '@/components/candidate/PageHeader'
 import { Avatar, Chip, DarkButton, PrimaryButton, SecondaryButton, Section, TextLink } from '@/components/candidate/ui'
 import { Module } from '@/components/candidate/Module'
 import { cn } from '@/lib/utils'
+import { CareerOneStopCredit } from '@/components/attribution/CareerOneStopCredit'
 
 export function FindUnposted() {
   const items = [
@@ -266,6 +267,8 @@ export function MarketPivot() {
           </li>
         ))}
       </ul>
+      <p className="text-xs text-muted-foreground">Job counts come from the live NextChapter job board. Long-term outlook and median wages are national BLS figures via CareerOneStop, refreshed yearly.</p>
+      <CareerOneStopCredit surface="dev_preview" />
     </PreviewShell>
   )
 }
