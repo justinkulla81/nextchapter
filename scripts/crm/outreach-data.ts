@@ -158,6 +158,9 @@ async function main() {
         ? `${area.name} employers filed notices for ${n0(area.j12)} jobs ${area.j90 === 0 ? 'over the last 12 months' : 'in the last 90 days'}, and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`
         : `${area.name} employers filed notices for ${n0(area.j12)} jobs over the last 12 months (${n0(area.j90)} in the last 90 days), and unemployment there is ${pct(area.unemp)} (${monthYear(area.asOf)}).`)
       : st ? `${stateName} employers filed notices for ${n0(st.jobs)} jobs in the last 90 days.` : ''
+    // When the company is most of the state's notices, restating the state total just repeats the layoff.
+    const own = Number(String(row.employees ?? '').replace(/,/g, '')) || 0
+    if (own && (st?.jobs ?? 0) < 2 * own) row.line_local = ''
     row.line_majors = area?.majors.length ? `The largest local employers include ${list(area.majors)}.` : ''
     const cName = area?.name ?? ctx.notice?.county ?? ''
     row.line_company = row.company ? `That includes ${poss(row.company)} ${n0(ctx.notice!.employees)} jobs.` : ''
