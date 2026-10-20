@@ -98,7 +98,7 @@ export function WorkHistoryForm() {
         </div>
       )}
 
-      <Button type="submit" disabled={pending} className={pending ? 'cursor-progress' : ''}>
+      <Button variant="cta" type="submit" disabled={pending} className={pending ? 'cursor-progress' : ''}>
         {pending ? 'Saving…' : 'Add to work history'}
       </Button>
     </form>

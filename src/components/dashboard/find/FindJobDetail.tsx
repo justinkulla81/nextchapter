@@ -305,20 +305,15 @@ export function FindJobDetail({
           {skillsFit && <SkillsFitLine fit={skillsFit} />}
           {!match && skillGap && skillGap.basis !== 'none' && skillGap.requested.length > 0 && <SkillGapLine gap={skillGap} />}
           {match && <JobMatchDetails jobId={posting.id} match={match} explainEnabled={explainGapsEnabled} candidatePlus={candidatePlus} insiders={confidential ? undefined : insiders} />}
-          {candidatePlus ? (
-            <>
-              <div data-who-to-contact={posting.id}>
-                <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
-                <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
-              </div>
-              <ApplyKit postingId={posting.id} surface="find_pane" />
-            </>
+          {candidatePlus || !confidential ? (
+            <div data-who-to-contact={posting.id}>
+              <WhoToContactPanel postingId={posting.id} confidential={confidential} contacts={contacts} />
+              <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
+            </div>
           ) : (
-            <>
-              <CandidatePlusExtraLine extra={confidential ? 'request_intro' : 'who_to_contact'} jobId={posting.id} surface="find_pane" />
-              <CandidatePlusExtraLine extra="apply_kit" jobId={posting.id} surface="find_pane" />
-            </>
+            <CandidatePlusExtraLine extra="request_intro" jobId={posting.id} surface="find_pane" />
           )}
+          <ApplyKit postingId={posting.id} surface="find_pane" />
           <p className="text-sm text-ink">{edgeTip(posting)}</p>
           <div className="flex flex-wrap items-center gap-2">
             {!confidential && (

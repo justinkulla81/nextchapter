@@ -69,3 +69,19 @@ describe('the options', () => {
     expect(g.generic).toBe(true)
   })
 })
+
+describe('who can use it', () => {
+  it('shows the Help entry only to employed members', async () => {
+    const { REDESIGN_PLACES } = await import('@/lib/nav/redesign-places')
+    const { visibleTabs } = await import('@/lib/nav/places')
+    const help = REDESIGN_PLACES.find((p) => p.key === 'help')!
+    expect(visibleTabs(help, { employed: true }).some((t) => t.href === '/dashboard/work-help')).toBe(true)
+    expect(visibleTabs(help, { employed: false }).some((t) => t.href === '/dashboard/work-help')).toBe(false)
+  })
+
+  it('uses the same employed check as the in-work workspace', async () => {
+    const { canUseWorkHelp } = await import('@/lib/work-help/access')
+    const { isInWorkMember } = await import('@/lib/in-work/constants')
+    expect(canUseWorkHelp).toBe(isInWorkMember)
+  })
+})

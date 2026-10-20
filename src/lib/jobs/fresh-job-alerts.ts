@@ -1,6 +1,7 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
+import { fitsMemberLevel } from '@/lib/jobs/email-level-fit'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { loadBoardShortlist, postedWithinWhere } from '@/lib/jobs/board-shortlist'
@@ -69,6 +70,8 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
     includeMidLevel: midLevelInEmails(),
     includeEarlyCareer: earlyCareerInEmails(),
+    // No seniority ring in an email (email-level-fit.ts).
+    seniorityRing: false,
   })
   const [alerted, shownDaily] = await Promise.all([
     prisma.freshJobAlertSend.findMany({ where: { candidateId }, select: { postingId: true } }),
@@ -79,6 +82,8 @@ export async function sendFreshJobAlert(candidateId: string, options: { dryRun?:
     // Owner's rule (2026-10-15): alerts are full-time only; part-time, contract
     // and advisory roles stay on the board.
     .filter((p) => classifyWorkType(p) === 'full_time')
+    // Only jobs at the member's level (email-level-fit.ts).
+    .filter((p) => fitsMemberLevel(candidate, p))
     .filter((p) => !skip.has(p.id) && isVeryStrongBoardFitFor(fitScoring, candidate, p, candidateScaleLevel(p.level)))
     .slice(0, MAX_JOBS)
   if (jobs.length === 0) return { sent: false, reason: 'no new strong fits', jobCount: 0 }

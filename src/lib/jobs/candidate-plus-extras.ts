@@ -1,11 +1,18 @@
-// Every member sees every job (owner's rule, 2026-10-16). Candidate+ keeps the
-// extras on a job, and only these: who to contact (with the intro request on a
-// confidential search), the apply kit, and explain-my-gaps. A member without
-// Candidate+ sees one plain line per extra, saying what it does and where to
-// see what's left to unlock it. Candidate+ status itself is isDossierUnlocked()
+// Every member sees every job (owner's rule, 2026-10-16), and since 2026-10-20 every member also gets who to
+// contact, the apply kit and explain-my-gaps (owner: Candidate+ is the mark recruiters see, not a lock on tools).
+// What stays Candidate+: the intro request on a confidential search and "NextChapter knows someone here", which
+// pass the member to a recruiter or to staff. A member without Candidate+ sees one plain line for those, saying
+// what it does and where to see what's left to unlock it. Candidate+ status itself is isDossierUnlocked()
 // (dossier-unlock.ts); nothing here recomputes it.
 
 export type CandidatePlusExtra = 'who_to_contact' | 'request_intro' | 'apply_kit' | 'explain_gaps'
+
+/** The extras every member has. The rest still need Candidate+. */
+export const EXTRAS_OPEN_TO_EVERYONE: readonly CandidatePlusExtra[] = ['who_to_contact', 'apply_kit', 'explain_gaps']
+
+export function extraIsOpen(extra: CandidatePlusExtra, candidatePlus: boolean): boolean {
+  return candidatePlus || EXTRAS_OPEN_TO_EVERYONE.includes(extra)
+}
 
 export const CANDIDATE_PLUS_EXTRAS: Record<CandidatePlusExtra, { label: string; does: string }> = {
   who_to_contact: { label: 'Who to contact', does: 'the people to reach at this company and a note you can send them' },

@@ -91,8 +91,8 @@
 ],
 [
 "Nurse Manager",
-"MANAGER",
-40
+"OTHER",
+0
 ],
 [
 "Shift Supervisor",
@@ -11731,8 +11731,8 @@
 ],
 [
 "Executive Director, Information Technology Services",
-"DIRECTOR",
-68
+"HEAD",
+72
 ],
 [
 "Executive Director I (226 Days)",
@@ -13488,8 +13488,8 @@ true
 ],
 [
 "Executive Director, Strategy",
-"C_SUITE",
-100
+"HEAD",
+72
 ],
 [
 "Program Director",
@@ -22050,5 +22050,340 @@ true
 "Regional General Manager - Retail",
 "C_SUITE",
 100
+],
+[
+"Capgemini Invent - Financial Services - Senior Consultant",
+"SENIOR_IC",
+45
+],
+[
+"Sr Engineer Manufacturing",
+"SENIOR_IC",
+45
+],
+[
+"Enterprise Financial Risk Capital Risk Sr. Specialist",
+"SENIOR_IC",
+45
+],
+[
+"13179 Senior Infrastructure Engineer \u2013 Hybrid",
+"SENIOR_IC",
+45
+],
+[
+"INGENYX - Senior Extrusion Engineer",
+"SENIOR_IC",
+45
+],
+[
+"Senior Living Accountant",
+"SENIOR_IC",
+45
+],
+[
+"Senior Engineer Manager",
+"SENIOR_IC",
+45
+],
+[
+"Data Analyst III Healthcare Analytics",
+"SENIOR_IC",
+45
+],
+[
+"Controls & Automation Engineer 3",
+"SENIOR_IC",
+45
+],
+[
+"Cloud Engineer IV",
+"SENIOR_IC",
+45
+],
+[
+"Sr. HR Business Partner",
+"SENIOR_IC",
+45
+],
+[
+"Sr. Technical Account Manager - Falcon Cloud Security (Remote)",
+"SENIOR_IC",
+45
+],
+[
+"Senior Territory Manager, Interventional Solutions",
+"SENIOR_IC",
+45
+],
+[
+"Solutions Architect Manager",
+"SENIOR_IC",
+45
+],
+[
+"Relationship Manager- Wealth Management",
+"MANAGER",
+40
+],
+[
+"Grants Manager A/B (Department of Neurology)",
+"MANAGER",
+40
+],
+[
+"Spend Manager",
+"MANAGER",
+40
+],
+[
+"Clinical Trial Manager",
+"MANAGER",
+40
+],
+[
+"Project Manager I",
+"MANAGER",
+40
+],
+[
+"Manager, Project Management",
+"MANAGER",
+40
+],
+[
+"Sales Manager - Old Mill Retail District",
+"OTHER",
+0
+],
+[
+"Part-Time Leasing Manager",
+"OTHER",
+0
+],
+[
+"Duty Manager - Cargo Operation",
+"OTHER",
+0
+],
+[
+"Area Manager - Liberty, MO",
+"MANAGER",
+40
+],
+[
+"Registered Nurse RN Manager Procedural",
+"OTHER",
+0
+],
+[
+"Unit Manager Travel Nurse Job in Brattleboro, VT",
+"OTHER",
+0
+],
+[
+"Clinical Supervisor (RN) - ICU",
+"OTHER",
+0
+],
+[
+"Manager Inpatient Dialysis - Central and South Regions",
+"OTHER",
+0
+],
+[
+"Manager-Medical Imaging-Miami Valley South",
+"OTHER",
+0
+],
+[
+"Pharmacy Manager - Bronx, New York",
+"OTHER",
+0
+],
+[
+"Manager, Pharmacy Benefits",
+"MANAGER",
+40
+],
+[
+"Utilization Manager PRN",
+"OTHER",
+0
+],
+[
+"Sales Lead",
+"OTHER",
+0
+],
+[
+"Sales Lead (Part time) - Markets at Town Center",
+"OTHER",
+0
+],
+[
+"Sales Lead, Enterprise Accounts",
+"SENIOR_IC",
+45
+],
+[
+"LEAD SCRUB TECHNOLOGIST, Part Time",
+"OTHER",
+0
+],
+[
+"Manager, Inpatient Coding",
+"MANAGER",
+40
+],
+[
+"Nurse Educator Manager",
+"MANAGER",
+40
+],
+[
+"Accountant - Recent Graduate (GS-5/7)",
+"ENTRY_IC",
+20
+],
+[
+"Program Analyst - Recent Graduate (GS-5/7/9)",
+"ENTRY_IC",
+20
+],
+[
+"Nurse (Recent Graduate) (GS-5/7)",
+"OTHER",
+0
+],
+[
+"Program Analyst (GS-5/7)",
+"OTHER",
+0
+],
+[
+"Accountant - Recent Graduate (GS-5/7/9/11)",
+"OTHER",
+0
+],
+[
+"Medical Technologist - Recent Graduate (GS-5/7)",
+"OTHER",
+0
+],
+[
+"Executive Director-Cross Line Of Business Chase Engagement Marketing",
+"HEAD",
+72
+],
+[
+"Executive Director, Global Strategic Marketing - Fabry",
+"HEAD",
+72
+],
+[
+"STRIVE - Interim Executive Director - NYC",
+"C_SUITE",
+100
+],
+[
+"Sciencenter - Executive Director",
+"C_SUITE",
+100
+],
+[
+"Executive Director of Development",
+"C_SUITE",
+100
+],
+[
+"Executive Director of the Smith Family Foundation",
+"C_SUITE",
+100
+],
+[
+"Executive Director - Equity Research",
+"HEAD",
+72
+],
+[
+"Field CTO - North America",
+"VP",
+80
+],
+[
+"Client CTO",
+"VP",
+80
+],
+[
+"Regional Chief Technology Officer, NAMER West",
+"VP",
+80
+],
+[
+"Industry CTO, Financial Services",
+"VP",
+80
+],
+[
+"Chief Technology Officer",
+"C_SUITE",
+100
+],
+[
+"Chief of Staff, CEO",
+"CHIEF_OF_STAFF",
+68
+],
+[
+"AVP, Chief of Staff to the CTO",
+"SR_MANAGER",
+52
+],
+[
+"Agency CMO Trader",
+"SENIOR_IC",
+45
+],
+[
+"CMO Structurer",
+"SENIOR_IC",
+45
+],
+[
+"Non-Agency CMO Analyst",
+"MID_IC",
+30
+],
+[
+"VP, Agency CMO Trading",
+"VP",
+80
+],
+[
+"Fractional CMO Strategist: Hybrid",
+"C_SUITE",
+100
+],
+[
+"Chief Marketing Officer (CMO)",
+"C_SUITE",
+100
+],
+[
+"Freelance VP/SVP Account Director",
+"VP",
+80
+],
+[
+"Freelance VP Account Director",
+"DIRECTOR",
+65
+],
+[
+"SVP, Group Account Director",
+"EVP_SVP",
+90
 ]
 ]

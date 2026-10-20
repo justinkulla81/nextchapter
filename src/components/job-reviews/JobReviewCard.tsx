@@ -107,7 +107,7 @@ export function JobReviewCard({
           aria-controls={`${ids}-form`}
           onClick={() => setOpen((o) => !o)}
         >
-          {open ? 'Close' : hasReview ? 'Edit review' : 'Review this job'}
+          {open ? 'Close' : hasReview ? 'Edit my rating' : 'Rate this employer'}
         </Button>
       </div>
 

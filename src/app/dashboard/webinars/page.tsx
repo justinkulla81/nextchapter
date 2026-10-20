@@ -149,7 +149,7 @@ export default async function WebinarsPage() {
         <p className="max-w-xl text-base text-muted-foreground">Short, practical and picked for where you are in your search. A thumbs-down hides something, and after two, its channel.</p>
       </header>
 
-      <section aria-labelledby="next-live" className="space-y-3">
+      <section aria-labelledby="next-live" className="space-y-3 rounded-2xl border border-orange/30 bg-orange/5 p-6">
         <SectionHeading id="next-live">{nextWebinar ? 'Next live session' : 'Live sessions'}</SectionHeading>
         {nextWebinar ? (
           <WebinarListItem webinar={nextWebinar} isRegistered={registeredIds.has(nextWebinar.id)} isLiked={likedKeys.has(contentLikeKey('WEBINAR', nextWebinar.id))} />

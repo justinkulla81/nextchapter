@@ -20,7 +20,7 @@ export default async function QuickQuestionsPage() {
       <div className="mx-auto max-w-xl space-y-4">
         <h1 className="font-serif text-3xl leading-tight font-semibold text-navy">You have answered everything we need right now.</h1>
         <p className="text-base text-muted-foreground">More questions appear here as your search moves on. You can change any answer on your strategy page.</p>
-        <Link href={BACK} className="inline-flex h-11 items-center rounded-full bg-primary px-7 text-base font-semibold text-primary-foreground hover:brightness-95">
+        <Link href={BACK} className="inline-flex h-11 items-center rounded-full nc-action px-7 text-base font-semibold">
           Back to your strategy
         </Link>
       </div>

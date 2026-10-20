@@ -7,6 +7,7 @@ import { metaLineText } from '@/lib/jobs/job-card'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
 import { whatChangedLines } from '@/lib/personalization/smarter'
 import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
+import { fitsMemberLevel } from '@/lib/jobs/email-level-fit'
 import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
 import { isFresh } from '@/lib/jobs/competition'
 import { getLikelyOpeningsForCandidate } from '@/lib/likely-openings'
@@ -202,32 +203,14 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   const dossier = await isDossierUnlocked(candidate.id)
   // An email: stays on the pre-v2 fit scoring until FIT_SCORING_V2_FOR_EMAILS is on.
   const fitScoring = emailFitScoringVersion()
-  const shortlist = await loadBoardShortlist({
-    candidate,
+  const { shortlist, fitting, freshJobs, olderJobs } = await loadDailyJobPicks(candidate, {
     isCandidatePlus: dossier.unlocked,
-    where: { createdAt: { gte: jobsSince } },
-    size: 200,
+    since: jobsSince,
     fitScoring,
-    // A small strict market fills with bridge jobs (labelled "Worth a look") instead of a near-empty email.
-    autoWidenTo: 60,
-    // Mid-level and early-career jobs stay out of emails until the owner turns on
-    // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
-    includeMidLevel: midLevelInEmails(),
-    includeEarlyCareer: earlyCareerInEmails(),
+    shownKeys,
+    now,
   })
-  const postings = emailSafeJobs(shortlist.open)
   const whatChanged = await loadWhatChanged(candidate.id, shortlist.breadth.marketSize, lastSend?.sentAt ?? new Date(now.getTime() - DAY_MS), now)
-  const fitting = postings.filter((p) => {
-    if (shownKeys.has(`job:${p.id}`)) return false
-    const bucket = boardListingFitBucketFor(fitScoring, candidate, p)
-    return bucket === 'strong' || bucket === 'good'
-  })
-  // Every member gets every job that fits (owner's rule, 2026-10-16).
-  const openable = fitting
-  // Jobs posted in the last 72 hours lead (applying early matters most);
-  // the rest fill the remaining slots.
-  const freshJobs = openable.filter((p) => isFresh(p, now)).slice(0, MAX_JOBS)
-  const olderJobs = openable.filter((p) => !isFresh(p, now)).slice(0, Math.max(0, MAX_JOBS - freshJobs.length))
   // Each job reads as it does on the board card (job-card.ts): verdict, why line, meta line.
   const cards = boardJobCardTexts({
     candidate,
@@ -236,7 +219,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     fitBucketFor: (p) => boardListingFitBucketFor(fitScoring, candidate, p),
     now,
   })
-  const toJobItem = (p: (typeof openable)[number]): DailyItem => {
+  const toJobItem = (p: (typeof freshJobs)[number]): DailyItem => {
     const card = cards.get(p.id)!
     return {
       key: `job:${p.id}`,
@@ -778,4 +761,47 @@ function dedupeOrgNames(names: string[]): string[] {
 
 function warmthRank(warmth: string): number {
   return warmth === 'HOT' ? 2 : warmth === 'WARM' ? 1 : 0
+}
+
+
+/**
+ * The jobs a Job Search Daily email sends (MAX_JOBS): new jobs since the last send, ranked
+ * by fit on the member's board, at the member's level only, good-or-better fits, the last
+ * 72 hours first. Exported so the level gate (scripts) checks exactly what the email sends.
+ */
+export async function loadDailyJobPicks(
+  candidate: Candidate,
+  opts: { isCandidatePlus: boolean; since: Date; fitScoring: ReturnType<typeof emailFitScoringVersion>; shownKeys: ReadonlySet<string>; now: Date }
+) {
+  const { fitScoring, now } = opts
+  const shortlist = await loadBoardShortlist({
+    candidate,
+    isCandidatePlus: opts.isCandidatePlus,
+    where: { createdAt: { gte: opts.since } },
+    size: 200,
+    fitScoring,
+    // A small strict market fills with bridge jobs (labelled "Worth a look") instead of a near-empty email.
+    autoWidenTo: 60,
+    // Mid-level and early-career jobs stay out of emails until the owner turns on
+    // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
+    includeMidLevel: midLevelInEmails(),
+    includeEarlyCareer: earlyCareerInEmails(),
+    // No seniority ring in an email: a bridge job may relax place, industry or function, never
+    // level (the ring's one-level-beyond jobs are for browsing the board).
+    seniorityRing: false,
+  })
+  // Only jobs at the member's level (email-level-fit.ts): inside their stage window, and not
+  // asking far more — or far fewer — years than they have.
+  const fitting = emailSafeJobs(shortlist.open)
+    .filter((p) => fitsMemberLevel(candidate, p))
+    .filter((p) => {
+      if (opts.shownKeys.has(`job:${p.id}`)) return false
+      const bucket = boardListingFitBucketFor(fitScoring, candidate, p)
+      return bucket === 'strong' || bucket === 'good'
+    })
+  // Every member gets every job that fits (owner's rule, 2026-10-16). Jobs posted in the
+  // last 72 hours lead (applying early matters most); the rest fill the remaining slots.
+  const freshJobs = fitting.filter((p) => isFresh(p, now)).slice(0, MAX_JOBS)
+  const olderJobs = fitting.filter((p) => !isFresh(p, now)).slice(0, Math.max(0, MAX_JOBS - freshJobs.length))
+  return { shortlist, fitting, freshJobs, olderJobs }
 }

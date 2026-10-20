@@ -167,21 +167,21 @@ export default async function JobPage({ params, searchParams }: { params: Promis
       )}
 
       {!life.isPast &&
-        (dossier.unlocked ? (
+        // Apply kit and who to contact are open to every member; only the intro request on a confidential search
+        // is a Candidate+ extra, shown as one line for members who haven't unlocked it (candidate-plus-extras.ts).
+        (
           <div className="space-y-3">
             <ApplyKit postingId={posting.id} surface="job_page" />
-            <div data-who-to-contact={posting.id}>
-              <WhoToContactPanel postingId={posting.id} confidential={confidential} />
-              <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
-            </div>
+            {dossier.unlocked || !confidential ? (
+              <div data-who-to-contact={posting.id}>
+                <WhoToContactPanel postingId={posting.id} confidential={confidential} />
+                <SentItPrompt context={{ source: 'who_to_contact', subjectKey: `job:${posting.id}`, jobId: posting.id }} reaskOnMount />
+              </div>
+            ) : (
+              <CandidatePlusExtraLine extra="request_intro" jobId={posting.id} surface="job_page" />
+            )}
           </div>
-        ) : (
-          // Candidate+ extras: one line each for members who haven't unlocked it (candidate-plus-extras.ts).
-          <div className="space-y-2">
-            <CandidatePlusExtraLine extra="apply_kit" jobId={posting.id} surface="job_page" />
-            <CandidatePlusExtraLine extra={confidential ? 'request_intro' : 'who_to_contact'} jobId={posting.id} surface="job_page" />
-          </div>
-        ))}
+        )}
 
       {posting.description && (
         <section aria-labelledby="job-description" className="space-y-2">
