@@ -182,8 +182,8 @@ async function main() {
     row.opening_line = opening
     const bodyBase = fill(t.body, row)
     const bodyText = opening ? bodyBase.replace('\n\n', `\n\n${opening}\n\n`) : bodyBase
-    const text = [bodyText, tpl.signature, fill(t.ps, row), tpl.footer.join('\n')].join('\n\n')
-    const html = '<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111">' + esc([bodyText, tpl.signature, fill(t.ps, row)].join('\n\n')).replace(/\n/g, '<br>')
+    const text = [bodyText, tpl.signature, fill(t.ps, row), tpl.footer.join('\n')].filter(Boolean).join('\n\n')
+    const html = '<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111">' + esc([bodyText, tpl.signature, fill(t.ps, row)].filter(Boolean).join('\n\n')).replace(/\n/g, '<br>')
       + `<span style="${FOOT_STYLE}">${esc(tpl.footer.join('\n')).replace(/\n/g, '<br>')}</span></div>`
     // Subjects: the first one whose figures are all present leads; a template is ready when at least one subject can be filled.
     const subjOk = t.subjects.map((x) => tokens(x).filter((k) => !k.startsWith('line_') && !row[k]).length === 0)
