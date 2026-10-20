@@ -9,6 +9,7 @@
  * would be needed to tell the observed rates apart (80% power, 5% significance). Differences below 95% confidence are labelled "keep testing".
  */
 import { prisma } from '../../src/lib/prisma'
+import { humanOpens } from '../../src/lib/outreach/event-rules'
 
 const REPLY_WINDOW_MS = 14 * 86_400_000
 type Cell = { sends: number; replies: number; opens: number; clicks: number }
@@ -96,6 +97,13 @@ async function main() {
       const po = rest.sends ? pValue({ sends: c.sends, replies: c.clicks }, { sends: rest.sends, replies: rest.clicks }) : 1
       console.log(`  ${k} ${NAMES[k] ?? ''}: ${c.sends} sent, replied ${c.replies} (${pctT(c.replies, c.sends)}), clicked ${c.clicks} (${pctT(c.clicks, c.sends)}); clicks vs the other arms p=${po.toFixed(2)}${po < 0.05 ? ' (real)' : ' (keep testing)'}`)
     }
+  }
+  // People worth a personal follow-up: no reply yet, but they opened more than once after the first two minutes, or clicked the link.
+  const warm = sends.filter((x) => (humanOpens(x.outcome) >= 2 || /, clicked(,|$)/.test(x.outcome ?? '')) && !(repliedAt.get(x.personId!) ?? []).length)
+  if (warm.length) {
+    const people = await prisma.crmPerson.findMany({ where: { id: { in: warm.map((x) => x.personId!) } }, select: { id: true, fullName: true, email: true, affiliations: { where: { isCurrent: true }, select: { org: { select: { name: true } } }, take: 1 } } })
+    console.log(`\nWarm, no reply yet (${warm.length}): more than one human open, or a click`)
+    for (const x of warm) { const p = people.find((q) => q.id === x.personId); console.log(`  ${p?.fullName ?? '?'} (${p?.affiliations[0]?.org.name ?? ''}) ${p?.email ?? ''}: ${humanOpens(x.outcome)} human opens${/, clicked(,|$)/.test(x.outcome ?? '') ? ', clicked' : ''}`) }
   }
 }
 main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1) })

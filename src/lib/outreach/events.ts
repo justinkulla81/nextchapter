@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { suppress } from '@/lib/mailing/lists'
 import type { ResendEvent } from '@/lib/mailing/tracking'
-import { bareAddress, isAutomatedClick, isOutreachEvent, isPermanentBounce } from './event-rules'
+import { bareAddress, isAutomatedClick, isOutreachEvent, isPermanentBounce, withHumanOpen } from './event-rules'
 
 /**
  * Cold outreach sent with the Resend tag `outreach` reports back here. A permanent bounce marks the
@@ -23,6 +23,12 @@ export async function applyOutreachEvent(event: ResendEvent): Promise<'applied' 
     // A click within two minutes of the send is almost always a mail scanner following the link, not a person.
     const seconds = send ? ((event.created_at ? Date.parse(event.created_at) : Date.now()) - send.occurredAt.getTime()) / 1000 : 0
     const mark = event.type === 'email.opened' ? ', opened' : isAutomatedClick(seconds) ? ', clicked_auto' : ', clicked'
+    // Every open after the first two minutes is counted, because a second or third open is a sign of interest (the first, instant one is usually a scanner).
+    if (send && event.type === 'email.opened' && !isAutomatedClick(seconds)) {
+      await prisma.crmActivity.update({ where: { id: send.id }, data: { outcome: withHumanOpen(send.outcome) } })
+      captureServerEvent(send.personId ?? 'outreach', 'outreach_email_reopened', {})
+      return 'applied'
+    }
     if (!send || (send.outcome ?? '').includes(`${mark},`) || (send.outcome ?? '').endsWith(mark)) return 'ignored'
     await prisma.crmActivity.update({ where: { id: send.id }, data: { outcome: `${send.outcome ?? ''}${mark}` } })
     captureServerEvent(send.personId ?? 'outreach', event.type === 'email.opened' ? 'outreach_email_opened' : mark === ', clicked' ? 'outreach_email_clicked' : 'outreach_email_clicked_auto', {})

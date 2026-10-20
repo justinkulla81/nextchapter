@@ -26,3 +26,16 @@ export function bareAddress(to: string | undefined): string | null {
 export function isAutomatedClick(secondsAfterSend: number): boolean {
   return secondsAfterSend < 120
 }
+
+/** Adds one human open to an activity's outcome text: "..., human_opens 2". Opens within two minutes of the send are scanners and are not counted here. */
+export function withHumanOpen(outcome: string | null): string {
+  const o = outcome ?? ''
+  const m = /, human_opens (\d+)/.exec(o)
+  return m ? o.replace(/, human_opens \d+/, `, human_opens ${Number(m[1]) + 1}`) : `${o}, human_opens 1`
+}
+
+/** How many human opens an activity's outcome text records. */
+export function humanOpens(outcome: string | null): number {
+  const m = /, human_opens (\d+)/.exec(outcome ?? '')
+  return m ? Number(m[1]) : 0
+}

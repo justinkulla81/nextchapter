@@ -98,6 +98,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/contact-messages', label: 'Contact messages', badge: badgeFor('contactUnhandled') },
         { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
         { href: '/support/admin/crm/needs-review', label: 'Activity to review', badge: badgeFor('activityReview') },
+        { href: '/support/admin/crm/outreach', label: 'Outreach tests' },
         { href: '/support/admin/crm/company-links', label: 'Company links' },
         { href: '/support/admin/school-links', label: 'Higher education links' },
         { href: '/support/admin/crm/meeting-prep', label: 'Prep for tomorrow' },

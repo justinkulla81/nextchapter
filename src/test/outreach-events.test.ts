@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bareAddress, isAutomatedClick, isOutreachEvent, isPermanentBounce } from '@/lib/outreach/event-rules'
+import { bareAddress, humanOpens, isAutomatedClick, withHumanOpen, isOutreachEvent, isPermanentBounce } from '@/lib/outreach/event-rules'
 
 const ev = (extra: object, bounce?: object) => ({ type: 'email.bounced', data: { email_id: 'e1', to: ['a@b.com'], bounce, ...extra } })
 
@@ -25,5 +25,11 @@ describe('outreach events', () => {
     expect(isAutomatedClick(4)).toBe(true)
     expect(isAutomatedClick(119)).toBe(true)
     expect(isAutomatedClick(300)).toBe(false)
+  })
+  it('counts human opens in the outcome text', () => {
+    const once = withHumanOpen('Cold outreach, email 1, variant A')
+    expect(humanOpens(once)).toBe(1)
+    expect(humanOpens(withHumanOpen(once))).toBe(2)
+    expect(humanOpens('Cold outreach, email 1')).toBe(0)
   })
 })
