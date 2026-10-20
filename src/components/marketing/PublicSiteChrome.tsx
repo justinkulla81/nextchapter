@@ -45,7 +45,7 @@ export function SiteNav({ current }: { current?: 'about' | 'news' | 'reports' })
 }
 
 /** The homepage's header, for public pages that stand on their own (About, Contact). */
-export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 'news' | 'reports' }) {
+export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 'news' | 'reports' | 'careers' }) {
   return (
     <header className="bg-white">
       <SiteNav current={current === 'about' || current === 'news' || current === 'reports' ? current : undefined} />
@@ -54,7 +54,7 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'ai-skills' | 'ai-training' }) {
+export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'careers' | 'ai-skills' | 'ai-training' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="border-b border-white/10">
@@ -89,6 +89,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           © {new Date().getFullYear()} NextChapter
           {' · '}<Link href="/about" className="underline underline-offset-4">About</Link>
           {' · '}<Link href="/contact" className="underline underline-offset-4">Contact</Link>
+          {' · '}<Link href="/careers" rel="nofollow" className="underline underline-offset-4">Careers</Link>
           {' · '}<Link href="/pricing" className="underline underline-offset-4">Pricing</Link>
           {' · '}<Link href="/security" className="underline underline-offset-4">Security</Link>
           {' · '}<Link href="/scam-watch" className="underline underline-offset-4">Scam watch</Link>

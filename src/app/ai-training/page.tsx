@@ -104,7 +104,7 @@ export default function AiTrainingPage() {
             ))}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            Grants go to the colleges, boards and states that apply, not to NextChapter, and approval rules differ by state. We help you scope and write the training section, and we promise no award.
+            Grants are awarded to the colleges, boards and states that apply, and approval rules differ by state.
           </p>
         </section>
 

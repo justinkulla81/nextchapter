@@ -18,14 +18,14 @@ describe('public AI pages render', () => {
     expect(html).toContain('/ai-training')
   }, 60_000)
 
-  it('/ai-training names the models and promises no award', async () => {
+  it('/ai-training names the models and shows no price', async () => {
     const { default: Page } = await import('@/app/ai-training/page')
     const html = renderToStaticMarkup(Page())
     expect(html).toContain('the leading job transition platform')
     expect(html).toContain('Course development')
     expect(html).toContain('Grant partner')
     expect(html).toContain('Cohort license')
-    expect(html).toContain('we promise no award')
+    expect(html).not.toContain('promise')
     expect(html).not.toMatch(/\$\d/) // no price on the public page
   }, 60_000)
 })

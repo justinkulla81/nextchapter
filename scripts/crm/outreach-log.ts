@@ -4,7 +4,7 @@
  *   tsx --conditions=react-server --env-file=.env.local scripts/crm/outreach-log.ts sent <sends.csv> [--apply]
  *   tsx --conditions=react-server --env-file=.env.local scripts/crm/outreach-log.ts stop <email> <reply|bounce|no> [--apply]
  *
- * sends.csv needs `email` and `subject`; `template`, `variant` (A, B, C1a, C1b, C2a or C2b), `resend_id` (so opens and clicks match) and `test` (default subject) feed scripts/crm/outreach-ab.ts; `step` (1 first email, 2, 3 follow-ups) and `sent_at` (ISO) are optional.
+ * sends.csv needs `email` and `subject`; `template`, `variant` (A, B, C1a, C1b, C2a or C2b), `timing` and `timing_test` (from the merge file), `resend_id` (so opens and clicks match) and `test` (default subject) feed scripts/crm/outreach-ab.ts; `step` (1 first email, 2, 3 follow-ups) and `sent_at` (ISO) are optional.
  * Each send becomes an outbound EMAIL activity on the person and refreshes their touch fields. `stop` adds the address to
  * ~/nc-hunter-results/suppress.txt, which outreach-data.ts reads, and for "no" marks the person passed. Replies are also
  * picked up by the Gmail sync (firstRepliedAt), which outreach-data.ts already treats as suppressed. Dry run unless --apply.
@@ -48,7 +48,7 @@ async function sent(file: string, apply: boolean) {
     if (apply) {
       const occurredAt = r.sent_at ? new Date(r.sent_at) : new Date()
       const dupe = await prisma.crmActivity.findFirst({ where: { personId: person.id, type: 'EMAIL', direction: 'OUTBOUND', subject: r.subject, occurredAt } })
-      if (!dupe) await prisma.crmActivity.create({ data: { type: 'EMAIL', direction: 'OUTBOUND', occurredAt, personId: person.id, subject: r.subject || null, outcome: `Cold outreach, email ${step}, template ${r.template || 'unknown'}, test ${r.test || 'subject'}, variant ${r.variant || 'A'}`, sourceRef: r.resend_id ? `resend:${r.resend_id}` : null } })
+      if (!dupe) await prisma.crmActivity.create({ data: { type: 'EMAIL', direction: 'OUTBOUND', occurredAt, personId: person.id, subject: r.subject || null, outcome: `Cold outreach, email ${step}, template ${r.template || 'unknown'}, test ${r.test || 'subject'}, variant ${r.variant || 'A'}, timing ${r.timing || 'none'}, timing_test ${r.timing_test || 'no'}`, sourceRef: r.resend_id ? `resend:${r.resend_id}` : null } })
       touched.push(person.id)
     }
     logged++

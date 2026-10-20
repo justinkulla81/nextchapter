@@ -65,3 +65,10 @@ SQL by hand. Do it yourself, and say what you ran when you report back.
   renaming columns or tables, deleting or rewriting existing rows, removing an
   environment variable, or changing a variable that is already set.
 
+## Working style
+
+Do not add, offer or promise things the company is not required to provide in
+order to be a "good guy" (for example public commitments about how we hire,
+pay, screen or treat applicants, optional disclaimers, or extra statements).
+They can create unintended consequences. Include only what is required or what
+was explicitly asked for, and don't end replies with offers of further extras.
