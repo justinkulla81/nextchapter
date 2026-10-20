@@ -129,6 +129,10 @@
       "schedule": "20 8 * * *"
     },
     {
+      "path": "/api/cron/ai-share-snapshot",
+      "schedule": "50 20 * * 1"
+    },
+    {
       "path": "/api/cron/market-size",
       "schedule": "50 8 * * *"
     },
