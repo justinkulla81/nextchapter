@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createLayoffCohort, deactivateLayoffCohort } from './actions'
@@ -76,6 +77,9 @@ export default async function LayoffCohortsAdminPage() {
                         </a>
                       )}
                     </div>
+                    <Link href={`/support/admin/layoff-cohorts/${cohort.id}/kit`} className="text-sm text-primary underline underline-offset-4">
+                      Launch kit
+                    </Link>
                     <form action={deactivateLayoffCohort.bind(null, cohort.id)}>
                       <SubmitButton variant="ghost" size="sm">
                         Deactivate

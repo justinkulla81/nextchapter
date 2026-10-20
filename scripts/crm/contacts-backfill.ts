@@ -55,9 +55,19 @@ async function guessSite(name: string): Promise<string | null> {
   return null
 }
 
-async function chros(limit: number) {
+async function chros(limit: number, mode: 'warn' | 'leads' = 'warn') {
   const claude = new Anthropic()
-  const promoted = await prisma.warnNotice.groupBy({ by: ['promotedOrgId'], where: { promotedOrgId: { not: null } }, _sum: { employees: true } })
+  // US employers only: state WARN filings from the last 90 days (news items about foreign layoffs have no state), or A-grade outplacement leads with a U.S. state.
+  const promoted = mode === 'leads'
+    ? (await prisma.crmOrganization.findMany({
+        where: { leadQuality: 'A', outplacementProfile: { isNot: null }, usState: { not: null } },
+        select: { id: true, outplacementProfile: { select: { headcountAffected: true } } },
+      })).map((o) => ({ promotedOrgId: o.id, _sum: { employees: o.outplacementProfile?.headcountAffected ?? 0 } }))
+    : await prisma.warnNotice.groupBy({
+        by: ['promotedOrgId'],
+        where: { promotedOrgId: { not: null }, source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: new Date(Date.now() - 90 * 86_400_000) } },
+        _sum: { employees: true },
+      })
   const withHr = new Set(
     (await prisma.crmAffiliation.findMany({
       where: { isCurrent: true, person: { deletedAt: null } },
@@ -100,7 +110,7 @@ async function chros(limit: number) {
       const r = await addContactToCrm({
         fullName: found.name, title: found.title, email: null, linkedinUrl: found.linkedinUrl,
         orgId: org.id, orgName: org.name, roles, goals: goalsForRoles(roles), priority: 'P2',
-        note: `${found.title} at ${org.name}, which has filed a WARN layoff notice. From the company's own website: ${found.sourceUrl}`,
+        note: `${found.title} at ${org.name}, ${mode === 'leads' ? 'an outplacement lead (recent layoff)' : 'which has filed a WARN layoff notice'}. From the company's own website: ${found.sourceUrl}`,
       })
       if (r.outcome === 'removed') { tally.removed++; continue }
       tally[r.outcome]++
@@ -122,7 +132,8 @@ async function main() {
   if (cmd === 'boards') console.log(await addBoardContactsToCrm(30 * 60_000))
   else if (cmd === 'colleges') console.log(await addCollegeContactsToCrm(30 * 60_000))
   else if (cmd === 'chros') await chros(Number(arg ?? 40))
-  else console.log('usage: boards | colleges | chros [limit]')
+  else if (cmd === 'leads') await chros(Number(arg ?? 40), 'leads')
+  else console.log('usage: boards | colleges | chros [limit] | leads [limit]')
   await prisma.$disconnect()
 }
 main().catch((e) => { console.error(e); process.exit(1) })

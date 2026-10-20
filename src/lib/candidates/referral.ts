@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import type { CandidateLeadSource, ReferralChannel, ReferrerKind } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { parseKitLabel } from '@/lib/cohorts/launch-kit'
+import { syncAutoJoinedCommunities } from '@/lib/community/communities'
 
 export const REFERRAL_COOKIE = 'nc_ref'
 export const REFERRAL_COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60
@@ -114,6 +116,18 @@ export async function applyReferralCookie(candidateId: string): Promise<boolean>
       referrerCandidateId: link.ownerCandidateId,
       referralLinkId: link.id,
     })
+    // A cohort launch-kit link also places the candidate in that layoff cohort.
+    const kit = parseKitLabel(link.label)
+    if (kit) {
+      const cohort = await prisma.layoffCohort.findFirst({ where: { id: kit.cohortId, isActive: true }, select: { id: true } })
+      if (cohort) {
+        const moved = await prisma.candidateProfile.updateMany({ where: { id: candidateId, layoffCohortId: null }, data: { layoffCohortId: cohort.id } })
+        if (moved.count > 0) {
+          await syncAutoJoinedCommunities(candidateId)
+          captureServerEvent(candidateId, 'cohort_kit_joined', { cohortId: cohort.id, source: kit.source })
+        }
+      }
+    }
     return true
   } catch (error) {
     console.error('Failed to apply referral cookie:', error)

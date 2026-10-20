@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { parseKitLabel } from '@/lib/cohorts/launch-kit'
 import { REFERRAL_COOKIE, REFERRAL_COOKIE_MAX_AGE_SECONDS } from '@/lib/candidates/referral'
 
 // A referral link: /api/r/<code>. Remembers who sent the visitor (30-day
@@ -13,11 +15,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const path = to && to.startsWith('/') && !to.startsWith('//') ? to : '/'
   const response = NextResponse.redirect(new URL(path, appUrl))
 
-  const link = await prisma.referralLink.findUnique({ where: { code }, select: { id: true, isActive: true } })
+  const link = await prisma.referralLink.findUnique({ where: { code }, select: { id: true, isActive: true, label: true } })
   if (link?.isActive) {
     response.cookies.set(REFERRAL_COOKIE, code, {
       maxAge: REFERRAL_COOKIE_MAX_AGE_SECONDS, httpOnly: true, sameSite: 'lax', path: '/',
     })
+    const kit = parseKitLabel(link.label)
+    if (kit) captureServerEvent(`kit:${kit.cohortId}`, 'cohort_kit_link_clicked', { cohortId: kit.cohortId, source: kit.source })
     await prisma.referralLink.update({ where: { id: link.id }, data: { clickCount: { increment: 1 } } }).catch(() => {})
   }
   return response

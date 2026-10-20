@@ -113,7 +113,7 @@ export async function addContactToCrm(c: ContactToAdd): Promise<AddResult> {
 /** An organization by name: the one already there, else a new one of the given type. */
 export async function ensureOrg(o: {
   name: string
-  type: 'GOVERNMENT' | 'EMPLOYER' | 'UNIVERSITY'
+  type: 'GOVERNMENT' | 'EMPLOYER' | 'UNIVERSITY' | 'NONPROFIT' | 'FOUNDATION' | 'VENDOR' | 'OUTPLACEMENT_FIRM'
   website?: string | null
   city?: string | null
   state?: string | null

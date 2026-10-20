@@ -3,7 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { createResend } from '@/lib/email/resend-client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { contactStrength } from '@/lib/crm/contact-strength'
-import { alertBody, alertSubject, shouldAlert, type LayoffKind } from './layoff-alert-rules'
+import { withAudienceHtml } from '@/lib/email/audience-tag'
+import { alertBody, alertSubject, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
+import { layoffPeople } from './layoff-alert-people'
 
 /** The only recipient: Justin's NextChapter inbox, never a personal address. */
 const ALERT_TO = 'justin@launchyournextchapter.com'
@@ -48,11 +50,21 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
         })
       : []
     const warm = people.filter((p) => ['hot', 'warm'].includes(contactStrength(p) ?? '')).length
-    const input = {
+    const input: AlertInput = {
       employer: l.employer, employees: l.employees, percent: l.percent, kind: l.kind, confirmed: l.confirmed,
       inCrm: !!org, people: people.length, warm, contactsFound: l.contactsFound ?? 0,
     }
     if (!shouldAlert(input)) return false
+
+    // Everyone tied to this layoff, by role. A failure here sends the shorter email, not none.
+    const notice = await prisma.warnNotice.findUnique({
+      where: { id: l.noticeId },
+      select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true },
+    }).catch(() => null)
+    const related = await layoffPeople(org?.id ?? notice?.promotedOrgId ?? null, {
+      state: notice?.state ?? null, county: notice?.county ?? null, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null,
+    }).catch((e) => { console.error('Layoff alert people failed for', l.employer, e); return null })
+    if (related) { input.groups = related.groups; input.place = related.placeLabel }
 
     const sibling = await prisma.warnNotice.count({
       where: {
@@ -66,11 +78,11 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
       from: 'NextChapter <support@launchyournextchapter.com>',
       to: ALERT_TO,
       subject: alertSubject(input),
-      html: alertBody(input, {
+      html: withAudienceHtml('admin', alertBody(input, {
         source: l.sourceUrl,
         org: org ? `${SITE}/support/admin/crm/organizations/${org.id}` : null,
         notices: `${SITE}/support/admin/crm/warn`,
-      }),
+      })),
     })
     if (error) {
       console.error('Layoff alert not sent for', l.employer, error)
