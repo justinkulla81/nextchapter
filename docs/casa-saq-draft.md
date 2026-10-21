@@ -28,22 +28,20 @@ each mapped to one OWASP ASVS 4.0.3 requirement.
 | Section | Compliant | Partial | Gap |
 |---|---|---|---|
 | 1. Authentication (8) | 7 | 1 | 0 |
-| 2. Session management (9) | 6 | 2 | 1 |
-| 3. Access control (9) | 8 | 0 | 1 |
+| 2. Session management (9) | 8 | 0 | 1 |
+| 3. Access control (9) | 8 | 1 | 0 |
 | 4. Communications / crypto (4) | 4 | 0 | 0 |
 | 5. Validation and sanitization (11) | 11 | 0 | 0 |
-| 6. Configuration (7) | 5 | 2 | 0 |
-| **Total (48)** | **41** | **5** | **2** |
+| 6. Configuration (7) | 7 | 0 | 0 |
+| **Total (48)** | **45** | **2** | **1** |
 
-- **The two Gaps:**
-  - 2.3.2: Supabase session cookies are not `HttpOnly`.
-  - 3.3.1: No MFA on the admin portal.
-- **The five Partials:**
-  - 1.1.1: brute-force settings.
-  - 2.1.1: secrets in URLs.
-  - 2.4.1: no re-auth for sensitive changes.
-  - 6.5.1: push secret in request logs.
-  - 6.6.1: browser storage not cleared on logout.
+Updated 2026-10-21 (second pass) after the Tier 2 fixes on branch `casa-tier2-gaps`. Before: 41 / 5 / 2.
+
+- **The one Gap:**
+  - 2.3.2: Supabase session cookies are not `HttpOnly` (deferred, 2 to 4 days).
+- **The two Partials:**
+  - 1.1.1: brute-force settings (Justin's Supabase dashboard settings, Section 9 item 1).
+  - 3.3.1: admin MFA is built and deployed behind `ADMIN_MFA_REQUIRED`; it becomes Compliant when Justin enrolls and turns the flag on.
 
 Effort and fixes for each are in Section 9.
 
@@ -56,6 +54,14 @@ Effort and fixes for each are in Section 9.
 - CI now fails on high runtime advisories.
 
 See Section 9 for the commit.
+
+**Fixed 2026-10-21 (Tier 2 gaps, branch `casa-tier2-gaps`, commit `a025000e`):**
+- Browser storage cleared on sign-out (6.6.1).
+- Re-auth before Delete my Google data and account deactivation (2.4.1).
+- Gmail push verifies Google's OIDC token; `?token=` refused by default (2.1.1, 6.5.1).
+- Admin TOTP MFA, behind `ADMIN_MFA_REQUIRED` (3.3.1).
+- Supabase advisor `function_search_path_mutable` fixed in production.
+- Test: `src/test/casa-tier2.test.ts`.
 
 Paths below are relative to the repo root on `main`.
 
@@ -78,7 +84,7 @@ Paths below are relative to the repo root on `main`.
 
 | ID | Requirement | Status | Our answer and evidence |
 |---|---|---|---|
-| 2.1.1 (3.1.1) | No passwords, session tokens or API keys in URLs | **Partial** | Session tokens live in cookies. Email action links carry HMAC signatures, not credentials (`src/lib/email/signed-links.ts`). **Exceptions:** (a) the Gmail Pub/Sub push endpoint takes `?token=GMAIL_PUSH_SECRET` (`src/app/api/google/gmail-push/route.ts`), which is only live if `GMAIL_PUSH_TOPIC` is set; (b) coach and recruiter share pages use URL bearer tokens, but they are bound to a session as of the 2026-10 audit; (c) the legacy Supabase implicit-flow recovery link can put `#access_token` in the fragment, which is not sent to the server (`ResetPasswordForm.tsx`). Fix for (a): switch the Pub/Sub push subscription to OIDC-authenticated push and verify the Google-signed JWT. |
+| 2.1.1 (3.1.1) | No passwords, session tokens or API keys in URLs | **Compliant** (fixed 2026-10-21) | Session tokens live in cookies. Email action links carry HMAC signatures, not credentials (`src/lib/email/signed-links.ts`). The Gmail Pub/Sub push endpoint now authenticates with Google's OIDC token in the `Authorization` header: RS256 signature against Google's keys, issuer, audience = the endpoint URL, email = our push service account, expiry (`src/lib/email-tracking/pubsub-oidc.ts`, `src/app/api/google/gmail-push/route.ts`). The old `?token=` is refused unless `GMAIL_PUSH_ALLOW_URL_TOKEN=true`, a switch-over setting that is not set. Push is off in production today (no `GMAIL_PUSH_*` variables in Vercel). Coach and recruiter share pages use URL bearer tokens bound to a session (2026-10 audit). The legacy Supabase implicit-flow recovery link can put `#access_token` in the fragment, which is not sent to the server (`ResetPasswordForm.tsx`). |
 | 2.2.1 (3.3.1) | Logout and expiry invalidate session and refresh tokens | **Compliant** | Logout calls `supabase.auth.signOut()` server-side, which defaults to global scope and revokes refresh tokens (`src/app/dashboard/actions.ts` `signOut`, `src/app/i/[slug]/(portal)/session-actions.ts`). Deactivation signs out too (`src/app/dashboard/privacy/actions.ts`). |
 | 2.2.2 (3.3.3) | Password change or reset ends other sessions | **Compliant** (fixed 2026-10-21) | After `updateUser({ password })`, the reset form now calls `signOut({ scope: 'others' })` (`src/components/auth/ResetPasswordForm.tsx`). There is no other password-change path. `SecureAccountForm` upgrades an anonymous session to a permanent one, so there are no other sessions to end. |
 | 2.2.3 (3.3.4) | Non-revocable tokens expire within 24 hours | **Compliant** | The Supabase access JWT lifetime is the project default of 3600 s. Refresh tokens rotate with reuse detection and can be revoked. *Confirm under Supabase → Authentication → Sessions / JWT expiry.* |
@@ -86,7 +92,7 @@ Paths below are relative to the repo root on `main`.
 | 2.3.2 (3.4.2) | Session cookies are `HttpOnly` | **Gap** | The Supabase session cookie must be readable by the browser Supabase client, which runs sign-in, sign-up, reset and the auth callback in the page (`src/components/auth/*`). App-owned cookies are `HttpOnly`. Compensating controls: CSP, React output encoding, no third-party scripts beyond GA/GTM. Fix: move every auth step to server actions or route handlers and set `httpOnly: true` in `cookie-options.ts`. **Effort: 2 to 4 days** (8 portals share these flows). |
 | 2.3.3 (3.5.2) | Session tokens, not static API secrets | **Compliant** | Users authenticate with Supabase JWT sessions. Static bearer secrets exist only for server-to-server cron and ATS calls and are checked fail-closed and timing-safe (`src/lib/auth/bearer-secret.ts`). |
 | 2.3.4 (3.5.3) | Stateless tokens are signed and resist tampering | **Compliant** | The server never trusts a decoded JWT. It calls `supabase.auth.getUser()`, which validates with the Auth server (`src/lib/supabase/middleware.ts`, `src/lib/admin/auth.ts`). App-signed links use HMAC-SHA256 with a timing-safe compare (`src/lib/email/signed-links.ts`). Admin OAuth state is signed. |
-| 2.4.1 (3.7.1) | Sensitive actions need re-auth or a secondary check | **Partial** | Destructive actions require typing a confirmation word: "Delete my Google data" (`src/app/dashboard/privacy/google-data-actions.ts`, word `DELETE`) and deactivation (`DEACTIVATE`). Email change goes through Supabase's confirm-both-addresses flow. **Missing:** a password or OTP re-auth before those actions. Fix: require `supabase.auth.reauthenticate()` (an emailed nonce) before Google-data deletion and deactivation. **Effort: about 0.5 day.** |
+| 2.4.1 (3.7.1) | Sensitive actions need re-auth or a secondary check | **Compliant** (fixed 2026-10-21) | The member's irreversible actions are "Delete my Google data" and "Deactivate my account". Each needs a typed confirmation word (`DELETE`, `DEACTIVATE`) and a recent authentication: the session's last real sign-in (JWT `amr` timestamp, anonymous excluded) within 10 minutes, or else a one-time code emailed to the account address. The code is a Supabase email OTP (admin `generateLink`), sent by us through Resend and verified with `verifyOtp` (single use, Supabase expiry, 5 codes an hour per member). Code: `src/lib/auth/reauth.ts`, `src/lib/auth/recent-auth.ts`, `src/app/dashboard/privacy/{actions,google-data-actions}.ts`. Events: `reauth_challenge_shown`, `reauth_challenge_passed`, `reauth_code_rejected`. Email change goes through Supabase's confirm-both-addresses flow. Test: `src/test/casa-tier2.test.ts`. |
 
 ## 3. Access control
 
@@ -100,7 +106,7 @@ Paths below are relative to the repo root on `main`.
 | 3.1.6 (4.3.2) | No directory listing | **Compliant** | Vercel serves no directory indexes. `/_next/`, `/.git/config` and `/.env` return 404 (checked live 2026-10-21). Source maps return 403. |
 | 3.2.1 (ADA) | OAuth uses Authorization Code only; no implicit or ROPC | **Compliant** | Google connect uses the server-side authorization code flow with a confidential client and `access_type=offline` (`src/lib/email-tracking/gmail-oauth.ts`, `src/lib/calendar-tracking/google-calendar-oauth.ts`). Supabase sign-in uses PKCE (the `@supabase/ssr` default). No implicit or password grants to Google. |
 | 3.2.2 (ADA) | `redirect_uri` and `state` validated strictly | **Compliant** | Redirect URIs are fixed per client (packet section 2). `state` is a 128-bit nonce bound to an HttpOnly, Secure, SameSite=Lax, 10-minute cookie and compared on callback. A mismatch aborts before the code exchange (`consumeOAuthReturnStateStrict`). The post-connect return path is limited to `/dashboard*` and `/onboarding/google` (`isSafeReturnPath`). |
-| 3.3.1 (4.3.1) | Admin interfaces use MFA | **Gap** | The admin portal (`admin.launchyournextchapter.com`) uses Supabase email and password with no second factor. Fix: turn on Supabase TOTP MFA, add an enroll and challenge screen to `/support/admin/login`, and make `requireAdmin()` require `aal2` (`supabase.auth.mfa.getAuthenticatorAssuranceLevel()`). **Effort: about 1 day**, plus a recovery plan so Justin can't be locked out. |
+| 3.3.1 (4.3.1) | Admin interfaces use MFA | **Partial** (built 2026-10-21; Compliant once the flag is on) | Supabase TOTP MFA. With `ADMIN_MFA_REQUIRED=true`, `requireAdmin()` (every admin page, server action and admin API route) requires an `aal2` session and sends an `aal1` session to the two-step page, https://admin.launchyournextchapter.com/support/admin/mfa (enroll with a QR code, enter a code, add a backup authenticator). The same rule applies to NextChapter-admin powers in the college and workforce portals and `/systems` (`isNcAdmin`), with a step-up page at `/i/mfa`, and to unreleased report files. The flag is off by default so nobody is locked out on deploy. Recovery: a second enrolled authenticator, or remove the factor in the Supabase dashboard (break glass, Section 9). Code: `src/lib/admin/mfa.ts`, `src/lib/admin/auth.ts`, `src/app/support/admin/mfa/`. |
 
 ## 4. Communications and cryptography
 
@@ -135,8 +141,8 @@ Paths below are relative to the repo root on `main`.
 | 6.2.1 (14.3.2) | Debug off in production | **Compliant** | Production builds only. `poweredByHeader: false`. Generic 404 and error pages (checked live). Source maps not served (403). |
 | 6.3.1 (14.5.2) | `Origin` not used for authn or authz | **Compliant** | No code reads `Origin` for access decisions. Next.js uses it only for the Server Action CSRF check. |
 | 6.4.1 (10.3.3) | No subdomain takeover | **Compliant** | DNS is on Vercel (`vercel dns ls`, 2026-10-21). The apex and wildcard `ALIAS` point to our Vercel project. The only third-party CNAME is `links.updates` → Resend click tracking (active, valid HTTPS). |
-| 6.5.1 (7.1.1) | No credentials in logs | **Partial** | No `console.*` call logs tokens, passwords or keys (grep 2026-10-21). OAuth tokens are encrypted before storage. **Exception:** if Gmail push is on, `?token=GMAIL_PUSH_SECRET` shows up in Vercel request logs. The fix is the same as 2.1.1 (OIDC push). |
-| 6.6.1 (8.2.3) | Browser storage cleared on logout | **Partial** | Logout clears the Supabase session cookies. Some UI state stays in `localStorage` (menu collapsed, dismissed prompts, wizard drafts in `src/components/dashboard/*`). Fix: clear our `localStorage`/`sessionStorage` keys on logout (a small client wrapper around the sign-out form, or a `Clear-Site-Data: "storage"` header on a signed-out landing route). **Effort: about 1 hour.** |
+| 6.5.1 (7.1.1) | No credentials in logs | **Compliant** (fixed 2026-10-21) | No `console.*` call logs tokens, passwords or keys (grep 2026-10-21). OAuth tokens are encrypted before storage. Gmail push no longer uses a URL secret (see 2.1.1), so none reaches Vercel request logs; the OIDC token travels in a header and is short-lived. |
+| 6.6.1 (8.2.3) | Browser storage cleared on logout | **Compliant** (fixed 2026-10-21) | Every sign-out form in every portal is `SignOutForm` (`src/components/auth/SignOutForm.tsx`; a test fails if a plain one appears). On submit it resets PostHog's identity, expires PostHog's cookie, and empties `localStorage` and `sessionStorage` except an allowlist of three UI preferences with no member data (`src/lib/security/clear-browser-storage.ts`). The server-side sign-outs (deactivation, a deactivated profile) land on `/account-deactivated`, which does the same on load. Checked on a local dev server: interview answers, dismissed-job lists and a seeded PostHog id were gone; the menu preference stayed. |
 | 6.7.1 (6.4.1) | Server secrets stored securely | **Compliant** | All secrets are in Vercel environment variables (encrypted at rest, team-scoped; none in git, and `.env*` is gitignored). Google refresh and access tokens are encrypted at the application layer with AES-256-GCM (`TOKEN_ENCRYPTION_KEY`), through a Prisma extension (`src/lib/security/token-crypto-extension.ts`). Production check 2026-10-21: 1 of 1 `EmailConnection` and 1 of 1 `CalendarConnection` tokens are encrypted, and none are left on disconnected rows. Recommended: mark `TOKEN_ENCRYPTION_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `CANDIDATE_GOOGLE_OAUTH_CLIENT_SECRET` as Vercel **Sensitive** variables. |
 
 ---
@@ -180,8 +186,8 @@ All checks ran against our own production domain only, unauthenticated, one requ
   - IDOR: covered by the server-action sweep (3.1.4).
 - **Supabase security advisor:**
   - `auth_leaked_password_protection` (WARN): see 1.1.1.
-  - `auth_allow_anonymous_sign_ins` (WARN on 21 tables): anonymous sessions are intended for onboarding. The flagged policies are the higher-ed `he_select` read policies (for example `CaseloadAssignment`). Before the lab, review that each one is scoped by institution membership.
-  - One `function_search_path_mutable` (WARN).
+  - `auth_allow_anonymous_sign_ins` (WARN on 21 tables): reviewed 2026-10-21, no change needed. Anonymous sign-ins are on (Auth settings; 11 anonymous users, 1 in the last 30 days), used for onboarding, and anonymous users do get the `authenticated` role. But each of the 21 tables (and 35 more higher-ed tables) also has a **RESTRICTIVE** `he_no_anonymous` policy, `NOT coalesce((auth.jwt()->>'is_anonymous')::boolean, false)`, for all commands. Restrictive policies are ANDed, so an anonymous JWT gets nothing even before the `he_select` scoping (`he_is_staff`, `he_is_my_member`, `he_is_nc_admin`, all keyed on `auth.uid()`). The linter flags it only because it checks the permissive policy text. The app itself reads these tables through Prisma on the server, not the Data API.
+  - `function_search_path_mutable` on `private.employer_outcomes_by_bucket`: **fixed** 2026-10-21 (`search_path = ''`, `prisma/manual/2026-10-21-function-search-path.sql`).
   - No tables have RLS disabled.
 
 ## 9. Remaining work for Justin, with effort
@@ -189,17 +195,19 @@ All checks ran against our own production domain only, unauthenticated, one requ
 | # | Item | Control | Effort | Risk if skipped |
 |---|---|---|---|---|
 | 1 | Supabase: set minimum password length to 8, turn on leaked-password protection (Pro), and confirm OTP expiry ≤ 1 h and JWT expiry 3600 s | 1.1.1, 1.3.1, 2.2.3 | 15 min (dashboard) | Lab marks 1.1.1 failed |
-| 2 | Admin MFA (Supabase TOTP plus an `aal2` check in `requireAdmin`) | 3.3.1 | ~1 day | Certain fail at AL2 |
-| 3 | HttpOnly session cookies (server-side auth flows) | 2.3.2 | 2 to 4 days | Likely flagged by Burp |
-| 4 | Re-auth (emailed nonce) before Delete my Google data and deactivation | 2.4.1 | ~0.5 day | Partial |
-| 5 | Gmail push: switch to OIDC-authenticated Pub/Sub push, verify the JWT, drop `?token=` (or leave push off) | 2.1.1, 6.5.1 | ~0.5 day | Partial |
-| 6 | Clear `localStorage` on logout | 6.6.1 | ~1 h | Partial |
-| 7 | Nonce-based CSP (drop `'unsafe-inline'` from `script-src`). Start as `Content-Security-Policy-Report-Only` with nonces from `src/proxy.ts`; this forces dynamic rendering, so measure the performance cost first | 5.1.7 (defense in depth) | 1 to 2 days plus a soak | Low/informational DAST finding |
+| 2 | Admin MFA: built. Justin enrolls at https://admin.launchyournextchapter.com/support/admin/mfa (plus a backup authenticator), then `ADMIN_MFA_REQUIRED=true` in Vercel and redeploy | 3.3.1 | 10 min | Certain fail at AL2 until the flag is on |
+| 3 | HttpOnly session cookies (server-side auth flows). **Deferred.** | 2.3.2 | 2 to 4 days | Likely flagged by Burp |
+| 4 | ~~Re-auth before Delete my Google data and deactivation~~ Done 2026-10-21 | 2.4.1 | — | — |
+| 5 | Gmail push: code done (OIDC). If push is ever turned on, use the OIDC subscription steps; never the `?token=` URL | 2.1.1, 6.5.1 | 20 min when wanted | — |
+| 6 | ~~Clear browser storage on logout~~ Done 2026-10-21 | 6.6.1 | — | — |
+| 7 | **Deferred.** Nonce-based CSP (drop `'unsafe-inline'` from `script-src`). Start as `Content-Security-Policy-Report-Only` with nonces from `src/proxy.ts`; this forces dynamic rendering, so measure the performance cost first | 5.1.7 (defense in depth) | 1 to 2 days plus a soak | Low/informational DAST finding |
 | 8 | Run the ZAP baseline (Section 8) and attach the report | readiness | 30 min | — |
 | 9 | Sign off the incident response plan (Appendix A) | program | 30 min | Labs ask |
 | 10 | Mark key secrets as Vercel "Sensitive", and keep an offline backup of `TOKEN_ENCRYPTION_KEY` | 6.7.1 | 15 min | — |
 | 11 | Turn on GitHub Dependabot alerts | dependency mgmt | 5 min | — |
-| 12 | `function_search_path_mutable` advisor warning: set `search_path` on that function (DDL, so Justin approves) | hardening | 10 min | Low |
+| 12 | ~~`function_search_path_mutable` advisor warning~~ Done 2026-10-21 | hardening | — | — |
+
+**Admin MFA break glass (lost phone, no backup):** sign in to https://supabase.com/dashboard/project/uvoulytrsrxasqzutlmq/auth/users, open the admin's user, and delete the MFA factor (or set `ADMIN_MFA_REQUIRED=false` in Vercel and redeploy). Then sign in at https://admin.launchyournextchapter.com/support/admin/login and enroll a new authenticator. Only someone with Supabase dashboard access can do this, which is the point.
 
 ---
 
