@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { parseListParams, paginatedResult } from '@/lib/admin/pagination'
 import { AdminDataTable, type AdminColumn } from '@/components/admin/AdminDataTable'
 import { VisitorsPerDayChart } from '@/components/admin/VisitorsPerDayChart'
-import { classifyUserAgent } from '@/lib/http/user-agent'
+import { classifyUserAgent, BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { lookupIpLocation, formatIpLocation } from '@/lib/http/ip-geolocation'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
 import { candidateDisplayName } from '@/lib/messaging/threads'
@@ -104,16 +104,29 @@ export default async function AdminVisitorsPage({
   const rawParams = await searchParams
   const params = parseListParams(rawParams, [], 50)
 
+  // Bots are hidden by default; `?bots=show` brings them back. Events with no
+  // user agent stay visible — "unknown" is not "bot" (see classifyUserAgent).
+  const showBots = rawParams.bots === 'show'
+  const where = showBots
+    ? {}
+    : {
+        OR: [
+          { userAgent: null },
+          { NOT: BOT_SIGNATURES.map((s) => ({ userAgent: { contains: s, mode: 'insensitive' as const } })) },
+        ],
+      }
+
   const chartWindowStart = new Date(now().getTime() - CHART_WINDOW_DAYS * 24 * 60 * 60 * 1000)
 
   const [events, total, chartEvents] = await Promise.all([
     prisma.homepageVisitEvent.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       skip: params.skip,
       take: params.take,
       include: { candidate: { select: { id: true, firstName: true, lastName: true } } },
     }),
-    prisma.homepageVisitEvent.count(),
+    prisma.homepageVisitEvent.count({ where }),
     prisma.homepageVisitEvent.findMany({
       where: { eventType: 'PAGE_VIEW', createdAt: { gte: chartWindowStart } },
       select: { createdAt: true, userAgent: true, ip: true },
@@ -223,7 +236,14 @@ export default async function AdminVisitorsPage({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Visitors</h1>
         <p className="mt-1 text-muted-foreground">
-          {total} homepage visit events. A daily digest email also summarizes yesterday&apos;s traffic by IP.
+          {total} {showBots ? '' : 'human '}homepage visit events. A daily digest email also summarizes yesterday&apos;s
+          traffic by IP.{' '}
+          <Link
+            href={showBots ? '/support/admin/visitors' : '/support/admin/visitors?bots=show'}
+            className="text-primary underline underline-offset-4"
+          >
+            {showBots ? 'Hide bots' : 'Show bots'}
+          </Link>
         </p>
       </div>
 
@@ -251,7 +271,7 @@ export default async function AdminVisitorsPage({
           totalPages: result.totalPages,
           total: result.total,
           basePath: '/support/admin/visitors',
-          baseParams: {},
+          baseParams: showBots ? { bots: 'show' } : {},
         }}
       />
     </div>
