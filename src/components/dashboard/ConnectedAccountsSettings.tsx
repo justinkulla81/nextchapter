@@ -62,7 +62,8 @@ export function ConnectedAccountsSettings({
         </p>
       )}
       <p className="max-w-xl text-sm text-muted-foreground">
-        We read job-search email (applications, replies, rejections, networking) and calendar events (interviews, networking calls) so they count automatically. It is read-only: NextChapter never sends, changes or deletes your email or events. Disconnecting stops all reading right away and removes our access from your Google account. Activity already counted stays.
+        We read job-search email (applications, replies, rejections, networking) and calendar events (interviews, networking calls) so they count automatically. It is read-only: NextChapter never sends, changes or deletes your email or events. Disconnecting stops all reading right away, removes our access from your Google account and deletes your stored Google sign-in. Activity already counted stays. To delete that too, use{' '}
+        <a href="#google-data" className="underline underline-offset-4">Delete my Google data</a>.
       </p>
       {fullyConnected ? (
         !confirming && (

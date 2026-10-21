@@ -40,7 +40,8 @@ export function isEncryptedToken(value: unknown): value is string {
 }
 
 export function encryptToken(plaintext: string): string {
-  if (isEncryptedToken(plaintext)) return plaintext
+  // Empty means "deleted" (a disconnected Google connection) — nothing secret to encrypt.
+  if (plaintext === '' || isEncryptedToken(plaintext)) return plaintext
   const key = currentKey()
   if (!key) return plaintext
   const iv = randomBytes(12)

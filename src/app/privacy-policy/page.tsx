@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'October 14, 2026'
+const EFFECTIVE_DATE = 'October 20, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -57,13 +57,13 @@ export default function PrivacyPolicyPage() {
             networking and job application CRM — automatically tracking your outreach, application
             replies, interview invites, calls, and networking contacts instead of you logging each
             one by hand. These connections are optional, and every one of them can be disconnected
-            at any time from Dashboard → Settings.
+            at any time from Dashboard → Privacy.
           </p>
           <h3 className="text-lg font-semibold text-navy">Google permissions we request</h3>
           <p>
             Depending on how you use NextChapter, we may ask Google for the permissions
             (&quot;scopes&quot;) below. Google shows you exactly which ones are being requested
-            before you agree, and you can revoke access at any time from Dashboard → Settings or
+            before you agree, and you can revoke access at any time from Dashboard → Privacy or
             your Google Account&apos;s security settings.
           </p>
           <ul className="list-disc space-y-2 pl-6">
@@ -87,7 +87,10 @@ export default function PrivacyPolicyPage() {
               We also use it to check recruiter and interview emails for signs of a fake job or
               recruiter scam (see &quot;Scam watch&quot; below). This permission cannot send, edit,
               or delete email. Unrelated messages are not used
-              for any other purpose.
+              for any other purpose. We also use gmail.readonly to recognize emails from job boards
+              and learning platforms you use (for example, an application confirmation from a job
+              board or a course-completion email), so we can show which platforms you&apos;re active
+              on.
             </li>
             <li>
               <strong>calendar.events.readonly</strong> — reads your calendar events so we can
@@ -113,6 +116,21 @@ export default function PrivacyPolicyPage() {
               this permission from members, and it gives no access to any member&apos;s documents.
             </li>
           </ul>
+          <h3 className="text-lg font-semibold text-navy">What Google data we keep</h3>
+          <p>
+            We read message content only to classify it, and we don&apos;t store email bodies or
+            attachments. For each email we check in your inbox and sent mail, we keep the other
+            person&apos;s email address, the subject, the date, the Gmail message and thread IDs,
+            whether a resume was attached, and what we detected (for example, &quot;interview invite
+            from Acme&quot;), or &quot;needs review&quot; when we couldn&apos;t tell. For emails from
+            job boards and learning platforms, we also keep which platform sent it. For each calendar
+            meeting you had with at least one other person, we keep the event title, time, duration,
+            the other attendee&apos;s name and email address, and what we detected. We don&apos;t
+            keep event descriptions. Your Google access tokens are encrypted at rest and deleted when
+            you disconnect. This information is shown only to you. If you have a coach and choose to
+            share with them, your coach sees counts of this activity and the applications on your
+            list, never email subjects, senders, or contents.
+          </p>
           <h3 className="text-lg font-semibold text-navy">Scam watch</h3>
           <p>
             If you connect Gmail, we automatically check incoming recruiter and interview emails for
@@ -145,8 +163,40 @@ export default function PrivacyPolicyPage() {
             use it for advertising, or use it to train generalized AI models, and no person at
             NextChapter reads it unless you give us permission, it is needed for security or to
             comply with the law, or it has been aggregated and anonymized for internal operations.
+            We don&apos;t send your emails or calendar events, or their text, subjects, or senders,
+            to any AI provider. Activity we detect from them, such as an interview at Acme or the
+            name of a course you completed, may be included in the AI-generated reports we create
+            for you (see Section 4).
             If we add features that need additional Google permissions, Google will ask for your
             consent before they are granted, and we will update this Policy.
+          </p>
+          <h3 className="text-lg font-semibold text-navy">Disconnecting and deleting your Google data</h3>
+          <p>
+            You can disconnect Gmail and Calendar at any time from Dashboard → Privacy. Disconnecting
+            stops all syncing immediately, revokes NextChapter&apos;s access in your Google Account,
+            and deletes your stored Google tokens. You can also remove access at{' '}
+            <a
+              href="https://myaccount.google.com/connections"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4"
+            >
+              myaccount.google.com/connections
+            </a>
+            . To delete the data we created from your Gmail and Calendar, use{' '}
+            <a href="/dashboard/privacy#google-data" className="text-primary underline underline-offset-4">
+              &quot;Delete my Google data&quot;
+            </a>{' '}
+            on Dashboard → Privacy, or email{' '}
+            <a href="mailto:support@launchyournextchapter.com" className="text-primary underline underline-offset-4">
+              support@launchyournextchapter.com
+            </a>
+            . The button revokes our access and deletes your stored Google tokens, email and calendar
+            records, scam alerts, and platform email records right away. If you email us, we delete
+            them within 30 days of your request. Copies in our database backups are deleted within
+            90 days. Applications, contacts, and the list of platforms you use stay, because they are
+            your own records and are no longer linked to any email or event; you can remove them
+            yourself at any time. If you ask us to delete your account, we delete all of it.
           </p>
           <h3 className="text-lg font-semibold text-navy">LinkedIn</h3>
           <p>
@@ -242,9 +292,10 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-navy">7. Data Retention</h2>
           <p>
-            We retain your information for as long as your account is active. When you delete your
-            account, your profile and associated data are deleted immediately from our production
-            database. Some information may be retained where required by law or for legitimate
+            We retain your information for as long as your account is active. When you ask us to
+            delete your account (see Section 6), your profile and associated data are deleted from our
+            production database within 30 days of your request. Google data you delete yourself with
+            &quot;Delete my Google data&quot; is deleted right away (see Section 2). Some information may be retained where required by law or for legitimate
             business purposes, such as fraud prevention or resolving disputes.
           </p>
         </section>

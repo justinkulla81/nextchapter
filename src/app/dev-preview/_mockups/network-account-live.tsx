@@ -26,6 +26,7 @@ import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeT
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
 import { ConnectedAccountsSettings } from '@/components/dashboard/ConnectedAccountsSettings'
+import { DeleteGoogleDataForm } from '@/components/dashboard/DeleteGoogleDataForm'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
 import { EmailTopicToggles } from '@/components/candidates/EmailTopicToggles'
 import { ActionWindowField } from '@/components/dashboard/ActionWindowField'
@@ -324,6 +325,11 @@ export function PrivacyLive() {
               <EmailTopicToggles optedOut={{ weeklyReportOptedOut: false, marketDigestOptedOut: true, dailyEmailOptedOut: false, jobSearchDailyOptedOut: false }} />
               <ActionWindowField current="MORNING" />
             </div>
+          </section>
+          <section id="google-data" className="space-y-3">
+            <h2 className="font-display text-xl font-semibold text-ink">Your Google data</h2>
+            <p className="max-w-xl text-base text-muted-foreground">Delete everything we stored from your Gmail and Calendar, and remove our access to your Google account.</p>
+            <DeleteGoogleDataForm hasGoogleData />
           </section>
         </div>
       </MoreDetails>

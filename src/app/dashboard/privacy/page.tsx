@@ -18,6 +18,7 @@ import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVis
 import { effectiveJourney, effectiveStage, getJourney, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
+import { DeleteGoogleDataForm } from '@/components/dashboard/DeleteGoogleDataForm'
 import Link from 'next/link'
 import { MyRecruitersSection } from '@/components/dashboard/MyRecruitersSection'
 import { ConnectedAccountsSettings, type ConnectionState } from '@/components/dashboard/ConnectedAccountsSettings'
@@ -177,6 +178,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           {block('money-help', 'Money help', 'Choose whether NextChapter helps with money. It is off until you turn it on, and you can delete the pay and savings numbers you gave us.', <Link href="/dashboard/money-help" className={quietLink}>Change money help</Link>)}
           {block('account', 'Your login', null, <Link href="/auth/forgot-password" className={quietLink}>Change my password</Link>)}
           {block('your-data', 'Your data', 'Download everything we hold about you (your profile, references, résumés, reports and activity) as a single file, any time you want it.', <a href="/api/export-data" download className={quietLink}>Download my data</a>)}
+          {block('google-data', 'Your Google data', 'Delete everything we stored from your Gmail and Calendar, and remove our access to your Google account.', <DeleteGoogleDataForm hasGoogleData={!!emailConn || !!calendarConn} />)}
           {block('danger', 'Danger zone', 'Deactivate your account to make it unusable without deleting anything. For a real, permanent deletion, email support instead.', <DeleteAccountForm />, 'danger')}
         </div>
       </MoreDetails>
