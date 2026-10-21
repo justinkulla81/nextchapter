@@ -3,6 +3,7 @@ import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { CreateAccountForm } from '@/components/onboarding/CreateAccountForm'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
+import { flowOfProfile } from '@/lib/onboarding/flag'
 
 export default async function CreateAccountPage() {
   const profile = await getCandidateProfileForUser()
@@ -35,6 +36,9 @@ export default async function CreateAccountPage() {
       </div>
     )
   }
+
+  // In the question bundles the required Google step creates the account, so this form is not part of that flow.
+  if (flowOfProfile(profile) === 'bundles') redirect('/onboarding')
 
   return (
     <div className="space-y-6">

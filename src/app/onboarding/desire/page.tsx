@@ -11,9 +11,13 @@ import { effectiveJourney } from '@/lib/journey/journey'
 import { flowOfProfile } from '@/lib/onboarding/flag'
 import { storedAnswers } from '@/lib/onboarding/answers'
 import { usableAnswers } from '@/lib/onboarding/bundles'
+import { entryFromGoalParam } from '@/lib/onboarding/resume-rule'
 
-export default async function SituationPickerPage() {
+export default async function SituationPickerPage({ searchParams }: { searchParams: Promise<{ goal?: string }> }) {
   const user = await getCurrentUser()
+  // A Market Reality link (/onboarding/desire?goal=market-reality) makes the résumé step required later.
+  const { goal } = await searchParams
+  const entryGoal = entryFromGoalParam(goal) ? goal : undefined
 
   // An admin, hiring manager, recruiter, or coach landing here (e.g. a
   // password-reset fallback redirect) should never silently get a stray
@@ -41,7 +45,7 @@ export default async function SituationPickerPage() {
     const initial = usableAnswers('where_you_are', { journey }, profile ? storedAnswers(profile) : {})
     return (
       <BundleShell id="where_you_are" title={profile?.firstName ? `Hi ${profile.firstName}, which of these sounds most like you?` : 'Which of these sounds most like you?'}>
-        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} />
+        <BundleForm bundle="where_you_are" initial={initial} storedJourney={journey} payoffInput={{ storedStage: profile?.journeyStage ?? null }} action={submitWhereYouAre} hidden={entryGoal ? { entry: entryGoal } : undefined} />
       </BundleShell>
     )
   }

@@ -60,7 +60,8 @@ describe('bundle progress', () => {
     expect(nextPreAccountPath({ ...base, onboardingLocationConfirmedAt: null })).toBe('/onboarding/location')
     expect(nextPreAccountPath(base)).toBe('/onboarding/coach')
     const coached = progressPatch({}, { completed: 'coach' })
-    expect(nextPreAccountPath({ ...base, journeyDetails: coached })).toBe('/onboarding/finish')
-    expect(nextPreAccountPath({ ...base, journeyDetails: progressPatch(coached, { finishedAt: new Date() }) })).toBe('/onboarding/score')
+    // After the five questions comes the required Google step (it creates the account); the payoff comes after it.
+    expect(nextPreAccountPath({ ...base, journeyDetails: coached })).toBe('/onboarding/connect')
+    expect(nextPreAccountPath({ ...base, journeyDetails: progressPatch(coached, { finishedAt: new Date() }) })).toBe('/onboarding/connect')
   })
 })

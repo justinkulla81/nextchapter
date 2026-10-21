@@ -10,6 +10,7 @@ import { noteWhyWithMotivation } from '@/lib/personalization/blocker-step'
 
 export type HomeNoteKind =
   | 'coaching_form'
+  | 'upload_resume'
   | 'setup_strategy'
   | 'report_ready'
   | 'connect_accounts'
@@ -22,6 +23,8 @@ export type HomeNoteKind =
 
 export interface HomeNoteInputs {
   needsCoachingForm: boolean
+  /** Signed up without a résumé: the Market Reality and the tailoring wait for one. */
+  needsResume?: boolean
   searchStrategyIncomplete: boolean
   reportReady: boolean
   accountsNotConnected: boolean
@@ -35,6 +38,7 @@ export interface HomeNoteInputs {
 /** The one note for today. Time-sensitive and setup first, then nudges, then prompts. */
 export function pickHomeNote(i: HomeNoteInputs): HomeNoteKind {
   if (i.needsCoachingForm) return 'coaching_form'
+  if (i.needsResume) return 'upload_resume'
   if (i.searchStrategyIncomplete) return 'setup_strategy'
   if (i.reportReady) return 'report_ready'
   if (i.accountsNotConnected) return 'connect_accounts'
@@ -64,6 +68,14 @@ export function simpleNote(kind: HomeNoteKind, ctx: { firstName: string; firstWe
         startLabel: 'Answer now',
         startHref: '/dashboard/coaching-form',
         whyDetail: 'You shared your profile with a coach, so this is the one thing they are waiting on. It takes a couple of minutes.',
+      }
+    case 'upload_resume':
+      return {
+        title: 'Upload your résumé to get your Market Reality',
+        why: noteWhyWithMotivation('It shows where your search stands and tailors everything else to you. About 2 minutes', ctx.motivations),
+        startLabel: 'Upload my résumé',
+        startHref: '/dashboard/resume',
+        whyDetail: 'We work out your Market Reality from your résumé. It stays private to you.',
       }
     case 'setup_strategy':
       return {

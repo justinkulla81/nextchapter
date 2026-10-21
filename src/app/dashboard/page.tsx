@@ -417,6 +417,7 @@ export default async function DashboardPage() {
   const firstName = profile.firstName ?? 'there'
   const note = pickHomeNote({
     needsCoachingForm,
+    needsResume: profile.resumes.length === 0,
     searchStrategyIncomplete: !isSearchStrategyGateComplete(profile),
     reportReady: showReportReadyMessage,
     accountsNotConnected: !bothConnectedUnlocked,

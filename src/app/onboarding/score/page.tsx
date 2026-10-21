@@ -12,11 +12,17 @@ export default async function ScorePage() {
     redirect('/onboarding')
   }
 
-  if (profile.registrationCompletedAt) {
+  // Someone who has finished onboarding has no use for this page; someone who has just created their account (the
+  // bundles flow creates it before the payoff) sees their grade, then goes on to the welcome.
+  const registered = !!profile.registrationCompletedAt
+  if (registered && profile.introCommittedAt) {
     redirect('/dashboard')
   }
 
   const { grade, proofOfWork } = await getScoreRevealData(profile.id)
+  const cta = registered
+    ? { href: '/onboarding/welcome', label: 'Continue' }
+    : { href: '/onboarding/create-account', label: 'Create your account to get your full report and action plan' }
 
   return (
     <div className="flex flex-col items-center gap-6 text-center">
@@ -24,8 +30,8 @@ export default async function ScorePage() {
         {profile.firstName ? `Nice work, ${profile.firstName}!` : 'Your Market Reality Assessment'}
       </h1>
 
-      <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
-        Create your account to get your full report and action plan
+      <Button nativeButton={false} render={<Link href={cta.href} />}>
+        {cta.label}
       </Button>
 
       <ScoreRevealSection initialGrade={grade} initialProofOfWork={proofOfWork} />
@@ -33,8 +39,8 @@ export default async function ScorePage() {
       {/* Repeats the top CTA — the grade legend above makes this a long
           scroll, and a candidate who reads all the way through shouldn't
           have to scroll back up to act on it. */}
-      <Button nativeButton={false} render={<Link href="/onboarding/create-account" />}>
-        Create your account to get your full report and action plan
+      <Button nativeButton={false} render={<Link href={cta.href} />}>
+        {cta.label}
       </Button>
     </div>
   )
