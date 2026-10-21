@@ -34,15 +34,9 @@ export function ApplyForm({ roles, initialRole }: { roles: ApplyRoleOption[]; in
 
   return (
     <form action={formAction} className="space-y-4" noValidate>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="fullName">Full name</Label>
-          <Input id="fullName" name="fullName" autoComplete="name" required />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required />
-        </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" name="email" type="email" autoComplete="email" required />
       </div>
 
       {/* More than four choices, so a dropdown (design principles). */}
@@ -84,16 +78,16 @@ export function ApplyForm({ roles, initialRole }: { roles: ApplyRoleOption[]; in
   )
 }
 
-function Confirmation({ firstName }: { firstName: string }) {
+function Confirmation({ firstName }: { firstName: string | null }) {
   return (
     <div role="status" className="rounded-xl border border-success/30 bg-success/5 p-6">
-      <p className="text-lg font-semibold text-navy">Thanks, {firstName}. We got your application.</p>
+      <p className="text-lg font-semibold text-navy">{firstName ? `Thanks, ${firstName}.` : 'Thanks.'} We got your application.</p>
       <p className="mt-2 text-sm text-muted-foreground">We will be in touch if there is a fit.</p>
     </div>
   )
 }
 
-function RegistrationOffer({ applicationId, claimToken, firstName }: { applicationId: string; claimToken: string; firstName: string }) {
+function RegistrationOffer({ applicationId, claimToken, firstName }: { applicationId: string; claimToken: string; firstName: string | null }) {
   const posthog = usePostHog()
   const [declined, setDeclined] = useState(false)
   const [state, registerAction] = useActionState(registerFromApplication, undefined)
@@ -105,7 +99,7 @@ function RegistrationOffer({ applicationId, claimToken, firstName }: { applicati
   return (
     <div role="status" className="space-y-4 rounded-xl border border-success/30 bg-success/5 p-6">
       <div>
-        <p className="text-lg font-semibold text-navy">Thanks, {firstName}. We got your application.</p>
+        <p className="text-lg font-semibold text-navy">{firstName ? `Thanks, ${firstName}.` : 'Thanks.'} We got your application.</p>
         <p className="mt-2 text-sm text-muted-foreground">
           Do you want to register for NextChapter too? It is free for job seekers. We will use the resume you just sent, so you will not upload it again.
         </p>
