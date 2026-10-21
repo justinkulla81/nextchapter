@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { loadSentEmails, totalsOf, SOURCE_LABEL, SOURCE_CAP, type SentEmailRow, type SentSource } from '@/lib/crm/sent-emails'
 import { Chip, Tile, pct } from '@/components/admin/OutreachParts'
+import { SentEmailsChart, type SentDay } from '@/components/admin/SentEmailsChart'
 
 export const maxDuration = 60
 
@@ -12,6 +13,30 @@ type Engagement = keyof typeof ENGAGEMENT
 
 const fmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })
 const REPLY_LABEL: Record<string, string> = { positive: 'Interested', referral: 'Pointed to someone', question: 'Question', no: 'Said no', other: 'Replied' }
+
+const dayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' })
+const MAX_CHART_DAYS = 90
+
+/** One bar per Eastern-time day from the first send to today (at most 90 days), zero-filled, counted by kind. */
+function perDay(rows: SentEmailRow[]): SentDay[] {
+  if (!rows.length) return []
+  const by = new Map<string, SentDay>()
+  for (const r of rows) {
+    const k = dayKey.format(r.sentAt)
+    const d = by.get(k) ?? { date: k, cold: 0, crm: 0, gmail: 0, mailing: 0 }
+    d[r.source]++
+    by.set(k, d)
+  }
+  const out: SentDay[] = []
+  const end = new Date(`${dayKey.format(new Date())}T12:00:00Z`)
+  const first = new Date(`${[...by.keys()].sort()[0]}T12:00:00Z`)
+  const start = new Date(Math.max(first.getTime(), end.getTime() - (MAX_CHART_DAYS - 1) * 86_400_000))
+  for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
+    const k = new Date(t).toISOString().slice(0, 10)
+    out.push(by.get(k) ?? { date: k, cold: 0, crm: 0, gmail: 0, mailing: 0 })
+  }
+  return out
+}
 
 function matches(r: SentEmailRow, e: Engagement, q: string) {
   if (e === 'opened' && !(r.tracked && r.opens > 0)) return false
@@ -69,6 +94,11 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
         <Tile label="Clicked a link" value={t.clicked.toLocaleString()} sub={t.tracked ? pct(t.clicked, t.tracked) : undefined} />
         <Tile label="Replied" value={t.replied.toLocaleString()} sub={`${pct(t.replied, t.sent)} · ${t.positive} interested`} />
         <Tile label="Bounced" value={t.bounced.toLocaleString()} sub={pct(t.bounced, t.sent)} />
+      </div>
+
+      <div className="space-y-2 rounded-xl border border-border bg-white p-4">
+        <h2 className="text-sm font-medium text-muted-foreground">Emails sent per day, by kind</h2>
+        <SentEmailsChart days={perDay(all)} />
       </div>
 
       <form method="get" action="/support/admin/crm/sent" className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-white p-4">
@@ -129,7 +159,7 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
                         </p>
                       )}
                     </td>
-                    <td className="whitespace-nowrap p-3 tabular-nums">{r.tracked ? (r.opens > 0 ? <span className="text-success">{r.opens}×</span> : <span className="text-muted-foreground">0</span>) : <span className="text-muted-foreground" title="Email sent from Gmail has no open tracking">Not tracked</span>}</td>
+                    <td className="whitespace-nowrap p-3 tabular-nums">{r.tracked ? (r.opens > 0 ? <span className="text-success">{r.opens}×</span> : r.scannerOpenOnly ? <span className="text-muted-foreground" title="Opened within two minutes of sending: almost always a security scanner at the recipient's company, not a person">Scanner only</span> : <span className="text-muted-foreground">0</span>) : <span className="text-muted-foreground" title="Email sent from Gmail has no open tracking">Not tracked</span>}</td>
                     <td className="whitespace-nowrap p-3 tabular-nums">{r.tracked ? (r.clicks > 0 ? <span className="text-success">{r.clicks}</span> : <span className="text-muted-foreground">0</span>) : <span className="text-muted-foreground">Not tracked</span>}</td>
                     <td className="p-3">
                       {r.repliedAt ? (
