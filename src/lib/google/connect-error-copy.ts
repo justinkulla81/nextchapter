@@ -16,5 +16,10 @@ export function googleConnectErrorMessage(code: string, kind: 'gmail' | 'calenda
             : code === 'corporate_domain_blocked'
               ? // §4.6 — spec's exact copy.
                 "Use a personal account. Connecting your work email would put your job search inside your employer's systems, where they can see it. We'll only connect a personal account while Confidential Search Mode is on."
-              : null
+              : code === 'missing_gmail' || code === 'missing_calendar' || code === 'missing_both'
+                ? // Google's consent screen lets members untick each permission.
+                  `Google didn't give us ${
+                    code === 'missing_gmail' ? 'Gmail' : code === 'missing_calendar' ? 'Calendar' : 'Gmail or Calendar'
+                  } access, and we need both to track your search. We only read, and we never send or delete. Try again and leave both boxes ticked.`
+                : null
 }
