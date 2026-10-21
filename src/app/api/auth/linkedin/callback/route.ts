@@ -16,7 +16,7 @@ async function adminConnect(request: NextRequest, adminEmail: string): Promise<N
   const code = request.nextUrl.searchParams.get('code')
   if (request.nextUrl.searchParams.get('error') || !code) return back('denied')
   try {
-    const tokens = await exchangeCodeForTokens(code)
+    const tokens = await exchangeCodeForTokens(code, { admin: true })
     const { personUrn, name } = await fetchLinkedInProfile(tokens.access_token)
     const data = {
       accessToken: encryptToken(tokens.access_token), personUrn, memberName: name,

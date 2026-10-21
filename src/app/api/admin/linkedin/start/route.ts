@@ -9,5 +9,5 @@ export async function GET(request: Request) {
   if (!isLinkedInPostingConfigured() || !admin.email) {
     return NextResponse.redirect(new URL('/support/admin/linkedin-drafts?linkedin=not_configured', request.url))
   }
-  return NextResponse.redirect(buildLinkedInAuthUrl(mintAdminLinkedInState(admin.email)))
+  return NextResponse.redirect(buildLinkedInAuthUrl(mintAdminLinkedInState(admin.email), { admin: true }))
 }
