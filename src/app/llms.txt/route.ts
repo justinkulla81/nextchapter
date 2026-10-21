@@ -27,7 +27,7 @@ export function GET() {
 - [Employers](${u('/talent')}): verified candidate profiles and work-style fit signal, flat monthly price, no per-hire fees.
 - [Recruiters](${u('/recruiters')}): a searchable, opted-in candidate pool including strong candidates ATS filters bury.
 - [Outplacement](${u('/outplacement')}): a candid diagnostic, personalized plan, and direct employer matches for departing employees.
-- [Government & Workforce Agencies](${u('/government-workforce')}): a WIOA-aligned partnership, free to every jobseeker served, with placement data for program reporting.
+- [Government & Workforce Agencies](${u('/government-workforce')}): a WIOA-aligned partnership, free to every jobseeker served, with exportable participant progress and self-reported placement counts.
 - [Nonprofits & Academia](${u('/nonprofits')}): free community service plus consent-based research partnerships.
 
 ## Research and data
