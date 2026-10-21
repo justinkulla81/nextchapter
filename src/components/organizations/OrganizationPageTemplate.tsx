@@ -19,19 +19,25 @@ export function OrganizationPageTemplate({
   artifact,
   parent,
   footerLinks,
+  lead,
+  whatYouGet,
 }: {
   tab: AudienceTab
   artifact?: ReactNode
   parent?: { href: string; label: string }
   footerLinks?: { href: string; label: string }[]
+  /** Rendered right under the headline, before "What you get" (the workforce page's live numbers). */
+  lead?: ReactNode
+  /** Replaces the "What you get" section; the tab's points then all move under "Show more". */
+  whatYouGet?: ReactNode
 }) {
   const loginHref = tab.loginHref ?? tab.directSignupHref?.replace('/signup', '/login')
   const primary = tab.directSignupHref
     ? { label: tab.directSignupLabel ?? 'Get started free', href: tab.directSignupHref }
     : { label: tab.formHeading, href: '#join' }
 
-  const shown = tab.points.slice(0, VISIBLE_POINTS)
-  const more = tab.points.slice(VISIBLE_POINTS)
+  const shown = whatYouGet ? [] : tab.points.slice(0, VISIBLE_POINTS)
+  const more = whatYouGet ? tab.points : tab.points.slice(VISIBLE_POINTS)
 
   const extraLinks = [
     ...(tab.id === 'coaches' ? [{ href: '/coach-platform', label: 'Your own branded platform' }] : []),
@@ -52,21 +58,24 @@ export function OrganizationPageTemplate({
       loginHref={loginHref}
       footerLinks={extraLinks}
     >
-      <AudienceSection title="What you get">
-        <ul className="space-y-4">
-          {shown.map((point) => (
-            <li key={point.lead} className="flex items-start gap-3">
-              <span aria-hidden className="mt-2.5 size-1.5 shrink-0 rounded-full bg-ink" />
-              <span className="text-base leading-relaxed">
-                <span className="font-semibold">{point.lead}</span> {point.body}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-6 rounded-2xl border border-border bg-muted/40 p-4 text-sm leading-relaxed text-muted-foreground">
-          <span className="font-semibold text-ink">{tab.contrastLabel}</span> {tab.contrastBody}
-        </p>
-      </AudienceSection>
+      {lead}
+      {whatYouGet ?? (
+        <AudienceSection title="What you get">
+          <ul className="space-y-4">
+            {shown.map((point) => (
+              <li key={point.lead} className="flex items-start gap-3">
+                <span aria-hidden className="mt-2.5 size-1.5 shrink-0 rounded-full bg-ink" />
+                <span className="text-base leading-relaxed">
+                  <span className="font-semibold">{point.lead}</span> {point.body}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 rounded-2xl border border-border bg-muted/40 p-4 text-sm leading-relaxed text-muted-foreground">
+            <span className="font-semibold text-ink">{tab.contrastLabel}</span> {tab.contrastBody}
+          </p>
+        </AudienceSection>
+      )}
 
       {(artifact || tab.insightSection || more.length > 0) && (
         <AudienceSection title="Show more" className="space-y-3">
