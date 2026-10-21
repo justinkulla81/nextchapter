@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  assignSlots, slidesFor, credibilityOf, audienceFit, employerKey, farOffTimeline, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
+  assignSlots, looksNonUs, speculative, slidesFor, credibilityOf, audienceFit, employerKey, farOffTimeline, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
   type DraftFacts, type GateNotice,
 } from './layoff-post-rules'
 
@@ -20,13 +20,18 @@ describe('credibilityOf', () => {
     expect(credibilityOf(notice({ source: 'WARN_FILING' }), [], now)).toBe('warn-filing')
     expect(credibilityOf(notice({ sourceUrl: 'https://www.sec.gov/x' }), [], now)).toBe('sec-filing')
   })
-  it('needs two publishers for news, or one trusted outlet', () => {
-    expect(credibilityOf(notice(), ['Local Blog'], now)).toBeNull()
+  it('accepts news with one source as unconfirmed, two as confirmed, a trusted outlet as trusted', () => {
+    expect(credibilityOf(notice(), ['Local Blog'], now)).toBe('unconfirmed')
     expect(credibilityOf(notice(), ['Local Blog', 'Other Blog'], now)).toBe('two-publishers')
     expect(credibilityOf(notice(), ['Reuters'], now)).toBe('trusted-outlet')
   })
+  it('holds back a layoff only the hedged headlines describe', () => {
+    expect(credibilityOf(notice(), ['Reuters'], now, ['Acme could cut 500 jobs'])).toBeNull()
+    expect(credibilityOf(notice(), ['Local Blog'], now, ['Acme considering layoffs', 'Acme may lay off 500'])).toBeNull()
+    expect(credibilityOf(notice(), ['Local Blog'], now, ['Acme lays off 500', 'Acme could cut more'])).toBe('unconfirmed')
+  })
   it('counts the same publisher twice as one', () => {
-    expect(credibilityOf(notice(), ['Local Blog', 'local blog'], now)).toBeNull()
+    expect(credibilityOf(notice(), ['Local Blog', 'local blog'], now)).toBe('unconfirmed')
   })
   it('rejects small, unsized, dismissed and stale layoffs', () => {
     const w = { source: 'WARN_FILING' as const }
@@ -194,5 +199,21 @@ describe('market slide and local-market wording', () => {
     const { openRemoteRoles, ...old } = facts()
     void openRemoteRoles
     expect(() => draftText('local-market', old as DraftFacts, 'n1')).not.toThrow()
+  })
+})
+
+describe('speculation and non-US detection', () => {
+  it('reads hedged headlines as speculation only when all of them hedge', () => {
+    expect(speculative(['X could cut jobs'])).toBe(true)
+    expect(speculative(['X lays off 500', 'X could cut more'])).toBe(false)
+    expect(speculative([])).toBe(false)
+  })
+  it('flags coverage about somewhere else, unless it mentions the US', () => {
+    expect(looksNonUs(['NAB to cut 2,500 jobs in Australia'])).toBe(true)
+    expect(looksNonUs(['Telia lays off 900 in Sweden'])).toBe(true)
+    expect(looksNonUs(['Kroger lays off 3,000 corporate workers'])).toBe(false)
+    expect(looksNonUs(['Canadian bank cuts jobs in Canada and Ohio'])).toBe(false)
+    expect(looksNonUs(['Siemens cuts jobs in Germany and the US'])).toBe(false)
+    expect(looksNonUs(['Layoffs hit Sweden, and the news tells us more'])).toBe(true)
   })
 })

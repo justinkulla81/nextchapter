@@ -10,8 +10,8 @@
 import { isTrustedPublisher } from '@/lib/warn/news-trust'
 import { publisherKey, sameEmployer } from '@/lib/warn/news-headline'
 
-/** Smaller layoffs are not worth a public post, and name too few people to be safe. */
-export const MIN_EMPLOYEES = 100
+/** Smaller layoffs are not worth a public post (ten people is a team, not a story). */
+export const MIN_EMPLOYEES = 50
 /** A single layoff this large is a misread (a multi-year plan, or a total across companies), not a post. */
 export const MAX_EMPLOYEES = 40_000
 /** A company with a draft this recent is not drafted about again (a second story, a follow-up filing). */
@@ -42,17 +42,36 @@ export interface GateNotice {
  * publishers, or one outlet on the trusted list. Everything else waits; if a
  * second publisher reports it later, the next sweep finds it qualifying.
  */
-export function credibilityOf(n: GateNotice, mentionPublishers: (string | null)[], now = new Date()): Credibility | null {
+export function credibilityOf(n: GateNotice, mentionPublishers: (string | null)[], now = new Date(), headlines: string[] = []): Credibility | null {
   if (n.dismissedAt) return null
   if (n.employees == null || n.employees < MIN_EMPLOYEES || n.employees > MAX_EMPLOYEES) return null
   if (!plausibleEmployer(n.employer)) return null
   if (now.getTime() - n.fetchedAt.getTime() > MAX_AGE_DAYS * 86_400_000) return null
   if (n.source === 'WARN_FILING') return 'warn-filing'
   if (/sec\.gov/i.test(n.sourceUrl ?? '') || /^SEC 8-K/i.test(n.layoffType ?? '')) return 'sec-filing'
+  // News: anything reported as a layoff is eligible unless every headline is hedged.
+  if (speculative(headlines)) return null
   const publishers = new Set(mentionPublishers.map(publisherKey).filter(Boolean))
   if (publishers.size >= 2) return 'two-publishers'
   if (mentionPublishers.some((p) => isTrustedPublisher(p))) return 'trusted-outlet'
-  return null
+  return 'unconfirmed'
+}
+
+const HEDGED = /\b(may|might|could|considering|weighs|weighing|mulls|mulling|rumou?rs?|rumou?red|speculat\w*|eyeing|exploring|in talks)\b/i
+
+/** Every covering headline hedges ("could cut", "considering layoffs"): a rumour, not an announcement. */
+export function speculative(headlines: string[]): boolean {
+  return headlines.length > 0 && headlines.every((h) => HEDGED.test(h))
+}
+
+const FOREIGN = /\b(australia\w*|new zealand|u\.?k\.?|britain|british|england|scotland|ireland|irish|india\w*|canad\w*|china|chinese|japan\w*|korea\w*|singapore|german\w*|france|french|spain|spanish|italy|italian|sweden|swedish|norway|norwegian|denmark|danish|finland|finnish|switzerland|swiss|dutch|netherlands|europe\w*|brazil\w*|mexic\w*|south africa\w*|nigeria\w*|uae|dubai|israel\w*|philippin\w*|vietnam\w*|indonesia\w*|taiwan\w*|hong kong)\b/i
+const US_UPPER = /\b(U\.S\.A?|USA|US)\b/ // case-sensitive: the word "us" is not the country
+const US_MARK = /\b(american|america|united states|us-based)\b|\b(?:alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming)\b/i
+
+/** The coverage is about somewhere outside the US and never mentions the US: not a post for our audience. */
+export function looksNonUs(headlines: string[]): boolean {
+  const text = headlines.join(' ')
+  return FOREIGN.test(text) && !US_MARK.test(text) && !US_UPPER.test(text)
 }
 
 // Headline parsing sometimes takes the wrong words as the company ("AI blamed
@@ -132,8 +151,8 @@ const FIT_WEIGHT: Record<AudienceFit, number> = { target: 3, neutral: 0, elite: 
  * story in dozens of outlets is one people have heard of), whether the
  * employer's workers are the people we help, and whether we know someone there.
  */
-export function rankScore(why: Credibility, employees: number, o: { inCrm: boolean; publishers: number; fit: AudienceFit }): number {
-  return CREDIBILITY_WEIGHT[why] + Math.log10(Math.max(employees, 1)) + 1.5 * Math.log10(1 + o.publishers) + FIT_WEIGHT[o.fit] + (o.inCrm ? 1.5 : 0)
+export function rankScore(why: Credibility, employees: number, o: { inCrm: boolean; publishers: number; fit: AudienceFit; usUnknown?: boolean }): number {
+  return CREDIBILITY_WEIGHT[why] + Math.log10(Math.max(employees, 1)) + 1.5 * Math.log10(1 + o.publishers) + FIT_WEIGHT[o.fit] + (o.inCrm ? 1.5 : 0) - (o.usUnknown ? 2 : 0)
 }
 
 /**
@@ -231,6 +250,12 @@ function lead(f: DraftFacts, v: number): string {
     return [
       `${f.employer} disclosed a restructuring in an SEC filing that cuts ${size}.`,
       `${f.employer}'s latest SEC filing confirms job cuts: ${size}.`,
+    ][v % 2]
+  }
+  if (f.credibility === 'unconfirmed') {
+    return [
+      `${f.employer} is reported to be cutting ${size}${where}.`,
+      `News reports say ${f.employer} is laying off ${size}${where}.`,
     ][v % 2]
   }
   return [
