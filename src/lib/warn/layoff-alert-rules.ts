@@ -34,6 +34,8 @@ export interface ContactGroup {
   moreHref?: string | null
   /** What to do when nobody is on file. */
   emptyHint: string
+  /** What to say to this group about this layoff: the openings, industries hiring, retraining. Public partners only. */
+  pitch?: string
 }
 
 export interface AlertInput {
@@ -51,6 +53,8 @@ export interface AlertInput {
   place?: string | null
   /** Everyone related to the layoff, by role. */
   groups?: ContactGroup[]
+  /** The industry and local job picture, as label/value rows. */
+  picture?: { rows: [string, string][] }
 }
 
 export function shouldAlert(a: Pick<AlertInput, 'employees' | 'inCrm'>): boolean {
@@ -98,7 +102,7 @@ function groupHtml(g: ContactGroup): string {
     ? g.cards.map(cardRow).join('') + (g.more ? `<tr><td colspan="2" style="padding:8px 12px;border-top:1px solid ${LINE};font-size:13px;color:${MUTED}">${g.moreHref ? link(g.moreHref, `and ${g.more} more`) : `and ${g.more} more`}</td></tr>` : '')
     : `<tr><td colspan="2" style="padding:10px 12px;border-top:1px solid ${LINE};font-size:13px;color:${MUTED}">None on file. ${esc(g.emptyHint)}</td></tr>`
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${LINE};border-radius:8px;border-collapse:separate;margin:0 0 14px;background:#fff">
-<tr><td colspan="2" style="padding:10px 12px;background:${PAPER};border-radius:8px 8px 0 0"><div style="font-weight:600">${esc(g.label)}</div><div style="color:${MUTED};font-size:12px">${esc(g.why)}</div></td></tr>
+<tr><td colspan="2" style="padding:10px 12px;background:${PAPER};border-radius:8px 8px 0 0"><div style="font-weight:600">${esc(g.label)}</div><div style="color:${MUTED};font-size:12px">${esc(g.why)}</div>${g.pitch ? `<div style="margin-top:6px;font-size:13px"><strong>What to say:</strong> ${esc(g.pitch)}</div>` : ''}</td></tr>
 ${body}
 </table>`
 }
@@ -137,6 +141,11 @@ export function alertBody(a: AlertInput, links: { source: string | null; org: st
     `<a href="${esc(links.notices)}" style="display:inline-block;padding:7px 14px;border:1px solid ${LINE};border-radius:6px;color:${INK};text-decoration:none;font-size:13px;margin:0 6px 6px 0">All layoff notices</a>`,
   ].join('')
 
+  const picture = a.picture?.rows.length
+    ? `<h2 style="font:600 18px/1.3 Georgia,'Times New Roman',serif;margin:22px 0 6px">Local picture</h2>
+<table role="presentation" cellpadding="3" style="border-collapse:collapse;margin:0 0 6px">${a.picture.rows.map(([k, v]) => `<tr><td style="color:${MUTED};padding-right:14px;vertical-align:top">${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>`
+    : ''
+
   let who = ''
   if (a.groups?.length) {
     const s = groupSummary(a.groups)
@@ -151,6 +160,7 @@ ${a.groups.map(groupHtml).join('')}`
 <p style="margin:0 0 14px;color:${MUTED}">${sizeLine}</p>
 <table role="presentation" cellpadding="3" style="border-collapse:collapse;margin:0 0 12px">${facts.map(([k, v]) => `<tr><td style="color:${MUTED};padding-right:14px">${k}</td><td>${v}</td></tr>`).join('')}</table>
 <div>${buttons}</div>
+${picture}
 ${who}
 <p style="color:${MUTED};font-size:13px;margin-top:18px">Primary contact is settled in the 7 AM run, warm lead first.</p>
 </div>`

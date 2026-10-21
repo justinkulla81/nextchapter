@@ -28,36 +28,50 @@ async function secCiks(): Promise<Map<string, string>> {
   return m
 }
 
+export interface Hq {
+  state: string | null
+  city: string | null
+  /** SEC's industry description for the company ("RETAIL-GROCERY STORES"), when it has one. */
+  sicDescription: string | null
+  source: 'sec' | 'warn-history'
+}
+
 /**
- * Where a company is headquartered, when the layoff story named no place. In
- * order: a state it has filed WARN notices in (our own data, most common
- * first), then the business address on its SEC filings (exact name match only,
- * so a similar name never lends its address). A derived state is saved on the
- * CRM organization when that has none. Returns null when neither knows;
- * never throws.
+ * Where a company is headquartered and what the SEC calls its industry, for a
+ * layoff story that named no place. The business address on its SEC filings
+ * (exact name match only, so a similar name never lends its address) gives the
+ * state, city and industry; failing that, the state it has most often filed WARN
+ * notices in (our own data). A derived state is saved on the CRM organization
+ * when that has none. Returns null when neither knows; never throws.
  */
-export async function inferHqState(normalizedEmployer: string): Promise<string | null> {
+export async function inferHq(normalizedEmployer: string): Promise<Hq | null> {
   try {
-    const filed = await prisma.warnNotice.groupBy({
-      by: ['state'], where: { normalizedEmployer, source: 'WARN_FILING', state: { not: null } }, _count: { _all: true }, orderBy: { _count: { state: 'desc' } }, take: 1,
-    })
-    let state = usStateOrNull(filed[0]?.state)
-    if (!state) {
-      const cik = (await secCiks()).get(normalizedEmployer)
-      if (cik) {
-        const res = await fetch(`https://data.sec.gov/submissions/CIK${cik}.json`, { headers: { 'User-Agent': SEC_USER_AGENT }, signal: AbortSignal.timeout(15_000) })
-        if (res.ok) {
-          const d = (await res.json()) as { addresses?: { business?: { stateOrCountry?: string } } }
-          state = usStateOrNull(d.addresses?.business?.stateOrCountry)
-        }
+    let hq: Hq | null = null
+    const cik = (await secCiks()).get(normalizedEmployer)
+    if (cik) {
+      const res = await fetch(`https://data.sec.gov/submissions/CIK${cik}.json`, { headers: { 'User-Agent': SEC_USER_AGENT }, signal: AbortSignal.timeout(15_000) })
+      if (res.ok) {
+        const d = (await res.json()) as { sicDescription?: string; addresses?: { business?: { stateOrCountry?: string; city?: string } } }
+        const state = usStateOrNull(d.addresses?.business?.stateOrCountry)
+        if (state || d.sicDescription) hq = { state, city: titleCase(d.addresses?.business?.city), sicDescription: d.sicDescription || null, source: 'sec' }
       }
     }
-    if (state) {
-      await prisma.crmOrganization.updateMany({ where: { canonicalNameNormalized: normalizedEmployer, usState: null }, data: { usState: state } }).catch(() => {})
+    if (!hq?.state) {
+      const filed = await prisma.warnNotice.groupBy({
+        by: ['state'], where: { normalizedEmployer, source: 'WARN_FILING', state: { not: null } }, _count: { _all: true }, orderBy: { _count: { state: 'desc' } }, take: 1,
+      })
+      const state = usStateOrNull(filed[0]?.state)
+      if (state) hq = { state, city: null, sicDescription: hq?.sicDescription ?? null, source: 'warn-history' }
     }
-    return state
+    if (hq?.state) {
+      await prisma.crmOrganization.updateMany({ where: { canonicalNameNormalized: normalizedEmployer, usState: null }, data: { usState: hq.state } }).catch(() => {})
+    }
+    return hq
   } catch (e) {
-    console.error('Headquarters state lookup failed for', normalizedEmployer, e)
+    console.error('Headquarters lookup failed for', normalizedEmployer, e)
     return null
   }
 }
+
+const titleCase = (s: string | null | undefined): string | null =>
+  s ? s.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase()).trim() || null : null

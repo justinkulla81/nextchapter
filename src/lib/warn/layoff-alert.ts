@@ -7,7 +7,9 @@ import { withAudienceHtml } from '@/lib/email/audience-tag'
 import { ALERT_HOLD_HOURS, alertBody, alertReadiness, alertSubject, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
 import { enrichLayoffHr } from './layoff-hr-enrich'
 import { layoffPeople } from './layoff-alert-people'
-import { inferHqState } from './layoff-hq-state'
+import { inferHq } from './layoff-hq-state'
+import { buildLocalPicture, classifyLayoffIndustry } from './layoff-context'
+import { pictureRows, placeFromHeadlines, talkingPoints, type Audience } from './layoff-picture'
 
 /** The only recipient: Justin's NextChapter inbox, never a personal address. */
 const ALERT_TO = 'justin@launchyournextchapter.com'
@@ -62,7 +64,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     // Everyone tied to this layoff, by role. A failure here sends the shorter email, not none.
     const notice = await prisma.warnNotice.findUnique({
       where: { id: l.noticeId },
-      select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true, alertSentAt: true, alertHeldAt: true, alertGaveUpAt: true },
+      select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true, companyId: true, industry: true, alertSentAt: true, alertHeldAt: true, alertGaveUpAt: true },
     }).catch(() => null)
     if (notice?.alertSentAt || notice?.alertGaveUpAt) return false
     // Find the people to call now, so the email is not empty: one Hunter search for a company with no head of HR on file.
@@ -70,18 +72,47 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     const firstAttempt = !notice?.alertHeldAt
     const orgId = (firstAttempt ? await enrichLayoffHr(l.employer, org?.id ?? notice?.promotedOrgId ?? null) : null) ?? org?.id ?? notice?.promotedOrgId ?? null
     const orgState = orgId ? (await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { usState: true } }))?.usState ?? null : null
-    // A news story rarely names a place. Without one, use where the company is headquartered, so the state-level partners can be looked up.
-    const hqState = !notice?.state && !orgState ? await inferHqState(l.normalizedEmployer) : null
+    // Where the layoff is, what industry it is in, and what the local job market looks like. A news story
+    // rarely names a place, so look in this order: the filing, the headlines, the CRM record, then the company's
+    // SEC filings (headquarters) and the states it has filed WARN notices in.
+    const headlines = (await prisma.layoffNewsMention.findMany({ where: { noticeId: l.noticeId }, select: { headline: true } }).catch(() => [])).map((m) => m.headline)
+    const company = notice?.companyId ? await prisma.company.findUnique({ where: { id: notice.companyId }, select: { industry: true } }).catch(() => null) : null
+    let state = notice?.state ?? null
+    let city: string | null = null
+    let placeNote: string | null = null
+    if (!state) {
+      const h = placeFromHeadlines(headlines)
+      if (h) { state = h.state; city = h.city; placeNote = 'from news coverage' }
+    }
+    if (!state && orgState) { state = orgState; placeNote = 'from the CRM record' }
+    const needHq = !state || (!company?.industry && !notice?.industry)
+    const hq = needHq ? await inferHq(l.normalizedEmployer) : null
+    if (!state && hq?.state) {
+      state = hq.state; city = hq.city
+      placeNote = hq.source === 'sec' ? 'company headquarters, from SEC filings' : 'where it has filed WARN notices'
+    }
+    const industry = await classifyLayoffIndustry({
+      employer: l.employer, companyIndustry: company?.industry ?? null, naics: notice?.industry ?? null, sicDescription: hq?.sicDescription ?? null, allowModel: firstAttempt,
+    })
+    const picture = await buildLocalPicture({ employer: l.employer, employees: l.employees, state, county: notice?.county ?? null, industryKey: industry?.key ?? null })
+
     const related = await layoffPeople(orgId, {
-      state: notice?.state ?? orgState ?? hqState, county: notice?.county ?? null, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null,
+      state, county: notice?.county ?? null, city, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null,
     }).catch((e) => { console.error('Layoff alert people failed for', l.employer, e); return null })
-    if (related) { input.groups = related.groups; input.place = hqState ? `${related.placeLabel ?? hqState} (company headquarters)` : related.placeLabel }
+    const PARTNER: Record<string, Audience> = { rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_centers: 'job_centers', economic_development: 'economic_development' }
+    const groups = related?.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g)) ?? []
+    if (related) {
+      input.groups = groups
+      const where = [city ?? notice?.county, state].filter(Boolean).join(', ')
+      input.place = where ? `${where}${placeNote ? ` (${placeNote})` : ''}` : related.placeLabel
+    }
+    input.picture = { rows: pictureRows(picture, { industryLabel: industry?.label ?? null, industrySource: industry?.source ?? null }) }
 
     // Only email once the alert is populated; otherwise hold it and look again on the next run.
-    const readiness = alertReadiness(related?.groups ?? [], notice?.state ?? orgState ?? hqState)
+    const readiness = alertReadiness(groups, state)
     if (!readiness.ready) {
       await markHeld(l.noticeId)
-      captureServerEvent('cron', 'layoff_alert_held', { employer: l.employer, employees: l.employees, missing: readiness.missing })
+      captureServerEvent('cron', 'layoff_alert_held', { employer: l.employer, employees: l.employees, missing: readiness.missing, state, industry: industry?.label ?? null })
       return false
     }
 
