@@ -8,6 +8,7 @@ const SOURCE_LABEL: Record<DraftFacts['credibility'], string> = {
   'sec-filing': 'SEC filing',
   'two-publishers': 'Multiple news reports',
   'trusted-outlet': 'News report',
+  unconfirmed: 'News report',
 }
 
 /**

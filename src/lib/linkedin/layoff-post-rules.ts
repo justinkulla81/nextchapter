@@ -23,7 +23,7 @@ export const WEEKLY_CAP = 5
 /** Posts link here, tagged so sign-ups from LinkedIn are countable. */
 export const POST_LINK = 'https://launchyournextchapter.com/layoffs?utm_source=linkedin&utm_medium=social&utm_campaign=layoff-post'
 
-export type Credibility = 'warn-filing' | 'sec-filing' | 'two-publishers' | 'trusted-outlet'
+export type Credibility = 'warn-filing' | 'sec-filing' | 'two-publishers' | 'trusted-outlet' | 'unconfirmed'
 
 export interface GateNotice {
   employer: string
@@ -92,7 +92,7 @@ export function sameEvent(a: EventRef, b: EventRef): boolean {
   return initials(ka) === kb || initials(kb) === ka || tokens(ka).some((t) => tokens(kb).includes(t))
 }
 
-const CREDIBILITY_WEIGHT: Record<Credibility, number> = { 'warn-filing': 4, 'sec-filing': 4, 'two-publishers': 2, 'trusted-outlet': 1 }
+const CREDIBILITY_WEIGHT: Record<Credibility, number> = { 'warn-filing': 4, 'sec-filing': 4, 'two-publishers': 2, 'trusted-outlet': 1, unconfirmed: 0 }
 
 /** Which credible layoff to post about first: official records, then size, then someone we already know there. */
 export function rankScore(why: Credibility, employees: number, inCrm: boolean): number {

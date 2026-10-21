@@ -8,6 +8,7 @@ import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
 import { commentOnLinkedInPost, linkedInPostUrl, publishLinkedInShare, type LinkedInVisibility } from '@/lib/linkedin/oauth'
 import { renderDraftImage } from '@/lib/linkedin/draft-image'
 import { createDraft } from '@/lib/linkedin/layoff-post-sweep'
+import { assignSlots, credibilityOf } from '@/lib/linkedin/layoff-post-rules'
 import { MAX_EMPLOYEES, MIN_EMPLOYEES } from '@/lib/linkedin/layoff-post-rules'
 
 const BASE = '/support/admin/linkedin-drafts'
@@ -107,4 +108,26 @@ export async function disconnectLinkedIn(): Promise<{ message: string }> {
   captureServerEvent(admin.email ?? 'admin', 'linkedin_disconnected', {})
   revalidatePath(BASE)
   return { message: 'Disconnected.' }
+}
+
+/**
+ * Makes a draft for any layoff the admin picks from the "Other layoffs" list.
+ * The weekly cap and the credibility gate do not apply: a person decided. A
+ * layoff the gate would not pass is marked "unconfirmed" so the draft says so.
+ */
+export async function makeDraftFor(noticeId: string): Promise<{ message: string }> {
+  const admin = await requireAdmin()
+  const n = await prisma.warnNotice.findUnique({ where: { id: noticeId } })
+  if (!n) return { message: 'That layoff no longer exists.' }
+  const publishers = (await prisma.layoffNewsMention.findMany({ where: { noticeId }, select: { publisher: true } })).map((m) => m.publisher)
+  const why = credibilityOf({ ...n, fetchedAt: new Date() }, publishers) ?? 'unconfirmed'
+  const [recent, waiting] = await Promise.all([
+    prisma.linkedInPostDraft.findMany({ orderBy: { createdAt: 'desc' }, take: 20, select: { angle: true, layout: true } }),
+    prisma.linkedInPostDraft.findMany({ where: { status: 'DRAFT', scheduledFor: { gte: new Date() } }, select: { scheduledFor: true } }),
+  ])
+  const scheduledFor = assignSlots(1, waiting.map((w) => w.scheduledFor))[0] ?? new Date()
+  const made = await createDraft(n, why, scheduledFor, recent.map((r) => r.angle), recent.map((r) => r.layout))
+  captureServerEvent(admin.email ?? 'admin', 'linkedin_draft_made_by_hand', { noticeId, employer: n.employer, employees: n.employees, credibility: why })
+  revalidatePath(BASE)
+  return { message: made ? `Made a draft for ${n.employer}.` : 'That layoff already has a draft.' }
 }
