@@ -20,6 +20,7 @@ export interface OtherLayoffRow {
   industry: string | null
   publishers: number
   fit: 'target' | 'neutral' | 'elite'
+  timeline: string | null
 }
 
 const SORTS = [
@@ -50,6 +51,7 @@ function Row({ r }: { r: OtherLayoffRow }) {
           {r.dateLabel ? ` · ${r.dateLabel}` : ''}
           {r.sourceUrl ? <> · <a href={r.sourceUrl} target="_blank" rel="noreferrer" className="underline">source</a></> : null}
         </p>
+        {r.timeline ? <p className="text-sm text-muted-foreground">Timeline: {r.timeline}, so it is ranked lower and not drafted automatically.</p> : null}
         {r.warnings.length ? <p className="text-sm text-destructive">Check: {r.warnings.join('; ')}</p> : null}
       </div>
       <div className="flex items-center gap-2">

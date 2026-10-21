@@ -73,7 +73,7 @@ export default async function LinkedInDraftsPage({ searchParams }: { searchParam
           noticeId: o.noticeId, employer: o.employer, employees: o.employees, place: o.place,
           dateLabel: o.noticeDate ? o.noticeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) : null,
           credibilityLabel: o.credibility ? WHY[o.credibility] : null, warnings: o.warnings, sourceUrl: o.sourceUrl,
-          state: o.state, industry: o.industry, publishers: o.publishers, fit: o.fit, dateMs: o.noticeDate?.getTime() ?? null,
+          state: o.state, industry: o.industry, publishers: o.publishers, fit: o.fit, timeline: o.timeline, dateMs: o.noticeDate?.getTime() ?? null,
         }))}
       />
     </div>

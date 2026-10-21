@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  assignSlots, credibilityOf, audienceFit, employerKey, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
+  assignSlots, credibilityOf, audienceFit, employerKey, farOffTimeline, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
   type DraftFacts, type GateNotice,
 } from './layoff-post-rules'
 
@@ -133,5 +133,19 @@ describe('audienceFit and rankScore', () => {
   })
   it('prefers an employer we know, all else equal', () => {
     expect(rankScore('two-publishers', 500, { inCrm: true, publishers: 5, fit: 'neutral' })).toBeGreaterThan(rankScore('two-publishers', 900, { inCrm: false, publishers: 5, fit: 'neutral' }))
+  })
+})
+
+describe('farOffTimeline', () => {
+  it('flags cuts spread over years and leaves near-term ones alone', () => {
+    expect(farOffTimeline(['Volkswagen to cut 35,000 jobs by 2030'], null, now)).toBe('runs to 2030')
+    expect(farOffTimeline(['Bank plans to cut 2,500 jobs over the next three years'], null, now)).toBe('spread over the next three years')
+    expect(farOffTimeline(['Kroger lays off 3,000 corporate workers'], null, now)).toBeNull()
+    expect(farOffTimeline(['Retailer to cut jobs by 2027'], null, now)).toBeNull() // only a year out, 2026 now
+    expect(farOffTimeline(['Hasbro layoffs in 2026'], null, now)).toBeNull()
+  })
+  it('flags a WARN effective date more than six months away', () => {
+    expect(farOffTimeline([], new Date('2027-06-01T00:00:00Z'), now)).toMatch(/six months/)
+    expect(farOffTimeline([], new Date('2026-12-15T00:00:00Z'), now)).toBeNull()
   })
 })

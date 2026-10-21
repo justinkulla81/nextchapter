@@ -4,7 +4,7 @@ import { Prisma, type WarnNotice } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import {
   LAYOUTS, MAX_AGE_DAYS, MAX_EMPLOYEES, MIN_EMPLOYEES, RECENT_DRAFT_DAYS, WEEKLY_CAP,
-  assignSlots, audienceFit, credibilityOf, plausibleEmployer, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
+  assignSlots, audienceFit, credibilityOf, farOffTimeline, FAR_OFF_PENALTY, plausibleEmployer, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
   type Angle, type AudienceFit, type Credibility, type DraftFacts, type EventRef,
 } from './layoff-post-rules'
 
@@ -45,7 +45,7 @@ export async function runLinkedInDraftSweep(now = new Date()): Promise<DraftSwee
 
   const mentions = await prisma.layoffNewsMention.findMany({
     where: { noticeId: { in: candidates.map((n) => n.id) } },
-    select: { noticeId: true, publisher: true },
+    select: { noticeId: true, publisher: true, headline: true },
   })
   const scored = candidates.flatMap((n) => {
     const why = credibilityOf(n, mentions.filter((m) => m.noticeId === n.id).map((m) => m.publisher), now)
@@ -57,6 +57,8 @@ export async function runLinkedInDraftSweep(now = new Date()): Promise<DraftSwee
   const relevance = await usRelevance(scored.filter((c) => c.n.source !== 'WARN_FILING' && c.why !== 'sec-filing').map((c) => c.n))
   const eligible = scored
     .filter((c) => c.n.source === 'WARN_FILING' || c.why === 'sec-filing' || relevance.get(c.n.id))
+    // A layoff years away is not a "get help now" post; it stays in the picker for a person to choose.
+    .filter((c) => !farOffTimeline(headlinesFor(mentions, c.n.id), c.n.effectiveDate, now))
     .map((c) => ({
       ...c,
       rank: rankScore(c.why, c.n.employees ?? 0, {
@@ -171,6 +173,8 @@ export interface DraftableLayoff {
   publishers: number
   /** Whether this employer's workers are the people we most help. */
   fit: AudienceFit
+  /** "runs to 2030" and the like when the cuts are far off, else null. Ranked lower and never auto-drafted. */
+  timeline: string | null
   /** What to double-check before posting, in plain words; empty when nothing looks off. */
   warnings: string[]
   sourceUrl: string | null
@@ -191,7 +195,7 @@ export async function listDraftableLayoffs(now = new Date(), days = 21): Promise
   if (notices.length === 0) return []
   const mentions = await prisma.layoffNewsMention.findMany({
     where: { noticeId: { in: notices.map((n) => n.id) } },
-    select: { noticeId: true, publisher: true },
+    select: { noticeId: true, publisher: true, headline: true },
   })
   const news = notices.filter((n) => n.source !== 'WARN_FILING' && !/^SEC 8-K/i.test(n.layoffType ?? ''))
   const relevance = await usRelevance(news)
@@ -222,12 +226,14 @@ export async function listDraftableLayoffs(now = new Date(), days = 21): Promise
     if (isNews && !relevance.get(n.id)) warnings.push('No US jobs or CRM record for this employer')
     const publishers = publisherCount(mentions, n.id)
     const fit = audienceFit(n.employer, n.industry ?? (n.companyId ? industryOf.get(n.companyId) ?? null : null))
-    const rank = (credibility ? rankScore(credibility, n.employees ?? 0, { inCrm: !!relevance.get(n.id)?.inCrm, publishers, fit }) : -1) - warnings.length * 0.01
-    return { n, credibility, warnings, rank, publishers, fit }
+    const timeline = farOffTimeline(headlinesFor(mentions, n.id), n.effectiveDate, now)
+    const rank = (credibility ? rankScore(credibility, n.employees ?? 0, { inCrm: !!relevance.get(n.id)?.inCrm, publishers, fit }) : -1)
+      - warnings.length * 0.01 - (timeline ? FAR_OFF_PENALTY : 0)
+    return { n, credibility, warnings, rank, publishers, fit, timeline }
   }).sort((a, b) => b.rank - a.rank)
 
   const out: DraftableLayoff[] = []
-  for (const { n, credibility, warnings, publishers, fit } of rows) {
+  for (const { n, credibility, warnings, publishers, fit, timeline } of rows) {
     const ref: EventRef = { employer: n.employer, employees: n.employees, date: n.noticeDate }
     if (seen.some((s) => sameEvent(s, ref))) continue
     seen.push(ref)
@@ -237,10 +243,14 @@ export async function listDraftableLayoffs(now = new Date(), days = 21): Promise
       noticeDate: n.noticeDate, credibility, warnings, sourceUrl: n.sourceUrl,
       state: n.state ?? stateOf.get(n.normalizedEmployer) ?? null,
       industry: n.industry ?? (n.companyId ? industryOf.get(n.companyId) ?? null : null),
-      publishers, fit,
+      publishers, fit, timeline,
     })
   }
   return out
+}
+
+function headlinesFor(mentions: { noticeId: string | null; headline: string }[], noticeId: string): string[] {
+  return mentions.filter((m) => m.noticeId === noticeId).map((m) => m.headline)
 }
 
 /** Distinct outlets that covered a notice: a story in dozens of outlets has reach. */

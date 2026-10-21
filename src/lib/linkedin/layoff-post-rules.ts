@@ -136,6 +136,27 @@ export function rankScore(why: Credibility, employees: number, o: { inCrm: boole
   return CREDIBILITY_WEIGHT[why] + Math.log10(Math.max(employees, 1)) + 1.5 * Math.log10(1 + o.publishers) + FIT_WEIGHT[o.fit] + (o.inCrm ? 1.5 : 0)
 }
 
+/**
+ * A layoff announced to happen over years ("35,000 jobs by 2030") is real news
+ * but not a "get help now" post: nobody is losing a job this month. Reads the
+ * covering headlines (and a far-off effective date) and returns a short label
+ * such as "runs to 2030", or null when the layoff looks near-term.
+ */
+export function farOffTimeline(headlines: string[], effectiveDate: Date | null, now = new Date()): string | null {
+  const thisYear = now.getUTCFullYear()
+  for (const h of headlines) {
+    const year = h.match(/\b(?:by|through|until|before|to|in)\s+(?:the end of\s+|early\s+|late\s+|mid-?)?(20\d{2})\b/i)
+    if (year && Number(year[1]) >= thisYear + 2) return `runs to ${year[1]}`
+    const span = h.match(/\bover the next (two|three|four|five|six|seven|eight|nine|ten|\d+) years?\b/i)
+    if (span) return `spread over the next ${span[1].toLowerCase()} years`
+  }
+  if (effectiveDate && effectiveDate.getTime() - now.getTime() > 180 * 86_400_000) return 'takes effect more than six months out'
+  return null
+}
+
+/** How far to push a far-off layoff down the list. */
+export const FAR_OFF_PENALTY = 3
+
 export const ANGLES = ['offer-help', 'first-week', 'local-market', 'senior-demand', 'timeline'] as const
 export type Angle = (typeof ANGLES)[number]
 
