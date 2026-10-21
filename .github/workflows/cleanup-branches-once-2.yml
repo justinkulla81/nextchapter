@@ -1,0 +1,28 @@
+# One-off: deletes branches whose work is already in main. Each is deleted only if its tip is still the exact commit
+# checked when this was written (so nothing added since is lost). Delete this file after the run.
+name: Delete merged branches (one-off 2)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAIRS: >-
+            ai-comms-audit-fixes:344b4194b0ccc30b29f9f4740070216ddafa677b ai-course-decisions:b0f2f3ee9183da8ae72a865d27127ea09a3308e4 ai-skills-industry-geo:1498efe7144d3c58a8a432f539fdbe0561df2e0a ai-snapshot-merge:b4037ec947e8c2c42154df9466e9acad399d67f7 claude/awesome-allen-8sm4nr:b23eafc7528ef16f882ae1f73776d5cbd63dd4c6 claude/bold-bohr-75vrf9:0f4bfcfd39467b1f3517cda36a3c637fa712178c claude/bold-goodall-heyrap:62e94104ccb9ee1e2cef687bcf03c3ecff877aed claude/branch-cleanup-once:97bcd12c0a61d2d93cdcaa9e3064b4e2230041d3 claude/contacts-delete-mute:1405e1b9c9a54ed28af302774980a9640fbbb9dc claude/elegant-thompson-vkd4oe:6865649d829ba1fc45aaff711e5cb82b7fed73f6 claude/friendly-noether-118syi:9a07c6486209ae5321b5b58401dd13ccff48d768 claude/kind-brown-1v9wnu:28409b9847e82fa15c4253910976bf6a459f0540 claude/peaceful-mccarthy-9xrnls:04209bfad2d3778d0c1b5d09090bf870f061c736 claude/redesign-final:de4ebc09d3a976f57ee6c81f390dcdee41953c10 claude/redesign-legacy-leftovers:8450b0b155fdf56b3aaada733688f6dfbab5ca18 claude/remove-cleanup-workflow:bbf78bbfd318ba57d7f9037d6afdf2fd7552f36d claude/remove-old-look-home-network-account:f4dda6663dd90e3c778119313746de9bd007d5b0 claude/remove-old-look-jobs:53adba3374a56c0f4a7c6cf0ca42b4aca6a44a87 claude/zen-wozniak-j6ijur:e335f5a34ce26fee562c8e4ebb50b720b30414fa layoff-email-people:a0a4d2fbd7aafb273324038e86df858294ca59b9 linkedin-admin-posting:3a4f174f78bb2fcc392ae0d77c39745a8199c2f9 linkedin-admin-redirect:5dcb7571c421dc8629e5115f382ad6273d5843c7 linkedin-draft-quality:509768b42996c2b04408f2f3a1d0ea43f9fe44bd outreach-page-v2:ef9c127d8c6d0350f34c709fc755304253dd3c18 outreach-reply-actions:d7e0b5cfd95bc06055161615ea06a8fcc7b4f57e outreach-reply-class:a90ce2adbd31ac7c1dfc8076ded7478764f8b16f outreach-signature:bb0025a99c67ca87ed283e8319f6a58cc704e6f2 prospect-pages:2f3e77977568666a7fb7ad934df4e6e71aeabbc0
+        run: |
+          set -u
+          for pair in $PAIRS; do
+            b="${pair%%:*}"; want="${pair##*:}"
+            enc=$(printf '%s' "$b" | sed 's#/#%2F#g')
+            have=$(gh api "repos/${GITHUB_REPOSITORY}/commits/$enc" --jq '.sha' 2>/dev/null || echo "")
+            if [ "$have" = "$want" ]; then
+              gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/$b" && echo "deleted: $b" || echo "failed: $b"
+            else
+              echo "kept (tip changed or missing): $b"
+            fi
+          done
