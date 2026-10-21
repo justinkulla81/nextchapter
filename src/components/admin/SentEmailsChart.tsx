@@ -9,6 +9,8 @@ export interface SentDay {
   crm: number
   gmail: number
   mailing: number
+  /** Emails sent that day that have been replied to. */
+  replies?: number
 }
 
 type Kind = 'cold' | 'crm' | 'gmail' | 'mailing'
@@ -34,7 +36,7 @@ function niceMax(v: number): number {
 
 const shortDate = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 
-/** Emails sent per day, stacked by kind. Hover or use the arrow keys to read one day; the same numbers are in the table below the chart. */
+/** Emails sent per day, stacked by kind, with the replies to that day's emails marked above the bar (↩). Hover or use the arrow keys to read one day; the same numbers are in the table below the chart. */
 export function SentEmailsChart({ days }: { days: SentDay[] }) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(720)
@@ -108,12 +110,17 @@ export function SentEmailsChart({ days }: { days: SentDay[] }) {
               </g>
             )
           })}
-          <rect x={PAD.left} y={PAD.top} width={innerW} height={innerH} fill="transparent" onMouseMove={onMove} onMouseLeave={() => setActive(null)} />
+          {days.map((d, i) => d.replies ? (
+            <text key={`r-${d.date}`} x={cx(i)} y={Math.max(PAD.top + 8, y(total(d)) - 4)} textAnchor="middle" fontSize={11} fontWeight={600} fill="var(--viz-text)">↩{d.replies}</text>
+          ) : null)}
+          <rect x={PAD.left} y={PAD.top} width={innerW} height={innerH} fill="transparent" onMouseMove={onMove} onMouseLeave={() => setActive(null)}
+            onClick={() => { if (active !== null && days[active].replies) window.location.hash = `replies-${days[active].date}` }} style={{ cursor: active !== null && days[active]?.replies ? 'pointer' : undefined }} />
         </svg>
 
         {a && (
           <div role="status" className="pointer-events-none absolute rounded-md border border-border bg-card px-2.5 py-1.5 text-xs shadow-sm" style={{ left: tipLeft, top: PAD.top }}>
             <p className="font-medium text-foreground">{new Date(`${a.date}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })} · {total(a)} sent</p>
+            {a.replies ? <p className="mt-0.5 font-medium text-foreground">↩ {a.replies} {a.replies === 1 ? 'reply' : 'replies'}, click the bar to read</p> : null}
             {KINDS.map((k) => (
               <p key={k.key} className="mt-0.5 flex items-center gap-1.5 text-muted-foreground">
                 <span className="inline-block h-2 w-2 rounded-sm" style={{ background: k.color }} />{k.label}
