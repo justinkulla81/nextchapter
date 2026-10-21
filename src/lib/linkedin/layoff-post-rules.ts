@@ -18,8 +18,8 @@ export const MAX_EMPLOYEES = 40_000
 export const RECENT_DRAFT_DAYS = 30
 /** A layoff first filed longer ago than this is old news. */
 export const MAX_AGE_DAYS = 10
-/** At most this many new drafts in any rolling seven days, biggest first. */
-export const WEEKLY_CAP = 5
+/** At most this many new drafts in any rolling seven days, best first (two a day on five weekdays). */
+export const WEEKLY_CAP = 10
 /** Posts link here, tagged so sign-ups from LinkedIn are countable. */
 export const POST_LINK = 'https://launchyournextchapter.com/layoffs?utm_source=linkedin&utm_medium=social&utm_campaign=layoff-post'
 
@@ -304,7 +304,7 @@ export function draftText(angle: Angle, f: DraftFacts, seed: string): DraftText 
 // Eastern-time slot starts, as [hour, minute].
 const SLOTS_ET: [number, number][] = [[8, 15], [12, 10], [17, 20]]
 /** Never more than this many drafts due on one calendar day. */
-export const MAX_PER_DAY = 1
+export const MAX_PER_DAY = 2
 /** Posts at least this far apart, so a feed never sees two from us back to back. */
 export const MIN_GAP_MS = 3 * 3_600_000
 
@@ -323,7 +323,7 @@ function etDay(at: Date): { key: string; dow: number } {
 
 /**
  * When each new draft should go out: the next free weekday slot at least an
- * hour from now, at most one a day (posts close together compete for the same feed window).
+ * hour from now, at most two a day, in different slots.
  * `taken` is when drafts already waiting are due. Returns one time per draft,
  * in order, so the biggest layoff (passed first) gets the earliest slot.
  */
@@ -348,6 +348,92 @@ export function assignSlots(count: number, taken: Date[], now = new Date()): Dat
       scheduled.push(slot)
     }
   }
+  return out
+}
+
+
+// ---- The picture: a swipeable set of slides, not one card ----
+//
+// Carousels and multi-image posts get the most engagement on LinkedIn, and a
+// post that teaches something across slides is worth saving and resharing. The
+// slides are portrait (the most feed space), carry real numbers from the
+// filing, and end on the ask. Employer names are set in type, never logos.
+
+export type Slide =
+  | { kind: 'cover'; label: string; big: string; name: string; sub: string; swipe: string }
+  | { kind: 'facts'; title: string; rows: { k: string; v: string }[] }
+  | { kind: 'step'; n: number; total: number; title: string; body: string }
+  | { kind: 'market'; title: string; stats: { value: string; label: string }[] }
+  | { kind: 'cta'; title: string; body: string; brand: string }
+
+const SOURCE_NAME: Record<Credibility, string> = {
+  'warn-filing': 'WARN notice filed', 'sec-filing': 'SEC filing', 'two-publishers': 'Reported by multiple outlets',
+  'trusted-outlet': 'News report', unconfirmed: 'News report',
+}
+
+const STEP_SETS: { title: string; body: string }[][] = [
+  [
+    { title: 'Read before you sign', body: 'Get the severance offer in writing. Read the terms, and what you give up, before you sign anything.' },
+    { title: 'File for unemployment this week', body: "Apply right away and check your state's rules on severance. Waiting can cost you benefits." },
+    { title: 'Ask for references now', body: "Ask a manager or two while they're still easy to reach." },
+    { title: 'Say exactly what you want', body: '"Open to operations roles at mid-size healthcare companies" gets replies. "Open to anything" does not.' },
+  ],
+  [
+    { title: 'Write down your wins', body: 'List your biggest results from the last two years, with numbers, before you lose access to the details.' },
+    { title: 'Find your benefits end date', body: 'Health coverage often ends on a set date. Know yours and plan around it.' },
+    { title: 'Make a list of 20 companies', body: "Pick employers you'd actually want to work for, then find one person at each." },
+    { title: 'Call former colleagues first', body: 'People who know your work answer fastest and refer most.' },
+  ],
+  [
+    { title: 'Take a week to set up', body: 'Update your résumé, pick your target role, and choose five people to call. Then start applying.' },
+    { title: 'Get your paperwork in order', body: 'Keep your separation letter, final pay details, and benefits information in one place.' },
+    { title: 'Ask for a recommendation', body: 'A LinkedIn recommendation from a manager is worth more than a long list of skills.' },
+    { title: 'Tell your story once, clearly', body: 'Practice one calm, honest sentence about why you left. You will say it often.' },
+  ],
+]
+
+const longDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+
+/** The slides for a draft, as data; the renderer draws them. Deterministic for a seed except the days-remaining figure. */
+export function slidesFor(f: DraftFacts, seed: string, now = new Date()): Slide[] {
+  const v = hash(seed)
+  const jobs = `${fmt(f.employees)} jobs`
+  const out: Slide[] = [{
+    kind: 'cover',
+    label: [SOURCE_NAME[f.credibility], f.state].filter(Boolean).join(' · '),
+    big: jobs,
+    name: f.employer,
+    sub: [f.percent ? `${f.percent}% of staff` : null, f.place].filter(Boolean).join(' · '),
+    swipe: 'What to do in the first week',
+  }]
+
+  const rows: { k: string; v: string }[] = []
+  rows.push({ k: 'Who', v: f.employer })
+  rows.push({ k: 'How many', v: f.percent ? `${jobs}, ${f.percent}% of staff` : jobs })
+  if (f.place) rows.push({ k: 'Where', v: f.place })
+  if (f.noticeDate) rows.push({ k: 'Announced', v: longDate(f.noticeDate) })
+  if (f.effectiveDate) {
+    const days = Math.round((new Date(f.effectiveDate).getTime() - now.getTime()) / 86_400_000)
+    rows.push({ k: 'Takes effect', v: days > 0 ? `${longDate(f.effectiveDate)} (${days} days)` : longDate(f.effectiveDate) })
+  }
+  rows.push({ k: 'Source', v: SOURCE_NAME[f.credibility] })
+  if (rows.length >= 4) out.push({ kind: 'facts', title: 'What we know', rows })
+
+  const steps = STEP_SETS[v % STEP_SETS.length].slice(0, 3)
+  steps.forEach((st, i) => out.push({ kind: 'step', n: i + 1, total: steps.length, ...st }))
+
+  if (f.openRolesInState != null && f.openRolesInState >= 50 && f.state) {
+    const stats = [{ value: fmt(f.openRolesInState), label: `open roles in ${f.state} on our board today` }]
+    if (f.openSeniorRolesInState != null && f.openSeniorRolesInState >= 25) stats.push({ value: fmt(f.openSeniorRolesInState), label: 'of them manager level or above' })
+    out.push({ kind: 'market', title: 'The market is still hiring', stats })
+  }
+
+  out.push({
+    kind: 'cta',
+    title: `Know someone at ${f.employer}?`,
+    body: 'Send this to them directly. A warm introduction this week beats ten cold applications.',
+    brand: 'NextChapter · the leading job transition platform',
+  })
   return out
 }
 

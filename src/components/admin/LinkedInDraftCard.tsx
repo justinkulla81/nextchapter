@@ -23,6 +23,8 @@ export interface DraftCardData {
   tags: { name: string; note: string; linkedinUrl: string | null }[]
   /** LinkedIn is connected, so the draft can be posted from here. */
   canPost: boolean
+  /** How many slides the post has. */
+  slides: number
 }
 
 export function LinkedInDraftCard({ d }: { d: DraftCardData }) {
@@ -83,9 +85,19 @@ export function LinkedInDraftCard({ d }: { d: DraftCardData }) {
       </div>
 
       <aside className="space-y-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl} alt={`Card for ${d.employer}`} className="w-full rounded-lg border border-border" />
-        <Button nativeButton={false} size="sm" variant="outline" render={<a href={`${imageUrl}?download=1`} />}>Download image</Button>
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Slides ({d.slides}): swipeable post</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {Array.from({ length: d.slides }, (_, i) => (
+              <a key={i} href={`${imageUrl}?slide=${i}&download=1`} className="shrink-0" aria-label={`Download slide ${i + 1}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`${imageUrl}?slide=${i}`} alt={`Slide ${i + 1} for ${d.employer}`} loading="lazy" className="h-40 w-32 rounded-md border border-border object-cover" />
+              </a>
+            ))}
+          </div>
+          <Button nativeButton={false} size="sm" variant="outline" render={<a href={`/api/admin/linkedin-drafts/${d.id}/pdf`} />}>Download as PDF (document post)</Button>
+          <p className="text-xs text-muted-foreground">Click a slide to download it. Posting from here sends all slides as one swipeable post.</p>
+        </div>
         <div className="space-y-1 text-sm">
           <p className="font-medium">Tag these when you post</p>
           <ul className="space-y-1 text-muted-foreground">

@@ -160,11 +160,12 @@ async function uploadLinkedInImage(accessToken: string, personUrn: string, png: 
   return data.value.asset
 }
 
-/** Publishes text with an optional image as the member. Returns the post URN. */
+/** Publishes text with up to nine images (a swipeable set) as the member. Returns the post URN. */
 export async function publishLinkedInShare(o: {
-  accessToken: string; personUrn: string; text: string; image?: Buffer; visibility: LinkedInVisibility
+  accessToken: string; personUrn: string; text: string; images?: Buffer[]; visibility: LinkedInVisibility
 }): Promise<string> {
-  const asset = o.image ? await uploadLinkedInImage(o.accessToken, o.personUrn, o.image) : null
+  const assets: string[] = []
+  for (const png of (o.images ?? []).slice(0, 9)) assets.push(await uploadLinkedInImage(o.accessToken, o.personUrn, png)) // one at a time: LinkedIn rate-limits uploads
   const response = await fetch(LINKEDIN_UGC_POSTS_URL, {
     method: 'POST',
     headers: liHeaders(o.accessToken),
@@ -174,8 +175,8 @@ export async function publishLinkedInShare(o: {
       specificContent: {
         'com.linkedin.ugc.ShareContent': {
           shareCommentary: { text: o.text },
-          shareMediaCategory: asset ? 'IMAGE' : 'NONE',
-          ...(asset ? { media: [{ status: 'READY', media: asset }] } : {}),
+          shareMediaCategory: assets.length ? 'IMAGE' : 'NONE',
+          ...(assets.length ? { media: assets.map((media) => ({ status: 'READY', media })) } : {}),
         },
       },
       visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': o.visibility },

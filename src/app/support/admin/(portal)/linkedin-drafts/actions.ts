@@ -6,7 +6,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
 import { commentOnLinkedInPost, linkedInPostUrl, publishLinkedInShare, type LinkedInVisibility } from '@/lib/linkedin/oauth'
-import { renderDraftImage } from '@/lib/linkedin/draft-image'
+import { renderDraftSlides } from '@/lib/linkedin/draft-slides'
 import { createDraft } from '@/lib/linkedin/layoff-post-sweep'
 import { assignSlots, credibilityOf } from '@/lib/linkedin/layoff-post-rules'
 import { MAX_EMPLOYEES, MIN_EMPLOYEES } from '@/lib/linkedin/layoff-post-rules'
@@ -42,7 +42,7 @@ export async function skipDraft(id: string): Promise<{ message: string }> {
 }
 
 /**
- * Posts a draft to the admin's own LinkedIn profile: the text with its image,
+ * Posts a draft to the admin's own LinkedIn profile: the text with its slides (a swipeable image set),
  * then the link as the first comment. The draft is claimed (set to POSTED)
  * before anything is sent, so a double click cannot post twice; if LinkedIn
  * refuses, it goes back to DRAFT.
@@ -58,9 +58,8 @@ export async function postDraftToLinkedIn(id: string, visibility: LinkedInVisibi
 
   let postUrn: string
   try {
-    const rendered = await renderDraftImage(id)
-    const image = rendered ? Buffer.from(await rendered.image.arrayBuffer()) : undefined
-    postUrn = await publishLinkedInShare({ accessToken: conn.accessToken, personUrn: conn.personUrn, text: draft.body, image, visibility })
+    const rendered = await renderDraftSlides(id)
+    postUrn = await publishLinkedInShare({ accessToken: conn.accessToken, personUrn: conn.personUrn, text: draft.body, images: rendered?.pngs, visibility })
   } catch (e) {
     await prisma.linkedInPostDraft.update({ where: { id }, data: { status: 'DRAFT', postedAt: null } })
     console.error('LinkedIn post failed for draft', id, e)

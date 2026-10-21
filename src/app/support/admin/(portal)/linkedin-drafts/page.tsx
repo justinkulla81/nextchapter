@@ -5,7 +5,7 @@ import { LinkedInConnectionBar } from '@/components/admin/LinkedInConnectionBar'
 import { LinkedInOtherLayoffs } from '@/components/admin/LinkedInOtherLayoffs'
 import { listDraftableLayoffs } from '@/lib/linkedin/layoff-post-sweep'
 import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
-import type { DraftFacts } from '@/lib/linkedin/layoff-post-rules'
+import { slidesFor, type DraftFacts } from '@/lib/linkedin/layoff-post-rules'
 
 const WHY: Record<DraftFacts['credibility'], string> = {
   'warn-filing': 'State WARN filing',
@@ -62,7 +62,7 @@ export default async function LinkedInDraftsPage({ searchParams }: { searchParam
                 id: d.id, employer: f.employer, employees: f.employees, place: f.place,
                 credibilityLabel: WHY[f.credibility] ?? f.credibility, sourceUrl: f.sourceUrl, angle: d.angle,
                 body: d.body, firstComment: d.firstComment, slotLabel: slot(d.scheduledFor),
-                due: d.scheduledFor.getTime() <= now, rewritten: !!d.rewrittenAt, tags: f.tagSuggestions ?? [], canPost: !!conn,
+                due: d.scheduledFor.getTime() <= now, rewritten: !!d.rewrittenAt, tags: f.tagSuggestions ?? [], canPost: !!conn, slides: slidesFor(f, d.noticeId).length,
               }}
             />
           )

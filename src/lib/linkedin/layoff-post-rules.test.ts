@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  assignSlots, credibilityOf, audienceFit, employerKey, farOffTimeline, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
+  assignSlots, slidesFor, credibilityOf, audienceFit, employerKey, farOffTimeline, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
   type DraftFacts, type GateNotice,
 } from './layoff-post-rules'
 
@@ -70,13 +70,13 @@ describe('assignSlots', () => {
     expect(first.getTime()).toBeGreaterThanOrEqual(now.getTime() + 3_600_000)
     expect(assignSlots(1, [first], now)[0].getTime()).toBeGreaterThan(first.getTime())
   })
-  it('puts at most one on a day', () => {
+  it('puts at most two on a day', () => {
     const perDay = new Map<string, number>()
     for (const s of assignSlots(6, [], now)) {
       const k = s.toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
       perDay.set(k, (perDay.get(k) ?? 0) + 1)
     }
-    expect(Math.max(...perDay.values())).toBeLessThanOrEqual(1)
+    expect(Math.max(...perDay.values())).toBeLessThanOrEqual(2)
   })
 })
 
@@ -147,5 +147,27 @@ describe('farOffTimeline', () => {
   it('flags a WARN effective date more than six months away', () => {
     expect(farOffTimeline([], new Date('2027-06-01T00:00:00Z'), now)).toMatch(/six months/)
     expect(farOffTimeline([], new Date('2026-12-15T00:00:00Z'), now)).toBeNull()
+  })
+})
+
+describe('slidesFor', () => {
+  const soon = new Date('2026-10-20T15:00:00Z')
+  it('opens with the big number and closes with the ask', () => {
+    const s = slidesFor(facts(), 'n1', soon)
+    expect(s[0]).toMatchObject({ kind: 'cover', big: '500 jobs', name: 'Acme' })
+    expect(s[s.length - 1].kind).toBe('cta')
+  })
+  it('teaches in three steps and adds the market slide only with a real number', () => {
+    const s = slidesFor(facts(), 'n1', soon)
+    expect(s.filter((x) => x.kind === 'step')).toHaveLength(3)
+    expect(s.some((x) => x.kind === 'market')).toBe(true)
+    expect(slidesFor(facts({ openRolesInState: null, openSeniorRolesInState: null }), 'n1', soon).some((x) => x.kind === 'market')).toBe(false)
+  })
+  it('counts the days to the effective date', () => {
+    const f = slidesFor(facts({ effectiveDate: '2026-12-15T00:00:00Z' }), 'n1', soon).find((x) => x.kind === 'facts')
+    expect(JSON.stringify(f)).toContain('55 days')
+  })
+  it('keeps every slide within a swipeable length', () => {
+    for (const seed of ['a', 'b', 'c', 'd']) expect(slidesFor(facts(), seed, soon).length).toBeLessThanOrEqual(8)
   })
 })
