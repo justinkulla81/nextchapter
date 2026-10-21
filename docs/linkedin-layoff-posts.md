@@ -11,8 +11,7 @@ How suggested LinkedIn posts about layoffs are made, and the rules for rewriting
    or more; first filed in the last 10 days; not dismissed. At most five new drafts in any seven days,
    biggest first.
 3. Each draft gets a template post, a first comment holding the tracked link, an image card, tag
-   suggestions, and a staggered weekday slot (8:15, 12:10, 17:20 ET; at most two a day, three hours
-   apart).
+   suggestions, and a staggered weekday slot (8:15, 12:10, 17:20 ET; at most one a day).
 4. The queue is https://launchyournextchapter.com/support/admin/linkedin-drafts. Posting is by hand:
    copy the post, download the image, paste the link as the first comment, mark as posted.
 

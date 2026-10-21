@@ -6,9 +6,10 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
 import { commentOnLinkedInPost, linkedInPostUrl, publishLinkedInShare, type LinkedInVisibility } from '@/lib/linkedin/oauth'
-import { renderDraftImage } from '@/lib/linkedin/draft-image'
+import { renderDraftSlides } from '@/lib/linkedin/draft-slides'
 import { createDraft } from '@/lib/linkedin/layoff-post-sweep'
-import { MIN_EMPLOYEES } from '@/lib/linkedin/layoff-post-rules'
+import { assignSlots, credibilityOf } from '@/lib/linkedin/layoff-post-rules'
+import { MAX_EMPLOYEES, MIN_EMPLOYEES } from '@/lib/linkedin/layoff-post-rules'
 
 const BASE = '/support/admin/linkedin-drafts'
 
@@ -41,7 +42,7 @@ export async function skipDraft(id: string): Promise<{ message: string }> {
 }
 
 /**
- * Posts a draft to the admin's own LinkedIn profile: the text with its image,
+ * Posts a draft to the admin's own LinkedIn profile: the text with its slides (a swipeable image set),
  * then the link as the first comment. The draft is claimed (set to POSTED)
  * before anything is sent, so a double click cannot post twice; if LinkedIn
  * refuses, it goes back to DRAFT.
@@ -57,9 +58,8 @@ export async function postDraftToLinkedIn(id: string, visibility: LinkedInVisibi
 
   let postUrn: string
   try {
-    const rendered = await renderDraftImage(id)
-    const image = rendered ? Buffer.from(await rendered.image.arrayBuffer()) : undefined
-    postUrn = await publishLinkedInShare({ accessToken: conn.accessToken, personUrn: conn.personUrn, text: draft.body, image, visibility })
+    const rendered = await renderDraftSlides(id)
+    postUrn = await publishLinkedInShare({ accessToken: conn.accessToken, personUrn: conn.personUrn, text: draft.body, images: rendered?.pngs, visibility })
   } catch (e) {
     await prisma.linkedInPostDraft.update({ where: { id }, data: { status: 'DRAFT', postedAt: null } })
     console.error('LinkedIn post failed for draft', id, e)
@@ -89,7 +89,7 @@ export async function postDraftToLinkedIn(id: string, visibility: LinkedInVisibi
 export async function createSampleDraft(): Promise<{ message: string }> {
   const admin = await requireAdmin()
   const n = await prisma.warnNotice.findFirst({
-    where: { source: 'WARN_FILING', linkedinDraft: null, dismissedAt: null, employees: { gte: MIN_EMPLOYEES }, fetchedAt: { gte: new Date(Date.now() - 90 * 86_400_000) } },
+    where: { source: 'WARN_FILING', linkedinDraft: null, dismissedAt: null, employees: { gte: MIN_EMPLOYEES, lte: MAX_EMPLOYEES }, fetchedAt: { gte: new Date(Date.now() - 90 * 86_400_000) } },
     orderBy: { employees: 'desc' },
   })
   if (!n) return { message: 'No recent WARN filing of 100 jobs or more without a draft.' }
@@ -107,4 +107,26 @@ export async function disconnectLinkedIn(): Promise<{ message: string }> {
   captureServerEvent(admin.email ?? 'admin', 'linkedin_disconnected', {})
   revalidatePath(BASE)
   return { message: 'Disconnected.' }
+}
+
+/**
+ * Makes a draft for any layoff the admin picks from the "Other layoffs" list.
+ * The weekly cap and the credibility gate do not apply: a person decided. A
+ * layoff the gate would not pass is marked "unconfirmed" so the draft says so.
+ */
+export async function makeDraftFor(noticeId: string): Promise<{ message: string }> {
+  const admin = await requireAdmin()
+  const n = await prisma.warnNotice.findUnique({ where: { id: noticeId } })
+  if (!n) return { message: 'That layoff no longer exists.' }
+  const publishers = (await prisma.layoffNewsMention.findMany({ where: { noticeId }, select: { publisher: true } })).map((m) => m.publisher)
+  const why = credibilityOf({ ...n, fetchedAt: new Date() }, publishers) ?? 'unconfirmed'
+  const [recent, waiting] = await Promise.all([
+    prisma.linkedInPostDraft.findMany({ orderBy: { createdAt: 'desc' }, take: 20, select: { angle: true, layout: true } }),
+    prisma.linkedInPostDraft.findMany({ where: { status: 'DRAFT', scheduledFor: { gte: new Date() } }, select: { scheduledFor: true } }),
+  ])
+  const scheduledFor = assignSlots(1, waiting.map((w) => w.scheduledFor))[0] ?? new Date()
+  const made = await createDraft(n, why, scheduledFor, recent.map((r) => r.angle), recent.map((r) => r.layout))
+  captureServerEvent(admin.email ?? 'admin', 'linkedin_draft_made_by_hand', { noticeId, employer: n.employer, employees: n.employees, credibility: why })
+  revalidatePath(BASE)
+  return { message: made ? `Made a draft for ${n.employer}.` : 'That layoff already has a draft.' }
 }
