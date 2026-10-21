@@ -42,18 +42,23 @@ const PER_ARM = Number(process.env.PER_ARM ?? 3), PRODUCT = Number(process.env.P
 const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => r.send === 'yes')
 const start = nextWeekday(Date.parse(startArg ?? iso(Date.now() + DAY)))
 
-type Aud = { name: string; armOf: (r: Row) => string | null; pool: Row[]; arms: string[]; earliest?: (r: Row) => number }
+type Aud = { noNew?: boolean; name: string; armOf: (r: Row) => string | null; pool: Row[]; arms: string[]; earliest?: (r: Row) => number }
 const seenOrg = new Set<string>()
 const employers = rows.filter((r) => ['head_hr', 'rewards', 'er', 'ta'].includes(r.template) && r.timing).sort((a, b) => a.send_on.localeCompare(b.send_on)).filter((r) => { const k = (r.company || r.recipient_org).toLowerCase(); if (seenOrg.has(k)) return false; seenOrg.add(k); return true })
 const boards = rows.filter((r) => r.template === 'board' && r.board_group).sort((a, b) => hash(a.email) - hash(b.email))
 const pilotBoards = new Set(boards.map((r) => r.recipient_org.toLowerCase()))
 const colleges = rows.filter((r) => r.template === 'college').sort((a, b) => Number((b.college_county_jobs || '0').replace(/,/g, '')) - Number((a.college_county_jobs || '0').replace(/,/g, '')))
+const rapidResponse = rows.filter((r) => r.template === 'rr').sort((a, b) => hash(a.email) - hash(b.email))
+// Job centers (ajc) are off the calendar by Justin's call on 2026-10-21; set INCLUDE_AJC=1 to bring them back, after the other audiences.
+// Already-sent centers keep their follow-ups; no new ones are started unless INCLUDE_AJC=1.
 const centers = rows.filter((r) => r.template === 'ajc' && !pilotBoards.has((r.board ?? '').toLowerCase())).sort((a, b) => hash(a.email) - hash(b.email))
+// Order is priority (Justin, 2026-10-21): state Rapid Response, employers (outplacement), workforce boards, higher ed, then job centers if enabled.
 const audiences: Aud[] = [
+  { name: 'rapid response', pool: rapidResponse, arms: ['C1', 'C2'], armOf: (r) => (r.variant.startsWith('C1') ? 'C1' : r.variant.startsWith('C2') ? 'C2' : null) },
   { name: 'employers', pool: employers, arms: ['early', 'late'], armOf: (r) => (['T1', 'T2'].includes(r.timing) ? 'early' : 'late'), earliest: (r) => Date.parse(r.send_on) },
-  { name: 'higher ed', pool: colleges, arms: ['CC', '4YR'], armOf: (r) => r.variant },
   { name: 'boards', pool: boards, arms: ['GROW', 'FLAT'], armOf: (r) => r.variant },
-  { name: 'job centers', pool: centers, arms: ['C1', 'C2'], armOf: (r) => (r.variant.startsWith('C1') ? 'C1' : r.variant.startsWith('C2') ? 'C2' : null) },
+  { name: 'higher ed', pool: colleges, arms: ['CC', '4YR'], armOf: (r) => r.variant },
+  { noNew: process.env.INCLUDE_AJC !== '1', name: 'job centers', pool: centers, arms: ['C1', 'C2'], armOf: (r) => (r.variant.startsWith('C1') ? 'C1' : r.variant.startsWith('C2') ? 'C2' : null) },
 ]
 
 type Out = { date: string; audience: string; arm: string; step: number; row: Row }
@@ -70,6 +75,7 @@ for (let t = start, day = 0; t < start + WEEKS * 7 * DAY; t += DAY) {
   if (isWeekend(t)) continue
   const quota = day < WARMUP ? Math.max(1, PER_ARM - 1) : PER_ARM
   for (const a of audiences) for (const arm of a.arms) {
+    if (a.noNew) continue
     let n = 0
     for (const r of a.pool) {
       if (n >= quota) break
