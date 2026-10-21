@@ -1,0 +1,395 @@
+[
+  {
+    "name": "wd-highmark-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Highmark Health",
+    "tenant": "highmarkhealth",
+    "wd": "wd1",
+    "site": "highmark"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-ppg-industries",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PPG Industries",
+    "tenant": "ppg",
+    "wd": "wd5",
+    "site": "ppg_careers"
+  },
+  {
+    "name": "wd-alcoa",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Alcoa",
+    "tenant": "alcoa",
+    "wd": "wd5",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-dick-s-sporting-goods",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Dick's Sporting Goods",
+    "tenant": "dickssportinggoods",
+    "wd": "wd1",
+    "site": "DSG"
+  },
+  {
+    "name": "wd-viatris",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Viatris",
+    "tenant": "viatris",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "gr-duolingo",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Duolingo",
+    "token": "duolingo"
+  },
+  {
+    "name": "wd-koppers",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Koppers",
+    "tenant": "koppers",
+    "wd": "wd5",
+    "site": "Koppers"
+  },
+  {
+    "name": "wd-huntington",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Huntington",
+    "tenant": "huntington",
+    "wd": "wd12",
+    "site": "HNBcareers"
+  },
+  {
+    "name": "wd-thermo-fisher",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Thermo Fisher",
+    "tenant": "thermofisher",
+    "wd": "wd5",
+    "site": "ThermofisherCareers"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
+  },
+  {
+    "name": "wd-zoll",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Zoll",
+    "tenant": "zoll",
+    "wd": "wd5",
+    "site": "ZOLLMedicalCorp"
+  },
+  {
+    "name": "mcloud-upmc",
+    "adapter": "mcloud",
+    "type": "direct_ats",
+    "employer": "UPMC",
+    "company": "companies/4c0b87d3-a9b3-4243-b9c7-2ad12c533ab3"
+  },
+  {
+    "name": "wd-carnegie-mellon",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Carnegie Mellon University",
+    "tenant": "cmu",
+    "wd": "wd115",
+    "site": "CMU"
+  },
+  {
+    "name": "wd-cmu-sei",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Carnegie Mellon University (SEI)",
+    "tenant": "cmu",
+    "wd": "wd115",
+    "site": "SEI"
+  },
+  {
+    "name": "gr-eqt",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "EQT",
+    "token": "eqtcorporation"
+  },
+  {
+    "name": "taleo-pitt",
+    "adapter": "taleo",
+    "type": "direct_ats",
+    "employer": "University of Pittsburgh",
+    "host": "cfopitt.taleo.net",
+    "sections": [
+      {
+        "name": "pitt_internal",
+        "portal": "10100023232"
+      },
+      {
+        "name": "pitt_student_int",
+        "portal": "18200023232"
+      }
+    ]
+  },
+  {
+    "name": "wd-philips",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Philips",
+    "tenant": "philips",
+    "wd": "wd3",
+    "site": "jobs-and-careers"
+  },
+  {
+    "name": "wd-chatham-university",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Chatham University",
+    "tenant": "chatham",
+    "wd": "wd12",
+    "site": "ChathamUniversityStudent"
+  },
+  {
+    "name": "wd-giant-eagle",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Giant Eagle",
+    "tenant": "gianteagle",
+    "wd": "wd503",
+    "site": "GEExternalcareers"
+  },
+  {
+    "name": "wd-comcast",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Comcast",
+    "tenant": "comcast",
+    "wd": "wd115",
+    "site": "Comcast_Careers"
+  },
+  {
+    "name": "neogov-pa-bureau",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "Commonwealth of Pennsylvania",
+    "agency": "pabureau"
+  },
+  {
+    "name": "oracle-jpmorgan",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "JPMorgan Chase",
+    "host": "jpmc.fa.oraclecloud.com",
+    "site": "CX_1001"
+  },
+  {
+    "name": "jibe-msa-safety",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "MSA Safety",
+    "host": "careers.msasafety.com"
+  },
+  {
+    "name": "phenom-ati",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "ATI",
+    "host": "careers.atimaterials.com",
+    "path": "us/en"
+  },
+  {
+    "name": "sr-wabtec",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Wabtec",
+    "company": "Wabtec"
+  },
+  {
+    "name": "sr-bosch",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Bosch",
+    "company": "BoschGroup"
+  },
+  {
+    "name": "amazon",
+    "adapter": "amazon",
+    "type": "direct_ats",
+    "employer": "Amazon",
+    "queries": [
+      "Pittsburgh, Pennsylvania, USA",
+      "Coraopolis, Pennsylvania, USA",
+      "Canonsburg, Pennsylvania, USA",
+      "Cranberry Township, Pennsylvania, USA"
+    ]
+  },
+  {
+    "name": "neogov-pittsburgh",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "City of Pittsburgh",
+    "agency": "pittsburgh"
+  },
+  {
+    "name": "allegheny-county",
+    "adapter": "aspnet_grid",
+    "type": "public_sector",
+    "employer": "Allegheny County",
+    "url": "https://apps.alleghenycounty.us/hrjobportal/",
+    "location": "Pittsburgh, PA"
+  },
+  {
+    "name": "ess-pittsburgh-public-schools",
+    "adapter": "tyler_ess",
+    "type": "public_sector",
+    "employer": "Pittsburgh Public Schools",
+    "host": "selfservice.pghschools.org",
+    "location": "Pittsburgh, PA"
+  },
+  {
+    "name": "wd-northwest-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Northwest Bank",
+    "tenant": "northwest",
+    "wd": "wd1",
+    "site": "Northwest_Careers"
+  },
+  {
+    "name": "gr-motional",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Motional",
+    "token": "motional"
+  },
+  {
+    "name": "wd-hitachi",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Hitachi",
+    "tenant": "hitachi",
+    "wd": "wd1",
+    "site": "hitachi"
+  },
+  {
+    "name": "wd-covestro",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Covestro",
+    "tenant": "covestro",
+    "wd": "wd3",
+    "site": "cov_external"
+  },
+  {
+    "name": "ukg-first-commonwealth",
+    "adapter": "ukg",
+    "type": "direct_ats",
+    "employer": "First Commonwealth Bank",
+    "company": "FIR1042FCW",
+    "boards": [
+      "4a7e0dd8-8227-42d8-baa0-4e909292dcf1"
+    ]
+  },
+  {
+    "name": "ukg-heritage-valley",
+    "adapter": "ukg",
+    "type": "direct_ats",
+    "employer": "Heritage Valley Health System",
+    "company": "HER1004HERIT",
+    "boards": [
+      "68189271-8c8d-4634-bb50-bd2edf375278",
+      "868bc7bd-7c78-41b4-9208-0652da20d4dc",
+      "8863ffd4-fbec-4333-a5cb-b8b9d13e64b6"
+    ]
+  },
+  {
+    "name": "ab-gecko-robotics",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Gecko Robotics",
+    "token": "gecko-robotics"
+  },
+  {
+    "name": "gr-stackav",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Stack AV",
+    "token": "stackav"
+  },
+  {
+    "name": "gr-peptilogics",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Peptilogics",
+    "token": "peptilogics"
+  },
+  {
+    "name": "gr-waymo",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Waymo",
+    "token": "waymo"
+  },
+  {
+    "name": "csod-duquesne",
+    "adapter": "csod",
+    "type": "direct_ats",
+    "employer": "Duquesne University",
+    "host": "duq.csod.com",
+    "site_id": 1,
+    "corp": "duq"
+  },
+  {
+    "name": "gr-astrobotic",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Astrobotic",
+    "token": "voyagertechnologiesinc"
+  },
+  {
+    "name": "breezy-carnegie-robotics",
+    "adapter": "breezy",
+    "type": "direct_ats",
+    "employer": "Carnegie Robotics",
+    "company": "carnegie-robotics"
+  },
+  {
+    "name": "ap-point-park",
+    "adapter": "applicantpro",
+    "type": "direct_ats",
+    "employer": "Point Park University",
+    "host": "pointpark.applicantpro.com",
+    "domain_id": "17789"
+  },
+  {
+    "name": "ap-seegrid",
+    "adapter": "applicantpro",
+    "type": "direct_ats",
+    "employer": "Seegrid",
+    "host": "seegrid.isolvedhire.com",
+    "domain_id": "7019"
+  }
+]

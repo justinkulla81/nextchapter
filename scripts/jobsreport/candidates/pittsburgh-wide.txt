@@ -1,0 +1,178 @@
+UPMC
+Highmark Health
+University of Pittsburgh
+Walmart
+PNC Financial Services
+Giant Eagle
+Commonwealth of Pennsylvania
+Carnegie Mellon University
+Allegheny County
+Amazon
+Excela Health
+Dick's Sporting Goods
+Pittsburgh Public Schools
+United States Steel
+Heritage Valley Health System
+City of Pittsburgh
+Westinghouse Electric
+Butler Health System
+UnitedHealthcare
+Pittsburgh Regional Transit
+St. Clair Health
+PPG
+Concordia Lutheran Ministries
+Duquesne University
+Philips
+Washington Health System
+F.N.B. Corporation
+American Eagle Outfitters
+Westmoreland County
+Duquesne Light
+Penn Highlands Healthcare
+Allegheny Technologies
+Community College of Allegheny County
+Peoples Natural Gas
+CNX Resources
+Bayer
+Wabtec
+Indiana Regional Medical Center
+FirstEnergy
+Cochran Automotive
+Lutheran SeniorLife
+Rivers Casino
+MSA Safety
+Eaton
+North Allegheny School District
+Federated Hermes
+Presbyterian SeniorCare
+Crown Castle
+Comcast
+Pittsburgh Mercy
+Allegheny Health Network
+EQT
+Duolingo
+Alcoa
+Koppers
+Thermo Fisher
+Huntington Bank
+BNY
+Citizens Bank
+Aurora
+Kennametal
+Mylan Viatris
+Zoll
+Ansys
+Bosch
+Michael Baker International
+L.B. Foster
+Reed Smith
+K&L Gates
+Buchanan Ingersoll
+Robert Morris University
+Point Park University
+Chatham University
+Carlow University
+Pennsylvania State University
+US Steel
+Mastech
+Tableau
+Gecko Robotics
+Argo AI
+Aurora Innovation
+Astrobotic
+Education Management
+Google
+Microsoft
+Meta
+Apple
+Intel
+Carnegie Robotics
+Seegrid
+Petrel Robotics
+Motional
+Uber
+Synopsys
+Black Knight
+Wesco
+FedEx Ground
+Mastech Digital
+Rue21
+GNC
+Mylan
+Ariba
+Lightning Gaming
+Smith Micro
+Rhiza
+Pittsburgh Technology Council
+ServiceNow
+Salesforce
+Oracle
+Cisco
+IBM
+Deloitte
+Accenture
+EY
+KPMG
+Grant Thornton
+Dollar Bank
+Northwest Bank
+S&T Bank
+First Commonwealth Bank
+TriState Capital
+Fidelity Investments
+BNY Mellon
+Vanguard
+Magee-Womens
+Children's Hospital of Pittsburgh
+Jefferson Health
+Allegheny General Hospital
+Mercy Behavioral
+Gateway Health
+Highmark Wholecare
+UPMC Health Plan
+La Roche University
+Washington & Jefferson College
+Slippery Rock University
+Indiana University of Pennsylvania
+Penn State University
+Pennsylvania Western University
+Saint Vincent College
+Seton Hill University
+Geneva College
+Waynesburg University
+Westminster College
+Pittsburgh Theological Seminary
+Carnegie Learning
+Language Weaver
+SEI
+National Energy Technology Laboratory
+Bechtel
+Mine Safety Appliances
+Matthews International
+Calgon Carbon
+Howmet
+Arconic
+Atlas Energy
+Range Resources
+Consol Energy
+Equitable
+Dominion Energy
+Columbia Gas
+Mckesson
+Cardinal Health
+Siemens
+ABB
+Hitachi
+Mitsubishi Electric
+Covestro
+Heinz
+Kraft Heinz
+GNC Holdings
+Iron Mountain
+Pittsburgh Pirates
+Pittsburgh Steelers
+Pittsburgh Penguins
+PNC Bank
+Mitsubishi
+Tenaris
+Clairton

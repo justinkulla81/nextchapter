@@ -1,0 +1,126 @@
+[
+  {
+    "name": "wd-truist",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Truist",
+    "tenant": "truist",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-duke-energy",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Duke Energy",
+    "tenant": "dukeenergy",
+    "wd": "wd1",
+    "site": "Search"
+  },
+  {
+    "name": "wd-tiaa",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "TIAA",
+    "tenant": "tiaa",
+    "wd": "wd1",
+    "site": "External-Schroder-Internal"
+  },
+  {
+    "name": "wd-albemarle",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Albemarle",
+    "tenant": "albemarle",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-ally-financial",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Ally Financial",
+    "tenant": "ally",
+    "wd": "wd1",
+    "site": "Ally"
+  },
+  {
+    "name": "gr-lendingtree",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "LendingTree",
+    "token": "lendingtree"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-us-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "US Bank",
+    "tenant": "usbank",
+    "wd": "wd1",
+    "site": "US_Bank_Careers"
+  },
+  {
+    "name": "wd-pwc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PwC",
+    "tenant": "pwc",
+    "wd": "wd3",
+    "site": "Global_Experienced_Careers"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
+  },
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "CenterWell_External_Career_Site"
+  },
+  {
+    "name": "wd-belk",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Belk",
+    "tenant": "belk",
+    "wd": "wd1",
+    "site": "Jobs-Stores"
+  }
+]

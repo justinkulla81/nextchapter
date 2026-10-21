@@ -1,0 +1,50 @@
+employer,sector,public_or_private,approx_local_employees,size_source,our_louisville_ky_postings_2026_10_15,how_we_get_it_today,gap,next_step
+UPS (Worldport),Logistics,Private,22100,HUD market profile citing Louisville Business First (2016; stale),0,not seen in data,none,Find UPS careers ATS; crawl directly; include hourly and management
+Ford Motor Company,Manufacturing,Private,13020,Local relocation guide (undated),2,aggregator,low,Crawl Ford careers (Louisville Assembly and Kentucky Truck plants + salaried)
+Jefferson County Public Schools,Education (K-12),Public,14000,Local relocation guide (undated),0,not seen in data,none,Crawl JCPS postings (likely applicant tracking on district site); all levels
+UofL Health,Healthcare,Private nonprofit,13136,Local relocation guide (undated),12,direct Workday,low,Crawl all UofL Health Workday requisitions; confirm full board is covered
+Humana,Health insurance,Private,12500,HUD market profile (2016; stale),43,direct careers.humana.com,present,Confirm all Louisville and remote-from-Louisville requisitions are included
+Kroger (Louisville region),Retail/grocery,Private,9300,Relocation guide (2022),0,not seen in data,none,Crawl Kroger careers filtered to Louisville division; hourly and salaried
+Baptist Health (Louisville),Healthcare,Private nonprofit,,not found,13,direct Workday,low,Confirm full Workday board is crawled
+Norton Healthcare,Healthcare,Private nonprofit,,not found,7,direct (Norton careers),low,Norton is among the largest local employers; 7 postings suggests partial coverage
+University of Louisville,Education (higher ed),Public,,not found,1,aggregator,low,Crawl UofL jobs site (staff and faculty)
+Louisville Metro Government,Government (local),Public,2683,Revelio Labs (government only),0,not seen in data,none,Crawl via NEOGOV / governmentjobs.com or Metro HR site
+Commonwealth of Kentucky,Government (state),Public,,not found,1,aggregator,low,Crawl state jobs portal filtered to Jefferson County
+Louisville Water Company,Utility (public),Public,,not found,0,not seen in data,none,Crawl careers page
+Louisville and Jefferson County MSD,Utility (public),Public,,not found,0,not seen in data,none,Crawl careers page
+Jefferson County Clerk / courts,Government (local),Public,,not found,1,aggregator,low,Crawl via Kentucky Court of Justice and county portals
+Veterans Affairs and other federal (USAJOBS),Government (federal),Public,,not found,~10,USAJOBS feed,present,Use USAJOBS API filtered to Jefferson County
+GE Appliances (Haier),Manufacturing,Private,,not found,8,aggregator,present,Crawl GE Appliances careers directly (Appliance Park)
+Brown-Forman,Beverages,Private,5400,WDRB (global headcount; local share unknown),10,direct Workday,present,Confirm all Louisville requisitions
+LG&E and KU (PPL),Utilities,Private,,not found,9,direct careers.pplweb.com,present,Confirm LG&E and KU requisitions are included
+Elevance Health (Anthem),Health insurance,Private,,not found,8,direct Workday,present,Confirm Louisville subset
+ScionHealth,Healthcare,Private,,not found,8,direct,present,Confirm
+BrightSpring Health Services,Healthcare,Private,,not found,10,direct iCIMS,present,Confirm
+Papa John's,Restaurant/franchise,Private,,not found,7,direct Workday,present,Confirm corporate versus restaurant roles
+Deloitte,Professional services,Private,,not found,25,aggregator,present,Check that listed Louisville roles are in-office rather than remote roles tagged to Louisville
+PwC,Professional services,Private,,not found,7,aggregator,present,Same check as Deloitte
+KPMG,Professional services,Private,,not found,4,aggregator,present,Same check as Deloitte
+EY,Professional services,Private,,not found,3,aggregator,present,Same check as Deloitte
+PNC,Banking,Private,,not found,3,aggregator,low,Crawl PNC careers filtered to Louisville
+Fifth Third,Banking,Private,,not found,2,aggregator,low,Crawl Fifth Third careers filtered to Louisville
+JPMorgan Chase,Banking,Private,,not found,2,aggregator,low,Crawl JPMorgan careers filtered to Louisville
+Wells Fargo,Banking,Private,,not found,0,not seen in data,none,Crawl Wells Fargo careers filtered to Louisville
+Stock Yards Bank and Trust,Banking,Private,,not found,1,aggregator,low,Crawl careers page
+Waystar,Healthcare technology,Private,,not found,1,aggregator,low,Crawl careers page
+Jack Henry & Associates,Financial technology,Private,,not found,4,aggregator,present,Confirm Louisville subset
+Churchill Downs,Entertainment,Private,,not found,2,aggregator,low,Crawl careers page
+Texas Roadhouse,Restaurant,Private,,not found,0,not seen in data,none,Crawl corporate careers (support center) and restaurant roles
+Lockheed Martin,Aerospace/defense,Private,,not found,4,aggregator,present,Confirm which are Louisville KY roles
+Frost Brown Todd,Law,Private,,not found,1,aggregator,low,Crawl careers page
+Stites & Harbison,Law,Private,,not found,1,aggregator,low,Crawl careers page
+Stoll Keenon Ogden,Law,Private,,not found,1,aggregator,low,Crawl careers page
+Dinsmore & Shohl,Law,Private,,not found,0,not seen in data,none,Crawl careers page
+Sullivan University,Education (private),Private,,not found,2,aggregator,low,Crawl careers page
+Bellarmine University,Education (private),Private nonprofit,,not found,0,not seen in data,none,Crawl careers page
+Spalding University,Education (private),Private nonprofit,,not found,0,not seen in data,none,Crawl careers page
+Jefferson Community and Technical College,Education (public),Public,,not found,0,not seen in data,none,Crawl via KCTCS jobs site
+Amazon (Louisville facilities),Logistics/retail,Private,,not found,0,not seen in data,none,Crawl Amazon jobs filtered to Louisville
+Walmart (Louisville stores),Retail,Private,,not found,0,not seen in data,none,Crawl Walmart careers filtered to Louisville
+Lowe's and Home Depot (Louisville stores),Retail,Private,,not found,0,not seen in data,none,Crawl careers filtered to Louisville
+Molina Healthcare (Passport),Health insurance,Private,,not found,0,not seen in data,none,Verify local presence; crawl
+Cigna,Health insurance,Private,,not found,0,not seen in data,none,Verify local presence; crawl

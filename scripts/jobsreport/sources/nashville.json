@@ -1,0 +1,83 @@
+[
+  {
+    "name": "wd-vanderbilt-university-medical-center",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Vanderbilt University Medical Center",
+    "tenant": "vumc",
+    "wd": "wd1",
+    "site": "vumccareers"
+  },
+  {
+    "name": "wd-iheartmedia",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "iHeartMedia",
+    "tenant": "iheartmedia",
+    "wd": "wd5",
+    "site": "External_iHM"
+  },
+  {
+    "name": "wd-bridgestone-americas",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Bridgestone Americas",
+    "tenant": "bridgestone",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-philips",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Philips",
+    "tenant": "philips",
+    "wd": "wd3",
+    "site": "jobs-and-careers"
+  },
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "Humana_External_Career_Site"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-truist",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Truist",
+    "tenant": "truist",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-regions",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Regions",
+    "tenant": "regions",
+    "wd": "wd5",
+    "site": "regions_careers"
+  }
+]
