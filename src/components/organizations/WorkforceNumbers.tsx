@@ -33,7 +33,7 @@ export async function WorkforceNumbers({ page }: { page: string }) {
         </div>
         <p className="mt-6 text-sm text-muted-foreground">
           <span className="font-semibold text-ink">How we count:</span> every figure comes from our live database, is refreshed daily and is
-          rounded down (“+” means more than shown); open jobs leave out internships and expired or closed postings, and each employer counts once.
+          rounded down (“+” means more than shown); open jobs leave out internships and expired or closed postings, a job listed more than once counts once, and each employer counts once.
         </p>
       </WorkforceStatsTracker>
     </AudienceSection>

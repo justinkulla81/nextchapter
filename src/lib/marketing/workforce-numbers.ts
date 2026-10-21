@@ -36,8 +36,19 @@ type JobRow = {
 }
 
 async function jobCounts(): Promise<JobRow> {
-  // One pass over the open board (~10 s at 500k rows), hence the daily cache.
-  const [row] = await prisma.$queryRawUnsafe<JobRow[]>(`SELECT count(*)::int AS live,
+  // One pass over the open board (~10 s at 500k rows), hence the daily cache. Counted per role,
+  // not per row: rows sharing a crawlerFingerprint (a re-issued aggregator URL whose old row is
+  // still live) count once, using the most recently checked row; rows with no fingerprint count
+  // one each. Crawler rows that closed today stay in until the next import archives them; the
+  // board has no cheaper signal for that.
+  const [row] = await prisma.$queryRawUnsafe<JobRow[]>(`WITH roles AS (
+      SELECT DISTINCT ON (COALESCE("crawlerFingerprint", "id"))
+        "lastVerifiedAt", "aiSkillGroups", "employerSector", "requirementFlags", "companyId", "companyName",
+        "socCode", "industry", "targetFunction", "locationState", "locationCity"
+      FROM "ExclusiveJobPosting" WHERE ${LIVE}
+      ORDER BY COALESCE("crawlerFingerprint", "id"), "lastVerifiedAt" DESC NULLS LAST, "createdAt" DESC
+    )
+    SELECT count(*)::int AS live,
       count(*) FILTER (WHERE "lastVerifiedAt" > now() - interval '24 hours')::int AS checked_24h,
       count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS ai_skill,
       count(*) FILTER (WHERE "employerSector" = 'government')::int AS government,
@@ -52,7 +63,7 @@ async function jobCounts(): Promise<JobRow> {
       count(DISTINCT upper("locationState")) FILTER (WHERE upper("locationState") IN (${US_STATES}))::int AS states,
       count(DISTINCT lower("locationCity") || '|' || upper("locationState"))
         FILTER (WHERE "locationCity" IS NOT NULL AND upper("locationState") IN (${US_STATES}))::int AS places
-    FROM "ExclusiveJobPosting" WHERE ${LIVE}`)
+    FROM roles`)
   if (!row) throw new Error('job counts returned no row')
   return row
 }
@@ -83,7 +94,7 @@ async function taxonomyCounts(): Promise<TaxonomyRow> {
 }
 
 const DAY = 86_400
-const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v1'], { revalidate: DAY })
+const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v2'], { revalidate: DAY })
 const cachedTaxonomy = unstable_cache(taxonomyCounts, ['workforce-numbers-taxonomy-v1'], { revalidate: DAY })
 
 async function safe<T>(label: string, run: () => Promise<T>): Promise<T | null> {
