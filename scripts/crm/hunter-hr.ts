@@ -67,7 +67,7 @@ async function hunter(path: string, params: Record<string, string>): Promise<any
 
 async function search(max: number, out: string) {
   if (!KEY) throw new Error('HUNTER_API_KEY is not set')
-  const since = new Date(Date.now() - 90 * 86_400_000)
+  const since = new Date(Date.now() - Number(process.env.WARN_DAYS ?? 90) * 86_400_000)
   const warn = await prisma.warnNotice.groupBy({
     by: ['promotedOrgId'],
     where: { promotedOrgId: { not: null }, source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: since } },
@@ -75,6 +75,15 @@ async function search(max: number, out: string) {
   })
   const targets = new Map<string, { employees: number; mode: 'warn' | 'leads' }>()
   for (const w of warn) if ((w._sum.employees ?? 0) >= Number(process.env.WARN_MIN ?? 100)) targets.set(w.promotedOrgId!, { employees: w._sum.employees ?? 0, mode: 'warn' })
+  // PROFESSIONAL_ONLY=1: keep only filers in a professional-heavy industry or on the reviewed list (scripts/crm/professional-employers.json), so no searches go to farms and plants.
+  if (process.env.PROFESSIONAL_ONLY) {
+    const keys = new Set(Object.keys((JSON.parse(readFileSync(new URL('./professional-employers.json', import.meta.url), 'utf8')) as { employers: Record<string, string> }).employers))
+    const ok = new Set<string>()
+    for (const n of await prisma.warnNotice.findMany({ where: { promotedOrgId: { in: [...targets.keys()] }, source: 'WARN_FILING', dismissedAt: null, noticeDate: { gte: since } }, select: { promotedOrgId: true, industry: true, normalizedEmployer: true } })) {
+      if (/^(tech:|51\b|52\b|54\b|55\b)/i.test(n.industry ?? '') || keys.has(n.normalizedEmployer)) ok.add(n.promotedOrgId!)
+    }
+    for (const id of [...targets.keys()]) if (!ok.has(id)) targets.delete(id)
+  }
   const leads = await prisma.crmOrganization.findMany({
     where: { leadQuality: 'A', outplacementProfile: { isNot: null }, usState: { not: null } },
     select: { id: true, outplacementProfile: { select: { headcountAffected: true } } },
