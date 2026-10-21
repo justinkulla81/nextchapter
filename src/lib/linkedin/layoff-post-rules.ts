@@ -176,7 +176,7 @@ export function farOffTimeline(headlines: string[], effectiveDate: Date | null, 
 /** How far to push a far-off layoff down the list. */
 export const FAR_OFF_PENALTY = 3
 
-export const ANGLES = ['offer-help', 'first-week', 'local-market', 'senior-demand', 'timeline'] as const
+export const ANGLES = ['offer-help', 'first-week', 'local-market', 'senior-demand', 'timeline', 'company-offer', 'hiring-nearby', 'also-this-week', 'long-search', 'comment-for-plan'] as const
 export type Angle = (typeof ANGLES)[number]
 
 export interface DraftFacts {
@@ -198,6 +198,10 @@ export interface DraftFacts {
   openRemoteRoles?: number | null
   /** People and groups worth @-mentioning when posting: tagging is typed by hand on LinkedIn, so these are prompts. */
   tagSuggestions: { name: string; note: string; linkedinUrl: string | null }[]
+  /** Other employers in the layoff's state with the most open white-collar roles on our board: good news to tag. Older drafts lack it. */
+  hiringNearby?: { name: string; roles: number }[]
+  /** Other credible layoffs filed in the last week, largest first. Older drafts lack it. */
+  otherLayoffs?: { employer: string; employees: number }[]
 }
 
 /** Angles the facts can support; the others would need a number or date we do not have. */
@@ -206,6 +210,8 @@ export function eligibleAngles(f: DraftFacts): Angle[] {
     if (a === 'local-market') return f.openRolesInState != null && f.openRolesInState >= 50 && !!f.state
     if (a === 'senior-demand') return f.openSeniorRolesInState != null && f.openSeniorRolesInState >= 25 && !!f.state
     if (a === 'timeline') return f.credibility === 'warn-filing' && !!f.effectiveDate
+    if (a === 'hiring-nearby') return (f.hiringNearby?.length ?? 0) >= 2 && !!f.state
+    if (a === 'also-this-week') return (f.otherLayoffs?.length ?? 0) >= 1
     return true
   })
 }
@@ -283,6 +289,31 @@ function body(angle: Angle, f: DraftFacts, v: number): string {
       ][v % 2]
     case 'timeline':
       return `WARN notices generally give employees 60 days before a layoff takes effect. The date listed here is ${shortDate(f.effectiveDate ?? '')}. That window is the best time to start: quietly, with a plan, before the pressure of a last paycheck.`
+    case 'company-offer':
+      return [
+        `${f.employer}: an open offer. If it would help the people affected, we would like to give every one of them a free NextChapter account: a pivot plan from their work history, retraining for the gaps, and networking outreach drafted for them. You would see counts of who engaged and landed, never names. If you lead People or HR there, send me a message.`,
+        `To the team at ${f.employer}: if you want to support the people leaving, we can set up NextChapter for all of them at no cost to them, with a link for your announcement or packet and counts back to you, never names. Happy to talk this week.`,
+      ][v % 2]
+    case 'hiring-nearby':
+      return [
+        `There is hiring nearby. On our board today, ${(f.hiringNearby ?? []).slice(0, 3).map((h) => `${h.name} has ${fmt(h.roles)} open white-collar roles`).join(', ')} in ${f.state}. If you are hiring, say so in the comments so the people affected can find you.`,
+        `Good news in the same state: ${(f.hiringNearby ?? []).slice(0, 3).map((h) => `${h.name} (${fmt(h.roles)} roles)`).join(', ')} are among the employers hiring white-collar talent in ${f.state} right now.`,
+      ][v % 2]
+    case 'also-this-week':
+      return [
+        `${f.employer} is not alone this week. ${(f.otherLayoffs ?? []).slice(0, 3).map((o) => `${o.employer} (${fmt(o.employees)} jobs)`).join(', ')} also filed layoffs. If you were affected by any of them, we built a plan for you.`,
+        `This week's layoffs: ${f.employer}, ${(f.otherLayoffs ?? []).slice(0, 3).map((o) => `${o.employer} (${fmt(o.employees)})`).join(', ')}. Whichever one it was, the first week looks the same, and we put it in a plan.`,
+      ][v % 2]
+    case 'long-search':
+      return [
+        `The hard part is rarely the first month. 28% of unemployed white-collar workers have been looking for 27 weeks or more this year, up from 23% a year ago (our monthly report, methods published). Most outplacement ends at 90 days. A plan for the long search starts now.`,
+        `Searches are running longer. 28% of unemployed white-collar workers are still looking after 27 weeks, up from 23% a year ago. If you are affected, start with a plan, not a pile of applications.`,
+      ][v % 2]
+    case 'comment-for-plan':
+      return [
+        `If you were affected, comment "plan" and I will send you a free 30-day plan: what to do this week, who to call, and what to say.`,
+        `Affected by this? Comment "plan" below and I will send you our free first-30-days checklist. If you know someone at ${f.employer}, tag them.`,
+      ][v % 2]
     case 'offer-help':
     default:
       return [
