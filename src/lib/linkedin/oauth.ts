@@ -25,20 +25,23 @@ export function isLinkedInPostingConfigured(): boolean {
   return !!process.env.LINKEDIN_CLIENT_ID && !!process.env.LINKEDIN_CLIENT_SECRET
 }
 
-function getRedirectUri(): string {
+function getRedirectUri(opts: { admin?: boolean } = {}): string {
+  // The admin's "Connect LinkedIn" has no candidate session, so it uses the URL the LinkedIn app has registered: the main site's
+  // callback (LINKEDIN_ADMIN_REDIRECT_URI overrides it if the registered URL is different).
+  if (opts.admin) return process.env.LINKEDIN_ADMIN_REDIRECT_URI || `${new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com').origin}/api/auth/linkedin/callback`
   // The candidate app's host (candidate.<site> once it's switched on), where the session cookie is.
   const appUrl = callbackOriginForAppPath('/dashboard')
   return `${appUrl}/api/auth/linkedin/callback`
 }
 
-export function buildLinkedInAuthUrl(state: string): string {
+export function buildLinkedInAuthUrl(state: string, opts: { admin?: boolean } = {}): string {
   const clientId = process.env.LINKEDIN_CLIENT_ID
   if (!clientId) throw new Error('LINKEDIN_CLIENT_ID is not set.')
 
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: clientId,
-    redirect_uri: getRedirectUri(),
+    redirect_uri: getRedirectUri(opts),
     scope: SCOPE,
     state,
   })
@@ -61,7 +64,7 @@ function requireCredentials(): { clientId: string; clientSecret: string } {
   return { clientId, clientSecret }
 }
 
-export async function exchangeCodeForTokens(code: string): Promise<LinkedInTokenResponse> {
+export async function exchangeCodeForTokens(code: string, opts: { admin?: boolean } = {}): Promise<LinkedInTokenResponse> {
   const { clientId, clientSecret } = requireCredentials()
   const response = await fetch(LINKEDIN_TOKEN_URL, {
     method: 'POST',
@@ -69,7 +72,7 @@ export async function exchangeCodeForTokens(code: string): Promise<LinkedInToken
     body: new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      redirect_uri: getRedirectUri(),
+      redirect_uri: getRedirectUri(opts),
       client_id: clientId,
       client_secret: clientSecret,
     }),
