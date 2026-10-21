@@ -21,6 +21,7 @@ import { namesLookAlike } from '@/lib/text/person-name-match'
 import { detectReportEdition } from '@/lib/mailing/edition-parser'
 import { buildOutreachReplyEmails } from '@/lib/outreach/reply-context'
 import { classifyReply, replyOutcome } from '@/lib/outreach/reply-class'
+import { alertOutreachReply } from '@/lib/outreach/reply-alert'
 import { buildMailingSweepContext, markReportManual, onInboundMessage, type MailingSweepContext } from '@/lib/mailing/tracking'
 import { raiseListPrompt } from '@/lib/mailing/lists'
 
@@ -600,7 +601,11 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
             body: fullBody, attachmentNames, needsReview,
           }).catch((e) => console.error('Mailing outbound hook failed', id, e))
         }
-        if (outreachReply && Date.now() - created.createdAt.getTime() < 5_000) captureServerEvent(personId, 'outreach_reply_received', { class: classifyReply(msg.subject, fullBody ?? msg.snippet) })
+        if (outreachReply && Date.now() - created.createdAt.getTime() < 5_000) {
+          const replyClass = classifyReply(msg.subject, fullBody ?? msg.snippet)
+          captureServerEvent(personId, 'outreach_reply_received', { class: replyClass })
+          await alertOutreachReply({ personId, replyClass, subject: msg.subject, text: fullBody ?? snippetOf(msg.snippet) })
+        }
         if (isNewPerson) result.suggested++
         touched.add(personId)
         loggedForThisMessage = true
