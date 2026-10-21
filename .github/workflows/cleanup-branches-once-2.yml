@@ -1,5 +1,6 @@
 # One-off: deletes branches whose work is already in main. Each is deleted only if its tip is still the exact commit
 # checked when this was written (so nothing added since is lost). Delete this file after the run.
+# (Re-registered so the manual run can start.)
 name: Delete merged branches (one-off 2)
 on:
   workflow_dispatch:
