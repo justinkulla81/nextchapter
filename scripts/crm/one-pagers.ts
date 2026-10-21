@@ -50,6 +50,19 @@ const PAGES: Record<string, { title: string; html: string }> = {
 <ul><li>Hand out this page or share the QR code at an event or in a packet</li><li>Ask us for a link for one layoff and we will tag it so you see your own numbers</li></ul>
 <p class="sub">Free to participants. Participants decide what is shared and with whom.</p>`, qr),
   },
+  'college-overview': {
+    title: 'NextChapter for colleges',
+    html: page('NextChapter for colleges', `
+<h1>Supporting your region's laid-off workers and affected alumni</h1>
+<p class="sub">For continuing education, workforce development, career services and alumni relations.</p>
+<h2>The need</h2>
+<p>Several employers in your county have filed layoff notices. Many of those workers live in your community and some are your alumni. White-collar searches are running long: 28% of unemployed white-collar workers are still looking after 27 weeks, up from 23% a year ago (our monthly report, methods published).</p>
+<h2>What the partnership covers</h2>
+<ul><li>A pivot plan for each person from their own work history, showing the roles their skills already qualify for</li><li>Retraining matched to their skill gaps, including your own programs</li><li>Networking outreach drafted for them, coaching, and exclusive jobs and recruiters</li><li>An outreach path to affected alumni, with their consent, so they hear from you first</li></ul>
+<h2>What you see</h2>
+<ul><li>Counts of who engaged, who enrolled in your programs, who interviewed and who landed. Counts only, never names.</li></ul>
+<div class="terms"><b>Terms</b><ul><li>A partnership for your region, set up around your programs and your alumni</li><li>No individual data is shared without that person\u2019s consent; no data is sold</li><li>Pricing on request</li></ul></div>`, qr),
+  },
   'funder-proposal': {
     title: 'NextChapter pilot proposal',
     html: page('NextChapter pilot proposal', `
