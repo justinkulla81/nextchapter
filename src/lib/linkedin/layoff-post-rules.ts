@@ -175,6 +175,8 @@ export interface DraftFacts {
   /** Open roles on our board in the layoff's state, and the manager-and-above share of them. Null when not known. */
   openRolesInState: number | null
   openSeniorRolesInState: number | null
+  /** Remote roles open to anyone, anywhere. Older drafts lack it. */
+  openRemoteRoles?: number | null
   /** People and groups worth @-mentioning when posting: tagging is typed by hand on LinkedIn, so these are prompts. */
   tagSuggestions: { name: string; note: string; linkedinUrl: string | null }[]
 }
@@ -221,7 +223,7 @@ function lead(f: DraftFacts, v: number): string {
   const size = f.percent ? `${fmt(f.employees)} jobs (${f.percent}% of staff)` : `${fmt(f.employees)} jobs`
   if (f.credibility === 'warn-filing') {
     return [
-      `${f.employer} filed a WARN notice${f.state ? ` in ${f.state}` : ''}: ${size}${where}.`,
+      `${f.employer} filed a WARN notice${f.place ? '' : f.state ? ` in ${f.state}` : ''}: ${size}${where}.`,
       `A WARN notice just landed for ${f.employer}${where}. It covers ${size}.`,
     ][v % 2]
   }
@@ -245,7 +247,10 @@ function body(angle: Angle, f: DraftFacts, v: number): string {
         `If this is your team, here is what to do first:\n\n1. Get the severance offer in writing and read it before signing.\n2. Check your state's unemployment rules the same week, not later.\n3. Ask a manager or two for a reference now, while they're reachable.\n4. Write down your biggest wins from the last two years before you lose access to the details.`,
       ][v % 2]
     case 'local-market':
-      return `The market for the people affected is real. There are ${fmt(f.openRolesInState ?? 0)} open roles in ${f.state} on our job board today, and every one is a role someone is paid to fill. Knowing where the openings are is the first step to a plan.`
+      return [
+        `The market for the people affected is real. ${fmt(f.openRolesInState ?? 0)} white-collar roles are open in ${f.state} on our job board today, at every level, and ${fmt(f.openSeniorRolesInState ?? 0)} of them are manager level or above.${f.openRemoteRoles && f.openRemoteRoles >= 50 ? ` Another ${fmt(f.openRemoteRoles)} remote roles are open to anyone, anywhere.` : ''}`,
+        `Knowing where the openings are is the first step to a plan. Right now there are ${fmt(f.openRolesInState ?? 0)} open white-collar roles in ${f.state}, from entry level to executive.${f.openRemoteRoles && f.openRemoteRoles >= 50 ? ` ${fmt(f.openRemoteRoles)} more remote roles are open to anyone, anywhere.` : ''}`,
+      ][v % 2]
     case 'senior-demand':
       return [
         `Experienced people are still being hired. ${fmt(f.openSeniorRolesInState ?? 0)} manager-and-above roles are open in ${f.state} on our board today. The work is finding the ones that fit, not wondering whether they exist.`,
@@ -423,9 +428,10 @@ export function slidesFor(f: DraftFacts, seed: string, now = new Date()): Slide[
   steps.forEach((st, i) => out.push({ kind: 'step', n: i + 1, total: steps.length, ...st }))
 
   if (f.openRolesInState != null && f.openRolesInState >= 50 && f.state) {
-    const stats = [{ value: fmt(f.openRolesInState), label: `open roles in ${f.state} on our board today` }]
-    if (f.openSeniorRolesInState != null && f.openSeniorRolesInState >= 25) stats.push({ value: fmt(f.openSeniorRolesInState), label: 'of them manager level or above' })
-    out.push({ kind: 'market', title: 'The market is still hiring', stats })
+    const stats = [{ value: fmt(f.openRolesInState), label: `open white-collar roles in ${f.state}, every level` }]
+    if (f.openSeniorRolesInState != null && f.openSeniorRolesInState >= 25) stats.push({ value: fmt(f.openSeniorRolesInState), label: 'at manager level or above' })
+    if (f.openRemoteRoles != null && f.openRemoteRoles >= 50) stats.push({ value: fmt(f.openRemoteRoles), label: 'more are remote, open to anyone' })
+    out.push({ kind: 'market', title: 'Who is hiring right now', stats })
   }
 
   out.push({

@@ -12,7 +12,7 @@ const notice = (o: Partial<GateNotice> = {}): GateNotice => ({
 const facts = (o: Partial<DraftFacts> = {}): DraftFacts => ({
   employer: 'Acme', employees: 500, percent: null, place: 'Harris County, TX', state: 'TX', noticeDate: null,
   effectiveDate: '2026-12-15T00:00:00Z', industry: null, sourceUrl: null, credibility: 'warn-filing',
-  openRolesInState: 900, openSeniorRolesInState: 200, tagSuggestions: [], ...o,
+  openRolesInState: 900, openSeniorRolesInState: 200, openRemoteRoles: 400, tagSuggestions: [], ...o,
 })
 
 describe('credibilityOf', () => {
@@ -169,5 +169,30 @@ describe('slidesFor', () => {
   })
   it('keeps every slide within a swipeable length', () => {
     for (const seed of ['a', 'b', 'c', 'd']) expect(slidesFor(facts(), seed, soon).length).toBeLessThanOrEqual(8)
+  })
+})
+
+describe('market slide and local-market wording', () => {
+  const soon = new Date('2026-10-20T15:00:00Z')
+  it('leads with all white-collar roles, then manager and above, then remote', () => {
+    const m = slidesFor(facts(), 'n1', soon).find((x) => x.kind === 'market')
+    expect(m).toMatchObject({ kind: 'market' })
+    const stats = (m as { stats: { value: string; label: string }[] }).stats
+    expect(stats.map((x) => x.value)).toEqual(['900', '200', '400'])
+    expect(stats[0].label).toContain('every level')
+    expect(stats[1].label).toContain('manager level or above')
+  })
+  it('the post text names all roles, the manager share and remote', () => {
+    const t = draftText('local-market', facts(), 'n1').body
+    expect(t).toContain('900')
+    expect(t).toContain('200')
+    expect(t).toMatch(/white-collar/)
+    expect(t).toMatch(/remote roles are open to anyone/)
+    expect(draftText('offer-help', facts(), 'n1').body).not.toMatch(/in TX: .*Harris County, TX/)
+  })
+  it('still works for drafts made before remote roles were counted', () => {
+    const { openRemoteRoles, ...old } = facts()
+    void openRemoteRoles
+    expect(() => draftText('local-market', old as DraftFacts, 'n1')).not.toThrow()
   })
 })

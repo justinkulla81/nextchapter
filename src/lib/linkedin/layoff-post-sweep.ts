@@ -122,9 +122,10 @@ export async function createDraft(
   n: WarnNotice, why: Credibility, scheduledFor: Date, recentAngles: string[], recentLayouts: number[],
 ): Promise<boolean> {
   const state = n.state
-  const [openRolesInState, openSeniorRolesInState, tagSuggestions] = await Promise.all([
+  const [openRolesInState, openSeniorRolesInState, openRemoteRoles, tagSuggestions] = await Promise.all([
     state ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state } } }) : Promise.resolve(null),
     state ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state }, seniorityGroup: { in: SENIOR } } }) : Promise.resolve(null),
+    state ? prisma.companyJobOpening.count({ where: { closedAt: null, isRemote: true } }) : Promise.resolve(null),
     tagSuggestionsFor(n.promotedOrgId, n.normalizedEmployer, n.workforceBoardId),
   ])
   const facts: DraftFacts = {
@@ -133,7 +134,7 @@ export async function createDraft(
     place: n.county && state ? `${n.county.replace(/ county$/i, '')} County, ${state}` : state,
     state, noticeDate: n.noticeDate?.toISOString() ?? null, effectiveDate: n.effectiveDate?.toISOString() ?? null,
     industry: n.industry, sourceUrl: n.sourceUrl, credibility: why,
-    openRolesInState, openSeniorRolesInState, tagSuggestions,
+    openRolesInState, openSeniorRolesInState, openRemoteRoles, tagSuggestions,
   }
   const angle = leastRecent<Angle>(eligibleAngles(facts), recentAngles as Angle[], n.id)
   const layout = leastRecent(LAYOUTS.map((_, k) => k), recentLayouts, n.id)
