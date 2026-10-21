@@ -10,6 +10,7 @@ interface ScamAlertEmailProps {
   subjectLine: string
   reasons: string[]
   alertUrl: string
+  notSpamUrl: string
   settingsUrl: string
 }
 
@@ -58,6 +59,7 @@ export default function ScamAlertEmail({
   subjectLine,
   reasons,
   alertUrl,
+  notSpamUrl,
   settingsUrl,
 }: ScamAlertEmailProps) {
   const about = claimedCompany ? `the ${claimedCompany} email` : 'a recruiter email'
@@ -67,12 +69,12 @@ export default function ScamAlertEmail({
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>
-        {likelyFake ? `Don't book anything yet: ${about} looks fake.` : `Pause before you reply: ${about} looks off.`}
+        {likelyFake ? `Don't book anything yet: ${about} may be fake.` : `Pause before you reply: ${about} looks off.`}
       </p>
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
         {victoriaName} here. I just checked a message that reached your inbox, and{' '}
-        {likelyFake ? "I'm fairly sure it's a scam." : "I can't tell you it's real."} Here is what I found.
+        {likelyFake ? "I think it's probably a scam, but I can be wrong." : "I can't tell you it's real."} Here is what I found.
       </p>
 
       <div style={quoted}>
@@ -103,13 +105,17 @@ export default function ScamAlertEmail({
         </li>
       </ul>
 
-      <a href={alertUrl} style={button}>
-        See why I flagged it
+      <a href={notSpamUrl} style={button}>
+        Not spam, this is real
       </a>
+      <p style={{ marginTop: '12px' }}>
+        Or just reply to this email and tell me who they are. I read every reply, and I&apos;d rather be corrected
+        than miss a real one. <a href={alertUrl}>See why I flagged it</a>
+      </p>
 
       <p style={footer}>
         I look at recruiter and interview emails in the Gmail inbox you connected, and only keep the ones I flag.
-        If this one is actually legitimate, open the link above and tell me so. That&apos;s how I get better.
+        That&apos;s how I get better.
         You can also report scams at reportfraud.ftc.gov. <a href={settingsUrl}>Manage your Gmail connection</a>
       </p>
       <AudienceTag audience="candidate" />

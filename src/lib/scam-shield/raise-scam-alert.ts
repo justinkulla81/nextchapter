@@ -68,6 +68,7 @@ export async function raiseScamAlert(args: {
   if (!candidate) return
 
   const { sent } = await sendScamAlertEmail(candidate, {
+    alertId,
     level,
     claimedCompany: assessment.claimedCompany,
     fromAddress: args.from,

@@ -3,6 +3,11 @@ import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import ScamAlertEmail from '@/emails/scam-alert'
 import { getVictoriaName } from '@/lib/victoria'
+import { signLink } from '@/lib/email/signed-links'
+
+// Replies land in Vic's own inbox (an alias that forwards to Justin) so a
+// "this is real" answer from a candidate is read by a person.
+export const VIC_ADDRESS = 'vic@launchyournextchapter.com'
 
 // Rapid-response safety email — sent within minutes of detection, not queued
 // into a digest, and deliberately NOT gated by the candidate's notification
@@ -11,6 +16,7 @@ import { getVictoriaName } from '@/lib/victoria'
 export async function sendScamAlertEmail(
   candidate: { id: string; userId: string; firstName: string | null },
   alert: {
+    alertId: string
     level: 'LIKELY_FAKE' | 'SUSPICIOUS'
     claimedCompany: string | null
     fromAddress: string
@@ -34,12 +40,12 @@ export async function sendScamAlertEmail(
 
   const resend = createResend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
-    from: `${victoriaName} at NextChapter <support@launchyournextchapter.com>`,
-    replyTo: 'support@launchyournextchapter.com',
+    from: `${victoriaName} at NextChapter <${VIC_ADDRESS}>`,
+    replyTo: VIC_ADDRESS,
     to: email,
     subject:
       alert.level === 'LIKELY_FAKE'
-        ? `${victoriaName}: don't book anything yet, ${about} looks fake`
+        ? `${victoriaName}: don't book anything yet, ${about} may be fake`
         : `${victoriaName}: pause before you reply, ${about} looks off`,
     react: ScamAlertEmail({
       firstName: candidate.firstName,
@@ -50,6 +56,7 @@ export async function sendScamAlertEmail(
       subjectLine: alert.subject,
       reasons: alert.reasons,
       alertUrl: `${appUrl}/dashboard/scam-watch`,
+      notSpamUrl: `${appUrl}/api/scam-alert/${alert.alertId}/not-spam?sig=${signLink('scam-not-spam', alert.alertId)}`,
       settingsUrl: `${appUrl}/dashboard/privacy`,
     }),
   })

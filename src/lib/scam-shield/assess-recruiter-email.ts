@@ -34,6 +34,20 @@ export type ScamSignalCode =
   | 'off_platform_chat'
   | 'too_good_to_be_true'
 
+// Signals that say something is actually wrong with the message: it imitates a
+// company, or asks for money / ID. The rest (a failed sender check, a link to
+// another site, a Reply-To, urgency, a messaging app) describe how mail is
+// routed or phrased, and every help desk, mailing service and forwarded thread
+// trips them. They corroborate; they never raise an alert alone.
+const SUBSTANTIVE: ReadonlySet<ScamSignalCode> = new Set([
+  'lookalike_domain',
+  'display_name_spoof',
+  'sender_domain_mismatch',
+  'link_domain_mismatch',
+  'sensitive_info_request',
+  'money_request',
+])
+
 export interface ScamSignal {
   code: ScamSignalCode
   weight: number
@@ -59,6 +73,10 @@ export interface AssessInput {
   linkUrls: string[]
   // Raw Authentication-Results header, when the mail provider added one.
   authResults?: string
+  // The candidate has already written in this thread (or it is a reply to one
+  // of their messages). A scammer cannot be replying to a conversation the
+  // candidate started, so only a request for money or ID still counts.
+  inExistingConversation?: boolean
 }
 
 export const LIKELY_FAKE_THRESHOLD = 60
@@ -82,6 +100,12 @@ export const TRUSTED_HOSTS = new Set([
   'paylocity.com', 'dayforce.com', 'adp.com', 'eightfold.ai', 'hirevue.com', 'goodtime.io', 'gem.com',
   'calendly.com', 'cal.com', 'zoom.us', 'zoom.com', 'google.com', 'microsoft.com', 'office.com', 'teams.microsoft.com',
   'glassdoor.com', 'ziprecruiter.com', 'wellfound.com', 'dice.com', 'monster.com', 'usajobs.gov',
+  // Help-desk and ticketing platforms: automated service mail (a data-access
+  // request, a support ticket) is sent from one domain, links to the vendor's
+  // another, and sets a personal Reply-To by design.
+  'atlassian.net', 'atlassian.com', 'zendesk.com', 'freshdesk.com', 'servicenow.com', 'hubspot.com', 'salesforce.com',
+  // NextChapter's own site: a link back to it is never the scam.
+  'launchyournextchapter.com',
 ])
 
 export const SUSPICIOUS_TLDS = new Set(['xyz', 'top', 'click', 'icu', 'shop', 'cfd', 'sbs', 'rest', 'buzz', 'cyou', 'monster', 'gq', 'tk', 'ml', 'ga', 'cf'])
@@ -175,6 +199,12 @@ export function rootLabel(root: string): string {
 
 export function tld(root: string): string {
   return root.split('.').slice(-1)[0]
+}
+
+// atlassian.net and atlassian.com are the same organization.
+function sameBrand(a: string, b: string): boolean {
+  const la = rootLabel(a)
+  return la.length >= 4 && la === rootLabel(b)
 }
 
 export function hostOf(url: string): string | null {
@@ -303,7 +333,7 @@ export function assessRecruiterEmail(input: AssessInput): ScamAssessment {
   }
 
   // 3. Where the links go.
-  const strayLinks = linkRoots.filter((r) => r !== senderRoot)
+  const strayLinks = linkRoots.filter((r) => r !== senderRoot && !sameBrand(r, senderRoot))
   const mismatchedLinks = company ? strayLinks.filter((r) => !domainBelongsTo(r, company)) : []
   if (mismatchedLinks.length > 0 && company) {
     add('link_domain_mismatch', 30, `The link${mismatchedLinks.length > 1 ? 's go' : ' goes'} to ${mismatchedLinks.slice(0, 2).join(' and ')}, which ${mismatchedLinks.length > 1 ? "aren't" : "isn't"} ${company}'s domain.`)
@@ -329,7 +359,7 @@ export function assessRecruiterEmail(input: AssessInput): ScamAssessment {
     const replyDomain = extractDomain(input.replyTo)
     if (replyDomain) {
       const replyRoot = rootDomain(replyDomain)
-      if (replyRoot !== senderRoot && !TRUSTED_HOSTS.has(replyRoot) && !TRUSTED_HOSTS.has(senderRoot)) {
+      if (replyRoot !== senderRoot && !sameBrand(replyRoot, senderRoot) && !TRUSTED_HOSTS.has(replyRoot) && !TRUSTED_HOSTS.has(senderRoot)) {
         add('reply_to_mismatch', 20, `Replies would go to ${replyRoot}, not the address that wrote to you.`)
         flagged.add(replyRoot)
       }
@@ -358,6 +388,11 @@ export function assessRecruiterEmail(input: AssessInput): ScamAssessment {
   if (MONEY_REQUEST.test(text)) add('money_request', 40, 'It involves you paying money, buying equipment, or handling a check or gift cards.')
   if (OFF_PLATFORM.test(text)) add('off_platform_chat', 20, 'It moves the conversation to a messaging app, which real recruiters rarely require.')
   if (TOO_GOOD.test(text)) add('too_good_to_be_true', 15, 'It promises a job or pay with little or no vetting.')
+
+  // Nothing in the message itself is wrong — only routing quirks — so say nothing.
+  const hasSubstance = signals.some((s) => SUBSTANTIVE.has(s.code))
+  const inConversationOk = !input.inExistingConversation || signals.some((s) => s.code === 'money_request' || s.code === 'sensitive_info_request')
+  if (!hasSubstance || !inConversationOk) return { ...NONE, claimedCompany: company }
 
   const score = signals.reduce((sum, s) => sum + s.weight, 0)
   const level: ScamLevel = score >= LIKELY_FAKE_THRESHOLD ? 'likely_fake' : score >= SUSPICIOUS_THRESHOLD ? 'suspicious' : 'none'
