@@ -41,14 +41,15 @@ export async function applyOutreachEvent(event: ResendEvent): Promise<'applied' 
   })
 
   if (event.type === 'email.bounced') {
-    // Any bounce is noted on the send, so no follow-up goes to an address that bounced; only a permanent one stops all mail.
+    // Any bounce is noted on the send and stops outreach to the address.
     const sent = event.data.email_id ? await prisma.crmActivity.findFirst({ where: { sourceRef: `resend:${event.data.email_id}` }, select: { id: true, outcome: true } }) : null
     if (sent && !(sent.outcome ?? '').includes(', bounced')) await prisma.crmActivity.update({ where: { id: sent.id }, data: { outcome: `${sent.outcome ?? ''}, bounced` } })
-    if (!isPermanentBounce(event)) return 'applied'
     const detail = [event.data.bounce?.type, event.data.bounce?.subType, event.data.bounce?.message].filter(Boolean).join(' · ')
+    // Resend reports a bounce only after it has given up, and a corporate mail server that refuses us once will refuse again: any bounce stops cold outreach to the address.
+    // A hard bounce also marks the address invalid; a soft one is only suppressed, so it can be reviewed.
     await suppress(to, 'BOUNCED', detail)
-    if (person) await prisma.crmPerson.update({ where: { id: person.id }, data: { emailVerifiedStatus: 'invalid', emailVerifiedAt: new Date() } })
-    captureServerEvent(person?.id ?? 'outreach', 'outreach_email_bounced', { permanent: true })
+    if (person && isPermanentBounce(event)) await prisma.crmPerson.update({ where: { id: person.id }, data: { emailVerifiedStatus: 'invalid', emailVerifiedAt: new Date() } })
+    captureServerEvent(person?.id ?? 'outreach', 'outreach_email_bounced', { permanent: isPermanentBounce(event) })
     return 'applied'
   }
   if (event.type === 'email.complained') {
