@@ -74,6 +74,10 @@ export type OrgKind = 'college' | 'workforce'
 
 export const orgKindOf = (t: InstitutionOrgType | null | undefined): OrgKind => (!t || t === 'COLLEGE' ? 'college' : 'workforce')
 
+// The partner activity trail (src/lib/partners/audit.ts) keeps colleges and workforce organizations apart, though both
+// are an Institution served from /i/<slug>.
+export const auditPortalOf = (t: InstitutionOrgType | null | undefined): 'HIGHER_ED' | 'WORKFORCE' => (orgKindOf(t) === 'workforce' ? 'WORKFORCE' : 'HIGHER_ED')
+
 // The portal's public address (src/lib/org-hosts.ts): its own subdomain
 // (workforce. / highered.), or /workforce/<slug> and /highered/<slug> on the
 // main host while subdomains are off. Served from /i/<slug> either way.
@@ -255,6 +259,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Overview', comingIn: null },
       { key: 'services', label: 'Services', comingIn: null },
       { key: 'users', label: 'Staff', comingIn: null },
+      { key: 'activity', label: 'Activity', comingIn: null },
       { key: 'branding', label: 'Branding', comingIn: null },
       { key: 'roster', label: 'Roster', comingIn: null },
       { key: 'board', label: 'Board report', comingIn: null },

@@ -20,6 +20,7 @@ import { importGifts, importRoster } from '@/lib/higher-ed/crm-import'
 import { sendJoinInvites } from '@/lib/higher-ed/invites'
 import { canAny, type InstitutionCapability } from '@/lib/institution/permissions'
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
+import { recordInstitutionAudit } from '@/lib/higher-ed/partner-audit'
 import { US_TIME_ZONES } from '@/lib/higher-ed/time-zone'
 import type { WorkspaceKey } from '@/lib/higher-ed/workspaces'
 
@@ -215,6 +216,7 @@ export async function inviteStaff(slug: string, _prev: FormState, formData: Form
   })
   if (result.error) return { error: result.error }
   captureServerEvent(ctx.userId, 'institution_staff_invited', { institutionId: ctx.institution.id, role, workspace })
+  await recordInstitutionAudit(ctx, 'team.invited', { type: 'staff', detail: { role } })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Invite sent.' }
 }
@@ -234,6 +236,7 @@ export async function removeStaff(slug: string, staffId: string): Promise<{ erro
   }
   await prisma.institutionUser.update({ where: { id: staffId }, data: { revokedAt: new Date() } })
   captureServerEvent(ctx.userId, 'institution_staff_removed', { institutionId: ctx.institution.id, role: row.role })
+  await recordInstitutionAudit(ctx, 'team.removed', { type: 'staff', id: staffId, detail: { role: row.role } })
   revalidatePath(`/i/${slug}`, 'layout')
   return { message: 'Removed. They lose this role right away.' }
 }
@@ -247,6 +250,7 @@ export async function resendStaffInvite(slug: string, staffId: string): Promise<
   const r = await inviteInstitutionUser({ institutionSlug: slug, email: row.invitedEmail, role: row.role, workspace: row.workspace })
   if (r.error) return { error: r.error }
   captureServerEvent(ctx.userId, 'institution_staff_invite_resent', { institutionId: ctx.institution.id, role: row.role })
+  await recordInstitutionAudit(ctx, 'team.invite_resent', { type: 'staff', id: staffId, detail: { role: row.role } })
   revalidatePath(`/i/${slug}`, 'layout')
   return { message: 'Invite sent again.' }
 }
@@ -270,6 +274,7 @@ export async function saveBranding(slug: string, _prev: FormState, formData: For
     ...(hero ? { heroImageUrl: hero } : {}),
   })
   captureServerEvent(ctx.userId, 'he_branding_saved', { institutionId: ctx.institution.id, logo: !!logo, hero: !!hero })
+  await recordInstitutionAudit(ctx, 'brand.updated', { type: 'institution', id: ctx.institution.id })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Saved. Everyone sees the new look on their next page load.' }
 }
