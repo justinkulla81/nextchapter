@@ -78,7 +78,7 @@ export function LayoffList({ summary, scope }: { summary: NoticeSummary; scope: 
       <p className="mt-1 text-sm text-muted-foreground">{n0(summary.notices)} state filings covering {n0(summary.jobs)} jobs at {summary.employers} employers.</p>
       <ul className="mt-3 divide-y divide-border text-sm">
         {summary.top.map((t) => (
-          <li key={t.employer + t.noticeDate.toISOString()} className="flex justify-between gap-3 py-2"><span>{t.employer}</span><span className="tabular-nums text-muted-foreground">{n0(t.employees)} jobs · {t.noticeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></li>
+          <li key={t.employer + t.noticeDate.toISOString()} className="flex justify-between gap-3 py-2"><span>{t.employer}</span><span className="tabular-nums text-muted-foreground">{n0(t.employees)} jobs · {t.dateKind === 'effective' ? 'effective ' : ''}{t.noticeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span></li>
         ))}
       </ul>
       <p className="mt-3 text-xs text-muted-foreground">Public state WARN filings.</p>
