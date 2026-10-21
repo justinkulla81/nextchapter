@@ -22,6 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
+      secure: process.env.NODE_ENV === 'production',
     })
   }
 

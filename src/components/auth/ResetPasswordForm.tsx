@@ -104,6 +104,12 @@ export function ResetPasswordForm() {
       return
     }
 
+    // A reset usually means the old password may be known to someone else:
+    // end every other session (and its refresh token) so a stolen login
+    // stops working now, not when its token next expires. Best effort; this
+    // browser's own new session stays.
+    await supabase.auth.signOut({ scope: 'others' }).catch(() => {})
+
     // Leave loading true — we're navigating away, so there's no moment where
     // the button should look idle again before the new page appears.
     const next = searchParams.get('next')
@@ -133,7 +139,7 @@ export function ResetPasswordForm() {
           id="password"
           type="password"
           required
-          minLength={6}
+          minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { PORTAL_COOKIE_NAMES, portalForPath, PROTECTED_APP_PATH_PREFIXES, PORTAL_APP_SUBROUTES, pathStartsWith, type PortalKey } from '@/lib/supabase/portal'
 import { portalHostFor, portalHostOn, publicPathFor } from '@/lib/portal-hosts'
+import { SERVER_COOKIES_SECURE, sessionCookieOptions } from './cookie-options'
 
 // Whether ANY Supabase session cookie is present for the relevant portal —
 // checked with startsWith (not equality) because @supabase/ssr chunks a
@@ -62,7 +63,7 @@ export async function updateSession(request: NextRequest, opts: { portal?: Porta
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
-        cookieOptions: portalCookieName ? { name: portalCookieName } : undefined,
+        cookieOptions: sessionCookieOptions(portalCookieName, SERVER_COOKIES_SECURE),
         cookies: {
           getAll() {
             return request.cookies.getAll()

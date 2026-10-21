@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { parseKitLabel } from '@/lib/cohorts/launch-kit'
 import { REFERRAL_COOKIE, REFERRAL_COOKIE_MAX_AGE_SECONDS } from '@/lib/candidates/referral'
+import { safeNext } from '@/lib/auth/safe-next'
 
 // A referral link: /api/r/<code>. Remembers who sent the visitor (30-day
 // cookie, read at registration by applyReferralCookie) and lands them on
@@ -12,13 +13,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { code } = await params
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
   const to = request.nextUrl.searchParams.get('to')
-  const path = to && to.startsWith('/') && !to.startsWith('//') ? to : '/'
+  // safeNext, not a startsWith('//') check: "/\evil.com" parses as
+  // https://evil.com in new URL(), so that check let ?to= leave the site.
+  const path = safeNext(to, '/')
   const response = NextResponse.redirect(new URL(path, appUrl))
 
   const link = await prisma.referralLink.findUnique({ where: { code }, select: { id: true, isActive: true, label: true } })
   if (link?.isActive) {
     response.cookies.set(REFERRAL_COOKIE, code, {
-      maxAge: REFERRAL_COOKIE_MAX_AGE_SECONDS, httpOnly: true, sameSite: 'lax', path: '/',
+      maxAge: REFERRAL_COOKIE_MAX_AGE_SECONDS, httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production',
     })
     const kit = parseKitLabel(link.label)
     if (kit) captureServerEvent(`kit:${kit.cohortId}`, 'cohort_kit_link_clicked', { cohortId: kit.cohortId, source: kit.source })

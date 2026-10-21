@@ -92,7 +92,7 @@ export async function startCrucibleSession(source: CrucibleSource, jobIntent: Cr
   })
 
   const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE, session.id, { httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/' })
+  cookieStore.set(SESSION_COOKIE, session.id, { httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/', secure: process.env.NODE_ENV === 'production' })
 
   captureServerEvent(authed?.candidateId ?? session.id, 'crucible_test_start', { src: source, variant, jobIntent })
 
@@ -455,7 +455,7 @@ export async function logCrucibleInterestStandalone(kind: 'FULL' | 'LESSON', ema
     session = await prisma.crucibleSession.create({
       data: { source, candidateId: authed?.candidateId ?? null, email: authed?.email ?? email },
     })
-    cookieStore.set(SESSION_COOKIE, session.id, { httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/' })
+    cookieStore.set(SESSION_COOKIE, session.id, { httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/', secure: process.env.NODE_ENV === 'production' })
   }
 
   await prisma.crucibleInterest.create({ data: { sessionId: session.id, kind, email } })
@@ -498,7 +498,7 @@ export async function retryCrucibleChallenge(previousSessionId: string): Promise
   })
 
   const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE, session.id, { httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/' })
+  cookieStore.set(SESSION_COOKIE, session.id, { httpOnly: true, sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/', secure: process.env.NODE_ENV === 'production' })
 
   captureServerEvent(session.candidateId ?? session.id, 'crucible_retry', { previousSessionId, variant: nextVariant })
 
