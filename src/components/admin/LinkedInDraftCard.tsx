@@ -89,12 +89,22 @@ export function LinkedInDraftCard({ d }: { d: DraftCardData }) {
         <div className="space-y-1 text-sm">
           <p className="font-medium">Tag these when you post</p>
           <ul className="space-y-1 text-muted-foreground">
-            <li>{d.employer} company page (type @ and pick it)</li>
+            <li>
+              <a href={`https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(d.employer)}`} target="_blank" rel="noreferrer" className="underline">{d.employer} company page</a>: type @ in the post and pick it
+            </li>
             {d.tags.map((t) => (
               <li key={t.name}>
                 {t.linkedinUrl ? <a href={t.linkedinUrl} target="_blank" rel="noreferrer" className="underline">{t.name}</a> : t.name}: {t.note}
               </li>
             ))}
+          </ul>
+        </div>
+        <div className="space-y-1 text-sm">
+          <p className="font-medium">In the first hour after posting</p>
+          <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+            <li>Paste the link as the first comment.</li>
+            <li>Answer every comment; replies count as engagement.</li>
+            <li>Leave a short, useful comment on the news post about this layoff, where affected people are reading.</li>
           </ul>
         </div>
       </aside>
