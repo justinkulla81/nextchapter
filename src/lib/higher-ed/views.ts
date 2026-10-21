@@ -249,6 +249,25 @@ export async function getOutcomesByBucket(ctx: Ctx, db: Db = prisma): Promise<Ou
     where "institutionId" = ${ctx.institution.id}`
 }
 
+export type MemberAiSkillsRow = {
+  primaryFunction: string | null
+  resumeKeywords: string[]
+  confirmedSkillsHave: string[]
+  certifications: string[]
+  skillLevels: unknown
+}
+
+// Career Services "Outcomes" tab, AI skills panel. Members with SHARE_OUTCOME on only (applied in
+// the SQL view). The caller turns the rows into counts (src/lib/skills/cohort-ai-gap.ts, which
+// holds back any group under 10 people) and never passes a row on.
+export async function getMemberAiSkills(ctx: Ctx, db: Db = prisma): Promise<MemberAiSkillsRow[]> {
+  assertHolds(ctx, OUTCOMES_ROLES, 'outcomes')
+  return db.$queryRaw<MemberAiSkillsRow[]>`
+    select "primaryFunction", "resumeKeywords", "confirmedSkillsHave", certifications, "skillLevels"
+    from private.v_member_ai_skills
+    where "institutionId" = ${ctx.institution.id}`
+}
+
 export type MentorStats = {
   activeMentors: number
   requestsThisMonth: number

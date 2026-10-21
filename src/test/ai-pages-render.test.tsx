@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 
-vi.mock('@/lib/skills/ai-share-trend-server', () => ({
+vi.mock('@/lib/skills/ai-market-trend-server', () => ({
   loadAiShareTrend: async () => null,
+}))
+vi.mock('@/lib/skills/ai-market-live', () => ({
+  loadAiMarket: async () => null,
 }))
 vi.mock('next/navigation', () => ({ usePathname: () => '/', useRouter: () => ({ push() {} }), useSearchParams: () => new URLSearchParams() }))
 

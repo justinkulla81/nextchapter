@@ -16193,21 +16193,6 @@ model HomepageLead {
   @@index([kind, createdAt])
 }
 
-// Weekly count of live postings per function and how many of them ask for a specific AI skill
-// (aiSkillGroups non-empty). One row per week x function; fn 'all' is the whole board.
-// Written by cron ai-share-snapshot. prisma/manual/2026-10-20-ai-share-snapshot.sql.
-model AiShareSnapshot {
-  id        String   @id @default(cuid())
-  weekOf    DateTime // the Monday (UTC) of the run
-  fn        String
-  total     Int
-  withAi    Int
-  createdAt DateTime @default(now())
-
-  @@unique([weekOf, fn])
-  @@index([fn, weekOf])
-}
-
 // What each applied job asked for and how the member's skills lined up, frozen at application time
 // (src/lib/applications/skill-snapshot.ts, prisma/manual/2026-10-20-application-skill-snapshots.sql).
 // basis: posting (linked board posting) | inferred (title's O*NET occupation tools; weaker, labelled).

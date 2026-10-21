@@ -24,6 +24,7 @@
 // day produces the same people, so screenshots stay comparable.
 
 import 'server-only'
+import { demoProfile } from '@/lib/higher-ed/demo-skills'
 import { createHash } from 'crypto'
 import type {
   CheckInKind,
@@ -261,6 +262,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       journeyStageChangedAt: row(i).claimedAt as Date,
       currentJobStatus: getJourney(journey).jobStatus,
       positioningStatementText: k % 7 === 0 || i === featured ? pick(DOSSIER_LINES, k, 1) : null,
+      ...demoProfile(slug, i),
       metroArea: i === featured ? 'Pittsburgh' : (['Pittsburgh', 'Pittsburgh', 'Philadelphia', 'Washington, DC', 'New York'] as const)[k % 5],
       isSampleData: true,
     }
