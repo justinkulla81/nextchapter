@@ -76,8 +76,27 @@ export interface AiFunctionMarket {
   topTools: { name: string; n: number }[]
 }
 
+/** One row of a breakdown: an industry, a state or a level. */
+export interface AiDimensionRow {
+  key: string
+  label: string
+  /** Live full-text postings in the group (the share's denominator). */
+  n: number
+  aiSkill: number
+  sharePct: number
+  premium?: AiPremium
+}
+
+export interface AiDimensions {
+  industry: AiDimensionRow[]
+  state: AiDimensionRow[]
+  level: AiDimensionRow[]
+}
+
 export interface AiMarketData {
   asOf: string
+  /** Breakdowns across all functions; absent in snapshots stored before they were added. */
+  dimensions?: AiDimensions
   counts: {
     live: number
     aiSkill: number
@@ -115,7 +134,7 @@ export function likeForLike(cells: { ai?: { n: number; med: number }; base?: { n
   return { likePct: round1(100 * (Math.exp(num / den) - 1)), likeUsd: r500(numUsd / den), likeN: den, likeCells: used }
 }
 
-function premiumOf(ai: { n: number; med: number } | undefined, base: { n: number; med: number } | undefined, like: ReturnType<typeof likeForLike>): AiPremium | undefined {
+export function premiumOf(ai: { n: number; med: number } | undefined, base: { n: number; med: number } | undefined, like: ReturnType<typeof likeForLike>): AiPremium | undefined {
   if (!ai || !base || ai.n < MIN_PER_SIDE || base.n < MIN_PER_SIDE || base.med <= 0) return undefined
   return {
     nAi: ai.n,

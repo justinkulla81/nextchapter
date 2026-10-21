@@ -5,7 +5,7 @@
 import { CRAWLER_FUNCTION_LABEL } from '@/lib/jobs/job-functions'
 import { AI_FUNCTION_STATS, type AiFunctionStat } from '@/lib/skills/ai-skill-market.data'
 import { AI_SKILL_GROUPS, AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
-import { AI_LEVELS, AI_LEVEL_LABEL, type AiMarketData, type AiPremium } from '@/lib/skills/ai-market'
+import { AI_LEVELS, AI_LEVEL_LABEL, type AiDimensionRow, type AiMarketData, type AiPremium } from '@/lib/skills/ai-market'
 
 export interface PublicFunctionRow {
   fn: string
@@ -95,4 +95,25 @@ export function liveLevelRows(data: AiMarketData): LevelRow[] {
 export function liveOverallSharePct(data: AiMarketData): number {
   const { aiSkillFullText, fullText } = data.counts
   return fullText ? Math.round((1000 * aiSkillFullText) / fullText) / 10 : 0
+}
+
+export interface PublicDimensionRow {
+  key: string
+  label: string
+  postings: number
+  sharePct: number
+  rawPremiumPct: number | null
+  likePremiumPct: number | null
+  likePremiumUsd: number | null
+}
+
+/** Minimum analyzed postings in a group before it gets its own row. */
+export const MIN_GROUP_POSTINGS = 300
+
+/** Industry, state or level rows from the live snapshot. Premium needs both raw and like for like. */
+export function liveDimensionRows(rows: AiDimensionRow[] | undefined, keepOrder = false): PublicDimensionRow[] {
+  const out = (rows ?? [])
+    .filter((r) => r.n >= MIN_GROUP_POSTINGS)
+    .map((r) => ({ key: r.key, label: r.label, postings: r.n, sharePct: r.sharePct, ...premiumFields(r.premium) }))
+  return keepOrder ? out : out.sort((a, b) => b.sharePct - a.sharePct)
 }
