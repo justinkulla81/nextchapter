@@ -2,7 +2,7 @@ import 'server-only'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import type { CommunityModerationCategory } from '@prisma/client'
-import { getAnthropicClient } from '@/lib/anthropic'
+import { getAnthropicClient, logCacheUsage } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { anonymize } from '@/lib/community/community-feed'
 
@@ -126,10 +126,11 @@ export async function classifyCommunityPost(text: string): Promise<ModerationCla
     max_tokens: 700,
     thinking: { type: 'adaptive' },
     output_config: { format: zodOutputFormat(moderationSchema), effort: 'medium' },
-    system: `${PROMPT}${DATA_RULE}`,
+    system: [{ type: 'text', text: `${PROMPT}${DATA_RULE}`, cache_control: { type: 'ephemeral' as const } }],
     messages: [{ role: 'user', content: wrapPost(text) }],
   })
   const message = await stream.finalMessage()
+  logCacheUsage('moderation', message.usage)
   const data = message.parsed_output
 
   if (!data) {
