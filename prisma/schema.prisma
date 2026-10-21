@@ -4392,7 +4392,7 @@ model ResumeSubmissionLead {
 model CareerApplication {
   id                    String    @id @default(cuid())
   createdAt             DateTime  @default(now())
-  fullName              String
+  fullName              String? // read from the resume; null when the resume does not show one
   email                 String
   roleSlug              String? // null when the person chose "not listed"
   roleTitle             String

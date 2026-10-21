@@ -21,7 +21,7 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
           All roles
         </Link>
         <h1 className="mt-4 text-balance text-3xl font-bold tracking-tight text-navy">Apply with your resume</h1>
-        <p className="mt-2 text-muted-foreground">Upload your resume and tell us the role. That is all we need to start.</p>
+        <p className="mt-2 text-muted-foreground">Upload your resume, and tell us your email and the role. That is all we need to start.</p>
         <div className="mt-8">
           <ApplyForm roles={APPLY_ROLES.map((r) => ({ slug: r.slug, title: r.title }))} initialRole={role} />
         </div>
