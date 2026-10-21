@@ -269,10 +269,13 @@ function body(angle: Angle, f: DraftFacts, v: number): string {
  * outbound links to fewer people); it goes in the first comment.
  */
 const CLOSINGS = [
-  (f: DraftFacts) => `Know someone at ${f.employer}? Tag them or send this along. A warm intro this week beats ten cold applications.`,
+  (f: DraftFacts) => `Know someone at ${f.employer}? Send this to them directly. A warm intro this week beats ten cold applications.`,
   (f: DraftFacts) => `Hiring? If you have a role for someone coming out of ${f.employer}, say so in the comments so they can find you.`,
+  (f: DraftFacts) => `Tag a recruiter or hiring manager who should see this. People from ${f.employer} will be looking.`,
   (f: DraftFacts) => `If you work at ${f.employer}, you don't have to say anything here. Send me a message and we'll start with what you need.`,
   () => `Repost this so it reaches the people it affects. Most of them won't see it otherwise.`,
+  (f: DraftFacts) => `Been through a layoff yourself? Share the one thing that helped most in the comments. Someone from ${f.employer} will read it.`,
+  (f: DraftFacts) => `What would you tell someone starting a job search after ${f.employer}? Add it below.`,
 ]
 const TAGS = [['#Layoffs', '#CareerSupport'], ['#JobSearch', '#CareerTransition'], ['#Layoffs', '#JobSearch', '#WARN'], ['#CareerSupport', '#OpenToWork']]
 
