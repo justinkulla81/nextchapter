@@ -152,6 +152,7 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
                     </td>
                     <td className="p-3">
                       <p>{r.purpose}</p>
+                      {r.campaign && <Link href={`/support/admin/crm/outreach/${r.campaign.slug}`} className="text-xs text-primary underline">A/B test: {r.campaign.title}</Link>}
                       {r.edition && <Link href={`/support/admin/crm/mailing/editions/${r.edition.id}`} className="text-xs text-primary underline">Open edition</Link>}
                       {r.lists.length > 0 && (
                         <p className="mt-1 flex flex-wrap gap-1 text-xs">

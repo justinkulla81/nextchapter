@@ -1,0 +1,220 @@
+[
+  {
+    "name": "wd-uofl-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "UofL Health",
+    "tenant": "uoflhealth",
+    "wd": "wd1"
+  },
+  {
+    "name": "wd-baptist-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Baptist Health",
+    "tenant": "bhs",
+    "wd": "wd1"
+  },
+  {
+    "name": "wd-brown-forman",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Brown-Forman",
+    "tenant": "bf",
+    "wd": "wd5"
+  },
+  {
+    "name": "wd-elevance",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1"
+  },
+  {
+    "name": "wd-papa-johns",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Papa John's",
+    "tenant": "papajohns",
+    "wd": "wd1"
+  },
+  {
+    "name": "wd-aes",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "AES",
+    "tenant": "aes",
+    "wd": "wd1"
+  },
+  {
+    "name": "usajobs-louisville",
+    "adapter": "usajobs",
+    "type": "public_sector",
+    "location": "Louisville, Kentucky"
+  },
+  {
+    "name": "neogov-louisville-metro",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "Louisville Metro Government",
+    "agency": "louisvilleky"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "Humana_External_Career_Site"
+  },
+  {
+    "name": "wd-waystar",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Waystar",
+    "tenant": "waystar",
+    "wd": "wd1",
+    "site": "Waystar"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
+  },
+  {
+    "name": "wd-ge-appliances",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "GE Appliances",
+    "tenant": "haier",
+    "wd": "wd3",
+    "site": "GE_Appliances"
+  },
+  {
+    "name": "wd-university-of-louisville",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "University of Louisville",
+    "tenant": "uofl",
+    "wd": "wd1",
+    "site": "UofLCareerSite",
+    "all_local": true,
+    "search": ""
+  },
+  {
+    "name": "jibe-norton-healthcare",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "Norton Healthcare",
+    "tenant": "nortonhealthcare"
+  },
+  {
+    "name": "applitrack-jcps",
+    "adapter": "applitrack",
+    "type": "public_sector",
+    "employer": "Jefferson County Public Schools",
+    "district": "jefferson",
+    "location": "Louisville, KY"
+  },
+  {
+    "name": "csod-kentucky-state",
+    "adapter": "csod",
+    "type": "public_sector",
+    "employer": "Commonwealth of Kentucky",
+    "host": "kypersonnelcabinet.csod.com",
+    "site_id": 49,
+    "corp": "kypersonnelcabinet"
+  },
+  {
+    "name": "neogov-louisville-msd",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "Louisville and Jefferson County MSD",
+    "agency": "louisvillemsd"
+  },
+  {
+    "name": "oracle-jpmorgan",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "JPMorgan Chase",
+    "host": "jpmc.fa.oraclecloud.com",
+    "site": "CX_1001"
+  },
+  {
+    "name": "jibe-lge-ku",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "LG&E and KU (PPL)",
+    "host": "careers.pplweb.com"
+  },
+  {
+    "name": "oracle-kroger",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "Kroger",
+    "host": "eluq.fa.us2.oraclecloud.com",
+    "site": "CX_2001"
+  },
+  {
+    "name": "phenom-texas-roadhouse",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "Texas Roadhouse",
+    "host": "careers.becomearoadie.com",
+    "path": "us/en"
+  },
+  {
+    "name": "phenom-ups",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "UPS",
+    "host": "www.jobs-ups.com",
+    "path": "us/en"
+  },
+  {
+    "name": "amazon",
+    "adapter": "amazon",
+    "type": "direct_ats",
+    "employer": "Amazon",
+    "queries": [
+      "Louisville, Kentucky, USA",
+      "Jeffersonville, Indiana, USA",
+      "Shepherdsville, Kentucky, USA",
+      "New Albany, Indiana, USA"
+    ]
+  },
+  {
+    "name": "ukg-republic-bank",
+    "adapter": "ukg",
+    "type": "direct_ats",
+    "employer": "Republic Bank",
+    "company": "REP1009RBTCO",
+    "boards": [
+      "14c95af9-22e9-47a9-a87a-9700767f54b6"
+    ]
+  }
+]

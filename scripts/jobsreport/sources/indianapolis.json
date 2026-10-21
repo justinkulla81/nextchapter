@@ -1,0 +1,128 @@
+[
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT"
+  },
+  {
+    "name": "wd-salesforce",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Salesforce",
+    "tenant": "salesforce",
+    "wd": "wd12",
+    "site": "External_Career_Site"
+  },
+  {
+    "name": "wd-roche-diagnostics",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Roche Diagnostics",
+    "tenant": "roche",
+    "wd": "wd3",
+    "site": "roche-ext"
+  },
+  {
+    "name": "wd-corteva",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Corteva",
+    "tenant": "corteva",
+    "wd": "wd5",
+    "site": "Corteva"
+  },
+  {
+    "name": "wd-allison-transmission",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Allison Transmission",
+    "tenant": "allisontransmission",
+    "wd": "wd1",
+    "site": "ATI-External"
+  },
+  {
+    "name": "wd-simon-property-group",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Simon Property Group",
+    "tenant": "simon",
+    "wd": "wd1",
+    "site": "Simon"
+  },
+  {
+    "name": "wd-rolls-royce",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Rolls-Royce",
+    "tenant": "rollsroyce",
+    "wd": "wd3",
+    "site": "professional"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-keybank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "KeyBank",
+    "tenant": "keybank",
+    "wd": "wd5",
+    "site": "External_Career_Site"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "CenterWell_External_Career_Site"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-huntington",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Huntington",
+    "tenant": "huntington",
+    "wd": "wd12",
+    "site": "HNBcareers"
+  },
+  {
+    "name": "wd-regions",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Regions",
+    "tenant": "regions",
+    "wd": "wd5",
+    "site": "regions_careers"
+  },
+  {
+    "name": "wd-truist",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Truist",
+    "tenant": "truist",
+    "wd": "wd1",
+    "site": "Careers"
+  }
+]

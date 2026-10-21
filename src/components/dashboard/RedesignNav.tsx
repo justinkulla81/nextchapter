@@ -10,6 +10,7 @@ import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
 import { menuEntries, type NavLocks, type PaidAccess } from '@/lib/nav/places'
 import { redesignPlaceForPath, redesignPlacesFor, type RedesignKey } from '@/lib/nav/redesign-places'
+import { SignOutForm } from '@/components/auth/SignOutForm'
 
 const ICONS: Record<RedesignKey, LucideIcon> = { home: Home, jobs: Briefcase, network: Users, learn: BookOpen, money: Wallet, account: UserCog, help: LifeBuoy }
 const PHONE_TABS: RedesignKey[] = ['home', 'jobs', 'network', 'learn']
@@ -129,9 +130,9 @@ function PlaceList({ collapsed, onNavigate, ...props }: RedesignNavProps & { col
           {!collapsed && <Badge n={props.badges?.help} />}
         </Link>
         {!collapsed && (
-          <form action={signOut}>
+          <SignOutForm action={signOut}>
             <SignOutButton />
-          </form>
+          </SignOutForm>
         )}
       </div>
     </nav>

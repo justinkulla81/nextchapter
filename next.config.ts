@@ -131,7 +131,11 @@ const nextConfig: NextConfig = {
     ].join("; ");
     const security = [
       { key: "Content-Security-Policy", value: csp },
-      { key: "Strict-Transport-Security", value: "max-age=63072000" },
+      // includeSubDomains since 2026-10-21 (CASA prep): every subdomain is the
+      // Vercel wildcard or Resend's click-tracking host (links.updates), and
+      // all of them serve valid HTTPS. Not preloaded; that is a separate,
+      // hard-to-undo submission at hstspreload.org.
+      { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
       { key: "X-Frame-Options", value: "SAMEORIGIN" },
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

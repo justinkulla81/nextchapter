@@ -6,6 +6,7 @@ import 'server-only'
 import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole, Prisma, PrismaClient } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isAdminEmail } from '@/lib/admin/is-admin-email'
+import { adminMfaSatisfied, type Aal } from '@/lib/admin/mfa'
 import { ALL_TOKENS, demoPersonaTokens, orgKindOf, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
 
 type Db = PrismaClient | Prisma.TransactionClient
@@ -56,7 +57,12 @@ async function demoFeaturedMember(db: Db, institution: { id: string; slug: strin
   return m?.id ?? null
 }
 
-export async function isNcAdmin(userId: string, email: string | null, db: Db = prisma): Promise<boolean> {
+// `aal` is the assurance level of the session asking. With ADMIN_MFA_REQUIRED
+// on, admin powers need a two-step (aal2) session here too, or these portals
+// would be a way around the admin portal's MFA; without it the person keeps
+// only their own roles. Callers that don't pass it get no admin powers then.
+export async function isNcAdmin(userId: string, email: string | null, db: Db = prisma, aal: Aal | null = null): Promise<boolean> {
+  if (!adminMfaSatisfied(aal)) return false
   if (isAdminEmail(email)) return true
   const grant = await db.roleGrant.findFirst({
     where: { userId, role: 'nc_admin', revokedAt: null },
@@ -77,6 +83,8 @@ export async function resolveInstitutionAccess(
     // A candidate-portal session: only the person's own membership counts
     // (the Candidate workspace), never staff, employer or admin roles.
     memberOnly?: boolean
+    // The session's assurance level, for NextChapter-admin powers (see isNcAdmin).
+    aal?: Aal | null
   },
   db: Db = prisma,
 ): Promise<InstitutionAccess | null> {
@@ -110,7 +118,7 @@ export async function resolveInstitutionAccess(
       },
       select: { employerProfileId: true },
     }),
-    memberOnly ? false : isNcAdmin(args.userId, args.email, db),
+    memberOnly ? false : isNcAdmin(args.userId, args.email, db, args.aal ?? null),
   ])
 
   const own = new Set<AccessToken>()

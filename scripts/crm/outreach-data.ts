@@ -49,7 +49,19 @@ const poss = (n: string) => (/s$/i.test(n) ? `${n}'` : `${n}'s`)
 const list = (a: string[]) => (a.length <= 1 ? a.join('') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
 
 interface Area { id: string; name: string; state: string; unemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
-interface Notice { employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; noticeDate: Date; board: string | null }
+interface Notice { industry?: string | null; employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; noticeDate: Date; board: string | null }
+
+// Employer emails go only to layoffs of 50 or more in professional-heavy work. An explicit allowlist, never "everything except": a filing whose industry
+// is blank, or in an industry not listed, stays out unless the employer is named below (reviewed by hand; add a name only after checking the filing).
+const MIN_EMPLOYER_LAYOFF = 50
+const PROFESSIONAL_INDUSTRY = /^(tech:|51\b|52\b|54\b|55\b)/i
+const PROFESSIONAL_EMPLOYERS = new Set(['hasbro', 'conifer health solutions', "conifer's health solutions", 'tscan therapeutics', 'truist bank', 'bechtel power corporation', 'bechtel power'])
+const EMPLOYER_TEMPLATES = ['head_hr', 'rewards', 'er', 'ta']
+function professionalHeavy(n: Notice | undefined): boolean {
+  if (!n || n.employees < MIN_EMPLOYER_LAYOFF) return false
+  const name = n.employer.toLowerCase().replace(/[.,]|\b(inc|llc|corp|corporation|co)\b/g, '').replace(/\s+/g, ' ').trim()
+  return PROFESSIONAL_INDUSTRY.test(n.industry ?? '') || PROFESSIONAL_EMPLOYERS.has(name)
+}
 type Row = Record<string, string>
 
 const tpl = JSON.parse(readFileSync(new URL('./outreach-templates.json', import.meta.url), 'utf8')) as {
@@ -82,7 +94,7 @@ async function main() {
   const boardNames = new Map((await prisma.workforceBoard.findMany({ select: { id: true, name: true } })).map((b) => [b.id, b.name]))
   const notices = await prisma.warnNotice.findMany({
     where: { source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: since, lte: now }, employees: { not: null } },
-    select: { employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, noticeDate: true, promotedOrgId: true, workforceBoardId: true },
+    select: { industry: true, employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, noticeDate: true, promotedOrgId: true, workforceBoardId: true },
   })
   const bigger = (a: Notice | undefined, b: Notice) => (!a || b.employees > a.employees ? b : a)
   const byOrg = new Map<string, Notice>(), byBoard = new Map<string, Notice>(), byCounty = new Map<string, Notice>(), byState = new Map<string, Notice>()
@@ -91,7 +103,7 @@ async function main() {
   const countyAgg = new Map<string, { employers: Set<string>; jobs: number }>()
   const stateTotals = new Map<string, { notices: number; jobs: number }>()
   for (const w of notices) {
-    const nt: Notice = { employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, noticeDate: w.noticeDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
+    const nt: Notice = { industry: w.industry, employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, noticeDate: w.noticeDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
     if (w.promotedOrgId) byOrg.set(w.promotedOrgId, bigger(byOrg.get(w.promotedOrgId), nt))
     if (w.workforceBoardId) byBoard.set(w.workforceBoardId, bigger(byBoard.get(w.workforceBoardId), nt))
     if (w.county) { const k = `${w.state}|${countyBase(w.county)}`; byCounty.set(k, bigger(byCounty.get(k), nt)) }
@@ -161,11 +173,11 @@ async function main() {
     const region = op ?? nat
     const scope = op ? `in ${stateName}` : 'nationally'
     row.line_timing = effDays != null && effDays >= 1 && effDays <= 150 ? `The notice takes effect on ${row.effective_date}, ${effDays} days from now.` : ''
-    // All the white-collar openings we hold: the national total, plus the state's when it is at least three times the layoff beside it.
+    // All the open jobs we hold: the national total, plus the state's when it is at least three times the layoff beside it.
     const layoffSize = Number(String(row.employees ?? '').replace(/,/g, '')) || st?.jobs || 0
     row.line_open_roles = op && op.roles >= 3 * layoffSize
-      ? `Our national job database holds ${n0(nat.roles)} open white-collar roles, ${n0(op.roles)} of them in ${stateName}.`
-      : `Our national job database holds ${n0(nat.roles)} open white-collar roles.`
+      ? `Our database holds ${n0(nat.roles)} open jobs, ${n0(op.roles)} of them in ${stateName}.`
+      : `Our database holds ${n0(nat.roles)} open jobs.`
     row.line_top_functions = region.fns.length ? `The most common functions are ${list(region.fns)}.` : ''
     row.line_ai_roles = region.ai ? `${n0(region.ai)} open roles ${scope} mention AI in the title.` : ''
     row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers soon after a notice.` : row.board ? `${row.board} typically meets employers soon after a notice.` : ''
@@ -203,7 +215,7 @@ async function main() {
     const subjOk = t.subjects.map((x) => tokens(x).filter((k) => !k.startsWith('line_') && !row[k]).length === 0)
     const order = [0, 1].sort((a, b) => Number(subjOk[b]) - Number(subjOk[a]))
     const bodyNeeded = [...new Set([...tokens(t.body), ...tokens(t.preview), ...tokens(t.fu1), ...tokens(t.fu2)])].filter((k) => !k.startsWith('line_'))
-    const missing = [...(validGreeting(row.first_name) ? [] : ['first_name']), ...bodyNeeded.filter((k) => !row[k] && k !== 'first_name'), ...(subjOk.some(Boolean) ? [] : ['subject'])]
+    const missing = [...(EMPLOYER_TEMPLATES.includes(template) && !professionalHeavy(ctx.notice) ? ['professional_heavy_layoff_50_plus'] : []), ...(validGreeting(row.first_name) ? [] : ['first_name']), ...bodyNeeded.filter((k) => !row[k] && k !== 'first_name'), ...(subjOk.some(Boolean) ? [] : ['subject'])]
     // Subjects: at most 62 characters. The first that fits leads; if neither does, the shorter generic one with no name in it.
     const cand = [t.subjects[order[0]], t.subjects[order[1]], t.subject_fallback].map((x) => fill(x, row)).filter((x, i) => i === 2 || tokens([t.subjects[order[0]], t.subjects[order[1]]][i]).every((k) => k.startsWith('line_') || row[k]))
     const fits = cand.filter((x) => x.length <= 62)

@@ -1,5 +1,7 @@
 import { cache } from 'react'
 import { createClient } from './server'
+import type { PortalKey } from './portal'
+import { aalOf } from '@/lib/admin/mfa'
 
 // Memoized per-request (React's cache(), not cross-request) — layout.tsx and
 // the page it wraps each independently need "who's logged in", and without
@@ -25,4 +27,12 @@ export const getOrgUser = cache(async () => {
     data: { user },
   } = await supabase.auth.getUser()
   return user
+})
+
+// The assurance level of a portal's session (aal2 = signed in with a second
+// factor), read from its verified JWT claims. Null when signed out.
+export const getSessionAal = cache(async (portal?: PortalKey) => {
+  const supabase = await createClient(portal)
+  const { data } = await supabase.auth.getClaims()
+  return aalOf(data?.claims)
 })

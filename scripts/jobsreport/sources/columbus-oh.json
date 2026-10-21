@@ -1,0 +1,126 @@
+[
+  {
+    "name": "wd-nationwide",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Nationwide",
+    "tenant": "nationwide",
+    "wd": "wd1",
+    "site": "Nationwide_Career"
+  },
+  {
+    "name": "wd-ohio-state-university",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Ohio State University",
+    "tenant": "osu",
+    "wd": "wd1",
+    "site": "OSUCareers"
+  },
+  {
+    "name": "wd-ohiohealth",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "OhioHealth",
+    "tenant": "ohiohealth",
+    "wd": "wd5",
+    "site": "OhioHealthJobs"
+  },
+  {
+    "name": "wd-cardinal-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cardinal Health",
+    "tenant": "cardinalhealth",
+    "wd": "wd1",
+    "site": "EXT"
+  },
+  {
+    "name": "wd-huntington",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Huntington",
+    "tenant": "huntington",
+    "wd": "wd12",
+    "site": "HNBcareers"
+  },
+  {
+    "name": "wd-nationwide-children-s",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Nationwide Children's",
+    "tenant": "nationwidechildrens",
+    "wd": "wd5",
+    "site": "NCHCareers"
+  },
+  {
+    "name": "wd-scotts-miracle-gro",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Scotts Miracle-Gro",
+    "tenant": "scottsmiraclegro",
+    "wd": "wd5",
+    "site": "SMGExternal"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-key-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Key Bank",
+    "tenant": "keybank",
+    "wd": "wd5",
+    "site": "External_Career_Site"
+  },
+  {
+    "name": "wd-alliance-data",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Alliance Data",
+    "tenant": "alliancedata",
+    "wd": "wd5",
+    "site": "ComenityBanks"
+  },
+  {
+    "name": "le-cologix",
+    "adapter": "lever",
+    "type": "direct_ats",
+    "employer": "Cologix",
+    "token": "cologix"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "CenterWell_External_Career_Site"
+  },
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT"
+  }
+]

@@ -1,0 +1,99 @@
+[
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-cincinnati-children-s",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cincinnati Children's",
+    "tenant": "cincinnatichildrens",
+    "wd": "wd5",
+    "site": "careersatcincinnatichildrens"
+  },
+  {
+    "name": "wd-ge-aerospace",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "GE Aerospace",
+    "tenant": "geaerospace",
+    "wd": "wd5",
+    "site": "GE_ExternalSite"
+  },
+  {
+    "name": "wd-duke-energy",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Duke Energy",
+    "tenant": "dukeenergy",
+    "wd": "wd1",
+    "site": "Search"
+  },
+  {
+    "name": "wd-heidelberg-materials",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Heidelberg Materials",
+    "tenant": "heidelbergmaterials",
+    "wd": "wd3",
+    "site": "Global_HM_Career_Site"
+  },
+  {
+    "name": "wd-huntington",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Huntington",
+    "tenant": "huntington",
+    "wd": "wd12",
+    "site": "HNBcareers"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-us-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "US Bank",
+    "tenant": "usbank",
+    "wd": "wd1",
+    "site": "US_Bank_Careers"
+  },
+  {
+    "name": "gr-kao",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Kao",
+    "token": "kao"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "Humana_External_Career_Site"
+  },
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT"
+  }
+]

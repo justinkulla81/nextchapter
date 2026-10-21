@@ -23,6 +23,7 @@ create function private.employer_outcomes_by_bucket(p_contract_id text, p_as_of 
 returns table (bucket text, enrolled int, person_weeks int, reemployed int)
 language sql
 stable
+set search_path = ''
 as $$
   with buckets(bucket, lo, hi) as (
     values ('W0_4'::text, 0, 5), ('W5_13', 5, 14), ('W14_26', 14, 27), ('W27_52', 27, 53), ('W53_PLUS', 53, 100000)

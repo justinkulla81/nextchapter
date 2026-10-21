@@ -7,6 +7,7 @@ import { useFormStatus } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
+import { SignOutForm } from '@/components/auth/SignOutForm'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -506,9 +507,9 @@ function NavContent({
         </div>
         )
       })}
-      <form action={signOut} className="mt-auto px-2">
+      <SignOutForm action={signOut} className="mt-auto px-2">
         <SignOutButton />
-      </form>
+      </SignOutForm>
     </nav>
   )
 }

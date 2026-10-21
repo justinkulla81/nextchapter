@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { PORTAL_COOKIE_NAMES, type PortalKey } from './portal'
+import { SERVER_COOKIES_SECURE, sessionCookieOptions } from './cookie-options'
 
 // Omitting `portal` keeps today's exact behavior (the default/candidate
 // cookie) — passing one scopes the session to that portal's own cookie name
@@ -12,7 +13,7 @@ export async function createClient(portal?: PortalKey) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookieOptions: portal ? { name: PORTAL_COOKIE_NAMES[portal] } : undefined,
+      cookieOptions: sessionCookieOptions(portal ? PORTAL_COOKIE_NAMES[portal] : undefined, SERVER_COOKIES_SECURE),
       cookies: {
         getAll() {
           return cookieStore.getAll()

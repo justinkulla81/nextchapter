@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { MAILING_BUCKET } from '@/lib/mailing/editions'
 import { createClient } from '@/lib/supabase/server'
 import { isAdminEmail } from '@/lib/admin/is-admin-email'
+import { aalOf, adminMfaSatisfied } from '@/lib/admin/mfa'
 
 /**
  * The file attached to an update (the report PDF), on the site's own
@@ -18,10 +19,14 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   // Keys are guessable ("2026-10"), so an unreleased edition's file is only
   // served to an admin previewing it; the emailed link goes live at send time.
   if (edition.status !== 'SENDING' && edition.status !== 'SENT') {
+    const supabase = await createClient('admin')
     const {
       data: { user },
-    } = await (await createClient('admin')).auth.getUser()
+    } = await supabase.auth.getUser()
     if (!isAdminEmail(user?.email)) return new NextResponse('Not found', { status: 404 })
+    // Same two-step rule as requireAdmin (ADMIN_MFA_REQUIRED).
+    const { data: claims } = await supabase.auth.getClaims()
+    if (!adminMfaSatisfied(aalOf(claims?.claims))) return new NextResponse('Not found', { status: 404 })
   }
   const { data } = await createAdminClient().storage.from(MAILING_BUCKET).createSignedUrl(edition.attachmentPath, 60 * 10)
   if (!data?.signedUrl) return new NextResponse('Not found', { status: 404 })

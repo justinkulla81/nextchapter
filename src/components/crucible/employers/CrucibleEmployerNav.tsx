@@ -6,6 +6,7 @@ import { useFormStatus } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { CrucibleWordmark } from '@/components/crucible/CrucibleWordmark'
 import { signOutCrucibleEmployer } from './actions'
+import { SignOutForm } from '@/components/auth/SignOutForm'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -47,9 +48,9 @@ export function CrucibleEmployerNav() {
               {link.label}
             </Link>
           ))}
-          <form action={signOutCrucibleEmployer}>
+          <SignOutForm action={signOutCrucibleEmployer}>
             <SignOutButton />
-          </form>
+          </SignOutForm>
         </nav>
       </div>
     </header>

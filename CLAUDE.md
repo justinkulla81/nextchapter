@@ -72,3 +72,25 @@ order to be a "good guy" (for example public commitments about how we hire,
 pay, screen or treat applicants, optional disclaimers, or extra statements).
 They can create unintended consequences. Include only what is required or what
 was explicitly asked for, and don't end replies with offers of further extras.
+
+## Jobs report scope
+
+Every jobs report, local (a metro or county) and national, covers **all white-collar
+jobs at every level**, entry-level included, not only mid-level and above.
+White-collar means Census major occupation groups 1 and 2 (management, business and
+financial; professional and related), the same definition the White Collar
+Employment Report uses. Do not filter entry-level postings out of the data, the
+pipeline, or the report. The all-jobs frame (every occupation) is secondary and
+must be labeled as such; never blend frames into one number. If the data does not
+yet include entry-level white-collar postings, say so in the report and fix the
+data, rather than reporting a mid-level-and-above view as the whole. Spec:
+`docs/specs/NextChapter_Jobs_Report_Spec.md`.
+
+## Employer discovery rule
+
+When finding an employer's jobs, look at its **career site and job system**, never its corporate website. Corporate
+sites often block automated requests; career sites and the job systems behind them (Workday, Greenhouse, Lever, Ashby,
+SmartRecruiters, Jibe/iCIMS, Oracle, Taleo, UKG, NEOGOV, Phenom, Tyler, and the like) are public by design, because
+employers want their openings found. A 403 on `www.<employer>` says nothing about the jobs. Try `careers.`, `jobs.`,
+`employment.` hosts and the job-system links on them (`scripts/jobsreport/career_site.py`), and follow the "Apply"
+links on the corporate careers page. Only call an employer unreadable after the career site and its job system were tried.

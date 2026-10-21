@@ -4,7 +4,7 @@ import { Prisma, type WarnNotice } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import {
   LAYOUTS, MAX_AGE_DAYS, MAX_EMPLOYEES, MIN_EMPLOYEES, RECENT_DRAFT_DAYS, WEEKLY_CAP,
-  assignSlots, audienceFit, credibilityOf, farOffTimeline, looksNonUs, speculative, FAR_OFF_PENALTY, plausibleEmployer, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
+  assignSlots, audienceFit, employerKey, credibilityOf, farOffTimeline, looksNonUs, speculative, FAR_OFF_PENALTY, plausibleEmployer, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
   type Angle, type AudienceFit, type Credibility, type DraftFacts, type EventRef,
 } from './layoff-post-rules'
 
@@ -125,19 +125,25 @@ export async function createDraft(
   n: WarnNotice, why: Credibility, scheduledFor: Date, recentAngles: string[], recentLayouts: number[],
 ): Promise<boolean> {
   const state = n.state
-  const [openRolesInState, openSeniorRolesInState, openRemoteRoles, tagSuggestions] = await Promise.all([
+  const [openRolesInState, openSeniorRolesInState, openRemoteRoles, tagSuggestions, hiringNearby, otherLayoffs] = await Promise.all([
     state ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state } } }) : Promise.resolve(null),
     state ? prisma.companyJobOpening.count({ where: { closedAt: null, states: { has: state }, seniorityGroup: { in: SENIOR } } }) : Promise.resolve(null),
     state ? prisma.companyJobOpening.count({ where: { closedAt: null, isRemote: true } }) : Promise.resolve(null),
     tagSuggestionsFor(n.promotedOrgId, n.normalizedEmployer, n.workforceBoardId),
+    hiringNearbyFor(state, n.employer),
+    otherLayoffsFor(n.id, n.normalizedEmployer),
   ])
+  // Companies and groups worth tagging by hand: who is hiring in the state, and who else filed this week.
+  for (const h of hiringNearby) tagSuggestions.push({ name: h.name, note: `hiring ${h.roles} white-collar roles in ${state}`, linkedinUrl: null })
+  for (const o of otherLayoffs) tagSuggestions.push({ name: o.employer, note: `also filed a layoff this week (${o.employees} jobs)`, linkedinUrl: null })
+  tagSuggestions.push({ name: `${n.employer} People or HR leader`, note: 'tag them if you know who it is, to offer NextChapter to the people leaving', linkedinUrl: null })
   const facts: DraftFacts = {
     employer: n.employer, employees: n.employees ?? 0,
     percent: percentFrom(n.layoffType),
     place: n.county && state ? `${n.county.replace(/ county$/i, '')} County, ${state}` : state,
     state, noticeDate: n.noticeDate?.toISOString() ?? null, effectiveDate: n.effectiveDate?.toISOString() ?? null,
     industry: n.industry, sourceUrl: n.sourceUrl, credibility: why,
-    openRolesInState, openSeniorRolesInState, openRemoteRoles, tagSuggestions,
+    openRolesInState, openSeniorRolesInState, openRemoteRoles, tagSuggestions, hiringNearby, otherLayoffs,
   }
   const angle = leastRecent<Angle>(eligibleAngles(facts), recentAngles as Angle[], n.id)
   const layout = leastRecent(LAYOUTS.map((_, k) => k), recentLayouts, n.id)
@@ -322,4 +328,34 @@ async function tagSuggestionsFor(orgId: string | null, normalizedEmployer: strin
     console.error('LinkedIn draft tag suggestions failed for', normalizedEmployer, e)
   }
   return out
+}
+
+/** The employers with the most open white-collar roles in the state, other than the one laying off. */
+async function hiringNearbyFor(state: string | null, employer: string): Promise<{ name: string; roles: number }[]> {
+  if (!state) return []
+  try {
+    const rows = await prisma.companyJobOpening.groupBy({
+      by: ['companyName'], where: { closedAt: null, lastSeenAt: { gte: new Date(Date.now() - 14 * 86_400_000) }, states: { has: state } },
+      _count: { _all: true }, orderBy: { _count: { companyName: 'desc' } }, take: 8,
+    })
+    return rows.filter((r) => employerKey(r.companyName) !== employerKey(employer) && plausibleEmployer(r.companyName)).slice(0, 3).map((r) => ({ name: r.companyName, roles: r._count._all }))
+  } catch (e) {
+    console.error('LinkedIn hiring-nearby failed', e)
+    return []
+  }
+}
+
+/** Other credible layoffs filed in the last week, largest first. */
+async function otherLayoffsFor(noticeId: string, normalizedEmployer: string): Promise<{ employer: string; employees: number }[]> {
+  try {
+    const rows = await prisma.warnNotice.findMany({
+      where: { id: { not: noticeId }, dismissedAt: null, fetchedAt: { gte: new Date(Date.now() - 7 * 86_400_000) }, employees: { gte: 100, lte: 40_000 }, normalizedEmployer: { not: normalizedEmployer } },
+      orderBy: { employees: 'desc' }, take: 12, select: { employer: true, employees: true },
+    })
+    const seen = new Set<string>()
+    return rows.filter((r) => plausibleEmployer(r.employer) && !seen.has(employerKey(r.employer)) && !!seen.add(employerKey(r.employer))).slice(0, 3).map((r) => ({ employer: r.employer, employees: r.employees ?? 0 }))
+  } catch (e) {
+    console.error('LinkedIn other-layoffs failed', e)
+    return []
+  }
 }

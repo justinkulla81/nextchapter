@@ -20,6 +20,8 @@ export interface SentEmailRow {
   subject: string
   /** Why it was sent, in plain words. */
   purpose: string
+  /** Cold outreach only: the A/B test this email belongs to, when its template is part of one. */
+  campaign: { slug: string; title: string } | null
   personId: string | null
   name: string
   email: string
@@ -43,6 +45,12 @@ export interface SentEmailRow {
 export interface SentEmailTotals { sent: number; tracked: number; opened: number; clicked: number; replied: number; positive: number; bounced: number }
 
 const personSelect = { id: true, fullName: true, email: true, affiliations: { where: { isCurrent: true }, select: { org: { select: { id: true, name: true } } }, take: 1 } } as const
+
+function coldCampaign(outcome: string | null): { slug: string; title: string } | null {
+  const template = /template (\S+?)(,|$)/.exec(outcome ?? '')?.[1] ?? ''
+  const def = CAMPAIGNS.find((c) => c.templates.includes(template))
+  return def ? { slug: def.slug, title: def.title } : null
+}
 
 function coldPurpose(outcome: string | null): string {
   const step = /email (\d)/.exec(outcome ?? '')?.[1] ?? '1'
@@ -117,6 +125,7 @@ export async function loadSentEmails(): Promise<{ rows: SentEmailRow[]; capped: 
     rows.push({
       key: `a:${a.id}`, source, sentAt: a.occurredAt, subject: a.subject ?? '(no subject)',
       purpose: cold ? coldPurpose(a.outcome) : composed ? 'One-to-one email from the CRM' : a.isAutoLogged ? 'One-to-one email (from Gmail)' : 'One-to-one email',
+      campaign: cold ? coldCampaign(a.outcome) : null,
       personId: a.person?.id ?? null, name: a.person?.fullName ?? 'Unmatched recipient', email: a.person?.email ?? '',
       orgId: org?.id ?? null, orgName: org?.name ?? '', lists: [], edition: null,
       tracked: cold || composed,
@@ -135,6 +144,7 @@ export async function loadSentEmails(): Promise<{ rows: SentEmailRow[]; capped: 
     rows.push({
       key: `m:${r.id}`, source: 'mailing', sentAt: r.sentAt!, subject: r.edition.subject || r.edition.title,
       purpose: r.edition.isReport ? `Report: ${r.edition.title}` : `Mailing: ${r.edition.title}`,
+      campaign: null,
       personId: r.person?.id ?? null, name: r.person?.fullName ?? r.email, email: r.email,
       orgId: org?.id ?? null, orgName: org?.name ?? '',
       lists: (fromKeys.length ? fromKeys : editionLists).map((l) => ({ id: l.id, name: l.name })),

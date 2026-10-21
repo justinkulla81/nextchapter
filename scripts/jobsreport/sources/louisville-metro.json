@@ -1,0 +1,83 @@
+[
+  {
+    "name": "wd-uofl-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "UofL Health",
+    "tenant": "uofl",
+    "wd": "wd1",
+    "site": "UofLCareerSite"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "Humana_External_Career_Site"
+  },
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT"
+  },
+  {
+    "name": "wd-papa-john-s",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Papa John's",
+    "tenant": "papajohns",
+    "wd": "wd1",
+    "site": "PapaJohnsCareers"
+  },
+  {
+    "name": "wd-pwc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PwC",
+    "tenant": "pwc",
+    "wd": "wd3",
+    "site": "Global_Experienced_Careers"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-waystar",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Waystar",
+    "tenant": "waystar",
+    "wd": "wd1",
+    "site": "Waystar"
+  },
+  {
+    "name": "wd-republic-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Republic Bank",
+    "tenant": "republic",
+    "wd": "wd5",
+    "site": "Republic"
+  }
+]

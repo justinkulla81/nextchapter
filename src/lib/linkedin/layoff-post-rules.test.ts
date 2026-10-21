@@ -44,7 +44,7 @@ describe('credibilityOf', () => {
 
 describe('angles and wording', () => {
   it('only offers angles the facts support', () => {
-    expect(eligibleAngles(facts({ openRolesInState: null, openSeniorRolesInState: null, effectiveDate: null }))).toEqual(['offer-help', 'first-week'])
+    expect(eligibleAngles(facts({ openRolesInState: null, openSeniorRolesInState: null, effectiveDate: null }))).toEqual(['offer-help', 'first-week', 'company-offer', 'long-search', 'comment-for-plan'])
     expect(eligibleAngles(facts({ credibility: 'two-publishers' }))).not.toContain('timeline')
   })
   it('prefers the least recently used option', () => {
@@ -215,5 +215,30 @@ describe('speculation and non-US detection', () => {
     expect(looksNonUs(['Canadian bank cuts jobs in Canada and Ohio'])).toBe(false)
     expect(looksNonUs(['Siemens cuts jobs in Germany and the US'])).toBe(false)
     expect(looksNonUs(['Layoffs hit Sweden, and the news tells us more'])).toBe(true)
+  })
+})
+
+
+describe('newer angles', () => {
+  const facts: DraftFacts = {
+    employer: 'Pfizer', employees: 330, percent: null, place: 'NY', state: 'NY', noticeDate: null, effectiveDate: null, industry: null, sourceUrl: null, credibility: 'warn-filing',
+    openRolesInState: 900, openSeniorRolesInState: 300, openRemoteRoles: 50, tagSuggestions: [],
+    hiringNearby: [{ name: 'Northwell Health', roles: 120 }, { name: 'Mastercard', roles: 80 }],
+    otherLayoffs: [{ employer: 'Levi Strauss', employees: 303 }],
+  }
+  it('offers the hiring and roundup angles only when there is something to say', () => {
+    expect(eligibleAngles(facts)).toEqual(expect.arrayContaining(['company-offer', 'hiring-nearby', 'also-this-week', 'long-search', 'comment-for-plan']))
+    const bare = { ...facts, hiringNearby: [], otherLayoffs: [] }
+    expect(eligibleAngles(bare)).not.toContain('hiring-nearby')
+    expect(eligibleAngles(bare)).not.toContain('also-this-week')
+  })
+  it('names the other companies in the roundup and the hiring post', () => {
+    expect(draftText('also-this-week', facts, 'a').body).toContain('Levi Strauss')
+    expect(draftText('hiring-nearby', facts, 'a').body).toContain('Northwell Health')
+  })
+  it('the company offer names the company and promises counts, never names', () => {
+    const t = draftText('company-offer', facts, 'a').body
+    expect(t).toContain('Pfizer')
+    expect(t).toMatch(/never names/)
   })
 })

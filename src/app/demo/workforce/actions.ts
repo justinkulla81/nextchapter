@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { InstitutionOrgType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { getOrgUser } from '@/lib/supabase/get-current-user'
+import { getOrgUser, getSessionAal } from '@/lib/supabase/get-current-user'
 import { isNcAdmin } from '@/lib/higher-ed/resolve'
 import { DEMO_GUEST_COOKIE, DEMO_GUEST_DAYS, guestCookieValue, guestSlugs } from '@/lib/higher-ed/demo-guest'
 import { generateWorkforceDemo } from '@/lib/workforce/demo'
@@ -27,7 +27,7 @@ export async function createWorkforceDemo(_prev: DemoFormState, f: FormData): Pr
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Add your work email so we know who the demo is for.', values }
 
   const user = await getOrgUser()
-  const admin = user ? await isNcAdmin(user.id, user.email ?? null) : false
+  const admin = user ? await isNcAdmin(user.id, user.email ?? null, undefined, await getSessionAal('org')) : false
   if (!admin) {
     if (!(await allowByIp('workforce-demo', 3, DAY_MS)) || !(await allowByTarget('workforce-demo-email', email, 3, DAY_MS))) return { error: RATE_LIMITED_MESSAGE, values }
     const today = await prisma.institution.count({ where: { isDemo: true, orgType: { not: 'COLLEGE' }, createdAt: { gte: new Date(Date.now() - DAY_MS) } } })

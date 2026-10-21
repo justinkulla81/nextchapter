@@ -7,7 +7,7 @@ import 'server-only'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
-import { getCurrentUser, getOrgUser } from '@/lib/supabase/get-current-user'
+import { getCurrentUser, getOrgUser, getSessionAal } from '@/lib/supabase/get-current-user'
 import { isReadOnlyIn, orgBasePath, type WorkspaceKey } from './workspaces'
 import { DEMO_PREVIEW_COOKIE, resolveDemoGuestAccess, resolveInstitutionAccess, WorkspaceAccessError, type InstitutionAccess } from './resolve'
 import { DEMO_GUEST_COOKIE, guestSlugs } from './demo-guest'
@@ -38,6 +38,7 @@ export const getInstitutionAccess = cache(async (slug: string): Promise<Institut
     email: user.email ?? null,
     demoPersona: persona,
     memberOnly: !orgUser,
+    aal: orgUser ? await getSessionAal('org') : null,
   })
   // Signed in as a candidate who isn't a member here: the guest pass, if any.
   if (access && !orgUser && access.workspaces.length === 0) return (await guest()) ?? { ...access, via: 'candidate' as const }

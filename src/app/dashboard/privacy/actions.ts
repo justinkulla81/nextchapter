@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { ensureRecentAuth, type ReauthChallenge } from '@/lib/auth/reauth'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
@@ -225,7 +226,7 @@ export async function setResumeBookOptIn(optIn: boolean): Promise<void> {
   revalidatePath('/dashboard/find-my-job')
 }
 
-export type DeactivateAccountFormState = { error?: string } | undefined
+export type DeactivateAccountFormState = { error?: string; reauth?: ReauthChallenge } | undefined
 
 // Deliberately NOT a delete — see deactivatedAt's own schema comment. Every
 // row stays intact; this only blocks dashboard access (getDashboardProfile)
@@ -251,6 +252,11 @@ export async function deactivateMyAccount(
 
   const profile = await getOrCreateCandidateProfile(user.id)
 
+  // Irreversible for the member (only support can reactivate), so it needs a
+  // fresh sign-in or an emailed code first (CASA 2.4.1).
+  const reauth = await ensureRecentAuth({ supabase, user, formData, action: 'deactivate_account', distinctId: profile.id })
+  if (reauth.status === 'challenge') return { reauth: reauth.challenge }
+
   await prisma.candidateProfile.update({
     where: { id: profile.id },
     data: { deactivatedAt: new Date() },
@@ -259,7 +265,8 @@ export async function deactivateMyAccount(
 
   await supabase.auth.signOut()
 
-  redirect('/')
+  // That page also clears what the browser kept for this member.
+  redirect('/account-deactivated')
 }
 
 // Revokes a coach's access (Prompt 54) — the only mechanism in this
