@@ -1,6 +1,42 @@
 import { describe, it, expect } from 'vitest'
 import { assessRecruiterEmail, findClaimedCompany, rootDomain, extractUrlsFromText } from '@/lib/scam-shield/assess-recruiter-email'
 
+describe('assessRecruiterEmail: real mail that only looks odd', () => {
+  it('leaves an automated Atlassian service-desk email alone', () => {
+    const r = assessRecruiterEmail({
+      from: '"National Labor Exchange (NLx) Service Desk" <nlx@naswa-itsc.atlassian.net>',
+      replyTo: 'nlx.support@gmail.com',
+      subject: 'NLX-83 NLx Job Feed access for a free public job board: NextChapter',
+      body: 'Your request for a job feed for your public job board has been received. Link: https://naswa-itsc.atlassian.com/servicedesk/customer/portal/1/NLX-83',
+      linkUrls: ['https://naswa-itsc.atlassian.com/servicedesk/customer/portal/1/NLX-83'],
+      authResults: 'dkim=fail spf=softfail',
+    })
+    expect(r.level).toBe('none')
+  })
+
+  it('leaves a real person replying about NextChapter alone, even with a failed sender check', () => {
+    const r = assessRecruiterEmail({
+      from: 'Zyrine Dave Geraldez <kindassist@kindcap.com>',
+      subject: 'Re: NextChapter',
+      body: 'Happy to chat about the hiring role. Message me on WhatsApp: +1 555 0100. https://launchyournextchapter.com/talent',
+      linkUrls: ['https://launchyournextchapter.com/talent'],
+      authResults: 'spf=fail dkim=fail',
+    })
+    expect(r.level).toBe('none')
+  })
+
+  it('still flags a request for money inside a thread the candidate started', () => {
+    const r = assessRecruiterEmail({
+      from: 'Pat <pat@kindcap.com>',
+      subject: 'Re: NextChapter role',
+      body: 'Great news on the position. Please pay the training fee by wire transfer before we continue.',
+      linkUrls: [],
+      inExistingConversation: true,
+    })
+    expect(r.level).not.toBe('none')
+  })
+})
+
 describe('assessRecruiterEmail', () => {
   it('flags the fake Optavise CIO-interview recruiter email', () => {
     const r = assessRecruiterEmail({

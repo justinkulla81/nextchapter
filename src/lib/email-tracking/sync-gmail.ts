@@ -273,7 +273,16 @@ async function processMessage(
   let flaggedAsScam = false
   if (direction === 'INBOUND' && !isFromAtsOrJobBoard && !isFromNextChapterItself && !isSelfAddressed && !isNotJobRelated && !listUnsubscribe) {
     try {
+      // A reply in a thread the candidate already wrote in is a conversation
+      // they started, not a cold approach.
+      const inExistingConversation =
+        !!threadId &&
+        !!(await prisma.trackedEmailActivity.findFirst({
+          where: { candidateId: connection.candidateId, threadId, direction: 'OUTBOUND' },
+          select: { id: true },
+        }))
       const assessment = assessRecruiterEmail({
+        inExistingConversation,
         from,
         replyTo: getHeader(message.payload?.headers, 'Reply-To'),
         subject,
