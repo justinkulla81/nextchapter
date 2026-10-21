@@ -5,6 +5,7 @@
 import { CRAWLER_FUNCTION_LABEL } from '@/lib/jobs/job-functions'
 import { AI_FUNCTION_STATS, type AiFunctionStat } from '@/lib/skills/ai-skill-market.data'
 import { AI_SKILL_GROUPS, AI_SKILL_ITEMS } from '@/lib/skills/ai-skills'
+import { AI_LEVELS, AI_LEVEL_LABEL, type AiMarketData, type AiPremium } from '@/lib/skills/ai-market'
 
 export interface PublicFunctionRow {
   fn: string
@@ -51,4 +52,47 @@ export function likePremiumRange(): { min: number; max: number } | null {
 
 export function skillGroupsForDisplay(): { key: string; label: string; items: string[] }[] {
   return AI_SKILL_GROUPS.map((g) => ({ key: g.key, label: g.label, items: AI_SKILL_ITEMS.filter((i) => i.group === g.key).map((i) => i.label) }))
+}
+
+const premiumFields = (p: AiPremium | undefined) =>
+  p && p.likePct !== undefined && p.likeUsd !== undefined
+    ? { rawPremiumPct: Math.round(p.rawPct), likePremiumPct: Math.round(p.likePct), likePremiumUsd: p.likeUsd }
+    : { rawPremiumPct: null, likePremiumPct: null, likePremiumUsd: null }
+
+/** The same rows from the live snapshot (full-text postings only). Premium needs both raw and like for like. */
+export function liveFunctionRows(data: AiMarketData): PublicFunctionRow[] {
+  return Object.entries(data.functions)
+    .filter(([, f]) => f.n >= 500)
+    .map(([fn, f]) => ({ fn, label: f.label, postings: f.n, sharePct: f.sharePct, ...premiumFields(f.premium) }))
+    .sort((a, b) => b.sharePct - a.sharePct)
+}
+
+export interface LevelRow {
+  fn: string
+  label: string
+  /** Level key -> like-for-like premium %, only where raw and like for like both exist. */
+  byLevel: Partial<Record<(typeof AI_LEVELS)[number], number>>
+}
+
+export const LEVEL_COLUMNS = AI_LEVELS.map((l) => ({ key: l, label: AI_LEVEL_LABEL[l] }))
+
+/** Functions with a like-for-like premium at two or more levels, largest first. */
+export function liveLevelRows(data: AiMarketData): LevelRow[] {
+  return Object.entries(data.functions)
+    .map(([fn, f]) => {
+      const byLevel: LevelRow['byLevel'] = {}
+      for (const l of AI_LEVELS) {
+        const p = f.levels[l]
+        if (p && p.likePct !== undefined && p.likeUsd !== undefined) byLevel[l] = Math.round(p.likePct)
+      }
+      return { fn, label: f.label, n: f.n, byLevel }
+    })
+    .filter((r) => Object.keys(r.byLevel).length >= 2)
+    .sort((a, b) => b.n - a.n)
+    .map(({ fn, label, byLevel }) => ({ fn, label, byLevel }))
+}
+
+export function liveOverallSharePct(data: AiMarketData): number {
+  const { aiSkillFullText, fullText } = data.counts
+  return fullText ? Math.round((1000 * aiSkillFullText) / fullText) / 10 : 0
 }
