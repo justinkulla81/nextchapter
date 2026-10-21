@@ -135,7 +135,6 @@ export interface HubData {
   boards: { id: string; name: string; website: string | null; director: string | null; directorTitle: string | null; phone: string | null }[]
   centers: { name: string; city: string | null; phone: string | null; email: string | null; url: string | null; type: string | null }[]
   colleges: { name: string; level: string | null; enrollment: number | null; website: string | null; retraining: boolean; execEd: boolean }[]
-  rapidResponse: { name: string; title: string | null; org: string } | null
 }
 
 export async function getHub(p: Prospect): Promise<HubData> {
@@ -144,14 +143,9 @@ export async function getHub(p: Prospect): Promise<HubData> {
     ? await prisma.americanJobCenter.findMany({ where: { workforceBoardId: { in: boardRows.map((b) => b.id) } }, select: { name: true, city: true, phone: true, businessEmail: true, generalEmail: true, detailsUrl: true, centerType: true }, orderBy: [{ centerType: 'asc' }, { name: 'asc' }], take: 6 })
     : []
   const collegeRows = await prisma.collegeProfile.findMany({ where: { countyFips: { in: p.collegeAreaIds } }, select: { name: true, level: true, enrollment: true, website: true, hasRetraining: true, hasExecEd: true }, orderBy: { enrollment: 'desc' }, take: 14 })
-  const rr = await prisma.crmPerson.findFirst({
-    where: { deletedAt: null, mergedIntoId: null, notes: { contains: 'State Rapid Response Coordinators page' }, affiliations: { some: { isCurrent: true, org: { usState: p.state } } } },
-    select: { fullName: true, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { name: true } } }, take: 1 } },
-  })
   return {
     boards: boardRows.map((b) => ({ id: b.id, name: b.name, website: b.website, director: b.directorName, directorTitle: b.directorTitle, phone: b.directorPhone })),
     centers: centerRows.map((c) => ({ name: c.name, city: c.city, phone: c.phone, email: c.businessEmail || c.generalEmail || null, url: c.detailsUrl, type: c.centerType })),
     colleges: collegeRows.filter((c) => !/theolog|seminar|nursing|beauty|cosmet|barber|divinity/i.test(c.name)).slice(0, 8).map((c) => ({ name: c.name, level: c.level, enrollment: c.enrollment, website: c.website, retraining: !!c.hasRetraining, execEd: !!c.hasExecEd })),
-    rapidResponse: rr ? { name: rr.fullName, title: rr.affiliations[0]?.title ?? null, org: rr.affiliations[0]?.org.name ?? '' } : null,
   }
 }

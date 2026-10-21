@@ -125,7 +125,6 @@ export function ContactsPanel({ hub, p }: { hub: HubData; p: Prospect }) {
         <ul className="divide-y divide-border rounded-xl border border-border px-4 text-sm">
           {hub.boards.map((b) => <li key={b.id} className="py-2.5"><span className="font-medium">{b.website ? <a className={linkCls} href={/^https?:/.test(b.website) ? b.website : `https://${b.website}`} target="_blank" rel="noopener noreferrer">{b.name} ↗</a> : b.name}</span><span className="block text-muted-foreground">Local workforce board{b.director ? ` · ${b.director}${b.directorTitle ? `, ${b.directorTitle}` : ''}` : ''}</span></li>)}
           {hub.centers.map((c) => <li key={c.name + (c.city ?? '')} className="py-2.5"><span className="font-medium">{c.url ? <a className={linkCls} href={c.url} target="_blank" rel="noopener noreferrer">{c.name} ↗</a> : c.name}</span><span className="block text-muted-foreground">American Job Center{c.city ? ` · ${c.city}` : ''}{c.phone ? ` · ${c.phone}` : ''}</span></li>)}
-          {hub.rapidResponse && <li className="py-2.5"><span className="font-medium">{hub.rapidResponse.org}</span><span className="block text-muted-foreground">State Rapid Response, for anyone in a layoff · {hub.rapidResponse.name}{hub.rapidResponse.title ? `, ${hub.rapidResponse.title}` : ''}</span></li>}
         </ul>
       </Block>
     </div>
