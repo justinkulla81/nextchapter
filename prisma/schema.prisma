@@ -16312,6 +16312,9 @@ model LinkedInAdminConnection {
   accessToken    String    @db.Text
   personUrn      String
   memberName     String?
+  /// The company page posts go out as (urn:li:organization:...), found when the admin connects the page. Null until then.
+  organizationUrn  String?
+  organizationName String?
   expiresAt      DateTime
   connectedAt    DateTime  @default(now())
   disconnectedAt DateTime?

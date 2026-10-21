@@ -20,6 +20,9 @@ const LINKEDIN_UGC_POSTS_URL = 'https://api.linkedin.com/v2/ugcPosts'
 // w_member_social is LinkedIn's "Share on LinkedIn" product scope, the
 // actual posting permission.
 const SCOPE = 'openid profile w_member_social'
+// Posting as a company page needs LinkedIn's Community Management API product on the app, and the member to be an admin of the page:
+// w_organization_social posts as the page, r_organization_admin lists the pages the member administers.
+const SCOPE_PAGE = 'openid profile w_member_social w_organization_social r_organization_admin'
 
 export function isLinkedInPostingConfigured(): boolean {
   return !!process.env.LINKEDIN_CLIENT_ID && !!process.env.LINKEDIN_CLIENT_SECRET
@@ -34,7 +37,7 @@ function getRedirectUri(opts: { admin?: boolean } = {}): string {
   return `${appUrl}/api/auth/linkedin/callback`
 }
 
-export function buildLinkedInAuthUrl(state: string, opts: { admin?: boolean } = {}): string {
+export function buildLinkedInAuthUrl(state: string, opts: { admin?: boolean; page?: boolean } = {}): string {
   const clientId = process.env.LINKEDIN_CLIENT_ID
   if (!clientId) throw new Error('LINKEDIN_CLIENT_ID is not set.')
 
@@ -42,7 +45,7 @@ export function buildLinkedInAuthUrl(state: string, opts: { admin?: boolean } = 
     response_type: 'code',
     client_id: clientId,
     redirect_uri: getRedirectUri(opts),
-    scope: SCOPE,
+    scope: opts.page ? SCOPE_PAGE : SCOPE,
     state,
   })
   return `${LINKEDIN_AUTH_URL}?${params.toString()}`
@@ -140,14 +143,14 @@ const liHeaders = (accessToken: string) => ({
 })
 
 /** Uploads a PNG and returns its asset URN, ready to attach to a post. */
-async function uploadLinkedInImage(accessToken: string, personUrn: string, png: Buffer): Promise<string> {
+async function uploadLinkedInImage(accessToken: string, ownerUrn: string, png: Buffer): Promise<string> {
   const reg = await fetch('https://api.linkedin.com/v2/assets?action=registerUpload', {
     method: 'POST',
     headers: liHeaders(accessToken),
     body: JSON.stringify({
       registerUploadRequest: {
         recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
-        owner: personUrn,
+        owner: ownerUrn,
         serviceRelationships: [{ relationshipType: 'OWNER', identifier: 'urn:li:userGeneratedContent' }],
       },
     }),
@@ -165,15 +168,15 @@ async function uploadLinkedInImage(accessToken: string, personUrn: string, png: 
 
 /** Publishes text with up to nine images (a swipeable set) as the member. Returns the post URN. */
 export async function publishLinkedInShare(o: {
-  accessToken: string; personUrn: string; text: string; images?: Buffer[]; visibility: LinkedInVisibility
+  accessToken: string; authorUrn: string; text: string; images?: Buffer[]; visibility: LinkedInVisibility
 }): Promise<string> {
   const assets: string[] = []
-  for (const png of (o.images ?? []).slice(0, 9)) assets.push(await uploadLinkedInImage(o.accessToken, o.personUrn, png)) // one at a time: LinkedIn rate-limits uploads
+  for (const png of (o.images ?? []).slice(0, 9)) assets.push(await uploadLinkedInImage(o.accessToken, o.authorUrn, png)) // one at a time: LinkedIn rate-limits uploads
   const response = await fetch(LINKEDIN_UGC_POSTS_URL, {
     method: 'POST',
     headers: liHeaders(o.accessToken),
     body: JSON.stringify({
-      author: o.personUrn,
+      author: o.authorUrn,
       lifecycleState: 'PUBLISHED',
       specificContent: {
         'com.linkedin.ugc.ShareContent': {
@@ -192,13 +195,32 @@ export async function publishLinkedInShare(o: {
 }
 
 /** Adds a comment to a post as the member (used for the first comment with the link). */
-export async function commentOnLinkedInPost(accessToken: string, personUrn: string, postUrn: string, text: string): Promise<void> {
+export async function commentOnLinkedInPost(accessToken: string, actorUrn: string, postUrn: string, text: string): Promise<void> {
   const response = await fetch(`https://api.linkedin.com/v2/socialActions/${encodeURIComponent(postUrn)}/comments`, {
     method: 'POST',
     headers: liHeaders(accessToken),
-    body: JSON.stringify({ actor: personUrn, message: { text } }),
+    body: JSON.stringify({ actor: actorUrn, message: { text } }),
   })
   if (!response.ok) throw new Error(`LinkedIn comment failed: ${response.status} ${await response.text()}`)
 }
 
 export const linkedInPostUrl = (postUrn: string) => `https://www.linkedin.com/feed/update/${postUrn}/`
+
+/** The company pages this member administers, as { urn, name }. Needs r_organization_admin; throws when LinkedIn refuses. */
+export async function fetchAdministeredPages(accessToken: string): Promise<{ urn: string; name: string | null }[]> {
+  const res = await fetch('https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED', { headers: liHeaders(accessToken) })
+  if (!res.ok) throw new Error(`LinkedIn page list failed: ${res.status} ${await res.text()}`)
+  const data = (await res.json()) as { elements?: { organization?: string }[] }
+  const urns = [...new Set((data.elements ?? []).flatMap((e) => (e.organization ? [e.organization] : [])))]
+  return Promise.all(urns.map(async (urn) => {
+    const id = urn.split(':').pop()
+    const r = await fetch(`https://api.linkedin.com/v2/organizations/${id}?projection=(localizedName)`, { headers: liHeaders(accessToken) }).catch(() => null)
+    const name = r?.ok ? ((await r.json().catch(() => ({}))) as { localizedName?: string }).localizedName ?? null : null
+    return { urn, name }
+  }))
+}
+
+/** Which of the administered pages is NextChapter's: the one named for it, or the only one. Null when it cannot tell. */
+export function pickNextChapterPage(pages: { urn: string; name: string | null }[]): { urn: string; name: string | null } | null {
+  return pages.find((p) => /next\s*chapter/i.test(p.name ?? '')) ?? (pages.length === 1 ? pages[0] : null)
+}

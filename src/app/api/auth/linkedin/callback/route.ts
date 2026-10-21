@@ -5,7 +5,7 @@ import { exchangeCodeForTokens, fetchLinkedInPersonUrn, isLinkedInPostingConfigu
 import { prisma } from '@/lib/prisma'
 import { ADMIN_HOST } from '@/proxy'
 import { verifyAdminLinkedInState } from '@/lib/linkedin/admin-state'
-import { fetchLinkedInProfile } from '@/lib/linkedin/oauth'
+import { fetchAdministeredPages, fetchLinkedInProfile, pickNextChapterPage } from '@/lib/linkedin/oauth'
 import { encryptToken } from '@/lib/security/token-crypto'
 
 // The admin's "Connect LinkedIn" lands here too (the one redirect URL the
@@ -14,12 +14,21 @@ import { encryptToken } from '@/lib/security/token-crypto'
 async function adminConnect(request: NextRequest, adminEmail: string): Promise<NextResponse> {
   const back = (q: string) => NextResponse.redirect(new URL(`/support/admin/linkedin-drafts?linkedin=${q}`, `https://${ADMIN_HOST}`))
   const code = request.nextUrl.searchParams.get('code')
-  if (request.nextUrl.searchParams.get('error') || !code) return back('denied')
+  const error = request.nextUrl.searchParams.get('error')
+  // LinkedIn refuses a scope the app has no product for before it ever asks the member.
+  if (error === 'unauthorized_scope_error') return back('needs_product')
+  if (error || !code) return back('denied')
   try {
     const tokens = await exchangeCodeForTokens(code, { admin: true })
     const { personUrn, name } = await fetchLinkedInProfile(tokens.access_token)
+    // Posts go out as the company page. The member must administer it, which the page list shows.
+    const pages = await fetchAdministeredPages(tokens.access_token).catch((e) => { console.error('LinkedIn page list failed:', e); return null })
+    if (pages === null) return back('needs_product')
+    if (pages.length === 0) return back('no_page')
+    const page = pickNextChapterPage(pages)
+    if (!page) return back('which_page')
     const data = {
-      accessToken: encryptToken(tokens.access_token), personUrn, memberName: name,
+      accessToken: encryptToken(tokens.access_token), personUrn, memberName: name, organizationUrn: page.urn, organizationName: page.name,
       expiresAt: new Date(Date.now() + tokens.expires_in * 1000), connectedAt: new Date(), disconnectedAt: null,
     }
     await prisma.linkedInAdminConnection.upsert({ where: { adminEmail }, create: { adminEmail, ...data }, update: data })
