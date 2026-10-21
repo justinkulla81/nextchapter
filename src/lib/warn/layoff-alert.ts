@@ -4,9 +4,10 @@ import { createResend } from '@/lib/email/resend-client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { contactStrength } from '@/lib/crm/contact-strength'
 import { withAudienceHtml } from '@/lib/email/audience-tag'
-import { alertBody, alertSubject, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
+import { ALERT_HOLD_HOURS, alertBody, alertReadiness, alertSubject, shouldAlert, type AlertInput, type LayoffKind } from './layoff-alert-rules'
 import { enrichLayoffHr } from './layoff-hr-enrich'
 import { layoffPeople } from './layoff-alert-people'
+import { inferHqState } from './layoff-hq-state'
 
 /** The only recipient: Justin's NextChapter inbox, never a personal address. */
 const ALERT_TO = 'justin@launchyournextchapter.com'
@@ -38,7 +39,8 @@ export interface NewLayoff {
  */
 export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
   try {
-    if (!process.env.RESEND_API_KEY || sentThisRun >= MAX_ALERTS_PER_RUN) return false
+    if (!process.env.RESEND_API_KEY) return false
+    if (sentThisRun >= MAX_ALERTS_PER_RUN) { await markHeld(l.noticeId); return false } // a later run sends it
 
     const org = await prisma.crmOrganization.findUnique({
       where: { canonicalNameNormalized: l.normalizedEmployer },
@@ -60,15 +62,28 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     // Everyone tied to this layoff, by role. A failure here sends the shorter email, not none.
     const notice = await prisma.warnNotice.findUnique({
       where: { id: l.noticeId },
-      select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true },
+      select: { state: true, county: true, address: true, workforceBoardId: true, promotedOrgId: true, alertSentAt: true, alertHeldAt: true, alertGaveUpAt: true },
     }).catch(() => null)
+    if (notice?.alertSentAt || notice?.alertGaveUpAt) return false
     // Find the people to call now, so the email is not empty: one Hunter search for a company with no head of HR on file.
-    const orgId = (await enrichLayoffHr(l.employer, org?.id ?? notice?.promotedOrgId ?? null)) ?? org?.id ?? notice?.promotedOrgId ?? null
+    // The Hunter search is spent once, on the first attempt; a retry only re-reads what the CRM has gained since.
+    const firstAttempt = !notice?.alertHeldAt
+    const orgId = (firstAttempt ? await enrichLayoffHr(l.employer, org?.id ?? notice?.promotedOrgId ?? null) : null) ?? org?.id ?? notice?.promotedOrgId ?? null
     const orgState = orgId ? (await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { usState: true } }))?.usState ?? null : null
+    // A news story rarely names a place. Without one, use where the company is headquartered, so the state-level partners can be looked up.
+    const hqState = !notice?.state && !orgState ? await inferHqState(l.normalizedEmployer) : null
     const related = await layoffPeople(orgId, {
-      state: notice?.state ?? orgState ?? null, county: notice?.county ?? null, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null,
+      state: notice?.state ?? orgState ?? hqState, county: notice?.county ?? null, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null,
     }).catch((e) => { console.error('Layoff alert people failed for', l.employer, e); return null })
-    if (related) { input.groups = related.groups; input.place = related.placeLabel }
+    if (related) { input.groups = related.groups; input.place = hqState ? `${related.placeLabel ?? hqState} (company headquarters)` : related.placeLabel }
+
+    // Only email once the alert is populated; otherwise hold it and look again on the next run.
+    const readiness = alertReadiness(related?.groups ?? [], notice?.state ?? orgState ?? hqState)
+    if (!readiness.ready) {
+      await markHeld(l.noticeId)
+      captureServerEvent('cron', 'layoff_alert_held', { employer: l.employer, employees: l.employees, missing: readiness.missing })
+      return false
+    }
 
     const sibling = await prisma.warnNotice.count({
       where: {
@@ -93,6 +108,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
       return false
     }
     sentThisRun++
+    await prisma.warnNotice.update({ where: { id: l.noticeId }, data: { alertSentAt: new Date() } }).catch(() => {})
     captureServerEvent('cron', 'layoff_alert_sent', {
       employer: l.employer, kind: l.kind, employees: l.employees, percent: l.percent,
       inCrm: !!org, warm, confirmed: l.confirmed,
@@ -102,4 +118,42 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     console.error('Layoff alert failed for', l.employer, e)
     return false
   }
+}
+
+/** Remembers when an alert was first held, so the 72-hour clock starts once. */
+async function markHeld(noticeId: string): Promise<void> {
+  await prisma.warnNotice.updateMany({ where: { id: noticeId, alertHeldAt: null }, data: { alertHeldAt: new Date() } }).catch(() => {})
+}
+
+/**
+ * Looks again at every held alert: the CRM may have gained the HR contact or the
+ * place since, from the contact lookups, the primary-contact sweep, or by hand.
+ * Sends the ones now populated; after 72 hours still short, drops the alert
+ * without emailing (the 7 AM digest still lists the layoff).
+ */
+export async function retryHeldLayoffAlerts(now = new Date()): Promise<{ retried: number; sent: number; gaveUp: number }> {
+  const out = { retried: 0, sent: 0, gaveUp: 0 }
+  const held = await prisma.warnNotice.findMany({
+    where: { alertHeldAt: { not: null }, alertSentAt: null, alertGaveUpAt: null, dismissedAt: null },
+    orderBy: { alertHeldAt: 'asc' },
+    take: 20,
+  })
+  for (const n of held) {
+    if (now.getTime() - (n.alertHeldAt?.getTime() ?? now.getTime()) > ALERT_HOLD_HOURS * 3_600_000) {
+      await prisma.warnNotice.update({ where: { id: n.id }, data: { alertGaveUpAt: now } })
+      captureServerEvent('cron', 'layoff_alert_gave_up', { employer: n.employer, employees: n.employees })
+      out.gaveUp++
+      continue
+    }
+    const kind: LayoffKind = n.source === 'WARN_FILING' ? 'warn' : /^SEC 8-K/i.test(n.layoffType ?? '') ? 'sec' : 'news'
+    const percent = n.layoffType?.match(/(\d{1,3}(?:\.\d+)?)% of staff/)?.[1]
+    out.retried++
+    const sent = await alertNewLayoff({
+      noticeId: n.id, employer: n.employer, normalizedEmployer: n.normalizedEmployer, employees: n.employees,
+      percent: percent ? parseFloat(percent) : null, kind, confirmed: kind !== 'news' || !/unconfirmed/i.test(n.layoffType ?? ''),
+      sourceUrl: n.sourceUrl,
+    })
+    if (sent) out.sent++
+  }
+  return out
 }

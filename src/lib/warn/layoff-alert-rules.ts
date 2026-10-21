@@ -170,3 +170,26 @@ export function orderGroups<T extends { cards: { email: string | null; guessed?:
   const rank = (g: T) => (g.cards.some((c) => c.email && !c.guessed) ? 0 : g.cards.length ? 1 : 2)
   return groups.map((g, i) => ({ g, i })).sort((a, b) => rank(a.g) - rank(b.g) || a.i - b.i).map((x) => x.g)
 }
+
+
+/** An alert still short of contacts after this long is dropped, not emailed. */
+export const ALERT_HOLD_HOURS = 72
+
+const EMPLOYER_GROUPS = ['head_hr', 'hr_team']
+const PUBLIC_GROUPS = ['rapid_response', 'workforce_board', 'job_centers', 'economic_development']
+
+/**
+ * Whether an alert is worth emailing yet. Justin only wants the email once it is
+ * populated: where the layoff is, an HR contact with an email address (a guessed
+ * one counts, an empty "none on file" does not), and at least two of the public
+ * partners (state Rapid Response, the workforce board, American Job Centers,
+ * economic development). Anything missing is returned so the hold can say why.
+ */
+export function alertReadiness(groups: ContactGroup[], state: string | null): { ready: boolean; missing: string[] } {
+  const missing: string[] = []
+  if (!state) missing.push('where the layoff is (no state known)')
+  if (!groups.some((g) => EMPLOYER_GROUPS.includes(g.key) && g.cards.some((c) => !!c.email))) missing.push('an HR contact with an email address')
+  const publicFilled = groups.filter((g) => PUBLIC_GROUPS.includes(g.key) && g.cards.length > 0).length
+  if (publicFilled < 2) missing.push(`public-sector contacts (${publicFilled} of 4 groups; need two)`)
+  return { ready: missing.length === 0, missing }
+}
