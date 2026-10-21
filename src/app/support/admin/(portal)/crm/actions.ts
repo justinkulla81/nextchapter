@@ -2194,8 +2194,11 @@ export async function sendOutreachEmail(personId: string, subject: string, body:
   const bodyTrimmed = body.trim()
   if (!subjectTrimmed || !bodyTrimmed) return { sent: false, message: 'Subject and message are both required.' }
 
-  const person = await prisma.crmPerson.findUniqueOrThrow({ where: { id: personId }, select: { email: true, fullName: true } })
+  const person = await prisma.crmPerson.findUniqueOrThrow({ where: { id: personId }, select: { email: true, fullName: true, emailVerifiedStatus: true, passedAt: true } })
   if (!person.email) return { sent: false, message: `${person.fullName} has no email on file.` }
+  // The same stop list cold outreach and the mailing lists honor: a bounce, spam complaint or do-not-email marking blocks a one-off send too.
+  const stopped = await prisma.mailingSuppression.findUnique({ where: { email: person.email.toLowerCase() }, select: { reason: true } })
+  if (stopped || person.emailVerifiedStatus === 'invalid') return { sent: false, message: `Not sent: ${person.email} is on the stop list (it bounced, was marked spam, or asked not to be emailed).` }
 
   const token = await getValidAccessToken()
   if (!token) return { sent: false, message: 'Google isn’t connected — connect it from Activity sync first.' }

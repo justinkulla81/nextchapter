@@ -30,6 +30,8 @@ export interface SentEmailRow {
   /** False when this kind of send has no open/click tracking (Gmail-synced mail), so "0" would mislead. */
   tracked: boolean
   opens: number
+  /** Cold outreach only: an open event arrived but within two minutes of the send, which is a mail scanner, not a person. */
+  scannerOpenOnly: boolean
   clicks: number
   repliedAt: Date | null
   replyClass: ReplyClass | null
@@ -118,6 +120,7 @@ export async function loadSentEmails(): Promise<{ rows: SentEmailRow[]; capped: 
       personId: a.person?.id ?? null, name: a.person?.fullName ?? 'Unmatched recipient', email: a.person?.email ?? '',
       orgId: org?.id ?? null, orgName: org?.name ?? '', lists: [], edition: null,
       tracked: cold || composed,
+      scannerOpenOnly: cold && humanOpens(a.outcome) === 0 && /, opened(,|$)/.test(a.outcome ?? ''),
       opens: cold ? humanOpens(a.outcome) : (a.outreachTracking?.openCount ?? 0),
       clicks: cold ? (/, clicked(,|$)/.test(a.outcome ?? '') ? 1 : 0) : (a.outreachTracking?.links.reduce((n, l) => n + l.clickCount, 0) ?? 0),
       repliedAt, replyClass, bounced: /, bounced/.test(a.outcome ?? ''), failed: false,
@@ -136,7 +139,7 @@ export async function loadSentEmails(): Promise<{ rows: SentEmailRow[]; capped: 
       orgId: org?.id ?? null, orgName: org?.name ?? '',
       lists: (fromKeys.length ? fromKeys : editionLists).map((l) => ({ id: l.id, name: l.name })),
       edition: { id: r.edition.id, title: r.edition.title },
-      tracked: true, opens: r.openCount, clicks: r.clickCount,
+      tracked: true, opens: r.openCount, scannerOpenOnly: false, clicks: r.clickCount,
       repliedAt: r.repliedAt, replyClass: r.repliedAt ? 'other' : null,
       bounced: !!r.bouncedAt, failed: r.status === 'FAILED',
       externalUrl: r.resendEmailId ? `https://resend.com/emails/${r.resendEmailId}` : null,
