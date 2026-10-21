@@ -2,7 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { getEarnedPoints } from '@/lib/weekly/action-effort'
-import { countsAsSearchEffort } from '@/lib/scoring/effort-actions'
+import { ENGAGEMENT_MINUTES_PER_WEEK_CAP, effortKind } from '@/lib/scoring/effort-actions'
 
 // One point is one minute of effort (see weekly/action-effort.ts), so the
 // sum of earned points across every weekly sprint, from the actions that count
@@ -19,17 +19,24 @@ interface StoredAction {
   isGoalBonus?: boolean
 }
 
-// Only work toward getting a job counts. Setup, connecting accounts, the welcome bonus,
-// check-ins, clicks and helping other members earn points but are not effort; see
+// Work toward getting a job counts in full. Light engagement (showing up, browsing jobs,
+// starring a contact, a video) counts a little, up to a weekly cap. Setup, connecting
+// accounts, the welcome bonus and helping other members do not count; see
 // scoring/effort-actions.ts for the lists.
 export function sumEffortMinutes(sprints: Array<{ committedActions: unknown }>): number {
   let total = 0
   for (const sprint of sprints) {
     const actions = Array.isArray(sprint.committedActions) ? (sprint.committedActions as StoredAction[]) : []
+    let work = 0
+    let engagement = 0
     for (const a of actions) {
-      if (!countsAsSearchEffort(a)) continue
-      total += getEarnedPoints({ points: a.points ?? 0, completed: a.completed === true, completionCount: a.completionCount })
+      const kind = effortKind(a)
+      if (kind === 'none') continue
+      const earned = getEarnedPoints({ points: a.points ?? 0, completed: a.completed === true, completionCount: a.completionCount })
+      if (kind === 'engagement') engagement += earned
+      else work += earned
     }
+    total += work + Math.min(engagement, ENGAGEMENT_MINUTES_PER_WEEK_CAP)
   }
   return total
 }

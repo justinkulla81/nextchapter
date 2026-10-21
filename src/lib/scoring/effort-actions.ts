@@ -1,17 +1,25 @@
 import { PROFILE_CHECKLIST_ACTION_TYPES } from '@/lib/weekly/profile-checklist-types'
 
-// Which sprint actions count as search effort. Effort is what the Dossier and the
-// unlocks show employers: how much work a member has put into actually getting a
-// job. Answering questions about yourself, connecting an account, helping another
-// member or clicking around is not that, and counting it let a member who only
-// finished setup (up to 355 points) look most of the way to Candidate+ (480) and
-// twice the way to the strategy unlock (180) before sending a single message.
+// Which sprint actions count as search effort, and how much. Effort is what the
+// Dossier and the unlocks show employers: how much a member has put into getting
+// a job. Counting everything let a member who only finished setup (up to 355
+// points) look most of the way to Candidate+ (480) and twice the way to the
+// strategy unlock (180) before sending a single message.
 //
-// Only what is listed in EXCLUDED_FROM_EFFORT is left out. An untyped row (a
-// personalised task from the plan or a coach) and any type not listed here still
-// count, so retired or future types are not dropped silently; the test insists
-// every point-earning type is placed in exactly one of the two lists below, so a
-// new type has to be decided when it is added.
+// Three kinds of action:
+//   work        counts in full: outreach, applications, interviews, references,
+//               learning, work on the materials that get interviews.
+//   engagement  counts a little: showing up, browsing jobs, starring a contact,
+//               joining the community, watching a video. A first step, so it earns
+//               credit, but capped per week so it can never stand in for work.
+//   none        does not count: setup, profile, assessments, connecting accounts,
+//               the welcome bonus, and helping other members.
+//
+// Only EXCLUDED_FROM_EFFORT is dropped at runtime. An untyped row (a personalised
+// task from the plan or a coach) and any type not listed here still counts as
+// work, so retired or future types are not dropped silently; the test insists
+// every point-earning type is placed in exactly one list, so a new type has to be
+// decided when it is added.
 
 // Setup, profile, questionnaires, assessments and connecting accounts.
 const SETUP: readonly string[] = [
@@ -27,35 +35,43 @@ const SETUP: readonly string[] = [
   'WORK_INTERESTS_COMPLETED',
   'LINKEDIN_SETUP',
   'RESUME_BOOK_UPLOAD',
-  'INTERIM_PROFILE_CREATED',
   'NEGOTIATION_INTERVIEW_COMFORT_CONFIRMED',
-  'CONTACT_PRIORITIZED',
-]
-
-// A check-in, a click or a reaction: too light to stand for effort.
-const CLICKS_AND_CHECK_INS: readonly string[] = [
-  'MOOD_CHECKIN',
-  'JOB_INTERESTED_REACTION',
-  'PARTNER_CLICK_THROUGH',
-  'WATCHLIST_ADD',
-  'WATCHLIST_POSTING_VIEWED',
-  'VIDEO_REACTION',
-  'VIDEO_WATCHED',
-  'JOB_BOARD_USAGE_CONFIRMED',
 ]
 
 // Helping other members. Valuable to the community, but not the member's own search.
-const COMMUNITY: readonly string[] = [
+const HELPING_OTHERS: readonly string[] = ['INTEL_HELPFUL', 'COMPANY_INTEL_CONTRIBUTED', 'INSIDER_REQUEST_ANSWERED']
+
+// No screen sets this any more.
+const RETIRED: readonly string[] = ['JOB_BOARD_USAGE_CONFIRMED']
+
+export const EXCLUDED_FROM_EFFORT: ReadonlySet<string> = new Set([...SETUP, ...HELPING_OTHERS, ...RETIRED])
+
+// Light engagement across the four places a member works on their search.
+export const ENGAGEMENT_ACTION_TYPES: ReadonlySet<string> = new Set([
+  // Showing up
+  'LOGIN_VISIT',
+  'MOOD_CHECKIN',
+  // Jobs
+  'JOB_INTERESTED_REACTION',
+  'WATCHLIST_ADD',
+  'WATCHLIST_POSTING_VIEWED',
+  'PARTNER_CLICK_THROUGH',
+  // Networking
+  'CONTACT_PRIORITIZED',
   'ENGAGE_COMMENT',
   'ENGAGE_EVENT',
   'ENGAGE_POST_UPDATE',
   'ENGAGE_PEER_SUPPORT',
-  'INTEL_HELPFUL',
-  'COMPANY_INTEL_CONTRIBUTED',
-  'INSIDER_REQUEST_ANSWERED',
-]
+  // Fractional and interim work
+  'INTERIM_PROFILE_CREATED',
+  // Learning
+  'VIDEO_WATCHED',
+  'VIDEO_REACTION',
+])
 
-export const EXCLUDED_FROM_EFFORT: ReadonlySet<string> = new Set([...SETUP, ...CLICKS_AND_CHECK_INS, ...COMMUNITY])
+// The most engagement can add in one weekly sprint. Small on purpose: at 10 a week
+// it would take most of a year of only showing up to reach the 480-minute bar.
+export const ENGAGEMENT_MINUTES_PER_WEEK_CAP = 10
 
 // Outreach, follow-ups, applications, interviews, references, learning, work on
 // the materials that get interviews, and the first work from a platform.
@@ -97,9 +113,14 @@ export const COUNTS_AS_EFFORT: ReadonlySet<string> = new Set([
   'WAYS_TO_SAY_IT_COMPLETE',
 ])
 
+export type EffortKind = 'work' | 'engagement' | 'none'
+
 // isGoalBonus is the one-time welcome and commitment credit: a bonus for saying
 // yes, not effort.
-export function countsAsSearchEffort(action: { actionType?: string; isGoalBonus?: boolean }): boolean {
-  if (action.isGoalBonus) return false
-  return !(action.actionType && EXCLUDED_FROM_EFFORT.has(action.actionType))
+export function effortKind(action: { actionType?: string; isGoalBonus?: boolean }): EffortKind {
+  if (action.isGoalBonus) return 'none'
+  if (!action.actionType) return 'work'
+  if (EXCLUDED_FROM_EFFORT.has(action.actionType)) return 'none'
+  if (ENGAGEMENT_ACTION_TYPES.has(action.actionType)) return 'engagement'
+  return 'work'
 }
