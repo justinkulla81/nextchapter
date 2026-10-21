@@ -1,0 +1,32 @@
+# One-off, run by opening its pull request (then close the pull request without merging). Deletes this session's leftover
+# branches, all already in main; each only if its tip is the exact commit checked when this was written. The pull
+# request's own branch is deleted last.
+name: Delete leftover branches (one-off 4)
+on:
+  pull_request:
+    types: [opened]
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    if: github.head_ref == 'claude/branch-cleanup-5'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAIRS: >-
+            claude/branch-cleanup-2:f643e5fe8ccabe9aa3e27fe05113bbf1f9dc55c8 claude/branch-cleanup-3:5faa85b8fc45675e55568526ebcc5a8a7db2cbad claude/branch-cleanup-4:b2e9fd8a5daaa520ea8490d561f9148ee5ef2f3e claude/remove-cleanup-workflow-2:5d83ff13bf82b5e1faac2f794284baafabcda9ea claude/candidate-dashboard-redesign-djr3g2:476fd8e46bee88cee4fa7820c328ef2402f2b170 claude/fix-pivot-sql:80a180053ae6960ae11a15203cd461b2f054f8c0
+        run: |
+          set -u
+          for pair in $PAIRS; do
+            b="${pair%%:*}"; want="${pair##*:}"
+            enc=$(printf '%s' "$b" | sed 's#/#%2F#g')
+            have=$(gh api "repos/${GITHUB_REPOSITORY}/commits/$enc" --jq '.sha' 2>/dev/null || echo "")
+            if [ "$have" = "$want" ]; then
+              gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/$b" && echo "deleted: $b" || echo "failed: $b"
+            else
+              echo "kept (tip changed or missing): $b"
+            fi
+          done
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/claude/branch-cleanup-5" && echo "deleted: claude/branch-cleanup-5" || echo "failed: claude/branch-cleanup-5"
