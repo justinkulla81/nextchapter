@@ -7,7 +7,7 @@ import { LoginForm } from '@/components/auth/LoginForm'
 import { safeNext } from '@/lib/auth/safe-next'
 import { NOINDEX } from '@/lib/seo/canonical'
 import { prisma } from '@/lib/prisma'
-import { getOrgUser } from '@/lib/supabase/get-current-user'
+import { getOrgUser, getSessionAal } from '@/lib/supabase/get-current-user'
 import { isNcAdmin } from '@/lib/higher-ed/resolve'
 import { orgHostKindOf } from '@/lib/higher-ed/workspaces'
 import { ORG_SUBDOMAINS_ON, mainOrigin, orgAppUrl, orgKindForHost } from '@/lib/org-hosts'
@@ -22,7 +22,11 @@ export default async function OrgLoginPage({ searchParams }: { searchParams: Pro
   const hostKind = orgKindForHost((await headers()).get('host'))
   const user = await getOrgUser()
   if (user && !next) {
-    const admin = await isNcAdmin(user.id, user.email ?? null)
+    const aal = await getSessionAal('org')
+    const admin = await isNcAdmin(user.id, user.email ?? null, undefined, aal)
+    // A NextChapter admin whose session hasn't done two-step login yet (only
+    // when ADMIN_MFA_REQUIRED is on): their admin access waits for it.
+    const adminNeedsTwoStep = !admin && aal !== 'aal2' && (await isNcAdmin(user.id, user.email ?? null, undefined, 'aal2'))
     const rows = await prisma.institution.findMany({
       where: admin
         ? hostKind
@@ -41,6 +45,12 @@ export default async function OrgLoginPage({ searchParams }: { searchParams: Pro
     })
     return (
       <PortalAuthCard icon={Landmark} portalLabel="Colleges and workforce partners" title="Your portals" description={`Signed in as ${user.email}.`}>
+        {adminNeedsTwoStep && (
+          <p className="mb-3 rounded-md bg-muted px-3 py-2 text-sm">
+            Your NextChapter admin access needs two-step login first.{' '}
+            <a href={ORG_SUBDOMAINS_ON ? '/mfa' : '/i/mfa'} className="font-medium text-primary underline underline-offset-4">Enter your code</a>
+          </p>
+        )}
         {rows.length ? (
           <ul className="divide-y divide-border text-sm">
             {rows.map((r) => (

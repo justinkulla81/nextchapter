@@ -6,10 +6,11 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { GOOGLE_DATA_CONFIRM_WORD } from '@/lib/google/google-data-confirm'
 import { deleteGoogleDataForCandidate, type GoogleDataDeletionResult } from '@/lib/google/delete-google-data'
+import { ensureRecentAuth, type ReauthChallenge } from '@/lib/auth/reauth'
 
 export type DeleteGoogleDataState =
   | { ok: true; result: GoogleDataDeletionResult }
-  | { ok: false; error: string }
+  | { ok: false; error?: string; reauth?: ReauthChallenge }
   | undefined
 
 export async function deleteMyGoogleData(_prev: DeleteGoogleDataState, formData: FormData): Promise<DeleteGoogleDataState> {
@@ -25,6 +26,10 @@ export async function deleteMyGoogleData(_prev: DeleteGoogleDataState, formData:
   }
 
   const profile = await getOrCreateCandidateProfile(user.id)
+  // Irreversible, so it needs a fresh sign-in or an emailed code (CASA 2.4.1).
+  const reauth = await ensureRecentAuth({ supabase, user, formData, action: 'delete_google_data', distinctId: profile.id })
+  if (reauth.status === 'challenge') return { ok: false, reauth: reauth.challenge }
+
   try {
     const result = await deleteGoogleDataForCandidate(profile.id)
     captureServerEvent(profile.id, 'google_data_deleted', { ...result })

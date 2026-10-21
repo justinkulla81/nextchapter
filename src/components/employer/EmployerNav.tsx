@@ -9,6 +9,7 @@ import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
 import type { PartnerBrand } from '@/lib/partners/brand'
 import type { OutplacementProgramType, OutplacementRole } from '@prisma/client'
+import { SignOutForm } from '@/components/auth/SignOutForm'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -84,9 +85,9 @@ function NavContent({ pathname, links, onNavigate }: { pathname: string; links: 
           </Link>
         ))}
       </div>
-      <form action={signOut} className="mt-auto px-2">
+      <SignOutForm action={signOut} className="mt-auto px-2">
         <SignOutButton />
-      </form>
+      </SignOutForm>
     </nav>
   )
 }

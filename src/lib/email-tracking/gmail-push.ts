@@ -9,11 +9,37 @@ import type { EmailConnection } from '@prisma/client'
 // within seconds instead of waiting for the 10-minute cron. The cron stays as
 // the safety net: push delivery is best-effort, and a watch can lapse.
 //
-// Off unless GMAIL_PUSH_TOPIC and GMAIL_PUSH_SECRET are both set — see
+// How the endpoint knows a push really came from our Pub/Sub subscription:
+// - GMAIL_PUSH_SERVICE_ACCOUNT (preferred): the push subscription sends a
+//   Google-signed OIDC token for this service account; the endpoint verifies
+//   it (src/lib/email-tracking/pubsub-oidc.ts) with audience
+//   GMAIL_PUSH_AUDIENCE, default the production endpoint URL.
+// - GMAIL_PUSH_SECRET in the URL (?token=): the old way. It puts a secret in
+//   request logs (CASA 2.1.1 / 6.5.1), so it is accepted only while
+//   GMAIL_PUSH_ALLOW_URL_TOKEN=true, a switch for moving an existing
+//   subscription over without a gap. Remove it once the subscription is OIDC.
+// Push is off unless GMAIL_PUSH_TOPIC is set and one of those is usable — see
 // docs/SETUP.md for the Google Cloud side.
 
-export function isGmailPushConfigured(): boolean {
-  return !!process.env.GMAIL_PUSH_TOPIC && !!process.env.GMAIL_PUSH_SECRET
+export const DEFAULT_GMAIL_PUSH_AUDIENCE = 'https://launchyournextchapter.com/api/google/gmail-push'
+
+export type GmailPushAuth = {
+  oidc: { audience: string; serviceAccount: string } | null
+  urlToken: string | null
+}
+
+export function gmailPushAuth(env: Record<string, string | undefined> = process.env): GmailPushAuth {
+  const serviceAccount = env.GMAIL_PUSH_SERVICE_ACCOUNT?.trim()
+  const allowUrlToken = ['1', 'true', 'on', 'yes'].includes((env.GMAIL_PUSH_ALLOW_URL_TOKEN ?? '').trim().toLowerCase())
+  return {
+    oidc: serviceAccount ? { serviceAccount, audience: env.GMAIL_PUSH_AUDIENCE?.trim() || DEFAULT_GMAIL_PUSH_AUDIENCE } : null,
+    urlToken: allowUrlToken && env.GMAIL_PUSH_SECRET ? env.GMAIL_PUSH_SECRET : null,
+  }
+}
+
+export function isGmailPushConfigured(env: Record<string, string | undefined> = process.env): boolean {
+  const auth = gmailPushAuth(env)
+  return !!env.GMAIL_PUSH_TOPIC && (!!auth.oidc || !!auth.urlToken)
 }
 
 // Renew a day ahead of expiry so one missed cron pass never lets a watch lapse.

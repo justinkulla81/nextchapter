@@ -16,6 +16,7 @@ import { brandStyle } from '@/lib/partners/brand'
 import { prisma } from '@/lib/prisma'
 import { readProfile } from '@/lib/higher-ed/profile'
 import { organizationBrandFor } from '@/lib/organizations/service'
+import { SignOutForm } from '@/components/auth/SignOutForm'
 
 async function getTagline(institutionId: string): Promise<string | null> {
   const row = await prisma.institution.findUnique({ where: { id: institutionId }, select: { profile: true } })
@@ -116,11 +117,11 @@ export default async function InstitutionPortalLayout({
             ) : (
               <>
                 <span className="hidden text-muted-foreground sm:inline">{access.email}</span>
-                <form action={access.via === 'org' ? signOutOrg.bind(null, `${orgBasePath(slug, institution.orgType)}`) : signOut}>
+                <SignOutForm action={access.via === 'org' ? signOutOrg.bind(null, `${orgBasePath(slug, institution.orgType)}`) : signOut}>
                   <button type="submit" className="font-medium text-muted-foreground hover:text-foreground">
                     Sign out
                   </button>
-                </form>
+                </SignOutForm>
               </>
             )}
           </div>

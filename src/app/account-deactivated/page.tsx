@@ -2,12 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { NOINDEX } from '@/lib/seo/canonical'
+import { ForgetMemberOnMount } from '@/components/auth/ForgetMemberOnMount'
 
 export const metadata: Metadata = { ...NOINDEX, title: 'Account Deactivated' }
 
 export default function AccountDeactivatedPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-off-white px-6 text-center">
+      <ForgetMemberOnMount />
       <Link href="/">
         <Logo />
       </Link>

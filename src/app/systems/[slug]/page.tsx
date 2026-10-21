@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
+import { getCurrentUser, getSessionAal } from '@/lib/supabase/get-current-user'
 import { isNcAdmin } from '@/lib/higher-ed/resolve'
 import { canSeeSystem, systemDashboard } from '@/lib/higher-ed/systems'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -17,7 +17,7 @@ export default async function SystemDashboardPage({ params }: { params: Promise<
   const { slug } = await params
   const user = await getCurrentUser()
   if (!user) redirect(`/auth/login?next=/systems/${slug}`)
-  const systemId = await canSeeSystem(slug, user.email ?? null, await isNcAdmin(user.id, user.email ?? null))
+  const systemId = await canSeeSystem(slug, user.email ?? null, await isNcAdmin(user.id, user.email ?? null, undefined, await getSessionAal()))
   if (!systemId) notFound()
   const d = await systemDashboard(systemId)
   captureServerEvent(user.id, 'he_system_dashboard_viewed', { systemSlug: slug, campuses: d.campuses.length })

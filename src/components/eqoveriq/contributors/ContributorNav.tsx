@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useFormStatus } from 'react-dom'
 import { EqOverIqWordmark } from '@/components/eqoveriq/EqOverIqWordmark'
 import { signOutEqOverIqContributor } from '@/app/eqoveriq/contributors/actions'
+import { SignOutForm } from '@/components/auth/SignOutForm'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -24,9 +25,9 @@ export function ContributorNav() {
         <Link href="/eqoveriq/contributors">
           <EqOverIqWordmark className="text-lg" />
         </Link>
-        <form action={signOutEqOverIqContributor}>
+        <SignOutForm action={signOutEqOverIqContributor}>
           <SignOutButton />
-        </form>
+        </SignOutForm>
       </div>
     </header>
   )

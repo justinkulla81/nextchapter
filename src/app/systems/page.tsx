@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
+import { getCurrentUser, getSessionAal } from '@/lib/supabase/get-current-user'
 import { isNcAdmin } from '@/lib/higher-ed/resolve'
 import { prisma } from '@/lib/prisma'
 import { systemsForEmail } from '@/lib/higher-ed/systems'
@@ -12,7 +12,7 @@ export const metadata = { title: 'College systems' }
 export default async function SystemsIndex() {
   const user = await getCurrentUser()
   if (!user) redirect('/auth/login?next=/systems')
-  const all = await isNcAdmin(user.id, user.email ?? null)
+  const all = await isNcAdmin(user.id, user.email ?? null, undefined, await getSessionAal())
   const systems = all ? await prisma.institutionSystem.findMany({ orderBy: { name: 'asc' }, select: { slug: true, name: true } }) : await systemsForEmail(user.email ?? null)
   if (systems.length === 1 && !all) redirect(`/systems/${systems[0].slug}`)
   return (

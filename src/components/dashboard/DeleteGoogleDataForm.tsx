@@ -5,6 +5,7 @@ import { usePostHog } from '@/lib/posthog/client'
 import { deleteMyGoogleData, type DeleteGoogleDataState } from '@/app/dashboard/privacy/google-data-actions'
 import { GOOGLE_DATA_CONFIRM_WORD } from '@/lib/google/google-data-confirm'
 import { cn } from '@/lib/utils'
+import { ReauthCodeStep } from '@/components/auth/ReauthCodeStep'
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
@@ -87,7 +88,8 @@ export function DeleteGoogleDataForm({ hasGoogleData }: { hasGoogleData: boolean
           className="block h-10 w-48 rounded-md border border-border bg-white px-3 text-base text-ink"
         />
       </div>
-      {state && !state.ok && <p role="alert" className="text-sm text-destructive">{state.error}</p>}
+      {state && !state.ok && state.reauth && <ReauthCodeStep sentTo={state.reauth.sentTo} error={state.reauth.error} pending={pending} />}
+      {state && !state.ok && !state.reauth && state.error && <p role="alert" className="text-sm text-destructive">{state.error}</p>}
       <div className="flex flex-wrap gap-3">
         <button
           type="button"
