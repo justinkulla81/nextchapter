@@ -12,6 +12,7 @@
 // back to the state entry; unmatched states return null ("unavailable").
 export const METRO_AREA_CODES: Record<string, string> = {
   'new york, ny': '3562000',
+  'san jose, ca': '4194000',
   'los angeles, ca': '3108000',
   'chicago, il': '1698000',
   'dallas, tx': '1910000',
@@ -47,6 +48,38 @@ export const METRO_AREA_CODES: Record<string, string> = {
   'cleveland, oh': '1746000',
   'nashville, tn': '3498000',
   'kansas city, mo': '2814000',
+
+  // Towns and boroughs the BLS metro name does not list (it names only principal cities), so the people who live and
+  // work there get their metro's pay rather than their state's. Santa Clara County is the San Jose metro; San Mateo,
+  // Alameda, Contra Costa and Marin counties are the San Francisco metro; the five boroughs are the New York metro.
+  'palo alto, ca': '4194000',
+  'mountain view, ca': '4194000',
+  'cupertino, ca': '4194000',
+  'milpitas, ca': '4194000',
+  'los gatos, ca': '4194000',
+  'campbell, ca': '4194000',
+  'los altos, ca': '4194000',
+  'saratoga, ca': '4194000',
+  'menlo park, ca': '4186000',
+  'redwood city, ca': '4186000',
+  'san mateo, ca': '4186000',
+  'south san francisco, ca': '4186000',
+  'daly city, ca': '4186000',
+  'berkeley, ca': '4186000',
+  'hayward, ca': '4186000',
+  'walnut creek, ca': '4186000',
+  'san rafael, ca': '4186000',
+  'brooklyn, ny': '3562000',
+  'queens, ny': '3562000',
+  'bronx, ny': '3562000',
+  'the bronx, ny': '3562000',
+  'manhattan, ny': '3562000',
+  'staten island, ny': '3562000',
+  'long island city, ny': '3562000',
+  'yonkers, ny': '3562000',
+  'white plains, ny': '3562000',
+  'new rochelle, ny': '3562000',
+  'hoboken, nj': '3562000',
 }
 
 export const STATE_FIPS: Record<string, string> = {
