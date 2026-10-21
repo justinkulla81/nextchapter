@@ -4,7 +4,7 @@ import { Prisma, type WarnNotice } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import {
   LAYOUTS, MAX_AGE_DAYS, MAX_EMPLOYEES, MIN_EMPLOYEES, RECENT_DRAFT_DAYS, WEEKLY_CAP,
-  assignSlots, audienceFit, credibilityOf, farOffTimeline, FAR_OFF_PENALTY, plausibleEmployer, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
+  assignSlots, audienceFit, credibilityOf, farOffTimeline, looksNonUs, speculative, FAR_OFF_PENALTY, plausibleEmployer, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
   type Angle, type AudienceFit, type Credibility, type DraftFacts, type EventRef,
 } from './layoff-post-rules'
 
@@ -48,15 +48,17 @@ export async function runLinkedInDraftSweep(now = new Date()): Promise<DraftSwee
     select: { noticeId: true, publisher: true, headline: true },
   })
   const scored = candidates.flatMap((n) => {
-    const why = credibilityOf(n, mentions.filter((m) => m.noticeId === n.id).map((m) => m.publisher), now)
+    const why = credibilityOf(n, mentions.filter((m) => m.noticeId === n.id).map((m) => m.publisher), now, headlinesFor(mentions, n.id))
     return why ? [{ n, why }] : []
   })
-  // Our audience is US job seekers: a state filing and an SEC filing are US by
-  // nature; a news story counts only when the employer has US jobs on our board
-  // or is already in the CRM, so a foreign bank or a misread name never gets a post.
+  // Our audience is US job seekers. A state filing and an SEC filing are US by
+  // nature. A news story is kept unless its coverage is plainly about somewhere
+  // else (a foreign bank never mentioning the US); an employer we cannot place
+  // in the US (no US jobs on our board, not in the CRM) is only ranked lower.
   const relevance = await usRelevance(scored.filter((c) => c.n.source !== 'WARN_FILING' && c.why !== 'sec-filing').map((c) => c.n))
+  const isNews = (c: { n: WarnNotice; why: Credibility }) => c.n.source !== 'WARN_FILING' && c.why !== 'sec-filing'
   const eligible = scored
-    .filter((c) => c.n.source === 'WARN_FILING' || c.why === 'sec-filing' || relevance.get(c.n.id))
+    .filter((c) => !isNews(c) || relevance.get(c.n.id) || !looksNonUs(headlinesFor(mentions, c.n.id)))
     // A layoff years away is not a "get help now" post; it stays in the picker for a person to choose.
     .filter((c) => !farOffTimeline(headlinesFor(mentions, c.n.id), c.n.effectiveDate, now))
     .map((c) => ({
@@ -65,6 +67,7 @@ export async function runLinkedInDraftSweep(now = new Date()): Promise<DraftSwee
         inCrm: !!relevance.get(c.n.id)?.inCrm,
         publishers: publisherCount(mentions, c.n.id),
         fit: audienceFit(c.n.employer, c.n.industry),
+        usUnknown: isNews(c) && !relevance.get(c.n.id),
       }),
     }))
     .sort((x, y) => y.rank - x.rank)
@@ -218,17 +221,19 @@ export async function listDraftableLayoffs(now = new Date(), days = 21): Promise
   const rows = notices.map((n) => {
     // The age rule is the sweep's; for the picker only the facts about the layoff matter.
     const fresh = { ...n, fetchedAt: now }
-    const credibility = credibilityOf(fresh, mentions.filter((m) => m.noticeId === n.id).map((m) => m.publisher), now)
+    const heads = headlinesFor(mentions, n.id)
+    const credibility = credibilityOf(fresh, mentions.filter((m) => m.noticeId === n.id).map((m) => m.publisher), now, heads)
     const isNews = news.includes(n)
     const warnings: string[] = []
     if (!plausibleEmployer(n.employer)) warnings.push('The company name looks wrong')
     if ((n.employees ?? 0) > MAX_EMPLOYEES) warnings.push('The job count looks too high for one company')
-    if (!credibility && plausibleEmployer(n.employer) && (n.employees ?? 0) <= MAX_EMPLOYEES) warnings.push('Only one source so far')
-    if (isNews && !relevance.get(n.id)) warnings.push('No US jobs or CRM record for this employer')
+    if (isNews && speculative(heads)) warnings.push('Every headline hedges (could, may, considering): reads as speculation')
+    if (isNews && !relevance.get(n.id) && looksNonUs(heads)) warnings.push('Coverage looks like a non-US layoff')
+    else if (isNews && !relevance.get(n.id)) warnings.push('No US jobs or CRM record for this employer')
     const publishers = publisherCount(mentions, n.id)
     const fit = audienceFit(n.employer, n.industry ?? (n.companyId ? industryOf.get(n.companyId) ?? null : null))
     const timeline = farOffTimeline(headlinesFor(mentions, n.id), n.effectiveDate, now)
-    const rank = (credibility ? rankScore(credibility, n.employees ?? 0, { inCrm: !!relevance.get(n.id)?.inCrm, publishers, fit }) : -1)
+    const rank = (credibility ? rankScore(credibility, n.employees ?? 0, { inCrm: !!relevance.get(n.id)?.inCrm, publishers, fit, usUnknown: isNews && !relevance.get(n.id) }) : -1)
       - warnings.length * 0.01 - (timeline ? FAR_OFF_PENALTY : 0)
     return { n, credibility, warnings, rank, publishers, fit, timeline }
   }).sort((a, b) => b.rank - a.rank)
