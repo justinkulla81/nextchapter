@@ -355,7 +355,9 @@ async function main() {
     // Each recipient is randomised among the windows still open today; the test is clean only when all four are open (a filing from the last day).
     r.timing = ''; r.send_on = ''; r.timing_test = ''
     if (['head_hr', 'rewards', 'er', 'ta'].includes(r.template) && r.notice_date) {
-      const DAY = 86_400_000, today = Date.parse(now.toISOString().slice(0, 10)), nd = Date.parse(r.notice_date), ef = r.effective_iso ? Date.parse(r.effective_iso) : NaN
+      const DAY = 86_400_000, today = Date.parse(now.toISOString().slice(0, 10)), nd = Date.parse(r.notice_date)
+      // Many filings carry no effective date. WARN law requires about 60 days' notice, so the windows assume that; the email itself never states an estimated date (line_timing uses only a real one).
+      const ef = r.effective_iso ? Date.parse(r.effective_iso) : nd + 60 * DAY
       const wins: { k: string; start: number; end: number; on: number }[] = [
         { k: 'T1', start: nd, end: nd + DAY, on: nd },
         { k: 'T2', start: nd + 12 * DAY, end: nd + 16 * DAY, on: nd + 14 * DAY },
