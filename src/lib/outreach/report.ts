@@ -26,7 +26,7 @@ export const CAMPAIGNS: CampaignDef[] = [
   { slug: 'job-centers', title: 'Job centers: subject line', question: 'Which kind of subject line gets job centers to reply?', audience: 'American Job Centers', templates: ['ajc'], a: { label: 'Support offered', variants: ['C1a', 'C1b'] }, b: { label: 'New data', variants: ['C2a', 'C2b'] } },
 ]
 
-export const TIMING_NAME: Record<string, string> = { T1: 'Right after the filing', T2: 'About 2 weeks later', T3: 'Just before it takes effect', T4: 'After it takes effect' }
+export const TIMING_NAME: Record<string, string> = { T1: 'Right after the filing', T2: 'About 2 weeks later', T3: 'Just before it takes effect', T4: 'After it takes effect', T5: 'Late, after it took effect' }
 
 export interface Recipient {
   personId: string; name: string; email: string; orgId: string | null; orgName: string
