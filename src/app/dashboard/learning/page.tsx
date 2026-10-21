@@ -41,13 +41,11 @@ import { OccupationTrendsCard } from '@/components/dashboard/search-playbook/Occ
 import { effectiveJourney } from '@/lib/journey/journey'
 import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { CompanyCoursesCallout } from '@/components/dashboard/StaffProgramCard'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { pickLearnCourses } from '@/lib/redesign/learn-picks'
 import { LearnHome } from '@/components/dashboard/LearnHome'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 
 export const metadata: Metadata = { title: 'Learn New Skills' }
-
 
 // Modest by design — a plain count-by-type line, not a full trends
 // breakdown like ApplicationTrendsContent on the Find a Job page.
@@ -90,7 +88,8 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
 
 export default async function LearningPage({ searchParams }: { searchParams: Promise<{ all?: string }> }) {
   const profile = await getDashboardProfile()
-  const redesign = isRedesignOn(profile.email) && (await searchParams).all !== '1'
+  // The curated page by default; ?all=1 is the full library.
+  const curated = (await searchParams).all !== '1'
   const weekStart = getMondayOfWeek(new Date())
   const learningPaths = await getLearningPaths(profile.id)
   const [plan, badges, courseActivity, learningEvents, assessmentResponseCount, platformRows, gmailConnection] = await Promise.all([
@@ -120,7 +119,7 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
   const learningEventsThisWeek = learningEvents.filter((e) => e.startTime >= weekStart)
   const learningMinutesThisWeek = learningEventsThisWeek.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0)
 
-  if (redesign) {
+  if (curated) {
     // AI skills the member's best-fit employers ask for and the member lacks, each with a tagged course and the reason.
     const [aiGap, catalog, appPlan] = await Promise.all([loadMemberSkillGapByKind(profile.id), getActiveCourses(), loadApplicationSkillPlan(profile.id).catch(() => null)])
     const aiGapItems = aiGap ? aiGapCourseItems(aiGap.rows, aiGap.employersWithSkillData, catalog) : []

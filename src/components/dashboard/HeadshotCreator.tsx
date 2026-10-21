@@ -24,15 +24,15 @@ function ExamplePair({ before, after }: { before: string; after: string }) {
   )
 }
 
-export function HeadshotCreator({ redesign = false }: { redesign?: boolean }) {
+export function HeadshotCreator() {
   const [headshotState, headshotAction, headshotPending] = useActionState(generateHeadshotAction, undefined)
   const [bannerState, bannerAction, bannerPending] = useActionState(generateBannerAction, undefined)
 
   return (
-    <div className={cn('space-y-6', !redesign && 'rounded-lg border border-border p-4')}>
+    <div className="space-y-6">
       <div>
-        <h2 className={redesign ? 'font-display text-xl font-semibold text-ink' : 'text-sm font-medium text-foreground'}>{redesign ? 'Headshot and banner' : 'Headshot & banner creator'}</h2>
-        <p className={redesign ? 'mt-1 max-w-2xl text-base text-muted-foreground' : 'mt-1 text-sm text-muted-foreground'}>
+        <h2 className="font-display text-xl font-semibold text-ink">Headshot and banner</h2>
+        <p className="mt-1 max-w-2xl text-base text-muted-foreground">
           Recruiters judge a profile in seconds — a real photographer&apos;s headshot is expensive
           and slow to schedule. This turns a phone photo into one, free, in under a minute.
         </p>

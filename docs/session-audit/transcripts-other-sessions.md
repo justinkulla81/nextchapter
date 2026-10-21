@@ -271,3 +271,5 @@ Started 2026-10-17 23:18 UTC. Last turn ended 2026-10-18 00:59 UTC. Status: idle
 5. `higher-ed.md`: the Higher Ed session only edited a design artifact (service menu, donations, digital resources, WIOA funding, W&J). Add it and the cross-session note that `/i/[slug]` is the owner's chosen portal.
 6. `finding-future-opportunities.md`: add the newsletter sweep (StrictlyVC), news topics and ATS board discovery (admin research, PRs #6, #8, #10), and note `ccr-ea202e2d-jowe7t` is fully merged. The Vercel variable `NEWSLETTER_SENDER_QUERY` is still the owner's to set.
 7. README decisions to add: lead-gen versus member version of the report; "Likely to pause" labels; exclusive jobs for everyone versus Candidate+; whether the redesign's seven places replace the owner's five pillars; hide versus gray out; the paid recruiter channel.
+
+_Note (2026-10-20): the product has 11 journeys, and the redesign has no Personalize place (its pieces are the strips and the Improve your search page). Where this file says otherwise, it quotes the terms as they were when it was written._

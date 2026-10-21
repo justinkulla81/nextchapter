@@ -12,7 +12,6 @@ import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { RunwayCard, type RunwayStateFacts } from '@/components/dashboard/RunwayCard'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { weeksUnemployed } from '@/lib/outcomes/duration-bucket'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { moneyGate, stepHeadline, summarizeSteps } from '@/lib/redesign/benefits'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Section } from '@/components/candidate/ui'
@@ -23,7 +22,6 @@ import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { setMoneyHelp } from '@/app/dashboard/money-help/actions'
 
 export const metadata: Metadata = { title: 'Benefits & Financial Bridge' }
-
 
 interface ResourceLink {
   name: string
@@ -142,12 +140,11 @@ const ACTION_PLAN_LINK_TOPICS = ['Unemployment insurance', 'Health insurance bri
 
 export default async function BenefitsPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
   const [profile, params] = await Promise.all([getDashboardProfile(), searchParams])
-  const redesign = isRedesignOn(profile.email)
   const gate = moneyGate(profile.moneyHelp)
-  const fullPage = !redesign || params.view === 'all'
+  const fullPage = params.view === 'all'
 
   // Money is the member's to ask for: the question comes first, and a no leaves the page quiet.
-  if (redesign && !fullPage && gate !== 'on') {
+  if (!fullPage && gate !== 'on') {
     return (
       <div className="space-y-8">
         <PageHeader
@@ -204,7 +201,7 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
     : null
   const weeksSinceLastJob = weeksUnemployed(profile.lastJobEndedAt, new Date())
 
-  if (redesign && !fullPage) {
+  if (!fullPage) {
     // Benefits and deadlines in the redesign: your next steps, your runway, and the full guide behind one fold.
     const steps = summarizeSteps(actionItems, completedItemIds)
     const fileUrl = runwayFacts?.fileUrl ?? null
@@ -304,7 +301,7 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-8">
-      {redesign && <SeeAllLink href="/dashboard/benefits">Back to benefits and deadlines</SeeAllLink>}
+      <SeeAllLink href="/dashboard/benefits">Back to benefits and deadlines</SeeAllLink>
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Benefits &amp; Financial Bridge</h1>
         <p className="mt-1 text-muted-foreground">

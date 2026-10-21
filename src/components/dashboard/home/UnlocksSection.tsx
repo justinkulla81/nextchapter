@@ -8,14 +8,14 @@ import { UnlocksModule } from '@/components/dashboard/home/UnlocksModule'
 const SKIP_IN_REDESIGN: RungKey[] = ['community', 'taking_shape']
 
 /** The dossier and the unlock ladder, with the member's own numbers. Wrap in Suspense. */
-export async function UnlocksSection({ profile, redesign = false }: { profile: Pick<CandidateProfile, 'id' | 'confidentialSearchMode'>; redesign?: boolean }) {
+export async function UnlocksSection({ profile }: { profile: Pick<CandidateProfile, 'id' | 'confidentialSearchMode'> }) {
   const [dossierCompleteness, dossierStatus, ladderTier, moduleGates] = await Promise.all([
     timed('home', 'dossierCompleteness', profile.id, computeDossierCompleteness(profile.id)),
     timed('home', 'dossierUnlocked', profile.id, isDossierUnlocked(profile.id)),
     timed('home', 'ladderTier', profile.id, getDossierLadderTier(profile.id)),
     timed('home', 'moduleGates', profile.id, getModuleGateStatus(profile.id)),
   ])
-  const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus, ...(redesign ? { skip: SKIP_IN_REDESIGN } : {}) })
+  const ladder = buildUnlockLadder({ gates: moduleGates, tier: ladderTier.tier, completeness: dossierCompleteness, status: dossierStatus, ...({ skip: SKIP_IN_REDESIGN }) })
   const evidenceAreas = dossierCompleteness.requirements.filter((r) => r.met).length
   return <UnlocksModule ladder={ladder} evidenceAreas={evidenceAreas} evidenceTotal={dossierCompleteness.totalCount} confidential={profile.confidentialSearchMode} />
 }

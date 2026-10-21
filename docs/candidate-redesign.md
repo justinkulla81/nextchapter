@@ -33,7 +33,7 @@ screen should feel like progress toward a job.
   about it looks locked.
 - **Coaching style** (pushed hard, casual, supported) changes how much, which
   parts and how it is said. Always positive.
-- **Terms stay consistent**: Personalize, not Prepare. "Higher education", not
+- **Terms stay consistent**: Personalize, not Prepare (as a word; there is no Personalize place). "Higher education", not
   "Higher ed", where there is room.
 - **Private communities** (outplacement, higher education, alumni, workforce) can
   appear inside Jobs, Network and Learn. People can belong to many schools and many

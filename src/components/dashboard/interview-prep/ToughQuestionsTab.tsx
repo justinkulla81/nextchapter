@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { SectionBlock } from '@/components/candidate/Blocks'
+import { AnswerFeedback } from './AnswerFeedback'
 import { requestToughAnswer, requestToughAnswerFeedback } from '@/app/dashboard/interview-prep/actions'
 import { TOUGH_QUESTIONS } from '@/lib/interview-prep/constants'
 import type { PracticeEvaluation } from '@/lib/interview-prep/evaluate-practice-answer'
@@ -42,107 +43,44 @@ export function ToughQuestionsTab({
   }
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Objection questions name a real concern head-on. Trap questions are phrased to invite an
-        answer that backfires if you&apos;re not ready for them. Generate a grounded answer for
-        each, then see Victoria&apos;s take on it.
-      </p>
-      {orderedQuestions.map((q) => (
-        <Card
-          key={q.id}
-          className={cn(
-            pendingId === q.id && 'cursor-wait [&_*]:cursor-wait',
-            jobHoppingFlag && q.id === 'jobhop' && 'border-orange/40'
-          )}
-        >
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <span
-                className={
-                  q.category === 'objection'
-                    ? 'rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand'
-                    : 'rounded-full bg-orange/10 px-2 py-0.5 text-xs font-medium text-orange'
-                }
-              >
-                {q.category === 'objection' ? 'Objection' : 'Trap'}
-              </span>
-              {q.question}
-              {jobHoppingFlag && q.id === 'jobhop' && (
-                <span className="rounded-full bg-orange/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-orange uppercase">
-                  Likely to come up
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {answers[q.id] ? (
-              <p className="text-sm text-foreground">{answers[q.id]}</p>
-            ) : (
-              <div className="space-y-1.5">
+    <div className="space-y-6">
+      <SectionBlock
+        id="tough-h"
+        title="Tough questions"
+        why="Some name a real concern head-on and some are phrased to trap you. Draft a grounded answer for each, then see Victoria's take on it."
+      />
+      <ul className="divide-y divide-border">
+        {orderedQuestions.map((q) => {
+          const busy = pendingId === q.id
+          return (
+            <li key={q.id} className={cn('space-y-3 py-5 first:pt-0', busy && 'cursor-wait [&_*]:cursor-wait')}>
+              <h3 className="font-display text-lg font-semibold text-ink">{q.question}</h3>
+              <p className="max-w-2xl text-base text-muted-foreground">
+                {jobHoppingFlag && q.id === 'jobhop'
+                  ? 'Likely to come up, because your work history shows several short stays.'
+                  : q.category === 'objection'
+                    ? 'It names a real concern head-on.'
+                    : 'It is phrased to invite an answer that backfires.'}
+              </p>
+              {answers[q.id] ? (
+                <p className="max-w-2xl text-base text-ink">{answers[q.id]}</p>
+              ) : null}
+              {feedback[q.id] && <AnswerFeedback evaluation={feedback[q.id]} />}
+              <div className="space-y-2">
                 <Button
                   type="button"
-                  size="sm"
                   variant="outline"
                   onClick={() => handleGenerate(q.id, q.question)}
-                  disabled={pendingId === q.id || !hasJobDescription}
+                  disabled={busy || !hasJobDescription}
                 >
-                  {pendingId === q.id ? 'Drafting…' : 'Draft my answer'}
+                  {busy ? (answers[q.id] ? 'Redrafting your answer' : 'Drafting your answer') : answers[q.id] ? 'Redraft' : 'Draft my answer'}
                 </Button>
-                {!hasJobDescription && (
-                  <p className="text-xs text-muted-foreground">Add the job description above first.</p>
-                )}
+                {!hasJobDescription && <p className="text-base text-muted-foreground">Add the job description above first, so the answer is about this job.</p>}
               </div>
-            )}
-
-            {feedback[q.id] && (
-              <div className="space-y-2 rounded-lg border border-border bg-off-white p-3 text-sm">
-                <p>
-                  <strong>Structure:</strong>{' '}
-                  {feedback[q.id].usesStarStructure
-                    ? 'Clear situation/task, action, result.'
-                    : "Doesn't clearly show a situation/task, action, and result yet."}
-                </p>
-                <p>
-                  <strong>Length:</strong> {feedback[q.id].lengthNote}
-                </p>
-                {feedback[q.id].strengths.length > 0 && (
-                  <div>
-                    <strong>What&apos;s working:</strong>
-                    <ul className="list-disc pl-5">
-                      {feedback[q.id].strengths.map((s) => (
-                        <li key={s}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {feedback[q.id].improvements.length > 0 && (
-                  <div>
-                    <strong>To sharpen:</strong>
-                    <ul className="list-disc pl-5">
-                      {feedback[q.id].improvements.map((s) => (
-                        <li key={s}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {answers[q.id] && (
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => handleGenerate(q.id, q.question)}
-                disabled={pendingId === q.id}
-              >
-                {pendingId === q.id ? 'Redrafting…' : 'Redraft'}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }

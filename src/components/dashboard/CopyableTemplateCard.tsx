@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { usePostHog } from '@/lib/posthog/client'
-import { Button } from '@/components/ui/button'
 import { SentItPrompt } from '@/components/dashboard/SentItPrompt'
 
 export function CopyableTemplateCard({
@@ -12,10 +11,7 @@ export function CopyableTemplateCard({
   templateType,
   onCopy,
   outreach = false,
-  redesign = false,
 }: {
-  /** The redesigned look: body-size text, a plain pill button and no tinted code block. */
-  redesign?: boolean
   title: string
   description?: string
   template: string
@@ -37,42 +33,21 @@ export function CopyableTemplateCard({
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (redesign) {
-    return (
-      <div className="space-y-3 rounded-2xl border border-border p-5">
-        <h3 className="text-base font-semibold text-ink">{title}</h3>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
-        <pre className="font-sans whitespace-pre-wrap rounded-xl bg-muted/60 p-4 text-sm text-ink">{template}</pre>
-        <button type="button" onClick={handleCopy} className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted">
-          {copied ? 'Copied' : 'Copy to clipboard'}
-        </button>
-        {outreach && (
-          <SentItPrompt
-            context={{ source: 'outreach_template', subjectKey: `template:${templateType}`, templateType }}
-            note={template}
-            copySignal={copySignal}
-            reaskOnMount
-            redesign
-          />
-        )}
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-2 rounded-lg border border-border p-4">
-      <h2 className="text-sm font-medium text-foreground">{title}</h2>
+    <div className="space-y-3 rounded-2xl border border-border p-5">
+      <h3 className="text-base font-semibold text-ink">{title}</h3>
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
-      <pre className="whitespace-pre-wrap rounded bg-muted p-3 text-xs">{template}</pre>
-      <Button type="button" size="sm" variant="outline" onClick={handleCopy}>
+      <pre className="font-sans whitespace-pre-wrap rounded-xl bg-muted/60 p-4 text-sm text-ink">{template}</pre>
+      <button type="button" onClick={handleCopy} className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted">
         {copied ? 'Copied' : 'Copy to clipboard'}
-      </Button>
+      </button>
       {outreach && (
         <SentItPrompt
           context={{ source: 'outreach_template', subjectKey: `template:${templateType}`, templateType }}
           note={template}
           copySignal={copySignal}
           reaskOnMount
+          redesign
         />
       )}
     </div>

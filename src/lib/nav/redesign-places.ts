@@ -1,23 +1,14 @@
-// The redesigned candidate menu (docs/candidate-redesign.md): Home, Jobs, Network, Learn, Finances and
-// benefits, Account and privacy, Help. It re-homes the same pages the six-place menu has, so nothing is
-// lost, and reuses its tab rules (journey, early career, paid access) and its menu entries. Switched on
-// by src/lib/redesign/flag.ts; the live menu (places.ts) is untouched.
+// The candidate menu (docs/candidate-redesign.md): Home, Jobs, Network, Learn, Finances and
+// benefits, Account and privacy, Help. Each tab carries its menu rules (journey, early career, paid
+// access); the helpers and menu entries are in places.ts.
 
-import { PLACES, matches, type Place, type PlaceTab } from './places'
+import { PREMIUM_HREF, matches, type Place, type PlaceTab } from './places'
 
 export type RedesignKey = 'home' | 'jobs' | 'network' | 'learn' | 'money' | 'account' | 'help'
-export interface RedesignPlace extends Omit<Place, 'key'> {
+export interface RedesignPlace extends Place {
   key: RedesignKey
 }
 
-const LEGACY_TABS = new Map<string, PlaceTab>(PLACES.flatMap((p) => p.tabs).map((t) => [t.href, t]))
-
-/** A tab the six-place menu already has, optionally renamed or with extra matching routes. */
-function legacy(href: string, over: Partial<PlaceTab> = {}): PlaceTab {
-  const t = LEGACY_TABS.get(href)
-  if (!t) throw new Error(`No existing tab for ${href}`)
-  return { ...t, ...over }
-}
 const tab = (label: string, href: string, over: Partial<PlaceTab> = {}): PlaceTab => ({ label, href, ...over })
 
 export const REDESIGN_PLACES: RedesignPlace[] = [
@@ -26,10 +17,10 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     label: 'Home',
     href: '/dashboard',
     tabs: [
-      legacy('/dashboard', { label: 'Your week' }),
+      tab('Your week', '/dashboard'),
       tab('Improve your search', '/dashboard/improve'),
-      legacy('/dashboard/search-strategy', { label: 'Search details', alsoMatches: ['/dashboard/what-i-need', '/dashboard/marketing-plan'] }),
-      legacy('/dashboard/stats', { label: 'Effort and results' }),
+      tab('Search details', '/dashboard/search-strategy', { menuKeys: ['strategy'], alsoMatches: ['/dashboard/what-i-need', '/dashboard/marketing-plan'] }),
+      tab('Effort and results', '/dashboard/stats', { alsoMatches: ['/dashboard/sprint', '/dashboard/plans'] }),
     ],
     groups: [
       { label: 'Your week', hrefs: ['/dashboard'] },
@@ -43,20 +34,20 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     label: 'Jobs',
     href: '/dashboard/find-my-job',
     tabs: [
-      legacy('/dashboard/find-my-job'),
-      legacy('/dashboard/early-career'),
+      tab('Find a job', '/dashboard/find-my-job', { menuKeys: ['jobs'], alsoMatches: ['/dashboard/job-board', '/dashboard/job-discovery', '/dashboard/job-fit', '/dashboard/interim-work'] }),
+      tab('Early career plan', '/dashboard/early-career', { earlyCareerOnly: true }),
       tab('Résumé', '/dashboard/resume', { alsoMatches: ['/dashboard/linkedin', '/dashboard/portfolio'] }),
       tab('Why hire me', '/dashboard/strengths', { alsoMatches: ['/dashboard/track-record', '/dashboard/how-i-perform'] }),
-      legacy('/dashboard/companies'),
+      tab('Companies', '/dashboard/companies', { menuKeys: ['companies'], alsoMatches: ['/dashboard/company-tracker'] }),
       // The one market report (owner, 2026-10-18). The job-market widening page and Market Intelligence stay reachable from it.
-      legacy('/dashboard/market', { label: 'Your market report', href: '/dashboard/market-reality', alsoMatches: ['/dashboard/market', '/dashboard/market-intelligence'] }),
-      legacy('/dashboard/pay'),
-      legacy('/dashboard/local-market'),
-      legacy('/dashboard/interview-prep'),
-      legacy('/dashboard/review-prep'),
-      legacy('/dashboard/alumni-jobs'),
-      legacy('/dashboard/got-hired'),
-      legacy('/dashboard/in-work'),
+      tab('Your market report', '/dashboard/market-reality', { alsoMatches: ['/dashboard/market', '/dashboard/market-intelligence'] }),
+      tab('Know your worth', '/dashboard/pay'),
+      tab('Local market', '/dashboard/local-market', { menuKeys: ['local'] }),
+      tab('Interview prep', '/dashboard/interview-prep', { menuKeys: ['interviewPrep', 'growConversation'] }),
+      tab('Build your case', '/dashboard/review-prep', { menuKeys: ['growCase'] }),
+      tab('From my groups', '/dashboard/alumni-jobs'),
+      tab('Got an offer', '/dashboard/got-hired', { menuKeys: ['offer', 'careerFirst90'] }),
+      tab('Reviews and raises', '/dashboard/in-work', { employedOnly: true }),
       // Sponsored staff programs only (employer seats): reached today only from a card on Home.
       tab('Open roles at your company', '/dashboard/internal-roles', { employedOnly: true }),
     ],
@@ -75,15 +66,15 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     label: 'Network',
     href: '/dashboard/network',
     tabs: [
-      legacy('/dashboard/network'),
-      legacy('/dashboard/network/contacts'),
-      legacy('/dashboard/references'),
-      legacy('/dashboard/community'),
-      legacy('/dashboard/messages'),
-      legacy('/dashboard/supporters'),
-      legacy('/dashboard/groups'),
-      legacy('/dashboard/my-coaching'),
-      legacy('/dashboard/recruiter-requests'),
+      tab('This week', '/dashboard/network', { menuKeys: ['network', 'careerNetwork'], alsoMatches: ['/dashboard/email-activity', '/dashboard/calendar-activity'] }),
+      tab('Contacts', '/dashboard/network/contacts', { menuKeys: ['contacts'] }),
+      tab('References', '/dashboard/references', { menuKeys: ['references'], alsoMatches: ['/dashboard/work-samples'] }),
+      tab('Community', '/dashboard/community', { menuKeys: ['community'], alsoMatches: ['/dashboard/circle'] }),
+      tab('Inbox', '/dashboard/messages', { menuKeys: ['inbox'] }),
+      tab('My supporters', '/dashboard/supporters'),
+      tab('My groups', '/dashboard/groups', { menuKeys: ['universities'], alsoMatches: ['/dashboard/universities', '/dashboard/past-jobs'] }),
+      tab('Coaching', '/dashboard/my-coaching', { paid: 'coaching', alsoMatches: ['/dashboard/book-session', '/dashboard/coach', '/dashboard/coaching-match', '/dashboard/coaching-form', '/dashboard/coach-dossier'] }),
+      tab('Recruiters', '/dashboard/recruiter-requests', { menuKeys: ['recruiter'], paid: 'recruiters', alsoMatches: [PREMIUM_HREF] }),
       tab('What recruiters see', '/dashboard/recruiter-report'),
     ],
     groups: [
@@ -100,11 +91,11 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     label: 'Learn',
     href: '/dashboard/learning',
     tabs: [
-      legacy('/dashboard/learning'),
-      legacy('/dashboard/webinars'),
+      tab('Learn new skills', '/dashboard/learning', { menuKeys: ['learning', 'growSkills'] }),
+      tab('Videos and webinars', '/dashboard/webinars', { menuKeys: ['webinars'] }),
       tab('Know yourself', '/dashboard/skills-assessments', { menuKeys: ['assessments'], alsoMatches: ['/dashboard/skills-assessment', '/dashboard/retake-assessment', '/dashboard/work-interests'] }),
       tab('Career story', '/dashboard/my-career'),
-      legacy('/dashboard/pivot-paths', { label: 'Other roles you could do' }),
+      tab('Other roles you could do', '/dashboard/pivot-paths', { alsoMatches: ['/dashboard/pivot'] }),
       tab('Courses your company covers', '/dashboard/company-courses', { employedOnly: true }),
     ],
     groups: [
@@ -126,11 +117,11 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     label: 'Account and privacy',
     href: '/dashboard/profile',
     tabs: [
-      legacy('/dashboard/profile', { label: 'Profile' }),
+      tab('Profile', '/dashboard/profile', { alsoMatches: ['/dashboard/resume', '/dashboard/linkedin', '/dashboard/portfolio'] }),
       tab('Privacy', '/dashboard/privacy'),
-      legacy('/dashboard/documents'),
+      tab('Documents', '/dashboard/documents'),
       tab('Money help', '/dashboard/money-help'),
-      legacy('/dashboard/membership'),
+      tab('Membership', '/dashboard/membership'),
     ],
     groups: [
       { label: 'Profile', hrefs: ['/dashboard/profile'] },
@@ -144,7 +135,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     key: 'help',
     label: 'Help',
     href: '/dashboard/support',
-    tabs: [legacy('/dashboard/support'), tab('A hard situation at work', '/dashboard/work-help', { employedOnly: true }), tab('Scam watch', '/dashboard/scam-watch'), legacy('/dashboard/help')],
+    tabs: [tab('Talk to someone', '/dashboard/support'), tab('A hard situation at work', '/dashboard/work-help', { employedOnly: true }), tab('Scam watch', '/dashboard/scam-watch'), tab('Questions and feedback', '/dashboard/help')],
     groups: [
       { label: 'Talk to someone', hrefs: ['/dashboard/support'] },
       { label: 'A hard situation at work', hrefs: ['/dashboard/work-help'] },

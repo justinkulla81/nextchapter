@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import Link from 'next/link'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { getDossierSections } from '@/lib/reports/dossier-sections'
@@ -10,7 +9,6 @@ import { CoachingNotesPanel } from '@/components/coach/CoachingNotesPanel'
 import { Spinner } from '@/components/ui/spinner'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateReassignmentRequestForm } from '@/components/dashboard/CandidateReassignmentRequestForm'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
@@ -38,33 +36,20 @@ function DossierSkeleton() {
   )
 }
 
-
 export default async function CoachDossierPage() {
   const profile = await getDashboardProfile()
-  const redesign = isRedesignOn(profile.email)
 
   if (!profile.coachId) {
-    if (redesign) {
-      return (
-        <PageHeader
-          title="What your coach sees"
-          intro="This is where you see exactly what your coach sees about you. You do not have a coach yet, so there is nothing to share."
-          action={
-            <TrackedAction variant="primary" href="/dashboard/my-coaching" event="coaching_opened" properties={{ source: 'coach_dossier_no_coach' }}>
-              Find a coach
-            </TrackedAction>
-          }
-        />
-      )
-    }
     return (
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Coach Dossier &amp; Notes</h1>
-        <p className="text-muted-foreground">
-          This is where you&apos;d see exactly what your coach sees about you — but you don&apos;t have a
-          coach connected yet.
-        </p>
-      </div>
+      <PageHeader
+        title="What your coach sees"
+        intro="This is where you see exactly what your coach sees about you. You do not have a coach yet, so there is nothing to share."
+        action={
+          <TrackedAction variant="primary" href="/dashboard/my-coaching" event="coaching_opened" properties={{ source: 'coach_dossier_no_coach' }}>
+            Find a coach
+          </TrackedAction>
+        }
+      />
     )
   }
 
@@ -76,7 +61,7 @@ export default async function CoachDossierPage() {
     hasConsented ? getCoachingNotes(profile.id) : Promise.resolve(null),
   ])
 
-  if (!hasConsented && redesign) {
+  if (!hasConsented) {
     const coachName = coach?.fullName ?? 'your coach'
     return (
       <div className="space-y-8">
@@ -96,91 +81,25 @@ export default async function CoachDossierPage() {
     )
   }
 
-  if (!hasConsented) {
-    return (
-      <div className="space-y-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Coach Dossier &amp; Notes</h1>
-          <p className="mt-1 text-muted-foreground">
-            This is exactly what {coach?.fullName ?? 'your coach'} would see when preparing for your
-            sessions — but you haven&apos;t turned on sharing yet, so it&apos;s off for both of you.
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Without it, {coach?.fullName ?? 'your coach'} walks into every session blind — no
-            grade history, no named strengths or gaps, nothing from your references. Turning it on
-            means less time re-explaining your background and more time actually coaching.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/privacy"
-          className="inline-flex items-center rounded-md bg-navy px-4 py-2 text-sm font-medium text-white"
-        >
-          Turn on sharing in Privacy Settings
-        </Link>
-        <div className="border-t border-border pt-4">
-          <CandidateReassignmentRequestForm />
-        </div>
-      </div>
-    )
-  }
-
   captureServerEvent(profile.id, 'coach_dossier_self_viewed')
 
-  // The redesign: the dossier first, the coaching notes under a plain heading (the uppercase grey label is gone), and the
+  // The dossier first, the coaching notes under a plain heading (the uppercase grey label is gone), and the
   // request for a different coach behind one control so it is not the last thing on a long page.
-  if (redesign) {
-    return (
-      <div className="space-y-8">
-        <PageHeader
-          title="What your coach sees"
-          intro={`Exactly what ${coach?.fullName ?? 'your coach'} sees when preparing for your sessions. It stays in the app and cannot be downloaded or forwarded from here.`}
-        />
-        <Suspense fallback={<DossierSkeleton />}>
-          <DossierSection candidateId={profile.id} />
-        </Suspense>
-        <Section id="coaching-notes" title="Coaching notes">
-          <CoachingNotesPanel notes={coachingNotes!} />
-        </Section>
-        <ShowMore page="coach_dossier" label="Want a different coach?">
-          <CandidateReassignmentRequestForm />
-        </ShowMore>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-6">
-      {redesign ? (
-        <PageHeader
-          title="What your coach sees"
-          intro={`Exactly what ${coach?.fullName ?? 'your coach'} sees when preparing for your sessions. It stays in the app and cannot be downloaded or forwarded from here.`}
-        />
-      ) : (
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Coach Dossier &amp; Notes</h1>
-        <p className="mt-1 text-muted-foreground">
-          Exactly what {coach?.fullName ?? 'your coach'} sees when preparing for your sessions — in-app
-          only, never downloadable, exportable, or forwardable from here.
-        </p>
-      </div>
-      )}
-
-      <div className="space-y-5">
-        <Suspense fallback={<DossierSkeleton />}>
-          <DossierSection candidateId={profile.id} />
-        </Suspense>
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Coaching Notes
-        </p>
+    <div className="space-y-8">
+      <PageHeader
+        title="What your coach sees"
+        intro={`Exactly what ${coach?.fullName ?? 'your coach'} sees when preparing for your sessions. It stays in the app and cannot be downloaded or forwarded from here.`}
+      />
+      <Suspense fallback={<DossierSkeleton />}>
+        <DossierSection candidateId={profile.id} />
+      </Suspense>
+      <Section id="coaching-notes" title="Coaching notes">
         <CoachingNotesPanel notes={coachingNotes!} />
-      </div>
-
-      <div className="border-t border-border pt-6">
+      </Section>
+      <ShowMore page="coach_dossier" label="Want a different coach?">
         <CandidateReassignmentRequestForm />
-      </div>
+      </ShowMore>
     </div>
   )
 }

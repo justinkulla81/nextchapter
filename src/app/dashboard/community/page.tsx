@@ -29,8 +29,6 @@ import { PeerMessageBubbles } from '@/components/messaging/PeerMessageBubbles'
 import { PeerThreadSafetyControls } from '@/components/messaging/PeerThreadSafetyControls'
 import { sendPeerCandidateMessage } from '@/app/dashboard/community/actions'
 import { startCandidateThreadAction } from '@/app/dashboard/messages/actions'
-import { EmptyState } from '@/components/ui/empty-state'
-import { Inbox, ChevronDown } from 'lucide-react'
 import type { ThreadPartnerType } from '@prisma/client'
 import { CommunityPostForm } from '@/components/dashboard/CommunityPostForm'
 import { CommunityPostCard } from '@/components/dashboard/CommunityPostCard'
@@ -49,13 +47,10 @@ import { MessageBubbles } from '@/components/messaging/MessageBubbles'
 import { MessageComposer } from '@/components/messaging/MessageComposer'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { AvatarDisplay } from '@/components/ui/avatar-display'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { ConfidentialModeIndicator } from '@/components/dashboard/ConfidentialModeIndicator'
 import { CommunityLeaderboardModule } from '@/components/dashboard/CommunityLeaderboardModule'
 import { computeBoard } from '@/lib/leaderboard/queries'
-import { cn } from '@/lib/utils'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { communityIntro } from '@/lib/redesign/network-pages'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
@@ -72,7 +67,6 @@ import type { Prisma, PrivacyTier } from '@prisma/client'
 
 export const metadata: Metadata = { title: 'NextChapter Community' }
 
-
 const PARTNER_TYPE_LABEL = {
   COACH: 'Coach',
   RECRUITER: 'Recruiter',
@@ -86,13 +80,6 @@ const PARTNER_TYPE_LABEL = {
 type Relation = 'peers' | 'coaches' | 'recruiters' | 'hiring-managers'
 
 const RELATIONS: Relation[] = ['peers', 'coaches', 'recruiters', 'hiring-managers']
-
-const RELATION_LABEL: Record<Relation, string> = {
-  peers: 'Peers',
-  coaches: 'Coaches',
-  recruiters: 'Recruiters',
-  'hiring-managers': 'Hiring Managers',
-}
 
 // Sentence case for the redesigned circle switches.
 const RELATION_LABEL_SENTENCE: Record<Relation, string> = {
@@ -168,28 +155,14 @@ export default async function SupportNetworkPage({
   const profile = await getDashboardProfile()
   const params = await searchParams
   const tab = params.tab === 'messages' ? 'messages' : 'community'
-
-  // Computed off the profile snapshot already in hand, before CommunityTab's
-  // unconditional communityLastViewedAt reset fires later in this same
-  // request — reading it after that reset would always show zero.
-  // The redesign (docs/candidate-redesign.md): one headline per tab, the circle switches, the same content below.
-  // Rankings, filters and the encouragement form move behind Show more inside the community tab.
-  const redesign = isRedesignOn(profile.email)
-  if (redesign) captureServerEvent(profile.id, 'community_viewed', { tab, relation: params.relation ?? null })
+  captureServerEvent(profile.id, 'community_viewed', { tab, relation: params.relation ?? null })
 
   return (
     <div className="space-y-6">
-      {redesign ? (
-        <div className="space-y-4">
-          <PageHeader title={tab === 'messages' ? 'Messages' : 'Industry and function'} intro={communityIntro(tab)} />
-          {tab === 'community' && <NetworkParts current="industry" />}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">NextChapter Community</h1>
-          <PageHeaderBoxes pageKey="community" candidateId={profile.id} />
-        </div>
-      )}
+      <div className="space-y-4">
+        <PageHeader title={tab === 'messages' ? 'Messages' : 'Industry and function'} intro={communityIntro(tab)} />
+        {tab === 'community' && <NetworkParts current="industry" />}
+      </div>
 
       {tab === 'messages' ? (
         <MessagesTab
@@ -198,7 +171,6 @@ export default async function SupportNetworkPage({
           threadId={params.thread}
           withCandidateId={params.with}
           attachResumeId={params.attachResumeId}
-          redesign={redesign}
         />
       ) : (
         <CommunityTab
@@ -213,7 +185,6 @@ export default async function SupportNetworkPage({
           targetRoleType={profile.targetRoleType}
           currentCity={profile.currentCity}
           searchParams={params}
-          redesign={redesign}
         />
       )}
     </div>
@@ -229,14 +200,12 @@ async function MessagesTab({
   threadId,
   withCandidateId,
   attachResumeId,
-  redesign,
 }: {
   candidateId: string
   relationParam?: string
   threadId?: string
   withCandidateId?: string
   attachResumeId?: string
-  redesign: boolean
 }) {
   const [candidateThreads, peerThreads] = await Promise.all([
     getCandidateThreads(candidateId),
@@ -268,36 +237,11 @@ async function MessagesTab({
 
   return (
     <div className="space-y-4">
-      {redesign ? (
-        // The redesign: who you are talking to, with unread said in words ("Coaches (2 new)") instead of a badge.
-        <SectionPills
-          label="Who you are messaging"
-          current={relation}
-          items={RELATIONS.map((r) => ({ key: r, label: relationLabel(RELATION_LABEL_SENTENCE[r], relationUnread[r]), href: `/dashboard/community?tab=messages&relation=${r}` }))}
-        />
-      ) : (
-      <div className="flex flex-wrap gap-2">
-        {RELATIONS.map((r) => (
-          <Link
-            key={r}
-            href={`/dashboard/community?tab=messages&relation=${r}`}
-            className={cn(
-              'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
-              relation === r
-                ? 'border-brand bg-brand/10 text-foreground'
-                : 'border-border text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {RELATION_LABEL[r]}
-            {relationUnread[r] > 0 && (
-              <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase tabular-nums">
-                {relationUnread[r]}
-              </span>
-            )}
-          </Link>
-        ))}
-      </div>
-      )}
+      <SectionPills
+        label="Who you are messaging"
+        current={relation}
+        items={RELATIONS.map((r) => ({ key: r, label: relationLabel(RELATION_LABEL_SENTENCE[r], relationUnread[r]), href: `/dashboard/community?tab=messages&relation=${r}` }))}
+      />
 
       {relation === 'peers' ? (
         <PeerRelationPanel
@@ -305,7 +249,6 @@ async function MessagesTab({
           threadId={threadId}
           withCandidateId={withCandidateId}
           attachResumeId={attachResumeId}
-          redesign={redesign}
         />
       ) : (
         <InstitutionalRelationPanel
@@ -315,7 +258,6 @@ async function MessagesTab({
             relation === 'coaches' ? coachThreads : relation === 'recruiters' ? recruiterThreads : employerThreads
           }
           threadId={threadId}
-          redesign={redesign}
         />
       )}
     </div>
@@ -327,13 +269,11 @@ async function PeerRelationPanel({
   threadId,
   withCandidateId,
   attachResumeId,
-  redesign,
 }: {
   candidateId: string
   threadId?: string
   withCandidateId?: string
   attachResumeId?: string
-  redesign: boolean
 }) {
   // A "Message" link with no existing thread yet (?with={candidateId})
   // creates it on the fly, same first-contact path the send action itself
@@ -384,116 +324,35 @@ async function PeerRelationPanel({
         )
       : new Map<string, string | null>()
 
-  if (redesign) {
-    return (
-      <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        <ThreadList
-          label="Conversations with peers"
-          emptyText="No conversations yet. Message someone from a community post to start one."
-          activeId={resolvedThreadId}
-          threads={threads.map((t) => ({ id: t.id, name: t.partnerName, avatarUrl: t.partnerAvatarUrl, unread: t.unread, kind: null, href: `/dashboard/community?tab=messages&relation=peers&thread=${t.id}` }))}
-        />
-        <div className="min-w-0 flex-1 space-y-4">
-          {!activeThread ? (
-            <EmptyCard title={threads.length === 0 ? 'Nothing here yet' : 'Pick a conversation'} why={threads.length === 0 ? 'When you message another member, or they message you, the conversation shows up here.' : 'Choose someone on the left to read and reply.'} />
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <AvatarDisplay name={activeThread.partnerName} url={activeThread.partnerAvatarUrl} size={40} />
-                  <h2 className="font-display text-xl font-semibold text-ink">{activeThread.partnerName}</h2>
-                </div>
-                {activeThread.partnerCandidateId && (
-                  <PeerThreadSafetyControls threadId={activeThread.id} otherCandidateId={activeThread.partnerCandidateId} isBlocked={activeThread.isBlocked} isReported={!!activeThread.reportedAt} redesign />
-                )}
-              </div>
-              <div className="rounded-2xl border border-border">
-                <PeerMessageBubbles messages={activeThread.messages} selfCandidateId={candidateId} partnerName={activeThread.partnerName} partnerAvatarUrl={activeThread.partnerAvatarUrl} attachmentUrls={attachmentUrls} redesign />
-              </div>
-              {activeThread.isBlocked ? (
-                <p className="text-base text-ink">You can no longer message in this conversation.</p>
-              ) : (
-                <MessageComposer redesign threadId={activeThread.id} action={sendPeerCandidateMessage} resumeOptions={ownResumes.map((r) => ({ id: r.id, label: r.label || r.fileName }))} defaultAttachedResumeId={attachResumeId} />
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-start">
-      <div className="shrink-0 divide-y divide-border rounded-lg border border-border md:w-64">
-        {threads.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">
-            No conversations yet.
-          </p>
-        ) : (
-          threads.map((thread) => (
-            <Link
-              key={thread.id}
-              href={`/dashboard/community?tab=messages&relation=peers&thread=${thread.id}`}
-              className={cn(
-                'flex items-center justify-between gap-3 p-3 hover:bg-muted',
-                thread.id === resolvedThreadId && 'bg-muted'
-              )}
-            >
-              <div className="flex min-w-0 items-center gap-2">
-                <AvatarDisplay name={thread.partnerName} url={thread.partnerAvatarUrl} size={32} />
-                <p className="truncate text-sm font-medium text-foreground">{thread.partnerName}</p>
-              </div>
-              {thread.unread && (
-                <span className="shrink-0 rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
-                  New
-                </span>
-              )}
-            </Link>
-          ))
-        )}
-      </div>
-
+    <div className="flex flex-col gap-6 md:flex-row md:items-start">
+      <ThreadList
+        label="Conversations with peers"
+        emptyText="No conversations yet. Message someone from a community post to start one."
+        activeId={resolvedThreadId}
+        threads={threads.map((t) => ({ id: t.id, name: t.partnerName, avatarUrl: t.partnerAvatarUrl, unread: t.unread, kind: null, href: `/dashboard/community?tab=messages&relation=peers&thread=${t.id}` }))}
+      />
       <div className="min-w-0 flex-1 space-y-4">
         {!activeThread ? (
-          <p className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
-            {threads.length === 0 ? 'Nothing to show yet.' : 'Pick a conversation to read and reply.'}
-          </p>
+          <EmptyCard title={threads.length === 0 ? 'Nothing here yet' : 'Pick a conversation'} why={threads.length === 0 ? 'When you message another member, or they message you, the conversation shows up here.' : 'Choose someone on the left to read and reply.'} />
         ) : (
           <>
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <AvatarDisplay name={activeThread.partnerName} url={activeThread.partnerAvatarUrl} size={32} />
-                <h2 className="text-lg font-semibold tracking-tight">{activeThread.partnerName}</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <AvatarDisplay name={activeThread.partnerName} url={activeThread.partnerAvatarUrl} size={40} />
+                <h2 className="font-display text-xl font-semibold text-ink">{activeThread.partnerName}</h2>
               </div>
               {activeThread.partnerCandidateId && (
-                <PeerThreadSafetyControls
-                  threadId={activeThread.id}
-                  otherCandidateId={activeThread.partnerCandidateId}
-                  isBlocked={activeThread.isBlocked}
-                  isReported={!!activeThread.reportedAt}
-                />
+                <PeerThreadSafetyControls threadId={activeThread.id} otherCandidateId={activeThread.partnerCandidateId} isBlocked={activeThread.isBlocked} isReported={!!activeThread.reportedAt} />
               )}
             </div>
-            <div className="rounded-lg border border-border">
-              <PeerMessageBubbles
-                messages={activeThread.messages}
-                selfCandidateId={candidateId}
-                partnerName={activeThread.partnerName}
-                partnerAvatarUrl={activeThread.partnerAvatarUrl}
-                attachmentUrls={attachmentUrls}
-              />
+            <div className="rounded-2xl border border-border">
+              <PeerMessageBubbles messages={activeThread.messages} selfCandidateId={candidateId} partnerName={activeThread.partnerName} partnerAvatarUrl={activeThread.partnerAvatarUrl} attachmentUrls={attachmentUrls} />
             </div>
             {activeThread.isBlocked ? (
-              <p className="text-sm text-muted-foreground">
-                You can no longer message in this conversation.
-              </p>
+              <p className="text-base text-ink">You can no longer message in this conversation.</p>
             ) : (
-              <MessageComposer
-                threadId={activeThread.id}
-                action={sendPeerCandidateMessage}
-                resumeOptions={ownResumes.map((r) => ({ id: r.id, label: r.label || r.fileName }))}
-                defaultAttachedResumeId={attachResumeId}
-              />
+              <MessageComposer redesign threadId={activeThread.id} action={sendPeerCandidateMessage} resumeOptions={ownResumes.map((r) => ({ id: r.id, label: r.label || r.fileName }))} defaultAttachedResumeId={attachResumeId} />
             )}
           </>
         )}
@@ -507,13 +366,11 @@ async function InstitutionalRelationPanel({
   relation,
   threads,
   threadId,
-  redesign,
 }: {
   candidateId: string
   relation: Exclude<Relation, 'peers'>
   threads: Awaited<ReturnType<typeof getCandidateThreads>>
   threadId?: string
-  redesign: boolean
 }) {
   const activeThreadId = threadId && threads.some((t) => t.id === threadId) ? threadId : undefined
 
@@ -540,7 +397,7 @@ async function InstitutionalRelationPanel({
     avatarUrl: partner.profilePictureUrl,
   }))
 
-  if (threads.length === 0 && eligible.length === 0 && redesign) {
+  if (threads.length === 0 && eligible.length === 0) {
     return (
       <EmptyCard
         title={relation === 'coaches' ? 'No coach conversations yet' : `No ${RELATION_LABEL_SENTENCE[relation].toLowerCase()} conversations yet`}
@@ -553,160 +410,51 @@ async function InstitutionalRelationPanel({
     )
   }
 
-  if (threads.length === 0 && eligible.length === 0) {
-    return (
-      <EmptyState
-        icon={Inbox}
-        title={
-          relation === 'coaches'
-            ? 'No coach conversations yet'
-            : `No ${RELATION_LABEL[relation].toLowerCase()} conversations yet`
-        }
-        description={
-          relation === 'coaches'
-            ? "Once you're matched with a coach and consent to share your Coach Dossier, your conversation will show up here."
-            : `You'll be able to message a ${relation === 'recruiters' ? 'recruiter' : 'hiring manager'} here once you have a real connection with one.`
-        }
-      />
-    )
-  }
-
-  if (redesign) {
-    return (
-      <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        <ThreadList
-          label={`Conversations with ${RELATION_LABEL_SENTENCE[relation].toLowerCase()}`}
-          emptyText="No conversations yet."
-          activeId={activeThreadId}
-          threads={threads.map((t) => ({ id: t.id, name: t.partnerName, avatarUrl: t.partnerAvatarUrl, unread: t.unread, kind: PARTNER_TYPE_LABEL[t.partnerType], href: `/dashboard/community?tab=messages&relation=${relation}&thread=${t.id}` }))}
-        >
-          {eligible.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-base font-semibold text-ink">People you can message</h3>
-              <ul className="space-y-1">
-                {eligible.map((partner) => (
-                  <li key={partner.id}>
-                    <form action={startCandidateThreadAction.bind(null, partnerType, partner.id)}>
-                      <SubmitButton variant="ghost" className="flex h-auto w-full items-center justify-start gap-3 rounded-xl p-2 text-left">
-                        <AvatarDisplay name={partner.name} url={partner.avatarUrl} size={36} />
-                        <span className="truncate text-base font-medium text-ink">{partner.name}</span>
-                      </SubmitButton>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </ThreadList>
-        <div className="min-w-0 flex-1 space-y-4">
-          {!activeThread ? (
-            <EmptyCard
-              title={threads.length === 0 ? 'Start a conversation' : 'Pick a conversation'}
-              why={threads.length === 0 ? 'Choose someone under People you can message to say hello.' : 'Choose someone on the left to read and reply.'}
-            />
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <AvatarDisplay name={partnerNameFor(activeThread)} url={activeThread.partnerAvatarUrl} size={40} />
-                  <h2 className="font-display text-xl font-semibold text-ink">{partnerNameFor(activeThread)}</h2>
-                </div>
-                <PeerThreadSafetyControls threadId={activeThread.id} otherCandidateId={null} isBlocked={false} isReported={!!activeThread.reportedAt} redesign />
-              </div>
-              <div className="rounded-2xl border border-border">
-                <MessageBubbles messages={activeThread.messages} selfRole="CANDIDATE" partnerName={partnerNameFor(activeThread)} partnerAvatarUrl={activeThread.partnerAvatarUrl} redesign />
-              </div>
-              <MessageComposer redesign threadId={activeThread.id} action={sendCandidateMessage} />
-            </>
-          )}
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-start">
-      <div className="shrink-0 space-y-4 md:w-64">
-        <div className="divide-y divide-border rounded-lg border border-border">
-          {threads.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground">No conversations yet.</p>
-          ) : (
-            threads.map((thread) => (
-              <Link
-                key={thread.id}
-                href={`/dashboard/community?tab=messages&relation=${relation}&thread=${thread.id}`}
-                className={cn(
-                  'flex items-center justify-between gap-3 p-3 hover:bg-muted',
-                  thread.id === activeThreadId && 'bg-muted'
-                )}
-              >
-                <div className="flex min-w-0 items-center gap-2">
-                  <AvatarDisplay name={thread.partnerName} url={thread.partnerAvatarUrl} size={32} />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">{thread.partnerName}</p>
-                    <p className="text-xs text-muted-foreground">{PARTNER_TYPE_LABEL[thread.partnerType]}</p>
-                  </div>
-                </div>
-                {thread.unread && (
-                  <span className="shrink-0 rounded-full bg-orange/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-orange uppercase">
-                    New
-                  </span>
-                )}
-              </Link>
-            ))
-          )}
-        </div>
-
+    <div className="flex flex-col gap-6 md:flex-row md:items-start">
+      <ThreadList
+        label={`Conversations with ${RELATION_LABEL_SENTENCE[relation].toLowerCase()}`}
+        emptyText="No conversations yet."
+        activeId={activeThreadId}
+        threads={threads.map((t) => ({ id: t.id, name: t.partnerName, avatarUrl: t.partnerAvatarUrl, unread: t.unread, kind: PARTNER_TYPE_LABEL[t.partnerType], href: `/dashboard/community?tab=messages&relation=${relation}&thread=${t.id}` }))}
+      >
         {eligible.length > 0 && (
-          <div className="space-y-2 rounded-lg border border-border p-3">
-            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              People you can message
-            </p>
-            {eligible.map((partner) => (
-              <form key={partner.id} action={startCandidateThreadAction.bind(null, partnerType, partner.id)}>
-                <SubmitButton
-                  variant="ghost"
-                  className="flex h-auto w-full items-center justify-start gap-2 p-2 text-left"
-                >
-                  <AvatarDisplay name={partner.name} url={partner.avatarUrl} size={28} />
-                  <span className="truncate text-sm font-medium text-foreground">{partner.name}</span>
-                </SubmitButton>
-              </form>
-            ))}
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold text-ink">People you can message</h3>
+            <ul className="space-y-1">
+              {eligible.map((partner) => (
+                <li key={partner.id}>
+                  <form action={startCandidateThreadAction.bind(null, partnerType, partner.id)}>
+                    <SubmitButton variant="ghost" className="flex h-auto w-full items-center justify-start gap-3 rounded-xl p-2 text-left">
+                      <AvatarDisplay name={partner.name} url={partner.avatarUrl} size={36} />
+                      <span className="truncate text-base font-medium text-ink">{partner.name}</span>
+                    </SubmitButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
-      </div>
-
+      </ThreadList>
       <div className="min-w-0 flex-1 space-y-4">
         {!activeThread ? (
-          <p className="rounded-lg border border-border p-6 text-center text-sm text-muted-foreground">
-            {threads.length === 0
-              ? 'Pick someone above to start a conversation.'
-              : 'Pick a conversation to read and reply.'}
-          </p>
+          <EmptyCard
+            title={threads.length === 0 ? 'Start a conversation' : 'Pick a conversation'}
+            why={threads.length === 0 ? 'Choose someone under People you can message to say hello.' : 'Choose someone on the left to read and reply.'}
+          />
         ) : (
           <>
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <AvatarDisplay name={partnerNameFor(activeThread)} url={activeThread.partnerAvatarUrl} size={32} />
-                <h2 className="text-lg font-semibold tracking-tight">{partnerNameFor(activeThread)}</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <AvatarDisplay name={partnerNameFor(activeThread)} url={activeThread.partnerAvatarUrl} size={40} />
+                <h2 className="font-display text-xl font-semibold text-ink">{partnerNameFor(activeThread)}</h2>
               </div>
-              <PeerThreadSafetyControls
-                threadId={activeThread.id}
-                otherCandidateId={null}
-                isBlocked={false}
-                isReported={!!activeThread.reportedAt}
-              />
+              <PeerThreadSafetyControls threadId={activeThread.id} otherCandidateId={null} isBlocked={false} isReported={!!activeThread.reportedAt} />
             </div>
-            <div className="rounded-lg border border-border">
-              <MessageBubbles
-                messages={activeThread.messages}
-                selfRole="CANDIDATE"
-                partnerName={partnerNameFor(activeThread)}
-                partnerAvatarUrl={activeThread.partnerAvatarUrl}
-              />
+            <div className="rounded-2xl border border-border">
+              <MessageBubbles messages={activeThread.messages} selfRole="CANDIDATE" partnerName={partnerNameFor(activeThread)} partnerAvatarUrl={activeThread.partnerAvatarUrl} redesign />
             </div>
-            <MessageComposer threadId={activeThread.id} action={sendCandidateMessage} />
+            <MessageComposer redesign threadId={activeThread.id} action={sendCandidateMessage} />
           </>
         )}
       </div>
@@ -730,7 +478,6 @@ async function CommunityTab({
   targetRoleType,
   currentCity,
   searchParams,
-  redesign,
 }: {
   candidateId: string
   privacyTier: PrivacyTier
@@ -743,7 +490,6 @@ async function CommunityTab({
   targetRoleType: string | null
   currentCity: string | null
   searchParams: SearchParams
-  redesign: boolean
 }) {
   // §14: "Gate: any qualifying badge — Connected does not qualify." Replaces
   // the old privacyTier-only gate (community/access.ts's own comment
@@ -755,37 +501,20 @@ async function CommunityTab({
   // resolveCommunityIdentity) rather than needing a public privacy tier.
   const privacyOk = privacyTier === 'PUBLIC' || privacyTier === 'SEMI_PUBLIC' || confidentialSearchMode
 
-  if (!privacyOk && redesign) {
+  if (!privacyOk) {
     return (
       <Section id="community-gate" title="Choose who can see you first">
         <p className="max-w-xl text-base text-ink">
           Posting, commenting, showing interest and sending encouragement need a Public or Semi-Public profile, because you cannot meaningfully network anonymously. Choose one below and you can start right away.
         </p>
-        <PrivacyTierSelector currentTier={privacyTier} alreadyAwarded={!!privacyOpenedUpBonusAt} redesign />
-      </Section>
-    )
-  }
-
-  if (!privacyOk) {
-    return (
-      <div className="space-y-4 rounded-lg border border-border p-6">
-        <div>
-          <p className="text-sm font-medium text-foreground">
-            Posting, commenting, expressing interest, and sending encouragement all require a
-            Public or Semi-Public profile — you can&apos;t meaningfully network anonymously.
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Choose a visibility below to unlock the Support Network — no need to leave this page.
-          </p>
-        </div>
         <PrivacyTierSelector currentTier={privacyTier} alreadyAwarded={!!privacyOpenedUpBonusAt} />
-      </div>
+      </Section>
     )
   }
 
   const hasQualifyingBadge = await hasQualifyingCommunityBadge(candidateId)
 
-  if (!hasQualifyingBadge && redesign) {
+  if (!hasQualifyingBadge) {
     return (
       <EmptyCard
         title="Community opens after your first milestone"
@@ -796,30 +525,6 @@ async function CommunityTab({
           </ActionLink>
         }
       />
-    )
-  }
-
-  if (!hasQualifyingBadge) {
-    return (
-      <div className="space-y-4 rounded-lg border border-border p-6">
-        <div>
-          <p className="text-sm font-medium text-foreground">
-            Community unlocks once you&apos;ve earned any milestone badge.
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Everyone here has done at least one real, verifiable thing to get in — a reference that
-            came back, a resolved resume issue, a completed profile, a search streak. It&apos;s not
-            about your privacy settings; it&apos;s about having done some real work first, so this
-            isn&apos;t just a room for venting about the market.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/stats"
-          className="inline-flex items-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand/90"
-        >
-          See what unlocks it
-        </Link>
-      </div>
     )
   }
 
@@ -860,75 +565,28 @@ async function CommunityTab({
     ])
     const previewFeed = [...previewCommunityFeed, ...previewMarketBrief]
 
-    if (redesign) {
-      return (
-        <div className="space-y-8">
-          {confidentialSearchMode && <ConfidentialModeIndicator redesign />}
-          <Section id="introduce" title="Introduce yourself first">
-            <p className="max-w-xl text-base text-ink">
-              Your introduction is a real post that shows up in the feed like anyone else&apos;s, so people here know who they are talking to before they see your other posts.
-            </p>
-            {confidentialSearchMode && (
-              <Callout>Anything you write here is visible to other members. You post under a generated handle with no employer, title or location attached, but the words themselves are not private from the community.</Callout>
-            )}
-            <SelfIntroForm
-              redesign
-              defaultValue={buildSelfIntroDraft({ candidateId, firstName, primaryFunction, targetRoleType, currentCity, confidentialSearchMode })}
-            />
-          </Section>
-          {(previewPosts.length > 0 || previewFeed.length > 0) && (
-            <Section id="happening" title="What is happening here">
-              <div className="divide-y divide-border rounded-2xl border border-border">
-                {mergeCommunityStream(previewPosts, previewFeed).map((streamItem) => (
-                  <CommunityStreamItem redesign key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id} item={streamItem} candidateId={candidateId} />
-                ))}
-              </div>
-            </Section>
-          )}
-        </div>
-      )
-    }
-
     return (
       <div className="space-y-8">
-        {confidentialSearchMode && <ConfidentialModeIndicator />}
-        <div className="space-y-3">
-          {confidentialSearchMode && (
-            <p className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-              Anything you write here is visible to other members — you&apos;ll post under a generated
-              handle with no employer, title, or location attached, but the words themselves aren&apos;t
-              private from the Community.
-            </p>
-          )}
-          <p className="text-sm text-muted-foreground">
-            First, introduce yourself — a real post that shows up in the feed like anyone else&apos;s,
-            so people here know who they&apos;re talking to before they see your other posts.
+        {confidentialSearchMode && <ConfidentialModeIndicator redesign />}
+        <Section id="introduce" title="Introduce yourself first">
+          <p className="max-w-xl text-base text-ink">
+            Your introduction is a real post that shows up in the feed like anyone else&apos;s, so people here know who they are talking to before they see your other posts.
           </p>
+          {confidentialSearchMode && (
+            <Callout>Anything you write here is visible to other members. You post under a generated handle with no employer, title or location attached, but the words themselves are not private from the community.</Callout>
+          )}
           <SelfIntroForm
-            defaultValue={buildSelfIntroDraft({
-              candidateId,
-              firstName,
-              primaryFunction,
-              targetRoleType,
-              currentCity,
-              confidentialSearchMode,
-            })}
+            defaultValue={buildSelfIntroDraft({ candidateId, firstName, primaryFunction, targetRoleType, currentCity, confidentialSearchMode })}
           />
-        </div>
-
+        </Section>
         {(previewPosts.length > 0 || previewFeed.length > 0) && (
-          <div className="space-y-3">
-            <h2 className="text-sm font-medium text-muted-foreground">What&apos;s happening here</h2>
-            <div className="divide-y divide-border rounded-lg border border-border">
+          <Section id="happening" title="What is happening here">
+            <div className="divide-y divide-border rounded-2xl border border-border">
               {mergeCommunityStream(previewPosts, previewFeed).map((streamItem) => (
-                <CommunityStreamItem
-                  key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id}
-                  item={streamItem}
-                  candidateId={candidateId}
-                />
+                <CommunityStreamItem key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id} item={streamItem} candidateId={candidateId} />
               ))}
             </div>
-          </div>
+          </Section>
         )}
       </div>
     )
@@ -977,135 +635,26 @@ async function CommunityTab({
   const activeCommunity = communities.find((c) => c.communityId === searchParams.community) ?? null
   const feed = [...communityFeed, ...marketBrief]
 
-  // Sending encouragement is a secondary feature, not the reason someone comes to Community.
-  const encouragement = encouragementGivingOptIn ? (
-    <SendEncouragementForm />
-  ) : (
-    <div className="rounded-lg border border-border bg-off-white p-4 text-sm text-muted-foreground">
-      Want to send encouragement to someone here having a hard week?{' '}
-      <Link href="/dashboard/privacy" className="text-primary underline underline-offset-4">
-        Opt in from Privacy settings
-      </Link>
-      .
-    </div>
-  )
-
-  if (redesign) {
-    const filterActive = Boolean(activeCommunity || searchParams.group)
-    const filterName = activeCommunity?.label ?? groups.find((g) => `${g.dimension}:${g.value}` === searchParams.group)?.label ?? 'one group'
-    return (
-      <div className="space-y-8">
-        {confidentialSearchMode && <ConfidentialModeIndicator redesign />}
-        <CommunityAutoJoinBanner notices={pendingAutoJoinNotices} redesign />
-
-        {unreadNotes.length > 0 && (
-          <div className="space-y-3">
-            {unreadNotes.map((note) => (
-              <div key={note.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-muted/60 p-5">
-                <div className="max-w-xl space-y-1">
-                  <p className="text-base text-ink">
-                    &ldquo;{note.message}&rdquo;
-                    {note.revealSender && note.fromCandidate.firstName && <span className="text-muted-foreground"> from {note.fromCandidate.firstName}</span>}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Someone here sent you this.</p>
-                </div>
-                <form action={dismissEncouragementNote.bind(null, note.id)}>
-                  <SubmitButton variant="outline" className="h-10 rounded-full px-5 text-sm">
-                    Dismiss
-                  </SubmitButton>
-                </form>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <Section id="post" title="Post to the community">
-          <CommunityPostForm redesign />
-        </Section>
-
-        <Section id="feed" title="From your field">
-          {filterActive && (
-            <p className="text-base text-ink">
-              Showing posts from {filterName}.{' '}
-              <Link href="/dashboard/community" className="font-medium text-brand underline underline-offset-4">
-                Show everything
-              </Link>
-            </p>
-          )}
-          {posts.length === 0 && feed.length === 0 ? (
-            <EmptyCard title="Nothing here yet" why="New posts and member news show up here as people share them. Check back soon, or post something yourself." />
-          ) : (
-            <div className="divide-y divide-border rounded-2xl border border-border">
-              {mergeCommunityStream(posts, feed).map((streamItem) => (
-                <CommunityStreamItem redesign key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id} item={streamItem} candidateId={candidateId} />
-              ))}
-            </div>
-          )}
-        </Section>
-
-        <ShowMore page="community" label="Filter by group, cohort, rankings and encouragement">
-          {(groups.length > 0 || communities.length > 0) && (
-            <Section id="filters" title="Filter by group">
-              <div className="space-y-5">
-                <CommunityGroupStrip redesign groups={groups} otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}} />
-                <CommunityChips redesign communities={communities} activeCommunityId={activeCommunity?.communityId} />
-              </div>
-            </Section>
-          )}
-          {cohort && (
-            <Section id="cohort" title={`Your cohort: ${cohort.companyName}`}>
-              <p className="max-w-xl text-base text-ink">
-                Other members from the {cohort.layoffDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} layoff are posting here, so you are not going through it alone.
-              </p>
-              {cohort.posts.length > 0 && (
-                <div className="divide-y divide-border rounded-2xl border border-border">
-                  {cohort.posts.slice(0, 5).map((post) => (
-                    <CommunityPostCard key={post.id} post={post} isOwnPost={false} redesign />
-                  ))}
-                </div>
-              )}
-            </Section>
-          )}
-          <Section id="alumni" title="Groups to join">
-            <AlumniNetworkOptions candidateId={candidateId} redesign />
-          </Section>
-          {leaderboardTeaser && <CommunityLeaderboardModule result={leaderboardTeaser} />}
-          <Section id="encouragement" title="Send encouragement">
-            {encouragementGivingOptIn ? (
-              <SendEncouragementForm redesign />
-            ) : (
-              <p className="text-base text-ink">
-                You can send a note to someone having a hard week once you turn it on.{' '}
-                <Link href="/dashboard/privacy" className="font-medium text-brand underline underline-offset-4">
-                  Turn it on in account and privacy
-                </Link>
-              </p>
-            )}
-          </Section>
-        </ShowMore>
-      </div>
-    )
-  }
-
+  const filterActive = Boolean(activeCommunity || searchParams.group)
+  const filterName = activeCommunity?.label ?? groups.find((g) => `${g.dimension}:${g.value}` === searchParams.group)?.label ?? 'one group'
   return (
     <div className="space-y-8">
-      {confidentialSearchMode && <ConfidentialModeIndicator />}
-
-      {leaderboardTeaser && <CommunityLeaderboardModule result={leaderboardTeaser} />}
+      {confidentialSearchMode && <ConfidentialModeIndicator redesign />}
+      <CommunityAutoJoinBanner notices={pendingAutoJoinNotices} />
 
       {unreadNotes.length > 0 && (
         <div className="space-y-3">
           {unreadNotes.map((note) => (
-            <div key={note.id} className="rounded-lg border border-border bg-brand/5 p-4">
-              <p className="text-sm text-foreground">
-                &ldquo;{note.message}&rdquo;
-                {note.revealSender && note.fromCandidate.firstName && (
-                  <span className="text-muted-foreground"> — {note.fromCandidate.firstName}</span>
-                )}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">Someone here sent you this.</p>
-              <form action={dismissEncouragementNote.bind(null, note.id)} className="mt-2">
-                <SubmitButton variant="outline" size="sm">
+            <div key={note.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-muted/60 p-5">
+              <div className="max-w-xl space-y-1">
+                <p className="text-base text-ink">
+                  &ldquo;{note.message}&rdquo;
+                  {note.revealSender && note.fromCandidate.firstName && <span className="text-muted-foreground"> from {note.fromCandidate.firstName}</span>}
+                </p>
+                <p className="text-sm text-muted-foreground">Someone here sent you this.</p>
+              </div>
+              <form action={dismissEncouragementNote.bind(null, note.id)}>
+                <SubmitButton variant="outline" className="h-10 rounded-full px-5 text-sm">
                   Dismiss
                 </SubmitButton>
               </form>
@@ -1114,88 +663,70 @@ async function CommunityTab({
         </div>
       )}
 
-      {cohort && (
-        <div className="space-y-3 rounded-lg border border-border p-4">
-          <div>
-            <p className="text-sm font-medium text-foreground">Your cohort: {cohort.companyName}</p>
-            <p className="text-sm text-muted-foreground">
-              Other candidates from the{' '}
-              {cohort.layoffDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}{' '}
-              layoff are posting below — their posts are highlighted here.
-            </p>
-          </div>
-          {cohort.posts.length > 0 && (
-            <div className="space-y-3">
-              {cohort.posts.slice(0, 5).map((post) => (
-                <CommunityPostCard key={post.id} post={post} isOwnPost={false} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <Section id="post" title="Post to the community">
+        <CommunityPostForm />
+      </Section>
 
-      <CommunityAutoJoinBanner notices={pendingAutoJoinNotices} />
-
-      <div className="overflow-hidden rounded-lg border border-border">
-        <div className="space-y-3 border-b border-orange/20 bg-orange/5 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Post to the Community</p>
-              <p className="text-xs text-muted-foreground">
-                Ask for help, offer help, share a job, or post an update.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/privacy"
-              className="shrink-0 text-xs font-medium text-primary underline underline-offset-4"
-            >
-              Privacy settings
+      <Section id="feed" title="From your field">
+        {filterActive && (
+          <p className="text-base text-ink">
+            Showing posts from {filterName}.{' '}
+            <Link href="/dashboard/community" className="font-medium text-brand underline underline-offset-4">
+              Show everything
             </Link>
-          </div>
-          <CommunityPostForm />
-        </div>
-
-        {(groups.length > 0 || communities.length > 0) && (
-          <details className="group border-b border-border bg-off-white/60">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 p-3 [&::-webkit-details-marker]:hidden">
-              <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Filters</span>
-              <ChevronDown
-                className="size-3.5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-                aria-hidden
-              />
-            </summary>
-            <div className="space-y-2 p-3 pt-0">
-              <CommunityGroupStrip
-                groups={groups}
-                otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}}
-              />
-              <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
-            </div>
-          </details>
+          </p>
         )}
-
-        <AlumniNetworkOptions candidateId={candidateId} />
-
-        <div className="border-b border-border px-4 py-2">
-          <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Feed</p>
-        </div>
-
         {posts.length === 0 && feed.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">Nothing to show yet — check back soon.</p>
+          <EmptyCard title="Nothing here yet" why="New posts and member news show up here as people share them. Check back soon, or post something yourself." />
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border rounded-2xl border border-border">
             {mergeCommunityStream(posts, feed).map((streamItem) => (
-              <CommunityStreamItem
-                key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id}
-                item={streamItem}
-                candidateId={candidateId}
-              />
+              <CommunityStreamItem key={streamItem.kind === 'post' ? streamItem.post.id : streamItem.item.id} item={streamItem} candidateId={candidateId} />
             ))}
           </div>
         )}
-      </div>
+      </Section>
 
-      {encouragement}
+      <ShowMore page="community" label="Filter by group, cohort, rankings and encouragement">
+        {(groups.length > 0 || communities.length > 0) && (
+          <Section id="filters" title="Filter by group">
+            <div className="space-y-5">
+              <CommunityGroupStrip groups={groups} otherParams={activeCommunity ? { community: activeCommunity.communityId } : {}} />
+              <CommunityChips communities={communities} activeCommunityId={activeCommunity?.communityId} />
+            </div>
+          </Section>
+        )}
+        {cohort && (
+          <Section id="cohort" title={`Your cohort: ${cohort.companyName}`}>
+            <p className="max-w-xl text-base text-ink">
+              Other members from the {cohort.layoffDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} layoff are posting here, so you are not going through it alone.
+            </p>
+            {cohort.posts.length > 0 && (
+              <div className="divide-y divide-border rounded-2xl border border-border">
+                {cohort.posts.slice(0, 5).map((post) => (
+                  <CommunityPostCard key={post.id} post={post} isOwnPost={false} />
+                ))}
+              </div>
+            )}
+          </Section>
+        )}
+        <Section id="alumni" title="Groups to join">
+          <AlumniNetworkOptions candidateId={candidateId} />
+        </Section>
+        {leaderboardTeaser && <CommunityLeaderboardModule result={leaderboardTeaser} />}
+        <Section id="encouragement" title="Send encouragement">
+          {encouragementGivingOptIn ? (
+            <SendEncouragementForm />
+          ) : (
+            <p className="text-base text-ink">
+              You can send a note to someone having a hard week once you turn it on.{' '}
+              <Link href="/dashboard/privacy" className="font-medium text-brand underline underline-offset-4">
+                Turn it on in account and privacy
+              </Link>
+            </p>
+          )}
+        </Section>
+      </ShowMore>
     </div>
   )
 }
