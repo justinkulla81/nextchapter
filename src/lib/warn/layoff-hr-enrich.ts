@@ -37,9 +37,9 @@ export async function enrichLayoffHr(employer: string, orgId: string | null): Pr
     const acct = await hunterAccount().catch(() => null)
     if (!acct || acct.requests.searches.available - acct.requests.searches.used <= HUNTER_RESERVE) return org?.id ?? null
 
-    const found = await hunterDomainSearch(domain, 10).catch(() => null)
+    const found = await hunterDomainSearch(domain, 10, 'hr').catch(() => null)
     const picks = (found?.people ?? [])
-      .filter((p) => p.firstName && p.lastName && p.position && !isUsWideTitle(p.position) && (p.confidence ?? 0) >= 70)
+      .filter((p) => p.firstName && p.lastName && p.position && !isUsWideTitle(p.position) && (p.confidence ?? 0) >= 60)
       .map((p) => ({ p, kind: isHrLeaderTitle(p.position) ? ('head_hr' as const) : hrTeamKind(p.position!) }))
       .filter((x): x is { p: typeof x.p; kind: NonNullable<typeof x.kind> } => !!x.kind)
       .sort((a, b) => Number(b.kind === 'head_hr') - Number(a.kind === 'head_hr') || (b.p.confidence ?? 0) - (a.p.confidence ?? 0))
