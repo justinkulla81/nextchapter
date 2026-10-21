@@ -6,6 +6,7 @@ import { csvContentHeaders, rowsToCsv } from '@/lib/admin/csv-export'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { etplRows, wioaOn, wioaReport } from '@/lib/higher-ed/programs'
 import { memberExport } from '@/lib/higher-ed/data-requests'
+import { recordInstitutionAudit } from '@/lib/higher-ed/partner-audit'
 
 const UPDATES_COLUMNS = ['external_id', 'email', 'employer', 'title', 'start_date', 'in_transition', 'do_not_solicit', 'prospect_flag', 'engagement_tier', 'last_active', 'email_status'] as const
 const ETPL_COLUMNS = ['program', 'cip_code', 'credential_type', 'credential', 'hours', 'cost', 'modality', 'prerequisites', 'enrolled', 'completed', 'completion_rate', 'credential_rate', 'placement_rate_180d'] as const
@@ -41,6 +42,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       await prisma.dataRequest.create({ data: { institutionId: ctx.institution.id, memberId, email: data.member.email, kind: 'EXPORT', status: 'DONE', note: 'Downloaded by staff.', requestedBy: by, completedBy: by, completedAt: new Date() } })
     }
     captureServerEvent(ctx.userId, kind === 'my-data' ? 'he_my_data_exported' : 'he_member_data_exported', { institutionId: ctx.institution.id, memberId })
+    if (kind === 'member-data') await recordInstitutionAudit(ctx, 'export.member_data', { type: 'member', id: memberId })
     return new NextResponse(JSON.stringify(data, null, 2), {
       headers: { 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="${slug}-${kind}-${stamp}.json"`, 'Cache-Control': 'no-store' },
     })
@@ -64,6 +66,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       })
     }
     captureServerEvent(ctx.userId, 'he_crm_updates_exported', { institutionId: ctx.institution.id, rows: rows.length, signals: exported.count })
+    await recordInstitutionAudit(ctx, 'export.updates', { type: 'export', detail: { rows: rows.length } })
     return new NextResponse(csv(UPDATES_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-updates-${stamp}.csv`) })
   }
 
@@ -71,6 +74,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const ctx = await requireWorkspace(slug, 'development')
     const rows = await suppressionRows(ctx)
     captureServerEvent(ctx.userId, 'he_suppression_exported', { institutionId: ctx.institution.id, rows: rows.length })
+    await recordInstitutionAudit(ctx, 'export.suppression', { type: 'export', detail: { rows: rows.length } })
     return new NextResponse(csv(SUPPRESSION_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-do-not-solicit-${stamp}.csv`) })
   }
 
@@ -82,6 +86,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       credential_rate: r.credentialRate === null ? null : Math.round(r.credentialRate * 1000) / 10, placement_rate_180d: r.placementRate === null ? null : Math.round(r.placementRate * 1000) / 10,
     }))
     captureServerEvent(ctx.userId, 'he_etpl_exported', { institutionId: ctx.institution.id, programs: rows.length })
+    await recordInstitutionAudit(ctx, 'export.etpl', { type: 'export', detail: { rows: rows.length } })
     return new NextResponse(csv(ETPL_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-etpl-${stamp}.csv`) })
   }
 
@@ -95,6 +100,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       status: x.status.toLowerCase(), enrolled: x.enrolledAt, completed: x.completedAt, credential: x.credential, placed: x.placedAt, employer: x.employer,
     }))
     captureServerEvent(ctx.userId, 'he_wioa_exported', { institutionId: ctx.institution.id, rows: rows.length })
+    await recordInstitutionAudit(ctx, 'export.wioa', { type: 'export', detail: { rows: rows.length } })
     return new NextResponse(csv(WIOA_COLUMNS, rows), { headers: csvContentHeaders(`${slug}-wioa-participants-${stamp}.csv`) })
   }
 

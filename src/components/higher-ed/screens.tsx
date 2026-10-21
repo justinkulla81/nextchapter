@@ -25,7 +25,9 @@ import {
   listMemberDirectory,
   listOpenTransitions,
 } from '@/lib/higher-ed/views'
-import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, getWorkspace, orgKindOf, tierIncludes } from '@/lib/higher-ed/workspaces'
+import { STAFF_ROLE_LABELS, TIER_LABELS, WORKSPACES, auditPortalOf, getWorkspace, orgKindOf, tierIncludes, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
+import { listPartnerAudit } from '@/lib/partners/audit'
+import { PartnerActivity } from '@/components/partners/PartnerActivity'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -1346,6 +1348,26 @@ function CollegeProfile({ profile }: { profile: InstitutionProfile }) {
   )
 }
 
+// Admin > Activity: the exports this organization can run and a plain record of who did what (team changes, branding,
+// downloads). The same page every other partner portal has (src/components/partners/PartnerActivity.tsx).
+async function AdminActivity({ ctx }: ScreenProps) {
+  const events = await listPartnerAudit(auditPortalOf(ctx.institution.orgType), ctx.institution.id)
+  const out = `/i/${ctx.institution.slug}/export`
+  const has = (w: WorkspaceKey) => ctx.workspaces.includes(w)
+  const downloads = [
+    ...(has('development')
+      ? [
+          { label: 'CRM updates file', href: `${out}/updates`, note: 'Approved updates for your CRM. Downloading marks those signals as exported.' },
+          { label: 'Do-not-solicit list', href: `${out}/suppression`, note: 'People who asked not to be contacted, to load into your CRM.' },
+        ]
+      : []),
+    ...(has('workforce')
+      ? [{ label: 'Training program results', href: `${out}/etpl`, note: 'Enrollment, completion, credential and placement rates for each program.' }]
+      : []),
+  ]
+  return <PartnerActivity downloads={downloads} events={events.map((e) => ({ id: e.id, action: e.action, actor: e.actorLabel, at: e.createdAt }))} />
+}
+
 async function SettingsStaff({ ctx }: ScreenProps) {
   const staff = await prisma.institutionUser.findMany({
     where: { institutionId: ctx.institution.id },
@@ -1549,6 +1571,7 @@ export const WORKSPACE_SCREENS: Record<string, ComponentType<ScreenProps>> = {
   'candidate:privacy': CandidatePrivacyAll,
   'admin:services': AdminServicesAll,
   'admin:users': SettingsStaff,
+  'admin:activity': AdminActivity,
   'alumni:layoffs': AlumniLayoffs,
   'alumni:outreach': AlumniOutreach,
   'alumni:engagement': AlumniEngagement,

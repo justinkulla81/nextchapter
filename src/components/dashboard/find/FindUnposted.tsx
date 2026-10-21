@@ -6,7 +6,7 @@ import { splitFirstView, type UnpostedItem } from '@/lib/jobs/find-unposted'
 
 // "Not posted yet" in the redesign (mockup: dev-preview/_mockups/jobs-more.tsx FindUnposted). Each opening says what
 // happened and the fact it rests on (a public filing or a news report), who the member knows there, and one next step.
-// One opening has the primary action. No claim about how many others know: only what the filing says.
+// The next step is quiet on every row; the page's one orange action is elsewhere. No claim about how many others know: only what the filing says.
 
 function OpeningRow({ item }: { item: UnpostedItem }) {
   const external = item.action.kind === 'search'
@@ -39,7 +39,7 @@ function OpeningRow({ item }: { item: UnpostedItem }) {
         </div>
       </div>
       <ActionLink
-        kind={item.primary ? 'primary' : 'secondary'}
+        kind="secondary"
         external={external}
         href={item.action.href}
         event="likely_opening_action_opened"

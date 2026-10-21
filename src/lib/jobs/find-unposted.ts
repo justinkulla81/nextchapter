@@ -1,6 +1,6 @@
 // "Not posted yet" in the redesign (docs/candidate-redesign.md): each likely opening says what happened (a fact from a
-// public filing or a news report), who the member knows there, and ONE next step. One opening carries the primary
-// action; the rest are quiet. Pure and client-safe; the data comes from getLikelyOpeningsForCandidate and the member's
+// public filing or a news report), who the member knows there, and ONE next step. Every opening's action is quiet;
+// the page's one orange action is elsewhere. Pure and client-safe; the data comes from getLikelyOpeningsForCandidate and the member's
 // own contacts and is only reshaped here. Tests: src/test/find-unposted.test.ts.
 
 import { companyKey, sourceLinkLabel, type SignalSource } from '@/lib/likely-openings/roles'
@@ -50,8 +50,6 @@ export interface UnpostedItem {
   /** "Priya Shah (VP Operations) works there." / "No one you know there yet." */
   know: string
   action: { kind: 'contact' | 'search'; label: string; href: string; contactId: string | null }
-  /** Exactly one item on the page is primary. */
-  primary: boolean
 }
 
 /** Contacts grouped by the company key shared with the SEC filer names (companyKey), so "Acme Inc." meets "Acme". */
@@ -96,12 +94,11 @@ export function knowLine(people: KnownPerson[]): string {
 }
 
 /**
- * The list, in the order given (already ranked by fit). The primary action goes to the first opening where the member
- * knows someone, since a message to a person is the warmest next step; with no contacts anywhere, to the first one.
+ * The list, in the order given (already ranked by fit). Each opening's next step is a message to someone the member
+ * knows there, or a people search when they know no one.
  */
 export function buildUnpostedItems(openings: OpeningInput[], contacts: Map<string, KnownPerson[]>): UnpostedItem[] {
   const withPeople = openings.map((o) => ({ o, people: contacts.get(companyKey(o.companyName)) ?? [] }))
-  const primaryId = (withPeople.find((x) => x.people.length > 0) ?? withPeople[0])?.o.id
   return withPeople.map(({ o, people }) => {
     const first = people[0]
     return {
@@ -118,7 +115,6 @@ export function buildUnpostedItems(openings: OpeningInput[], contacts: Map<strin
       action: first
         ? { kind: 'contact' as const, label: `Reach out to ${first.name}`, href: `/dashboard/network/contacts/${first.id}`, contactId: first.id }
         : { kind: 'search' as const, label: 'Find someone there', href: linkedinPeopleSearchUrl(o.companyName), contactId: null },
-      primary: o.id === primaryId,
     }
   })
 }
