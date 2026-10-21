@@ -273,6 +273,10 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   SEARCH_STRATEGY_COMPLETE: { minutes: 20, points: 35 },
 }
 
+// Every action type that earns points, so a test can insist each one is classified as search
+// effort or not (see scoring/effort-actions.ts).
+export const POINT_ACTION_TYPES: readonly string[] = Object.keys(ACTION_TYPE_EFFORT)
+
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
 
 export function estimateActionEffort(action: SuggestedActionLike): ActionEffort {
