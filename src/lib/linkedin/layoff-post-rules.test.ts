@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
-  assignSlots, credibilityOf, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
+  assignSlots, credibilityOf, employerKey, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
   type DraftFacts, type GateNotice,
 } from './layoff-post-rules'
 
 const now = new Date('2026-10-20T15:00:00Z') // Tuesday 11:00 ET
 const notice = (o: Partial<GateNotice> = {}): GateNotice => ({
-  source: 'MANUAL_ANNOUNCEMENT', sourceUrl: 'https://example.com/a', layoffType: null, employees: 500,
+  employer: 'Acme', source: 'MANUAL_ANNOUNCEMENT', sourceUrl: 'https://example.com/a', layoffType: null, employees: 500,
   fetchedAt: new Date('2026-10-19T12:00:00Z'), dismissedAt: null, ...o,
 })
 const facts = (o: Partial<DraftFacts> = {}): DraftFacts => ({
@@ -77,5 +77,43 @@ describe('assignSlots', () => {
       perDay.set(k, (perDay.get(k) ?? 0) + 1)
     }
     expect(Math.max(...perDay.values())).toBeLessThanOrEqual(2)
+  })
+})
+
+describe('gate: junk names and absurd sizes', () => {
+  const w = { source: 'WARN_FILING' as const }
+  it('rejects names that are not companies', () => {
+    for (const bad of ['AI blamed for', 'Announcing', 'Big four bank', 'Australian bank', 'Westminster council', 'lowercase co']) {
+      expect(plausibleEmployer(bad), bad).toBe(false)
+      expect(credibilityOf(notice({ ...w, employer: bad }), [], now), bad).toBeNull()
+    }
+    for (const ok of ['Kroger', 'Hasbro, Inc.', 'T-Mobile USA, Inc.', 'Keya Group', 'NAB']) expect(plausibleEmployer(ok), ok).toBe(true)
+  })
+  it('rejects a layoff too large to be one company\'s', () => {
+    expect(credibilityOf(notice({ ...w, employees: MAX_EMPLOYEES + 1 }), [], now)).toBeNull()
+  })
+})
+
+describe('sameEvent', () => {
+  const d = new Date('2026-10-13T00:00:00Z')
+  const ev = (employer: string, employees = 3000, date = d) => ({ employer, employees, date })
+  it('treats possessives and plain names as one company', () => {
+    expect(employerKey('Kroger’s')).toBe('kroger')
+    expect(sameEvent(ev('Kroger’s'), ev('Kroger', 3000, new Date('2026-10-12T00:00:00Z')))).toBe(true)
+  })
+  it('matches an acronym or a shared word when the headcount and dates agree', () => {
+    expect(sameEvent(ev('NAB', 2500), ev('National Australia Bank', 2500))).toBe(true)
+    expect(sameEvent(ev('Australia’s NAB', 2500), ev('National Australia Bank', 2500))).toBe(true)
+  })
+  it('keeps different companies apart', () => {
+    expect(sameEvent(ev('Netflix', 1000), ev('Hasbro, Inc.', 587))).toBe(false)
+    expect(sameEvent(ev('Acme Bank', 500), ev('Zeta Bank', 500, new Date('2026-11-30T00:00:00Z')))).toBe(false)
+  })
+})
+
+describe('rankScore', () => {
+  it('puts an official filing ahead of a bigger news story, and a CRM employer ahead of a stranger', () => {
+    expect(rankScore('warn-filing', 1000, false)).toBeGreaterThan(rankScore('two-publishers', 9000, false))
+    expect(rankScore('two-publishers', 500, true)).toBeGreaterThan(rankScore('two-publishers', 900, false))
   })
 })

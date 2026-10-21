@@ -8,10 +8,14 @@
  * not taken back.
  */
 import { isTrustedPublisher } from '@/lib/warn/news-trust'
-import { publisherKey } from '@/lib/warn/news-headline'
+import { publisherKey, sameEmployer } from '@/lib/warn/news-headline'
 
 /** Smaller layoffs are not worth a public post, and name too few people to be safe. */
 export const MIN_EMPLOYEES = 100
+/** A single layoff this large is a misread (a multi-year plan, or a total across companies), not a post. */
+export const MAX_EMPLOYEES = 40_000
+/** A company with a draft this recent is not drafted about again (a second story, a follow-up filing). */
+export const RECENT_DRAFT_DAYS = 30
 /** A layoff first filed longer ago than this is old news. */
 export const MAX_AGE_DAYS = 10
 /** At most this many new drafts in any rolling seven days, biggest first. */
@@ -22,6 +26,7 @@ export const POST_LINK = 'https://launchyournextchapter.com/layoffs?utm_source=l
 export type Credibility = 'warn-filing' | 'sec-filing' | 'two-publishers' | 'trusted-outlet'
 
 export interface GateNotice {
+  employer: string
   source: 'WARN_FILING' | 'MANUAL_ANNOUNCEMENT'
   sourceUrl: string | null
   layoffType: string | null
@@ -39,7 +44,8 @@ export interface GateNotice {
  */
 export function credibilityOf(n: GateNotice, mentionPublishers: (string | null)[], now = new Date()): Credibility | null {
   if (n.dismissedAt) return null
-  if (n.employees == null || n.employees < MIN_EMPLOYEES) return null
+  if (n.employees == null || n.employees < MIN_EMPLOYEES || n.employees > MAX_EMPLOYEES) return null
+  if (!plausibleEmployer(n.employer)) return null
   if (now.getTime() - n.fetchedAt.getTime() > MAX_AGE_DAYS * 86_400_000) return null
   if (n.source === 'WARN_FILING') return 'warn-filing'
   if (/sec\.gov/i.test(n.sourceUrl ?? '') || /^SEC 8-K/i.test(n.layoffType ?? '')) return 'sec-filing'
@@ -47,6 +53,50 @@ export function credibilityOf(n: GateNotice, mentionPublishers: (string | null)[
   if (publishers.size >= 2) return 'two-publishers'
   if (mentionPublishers.some((p) => isTrustedPublisher(p))) return 'trusted-outlet'
   return null
+}
+
+// Headline parsing sometimes takes the wrong words as the company ("AI blamed
+// for", "Announcing") or a description of one ("Big four bank", "Australian
+// bank"). A post with such a name is wrong in public, so they never qualify.
+const GENERIC_WORDS = /\b(blamed|announc\w*|reportedly|says|plans?|cuts?|cutting|layoffs?|jobs?|workers?|employees|staff|council|government|ministry|department|big (three|four|five))\b/i
+const DESCRIBED = /^(the )?[a-z]+ (bank|banks|company|firm|giant|retailer|carmaker|automaker|insurer|airline|maker|chain)$/i
+
+export function plausibleEmployer(name: string): boolean {
+  const n = name.trim()
+  if (n.length < 2 || n.length > 40 || n.split(/\s+/).length > 5) return false
+  if (!/^[A-Z0-9]/.test(n)) return false
+  return !GENERIC_WORDS.test(n) && !DESCRIBED.test(n)
+}
+
+/** An employer name reduced for comparison: lowercase, possessives and punctuation gone ("Kroger’s" is "kroger"). */
+export function employerKey(name: string): string {
+  return name.toLowerCase().replace(/[’']s\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+export interface EventRef { employer: string; employees: number | null; date: Date | null }
+
+/**
+ * Whether two notices are the same layoff: the same company by name, or the
+ * same headcount reported within three days under names that share a word or
+ * are an acronym of one another ("NAB" and "National Australia Bank").
+ */
+export function sameEvent(a: EventRef, b: EventRef): boolean {
+  const ka = employerKey(a.employer)
+  const kb = employerKey(b.employer)
+  if (!ka || !kb) return false
+  if (ka === kb || sameEmployer(ka, kb)) return true
+  if (a.employees == null || a.employees !== b.employees) return false
+  if (a.date && b.date && Math.abs(a.date.getTime() - b.date.getTime()) > 3 * 86_400_000) return false
+  const initials = (k: string) => k.split(' ').map((w) => w[0]).join('')
+  const tokens = (k: string) => k.split(' ').filter((w) => w.length >= 4)
+  return initials(ka) === kb || initials(kb) === ka || tokens(ka).some((t) => tokens(kb).includes(t))
+}
+
+const CREDIBILITY_WEIGHT: Record<Credibility, number> = { 'warn-filing': 4, 'sec-filing': 4, 'two-publishers': 2, 'trusted-outlet': 1 }
+
+/** Which credible layoff to post about first: official records, then size, then someone we already know there. */
+export function rankScore(why: Credibility, employees: number, inCrm: boolean): number {
+  return CREDIBILITY_WEIGHT[why] + Math.log10(Math.max(employees, 1)) + (inCrm ? 1.5 : 0)
 }
 
 export const ANGLES = ['offer-help', 'first-week', 'local-market', 'senior-demand', 'timeline'] as const

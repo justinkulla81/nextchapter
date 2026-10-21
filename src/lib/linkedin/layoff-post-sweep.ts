@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { Prisma, type WarnNotice } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import {
-  ANGLES, LAYOUTS, MAX_AGE_DAYS, MIN_EMPLOYEES, WEEKLY_CAP,
-  assignSlots, credibilityOf, draftText, eligibleAngles, leastRecent,
-  type Angle, type Credibility, type DraftFacts,
+  LAYOUTS, MAX_AGE_DAYS, MAX_EMPLOYEES, MIN_EMPLOYEES, RECENT_DRAFT_DAYS, WEEKLY_CAP,
+  assignSlots, credibilityOf, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
+  type Angle, type Credibility, type DraftFacts, type EventRef,
 } from './layoff-post-rules'
 
 const SENIOR = ['EXECUTIVE', 'VP', 'DIRECTOR', 'SENIOR_MANAGER', 'MANAGER']
@@ -34,11 +34,11 @@ export async function runLinkedInDraftSweep(now = new Date()): Promise<DraftSwee
   const candidates = await prisma.warnNotice.findMany({
     where: {
       linkedinDraft: null, dismissedAt: null,
-      employees: { gte: MIN_EMPLOYEES },
+      employees: { gte: MIN_EMPLOYEES, lte: MAX_EMPLOYEES },
       fetchedAt: { gte: new Date(now.getTime() - MAX_AGE_DAYS * 86_400_000) },
     },
     orderBy: { employees: 'desc' },
-    take: 60,
+    take: 150,
   })
   result.considered = candidates.length
   if (candidates.length === 0) return result
@@ -47,19 +47,44 @@ export async function runLinkedInDraftSweep(now = new Date()): Promise<DraftSwee
     where: { noticeId: { in: candidates.map((n) => n.id) } },
     select: { noticeId: true, publisher: true },
   })
-  const credible = candidates.flatMap((n) => {
+  const scored = candidates.flatMap((n) => {
     const why = credibilityOf(n, mentions.filter((m) => m.noticeId === n.id).map((m) => m.publisher), now)
     return why ? [{ n, why }] : []
   })
-  result.credible = credible.length
+  // Our audience is US job seekers: a state filing and an SEC filing are US by
+  // nature; a news story counts only when the employer has US jobs on our board
+  // or is already in the CRM, so a foreign bank or a misread name never gets a post.
+  const relevance = await usRelevance(scored.filter((c) => c.n.source !== 'WARN_FILING' && c.why !== 'sec-filing').map((c) => c.n))
+  const eligible = scored
+    .filter((c) => c.n.source === 'WARN_FILING' || c.why === 'sec-filing' || relevance.get(c.n.id))
+    .map((c) => ({ ...c, rank: rankScore(c.why, c.n.employees ?? 0, !!relevance.get(c.n.id)?.inCrm) }))
+    .sort((x, y) => y.rank - x.rank)
 
-  const [madeThisWeek, waiting, recent] = await Promise.all([
-    prisma.linkedInPostDraft.count({ where: { createdAt: { gte: weekAgo } } }),
+  const [madeThisWeek, waiting, recent, lately] = await Promise.all([
+    prisma.linkedInPostDraft.count({ where: { createdAt: { gte: weekAgo }, status: { not: 'SKIPPED' } } }), // a skipped draft frees its slot
     prisma.linkedInPostDraft.findMany({ where: { status: 'DRAFT', scheduledFor: { gte: now } }, select: { scheduledFor: true } }),
     prisma.linkedInPostDraft.findMany({ orderBy: { createdAt: 'desc' }, take: 20, select: { angle: true, layout: true } }),
+    prisma.linkedInPostDraft.findMany({
+      where: { createdAt: { gte: new Date(now.getTime() - RECENT_DRAFT_DAYS * 86_400_000) } },
+      select: { facts: true },
+    }),
   ])
+  // One post per layoff: drop a notice that repeats a draft already made or a
+  // higher-ranked notice in this batch (Kroger and Kroger’s, NAB and National Australia Bank).
+  const seen: EventRef[] = lately.map((d) => {
+    const f = d.facts as unknown as DraftFacts
+    return { employer: f.employer, employees: f.employees, date: f.noticeDate ? new Date(f.noticeDate) : null }
+  })
+  const credible = eligible.filter(({ n }) => {
+    const ref: EventRef = { employer: n.employer, employees: n.employees, date: n.noticeDate }
+    if (seen.some((s) => sameEvent(s, ref))) return false
+    seen.push(ref)
+    return true
+  })
+  result.credible = credible.length
+
   const room = Math.max(0, WEEKLY_CAP - madeThisWeek)
-  const chosen = credible.slice(0, room) // already biggest first
+  const chosen = credible.slice(0, room)
   result.deferred = credible.length - chosen.length
   if (chosen.length === 0) return result
 
@@ -121,6 +146,29 @@ export async function createDraft(
     noticeId: n.id, employer: n.employer, employees: n.employees, angle, layout, credibility: why, scheduledFor: scheduledFor.toISOString(),
   })
   return true
+}
+
+/** Which news-sourced notices belong to a US employer: it has US jobs on the board, or is in the CRM. */
+async function usRelevance(notices: WarnNotice[]): Promise<Map<string, { inCrm: boolean }>> {
+  const out = new Map<string, { inCrm: boolean }>()
+  if (notices.length === 0) return out
+  const companyIds = notices.flatMap((n) => (n.companyId ? [n.companyId] : []))
+  const [withJobs, orgs] = await Promise.all([
+    companyIds.length
+      ? prisma.companyJobOpening.groupBy({ by: ['companyId'], where: { companyId: { in: companyIds }, closedAt: null, states: { isEmpty: false } } })
+      : Promise.resolve([]),
+    prisma.crmOrganization.findMany({
+      where: { canonicalNameNormalized: { in: notices.map((n) => n.normalizedEmployer) } },
+      select: { canonicalNameNormalized: true },
+    }),
+  ])
+  const hasJobs = new Set(withJobs.map((r) => r.companyId))
+  const crm = new Set(orgs.map((o) => o.canonicalNameNormalized))
+  for (const n of notices) {
+    const inCrm = crm.has(n.normalizedEmployer)
+    if (inCrm || (n.companyId && hasJobs.has(n.companyId))) out.set(n.id, { inCrm })
+  }
+  return out
 }
 
 /** "12% of staff" in a news layoff's label, the one place the share is kept. */

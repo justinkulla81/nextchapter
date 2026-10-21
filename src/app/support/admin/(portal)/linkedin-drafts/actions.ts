@@ -8,7 +8,7 @@ import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
 import { commentOnLinkedInPost, linkedInPostUrl, publishLinkedInShare, type LinkedInVisibility } from '@/lib/linkedin/oauth'
 import { renderDraftImage } from '@/lib/linkedin/draft-image'
 import { createDraft } from '@/lib/linkedin/layoff-post-sweep'
-import { MIN_EMPLOYEES } from '@/lib/linkedin/layoff-post-rules'
+import { MAX_EMPLOYEES, MIN_EMPLOYEES } from '@/lib/linkedin/layoff-post-rules'
 
 const BASE = '/support/admin/linkedin-drafts'
 
@@ -89,7 +89,7 @@ export async function postDraftToLinkedIn(id: string, visibility: LinkedInVisibi
 export async function createSampleDraft(): Promise<{ message: string }> {
   const admin = await requireAdmin()
   const n = await prisma.warnNotice.findFirst({
-    where: { source: 'WARN_FILING', linkedinDraft: null, dismissedAt: null, employees: { gte: MIN_EMPLOYEES }, fetchedAt: { gte: new Date(Date.now() - 90 * 86_400_000) } },
+    where: { source: 'WARN_FILING', linkedinDraft: null, dismissedAt: null, employees: { gte: MIN_EMPLOYEES, lte: MAX_EMPLOYEES }, fetchedAt: { gte: new Date(Date.now() - 90 * 86_400_000) } },
     orderBy: { employees: 'desc' },
   })
   if (!n) return { message: 'No recent WARN filing of 100 jobs or more without a draft.' }
