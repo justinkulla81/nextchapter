@@ -161,11 +161,11 @@ async function main() {
     const region = op ?? nat
     const scope = op ? `in ${stateName}` : 'nationally'
     row.line_timing = effDays != null && effDays >= 1 && effDays <= 150 ? `The notice takes effect on ${row.effective_date}, ${effDays} days from now.` : ''
-    // All the white-collar openings we hold: the national total, plus the state's when it is at least three times the layoff beside it.
+    // All the open jobs we hold: the national total, plus the state's when it is at least three times the layoff beside it.
     const layoffSize = Number(String(row.employees ?? '').replace(/,/g, '')) || st?.jobs || 0
     row.line_open_roles = op && op.roles >= 3 * layoffSize
-      ? `Our national job database holds ${n0(nat.roles)} open white-collar roles, ${n0(op.roles)} of them in ${stateName}.`
-      : `Our national job database holds ${n0(nat.roles)} open white-collar roles.`
+      ? `Our database holds ${n0(nat.roles)} open jobs, ${n0(op.roles)} of them in ${stateName}.`
+      : `Our database holds ${n0(nat.roles)} open jobs.`
     row.line_top_functions = region.fns.length ? `The most common functions are ${list(region.fns)}.` : ''
     row.line_ai_roles = region.ai ? `${n0(region.ai)} open roles ${scope} mention AI in the title.` : ''
     row.line_board = row.board && row.rr_agency ? `Rapid Response (${row.rr_agency}) and ${row.board} typically meet employers soon after a notice.` : row.board ? `${row.board} typically meets employers soon after a notice.` : ''
