@@ -12,7 +12,7 @@ const WHY: Record<DraftFacts['credibility'], string> = {
   'sec-filing': 'SEC filing',
   'two-publishers': 'Two or more publishers',
   'trusted-outlet': 'Trusted outlet',
-  unconfirmed: 'Not confirmed by the usual rules',
+  unconfirmed: 'One source so far',
 }
 
 const slot = (d: Date) =>

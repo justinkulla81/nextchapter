@@ -118,8 +118,10 @@ export async function makeDraftFor(noticeId: string): Promise<{ message: string 
   const admin = await requireAdmin()
   const n = await prisma.warnNotice.findUnique({ where: { id: noticeId } })
   if (!n) return { message: 'That layoff no longer exists.' }
-  const publishers = (await prisma.layoffNewsMention.findMany({ where: { noticeId }, select: { publisher: true } })).map((m) => m.publisher)
-  const why = credibilityOf({ ...n, fetchedAt: new Date() }, publishers) ?? 'unconfirmed'
+  const mentions = await prisma.layoffNewsMention.findMany({ where: { noticeId }, select: { publisher: true, headline: true } })
+  const publishers = mentions.map((m) => m.publisher)
+  const headlines = mentions.map((m) => m.headline)
+  const why = credibilityOf({ ...n, fetchedAt: new Date() }, publishers, new Date(), headlines) ?? 'unconfirmed'
   const [recent, waiting] = await Promise.all([
     prisma.linkedInPostDraft.findMany({ orderBy: { createdAt: 'desc' }, take: 20, select: { angle: true, layout: true } }),
     prisma.linkedInPostDraft.findMany({ where: { status: 'DRAFT', scheduledFor: { gte: new Date() } }, select: { scheduledFor: true } }),

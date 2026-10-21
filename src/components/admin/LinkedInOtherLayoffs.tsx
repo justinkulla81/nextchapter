@@ -44,7 +44,7 @@ function Row({ r }: { r: OtherLayoffRow }) {
           {r.employer} · {r.employees.toLocaleString('en-US')} jobs{r.place ? ` · ${r.place}` : r.state ? ` · ${r.state}` : ''}
         </p>
         <p className="text-sm text-muted-foreground">
-          {r.credibilityLabel ?? 'Not confirmed by the usual rules'}
+          {r.credibilityLabel ?? 'Held back: see the note below'}
           {r.industry ? ` · ${r.industry}` : ''}
           {r.publishers > 1 ? ` · ${r.publishers} outlets` : ''}
           {r.fit === 'target' ? ' · broad-audience employer' : r.fit === 'elite' ? ' · elite tech' : ''}
