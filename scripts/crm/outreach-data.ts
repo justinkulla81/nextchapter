@@ -49,18 +49,19 @@ const poss = (n: string) => (/s$/i.test(n) ? `${n}'` : `${n}'s`)
 const list = (a: string[]) => (a.length <= 1 ? a.join('') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
 
 interface Area { id: string; name: string; state: string; unemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
-interface Notice { industry?: string | null; employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; noticeDate: Date; board: string | null }
+interface Notice { industry?: string | null; key?: string; employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; noticeDate: Date; board: string | null }
 
 // Employer emails go only to layoffs of 50 or more in professional-heavy work. An explicit allowlist, never "everything except": a filing whose industry
 // is blank, or in an industry not listed, stays out unless the employer is named below (reviewed by hand; add a name only after checking the filing).
 const MIN_EMPLOYER_LAYOFF = 50
 const PROFESSIONAL_INDUSTRY = /^(tech:|51\b|52\b|54\b|55\b)/i
+const PROFESSIONAL_KEYS = new Set(Object.keys((JSON.parse(readFileSync(new URL('./professional-employers.json', import.meta.url), 'utf8')) as { employers: Record<string, string> }).employers))
 const PROFESSIONAL_EMPLOYERS = new Set(['hasbro', 'conifer health solutions', "conifer's health solutions", 'tscan therapeutics', 'truist bank', 'bechtel power corporation', 'bechtel power'])
 const EMPLOYER_TEMPLATES = ['head_hr', 'rewards', 'er', 'ta']
 function professionalHeavy(n: Notice | undefined): boolean {
   if (!n || n.employees < MIN_EMPLOYER_LAYOFF) return false
   const name = n.employer.toLowerCase().replace(/[.,]|\b(inc|llc|corp|corporation|co)\b/g, '').replace(/\s+/g, ' ').trim()
-  return PROFESSIONAL_INDUSTRY.test(n.industry ?? '') || PROFESSIONAL_EMPLOYERS.has(name)
+  return PROFESSIONAL_INDUSTRY.test(n.industry ?? '') || PROFESSIONAL_EMPLOYERS.has(name) || (!!n.key && PROFESSIONAL_KEYS.has(n.key))
 }
 type Row = Record<string, string>
 
@@ -78,6 +79,8 @@ async function main() {
   const openings = new Map<string, string>(Object.entries(process.env.OPENINGS_FILE ? (JSON.parse(readFileSync(process.env.OPENINGS_FILE, 'utf8')) as Record<string, string>) : {}))
   if (!out) { console.log('usage: <out.csv> [examples.json]'); return }
   const since = new Date(Date.now() - 90 * 86_400_000), now = new Date()
+  // Employer emails look back further than the 90-day local statistics the other emails quote.
+  const employerSince = new Date(Date.now() - Number(process.env.EMPLOYER_DAYS ?? 180) * 86_400_000)
 
   const areaRows = await prisma.geoArea.findMany({ where: { level: 'COUNTY' }, select: { id: true, name: true, state: true, unemploymentRate: true, unemploymentAsOf: true, whiteCollarShare: true, layoffs90d: true, layoffs12mo: true, majorEmployers: true, higherEd: true } })
   const areas: Area[] = areaRows.map((a) => ({
@@ -93,8 +96,8 @@ async function main() {
   try { for (const x of JSON.parse(readFileSync('/Users/salitkulla/nc-hunter-results/board-growth.json', 'utf8')) as { id: string; pop: number; growth: number }[]) boardGrowth.set(x.id, x) } catch { /* no growth file: no city test */ }
   const boardNames = new Map((await prisma.workforceBoard.findMany({ select: { id: true, name: true } })).map((b) => [b.id, b.name]))
   const notices = await prisma.warnNotice.findMany({
-    where: { source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: since, lte: now }, employees: { not: null } },
-    select: { industry: true, employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, noticeDate: true, promotedOrgId: true, workforceBoardId: true },
+    where: { source: 'WARN_FILING', state: { not: null }, dismissedAt: null, noticeDate: { gte: employerSince, lte: now }, employees: { not: null } },
+    select: { industry: true, normalizedEmployer: true, employer: true, employees: true, county: true, address: true, state: true, effectiveDate: true, noticeDate: true, promotedOrgId: true, workforceBoardId: true },
   })
   const bigger = (a: Notice | undefined, b: Notice) => (!a || b.employees > a.employees ? b : a)
   const byOrg = new Map<string, Notice>(), byBoard = new Map<string, Notice>(), byCounty = new Map<string, Notice>(), byState = new Map<string, Notice>()
@@ -103,8 +106,9 @@ async function main() {
   const countyAgg = new Map<string, { employers: Set<string>; jobs: number }>()
   const stateTotals = new Map<string, { notices: number; jobs: number }>()
   for (const w of notices) {
-    const nt: Notice = { industry: w.industry, employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, noticeDate: w.noticeDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
+    const nt: Notice = { industry: w.industry, key: w.normalizedEmployer, employer: clean(w.employer), employees: w.employees!, county: w.county, address: w.address, state: w.state!, effective: w.effectiveDate, noticeDate: w.noticeDate, board: w.workforceBoardId ? boardNames.get(w.workforceBoardId) ?? null : null }
     if (w.promotedOrgId) byOrg.set(w.promotedOrgId, bigger(byOrg.get(w.promotedOrgId), nt))
+    if (w.noticeDate! < since) continue // older than 90 days: only the employer list uses it
     if (w.workforceBoardId) byBoard.set(w.workforceBoardId, bigger(byBoard.get(w.workforceBoardId), nt))
     if (w.county) { const k = `${w.state}|${countyBase(w.county)}`; byCounty.set(k, bigger(byCounty.get(k), nt)) }
     byState.set(w.state!, bigger(byState.get(w.state!), nt))
@@ -361,6 +365,9 @@ async function main() {
       if (open.length) {
         const w = open[(h >>> 3) % open.length]
         r.timing = w.k; r.send_on = new Date(Math.max(w.on, today)).toISOString().slice(0, 10); r.timing_test = open.length === 4 ? 'yes' : 'no'
+      } else if (!Number.isNaN(ef) && ef <= today && ef >= today - 120 * DAY) {
+        // Every window has passed, but the layoff took effect recently and those people are still looking: send now (T5), outside the timing test.
+        r.timing = 'T5'; r.send_on = new Date(today).toISOString().slice(0, 10); r.timing_test = 'no'
       }
     }
      r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
