@@ -6,7 +6,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { SITE_URL } from '@/lib/reports'
 import { canonical } from '@/lib/seo/canonical'
 import { AI_MARKET_AS_OF, AI_MARKET_POSTINGS } from '@/lib/skills/ai-skill-market.data'
-import { LEVEL_COLUMNS, liveFunctionRows, liveLevelRows, liveOverallSharePct, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
+import { LEVEL_COLUMNS, liveDimensionRows, liveFunctionRows, MIN_GROUP_POSTINGS, liveLevelRows, liveOverallSharePct, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { loadAiShareTrend } from '@/lib/skills/ai-market-trend-server'
 
@@ -34,11 +34,42 @@ const RESEARCH = [
   { who: 'Revelio Labs', what: 'Compared with non-adopters, firms using AI grew senior roles by 32% and junior roles by 6%.' },
 ]
 
+function DimensionTable({ caption, first, rows }: { caption: string; first: string; rows: ReturnType<typeof liveDimensionRows> }) {
+  return (
+    <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+      <table className="w-full min-w-[560px] text-left text-sm tabular-nums">
+        <caption className="sr-only">{caption}</caption>
+        <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
+          <tr>
+            <th scope="col" className="px-3 py-2 font-medium">{first}</th>
+            <th scope="col" className="px-3 py-2 font-medium">Ask for AI</th>
+            <th scope="col" className="px-3 py-2 font-medium">Pay, raw</th>
+            <th scope="col" className="px-3 py-2 font-medium">Pay, like for like</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {rows.map((r) => (
+            <tr key={r.key}>
+              <th scope="row" className="px-3 py-2 font-medium">{r.label}</th>
+              <td className="px-3 py-2">{r.sharePct}%</td>
+              <td className="px-3 py-2">{r.rawPremiumPct === null ? '—' : pct(r.rawPremiumPct)}</td>
+              <td className="px-3 py-2">{r.likePremiumPct === null ? '—' : `${pct(r.likePremiumPct)} (about $${Math.round((r.likePremiumUsd ?? 0) / 100) / 10}k)`}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export default async function AiSkillsPage() {
   // The newest weekly snapshot of the live board; the 2026-10-16 analysis until the first one exists.
   const live = await loadAiMarket()
   const rows = live ? liveFunctionRows(live) : publicFunctionRows()
   const levelRows = live ? liveLevelRows(live) : []
+  const industryRows = liveDimensionRows(live?.dimensions?.industry)
+  const stateRows = liveDimensionRows(live?.dimensions?.state)
+  const levelAll = liveDimensionRows(live?.dimensions?.level, true)
   const groups = skillGroupsForDisplay()
   const likes = rows.flatMap((r) => (r.likePremiumPct === null ? [] : [r.likePremiumPct]))
   const range = likes.length ? { min: Math.min(...likes), max: Math.max(...likes) } : null
@@ -105,6 +136,36 @@ export default async function AiSkillsPage() {
           <p className="mt-2 text-xs text-muted-foreground">A dash means too few postings with pay to compare. Functions with fewer than 500 analyzed postings are left out.</p>
         </section>
 
+        {industryRows.length > 0 && (
+          <section className="mt-12" aria-labelledby="by-industry">
+            <h2 id="by-industry" className="text-xl font-bold tracking-tight text-navy">
+              By industry
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Like for like here compares within the same function and level inside each industry. Industries with fewer than {MIN_GROUP_POSTINGS} analyzed postings are left out.
+            </p>
+            <DimensionTable caption="Share of postings asking for an AI skill, and the advertised pay premium, by industry" first="Industry" rows={industryRows} />
+          </section>
+        )}
+
+        {stateRows.length > 0 && (
+          <section className="mt-12" aria-labelledby="by-state">
+            <h2 id="by-state" className="text-xl font-bold tracking-tight text-navy">
+              By state
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              The state the posting lists as its primary location. Like for like compares within the same function and level in each state. States with fewer than {MIN_GROUP_POSTINGS} analyzed postings are left out.
+            </p>
+            <DimensionTable caption="Share of postings asking for an AI skill, and the advertised pay premium, by state" first="State" rows={stateRows.slice(0, 15)} />
+            {stateRows.length > 15 && (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-sm font-medium text-foreground">Show the other {stateRows.length - 15} states</summary>
+                <DimensionTable caption="Share of postings asking for an AI skill, and the advertised pay premium, for the remaining states" first="State" rows={stateRows.slice(15)} />
+              </details>
+            )}
+          </section>
+        )}
+
         <section className="mt-12" aria-labelledby="what-counts">
           <h2 id="what-counts" className="text-xl font-bold tracking-tight text-navy">
             What counts as an AI skill
@@ -128,10 +189,16 @@ export default async function AiSkillsPage() {
           <h2 id="by-level" className="text-xl font-bold tracking-tight text-navy">
             By level
           </h2>
+          {levelAll.length > 0 && (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">All functions together, by seniority. Like for like compares within the same function.</p>
+              <DimensionTable caption="Share of postings asking for an AI skill, and the advertised pay premium, by level" first="Level" rows={levelAll} />
+            </>
+          )}
           {levelRows.length > 0 && (
             <>
               <p className="mt-2 text-sm text-muted-foreground">
-                Advertised pay premium for postings that ask for an AI skill, within the same function, level and industry. A dash means too few paid postings to compare.
+                By function and level, the advertised pay premium for postings that ask for an AI skill, compared within the same industry. A dash means too few paid postings to compare.
               </p>
               <div className="mt-3 overflow-x-auto rounded-lg border border-border">
                 <table className="w-full min-w-[640px] text-left text-sm tabular-nums">

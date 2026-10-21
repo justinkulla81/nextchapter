@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { CRAWLER_FUNCTION_LABEL } from '@/lib/jobs/job-functions'
+import { computeAiDimensions } from './ai-market-dimensions-server'
 import { buildAiMarket, type AiMarketCellRow, type AiMarketData, type AiMarketShareRow, type AiMarketTopRow } from './ai-market'
 
 // The AI job market recomputed from the live board (cron /api/cron/ai-market, daily after the
@@ -63,7 +64,13 @@ export async function computeAiMarket(now = new Date()): Promise<AiMarketData> {
     FROM "ExclusiveJobPosting", unnest("aiToolsNamed") AS x
     WHERE ${LIVE} AND cardinality("aiSkillGroups") > 0 AND "targetFunction" IS NOT NULL GROUP BY 1, 2`)
 
-  return buildAiMarket({
+  // Industry, state and level breakdowns. Never let them fail the snapshot.
+  const dimensions = await computeAiDimensions().catch((error) => {
+    console.error('AI market dimensions failed', error)
+    return undefined
+  })
+
+  const market = buildAiMarket({
     asOf: now.toISOString(),
     counts: {
       live: counts.live,
@@ -82,6 +89,7 @@ export async function computeAiMarket(now = new Date()): Promise<AiMarketData> {
     tools,
     functionLabels: CRAWLER_FUNCTION_LABEL,
   })
+  return dimensions ? { ...market, dimensions } : market
 }
 
 /** Compute and store a snapshot; keeps the last 60. */
