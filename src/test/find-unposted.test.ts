@@ -58,15 +58,14 @@ describe('buildUnpostedItems', () => {
   it('keeps the ranked order', () => {
     expect(items.map((i) => i.id)).toEqual(['a', 'b', 'c'])
   })
-  it('gives the primary action to the first opening where the member knows someone, and only one', () => {
-    expect(items.filter((i) => i.primary).map((i) => i.id)).toEqual(['b'])
+  it('reaches out to the first person the member knows at the company', () => {
     expect(items[1].action).toMatchObject({ kind: 'contact', label: 'Reach out to Priya Shah', href: '/dashboard/network/contacts/c1', contactId: 'c1' })
   })
-  it('falls back to a people search, and to the first opening as primary when nobody is known', () => {
+  it('falls back to a people search when the member knows no one there', () => {
     expect(items[0].action).toMatchObject({ kind: 'search', label: 'Find someone there', contactId: null })
     expect(items[0].action.href).toBe(linkedinPeopleSearchUrl('CSX'))
     const none = buildUnpostedItems(openings, new Map())
-    expect(none.filter((i) => i.primary).map((i) => i.id)).toEqual(['a'])
+    expect(none.every((i) => i.action.kind === 'search')).toBe(true)
   })
   it('labels the signal and links the source, with no verdict or competition claim', () => {
     expect(items[0].signalLabel).toBe('Leadership change')
