@@ -3,7 +3,7 @@ import 'server-only'
 import { buildSkillMatrix } from '@/lib/profile/skill-matrix'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import { getAnthropicClient } from '@/lib/anthropic'
+import { getAnthropicClient, logCacheUsage } from '@/lib/anthropic'
 import { prisma } from '@/lib/prisma'
 import { getCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
@@ -86,11 +86,17 @@ ${
       messages: [
         {
           role: 'user',
-          content: `${PROMPT_PREFIX}Candidate profile:\n${candidateSummary}\n\nJob posting text:\n${jobPosting.extractedText}`,
+          content: [
+            // Static instructions + the candidate profile are identical across every job this
+            // candidate is analyzed against, so cache through the profile; the posting varies.
+            { type: 'text', text: `${PROMPT_PREFIX}Candidate profile:\n${candidateSummary}`, cache_control: { type: 'ephemeral' as const } },
+            { type: 'text', text: `\n\nJob posting text:\n${jobPosting.extractedText}` },
+          ],
         },
       ],
     })
     const message = await stream.finalMessage()
+    logCacheUsage('job-fit', message.usage)
     const data = message.parsed_output
 
     if (!data) return

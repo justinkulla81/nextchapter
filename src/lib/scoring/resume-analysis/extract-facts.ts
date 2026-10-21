@@ -28,7 +28,7 @@
 import 'server-only'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import { getAnthropicClient } from '@/lib/anthropic'
+import { getAnthropicClient, logCacheUsage } from '@/lib/anthropic'
 
 const bulletSchema = z.object({
   text: z.string(),
@@ -202,9 +202,10 @@ async function extractStructuralFacts(resumeText: string) {
     max_tokens: 10000,
     thinking: { type: 'adaptive' },
     output_config: { format: zodOutputFormat(StructuralFactsSchema), effort: 'medium' },
-    messages: [{ role: 'user', content: `${STRUCTURAL_PROMPT}${resumeText}` }],
+    messages: [{ role: 'user', content: [{ type: 'text', text: STRUCTURAL_PROMPT, cache_control: { type: 'ephemeral' as const } }, { type: 'text', text: resumeText }] }],
   })
   const message = await stream.finalMessage()
+  logCacheUsage('resume-structural', message.usage)
   return message.parsed_output ?? null
 }
 
@@ -217,9 +218,10 @@ async function extractQualitativeFacts(resumeText: string) {
     max_tokens: 8000,
     thinking: { type: 'adaptive' },
     output_config: { format: zodOutputFormat(QualitativeFactsSchema), effort: 'medium' },
-    messages: [{ role: 'user', content: `${QUALITATIVE_PROMPT}${resumeText}` }],
+    messages: [{ role: 'user', content: [{ type: 'text', text: QUALITATIVE_PROMPT, cache_control: { type: 'ephemeral' as const } }, { type: 'text', text: resumeText }] }],
   })
   const message = await stream.finalMessage()
+  logCacheUsage('resume-qualitative', message.usage)
   return message.parsed_output ?? null
 }
 

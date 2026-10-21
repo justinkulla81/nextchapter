@@ -1,7 +1,7 @@
 import 'server-only'
 import { z } from 'zod'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import { getAnthropicClient } from '@/lib/anthropic'
+import { getAnthropicClient, logCacheUsage } from '@/lib/anthropic'
 
 // A short, editable list of positions this product has already locked in —
 // used only to flag research that appears to contradict one, per Prompt 64's
@@ -74,11 +74,15 @@ export async function classifyResearchItem(
     messages: [
       {
         role: 'user',
-        content: `${PROMPT}URL: ${url}\nTitle: ${title ?? 'unknown'}\n\nArticle text:\n${articleText}`,
+        content: [
+          { type: 'text', text: PROMPT, cache_control: { type: 'ephemeral' as const } },
+          { type: 'text', text: `URL: ${url}\nTitle: ${title ?? 'unknown'}\n\nArticle text:\n${articleText}` },
+        ],
       },
     ],
   })
   const message = await stream.finalMessage()
+  logCacheUsage('research-classify', message.usage)
   const data = message.parsed_output
 
   if (!data) {
