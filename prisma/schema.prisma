@@ -4392,7 +4392,7 @@ model ResumeSubmissionLead {
 model CareerApplication {
   id                    String    @id @default(cuid())
   createdAt             DateTime  @default(now())
-  fullName              String
+  fullName              String? // read from the resume; null when the resume does not show one
   email                 String
   roleSlug              String? // null when the person chose "not listed"
   roleTitle             String
@@ -5296,6 +5296,10 @@ model ExclusiveJobPosting {
   externalJobId     String?
   requisitionId     String?
   repostKey         String?
+  // The crawler's own row id (ncrawl jobs.fingerprint), sent by the import. Every crawler
+  // backfill joins on it first (url as the fallback): a listing's url can change after import
+  // (re-issued aggregator ids, tracking urls). prisma/manual/2026-10-20-crawler-fingerprint.sql
+  crawlerFingerprint String?
   descHash          String?
   // Years-of-experience requirement read at import from the FULL posting text
   // (src/lib/jobs/years-required.ts) — only an excerpt of the text is stored, and
@@ -5379,6 +5383,7 @@ model ExclusiveJobPosting {
   // Application → posting matching looks ATS / requisition ids up (prisma/manual/2026-10-16-application-board-link.sql).
   @@index([externalJobId])
   @@index([requisitionId])
+  @@index([crawlerFingerprint])
   // Deleting a candidate sets this to null; without the index that scans the whole board.
   @@index([submittedByCandidateId])
 }
@@ -16191,21 +16196,6 @@ model HomepageLead {
   @@unique([email, kind, situation, searchQ, searchLoc, searchRemote])
   @@index([ip, createdAt])
   @@index([kind, createdAt])
-}
-
-// Weekly count of live postings per function and how many of them ask for a specific AI skill
-// (aiSkillGroups non-empty). One row per week x function; fn 'all' is the whole board.
-// Written by cron ai-share-snapshot. prisma/manual/2026-10-20-ai-share-snapshot.sql.
-model AiShareSnapshot {
-  id        String   @id @default(cuid())
-  weekOf    DateTime // the Monday (UTC) of the run
-  fn        String
-  total     Int
-  withAi    Int
-  createdAt DateTime @default(now())
-
-  @@unique([weekOf, fn])
-  @@index([fn, weekOf])
 }
 
 // What each applied job asked for and how the member's skills lined up, frozen at application time

@@ -6,8 +6,9 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { SITE_URL } from '@/lib/reports'
 import { canonical } from '@/lib/seo/canonical'
 import { AI_MARKET_AS_OF, AI_MARKET_POSTINGS } from '@/lib/skills/ai-skill-market.data'
-import { likePremiumRange, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
-import { loadAiShareTrend } from '@/lib/skills/ai-share-trend-server'
+import { LEVEL_COLUMNS, liveDimensionRows, liveFunctionRows, MIN_GROUP_POSTINGS, liveLevelRows, liveOverallSharePct, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
+import { loadAiShareTrend } from '@/lib/skills/ai-market-trend-server'
 
 export const revalidate = 3600
 
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: { title: TITLE, description: DESCRIPTION, url: `${SITE_URL}/ai-skills`, type: 'article' },
 }
 
-const asOf = new Date(`${AI_MARKET_AS_OF}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+const longDate = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 const pct = (n: number | null) => (n === null ? 'Not enough paid postings' : `+${n}%`)
 
 const RESEARCH = [
@@ -33,12 +34,49 @@ const RESEARCH = [
   { who: 'Revelio Labs', what: 'Compared with non-adopters, firms using AI grew senior roles by 32% and junior roles by 6%.' },
 ]
 
+function DimensionTable({ caption, first, rows }: { caption: string; first: string; rows: ReturnType<typeof liveDimensionRows> }) {
+  return (
+    <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+      <table className="w-full min-w-[560px] text-left text-sm tabular-nums">
+        <caption className="sr-only">{caption}</caption>
+        <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
+          <tr>
+            <th scope="col" className="px-3 py-2 font-medium">{first}</th>
+            <th scope="col" className="px-3 py-2 font-medium">Ask for AI</th>
+            <th scope="col" className="px-3 py-2 font-medium">Pay, raw</th>
+            <th scope="col" className="px-3 py-2 font-medium">Pay, like for like</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {rows.map((r) => (
+            <tr key={r.key}>
+              <th scope="row" className="px-3 py-2 font-medium">{r.label}</th>
+              <td className="px-3 py-2">{r.sharePct}%</td>
+              <td className="px-3 py-2">{r.rawPremiumPct === null ? '—' : pct(r.rawPremiumPct)}</td>
+              <td className="px-3 py-2">{r.likePremiumPct === null ? '—' : `${pct(r.likePremiumPct)} (about $${Math.round((r.likePremiumUsd ?? 0) / 100) / 10}k)`}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export default async function AiSkillsPage() {
-  const rows = publicFunctionRows()
+  // The newest weekly snapshot of the live board; the 2026-10-16 analysis until the first one exists.
+  const live = await loadAiMarket()
+  const rows = live ? liveFunctionRows(live) : publicFunctionRows()
+  const levelRows = live ? liveLevelRows(live) : []
+  const industryRows = liveDimensionRows(live?.dimensions?.industry)
+  const stateRows = liveDimensionRows(live?.dimensions?.state)
+  const levelAll = liveDimensionRows(live?.dimensions?.level, true)
   const groups = skillGroupsForDisplay()
-  const range = likePremiumRange()
+  const likes = rows.flatMap((r) => (r.likePremiumPct === null ? [] : [r.likePremiumPct]))
+  const range = likes.length ? { min: Math.min(...likes), max: Math.max(...likes) } : null
   const trend = await loadAiShareTrend()
-  const overall = overallSharePct()
+  const overall = live ? liveOverallSharePct(live) : overallSharePct()
+  const analyzed = live ? live.counts.fullText : AI_MARKET_POSTINGS
+  const asOf = longDate(live ? live.asOf : AI_MARKET_AS_OF)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -46,7 +84,7 @@ export default async function AiSkillsPage() {
     name: TITLE,
     url: `${SITE_URL}/ai-skills`,
     description: DESCRIPTION,
-    dateModified: AI_MARKET_AS_OF,
+    dateModified: (live ? live.asOf : AI_MARKET_AS_OF).slice(0, 10),
   }
 
   return (
@@ -57,7 +95,7 @@ export default async function AiSkillsPage() {
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Market data · as of {asOf}</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy text-balance sm:text-4xl">{TITLE}</h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          About {Math.round(overall)}% of the {AI_MARKET_POSTINGS.toLocaleString('en-US')} U.S. postings we analyzed ask for a specific AI skill. It is close to half in data roles
+          About {Math.round(overall)}% of the {analyzed.toLocaleString('en-US')} U.S. postings we analyzed ask for a specific AI skill. It is close to half in data roles
           and almost none in clinical or academic ones. Where they do ask, the advertised pay is higher
           {range ? `, by ${range.min}% to ${range.max}% after comparing like with like` : ''}.
         </p>
@@ -98,6 +136,36 @@ export default async function AiSkillsPage() {
           <p className="mt-2 text-xs text-muted-foreground">A dash means too few postings with pay to compare. Functions with fewer than 500 analyzed postings are left out.</p>
         </section>
 
+        {industryRows.length > 0 && (
+          <section className="mt-12" aria-labelledby="by-industry">
+            <h2 id="by-industry" className="text-xl font-bold tracking-tight text-navy">
+              By industry
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Like for like here compares within the same function and level inside each industry. Industries with fewer than {MIN_GROUP_POSTINGS} analyzed postings are left out.
+            </p>
+            <DimensionTable caption="Share of postings asking for an AI skill, and the advertised pay premium, by industry" first="Industry" rows={industryRows} />
+          </section>
+        )}
+
+        {stateRows.length > 0 && (
+          <section className="mt-12" aria-labelledby="by-state">
+            <h2 id="by-state" className="text-xl font-bold tracking-tight text-navy">
+              By state
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              The state the posting lists as its primary location. Like for like compares within the same function and level in each state. States with fewer than {MIN_GROUP_POSTINGS} analyzed postings are left out.
+            </p>
+            <DimensionTable caption="Share of postings asking for an AI skill, and the advertised pay premium, by state" first="State" rows={stateRows.slice(0, 15)} />
+            {stateRows.length > 15 && (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-sm font-medium text-foreground">Show the other {stateRows.length - 15} states</summary>
+                <DimensionTable caption="Share of postings asking for an AI skill, and the advertised pay premium, for the remaining states" first="State" rows={stateRows.slice(15)} />
+              </details>
+            )}
+          </section>
+        )}
+
         <section className="mt-12" aria-labelledby="what-counts">
           <h2 id="what-counts" className="text-xl font-bold tracking-tight text-navy">
             What counts as an AI skill
@@ -119,10 +187,46 @@ export default async function AiSkillsPage() {
 
         <section className="mt-12" aria-labelledby="by-level">
           <h2 id="by-level" className="text-xl font-bold tracking-tight text-navy">
-            By level: what independent research finds
+            By level
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Our posting analysis is by function, not seniority. These are published studies, with the source of each, also covered in the{' '}
+          {levelAll.length > 0 && (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">All functions together, by seniority. Like for like compares within the same function.</p>
+              <DimensionTable caption="Share of postings asking for an AI skill, and the advertised pay premium, by level" first="Level" rows={levelAll} />
+            </>
+          )}
+          {levelRows.length > 0 && (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                By function and level, the advertised pay premium for postings that ask for an AI skill, compared within the same industry. A dash means too few paid postings to compare.
+              </p>
+              <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+                <table className="w-full min-w-[640px] text-left text-sm tabular-nums">
+                  <caption className="sr-only">Like-for-like advertised pay premium for AI-skill postings, by function and level</caption>
+                  <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="px-3 py-2 font-medium">Function</th>
+                      {LEVEL_COLUMNS.map((c) => (
+                        <th key={c.key} scope="col" className="px-3 py-2 font-medium">{c.label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {levelRows.map((r) => (
+                      <tr key={r.fn}>
+                        <th scope="row" className="px-3 py-2 font-medium">{r.label}</th>
+                        {LEVEL_COLUMNS.map((c) => (
+                          <td key={c.key} className="px-3 py-2">{r.byLevel[c.key] === undefined ? '—' : pct(r.byLevel[c.key] ?? null)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+          <p className="mt-3 text-sm text-muted-foreground">
+            Published studies on seniority, with the source of each, also covered in the{' '}
             <Link href="/reports/latest" className="underline underline-offset-4">White Collar Employment Report</Link>.
           </p>
           <ul className="mt-4 space-y-3 text-sm">

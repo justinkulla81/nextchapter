@@ -2,14 +2,13 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { savePromotionPlan } from '@/app/dashboard/in-work/actions'
 import { GAP_STARTERS, VISIBILITY_STARTERS } from '@/lib/in-work/constants'
 import { newId, type CheckItem } from '@/lib/in-work/types'
 import type { WorkspaceData } from '@/lib/in-work/workspace-data'
-import { Field, NoticeLine, Section, useRunner } from './shared'
+import { ActionButton as Button, Field, NoticeLine, Section, useRunner, useType } from './shared'
 
 function EditableList({
   items,
@@ -25,6 +24,7 @@ function EditableList({
   emptyText: string
 }) {
   const [draft, setDraft] = useState('')
+  const t = useType()
   const add = (text: string) => {
     const t = text.trim()
     if (!t) return
@@ -35,7 +35,7 @@ function EditableList({
     <div className="space-y-3">
       {items.length === 0 && (
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">{emptyText}</p>
+          <p className={cn('text-muted-foreground', t.body)}>{emptyText}</p>
           <Button variant="outline" size="sm" onClick={() => onChange(starters.map((t) => ({ id: newId(), text: t, done: false })))}>
             Start from our suggestions
           </Button>
@@ -57,7 +57,7 @@ function EditableList({
               className={cn('h-9', it.done && 'text-muted-foreground line-through')}
               onChange={(e) => onChange(items.map((x) => (x.id === it.id ? { ...x, text: e.target.value } : x)))}
             />
-            <button type="button" className="text-xs font-medium text-muted-foreground hover:text-destructive" onClick={() => onChange(items.filter((x) => x.id !== it.id))}>
+            <button type="button" className={cn('font-medium text-muted-foreground hover:text-destructive', t.meta)} onClick={() => onChange(items.filter((x) => x.id !== it.id))}>
               Remove
             </button>
           </li>
@@ -106,7 +106,7 @@ export function PromotionTab({ data }: { data: WorkspaceData }) {
         <Field label="The title or level you want">
           <Input value={targetLevel} maxLength={300} onChange={(e) => setTargetLevel(e.target.value)} placeholder="Senior manager" />
         </Field>
-        <p className="text-sm font-medium text-foreground">
+        <p className="text-base font-medium text-ink">
           Gap checklist {gapItems.length > 0 && <span className="font-normal text-muted-foreground">({done} of {gapItems.length} shown)</span>}
         </p>
         <EditableList

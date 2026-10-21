@@ -3,14 +3,13 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { posthog } from '@/lib/posthog/client'
 import { loadMarketRange, type MarketRangeResult } from '@/app/dashboard/in-work/actions'
 import { computeAskRange, formatUsd, type NegotiationSituation } from '@/lib/in-work/ask-range'
 import { NEGOTIATION_SCRIPTS, fillTemplate } from '@/lib/in-work/templates'
 import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
-import { ChoiceButtons, CopyBlock, Field, Section } from './shared'
+import { ActionButton as Button, ChoiceButtons, CopyBlock, Field, Section, useType } from './shared'
 
 const SITUATIONS: readonly { key: NegotiationSituation; label: string }[] = [
   { key: 'RAISE', label: 'A raise' },
@@ -33,6 +32,7 @@ export function SalaryTab() {
   const [marketError, setMarketError] = useState<string | null>(null)
   const [loading, startLoad] = useTransition()
   const [calcAt, setCalcAt] = useState(0)
+  const t = useType()
 
   const result = useMemo(
     () =>
@@ -91,10 +91,10 @@ export function SalaryTab() {
           <Button variant="outline" disabled={loading} onClick={showMarket}>
             {loading ? 'Looking up…' : market ? 'Refresh market range' : 'Show market range'}
           </Button>
-          {marketError && <p className="text-sm text-destructive">{marketError}</p>}
+          {marketError && <p className={cn('text-destructive', t.body)}>{marketError}</p>}
           {market && market.available && market.low && market.high && (
-            <div className="space-y-1 text-sm">
-              <p className="text-base font-semibold text-foreground">
+            <div className={cn('space-y-1', t.body)}>
+              <p className="text-base font-semibold text-ink">
                 {formatUsd(market.low)} to {formatUsd(market.high)}
               </p>
               <p className="text-muted-foreground">
@@ -105,7 +105,7 @@ export function SalaryTab() {
               {market.source === 'adzuna' && <AdzunaAttribution surface="in_work_salary" />}
             </div>
           )}
-          {market && !market.available && <p className="text-sm text-muted-foreground">{market.note}</p>}
+          {market && !market.available && <p className={cn('text-muted-foreground', t.body)}>{market.note}</p>}
         </div>
       </Section>
 
@@ -148,31 +148,31 @@ export function SalaryTab() {
             Calculate my ask range
           </Button>
           {(!num(base) || (situation === 'COUNTER_OFFER' && !num(offer))) && (
-            <p className="text-xs text-muted-foreground">
+            <p className={cn('text-muted-foreground', t.hint)}>
               Enter your current base{situation === 'COUNTER_OFFER' ? ' and the offer base' : ''} to calculate.
             </p>
           )}
 
-          {result && !result.ok && <p className="text-sm text-destructive">{result.error}</p>}
+          {result && !result.ok && <p className={cn('text-destructive', t.body)}>{result.error}</p>}
           {result?.ok && (
-            <div className="space-y-3 rounded-lg border border-border bg-off-white p-4">
-              <div className="grid gap-3 text-center sm:grid-cols-3">
+            <div className="space-y-3 rounded-2xl border border-border p-6">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <Figure label="Lowest to accept" value={formatUsd(result.range.floor)} />
                 <Figure label="Your target" value={formatUsd(result.range.target)} strong />
                 <Figure label="Open with" value={formatUsd(result.range.stretch)} />
               </div>
-              <div className="space-y-1 text-sm">
-                <p className="font-medium text-foreground">Why these numbers</p>
-                <ul className="list-disc space-y-1 pl-5 text-foreground/80">
+              <div className={cn('space-y-1', t.body)}>
+                <p className="font-medium text-ink">Why these numbers</p>
+                <ul className="list-disc space-y-1 pl-5 text-ink">
                   {result.range.rationale.map((r) => (
                     <li key={r}>{r}</li>
                   ))}
                 </ul>
               </div>
               {result.range.cautions.length > 0 && (
-                <div className="space-y-1 text-sm">
-                  <p className="font-medium text-foreground">Watch for</p>
-                  <ul className="list-disc space-y-1 pl-5 text-foreground/80">
+                <div className={cn('space-y-1', t.body)}>
+                  <p className="font-medium text-ink">Watch for</p>
+                  <ul className="list-disc space-y-1 pl-5 text-ink">
                     {result.range.cautions.map((r) => (
                       <li key={r}>{r}</li>
                     ))}
@@ -194,8 +194,8 @@ export function SalaryTab() {
           }}
           label="Script situation"
         />
-        <div className="space-y-3 text-sm">
-          <p className="text-base font-semibold text-foreground">{script.title}</p>
+        <div className={cn('space-y-3', t.body)}>
+          <p className="font-display text-lg font-semibold text-ink">{script.title}</p>
           <dl className="space-y-2">
             <div>
               <dt className="font-medium text-foreground">Who</dt>
@@ -221,7 +221,7 @@ export function SalaryTab() {
           <div>
             <p className="mb-1 font-medium text-foreground">Opening line</p>
             <CopyBlock text={opener} label="Copy opening line" />
-            <p className="mt-1 text-xs text-muted-foreground">Words in [brackets] are yours to fill in.</p>
+            <p className={cn('mt-1 text-muted-foreground', t.hint)}>Words in [brackets] are yours to fill in.</p>
           </div>
           <div>
             <p className="font-medium text-foreground">Avoid</p>
@@ -235,11 +235,11 @@ export function SalaryTab() {
       </Section>
 
       <Section title="Practice with feedback">
-        <p className="text-sm text-foreground/80">
+        <p className={cn(t.body, 'max-w-2xl text-ink')}>
           The counter-offer practice tool gives written feedback on your draft ask. It lives on each job in your list under
           Find a Full-time Job, and it uses an AI model to read your draft.
         </p>
-        <Link href="/dashboard/find-my-job" className="text-sm font-medium text-brand underline">
+        <Link href="/dashboard/find-my-job" className={cn('font-medium text-brand underline', t.body)}>
           Open Find a Full-time Job
         </Link>
       </Section>
@@ -247,11 +247,11 @@ export function SalaryTab() {
   )
 }
 
-function Figure({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+function Figure({ label, value }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className={cn('rounded-lg border bg-background px-3 py-3', strong ? 'border-brand' : 'border-border')}>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn('mt-1 font-semibold text-foreground', strong ? 'text-xl' : 'text-lg')}>{value}</p>
+    <div>
+      <p className="text-2xl font-semibold text-ink tabular-nums">{value}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
     </div>
   )
 }

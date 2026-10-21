@@ -297,3 +297,5 @@ What conflicts or is missing:
   `willingToStartLower`.
 - Any reader of `journeyDetails.venture` in plan or engagement code.
 - A redesigned phone bottom bar.
+
+_Note (2026-10-20): the product has 11 journeys, and the redesign has no Personalize place (its pieces are the strips and the Improve your search page). Where this file says otherwise, it quotes the terms as they were when it was written._

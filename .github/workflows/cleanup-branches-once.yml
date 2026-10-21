@@ -1,0 +1,33 @@
+# One-off: deletes the five branches the owner approved and every branch whose commits are all already in main
+# (each is re-checked against GitHub at run time; anything ahead of main, or touched in the last 6 hours, is skipped). Delete this file after the run.
+name: Delete merged branches (one-off)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APPROVED: "higher-ed-portal employment-report-followup employment-report-phase1 employment-report-phase2 employment-report-phase3"
+          MERGED: >-
+            ai-comms-audit-fixes ai-course-decisions ai-snapshot-merge ai-view-consolidate ccr-ea202e2d-jowe7t claude/admiring-brown-v20vyk claude/candidate-dashboard-redesign-djr3g2 claude/candidate-features-journeys-y88lop claude/compassionate-edison-fkfdu5 claude/contacts-delete-mute claude/ecstatic-hopper-tso7wv claude/elegant-thompson-vkd4oe claude/epic-cray-qhttup claude/festive-keller-b6u1tu claude/friendly-cerf-p3639f claude/gallant-babbage-e85kp1 claude/great-goodall-8cdpw5 claude/keen-davinci-u0oewr claude/laughing-franklin-i2av7e claude/no-exclusive-jobs claude/onboarding-bundles claude/one-market-report-pivot-split claude/open-candidate-plus-tools claude/optimistic-babbage-rze2ch claude/optimistic-pasteur-mxgnwe claude/partner-portals claude/pensive-cannon-tze4sy claude/redesign-all-pages claude/redesign-final claude/redesign-find-a-job claude/redesign-find-tabs claude/redesign-jobs-pages claude/redesign-learn-account-help-pages claude/redesign-legacy-leftovers claude/redesign-network-pages claude/redesign-polish claude/remove-old-look-home-network-account claude/remove-old-look-jobs claude/replace-old-cards-jobs claude/replace-old-cards-network-account claude/sharp-hawking-yns4xu claude/short-rounds-track-record claude/stoic-gauss-1ljy2t claude/stoic-tesla-3hugm6 claude/tender-cannon-7s06sy crawler-big3-taxonomy-2026-10-17 homepage-job-board homepage-redesign homepage-search-only in-work-track job-liveness layoff-email-people lead-forms long-search-mode meet-gemini-notes news-newsletter outcomes-release-nc outreach-reply-actions outreach-reply-class outreach-signature polish-mobile-buttons-cap report-employment-frame stats-sept-2026 work-samples-neutral-cards worktree-agent-a24274ed2b3b62c0d worktree-agent-ad5cf79fe6973181b 
+        run: |
+          set -u
+          for b in $APPROVED; do
+            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/$b" && echo "deleted approved: $b" || echo "skip: $b"
+          done
+          for b in $MERGED; do
+            enc=$(printf '%s' "$b" | sed 's#/#%2F#g')
+            ahead=$(gh api "repos/${GITHUB_REPOSITORY}/compare/main...$enc" --jq '.ahead_by' 2>/dev/null || echo "?")
+            last=$(gh api "repos/${GITHUB_REPOSITORY}/commits/$enc" --jq '.commit.committer.date' 2>/dev/null || echo "")
+            age=$(( $(date +%s) - $(date -d "${last:-1970-01-01}" +%s) ))
+            if [ "$ahead" = "0" ] && [ "$age" -gt 21600 ]; then
+              gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/$b" && echo "deleted merged: $b" || echo "skip: $b"
+            else
+              echo "kept (ahead=$ahead, age=${age}s): $b"
+            fi
+          done

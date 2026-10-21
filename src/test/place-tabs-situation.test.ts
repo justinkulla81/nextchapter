@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { getAiToolsForFunction } from '@/lib/constants/ai-tools-by-function'
-import { PLACES, lockReasonFor, statusLockedTabs, tabSituation, visibleTabs } from '@/lib/nav/places'
+import { lockReasonFor, statusLockedTabs, tabSituation, visibleTabs } from '@/lib/nav/places'
+import { REDESIGN_PLACES } from '@/lib/nav/redesign-places'
 
-const jobs = PLACES.find((p) => p.key === 'jobs')!
+const jobs = REDESIGN_PLACES.find((p) => p.key === 'jobs')!
 const tab = (label: string) => jobs.tabs.find((t) => t.label === label)!
 const open = { hasEmailConnection: true, skillsAssessmentCompleted: true }
 
@@ -25,7 +26,7 @@ describe('place tabs follow the member situation', () => {
 })
 
 describe('Learn is open before the skills assessment', () => {
-  const learn = PLACES.find((p) => p.key === 'learn')!
+  const learn = REDESIGN_PLACES.find((p) => p.key === 'learn')!
   const unassessed = { hasEmailConnection: true, skillsAssessmentCompleted: false }
   it('does not lock any Learn tab on the assessment', () => {
     for (const t of learn.tabs) expect(lockReasonFor(t.href, unassessed, t)).toBeNull()

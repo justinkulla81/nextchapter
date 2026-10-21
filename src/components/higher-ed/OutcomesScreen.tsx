@@ -1,7 +1,10 @@
 import { BarChart3 } from 'lucide-react'
 import type { WorkspaceContext } from '@/lib/higher-ed/access'
 import { prisma } from '@/lib/prisma'
-import { getOutcomesByBucket } from '@/lib/higher-ed/views'
+import { getOutcomesByBucket, getMemberAiSkills } from '@/lib/higher-ed/views'
+import { computeCohortAiGap } from '@/lib/skills/cohort-ai-gap'
+import { skillTerms } from '@/lib/profile/skill-matrix'
+import { CohortAiGapPanel } from '@/components/skills/CohortAiGapPanel'
 import { buildInstitutionOutcomes } from '@/lib/outcomes/institution-outcomes'
 import { usableBenchmarks } from '@/lib/outcomes/uplift'
 import { MIN_CELL_SIZE } from '@/lib/outcomes/small-cell'
@@ -18,25 +21,35 @@ const pctFmt = (n: number | null) => (n === null ? '–' : `${Math.round(n * 100
 const retentionFmt = (n: number | null) => (n === null ? '–' : `${Math.round(n * 100)}% of prior pay`)
 
 export async function OutcomesScreen({ ctx }: { ctx: WorkspaceContext }) {
-  const [rows, benchmarkRows] = await Promise.all([
+  const [rows, benchmarkRows, aiRows] = await Promise.all([
     getOutcomesByBucket(ctx),
     prisma.durationBenchmark.findMany({
       where: { group: 'all' },
       select: { bucket: true, weeklyReemploymentRate: true, confidence: true },
     }),
+    getMemberAiSkills(ctx).catch((error) => {
+      console.error('Could not read AI skills for the Outcomes tab', error)
+      return []
+    }),
   ])
+  const aiGap = computeCohortAiGap(aiRows.map((r) => ({ fn: r.primaryFunction, keywords: skillTerms(r) })))
   const summary = buildInstitutionOutcomes(
     rows,
     usableBenchmarks(benchmarkRows).map((b) => ({ bucket: b.bucket as DurationBucket, weeklyReemploymentRate: b.weeklyReemploymentRate })),
   )
 
+  const aiPanel = <CohortAiGapPanel gap={aiGap} who="alumni who share outcomes" />
+
   if (summary.allSuppressed) {
     return (
+      <div className="space-y-6">
       <EmptyState
         icon={BarChart3}
         title="Outcomes appear once enough alumni have joined"
         description={`To protect privacy we show a stage of search only when ${MIN_CELL_SIZE} or more alumni who share outcomes are in it. Invite more alumni, and ask them to add their last day worked.`}
       />
+      {aiPanel}
+      </div>
     )
   }
 
@@ -91,6 +104,8 @@ export async function OutcomesScreen({ ctx }: { ctx: WorkspaceContext }) {
           </tbody>
         </table>
       </div>
+
+      {aiPanel}
 
       <div className="space-y-2 text-xs text-muted-foreground">
         <p>

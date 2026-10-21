@@ -2,7 +2,7 @@
 
 Written 2026-10-16 from the code on branch `claude/compassionate-edison-fkfdu5`. Static read of the code; the app was not run.
 Facts below come from the files named. Anything marked **Proposal** is a recommendation, not something that exists.
-`docs/CANDIDATE_JOURNEYS_AND_FEATURES.md` still says 8 journeys; the code has **11**.
+`docs/CANDIDATE_JOURNEYS_AND_FEATURES.md` said 8 journeys (fixed 2026-10-20, it now lists all 11); the code has **11**.
 
 ## 1. The 11 journeys at a glance
 

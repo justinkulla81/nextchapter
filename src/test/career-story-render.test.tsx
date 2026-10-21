@@ -6,7 +6,6 @@ vi.mock('@/app/dashboard/my-career/actions', () => ({ saveStoryEvent: vi.fn(), r
 vi.mock('@/app/dashboard/pivot-paths/actions', () => ({ saveExploredTarget: vi.fn() }))
 
 import { CareerStoryView } from '@/components/dashboard/career-story/CareerStoryView'
-import { ReportStory } from '@/components/dashboard/career-story/ReportStory'
 import { buildDoors } from '@/lib/career-story/doors'
 import { deriveStory } from '@/lib/career-story/events'
 import { peerView } from '@/lib/career-story/peers'
@@ -66,13 +65,5 @@ describe('Your career story page', () => {
     expect(html).toContain('About ')
     expect(html).toContain('looking at Operations')
     expect(html).toContain('not a prediction')
-  })
-})
-
-describe('Market Reality report copy', () => {
-  it('is read-only, private and says it is a sketch', () => {
-    const html = renderToStaticMarkup(<ReportStory story={story()} />)
-    expect(html).toContain('A sketch from typical paths, not a prediction')
-    expect(html).not.toContain('<form')
   })
 })

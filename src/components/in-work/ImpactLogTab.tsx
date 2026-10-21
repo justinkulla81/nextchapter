@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { posthog } from '@/lib/posthog/client'
@@ -10,7 +9,7 @@ import { addWin, deleteWin } from '@/app/dashboard/in-work/actions'
 import { buildReviewSummary } from '@/lib/in-work/templates'
 import { parseDateOnly } from '@/lib/in-work/types'
 import type { WorkspaceData } from '@/lib/in-work/workspace-data'
-import { ChoiceButtons, ConfirmDelete, CopyBlock, Field, NoticeLine, Section, formatDate, today, useRunner } from './shared'
+import { ActionButton as Button, ChoiceButtons, ConfirmDelete, CopyBlock, Field, NoticeLine, Section, formatDate, today, useRunner, useType } from './shared'
 
 type Range = 'since' | 'six' | 'all'
 
@@ -21,6 +20,7 @@ export function ImpactLogTab({ data }: { data: WorkspaceData }) {
   const [date, setDate] = useState(today())
   const add = useRunner()
   const del = useRunner()
+  const t = useType()
   const [range, setRange] = useState<Range>(data.summarySince ? 'since' : 'six')
 
   const summary = useMemo(() => {
@@ -79,7 +79,7 @@ export function ImpactLogTab({ data }: { data: WorkspaceData }) {
             >
               {add.pending ? 'Saving…' : 'Log this win'}
             </Button>
-            {(!what.trim() || !result.trim()) && <span className="text-xs text-muted-foreground">Add what you did and what changed to enable this.</span>}
+            {(!what.trim() || !result.trim()) && <span className={cn('text-muted-foreground', t.hint)}>Add what you did and what changed to enable this.</span>}
             <NoticeLine notice={add.notice} />
           </div>
         </div>
@@ -87,7 +87,7 @@ export function ImpactLogTab({ data }: { data: WorkspaceData }) {
 
       <Section title="Your one-page review summary" intro="Built from your log with a fixed template. Results with numbers come first. Cut it to the top five before you use it.">
         {data.wins.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Log your first win above and the summary builds itself.</p>
+          <p className={cn('text-muted-foreground', t.body)}>Log your first win above and the summary builds itself.</p>
         ) : (
           <>
             <ChoiceButtons value={range} options={rangeOptions} onChange={setRange} label="Summary period" />
@@ -102,14 +102,14 @@ export function ImpactLogTab({ data }: { data: WorkspaceData }) {
 
       <Section title={`Your log (${data.wins.length})`}>
         {data.wins.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing logged yet.</p>
+          <p className={cn('text-muted-foreground', t.body)}>Nothing logged yet.</p>
         ) : (
           <ul className="divide-y divide-border">
             {data.wins.map((w) => (
-              <li key={w.id} className="space-y-1 py-3 text-sm">
-                <p className="font-medium text-foreground">{w.what}</p>
-                <p className="text-foreground/80">{w.result}</p>
-                <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              <li key={w.id} className={cn('space-y-1 py-3', t.body)}>
+                <p className="font-medium text-ink">{w.what}</p>
+                <p className="text-ink">{w.result}</p>
+                <p className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground', t.meta)}>
                   <span>{formatDate(w.occurredOn)}</span>
                   {w.whoBenefited && <span>Helped {w.whoBenefited}</span>}
                   <ConfirmDelete what="win" pending={del.pending} onConfirm={() => del.run(() => deleteWin(w.id), 'Deleted.')} />

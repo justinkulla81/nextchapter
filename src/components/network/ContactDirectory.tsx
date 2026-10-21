@@ -11,6 +11,7 @@ import { EmptyCard } from '@/components/candidate/EmptyCard'
 import { ChoiceField } from '@/components/candidate/ChoiceField'
 import { MEMBERSHIP_LABEL } from '@/lib/network/next-chapter-membership'
 import { activeContactFilters, contactFact, contactWhy, contactsHref, CONTACT_SORT_CHOICES, type ContactListState, type ContactSortKey, type YesNoAll } from '@/lib/redesign/network-account'
+import { ContactRowActions } from '@/components/network/ContactRowActions'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 
@@ -34,6 +35,7 @@ export function ContactDirectory({
   pageSize = 50,
   state,
   hasAnyContacts = true,
+  mutedIds = [],
 }: {
   contacts: ContactRowData[]
   totalCount: number
@@ -42,6 +44,8 @@ export function ContactDirectory({
   pageSize?: number
   state: ContactListState
   hasAnyContacts?: boolean
+  /** Contacts whose address is on the blocked senders list. */
+  mutedIds?: string[]
 }) {
   const router = useRouter()
   const [navPending, startNav] = useTransition()
@@ -158,6 +162,7 @@ export function ContactDirectory({
                   >
                     Write to them
                   </Link>
+                  <ContactRowActions contactId={c.id} name={c.name} hasEmail={Boolean(c.email) || c.emails.length > 0} muted={mutedIds.includes(c.id)} />
                 </>
               }
             />

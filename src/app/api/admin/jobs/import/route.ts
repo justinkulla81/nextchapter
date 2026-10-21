@@ -97,6 +97,8 @@ interface ImportJobInput {
   requisitionId?: string | null
   repostKey?: string | null
   descHash?: string | null
+  // The crawler's row id (ncrawl jobs.fingerprint): the stable link crawler backfills join on.
+  crawlerFingerprint?: string | null
   // O*NET-SOC occupation matched by the crawler (optional like the fields above).
   socCode?: string | null
   socTitle?: string | null
@@ -431,7 +433,7 @@ export async function POST(request: NextRequest) {
       postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
       employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
       locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
-      requisitionId: true, repostKey: true, descHash: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
+      requisitionId: true, repostKey: true, descHash: true, crawlerFingerprint: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
       targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
       aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, postingSignals: true, directListing: true,

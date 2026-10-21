@@ -70,3 +70,5 @@ Audit of 2026-10-18. One file per body of work sits beside this one. Each lists 
 ## Corrections after reading the session transcripts
 
 See `transcripts-other-sessions.md`. In short: the market report redo exists (`origin/claude/friendly-noether-118syi`, PR #83, session still active); the career events SQL was already applied to production on 2026-10-17; mood is never shared (decided); the Google onboarding session is waiting on the owner's A, B or C choice for the Your goal and Your plan cards (the redesign's journey card and Build your plan strip are that idea); exclusive jobs for everyone with the dossier attached is an owner statement that conflicts with gating behind Candidate+; the assistant's name, 'free' and the paid recruiter channel are the assistant's readings, not owner decisions; the Higher Ed session edited a design artifact (services menu, donations, digital resources, WIOA funding) and did not write code.
+
+_Note (2026-10-20): the product has 11 journeys, and the redesign has no Personalize place (its pieces are the strips and the Improve your search page). Where this file says otherwise, it quotes the terms as they were when it was written._

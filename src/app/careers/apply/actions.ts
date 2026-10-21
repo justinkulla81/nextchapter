@@ -12,7 +12,9 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { allowByIp, allowByTarget, DAY_MS, HOUR_MS, RATE_LIMITED_MESSAGE } from '@/lib/security/rate-limit'
 import { validateUpload } from '@/lib/uploads/validate-upload'
-import { validateApplication, splitName } from '@/lib/careers/application'
+import { validateApplication } from '@/lib/careers/application'
+import { guessNameFromResumeText } from '@/lib/careers/resume-name'
+import { extractResumeText } from '@/lib/resume/extract-text'
 import { sendCareerApplicationEmail } from '@/lib/email/send-career-application'
 import { uploadResume } from '@/app/dashboard/resume/actions'
 
@@ -22,13 +24,12 @@ const OFFER_WINDOW_MS = 24 * 60 * 60 * 1000
 export type ApplyState =
   | {
       error?: string
-      submitted?: { applicationId: string; claimToken: string; firstName: string; canRegister: boolean }
+      submitted?: { applicationId: string; claimToken: string; firstName: string | null; canRegister: boolean }
     }
   | undefined
 
 export async function submitCareerApplication(_prev: ApplyState, formData: FormData): Promise<ApplyState> {
   const checked = validateApplication({
-    fullName: String(formData.get('fullName') ?? ''),
     email: String(formData.get('email') ?? ''),
     roleSlug: String(formData.get('roleSlug') ?? ''),
     note: String(formData.get('note') ?? ''),
@@ -49,6 +50,10 @@ export async function submitCareerApplication(_prev: ApplyState, formData: FormD
   const check = await validateUpload(file, 'resume', MAX_FILE_SIZE)
   if (!check.ok) return { error: check.error }
 
+  // The name comes from the resume, not the form.
+  const { text } = await extractResumeText(file, check.ext === 'pdf' ? 'pdf' : 'docx')
+  const fullName = guessNameFromResumeText(text)
+
   const path = `careers/${crypto.randomUUID()}.${check.ext}`
   const { error: uploadError } = await createAdminClient()
     .storage.from('resumes')
@@ -58,7 +63,7 @@ export async function submitCareerApplication(_prev: ApplyState, formData: FormD
   const claimToken = randomBytes(24).toString('hex')
   const row = await prisma.careerApplication.create({
     data: {
-      fullName: app.fullName,
+      fullName,
       email: app.email,
       roleSlug: app.roleSlug,
       roleTitle: app.roleTitle,
@@ -79,7 +84,7 @@ export async function submitCareerApplication(_prev: ApplyState, formData: FormD
   const fileBytes = Buffer.from(await file.arrayBuffer())
   after(async () => {
     await sendCareerApplicationEmail({
-      fullName: app.fullName,
+      fullName,
       email: app.email,
       roleTitle: app.roleTitle,
       note: app.note,
@@ -93,10 +98,11 @@ export async function submitCareerApplication(_prev: ApplyState, formData: FormD
     roleSlug: app.roleSlug,
     roleTitle: app.roleTitle,
     hasNote: !!app.note,
+    nameFound: !!fullName,
     canRegister,
   })
 
-  return { submitted: { applicationId: row.id, claimToken, firstName: splitName(app.fullName).first, canRegister } }
+  return { submitted: { applicationId: row.id, claimToken, firstName: fullName ? fullName.split(' ')[0] : null, canRegister } }
 }
 
 export type RegisterState =
@@ -131,8 +137,8 @@ export async function registerFromApplication(_prev: RegisterState, formData: Fo
   const type = app.filePath.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   const file = new File([blob], app.fileName, { type })
 
-  // Start the session and profile first, with the name and email from the application, so the resume reader has
-  // them even if the resume itself has no contact details.
+  // Start the session and profile first, with the email from the application, so the resume reader has it even if
+  // the resume itself shows none.
   let profileId: string
   try {
     const user = await ensureUser(await createClient())
@@ -140,11 +146,8 @@ export async function registerFromApplication(_prev: RegisterState, formData: Fo
     const profile = await getOrCreateCandidateProfile(user.id, { coachId })
     profileId = profile.id
     if (!profile.registrationCompletedAt) {
-      const { first, last } = splitName(app.fullName)
-      await prisma.candidateProfile.update({
-        where: { id: profile.id },
-        data: { firstName: profile.firstName || first, lastName: profile.lastName || last || null, email: profile.email || app.email },
-      })
+      // Only the email is carried over; the name is read from the resume by the funnel's own reader.
+      await prisma.candidateProfile.update({ where: { id: profile.id }, data: { email: profile.email || app.email } })
     }
   } catch {
     await release()

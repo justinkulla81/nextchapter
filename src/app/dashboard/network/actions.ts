@@ -798,3 +798,62 @@ export async function unblockSender(suppressedSenderId: string): Promise<{ error
   revalidatePath('/dashboard/network')
   return {}
 }
+
+// "Mute": stop hearing about this person without removing them from the list. Their address is added to the
+// blocked senders (the same list as "This isn't part of my job search"), so follow-ups, detected emails and meetings
+// from them stop appearing. The contact stays; "Unmute" (here or on Blocked senders) brings it all back.
+function contactAddresses(c: { email: string | null; emails: string[] }): string[] {
+  return [...new Set([c.email, ...c.emails].filter((e): e is string => !!e).map((e) => e.trim().toLowerCase()))]
+}
+
+export async function muteContact(contactId: string): Promise<{ error?: string }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+  const contact = await prisma.supportNetworkContact.findFirst({ where: { id: contactId, candidateId: profile.id }, select: { email: true, emails: true } })
+  if (!contact) return { error: 'We could not find that contact. Refresh the page and try again.' }
+  const addresses = contactAddresses(contact)
+  if (addresses.length === 0) return { error: 'There is no email address on file for this contact, so there is nothing to mute.' }
+  try {
+    for (const value of addresses) {
+      await prisma.suppressedSender.upsert({
+        where: { candidateId_value: { candidateId: profile.id, value } },
+        create: { candidateId: profile.id, value, isDomain: false, reason: 'NOT_WORK' },
+        update: {},
+      })
+    }
+    const now = new Date()
+    await Promise.all(
+      addresses.flatMap((value) => [
+        prisma.trackedEmailActivity.updateMany({ where: { candidateId: profile.id, dismissedAt: null, fromAddress: { contains: value, mode: 'insensitive' } }, data: { dismissedAt: now } }),
+        prisma.trackedCalendarEvent.updateMany({ where: { candidateId: profile.id, dismissedAt: null, counterpartEmail: { contains: value, mode: 'insensitive' } }, data: { dismissedAt: now } }),
+      ]),
+    )
+  } catch (error) {
+    console.error('Failed to mute contact:', error)
+    return { error: 'We could not mute that contact just now. Try again in a moment.' }
+  }
+  captureServerEvent(profile.id, 'contact_muted', { contactId, addresses: addresses.length })
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
+  revalidatePath('/dashboard/network/blocked-senders')
+  return {}
+}
+
+export async function unmuteContact(contactId: string): Promise<{ error?: string }> {
+  const profile = await getAuthedProfile()
+  if (!profile) return { error: 'You need to be logged in to do this.' }
+  const contact = await prisma.supportNetworkContact.findFirst({ where: { id: contactId, candidateId: profile.id }, select: { email: true, emails: true } })
+  if (!contact) return { error: 'We could not find that contact. Refresh the page and try again.' }
+  const addresses = contactAddresses(contact)
+  try {
+    await prisma.suppressedSender.deleteMany({ where: { candidateId: profile.id, isDomain: false, value: { in: addresses } } })
+  } catch (error) {
+    console.error('Failed to unmute contact:', error)
+    return { error: 'We could not unmute that contact just now. Try again in a moment.' }
+  }
+  captureServerEvent(profile.id, 'contact_unmuted', { contactId })
+  revalidatePath('/dashboard/network')
+  revalidatePath('/dashboard/network/contacts')
+  revalidatePath('/dashboard/network/blocked-senders')
+  return {}
+}

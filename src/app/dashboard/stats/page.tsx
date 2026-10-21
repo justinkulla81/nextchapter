@@ -1,20 +1,15 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ListChecks, Flame, Trophy, TrendingUp, Target, Award, Send, UserCheck, Briefcase, ChevronDown } from 'lucide-react'
+import { ListChecks, Flame, Trophy, Target, Award, Send, UserCheck, Briefcase, ChevronDown } from 'lucide-react'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
-import { isRedesignOn } from '@/lib/redesign/flag'
 import { prisma } from '@/lib/prisma'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
-import { getWhereYouStand } from '@/lib/reports/market-reality-sections'
 import {
   WEEKLY_ENGINE_LABEL,
   WEEKLY_ENGINE_EXPLANATION,
   GRADE_TEXT_COLOR,
   type WeeklyEngine,
 } from '@/lib/scoring/grade'
-import type { Grade } from '@/lib/scoring/grade'
-import { computeBestWeekSentence, computeGradeMovement } from '@/lib/scoring/market-reality-history'
-import { MarketRealitySnapshotArchive } from '@/components/dashboard/MarketRealitySnapshotArchive'
 import { cn } from '@/lib/utils'
 import { getCurrentWeekSprintForRender, getCandidateWeekNumber, getMondayOfWeek, type CommittedAction } from '@/lib/weekly/sprint'
 import { CANONICAL_TASK_MENU } from '@/lib/weekly/task-menu'
@@ -28,9 +23,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { BadgeShelf } from '@/components/dashboard/BadgeShelf'
 import { EmptyState } from '@/components/ui/empty-state'
-import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
-import { StatTile, type StatTileAccent } from '@/components/dashboard/StatTile'
+import { StatTile } from '@/components/dashboard/StatTile'
 import { MarkBadgesViewedOnMount } from '@/components/dashboard/MarkBadgesViewedOnMount'
 import { LEADERBOARD_BOARDS } from '@/lib/leaderboard/boards'
 import { computeAllBoards } from '@/lib/leaderboard/queries'
@@ -52,7 +46,6 @@ export const metadata: Metadata = { title: 'My Stats & Reports' }
 type SearchParams = { [key: string]: string | string[] | undefined }
 const VALID_BANDS: SeniorityBand[] = ['EARLY', 'MID', 'SENIOR', 'EXECUTIVE']
 
-
 type EngineKey = WeeklyEngine['key']
 const ENGINE_ORDER: EngineKey[] = ['effort', 'connecting', 'working', 'learning']
 
@@ -66,23 +59,15 @@ const SECTIONS = [
   { id: 'available-actions', label: 'All actions' },
 ] as const
 
-// The grade color tokens double as StatTile accent keys — reuses the one
-// source of truth in grade.ts instead of a second grade->color map (same
-// pattern as DashboardTopStrip's gradeAccent).
-function gradeAccent(grade: Grade): StatTileAccent {
-  return GRADE_TEXT_COLOR[grade].replace('text-', '') as StatTileAccent
-}
-
 export default async function YourStatsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const profile = await getDashboardProfile()
-  const redesign = isRedesignOn(profile.email)
   const weekStartDate = getMondayOfWeek(new Date())
   const params = await searchParams
   const bandParam = typeof params.band === 'string' ? params.band : null
   const seniorityBand = bandParam && (VALID_BANDS as string[]).includes(bandParam) ? (bandParam as SeniorityBand) : undefined
   const fnParam = typeof params.fn === 'string' ? params.fn : undefined
   // The redesign shows effort and results. The full page (badges, leaderboards, every action) stays at ?view=all.
-  if (redesign && params.view !== 'all') return <StatsRedesign profile={profile} />
+  if (params.view !== 'all') return <StatsRedesign profile={profile} />
 
   // Needed up front — computeWeeklyEngines takes it as a direct argument
   // rather than looking it up itself (see dossier-competencies.ts).
@@ -90,14 +75,12 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
 
   const [
     weeklyEngineData,
-    whereYouStand,
     applicationsCount,
     applicationsThisWeekCount,
     referencesSentCount,
     referencesCompletedCount,
     currentSprint,
     moodHistory,
-    marketRealitySnapshots,
     weeklyBadges,
     milestoneBadges,
     leaderboardResults,
@@ -111,17 +94,12 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     traitSignals,
   ] = await Promise.all([
     computeWeeklyEngines(profile.id, weekNumber, profile.privacyTier, profile.confidentialSearchMode),
-    getWhereYouStand(profile.id),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { not: null } } }),
     prisma.jobPosting.count({ where: { candidateId: profile.id, appliedAt: { gte: weekStartDate } } }),
     prisma.reference.count({ where: { candidateId: profile.id } }),
     prisma.reference.count({ where: { candidateId: profile.id, status: 'COMPLETED' } }),
     getCurrentWeekSprintForRender(profile.id),
     getMoodHistory(profile.id),
-    prisma.marketRealitySnapshot.findMany({
-      where: { candidateId: profile.id },
-      orderBy: { weekStartDate: 'asc' },
-    }),
     computeWeeklyBadges(profile.id),
     computeMilestoneBadges(profile.id),
     // PART FOUR §14/§15/§19 — all 6 boards, filtered by the seniority
@@ -172,11 +150,6 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
     ])
   }
 
-  const previousMarketRealityGrade =
-    marketRealitySnapshots.length > 0 ? (marketRealitySnapshots[marketRealitySnapshots.length - 1].grade as Grade) : null
-
-  const heroSnapshots = marketRealitySnapshots.slice(-12)
-
   const completedActionsCount = committedActions.filter((a) => a.completed).length
   const onTrackThisWeek = weeklyEngineData.weeklyPoints >= weeklyEngineData.weeklyPointsTarget
 
@@ -196,7 +169,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-8">
-      {redesign && <SeeAllLink href="/dashboard/stats">Back to effort and results</SeeAllLink>}
+      <SeeAllLink href="/dashboard/stats">Back to effort and results</SeeAllLink>
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Your Stats</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -225,16 +198,7 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           <StatTile icon={Flame} value={`${profile.currentStreak}`} label="day streak" accent="warning" />
           <StatTile icon={Trophy} value={`${profile.longestStreak}`} label="longest streak" accent="brand" />
-          {!redesign && (
-            <StatTile
-              icon={TrendingUp}
-              value={whereYouStand?.grade ?? '—'}
-              valueClassName={whereYouStand ? GRADE_TEXT_COLOR[whereYouStand.grade] : undefined}
-              label="Market Reality Assessment"
-              accent={whereYouStand ? gradeAccent(whereYouStand.grade) : 'brand'}
-              href="#market-reality"
-            />
-          )}
+          
           <StatTile
             icon={Target}
             value={`${weeklyEngineData.weeklyPoints} / ${weeklyEngineData.weeklyPointsTarget}`}
@@ -330,103 +294,16 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
         </CardContent>
       </Card>
 
-      {redesign ? (
-        // One market report only: the grade tiles and the week-by-week grade archive are gone from this page.
-        <Card id="market-reality" className="scroll-mt-4">
-          <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
-            <p className="max-w-xl text-sm text-muted-foreground">
-              Your market report always shows where you stand today, with the facts behind it. Regenerate it after you make improvements.
-            </p>
-            <Link href="/dashboard/market-reality" className="text-sm font-medium text-primary underline underline-offset-4">
-              Open your market report
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
       <Card id="market-reality" className="scroll-mt-4">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!whereYouStand ? (
-            <p className="text-sm text-muted-foreground">
-              Not enough data yet for your Market Reality Assessment — upload a resume to get your first read.
-            </p>
-          ) : (
-            <>
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-3">
-                  <span className={cn('text-4xl font-bold tabular-nums', GRADE_TEXT_COLOR[whereYouStand.grade])}>
-                    {whereYouStand.grade}
-                  </span>
-                  {previousMarketRealityGrade && previousMarketRealityGrade !== whereYouStand.grade && (
-                    <span
-                      className={cn(
-                        'rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap',
-                        whereYouStand.grade < previousMarketRealityGrade
-                          ? 'bg-success/10 text-success'
-                          : 'bg-error/10 text-error'
-                      )}
-                    >
-                      {whereYouStand.grade < previousMarketRealityGrade ? '↑' : '↓'} from {previousMarketRealityGrade}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {computeBestWeekSentence(heroSnapshots) ??
-                    `Week ${weekNumber} · ${weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`}
-                </p>
-              </div>
-
-              <div className="grid gap-2 sm:grid-cols-3">
-                {whereYouStand.decomposition.map((d) => (
-                  <div key={d.label} className="rounded-lg border border-border p-3 text-sm">
-                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{d.label}</p>
-                    <p className={cn('mt-1 font-semibold tabular-nums', GRADE_TEXT_COLOR[d.grade])}>{d.grade}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{d.note}</p>
-                  </div>
-                ))}
-              </div>
-
-              {(() => {
-                const movement = computeGradeMovement(heroSnapshots)
-                return (
-                  movement && (
-                    <p className="text-sm text-foreground">
-                      <span className={movement.direction === 'up' ? 'text-success' : 'text-error'}>
-                        {movement.direction === 'up' ? '↑' : '↓'}
-                      </span>{' '}
-                      Market Reality Assessment moved {movement.fromGrade} → {movement.toGrade} this week
-                    </p>
-                  )
-                )
-              })()}
-
-              <div className="space-y-2 border-t border-border pt-4">
-                <h4 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-                  Market Reality Summaries, week by week
-                </h4>
-                <MarketRealitySnapshotArchive
-                  snapshots={[...marketRealitySnapshots].reverse().map((s) => ({
-                    id: s.id,
-                    weekStartDate: s.weekStartDate,
-                    grade: s.grade as Grade,
-                    namedReasons: s.namedReasons as unknown as NamedReason[],
-                  }))}
-                />
-                <p className="text-xs text-muted-foreground">
-                  The full narrative behind any week&apos;s grade lives on your{' '}
-                  <Link href="/dashboard/market-reality" className="text-primary underline underline-offset-4">
-                    Market Reality Report
-                  </Link>
-                  .
-                </p>
-              </div>
-            </>
-          )}
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
+          <p className="max-w-xl text-sm text-muted-foreground">
+            Your market report always shows where you stand today, with the facts behind it. Regenerate it after you make improvements.
+          </p>
+          <Link href="/dashboard/market-reality" className="text-sm font-medium text-primary underline underline-offset-4">
+            Open your market report
+          </Link>
         </CardContent>
       </Card>
-      )}
 
       <Card id="actions" className="scroll-mt-4">
         <CardHeader>

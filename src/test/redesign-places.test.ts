@@ -1,21 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { PLACES, groupsOf } from '@/lib/nav/places'
+import { groupsOf } from '@/lib/nav/places'
 import { REDESIGN_PLACES, redesignPlaceForPath, redesignPlacesFor } from '@/lib/nav/redesign-places'
 
 const all = REDESIGN_PLACES.flatMap((p) => p.tabs)
 
 describe('redesigned menu', () => {
-  it('keeps every page the six-place menu reaches', () => {
-    const redesign = new Set(all.flatMap((t) => [t.href, ...(t.alsoMatches ?? [])]))
-    // Folded into other pages in the redesign: the personalization tabs are replaced by Improve your search and the question flows.
-    const REPLACED = new Set(['/dashboard/strengths', '/dashboard/profile', '/dashboard/skills-assessments', '/dashboard/search-strategy', '/dashboard/recruiter-report', '/dashboard/documents', '/dashboard/membership'])
-    for (const tab of PLACES.flatMap((p) => p.tabs)) {
-      if (REPLACED.has(tab.href)) continue
-      expect(redesign.has(tab.href), tab.href).toBe(true)
-    }
-  })
-
-  it('moves the personalization pages to a new home, none dropped', () => {
+  it('keeps the personalization pages in the menu', () => {
     const redesign = new Set(all.map((t) => t.href))
     for (const href of ['/dashboard/strengths', '/dashboard/profile', '/dashboard/skills-assessments', '/dashboard/search-strategy', '/dashboard/recruiter-report', '/dashboard/documents', '/dashboard/membership', '/dashboard/my-career']) {
       expect(redesign.has(href), href).toBe(true)

@@ -1,5 +1,4 @@
-// The track record questionnaire as short rounds. The same twenty questions as the long form
-// (src/components/dashboard/TrackRecordForm.tsx), the same fields saved, in seven rounds of three at most.
+// The track record questionnaire as short rounds. The twenty questions, the fields saved, in seven rounds of three at most.
 // Pure: question definitions, round order, the payoff, the finish, and the conversion to and from the saved row.
 // track-record-rounds.test.ts covers it.
 

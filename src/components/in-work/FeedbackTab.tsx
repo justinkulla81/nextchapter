@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { posthog } from '@/lib/posthog/client'
@@ -23,7 +22,7 @@ import {
 } from '@/lib/in-work/constants'
 import { FEEDBACK_STEPS, buildMeetingScript, buildWrittenReply } from '@/lib/in-work/templates'
 import type { FeedbackView, WorkspaceData } from '@/lib/in-work/workspace-data'
-import { ConfirmDelete, CopyBlock, Field, NoticeLine, Section, formatDate, selectClass, today, useRunner } from './shared'
+import { ActionButton as Button, ConfirmDelete, CopyBlock, Field, NoticeLine, Section, formatDate, selectClass, today, useRunner, useType } from './shared'
 
 const sourceLabel = (k: string) => FEEDBACK_SOURCES.find((s) => s.key === k)?.label ?? k
 const categoryLabel = (k: string) => FEEDBACK_CATEGORIES.find((c) => c.key === k)?.label ?? k
@@ -35,6 +34,7 @@ export function FeedbackTab({ data }: { data: WorkspaceData }) {
   const [said, setSaid] = useState('')
   const [actions, setActions] = useState('')
   const add = useRunner()
+  const t = useType()
 
   return (
     <div className="space-y-6">
@@ -92,7 +92,7 @@ export function FeedbackTab({ data }: { data: WorkspaceData }) {
             >
               {add.pending ? 'Saving…' : 'Log feedback'}
             </Button>
-            {!said.trim() && <span className="text-xs text-muted-foreground">Write what was said to enable this.</span>}
+            {!said.trim() && <span className={cn('text-muted-foreground', t.hint)}>Write what was said to enable this.</span>}
             <NoticeLine notice={add.notice} />
           </div>
         </div>
@@ -100,9 +100,9 @@ export function FeedbackTab({ data }: { data: WorkspaceData }) {
 
       <Section title={`Feedback you have logged (${data.feedback.length})`}>
         {data.feedback.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing logged yet.</p>
+          <p className={cn('text-muted-foreground', t.body)}>Nothing logged yet.</p>
         ) : (
-          <ul className="space-y-4">
+          <ul className="divide-y divide-border">
             {data.feedback.map((f) => (
               <FeedbackEntry key={f.id} entry={f} />
             ))}
@@ -119,20 +119,21 @@ function FeedbackEntry({ entry }: { entry: FeedbackView }) {
   const [change, setChange] = useState('')
   const [by, setBy] = useState('')
   const r = useRunner()
+  const t = useType()
 
   const reply = { source: entry.source as FeedbackSource, category: entry.category as FeedbackCategory, point: entry.whatWasSaid, change: change || entry.actionItems.find((a) => !a.done)?.text, by }
 
   return (
-    <li className={cn('space-y-3 rounded-lg border border-border p-3 text-sm', r.pending && 'cursor-wait')}>
+    <li className={cn('space-y-3 py-5 first:pt-0', t.body, r.pending && 'cursor-wait')}>
       <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">
-          {sourceLabel(entry.source)} · {categoryLabel(entry.category)} · {formatDate(entry.receivedOn)}
+        <p className={cn('text-muted-foreground', t.meta)}>
+          {sourceLabel(entry.source)}, {categoryLabel(entry.category)}, {formatDate(entry.receivedOn)}
         </p>
-        <p className="text-foreground">{entry.whatWasSaid}</p>
+        <p className="max-w-2xl font-display text-lg text-ink">{entry.whatWasSaid}</p>
       </div>
 
       <div className="space-y-2">
-        <p className="font-medium text-foreground">Your actions</p>
+        <p className="font-medium text-ink">Your actions</p>
         {entry.actionItems.length === 0 && <p className="text-muted-foreground">No actions yet.</p>}
         <ul className="space-y-1.5">
           {entry.actionItems.map((a) => (
@@ -142,7 +143,7 @@ function FeedbackEntry({ entry }: { entry: FeedbackView }) {
               {!a.done && !a.sprintAddedAt && (
                 <button
                   type="button"
-                  className="text-xs font-medium text-brand underline"
+                  className={cn('font-medium text-brand underline', t.meta)}
                   onClick={() =>
                     r.run(() => sendFeedbackActionToSprint(entry.id, a.id), 'Done.', (res) => {
                       r.setNotice({ kind: res.added ? 'ok' : 'error', text: res.message })
@@ -152,7 +153,7 @@ function FeedbackEntry({ entry }: { entry: FeedbackView }) {
                   Add to this week&apos;s plan
                 </button>
               )}
-              {a.sprintAddedAt && <span className="text-xs text-success">In your weekly plan</span>}
+              {a.sprintAddedAt && <span className={cn(t.meta, 'font-medium text-ink')}>In your weekly plan</span>}
             </li>
           ))}
         </ul>
@@ -186,14 +187,14 @@ function FeedbackEntry({ entry }: { entry: FeedbackView }) {
       <NoticeLine notice={r.notice} />
 
       {open && (
-        <div className="space-y-4 border-t border-border pt-3">
+        <div className="space-y-4 pt-2">
           <ol className="space-y-2">
             {FEEDBACK_STEPS.map((s, i) => (
               <li key={s.key}>
-                <span className="font-medium text-foreground">
+                <span className="font-medium text-ink">
                   {i + 1}. {s.label}.
                 </span>{' '}
-                <span className="text-foreground/80">{s.text}</span>
+                <span className="text-ink">{s.text}</span>
               </li>
             ))}
           </ol>
@@ -206,11 +207,11 @@ function FeedbackEntry({ entry }: { entry: FeedbackView }) {
             </Field>
           </div>
           <div>
-            <p className="mb-1 font-medium text-foreground">Reply in writing</p>
+            <p className="mb-1 font-medium text-ink">Reply in writing</p>
             <CopyBlock text={buildWrittenReply(reply)} label="Copy written reply" />
           </div>
           <div>
-            <p className="mb-1 font-medium text-foreground">For the conversation</p>
+            <p className="mb-1 font-medium text-ink">For the conversation</p>
             <CopyBlock text={buildMeetingScript(reply)} label="Copy conversation script" />
           </div>
         </div>

@@ -87,7 +87,7 @@ export async function StatsRedesign({ profile }: { profile: CandidateProfile }) 
       )}
 
       <Suspense fallback={<HomeModuleSkeleton title="Unlocks" rows={2} />}>
-        <UnlocksSection profile={profile} redesign />
+        <UnlocksSection profile={profile} />
       </Suspense>
 
       {weeks.length > 0 && totalMinutes > 0 && (

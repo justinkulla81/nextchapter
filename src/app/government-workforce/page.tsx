@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import { OrganizationPageTemplate } from '@/components/organizations/OrganizationPageTemplate'
 import { AUDIENCE_TABS } from '@/components/audience/audience-data'
 import { StructuredData } from '@/components/StructuredData'
+import { WorkforceCapabilities, WorkforceNumbers } from '@/components/organizations/WorkforceNumbers'
+
+// The live numbers are cached for a day (src/lib/marketing/workforce-numbers.ts); rebuild hourly.
+export const revalidate = 3600
 
 const tab = AUDIENCE_TABS.find((t) => t.id === 'government')!
 
@@ -35,7 +39,11 @@ export default function GovernmentWorkforcePage() {
   return (
     <>
       <StructuredData data={jsonLd} />
-      <OrganizationPageTemplate tab={tab} />
+      <OrganizationPageTemplate
+        tab={tab}
+        lead={<WorkforceNumbers page={tab.id} />}
+        whatYouGet={<WorkforceCapabilities page={tab.id} />}
+      />
     </>
   )
 }

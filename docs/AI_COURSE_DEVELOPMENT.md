@@ -52,7 +52,7 @@ Leading AI teams has no course today (`docs/AI_SKILLS.md`, Known limits). A lead
 
 ## First 30 days
 
-1. Apply the SQL file for the weekly AI-share snapshot (`prisma/manual/2026-10-20-ai-share-snapshot.sql`) so the trend starts accruing.
+1. The AI market snapshot (cron `ai-market`, nightly) is already accruing history for the /ai-skills trend; it shows after 4 distinct weeks.
 2. Send the top 10 colleges from the ranked list the alumni-gap offer, using the standard positioning line.
 3. Scope one paid pilot with one college and one board; write each quote from the hours estimate above.
 4. Build the first course on a free-or-paid pilot basis only after a signed scope.

@@ -17,7 +17,7 @@ interface ConversationView {
 }
 
 /** One help conversation on /dashboard/help: collapsed to its subject, opens to the thread and a reply box. */
-export function HelpConversation({ request, defaultOpen, redesign = false }: { request: ConversationView; defaultOpen: boolean; redesign?: boolean }) {
+export function HelpConversation({ request, defaultOpen }: { request: ConversationView; defaultOpen: boolean }) {
   const posthog = usePostHog()
   const [open, setOpen] = useState(defaultOpen)
   const [state, action, pending] = useActionState<HelpFormState, FormData>(replyToHelpRequest.bind(null, request.id), undefined)
@@ -30,11 +30,6 @@ export function HelpConversation({ request, defaultOpen, redesign = false }: { r
   useEffect(() => {
     if (open && request.replyWaiting) void markHelpRequestRead(request.id)
   }, [open, request.id, request.replyWaiting])
-
-  const pill = request.replyWaiting
-    ? 'bg-orange/15 text-navy'
-    : request.resolved ? 'bg-success/10 text-success' : 'bg-brand/10 text-brand'
-  const status = request.replyWaiting ? 'Reply waiting' : request.resolved ? 'Resolved' : 'Open'
   const stateText = conversationState(request.replyWaiting, request.resolved)
 
   return (
@@ -46,19 +41,19 @@ export function HelpConversation({ request, defaultOpen, redesign = false }: { r
         className="flex w-full items-start justify-between gap-3 p-4 text-left"
       >
         <span className="min-w-0">
-          <span className={redesign ? 'block text-base font-semibold text-ink' : 'block font-semibold text-foreground'}>{request.subject}</span>
-          <span className={redesign ? 'text-sm text-muted-foreground' : 'text-xs text-muted-foreground'}>{request.kindLabel} · {request.started}</span>
-          {redesign && <span className={request.replyWaiting ? 'block text-sm font-semibold text-ink' : 'block text-sm text-muted-foreground'}>{stateText}</span>}
+          <span className={'block text-base font-semibold text-ink'}>{request.subject}</span>
+          <span className={'text-sm text-muted-foreground'}>{request.kindLabel} · {request.started}</span>
+          <span className={request.replyWaiting ? 'block text-sm font-semibold text-ink' : 'block text-sm text-muted-foreground'}>{stateText}</span>
         </span>
-        {!redesign && <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${pill}`}>{status}</span>}
+        
       </button>
 
       {open && (
         <div className="space-y-3 border-t border-border p-4">
           <ol className="space-y-3">
             {request.messages.map((m) => (
-              <li key={m.id} className={`px-3 py-2 ${redesign ? 'rounded-2xl text-base' : 'rounded-lg text-sm'} ${m.fromAdmin ? 'bg-brand/5' : 'bg-muted/60'}`}>
-                <p className={`mb-1 font-semibold text-muted-foreground ${redesign ? 'text-sm' : 'text-xs'}`}>{m.fromAdmin ? 'NextChapter team' : 'You'} · {m.when}</p>
+              <li key={m.id} className={`px-3 py-2 ${'rounded-2xl text-base'} ${m.fromAdmin ? 'bg-brand/5' : 'bg-muted/60'}`}>
+                <p className={`mb-1 font-semibold text-muted-foreground ${'text-sm'}`}>{m.fromAdmin ? 'NextChapter team' : 'You'} · {m.when}</p>
                 <p className="whitespace-pre-wrap text-foreground">{m.body}</p>
               </li>
             ))}

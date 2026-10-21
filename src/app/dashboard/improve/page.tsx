@@ -68,7 +68,7 @@ export default async function ImprovePage() {
       />
       <TailoredRows groups={groups} />
       <Suspense fallback={<HomeModuleSkeleton title="Your proof" rows={2} />}>
-        <UnlocksSection profile={profile} redesign />
+        <UnlocksSection profile={profile} />
       </Suspense>
       <p className="text-sm text-muted-foreground">
         Account and privacy settings are in{' '}
