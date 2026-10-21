@@ -304,7 +304,7 @@ export function draftText(angle: Angle, f: DraftFacts, seed: string): DraftText 
 // Eastern-time slot starts, as [hour, minute].
 const SLOTS_ET: [number, number][] = [[8, 15], [12, 10], [17, 20]]
 /** Never more than this many drafts due on one calendar day. */
-export const MAX_PER_DAY = 2
+export const MAX_PER_DAY = 1
 /** Posts at least this far apart, so a feed never sees two from us back to back. */
 export const MIN_GAP_MS = 3 * 3_600_000
 
@@ -323,7 +323,7 @@ function etDay(at: Date): { key: string; dow: number } {
 
 /**
  * When each new draft should go out: the next free weekday slot at least an
- * hour from now, a few hours after the previous one, at most two a day.
+ * hour from now, at most one a day (posts close together compete for the same feed window).
  * `taken` is when drafts already waiting are due. Returns one time per draft,
  * in order, so the biggest layoff (passed first) gets the earliest slot.
  */

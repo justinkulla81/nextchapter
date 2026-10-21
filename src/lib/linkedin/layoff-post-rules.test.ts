@@ -70,13 +70,13 @@ describe('assignSlots', () => {
     expect(first.getTime()).toBeGreaterThanOrEqual(now.getTime() + 3_600_000)
     expect(assignSlots(1, [first], now)[0].getTime()).toBeGreaterThan(first.getTime())
   })
-  it('puts at most two on one day', () => {
+  it('puts at most one on a day', () => {
     const perDay = new Map<string, number>()
     for (const s of assignSlots(6, [], now)) {
       const k = s.toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
       perDay.set(k, (perDay.get(k) ?? 0) + 1)
     }
-    expect(Math.max(...perDay.values())).toBeLessThanOrEqual(2)
+    expect(Math.max(...perDay.values())).toBeLessThanOrEqual(1)
   })
 })
 
