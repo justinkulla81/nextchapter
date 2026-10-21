@@ -48,6 +48,8 @@ function group(key: string, label: string, why: string, emptyHint: string, all: 
 export interface LayoffPlace {
   state: string | null
   county: string | null
+  /** A city found from the coverage or the company's filings, when the notice has no address. */
+  city?: string | null
   address: string | null
   workforceBoardId: string | null
 }
@@ -87,9 +89,9 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
     : []
 
   let board = place.workforceBoardId ? await prisma.workforceBoard.findUnique({ where: { id: place.workforceBoardId } }) : null
-  if (!board && state && (place.county || place.address)) {
+  if (!board && state && (place.county || place.address || place.city)) {
     const boards = await prisma.workforceBoard.findMany({ where: { state } })
-    board = pickBoard(boards, place.county, cityFromAddress(place.address, state))
+    board = pickBoard(boards, place.county, place.city ?? cityFromAddress(place.address, state))
   }
   const boardCards: ContactCard[] = board
     ? [

@@ -4,6 +4,7 @@ import { runLayoffPrimarySweep } from '@/lib/warn/layoff-primary-run'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runLinkedInDraftSweep } from '@/lib/linkedin/layoff-post-sweep'
+import { retryHeldLayoffAlerts } from '@/lib/warn/layoff-alert'
 
 export const maxDuration = 300
 
@@ -37,6 +38,13 @@ export const GET = withCronRun('layoff-news', async (_request: NextRequest) => {
   } catch (e) {
     primary = { error: e instanceof Error ? e.message : String(e) }
   }
+  // Layoff alert emails held for missing contacts: look again now that the contact lookups and primary sweep have run.
+  let held: Awaited<ReturnType<typeof retryHeldLayoffAlerts>> | { error: string }
+  try {
+    held = await retryHeldLayoffAlerts()
+  } catch (e) {
+    held = { error: e instanceof Error ? e.message : String(e) }
+  }
   // Suggested LinkedIn posts for the credible layoffs just filed (no model call; see the sweep).
   let linkedin: Awaited<ReturnType<typeof runLinkedInDraftSweep>> | { error: string }
   try {
@@ -44,5 +52,5 @@ export const GET = withCronRun('layoff-news', async (_request: NextRequest) => {
   } catch (e) {
     linkedin = { error: e instanceof Error ? e.message : String(e) }
   }
-  return NextResponse.json({ news, primary, linkedin })
+  return NextResponse.json({ news, primary, held, linkedin })
 })

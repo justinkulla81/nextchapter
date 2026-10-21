@@ -11962,6 +11962,11 @@ model WarnNotice {
   rapidResponses           RapidResponse[]
   linkedinDraft            LinkedInPostDraft?
 
+  /// The layoff alert email: sent once, held until the contacts are filled in, or given up on after 72 hours (never emailed empty).
+  alertSentAt   DateTime?
+  alertHeldAt   DateTime?
+  alertGaveUpAt DateTime?
+
   @@unique([state, normalizedEmployer, noticeDate, employees])
   @@index([promotedAt, dismissedAt])
   @@index([effectiveDate])
