@@ -6,6 +6,8 @@
  * For the date (default today): every step-1 email on the calendar, and any follow-up that is due. A person is skipped, for every step, when they
  * replied, were passed, bounced or complained, are on the do-not-contact list, or have already been sent that step. Sent with the tag `outreach`
  * (so bounces and complaints stop mail through the Resend webhook), a Reply-To of justin@, and a one-click mailto unsubscribe header.
+ * Safety: a run stops when 5% or more of the last 7 days' first emails bounced (20 or more sent), unless OUTREACH_BOUNCE_OK=1; and each first email's address
+ * is checked with Hunter just before it is sent (reused for 30 days), skipping anything Hunter calls invalid or disposable (or any address when Hunter credits run out).
  * Env: OUTREACH_BCC (a copy of each first email, default justin@launchyournextchapter.com; "none" for no copy; each copy counts against the email plan's quota), OUTREACH_FROM (default "Justin Kulla <justin@updates.launchyournextchapter.com>"), OUTREACH_REPLY_TO, OUTREACH_MAX (hard cap per run, default 30).
  */
 import { readFileSync, existsSync } from 'node:fs'
@@ -13,6 +15,7 @@ import { prisma } from '../../src/lib/prisma'
 import { refreshTouchFields } from '../../src/lib/crm/sync'
 import { addContactToCrm, ensureOrg } from '../../src/lib/crm/add-contact'
 import { goalsForRoles } from '../../src/lib/crm/goals'
+import { hunterAccount, hunterVerifyEmail } from '../../src/lib/crm/hunter'
 
 type Row = Record<string, string>
 function parseCsv(text: string): Row[] {
@@ -68,6 +71,18 @@ async function main() {
   const dnc = new Set(existsSync(suppressFile) ? readFileSync(suppressFile, 'utf8').split('\n').map((l) => l.trim().toLowerCase()).filter(Boolean) : [])
   for (const m of await prisma.mailingSuppression.findMany({ select: { email: true } })) dnc.add(m.email.toLowerCase())
 
+
+  // Stop a bad batch before it goes out: a high recent bounce rate hurts the sending domain for every email after it.
+  const recentFirst = await prisma.crmActivity.findMany({ where: { type: 'EMAIL', direction: 'OUTBOUND', outcome: { startsWith: 'Cold outreach, email 1' }, occurredAt: { gte: new Date(Date.now() - 7 * 86_400_000) } }, select: { outcome: true } })
+  const recentBounced = recentFirst.filter((a) => (a.outcome ?? '').includes(', bounced')).length
+  if (recentFirst.length >= 20 && recentBounced / recentFirst.length >= 0.05) {
+    const msg = `Bounce guard: ${recentBounced} of the last ${recentFirst.length} first emails (7 days) bounced, ${(100 * recentBounced / recentFirst.length).toFixed(1)}%.`
+    if (process.env.OUTREACH_BOUNCE_OK !== '1') { console.error(`${msg} Nothing sent. Fix the list, then rerun with OUTREACH_BOUNCE_OK=1 to override.`); process.exit(2) }
+    console.log(`${msg} Overridden with OUTREACH_BOUNCE_OK=1.`)
+  }
+  let verifyLeft = apply ? ((await hunterAccount())?.requests.verifications) : null
+  let creditsLeft = verifyLeft ? verifyLeft.available - verifyLeft.used : 0
+  if (apply) console.log(`Hunter verifications left: ${creditsLeft}`)
   let sent = 0, skipped = 0
   const why: Record<string, number> = {}
   const skip = (r: string) => { skipped++; why[r] = (why[r] ?? 0) + 1 }
@@ -83,6 +98,20 @@ async function main() {
     if (person.emailVerifiedStatus === 'invalid') { skip('address invalid'); continue }
     const already = await prisma.crmActivity.findFirst({ where: { personId: person.id, type: 'EMAIL', direction: 'OUTBOUND', outcome: { startsWith: `Cold outreach, email ${step}` } }, select: { id: true } })
     if (already) { skip('already sent'); continue }
+    if (apply && step === 1) {
+      // Check the address with Hunter right before the first email, unless it was checked in the last 30 days.
+      const rec = await prisma.crmPerson.findUnique({ where: { id: person.id }, select: { emailVerifiedStatus: true, emailVerifiedAt: true } })
+      const fresh = rec?.emailVerifiedAt && Date.now() - rec.emailVerifiedAt.getTime() < 30 * 86_400_000 && rec.emailVerifiedStatus
+      if (!fresh) {
+        if (creditsLeft <= 0) { skip('not verified (out of Hunter credits)'); continue }
+        const v = await hunterVerifyEmail(email)
+        creditsLeft--
+        if (!v) { skip('Hunter could not verify'); continue }
+        const status = v.status === 'valid' ? 'deliverable' : v.status === 'invalid' || v.status === 'disposable' ? 'invalid' : 'risky'
+        await prisma.crmPerson.update({ where: { id: person.id }, data: { emailVerifiedStatus: status, emailVerifiedAt: new Date() } })
+        if (status === 'invalid') { skip('Hunter says the address is invalid'); continue }
+      }
+    }
     if (step > 1) {
       const first = await prisma.crmActivity.findFirst({ where: { personId: person.id, type: 'EMAIL', direction: 'OUTBOUND', outcome: { startsWith: 'Cold outreach, email 1' } }, select: { id: true, outcome: true } })
       if (!first) { skip('follow-up without a first email'); continue }
