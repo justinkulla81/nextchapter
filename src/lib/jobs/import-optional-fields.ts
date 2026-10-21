@@ -32,6 +32,7 @@ export interface ImportSpecInput {
   externalJobId?: unknown
   requisitionId?: unknown
   repostKey?: unknown
+  crawlerFingerprint?: unknown
   descHash?: unknown
   socCode?: unknown
   socTitle?: unknown
@@ -49,6 +50,7 @@ export interface ImportSpecFields {
   externalJobId?: string | null
   requisitionId?: string | null
   repostKey?: string | null
+  crawlerFingerprint?: string | null
   descHash?: string | null
   socCode?: string | null
   socTitle?: string | null
@@ -129,6 +131,12 @@ export function importSpecFields(
   if (has('externalJobId')) out.externalJobId = importText(job.externalJobId, 200)
   if (has('requisitionId')) out.requisitionId = importText(job.requisitionId, 200)
   if (has('repostKey')) out.repostKey = importText(job.repostKey, 64)
+  // The crawler's own row id (ncrawl jobs.fingerprint, 24 hex chars): the stable link every
+  // crawler backfill joins on, since a listing's url can change after import.
+  if (has('crawlerFingerprint')) {
+    const fp = importText(job.crawlerFingerprint, 64)
+    out.crawlerFingerprint = fp && /^[0-9a-f]{24}$/.test(fp) ? fp : null
+  }
   if (has('descHash')) out.descHash = importText(job.descHash, 64)
   // O*NET-SOC code ("13-2051.00") and its title; a malformed code drops both.
   if (has('socCode') || has('socTitle')) {

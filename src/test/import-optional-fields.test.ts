@@ -58,6 +58,13 @@ describe('importSpecFields', () => {
     const out = importSpecFields({ externalJobId: 12345, requisitionId: ' R-1 ', repostKey: 'a'.repeat(100), descHash: '' }, statesOf, codes)
     expect(out).toEqual({ externalJobId: '12345', requisitionId: 'R-1', repostKey: 'a'.repeat(64), descHash: null })
   })
+
+  it('keeps a crawler fingerprint only when it is 24 lowercase hex chars', () => {
+    expect(importSpecFields({ crawlerFingerprint: ' 0123456789abcdef01234567 ' }, statesOf, codes)).toEqual({ crawlerFingerprint: '0123456789abcdef01234567' })
+    expect(importSpecFields({ crawlerFingerprint: 'not-a-fingerprint' }, statesOf, codes)).toEqual({ crawlerFingerprint: null })
+    expect(importSpecFields({ crawlerFingerprint: '' }, statesOf, codes)).toEqual({ crawlerFingerprint: null })
+    expect(importSpecFields({}, statesOf, codes)).toEqual({})
+  })
 })
 
 describe('importSpecFields: O*NET-SOC occupation', () => {

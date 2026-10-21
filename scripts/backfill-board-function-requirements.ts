@@ -1,11 +1,12 @@
 /**
  * One-off (2026-10-16): fills the live board's function (targetFunction), employer
  * sector, requirement flags/tags and folded industry from the crawler, matching each
- * live posting to a crawler job by url, then by externalJobId (the source's own id)
- * where that id is unique. The daily import carries the same fields from now on.
+ * live posting to a crawler job by crawlerFingerprint (the crawler's row id) first, then by
+ * url, then by externalJobId (the source's own id) where that id is unique. The daily import carries the same fields from now on.
  *
  * Input: a TSV from the crawler (url, source_job_id, function code, industry, sector,
- * requirements JSON) — see the PR notes. Values go through the same functions the
+ * requirements JSON[, fingerprint]) — see the PR notes. The 7th column is optional; older
+ * exports without it match by url / id only. Values go through the same functions the
  * import route uses (job-functions.ts, import-optional-fields.ts, requirements.ts).
  *
  * Writes in id-ordered chunks of CHUNK live rows, only rows whose values change, and
@@ -69,6 +70,7 @@ async function main() {
   const rec = {
     url: [] as string[],
     ext: [] as (string | null)[],
+    fp: [] as (string | null)[],
     fn: [] as (string | null)[],
     industry: [] as (string | null)[],
     sector: [] as (string | null)[],
@@ -76,7 +78,7 @@ async function main() {
     tags: [] as (string | null)[],
   }
   for (const line of lines) {
-    const [u, ext, fn, industry, sector, reqs] = parseTsvLine(line)
+    const [u, ext, fn, industry, sector, reqs, fp] = parseTsvLine(line)
     if (!u) continue
     let parsed: unknown = null
     try {
@@ -87,6 +89,7 @@ async function main() {
     const f = parseRequirementFlags(parsed)
     rec.url.push(u)
     rec.ext.push(ext || null)
+    rec.fp.push(fp || null)
     rec.fn.push(functionLabelFor(fn))
     rec.industry.push(canonicalIndustry(industry))
     rec.sector.push(isEmployerSector(sector) ? sector : null)
@@ -95,14 +98,20 @@ async function main() {
   }
   console.log(`read ${rec.url.length} crawler urls in ${Date.now() - t0} ms`)
 
-  await prisma.$executeRawUnsafe(`CREATE TEMP TABLE crawl_fill (url text PRIMARY KEY, ext text, fn text, industry text, sector text, flags jsonb, tags text)`)
+  await prisma.$executeRawUnsafe(`CREATE TEMP TABLE crawl_fill_all (url text, ext text, fn text, industry text, sector text, flags jsonb, tags text, fp text)`)
   for (let i = 0; i < rec.url.length; i += LOAD_BATCH) {
     const s = (a: (string | null)[]) => a.slice(i, i + LOAD_BATCH)
     await prisma.$executeRawUnsafe(
-      `INSERT INTO crawl_fill SELECT * FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::jsonb[], $7::text[]) ON CONFLICT (url) DO NOTHING`,
-      s(rec.url), s(rec.ext), s(rec.fn), s(rec.industry), s(rec.sector), s(rec.flags), s(rec.tags)
+      `INSERT INTO crawl_fill_all SELECT * FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::jsonb[], $7::text[], $8::text[])`,
+      s(rec.url), s(rec.ext), s(rec.fn), s(rec.industry), s(rec.sector), s(rec.flags), s(rec.tags), s(rec.fp)
     )
   }
+  // By fingerprint (one row each); by url (first row per url, as before).
+  await prisma.$executeRawUnsafe(`CREATE TEMP TABLE crawl_fill_fp AS SELECT DISTINCT ON (fp) * FROM crawl_fill_all WHERE fp IS NOT NULL ORDER BY fp`)
+  await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX ON crawl_fill_fp (fp)`)
+  await prisma.$executeRawUnsafe(`ANALYZE crawl_fill_fp`)
+  await prisma.$executeRawUnsafe(`CREATE TEMP TABLE crawl_fill AS SELECT DISTINCT ON (url) * FROM crawl_fill_all ORDER BY url`)
+  await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX ON crawl_fill (url)`)
   // externalJobId matches only where the crawler id is unique.
   await prisma.$executeRawUnsafe(`CREATE TEMP TABLE crawl_fill_ext AS SELECT DISTINCT ON (ext) * FROM crawl_fill WHERE ext IS NOT NULL AND ext IN (SELECT ext FROM crawl_fill WHERE ext IS NOT NULL GROUP BY ext HAVING count(*) = 1)`)
   await prisma.$executeRawUnsafe(`CREATE INDEX ON crawl_fill_ext (ext)`)
@@ -110,11 +119,13 @@ async function main() {
   await prisma.$executeRawUnsafe(`ANALYZE crawl_fill_ext`)
   console.log(`loaded in ${Date.now() - t0} ms`)
 
-  const [match] = await prisma.$queryRawUnsafe<{ by_url: number; by_ext: number; live: number }[]>(`
-    SELECT count(*) FILTER (WHERE f.url IS NOT NULL)::int AS by_url,
-           count(*) FILTER (WHERE f.url IS NULL AND x.ext IS NOT NULL)::int AS by_ext,
+  const [match] = await prisma.$queryRawUnsafe<{ by_fp: number; by_url: number; by_ext: number; live: number }[]>(`
+    SELECT count(p.fp)::int AS by_fp,
+           count(*) FILTER (WHERE p.fp IS NULL AND f.url IS NOT NULL)::int AS by_url,
+           count(*) FILTER (WHERE p.fp IS NULL AND f.url IS NULL AND x.ext IS NOT NULL)::int AS by_ext,
            count(*)::int AS live
     FROM "ExclusiveJobPosting" e
+    LEFT JOIN crawl_fill_fp p ON p.fp = e."crawlerFingerprint"
     LEFT JOIN crawl_fill f ON f.url = e.url
     LEFT JOIN crawl_fill_ext x ON x.ext = e."externalJobId"
     WHERE e."archivedAt" IS NULL`)
@@ -145,18 +156,20 @@ async function main() {
     const hi = next[0]?.id ?? null
     const range = `e."archivedAt" IS NULL AND e."id" > $1 ${hi ? 'AND e."id" <= $2' : ''}`
     const args = hi ? [lo, hi] : [lo]
-    const a = await prisma.$executeRawUnsafe(`${setSql('f')} FROM crawl_fill f WHERE f.url = e.url AND ${range} AND ${changed('f')}`, ...args)
+    const noFp = `NOT EXISTS (SELECT 1 FROM crawl_fill_fp p WHERE p.fp = e."crawlerFingerprint")`
+    const p = await prisma.$executeRawUnsafe(`${setSql('p')} FROM crawl_fill_fp p WHERE p.fp = e."crawlerFingerprint" AND ${range} AND ${changed('p')}`, ...args)
+    const a = await prisma.$executeRawUnsafe(`${setSql('f')} FROM crawl_fill f WHERE f.url = e.url AND ${noFp} AND ${range} AND ${changed('f')}`, ...args)
     const b = await prisma.$executeRawUnsafe(
-      `${setSql('x')} FROM crawl_fill_ext x WHERE x.ext = e."externalJobId" AND NOT EXISTS (SELECT 1 FROM crawl_fill f WHERE f.url = e.url) AND ${range} AND ${changed('x')}`,
+      `${setSql('x')} FROM crawl_fill_ext x WHERE x.ext = e."externalJobId" AND ${noFp} AND NOT EXISTS (SELECT 1 FROM crawl_fill f WHERE f.url = e.url) AND ${range} AND ${changed('x')}`,
       ...args
     )
-    updated += a + b
+    updated += p + a + b
     chunks++
     if (chunks % VACUUM_EVERY === 0) {
       await prisma.$executeRawUnsafe(`VACUUM "ExclusiveJobPosting"`)
       await prisma.$executeRawUnsafe(`VACUUM "BoardLightRow"`)
     }
-    console.log(`chunk ${chunks}: +${a + b} (total ${updated}) ${Math.round((Date.now() - t0) / 1000)}s`)
+    console.log(`chunk ${chunks}: +${p + a + b} (total ${updated}) ${Math.round((Date.now() - t0) / 1000)}s`)
     if (!hi) break
     lo = hi
   }
