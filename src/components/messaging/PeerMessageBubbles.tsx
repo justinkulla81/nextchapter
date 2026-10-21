@@ -28,7 +28,7 @@ export function PeerMessageBubbles({
   attachmentUrls,
 }: PeerMessageBubblesProps) {
   if (messages.length === 0) {
-    return <p className="p-4 text-sm text-muted-foreground">No messages yet — say hello.</p>
+    return <p className={cn('p-4 text-muted-foreground', 'text-base')}>No messages yet — say hello.</p>
   }
 
   return (
@@ -38,10 +38,11 @@ export function PeerMessageBubbles({
         const attachmentUrl = message.attachedResume ? attachmentUrls?.get(message.attachedResume.filePath) : null
         return (
           <div key={message.id} className={cn('flex items-end gap-2', isSelf ? 'justify-end' : 'justify-start')}>
-            {!isSelf && <AvatarDisplay name={partnerName} url={partnerAvatarUrl} size={24} />}
+            {!isSelf && <AvatarDisplay name={partnerName} url={partnerAvatarUrl} size={32} />}
             <div
               className={cn(
-                'max-w-[75%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap',
+                'max-w-[75%] px-3 py-2 whitespace-pre-wrap',
+                'rounded-2xl text-base',
                 isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
               )}
             >
@@ -49,7 +50,8 @@ export function PeerMessageBubbles({
               {message.attachedResume && (
                 <div
                   className={cn(
-                    'mt-2 flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs',
+                    'mt-2 flex items-center gap-1.5 rounded-md border px-2 py-1.5',
+                    'text-sm',
                     isSelf ? 'border-primary-foreground/30' : 'border-border'
                   )}
                 >
@@ -68,7 +70,7 @@ export function PeerMessageBubbles({
                   )}
                 </div>
               )}
-              <p className={cn('mt-1 text-[10px]', isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+              <p className={cn('mt-1', 'text-xs', isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                 {message.createdAt.toLocaleString(undefined, {
                   month: 'short',
                   day: 'numeric',

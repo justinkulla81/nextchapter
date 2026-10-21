@@ -1,3 +1,4 @@
+import { cultureContext } from '@/lib/culture/culture-fit'
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAnthropicClient } from '@/lib/anthropic'
@@ -84,7 +85,13 @@ export interface SearchStrategyGuidance {
 // against the freshly-saved values. The raw score/label must never appear in
 // the generated text — enforced via explicit prompt instruction, not by
 // post-processing.
-export async function getOrDraftSearchStrategyGuidance(candidateId: string): Promise<SearchStrategyGuidance | null> {
+/**
+ * The member's strategy guidance. The first read is drafted automatically once the goals are in.
+ * After that it changes only when the member saves new goals (which clears the cache) or unlocks
+ * the next strategy with effort (`force`, src/lib/effort/unlock.ts), so a new read always
+ * rests on new work. It is no longer re-drafted on a timer.
+ */
+export async function getOrDraftSearchStrategyGuidance(candidateId: string, opts: { force?: boolean } = {}): Promise<SearchStrategyGuidance | null> {
   const [candidate, levelRank, activity] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
@@ -102,6 +109,7 @@ export async function getOrDraftSearchStrategyGuidance(candidateId: string): Pro
         compFlexible: true,
         willingToStartLower: true,
         dealBreakers: true,
+        cultureFit: true,
         isPivoting: true,
         openToRelocation: true,
         interimConsultingInterest: true,
@@ -125,16 +133,8 @@ export async function getOrDraftSearchStrategyGuidance(candidateId: string): Pro
     getSearchStrategyActivitySignals(candidateId),
   ])
 
-  // Re-drafted weekly even without a Search Strategy save, not just cached
-  // forever from the first draft — the real-activity numbers below (real
-  // applications/outreach/resume recency) change day to day, and a guidance
-  // card that never re-syncs with them would defeat the point of feeding
-  // them in at all.
-  const GUIDANCE_STALE_AFTER_MS = 7 * 24 * 60 * 60 * 1000
   const cached = parseCachedGuidance(candidate.searchStrategyGuidance)
-  const isStale =
-    !candidate.searchStrategyGuidanceGeneratedAt ||
-    Date.now() - candidate.searchStrategyGuidanceGeneratedAt.getTime() > GUIDANCE_STALE_AFTER_MS
+  const isStale = opts.force === true || !candidate.searchStrategyGuidanceGeneratedAt
   if (cached && !isStale) return cached
 
   // Only draft once both required buckets are filled in — Search Goals and
@@ -161,7 +161,7 @@ Considering a pivot to a different function/industry: ${candidate.isPivoting ? '
 Open to relocation: ${candidate.openToRelocation ? 'yes' : 'no'}
 Open to fractional/interim consulting while searching: ${candidate.interimConsultingInterest ? 'yes' : 'no'}
 Application volume goal (per week): ${candidate.applicationVolumeGoal ?? 'not specified'} (we recommend 15/week as a baseline)
-Other deal-breakers/considerations: ${candidate.dealBreakers ?? 'not specified'}
+Other deal-breakers/considerations: ${candidate.dealBreakers ?? 'not specified'}${cultureContext(candidate.cultureFit)}
 What's getting in their way: ${labelsFor(BLOCKER_OPTIONS, candidate.blockers)}
 What's driving their search: ${labelsFor(MOTIVATIONS_OPTIONS, candidate.motivations)}
 Coaching push they respond to: ${labelFor(COACHING_STYLE_OPTIONS, candidate.coachingStylePreference)}

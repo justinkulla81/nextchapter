@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { searchTopic } from '@/lib/news/discover'
+import { searchTopic, searchGoogleNews, type DiscoveredArticle } from '@/lib/news/discover'
+import { matchOrCreateCompanyForEmployer } from './company-match'
 import { readLayoffHeadline, readPercent, publisherKey, sameEmployer } from './news-headline'
 import { alertNewLayoff } from './layoff-alert'
 import { layoffTypeLabel } from './layoff-alert-rules'
@@ -22,13 +23,20 @@ export const QUERIES = [
   'layoffs', 'lays off employees', 'to cut jobs', 'job cuts announced', 'announces layoffs',
   'laying off', 'workforce reduction', 'reduces workforce', 'cuts staff', 'headcount reduction',
   'restructuring job cuts', 'to lay off', 'eliminates positions', 'lays off percent of staff',
-  'layoffs AI automation', 'layoffs after acquisition', 'new owner layoffs', 'private equity layoffs',
+  'corporate job cuts', 'cutting corporate jobs', 'plans to cut jobs', 'to eliminate jobs', 'confirms layoffs',
+  'reduction in force', 'layoffs AI automation', 'AI job cuts', 'layoffs after acquisition', 'new owner layoffs', 'private equity layoffs',
   'tech layoffs', 'healthcare layoffs', 'bank layoffs', 'retail layoffs', 'startup layoffs',
+  'media entertainment layoffs', 'manufacturing layoffs', 'grocery layoffs',
 ]
 /** Searches in flight at once. */
 const SEARCH_CONCURRENCY = 4
 /** No new search starts after this, so the filings, SEC check, sweep and boards keep their time. */
 const SEARCH_BUDGET_MS = 75_000
+
+/** Companies searched by name per run, rotating through the CRM so each is reached every few days. */
+const COMPANY_SEARCHES_PER_RUN = 12
+/** How far back a by-name search reads: the "laid off in the past year" figure. */
+const COMPANY_SEARCH_DAYS = 365
 
 /** Mentions this far apart still describe the same layoff. */
 const WINDOW_DAYS = 7
@@ -67,6 +75,42 @@ export interface NewsCheckResult {
  * gave one, labelled with the publisher, and listed on the Layoff notices
  * admin page where one can be dismissed if it is wrong.
  */
+/**
+ * One query on both news searches. Either may fail or be blocked without
+ * costing the other: a source that returns nothing today must not blind the check.
+ * The same story from both is two mentions of one publisher, which the
+ * two-publisher rule counts once, so a second search cannot confirm a layoff alone.
+ */
+async function searchBoth(q: string): Promise<DiscoveredArticle[]> {
+  const [bing, google] = await Promise.allSettled([searchTopic(q), searchGoogleNews(q)])
+  if (bing.status === 'rejected') console.error('Bing news search failed for', q, bing.reason)
+  if (google.status === 'rejected') console.error('Google news search failed for', q, google.reason)
+  return [...(bing.status === 'fulfilled' ? bing.value : []), ...(google.status === 'fulfilled' ? google.value : [])]
+}
+
+/**
+ * The companies to search by name this run: CRM employers and outplacement
+ * leads, rotated by the clock so a run takes the next slice of the list.
+ * Generic searches return a short list per query, so a mid-size company
+ * (Miro's 18% cut) is crowded out; a search for its own name is not.
+ */
+export function sliceForRun<T>(all: T[], now = Date.now(), perRun = COMPANY_SEARCHES_PER_RUN, runMs = 3 * 3_600_000): T[] {
+  if (all.length <= perRun) return all
+  const start = (Math.floor(now / runMs) * perRun) % all.length
+  return Array.from({ length: perRun }, (_, i) => all[(start + i) % all.length])
+}
+
+/** One company's layoff coverage over the past year, kept only when the headline is about that company. */
+async function searchCompany(name: string, key: string): Promise<DiscoveredArticle[]> {
+  const q = `"${name}" layoffs`
+  const [bing, google] = await Promise.allSettled([searchTopic(q, { anyTime: true }), searchGoogleNews(q, { days: COMPANY_SEARCH_DAYS })])
+  const all = [...(bing.status === 'fulfilled' ? bing.value : []), ...(google.status === 'fulfilled' ? google.value : [])]
+  return all.filter((a) => {
+    const layoff = readLayoffHeadline(a.title)
+    return layoff != null && sameEmployer(layoff.companyKey, key)
+  })
+}
+
 /** Contacts found for one layoff, 0 if the lookup is off, over its cap, or fails. */
 async function lookUpContacts(
   company: string, employees: number | null, date: Date, orgId: string | null | undefined, urls: string[], result: NewsCheckResult,
@@ -98,20 +142,34 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
 
   // 1. Search, a few at a time under a time budget, then read the headlines
   // and keep the ones that name a layoff.
-  const searched: { q: string; articles: Awaited<ReturnType<typeof searchTopic>> }[] = []
+  const searched: { q: string; articles: DiscoveredArticle[] }[] = []
   const started = Date.now()
   for (let i = 0; i < QUERIES.length; i += SEARCH_CONCURRENCY) {
     if (Date.now() - started > SEARCH_BUDGET_MS) break
     const chunk = QUERIES.slice(i, i + SEARCH_CONCURRENCY)
     const settled = await Promise.all(chunk.map(async (q) => {
       try {
-        return { q, articles: await searchTopic(q) }
+        return { q, articles: await searchBoth(q) }
       } catch (e) {
         console.error('Layoff news search failed for', q, e)
-        return { q, articles: [] as Awaited<ReturnType<typeof searchTopic>> }
+        return { q, articles: [] as DiscoveredArticle[] }
       }
     }))
     searched.push(...settled)
+  }
+  // Companies by name, so one the generic searches bury is still read.
+  const orgs = await prisma.crmOrganization.findMany({
+    where: { orgTypes: { hasSome: ['EMPLOYER', 'OUTPLACEMENT_LEAD'] } },
+    select: { name: true, canonicalNameNormalized: true },
+    orderBy: { id: 'asc' },
+  }).catch((e) => { console.error('Company list for news search failed', e); return [] })
+  for (const org of sliceForRun(orgs)) {
+    if (Date.now() - started > SEARCH_BUDGET_MS * 1.5) break
+    try {
+      searched.push({ q: org.name, articles: await searchCompany(org.name, org.canonicalNameNormalized) })
+    } catch (e) {
+      console.error('Company layoff search failed for', org.name, e)
+    }
   }
   const seen = new Set<string>()
   for (const { articles } of searched) {
@@ -196,8 +254,16 @@ export async function runLayoffNewsCheck(): Promise<NewsCheckResult> {
 
     // The share of staff, from the first headline that gives one.
     const percent = mentions.map((m) => readPercent(m.headline)).find((p) => p != null) ?? null
+    // The same company match a state filing gets, so the layoff is findable by
+    // company and not only by name. A failure leaves it unmatched, never blocks it.
+    const match = await matchOrCreateCompanyForEmployer(company).catch(() => null)
     const notice = await prisma.warnNotice.create({
       data: {
+        ...(match ? {
+          companyId: match.companyId,
+          companyMatchStatus: match.status,
+          ...(match.candidates ? { companyMatchCandidates: match.candidates } : {}),
+        } : {}),
         employer: company,
         normalizedEmployer: key,
         source: 'MANUAL_ANNOUNCEMENT',

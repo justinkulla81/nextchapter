@@ -13,6 +13,7 @@ import { normalizeIndustryBucket } from '@/lib/constants/industry-buckets'
 import { normalizeMetroArea } from '@/lib/constants/metro-areas'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { isPlaceholderName } from '@/lib/resume/placeholder-name'
+import { planResumePrefill, detectClearance, detectLicenses, detectWorkAuthorization } from '@/lib/resume/resume-prefill'
 
 const HIGHEST_EDUCATION_LEVELS = [
   'SOME_COLLEGE', 'ASSOCIATE', 'BACHELORS', 'MASTERS', 'MBA', 'MPH',
@@ -206,7 +207,14 @@ export async function extractProfileFieldsFromResume(
     // credentials shouldn't erase one already confirmed.
     const existingProfile = await prisma.candidateProfile.findUnique({
       where: { id: resume.candidateId },
-      select: { certifications: true, highestLevelReached: true, firstName: true, lastName: true },
+      select: {
+        certifications: true, highestLevelReached: true, firstName: true, lastName: true, email: true, phone: true, streetAddress: true,
+        secondaryFunction: true, secondaryIndustryContext: true,
+        // resume-prefill.ts: the fields a résumé may only fill when blank or still an unconfirmed résumé value.
+        currentCity: true, currentState: true, yearsExperience: true, resumeLatestJobTitle: true, primaryFunction: true,
+        industryContext: true, highestEducationLevel: true, resumeKeywords: true, licensesHeld: true, licensesAnsweredAt: true,
+        clearanceLevel: true, workAuthorization: true, resumePrefilledFields: true,
+      },
     })
     const mergedCertifications = Array.from(new Set([...(existingProfile?.certifications ?? []), ...data.certifications.slice(0, 10)]))
     // Never overwrite a level the candidate already confirmed by hand on
@@ -226,32 +234,61 @@ export async function extractProfileFieldsFromResume(
     // highestLevelReached above.
     const extractedFirstName = isPlaceholderName(`${data.firstName ?? ''} ${data.lastName ?? ''}`) ? null : data.firstName
     const extractedLastName = isPlaceholderName(`${data.firstName ?? ''} ${data.lastName ?? ''}`) ? null : data.lastName
-    const firstName = extractedFirstName ?? existingProfile?.firstName ?? null
-    const lastName = extractedLastName ?? existingProfile?.lastName ?? null
+    // Owner's rule (2026-10-16): never overwrite what the member entered — a name
+    // already on the profile stands; the résumé only fills a blank one.
+    const firstName = existingProfile?.firstName || extractedFirstName || null
+    const lastName = existingProfile?.lastName || extractedLastName || null
+
+    // Prefill (resume-prefill.ts): each of these is written only while blank or still an
+    // unconfirmed résumé value, and marked "From your résumé — confirm" in the profile.
+    const prefill = existingProfile
+      ? planResumePrefill(existingProfile, {
+          currentCity: data.city,
+          currentState: data.state,
+          yearsExperience,
+          resumeLatestJobTitle: data.latestJobTitle,
+          primaryFunction: coerceOption(data.primaryFunction, PRIMARY_FUNCTION_OPTIONS),
+          industryContext: data.industry,
+          highestEducationLevel: coerceOption(data.highestEducationLevel, HIGHEST_EDUCATION_LEVELS),
+          resumeKeywords: data.resumeKeywords.slice(0, 15),
+          licensesHeld: detectLicenses(data.certifications, resume.extractedText),
+          clearanceLevel: detectClearance(resume.extractedText),
+          workAuthorization: detectWorkAuthorization(resume.extractedText),
+        })
+      : null
+    const p = prefill?.data ?? {}
+    const keep = <T,>(current: T | null | undefined, next: T | null | undefined) => (current ? undefined : (next ?? undefined))
 
     if (!opts.entriesOnly) await prisma.candidateProfile.update({
       where: { id: resume.candidateId },
       data: {
         firstName,
         lastName,
-        email: data.email,
-        phone: data.phone,
-        streetAddress: data.streetAddress,
-        currentCity: data.city,
-        currentState: data.state,
-        currentCountry: data.country ?? undefined,
-        metroArea: normalizeMetroArea(data.city),
+        email: keep(existingProfile?.email, data.email),
+        phone: keep(existingProfile?.phone, data.phone),
+        streetAddress: keep(existingProfile?.streetAddress, data.streetAddress),
+        ...(p.currentCity !== undefined && {
+          currentCity: p.currentCity,
+          currentCountry: data.country ?? undefined,
+          metroArea: normalizeMetroArea(p.currentCity),
+        }),
+        ...(p.currentState !== undefined && { currentState: p.currentState }),
         graduationDate,
         resumeFirstJobStartDate: firstJobStartDate,
-        resumeLatestJobTitle: data.latestJobTitle,
+        ...(p.resumeLatestJobTitle !== undefined && { resumeLatestJobTitle: p.resumeLatestJobTitle }),
         highestLevelReached,
-        industryContext: data.industry,
-        industryBucket: normalizeIndustryBucket(data.industry),
-        primaryFunction: coerceOption(data.primaryFunction, PRIMARY_FUNCTION_OPTIONS),
-        secondaryFunction: coerceOption(secondaryData?.secondaryFunction ?? null, PRIMARY_FUNCTION_OPTIONS),
-        secondaryIndustryContext: secondaryData?.secondaryIndustry ?? null,
-        yearsExperience,
-        highestEducationLevel: coerceOption(data.highestEducationLevel, HIGHEST_EDUCATION_LEVELS),
+        ...(p.industryContext !== undefined && { industryContext: p.industryContext, industryBucket: normalizeIndustryBucket(p.industryContext) }),
+        ...(p.primaryFunction !== undefined && { primaryFunction: p.primaryFunction }),
+        secondaryFunction: keep(existingProfile?.secondaryFunction, coerceOption(secondaryData?.secondaryFunction ?? null, PRIMARY_FUNCTION_OPTIONS)),
+        secondaryIndustryContext: keep(existingProfile?.secondaryIndustryContext, secondaryData?.secondaryIndustry ?? null),
+        ...(p.yearsExperience !== undefined && { yearsExperience: p.yearsExperience }),
+        ...(p.highestEducationLevel !== undefined && {
+          highestEducationLevel: p.highestEducationLevel as (typeof HIGHEST_EDUCATION_LEVELS)[number],
+        }),
+        ...(p.licensesHeld !== undefined && { licensesHeld: p.licensesHeld ?? [] }),
+        ...(p.clearanceLevel !== undefined && { clearanceLevel: p.clearanceLevel }),
+        ...(p.workAuthorization !== undefined && { workAuthorization: p.workAuthorization }),
+        ...(prefill && { resumePrefilledFields: prefill.resumePrefilledFields }),
         // Each credential flag only ever flips true, never overwrites a
         // previously-detected true with false (a later resume version that
         // omits the JD line shouldn't un-flag a real lawyer).
@@ -262,10 +299,13 @@ export async function extractProfileFieldsFromResume(
         resumeAiReadinessScore:
           data.aiReadinessScore === null ? null : Math.max(0, Math.min(100, Math.round(data.aiReadinessScore))),
         resumeAiReadinessNotes: data.aiReadinessNotes,
-        resumeKeywords: data.resumeKeywords.slice(0, 15),
+        ...(p.resumeKeywords !== undefined && { resumeKeywords: p.resumeKeywords ?? [] }),
         certifications: mergedCertifications,
       },
     })
+    if (!opts.entriesOnly && prefill && prefill.filled.length > 0) {
+      captureServerEvent(resume.candidateId, 'profile_prefilled_from_resume', { fields: prefill.filled, resumeId, source: 'upload' })
+    }
 
     const [{ insertedCount: educationInserted }, { insertedCount: employersInserted, undatedCount }] = await Promise.all([
       syncResumeEducation(

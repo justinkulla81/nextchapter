@@ -1,10 +1,11 @@
+import { SITUATION_FIELDS } from '@/lib/journey/situation'
 import type { Metadata } from 'next'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { PrivacyTierSelector } from '@/components/candidates/PrivacyTierSelector'
 import { NotificationTierSelector } from '@/components/candidates/NotificationTierSelector'
-import { ActionWindowSelector } from '@/components/dashboard/ActionWindowSelector'
+import { EmailTopicToggles } from '@/components/candidates/EmailTopicToggles'
 import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettingsToggles'
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
@@ -12,18 +13,24 @@ import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
-import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { loadAffiliations } from '@/lib/affiliations/load'
+import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVisibilityCard'
+import { effectiveJourney, effectiveStage, getJourney, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
-import { Button } from '@/components/ui/button'
+import { DeleteGoogleDataForm } from '@/components/dashboard/DeleteGoogleDataForm'
 import Link from 'next/link'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { MyRecruitersSection } from '@/components/dashboard/MyRecruitersSection'
 import { ConnectedAccountsSettings, type ConnectionState } from '@/components/dashboard/ConnectedAccountsSettings'
 import { withOAuthReturnTo } from '@/lib/google/oauth-links'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { Section } from '@/components/candidate/ui'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
+import { Callout } from '@/components/candidate/Callout'
+import { ActionWindowField } from '@/components/dashboard/ActionWindowField'
+import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = { title: 'Privacy Settings' }
-
 
 // What a failed Google connect came back with (see google-connect/start and /callback).
 const CONNECT_ERROR: Record<string, string> = {
@@ -38,24 +45,18 @@ const CONNECT_ERROR: Record<string, string> = {
 
 const stamp = (d: Date | null) => d ? d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) : null
 
+function detailText(details: unknown, key: string): string {
+  const v = (details as Record<string, unknown> | null)?.[key]
+  return typeof v === 'string' || typeof v === 'number' ? String(v) : ''
+}
+
 export default async function PrivacyPage({ searchParams }: { searchParams: Promise<{ gmailConnected?: string; gmailError?: string }> }) {
   const profile = await getDashboardProfile()
-  const params = await searchParams
-  const [emailConn, calendarConn] = await Promise.all([
+  const [affiliations, params, emailConn, calendarConn, dossierStatus, coach, intakeConnections] = await Promise.all([
+    loadAffiliations(profile.id),
+    searchParams,
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id }, orderBy: { connectedAt: 'desc' }, select: { connectedEmail: true, connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
     prisma.calendarConnection.findUnique({ where: { candidateId: profile.id }, select: { connectedAt: true, lastSyncAt: true, disconnectedAt: true, needsReconnectAt: true } }),
-  ])
-  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
-    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
-      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
-  // One Google sign-in creates both connections, so the calendar belongs to
-  // the same account as Gmail when they were connected together.
-  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
-    ? emailConn.connectedEmail : null
-  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
-  const calendarState = stateOf(calendarConn, calendarAccount)
-  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
-  const [dossierStatus, coach, intakeConnections] = await Promise.all([
     isDossierUnlocked(profile.id),
     profile.coachId
       ? prisma.coach.findUnique({ where: { id: profile.coachId }, select: { fullName: true } })
@@ -68,177 +69,119 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
       orderBy: { createdAt: 'desc' },
     }),
   ])
+  const stateOf = (c: { disconnectedAt: Date | null; needsReconnectAt: Date | null; lastSyncAt: Date | null } | null, account: string | null): ConnectionState =>
+    !c || c.disconnectedAt ? { status: 'not_connected', account: null, lastChecked: null }
+      : { status: c.needsReconnectAt ? 'expired' : 'connected', account, lastChecked: stamp(c.lastSyncAt) }
+  // One Google sign-in creates both connections, so the calendar belongs to
+  // the same account as Gmail when they were connected together.
+  const calendarAccount = emailConn && calendarConn && Math.abs(emailConn.connectedAt.getTime() - calendarConn.connectedAt.getTime()) < 5 * 60 * 1000
+    ? emailConn.connectedEmail : null
+  const gmailState = stateOf(emailConn, emailConn?.connectedEmail ?? null)
+  const calendarState = stateOf(calendarConn, calendarAccount)
+  const connectError = params.gmailError ? CONNECT_ERROR[params.gmailError] ?? CONNECT_ERROR.exchange_failed : null
   const SOURCE_LABEL = { PAGE: 'You sent your resume', NOT_FIT_LINK: 'You sent your resume', FORWARD: 'Your resume was forwarded' } as const
 
+  // Account and privacy in the redesign (docs/redesign-old-card-audit-network-account.md): who can see your search and
+  // what we read come first, each control says what is true now and what changing it does. Every other control is
+  // still here, one fold down. No status pills, no bordered cards, and no 5-way button row.
+  const block = (id: string, title: string, intro: string | null, children: React.ReactNode, tone?: 'danger') => (
+    <section key={id} id={id} aria-labelledby={`${id}-h`} className="scroll-mt-4 space-y-3">
+      <h2 id={`${id}-h`} className={cn('font-display text-xl font-semibold', tone === 'danger' ? 'text-destructive' : 'text-ink')}>{title}</h2>
+      {intro && <p className="max-w-xl text-base text-muted-foreground">{intro}</p>}
+      {children}
+    </section>
+  )
+  const quietLink = 'inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted'
   return (
     <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Privacy</h1>
-        <PageHeaderBoxes pageKey="privacy" candidateId={profile.id} />
-      </div>
+      <PageHeader title="Account and privacy" intro="You decide who can see your search and what we can read. Each choice says what it changes, and you can change it any time." />
 
-      <section id="connected-accounts" aria-labelledby="connected-accounts-h" className="space-y-3">
-        <div>
-          <h2 id="connected-accounts-h" className="text-lg font-semibold">Connected accounts</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Choose what NextChapter can read to count your search activity for you.</p>
-        </div>
-        {params.gmailConnected && !connectError && (
-          <p role="status" className="rounded-lg border border-success/30 bg-success/5 p-3 text-sm text-success">Gmail and Calendar connected. Your activity will start counting automatically.</p>
-        )}
-        {connectError && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{connectError}</p>}
-        <ConnectedAccountsSettings
-          gmail={gmailState}
-          calendar={calendarState}
-          connectHref={withOAuthReturnTo('/api/auth/google-connect/start', '/dashboard/privacy')}
-        />
-      </section>
-      <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold">Your situation</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Why you&apos;re moving and how close you are to applying. Your plan and check-ins follow these. Changing them
-            won&apos;t change your Confidential Search Mode setting below on its own.
-          </p>
-        </div>
-        <JourneySelector journey={effectiveJourney(profile)} stage={effectiveStage(profile)} />
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold">Confidential Search Mode</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            A separate control from your privacy tier above — this governs whether your search is
-            visible to anyone outside NextChapter at all, everywhere: Community, LinkedIn, outreach,
-            email, Gmail, and recruiter sharing.
-          </p>
-        </div>
-        <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold">Employer &amp; recruiter matching</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Separate from your privacy tier above — this controls whether employers using
-            NextChapter&apos;s hiring tools can match you against open roles at all.
-          </p>
-        </div>
-        <RecruiterDatabaseOptIn
-          optedIn={profile.recruiterDatabaseOptIn}
-          dossierUnlocked={dossierStatus.unlocked}
-          dossierReason={dossierStatus.reason}
-          confidentialSearchMode={profile.confidentialSearchMode}
-        />
-      </div>
-
-      <p className="text-sm text-muted-foreground">
-        <Link href="/dashboard/recruiter-requests" className="underline underline-offset-4">
-          See recruiter requests waiting on your answer
-        </Link>
-      </p>
-
-      {intakeConnections.length > 0 && (
-        <div id="my-recruiters" className="space-y-3 border-t border-border pt-8">
-          <div>
-            <h2 className="text-lg font-semibold">My recruiters</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Search firms you&apos;re connected to through NextChapter. You choose what each one sees, and you can
-              disconnect anytime. You&apos;re never charged anything because of a recruiter connection.
+      <Section id="who-can-see" title="Who can see your search">
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold text-ink">Confidential Search Mode</h3>
+            <p className="max-w-xl text-sm text-muted-foreground">
+              This decides whether anyone outside NextChapter can see your search at all: the community, LinkedIn, outreach, email, Gmail and recruiter sharing.
             </p>
+            {!profile.confidentialSearchMode && effectiveJourney(profile) && getJourney(effectiveJourney(profile)!).employed && (
+              <Callout>Your situation is one where you have a job, and Confidential Search Mode is off, so other members and your colleges could see your search. Turn it on if you do not want anyone at work to find out.</Callout>
+            )}
+            <ConfidentialModeToggle enabled={profile.confidentialSearchMode} />
           </div>
-          <MyRecruitersSection
-            connections={intakeConnections.map((c) => ({
-              id: c.id,
-              firmName: c.firm.name,
-              recruiterName: c.recruiter?.fullName ?? null,
-              source: SOURCE_LABEL[c.source],
-              scopes: c.consentScopes,
-            }))}
-          />
+          <PrivacyTierSelector currentTier={profile.privacyTier} alreadyAwarded={!!profile.privacyOpenedUpBonusAt} />
+          <div id="recruiter-matching" className="scroll-mt-4 space-y-2">
+            <h3 className="text-base font-semibold text-ink">Employers and recruiters</h3>
+            <p className="max-w-xl text-sm text-muted-foreground">Whether employers using NextChapter&apos;s hiring tools can match you against open roles at all. It is separate from the visibility above.</p>
+            <RecruiterDatabaseOptIn optedIn={profile.recruiterDatabaseOptIn} dossierUnlocked={dossierStatus.unlocked} dossierReason={dossierStatus.reason} confidentialSearchMode={profile.confidentialSearchMode} />
+          </div>
         </div>
-      )}
+      </Section>
 
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold">Resume Book</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            On by default — checked automatically the first time you upload a resume. Independent of
-            your Dossier unlock status above; turn it off any time.
+      <section id="connected-accounts" aria-labelledby="connected-accounts-h" className="scroll-mt-4 space-y-3">
+        <h2 id="connected-accounts-h" className="font-display text-xl font-semibold text-ink">What we can read</h2>
+        <p className="max-w-xl text-base text-muted-foreground">Choose what NextChapter reads to count your search activity for you.</p>
+        {params.gmailConnected && !connectError && <Callout>Gmail and Calendar connected. Your activity will start counting automatically.</Callout>}
+        {connectError && <Callout tone="problem">{connectError}</Callout>}
+        <ConnectedAccountsSettings gmail={gmailState} calendar={calendarState} connectHref={withOAuthReturnTo('/api/auth/google-connect/start', '/dashboard/privacy')} />
+      </section>
+
+      <MoreDetails summary="Show more: your situation, email, coach access, your data and your account">
+        <div className="space-y-8">
+          {block('situation', 'Your situation', 'Why you are moving (or growing where you are) and how close you are to applying. Your plan and check-ins follow these. Changing them does not change Confidential Search Mode on its own.',
+            <JourneySelector
+              journey={effectiveJourney(profile)}
+              stage={effectiveStage(profile)}
+              moveDriver={moveDriverOf(profile.journeyDetails)}
+              intensity={profile.searchIntensity}
+              details={{
+                returnDate: detailText(profile.journeyDetails, 'returnDate'),
+                offering: detailText(profile.journeyDetails, 'offering'),
+                openDays: detailText(profile.journeyDetails, 'openDays'),
+                engagementEnds: detailText(profile.journeyDetails, 'engagementEnds'),
+                venture: detailText(profile.journeyDetails, 'venture'),
+                situation: Object.fromEntries(SITUATION_FIELDS.map((f) => [f.key, detailText(profile.journeyDetails, f.key)])),
+              }}
+            />)}
+          <AffiliationVisibilityCard affiliations={affiliations} />
+          <p className="text-base">
+            <Link href="/dashboard/recruiter-requests" className="font-medium text-brand underline underline-offset-4">See recruiter requests waiting on your answer</Link>
           </p>
+          {intakeConnections.length > 0 &&
+            block('my-recruiters', 'My recruiters', 'Search firms you are connected to through NextChapter. You choose what each one sees, and you can disconnect any time. You are never charged anything because of a recruiter connection.',
+              <MyRecruitersSection
+                connections={intakeConnections.map((c) => ({
+                  id: c.id,
+                  firmName: c.firm.name,
+                  recruiterName: c.recruiter?.fullName ?? null,
+                  source: SOURCE_LABEL[c.source],
+                  scopes: c.consentScopes,
+                }))}
+              />)}
+          {block('resume-book', 'Résumé Book', 'On by default, and switched on the first time you upload a résumé. It does not depend on your dossier. Turn it off any time.', <ResumeBookOptIn optedIn={profile.resumeBookOptIn} />)}
+          <LeaderboardOptInSettings optedIn={profile.leaderboardOptIn} displayMode={profile.leaderboardDisplayMode} confidentialSearchMode={profile.confidentialSearchMode} />
+          {block('email', 'Email', 'How often you hear from us, and which emails. Members who have not visited in a few weeks automatically get fewer. Your Market Reality Report and any reminder emails always send.',
+            <div className="space-y-8">
+              <NotificationTierSelector currentTier={profile.notificationTier} />
+              <EmailTopicToggles
+                optedOut={{
+                  weeklyReportOptedOut: profile.weeklyReportOptedOut,
+                  marketDigestOptedOut: profile.marketDigestOptedOut,
+                  dailyEmailOptedOut: profile.dailyEmailOptedOut,
+                  jobSearchDailyOptedOut: profile.jobSearchDailyOptedOut,
+                }}
+              />
+              <ActionWindowField current={profile.actionWindow} />
+            </div>)}
+          {block('support-network', 'Community settings', null, <CommunitySettingsToggles weeklySprintTargetOptOut={profile.weeklySprintTargetOptOut} encouragementGivingOptIn={profile.encouragementGivingOptIn} />)}
+          <WhatTheySeeSection candidateId={profile.id} />
+          {coach && block('coach-access', 'Coach access', null, <CoachAccessSettings coachName={coach.fullName} hasConsented={profile.coachDossierConsentedAt !== null} />)}
+          {block('money-help', 'Money help', 'Choose whether NextChapter helps with money. It is off until you turn it on, and you can delete the pay and savings numbers you gave us.', <Link href="/dashboard/money-help" className={quietLink}>Change money help</Link>)}
+          {block('account', 'Your login', null, <Link href="/auth/forgot-password" className={quietLink}>Change my password</Link>)}
+          {block('your-data', 'Your data', 'Download everything we hold about you (your profile, references, résumés, reports and activity) as a single file, any time you want it.', <a href="/api/export-data" download className={quietLink}>Download my data</a>)}
+          {block('google-data', 'Your Google data', 'Delete everything we stored from your Gmail and Calendar, and remove our access to your Google account.', <DeleteGoogleDataForm hasGoogleData={!!emailConn || !!calendarConn} />)}
+          {block('danger', 'Danger zone', 'Deactivate your account to make it unusable without deleting anything. For a real, permanent deletion, email support instead.', <DeleteAccountForm />, 'danger')}
         </div>
-        <ResumeBookOptIn optedIn={profile.resumeBookOptIn} />
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <LeaderboardOptInSettings
-          optedIn={profile.leaderboardOptIn}
-          displayMode={profile.leaderboardDisplayMode}
-          confidentialSearchMode={profile.confidentialSearchMode}
-        />
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <h2 className="text-lg font-semibold">Email options</h2>
-        <p className="text-sm text-muted-foreground">
-          How often you hear from us. Your Market Reality Report and any reminder emails always send
-          regardless of this setting.
-        </p>
-        <NotificationTierSelector currentTier={profile.notificationTier} />
-        <ActionWindowSelector current={profile.actionWindow} />
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <h2 className="text-lg font-semibold">Support Network</h2>
-        <CommunitySettingsToggles
-          weeklySprintTargetOptOut={profile.weeklySprintTargetOptOut}
-          encouragementGivingOptIn={profile.encouragementGivingOptIn}
-        />
-      </div>
-
-      <WhatTheySeeSection candidateId={profile.id} />
-
-      {coach && (
-        <div className="space-y-3 border-t border-border pt-8">
-          <h2 className="text-lg font-semibold">Coach access</h2>
-          <CoachAccessSettings coachName={coach.fullName} hasConsented={profile.coachDossierConsentedAt !== null} />
-        </div>
-      )}
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold">Account</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Manage your login.</p>
-        </div>
-        <Button nativeButton={false} render={<Link href="/auth/forgot-password" />} variant="outline">
-          Change my password
-        </Button>
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold">Your data</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Download everything we hold about you — your profile, references, resumes, reports,
-            and activity — as a single file, any time you want it.
-          </p>
-        </div>
-        <Button nativeButton={false} render={<a href="/api/export-data" download />} variant="outline">
-          Download my data
-        </Button>
-      </div>
-
-      <div className="space-y-3 border-t border-border pt-8">
-        <div>
-          <h2 className="text-lg font-semibold text-destructive">Danger zone</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Deactivate your account — makes it unusable without deleting anything. For a real,
-            permanent deletion, email support instead.
-          </p>
-        </div>
-        <DeleteAccountForm />
-      </div>
+      </MoreDetails>
     </div>
   )
 }

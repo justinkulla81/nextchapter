@@ -1,10 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import type { SupportNetworkContact } from '@prisma/client'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { SubmitButton } from '@/components/ui/submit-button'
+import { ActionSubmit } from '@/components/candidate/ActionSubmit'
 import { RelationshipTagsFieldset } from '@/components/dashboard/RelationshipTagsFieldset'
 import { TagInput } from '@/components/onboarding/TagInput'
 import { updateContact } from '@/app/dashboard/network/actions'
@@ -41,14 +40,15 @@ export interface ContactRowData extends SupportNetworkContact {
 // contact profile page (/dashboard/network/contacts/[id]), so editing a
 // contact works identically from either entry point.
 export function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
-  const referenceHref = `/dashboard/references?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(
-    contact.email ?? ''
-  )}`
-  const [dirty, setDirty] = useState(false)
-
   return (
-    <div className="space-y-4">
-      <div className="space-y-1 rounded-lg border border-border bg-background p-3">
+    <div
+      className={cn(
+        'space-y-4',
+        // The redesigned look: sentence-case labels and inputs at body size, with the same fields and the same save.
+        '[&_input]:h-11 [&_input]:text-base [&_label]:text-sm [&_label]:font-semibold [&_label]:text-ink [&_p]:text-sm [&_textarea]:text-base'
+      )}
+    >
+      <div className={cn('space-y-1 rounded-lg border border-border bg-background p-3', 'hidden')}>
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Communications</p>
         {contact.outreachCount > 0 ? (
           <p className="text-sm text-foreground">
@@ -70,7 +70,6 @@ export function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
       <form
         action={updateContact.bind(null, contact.id)}
         className="space-y-3"
-        onChange={() => setDirty(true)}
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <LabeledInput name="name" label="Name" defaultValue={contact.name} required className="max-w-[220px]" />
@@ -113,16 +112,12 @@ export function ContactDetailPanel({ contact }: { contact: ContactRowData }) {
           <Textarea id="notes" name="notes" defaultValue={contact.notes ?? ''} rows={2} />
         </div>
 
-        <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
-          Save
-        </SubmitButton>
+        <ActionSubmit variant="secondary" pendingLabel="Saving…" event="contact_saved" props={{ contactId: contact.id }}>
+          Save changes
+        </ActionSubmit>
       </form>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-        <a href={referenceHref} className="text-sm font-medium text-primary underline underline-offset-4">
-          Request a reference from {contact.name} →
-        </a>
-      </div>
+      
     </div>
   )
 }

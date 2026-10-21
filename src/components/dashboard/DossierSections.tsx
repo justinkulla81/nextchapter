@@ -230,7 +230,7 @@ function DossierSectionBlock({
       )
 
     case 'impactOnPeople':
-      if (dossier.impactOnPeople.quotes.length === 0 && !dossier.impactOnPeople.communityNarrative) return null
+      if (dossier.impactOnPeople.quotes.length === 0 && !dossier.impactOnPeople.communityNarrative && !dossier.impactOnPeople.insightNarrative) return null
       return (
         <section>
           <SectionHeading>{title}</SectionHeading>
@@ -247,6 +247,9 @@ function DossierSectionBlock({
           )}
           {dossier.impactOnPeople.communityNarrative && (
             <p className="mt-3 text-sm text-foreground">{dossier.impactOnPeople.communityNarrative}</p>
+          )}
+          {dossier.impactOnPeople.insightNarrative && (
+            <p className="mt-3 text-sm text-foreground">{dossier.impactOnPeople.insightNarrative}</p>
           )}
         </section>
       )

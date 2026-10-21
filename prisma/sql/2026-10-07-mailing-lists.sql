@@ -297,7 +297,7 @@ ALTER TABLE "MailingUnsubscribeRequest" ENABLE ROW LEVEL SECURITY;
 
 -- The six starting lists. Editable afterwards in Admin → CRM → Mailing lists.
 INSERT INTO "MailingList" ("id", "key", "name", "description", "audience", "defaultFromName", "isActive", "sortOrder", "updatedAt") VALUES
-  ('ml_monthly_update', 'monthly_update', 'Monthly Update', 'The Displacement Report, the week the jobs report comes out.', 'Anyone who asked for the report, and people you send it to', 'Justin Kulla', true, 0, now()),
+  ('ml_monthly_update', 'monthly_update', 'Monthly Update', 'The NextChapter White Collar Employment Report, the week the jobs report comes out.', 'Anyone who asked for the report, and people you send it to', 'Justin Kulla', true, 0, now()),
   ('ml_investors', 'investors', 'Investor updates', 'Investor and potential investor updates.', 'Investors and potential investors', 'Justin Kulla', true, 1, now()),
   ('ml_candidates', 'candidates', 'Candidates', 'News for job seekers.', 'Job seekers', 'Justin Kulla', true, 2, now()),
   ('ml_leads', 'leads', 'Leads and prospects', 'Workforce boards (WIOA), higher ed and outplacement buyers.', 'WIOA / workforce boards, higher ed, outplacement', 'Justin Kulla', true, 3, now()),

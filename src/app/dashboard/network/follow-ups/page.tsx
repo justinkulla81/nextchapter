@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { Bell, ArrowLeft } from 'lucide-react'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
 import { formatRelativeTime } from '@/lib/format-relative-time'
-import { cn } from '@/lib/utils'
+import { followUpActionLabel, followUpWhy, followUpsIntro } from '@/lib/redesign/network-pages'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ListRow, RowList } from '@/components/candidate/ListRow'
+import { EmptyCard } from '@/components/candidate/EmptyCard'
+import { TrackedAction } from '@/components/candidate/TrackedAction'
+import { ShowMore } from '@/components/candidate/ShowMore'
 
 export const metadata: Metadata = { title: 'Follow-ups' }
 
@@ -12,74 +16,68 @@ export default async function FollowUpsPage() {
   const profile = await getDashboardProfile()
   const items = await getUnifiedFollowUps(profile.id)
 
+  // The redesign (docs/candidate-redesign.md): the first five, each with one reason and one action. The rest sit behind Show more.
+  captureServerEvent(profile.id, 'follow_ups_viewed', { items: items.length })
+  const VISIBLE = 5
+  const row = (item: (typeof items)[number]) => (
+    <ListRow
+      key={`${item.kind}-${item.id}`}
+      name={item.title}
+      title={item.title}
+      why={followUpWhy(item.kind)}
+      fact={[item.subtitle, item.date ? formatRelativeTime(item.date) : null].filter(Boolean).join(' · ')}
+      actions={
+        <TrackedAction
+          variant="secondary"
+          href={item.href}
+          external={item.href.startsWith('http')}
+          event="follow_up_opened"
+          properties={{ kind: item.kind, itemId: item.id, source: 'follow_ups_page' }}
+        >
+          {followUpActionLabel(item.kind)}
+        </TrackedAction>
+      }
+    />
+  )
+  const first = items[0]
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden />
-        Back to dashboard
-      </Link>
-
-      <div className="flex items-center gap-2">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-orange/15 text-orange">
-          <Bell className="size-4" aria-hidden />
-        </span>
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight text-foreground">Follow-ups</h1>
-          <p className="text-xs text-muted-foreground">People and applications waiting on a reply from you</p>
-        </div>
-      </div>
-
+    <div className="space-y-8">
+      <PageHeader
+        title="Follow-ups"
+        intro={followUpsIntro(items.length)}
+        action={
+          first ? (
+            <TrackedAction
+              variant="primary"
+              href={first.href}
+              external={first.href.startsWith('http')}
+              event="follow_up_opened"
+              properties={{ kind: first.kind, itemId: first.id, source: 'follow_ups_primary' }}
+            >
+              {followUpActionLabel(first.kind)}: {first.title}
+            </TrackedAction>
+          ) : undefined
+        }
+      />
       {items.length === 0 ? (
-        <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-          You&apos;re all caught up — nothing needs a reply right now.
-        </p>
+        <EmptyCard
+          title="You are all caught up"
+          why="Nothing needs a reply right now. When someone writes back or a conversation goes quiet, it shows up here with a reason."
+          action={
+            <TrackedAction variant="secondary" href="/dashboard/network/this-week" event="this_week_opened" properties={{ source: 'follow_ups_empty' }}>
+              See who to write to this week
+            </TrackedAction>
+          }
+        />
       ) : (
-        <div className="divide-y divide-border rounded-lg border border-border bg-card">
-          {items.map((item, i) => {
-            const isExternal = item.href.startsWith('http')
-            const content = (
-              <>
-                <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
-                  {item.title}
-                </span>
-                <span
-                  className="max-w-[45%] shrink-0 truncate rounded-full bg-orange/15 px-2 py-0.5 text-xs font-medium text-foreground"
-                  title={item.subtitle}
-                >
-                  {item.subtitle}
-                </span>
-                {item.date && (
-                  <span className="w-20 shrink-0 text-right text-xs text-muted-foreground">
-                    {formatRelativeTime(item.date)}
-                  </span>
-                )}
-              </>
-            )
-            const className = cn(
-              'flex items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:text-brand',
-              i === 0 && 'rounded-t-lg',
-              i === items.length - 1 && 'rounded-b-lg'
-            )
-            return isExternal ? (
-              <a
-                key={`${item.kind}-${item.id}`}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={className}
-              >
-                {content}
-              </a>
-            ) : (
-              <Link key={`${item.kind}-${item.id}`} href={item.href} className={className}>
-                {content}
-              </Link>
-            )
-          })}
-        </div>
+        <>
+          <RowList label="Waiting on a reply from you">{items.slice(0, VISIBLE).map(row)}</RowList>
+          {items.length > VISIBLE && (
+            <ShowMore page="follow_ups" label={`Show ${items.length - VISIBLE} more`}>
+              <RowList label="More follow-ups">{items.slice(VISIBLE).map(row)}</RowList>
+            </ShowMore>
+          )}
+        </>
       )}
     </div>
   )

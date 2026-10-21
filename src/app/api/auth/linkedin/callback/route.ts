@@ -3,11 +3,40 @@ import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { exchangeCodeForTokens, fetchLinkedInPersonUrn, isLinkedInPostingConfigured } from '@/lib/linkedin/oauth'
 import { prisma } from '@/lib/prisma'
+import { ADMIN_HOST } from '@/proxy'
+import { verifyAdminLinkedInState } from '@/lib/linkedin/admin-state'
+import { fetchLinkedInProfile } from '@/lib/linkedin/oauth'
+import { encryptToken } from '@/lib/security/token-crypto'
+
+// The admin's "Connect LinkedIn" lands here too (the one redirect URL the
+// LinkedIn app has registered). A request carrying a valid signed admin state
+// is the admin's; everything else is the candidate flow below, unchanged.
+async function adminConnect(request: NextRequest, adminEmail: string): Promise<NextResponse> {
+  const back = (q: string) => NextResponse.redirect(new URL(`/support/admin/linkedin-drafts?linkedin=${q}`, `https://${ADMIN_HOST}`))
+  const code = request.nextUrl.searchParams.get('code')
+  if (request.nextUrl.searchParams.get('error') || !code) return back('denied')
+  try {
+    const tokens = await exchangeCodeForTokens(code, { admin: true })
+    const { personUrn, name } = await fetchLinkedInProfile(tokens.access_token)
+    const data = {
+      accessToken: encryptToken(tokens.access_token), personUrn, memberName: name,
+      expiresAt: new Date(Date.now() + tokens.expires_in * 1000), connectedAt: new Date(), disconnectedAt: null,
+    }
+    await prisma.linkedInAdminConnection.upsert({ where: { adminEmail }, create: { adminEmail, ...data }, update: data })
+    return back('connected')
+  } catch (err) {
+    console.error('LinkedIn admin connect failed:', err)
+    return back('exchange_failed')
+  }
+}
 
 // See start/route.ts — this route is real but unreachable until
 // LINKEDIN_CLIENT_ID/SECRET are configured (never true in this environment
 // today).
 export async function GET(request: NextRequest) {
+  const adminState = verifyAdminLinkedInState(request.nextUrl.searchParams.get('state'))
+  if (adminState && isLinkedInPostingConfigured()) return adminConnect(request, adminState.adminEmail)
+
   const supabase = await createClient()
   const {
     data: { user },

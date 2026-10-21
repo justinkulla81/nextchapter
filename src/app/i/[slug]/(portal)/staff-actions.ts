@@ -13,12 +13,14 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import { linkPostingToCompany } from '@/lib/companies/posting-company'
 import { flagTargetCompany, unflagTargetCompany } from '@/lib/companies/institution-targets'
+import { setCoreRecruiter, addRecruitingDate, removeRecruitingDate, addEarlyCareerRole, archiveEarlyCareerRole } from '@/lib/higher-ed/recruiting'
 import { inviteInstitutionUser } from '@/lib/institution/invite'
 import { updateInstitutionBranding, uploadInstitutionImage } from '@/lib/institution/admin'
 import { importGifts, importRoster } from '@/lib/higher-ed/crm-import'
 import { sendJoinInvites } from '@/lib/higher-ed/invites'
 import { canAny, type InstitutionCapability } from '@/lib/institution/permissions'
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
+import { recordInstitutionAudit } from '@/lib/higher-ed/partner-audit'
 import { US_TIME_ZONES } from '@/lib/higher-ed/time-zone'
 import type { WorkspaceKey } from '@/lib/higher-ed/workspaces'
 
@@ -121,6 +123,68 @@ export async function removeTargetCompany(slug: string, companyId: string): Prom
   revalidatePath(`/i/${slug}`, 'layout')
 }
 
+const field = (formData: FormData, k: string) => (formData.get(k) as string | null)?.trim() || ''
+
+/** Flag a target company as a core recruiter (or clear the flag), with its recruiter contact. */
+export async function saveCoreRecruiter(slug: string, companyId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return { error: 'You do not have access to change target companies.' }
+  const core = field(formData, 'core') === 'yes'
+  const result = await setCoreRecruiter({
+    institutionId: ctx.institution.id, companyId, core,
+    contactName: field(formData, 'contactName'), contactEmail: field(formData, 'contactEmail'),
+  })
+  if ('error' in result) return { error: result.error }
+  captureServerEvent(ctx.userId, core ? 'institution_core_recruiter_flagged' : 'institution_core_recruiter_cleared', { institutionId: ctx.institution.id, companyId })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+export async function addRecruitingDateAction(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return { error: 'You do not have access to change the recruiting calendar.' }
+  const result = await addRecruitingDate({
+    institutionId: ctx.institution.id, companyName: fixAllCapsCompanyName(field(formData, 'companyName')),
+    kind: field(formData, 'kind'), title: field(formData, 'title'), startsAt: field(formData, 'startsAt'),
+    location: field(formData, 'location'), url: field(formData, 'url'), note: field(formData, 'note'), createdBy: ctx.email,
+  })
+  if ('error' in result) return { error: result.error }
+  captureServerEvent(ctx.userId, 'institution_recruiting_date_added', { institutionId: ctx.institution.id, companyId: result.companyId, kind: field(formData, 'kind') })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+export async function removeRecruitingDateAction(slug: string, id: string): Promise<void> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return
+  await removeRecruitingDate(ctx.institution.id, id)
+  captureServerEvent(ctx.userId, 'institution_recruiting_date_removed', { institutionId: ctx.institution.id, dateId: id })
+  revalidatePath(`/i/${slug}`, 'layout')
+}
+
+export async function addEarlyCareerRoleAction(slug: string, _prev: FormState, formData: FormData): Promise<FormState> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return { error: 'You do not have access to change early-career roles.' }
+  const result = await addEarlyCareerRole({
+    institutionId: ctx.institution.id, companyName: fixAllCapsCompanyName(field(formData, 'companyName')),
+    kind: field(formData, 'kind'), title: field(formData, 'title'), location: field(formData, 'location'),
+    applyUrl: field(formData, 'applyUrl'), deadline: field(formData, 'deadline'), classYears: field(formData, 'classYears'),
+    note: field(formData, 'note'), createdBy: ctx.email,
+  })
+  if ('error' in result) return { error: result.error }
+  captureServerEvent(ctx.userId, 'institution_early_career_role_added', { institutionId: ctx.institution.id, companyId: result.companyId, kind: field(formData, 'kind') })
+  revalidatePath(`/i/${slug}`, 'layout')
+  return { ok: true }
+}
+
+export async function archiveEarlyCareerRoleAction(slug: string, id: string): Promise<void> {
+  const ctx = await gate(slug, 'career', 'manage_target_companies')
+  if (!ctx) return
+  await archiveEarlyCareerRole(ctx.institution.id, id)
+  captureServerEvent(ctx.userId, 'institution_early_career_role_archived', { institutionId: ctx.institution.id, roleId: id })
+  revalidatePath(`/i/${slug}`, 'layout')
+}
+
 const INVITABLE: InstitutionUserRole[] = [
   'INSTITUTION_ADMIN',
   'ALUMNI_RELATIONS',
@@ -152,6 +216,7 @@ export async function inviteStaff(slug: string, _prev: FormState, formData: Form
   })
   if (result.error) return { error: result.error }
   captureServerEvent(ctx.userId, 'institution_staff_invited', { institutionId: ctx.institution.id, role, workspace })
+  await recordInstitutionAudit(ctx, 'team.invited', { type: 'staff', detail: { role } })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Invite sent.' }
 }
@@ -171,6 +236,7 @@ export async function removeStaff(slug: string, staffId: string): Promise<{ erro
   }
   await prisma.institutionUser.update({ where: { id: staffId }, data: { revokedAt: new Date() } })
   captureServerEvent(ctx.userId, 'institution_staff_removed', { institutionId: ctx.institution.id, role: row.role })
+  await recordInstitutionAudit(ctx, 'team.removed', { type: 'staff', id: staffId, detail: { role: row.role } })
   revalidatePath(`/i/${slug}`, 'layout')
   return { message: 'Removed. They lose this role right away.' }
 }
@@ -184,6 +250,7 @@ export async function resendStaffInvite(slug: string, staffId: string): Promise<
   const r = await inviteInstitutionUser({ institutionSlug: slug, email: row.invitedEmail, role: row.role, workspace: row.workspace })
   if (r.error) return { error: r.error }
   captureServerEvent(ctx.userId, 'institution_staff_invite_resent', { institutionId: ctx.institution.id, role: row.role })
+  await recordInstitutionAudit(ctx, 'team.invite_resent', { type: 'staff', id: staffId, detail: { role: row.role } })
   revalidatePath(`/i/${slug}`, 'layout')
   return { message: 'Invite sent again.' }
 }
@@ -207,6 +274,7 @@ export async function saveBranding(slug: string, _prev: FormState, formData: For
     ...(hero ? { heroImageUrl: hero } : {}),
   })
   captureServerEvent(ctx.userId, 'he_branding_saved', { institutionId: ctx.institution.id, logo: !!logo, hero: !!hero })
+  await recordInstitutionAudit(ctx, 'brand.updated', { type: 'institution', id: ctx.institution.id })
   revalidatePath(`/i/${slug}`, 'layout')
   return { ok: true, message: 'Saved. Everyone sees the new look on their next page load.' }
 }

@@ -16,3 +16,13 @@ export const getCurrentUser = cache(async () => {
   } = await supabase.auth.getUser()
   return user
 })
+
+// The college/workforce org portal's own session (staff, member companies,
+// NextChapter admins), separate from the candidate one.
+export const getOrgUser = cache(async () => {
+  const supabase = await createClient('org')
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  return user
+})

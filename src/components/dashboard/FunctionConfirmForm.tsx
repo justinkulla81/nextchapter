@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { cn } from '@/lib/utils'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
 
 const POINTS = estimateActionEffort({ actionType: 'FUNCTION_CONFIRM' }).points
 
@@ -17,7 +18,10 @@ export function FunctionConfirmForm({
   resumeLatestJobTitle,
   yearsExperience,
   confirmedAt,
+  prefilled = [],
 }: {
+  /** Fields filled from the résumé and not confirmed yet (resume-prefill.ts). */
+  prefilled?: string[]
   primaryFunction: string | null
   resumeLatestJobTitle: string | null
   yearsExperience: number | null
@@ -42,6 +46,10 @@ export function FunctionConfirmForm({
       className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
       <ConfirmHint show={!isConfirmed} />
+      {(() => {
+        const fields = prefilled.filter((f) => f === 'resumeLatestJobTitle' || f === 'yearsExperience' || f === 'primaryFunction')
+        return <FromResumeTag show={fields.length > 0} section="function" fields={fields} />
+      })()}
       <p className="text-sm text-foreground">
         Primary function: <span className="font-medium">{primaryFunction ?? 'Not set'}</span>{' '}
         <Link href="/dashboard/search-strategy" className="text-brand underline underline-offset-2">

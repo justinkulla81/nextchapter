@@ -13,6 +13,7 @@ import {
 import { ConfirmHint } from '@/components/dashboard/ConfirmHint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import { cn } from '@/lib/utils'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
 
 const WORK_AUTHORIZATION_OPTIONS = [
   { value: 'us_citizen', label: 'U.S. citizen' },
@@ -44,7 +45,10 @@ export function WorkAuthorizationConfirmForm({
   workAuthorization,
   visaStatus,
   confirmedAt,
+  prefilled = [],
 }: {
+  /** Fields filled from the résumé and not confirmed yet (resume-prefill.ts). */
+  prefilled?: string[]
   workAuthorization: string | null
   visaStatus: string | null
   confirmedAt: Date | null
@@ -71,6 +75,7 @@ export function WorkAuthorizationConfirmForm({
   return (
     <form action={formAction} className={cn('space-y-3', pending && 'cursor-progress [&_*]:cursor-progress')}>
       <ConfirmHint show={!isConfirmed} />
+      <FromResumeTag show={prefilled.includes('workAuthorization')} section="work_authorization" fields={['workAuthorization']} />
       <Select
         name="workAuthorization"
         value={workAuth}

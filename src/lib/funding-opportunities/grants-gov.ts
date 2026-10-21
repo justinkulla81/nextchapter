@@ -1,4 +1,4 @@
-import { parseUsDate, type FundingNotice } from './relevance'
+import { decodeEntities, parseUsDate, type FundingNotice } from './relevance'
 import { classifyGrant, statesFromText } from './eligibility'
 
 // Grants.gov search2: public, no key. One request per keyword, sequential and
@@ -16,11 +16,11 @@ interface Hit {
   oppStatus?: string
 }
 
-export async function searchGrantsGov(keyword: string, rows = 50): Promise<Hit[]> {
+export async function searchGrantsGov(keyword: string, rows = 50, agencies?: string): Promise<Hit[]> {
   const res = await fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ keyword, oppStatuses: 'forecasted|posted', rows, sortBy: 'openDate|desc' }),
+    body: JSON.stringify({ keyword, ...(agencies ? { agencies } : {}), oppStatuses: 'forecasted|posted', rows, sortBy: 'openDate|desc' }),
     signal: AbortSignal.timeout(20_000),
   })
   if (!res.ok) throw new Error(`Grants.gov ${res.status}`)
@@ -43,9 +43,9 @@ export function noticesFromHits(byKeyword: Record<string, Hit[]>): FundingNotice
       byId.set(h.id, {
         source: 'grants.gov',
         id: h.number || h.id,
-        title: h.title.trim(),
+        title: decodeEntities(h.title),
         kind: h.oppStatus === 'forecasted' ? 'FORECAST' : 'GRANT',
-        agency: h.agency.trim(),
+        agency: decodeEntities(h.agency),
         agencyType: 'FUNDER_GRANT',
         postedAt: parseUsDate(h.openDate),
         closesAt: parseUsDate(h.closeDate),

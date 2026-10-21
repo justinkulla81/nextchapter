@@ -3,18 +3,11 @@ import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { generateCoachShortlist } from '@/lib/coach/matching'
-import { SubmitButton } from '@/components/ui/submit-button'
 import { Spinner } from '@/components/ui/spinner'
-import { submitCoachPreferences, selectCoach } from './actions'
-import { COACHING_STYLE_ITEMS } from '@/lib/coach/coaching-style'
 import { prisma } from '@/lib/prisma'
-
-const RATING_CHOICES = [
-  { value: 1, label: 'Not me' },
-  { value: 2, label: 'A little' },
-  { value: 3, label: 'Mostly' },
-  { value: 4, label: 'Very me' },
-]
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { CoachPreferencesForm, CoachShortlistRedesign } from '@/components/coaching/CoachMatchRedesign'
 
 export const metadata: Metadata = { title: 'Coach Matching' }
 
@@ -24,56 +17,8 @@ export const metadata: Metadata = { title: 'Coach Matching' }
 // boundary so the page header renders immediately either way.
 async function CoachShortlist({ candidateId }: { candidateId: string }) {
   const shortlist = await generateCoachShortlist(candidateId)
-
-  if (shortlist.length === 0) {
-    return <p className="text-sm text-muted-foreground">No coaches are available to match right now — check back soon.</p>
-  }
-  return (
-    <div className="space-y-3">
-      {shortlist.map((coach) => (
-        <div key={coach.id} className="rounded-lg border border-border p-4">
-          <p className="font-medium text-foreground">
-            {coach.fullName}
-            {coach.collegeName && (
-              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{coach.collegeName}</span>
-            )}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {coach.firmName ?? 'Independent'} · {coach.focus}
-          </p>
-          {coach.reasons.length > 0 && (
-            <ul className="mt-2 space-y-0.5 text-sm text-foreground">
-              {coach.reasons.map((r) => (
-                <li key={r}>{r}</li>
-              ))}
-            </ul>
-          )}
-          {coach.industries.length > 0 && (
-            <p className="mt-1 text-xs text-muted-foreground">Industries: {coach.industries.join(', ')}</p>
-          )}
-          <form action={selectCoach.bind(null, coach.id)} className="mt-3">
-            <SubmitButton size="sm" pendingLabel="Confirming…">
-              Choose {coach.fullName.split(' ')[0]}
-            </SubmitButton>
-          </form>
-        </div>
-      ))}
-    </div>
-  )
+  return <CoachShortlistRedesign shortlist={shortlist} />
 }
-
-function CoachShortlistSkeleton() {
-  return (
-    <div className="flex items-center gap-2 rounded-lg border border-border p-6 text-sm text-muted-foreground">
-      <Spinner size={16} />
-      Finding your best coach matches…
-    </div>
-  )
-}
-
-
-const selectClass =
-  'mt-1 h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand'
 
 export default async function CoachingMatchPage({
   searchParams,
@@ -95,113 +40,26 @@ export default async function CoachingMatchPage({
       select: { itemRatings: true },
     })
     const savedRatings = (saved?.itemRatings ?? {}) as Record<string, number>
+    captureServerEvent(profile.id, 'coach_match_preferences_viewed', { hasSaved: Boolean(saved) })
     return (
-      <div className="mx-auto max-w-lg space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Get matched with a coach</h1>
-          <p className="text-muted-foreground">
-            A few quick preferences — everything here is optional, skip anything you don&apos;t have a
-            preference on.
-          </p>
-        </div>
-        <form action={submitCoachPreferences} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-foreground" htmlFor="genderPreference">
-              Coach gender
-            </label>
-            <select
-              id="genderPreference"
-              name="genderPreference"
-              defaultValue={profile.coachGenderPreference ?? ''}
-              className={selectClass}
-            >
-              <option value="">No preference</option>
-              <option value="female">Female</option>
-              <option value="male">Male</option>
-              <option value="nonbinary">Non-binary</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground" htmlFor="communicationStylePreference">
-              Feedback style
-            </label>
-            <select
-              id="communicationStylePreference"
-              name="communicationStylePreference"
-              defaultValue={profile.coachCommunicationStylePreference ?? ''}
-              className={selectClass}
-            >
-              <option value="">No preference</option>
-              <option value="direct">Direct — tell me straight, right away</option>
-              <option value="context_first">Context first — walk me through the reasoning before critical feedback</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground" htmlFor="languagePreference">
-              Language
-            </label>
-            <input
-              id="languagePreference"
-              name="languagePreference"
-              defaultValue={profile.coachLanguagePreference ?? ''}
-              placeholder="e.g. English"
-              className={selectClass}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground" htmlFor="timezonePreference">
-              Timezone
-            </label>
-            <input
-              id="timezonePreference"
-              name="timezonePreference"
-              defaultValue={profile.coachTimezonePreference ?? ''}
-              placeholder="e.g. ET"
-              className={selectClass}
-            />
-          </div>
-          <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-foreground">What do you want from a coach?</legend>
-            <p className="text-sm text-muted-foreground">
-              Tell us how much each sounds like you. We use this only to suggest coaches who work the way you
-              want; skip any you like.
-            </p>
-            {COACHING_STYLE_ITEMS.map((item) => (
-              <div key={item.id} className="space-y-1.5">
-                <p className="text-sm text-foreground">{item.text}</p>
-                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={item.text}>
-                  {RATING_CHOICES.map((c) => (
-                    <label
-                      key={c.value}
-                      className="cursor-pointer rounded-md border border-input px-3 py-1.5 text-sm has-[:checked]:border-ring has-[:checked]:bg-muted"
-                    >
-                      <input
-                        type="radio"
-                        name={`style-${item.id}`}
-                        value={c.value}
-                        defaultChecked={savedRatings[item.id] === c.value}
-                        className="sr-only"
-                      />
-                      {c.label}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </fieldset>
-          <SubmitButton pendingLabel="Finding coaches…">See my matches</SubmitButton>
-        </form>
+      <div className="max-w-2xl space-y-8">
+        <PageHeader title="Get matched with a coach" intro="A few quick preferences help us suggest coaches who work the way you like. Everything here is optional, so skip anything you have no preference on." />
+        <CoachPreferencesForm
+          gender={profile.coachGenderPreference}
+          feedbackStyle={profile.coachCommunicationStylePreference}
+          language={profile.coachLanguagePreference}
+          timezone={profile.coachTimezonePreference}
+          savedRatings={savedRatings}
+        />
       </div>
     )
   }
 
+  captureServerEvent(profile.id, 'coach_matches_viewed')
   return (
-    <div className="mx-auto max-w-lg space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Your coach matches</h1>
-        <p className="text-muted-foreground">Based on your target role, level, and preferences.</p>
-      </div>
-      <Suspense fallback={<CoachShortlistSkeleton />}>
+    <div className="max-w-2xl space-y-8">
+      <PageHeader title="Your coach matches" intro="Chosen for your target role, your level and your preferences. Each one says why." />
+      <Suspense fallback={<p className="flex items-center gap-2 text-base text-ink"><Spinner size={16} />Finding your best coach matches…</p>}>
         <CoachShortlist candidateId={profile.id} />
       </Suspense>
     </div>

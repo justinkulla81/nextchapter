@@ -44,10 +44,11 @@ export function ResumeVersionsList({ versions, fromGap }: { versions: ResumeVers
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        Your resume{versions.length > 1 ? ' versions' : ''}
-      </p>
-      <div className="divide-y divide-border rounded-lg border border-border">
+      <div className="space-y-1">
+        <h2 className="font-display text-xl font-semibold text-ink">Your résumé{versions.length > 1 ? ' versions' : ''}</h2>
+        <p className="max-w-2xl text-base text-muted-foreground">Keep one for each kind of role. Open one to see what to fix or to rename it.</p>
+      </div>
+      <div className="divide-y divide-border rounded-2xl border border-border">
         {versions.map((version) => (
           <ResumeVersionRow
             key={version.id}
@@ -66,22 +67,12 @@ function issueCount(version: ResumeVersionItem): number {
   return version.atsFeedback.length + version.resultsFeedback.length + version.experienceFeedback.length
 }
 
-function ResumeStatusLine({ version }: { version: ResumeVersionItem }) {
-  if (version.analysisError) {
-    return <p className="text-xs text-destructive">Analysis failed</p>
-  }
-  if (version.atsScore === null) {
-    return <p className="text-xs text-muted-foreground">Analyzing…</p>
-  }
+/** One plain verdict per version, with the reason: how many things to fix, or that nothing was found. */
+function resumeVerdict(version: ResumeVersionItem): string {
+  if (version.analysisError) return 'We could not read this file. Try uploading it again.'
+  if (version.atsScore === null) return 'We are reading it now.'
   const issues = issueCount(version)
-  if (issues > 0) {
-    return (
-      <p className="text-xs font-medium text-amber-700">
-        {issues} issue{issues === 1 ? '' : 's'} found
-      </p>
-    )
-  }
-  return <p className="text-xs text-success">No issues found</p>
+  return issues > 0 ? `${issues} ${issues === 1 ? 'thing' : 'things'} to fix so a recruiter reads further.` : 'Nothing to fix. A recruiter can read it as is.'
 }
 
 function ResumeVersionRow({
@@ -96,36 +87,29 @@ function ResumeVersionRow({
   fromGap?: string
 }) {
   const [, startTransition] = useTransition()
-  const [dirty, setDirty] = useState(false)
 
   return (
-    <div className={cn('p-3', isExpanded && 'bg-muted/30')}>
+    <div className={cn('p-5', isExpanded && 'bg-muted/30')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-foreground">
-            {version.label || version.fileName}
-            {version.isLatest && (
-              <span className="ml-1.5 rounded-full bg-brand/10 px-1.5 py-0.5 text-[10px] font-medium text-brand">
-                Current
-              </span>
-            )}
+        <div className="min-w-0 space-y-0.5">
+          <p className="truncate text-base font-semibold text-ink">{version.label || version.fileName}</p>
+          <p className="text-sm text-ink">{resumeVerdict(version)}</p>
+          <p className="truncate text-sm text-muted-foreground">
+            {version.isLatest ? 'Current version. ' : ''}
+            {version.description || `Uploaded ${version.uploadedAt.toLocaleDateString()}`}
           </p>
-          <p className="truncate text-xs text-muted-foreground">
-            {version.description || version.uploadedAt.toLocaleDateString()}
-          </p>
-          <ResumeStatusLine version={version} />
         </div>
-        <div className="flex shrink-0 items-center gap-3 text-xs font-medium">
+        <div className="flex shrink-0 items-center gap-3 text-sm font-medium">
           {version.signedUrl && (
             <ResumeViewButton
               signedUrl={version.signedUrl}
               title={version.label || version.fileName}
-              className="text-primary hover:underline"
+              className="text-brand underline underline-offset-4"
             >
               View
             </ResumeViewButton>
           )}
-          <button type="button" onClick={onToggle} className="text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={onToggle} className="text-brand underline underline-offset-4">
             {isExpanded ? 'Hide' : 'Details'}
           </button>
         </div>
@@ -188,7 +172,7 @@ function ResumeVersionRow({
             </div>
           )}
 
-          <form action={updateResumeDetails.bind(null, version.id)} className="space-y-2" onChange={() => setDirty(true)}>
+          <form action={updateResumeDetails.bind(null, version.id)} className="space-y-2">
             <div className="space-y-1">
               <label htmlFor={`label-${version.id}`} className="text-xs font-medium text-muted-foreground">
                 Name
@@ -207,7 +191,7 @@ function ResumeVersionRow({
                 placeholder="What's different about this one — e.g. tailored for VP Product roles"
               />
             </div>
-            <SubmitButton size="sm" variant={dirty ? 'success' : 'outline'}>
+            <SubmitButton size="sm" variant="outline">
               Save
             </SubmitButton>
           </form>

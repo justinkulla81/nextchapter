@@ -1,5 +1,5 @@
 import { classifySetAside } from './eligibility'
-import { agencyFromSamPath, parseUsDate, titleScore, type FundingNotice, type NoticeKind } from './relevance'
+import { agencyFromSamPath, decodeEntities, parseUsDate, titleScore, type FundingNotice, type NoticeKind } from './relevance'
 
 // SAM.gov Get Opportunities v2. Needs SAM_API_KEY (free; register at sam.gov →
 // Account Details). A key with no SAM role is limited to ~10 requests a day, so
@@ -70,7 +70,7 @@ export function noticesFromSam(byNaics: Record<string, SamOpp[]>): FundingNotice
       byId.set(o.noticeId, {
         source: 'sam.gov',
         id: o.solicitationNumber || o.noticeId,
-        title: o.title.trim(),
+        title: decodeEntities(o.title),
         kind: kindOf(o),
         agency: agencyFromSamPath(o.fullParentPathName ?? ''),
         agencyType: 'GOVERNMENT',

@@ -4,7 +4,8 @@
 // the client-side rail renders from it too. It is presentation and routing
 // config; authorization happens in requireWorkspace() on the server.
 
-import type { InstitutionTier, InstitutionUserRole } from '@prisma/client'
+import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole } from '@prisma/client'
+import { orgAppPath, type OrgHostKind } from '@/lib/org-hosts'
 
 export type WorkspaceKey =
   | 'candidate'
@@ -15,8 +16,10 @@ export type WorkspaceKey =
   | 'execed'
   | 'employer'
   | 'admin'
-  // V2, shown greyed out as "Coming" on demo tenants only.
   | 'workforce'
+  // Workforce customers (boards, economic development orgs, chambers):
+  // member companies, participants, layoffs, kept-in-region.
+  | 'hub'
 
 // What a person holds at one institution. Staff roles come straight from
 // InstitutionUser; a VIEWER seat is scoped to one workspace ("VIEWER:alumni");
@@ -36,13 +39,17 @@ export type WorkspaceTab = {
   // Hidden from alumni when the college switches every one of these portal
   // features off (modules.ts). Staff tabs are never hidden; they say it's off.
   modules?: import('./modules').ModuleKey[]
+  // Only for this kind of customer (omitted = both).
+  orgKind?: OrgKind
+  // Its name on a workforce customer's portal, when different.
+  workforceLabel?: string
 }
 
 export type WorkspaceConfig = {
   key: WorkspaceKey
   label: string
   // A lucide-react icon name, resolved by the rail.
-  icon: 'GraduationCap' | 'Users' | 'HandCoins' | 'Compass' | 'Building2' | 'Settings' | 'BookOpen' | 'Presentation' | 'Landmark' | 'MessagesSquare'
+  icon: 'GraduationCap' | 'Users' | 'HandCoins' | 'Compass' | 'Building2' | 'Settings' | 'BookOpen' | 'Presentation' | 'Landmark' | 'MessagesSquare' | 'MapPin'
   release: Release
   requiredRoles: AccessToken[]
   // Path under /i/[slug]; the first tab is the workspace home.
@@ -52,7 +59,37 @@ export type WorkspaceConfig = {
   minTier?: InstitutionTier
   // Shown only when the college has this switched on (enabledFeatures).
   feature?: 'wioa'
+  // Which kind of customer has it: colleges, workforce customers, or (omitted) both.
+  orgKind?: OrgKind
+  // Its name on a workforce customer's portal, when different.
+  workforceLabel?: string
   tabs: WorkspaceTab[]
+}
+
+export const labelFor = (x: { label: string; workforceLabel?: string }, kind: OrgKind) => (kind === 'workforce' && x.workforceLabel ? x.workforceLabel : x.label)
+
+// A college, or a workforce customer (board, economic development org,
+// chamber, community org): the Institution's orgType.
+export type OrgKind = 'college' | 'workforce'
+
+export const orgKindOf = (t: InstitutionOrgType | null | undefined): OrgKind => (!t || t === 'COLLEGE' ? 'college' : 'workforce')
+
+// The partner activity trail (src/lib/partners/audit.ts) keeps colleges and workforce organizations apart, though both
+// are an Institution served from /i/<slug>.
+export const auditPortalOf = (t: InstitutionOrgType | null | undefined): 'HIGHER_ED' | 'WORKFORCE' => (orgKindOf(t) === 'workforce' ? 'WORKFORCE' : 'HIGHER_ED')
+
+// The portal's public address (src/lib/org-hosts.ts): its own subdomain
+// (workforce. / highered.), or /workforce/<slug> and /highered/<slug> on the
+// main host while subdomains are off. Served from /i/<slug> either way.
+export const orgHostKindOf = (t: InstitutionOrgType | null | undefined): OrgHostKind => (orgKindOf(t) === 'workforce' ? 'workforce' : 'highered')
+export const orgBasePath = (slug: string, t: InstitutionOrgType | null | undefined) => orgAppPath(slug, orgHostKindOf(t))
+
+export const ORG_TYPE_LABELS: Record<InstitutionOrgType, string> = {
+  COLLEGE: 'College or university',
+  WORKFORCE_BOARD: 'Workforce board',
+  ECONOMIC_DEVELOPMENT: 'Economic development',
+  CHAMBER: 'Chamber of commerce',
+  COMMUNITY_ORG: 'Community organization',
 }
 
 // Who can post alumni-only jobs and manage target companies matches
@@ -71,11 +108,13 @@ export const WORKSPACES: WorkspaceConfig[] = [
     homePath: 'candidate',
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
-      { key: 'jobs', label: 'Jobs & projects', comingIn: null, modules: ['alumniJobs', 'projects'] },
-      { key: 'network', label: 'People', comingIn: null },
-      { key: 'mentors', label: 'Mentoring', comingIn: null, modules: ['mentors', 'mentoringCohorts'] },
+      { key: 'jobs', label: 'Jobs & projects', comingIn: null, modules: ['alumniJobs', 'projects'], orgKind: 'college' },
+      // Internships live only in the college portal, never on the member job board.
+      { key: 'internships', label: 'Internships', comingIn: null, modules: ['internships'], orgKind: 'college' },
+      { key: 'network', label: 'People', comingIn: null, orgKind: 'college' },
+      { key: 'mentors', label: 'Mentoring', comingIn: null, modules: ['mentors', 'mentoringCohorts'], orgKind: 'college' },
       { key: 'programs', label: 'Learn', comingIn: null, modules: ['programs', 'courseAuditing'] },
-      { key: 'giveback', label: 'Give back', comingIn: null, modules: ['volunteer', 'giveBack', 'askAlumni'] },
+      { key: 'giveback', label: 'Give back', comingIn: null, modules: ['volunteer', 'giveBack', 'askAlumni'], orgKind: 'college' },
       { key: 'coaching', label: 'Coaching', comingIn: null },
       { key: 'privacy', label: 'Privacy', comingIn: null },
     ],
@@ -87,6 +126,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     release: 'V1',
     requiredRoles: ['ALUMNI_RELATIONS', 'INSTITUTION_ADMIN', 'VIEWER:alumni'],
     homePath: 'alumni',
+    orgKind: 'college',
     tabs: [
       { key: 'home', label: 'Home', comingIn: null },
       { key: 'members', label: 'Members', comingIn: null },
@@ -98,6 +138,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'events', label: 'Events', comingIn: null },
       { key: 'community', label: 'Groups, news & posts', comingIn: null },
       { key: 'volunteers', label: 'Volunteers', comingIn: null },
+      { key: 'connect', label: 'Circles, fairs & class notes', comingIn: null },
       { key: 'engagement', label: 'Engagement', comingIn: null },
     ],
   },
@@ -109,6 +150,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     requiredRoles: ['DEVELOPMENT', 'INSTITUTION_ADMIN', 'VIEWER:development'],
     homePath: 'development',
     minTier: 'ADVANCEMENT',
+    orgKind: 'college',
     tabs: [
       { key: 'home', label: 'ROI dashboard', comingIn: null },
       { key: 'transition', label: 'In transition', comingIn: null },
@@ -125,14 +167,18 @@ export const WORKSPACES: WorkspaceConfig[] = [
     // Coaches (a college's own) share the counselors' view of assigned members.
     requiredRoles: ['CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'],
     homePath: 'career',
+    orgKind: 'college',
     tabs: [
       { key: 'home', label: 'Caseload', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'coaching', label: 'Coaching', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'jobs', label: 'Alumni jobs', comingIn: null, requiredRoles: POST_JOBS },
       { key: 'companies', label: 'Target companies', comingIn: null, requiredRoles: TARGET_COMPANIES },
+      { key: 'recruiting', label: 'Recruiting & internships', comingIn: null, requiredRoles: TARGET_COMPANIES },
       { key: 'outcomes', label: 'Outcomes', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'checkins', label: 'Check-ins', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'students', label: 'Student tools', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
+      { key: 'internships', label: 'Internships', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
+      { key: 'circles', label: 'Circles & career fairs', comingIn: null, requiredRoles: ['CAREER_SERVICES', 'COACH', 'INSTITUTION_ADMIN', 'VIEWER:career'] },
       { key: 'region', label: 'Local market', comingIn: null },
       { key: 'employers', label: 'Employers', comingIn: null },
     ],
@@ -145,6 +191,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
     requiredRoles: ['FACULTY', 'EXEC_ED', 'INSTITUTION_ADMIN', 'VIEWER:teaching'],
     homePath: 'teaching',
     minTier: 'INSTITUTION',
+    orgKind: 'college',
     tabs: [
       { key: 'home', label: 'Courses', comingIn: null },
       { key: 'faculty', label: 'Faculty', comingIn: null },
@@ -169,13 +216,36 @@ export const WORKSPACES: WorkspaceConfig[] = [
   {
     key: 'employer',
     label: 'Employer',
+    // A workforce org's member company: its layoffs, its people, its hiring.
+    workforceLabel: 'Your company',
     icon: 'Building2',
     release: 'V1',
     requiredRoles: ['EMPLOYER'],
     homePath: 'employer',
     tabs: [
-      { key: 'home', label: 'Shared Dossiers', comingIn: null },
-      { key: 'page', label: 'Employer page and roles', comingIn: null },
+      { key: 'overview', label: 'Overview', comingIn: null, orgKind: 'workforce' },
+      { key: 'home', label: 'Shared Dossiers', workforceLabel: 'Hiring', comingIn: null },
+      { key: 'support', label: 'Layoff support', comingIn: null, orgKind: 'workforce' },
+      { key: 'page', label: 'Employer page and roles', workforceLabel: 'Jobs you post', comingIn: null },
+    ],
+  },
+  {
+    // A workforce customer's own work: the companies it serves, the people
+    // it's helping, layoffs in its region, and how many it kept local.
+    key: 'hub',
+    label: 'Program',
+    icon: 'MapPin',
+    release: 'V1',
+    requiredRoles: ['INSTITUTION_ADMIN', 'WORKFORCE_PARTNER', 'CAREER_SERVICES', 'EMPLOYER_RELATIONS', 'VIEWER:hub'],
+    homePath: 'hub',
+    orgKind: 'workforce',
+    tabs: [
+      { key: 'home', label: 'Dashboard', comingIn: null },
+      { key: 'companies', label: 'Member companies', comingIn: null },
+      { key: 'layoffs', label: 'Layoffs', comingIn: null },
+      { key: 'participants', label: 'Participants', comingIn: null },
+      { key: 'local', label: 'Kept in region', comingIn: null },
+      { key: 'region', label: 'Local market', comingIn: null },
     ],
   },
   {
@@ -189,6 +259,7 @@ export const WORKSPACES: WorkspaceConfig[] = [
       { key: 'home', label: 'Overview', comingIn: null },
       { key: 'services', label: 'Services', comingIn: null },
       { key: 'users', label: 'Staff', comingIn: null },
+      { key: 'activity', label: 'Activity', comingIn: null },
       { key: 'branding', label: 'Branding', comingIn: null },
       { key: 'roster', label: 'Roster', comingIn: null },
       { key: 'board', label: 'Board report', comingIn: null },
@@ -236,20 +307,21 @@ export const TIER_LABELS: Record<InstitutionTier, string> = { CAREER: 'Career', 
 export type WorkspaceFeatures = { wioa?: boolean }
 
 const featureOn = (w: WorkspaceConfig, features: WorkspaceFeatures) => !w.feature || features[w.feature] === true
+const kindOn = (w: WorkspaceConfig, kind: OrgKind) => !w.orgKind || w.orgKind === kind
 
 // The V1 workspaces these tokens open on this license tier, in rail order.
 // No tier = ignore tiers (tests, config checks). Feature-gated workspaces
 // (the Workforce board) need the college to have switched them on.
-export function workspacesFor(tokens: ReadonlySet<AccessToken>, tier?: InstitutionTier, features: WorkspaceFeatures = {}): WorkspaceKey[] {
-  return WORKSPACES.filter((w) => w.release === 'V1' && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && (!tier || tierIncludes(tier, w))).map(
+export function workspacesFor(tokens: ReadonlySet<AccessToken>, tier?: InstitutionTier, features: WorkspaceFeatures = {}, kind: OrgKind = 'college'): WorkspaceKey[] {
+  return WORKSPACES.filter((w) => w.release === 'V1' && kindOn(w, kind) && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && (!tier || tierIncludes(tier, w))).map(
     (w) => w.key,
   )
 }
 
 // Workspaces a role would open but the license tier doesn't include: shown
 // locked to admins, with the tier that adds them.
-export function lockedWorkspacesFor(tokens: ReadonlySet<AccessToken>, tier: InstitutionTier, features: WorkspaceFeatures = {}): WorkspaceConfig[] {
-  return WORKSPACES.filter((w) => w.release === 'V1' && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && !tierIncludes(tier, w))
+export function lockedWorkspacesFor(tokens: ReadonlySet<AccessToken>, tier: InstitutionTier, features: WorkspaceFeatures = {}, kind: OrgKind = 'college'): WorkspaceConfig[] {
+  return WORKSPACES.filter((w) => w.release === 'V1' && kindOn(w, kind) && featureOn(w, features) && holdsAny(tokens, w.requiredRoles) && !tierIncludes(tier, w))
 }
 
 // True when the ONLY thing opening this workspace is a VIEWER seat.
@@ -262,10 +334,12 @@ export function isReadOnlyIn(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey
 
 // `modules` (the college's portal features) hides a tab whose features are
 // all switched off; omitted = don't filter on features.
-export function tabsFor(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey, modules?: Partial<Record<import('./modules').ModuleKey, boolean>>): WorkspaceTab[] {
+export function tabsFor(tokens: ReadonlySet<AccessToken>, key: WorkspaceKey, modules?: Partial<Record<import('./modules').ModuleKey, boolean>>, kind: OrgKind = 'college'): WorkspaceTab[] {
   const ws = getWorkspace(key)
   if (!ws) return []
-  return ws.tabs.filter((t) => (!t.requiredRoles || holdsAny(tokens, t.requiredRoles)) && (!modules || !t.modules || t.modules.some((m) => modules[m] !== false)))
+  return ws.tabs.filter(
+    (t) => (!t.orgKind || t.orgKind === kind) && (!t.requiredRoles || holdsAny(tokens, t.requiredRoles)) && (!modules || !t.modules || t.modules.some((m) => modules[m] !== false)),
+  )
 }
 
 // Every token, for an nc_admin on a demo tenant (or in "View as").
@@ -302,6 +376,16 @@ export const DEMO_PERSONAS = [
 ] as const satisfies readonly { key: string; label: string; tokens: readonly AccessToken[] }[]
 
 export type DemoPersonaKey = (typeof DEMO_PERSONAS)[number]['key']
+
+// The personas that open at least one workspace for this kind of org, with
+// workforce wording (a member there is a participant, not an alum).
+export function demoPersonasFor(kind: OrgKind, tier: InstitutionTier): { key: string; label: string }[] {
+  return DEMO_PERSONAS.filter((p) => workspacesFor(new Set<AccessToken>(p.tokens), tier, { wioa: true }, kind).length > 0).map((p) => ({
+    key: p.key,
+    label:
+      ({ all: 'Everything', ...(kind === 'workforce' ? { MEMBER: 'Participant (job seeker)', WORKFORCE_PARTNER: 'Program staff', EMPLOYER: 'Member company' } : {}) } as Record<string, string>)[p.key] ?? p.label,
+  }))
+}
 
 export function demoPersonaTokens(key: string | undefined): ReadonlySet<AccessToken> {
   const persona = DEMO_PERSONAS.find((p) => p.key === key) ?? DEMO_PERSONAS[0]

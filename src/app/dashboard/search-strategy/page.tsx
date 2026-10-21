@@ -1,3 +1,12 @@
+import { captureServerEvent } from '@/lib/posthog/server'
+import { getUnlockStatus } from '@/lib/effort/load'
+import { UnlockProgress } from '@/components/effort/UnlockProgress'
+import { unlockNextStrategy } from './unlock-actions'
+import { IndustryRealityCheck } from '@/components/dashboard/pathway/IndustryRealityCheck'
+import { parseRelocation } from '@/lib/journey/relocation'
+import { activeTargets, pivotOf } from '@/lib/journey/pivot'
+import { careerOf, isCareerAnswered } from '@/lib/journey/career'
+import { CareerGoalsForm } from '@/components/dashboard/CareerGoalsForm'
 import type { Metadata } from 'next'
 import type { CandidateProfile } from '@prisma/client'
 import { Suspense } from 'react'
@@ -16,19 +25,38 @@ import {
   isBoardAdvisoryWillingnessComplete,
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
-import { computeSearchStrategyChecklist, type SearchStrategyChecklist } from '@/lib/weekly/search-strategy-checklist'
 import { SearchStrategyWizard, type WizardPage } from '@/components/dashboard/SearchStrategyWizard'
 import { SearchStrategyForm } from '@/components/dashboard/SearchStrategyForm'
+import { EmployerSectorFilter } from '@/components/dashboard/EmployerSectorFilter'
+import { shownFromHidden } from '@/lib/jobs/employer-sector'
 import { PersonalContextForm } from '@/components/dashboard/PersonalContextForm'
 import { MarketingNetworkingForm } from '@/components/dashboard/MarketingNetworkingForm'
 import { NegotiationCompensationForm } from '@/components/dashboard/NegotiationCompensationForm'
 import { OtherSearchStrengthenersForm } from '@/components/dashboard/OtherSearchStrengthenersForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
+import { effectiveJourney, getJourney } from '@/lib/journey/journey'
+import { CultureFitForm } from '@/components/dashboard/CultureFitForm'
+import { parseCultureFit } from '@/lib/culture/culture-fit'
 import { Spinner } from '@/components/ui/spinner'
 import { VictoriaAvatar } from '@/components/VictoriaAvatar'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { MoreDetails } from '@/components/dashboard/MoreDetails'
 import { inferIndustriesFromWorkHistory } from '@/lib/onboarding/infer-industries'
+import { getCulturePreferences } from '@/lib/companies/culture-profile'
+import { CulturePreferencesForm } from '@/components/companies/CultureSurvey'
+import { getPlatform } from '@/lib/platforms/directory'
+import type { PlatformStageKey } from '@/lib/platforms/stages'
+import { parseIndependentWorkExperience, suggestIndependentWork } from '@/lib/independent-work/experience'
+import { PivotPathsTeaser } from '@/components/dashboard/pivots/PivotPathsTeaser'
+import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
+import { IndustryReadingConfirm } from '@/components/dashboard/IndustryReadingConfirm'
+import { AddCityPrompt } from '@/components/dashboard/AddCityPrompt'
+import { US_STATE_CODES } from '@/lib/pay/market-pay'
+import { readMemberIndustries } from '@/lib/profile/industry-reading'
+import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
+import { stepCard } from '@/components/candidate/stepCard'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ActionLink } from '@/components/candidate/ActionLink'
+import { ApplicationMatchSection } from '@/components/dashboard/ApplicationMatchSection'
 
 export const metadata: Metadata = { title: 'My Search Strategy' }
 
@@ -55,28 +83,27 @@ interface RejectionTrendsData {
   levelFitBreakdown: TrendBreakdownEntry[] | null
 }
 
-async function SearchStrategyGuidanceCard({
-  profile,
-  checklist,
-}: {
-  profile: CandidateProfile
-  checklist: SearchStrategyChecklist
-}) {
+async function SearchStrategyGuidanceCard({ profile }: { profile: CandidateProfile }) {
   const targetRoleComplete = isSearchGoalsComplete(profile)
   const blockersMotivationsComplete = isBlockersAndMotivationsComplete(profile)
   const goalsComplete = targetRoleComplete && blockersMotivationsComplete
-  const strategyGuidance = goalsComplete ? await getOrDraftSearchStrategyGuidance(profile.id) : null
+  // The guidance draft can take a while (it may call the model); the rejection
+  // lookup is independent, so run them together.
+  const strategyGuidancePromise = goalsComplete ? getOrDraftSearchStrategyGuidance(profile.id) : Promise.resolve(null)
 
   // Independent of Search Goals completion — a candidate can have logged
   // rejections before finishing their profile. Read-only from the same
   // report-generation-time computation as the Market Reality page's
   // Rejection Patterns section (computeRejectionTrends), never a second
   // live computation.
-  const latestReportForRejections = await prisma.marketRealityReport.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { generatedAt: 'desc' },
-    select: { jobSearchPattern: true },
-  })
+  const [strategyGuidance, latestReportForRejections] = await Promise.all([
+    strategyGuidancePromise,
+    prisma.marketRealityReport.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { generatedAt: 'desc' },
+      select: { jobSearchPattern: true },
+    }),
+  ])
   const rejectionTrends =
     (latestReportForRejections?.jobSearchPattern as unknown as { rejectionTrends: RejectionTrendsData | null } | null)
       ?.rejectionTrends ?? null
@@ -86,99 +113,79 @@ async function SearchStrategyGuidanceCard({
     !blockersMotivationsComplete && 'Blockers and Motivations',
   ].filter((v): v is string => !!v)
 
+  if (!strategyGuidance) {
+    return (
+      <section aria-labelledby="victoria" className="space-y-2 rounded-2xl border border-orange/30 bg-orange/5 p-6">
+        <div className="flex items-center gap-3">
+          <VictoriaAvatar size={36} />
+          <h2 id="victoria" className="font-serif text-xl font-semibold text-navy">Victoria&apos;s read</h2>
+        </div>
+        <p className="text-base text-muted-foreground">
+          {missingSections.length > 0
+            ? `Answer ${missingSections.join(' and ')} below and Victoria will write your read.`
+            : 'Victoria is updating your read from your latest answers. Check back in a moment.'}
+        </p>
+      </section>
+    )
+  }
+
+  const rejectionGroups = rejectionTrends?.eligible
+    ? [
+        { label: 'Company size', breakdown: rejectionTrends.companySizeBreakdown },
+        { label: 'Industry', breakdown: rejectionTrends.industryBreakdown },
+        { label: 'Function', breakdown: rejectionTrends.functionBreakdown },
+        { label: 'Level fit', breakdown: rejectionTrends.levelFitBreakdown },
+      ].filter((g) => g.breakdown && g.breakdown.length > 0)
+    : []
+
   return (
-    <Accordion defaultValue={['strategy-guidance']}>
-      <AccordionItem value="strategy-guidance" className="border-brand/20 bg-brand/5">
-        <AccordionTrigger className="px-5 py-4 hover:text-foreground">
-          <div className="flex items-center gap-3">
-            <VictoriaAvatar size={36} />
-            <CardTitle className="text-sm font-medium text-foreground">Strategy Guidance from Victoria</CardTitle>
+    <section aria-labelledby="victoria" className="space-y-4 rounded-2xl border border-orange/30 bg-orange/5 p-6">
+      <div className="flex items-center gap-3">
+        <VictoriaAvatar size={36} />
+        <h2 id="victoria" className="font-serif text-xl font-semibold text-navy">Victoria&apos;s read</h2>
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-navy">What I&apos;d change</p>
+        <ul className="mt-1.5 list-disc space-y-1.5 pl-5 text-base text-foreground">
+          {strategyGuidance.suggestedChanges.map((point, i) => (
+            <li key={i}>{point}</li>
+          ))}
+        </ul>
+      </div>
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-medium text-primary underline underline-offset-4">What&apos;s working and what to watch</summary>
+        <div className="mt-3 grid gap-4 text-sm sm:grid-cols-2">
+          <div>
+            <p className="font-semibold text-navy">What&apos;s working</p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground">
+              {strategyGuidance.pros.map((point, i) => (
+                <li key={i}>{point}</li>
+              ))}
+            </ul>
           </div>
-        </AccordionTrigger>
-        <AccordionContent className="px-5 pb-5">
-        {strategyGuidance ? (
-          <div className="space-y-4">
-            <div className="space-y-3 text-sm">
-              <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-semibold tracking-wide text-success uppercase">What&apos;s working</p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
-                  {strategyGuidance.pros.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-semibold tracking-wide text-warning uppercase">What to watch</p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
-                  {strategyGuidance.cons.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-semibold tracking-wide text-brand uppercase">What I&apos;d change</p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-foreground">
-                  {strategyGuidance.suggestedChanges.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            {checklist.incomplete.length > 0 && (
-              <div className="rounded-lg border border-dashed border-brand/40 bg-white p-3">
-                <p className="text-xs font-medium text-foreground">
-                  Answer these for even more personalized advice from me:
-                </p>
-                <ul className="mt-1.5 space-y-1">
-                  {checklist.incomplete.map((item) => (
-                    <li key={item.key}>
-                      <Link
-                        href={item.href}
-                        className="text-sm text-primary underline underline-offset-4"
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <div>
+            <p className="font-semibold text-navy">What to watch</p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground">
+              {strategyGuidance.cons.map((point, i) => (
+                <li key={i}>{point}</li>
+              ))}
+            </ul>
           </div>
-        ) : missingSections.length > 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Complete {missingSections.join(' and ')} below to get your Strategy Guidance from me.
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            I&apos;m updating your guidance based on your latest answers — check back in a moment.
-          </p>
+        </div>
+        {rejectionGroups.length > 0 && (
+          <div className="mt-4 text-sm">
+            <p className="font-semibold text-navy">Rejection patterns</p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-foreground">
+              {rejectionGroups.map((group) => (
+                <li key={group.label}>
+                  <span className="font-medium">{group.label}:</span> {group.breakdown!.map((b) => `${b.label} (${b.count})`).join(', ')}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
-        {rejectionTrends?.eligible &&
-          (() => {
-            const groups = [
-              { label: 'Company size', breakdown: rejectionTrends.companySizeBreakdown },
-              { label: 'Industry', breakdown: rejectionTrends.industryBreakdown },
-              { label: 'Function', breakdown: rejectionTrends.functionBreakdown },
-              { label: 'Level fit', breakdown: rejectionTrends.levelFitBreakdown },
-            ].filter((g) => g.breakdown && g.breakdown.length > 0)
-            if (groups.length === 0) return null
-            return (
-              <div className="mt-4 rounded-lg border border-border bg-white p-4">
-                <p className="text-xs font-semibold tracking-wide text-foreground uppercase">Rejection patterns</p>
-                <ul className="mt-1.5 list-disc space-y-1 pl-4 text-sm text-foreground">
-                  {groups.map((group) => (
-                    <li key={group.label}>
-                      <span className="font-medium">{group.label}:</span>{' '}
-                      {group.breakdown!.map((b) => `${b.label} (${b.count})`).join(', ')}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )
-          })()}
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+      </details>
+    </section>
   )
 }
 
@@ -209,6 +216,22 @@ function SearchStrategyGuidanceSkeleton() {
 // Once getOrDraftSearchStrategyGuidance succeeds it sets
 // searchStrategyFirstAnsweredAt, and the next page load renders the real
 // SearchStrategyGuidanceCard above instead of this.
+async function StrategyUnlockCard({ candidateId }: { candidateId: string }) {
+  const status = await getUnlockStatus(candidateId)
+  captureServerEvent(candidateId, 'unlock_progress_viewed', { minutes: status.minutes, bar: status.bar.minutes, unlocked: status.unlocked })
+  return (
+    <UnlockProgress
+      status={status}
+      title="Unlock your next strategy and report refresh"
+      what="Victoria writes a new read of your strategy, and your Market Reality Report is refreshed with it, from the work you have done since the last one: who you talked to, what you applied for, what you learned and what you told us. Earn it with search effort, not time alone."
+      action={unlockNextStrategy}
+      buttonLabel="Generate my next strategy"
+      pendingLabel="Writing your strategy…"
+      event="next_strategy_unlock_clicked"
+    />
+  )
+}
+
 async function SearchStrategyGuidanceTrigger({ profile }: { profile: CandidateProfile }) {
   if (isSearchGoalsComplete(profile) && isBlockersAndMotivationsComplete(profile)) {
     await getOrDraftSearchStrategyGuidance(profile.id)
@@ -218,6 +241,18 @@ async function SearchStrategyGuidanceTrigger({ profile }: { profile: CandidatePr
 
 export default async function SearchStrategyPage() {
   const profile = await getDashboardData()
+  const culturePreferencesPromise = getCulturePreferences(profile.id)
+  // Pre-fill the independent-work question from what email and logged work
+  // already show, so the candidate confirms instead of answering from scratch.
+  const platformRowsPromise = prisma.candidatePlatformActivity.findMany({
+    where: { candidateId: profile.id, kind: 'WORK' },
+    select: { platformKey: true, stage: true, lastProgressAt: true, dismissedAt: true },
+  })
+  // Applications we could read (src/lib/applications): when there are any, "Your applications: match and gaps"
+  // takes the third first-view slot and the unlock card moves into "More about your search" (docs/candidate-redesign.md).
+  const appSnapshotsPromise = prisma.applicationSkillSnapshot.count({ where: { candidateId: profile.id } }).catch(() => 0)
+  const [culturePreferences, platformRows, appSnapshots] = await Promise.all([culturePreferencesPromise, platformRowsPromise, appSnapshotsPromise])
+  const showApplicationMatch = appSnapshots > 0
   const stage = getSearchStage(profile)
   const hasAnsweredOnce = !!profile.searchStrategyFirstAnsweredAt
   const targetRoleComplete = isSearchGoalsComplete(profile)
@@ -239,7 +274,17 @@ export default async function SearchStrategyPage() {
   // "More of the same" default — a guess at the pivot target, not a
   // separate inference pass. Editable right here via SearchStrategyForm.
   const inferredFunction = profile.primaryFunction ?? null
-  const checklist = computeSearchStrategyChecklist({ ...profile, inferredIndustries })
+
+  const independentWorkInitial = parseIndependentWorkExperience(profile.independentWorkExperience)
+  const independentWorkSuggestions = suggestIndependentWork(
+    platformRows.flatMap((r) => {
+      const platform = getPlatform(r.platformKey)
+      return platform
+        ? [{ name: platform.name, category: platform.category, stage: r.stage as PlatformStageKey, lastProgressAt: r.lastProgressAt, dismissed: !!r.dismissedAt }]
+        : []
+    }),
+    profile.workHistory
+  )
 
   const completedReferencesCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
@@ -254,13 +299,25 @@ export default async function SearchStrategyPage() {
   // Motivations come first — those are the two Victoria needs before she'll
   // review the strategy at all, so they shouldn't be buried behind an
   // optional page.
-  const wizardPages: WizardPage[] = [
+  // Culture is part of a search; it is not asked of people who are not looking.
+  const stageJourney = effectiveJourney(profile)
+  const showCulture = !!stageJourney && getJourney(stageJourney).searching
+  const cultureAnswered = parseCultureFit(profile.cultureFit) !== null
+  const searchingJourney = !stageJourney || getJourney(stageJourney).searching
+  // Staying and promotion members say what they want from their career (src/lib/journey/career.ts).
+  const showCareer = stageJourney === 'GROWING' || stageJourney === 'PROMOTION'
+  const careerAnswered = isCareerAnswered(careerOf(profile.journeyDetails))
+  const allWizardPages: WizardPage[] = [
+    ...(showCareer ? [{ key: 'career', label: 'What You Want From Your Career', items: [{ key: 'career', complete: careerAnswered }] }] : []),
     { key: 'target-role', label: 'Target Role & Company', items: [{ key: 'target-role', complete: targetRoleComplete }] },
     {
       key: 'blockers-motivations',
       label: "What's Getting in the Way",
       items: [{ key: 'blockers-motivations', complete: blockersMotivationsComplete }],
     },
+    ...(showCulture
+      ? [{ key: 'culture', label: 'Culture & Working Environment', items: [{ key: 'culture', complete: cultureAnswered }] }]
+      : []),
     {
       key: 'marketing-networking',
       label: 'Your Marketing & Networking Plan',
@@ -322,7 +379,7 @@ export default async function SearchStrategyPage() {
             introText: 'Answering Board Advisory Work just unlocked:',
             items: [
               {
-                href: '/dashboard/interim-work#board-advisory-work',
+                href: '/dashboard/find-my-job?types=advisory#employer-matched-roles',
                 icon: 'users',
                 label: 'Board Advisory Work',
                 description: 'Board and consulting opportunities matched to your background.',
@@ -334,20 +391,20 @@ export default async function SearchStrategyPage() {
       ],
     },
   ]
-
-  const wizardPageContent = [
-    <Card key="target-role">
-      <CardHeader>
+  const { SCard, SHeader, STitle, SContent } = stepCard(true)
+  const allWizardContent = [
+    <SCard key="target-role">
+      <SHeader>
         <div className="flex items-center gap-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</CardTitle>
+          <STitle className="text-sm font-medium text-muted-foreground">Your Target Role &amp; Company</STitle>
           {targetRoleComplete && (
             <span className="text-success" aria-hidden>
               ✓
             </span>
           )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </SHeader>
+      <SContent className="space-y-4">
         {targetRoleComplete && (
           <p className="text-sm text-muted-foreground">
             Update this any time your target changes — a new role, a new industry, a different
@@ -360,148 +417,235 @@ export default async function SearchStrategyPage() {
           inferredIndustries={inferredIndustries}
           inferredFunction={inferredFunction}
           completedReferencesCount={completedReferencesCount}
+          relocation={parseRelocation(profile.journeyDetails, profile.openToRelocation)}
+          pivotTargets={activeTargets(pivotOf(profile.journeyDetails))}
+          seniorLevel={(profile.levelRankScore ?? 0) >= 60}
+          canSwitchJourney={!!stageJourney && stageJourney !== 'CAREER_CHANGE' && getJourney(stageJourney).searching}
+          journey={stageJourney}
         />
-      </CardContent>
-    </Card>,
+        <div id="employer-sectors" className="scroll-mt-4 space-y-2 border-t border-border pt-4">
+          <p className="text-sm font-medium text-foreground">Which employers do you want jobs from?</p>
+          <p className="text-xs text-muted-foreground">
+            Turn a sector off and its jobs leave your board and your job emails. You can change this any time, here or on the board.
+          </p>
+          <EmployerSectorFilter surface="search_strategy" shown={shownFromHidden(profile.hiddenEmployerSectors)} updateUrl={false} />
+        </div>
+      </SContent>
+    </SCard>,
 
-    <Card key="blockers-motivations">
-      <CardHeader>
+    <SCard key="blockers-motivations">
+      <SHeader>
         <div className="flex items-center gap-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Blockers and Motivations</CardTitle>
+          <STitle className="text-sm font-medium text-muted-foreground">Blockers and Motivations</STitle>
           {blockersMotivationsComplete && (
             <span className="text-success" aria-hidden>
               ✓
             </span>
           )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </SHeader>
+      <SContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
           {blockersMotivationsComplete
             ? "Update this any time it changes — Victoria's guidance above and her tone with you refresh to match."
             : "Required, alongside Your Target Role & Company, before Victoria will review your strategy — what's actually in your way, and what's pulling you forward, shapes her advice as much as your target role does."}
         </p>
         <PersonalContextForm profile={profile} />
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
 
-    <Card key="marketing-networking">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Your Marketing &amp; Networking Plan</CardTitle>
-      </CardHeader>
-      <CardContent>
+    ...(showCulture
+      ? [
+          <SCard key="culture">
+            <SHeader>
+              <STitle className="text-sm font-medium text-muted-foreground">Culture &amp; Working Environment</STitle>
+            </SHeader>
+            <SContent>
+              <p className="mb-4 text-sm text-muted-foreground">
+                If it matters to you, we turn it into questions to ask in interviews, checks on an offer and people to ask what a company is really like. If it
+                does not matter, we leave it out.
+              </p>
+              <CultureFitForm fit={parseCultureFit(profile.cultureFit)} />
+            </SContent>
+          </SCard>,
+        ]
+      : []),
+    <SCard key="marketing-networking">
+      <SHeader>
+        <STitle className="text-sm font-medium text-muted-foreground">Your Marketing &amp; Networking Plan</STitle>
+      </SHeader>
+      <SContent>
         <p className="mb-4 text-sm text-muted-foreground">
           What you&apos;re willing to do publicly, and how you feel about reaching out — shapes your
           Marketing Plan and outreach scripts, and unlocks My Marketing Plan, LinkedIn, and My
           Network.
         </p>
         <MarketingNetworkingForm profile={profile} />
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
 
-    <Card key="negotiation-compensation">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <SCard key="negotiation-compensation">
+      <SHeader>
+        <STitle className="text-sm font-medium text-muted-foreground">
           Negotiation, Interview &amp; Compensation Readiness
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+        </STitle>
+      </SHeader>
+      <SContent>
         <p className="mb-4 text-sm text-muted-foreground">
           Where you&apos;re genuinely comfortable, and what matters to you beyond salary — shapes
           the skills and videos we surface, and helps your coach and recruiter contacts steer you
           toward offers that fit.
         </p>
         <NegotiationCompensationForm profile={profile} targetCompMin={profile.targetCompMin} />
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
 
-    <Card key="other-ways">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Other Ways to Strengthen Your Search</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SCard key="other-ways">
+      <SHeader>
+        <STitle className="text-sm font-medium text-muted-foreground">Other Ways to Strengthen Your Search</STitle>
+      </SHeader>
+      <SContent>
         <OtherSearchStrengthenersForm
           boardAdvisoryInitial={profile.boardAdvisoryWillingness}
+          independentWorkInitial={independentWorkInitial}
+          independentWorkSuggestions={independentWorkSuggestions}
           optionalQuestionsInitial={{
             networkingLevel: profile.networkingLevel,
             learnedNewSkillsLevel: profile.learnedNewSkillsLevel,
-            triedPartTimeOrConsulting: profile.triedPartTimeOrConsulting,
             triedExecutiveCoaching: profile.triedExecutiveCoaching,
             connectedWithRecruiters: profile.connectedWithRecruiters,
             recruiterConnectionCount: profile.recruiterConnectionCount,
           }}
         />
-      </CardContent>
-    </Card>,
+      </SContent>
+    </SCard>,
+    ...(showCareer
+      ? [
+          <SCard key="career">
+            <SHeader>
+              <STitle className="text-sm font-medium text-muted-foreground">What You Want From Your Career</STitle>
+            </SHeader>
+            <SContent>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Your next review, the next level and whether pay or title matters most. Your weekly plan, your case for a review and your pay comparison use it.
+              </p>
+              <CareerGoalsForm initial={careerOf(profile.journeyDetails)} />
+            </SContent>
+          </SCard>,
+        ]
+      : []),
   ]
 
-  const actionPlanCard = checklist.incomplete.length > 0 && (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">Action Plan</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          {checklist.totalPointsRemaining} points left to complete — answer these below to sharpen your matches
-          and guidance.
-        </p>
-        <ul className="space-y-1.5">
-          {checklist.incomplete.map((item) => (
-            <li key={item.key} className="flex items-center justify-between gap-3">
-              <Link href={item.href} className="text-sm text-primary underline underline-offset-4">
-                {item.label}
-              </Link>
-              <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand tabular-nums">
-                {item.points} pts
-              </span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  )
+  // Someone who is not looking for a job is not asked job-search questions: no target role,
+  // blockers, culture or "strengthen your search". They keep marketing, networking, negotiation and benefits.
+  const SEARCH_ONLY_PAGES = new Set(['target-role', 'blockers-motivations', 'culture', 'other-ways'])
+  const keep = (key: string) => searchingJourney || !SEARCH_ONLY_PAGES.has(key)
+  const careerFirst = (arr: unknown[], keyOf: (x: never) => string) => [...arr].sort((a, b) => Number(keyOf(b as never) === 'career') - Number(keyOf(a as never) === 'career'))
+  const wizardPages = careerFirst(allWizardPages.filter((pg) => keep(pg.key)), (pg: WizardPage) => pg.key) as WizardPage[]
+  const wizardPageContent = careerFirst(allWizardContent.filter((el) => keep(String(el.key))), (el: { key: string | null }) => String(el.key)) as typeof allWizardContent
+
+  const incomplete = wizardPages.filter((pg) => !pg.items.every((i) => i.complete))
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Search Strategy</h1>
-        <p className="mt-1 text-muted-foreground">
-          A one-time setup for your Search Goals — editable any time your situation changes.
-        </p>
-        {!hasAnsweredOnce && (
-          <p className="text-sm text-muted-foreground">
-            Once you&apos;ve answered Your Target Role &amp; Company and Blockers and Motivations
-            below, Victoria will review your search strategy and give you personalized feedback
-            right here on this page.
-          </p>
-        )}
-        <PageHeaderBoxes pageKey="search-strategy" candidateId={profile.id} hideDailyMessage />
-      </div>
+    <div className="mx-auto max-w-3xl space-y-8">
+      <PageHeader
+        title="Your search strategy"
+        intro={
+          searchingJourney
+            ? 'Victoria\u2019s read of where you stand, and the few answers it rests on.'
+            : 'What you want from your career, and how you like to work with us. Job-search questions turn on if you start looking.'
+        }
+        action={
+          incomplete.length > 0 ? (
+            <ActionLink variant="primary" href="#answers" event="search_strategy_answer_clicked" props={{ remaining: incomplete.length, answeredOnce: hasAnsweredOnce }}>
+              {hasAnsweredOnce ? `Answer ${incomplete.length} more` : 'Answer the first questions'}
+            </ActionLink>
+          ) : undefined
+        }
+      />
 
-      <div className="space-y-4">
-        {hasAnsweredOnce ? (
+      {searchingJourney &&
+        (hasAnsweredOnce ? (
           <Suspense fallback={<SearchStrategyGuidanceSkeleton />}>
-            <SearchStrategyGuidanceCard profile={profile} checklist={checklist} />
+            <SearchStrategyGuidanceCard profile={profile} />
           </Suspense>
         ) : (
           <Suspense fallback={null}>
             <SearchStrategyGuidanceTrigger profile={profile} />
           </Suspense>
-        )}
-      </div>
+        ))}
 
-      {actionPlanCard}
+      {showApplicationMatch && (
+        <Suspense fallback={null}>
+          <ApplicationMatchSection candidateId={profile.id} />
+        </Suspense>
+      )}
 
-      <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
-        {wizardPageContent}
-      </SearchStrategyWizard>
+      <section id="answers" aria-labelledby="answers-title" className="scroll-mt-4 space-y-2">
+        <h2 id="answers-title" className="font-serif text-xl font-semibold text-navy">What this rests on</h2>
+        <SearchStrategyWizard pages={wizardPages} candidateId={profile.id}>
+          {wizardPageContent}
+        </SearchStrategyWizard>
+      </section>
 
-      {stage === 'QUIETLY_LOOKING' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">While You&apos;re Still Employed</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+      {hasAnsweredOnce && !showApplicationMatch && (
+        <Suspense fallback={null}>
+          <StrategyUnlockCard candidateId={profile.id} />
+        </Suspense>
+      )}
+
+      <MoreDetails summary="More about your search">
+      {hasAnsweredOnce && showApplicationMatch && (
+        <Suspense fallback={null}>
+          <StrategyUnlockCard candidateId={profile.id} />
+        </Suspense>
+      )}
+      {/* Market-based pivot suggestions (src/lib/pivots): prominent when pivoting or when the member's own work is contracting. */}
+      <Suspense fallback={null}>
+        <PivotPathsTeaser profile={profile} />
+      </Suspense>
+
+      {/* Their industry text read as several industries (or none we know): one-click confirm (industry-reading.ts). */}
+      {(() => {
+        const text = [profile.industryContext, profile.secondaryIndustryContext].filter(Boolean).join(' / ')
+        const reading = readMemberIndustries(profile.industryContext, profile.secondaryIndustryContext)
+        if (!text || profile.industryBuckets.length > 0 || !reading.uncertain) return null
+        return <IndustryReadingConfirm text={text} suggested={reading.buckets} options={INDUSTRY_BUCKET_NAMES.filter((n) => n !== 'Other')} />
+      })()}
+
+      {/* No home city: local jobs can't count (relevance.ts geography). One click to add it. */}
+      {(!profile.currentCity?.trim() || !profile.currentState?.trim()) && (
+        <AddCityPrompt surface="search_strategy" states={[...US_STATE_CODES].sort()} fallback="remote jobs and places you said you'd move to" />
+      )}
+
+      {/* How big the member's target market is, its trend, and next steps (market-size.ts). */}
+      <Suspense fallback={null}>
+        <MarketSizeSection member={profile} surface="search_strategy" />
+      </Suspense>
+
+      {searchingJourney && (
+        <Suspense fallback={null}>
+          <IndustryRealityCheck candidateId={profile.id} currentIndustry={profile.industryContext} targetIndustries={profile.targetIndustries} fn={profile.targetFunction ?? profile.primaryFunction} />
+        </Suspense>
+      )}
+
+      {searchingJourney && (
+      <SCard id="culture-preferences" className="scroll-mt-4">
+        <SHeader>
+          <STitle className="text-sm font-medium text-muted-foreground">Culture you want</STitle>
+        </SHeader>
+        <SContent>
+          <CulturePreferencesForm initial={culturePreferences} />
+        </SContent>
+      </SCard>
+      )}
+
+      {searchingJourney && stage === 'QUIETLY_LOOKING' && (
+        <SCard>
+          <SHeader>
+            <STitle className="text-sm font-medium text-muted-foreground">While You&apos;re Still Employed</STitle>
+          </SHeader>
+          <SContent className="space-y-3 text-sm">
             <div>
               <p className="font-medium text-foreground">Being a Good Leaver</p>
               <p className="mt-1 text-muted-foreground">
@@ -525,9 +669,10 @@ export default async function SearchStrategyPage() {
             >
               Read the full Before You Go guide →
             </Link>
-          </CardContent>
-        </Card>
+          </SContent>
+        </SCard>
       )}
+      </MoreDetails>
     </div>
   )
 }

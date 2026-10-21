@@ -120,7 +120,7 @@ export const RESUME_BANDS = [
   { band: 'B', min: 74, label: 'Solid' },
   { band: 'B-', min: 68, label: 'Adequate' },
   { band: 'C+', min: 62, label: 'Mixed' },
-  { band: 'C', min: 55, label: 'Needs work' },
+  { band: 'C', min: 55, label: 'Room to grow' },
   { band: 'D', min: 40, label: 'Significant gaps' },
   { band: 'F', min: 0, label: 'Not competitive as written' },
 ] as const
@@ -145,7 +145,7 @@ export const EXPERIENCE_BANDS = [
   { band: 'B', min: 74, label: 'Solid' },
   { band: 'B-', min: 68, label: 'Adequate' },
   { band: 'C+', min: 62, label: 'Mixed' },
-  { band: 'C', min: 55, label: 'Needs work' },
+  { band: 'C', min: 55, label: 'Room to grow' },
   { band: 'D', min: 40, label: 'Significant gaps' },
   { band: 'F', min: 0, label: 'Not competitive as written' },
 ] as const

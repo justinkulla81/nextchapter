@@ -30,6 +30,8 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/how-it-works', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/why-stuck', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/pricing', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
+  { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
+  { path: '/ai-training', updated: '2026-10-20', freq: 'monthly', priority: 0.6 },
   { path: '/dossier', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/faq', updated: '2026-10-02', freq: 'monthly', priority: 0.5 },
   { path: '/contact', updated: '2026-09-29', freq: 'yearly', priority: 0.5 },
@@ -48,9 +50,10 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/membership', updated: '2026-08-22', freq: 'monthly', priority: 0.5 },
   { path: '/rfp-template', updated: '2026-08-25', freq: 'yearly', priority: 0.4 },
   { path: '/for-managers/give-a-reference', updated: '2026-08-12', freq: 'yearly', priority: 0.3 },
-  { path: '/security', updated: '2026-10-02', freq: 'monthly', priority: 0.4 },
+  { path: '/scam-watch', updated: '2026-10-14', freq: 'monthly', priority: 0.5 },
+  { path: '/security', updated: '2026-10-14', freq: 'monthly', priority: 0.4 },
   { path: '/editorial-standards', updated: '2026-10-06', freq: 'yearly', priority: 0.3 },
-  { path: '/privacy-policy', updated: '2026-10-07', freq: 'yearly', priority: 0.2 },
+  { path: '/privacy-policy', updated: '2026-10-14', freq: 'yearly', priority: 0.2 },
   { path: '/terms', updated: '2026-10-07', freq: 'yearly', priority: 0.2 },
 ]
 

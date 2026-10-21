@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface CompleteRegistrationReminderEmailProps {
   firstName: string | null
@@ -66,6 +67,7 @@ export default function CompleteRegistrationReminderEmail({
         </a>{' '}
         at any time.
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

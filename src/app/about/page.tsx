@@ -11,14 +11,14 @@ import { COMPANY_LINKEDIN_URL, FOUNDER_LINKEDIN_URL } from '@/lib/contact/consta
 import { FACTS } from '@/lib/seo/facts'
 import { organizationJsonLd, personJsonLd } from '@/lib/seo/jsonld'
 
-const TITLE = 'About: the AI platform for career transitions'
+const TITLE = 'About: the leading job transition platform'
 const DESCRIPTION = `${FACTS.name} is ${FACTS.tagline.charAt(0).toLowerCase()}${FACTS.tagline.slice(1)} Founded by ${FACTS.founder.name}, a serial education technology founder, operator and investor. MIT, Harvard, Carnegie Mellon.`
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: '/about' },
-  openGraph: { title: 'About NextChapter: the AI platform for career transitions', description: DESCRIPTION, url: 'https://launchyournextchapter.com/about' },
+  openGraph: { title: 'About NextChapter: the leading job transition platform', description: DESCRIPTION, url: 'https://launchyournextchapter.com/about' },
 }
 
 // Founder headshot (square, shown with rounded corners). Without the file the
@@ -82,7 +82,7 @@ export default function AboutPage() {
           <div className="mx-auto max-w-6xl px-6 pt-16 pb-10 sm:pt-20">
             <p className={EYEBROW}>About NextChapter</p>
             <h1 className="mt-3 max-w-3xl text-balance text-4xl font-bold tracking-tight text-navy sm:text-6xl">
-              The AI platform for career transitions
+              The leading job transition platform
             </h1>
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
               NextChapter gets people back to work faster. Our AI runs the job search, shows people which careers fit,
@@ -94,7 +94,7 @@ export default function AboutPage() {
                 href="/onboarding/desire"
                 event="about_cta_clicked"
                 properties={{ cta: 'hero_start', audience: 'candidate' }}
-                className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover"
+                className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"
               >
                 Start your next chapter
               </TrackedLink>
@@ -117,7 +117,7 @@ export default function AboutPage() {
             <h2 className={H2}>Losing a job is common. Finding the next one takes too long.</h2>
             <div className="mt-4 max-w-2xl space-y-4 text-base leading-relaxed text-foreground/85">
               <p>
-                AI is eliminating and reshaping jobs across entire industries. People who are out of work for six months
+                AI is changing which jobs exist and how people get hired, in many industries. People who are out of work for six months
                 or more find it harder to get hired with every month that passes. Workers over 50 face age-related
                 unemployment. Parents returning from parental and family leave have to explain the gap on their résumé.
               </p>

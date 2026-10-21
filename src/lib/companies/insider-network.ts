@@ -315,3 +315,21 @@ export async function declineInsiderRequest(requestId: string, insiderCandidateI
   })
   return { ok: true }
 }
+
+// How many members a viewer could ask at each company — same eligibility as
+// getInsidersForCompany (visibleAsInsider, not Confidential Search Mode, not the
+// viewer). For the job board's "N members worked here" line; a count only, never who.
+export async function countInsidersByCompany(companyIds: string[], viewerCandidateId: string): Promise<Map<string, number>> {
+  if (companyIds.length === 0) return new Map()
+  const rows = await prisma.memberEmployment.groupBy({
+    by: ['companyId'],
+    where: {
+      companyId: { in: [...new Set(companyIds)] },
+      visibleAsInsider: true,
+      candidateId: { not: viewerCandidateId },
+      candidate: { confidentialSearchMode: false },
+    },
+    _count: { _all: true },
+  })
+  return new Map(rows.map((r) => [r.companyId, r._count._all]))
+}

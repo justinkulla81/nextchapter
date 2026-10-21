@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CoachingWaitlistForm } from '@/components/coaching/CoachingWaitlistForm'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
 
 export const metadata: Metadata = { title: 'Premium' }
 
@@ -41,7 +42,20 @@ export default async function PremiumPage() {
     ? { email: user.email, firstName: profile.firstName, lastName: profile.lastName }
     : undefined
 
-  captureServerEvent(profile.id, 'premium_bundle_page_viewed', {})
+  // Early-career members see the same offer without the executive framing.
+  const audience = earlyCareerAudience(profile)
+  const exec = featureVisible('executive_upsells', audience)
+  const coachLabel = exec ? 'Executive Coach' : 'Career coach'
+  const recruiterLabel = exec ? 'Executive Recruiter' : 'Recruiter introductions'
+  const recruiterIncluded = exec
+    ? RECRUITER_INCLUDED
+    : [
+        'A warm, personal introduction to in-house recruiters and agencies hiring for roles like yours',
+        "Priority placement in front of the recruiters already searching NextChapter's candidate database",
+        "A recruiter's read on how your background is landing — what's working, what's raising questions",
+      ]
+
+  captureServerEvent(profile.id, 'premium_bundle_page_viewed', { audience })
 
   return (
     <div className="max-w-3xl space-y-8 pb-12">
@@ -51,7 +65,7 @@ export default async function PremiumPage() {
           A human coach, recruiter introductions, and full market intelligence — together
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Premium bundles our three most-requested add-ons — Executive Coach, Executive Recruiter, and Market
+          Premium bundles our three most-requested add-ons — {coachLabel}, {recruiterLabel}, and Market
           Intelligence — into a single account tier. It&apos;s not live yet; join the waitlist below and
           we&apos;ll reach out as spots open up.
         </p>
@@ -74,7 +88,7 @@ export default async function PremiumPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <GraduationCap className="size-4 text-orange" aria-hidden="true" />
-            Executive Coach
+            {coachLabel}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -93,12 +107,12 @@ export default async function PremiumPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="size-4 text-orange" aria-hidden="true" />
-            Executive Recruiter
+            {recruiterLabel}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            {RECRUITER_INCLUDED.map((item) => (
+            {recruiterIncluded.map((item) => (
               <li key={item} className="flex items-start gap-2 text-sm text-foreground">
                 <Check className="mt-0.5 size-4 shrink-0 text-orange" aria-hidden="true" />
                 {item}

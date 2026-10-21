@@ -9,7 +9,7 @@ const tab = AUDIENCE_TABS.find((t) => t.id === 'coaches')!
 export const metadata: Metadata = {
   title: 'Stop Rebuilding Context Before Every Session',
   description:
-    "Every client's search, scored and current, with a generated pre-session brief waiting before you dial in. Set up free in under a minute.",
+    "On NextChapter, the leading job transition platform, every client's search is scored and current, with a generated pre-session brief waiting before you dial in. Set up free in under a minute.",
   alternates: { canonical: '/coaches' },
   openGraph: {
     title: 'Stop Rebuilding Context Before Every Session — NextChapter for Coaches',

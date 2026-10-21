@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getReportedThreads } from '@/lib/messaging/peer-threads'
 import { getReportedCommunityPosts } from '@/lib/community/community-feed'
+import { getWorkItemsForReview, isMissingTable, type AdminWorkItem } from '@/lib/work-help/questions'
 import { SubmitButton } from '@/components/ui/submit-button'
-import { dismissPostReportAction, removeReportedPostAction, dismissThreadReportAction } from '../community-moderation/actions'
+import { dismissPostReportAction, removeReportedPostAction, dismissThreadReportAction, dismissWorkReportAction, approveWorkItemAction, removeWorkItemAction } from '../community-moderation/actions'
 
 export const maxDuration = 30
 
@@ -19,7 +20,15 @@ export const maxDuration = 30
 export default async function ReportedMessagesAdminPage() {
   await requireAdmin()
 
-  const [threads, posts] = await Promise.all([getReportedThreads(), getReportedCommunityPosts()])
+  const [threads, posts, workItems] = await Promise.all([
+    getReportedThreads(),
+    getReportedCommunityPosts(),
+    // Fails soft until prisma/manual/2026-10-19-work-questions.sql has been applied.
+    getWorkItemsForReview().catch((err): AdminWorkItem[] => {
+      if (isMissingTable(err)) return []
+      throw err
+    }),
+  ])
 
   return (
     <div className="mx-auto max-w-3xl space-y-10 p-6">
@@ -27,7 +36,7 @@ export default async function ReportedMessagesAdminPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Reported Content</h1>
         <p className="mt-1 text-muted-foreground">
           Conversations and posts a candidate has reported — {threads.length} conversation
-          {threads.length === 1 ? '' : 's'}, {posts.length} post{posts.length === 1 ? '' : 's'} on
+          {threads.length === 1 ? '' : 's'}, {posts.length} post{posts.length === 1 ? '' : 's'}, {workItems.length} work situation item{workItems.length === 1 ? '' : 's'} on
           file. This is the only place admin can see this content; unreported items are never
           visible here.{' '}
           <Link href="/support/admin/community-moderation" className="underline underline-offset-4">
@@ -127,6 +136,66 @@ export default async function ReportedMessagesAdminPage() {
                   <form action={removeReportedPostAction.bind(null, post.id)}>
                     <SubmitButton size="sm" variant="destructive">
                       Remove post
+                    </SubmitButton>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+          Work situation questions and replies
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Reported by a member, or held by the classifier. Held items are hidden from everyone but their author until you
+          approve them. Authors are shown by name here for moderation only; other members only ever see a generated handle.
+        </p>
+        {workItems.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nothing reported or held.</p>
+        ) : (
+          <div className="space-y-4">
+            {workItems.map((item) => (
+              <div key={`${item.type}-${item.id}`} className="space-y-2 rounded-lg border border-border p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    {item.authorName}
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">
+                      ({item.type}
+                      {item.held ? ', held' : ''}
+                      {item.reportedAt ? ', reported' : ''}
+                      {item.moderationCategory ? `, ${item.moderationCategory}` : ''})
+                    </span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.reportedAt ? `Reported ${item.reportedAt.toLocaleString()}` : `Posted ${item.createdAt.toLocaleString()}`}
+                  </p>
+                </div>
+                {item.reportReason && (
+                  <p className="rounded-md bg-muted p-2 text-sm text-foreground">&quot;{item.reportReason}&quot;</p>
+                )}
+                {item.questionTitle && <p className="text-xs text-muted-foreground">In reply to: {item.questionTitle}</p>}
+                {item.title && <p className="text-sm font-medium text-foreground">{item.title}</p>}
+                <p className="text-sm whitespace-pre-line text-muted-foreground">{item.body}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {item.reportedAt && (
+                    <form action={dismissWorkReportAction.bind(null, item.type, item.id)}>
+                      <SubmitButton size="sm" variant="ghost">
+                        Dismiss report
+                      </SubmitButton>
+                    </form>
+                  )}
+                  {item.held && (
+                    <form action={approveWorkItemAction.bind(null, item.type, item.id)}>
+                      <SubmitButton size="sm" variant="outline">
+                        Approve and publish
+                      </SubmitButton>
+                    </form>
+                  )}
+                  <form action={removeWorkItemAction.bind(null, item.type, item.id)}>
+                    <SubmitButton size="sm" variant="destructive">
+                      Remove {item.type}
                     </SubmitButton>
                   </form>
                 </div>

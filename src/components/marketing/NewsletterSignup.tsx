@@ -5,7 +5,6 @@ import { subscribeToNewsletter, type NewsletterState } from '@/lib/newsletter/ac
 
 type NewsletterSource =
   | 'home' | 'how-it-works' | 'why-stuck' | 'news' | 'resources'
-  | 'displacement-report' | 'displacement-report-popup' | 'displacement-report-pdf'
   | 'employment-report' | 'employment-report-popup' | 'employment-report-pdf' | 'site-footer'
 
 type Variant = 'default' | 'report' | 'compact' | 'inline'
@@ -69,7 +68,7 @@ export function NewsletterSignup({
             />
             <button
               type="submit" disabled={pending}
-              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-success px-5 text-sm font-semibold text-white hover:bg-success-hover ${pending ? 'cursor-wait opacity-70' : ''}`}
+              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
             >
               {pending ? 'Signing up…' : 'Get it monthly'}
             </button>
@@ -101,7 +100,7 @@ export function NewsletterSignup({
             />
             <button
               type="submit" disabled={pending}
-              className={`inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-success px-4 text-sm font-semibold text-white hover:bg-success-hover ${pending ? 'cursor-wait opacity-70' : ''}`}
+              className={`inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
             >
               {pending ? 'Subscribing…' : 'Subscribe'}
             </button>
@@ -135,7 +134,7 @@ export function NewsletterSignup({
             />
             <button
               type="submit" disabled={pending}
-              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-success px-5 text-sm font-semibold text-white hover:bg-success-hover ${pending ? 'cursor-wait opacity-70' : ''}`}
+              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
             >
               {pending ? 'Signing up…' : copy.cta}
             </button>

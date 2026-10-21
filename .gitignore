@@ -41,6 +41,9 @@ yarn-error.log*
 next-env.d.ts
 scripts/higher-ed/render/.out.cjs
 
+# Perf baselines (copies of old code, made by scripts/perf/make-*baseline.sh)
+scripts/perf/baseline*/
+
 # jobs report pipeline output
 scripts/jobsreport/out/
 __pycache__/

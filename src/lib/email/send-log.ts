@@ -1,6 +1,7 @@
 import 'server-only'
 import { Prisma, type CandidateEmailKey } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 function startOfUTCDay(date: Date): Date {
   const d = new Date(date)
@@ -34,4 +35,17 @@ export async function hasAlreadySentToday(candidateId: string, emailKey: Candida
     },
   })
   return !!existing
+}
+
+/**
+ * One `email_sent` PostHog event per delivered lifecycle email, keyed by email
+ * type, so sends and clicks (`email_clicked`) can be compared per email.
+ * Call it after a send succeeds, not at claim time.
+ */
+export function trackEmailSent(candidateId: string, emailKey: CandidateEmailKey): void {
+  try {
+    captureServerEvent(candidateId, 'email_sent', { email_key: emailKey })
+  } catch (error) {
+    console.error('Failed to record email_sent:', error)
+  }
 }

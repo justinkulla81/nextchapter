@@ -1,8 +1,15 @@
 import 'server-only'
+import { profileNudges } from '@/lib/profile/touchpoints'
 import type { CandidateProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { boardJobCardTexts } from '@/lib/jobs/job-card-server'
+import { metaLineText } from '@/lib/jobs/job-card'
 import { loadBoardShortlist } from '@/lib/jobs/board-shortlist'
-import { isFresh, postedAgo } from '@/lib/jobs/competition'
+import { whatChangedLines } from '@/lib/personalization/smarter'
+import { emailSafeJobs, midLevelInEmails } from '@/lib/jobs/mid-level'
+import { fitsMemberLevel } from '@/lib/jobs/email-level-fit'
+import { earlyCareerInEmails } from '@/lib/jobs/career-stage'
+import { isFresh } from '@/lib/jobs/competition'
 import { getLikelyOpeningsForCandidate } from '@/lib/likely-openings'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import {
@@ -14,9 +21,14 @@ import {
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist-types'
 import { computeWeeklyEngines } from '@/lib/scoring/dossier-competencies'
 import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
-import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
+import { boardListingFitBucketFor, emailFitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
+import { skillTerms } from '@/lib/profile/skill-matrix'
+import { aiSkillItem, memberAiSkillIds } from '@/lib/skills/ai-skills'
+import { aiMarketLine, suggestedAiItems } from '@/lib/skills/ai-skill-market'
 import { getUnifiedFollowUps } from '@/lib/dashboard/unified-follow-ups'
+import { CHECKIN_BUCKETS, CHECKIN_BUCKET_LABEL, checkInUrl, checkInWeekKey } from '@/lib/activity-log/weekly-checkin'
+import type { LogKind } from '@/lib/activity-log/progress'
 import {
   UNLOCK_NUDGES,
   UNLOCK_REPEAT_DAYS,
@@ -58,6 +70,9 @@ export interface DailyItem {
   title: string
   detail: string | null
   href: string | null
+  /** Job items only: the board card's verdict ("Strong fit") and why line ("Fits you: … — Gap: …"), job-card.ts. */
+  verdict?: string
+  why?: string | null
 }
 
 // One line in "Top 3 today": the clock first (why now), then the action.
@@ -83,16 +98,29 @@ export interface JobSearchDailyContent {
   networking: DailyItem[] // replies owed, starred people due a note, a contact at a hiring company, a few stale contacts
   networkingMoreCount: number // stale contacts beyond the few shown
   // `fresh`: posted in the last 72 hours — the email leads with these.
-  jobs: { items: DailyItem[]; fresh: DailyItem[]; lockedCount: number }
+  jobs: { items: DailyItem[]; fresh: DailyItem[] }
   companyMoves: DailyItem[]
   // SEC-filing signals of a senior role about to open (not posted yet).
   likelyOpenings: DailyItem[]
   reconnect: DailyItem | null
   article: DailyItem | null
   unlock: DailyItem | null
+  // One nudge from their profile (strengths, market, what to leave behind), at most once a week each.
+  fromProfile: DailyItem | null
   action: { label: string; href: string }
   quote: Quote | null
   freshCount: number // new items (jobs, company moves, contact, article) — 0 means nothing new today
+  // "What changed for you" (personalization/smarter.ts whatChangedLines): at most three lines; empty = left out.
+  whatChanged: string[]
+  // The member's strict match count today (board-shortlist.ts marketSize), kept after a send for next week's trend.
+  matchCount: number | null
+  // The weekly check-in (activity-log/weekly-checkin.ts): in the first send each week only.
+  checkIn: WeeklyCheckIn | null
+}
+
+export interface WeeklyCheckIn {
+  key: string // JobSearchDailyItem.itemKey: 'checkin:<monday>'
+  rows: { kind: LogKind; label: string; taps: { label: string; href: string }[] }[]
 }
 
 type Candidate = CandidateProfile
@@ -176,35 +204,37 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   // tens of thousands at once, so "the newest 500" would be an arbitrary
   // slice rather than the ones that fit.
   const dossier = await isDossierUnlocked(candidate.id)
-  const shortlist = await loadBoardShortlist({
-    candidate,
+  // An email: stays on the pre-v2 fit scoring until FIT_SCORING_V2_FOR_EMAILS is on.
+  const fitScoring = emailFitScoringVersion()
+  const { shortlist, fitting, freshJobs, olderJobs } = await loadDailyJobPicks(candidate, {
     isCandidatePlus: dossier.unlocked,
-    where: { createdAt: { gte: jobsSince } },
-    size: 200,
+    since: jobsSince,
+    fitScoring,
+    shownKeys,
+    now,
   })
-  const postings = [...shortlist.open, ...shortlist.locked]
-  const fitting = postings.filter((p) => {
-    if (shownKeys.has(`job:${p.id}`)) return false
-    const bucket = computeBoardListingFitBucket(candidate, p)
-    return bucket === 'strong' || bucket === 'good'
+  const whatChanged = await loadWhatChanged(candidate.id, shortlist.breadth.marketSize, lastSend?.sentAt ?? new Date(now.getTime() - DAY_MS), now)
+  // Each job reads as it does on the board card (job-card.ts): verdict, why line, meta line.
+  const cards = boardJobCardTexts({
+    candidate,
+    shortlist,
+    postings: [...freshJobs, ...olderJobs],
+    fitBucketFor: (p) => boardListingFitBucketFor(fitScoring, candidate, p),
+    now,
   })
-  const openable = fitting.filter((p) => p.audienceTier !== 'A_LIST_ONLY' || dossier.unlocked)
-  // Jobs posted in the last 72 hours lead (applying early matters most);
-  // the rest fill the remaining slots.
-  const toJobItem = (p: (typeof openable)[number]): DailyItem => ({
-    key: `job:${p.id}`,
-    title: p.title,
-    detail: [p.companyName, p.location, isFresh(p, now) ? postedAgo(p, now) : null, knowLine(p.companyName)]
-      .filter(Boolean)
-      .join(' · '),
-    href: jobsUrl,
-  })
-  const freshJobItems = openable.filter((p) => isFresh(p, now)).slice(0, MAX_JOBS).map(toJobItem)
-  const jobItems: DailyItem[] = openable
-    .filter((p) => !isFresh(p, now))
-    .slice(0, Math.max(0, MAX_JOBS - freshJobItems.length))
-    .map(toJobItem)
-  const lockedCount = fitting.length - openable.length
+  const toJobItem = (p: (typeof freshJobs)[number]): DailyItem => {
+    const card = cards.get(p.id)!
+    return {
+      key: `job:${p.id}`,
+      title: p.title,
+      detail: [p.companyName, metaLineText(card), knowLine(p.companyName)].filter(Boolean).join(' · '),
+      href: jobsUrl,
+      verdict: card.verdictLabel,
+      why: card.whyLine || null,
+    }
+  }
+  const freshJobItems = freshJobs.map(toJobItem)
+  const jobItems: DailyItem[] = olderJobs.map(toJobItem)
 
   // ── Likely openings (SEC filings and news), not posted yet ─────────────────────
   // Only ones tied to the member (a watched or applied company, or their
@@ -515,6 +545,8 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
         .map((s) => s.itemKey.slice(prefix.length))
     )
   }
+  const myAi = memberAiSkillIds(skillTerms(candidate))
+  const aiGapId = suggestedAiItems(candidate.primaryFunction, [], 3).find((id) => !myAi.has(id)) ?? null
   const ctx: RotationContext = {
     skillsAssessmentDone: !!candidate.skillsAssessmentCompletedAt,
     dossierUnlocked: dossier.unlocked,
@@ -529,6 +561,9 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     // Owed follow-ups only — counting every stale contact makes the button a chore.
     followUpCount: applications.length + repliesOwed.length + starred.length,
     newJobCount: jobItems.length + freshJobItems.length,
+    aiSkillCount: myAi.size,
+    aiMarketText: aiMarketLine(candidate.primaryFunction)?.text ?? null,
+    aiGapLabel: aiGapId ? (aiSkillItem(aiGapId)?.label ?? null) : null,
   }
   const dateSeed = `${candidate.id}:${now.toISOString().slice(0, 10)}`
   const pickFrom = <T>(pool: T[], salt: string): T | null =>
@@ -543,7 +578,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     ? {
         key: `unlock:${unlockPick.id}`,
         title: unlockPick.title,
-        detail: unlockPick.detail,
+        detail: unlockPick.detailFor?.(ctx) ?? unlockPick.detail,
         href: withSrc(unlockPick.path),
       }
     : null
@@ -566,6 +601,27 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     ? Math.floor((now.getTime() - candidate.registrationCompletedAt.getTime()) / DAY_MS) + 1
     : null
 
+  // One profile nudge, each kind at most once a week (the key carries the week).
+  const week = Math.floor(now.getTime() / (7 * DAY_MS))
+  const nudge = (await profileNudges(candidate.id, { market: true }).catch(() => [])).find((n) => !shownKeys.has(`profile:${n.key}:${week}`))
+  const fromProfile: DailyItem | null = nudge ? { key: `profile:${nudge.key}:${week}`, title: nudge.lead, detail: nudge.text, href: `${appUrl}${nudge.href}?src=job_search_daily` } : null
+
+  // Once a week, in the first send that week: "Applied or reached out anywhere this week?"
+  const weekKey = checkInWeekKey(getMondayOfWeek(now))
+  const checkIn: WeeklyCheckIn | null = shownKeys.has(`checkin:${weekKey}`)
+    ? null
+    : {
+        key: `checkin:${weekKey}`,
+        rows: (['applications', 'outreach'] as const).map((kind) => ({
+          kind,
+          label: kind === 'applications' ? 'Applications' : 'Outreach',
+          taps: CHECKIN_BUCKETS.map((bucket) => ({
+            label: CHECKIN_BUCKET_LABEL[bucket],
+            href: checkInUrl(appUrl, { candidateId: candidate.id, kind, bucket, weekKey, issuedAt: now.getTime() }),
+          })),
+        })),
+      }
+
   const freshCount = jobItems.length + freshJobItems.length + likelyOpenings.length + companyMoves.length + (reconnect ? 1 : 0) + (article ? 1 : 0)
 
   return {
@@ -580,15 +636,60 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
     staleApplicationCount,
     networking: networkingListed,
     networkingMoreCount,
-    jobs: { items: jobItems, fresh: freshJobItems, lockedCount },
+    jobs: { items: jobItems, fresh: freshJobItems },
     likelyOpenings,
     companyMoves,
     reconnect,
     article,
     unlock,
+    fromProfile,
     action,
     quote,
     freshCount,
+    whatChanged,
+    matchCount: shortlist.breadth.marketSize,
+    checkIn,
+  }
+}
+
+const CLOSED_REASONS = ['removed', 'expired', 'aged_out']
+
+/** The inputs to "What changed for you": last week's count, retunes since the last email, saved jobs that closed unapplied. Never throws. */
+async function loadWhatChanged(candidateId: string, matchesNow: number | null, since: Date, now: Date): Promise<string[]> {
+  try {
+    const [weekAgo, learned, saved] = await Promise.all([
+      prisma.memberMatchSnapshot.findFirst({
+        where: { candidateId, kind: 'daily', createdAt: { gte: new Date(now.getTime() - 9 * DAY_MS), lte: new Date(now.getTime() - 5 * DAY_MS) } },
+        orderBy: { createdAt: 'asc' },
+        select: { relevant: true },
+      }),
+      prisma.memberMatchSnapshot.findMany({
+        where: { candidateId, kind: 'retune', createdAt: { gte: since } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { trigger: true, relevant: true, detail: true },
+      }),
+      prisma.trackedJob.findMany({
+        where: { candidateId, source: 'job_board', savedAt: { not: null }, dismissedAt: null, OR: [{ jobPostingId: null }, { jobPosting: { appliedAt: null } }] },
+        select: { sourceId: true },
+        take: 500,
+      }),
+    ])
+    const closedBeforeApplied =
+      saved.length === 0
+        ? 0
+        : await prisma.exclusiveJobPosting.count({
+            where: { id: { in: saved.map((t) => t.sourceId) }, archivedAt: { gte: since }, closeReason: { in: CLOSED_REASONS } },
+          })
+    return whatChangedLines({
+      matchesNow,
+      matchesWeekAgo: weekAgo?.relevant ?? null,
+      learned: learned.map((r) => ({ trigger: r.trigger, after: r.relevant, before: (r.detail as { before?: { matches?: number } | null } | null)?.before?.matches ?? null })),
+      closedBeforeApplied,
+    })
+  } catch (error) {
+    console.error('Job Search Daily: what changed unavailable:', error)
+    return []
   }
 }
 
@@ -601,8 +702,9 @@ export function shownItemKeys(content: JobSearchDailyContent): string[] {
     ...content.jobs.items.map((i) => i.key),
     ...content.companyMoves.map((i) => i.key),
     ...content.likelyOpenings.map((i) => i.key),
-    ...[content.reconnect, content.article, content.unlock].filter((i): i is DailyItem => !!i).map((i) => i.key),
+    ...[content.reconnect, content.article, content.unlock, content.fromProfile].filter((i): i is DailyItem => !!i).map((i) => i.key),
     ...(content.quote ? [`quote:${content.quote.id}`] : []),
+    ...(content.checkIn ? [content.checkIn.key] : []),
   ]
 }
 
@@ -667,4 +769,47 @@ function dedupeOrgNames(names: string[]): string[] {
 
 function warmthRank(warmth: string): number {
   return warmth === 'HOT' ? 2 : warmth === 'WARM' ? 1 : 0
+}
+
+
+/**
+ * The jobs a Job Search Daily email sends (MAX_JOBS): new jobs since the last send, ranked
+ * by fit on the member's board, at the member's level only, good-or-better fits, the last
+ * 72 hours first. Exported so the level gate (scripts) checks exactly what the email sends.
+ */
+export async function loadDailyJobPicks(
+  candidate: Candidate,
+  opts: { isCandidatePlus: boolean; since: Date; fitScoring: ReturnType<typeof emailFitScoringVersion>; shownKeys: ReadonlySet<string>; now: Date }
+) {
+  const { fitScoring, now } = opts
+  const shortlist = await loadBoardShortlist({
+    candidate,
+    isCandidatePlus: opts.isCandidatePlus,
+    where: { createdAt: { gte: opts.since } },
+    size: 200,
+    fitScoring,
+    // A small strict market fills with bridge jobs (labelled "Worth a look") instead of a near-empty email.
+    autoWidenTo: 60,
+    // Mid-level and early-career jobs stay out of emails until the owner turns on
+    // MID_LEVEL_IN_EMAILS / EARLY_CAREER_IN_EMAILS; the member's stage window applies.
+    includeMidLevel: midLevelInEmails(),
+    includeEarlyCareer: earlyCareerInEmails(),
+    // No seniority ring in an email: a bridge job may relax place, industry or function, never
+    // level (the ring's one-level-beyond jobs are for browsing the board).
+    seniorityRing: false,
+  })
+  // Only jobs at the member's level (email-level-fit.ts): inside their stage window, and not
+  // asking far more — or far fewer — years than they have.
+  const fitting = emailSafeJobs(shortlist.open)
+    .filter((p) => fitsMemberLevel(candidate, p))
+    .filter((p) => {
+      if (opts.shownKeys.has(`job:${p.id}`)) return false
+      const bucket = boardListingFitBucketFor(fitScoring, candidate, p)
+      return bucket === 'strong' || bucket === 'good'
+    })
+  // Every member gets every job that fits (owner's rule, 2026-10-16). Jobs posted in the
+  // last 72 hours lead (applying early matters most); the rest fill the remaining slots.
+  const freshJobs = fitting.filter((p) => isFresh(p, now)).slice(0, MAX_JOBS)
+  const olderJobs = fitting.filter((p) => !isFresh(p, now)).slice(0, Math.max(0, MAX_JOBS - freshJobs.length))
+  return { shortlist, fitting, freshJobs, olderJobs }
 }

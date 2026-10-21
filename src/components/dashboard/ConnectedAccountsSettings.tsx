@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { usePostHog } from '@/lib/posthog/client'
-import { Mail, CalendarDays } from 'lucide-react'
 import { disconnectGmail } from '@/app/dashboard/email-activity/actions'
 import { disconnectCalendar } from '@/app/dashboard/calendar-activity/actions'
+import { googleConnectionLine } from '@/lib/redesign/network-account'
 
 export type ConnectionState = { status: 'connected' | 'expired' | 'not_connected'; account: string | null; lastChecked: string | null }
 
@@ -33,14 +33,6 @@ export function ConnectedAccountsSettings({
   const fullyConnected = gmailStatus === 'connected' && calendarStatus === 'connected'
   const expired = gmailStatus === 'expired' || calendarStatus === 'expired'
   const status = fullyConnected ? 'connected' : expired ? 'expired' : anyLive ? 'partial' : 'not_connected'
-
-  const pill =
-    status === 'connected' ? 'bg-success/10 text-success'
-      : status === 'expired' ? 'bg-destructive/10 text-destructive'
-        : status === 'partial' ? 'bg-warning/20 text-foreground'
-          : 'bg-muted text-muted-foreground'
-  const statusLabel = status === 'connected' ? 'Connected' : status === 'expired' ? 'Needs reconnecting'
-    : status === 'partial' ? (gmailStatus === 'connected' ? 'Calendar not connected' : 'Gmail not connected') : 'Not connected'
   const account = gmail.account ?? calendar.account
   const lastChecked = gmail.lastChecked ?? calendar.lastChecked
 
@@ -55,71 +47,57 @@ export function ConnectedAccountsSettings({
     })
   }
 
+  // The redesign: the colored status pill and the bordered card become a sentence that says what is true and what it
+  // costs you, then the one action. Disconnecting still asks first, and "Keep connected" is the safe default.
+  const line = googleConnectionLine(gmailStatus, calendarStatus)
   return (
-    <div className="space-y-3">
-      <div className={`rounded-xl border border-border p-4 ${pending ? 'cursor-wait' : ''}`}>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex min-w-0 gap-3">
-            <span className="mt-0.5 flex shrink-0 gap-1 text-brand" aria-hidden>
-              <Mail className="size-5" />
-              <CalendarDays className="size-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
-                Gmail &amp; Google Calendar
-                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${pill}`}>{statusLabel}</span>
-              </p>
-              {anyLive && (account || lastChecked) && (
-                <p className="text-sm text-muted-foreground">
-                  {account}{account && lastChecked ? ' · ' : ''}{lastChecked ? `last checked ${lastChecked}` : ''}
-                </p>
-              )}
-              <p className="mt-1 text-sm text-muted-foreground">
-                Reads job-search email (applications, replies, rejections, networking) and calendar events (interviews,
-                networking calls) so they count automatically.
-              </p>
-            </div>
-          </div>
-          <div className="shrink-0">
-            {fullyConnected ? (
-              !confirming && (
-                <button type="button" onClick={() => setConfirming(true)} className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">
-                  Disconnect
-                </button>
-              )
-            ) : (
-              <a
-                href={connectHref}
-                onClick={() => posthog?.capture('connected_account_connect_clicked', { kind: 'google', reconnect: status !== 'not_connected', from: 'privacy' })}
-                className="inline-flex items-center rounded-lg bg-success px-3 py-1.5 text-sm font-semibold text-white hover:bg-success-hover"
-              >
-                {status === 'not_connected' ? 'Connect Google' : 'Reconnect'}
-              </a>
-            )}
+    <div className={`space-y-3 ${pending ? 'cursor-wait' : ''}`}>
+      <p className="text-base font-semibold text-ink">Gmail and Google Calendar</p>
+      <p className="max-w-xl text-base text-ink">{line.text}</p>
+      {anyLive && (account || lastChecked) && (
+        <p className="text-sm text-muted-foreground">
+          {account}
+          {account && lastChecked ? ', ' : ''}
+          {lastChecked ? `last checked ${lastChecked}` : ''}
+        </p>
+      )}
+      <p className="max-w-xl text-sm text-muted-foreground">
+        We read job-search email (applications, replies, rejections, networking) and calendar events (interviews, networking calls) so they count automatically. It is read-only: NextChapter never sends, changes or deletes your email or events. Disconnecting stops all reading right away, removes our access from your Google account and deletes your stored Google sign-in. Activity already counted stays. To delete that too, use{' '}
+        <a href="#google-data" className="underline underline-offset-4">Delete my Google data</a>.
+      </p>
+      {fullyConnected ? (
+        !confirming && (
+          <button type="button" onClick={() => setConfirming(true)} className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted">
+            Disconnect Google
+          </button>
+        )
+      ) : (
+        <a
+          href={connectHref}
+          onClick={() => posthog?.capture('connected_account_connect_clicked', { kind: 'google', reconnect: status !== 'not_connected', from: 'privacy' })}
+          className="inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95"
+        >
+          {status === 'not_connected' ? 'Connect Google' : 'Reconnect Google'}
+        </a>
+      )}
+      {confirming && (
+        <div role="alertdialog" aria-label="Disconnect Google?" className="max-w-xl space-y-3">
+          <p className="text-base text-ink">Disconnect Gmail and Calendar? We stop reading both right away, and new applications, replies and interviews will not count automatically. You can reconnect any time.</p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={() => setConfirming(false)} className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted">
+              Keep connected
+            </button>
+            <button type="button" disabled={pending} onClick={disconnect} className="inline-flex h-10 items-center rounded-full border border-destructive px-5 text-sm font-medium text-destructive hover:bg-destructive/5 disabled:cursor-wait disabled:opacity-70">
+              {pending ? 'Disconnecting…' : 'Yes, disconnect'}
+            </button>
           </div>
         </div>
-        {confirming && (
-          <div role="alertdialog" aria-label="Disconnect Google?" className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
-            <p className="text-foreground">
-              Disconnect Gmail and Calendar? NextChapter stops reading both right away, and new applications, replies and
-              interviews won’t count automatically. You can reconnect any time.
-            </p>
-            <div className="mt-2 flex gap-2">
-              <button type="button" onClick={() => setConfirming(false)} className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium hover:bg-muted">
-                Keep connected
-              </button>
-              <button type="button" disabled={pending} onClick={disconnect} className="rounded-lg bg-destructive px-3 py-1.5 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-70">
-                {pending ? 'Disconnecting…' : 'Disconnect'}
-              </button>
-            </div>
-          </div>
-        )}
-        {done && <p role="status" className="mt-2 text-sm text-success">Gmail and Calendar disconnected.</p>}
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Read-only: NextChapter never sends, changes or deletes your email or events. Disconnecting stops all reading right away
-        and removes NextChapter’s access from your Google account; activity already counted stays.
-      </p>
+      )}
+      {done && (
+        <p role="status" className="text-base text-ink">
+          Gmail and Calendar disconnected.
+        </p>
+      )}
     </div>
   )
 }

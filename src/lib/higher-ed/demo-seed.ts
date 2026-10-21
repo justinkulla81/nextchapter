@@ -24,6 +24,7 @@
 // day produces the same people, so screenshots stay comparable.
 
 import 'server-only'
+import { demoProfile } from '@/lib/higher-ed/demo-skills'
 import { createHash } from 'crypto'
 import type {
   CheckInKind,
@@ -55,11 +56,11 @@ const TITLES = ['Director of Operations', 'Senior Analyst', 'VP Finance', 'Produ
 const DEGREES = ['BA', 'BS']
 const MENTOR_FIELDS = ['Finance', 'Healthcare', 'Technology', 'Consulting', 'Manufacturing and energy', 'Law']
 // Why joined alumni are here: not only job loss.
-const JOURNEY_CYCLE: JourneyType[] = ['LAID_OFF', 'READY_TO_MOVE', 'EXPLORING_MOVE', 'LAID_OFF', 'PROMOTION', 'EXPLORING_MOVE', 'CAREER_CHANGE', 'READY_TO_MOVE', 'LAID_OFF', 'EXPLORING_MOVE', 'PROMOTION', 'STUDENT_NEW_GRAD']
+const JOURNEY_CYCLE: JourneyType[] = ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'LAID_OFF', 'PROMOTION', 'EXPLORING_MOVE', 'CAREER_CHANGE', 'GROWING', 'LAID_OFF', 'EXPLORING_MOVE', 'PROMOTION', 'STUDENT_NEW_GRAD']
 const STAGE_FOR: Partial<Record<JourneyType, JourneyStage[]>> = {
   LAID_OFF: ['APPLYING', 'INTERVIEWING', 'APPLYING'],
-  READY_TO_MOVE: ['PREPARING', 'APPLYING', 'INTERVIEWING'],
-  EXPLORING_MOVE: ['EXPLORING'],
+  EXPLORING_MOVE: ['EXPLORING', 'PREPARING', 'APPLYING', 'INTERVIEWING'],
+  GROWING: ['STAYING'],
   PROMOTION: ['PREPARING'],
   CAREER_CHANGE: ['EXPLORING', 'PREPARING'],
 }
@@ -247,7 +248,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
   // Joined alumni: a sample candidate profile each, with a journey.
   const journeyOf = new Map<number, JourneyType>()
   const candidateRows: Prisma.CandidateProfileCreateManyInput[] = joinedIdx.map((i, k) => {
-    const journey = i === featured ? 'READY_TO_MOVE' : (row(i).classYear ?? 0) >= now.getUTCFullYear() - 2 ? 'STUDENT_NEW_GRAD' : JOURNEY_CYCLE[k % JOURNEY_CYCLE.length]
+    const journey = i === featured ? 'EXPLORING_MOVE' : (row(i).classYear ?? 0) >= now.getUTCFullYear() - 2 ? 'STUDENT_NEW_GRAD' : JOURNEY_CYCLE[k % JOURNEY_CYCLE.length]
     journeyOf.set(i, journey)
     const stage = STAGE_FOR[journey]?.[k % (STAGE_FOR[journey]?.length ?? 1)] ?? getJourney(journey).defaultStage
     return {
@@ -261,6 +262,7 @@ export async function resetDemoInstitution(db: Db = prisma, now = new Date(), te
       journeyStageChangedAt: row(i).claimedAt as Date,
       currentJobStatus: getJourney(journey).jobStatus,
       positioningStatementText: k % 7 === 0 || i === featured ? pick(DOSSIER_LINES, k, 1) : null,
+      ...demoProfile(slug, i),
       metroArea: i === featured ? 'Pittsburgh' : (['Pittsburgh', 'Pittsburgh', 'Philadelphia', 'Washington, DC', 'New York'] as const)[k % 5],
       isSampleData: true,
     }

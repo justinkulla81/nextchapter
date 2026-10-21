@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface LayoffContextAlertEmailProps {
   submitterName: string
@@ -65,6 +66,7 @@ export default function LayoffContextAlertEmail({
         This submission was also marked for the outplacement pipeline in Attio. Sent immediately —
         does not wait for the weekly digest.
       </p>
+      <AudienceTag audience="admin" />
     </div>
   )
 }

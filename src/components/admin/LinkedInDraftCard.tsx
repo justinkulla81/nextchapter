@@ -1,0 +1,125 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { Button } from '@/components/ui/button'
+import { CopyButton } from '@/components/ui/copy-button'
+import { Textarea } from '@/components/ui/textarea'
+import { markPosted, postDraftToLinkedIn, saveDraft, skipDraft } from '@/app/support/admin/(portal)/linkedin-drafts/actions'
+
+export interface DraftCardData {
+  id: string
+  employer: string
+  employees: number
+  place: string | null
+  credibilityLabel: string
+  sourceUrl: string | null
+  angle: string
+  body: string
+  firstComment: string
+  /** Pre-formatted in Eastern time on the server. */
+  slotLabel: string
+  due: boolean
+  rewritten: boolean
+  tags: { name: string; note: string; linkedinUrl: string | null }[]
+  /** LinkedIn is connected, so the draft can be posted from here. */
+  canPost: boolean
+  /** How many slides the post has. */
+  slides: number
+}
+
+export function LinkedInDraftCard({ d }: { d: DraftCardData }) {
+  const [body, setBody] = useState(d.body)
+  const [comment, setComment] = useState(d.firstComment)
+  const [note, setNote] = useState<string | null>(null)
+  const [postUrl, setPostUrl] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState(false)
+  const [pending, start] = useTransition()
+  const run = (fn: () => Promise<{ message: string }>) => start(async () => setNote((await fn()).message))
+  const post = (visibility: 'PUBLIC' | 'CONNECTIONS') => start(async () => {
+    setConfirming(false)
+    const r = await postDraftToLinkedIn(d.id, visibility)
+    setNote(r.message)
+    setPostUrl(r.url ?? null)
+  })
+  const imageUrl = `/api/admin/linkedin-drafts/${d.id}/image`
+
+  return (
+    <article className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-[1fr_340px]" style={{ cursor: pending ? 'wait' : undefined }}>
+      <div className="space-y-3">
+        <header className="space-y-1">
+          <h2 className="text-lg font-semibold">
+            {d.employer} · {d.employees.toLocaleString('en-US')} jobs{d.place ? ` · ${d.place}` : ''}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {d.due ? <strong className="text-foreground">Post now</strong> : <>Post at <strong className="text-foreground">{d.slotLabel}</strong></>}
+            {' · '}{d.credibilityLabel}{' · '}angle: {d.angle}{d.rewritten ? ' · rewritten' : ' · template wording'}
+            {d.sourceUrl ? <> · <a href={d.sourceUrl} target="_blank" rel="noreferrer" className="underline">source</a></> : null}
+          </p>
+        </header>
+
+        <label className="block text-sm font-medium" htmlFor={`body-${d.id}`}>Post</label>
+        <Textarea id={`body-${d.id}`} value={body} onChange={(e) => setBody(e.target.value)} rows={12} />
+        <label className="block text-sm font-medium" htmlFor={`comment-${d.id}`}>First comment (the link goes here, not in the post)</label>
+        <Textarea id={`comment-${d.id}`} value={comment} onChange={(e) => setComment(e.target.value)} rows={2} />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <CopyButton text={body} label="Copy post text" />
+          <span className="text-xs text-muted-foreground">post</span>
+          <CopyButton text={comment} label="Copy first comment" />
+          <span className="text-xs text-muted-foreground">comment</span>
+          <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => saveDraft(d.id, body, comment))}>Save edits</Button>
+          {d.canPost && !confirming ? <Button size="sm" disabled={pending} onClick={() => setConfirming(true)}>Post to LinkedIn</Button> : null}
+          {confirming ? (
+            <span className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-2 text-sm">
+              Posts as you, now, with the image and the first comment.
+              <Button size="sm" disabled={pending} onClick={() => post('PUBLIC')}>Post publicly</Button>
+              <Button size="sm" variant="outline" disabled={pending} onClick={() => post('CONNECTIONS')}>Connections only</Button>
+              <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>Cancel</Button>
+            </span>
+          ) : null}
+          <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => markPosted(d.id))}>Mark as posted</Button>
+          <Button size="sm" variant="ghost" disabled={pending} onClick={() => run(() => skipDraft(d.id))}>Skip</Button>
+          {note ? <span role="status" className="text-sm text-muted-foreground">{note}</span> : null}
+          {postUrl ? <a href={postUrl} target="_blank" rel="noreferrer" className="text-sm underline">Open the post</a> : null}
+        </div>
+      </div>
+
+      <aside className="space-y-3">
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Slides ({d.slides}): swipeable post</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {Array.from({ length: d.slides }, (_, i) => (
+              <a key={i} href={`${imageUrl}?slide=${i}&download=1`} className="shrink-0" aria-label={`Download slide ${i + 1}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`${imageUrl}?slide=${i}`} alt={`Slide ${i + 1} for ${d.employer}`} loading="lazy" className="h-40 w-32 rounded-md border border-border object-cover" />
+              </a>
+            ))}
+          </div>
+          <Button nativeButton={false} size="sm" variant="outline" render={<a href={`/api/admin/linkedin-drafts/${d.id}/pdf`} />}>Download as PDF (document post)</Button>
+          <p className="text-xs text-muted-foreground">Click a slide to download it. Posting from here sends all slides as one swipeable post.</p>
+        </div>
+        <div className="space-y-1 text-sm">
+          <p className="font-medium">Tag these when you post</p>
+          <ul className="space-y-1 text-muted-foreground">
+            <li>
+              <a href={`https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(d.employer)}`} target="_blank" rel="noreferrer" className="underline">{d.employer} company page</a>: type @ in the post and pick it
+            </li>
+            {d.tags.map((t) => (
+              <li key={t.name}>
+                {t.linkedinUrl ? <a href={t.linkedinUrl} target="_blank" rel="noreferrer" className="underline">{t.name}</a> : t.name}: {t.note}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="space-y-1 text-sm">
+          <p className="font-medium">In the first hour after posting</p>
+          <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+            <li>Paste the link as the first comment.</li>
+            <li>Answer every comment; replies count as engagement.</li>
+            <li>Leave a short, useful comment on the news post about this layoff, where affected people are reading.</li>
+          </ul>
+        </div>
+      </aside>
+    </article>
+  )
+}

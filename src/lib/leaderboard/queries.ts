@@ -234,7 +234,8 @@ async function computeOutreachRaw(candidateIds: string[], weekStartDate: Date): 
 async function computeApplicationsRaw(candidateIds: string[], weekStartDate: Date): Promise<RawScore[]> {
   const weekEnd = new Date(weekStartDate.getTime() + 7 * 86400000)
   const rows = await prisma.jobPosting.findMany({
-    where: { candidateId: { in: candidateIds }, appliedAt: { gte: weekStartDate, lt: weekEnd } },
+    // Self-reported weekly check-in counts don't compete on the leaderboard.
+    where: { candidateId: { in: candidateIds }, selfReportKey: null, appliedAt: { gte: weekStartDate, lt: weekEnd } },
     select: { candidateId: true, url: true, appliedAt: true },
     orderBy: { appliedAt: 'asc' },
   })

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
 import { getService, serviceSettingsFrom, serviceTarget } from '@/lib/higher-ed/services'
+import { orgKindOf } from '@/lib/higher-ed/workspaces'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -13,9 +14,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   if (access === 'signed-out') return NextResponse.redirect(new URL(`/auth/login?next=/i/${slug}/candidate`, request.url))
   if (!access || access.workspaces.length === 0) return NextResponse.redirect(new URL(`/i/${slug}`, request.url))
 
-  const s = getService(service)
+  const kind = orgKindOf(access.institution.orgType)
+  const s = getService(service, kind)
   const row = await prisma.institution.findUnique({ where: { id: access.institution.id }, select: { enabledFeatures: true } })
-  const setting = s ? serviceSettingsFrom(row?.enabledFeatures)[s.key] : null
+  const setting = s ? serviceSettingsFrom(row?.enabledFeatures, kind)[s.key] : null
   const target = s && setting?.on ? serviceTarget(s, setting) : null
   if (!s || !target) return NextResponse.redirect(new URL(`/i/${slug}/candidate`, request.url))
 
@@ -25,5 +27,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     memberId: access.memberId,
     preview: access.mode !== 'own',
   })
-  return NextResponse.redirect(new URL(target, request.url))
+  // Built-in portal pages are written with {slug} (e.g. course auditing).
+  return NextResponse.redirect(new URL(target.replace('{slug}', slug), request.url))
 }

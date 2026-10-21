@@ -7,7 +7,8 @@
 // hides raw scores/jargon). This one shows everything to the candidate about
 // themselves — no hiding.
 
-import { effectiveJourney, effectiveStage, getJourney, getStage, REPORT_FRAMING } from '@/lib/journey/journey'
+import { cultureContext } from '@/lib/culture/culture-fit'
+import { effectiveJourney, effectiveStage, getJourney, getStage, moveDriverOf, reportFraming } from '@/lib/journey/journey'
 import 'server-only'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
@@ -41,7 +42,8 @@ import { computeProbabilityGrade } from '@/lib/scoring/market-reality/probabilit
 import { buildMarketRealityHeadline } from '@/lib/scoring/market-reality/narrative'
 import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
 import { loadMemberSkillGap } from '@/lib/jobs/skill-gap-data'
-import { addSkillGapActionItem, mergeSkillGapIntoGapAnalysis, skillGapPromptSection } from '@/lib/jobs/skill-gap-report'
+import { addSkillGapActionItem, applicationGapPromptSection, mergeApplicationGapsIntoGapAnalysis, mergeSkillGapIntoGapAnalysis, skillGapPromptSection } from '@/lib/jobs/skill-gap-report'
+import { loadApplicationGapSummary } from '@/lib/applications/skill-snapshot-data'
 
 export const actionPlanItemTypes = [
   'NETWORKING_LIST',
@@ -142,7 +144,7 @@ You are writing this Market Reality Report as Victoria, directly for the candida
 
 HARD REQUIREMENT — override Victoria's usual first-person voice for this document specifically: this report reads as a formal written assessment, not a message from Victoria speaking to the candidate. Never write in first person about yourself ("I will be honest with you," "I noticed," "I want to point out," "in my view") anywhere in strengths, weaknesses, hillToClimb, gapAnalysis, marketConditions, or the executive summary. Address the candidate directly as "you," and state findings and conclusions plainly ("Your resume shows..." / "This is a real gap..." / "The market for this target is..."), never as Victoria's own personal reaction to them.
 
-HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Needs work/Critical gap) — never a number.
+HARD REQUIREMENT — no raw numbers, anywhere: never cite a raw numeric score (e.g. "88/100", "a 62") in any written field. Numbers below are for your own reasoning only. When referencing standing, use only the letter grade (A-F) or its label (Excellent/Good/Average/Room to grow/Biggest opportunity) — never a number.
 
 HARD REQUIREMENT — never include "commit to your first Search Sprint," "start your Search Sprint," build your network, or any other ongoing-effort/Dossier-building framing as one of the 7 action-plan day items — this report's action plan is scoped to job goals, resume, and personalization only. Those other actions live in the Dossier instead (see the Portfolio page), not here.
 
@@ -386,12 +388,15 @@ export async function generateMarketRealityReport(candidateId: string): Promise<
 
   const directnessLevel = computeDirectnessLevel(
     weekNumber,
-    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity)
+    isCasuallySearching(candidate.jobSearchDifficultyLevel, candidate.searchIntensity),
+    candidate.coachingStylePreference
   )
 
   // Skills the member's best-fit open roles ask for that their resume doesn't show.
   // Computed from real postings (no AI call of its own); null never fails the report.
   const skillGap = await loadMemberSkillGap(candidateId)
+  // And what the jobs they actually applied to asked for (src/lib/applications); null never fails the report.
+  const applicationGaps = await loadApplicationGapSummary(candidateId)
 
   const summary = `
 ${DIRECTNESS_INSTRUCTION[directnessLevel]}
@@ -438,11 +443,11 @@ Job status: ${candidate.currentJobStatus ? CURRENT_JOB_STATUS_LABELS[candidate.c
 Journey: ${(() => {
     const j = effectiveJourney(candidate)
     const st = effectiveStage(candidate)
-    return j ? `${getJourney(j).label}${st ? `, stage ${getStage(st).label}` : ''}. ${REPORT_FRAMING[j]}` : 'not specified'
+    return j ? `${getJourney(j).label}${st ? `, stage ${getStage(st).label}` : ''}. ${reportFraming(j, st, moveDriverOf(candidate.journeyDetails))}` : 'not specified'
   })()}
 Location preference: ${candidate.remotePreference ?? 'not specified'}
 Known for: ${candidate.knownFor ?? 'not specified'}
-Deal breakers: ${candidate.dealBreakers ?? 'not specified'}
+Deal breakers: ${candidate.dealBreakers ?? 'not specified'}${cultureContext(candidate.cultureFit)}
 How difficult their job search has been so far (1=taking their time, 4=getting desperate): ${candidate.jobSearchDifficultyLevel ?? 'not specified'}
 Biggest barriers they believe they face: ${
     candidate.biggestBarriers.length > 0
@@ -538,6 +543,7 @@ Market facts: ${
 Openings matching their exact target title: ${titleSpecificCount !== null ? `${titleSpecificCount} listed` : 'not available — do not mention a specific count'}
 Openings matching their target function + industry: ${industrySpecificCount !== null ? `${industrySpecificCount} listed` : 'not available — do not mention a specific count'}
 ${skillGapPromptSection(skillGap)}
+${applicationGapPromptSection(applicationGaps)}
 
 --- Report-over-report change (for the Executive Summary section only) ---
 Is this the candidate's first-ever report: ${priorReport ? 'no' : 'yes'}
@@ -587,7 +593,7 @@ New data added since the previous report (credit these specifically, by name, on
       // The skills gap is merged in code, not left to the model: the counts come from
       // real open roles and must appear exactly, every time.
       actionPlan: addSkillGapActionItem(normalizeActionPlan(data.actionPlan), skillGap),
-      gapAnalysis: mergeSkillGapIntoGapAnalysis(data.gapAnalysis, skillGap),
+      gapAnalysis: mergeApplicationGapsIntoGapAnalysis(mergeSkillGapIntoGapAnalysis(data.gapAnalysis, skillGap), applicationGaps),
       marketConditions: marketConditions.dataAvailable
         ? {
             narrative: data.marketConditions?.narrative ?? [],

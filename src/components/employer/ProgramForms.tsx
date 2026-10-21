@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { cn } from '@/lib/utils'
-import { saveProgramDetails, savePackages, saveProgramService, setSeatPackage } from '@/app/employer/(app)/program/actions'
+import { usePreservedFormAction } from '@/lib/forms/use-preserved-form'
+import { saveProgramDetails, saveProgramLook, savePackages, saveProgramService, setSeatPackage } from '@/app/employer/(app)/program/actions'
 import type { ProgramFeatureKey, ProgramPackage, Provider, ServiceChoice } from '@/lib/employer/program-settings'
 
 type R = { error?: string; ok?: boolean; message?: string } | null
@@ -36,6 +37,50 @@ export function ProgramDetailsForm({ programBrandName, welcome }: { programBrand
       </div>
       <div className="flex items-center gap-3">
         <SubmitButton pendingLabel="Saving…">Save program details</SubmitButton>
+        {(state?.ok || state?.error) && (
+          <p role={state.error ? 'alert' : 'status'} className={cn('text-sm', state.error ? 'text-destructive' : 'text-muted-foreground')}>
+            {state.error ?? state.ok}
+          </p>
+        )}
+      </div>
+    </form>
+  )
+}
+
+// Logo and accent color for the bar your people see across the top of their dashboard.
+export function ProgramLookForm({ logoUrl, accentColor }: { logoUrl: string | null; accentColor: string | null }) {
+  // Submitted without React's form reset, so a rejected color does not also clear the chosen logo file.
+  const { state, pending, onSubmit } = usePreservedFormAction(saveProgramLook)
+  const [color, setColor] = useState(accentColor ?? '')
+  return (
+    <form onSubmit={onSubmit} className={cn('space-y-4', pending && 'cursor-progress')}>
+      <div className="space-y-1.5">
+        <Label htmlFor="pg-logo">Logo</Label>
+        {logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoUrl} alt="Current logo" className="h-12 w-auto rounded border border-border bg-white p-1" />
+        )}
+        <Input id="pg-logo" name="logo" type="file" accept="image/png,image/jpeg,image/gif,image/webp" className="max-w-md" />
+        <p className="text-xs text-muted-foreground">{logoUrl ? 'Choose a file to replace the current logo.' : 'PNG, JPG, GIF or WebP, up to 3 MB.'}</p>
+        {logoUrl && (
+          <label className="flex items-center gap-2 text-sm text-foreground">
+            <input type="checkbox" name="removeLogo" className="size-4" />
+            Remove the current logo
+          </label>
+        )}
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="pg-color">Accent color</Label>
+        <div className="flex items-center gap-2">
+          <input aria-label="Pick accent color" type="color" value={color || '#2E7D5B'} onChange={(e) => setColor(e.target.value.toUpperCase())} className="h-9 w-12 rounded border border-input" />
+          <Input id="pg-color" name="accentColor" value={color} onChange={(e) => setColor(e.target.value)} placeholder="#2E7D5B" className="w-32 font-mono" />
+        </div>
+        <p className="text-xs text-muted-foreground">Used for the bar across the top of your people’s dashboard. Text on it is picked for contrast. Leave blank for NextChapter green.</p>
+      </div>
+      <div className="flex items-center gap-3">
+        <Button type="submit" disabled={pending} className={cn(pending && 'cursor-progress')}>
+          {pending ? 'Saving…' : 'Save look'}
+        </Button>
         {(state?.ok || state?.error) && (
           <p role={state.error ? 'alert' : 'status'} className={cn('text-sm', state.error ? 'text-destructive' : 'text-muted-foreground')}>
             {state.error ?? state.ok}
@@ -207,7 +252,10 @@ export function SeatPackageSelect({ seatId, value, options }: { seatId: string; 
           start(async () => {
             const r = await setSeatPackage(seatId, next)
             if (r.error) setErr(r.error)
-            else (setErr(null), setV(next))
+            else {
+              setErr(null)
+              setV(next)
+            }
           })
         }}
       >

@@ -1,9 +1,8 @@
 import 'server-only'
-import type { Resend } from 'resend'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { recordCandidateEmailSent, trackEmailSent } from '@/lib/email/send-log'
 import { neutralizeEmailSubject } from '@/lib/email/neutral-subject'
 import { captureServerEvent } from '@/lib/posthog/server'
 import {
@@ -14,8 +13,11 @@ import {
   type JobSearchDailyContent,
 } from '@/lib/job-search-daily/build'
 import JobSearchDailyEmail from '@/emails/job-search-daily'
+import { isUrgentContent, URGENT_LEAD } from '@/lib/job-search-daily/urgent'
 import { buildClickUrl, wrapHrefs } from '@/lib/job-search-daily/click-link'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
+import { recordMatchSnapshot } from '@/lib/personalization/match-snapshot'
+import { matchInputsOf } from '@/lib/personalization/match-inputs'
 
 type SendResult = { sent: true } | { sent: false; reason: string }
 
@@ -28,12 +30,7 @@ function buildSubject(content: JobSearchDailyContent): string {
   const owed = content.applications.length + content.networking.length
   // Lead with the most time-sensitive thing, when there is one.
   const top = content.priorities[0]
-  if (
-    top &&
-    /^(Today|Tomorrow|Overdue|Waiting|Reply today|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/.test(
-      top.lead
-    )
-  )
+  if (top && URGENT_LEAD.test(top.lead))
     return `${top.lead.replace(/:$/, '')}: ${top.text}`.slice(0, 90)
   if (freshJobs > 0) return `${freshJobs} new role${freshJobs === 1 ? '' : 's'} posted in the last 72 hours — apply first`
   if (jobs > 0 && move) return `${jobs} new role${jobs === 1 ? '' : 's'} for you, and ${lowerFirst(move.title)}`
@@ -50,7 +47,7 @@ function lowerFirst(s: string): string {
   return /^(Your|A|The)\b/.test(s) ? s[0].toLowerCase() + s.slice(1) : s
 }
 
-export async function sendJobSearchDaily(candidateId: string, options: { dryRun?: boolean; toOverride?: string } = {}) {
+export async function sendJobSearchDaily(candidateId: string, options: { dryRun?: boolean; toOverride?: string; onlyIfUrgent?: boolean } = {}) {
   const candidate = await prisma.candidateProfile.findUniqueOrThrow({
     where: { id: candidateId },
   })
@@ -64,6 +61,8 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       content: JobSearchDailyContent
     }
   }
+
+  if (options.onlyIfUrgent && !isUrgentContent(content)) return { sent: false, reason: 'not urgent' } as SendResult
 
   const subject = neutralizeEmailSubject(buildSubject(content), candidate.confidentialSearchMode)
   if (options.dryRun) return { sent: false, reason: 'dry run', content, subject }
@@ -137,6 +136,15 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
         .create({ data: { id: sendId, candidateId, resendEmailId: sendData.id } })
         .catch((e) => console.error('Failed to record Job Search Daily send:', e))
     }
+    // Today's strict match count, for next week's "What changed for you" trend.
+    if (content.matchCount !== null) {
+      await recordMatchSnapshot({
+        candidateId,
+        kind: 'daily',
+        inputs: matchInputsOf(candidate as unknown as Record<string, unknown>),
+        state: { counts: { checked: null, matches: content.matchCount, strong: null }, ms: null },
+      })
+    }
     const keys = shownItemKeys(content)
     await prisma.jobSearchDailyItem.createMany({
       data: keys.map((itemKey) => ({ candidateId, itemKey })),
@@ -149,6 +157,7 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       where: { candidateId, itemKey: { in: rotatingItemKeys(content) } },
       data: { shownAt: now },
     })
+    trackEmailSent(candidateId, 'JOB_SEARCH_DAILY')
     captureServerEvent(candidateId, 'job_search_daily_sent', {
       scoreStatus: content.score?.status ?? null,
       priorityCount: content.priorities.length,
@@ -159,7 +168,6 @@ export async function sendJobSearchDaily(candidateId: string, options: { dryRun?
       networkingFollowUpCount: content.networking.length,
       jobCount: content.jobs.items.length + content.jobs.fresh.length,
       freshJobCount: content.jobs.fresh.length,
-      lockedJobCount: content.jobs.lockedCount,
       companyMoveCount: content.companyMoves.length,
       hasReconnect: !!content.reconnect,
       hasArticle: !!content.article,

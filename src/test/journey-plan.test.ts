@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { journeyPlanItems, shapePlan } from '@/lib/journey/plan'
+import { gateItems, journeyPlanItems, shapePlan } from '@/lib/journey/plan'
 import { chooseCheckInKind } from '@/lib/daily/check-in-schedule'
 
 const general = [
@@ -17,8 +17,14 @@ describe('weekly plan by journey and stage', () => {
   it('someone applying keeps applications', () => {
     expect(shapePlan('LAID_OFF', 'APPLYING', 2, general).map((p) => p.actionType)).toContain('JOB_APPLICATION_SUBMITTED')
   })
-  it('Paused gets no plan', () => {
-    expect(shapePlan('READY_TO_MOVE', 'PAUSED', 3, general)).toEqual([])
+  it('someone managing their career always has a plan, whatever journey they began on', () => {
+    for (const j of ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING'] as const) {
+      const plan = shapePlan(j, 'STAYING', 3, general)
+      expect(plan.length).toBeGreaterThan(2)
+      expect(plan.map((p) => p.actionType)).not.toContain('JOB_APPLICATION_SUBMITTED')
+    }
+    expect(journeyPlanItems('LAID_OFF', 'STAYING', 1).map((p) => p.text)).toContain('Benchmark your pay against the market')
+    expect(journeyPlanItems('LAID_OFF', 'PAUSED', 1)).toEqual(journeyPlanItems('LAID_OFF', 'STAYING', 1))
   })
   it('a laid-off member’s first week starts with benefits and severance', () => {
     expect(journeyPlanItems('LAID_OFF', 'APPLYING', 1).slice(0, 2).map((p) => p.text)).toEqual([
@@ -35,10 +41,70 @@ describe('weekly plan by journey and stage', () => {
   })
 })
 
+describe('thinking about a move', () => {
+  it('exploring gets market and pay steps; preparing gets a quiet search', () => {
+    expect(journeyPlanItems('EXPLORING_MOVE', 'EXPLORING', 1).map((p) => p.text)).toContain('Compare your pay with the market')
+    expect(journeyPlanItems('EXPLORING_MOVE', 'PREPARING', 1).map((p) => p.text)).toContain('Line up two references you trust')
+  })
+  it('worry about a layoff puts runway and benefits first', () => {
+    const items = journeyPlanItems('EXPLORING_MOVE', 'EXPLORING', 1, null, 'layoff_worry').map((p) => p.text)
+    expect(items[0]).toMatch(/runway/i)
+    expect(items.some((t) => /unemployment benefits/i.test(t))).toBe(true)
+  })
+  it('a driver adds nothing to other journeys', () => {
+    expect(journeyPlanItems('PROMOTION', 'PREPARING', 1, null, 'layoff_worry')).toEqual(journeyPlanItems('PROMOTION', 'PREPARING', 1))
+  })
+})
+
+describe('managing my career', () => {
+  it('gets an active plan with no application targets', () => {
+    const plan = shapePlan('GROWING', 'STAYING', 1, general)
+    expect(plan.map((p) => p.text)).toContain('Benchmark your pay against the market')
+    expect(plan.map((p) => p.actionType)).not.toContain('JOB_APPLICATION_SUBMITTED')
+  })
+  it('keeps going after the first week', () => {
+    expect(journeyPlanItems('GROWING', 'STAYING', 3).length).toBeGreaterThan(2)
+  })
+})
+
+describe('time gates in an active search', () => {
+  it('adds nothing early, and new steps as weeks pass', () => {
+    expect(gateItems('APPLYING', 2)).toEqual([])
+    expect(gateItems('APPLYING', 3).length).toBeGreaterThan(0)
+    expect(gateItems('APPLYING', 6).length).toBeGreaterThan(gateItems('APPLYING', 3).length)
+    expect(gateItems('APPLYING', 13).map((p) => p.text).join(' ')).toMatch(/different lane/)
+  })
+  it('opens different doors, not the same plan reworded', () => {
+    const texts = gateItems('APPLYING', 13).map((p) => p.text)
+    expect(new Set(texts).size).toBe(texts.length)
+    expect(texts.some((t) => /interim or fractional/i.test(t))).toBe(true)
+    expect(texts.some((t) => /coaching session/i.test(t))).toBe(true)
+  })
+  it('only applies in an active search', () => {
+    expect(gateItems('STAYING', 20)).toEqual([])
+    expect(gateItems('EXPLORING', 20)).toEqual([])
+    expect(gateItems('PAUSED', 20)).toEqual([])
+  })
+  it('reaches the plan, and the clock restarts when the stage changes', () => {
+    expect(shapePlan('LAID_OFF', 'APPLYING', 7, general, null, null, 7).map((p) => p.text)).toContain('Widen your targets: add a second role title or industry')
+    expect(shapePlan('LAID_OFF', 'INTERVIEWING', 7, general, null, null, 0).map((p) => p.text)).not.toContain('Widen your targets: add a second role title or industry')
+  })
+})
+
 describe('daily pop-up', () => {
   it('never asks someone outside an active search to apply', () => {
     const kind = chooseCheckInKind({ appliedThisWeek: 0, weeklyGoal: 15, checkedInThisWeek: true, lastShownByKind: {}, activeSearch: false })
     expect(kind).not.toBe('APPLY_COMMIT')
+  })
+})
+
+describe('daily pop-up and stalled searches', () => {
+  const args = { appliedThisWeek: 0, weeklyGoal: 15, checkedInThisWeek: true, lastShownByKind: {} }
+  it('asks to apply by default in an active search', () => {
+    expect(chooseCheckInKind({ ...args, lastShownByKind: { NETWORK_COMMIT: new Date() } })).toBe('APPLY_COMMIT')
+  })
+  it('asks for a conversation instead when applications are not working, or the search is casual', () => {
+    expect(chooseCheckInKind({ ...args, skipApply: true })).toBe('NETWORK_COMMIT')
   })
 })
 

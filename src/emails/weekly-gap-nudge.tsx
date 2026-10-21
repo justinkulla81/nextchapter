@@ -1,6 +1,11 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import EngagementBlock from '@/emails/engagement-block'
+import type { EngagementLead } from '@/lib/journey/engagement'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface WeeklyGapNudgeEmailProps {
+  engagement?: EngagementLead | null
+  appUrl?: string
   firstName: string | null
   introCopy?: string | null
   weeklyPoints: number
@@ -42,6 +47,8 @@ const footer: React.CSSProperties = {
 }
 
 export default function WeeklyGapNudgeEmail({
+  engagement = null,
+  appUrl = '',
   firstName,
   introCopy,
   weeklyPoints,
@@ -66,6 +73,8 @@ export default function WeeklyGapNudgeEmail({
         Available&quot; list on your dashboard has quick options beyond what you committed to,
         and anything you complete there counts too.
       </p>
+      <EngagementBlock lead={engagement} appUrl={appUrl} />
+
       <a href={dashboardUrl} style={button}>
         See what&apos;s fastest to close the gap →
       </a>
@@ -74,6 +83,7 @@ export default function WeeklyGapNudgeEmail({
           Turn off these weekly nudges
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

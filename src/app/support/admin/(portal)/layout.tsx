@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getAdminHomepageSummary } from '@/lib/admin/homepage-summary'
 import { prisma } from '@/lib/prisma'
@@ -6,13 +7,16 @@ import { countPeopleNeedingCompletion, countRemovedPeople } from '@/lib/admin/cr
 import { countRoutesToConfirm } from '@/lib/crm/route-review'
 import { AdminNav } from '@/components/admin/AdminNav'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
+import { countWorkItemsForReview } from '@/lib/work-help/questions'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireAdmin()
+// Nav badge counts live in their own Suspense boundary so the shell and {children} paint
+// without waiting on them; the nav renders badge-less first and fills in a beat later.
+// requireAdmin() has already run in the layout before this component is rendered.
+async function AdminNavWithBadges() {
   const now = new Date()
   const [
     { approvalsNeeded }, reportedMessages, communityModeration, needsCompletion, crmQueue, crmPeopleQueue,
@@ -20,7 +24,11 @@ export default async function AdminPortalLayout({ children }: { children: React.
     mailingAttention,
   ] = await Promise.all([
     getAdminHomepageSummary(),
-    prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
+    // Peer conversations reported, plus work-situation questions and replies reported or held (same page).
+    Promise.all([
+      prisma.messageThread.count({ where: { partnerType: 'PEER', reportedAt: { not: null } } }),
+      countWorkItemsForReview(),
+    ]).then(([threads, work]) => threads + work),
     // Mirrors getModerationQueue's "needsReview" definition (moderation.ts)
     // without pulling post content — HELD posts plus unreviewed crisis
     // posts, §14's two highest-priority categories.
@@ -105,13 +113,22 @@ export default async function AdminPortalLayout({ children }: { children: React.
     requests:
       approvalsNeeded.pendingBountyClaims +
       approvalsNeeded.unresolvedReferenceDisputes +
-      approvalsNeeded.pendingIntroRequests,
+      approvalsNeeded.pendingIntroRequests +
+      approvalsNeeded.pendingImportedReviews,
     needsCompletion,
   }
 
+  return <AdminNav badges={badges} />
+}
+
+export default async function AdminPortalLayout({ children }: { children: React.ReactNode }) {
+  const user = await requireAdmin()
+
   return (
     <div className="theme-partner min-h-screen">
-      <AdminNav badges={badges} />
+      <Suspense fallback={<AdminNav />}>
+        <AdminNavWithBadges />
+      </Suspense>
       {/* pt-14 clears the fixed top bar — see CoachAppLayout's comment. */}
       <div className="pt-14">
         <RoleContextBanner

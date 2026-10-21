@@ -22,8 +22,24 @@ import { ConfirmForm } from '@/components/admin/ConfirmForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Input } from '@/components/ui/input'
+import { assessJobPosting } from '@/lib/scam-shield/assess-job-posting'
 import { countPendingJobMatches, loadAdminFitCandidates, rankCandidatesByFitCoverage } from '@/lib/jobs/job-fit-bucket'
 import { displayJobLocation } from '@/lib/jobs/us-location'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
+
+/** Both AI metrics from the daily snapshot, with a link to the full table. */
+async function AiCountsLine() {
+  const live = await loadAiMarket()
+  if (!live) return null
+  return (
+    <p className="text-sm text-muted-foreground">
+      AI-skill jobs {live.counts.aiSkill.toLocaleString()} · AI-exposed jobs {live.counts.aiExposed.toLocaleString()} (of {live.counts.live.toLocaleString()} live).{' '}
+      <Link href="/support/admin/ai-market" className="text-primary underline underline-offset-4">
+        AI jobs and pay
+      </Link>
+    </p>
+  )
+}
 
 export const maxDuration = 30
 
@@ -36,22 +52,16 @@ const SOURCE_LABEL: Record<string, string> = {
   candidate_referral: 'Candidate network lead',
 }
 
-const AUDIENCE_TIER_LABEL: Record<string, string> = {
-  ALL_CANDIDATES: 'All candidates',
-  A_LIST_ONLY: 'Candidate+ only',
-}
-
 const DISTRIBUTION_LABEL: Record<string, string> = {
   OPEN: 'Open',
   TARGETED: 'Targeted',
   EXCLUDED: 'Excluded from board',
 }
 
-function visibilitySummary(posting: { audienceTier: string; distribution: string; disclosure: string }) {
-  const parts = [
-    AUDIENCE_TIER_LABEL[posting.audienceTier] ?? posting.audienceTier,
-    DISTRIBUTION_LABEL[posting.distribution] ?? posting.distribution,
-  ]
+// Every member sees every listing (owner's rule, 2026-10-16), so the stored
+// audienceTier is no longer shown: only distribution and disclosure gate who sees it.
+function visibilitySummary(posting: { distribution: string; disclosure: string }) {
+  const parts = [DISTRIBUTION_LABEL[posting.distribution] ?? posting.distribution]
   if (posting.disclosure === 'CONFIDENTIAL') parts.push('Confidential — company hidden from candidates')
   return parts.join(' · ')
 }
@@ -91,7 +101,6 @@ const PENDING_SELECT = {
   salaryMax: true,
   salaryCurrency: true,
   disclosure: true,
-  audienceTier: true,
   distribution: true,
   description: true,
   targetFunction: true,
@@ -113,6 +122,7 @@ function PostingCard({
   scorePercent: number
 }) {
   const { present, missing } = completenessSignals(posting)
+  const scam = assessJobPosting(posting)
   const location = displayJobLocation(posting.location)
 
   return (
@@ -155,6 +165,18 @@ function PostingCard({
             <p className="text-xs font-medium text-warning">
               Confidential — double-check {posting.companyName} is a real client before approving.
             </p>
+          )}
+          {scam.level !== 'none' && (
+            <div role="alert" className="mt-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+              <p className="font-semibold text-destructive">
+                {scam.level === 'likely_fake' ? 'Likely a fake posting' : 'Looks suspicious'}. Check before approving.
+              </p>
+              <ul className="mt-1 list-inside list-disc text-foreground">
+                {scam.signals.slice(0, 4).map((s) => (
+                  <li key={s.code}>{s.detail}</li>
+                ))}
+              </ul>
+            </div>
           )}
           {present.length > 0 && (
             <p className="mt-1 text-sm font-medium text-success">Includes: {present.join(', ')}</p>
@@ -501,6 +523,9 @@ export default async function ExclusiveJobsAdminPage() {
 
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Active ({activeTotal.toLocaleString()})</h2>
+        <Suspense fallback={null}>
+          <AiCountsLine />
+        </Suspense>
         {activeAtsFeedCount > 0 && (
           <p className="text-sm text-muted-foreground">
             {activeAtsFeedCount.toLocaleString()} of those are ATS-fed listings, managed automatically by the daily

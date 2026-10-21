@@ -127,7 +127,9 @@ export const getDashboardData = cache(async () => {
       marketRealityReports: { orderBy: { generatedAt: 'desc' }, take: 1 },
       assessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
       performanceAssessmentResponses: { orderBy: { completedAt: 'desc' }, take: 1 },
+      workInterestsResponse: { select: { topAreas: true } },
     },
   })
-  return { ...profile, ...relations }
+  // Fed to the job fit score (job-fit-bucket.ts) as a small nudge.
+  return { ...profile, ...relations, interestAreas: relations.workInterestsResponse?.topAreas ?? [] }
 })

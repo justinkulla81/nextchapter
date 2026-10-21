@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { SUPPRESSED_SENDER_REASONS } from '@/lib/network/suppressed-sender-reasons'
 import { UnblockSenderButton } from '@/components/dashboard/UnblockSenderButton'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ListRow, RowList } from '@/components/candidate/ListRow'
+import { EmptyCard } from '@/components/candidate/EmptyCard'
+import { TrackedAction } from '@/components/candidate/TrackedAction'
 
 export const metadata: Metadata = { title: 'Blocked senders' }
 
@@ -21,40 +24,29 @@ export default async function BlockedSendersPage() {
     .catch(() => [])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          href="/dashboard/network/contacts"
-          className="text-sm font-medium text-primary underline underline-offset-4"
-        >
-          ← Back to Contact Directory
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Blocked senders</h1>
-        <p className="mt-1 text-muted-foreground">
-          Senders you told us aren&apos;t part of your job search. They never show up as follow-ups or suggested
-          contacts. Unblock one if it was a mistake; that only applies to future email.
-        </p>
-      </div>
-
+    <div className="space-y-8">
+      <PageHeader
+        title="Blocked senders"
+        intro="Senders you told us are not part of your job search. They stay out of your follow-ups and suggested contacts, so what you see is what matters."
+        action={
+          <TrackedAction variant="secondary" href="/dashboard/network/contacts" event="contacts_opened" properties={{ source: 'blocked_senders' }}>
+            Back to people you know
+          </TrackedAction>
+        }
+      />
       {senders.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Nobody&apos;s blocked. Use &quot;Not job-related&quot; on a follow-up and the sender will appear here.
-        </p>
+        <EmptyCard title="Nobody is blocked" why='Use "Not job-related" on a follow-up and the sender shows up here. You can unblock anyone, and that only applies to future email.' />
       ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border">
+        <RowList label="Blocked senders">
           {senders.map((s) => (
-            <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
-              <div className="min-w-0">
-                <p className="truncate font-medium text-foreground">{s.isDomain ? `Everyone at ${s.value}` : s.value}</p>
-                <p className="text-xs text-muted-foreground">
-                  {SUPPRESSED_SENDER_REASONS.find((r) => r.reason === s.reason)?.label} · blocked{' '}
-                  {s.createdAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                </p>
-              </div>
-              <UnblockSenderButton id={s.id} value={s.value} />
-            </li>
+            <ListRow
+              key={s.id}
+              title={s.isDomain ? `Everyone at ${s.value}` : s.value}
+              fact={`${SUPPRESSED_SENDER_REASONS.find((r) => r.reason === s.reason)?.label ?? 'Not job-related'} · blocked ${s.createdAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`}
+              actions={<UnblockSenderButton id={s.id} value={s.value} />}
+            />
           ))}
-        </ul>
+        </RowList>
       )}
     </div>
   )

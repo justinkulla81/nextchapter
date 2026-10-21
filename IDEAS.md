@@ -12,7 +12,7 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Coaching / Recruiting
 
-- Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
+- (Partly built 2026-10-14 for coaches only: booking inside NextChapter with Meet links on the shared calendar; per-coach calendar connection and recruiters are still open, see docs/OPEN_ITEMS.md.) Calendar + Google Meet OAuth integration for coaches and recruiters — let a Coach or Recruiter connect their Google Calendar so session/call scheduling links can be generated and shared directly (e.g. from the Coach client accordion or a future Recruiter workspace), instead of coordinating times over email/text. Deferred: needs a real Google Cloud OAuth Client ID + Client Secret (none present in `.env.local` today), plus scope/consent-screen setup, which is real security/config surface separate from the rest of this batch — same reasoning as the deferred Google Sign-In item below.
 
 ## Auth
 
@@ -24,6 +24,8 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 ## Community
 
+- **Supporter extensions** — the supporter feature today is invite-by-email: a person with no login who gets a weekly effort-only note and can send a cheer. Next steps, in priority order: (1) let a supporter be a NextChapter member, accepting the invite in-app (the invite email always goes out and never reveals whether an account exists); (2) "share a win" (member taps once to tell supporters, who can only react); (3) "ask for help" (a specific small ask supporters can answer or ignore); (4) buddy pairs (two members share a Monday plan and a Friday result, reciprocal, no scoring; overlaps with Accountability partners under Interview Prep below); (5) quiet co-working hours, practice-interview swaps, one tip a week, offered intros the member accepts first. Guardrails for all of them: opt-in on both sides, supporters never see jobs, companies, names or messages, no nudges or read receipts, no comparison or leaderboards, caps on cheers and tips, pause automatically when the plan is "taking a break", and nothing for members in Confidential Search Mode on either side.
+
 - Add a news-article feed to the merged Community page — curated job-market/career-news items interspersed with candidate posts and activity, to give the feed something to show even when candidate activity is quiet. Needs an actual content/curation pipeline (an editorial source or a news API), which doesn't exist yet — logged here rather than built as part of the Community+Circle merge.
 
 ## Interview Prep
@@ -33,6 +35,15 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 ## Notifications
 
 - SMS accountability nudges — let a candidate opt in to text reminders (in addition to email) for extra accountability, with a 5-point one-time bonus for opting in (mirroring the existing salary/work-auth confirmation bonuses) and copy communicating that at the decision point. The `smsPhone`/`smsConsentedAt` fields and `updateSmsConsent` action already exist from an earlier pass, but the opt-in UI (onboarding contract page, Communication Preferences settings) has been deactivated for now — no actual send integration exists, and Twilio itself costs real money (~$0.0079/segment for US SMS plus ~$1-2/month per phone number), so this is deferred until that cost is worth taking on. `SmsConsentForm.tsx` was left in place, just unreferenced, so re-activating is mostly wiring the UI back in once Twilio is set up and the point-bonus mechanism is built. WhatsApp Business API is a real alternative to plain SMS worth weighing at the same time — richer message format, but needs Meta business verification (1-4 weeks) and only allows unsolicited sends outside a 24-hour reply window via pre-approved templates.
+
+## Safety / Fake-job detection
+
+*(Built: Scam watch. Detector in `src/lib/scam-shield/`, hooked into the Gmail sync, rapid-response email from Vic, `/dashboard/scam-watch`, public page `/scam-watch`, 10-minute `scam-watch` cron.)* Still not built:
+
+- True real-time alerts. Today the check runs on a 10-minute cron over Gmail. Gmail push notifications (Pub/Sub watch) would cut that to seconds but need a Google Cloud topic and webhook.
+- Compare against real company domains. The detector reads the claimed company from the email and checks the domains against it. A verified company-domain directory (see "Real company-email-domain verification" below) would make the match certain instead of heuristic.
+- Check job postings, not just email: flag a scam listing on the job board or in the tracker the same way.
+- Tune from feedback: review `scam_alert_marked_legit` events in PostHog to loosen rules that cry wolf.
 
 ## Dashboard
 
@@ -44,6 +55,39 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 
 - Real company-email-domain verification for employers/recruiters. Today, anywhere an employer or recruiter self-submits something (NC Job Board postings, Employer Reference & Referral submissions), there's no check that the submitter's email domain actually belongs to the company they claim — see the shared trust-gate comment in `src/lib/employer-references/submission.ts` and `src/lib/jobs/job-board-submission.ts`. A named, real-looking contact (required name/company/work-email fields) is the trust gate instead of a real domain check. A real version would need something like a DNS/MX lookup or a paid company-verification API (Clearbit, Kickbox) — flagged rather than building a second, parallel verification system ad hoc.
 - Live Attio CRM sync. The layoff-context branch of the Employer Reference flow (`src/app/for-managers/give-a-reference/submit/actions.ts`) stamps `attioSyncRequestedAt` on `EmployerReferenceSubmission` rows instead of actually calling Attio's API — there's no Attio client and no credentials configured anywhere in the app. The timestamp exists so a real sync job can sweep up every unsynced record once credentials are available, without losing any submissions in the meantime. Needs: an Attio API key, a client wrapper, and a cron or on-demand sync job that reads `attioSyncRequestedAt IS NOT NULL AND attioSyncedAt IS NULL` and calls the real API.
+
+## Tools & accounts to add (not set up)
+
+Each one costs money or needs Justin's own account or key, so none is set up unprompted. Raise the matching one when related work comes up.
+
+- **Chrome Web Store developer account** ($5 one-time). Unblocks the member autofill extension ("Fill with NextChapter", see Job Search Tools below), which can only reach members, and keep itself updated, once it's published on the Web Store. Justin creates the account; we write the listing, privacy text and "How it works" page.
+- **Resend plan upgrade.** All NextChapter email goes through Resend: Job Search Daily, digests, Monthly Update, alerts. The free plan's daily cap starts to bind at about 45 active members (audit of 2026-10-13). Upgrade to Pro before then.
+- **Hunter.io paid plan.** Connected 2026-10-09, but the free credits are nearly used up. It would verify guessed CRM emails and add Hunter-verified contacts to the "Who to contact" panel on jobs (the free version shipped 2026-10-16 with a placeholder for it). Before building, confirm Hunter's terms allow showing its contacts to members, and set a monthly lookup cap. Each lookup costs credits.
+- **Licensed job-data feeds** (TheirStack, Coresignal, Fantastic.jobs and similar). Roughly $50–600 a month; verify pricing. Only worth it if the free crawler still leaves coverage gaps. Justin's position (2026-10-15): "will consider licensed later, but we want more free."
+- **NLx Research Hub (NASWA).** Free state job-bank data. Request submitted 2026-10-14, awaiting approval.
+- **SAM.gov API key.** Free, but tied to Justin's account. It is the last missing piece for the funding-opportunities cron.
+- **Supabase custom auth domain** (paid add-on). Google sign-in currently shows the raw supabase.co domain; deferred on purpose.
+- **Google OAuth verification.** Free, but needs Justin in Google Cloud. Without it members' Gmail connections drop weekly, which loses application-tracking signal.
+- **Twilio.** SMS reminders and alerts. Deferred.
+- **Granola.** AI meeting notes into CRM activity on the right person or organization. Confirm the intended use first.
+- **Gamma.** AI decks and docs for pitch, partner or college-pilot decks. Confirm the intended use first.
+- **pg_trgm Postgres extension.** Free; it speeds up the "Include past jobs" search once closed jobs pass about 100k. Adding a database extension needs a go-ahead.
+
+## Fractional marketplace (approved spec, not built: launch when Candidate+ numbers justify it)
+
+Approved by Justin on 2026-10-16, then deferred the same day: there aren't enough Candidate+ members yet for a real marketplace. The groundwork it needs is live: Candidate+ Verified, the evidence score and Evidence badge (src/lib/evidence/score.ts), and imported reviews from other platforms (Work Samples page). The `ClientReview` table already exists for the reviews employers would leave after an engagement; nothing writes to it yet.
+
+**Launch trigger to revisit:** 100+ Candidate+ members who have opted in to fractional work (or sooner if employers start asking for fractional talent). Until then the spec below stays parked.
+
+- **Tiers.** Member (free): every job, never shown to recruiters or employers, never listed. Candidate+ (the existing unlock, isDossierUnlocked): can opt in to be listed. Candidate+ Verified (Candidate+ plus at least one reference, work sample, imported review or client review; the Dossier never counts): listed first, with an Evidence badge and score.
+- **Who is listed.** Opt-in Candidate+ members who give availability (days per week) and a day-rate range. Reuse the existing fractional / interim / `interimConsultingInterest` fields where they exist.
+- **Public page** at https://launchyournextchapter.com/fractional, no login: anonymous cards with headline, function, years of experience, availability, day-rate range, evidence badges and score. Verified members first. A seed-free empty state that looks deliberate while few people are listed.
+- **Names.** Anonymous by default: no name, photo or current employer (many members are employed and searching confidentially). A member can choose "show my name and photo", shown as first name and last initial (as Upwork and Toptal do). Members in Confidential Search Mode can never be shown by name, whatever they chose.
+- **Employers.** Every employer setup (the Talent / hiring portal installation) gets a "Fractional talent" tab listing the same people, matched to that employer's needs.
+- **Flow.** The employer requests an intro, the member accepts or declines, and contact details are shared only after the member accepts. Reuse the existing intro / request inbox patterns (RecruiterCandidateIntroduction is the closest).
+- **No fees** at first.
+- **Events:** fractional_listing_opted_in, fractional_intro_requested, fractional_intro_accepted / fractional_intro_declined, fractional_profile_name_shown_toggled.
+- **Open question for launch:** ordering by evidence score on a public, employer-facing list. The recruiter opt-in pool deliberately orders by recency only (no score) so it can't act as an automated screen under NYC Local Law 144; get counsel's read before ranking marketplace cards by score.
 
 ## Monetization
 
@@ -57,11 +101,12 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 - **Follow-Up Script Generator** — when a candidate has gone silent after applying or interviewing, generate one professional follow-up message with built-in timing rules (7 business days after an interview with no stated timeline; day after a stated timeline passes) and an explicit "don't follow up again after this" guardrail.
 - **Job-application email-forwarding parser** — a dedicated inbound address (e.g. `applied@`) that a candidate forwards ATS confirmation emails to, auto-parsed into a Find My Job tracker entry (company, title, date). Cheaper first step toward automatic application tracking than the Chrome-extension route below; would reuse the same inbound-email pattern already built for Gmail-based Market Pulse ingestion (`src/app/api/google/oauth/`).
 - **Chrome extension** for two related but separable use cases: (a) authenticated LinkedIn profile audit (sees everything the candidate sees, not just the public view — upgrade path for the LinkedIn Audit Tool above), and (b) automatic job-application tracking by detecting form submissions on job boards/ATS pages (the way Teal/Huntr do it). Real platform investment (Chrome Web Store review, ongoing maintenance) — evaluate after there's a meaningful user base to justify it, per the reasoning already in "Verifiable proof of outreach" below.
+- **Member autofill extension ("Fill with NextChapter")** — approved by Justin 2026-10-16, then parked under his skip rule ("too technical or manual for members → backlog"). Why parked: the only extension today (`extension/`, loaded in Chrome from `~/nextchapter-alumni/extension`) is the admin CRM capture tool, installed **unpacked** via Developer mode with a pasted capture token. Unpacked extensions never auto-update, and Developer mode is not something members will do — so no member can get or keep autofill until a separate, member-only extension is published on the Chrome Web Store (silent auto-update). Publishing needs Justin: a Chrome Web Store developer account ($5 one-time), a privacy policy URL, and Google's review (days, longer for broad host permissions). The apply kit on every job page and card (shipped 2026-10-16) covers the copy-paste half today with no install. Build plan when unblocked: (1) a NEW member extension, separate from the admin capture tool, content scripts only on `boards.greenhouse.io`/`job-boards.greenhouse.io`, `jobs.lever.co`, `jobs.ashbyhq.com`, `*.myworkdayjobs.com`, `*.icims.com`; (2) field-mapping rules per ATS fetched at runtime from `/api/v1/autofill/rules` and cached ~24h, so selector fixes ship server-side without an extension update; (3) auth with a short-lived (15-min) token minted by a signed-in page on our site and handed to the extension via `externally_connectable` messaging — never a password; (4) a "Fill with NextChapter" button fills profile fields (from the same `buildApplyKit` answers) and attaches the chosen résumé via a signed URL + `DataTransfer` on the file input; (5) it skips voluntary EEO questions (gender, race, veteran, disability) and NEVER clicks submit; (6) on the ATS confirmation page it logs the application to My jobs (`setJobStatus` with a new `extension` source). Workday and iCIMS are React/iframe-heavy and break most often — expect to tune their rules. Needs a plain-English "How it works" page and a Web Store listing + privacy text at build time.
 - **Voice interview practice** — candidate speaks answers aloud, gets real-time transcription + coaching, as a voice/mobile-first evolution of the existing text-based Interview Prep. Needs either a paid voice-interview partner (evaluate revenue-share terms — cap around 20% of session revenue) or a build with a transcription API (e.g. Whisper) + Claude for evaluation. Better as a v2 once a real Interview Prep experience is proven — see the Interview Prep entry above, which is itself not currently live.
 
 ## Engagement / Gamification (not built)
 
-- **Pivot Tool** — for candidates open to adjacent roles or stuck 30+ days without market response: analyze existing profile/assessment data for transferable skills, suggest 5-8 adjacent roles with a fit rationale for each, and a pivot-specific narrative angle. Would live as its own dashboard page, triggered either by an explicit high "openness to adjacent roles" signal or a Victoria-initiated prompt after a stuck period.
+- **Pivot Tool (built 2026-10-14 as `/dashboard/pivot`, see docs/CAREER_TAXONOMY.md; the Victoria-initiated prompt after a stuck period is not built)** — for candidates open to adjacent roles or stuck 30+ days without market response: analyze existing profile/assessment data for transferable skills, suggest 5-8 adjacent roles with a fit rationale for each, and a pivot-specific narrative angle. Would live as its own dashboard page, triggered either by an explicit high "openness to adjacent roles" signal or a Victoria-initiated prompt after a stuck period.
 - **Accountability partners** — opt-in peer pairing by function/level/week-in-search, with an anti-ghost mechanism (48-hour confirmation to activate the pairing, auto-dissolve after 2 missed check-ins, clean rematch). Distinct from the existing Support Network (which is the candidate's own personal contacts) — this would be candidate-to-candidate pairing within NextChapter.
 - **Opt-in leaderboard** — anonymized, opt-in ranking by function or cohort. Would need enough active candidates in a given function/cohort to be meaningful rather than exposing individuals.
 
@@ -77,3 +122,15 @@ These involve real legal/compliance exposure (financial advice, legal-document i
 - **Company Financial Health Brief** — a pre-offer research brief on a target employer's financial position (funding, burn signals, layoff history). Needs reliable data sources and clear accuracy disclaimers so stale or speculative data never gets surfaced as fact.
 - **Employer Culture Ranking** — ranking specific real companies (not just abstract criteria, see Culture Match Tool above) against a candidate's Work Style profile. Needs an employer data layer that doesn't exist yet, and the accuracy/liability bar is similar to the Financial Health Brief.
 - **Real-time salary intelligence** — peer-sourced compensation data by function/level/geography. Note `src/lib/market/` already pulls aggregate market data from Adzuna + BLS for the Hireability Report's market-conditions context; this would be a different, peer-sourced-and-current data source specifically for salary benchmarking, not an extension of the existing module.
+
+## Market Reality Report and strategy unlock (not built)
+
+- **Validate the rubric with recruiters** — the ratings, thresholds and evaluator rules in the report are published as "not yet validated". Have 3-5 working executive recruiters and hiring managers review the rubric and a handful of sample reports, then tune. The biggest remaining gap to a Korn Ferry-grade assessment.
+- **Peer benchmarks** — "your tenure/promotion pace vs. others at your level and function". Needs enough members per cohort to be honest; show only above a minimum cohort size.
+- **Grounded narrative** — an LLM pass that rewrites the overall read in a more individual voice while being constrained to the computed facts. Rules-only today so prose can never contradict the numbers.
+- **Real PDF generation** — a server-rendered, paginated PDF (with cover, running footer, page numbers in every browser) emailed on request. Print CSS covers Chrome only today.
+- **Pre-account report preview** — a short, anonymous version of the report from a pasted resume and four answers, as the lead-gen front door, ending in "create an account to see the rest".
+- **Unlock meter on Home and in emails** — "N minutes from your next strategy" in the weekly note and nudge emails, and a small meter on the dashboard home.
+- **Unlock bar from data** — once there is history, replace the guessed 180 minutes with a bar fitted to how much effort precedes a useful new strategy.
+- **Gmail-derived funnel counts** — fill applications, interviews and offers in the last 30 days from connected Gmail so the onboarding fallback question is skipped.
+- **Report history** — keep dated report versions so members can see the read change over months, not just week to week.

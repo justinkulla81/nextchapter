@@ -1,8 +1,9 @@
 import 'server-only'
+import { notInternshipWhere } from '@/lib/internships/exclude'
+import { isInternshipJob } from '@/lib/jobs/work-type'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName, orgNamesMatch, fixAllCapsCompanyName } from '@/lib/text/org-name-match'
 import type { PageContentView } from '@/lib/dashboard/page-content'
-import { isBoardPostingLockedForViewer } from '@/lib/jobs/job-board-visibility'
 import { getLikelyOpeningsForCompanies, type CompanyLikelyOpening } from '@/lib/likely-openings/for-companies'
 import { getTopHiringCompanies, isAdzunaInsightsEnabled, memberMarketRole, resolveState } from '@/lib/market/adzuna-insights'
 
@@ -17,16 +18,14 @@ export interface WatchlistPosting {
 
 // One row per watched company, consolidated for the single-list Company
 // Tracker UI — company name, total count "in our system" (visible to this
-// candidate), and the actual postings to expand into on click. A_LIST_ONLY
-// postings a non-Candidate+ candidate can't open are counted in lockedCount
-// but their details are never included in visiblePostings, since this shape
-// is sent straight to the client component.
+// candidate), and the actual postings to expand into on click. Every member
+// sees every job (owner's rule, 2026-10-16); confidential searches never
+// appear here, since this shape is sent straight to the client component.
 export interface WatchlistEntryView {
   id: string
   companyName: string
   newPostingCount: number
   visiblePostings: WatchlistPosting[]
-  lockedCount: number
   // SEC filings suggesting a senior role is about to open here (officer
   // departure, new CEO, big raise) — see src/lib/likely-openings/.
   likelyOpenings: CompanyLikelyOpening[]
@@ -77,7 +76,7 @@ async function getTopHirerMatcher(candidateId: string): Promise<(companyName: st
 // small enough to fetch in full and match in JS against each candidate's
 // watchlist, rather than needing a normalized column on ExclusiveJobPosting
 // itself.
-type ActivePosting = WatchlistPosting & { audienceTier: string; source: string }
+type ActivePosting = WatchlistPosting
 // Same live set for every candidate, and every dashboard / find-my-job render needs it:
 // memoised per server instance for a minute (same pattern as ghost-risk-data.ts). Rows are
 // read-only to callers; a new import or approval shows up within the TTL.
@@ -102,7 +101,11 @@ async function loadActivePostings(): Promise<ActivePosting[]> {
       institutionScopeId: null,
       status: 'approved',
       distribution: { not: 'EXCLUDED' },
+      // A confidential search never names its client, so it can't match a watched company.
+      disclosure: 'OPEN',
       OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      // Internships are Higher Ed portal only (internships/exclude.ts).
+      AND: [notInternshipWhere()],
     },
     select: {
       id: true,
@@ -111,11 +114,9 @@ async function loadActivePostings(): Promise<ActivePosting[]> {
       location: true,
       url: true,
       createdAt: true,
-      audienceTier: true,
-      source: true,
     },
     orderBy: { createdAt: 'desc' },
-  })
+  }).then((rows) => rows.filter((r) => !isInternshipJob(r)))
 }
 
 // This candidate's own automated-search-partner matches (see
@@ -161,7 +162,7 @@ async function matchWatchlistEntries(candidateId: string) {
   })
 }
 
-export async function getWatchlistView(candidateId: string, isCandidatePlus: boolean): Promise<WatchlistEntryView[]> {
+export async function getWatchlistView(candidateId: string): Promise<WatchlistEntryView[]> {
   const matches = await matchWatchlistEntries(candidateId)
   // Never let a signals lookup break the tracker itself.
   const signals = await getLikelyOpeningsForCompanies(matches.map((m) => m.entry.companyName)).catch(
@@ -171,11 +172,7 @@ export async function getWatchlistView(candidateId: string, isCandidatePlus: boo
     matches.length > 0 && isAdzunaInsightsEnabled() ? await getTopHirerMatcher(candidateId).catch(() => () => null) : () => null
 
   return matches.map(({ entry, boardMatches, surfacedMatches, newPostingCount }) => {
-    // A_LIST_ONLY postings are real "in our system" jobs, just not ones
-    // this candidate can open yet — counted, never detailed, unless the
-    // candidate is actually Candidate+.
-    const visibleBoard = boardMatches.filter((p) => !isBoardPostingLockedForViewer(p, isCandidatePlus))
-    const visible = [...visibleBoard, ...surfacedMatches]
+    const visible = [...boardMatches, ...surfacedMatches]
     return {
       id: entry.id,
       companyName: entry.companyName,
@@ -188,7 +185,6 @@ export async function getWatchlistView(candidateId: string, isCandidatePlus: boo
         url,
         createdAt,
       })),
-      lockedCount: boardMatches.length - visibleBoard.length,
       likelyOpenings: signals.get(entry.companyName) ?? [],
       topHirer: topHirerFor(entry.companyName),
     }

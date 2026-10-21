@@ -6,8 +6,10 @@ import { computeMatchScore } from '@/lib/matching/compute-match-score'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { HIGHEST_LEVEL_OPTIONS, PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { getConsentedCandidateIds } from '@/lib/recruiter/introductions'
-import { computeDossierCompleteness } from '@/lib/scoring/dossier-unlock'
+import { computeDossierCompletenessMany } from '@/lib/scoring/dossier-unlock'
 import { getRecruiterSettings } from '@/lib/admin/recruiter-settings'
+import { loadVisibilityMany } from '@/lib/evidence/load'
+import { EvidenceBadge } from '@/components/evidence/EvidenceBadge'
 import type { CandidateProfile, Prisma } from '@prisma/client'
 
 export const maxDuration = 30
@@ -61,7 +63,11 @@ export default async function RecruiterSearchPage({
   // no filter combination that can widen this beyond that set; a recruiter
   // with zero consented candidates gets zero results, not a fallback to
   // the general pool. See src/lib/recruiter/introductions.ts.
-  const consentedCandidateIds = await getConsentedCandidateIds(recruiter.id)
+  // Admin settings are independent of the candidate set, so load them together.
+  const [consentedCandidateIds, { rankingWeightDossierCompleteness }] = await Promise.all([
+    getConsentedCandidateIds(recruiter.id),
+    getRecruiterSettings(),
+  ])
 
   const where: Prisma.CandidateProfileWhereInput = {
     id: { in: consentedCandidateIds },
@@ -145,24 +151,23 @@ export default async function RecruiterSearchPage({
   // read of fit-against-these-filters and are never mutated by Dossier
   // completeness, so the two signals stay visually distinguishable (badge
   // vs. match label) rather than blended into one number.
-  const [{ rankingWeightDossierCompleteness }, completenessByCandidateId] = await Promise.all([
-    getRecruiterSettings(),
-    (async () => {
-      const entries = await Promise.all(
-        candidates.map(async (c) => [c.id, (await computeDossierCompleteness(c.id)).isComplete] as const)
-      )
-      return new Map(entries)
-    })(),
+  // Candidate+ Verified members rank first everywhere recruiters look
+  // (Justin, 2026-10-16): Candidate+ plus at least one piece of evidence.
+  // Everyone here already consented to this recruiter, so nobody is hidden.
+  const [completenessByCandidateId, evidenceByCandidateId] = await Promise.all([
+    computeDossierCompletenessMany(candidates.map((c) => c.id)),
+    loadVisibilityMany(candidates.map((c) => c.id)),
   ])
 
   const scored = candidates
     .map((candidate) => {
       const match = computeMatchScore(candidate, roleFilter)
-      const dossierComplete = completenessByCandidateId.get(candidate.id) ?? false
+      const dossierComplete = completenessByCandidateId.get(candidate.id)?.isComplete ?? false
       const rankScore = match.score + (dossierComplete ? rankingWeightDossierCompleteness : 0)
-      return { candidate, match, dossierComplete, rankScore }
+      const evidence = evidenceByCandidateId.get(candidate.id)
+      return { candidate, match, dossierComplete, rankScore, verified: evidence?.verified ?? false, evidenceScore: evidence?.score ?? 0 }
     })
-    .sort((a, b) => b.rankScore - a.rankScore)
+    .sort((a, b) => Number(b.verified) - Number(a.verified) || b.rankScore - a.rankScore || b.evidenceScore - a.evidenceScore)
 
   const hasFilters = Boolean(fn || level || remote || location || compMax || school || industry || skill || employer)
   if (hasFilters) {
@@ -291,7 +296,7 @@ export default async function RecruiterSearchPage({
               : 'No candidates match yet — try widening your filters.'}
           </p>
         ) : (
-          scored.map(({ candidate, match, dossierComplete }) => (
+          scored.map(({ candidate, match, dossierComplete, verified, evidenceScore }) => (
             <Link
               key={candidate.id}
               href={`/recruiters/search/${candidate.id}`}
@@ -306,6 +311,11 @@ export default async function RecruiterSearchPage({
                       title="This candidate has completed every Dossier requirement — references, assessments, and active search evidence."
                     >
                       Dossier Complete
+                    </span>
+                  )}
+                  {verified && (
+                    <span className="ml-2 align-middle">
+                      <EvidenceBadge verified score={evidenceScore} />
                     </span>
                   )}
                 </p>

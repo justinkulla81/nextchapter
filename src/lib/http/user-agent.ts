@@ -1,7 +1,7 @@
 // Lightweight signature match against known bot/crawler/monitoring-tool
 // user-agent substrings — no external service, just enough to sort a daily
 // visitor digest without treating every visitor as worth a paid lookup.
-const BOT_SIGNATURES = [
+export const BOT_SIGNATURES = [
   'bot',
   'crawler',
   'spider',

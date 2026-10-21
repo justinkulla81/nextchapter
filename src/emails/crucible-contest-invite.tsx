@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface CrucibleContestInviteEmailProps {
   companyName: string
@@ -65,6 +66,7 @@ export default function CrucibleContestInviteEmail({
       <p style={footer}>
         This is a one-time invite link tied to your assessment result — no password, no account required.
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

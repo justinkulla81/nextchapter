@@ -1,5 +1,6 @@
 import { emailStyles } from '@/lib/email/email-styles'
 import type { Grade } from '@/lib/scoring/grade'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface GradeCalibratedUpEmailProps {
   firstName: string | null
@@ -83,6 +84,7 @@ export default function GradeCalibratedUpEmail({
           Turn off these emails
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

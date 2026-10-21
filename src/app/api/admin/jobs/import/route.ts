@@ -1,12 +1,33 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { after, NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
-import { screenJobTitle } from '@/lib/jobs/job-seniority'
-import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
-import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
+import { cleanJobLocation as cleanLocation, parsePostedDate as postedDate, screenImportedJob } from '@/lib/jobs/import-screen'
 import { excerptOf, skillsFrom } from '@/lib/jobs/posting-text'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
+import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
+import { applyMarketPay } from '@/lib/companies/hiring-index'
+import { canonicalIndustry, importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
+import { functionLabelForTitle } from '@/lib/jobs/job-functions'
+import { subFunctionFor } from '@/lib/jobs/sub-functions'
+import { textSkillIds } from '@/lib/careers/text-skill-ids'
+import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
+import { isEmployerSector } from '@/lib/jobs/employer-sector'
+import { parseRequirementFlags, requirementTagsFor } from '@/lib/jobs/requirements'
+import { importAiSkillFields } from '@/lib/skills/ai-skills'
+import { importPostingSignalFields } from '@/lib/jobs/posting-signals'
+import { statesFromLocation, US_STATE_CODES } from '@/lib/pay/market-pay'
+import { parseYearsRequired } from '@/lib/jobs/years-required'
+import { Prisma } from '@prisma/client'
+import { reconcileBoardLightRows } from '@/lib/jobs/board-light-rows'
+import { importBenefitsFields } from '@/lib/jobs/benefits'
+import { writeJobBenefits } from '@/lib/jobs/great-employers-data'
+import { isInternshipJob } from '@/lib/jobs/work-type'
+import { DIRECT_MAX_AGE_DAYS, FRESH_DAYS_DEFAULT, FRESH_DAYS_SENIOR, seniorWindowLevels } from '@/lib/jobs/job-status'
+import { levelsInGroup, SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
+import { stampVerified } from '@/lib/jobs/liveness-store'
+
+const levelsInAnyGroup = () => SENIORITY_GROUPS.flatMap((g) => levelsInGroup(g.key))
 
 export const maxDuration = 300
 
@@ -49,6 +70,80 @@ interface ImportJobInput {
   sourceCount?: number | null
   sourceName?: string | null
   industry?: string | null
+  // Posted on a school/district board (ncrawl k12 sources): bare
+  // "Superintendent" there is the district head.
+  schoolContext?: boolean
+  // One-board fields, from ncrawl derive.py. All optional: an older exporter that
+  // doesn't send them leaves the stored values untouched (see rowData).
+  employmentType?: string | null // employment_type_norm
+  payPeriod?: string | null // salary_period
+  paySource?: string | null // salary_source
+  workArrangement?: string | null // work_arrangement
+  compensationType?: string | null // paid | equity_only | unpaid
+  // Structured benefits (ncrawl benefits_json / benefits_strong). Optional: an
+  // exporter that doesn't send them leaves stored benefits untouched.
+  benefitsJson?: unknown // compact JSON string or object (src/lib/jobs/benefits.ts)
+  benefitsStrong?: unknown // 0/1 or boolean
+  // Location parts and ids (ncrawl derive.py), all optional like the fields above:
+  // loc_city / loc_state (US 2-letter) / loc_country (ISO-2), every listed
+  // location (locations_json → locationStates), the source's own job and
+  // requisition ids, the repost key and the description hash.
+  locationCity?: string | null
+  locationState?: string | null
+  locationCountry?: string | null
+  locations?: string[] | null
+  locationStatesList?: string[] | null // loc_states: every US state the crawler resolved, primary first
+  externalJobId?: string | null
+  requisitionId?: string | null
+  repostKey?: string | null
+  descHash?: string | null
+  // The crawler's row id (ncrawl jobs.fingerprint): the stable link crawler backfills join on.
+  crawlerFingerprint?: string | null
+  // O*NET-SOC occupation matched by the crawler (optional like the fields above).
+  socCode?: string | null
+  socTitle?: string | null
+  // Times the crawler saw this listing close and come back (jobs.reopen_count).
+  reopenCount?: number | null
+  // The same role seen before / listed twice (crawler repost_groups.py): times it came
+  // back, its original first-seen date (ISO), how many other copies this one stands
+  // for, and — on a second copy — the url of the copy shown. A second copy is never
+  // put on the board: it is archived as 'duplicate' (a current job, not a past one).
+  repostCount?: number | null
+  repostFirstSeenAt?: string | null
+  duplicateCount?: number | null
+  duplicateOf?: string | null
+  // The person the source names as the job's contact or poster (ncrawl jobs.recruiter_name).
+  // Optional like the fields above: left out, the stored value is untouched.
+  recruiterName?: string | null
+  // The crawler's function code (engineering, data_ai, …; ncrawl taxonomy + function_fallback),
+  // stored as its display label in targetFunction (job-functions.ts). Optional like the fields above.
+  function?: string | null
+  // private | government | nonprofit | academia (ncrawl/sector.py). Optional.
+  employerSector?: string | null
+  // Hard requirements read from the full posting (ncrawl/requirements.py): a list of
+  // { flag, …, evidence }. Optional; an empty list clears what the row held.
+  requirementFlags?: unknown
+  // AI skills read from the full posting (ncrawl/ai_skills.py): taxonomy item ids, their groups,
+  // and the AI tools / certifications the text names. Optional; left out, the stored values stay.
+  aiSkillGroups?: unknown
+  aiSkillItems?: unknown
+  aiToolsNamed?: unknown
+  aiCertsNamed?: unknown
+  // Who the posting says it welcomes (ncrawl/posting_signals.py): career_changer_welcome /
+  // ai_upskilled_welcome / high_eq. Optional; left out, the stored value stays; [] clears it.
+  postingSignals?: unknown
+  // The broader AI-exposed metric (ai_profile): exposed, which rules fired, any AI mention, and
+  // the text the AI fields were read from (full | twin | excerpt). Optional, like the above.
+  aiExposed?: unknown
+  aiExposureWhy?: unknown
+  aiMention?: unknown
+  aiBasis?: unknown
+  // When the crawler last confirmed the posting is up (ISO; ncrawl jobs.last_seen or a live
+  // liveness check, whichever is later). Stored as lastVerifiedAt; optional.
+  lastVerifiedAt?: string | null
+  // From the employer's own careers site / ATS (ncrawl master-list.py direct_listing): never
+  // aged out by posted date while the crawl still sends it. Optional; left out, the row keeps it.
+  directListing?: boolean
 }
 
 interface ImportRequestBody {
@@ -83,14 +178,13 @@ function screen(jobs: unknown[]) {
     }
     if (seen.has(job.url)) continue
     seen.add(job.url)
-    // isUsLocation knows US places; NON_US catches foreign towns it doesn't
-    // ("DEU - Bayern", "Poznań") and European "(f/m/d)" titles.
-    const location = cleanLocation(job.location)
-    if (!isUsLocation(location) || namesNonUsPlace(job.title, location, NON_US)) {
-      skipped.push({ url: job.url, reason: 'outside the US' })
+    // Internships never go on the member board; they have their own table and
+    // import (/api/admin/internships/import) and show only in Higher Ed portals.
+    if (isInternshipJob({ title: job.title, employmentType: job.employmentType })) {
+      skipped.push({ url: job.url, reason: 'internship (use /api/admin/internships/import)' })
       continue
     }
-    const verdict = screenJobTitle(job.title)
+    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, description: job.description })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
       continue
@@ -100,48 +194,174 @@ function screen(jobs: unknown[]) {
   return { kept, skipped }
 }
 
-// Some sources fill unknown locations with placeholders ("UNAVAILABLE").
-function cleanLocation(raw: string | null | undefined): string | null {
-  // Icon labels and field names some boards leave in the text ("wifi
-  // Remote", "Orange County, CA Date").
-  const text = (raw ?? '').replace(/^\s*wifi\s+/i, '').replace(/\s+date\s*$/i, '')
-  const parts = text
-    .split(/\s*,\s*/)
-    .filter((p) => p && !/^(unavailable|n\/?a|none|null|undefined|tbd)$/i.test(p))
-  return parts.length ? parts.join(', ') : null
+// The salary columns are 32-bit integers; a garbled source value ("142037156822")
+// used to fail the whole row. Anything that can't be a salary is dropped instead.
+function storableSalary(n: number | null | undefined): number | null {
+  return typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 2_147_483_647 ? Math.round(n) : null
 }
 
-// The source's own posting date; ignored when unparseable or in the future.
-function postedDate(raw: string | null | undefined): Date | null {
-  if (!raw) return null
-  const d = new Date(raw)
-  return Number.isNaN(d.getTime()) || d.getTime() > Date.now() + 86_400_000 ? null : d
+// The years-of-experience requirement, read from the FULL description the sender
+// sent (only an excerpt is stored); null when the text names none. Left out when
+// there is no description, so a row keeps what it holds.
+function yearsRequiredOf(description: string | null | undefined) {
+  if (!description?.trim()) return {}
+  const years = parseYearsRequired(description)
+  return { yearsRequired: years ? (years as unknown as Prisma.InputJsonValue) : Prisma.DbNull }
 }
 
 function rowData({ job, level }: Screened) {
+  const optional = importOptionalFields(job)
+  const sentFunction = 'function' in job && job.function !== undefined ? functionLabelForTitle(job.function, job.title) : null
   return {
+    // Sub-function (sub-functions.ts): allowlisted title patterns / O*NET codes within the job's function.
+    subFunction: subFunctionFor({
+      title: job.title,
+      fn: sentFunction ?? inferFunctionFromTitle(job.title.trim()),
+      soc: (optional as { socCode?: string | null }).socCode ?? null,
+    }),
+    ...optional,
+    ...importSpecFields(job, (l) => statesFromLocation(l).states, US_STATE_CODES),
+    ...yearsRequiredOf(job.description),
+    ...('recruiterName' in job && job.recruiterName !== undefined ? { recruiterName: importText(job.recruiterName, 120) } : {}),
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
     description: excerptOf(job.description),
     skills: skillsFrom(job.title, job.description),
+    // O*NET skills / tools the full posting names (text-skill-ids.ts): the board's skills criterion.
+    skillIds: [...textSkillIds(job.title, job.description, skillsFrom(job.title, job.description).join(' , '))].sort(),
     level,
     sourceCategory: job.sourceCategory?.trim() || null,
     badges: job.badges ?? [],
-    salaryMin: job.salaryMin ?? null,
-    salaryMax: job.salaryMax ?? null,
+    salaryMin: storableSalary(job.salaryMin),
+    salaryMax: storableSalary(job.salaryMax),
     salaryCurrency: job.salaryCurrency?.trim() || null,
     postedAt: postedDate(job.postedAt),
     sourceCount: typeof job.sourceCount === 'number' && job.sourceCount > 0 ? job.sourceCount : null,
     sourceName: job.sourceName?.trim() || null,
-    industry: job.industry?.trim() || null,
+    industry: canonicalIndustry(job.industry),
+    ...('function' in job && job.function !== undefined ? { targetFunction: functionLabelForTitle(job.function, job.title) } : {}),
+    ...('employerSector' in job && job.employerSector !== undefined
+      ? { employerSector: isEmployerSector(job.employerSector) ? job.employerSector : null }
+      : {}),
+    ...requirementFieldsOf(job),
+    // AI skills (ai-skills.ts): known ids only; groups follow from the items.
+    ...importAiSkillFields(job),
+    // Posting signals (posting-signals.ts): known ids only.
+    ...importPostingSignalFields(job),
+    ...(typeof job.directListing === 'boolean' ? { directListing: job.directListing } : {}),
+  }
+}
+
+// Requirement flags as sent, validated (requirements.ts), plus the tag string the
+// board filters on. Left out when the sender didn't send them, so a row keeps what it holds.
+function requirementFieldsOf(job: ImportJobInput) {
+  if (!('requirementFlags' in job) || job.requirementFlags === undefined) return {}
+  const flags = parseRequirementFlags(job.requirementFlags)
+  return {
+    requirementFlags: flags.length ? (flags as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
+    requirementTags: requirementTagsFor(flags),
   }
 }
 
 type RowData = ReturnType<typeof rowData>
 
+// Prisma.DbNull (a JSON column set to SQL NULL) reads back as null, and jsonb
+// hands objects back with its own key order — compare with keys sorted.
+function comparable(v: unknown): string {
+  const norm = (x: unknown): unknown => {
+    if (x === Prisma.DbNull || x === undefined || x === null) return null
+    if (Array.isArray(x)) return x.map(norm)
+    if (x instanceof Date) return x.toISOString()
+    if (typeof x === 'object') return Object.fromEntries(Object.keys(x as object).sort().map((k) => [k, norm((x as Record<string, unknown>)[k])]))
+    return x
+  }
+  return JSON.stringify(norm(v))
+}
+
 function changed(before: Record<string, unknown>, after: RowData): boolean {
-  return (Object.keys(after) as (keyof RowData)[]).some((k) => JSON.stringify(before[k] ?? null) !== JSON.stringify(after[k] ?? null))
+  return (Object.keys(after) as (keyof RowData)[]).some((k) => comparable(before[k]) !== comparable(after[k]))
+}
+
+// The company's job-opening history (CompanyJobOpening) and each job's market pay.
+// Best-effort: a history write must never fail the import itself.
+async function recordOpenings(kept: Screened[], companyIdOf: (k: Screened) => string | null, now: Date) {
+  try {
+    const rows: OpeningRow[] = []
+    for (const k of kept) {
+      const companyId = companyIdOf(k)
+      if (!companyId) continue
+      const data = rowData(k)
+      const row = buildOpeningRow({ ...data, url: k.job.url }, companyId, 'import', { firstSeenAt: now, lastSeenAt: now, closedAt: null })
+      if (row) rows.push(row)
+    }
+    await upsertOpenings(rows)
+    await applyMarketPay(rows.map((r) => r.url))
+  } catch (error) {
+    console.error('jobs import: could not record company openings', error)
+  }
+}
+
+// Structured benefits, for the jobs whose sender included them. Stored with raw
+// SQL once the columns exist (great-employers-data.ts); best-effort, like the
+// opening history — a benefits write must never fail the import.
+async function recordBenefits(kept: Screened[]) {
+  try {
+    const rows = kept.flatMap((k) => {
+      const f = importBenefitsFields(k.job)
+      return 'benefitsStrong' in f ? [{ url: k.job.url, benefits: f.benefits ?? null, benefitsStrong: f.benefitsStrong ?? null }] : []
+    })
+    for (let i = 0; i < rows.length; i += 1000) await writeJobBenefits(rows.slice(i, i + 1000))
+  } catch (error) {
+    console.error('jobs import: could not record benefits', error)
+  }
+}
+
+// A second copy of a listed role (job-status.ts 'duplicate'): a copy already on the
+// board is archived with closeReason 'duplicate' (its company-history row follows at the
+// next finalize or the nightly hiring index — closeArchivedOpenings); a new one is not created. Confirmed, so finalize leaves it be.
+async function collapseDuplicates(urls: string[], now: Date): Promise<number> {
+  if (urls.length === 0) return 0
+  const result = await prisma.exclusiveJobPosting.updateMany({
+    where: { url: { in: urls }, addedBy: 'ncrawl', OR: [{ archivedAt: null }, { closeReason: { not: 'duplicate' } }, { closeReason: null }] },
+    data: { archivedAt: now, closeReason: 'duplicate', lastConfirmedAt: now },
+  })
+  return result.count
+}
+
+// The crawler's "last seen up" time for a job, never in the future.
+function verifiedAtOf(k: Screened): Date | null {
+  const v = k.job.lastVerifiedAt
+  if (typeof v !== 'string' || !v) return null
+  const d = new Date(v)
+  return Number.isNaN(d.getTime()) || d.getTime() > Date.now() + 60_000 ? null : d
+}
+
+async function closeOpeningsSafely() {
+  try {
+    await closeArchivedOpenings()
+  } catch (error) {
+    console.error('jobs import: could not close archived openings', error)
+  }
+}
+
+// Archives every ncrawl row the run didn't confirm and records WHY (job-status.ts):
+// past its freshness window (director and above 60 days, others 30, from the posted
+// date or else the import date; a direct employer listing only past the 365-day
+// backstop) → 'aged_out', since the crawl's export drops it even if it is still up;
+// otherwise the employer stopped listing it → 'removed'. One statement, the same rows
+// the old updateMany archived.
+async function archiveStale(startedAt: Date, now: Date): Promise<number> {
+  const senior = seniorWindowLevels(levelsInAnyGroup())
+  return prisma.$executeRaw`
+    UPDATE "ExclusiveJobPosting"
+    SET "archivedAt" = ${now},
+        "closeReason" = CASE
+          WHEN COALESCE("postedAt", "createdAt") < ${now}::timestamp - make_interval(days => CASE WHEN "directListing" THEN ${DIRECT_MAX_AGE_DAYS}::int WHEN "level" = ANY(${senior}::text[]) THEN ${FRESH_DAYS_SENIOR}::int ELSE ${FRESH_DAYS_DEFAULT}::int END)
+          THEN 'aged_out' ELSE 'removed' END
+    WHERE "addedBy" = 'ncrawl' AND "archivedAt" IS NULL
+      AND ("lastConfirmedAt" IS NULL OR "lastConfirmedAt" < ${startedAt})
+  `
 }
 
 async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
@@ -161,8 +381,16 @@ async function finalize(startedAt: Date, force: boolean, dryRun: boolean) {
     )
   }
   if (dryRun) return NextResponse.json({ dryRun: true, wouldArchive, live })
-  const result = await prisma.exclusiveJobPosting.updateMany({ where: stale, data: { archivedAt: new Date() } })
-  return NextResponse.json({ archived: result.count, live: live - result.count })
+  const archivedCount = await archiveStale(startedAt, new Date())
+  await closeOpeningsSafely()
+  // The board's narrow copy of this table is kept in step by triggers; after a
+  // full sync, check it (and repair any drift) once the response is sent.
+  after(() =>
+    reconcileBoardLightRows()
+      .then((r) => console.log('jobs import: board light rows reconciled', r))
+      .catch((error) => console.error('jobs import: board light rows reconcile failed', error))
+  )
+  return NextResponse.json({ archived: archivedCount, live: live - archivedCount })
 }
 
 export async function POST(request: NextRequest) {
@@ -190,25 +418,47 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '"jobs" must be an array' }, { status: 400 })
   }
 
-  const { kept, skipped } = screen(body.jobs)
+  const screened = screen(body.jobs)
+  const skipped = screened.skipped
+  // Second copies of a role already listed elsewhere: collapsed, never on the board.
+  const isDuplicate = (k: Screened) => typeof k.job.duplicateOf === 'string' && !!k.job.duplicateOf.trim() && k.job.duplicateOf.trim() !== k.job.url
+  const duplicates = screened.kept.filter(isDuplicate)
+  const kept = screened.kept.filter((k) => !isDuplicate(k))
   const urls = kept.map((k) => k.job.url)
   const existing = await prisma.exclusiveJobPosting.findMany({
     where: { url: { in: urls } },
     select: {
       id: true, url: true, title: true, companyName: true, location: true, description: true, skills: true, level: true,
       sourceCategory: true, badges: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
-      postedAt: true, sourceCount: true, sourceName: true, industry: true,
+      postedAt: true, sourceCount: true, sourceName: true, industry: true, companyId: true,
+      employmentType: true, payPeriod: true, paySource: true, workArrangement: true, compensationType: true,
+      locationCity: true, locationState: true, locationCountry: true, locationStates: true, externalJobId: true,
+      requisitionId: true, repostKey: true, descHash: true, crawlerFingerprint: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
+      repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
+      targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
+      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, postingSignals: true, directListing: true,
+      aiExposed: true, aiExposureWhy: true, aiMention: true, aiBasis: true,
+      archivedAt: true, closeReason: true,
     },
   })
   const existingByUrl = new Map(existing.map((e) => [e.url, e]))
   const toCreate = kept.filter((k) => !existingByUrl.has(k.job.url))
-  const toUpdate = kept.filter((k) => existingByUrl.has(k.job.url))
+  // A posting our liveness check found dead (closeReason 'expired_checked': the crawler's
+  // check, or a member's click) stays closed unless the crawler has seen it up since.
+  const staysClosed = (k: Screened) => {
+    const e = existingByUrl.get(k.job.url)
+    if (!e?.archivedAt || e.closeReason !== 'expired_checked') return false
+    const seen = verifiedAtOf(k)
+    return !seen || seen <= e.archivedAt
+  }
+  const toUpdate = kept.filter((k) => existingByUrl.has(k.job.url) && !staysClosed(k))
 
   if (body.dryRun) {
     return NextResponse.json({
       dryRun: true,
       wouldCreate: toCreate.length,
       wouldUpdate: toUpdate.length,
+      wouldCollapse: duplicates.length,
       wouldArchive: body.fullSync
         ? await prisma.exclusiveJobPosting.count({ where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } } })
         : 0,
@@ -219,8 +469,12 @@ export async function POST(request: NextRequest) {
   const now = new Date()
   const expiresAt = new Date(now.getTime() + THIRTY_DAYS_MS)
 
+  // Every job is tied to its directory Company: new rows at create, older rows that
+  // were never linked on their next import.
+  const unlinked = toUpdate.filter((k) => !existingByUrl.get(k.job.url)!.companyId)
+  const companyIds = await linkPostingsToCompanies([...toCreate, ...unlinked].map((k) => rowData(k).companyName))
+
   if (toCreate.length > 0) {
-    const companyIds = await linkPostingsToCompanies(toCreate.map((k) => rowData(k).companyName))
     await prisma.exclusiveJobPosting.createMany({
       data: toCreate.map((k) => ({
         ...rowData(k),
@@ -233,6 +487,7 @@ export async function POST(request: NextRequest) {
         contactName: null,
         expiresAt,
         lastConfirmedAt: now,
+        lastVerifiedAt: verifiedAtOf(k),
       })),
       skipDuplicates: true,
     })
@@ -243,8 +498,12 @@ export async function POST(request: NextRequest) {
   if (toUpdate.length > 0) {
     await prisma.exclusiveJobPosting.updateMany({
       where: { id: { in: toUpdate.map((k) => existingByUrl.get(k.job.url)!.id) } },
-      data: { archivedAt: null, expiresAt, lastConfirmedAt: now },
+      data: { archivedAt: null, closeReason: null, expiresAt, lastConfirmedAt: now },
     })
+    for (const k of unlinked) {
+      const companyId = companyIds.get(rowData(k).companyName)
+      if (companyId) await prisma.exclusiveJobPosting.updateMany({ where: { url: k.job.url, companyId: null }, data: { companyId } })
+    }
     const edits = toUpdate.filter((k) => changed(existingByUrl.get(k.job.url)!, rowData(k)))
     for (let i = 0; i < edits.length; i += 100) {
       await prisma.$transaction(
@@ -261,14 +520,25 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // lastVerifiedAt only ever moves forward (stampVerified keeps the later of the two).
+  await stampVerified(toUpdate.flatMap((k) => {
+    const at = verifiedAtOf(k)
+    return at ? [{ url: k.job.url, at }] : []
+  }))
+  const collapsed = await collapseDuplicates(duplicates.map((k) => k.job.url), now)
+  await recordOpenings(kept.filter((k) => !staysClosed(k)), (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
+  await recordBenefits(kept)
+
   let archived = 0
   if (body.fullSync) {
     const result = await prisma.exclusiveJobPosting.updateMany({
       where: { addedBy: 'ncrawl', archivedAt: null, url: { notIn: urls } },
-      data: { archivedAt: new Date() },
+      // Small single-call runs only; the batched finalize below tells removed from aged out.
+      data: { archivedAt: new Date(), closeReason: 'removed' },
     })
     archived = result.count
+    await closeOpeningsSafely()
   }
 
-  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, skipped })
+  return NextResponse.json({ created: toCreate.length, updated: toUpdate.length, archived, collapsed, skipped })
 }

@@ -1,4 +1,5 @@
 import type { JobSearchDailyContent, DailyItem, ScoreStatus } from '@/lib/job-search-daily/build'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface JobSearchDailyEmailProps {
   content: JobSearchDailyContent
@@ -127,9 +128,14 @@ const BAR: Record<ScoreStatus, string> = {
   atRisk: '#f56565',
 }
 
+// A job's verdict reads like the board card's (job-card.ts), in plain words; the green stays on the button.
+const verdictStyle: React.CSSProperties = { color: ink, fontWeight: 600 }
+const whyStyle: React.CSSProperties = { display: 'block', color: muted, fontSize: '14px' }
+
 function Bullet({ item }: { item: DailyItem }) {
   return (
     <li style={li}>
+      {item.verdict && <span style={verdictStyle}>{item.verdict}: </span>}
       {item.href ? (
         <a href={item.href} style={itemLink}>
           {item.title}
@@ -138,6 +144,7 @@ function Bullet({ item }: { item: DailyItem }) {
         item.title
       )}
       {item.detail && <span style={tail}> · {item.detail}</span>}
+      {item.why && <span style={whyStyle}>{item.why}</span>}
     </li>
   )
 }
@@ -164,7 +171,7 @@ export default function JobSearchDailyEmail({
   appUrl,
   unsubscribeUrl,
 }: JobSearchDailyEmailProps) {
-  const { score, priorities, todos, applications, networking, jobs, companyMoves, article, unlock, action, quote } =
+  const { score, priorities, todos, applications, networking, jobs, companyMoves, article, unlock, action, quote, fromProfile } =
     content
   const pct = score && score.target > 0 ? Math.min(100, Math.round((score.earned / score.target) * 100)) : 0
   const newForYou = [...jobs.items, ...companyMoves, ...(article ? [article] : [])]
@@ -227,6 +234,56 @@ export default function JobSearchDailyEmail({
           </>
         )}
 
+        {fromProfile && (
+          <>
+            <p style={label}>From your profile</p>
+            <p style={li}>
+              <strong>{fromProfile.title}.</strong>{' '}
+              {fromProfile.href ? (
+                <a href={fromProfile.href} style={itemLink}>
+                  {fromProfile.detail}
+                </a>
+              ) : (
+                fromProfile.detail
+              )}
+            </p>
+          </>
+        )}
+
+        {content.whatChanged.length > 0 && (
+          <>
+            <p style={label}>What changed for you</p>
+            <ul style={list}>
+              {content.whatChanged.map((line) => (
+                <li key={line} style={li}>
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {content.checkIn && (
+          <>
+            <p style={label}>Weekly check-in</p>
+            <p style={li}>Applied or reached out anywhere this week? Tap:</p>
+            {content.checkIn.rows.map((row) => (
+              <p key={row.kind} style={li}>
+                <strong>{row.label}:</strong>{' '}
+                {row.taps.map((t, i) => (
+                  <span key={t.label}>
+                    {i > 0 && <span style={tail}> · </span>}
+                    <a href={t.href} style={itemLink}>
+                      {t.label}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            ))}
+            <p style={more}>Counts toward Candidate+. Tapping again won&apos;t count twice.</p>
+          </>
+        )}
+
         {todos.length > 0 && (
           <>
             <p style={label}>{priorities.length > 0 ? 'Also to do' : 'To do today'}</p>
@@ -280,15 +337,6 @@ export default function JobSearchDailyEmail({
         <Section
           title="New for you"
           items={newForYou}
-          footerNote={
-            jobs.lockedCount > 0 && (
-              <p style={more}>
-                <a href={`${appUrl}/dashboard/find-my-job?src=job_search_daily`} style={{ color: muted }}>
-                  More roles on the A-list board
-                </a>
-              </p>
-            )
-          }
         />
 
         {unlock && <Section title="Unlock next" items={[{ ...unlock, detail: null }]} />}
@@ -309,6 +357,7 @@ export default function JobSearchDailyEmail({
           Turn off this email
         </a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

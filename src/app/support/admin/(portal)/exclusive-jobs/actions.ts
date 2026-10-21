@@ -29,7 +29,7 @@ export async function createExclusiveJobPosting(_prevState: FormState, formData:
     salaryMin: formData.get('salaryMin') ? Number(formData.get('salaryMin')) : null,
     salaryMax: formData.get('salaryMax') ? Number(formData.get('salaryMax')) : null,
     salaryCurrency: (formData.get('salaryCurrency') as string | null)?.trim() || null,
-    audienceTier: (formData.get('audienceTier') as string | null) || 'A_LIST_ONLY',
+    audienceTier: 'ALL_CANDIDATES', // every member sees every job (owner's rule, 2026-10-16)
     distribution: (formData.get('distribution') as string | null) || 'OPEN',
     disclosure: 'OPEN', // NC-sourced listings always name the company.
     targetFunction: (formData.get('targetFunction') as string | null)?.trim() || null,
@@ -72,7 +72,7 @@ export async function createExclusiveJobPosting(_prevState: FormState, formData:
 export async function archiveExclusiveJobPosting(postingId: string) {
   await requireAdmin()
 
-  await prisma.exclusiveJobPosting.update({ where: { id: postingId }, data: { archivedAt: new Date() } })
+  await prisma.exclusiveJobPosting.update({ where: { id: postingId }, data: { archivedAt: new Date(), closeReason: 'manual' } })
   invalidateActiveByLevel()
   revalidatePath('/support/admin/exclusive-jobs')
 }

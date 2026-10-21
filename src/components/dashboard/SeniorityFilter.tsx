@@ -5,12 +5,15 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { SENIORITY_GROUPS } from '@/lib/jobs/job-seniority'
 import { cn } from '@/lib/utils'
+import { boardHref } from '@/lib/jobs/board-url'
 
 /**
  * Narrows a job list to one seniority group (job-seniority.ts) through the
  * `seniority` URL parameter, so the server renders only matching jobs and
- * the choice survives a reload or a shared link. Seven choices, so a
- * select rather than buttons.
+ * the choice survives a reload or a shared link. Ten choices, so a
+ * select rather than buttons. With no choice the board shows the member's
+ * own career stage, one up and one down (career-stage.ts); picking a group
+ * shows that group whatever the member's stage (opt-in).
  */
 export function SeniorityFilter({ surface }: { surface: string }) {
   const router = useRouter()
@@ -20,11 +23,12 @@ export function SeniorityFilter({ surface }: { surface: string }) {
   const current = searchParams.get('seniority') ?? ''
 
   function onChange(value: string) {
-    const next = new URLSearchParams(searchParams.toString())
-    if (value) next.set('seniority', value)
-    else next.delete('seniority')
-    posthog.capture('job_seniority_filter_changed', { surface, seniority: value || 'ALL' })
-    startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }))
+    posthog.capture('job_seniority_filter_changed', {
+      surface,
+      seniority: value || 'ALL',
+      earlyCareer: value === 'ENTRY_LEVEL' || value === 'EARLY_CAREER',
+    })
+    startTransition(() => router.replace(boardHref(searchParams, { seniority: value || null }, { pathname }), { scroll: false }))
   }
 
   return (
@@ -37,7 +41,7 @@ export function SeniorityFilter({ surface }: { surface: string }) {
         aria-busy={pending}
         className={cn('rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground', pending && 'cursor-wait')}
       >
-        <option value="">All levels</option>
+        <option value="">Levels that fit you</option>
         {SENIORITY_GROUPS.map((g) => (
           <option key={g.key} value={g.key}>
             {g.label}

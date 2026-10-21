@@ -9,7 +9,7 @@ import { subscribeToNewsletter, type NewsletterState } from '@/lib/newsletter/ac
  * Email gate for the PDF download. The full report stays free to read on the
  * page — this only gates the convenience PDF, and researchers/press have an
  * ungated direct link (#pdf-direct) in the cover. Subscribing uses the one
- * newsletter list with source `displacement-report-pdf`.
+ * newsletter list with source `employment-report-pdf`.
  */
 export function ReportPdfGateDialog({
   open,
@@ -51,7 +51,7 @@ export function ReportPdfGateDialog({
               href={pdfHref}
               download={filename}
               onClick={() => posthog?.capture('report_pdf_downloaded', { gated: true })}
-              className="inline-flex items-center justify-center rounded-lg bg-success px-5 py-2.5 text-sm font-semibold text-white hover:bg-success-hover"
+              className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-2.5 text-sm font-semibold text-action-foreground hover:brightness-95"
             >
               Download the PDF →
             </a>
@@ -71,7 +71,7 @@ export function ReportPdfGateDialog({
               either way.
             </p>
             <form action={action} noValidate className={`space-y-3 ${pending ? 'cursor-wait' : ''}`}>
-              <input type="hidden" name="source" value="displacement-report-pdf" />
+              <input type="hidden" name="source" value="employment-report-pdf" />
               <div className="hidden" aria-hidden>
                 <label htmlFor="pdf-gate-website">Website</label>
                 <input id="pdf-gate-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
@@ -86,7 +86,7 @@ export function ReportPdfGateDialog({
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <button
                   type="submit" disabled={pending}
-                  className={`inline-flex h-11 items-center justify-center rounded-lg bg-success px-5 text-sm font-semibold text-white hover:bg-success-hover ${pending ? 'cursor-wait opacity-70' : ''}`}
+                  className={`inline-flex h-11 items-center justify-center rounded-lg bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95 ${pending ? 'cursor-wait opacity-70' : ''}`}
                 >
                   {pending ? 'Sending…' : 'Email me the PDF →'}
                 </button>

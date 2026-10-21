@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface MarketDigestCandidateEmailProps {
   firstName: string | null
@@ -9,6 +10,7 @@ interface MarketDigestCandidateEmailProps {
   nuggetTitle: string | null
   nuggetUrl: string | null
   nuggetSummary: string | null
+  aiMarketText?: string | null
   dashboardUrl: string
   unsubscribeUrl: string
 }
@@ -53,6 +55,7 @@ export default function MarketDigestCandidateEmail({
   nuggetTitle,
   nuggetUrl,
   nuggetSummary,
+  aiMarketText,
   dashboardUrl,
   unsubscribeUrl,
 }: MarketDigestCandidateEmailProps) {
@@ -81,6 +84,7 @@ export default function MarketDigestCandidateEmail({
           <strong>{Math.abs(blsYoyChangePct).toFixed(1)}%</strong> year over year.
         </p>
       )}
+      {aiMarketText && <p>{aiMarketText}</p>}
       {nuggetTitle && nuggetUrl && (
         <p>
           <strong>Worth a read:</strong> <a href={nuggetUrl}>{nuggetTitle}</a>
@@ -93,6 +97,7 @@ export default function MarketDigestCandidateEmail({
       <p style={footer}>
         <a href={unsubscribeUrl}>Unsubscribe from the Weekly Market Digest</a>
       </p>
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

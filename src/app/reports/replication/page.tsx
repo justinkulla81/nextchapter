@@ -10,7 +10,7 @@ import {
 
 const URL = `${SITE_URL}/reports/replication`
 const REPO_URL = REPLICATION_REPO_URL
-const REPORT_PATH = '/reports/displacement-report-september-2026'
+const REPORT_PATH = '/reports/white-collar-employment-report-september-2026'
 const CORRECTIONS_EMAIL = 'jkulla@launchyournextchapter.com'
 const DESCRIPTION =
   'Code, parameters and derived data to reproduce the NextChapter White Collar Employment Report: the White-Collar Long-Search Index, CPS breakdowns, margins of error, SEC AI coding and more.'
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     url: URL,
     siteName: 'NextChapter',
-    images: [{ url: `${SITE_URL}/reports/displacement-report-2026-09-og.png?v=1.72`, width: 1200, height: 630 }],
+    images: [{ url: `${SITE_URL}/reports/white-collar-employment-report-2026-09-og.png?v=1.72`, width: 1200, height: 630 }],
   },
 }
 

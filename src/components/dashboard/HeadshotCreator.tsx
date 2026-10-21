@@ -29,10 +29,10 @@ export function HeadshotCreator() {
   const [bannerState, bannerAction, bannerPending] = useActionState(generateBannerAction, undefined)
 
   return (
-    <div className="space-y-6 rounded-lg border border-border p-4">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-sm font-medium text-foreground">Headshot & banner creator</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h2 className="font-display text-xl font-semibold text-ink">Headshot and banner</h2>
+        <p className="mt-1 max-w-2xl text-base text-muted-foreground">
           Recruiters judge a profile in seconds — a real photographer&apos;s headshot is expensive
           and slow to schedule. This turns a phone photo into one, free, in under a minute.
         </p>

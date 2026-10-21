@@ -3,7 +3,8 @@ import type { CandidateProfile, RoleProfile } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { computeMatchScore, type MatchResult } from '@/lib/matching/compute-match-score'
 import { mapEmployerCompanySizeStringToBand } from '@/lib/scoring/level-rank'
-import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { loadVisibilityMany } from '@/lib/evidence/load'
+import { compareByEvidenceThenFit } from '@/lib/evidence/score'
 import { computeEffortSummaryLines } from '@/lib/reports/effort-summary'
 import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
 import { getBlockedCandidateIdsForEmployer } from '@/lib/talent/conflict-check'
@@ -73,10 +74,9 @@ export interface MatchedCandidate {
   roleId: string
   roleTitle: string
   effortSummary: string
-  // Dossier not yet unlocked — CandidateCard renders this row as an
-  // anonymized teaser (name withheld, no Save/Compare) instead of full
-  // detail. Real matches, not filtered out — see CandidateCard's `locked` prop.
-  locked: boolean
+  // Candidate+ Verified (Candidate+ plus at least one piece of evidence) and
+  // the evidence score — Verified members rank first, with an Evidence badge.
+  evidence: { verified: boolean; score: number }
 }
 
 // Candidates whose stated target overlaps with ANY of this employer's active
@@ -124,6 +124,8 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
   const candidatesRaw = await prisma.candidateProfile.findMany({
     where: {
       recruiterDatabaseOptIn: true,
+      // Confidential search is a hard rule: never shown outside NextChapter.
+      confidentialSearchMode: false,
       privacyTier: { in: ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE'] },
       assessmentComplete: true,
       isSampleData: false,
@@ -136,14 +138,13 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
   const intentMatched = candidatesRaw.filter((c) => roles.some((r) => candidateWantsRole(c, r)))
   if (intentMatched.length === 0) return []
 
-  // Same "opted-in candidates are a small pool" precedent as the per-role
-  // Match Inbox — live isDossierUnlocked() per row is fine here. Locked
-  // candidates stay in the list (as teasers) rather than being filtered
-  // out — see MatchedCandidate.locked.
-  const unlockStatuses = await Promise.all(intentMatched.map((c) => isDossierUnlocked(c.id)))
-  const lockedById = new Map(intentMatched.map((c, i) => [c.id, !unlockStatuses[i].unlocked]))
+  // Candidate+ is the only gate (Justin, 2026-10-16): free members are never
+  // shown to employers. Same "opted-in candidates are a small pool" precedent
+  // as the per-role Match Inbox — a live Candidate+ check per row is fine here.
+  const visibility = await loadVisibilityMany(intentMatched.map((c) => c.id))
+  const visible = intentMatched.filter((c) => visibility.get(c.id)?.candidatePlus)
 
-  const scored: MatchedCandidate[] = intentMatched.map((candidate) => {
+  const scored: MatchedCandidate[] = visible.map((candidate) => {
     const best = roles
       .filter((r) => candidateWantsRole(candidate, r))
       .map((role) => ({ role, match: computeMatchScore(candidate, { ...role, employerCompanySizeBand }) }))
@@ -163,15 +164,16 @@ export async function getCandidatesLookingForYourRoles(employerId: string, limit
       roleId: best.role.id,
       roleTitle: best.role.roleTitle,
       effortSummary,
-      locked: lockedById.get(candidate.id) ?? false,
+      evidence: { verified: visibility.get(candidate.id)!.verified, score: visibility.get(candidate.id)!.score },
     }
   })
 
-  // Unlocked candidates rank first regardless of raw match score — this is
-  // a small preview widget (default limit 8), and a full-detail match is
-  // worth more here than a higher-scoring teaser the employer can't act on
-  // as directly yet.
   return scored
-    .sort((a, b) => Number(a.locked) - Number(b.locked) || b.match.score - a.match.score)
+    .sort((a, b) =>
+      compareByEvidenceThenFit(
+        { verified: a.evidence.verified, evidenceScore: a.evidence.score, fit: a.match.score },
+        { verified: b.evidence.verified, evidenceScore: b.evidence.score, fit: b.match.score }
+      )
+    )
     .slice(0, limit)
 }

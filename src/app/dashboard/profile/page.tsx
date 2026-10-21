@@ -1,14 +1,10 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { getProfileChecklistItems, type ProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
-import { Button } from '@/components/ui/button'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
 import { prisma } from '@/lib/prisma'
 import type { DimensionKey, Finding } from '@/lib/scoring/resume-analysis/types'
-import { cn } from '@/lib/utils'
 import { getMemberDisplayIdentity, buildMemberProfileSlug } from '@/lib/contacts/member-profile'
+import { ProfileHubRedesign } from '@/components/dashboard/ProfileHubRedesign'
 
 export const metadata: Metadata = { title: 'My Profile' }
 
@@ -80,7 +76,14 @@ const SECTIONS: SectionDef[] = [
 // pattern instead of two different UI languages.
 export default async function ProfileHubPage() {
   const profile = await getDashboardData()
-  const items = await getProfileChecklistItems(profile.id)
+  const [items, latestAnalysis] = await Promise.all([
+    getProfileChecklistItems(profile.id),
+    prisma.resumeAnalysis.findFirst({
+      where: { candidateId: profile.id },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true, dimensionFindings: true },
+    }),
+  ])
   const pointsByType = new Map(items.map((i) => [i.actionType, i]))
 
   // Prompt 87 point 1 — the reassuring-tone pattern from Prompt 83 point 6
@@ -114,165 +117,33 @@ export default async function ProfileHubPage() {
   // analysis's own findings, same JSON shape market-reality-report.ts
   // already reads for the same purpose.
   const latestResume = profile.resumes[0]
-  const latestAnalysis = await prisma.resumeAnalysis.findFirst({
-    where: { candidateId: profile.id },
-    orderBy: { createdAt: 'desc' },
-    select: { createdAt: true, dimensionFindings: true },
-  })
   const hasResumeFindings = latestAnalysis
     ? Object.values(latestAnalysis.dimensionFindings as unknown as Record<DimensionKey, Finding[]>).flat().length > 0
     : false
   const hasUnaddressedResumeFeedback =
     hasResumeFindings && !!latestAnalysis && (!latestResume || latestResume.uploadedAt <= latestAnalysis.createdAt)
 
-  const fullySetUpMessage = percentComplete === 100 && (
-    <div className="space-y-2 rounded-lg border border-brand/30 bg-brand/5 p-4">
-      <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Daily Message</p>
-      <p className="text-sm font-semibold text-navy">You&apos;re fully set up — nice work.</p>
-      <ul className="list-disc space-y-1.5 pl-4 text-sm text-foreground">
-        <li>Update anything that has changed since you last looked.</li>
-        {hasUnaddressedResumeFeedback && (
-          <li>
-            <Link href="/dashboard/resume" className="font-medium text-primary underline underline-offset-4">
-              Update your resume
-            </Link>{' '}
-            — you have Resume Analysis feedback you haven&apos;t acted on yet.
-          </li>
-        )}
-      </ul>
-    </div>
-  )
-
+  // Profile in the redesign: how complete it is and why it matters, one next step, and the parts as plain rows.
+  const resumeRow = profile.resumes[0]
+  const resumeWhy = hasUnaddressedResumeFeedback
+    ? 'You have résumé feedback you have not acted on yet. Updating it is the quickest way to improve your matches.'
+    : 'Recruiters and hiring managers read this first, and your matches are built from it.'
+  const publicProfileHref = `/dashboard/contacts/members/${buildMemberProfileSlug(getMemberDisplayIdentity(profile).displayName, profile.id)}`
+  const next = firstIncompleteSection
+    ? { href: firstIncompleteSection.href, label: `Finish ${firstIncompleteSection.title.replace(/^My /, '').toLowerCase()}`, key: firstIncompleteSection.href }
+    : hasUnaddressedResumeFeedback
+      ? { href: '/dashboard/resume', label: 'Update your résumé', key: '/dashboard/resume' }
+      : null
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">My Profile</h1>
-        <p className="text-muted-foreground">
-          Everything about you lives in one of the sections below.
-        </p>
-        {totalItems > 0 && (
-          <div className="space-y-1.5">
-            {percentComplete < 100 && (
-              <p className="text-sm text-foreground">
-                {`Your profile is ${percentComplete}% complete — you're in good shape. ${
-                  firstIncompleteSection ? `One thing would make it stronger: ${firstIncompleteSection.title.toLowerCase()}.` : ''
-                }`}
-              </p>
-            )}
-            <div
-              role="progressbar"
-              aria-valuenow={percentComplete}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label="Profile completion"
-              className="h-1.5 w-full overflow-hidden rounded-full bg-off-white"
-            >
-              <div
-                className={cn('h-full rounded-full transition-all', percentComplete === 100 ? 'bg-success' : 'bg-brand')}
-                style={{ width: `${percentComplete}%` }}
-              />
-            </div>
-          </div>
-        )}
-        <PageHeaderBoxes pageKey="profile" candidateId={profile.id} dailyMessageOverride={fullySetUpMessage || undefined} />
-        <Link
-          href={`/dashboard/contacts/members/${buildMemberProfileSlug(getMemberDisplayIdentity(profile).displayName, profile.id)}`}
-          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
-        >
-          View my public profile →
-        </Link>
-      </div>
-
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">Your Profile</h2>
-        <div className="space-y-2">
-          {sections.map((section) => {
-            const statusLine = section.completedAt
-              ? `Last completed ${section.completedAt.toLocaleDateString()}`
-              : 'Not completed yet'
-
-            return (
-              <details key={section.href} className="group overflow-hidden rounded-lg border border-border">
-                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-foreground">{section.title}</p>
-                      {section.priority && (
-                        <span className="shrink-0 rounded-full bg-orange/15 px-2 py-0.5 text-xs font-medium text-orange">
-                          Priority
-                        </span>
-                      )}
-                    </div>
-                    <p
-                      className={cn(
-                        'truncate text-xs',
-                        section.completedAt ? 'font-medium text-success' : 'text-muted-foreground'
-                      )}
-                    >
-                      {statusLine}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    {section.totalPoints > 0 && (
-                      <span
-                        className={cn(
-                          'rounded-full px-2 py-0.5 text-xs font-medium tabular-nums',
-                          section.allDone ? 'text-success' : 'bg-brand/10 text-brand'
-                        )}
-                      >
-                        {section.allDone ? '✓ Complete' : `${section.earnedPoints} of ${section.totalPoints} pts`}
-                      </span>
-                    )}
-                    <Button nativeButton={false} render={<Link href={section.href} />} size="sm">
-                      Edit
-                    </Button>
-                    <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
-                      See details
-                    </span>
-                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                  </div>
-                </summary>
-                <div className="space-y-3 border-t border-border px-4 py-3">
-                  <p className="text-sm text-muted-foreground">{section.description}</p>
-                </div>
-              </details>
-            )
-          })}
-
-          {(() => {
-            const latestResume = profile.resumes[0]
-            const statusLine = latestResume
-              ? `Last uploaded ${latestResume.uploadedAt.toLocaleDateString()}`
-              : 'Not uploaded yet'
-            return (
-              <details className="group overflow-hidden rounded-lg border border-border">
-                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">My Resume</p>
-                    <p className={cn('truncate text-xs', latestResume ? 'font-medium text-success' : 'text-muted-foreground')}>
-                      {statusLine}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <Button nativeButton={false} render={<Link href="/dashboard/resume" />} size="sm">
-                      Edit
-                    </Button>
-                    <span className="text-xs font-medium text-muted-foreground underline underline-offset-4">
-                      See details
-                    </span>
-                    <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                  </div>
-                </summary>
-                <div className="space-y-3 border-t border-border px-4 py-3">
-                  <p className="text-sm text-muted-foreground">
-                    Upload, rename, and manage versions of your resume, get it analyzed, and run the Resume Fixer.
-                  </p>
-                </div>
-              </details>
-            )
-          })()}
-        </div>
-      </div>
-    </div>
+    <ProfileHubRedesign
+      parts={sections.map((sec) => ({ href: sec.href, title: sec.title.replace(/^My /, ''), description: sec.description, allDone: sec.allDone, completedAt: sec.completedAt }))}
+      resume={resumeRow ? { uploadedAt: resumeRow.uploadedAt } : null}
+      resumeWhy={resumeWhy}
+      percentComplete={percentComplete}
+      hasChecklist={totalItems > 0}
+      firstIncompleteTitle={firstIncompleteSection ? firstIncompleteSection.title.replace(/^My /, '').toLowerCase() : null}
+      next={next}
+      publicProfileHref={publicProfileHref}
+    />
   )
 }

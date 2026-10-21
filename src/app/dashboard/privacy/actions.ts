@@ -1,7 +1,10 @@
 'use server'
 
+import { parseSituationValue, situationFieldsFor } from '@/lib/journey/situation'
+import { changeMessage } from '@/lib/journey/change-message'
 import { applyJourneyChange } from '@/lib/journey/apply'
-import { JOURNEYS, STAGES, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
+import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
+import { ACTIVE_SEARCH_STAGES, JOURNEYS, MOVE_DRIVERS, STAGES, getJourney, type JourneyStage, type JourneyType } from '@/lib/journey/journey'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
@@ -12,11 +15,12 @@ import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import { getCurrentWeekSprint, autoCompleteEngagementAction } from '@/lib/weekly/sprint'
 import { estimateActionEffort } from '@/lib/weekly/action-effort'
 import type { PrivacyTier, NotificationTier } from '@prisma/client'
+import { EMAIL_TOPICS, type EmailTopicField } from '@/lib/constants/notifications'
 
 const VALID_TIERS: PrivacyTier[] = ['PUBLIC', 'SEMI_PUBLIC', 'PRIVATE', 'STEALTH', 'LOCKED']
 const VALID_NOTIFICATION_TIERS: NotificationTier[] = ['FULL', 'ESSENTIALS', 'MINIMAL']
 
-export type FormState = { error?: string } | undefined
+export type FormState = { error?: string; message?: string } | undefined
 
 export async function updatePrivacyTier(
   _prevState: FormState,
@@ -103,6 +107,33 @@ export async function updateNotificationTier(
   })
 
   captureServerEvent(profile.id, 'notification_tier_updated', { tier })
+
+  revalidatePath('/dashboard/privacy')
+}
+
+export async function updateEmailTopics(
+  _prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'You need to be logged in to change this.' }
+  }
+
+  const profile = await getOrCreateCandidateProfile(user.id)
+
+  // A checked box means "send me these", so the opt-out flag is its inverse.
+  const data = Object.fromEntries(EMAIL_TOPICS.map((t) => [t.field, formData.get(t.field) !== 'on'])) as Record<EmailTopicField, boolean>
+
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data })
+
+  captureServerEvent(profile.id, 'email_topics_updated', {
+    receiving: EMAIL_TOPICS.filter((t) => !data[t.field]).map((t) => t.field),
+  })
 
   revalidatePath('/dashboard/privacy')
 }
@@ -358,9 +389,49 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
   if (!journey || !JOURNEYS.some((j) => j.key === journey)) return { error: 'Please choose a valid situation.' }
   if (!stage || !STAGES.some((s) => s.key === stage)) return { error: 'Please choose where you are.' }
 
+  // A situation that isn't a job search can't be in an applying stage. Say what to do instead of guessing.
+  if (!getJourney(journey).searching && ACTIVE_SEARCH_STAGES.includes(stage)) {
+    return {
+      error: `"${getJourney(journey).label}" isn't a job search, so it can't be at ${stage.toLowerCase()}. Choose "Thinking about a move" (or another search situation) to start applying, or pick "Managing your career".`,
+    }
+  }
+
   const profile = await getOrCreateCandidateProfile(user.id)
-  await applyJourneyChange(profile.id, { journey, stage, source: 'SETTINGS', isCheckIn: true })
+  const intensityRaw = formData.get('searchIntensity') as string | null
+  const searchIntensity = INTENSITY_OPTIONS.find((o) => o.key === intensityRaw)?.key ?? null
+  if (searchIntensity) await prisma.candidateProfile.update({ where: { id: profile.id }, data: { searchIntensity } })
+  const driverRaw = formData.get('moveDriver') as string | null
+  const moveDriver = MOVE_DRIVERS.find((d) => d.key === driverRaw)?.key ?? null
+  // Situation details the spine asks for (src/lib/personalization/spine.ts). Blank means unchanged.
+  const details: Record<string, unknown> = {}
+  // Details that belong to another situation don't linger and shape the plan.
+  if (journey !== 'EXPLORING_MOVE') details.moveDriver = null
+  if (journey !== 'TIME_OFF') details.returnDate = null
+  if (journey === 'EXPLORING_MOVE' && moveDriver) details.moveDriver = moveDriver
+  if (journey === 'ENTREPRENEUR' && String(formData.get('venture') ?? '').trim()) details.venture = String(formData.get('venture')).trim().slice(0, 300)
+  const validDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T12:00:00Z`).getTime())
+  const text = (k: string) => String(formData.get(k) ?? '').trim()
+  if (journey === 'TIME_OFF' && validDate(text('returnDate'))) details.returnDate = text('returnDate')
+  if (journey === 'FRACTIONAL') {
+    if (text('offering')) details.offering = text('offering').slice(0, 200)
+    const days = Number(text('openDays'))
+    if (text('openDays') && Number.isInteger(days) && days >= 0 && days <= 5) details.openDays = days
+    if (validDate(text('engagementEnds'))) details.engagementEnds = text('engagementEnds')
+  }
+  // Facts that make the plan specific for this situation (src/lib/journey/situation.ts). Blank leaves the old value.
+  for (const f of situationFieldsFor(journey)) {
+    const v = parseSituationValue(f, text(f.key))
+    if (v !== null) details[f.key] = v
+  }
+  const result = await applyJourneyChange(profile.id, {
+    journey,
+    stage,
+    details,
+    source: 'SETTINGS',
+    isCheckIn: true,
+  })
 
   revalidatePath('/dashboard/privacy')
   revalidatePath('/dashboard')
+  return { message: changeMessage(result) ?? 'Saved.' }
 }

@@ -4,7 +4,8 @@ import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm
 import { sendOutplacementOrgInviteEmail } from '@/lib/email/send-outplacement-emails'
 import { ORG_ROLE_LABEL } from '@/lib/employer/outplacement-org-role-labels'
 import { captureServerEvent } from '@/lib/posthog/server'
-import type { OutplacementTier } from '@prisma/client'
+import type { JourneyType, OutplacementProgramType, OutplacementTier } from '@prisma/client'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // Admin-side "Employer contracts" (§A9) — the provisioning side of the
 // employer portal (§A7). Outplacement is a contract-sold product (no
@@ -16,9 +17,6 @@ import type { OutplacementTier } from '@prisma/client'
 // analytics are noted as a thinner/later pass in this phase's report, not
 // fabricated here.
 
-function appUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-}
 
 export interface OrgWithContracts {
   id: string
@@ -30,6 +28,8 @@ export interface OrgWithContracts {
     id: string
     cohortLabel: string | null
     tier: OutplacementTier
+    programType: OutplacementProgramType
+    journey: JourneyType | null
     seatCount: number
     usedSeats: number
     termStartAt: Date
@@ -58,6 +58,8 @@ export async function listOutplacementOrgs(): Promise<OrgWithContracts[]> {
       id: c.id,
       cohortLabel: c.cohortLabel,
       tier: c.tier,
+      programType: c.programType,
+      journey: c.journey,
       seatCount: c.seatCount,
       usedSeats: c._count.seats,
       termStartAt: c.termStartAt,
@@ -84,6 +86,8 @@ export async function createOutplacementContract(
     orgId: string
     cohortLabel: string | null
     tier: OutplacementTier
+    programType: OutplacementProgramType
+    journey: JourneyType | null
     seatCount: number
     termStartAt: Date
     termEndAt: Date
@@ -99,6 +103,8 @@ export async function createOutplacementContract(
     orgId: input.orgId,
     contractId: contract.id,
     tier: input.tier,
+    programType: input.programType,
+    journey: input.journey,
     seatCount: input.seatCount,
   })
   return { id: contract.id }
@@ -133,7 +139,7 @@ export async function inviteFirstOrgAdmin(
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
     cleanEmail,
-    `${appUrl()}/auth/callback?next=outplacement-org-invite&inviteToken=${orgUserRow.inviteToken}`,
+    `${callbackOriginForAppPath('/employer')}/auth/callback?next=outplacement-org-invite&inviteToken=${orgUserRow.inviteToken}`,
     { isFirstSend: !existing }
   )
   if (error || !actionLink) {

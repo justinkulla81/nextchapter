@@ -75,12 +75,12 @@ export interface HunterPerson {
   status: string | null
 }
 
-/** Domain Search for senior people: one search credit per call (up to `limit` results). */
-export async function hunterDomainSearch(domain: string, limit = 10): Promise<{ pattern: string | null; people: HunterPerson[] } | null> {
+/** Domain Search for senior people: one search credit per call (up to `limit` results). `department` (e.g. 'hr') keeps big companies' other leaders from filling the page. */
+export async function hunterDomainSearch(domain: string, limit = 10, department?: string): Promise<{ pattern: string | null; people: HunterPerson[] } | null> {
   const d = await call<{
     pattern: string | null
     emails: { value: string; first_name: string | null; last_name: string | null; position: string | null; confidence: number | null; type: string; verification?: { status: string | null } }[]
-  }>('domain-search', { domain, limit: String(limit), type: 'personal', seniority: 'senior,executive' })
+  }>('domain-search', { domain, limit: String(limit), type: 'personal', seniority: 'senior,executive', ...(department ? { department } : {}) })
   if (!d) return null
   return {
     pattern: d.pattern,

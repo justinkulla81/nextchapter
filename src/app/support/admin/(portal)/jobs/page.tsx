@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getJobsRollup } from '@/lib/admin/jobs-rollup'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -25,6 +26,12 @@ export default async function AdminJobsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Jobs</h1>
         <p className="mt-1 text-muted-foreground">Aggregate activity across tracked jobs, surfaced jobs, and the Job Board.</p>
+        <Link href="/support/admin/jobs/apply-fit" className="mt-2 inline-block text-sm text-primary underline underline-offset-4">
+          Application fit — who’s reaching or underselling
+        </Link>
+        <Link href="/support/admin/jobs/skills-match" className="mt-1 block text-sm text-primary underline underline-offset-4">
+          Skills match and gaps in applications — by industry, function, level and geography
+        </Link>
       </div>
 
       <Card>

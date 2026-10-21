@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
 import { formatDisplayName } from '@/lib/format-name'
@@ -10,10 +8,14 @@ import { getCurrentEmployerName, companyMatchesCurrentEmployer } from '@/lib/net
 import { findCompanyByName } from '@/lib/companies/find-company-by-name'
 import { orgNamesMatch } from '@/lib/text/org-name-match'
 import { type ContactRowData } from '@/components/dashboard/ContactDetailPanel'
-import { ContactProfileView } from '@/components/dashboard/ContactProfileView'
 import { StarContactButton } from '@/components/dashboard/StarContactButton'
 import { PLAYBOOK_PURPOSES, ASK_SIZES, HOOKS } from '@/lib/network/playbook'
 import { OutreachCoach } from '@/components/dashboard/OutreachCoach'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { TrackedAction } from '@/components/candidate/TrackedAction'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ContactDetails } from '@/components/network/ContactDetails'
 
 export const metadata: Metadata = { title: 'Contact' }
 
@@ -28,9 +30,7 @@ export default async function ContactProfilePage({
   params: Promise<{ id: string }>
   searchParams: Promise<{ purpose?: string; ask?: string; hook?: string; role?: string; from?: string }>
 }) {
-  const { id } = await params
-  const sp = await searchParams
-  const profile = await getDashboardData()
+  const [{ id }, sp, profile] = await Promise.all([params, searchParams, getDashboardData()])
 
   const contact = await prisma.supportNetworkContact.findFirst({
     where: { id, candidateId: profile.id },
@@ -71,49 +71,52 @@ export default async function ContactProfilePage({
 
   const referenceHref = `/dashboard/references?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(contact.email ?? '')}`
 
+  const coach = (
+    <OutreachCoach
+      contactId={row.id}
+      contactName={formatDisplayName(row.name)}
+      contactEmail={row.email}
+      contactCompany={row.company ?? row.inferredCompany}
+      contactTitle={row.title}
+      warmth={row.warmth}
+      daysSinceLastContact={daysSince(row.lastOutreachAt)}
+      candidateFirstName={profile.firstName ?? ''}
+      targetRole={profile.targetRoleType}
+      discreet={profile.confidentialSearchMode}
+      initial={{
+        purpose: PLAYBOOK_PURPOSES.find((p) => p.purpose === sp.purpose)?.purpose,
+        askSize: ASK_SIZES.find((a) => a.size === sp.ask)?.size,
+        hook: HOOKS.find((h) => h.kind === sp.hook)?.kind,
+        roleTitle: sp.role?.slice(0, 120),
+        fromThisWeek: sp.from === 'this-week',
+      }}
+    />
+  )
+
+  // The redesign (docs/candidate-redesign.md): who they are and the message to write come first; the full
+  // history, notes and details open on demand.
+  captureServerEvent(profile.id, 'contact_viewed', { contactId: row.id, from: sp.from ?? null, reachedOut: row.hasReachedOut })
+  const subtitle = [row.title, row.company ?? row.inferredCompany].filter(Boolean).join(' at ')
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <Link
-        href="/dashboard/network/contacts"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-3.5" aria-hidden />
-        Back to Contact Directory
-      </Link>
-
-      <div className="flex items-center gap-2">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">{row.name}</h1>
-        <StarContactButton contactId={row.id} isPriority={row.isPriority} />
-      </div>
-
-      <ContactProfileView
-        contact={row}
-        membership={membership}
-        isAtCurrentEmployer={row.isAtCurrentEmployer}
-        referenceHref={referenceHref}
-        companyCardHref={companyCard ? `/dashboard/companies/${encodeURIComponent(companyCard.canonicalNameNormalized)}` : null}
-        sharedCompany={sharedCompany}
+    <div className="mx-auto max-w-2xl space-y-8">
+      <PageHeader
+        title={row.name}
+        intro={subtitle || 'Write a short, specific note. It is the surest way to turn a contact into a conversation.'}
+        action={<StarContactButton contactId={row.id} isPriority={row.isPriority} labeled />}
       />
-
-      <OutreachCoach
-        contactId={row.id}
-        contactName={formatDisplayName(row.name)}
-        contactEmail={row.email}
-        contactCompany={row.company ?? row.inferredCompany}
-        contactTitle={row.title}
-        warmth={row.warmth}
-        daysSinceLastContact={daysSince(row.lastOutreachAt)}
-        candidateFirstName={profile.firstName ?? ''}
-        targetRole={profile.targetRoleType}
-        discreet={profile.confidentialSearchMode}
-        initial={{
-          purpose: PLAYBOOK_PURPOSES.find((p) => p.purpose === sp.purpose)?.purpose,
-          askSize: ASK_SIZES.find((a) => a.size === sp.ask)?.size,
-          hook: HOOKS.find((h) => h.kind === sp.hook)?.kind,
-          roleTitle: sp.role?.slice(0, 120),
-          fromThisWeek: sp.from === 'this-week',
-        }}
-      />
+      {coach}
+      <ShowMore page="contact_detail" label="Details and history">
+        <ContactDetails
+          contact={row}
+          membership={membership}
+          referenceHref={referenceHref}
+          companyCardHref={companyCard ? `/dashboard/companies/${encodeURIComponent(companyCard.canonicalNameNormalized)}` : null}
+          sharedCompany={sharedCompany}
+        />
+      </ShowMore>
+      <TrackedAction variant="text" href="/dashboard/network/contacts" event="contacts_opened" properties={{ source: 'contact_detail' }}>
+        Back to people you know
+      </TrackedAction>
     </div>
   )
 }

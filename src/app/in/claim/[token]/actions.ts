@@ -8,8 +8,8 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { createPreConfirmedInviteUser } from '@/lib/invite/invite-and-preconfirm'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
-import { appUrl } from '@/lib/email/send-intake'
 import { saveIntakeConsent } from '@/lib/recruiter/intake/consent'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 export type ClaimFormState = { error?: string; needsLogin?: string } | undefined
 
@@ -62,7 +62,7 @@ export async function claimIntakeProfile(_prev: ClaimFormState, formData: FormDa
     return { needsLogin: `/auth/login?next=${encodeURIComponent(`/in/claim/${token}`)}` }
   }
 
-  const redirectTo = `${appUrl()}/auth/callback?next=talent-claim&inviteToken=${token}`
+  const redirectTo = `${callbackOriginForAppPath('/dashboard')}/auth/callback?next=talent-claim&inviteToken=${token}`
   let invite = await createPreConfirmedInviteUser(candidate.email, redirectTo, { isFirstSend: true })
   // An auth user can already exist without a finished profile (an earlier
   // claim click, an abandoned signup): mint a fresh link for it instead.

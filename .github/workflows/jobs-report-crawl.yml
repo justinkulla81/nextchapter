@@ -1,12 +1,13 @@
-# Weekly crawl of employers' public career sites for the jobs report (Louisville, Pittsburgh and peers).
+# Crawl of employers' public career sites for the jobs report (Louisville, Pittsburgh and peers). Run by hand for now:
+# the weekly schedule is off until the two secrets below are added and the owner turns it on (uncomment `schedule`).
 # Needs two repository secrets: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
 # Rows are upserted into jobsreport_posting; a posting missing from two consecutive runs is closed, which is
 # what makes reposts, closures and functions gaining or losing measurable after the second run.
 name: Jobs report crawl
 
 on:
-  schedule:
-    - cron: '17 9 * * 1'   # Mondays 09:17 UTC
+  # schedule:
+  #   - cron: '17 9 * * 1'   # Mondays 09:17 UTC
   workflow_dispatch:
     inputs:
       geo:

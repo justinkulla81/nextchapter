@@ -1,24 +1,24 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Lock } from 'lucide-react'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { prisma } from '@/lib/prisma'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import type { NarrativeItem } from '@/components/dashboard/portfolio/NarrativeManager'
 import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import type { NarrativeAdaptations } from '@/lib/narrative/generate-adaptations'
-import { estimateActionEffort } from '@/lib/weekly/action-effort'
-import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
-import { CoachingCTACard } from '@/components/dashboard/CoachingCTACard'
 import { getMoveTheNeedle } from '@/lib/reports/market-reality-sections'
-import { computeDossierCompleteness, isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
+import { isDossierUnlocked } from '@/lib/scoring/dossier-unlock'
 import { renderMarkdownLinks } from '@/lib/text/render-markdown-links'
+import { nextPortfolioStep, portfolioAssetRows } from '@/lib/redesign/jobs-pages'
+import { PageHeader } from '@/components/candidate/PageHeader'
+import { ShowMore } from '@/components/candidate/ShowMore'
+import { ActionLink } from '@/components/candidate/ActionLink'
+import { Module } from '@/components/candidate/Module'
+import { RowList } from '@/components/candidate/RowList'
+import { SectionBlock } from '@/components/candidate/Blocks'
+import { candidatePlusRequirements } from '@/lib/unlocks/ladder'
 
 export const metadata: Metadata = { title: 'My Portfolio' }
 
-
-const RESUME_UPDATE_POINTS = estimateActionEffort({ actionType: 'RESUME_UPDATE' }).points
 
 export default async function PortfolioPage() {
   const profile = await getDashboardData()
@@ -31,7 +31,6 @@ export default async function PortfolioPage() {
     dossierStatus,
     learningBadgeCount,
     moveTheNeedle,
-    dossierCompleteness,
   ] = await Promise.all([
       prisma.candidateNarrative.findMany({
         where: { candidateId: profile.id },
@@ -59,7 +58,6 @@ export default async function PortfolioPage() {
       // only (job goals, red flags, personalization, resume). Reused as-is,
       // not reimplemented.
       getMoveTheNeedle(profile.id),
-      computeDossierCompleteness(profile.id),
     ])
 
   const narratives: NarrativeItem[] = narrativeRows.map((n, i) => ({
@@ -74,6 +72,8 @@ export default async function PortfolioPage() {
   const coverLettersCount = profile.jobPostings.filter((j) => !!j.coverLetter).length
   const hasCoachDossierAccess = profile.coachId !== null && profile.coachDossierConsentedAt !== null
   const isCandidatePlus = dossierStatus.unlocked
+  // The four Candidate+ requirements (unlock ladder): outreach, applications, minutes, one assessment.
+  const plusRequirements = candidatePlusRequirements(dossierStatus).map((r) => ({ ...r, met: isCandidatePlus || r.met }))
   const completedReferenceCount = profile.references.filter((r) => r.status === 'COMPLETED').length
 
   // Same categories the "My Portfolio" nav badge counts (see
@@ -93,312 +93,153 @@ export default async function PortfolioPage() {
   })
   const completedAssetCount = coreAssets.filter((a) => a.done).length
 
+  const step = nextPortfolioStep(coreAssets)
+  const assets = portfolioAssetRows({
+    resumeName: latestResume?.fileName ?? null,
+    resumeVersions: profile.resumes.length,
+    coverLetters: coverLettersCount,
+    narratives: narratives.length,
+    workSamples: profile.workSamples.length,
+    completedReferences: completedReferenceCount,
+    credentials: learningBadgeCount,
+  })
+  const stepsMet = plusRequirements.filter((r) => r.met).length
   return (
     <div className="space-y-8">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">My Portfolio</h1>
-        <PageHeaderBoxes pageKey="portfolio" candidateId={profile.id} />
-        <div className="rounded-lg border border-border p-3">
-          <p className="text-sm font-medium text-foreground tabular-nums">
-            {completedAssetCount} of {coreAssets.length} core assets built
+      <PageHeader
+        title="My portfolio"
+        intro={
+          step
+            ? `${completedAssetCount} of ${coreAssets.length} core assets built. Next: ${step.label.toLowerCase()}. ${step.why}`
+            : `All ${coreAssets.length} core assets are built. Keep them current and recruiters see your best work.`
+        }
+        action={
+          step ? (
+            <ActionLink href={step.href} kind="primary" event="portfolio_next_step_clicked" props={{ step: step.label, built: completedAssetCount, total: coreAssets.length }}>
+              {step.label}
+            </ActionLink>
+          ) : undefined
+        }
+      />
+      <SectionBlock id="assets-h" title="What you can hand a recruiter" why="Your interview prep lives on the Interviews page instead.">
+        <RowList
+          label="Portfolio assets"
+          items={assets.map((a) => ({
+            key: a.key,
+            title: a.title,
+            why: a.status,
+            fact: a.why ?? undefined,
+            actions: (
+              <ActionLink href={a.href} event="portfolio_asset_opened" props={{ asset: a.key, done: a.done }}>
+                {a.actionLabel}
+              </ActionLink>
+            ),
+          }))}
+        />
+      </SectionBlock>
+      <ShowMore page="portfolio" label="Show reports, your dossier and Candidate+">
+        <SectionBlock id="reports-h" title="Reports and dossiers" why="Your market report and what recruiters and coaches see.">
+          <RowList
+            label="Reports and dossiers"
+            items={[
+              {
+                key: 'market-report',
+                title: 'Market reality report',
+                why: reportHistory.length > 0 ? `Latest report ${reportHistory[0].generatedAt.toLocaleDateString()}.` : 'Your full report and the week-by-week trend behind it.',
+                actions: (
+                  <>
+                    {reportHistory.length > 0 && (
+                      <ActionLink href="/dashboard/market-reality" event="portfolio_report_opened" props={{ report: 'market_reality' }}>
+                        View full report
+                      </ActionLink>
+                    )}
+                    <ActionLink href="/dashboard/stats#market-reality" kind="text" event="portfolio_report_opened" props={{ report: 'weekly_history' }}>
+                      Weekly history
+                    </ActionLink>
+                  </>
+                ),
+              },
+              isCandidatePlus
+                ? {
+                    key: 'dossier',
+                    title: 'Executive dossier',
+                    why: 'What recruiters and hiring managers see when you share your profile with them.',
+                    actions: (
+                      <ActionLink href="/dashboard/recruiter-report" event="portfolio_report_opened" props={{ report: 'dossier' }}>
+                        View
+                      </ActionLink>
+                    ),
+                  }
+                : { key: 'dossier', title: 'Executive dossier', why: 'Opens when you have done the work for Candidate+.', fact: renderMarkdownLinks(dossierStatus.reason) },
+              ...(profile.coachId
+                ? [
+                    hasCoachDossierAccess
+                      ? {
+                          key: 'coach-dossier',
+                          title: 'Coach dossier and notes',
+                          why: `Exactly what ${coach?.fullName ?? 'your coach'} sees when preparing for your sessions.`,
+                          actions: (
+                            <ActionLink href="/dashboard/coach-dossier" event="portfolio_report_opened" props={{ report: 'coach_dossier' }}>
+                              View
+                            </ActionLink>
+                          ),
+                        }
+                      : {
+                          key: 'coach-dossier',
+                          title: 'Coach dossier and notes',
+                          why: 'Turn on sharing so your coach arrives knowing your background, and spends the time coaching instead of asking.',
+                          actions: (
+                            <ActionLink href="/dashboard/privacy" event="portfolio_coach_sharing_clicked" props={{ source: 'portfolio' }}>
+                              Turn on sharing
+                            </ActionLink>
+                          ),
+                        },
+                  ]
+                : [
+                    {
+                      key: 'coaching',
+                      title: 'A human coach as well',
+                      why: 'Victoria stays free. Executive Coach adds a human career coach: mock interviews, résumé review, a second opinion on hard calls.',
+                      actions: (
+                        <ActionLink href="/coaching" event="portfolio_coaching_learn_more_clicked" props={{ source: 'portfolio' }}>
+                          Learn more
+                        </ActionLink>
+                      ),
+                    },
+                  ]),
+            ]}
+          />
+        </SectionBlock>
+        <Module title={isCandidatePlus ? 'You are Candidate+, and it stays on' : 'Earn Candidate+'} tone="dark">
+          <p className="max-w-2xl text-base text-white/85">
+            Candidate+ is earned with real work, not bought. It opens your executive dossier, the executive recruiter network, and who to contact, the apply kit and explain-my-gaps on every job.
+            {!isCandidatePlus && ` ${stepsMet} of ${plusRequirements.length} steps done.`}
           </p>
-          <ul className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
-            {coreAssets.map((a) => (
-              <li key={a.key} className="flex items-center gap-2">
-                <span className={a.done ? 'text-success' : 'text-muted-foreground'} aria-hidden>
-                  {a.done ? '✓' : '○'}
-                </span>
-                <span className={a.done ? 'text-foreground' : 'text-muted-foreground'}>{a.label}</span>
+          <ul className="grid gap-x-6 gap-y-1 text-base sm:grid-cols-2">
+            {plusRequirements.map((r) => (
+              <li key={r.key} className={r.met ? 'text-white' : 'text-white/75'}>
+                <span aria-hidden>{r.met ? '✓ ' : '○ '}</span>
+                {r.label}
               </li>
             ))}
           </ul>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-          Reports &amp; Dossiers
-        </h2>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Market Reality Reports</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Your full narrative report, plus the week-by-week history and trend behind it.
-            </p>
-            {reportHistory.length > 0 && (
-              <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
-                <div className="text-sm">
-                  <p className="font-medium text-foreground">Full report</p>
-                  <p className="text-xs text-muted-foreground">{reportHistory[0].generatedAt.toLocaleDateString()}</p>
-                </div>
-                <Button
-                  nativeButton={false}
-                  size="sm"
-                  variant="outline"
-                  render={<Link href="/dashboard/market-reality" />}
-                >
-                  View full report
-                </Button>
-              </div>
-            )}
-            <Link
-              href="/dashboard/stats#market-reality"
-              className="inline-block text-sm text-primary underline underline-offset-4"
-            >
-              See weekly history &amp; trend →
-            </Link>
-          </CardContent>
-        </Card>
-
-        {isCandidatePlus ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Executive Dossier</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground">
-                What recruiters and hiring managers see when you share your profile with them.
-              </p>
-              <Button
-                nativeButton={false}
-                size="sm"
-                variant="outline"
-                render={<Link href="/dashboard/recruiter-report" />}
-              >
-                View
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
-            <div className="flex items-center gap-2">
-              <Lock className="size-4 text-orange" />
-              <p className="text-sm font-medium text-orange">Executive Dossier — locked</p>
+          {moveTheNeedle.length > 0 && (
+            <div className="space-y-2 border-t border-white/20 pt-4">
+              <p className="text-base font-semibold">What moves it most</p>
+              <ul className="space-y-1.5">
+                {moveTheNeedle.map((lever) => (
+                  <li key={lever.key} className="text-base">
+                    <Link href={lever.href} className="font-medium underline underline-offset-4">
+                      {lever.label}
+                    </Link>
+                    <span className="text-white/75">. {lever.copy}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="text-sm text-muted-foreground">
-              What recruiters and hiring managers would see when you share your profile with them.
-            </p>
-            <p className="text-sm text-muted-foreground">{renderMarkdownLinks(dossierStatus.reason)}</p>
-          </div>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Earn Your Candidate+ Account</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Candidate+ is earned, not purchased — complete the steps below and you unlock your Executive
-              Dossier, the Executive Recruiter Network, and Exclusive Jobs, free on any plan.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground tabular-nums">
-                {dossierCompleteness.metCount} of {dossierCompleteness.totalCount}
-              </span>{' '}
-              steps complete. This is real work done over time — separate from your Market Reality
-              Grade, and what unlocks recruiter visibility and the Executive Dossier above.
-            </p>
-            <ul className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
-              {dossierCompleteness.requirements.map((r) => (
-                <li key={r.key} className="flex items-center gap-2">
-                  <span className={r.met ? 'text-success' : 'text-muted-foreground'} aria-hidden>
-                    {r.met ? '✓' : '○'}
-                  </span>
-                  <span className={r.met ? 'text-foreground' : 'text-muted-foreground'}>{r.label}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="space-y-2 border-t border-border pt-3">
-              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                What moves the needle most
-              </p>
-              {moveTheNeedle.map((lever, i) => (
-                <Link
-                  key={lever.key}
-                  href={lever.href}
-                  className="block rounded-lg border border-border p-3 text-sm hover:bg-muted/30"
-                >
-                  <p className="font-medium text-foreground">
-                    {i + 1}. {lever.label}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">{lever.copy}</p>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {profile.coachId &&
-          (hasCoachDossierAccess ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Coach Dossier &amp; Notes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">
-                  Exactly what {coach?.fullName ?? 'your coach'} sees when preparing for your sessions.
-                </p>
-                <Button
-                  nativeButton={false}
-                  size="sm"
-                  variant="outline"
-                  render={<Link href="/dashboard/coach-dossier" />}
-                >
-                  View
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2 rounded-lg border border-dashed border-light-gray bg-off-white p-4">
-              <div className="flex items-center gap-2">
-                <Lock className="size-4 text-orange" />
-                <p className="text-sm font-medium text-orange">Coach Dossier &amp; Notes — locked</p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Turn on sharing to see exactly what your coach sees when preparing for your
-                sessions. Without it, they walk in blind — no grade history, no named strengths or
-                gaps — which means less time coaching and more time re-explaining your background.
-              </p>
-              <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/privacy" />}>
-                Turn on sharing
-              </Button>
-            </div>
-          ))}
-
-        {!profile.coachId && <CoachingCTACard />}
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
-          Your Assets
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          What you can hand to a recruiter, hiring manager, or coach — your prep for tough
-          interview questions lives on{' '}
-          <Link href="/dashboard/interview-prep" className="underline">
-            Interview Prep
-          </Link>{' '}
-          instead.
-        </p>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Resume</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            {latestResume ? (
-              <p className="text-sm text-foreground">
-                {latestResume.fileName}
-                {profile.resumes.length > 1 && (
-                  <span className="text-muted-foreground"> · {profile.resumes.length} versions</span>
-                )}
-              </p>
-            ) : (
-              <div>
-                <p className="text-sm text-muted-foreground">No resume uploaded yet.</p>
-                <p className="text-xs font-medium text-muted-foreground tabular-nums">
-                  +{RESUME_UPDATE_POINTS} pts toward this week&apos;s goal when you update it
-                </p>
-              </div>
-            )}
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/resume" />}>
-              {latestResume ? 'View versions' : 'Upload resume'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Cover Letters</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-foreground">
-              {coverLettersCount > 0
-                ? `${coverLettersCount} generated, one per job you've applied to`
-                : "Generated automatically as you apply — none yet"}
-            </p>
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/find-my-job" />}>
-              {coverLettersCount > 0 ? 'View' : 'Create for a specific job'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">My Narrative</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {narratives.length > 0
-                ? `${narratives.length} narrative${narratives.length === 1 ? '' : 's'} drafted — your core story, adapted for LinkedIn, resumes, and interviews.`
-                : "Your core story, adapted for LinkedIn, resumes, and interviews — not drafted yet."}
-            </p>
-            <Button nativeButton={false} render={<Link href="/dashboard/marketing-plan" />} size="sm">
-              {narratives.length > 0 ? 'Manage' : 'Draft it'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Work Samples</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {profile.workSamples.length > 0
-                ? `${profile.workSamples.length} sample${profile.workSamples.length === 1 ? '' : 's'} uploaded`
-                : 'Real work product that backs up your story.'}
-            </p>
-            <Button
-              nativeButton={false}
-              size="sm"
-              variant="outline"
-              render={<Link href="/dashboard/work-samples" />}
-            >
-              {profile.workSamples.length > 0 ? 'View' : 'Add a sample'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">References</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {completedReferenceCount > 0
-                ? `${completedReferenceCount} / 3 completed`
-                : "Someone else's word for it — none received yet."}
-            </p>
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/references" />}>
-              {completedReferenceCount > 0 ? 'View' : 'Request a reference'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Learning Credentials
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {learningBadgeCount > 0
-                ? `${learningBadgeCount} credential${learningBadgeCount === 1 ? '' : 's'} logged`
-                : 'A course, certification, or project worth mentioning.'}
-            </p>
-            <Button nativeButton={false} size="sm" variant="outline" render={<Link href="/dashboard/learning" />}>
-              {learningBadgeCount > 0 ? 'View' : 'Add a credential'}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </Module>
+      </ShowMore>
     </div>
   )
 }

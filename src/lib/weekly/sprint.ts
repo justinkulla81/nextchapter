@@ -1,7 +1,13 @@
 import 'server-only'
+import { profileNudges } from '@/lib/profile/touchpoints'
 import { cache } from 'react'
 import { shapePlan } from '@/lib/journey/plan'
-import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
+import { getPace } from '@/lib/weekly/pace'
+import { isCasuallySearching } from '@/lib/scoring/search-intensity'
+import { getEngagementPlanItems } from '@/lib/journey/engagement-data'
+import { effectiveJourney, effectiveStage, moveDriverOf } from '@/lib/journey/journey'
+import { isNotSearching } from '@/lib/journey/intensity'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
@@ -253,12 +259,35 @@ async function getPersonalizedSuggestions(candidateId: string): Promise<Suggeste
 // The week's plan, by journey and stage (src/lib/journey/plan.ts): the
 // journey's own steps first, then the general menu below, without
 // application tasks outside an active search and with nothing while Paused.
-export async function getSuggestedActions(candidateId: string, weekNumber = 1): Promise<SuggestedAction[]> {
+export async function getSuggestedActions(candidateId: string, weekNumber = 1, opts: { withNudges?: boolean } = {}): Promise<SuggestedAction[]> {
   const [general, p] = await Promise.all([
     getGeneralSuggestedActions(candidateId, weekNumber),
-    prisma.candidateProfile.findUnique({ where: { id: candidateId }, select: { journey: true, journeyStage: true, currentJobStatus: true } }),
+    prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: {
+        journey: true, journeyStage: true, currentJobStatus: true, journeyDetails: true, journeyStageChangedAt: true, journeyChangedAt: true, createdAt: true, searchIntensity: true, jobSearchDifficultyLevel: true,
+        highestLevelReached: true, yearsExperience: true, levelRankScore: true, isPivoting: true, resumeLatestJobTitle: true,
+      },
+    }),
   ])
-  return p ? shapePlan(effectiveJourney(p), effectiveStage(p), weekNumber, general) : general
+  if (!p) return general
+  // What this member's connections and results call for comes first. When a
+  // search is stalled the engagement gate picks the new things to try from the
+  // real pattern, so the time-only gates are skipped (weeksInStage 0).
+  const engagement = await getEngagementPlanItems(candidateId).catch(() => [])
+  const since = p.journeyStageChangedAt ?? p.createdAt
+  const weeksInStage = engagement.length > 0 ? 0 : Math.max(0, Math.floor((Date.now() - since.getTime()) / (7 * 86_400_000)))
+  // A journey's setup steps are for its first week. Someone who switches in week 12 starts the new
+  // plan at its week 1, not at week 12 of their account.
+  const journeyWeek = Math.floor((Date.now() - (p.journeyChangedAt ?? p.createdAt).getTime()) / (7 * 86_400_000)) + 1
+  const planWeek = Math.max(1, Math.min(weekNumber, journeyWeek))
+  const planned = shapePlan(effectiveJourney(p), effectiveStage(p), planWeek, general, earlyCareerAudience(p), moveDriverOf(p.journeyDetails), weeksInStage, engagement, isNotSearching(effectiveJourney(p), effectiveStage(p)) || isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity))
+  // On screens only (never auto-committed by the cron or first sprint): two
+  // nudges from their profile (strengths, what to leave behind, how they
+  // like to work), text only.
+  if (!opts.withNudges) return planned
+  const nudges = await profileNudges(candidateId).catch(() => [])
+  return [...nudges.slice(0, 2).map((n) => ({ text: `${n.lead}: ${n.text}` })), ...planned]
 }
 
 async function getGeneralSuggestedActions(candidateId: string, weekNumber: number): Promise<SuggestedAction[]> {
@@ -511,6 +540,39 @@ export async function commitWeeklySprint(
   })
 }
 
+// A member changed journey or stage mid-week (a check-in, the settings, a committed change of field):
+// their plan changes now, not next Monday. Everything they already finished or started this week stays,
+// with its points. Only the steps still open are replaced by the new journey's.
+export async function rebuildCurrentWeekPlan(candidateId: string): Promise<{ kept: number; replaced: number } | null> {
+  const weekStartDate = getMondayOfWeek(new Date())
+  const sprint = await prisma.weeklySprint.findUnique({ where: { candidateId_weekStartDate: { candidateId, weekStartDate } } })
+  if (!sprint) return null
+  const weekNumber = await getCandidateWeekNumber(candidateId, weekStartDate)
+  const suggestions = await getSuggestedActions(candidateId, weekNumber)
+  const { actions, kept, replaced } = mergeRebuiltPlan(sprint.committedActions as unknown as CommittedAction[], suggestions)
+  await prisma.weeklySprint.update({
+    where: { candidateId_weekStartDate: { candidateId, weekStartDate } },
+    data: { committedActions: actions as unknown as Prisma.InputJsonValue },
+  })
+  return { kept, replaced }
+}
+
+// Pure: keep what the member finished or started, replace what is still open.
+export function mergeRebuiltPlan(current: CommittedAction[], suggestions: SuggestedAction[]): { actions: CommittedAction[]; kept: number; replaced: number } {
+  const kept = current.filter((a) => a.completed || a.isGoalBonus || (a.completionCount ?? 0) > 0)
+  const open = current.length - kept.length
+  const doneTexts = new Set(kept.map((a) => a.text))
+  const doneTypes = new Set(kept.filter((a) => a.actionType && !a.recurring).map((a) => a.actionType as string))
+  const fresh: CommittedAction[] = suggestions
+    .filter((a) => !doneTexts.has(a.text) && !(a.actionType && doneTypes.has(a.actionType)))
+    .slice(0, Math.max(open, 4))
+    .map((a) => {
+      const effort = estimateActionEffort(a)
+      return { text: a.text, actionType: a.actionType, points: effort.points, estimatedMinutes: effort.minutes, completed: false, recurring: isRecurringActionType(a.actionType) }
+    })
+  return { actions: [...kept, ...fresh], kept: kept.length, replaced: fresh.length }
+}
+
 // Called once, right when a brand-new candidate commits on the Welcome page
 // (see submitIntroCommitment) — without this, their first Weekly Search
 // Sprint stays genuinely empty ("you haven't set goals yet", 0 of 60 points)
@@ -521,7 +583,7 @@ export async function commitWeeklySprint(
 export async function autoPopulateFirstSprint(candidateId: string) {
   if (await hasStartedSprint(candidateId)) return null
 
-  const target = pointsNeededForA(1)
+  const target = pointsNeededForA(1, await getPace(candidateId))
   const remainingBudget = Math.max(0, target - INTRO_WELCOME_BONUS_POINTS)
 
   const suggestions = await getSuggestedActions(candidateId, 1)

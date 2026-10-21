@@ -73,7 +73,7 @@ export function CheckInPromptDialog({
 
   const name = firstName ? `, ${firstName}` : ''
   const buttonBase = 'rounded-lg px-4 py-2.5 text-sm font-semibold disabled:cursor-wait'
-  const primary = `${buttonBase} bg-success text-white hover:bg-success-hover`
+  const primary = `${buttonBase} bg-action text-action-foreground hover:brightness-95`
   const secondary = `${buttonBase} border border-border bg-white text-foreground hover:bg-muted`
 
   let body: React.ReactNode

@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { getAuthEmail, type AuthUserSummary } from '@/lib/admin/auth-users'
+import { platformLabel } from '@/lib/evidence/external-reviews'
 
 export type AdminRequestType =
   | 'coaching'
@@ -8,6 +9,8 @@ export type AdminRequestType =
   | 'reference_dispute'
   | 'bounty_claim'
   | 'job_board_intro'
+  | 'known_contact_intro'
+  | 'imported_reviews'
 
 export interface AdminRequestRow {
   id: string
@@ -19,6 +22,8 @@ export interface AdminRequestRow {
   requestedAt: Date
   status: string
   detailHref: string
+  /** imported_reviews only: the public profile link, screenshot and check note. */
+  review?: { profileUrl: string; screenshotUrl: string | null; checkNote: string | null }
 }
 
 function candidateName(firstName: string | null, lastName: string | null, fallback = 'Unnamed') {
@@ -31,7 +36,7 @@ function candidateName(firstName: string | null, lastName: string | null, fallba
 // Resolution stays on each source's existing page/action (bounty-claims,
 // reference-disputes) except JobBoardIntroRequest, which is new in this pass.
 export async function getAdminRequests(authUsers: Map<string, AuthUserSummary>): Promise<AdminRequestRow[]> {
-  const [coaching, optedIn, disputes, bountyClaims, introRequests] = await Promise.all([
+  const [coaching, optedIn, disputes, bountyClaims, introRequests, importedReviews] = await Promise.all([
     prisma.coachingWaitlist.findMany({
       orderBy: { createdAt: 'desc' },
       include: { candidate: { select: { id: true, firstName: true, lastName: true, userId: true } } },
@@ -50,6 +55,16 @@ export async function getAdminRequests(authUsers: Map<string, AuthUserSummary>):
     }),
     prisma.jobBoardIntroRequest.findMany({
       where: { status: 'pending' },
+      include: {
+        candidate: { select: { id: true, firstName: true, lastName: true, userId: true } },
+        posting: { select: { title: true, companyName: true } },
+      },
+    }),
+    // Imported review stats the one polite link check couldn't confirm (or
+    // hasn't run on yet). They already count for the member; Justin confirms
+    // or rejects them here.
+    prisma.externalReviewStat.findMany({
+      where: { status: { in: ['NEEDS_REVIEW', 'SELF_REPORTED'] } },
       include: { candidate: { select: { id: true, firstName: true, lastName: true, userId: true } } },
     }),
   ])
@@ -116,14 +131,34 @@ export async function getAdminRequests(authUsers: Map<string, AuthUserSummary>):
   for (const i of introRequests) {
     rows.push({
       id: `intro-${i.id}`,
-      type: 'job_board_intro',
+      type: i.kind === 'known_contact' ? 'known_contact_intro' : 'job_board_intro',
       candidateId: i.candidate.id,
       candidateName: candidateName(i.candidate.firstName, i.candidate.lastName),
       candidateEmail: getAuthEmail(authUsers, i.candidate.userId),
-      summary: 'Requested intro on a confidential Job Board listing',
+      // known_contact: from the job's "Who to contact" panel — NextChapter has a warm
+      // contact at this employer (see the CRM organization) and the member asked for an intro.
+      summary:
+        i.kind === 'known_contact'
+          ? `Wants an intro at ${i.posting.companyName} for ${i.posting.title} — we know someone there (see CRM)`
+          : 'Requested intro on a confidential Job Board listing',
       requestedAt: i.createdAt,
       status: i.status,
       detailHref: `/support/admin/candidates/${i.candidate.id}`,
+    })
+  }
+
+  for (const r of importedReviews) {
+    rows.push({
+      id: `imported-reviews-${r.id}`,
+      type: 'imported_reviews',
+      candidateId: r.candidate.id,
+      candidateName: candidateName(r.candidate.firstName, r.candidate.lastName),
+      candidateEmail: getAuthEmail(authUsers, r.candidate.userId),
+      summary: `${platformLabel(r.platform, r.platformLabel)}: ${r.rating} from ${r.reviewCount} reviews${r.jobsCompleted != null ? `, ${r.jobsCompleted} jobs` : ''}`,
+      requestedAt: r.createdAt,
+      status: r.status === 'NEEDS_REVIEW' ? 'needs review' : 'check pending',
+      detailHref: `/support/admin/candidates/${r.candidate.id}`,
+      review: { profileUrl: r.profileUrl, screenshotUrl: r.screenshotUrl, checkNote: r.checkNote },
     })
   }
 

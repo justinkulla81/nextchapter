@@ -261,14 +261,22 @@ export async function PeopleSections({ ctx, searchParams, base }: Props) {
   const majorList = majors.map((m) => m.major!).filter(Boolean)
   return (
     <div className="space-y-8">
-      {like && (like.majorCount || like.fnCount) ? (
-        <Section id="like-h" title="People like you" intro={`What ${ctx.institution.name} alumni with your ${[like.majorCount ? 'major' : null, like.fnCount ? 'line of work' : null].filter(Boolean).join(' or ')} do now. Counts only; nobody is named.`}>
+      {like && (like.majorCount || like.fnCount || like.workAlike) ? (
+        <Section id="like-h" title="People like you" intro={`What ${ctx.institution.name} alumni like you do now: same ${[like.majorCount ? 'major' : null, like.fnCount ? 'line of work' : null, like.workAlike ? 'way of working' : null].filter(Boolean).join(', ')}. Counts only; nobody is named.`}>
           <div className="grid gap-3 sm:grid-cols-2">
             {like.majorCount && (
               <div className={card}>
                 <p className="text-sm font-semibold">{like.major} majors ({like.majorCount})</p>
                 {like.majorTitles.length > 0 && <p className="mt-1 text-sm"><span className="text-muted-foreground">Titles: </span>{like.majorTitles.map((t) => `${t.label} (${t.n})`).join(', ')}</p>}
                 {like.majorEmployers.length > 0 && <p className="mt-1 text-sm"><span className="text-muted-foreground">Employers: </span>{like.majorEmployers.map((t) => `${t.label} (${t.n})`).join(', ')}</p>}
+              </div>
+            )}
+            {like.workAlike && (
+              <div className={card}>
+                <p className="text-sm font-semibold">Alumni who work like you ({like.workAlike.similar})</p>
+                {like.workAlike.titles.length > 0 && <p className="mt-1 text-sm"><span className="text-muted-foreground">Titles: </span>{like.workAlike.titles.map((t) => `${t.label} (${t.n})`).join(', ')}</p>}
+                {like.workAlike.employers.length > 0 && <p className="mt-1 text-sm"><span className="text-muted-foreground">Employers: </span>{like.workAlike.employers.map((t) => `${t.label} (${t.n})`).join(', ')}</p>}
+                <p className="mt-1 text-xs text-muted-foreground">Matched on how you like to work: people energy, process or creative, detail or big picture, and more.</p>
               </div>
             )}
             {like.fnCount && (

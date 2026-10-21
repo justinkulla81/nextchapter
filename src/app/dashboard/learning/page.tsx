@@ -1,4 +1,9 @@
+import { getLearningPaths } from '@/lib/journey/learning-paths-data'
+import { aiMarketLine } from '@/lib/skills/ai-skill-market'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
+import { LearningPathsCard } from '@/components/dashboard/pathway/LearningPathsCard'
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { buildLearningPlan } from '@/lib/learning/build-learning-plan'
@@ -12,6 +17,13 @@ import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { LearningBadgeList, BADGE_TYPE_LABEL } from '@/components/dashboard/LearningBadgeList'
 import { LearningSection } from '@/components/dashboard/learning/LearningSection'
 import { LearningResourceCard } from '@/components/dashboard/learning/LearningResourceCard'
+import { aiGapCourseItems } from '@/lib/redesign/learn-ai-gap'
+import { applicationGapCourseItems } from '@/lib/redesign/learn-app-gap'
+import { loadApplicationSkillPlan } from '@/lib/applications/member-view'
+import { courseForSkill } from '@/lib/applications/skill-course'
+import { loadMemberSkillGapByKind } from '@/lib/jobs/skill-gap-data'
+import { getActiveCourses } from '@/lib/learning/courses'
+import { AiSkillGapSection } from '@/components/dashboard/learning/AiSkillGapSection'
 import { AiTrainingTiers } from '@/components/dashboard/learning/AiTrainingTiers'
 import { ToolsForRoleSection } from '@/components/dashboard/learning/ToolsForRoleSection'
 import { InterviewSkillsSection } from '@/components/dashboard/learning/InterviewSkillsSection'
@@ -19,6 +31,7 @@ import { TierSummaryCard } from '@/components/dashboard/TierSummaryCard'
 import { badgeCountToTier } from '@/lib/learning/badge-count-tier'
 import { computeBadgeTypeMix } from '@/lib/learning/badge-type-mix'
 import type { LearningPlanSection } from '@/lib/learning/build-learning-plan'
+import { LockedPreview } from '@/components/dashboard/learning/LockedPreview'
 import { SkillsInventoryGateCard } from '@/components/dashboard/learning/SkillsInventoryGateCard'
 import { getPlatformActivity } from '@/lib/platforms/candidate-view'
 import { PlatformActivityPanel } from '@/components/dashboard/platforms/PlatformActivityPanel'
@@ -26,9 +39,13 @@ import { GradDegreeGuardrailCard } from '@/components/dashboard/GradDegreeGuardr
 import { PayChangeCard } from '@/components/dashboard/PayChangeCard'
 import { OccupationTrendsCard } from '@/components/dashboard/search-playbook/OccupationTrendsCard'
 import { effectiveJourney } from '@/lib/journey/journey'
+import { isPivotingProfile } from '@/lib/journey/pivot-target'
+import { CompanyCoursesCallout } from '@/components/dashboard/StaffProgramCard'
+import { pickLearnCourses } from '@/lib/redesign/learn-picks'
+import { LearnHome } from '@/components/dashboard/LearnHome'
+import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 
 export const metadata: Metadata = { title: 'Learn New Skills' }
-
 
 // Modest by design — a plain count-by-type line, not a full trends
 // breakdown like ApplicationTrendsContent on the Find a Job page.
@@ -69,9 +86,12 @@ function renderSection(section: LearningPlanSection, completedTitles: Set<string
   )
 }
 
-export default async function LearningPage() {
+export default async function LearningPage({ searchParams }: { searchParams: Promise<{ all?: string }> }) {
   const profile = await getDashboardProfile()
+  // The curated page by default; ?all=1 is the full library.
+  const curated = (await searchParams).all !== '1'
   const weekStart = getMondayOfWeek(new Date())
+  const learningPaths = await getLearningPaths(profile.id)
   const [plan, badges, courseActivity, learningEvents, assessmentResponseCount, platformRows, gmailConnection] = await Promise.all([
     buildLearningPlan(profile.id),
     prisma.learningBadge.findMany({
@@ -91,12 +111,45 @@ export default async function LearningPage() {
     prisma.emailConnection.findFirst({ where: { candidateId: profile.id, disconnectedAt: null }, select: { id: true } }),
   ])
   const hasTakenAssessment = assessmentResponseCount > 0
+  const assessmentLocked = !profile.skillsAssessmentCompletedAt
   const badgeMix = computeBadgeTypeMix(badges.map((b) => b.badgeType))
 
   const completedTitles = new Set(badges.map((b) => b.title))
   const enrolledTitles = new Set(courseActivity.map((c) => c.courseTitle))
   const learningEventsThisWeek = learningEvents.filter((e) => e.startTime >= weekStart)
   const learningMinutesThisWeek = learningEventsThisWeek.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0)
+
+  if (curated) {
+    // AI skills the member's best-fit employers ask for and the member lacks, each with a tagged course and the reason.
+    const [aiGap, catalog, appPlan] = await Promise.all([loadMemberSkillGapByKind(profile.id), getActiveCourses(), loadApplicationSkillPlan(profile.id).catch(() => null)])
+    const aiGapItems = aiGap ? aiGapCourseItems(aiGap.rows, aiGap.employersWithSkillData, catalog) : []
+    // Skills the member's own applications keep asking for come first (the same ranking as Search Strategy's "What to build next").
+    const appGapItems = appPlan ? applicationGapCourseItems(appPlan.recommendations, catalog, courseForSkill) : []
+    const picks = pickLearnCourses(
+      [...appGapItems, ...aiGapItems, ...plan.sections.flatMap((s) => s.items), ...plan.functionTraining, ...plan.aiTrainingCoursesByLevel[plan.aiTrainingTier]],
+      completedTitles,
+      enrolledTitles,
+    )
+    const aiTitles = new Set(aiGapItems.map((i) => i.title))
+    captureServerEvent(profile.id, 'learn_home_viewed', {
+      hasFeatured: !!picks.featured,
+      featuredHasReason: !!picks.featured?.rationale,
+      featuredIsAiGap: !!picks.featured && aiTitles.has(picks.featured.title),
+      aiGapCourses: aiGapItems.length,
+      applicationGapCourses: appGapItems.length,
+      featuredIsApplicationGap: !!picks.featured && appGapItems.some((i) => i.title === picks.featured!.title),
+      moreCount: picks.more.length,
+      completedCount: badges.length,
+    })
+    return (
+      <div className="space-y-8">
+        <Suspense fallback={null}>
+          <TuneStripSection profile={profile} title="Closer to hired: tune your path" />
+        </Suspense>
+        <LearnHome featured={picks.featured} more={picks.more} enrolledTitles={enrolledTitles} completedCount={badges.length} allHref="/dashboard/learning?all=1" />
+      </div>
+    )
+  }
 
   captureServerEvent(profile.id, 'learning_plan_rendered', {
     sectionCount: plan.sections.length,
@@ -110,7 +163,8 @@ export default async function LearningPage() {
     <div className="space-y-8">
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Learn New Skills</h1>
-        {!profile.skillsAssessmentCompletedAt && <SkillsInventoryGateCard />}
+        <CompanyCoursesCallout candidateId={profile.id} />
+        {assessmentLocked && <SkillsInventoryGateCard candidateId={profile.id} />}
         <PageHeaderBoxes
           pageKey="learning"
           candidateId={profile.id}
@@ -130,6 +184,8 @@ export default async function LearningPage() {
           </p>
         )}
       </div>
+
+      <LearningPathsCard paths={learningPaths.paths} progress={learningPaths.progress} />
 
       {badges.length > 0 && (
         <TierSummaryCard
@@ -151,9 +207,13 @@ export default async function LearningPage() {
 
       <PlatformActivityPanel kind="LEARNING" rows={platformRows} gmailConnected={!!gmailConnection} />
 
+      <Suspense fallback={null}>
+        <AiSkillGapSection candidateId={profile.id} completedTitles={completedTitles} enrolledTitles={enrolledTitles} fn={profile.targetFunction ?? profile.primaryFunction} />
+      </Suspense>
+
       <LearningSection
         title="AI Training"
-        description="Working AI fluency is fast becoming table stakes across every function."
+        description={aiMarketLine(profile.primaryFunction, await loadAiMarket())?.text ?? 'How much AI matters depends on your function. The list above shows the AI skills your best-fit jobs ask for.'}
       >
         <AiTrainingTiers
           defaultTier={plan.aiTrainingTier}
@@ -163,7 +223,7 @@ export default async function LearningPage() {
         />
       </LearningSection>
 
-      {(profile.isPivoting || effectiveJourney(profile) === 'CAREER_CHANGE') && (
+      {isPivotingProfile({ ...profile, journey: effectiveJourney(profile) }) && (
         <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} />
       )}
 
@@ -171,19 +231,23 @@ export default async function LearningPage() {
 
       <GradDegreeGuardrailCard />
 
-      <LearningSection title="Tools">
-        <ToolsForRoleSection
-          role={plan.contentFunction}
-          tools={plan.aiTools}
-          functionTraining={plan.functionTraining}
-          completedTitles={completedTitles}
-          enrolledTitles={enrolledTitles}
-        />
-      </LearningSection>
+      <LockedPreview locked={assessmentLocked}>
+        <div className="space-y-8">
+          <LearningSection title="Tools">
+            <ToolsForRoleSection
+              role={plan.contentFunction}
+              tools={plan.aiTools}
+              functionTraining={plan.functionTraining}
+              completedTitles={completedTitles}
+              enrolledTitles={enrolledTitles}
+            />
+          </LearningSection>
 
-      {plan.sections
-        .filter((s) => s.id !== 'speaking-leadership')
-        .map((s) => renderSection(s, completedTitles, enrolledTitles))}
+          {plan.sections
+            .filter((s) => s.id !== 'speaking-leadership')
+            .map((s) => renderSection(s, completedTitles, enrolledTitles))}
+        </div>
+      </LockedPreview>
 
       <LearningSection title="Interview Skills">
         <InterviewSkillsSection data={plan.interviewSkills} />

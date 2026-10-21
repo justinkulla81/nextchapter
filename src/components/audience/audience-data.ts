@@ -215,6 +215,10 @@ export const AUDIENCE_TABS: AudienceTab[] = [
         lead: 'Outcomes you can report.',
         body: 'Track engagement, progress, and placements — the data your leadership and board want, not vague "coaching hours delivered."',
       },
+      {
+        lead: 'AI skills for the people leaving.',
+        body: 'Each person sees which AI skills the jobs they want ask for and gets a short course for each gap. You see the whole group’s gap, counts only.',
+      },
     ],
     contrastLabel: 'vs. legacy outplacement (LHH, RiseSmart, Careerminds):',
     contrastBody:
@@ -241,7 +245,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     eyebrow: 'For Government & Workforce Agencies',
     headline: 'Give the people you serve a faster, more human path back to work.',
     subhead:
-      'NextChapter is built for exactly the members your programs support — unemployment claimants, dislocated workers, career changers, and non-traditional backgrounds. Every jobseeker gets it free, with a personalized plan and real employer matches — and you get the placement data your programs report on.',
+      'NextChapter is built for exactly the members your programs support — unemployment claimants, dislocated workers, career changers, and non-traditional backgrounds. Every jobseeker gets it free, with a personalized plan and real employer matches — and you get exportable participant progress and self-reported placement counts.',
     points: [
       {
         lead: 'Real help for your members.',
@@ -252,9 +256,13 @@ export const AUDIENCE_TABS: AudienceTab[] = [
         body: 'Gaps, layoffs, and career pivots are context here, not disqualifiers — so your hardest-to-place members get surfaced to employers instead of filtered out.',
       },
       {
-        lead: 'Outcomes you can report.',
-        // [OWNER TO CONFIRM: which specific WIOA performance metrics we map to.]
-        body: 'Track readiness, engagement, and placements — the entered-employment and retention data your performance measures depend on.',
+        lead: 'Outcomes you can export.',
+        // Placements are self-reported within 180 days (PLACEMENT_WINDOW_DAYS). We do not match wage records or compute WIOA primary indicators of performance, so do not claim them until a measure mapping exists.
+        body: 'Track readiness, engagement, and self-reported placements within 180 days, with a CSV export. These are not WIOA performance indicators — we do not match wage records — so use them alongside your system of record.',
+      },
+      {
+        lead: 'Career services that include AI training.',
+        body: 'We measure the AI-skill gap for your participants and build the courses that close it, for the career services and training funds and grants you already use. Approval rules differ by state, and we help you scope the training section.',
       },
     ],
     contrastLabel: 'vs. legacy case-management & job banks:',
@@ -309,6 +317,10 @@ export const AUDIENCE_TABS: AudienceTab[] = [
       {
         lead: 'Grants, pilots, and co-design.',
         body: 'We collaborate on funding proposals, pilot programs, and joint research that advance shared goals for fairer hiring.',
+      },
+      {
+        lead: 'AI training your alumni and constituents can use.',
+        body: 'For colleges: a certificate for mid-career alumni and local employers, built to your catalog, with the AI-skill gap for your alumni measured first. Career services, continuing education and grant budgets can pay for it.',
       },
     ],
     contrastLabel: 'Why partner with us:',

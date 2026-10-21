@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { setEmployerOutcomeSharing } from '@/app/dashboard/got-hired/sharing-actions'
@@ -18,23 +17,21 @@ export interface SharingSeat {
 export function EmployerOutcomeSharingCard({ seats }: { seats: SharingSeat[] }) {
   if (seats.length === 0) return null
   return (
-    <Card>
-      <CardContent className="space-y-4 pt-6">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Share anonymous results with your employer&apos;s program</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Your employer paid for your program and may want to know whether it works. If you choose, whether you found work is counted in a
-            group total together with at least nine others. Your employer never sees your name, pay, activity or anything about you. This is
-            off unless you turn it on, and you can turn it off at any time. It never applies while you use Confidential Search Mode.
-          </p>
-        </div>
-        <ul className="space-y-3">
-          {seats.map((s) => (
-            <SeatRow key={s.seatId} seat={s} />
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
+    <section aria-labelledby="share-h" className="space-y-3">
+      <div className="space-y-1">
+        <h2 id="share-h" className="font-display text-xl font-semibold text-ink">
+          Share anonymous results with your employer’s program
+        </h2>
+        <p className="max-w-2xl text-base text-muted-foreground">
+          Your employer paid for your program. If you choose, whether you found work is counted in a group total with at least nine others. They never see your name, pay or activity. It is off unless you turn it on, and never applies in Confidential Search Mode.
+        </p>
+      </div>
+      <ul className="space-y-3">
+        {seats.map((s) => (
+          <SeatRow key={s.seatId} seat={s} />
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -55,12 +52,12 @@ function SeatRow({ seat }: { seat: SharingSeat }) {
 
   return (
     <li className={cn('space-y-2', pending && 'cursor-wait [&_*]:cursor-wait')}>
-      <p className="text-sm font-medium text-foreground">{seat.orgName}</p>
+      <p className="text-base font-semibold text-ink">{seat.orgName}</p>
       <div className="flex gap-2" role="group" aria-label={`Share anonymous results with ${seat.orgName}`}>
-        <Button type="button" size="sm" variant={share ? 'default' : 'outline'} aria-pressed={share} disabled={pending} onClick={() => choose(true)}>
+        <Button type="button" size="sm" variant="outline" className={cn(share && 'border-ink font-semibold text-ink')} aria-pressed={share} disabled={pending} onClick={() => choose(true)}>
           Share anonymously
         </Button>
-        <Button type="button" size="sm" variant={!share ? 'default' : 'outline'} aria-pressed={!share} disabled={pending} onClick={() => choose(false)}>
+        <Button type="button" size="sm" variant="outline" className={cn(!share && 'border-ink font-semibold text-ink')} aria-pressed={!share} disabled={pending} onClick={() => choose(false)}>
           Do not share
         </Button>
       </div>

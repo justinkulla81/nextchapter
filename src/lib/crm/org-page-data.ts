@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { buildLayoffTimeline } from '@/lib/companies/layoff-timeline'
+import { buildLayoffYear } from '@/lib/companies/layoff-year'
 import { LAYOFF_WINDOW_MONTHS } from '@/lib/crm/layoff-signals'
 
 // The organization page's demand-side data: open jobs, candidates who want to
@@ -46,7 +47,8 @@ export async function loadOrgDemandData(org: OrgRef) {
     ...(org.companyId ? [{ companyId: org.companyId }] : []),
   ]
 
-  const [postings, applied, notices, layoffNews, researchNews, trackingStart] = await Promise.all([
+  const yearAgo = new Date(Date.now() - 365 * DAY_MS)
+  const [postings, applied, notices, layoffNews, researchNews, trackingStart, yearMentions, intakeMandates, searchRequests] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
       where: { OR: postingOr, status: 'approved', institutionScopeId: null },
       orderBy: { createdAt: 'desc' },
@@ -88,6 +90,26 @@ export async function loadOrgDemandData(org: OrgRef) {
         })
       : Promise.resolve([]),
     boardTrackingStart(),
+    // Every mention of the past year, not just the ten shown, so the year total sees them all.
+    synthetic ? Promise.resolve([]) : prisma.layoffNewsMention.findMany({
+      where: { companyKey: org.canonicalNameNormalized, publishedAt: { gte: yearAgo } },
+      select: { noticeId: true, publishedAt: true, employees: true, publisher: true },
+    }),
+    // Recruiters' open mandates naming this organization as the client. Admin-only:
+    // the client is hidden from candidates on every other surface.
+    prisma.intakeSearch.findMany({
+      where: { status: 'OPEN', clientName: byName },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: { id: true, title: true, location: true, createdAt: true,
+        recruiter: { select: { fullName: true } }, firm: { select: { name: true } } },
+    }),
+    prisma.searchRequest.findMany({
+      where: { status: { not: 'CLOSED' }, clientName: byName },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: { id: true, roleTitle: true, location: true, createdAt: true, firmName: true, contactName: true, confidential: true },
+    }),
   ])
 
   const openJobs = postings.filter((p) => p.archivedAt === null)
@@ -135,6 +157,25 @@ export async function loadOrgDemandData(org: OrgRef) {
     hiringAgain: layoffTimeline.status === 'hiring_again',
   }
 
+  const layoffYear = buildLayoffYear({
+    notices: notices
+      .filter((n): n is typeof n & { noticeDate: Date } => n.noticeDate !== null)
+      .map((n) => ({ noticeDate: n.noticeDate, employees: n.employees })),
+    mentions: yearMentions,
+  })
+
+  const mandates = [
+    ...intakeMandates.map((m) => ({
+      id: m.id, role: m.title, location: m.location, since: m.createdAt,
+      by: [m.recruiter.fullName, m.firm.name].filter(Boolean).join(', '), kind: 'Recruiter intake' as const,
+    })),
+    ...searchRequests.map((r) => ({
+      id: r.id, role: r.roleTitle, location: r.location, since: r.createdAt,
+      by: [r.contactName, r.firmName].filter(Boolean).join(', '), kind: (r.confidential ? 'Confidential search request' : 'Search request') as string,
+    })),
+  ]
+
+  const newPostings90d = postings.filter((p) => p.createdAt.getTime() >= Date.now() - 90 * DAY_MS).length
   const seniorRoles = openJobs.filter((j) => j.level && /DIRECTOR|VP|EVP|SVP|C_SUITE/.test(j.level)).length
 
   return {
@@ -145,6 +186,9 @@ export async function loadOrgDemandData(org: OrgRef) {
     notices,
     layoffTimeline,
     layoffSummary,
+    layoffYear,
+    mandates,
+    newPostings90d,
     layoffNews,
     researchNews,
   }

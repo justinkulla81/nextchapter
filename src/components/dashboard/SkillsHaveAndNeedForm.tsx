@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
-import type { SkillGapSuggestions } from '@/lib/skills/skill-gap-suggestions'
+import type { SkillGapSuggestions, SuggestionListKey } from '@/lib/skills/skill-gap-suggestions'
+import { OnetAttribution } from '@/components/OnetAttribution'
 
 function computeInitialSkillsHave(resumeKeywords: string[], initialConfirmed: string[], strongAiSkills: boolean) {
   const base = initialConfirmed.length > 0 ? initialConfirmed : resumeKeywords
@@ -122,7 +123,7 @@ export function SkillsHaveAndNeedForm({
     }
   }
 
-  const suggestionGroups: { key: keyof SkillGapSuggestions; label: string }[] = [
+  const suggestionGroups: { key: SuggestionListKey; label: string }[] = [
     { key: 'resumeGaps', label: 'Common for your background, not on your resume' },
     { key: 'roleGaps', label: targetRole ? `For ${targetRole}` : 'For your target role' },
     { key: 'modernSkills', label: 'Modern & AI skills' },
@@ -220,6 +221,14 @@ export function SkillsHaveAndNeedForm({
                     </div>
                   )
                 })}
+                {suggestions?.basis && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">
+                      The suggestions for {targetRole ? targetRole : 'your target role'} start from what O*NET lists for {suggestions.basis.targetTitle.toLowerCase()}.
+                    </p>
+                    <OnetAttribution />
+                  </div>
+                )}
               </div>
             )}
           </>

@@ -23,9 +23,10 @@ export const EMPLOYER_TAG = 'employer:'
 // The employer profile this request acts as: the person's own approved
 // link, or, for a NextChapter admin previewing a demo college, the demo's
 // first approved employer.
-export async function employerProfileFor(ctx: Pick<InstitutionAccess, 'employerProfileIds' | 'isNcAdmin' | 'institution'>): Promise<string | null> {
+export async function employerProfileFor(ctx: Pick<InstitutionAccess, 'employerProfileIds' | 'isNcAdmin' | 'institution'> & { mode?: InstitutionAccess['mode'] }): Promise<string | null> {
   if (ctx.employerProfileIds[0]) return ctx.employerProfileIds[0]
-  if (!ctx.isNcAdmin || !ctx.institution.isDemo) return null
+  // A NextChapter admin or a prospect's guest pass, previewing a demo.
+  if (!(ctx.isNcAdmin || ctx.mode === 'demo-guest') || !ctx.institution.isDemo) return null
   const e = await prisma.institutionEmployer.findFirst({ where: { institutionId: ctx.institution.id, status: 'APPROVED' }, select: { employerProfileId: true } })
   return e?.employerProfileId ?? null
 }
@@ -163,13 +164,14 @@ export async function requestIntro(args: { institutionId: string; employerProfil
       select: { id: true },
     }),
     prisma.employerProfile.findUniqueOrThrow({ where: { id: args.employerProfileId }, select: { companyName: true } }),
-    prisma.institution.findUniqueOrThrow({ where: { id: args.institutionId }, select: { slug: true } }),
+    prisma.institution.findUniqueOrThrow({ where: { id: args.institutionId }, select: { slug: true, orgType: true } }),
   ])
   await sendCampaign({
     institutionId: args.institutionId,
     type: 'CUSTOM',
     subject: INTRO_SUBJECT,
-    body: INTRO_BODY,
+    // A workforce org's participants hear from the org, not Career Services.
+    body: inst.orgType === 'COLLEGE' ? INTRO_BODY : INTRO_BODY.replace('{{college}} Career Services', '{{college}}').replace('through {{college}}', 'with hiring companies through {{college}}'),
     createdBy: args.requestedBy,
     recipients: [{ memberId: args.memberId, extra: { company: company.companyName, note: args.note.slice(0, 500) || 'We’d like to talk about a role.' } }],
     linkFor: () => `${appUrl()}/i/${inst.slug}/candidate`,

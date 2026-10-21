@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
+import { getOrgUser } from '@/lib/supabase/get-current-user'
 import { readableTextOn } from '@/lib/higher-ed/branding'
 import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { RecruitButton } from '@/components/higher-ed/RecruitButton'
@@ -15,7 +15,7 @@ export default async function RecruitPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params
   const inst = await prisma.institution.findUnique({ where: { slug }, select: { id: true, name: true, programBrandName: true, logoUrl: true, accentColor: true } })
   if (!inst) notFound()
-  const user = await getCurrentUser()
+  const user = await getOrgUser()
   const link = user
     ? await prisma.institutionEmployer.findFirst({
         where: { institutionId: inst.id, employerProfile: { OR: [{ userId: user.id }, { seats: { some: { userId: user.id, acceptedAt: { not: null } } } }] } },
@@ -42,10 +42,10 @@ export default async function RecruitPage({ params }: { params: Promise<{ slug: 
           <div className="space-y-2 text-sm">
             <p>Sign in with your NextChapter employer account (or create one), then come back to this page to ask.</p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/employer/login" className="font-medium text-primary hover:underline">
+              <Link href={`/i/login?next=${encodeURIComponent(`/i/${slug}/recruit`)}`} className="font-medium text-primary hover:underline">
                 Sign in as an employer
               </Link>
-              <Link href="/employer/signup" className="font-medium text-primary hover:underline">
+              <Link href="/talent/signup" className="font-medium text-primary hover:underline">
                 Create an employer account
               </Link>
             </div>

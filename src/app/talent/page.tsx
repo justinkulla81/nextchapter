@@ -8,7 +8,7 @@ const tab = AUDIENCE_TABS.find((t) => t.id === 'talent')!
 export const metadata: Metadata = {
   title: 'Hire Verified, Motivated Candidates',
   description:
-    'Post a role free and see candidates who completed a structured How They Work Best assessment and gathered verified references before you ever see their profile.',
+    'On NextChapter, the leading job transition platform, post a role free and see candidates who completed a structured How They Work Best assessment and gathered verified references before you ever see their profile.',
   alternates: { canonical: '/talent' },
   openGraph: {
     title: 'Hire Verified, Motivated Candidates — NextChapter for Hiring Teams',

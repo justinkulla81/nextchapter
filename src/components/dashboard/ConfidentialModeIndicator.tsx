@@ -5,8 +5,22 @@ import { CONFIDENTIAL_MODE_INDICATOR_TEXT } from '@/lib/constants/confidential-m
 // The persistent, quiet indicator spec §6 calls for "wherever visibility
 // could be at stake" — Community, Marketing Plan/LinkedIn, Outreach, Gmail
 // connection. Deliberately small and non-alarming (no red/destructive
-// color) — this is reassurance, not a warning.
-export function ConfidentialModeIndicator({ className }: { className?: string }) {
+// color) — this is reassurance, not a warning. The redesigned look is the same
+// sentence at body size with no box around it.
+export function ConfidentialModeIndicator({ className, redesign = false }: { className?: string; redesign?: boolean }) {
+  if (redesign) {
+    return (
+      <p className={`flex items-start gap-2 text-sm text-muted-foreground ${className ?? ''}`}>
+        <Lock className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <span>
+          <span className="font-medium text-ink">{CONFIDENTIAL_MODE_INDICATOR_TEXT}.</span> Nothing you do here is visible to other members or outside NextChapter.{' '}
+          <Link href="/dashboard/privacy" className="font-medium text-brand underline underline-offset-4">
+            Manage
+          </Link>
+        </span>
+      </p>
+    )
+  }
   return (
     <div
       className={`flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2.5 py-1.5 text-xs text-muted-foreground ${className ?? ''}`}

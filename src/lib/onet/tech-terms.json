@@ -1,0 +1,1627 @@
+{
+ "source": "O*NET Web Services (USDOL/ETA)",
+ "database": "O*NET 31.0",
+ "terms": [
+  {
+   "term": ".net framework",
+   "aliases": [
+    "microsoft .net framework",
+    ".net framework"
+   ]
+  },
+  {
+   "term": "acrobat",
+   "aliases": [
+    "adobe acrobat",
+    "acrobat"
+   ]
+  },
+  {
+   "term": "active directory",
+   "aliases": [
+    "microsoft active directory",
+    "active directory"
+   ]
+  },
+  {
+   "term": "active server pages asp",
+   "aliases": [
+    "microsoft active server pages asp",
+    "active server pages asp"
+   ]
+  },
+  {
+   "term": "adobe analytics",
+   "aliases": [
+    "adobe analytics"
+   ]
+  },
+  {
+   "term": "adobe audition",
+   "aliases": [
+    "adobe audition"
+   ]
+  },
+  {
+   "term": "adobe xd",
+   "aliases": [
+    "adobe xd"
+   ]
+  },
+  {
+   "term": "adp workforce now",
+   "aliases": [
+    "adp workforce now"
+   ]
+  },
+  {
+   "term": "after effects",
+   "aliases": [
+    "adobe after effects",
+    "after effects"
+   ]
+  },
+  {
+   "term": "ahrefs site explorer",
+   "aliases": [
+    "ahrefs site explorer"
+   ]
+  },
+  {
+   "term": "ajax",
+   "aliases": [
+    "ajax"
+   ]
+  },
+  {
+   "term": "alteryx",
+   "aliases": [
+    "alteryx"
+   ]
+  },
+  {
+   "term": "amadeus crs",
+   "aliases": [
+    "amadeus crs"
+   ]
+  },
+  {
+   "term": "android",
+   "aliases": [
+    "google android",
+    "android"
+   ]
+  },
+  {
+   "term": "angular",
+   "aliases": [
+    "google angular",
+    "angular"
+   ]
+  },
+  {
+   "term": "ansible",
+   "aliases": [
+    "ansible"
+   ]
+  },
+  {
+   "term": "ansys simulation",
+   "aliases": [
+    "ansys simulation"
+   ]
+  },
+  {
+   "term": "apache hive",
+   "aliases": [
+    "apache hive"
+   ]
+  },
+  {
+   "term": "apache spark",
+   "aliases": [
+    "apache spark"
+   ]
+  },
+  {
+   "term": "appium",
+   "aliases": [
+    "appium"
+   ]
+  },
+  {
+   "term": "apple safari",
+   "aliases": [
+    "apple safari"
+   ]
+  },
+  {
+   "term": "arcgis",
+   "aliases": [
+    "esri arcgis",
+    "arcgis"
+   ]
+  },
+  {
+   "term": "arcgis arcpy",
+   "aliases": [
+    "esri arcgis arcpy",
+    "arcgis arcpy"
+   ]
+  },
+  {
+   "term": "arcgis survey 123",
+   "aliases": [
+    "esri arcgis survey 123",
+    "arcgis survey 123"
+   ]
+  },
+  {
+   "term": "archivists' toolkit",
+   "aliases": [
+    "archivists' toolkit"
+   ]
+  },
+  {
+   "term": "arcmap",
+   "aliases": [
+    "rockware arcmap",
+    "arcmap"
+   ]
+  },
+  {
+   "term": "articulate storyline",
+   "aliases": [
+    "articulate storyline"
+   ]
+  },
+  {
+   "term": "asana",
+   "aliases": [
+    "asana"
+   ]
+  },
+  {
+   "term": "asp.net",
+   "aliases": [
+    "microsoft asp.net",
+    "asp.net"
+   ]
+  },
+  {
+   "term": "autocad",
+   "aliases": [
+    "autodesk autocad",
+    "autocad"
+   ]
+  },
+  {
+   "term": "autocad civil 3d",
+   "aliases": [
+    "autodesk autocad civil 3d",
+    "autocad civil 3d"
+   ]
+  },
+  {
+   "term": "autodesk inventor",
+   "aliases": [
+    "autodesk inventor"
+   ]
+  },
+  {
+   "term": "autodesk maya",
+   "aliases": [
+    "autodesk maya"
+   ]
+  },
+  {
+   "term": "autodesk navisworks",
+   "aliases": [
+    "autodesk navisworks"
+   ]
+  },
+  {
+   "term": "azure data factory",
+   "aliases": [
+    "microsoft azure data factory",
+    "azure data factory"
+   ]
+  },
+  {
+   "term": "azure devops services",
+   "aliases": [
+    "microsoft azure devops services",
+    "azure devops services"
+   ]
+  },
+  {
+   "term": "bash",
+   "aliases": [
+    "bash"
+   ]
+  },
+  {
+   "term": "bgp",
+   "aliases": [
+    "border gateway protocol bgp",
+    "bgp"
+   ]
+  },
+  {
+   "term": "bing ads",
+   "aliases": [
+    "bing ads"
+   ]
+  },
+  {
+   "term": "bioconductor",
+   "aliases": [
+    "bioconductor"
+   ]
+  },
+  {
+   "term": "bitbucket",
+   "aliases": [
+    "atlassian bitbucket",
+    "bitbucket"
+   ]
+  },
+  {
+   "term": "burp suite",
+   "aliases": [
+    "portswigger burp suite",
+    "burp suite"
+   ]
+  },
+  {
+   "term": "c#",
+   "aliases": [
+    "c#"
+   ]
+  },
+  {
+   "term": "c++",
+   "aliases": [
+    "c++"
+   ]
+  },
+  {
+   "term": "camtasia",
+   "aliases": [
+    "techsmith camtasia",
+    "camtasia"
+   ]
+  },
+  {
+   "term": "canva",
+   "aliases": [
+    "canva"
+   ]
+  },
+  {
+   "term": "cassandra",
+   "aliases": [
+    "apache cassandra",
+    "cassandra"
+   ]
+  },
+  {
+   "term": "catia",
+   "aliases": [
+    "dassault systemes catia",
+    "catia"
+   ]
+  },
+  {
+   "term": "cinema 4d",
+   "aliases": [
+    "maxon cinema 4d",
+    "cinema 4d"
+   ]
+  },
+  {
+   "term": "cloudformation",
+   "aliases": [
+    "amazon web services aws cloudformation",
+    "cloudformation"
+   ]
+  },
+  {
+   "term": "confluence",
+   "aliases": [
+    "atlassian confluence",
+    "confluence"
+   ]
+  },
+  {
+   "term": "content management systems cms",
+   "aliases": [
+    "content management systems cms"
+   ]
+  },
+  {
+   "term": "creative cloud",
+   "aliases": [
+    "adobe creative cloud",
+    "creative cloud"
+   ]
+  },
+  {
+   "term": "creo parametric",
+   "aliases": [
+    "ptc creo parametric",
+    "creo parametric"
+   ]
+  },
+  {
+   "term": "css",
+   "aliases": [
+    "cascading style sheets css",
+    "cascading style sheets",
+    "css"
+   ]
+  },
+  {
+   "term": "davinci resolve",
+   "aliases": [
+    "davinci resolve"
+   ]
+  },
+  {
+   "term": "db2",
+   "aliases": [
+    "ibm db2",
+    "db2"
+   ]
+  },
+  {
+   "term": "dentrix",
+   "aliases": [
+    "henry schein dentrix",
+    "dentrix"
+   ]
+  },
+  {
+   "term": "django",
+   "aliases": [
+    "django"
+   ]
+  },
+  {
+   "term": "drupal",
+   "aliases": [
+    "drupal"
+   ]
+  },
+  {
+   "term": "dynamodb",
+   "aliases": [
+    "amazon dynamodb",
+    "dynamodb"
+   ]
+  },
+  {
+   "term": "eai",
+   "aliases": [
+    "enterprise application integration eai",
+    "enterprise application integration",
+    "eai"
+   ]
+  },
+  {
+   "term": "ec2",
+   "aliases": [
+    "amazon elastic compute cloud ec2",
+    "elastic compute cloud ec2",
+    "ec2"
+   ]
+  },
+  {
+   "term": "eclinicalworks ehr",
+   "aliases": [
+    "eclinicalworks ehr"
+   ]
+  },
+  {
+   "term": "eclipse ide",
+   "aliases": [
+    "eclipse ide"
+   ]
+  },
+  {
+   "term": "elasticsearch",
+   "aliases": [
+    "elasticsearch"
+   ]
+  },
+  {
+   "term": "emass",
+   "aliases": [
+    "emass"
+   ]
+  },
+  {
+   "term": "encase enterprise",
+   "aliases": [
+    "guidance software encase enterprise",
+    "encase enterprise"
+   ]
+  },
+  {
+   "term": "enscape",
+   "aliases": [
+    "chaos enscape",
+    "enscape"
+   ]
+  },
+  {
+   "term": "epic systems",
+   "aliases": [
+    "epic systems"
+   ]
+  },
+  {
+   "term": "esri arcview",
+   "aliases": [
+    "esri arcview"
+   ]
+  },
+  {
+   "term": "etap",
+   "aliases": [
+    "etap"
+   ]
+  },
+  {
+   "term": "final cut pro",
+   "aliases": [
+    "apple final cut pro",
+    "final cut pro"
+   ]
+  },
+  {
+   "term": "firefox",
+   "aliases": [
+    "mozilla firefox",
+    "firefox"
+   ]
+  },
+  {
+   "term": "forsk atoll",
+   "aliases": [
+    "forsk atoll"
+   ]
+  },
+  {
+   "term": "fusion 360",
+   "aliases": [
+    "autodesk fusion 360",
+    "fusion 360"
+   ]
+  },
+  {
+   "term": "g-code",
+   "aliases": [
+    "g-code"
+   ]
+  },
+  {
+   "term": "gis",
+   "aliases": [
+    "geographic information system gis systems",
+    "geographic information system systems",
+    "geographic information system gis",
+    "geographic information system",
+    "gis"
+   ]
+  },
+  {
+   "term": "git",
+   "aliases": [
+    "git"
+   ]
+  },
+  {
+   "term": "github",
+   "aliases": [
+    "github"
+   ]
+  },
+  {
+   "term": "gitlab",
+   "aliases": [
+    "gitlab"
+   ]
+  },
+  {
+   "term": "google ads",
+   "aliases": [
+    "google ads"
+   ]
+  },
+  {
+   "term": "google docs",
+   "aliases": [
+    "google docs"
+   ]
+  },
+  {
+   "term": "google meet",
+   "aliases": [
+    "google meet"
+   ]
+  },
+  {
+   "term": "google sheets",
+   "aliases": [
+    "google sheets"
+   ]
+  },
+  {
+   "term": "google tag manager",
+   "aliases": [
+    "google tag manager"
+   ]
+  },
+  {
+   "term": "grafana cloud",
+   "aliases": [
+    "grafana labs grafana cloud",
+    "grafana cloud"
+   ]
+  },
+  {
+   "term": "hadoop",
+   "aliases": [
+    "apache hadoop",
+    "hadoop"
+   ]
+  },
+  {
+   "term": "hec-hms",
+   "aliases": [
+    "hec-hms"
+   ]
+  },
+  {
+   "term": "hec-ras",
+   "aliases": [
+    "hec-ras"
+   ]
+  },
+  {
+   "term": "helioscope",
+   "aliases": [
+    "aurora helioscope",
+    "helioscope"
+   ]
+  },
+  {
+   "term": "hibernate orm",
+   "aliases": [
+    "hibernate orm"
+   ]
+  },
+  {
+   "term": "houdini",
+   "aliases": [
+    "sidefx houdini",
+    "houdini"
+   ]
+  },
+  {
+   "term": "html",
+   "aliases": [
+    "hypertext markup language html",
+    "hypertext markup language",
+    "html"
+   ]
+  },
+  {
+   "term": "hugging face",
+   "aliases": [
+    "hugging face"
+   ]
+  },
+  {
+   "term": "illustrator",
+   "aliases": [
+    "adobe illustrator",
+    "illustrator"
+   ]
+  },
+  {
+   "term": "indesign",
+   "aliases": [
+    "adobe indesign",
+    "indesign"
+   ]
+  },
+  {
+   "term": "informatica",
+   "aliases": [
+    "informatica"
+   ]
+  },
+  {
+   "term": "internet information services (iis)",
+   "aliases": [
+    "microsoft internet information services (iis)",
+    "internet information services (iis)"
+   ]
+  },
+  {
+   "term": "internet information services (iis) manager",
+   "aliases": [
+    "microsoft internet information services (iis) manager",
+    "internet information services (iis) manager"
+   ]
+  },
+  {
+   "term": "ios",
+   "aliases": [
+    "apple ios",
+    "ios"
+   ]
+  },
+  {
+   "term": "j2ee",
+   "aliases": [
+    "oracle java 2 platform enterprise edition j2ee",
+    "java 2 platform enterprise edition j2ee",
+    "j2ee"
+   ]
+  },
+  {
+   "term": "jenkins",
+   "aliases": [
+    "jenkins"
+   ]
+  },
+  {
+   "term": "jmeter",
+   "aliases": [
+    "apache jmeter",
+    "jmeter"
+   ]
+  },
+  {
+   "term": "jmp",
+   "aliases": [
+    "sas jmp",
+    "jmp"
+   ]
+  },
+  {
+   "term": "jquery",
+   "aliases": [
+    "jquery"
+   ]
+  },
+  {
+   "term": "json",
+   "aliases": [
+    "javascript object notation json",
+    "json"
+   ]
+  },
+  {
+   "term": "junit",
+   "aliases": [
+    "junit"
+   ]
+  },
+  {
+   "term": "kafka",
+   "aliases": [
+    "apache kafka",
+    "kafka"
+   ]
+  },
+  {
+   "term": "kali linux",
+   "aliases": [
+    "kali linux"
+   ]
+  },
+  {
+   "term": "labview",
+   "aliases": [
+    "national instruments labview",
+    "labview"
+   ]
+  },
+  {
+   "term": "langchain",
+   "aliases": [
+    "langchain"
+   ]
+  },
+  {
+   "term": "libguides",
+   "aliases": [
+    "springshare libguides",
+    "libguides"
+   ]
+  },
+  {
+   "term": "linux",
+   "aliases": [
+    "linux"
+   ]
+  },
+  {
+   "term": "lms",
+   "aliases": [
+    "learning management system lms",
+    "learning management system",
+    "lms"
+   ]
+  },
+  {
+   "term": "looker analytics",
+   "aliases": [
+    "google looker analytics",
+    "looker analytics"
+   ]
+  },
+  {
+   "term": "lumion",
+   "aliases": [
+    "lumion"
+   ]
+  },
+  {
+   "term": "macos",
+   "aliases": [
+    "apple macos",
+    "macos"
+   ]
+  },
+  {
+   "term": "marketo marketing automation",
+   "aliases": [
+    "marketo marketing automation"
+   ]
+  },
+  {
+   "term": "mastercam computer-aided design and manufacturing",
+   "aliases": [
+    "mastercam computer-aided design and manufacturing"
+   ]
+  },
+  {
+   "term": "matlab",
+   "aliases": [
+    "the mathworks matlab",
+    "matlab"
+   ]
+  },
+  {
+   "term": "maven",
+   "aliases": [
+    "apache maven",
+    "maven"
+   ]
+  },
+  {
+   "term": "meditech",
+   "aliases": [
+    "meditech"
+   ]
+  },
+  {
+   "term": "mep",
+   "aliases": [
+    "mechanical electrical plumbing mep design",
+    "mechanical electrical plumbing design",
+    "mep"
+   ]
+  },
+  {
+   "term": "metasploit",
+   "aliases": [
+    "metasploit"
+   ]
+  },
+  {
+   "term": "microsoft access",
+   "aliases": [
+    "microsoft access"
+   ]
+  },
+  {
+   "term": "microsoft edge",
+   "aliases": [
+    "microsoft edge"
+   ]
+  },
+  {
+   "term": "microsoft outlook",
+   "aliases": [
+    "microsoft outlook"
+   ]
+  },
+  {
+   "term": "microsoft project",
+   "aliases": [
+    "microsoft project"
+   ]
+  },
+  {
+   "term": "microsoft teams",
+   "aliases": [
+    "microsoft teams"
+   ]
+  },
+  {
+   "term": "microsoft windows",
+   "aliases": [
+    "microsoft windows"
+   ]
+  },
+  {
+   "term": "microsoft word",
+   "aliases": [
+    "microsoft word"
+   ]
+  },
+  {
+   "term": "microstation",
+   "aliases": [
+    "bentley microstation",
+    "microstation"
+   ]
+  },
+  {
+   "term": "mitre att&ck",
+   "aliases": [
+    "mitre att&ck"
+   ]
+  },
+  {
+   "term": "modflow",
+   "aliases": [
+    "rockware modflow",
+    "modflow"
+   ]
+  },
+  {
+   "term": "mongodb",
+   "aliases": [
+    "mongodb"
+   ]
+  },
+  {
+   "term": "mysql",
+   "aliases": [
+    "mysql"
+   ]
+  },
+  {
+   "term": "navisworks jetstream",
+   "aliases": [
+    "navisworks jetstream"
+   ]
+  },
+  {
+   "term": "nessus",
+   "aliases": [
+    "tenable nessus",
+    "nessus"
+   ]
+  },
+  {
+   "term": "nmap",
+   "aliases": [
+    "nmap"
+   ]
+  },
+  {
+   "term": "nosql",
+   "aliases": [
+    "nosql"
+   ]
+  },
+  {
+   "term": "numpy",
+   "aliases": [
+    "numpy"
+   ]
+  },
+  {
+   "term": "on center on-screen takeoff",
+   "aliases": [
+    "on center on-screen takeoff"
+   ]
+  },
+  {
+   "term": "openroads designer",
+   "aliases": [
+    "openroads designer"
+   ]
+  },
+  {
+   "term": "openshift",
+   "aliases": [
+    "red hat openshift",
+    "openshift"
+   ]
+  },
+  {
+   "term": "oracle database",
+   "aliases": [
+    "oracle database"
+   ]
+  },
+  {
+   "term": "orion law management systems orion",
+   "aliases": [
+    "orion law management systems orion"
+   ]
+  },
+  {
+   "term": "pandas",
+   "aliases": [
+    "pandas"
+   ]
+  },
+  {
+   "term": "pcie",
+   "aliases": [
+    "pci express pcie",
+    "pcie"
+   ]
+  },
+  {
+   "term": "peoplesoft",
+   "aliases": [
+    "oracle peoplesoft",
+    "peoplesoft"
+   ]
+  },
+  {
+   "term": "perforce",
+   "aliases": [
+    "perforce"
+   ]
+  },
+  {
+   "term": "perl",
+   "aliases": [
+    "perl"
+   ]
+  },
+  {
+   "term": "photoshop",
+   "aliases": [
+    "adobe photoshop",
+    "photoshop"
+   ]
+  },
+  {
+   "term": "photoshop lightroom",
+   "aliases": [
+    "adobe photoshop lightroom",
+    "photoshop lightroom"
+   ]
+  },
+  {
+   "term": "php",
+   "aliases": [
+    "php"
+   ]
+  },
+  {
+   "term": "pl/sql",
+   "aliases": [
+    "oracle pl/sql",
+    "pl/sql"
+   ]
+  },
+  {
+   "term": "planswift",
+   "aliases": [
+    "constructconnect planswift",
+    "planswift"
+   ]
+  },
+  {
+   "term": "playwright",
+   "aliases": [
+    "microsoft playwright",
+    "playwright"
+   ]
+  },
+  {
+   "term": "postgresql",
+   "aliases": [
+    "postgresql"
+   ]
+  },
+  {
+   "term": "postman",
+   "aliases": [
+    "postman"
+   ]
+  },
+  {
+   "term": "power automate",
+   "aliases": [
+    "microsoft power automate",
+    "power automate"
+   ]
+  },
+  {
+   "term": "powerpoint",
+   "aliases": [
+    "microsoft powerpoint",
+    "powerpoint"
+   ]
+  },
+  {
+   "term": "powershell",
+   "aliases": [
+    "microsoft powershell",
+    "powershell"
+   ]
+  },
+  {
+   "term": "premiere pro",
+   "aliases": [
+    "adobe premiere pro",
+    "premiere pro"
+   ]
+  },
+  {
+   "term": "primavera enterprise project portfolio management",
+   "aliases": [
+    "oracle primavera enterprise project portfolio management",
+    "primavera enterprise project portfolio management"
+   ]
+  },
+  {
+   "term": "procore",
+   "aliases": [
+    "procore"
+   ]
+  },
+  {
+   "term": "prometheus",
+   "aliases": [
+    "prometheus"
+   ]
+  },
+  {
+   "term": "pvsyst",
+   "aliases": [
+    "pvsyst"
+   ]
+  },
+  {
+   "term": "pyspark",
+   "aliases": [
+    "pyspark"
+   ]
+  },
+  {
+   "term": "pytorch",
+   "aliases": [
+    "pytorch"
+   ]
+  },
+  {
+   "term": "qgis",
+   "aliases": [
+    "qgis"
+   ]
+  },
+  {
+   "term": "qualtrics insight",
+   "aliases": [
+    "qualtrics insight"
+   ]
+  },
+  {
+   "term": "qualys cloud platform",
+   "aliases": [
+    "qualys cloud platform"
+   ]
+  },
+  {
+   "term": "raiser's edge",
+   "aliases": [
+    "blackbaud the raiser's edge",
+    "raiser's edge"
+   ]
+  },
+  {
+   "term": "red hat enterprise linux",
+   "aliases": [
+    "red hat enterprise linux"
+   ]
+  },
+  {
+   "term": "redcap research electronic data capture",
+   "aliases": [
+    "redcap research electronic data capture"
+   ]
+  },
+  {
+   "term": "redis",
+   "aliases": [
+    "redis"
+   ]
+  },
+  {
+   "term": "redshift",
+   "aliases": [
+    "amazon redshift",
+    "redshift"
+   ]
+  },
+  {
+   "term": "restful api",
+   "aliases": [
+    "restful api"
+   ]
+  },
+  {
+   "term": "revit",
+   "aliases": [
+    "autodesk revit",
+    "revit"
+   ]
+  },
+  {
+   "term": "rhinoceros 3d",
+   "aliases": [
+    "mcneel rhinoceros 3d",
+    "rhinoceros 3d"
+   ]
+  },
+  {
+   "term": "ruby",
+   "aliases": [
+    "ruby"
+   ]
+  },
+  {
+   "term": "rust programming language",
+   "aliases": [
+    "rust programming language"
+   ]
+  },
+  {
+   "term": "sabre central command",
+   "aliases": [
+    "sabre central command"
+   ]
+  },
+  {
+   "term": "sagemaker",
+   "aliases": [
+    "amazon web services aws sagemaker",
+    "sagemaker"
+   ]
+  },
+  {
+   "term": "sap concur",
+   "aliases": [
+    "sap concur"
+   ]
+  },
+  {
+   "term": "sap erp",
+   "aliases": [
+    "sap erp"
+   ]
+  },
+  {
+   "term": "scala",
+   "aliases": [
+    "scala"
+   ]
+  },
+  {
+   "term": "scikit-learn",
+   "aliases": [
+    "scikit-learn"
+   ]
+  },
+  {
+   "term": "screaming frog seo spider",
+   "aliases": [
+    "screaming frog seo spider"
+   ]
+  },
+  {
+   "term": "selenium",
+   "aliases": [
+    "selenium"
+   ]
+  },
+  {
+   "term": "semrush",
+   "aliases": [
+    "semrush"
+   ]
+  },
+  {
+   "term": "servicenow",
+   "aliases": [
+    "servicenow"
+   ]
+  },
+  {
+   "term": "sharepoint",
+   "aliases": [
+    "microsoft sharepoint",
+    "sharepoint"
+   ]
+  },
+  {
+   "term": "shell script",
+   "aliases": [
+    "shell script"
+   ]
+  },
+  {
+   "term": "shopify",
+   "aliases": [
+    "shopify"
+   ]
+  },
+  {
+   "term": "simulink",
+   "aliases": [
+    "mathworks simulink",
+    "simulink"
+   ]
+  },
+  {
+   "term": "sketchup pro",
+   "aliases": [
+    "trimble sketchup pro",
+    "sketchup pro"
+   ]
+  },
+  {
+   "term": "skm systems analysis power tools",
+   "aliases": [
+    "skm systems analysis power tools"
+   ]
+  },
+  {
+   "term": "snakemake",
+   "aliases": [
+    "snakemake"
+   ]
+  },
+  {
+   "term": "solidity",
+   "aliases": [
+    "solidity"
+   ]
+  },
+  {
+   "term": "solidworks",
+   "aliases": [
+    "dassault systemes solidworks",
+    "solidworks"
+   ]
+  },
+  {
+   "term": "splunk enterprise",
+   "aliases": [
+    "splunk enterprise"
+   ]
+  },
+  {
+   "term": "spring boot",
+   "aliases": [
+    "spring boot"
+   ]
+  },
+  {
+   "term": "spring framework",
+   "aliases": [
+    "spring framework"
+   ]
+  },
+  {
+   "term": "spss statistics",
+   "aliases": [
+    "ibm spss statistics",
+    "spss statistics"
+   ]
+  },
+  {
+   "term": "sql developer",
+   "aliases": [
+    "oracle sql developer",
+    "sql developer"
+   ]
+  },
+  {
+   "term": "sql server",
+   "aliases": [
+    "microsoft sql server",
+    "sql server"
+   ]
+  },
+  {
+   "term": "ssis",
+   "aliases": [
+    "microsoft sql server integration services ssis",
+    "sql server integration services ssis",
+    "ssis"
+   ]
+  },
+  {
+   "term": "sso",
+   "aliases": [
+    "single sign-on sso",
+    "single sign-on",
+    "sso"
+   ]
+  },
+  {
+   "term": "ssrs",
+   "aliases": [
+    "microsoft sql server reporting services ssrs",
+    "sql server reporting services ssrs",
+    "ssrs"
+   ]
+  },
+  {
+   "term": "stata",
+   "aliases": [
+    "statacorp stata",
+    "stata"
+   ]
+  },
+  {
+   "term": "svn",
+   "aliases": [
+    "apache subversion svn",
+    "subversion svn",
+    "svn"
+   ]
+  },
+  {
+   "term": "synchro studio",
+   "aliases": [
+    "cubic synchro studio",
+    "synchro studio"
+   ]
+  },
+  {
+   "term": "systemverilog",
+   "aliases": [
+    "systemverilog"
+   ]
+  },
+  {
+   "term": "team foundation server",
+   "aliases": [
+    "microsoft team foundation server",
+    "team foundation server"
+   ]
+  },
+  {
+   "term": "teamcenter",
+   "aliases": [
+    "siemens teamcenter",
+    "teamcenter"
+   ]
+  },
+  {
+   "term": "tensorflow",
+   "aliases": [
+    "tensorflow"
+   ]
+  },
+  {
+   "term": "teradata database",
+   "aliases": [
+    "teradata database"
+   ]
+  },
+  {
+   "term": "testng",
+   "aliases": [
+    "testng"
+   ]
+  },
+  {
+   "term": "tomcat",
+   "aliases": [
+    "apache tomcat",
+    "tomcat"
+   ]
+  },
+  {
+   "term": "tool command language tcl",
+   "aliases": [
+    "tool command language tcl"
+   ]
+  },
+  {
+   "term": "trackwise",
+   "aliases": [
+    "sparta systems trackwise",
+    "trackwise"
+   ]
+  },
+  {
+   "term": "transact-sql",
+   "aliases": [
+    "transact-sql"
+   ]
+  },
+  {
+   "term": "transportation management system tms",
+   "aliases": [
+    "transportation management system tms"
+   ]
+  },
+  {
+   "term": "turbotax",
+   "aliases": [
+    "intuit turbotax",
+    "turbotax"
+   ]
+  },
+  {
+   "term": "unix",
+   "aliases": [
+    "unix"
+   ]
+  },
+  {
+   "term": "unix shell",
+   "aliases": [
+    "unix shell"
+   ]
+  },
+  {
+   "term": "unreal engine",
+   "aliases": [
+    "unreal technology unreal engine",
+    "unreal engine"
+   ]
+  },
+  {
+   "term": "vba",
+   "aliases": [
+    "microsoft visual basic for applications vba",
+    "visual basic for applications vba",
+    "vba"
+   ]
+  },
+  {
+   "term": "verilog",
+   "aliases": [
+    "verilog"
+   ]
+  },
+  {
+   "term": "vhdl",
+   "aliases": [
+    "very high speed integrated circuit vhsic hardware description language vhdl simulation",
+    "vhdl"
+   ]
+  },
+  {
+   "term": "visio",
+   "aliases": [
+    "microsoft visio",
+    "visio"
+   ]
+  },
+  {
+   "term": "vissim",
+   "aliases": [
+    "ptv vissim",
+    "vissim"
+   ]
+  },
+  {
+   "term": "visual basic",
+   "aliases": [
+    "microsoft visual basic",
+    "visual basic"
+   ]
+  },
+  {
+   "term": "visual studio",
+   "aliases": [
+    "microsoft visual studio",
+    "visual studio"
+   ]
+  },
+  {
+   "term": "vue.js",
+   "aliases": [
+    "vue.js"
+   ]
+  },
+  {
+   "term": "webex",
+   "aliases": [
+    "cisco webex",
+    "webex"
+   ]
+  },
+  {
+   "term": "websphere mq",
+   "aliases": [
+    "ibm websphere mq",
+    "websphere mq"
+   ]
+  },
+  {
+   "term": "westlaw",
+   "aliases": [
+    "thomson reuters westlaw",
+    "westlaw"
+   ]
+  },
+  {
+   "term": "windows server",
+   "aliases": [
+    "microsoft windows server",
+    "windows server"
+   ]
+  },
+  {
+   "term": "wms",
+   "aliases": [
+    "warehouse management system wms",
+    "warehouse management system",
+    "wms"
+   ]
+  },
+  {
+   "term": "wordpress",
+   "aliases": [
+    "wordpress"
+   ]
+  },
+  {
+   "term": "workforce timekeeper",
+   "aliases": [
+    "kronos workforce timekeeper",
+    "workforce timekeeper"
+   ]
+  },
+  {
+   "term": "xactimate",
+   "aliases": [
+    "xactware xactimate",
+    "xactimate"
+   ]
+  },
+  {
+   "term": "xml",
+   "aliases": [
+    "extensible markup language xml",
+    "extensible markup language",
+    "xml"
+   ]
+  },
+  {
+   "term": "yardi",
+   "aliases": [
+    "yardi"
+   ]
+  },
+  {
+   "term": "zemax",
+   "aliases": [
+    "zemax"
+   ]
+  }
+ ]
+}

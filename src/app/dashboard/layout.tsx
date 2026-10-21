@@ -1,20 +1,20 @@
+import { RetuneHost } from '@/components/dashboard/RetuneMoment'
+import { CandidatePlusUnlockLoader } from '@/components/dashboard/CandidatePlusUnlockLoader'
 import type { Metadata } from 'next'
+import { accessFor } from '@/lib/access/grants'
 import { Suspense } from 'react'
-import { DashboardNav } from '@/components/dashboard/DashboardNav'
 import { CollegeBar } from '@/components/higher-ed/CollegeBar'
+import { ProgramBar } from '@/components/dashboard/ProgramBar'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
-import { prisma } from '@/lib/prisma'
+import { countOpenRequestsForCandidate } from '@/lib/documents/requests'
 import { getSupportNetworkUnreadCount } from '@/lib/community/unread-count'
 import { getCandidateUnreadCount } from '@/lib/messaging/threads'
 import { getPeerUnreadCount } from '@/lib/messaging/peer-threads'
 import { IdentifyUser } from '@/lib/posthog/IdentifyUser'
 import { DashboardActivityTracker } from '@/components/dashboard/DashboardActivityTracker'
-import { buildPortfolioAssetChecklist } from '@/lib/portfolio/asset-checklist'
 import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { HashScrollFix } from '@/components/dashboard/HashScrollFix'
-import { getHardGateStatus, isGmailConnected } from '@/lib/dashboard/access-gate'
-import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
-import { isActiveMember } from '@/lib/membership/subscription'
+import { getHardGateStatus } from '@/lib/dashboard/access-gate'
 import { HardGateGate } from '@/components/dashboard/HardGateGate'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { CheckInPromptDialog } from '@/components/dashboard/CheckInPromptDialog'
@@ -22,8 +22,15 @@ import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
-import { countNewStrongCompanies } from '@/lib/companies/new-strong-companies'
+import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
+import { getFreshJobsPeek } from '@/lib/jobs/fresh-jobs-peek'
+import { timed } from '@/lib/perf/timed'
+import { RedesignNav } from '@/components/dashboard/RedesignNav'
+import { RedesignParts } from '@/components/dashboard/RedesignParts'
+import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
+import { checkInDue, effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
+import { menuMode } from '@/lib/journey/menu'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -41,111 +48,58 @@ export const maxDuration = 300
 // Every dashboard page.tsx calls getDashboardData() again for its own data
 // (now free — see that function's cache() wrap), but the 7 queries below are
 // ONLY for nav badge counts, nothing else on the page needs them. Isolated
-// into their own Suspense boundary so DashboardNav (and {children}, which
+// into their own Suspense boundary so RedesignNav (and {children}, which
 // starts streaming independently once this layout returns) don't wait on
 // them — the nav renders immediately with its badges filled in a beat
 // later, instead of every page's first paint blocking on badge math.
 async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
   const [
-    narrativeCount,
-    marketRealitySnapshotCount,
-    learningBadgeCount,
     supportNetworkUnreadCount,
     candidateMessagesUnreadCount,
     peerUnreadCount,
     needsFollowUpList,
-    activeContactsCount,
-    gmailConnected,
-    latestSeniorityBand,
-    activeMember,
     helpRepliesWaiting,
-    newStrongCompaniesCount,
-    resumeCount,
-    coverLetterCount,
-    marketRealityReportCount,
-    workSampleCount,
-    completedReferenceCount,
+    freshJobsCount,
+    documentRequestCount,
     profile,
   ] = await Promise.all([
-    prisma.candidateNarrative.count({ where: { candidateId: profileId } }),
-    prisma.marketRealitySnapshot.count({ where: { candidateId: profileId } }),
-    prisma.learningBadge.count({ where: { candidateId: profileId } }),
-    getSupportNetworkUnreadCountForBadge(profileId),
-    getCandidateUnreadCount(profileId),
-    getPeerUnreadCount(profileId),
-    getNeedsFollowUpList(profileId),
-    prisma.supportNetworkContact.count({ where: { candidateId: profileId, removedAt: null } }),
-    isGmailConnected(profileId),
-    getLatestSeniorityBand(profileId),
-    isActiveMember(profileId),
-    getHelpRepliesWaiting(profileId),
-    getNewStrongCompaniesCountForBadge(profileId),
-    // Counts, not the wide profile: the nav badge only needs how many of each exist.
-    prisma.resume.count({ where: { candidateId: profileId } }),
-    prisma.jobPosting.count({ where: { candidateId: profileId, AND: [{ coverLetter: { not: null } }, { coverLetter: { not: '' } }] } }),
-    prisma.marketRealityReport.count({ where: { candidateId: profileId } }),
-    prisma.workSample.count({ where: { candidateId: profileId } }),
-    prisma.reference.count({ where: { candidateId: profileId, status: 'COMPLETED' } }),
+    timed('layout', 'supportNetworkUnread', profileId, getSupportNetworkUnreadCountForBadge(profileId)),
+    timed('layout', 'candidateUnread', profileId, getCandidateUnreadCount(profileId)),
+    timed('layout', 'peerUnread', profileId, getPeerUnreadCount(profileId)),
+    timed('layout', 'needsFollowUp', profileId, getNeedsFollowUpList(profileId)),
+    timed('layout', 'helpReplies', profileId, getHelpRepliesWaiting(profileId)),
+    timed('layout', 'freshJobs', profileId, getFreshJobsCountForBadge()),
+    timed('layout', 'documentRequests', profileId, countOpenRequestsForCandidate(profileId)),
     getDashboardProfile(),
   ])
-  // Sidebar's single "Messages" badge covers all 4 relationship tabs
-  // (Peers/Coaches/Recruiters/Hiring Managers) now that they're one surface —
-  // see community/page.tsx's MessagesTab.
+  // One badge per place. Network adds up its three live signals: people to
+  // follow up with, unread messages, and unread community posts.
   const messagesUnreadCount = candidateMessagesUnreadCount + peerUnreadCount
-  // Same list network/page.tsx's NeedsFollowUpCard renders — its header
-  // shows this exact count so the badge and the page always agree on what
-  // it means, instead of a bare number with no visible referent.
   const needsFollowUpCount = needsFollowUpList.length
-  // Fails closed (null -> hidden) when there's no resume analysis yet, same
-  // direction as EQoverIQ's own "never offer this to a new grad" nav gate.
-  const isEarlyCareer = latestSeniorityBand ? latestSeniorityBand === 'EARLY' : null
 
-  // See buildPortfolioAssetChecklist — the Portfolio page computes this
-  // same checklist from the same shape of inputs, so the nav badge and the
-  // page's own "X of 8 assets" count can never disagree.
-  const portfolioAssetCount = buildPortfolioAssetChecklist({
-    hasResume: resumeCount > 0,
-    hasCoverLetter: coverLetterCount > 0,
-    hasNarrative: narrativeCount > 0,
-    hasMarketRealityReport: marketRealityReportCount > 0,
-    hasMarketRealitySnapshot: marketRealitySnapshotCount > 0,
-    hasWorkSample: workSampleCount > 0,
-    hasCompletedReference: completedReferenceCount > 0,
-    hasLearningBadge: learningBadgeCount > 0,
-  }).filter((a) => a.done).length
-
+  const access = await accessFor(profileId)
   return (
     <>
-    <DashboardNav
-      portfolioAssetCount={portfolioAssetCount}
-      supportNetworkUnreadCount={supportNetworkUnreadCount}
-      messagesUnreadCount={messagesUnreadCount}
-      needsFollowUpCount={needsFollowUpCount}
-      activeContactsCount={activeContactsCount}
-      hasEmailConnection={gmailConnected}
-      linkedInConnected={isLinkedInConnected(profile)}
-      skillsAssessmentCompleted={profile.skillsAssessmentCompletedAt !== null}
-      isEarlyCareer={isEarlyCareer}
-      isActiveMember={activeMember}
-      helpRepliesWaiting={helpRepliesWaiting}
-      newStrongCompaniesCount={newStrongCompaniesCount}
-      showInWork={isInWorkMember(profile)}
-    />
-    {/* Help & feedback, in the corner of every portal page. */}
-    <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
+      <RedesignNav
+        badges={{ jobs: freshJobsCount, network: needsFollowUpCount + messagesUnreadCount + supportNetworkUnreadCount, help: helpRepliesWaiting, account: documentRequestCount }}
+        employed={isInWorkMember(profile)}
+        earlyCareer={earlyCareerAudience(profile) !== null}
+        // The menu does not lock tabs behind connecting Gmail: connecting is offered where it helps, never required.
+        locks={{ hasEmailConnection: true, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
+        paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
+        moneyHelp={profile.moneyHelp}
+      />
+      {/* Help & feedback, in the corner of every portal page. */}
+      <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />
     </>
   )
 }
 
-// The nav badge is decoration: a failure or slow first compute must never take
-// the whole dashboard down, so any error reads as "no new signals".
-async function getNewStrongCompaniesCountForBadge(profileId: string): Promise<number> {
-  try {
-    return await countNewStrongCompanies(profileId)
-  } catch (error) {
-    console.error('Failed to count new strong companies for nav badge:', error)
-    return 0
-  }
+// New jobs in the member's field from the last 72 hours: one small query (fresh-jobs-peek.ts),
+// never the whole board. The badge is decoration: any error reads as "nothing new".
+async function getFreshJobsCountForBadge(): Promise<number> {
+  const profile = await getDashboardProfile()
+  return (await getFreshJobsPeek(profile.primaryFunction, profile.secondaryFunction)).count
 }
 
 // getSupportNetworkUnreadCount needs a profile field beyond just the id
@@ -156,26 +110,31 @@ async function getSupportNetworkUnreadCountForBadge(profileId: string) {
   const profile = await getDashboardProfile()
   return getSupportNetworkUnreadCount(profileId, profile.communityLastViewedAt)
 }
-// The EQoverIQ nav gate's real signal — resume-derived, not self-reported,
-// so it's the strongest always-populated signal for whether a candidate
-// reads as entry-level. Re-derives this one-line lookup inline rather than
-// importing a shared helper, matching this codebase's own convention for a
-// query this small (see segmentation.ts/dossier-unlock.ts/community/groups.ts,
-// each of which does the same rather than factoring out a helper module).
-async function getLatestSeniorityBand(profileId: string): Promise<string | null> {
-  const analysis = await prisma.resumeAnalysis.findFirst({
-    where: { candidateId: profileId },
-    orderBy: { createdAt: 'desc' },
-    select: { seniorityBand: true },
-  })
-  return analysis?.seniorityBand ?? null
-}
-
 // The check-in pop-up that opens with the app (a few times a week). Its own
 // Suspense boundary, so the schedule check never holds up the page.
 async function CheckInPromptLoader({ profileId }: { profileId: string }) {
   const prompt = await getCheckInPrompt(profileId).catch(() => null)
-  return prompt ? <CheckInPromptDialog {...prompt} /> : null
+  if (prompt) return <CheckInPromptDialog {...prompt} />
+  // Nothing else is due, so ask "Still searching?" at the stage's pace. Never
+  // two pop-ups at once.
+  const profile = await getDashboardProfile()
+  const stage = effectiveStage(profile)
+  if (!stage || stage === 'PAUSED' || !checkInDue(profile)) return null
+  return <JourneyCheckInDialog stageLabel={getStage(stage).label} />
+}
+
+// The part switches (Jobs, Not posted yet, ...) at the top of a page, with the same locks as the menu.
+async function RedesignPartsWithLocks({ profileId }: { profileId: string }) {
+  const [profile, access] = await Promise.all([getDashboardProfile(), accessFor(profileId)])
+  return (
+    <RedesignParts
+      employed={isInWorkMember(profile)}
+      earlyCareer={earlyCareerAudience(profile) !== null}
+      locks={{ hasEmailConnection: true, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
+      paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
+      moneyHelp={profile.moneyHelp}
+    />
+  )
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -188,18 +147,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // check itself happens client-side in HardGateGate (usePathname(), not a
   // middleware-forwarded header) — see that component for why. Search
   // Strategy is the only thing this gate checks — Gmail/LinkedIn connection
-  // is a separate, non-blocking, per-feature unlock (DashboardNav.tsx), not
+  // is a separate, non-blocking, per-feature unlock (RedesignNav.tsx), not
   // a prerequisite to anything.
   const hardGateStatus = profile.subjectToHardGate ? getHardGateStatus(profile) : 'exempt'
 
   const personName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.email || 'You'
 
   return (
-    <div className="theme-candidate min-h-screen">
+    <div className="theme-candidate theme-redesign min-h-screen">
       <IdentifyUser candidateId={profile.id} email={profile.email} />
       <DashboardActivityTracker />
+      {/* "Retuning your search": shown after any save that changes matching, on whatever page it lands. */}
+      <RetuneHost />
       <HashScrollFix />
-      {/* lg:pl matches DashboardNav's fixed w-72 sidebar (see DashboardNav.tsx)
+      {/* lg:pl matches RedesignNav's fixed w-72 sidebar (see RedesignNav.tsx)
           — without it, the sidebar paints over this banner's left edge on
           desktop and can hide the "Switch to →" button underneath it. */}
       <RoleContextBanner
@@ -212,19 +173,23 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Suspense fallback={null}>
         <CollegeBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />
       </Suspense>
+      {/* Outplacement: the employer's brand, when they enrolled this person and set a look. */}
+      <Suspense fallback={null}>
+        <ProgramBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />
+      </Suspense>
       <Suspense
         fallback={
-          <DashboardNav
-            portfolioAssetCount={0}
-            supportNetworkUnreadCount={0}
-            messagesUnreadCount={0}
-            needsFollowUpCount={0}
-            activeContactsCount={0}
-          />
+          <RedesignNav employed={false} earlyCareer={false} locks={{ hasEmailConnection: true, skillsAssessmentCompleted: true }} paidAccess={{ coaching: true, recruiters: true }} moneyHelp={null} />
         }
       >
         <DashboardNavWithBadges profileId={profile.id} />
       </Suspense>
+      {/* The one-time "Candidate+ unlocked" screen, with the member's own numbers. */}
+      {hardGateStatus !== 'search_strategy_required' && (
+        <Suspense fallback={null}>
+          <CandidatePlusUnlockLoader profileId={profile.id} />
+        </Suspense>
+      )}
       {/* Not over the Search Strategy gate: that screen has one job. */}
       {hardGateStatus !== 'search_strategy_required' && (
         <Suspense fallback={null}>
@@ -237,11 +202,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
           viewport on short pages (e.g. the loading skeleton) — without it,
           the body's own --background (a light gray-blue, see globals.css)
           shows through below wherever this element's content ends. */}
-      <main className="min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
-        <div className="mx-auto max-w-4xl">
+      <main className="nc-main min-h-screen bg-white px-6 pt-12 pb-24 lg:pb-12 lg:pl-[calc(18rem+1.5rem)]">
+        <div className="nc-main-inner mx-auto max-w-4xl">
           <HardGateGate subjectToHardGate={profile.subjectToHardGate} status={hardGateStatus}>
             <Suspense fallback={null}>
               <GoogleConnectResultBanner />
+            </Suspense>
+            <Suspense fallback={null}>
+              <RedesignPartsWithLocks profileId={profile.id} />
             </Suspense>
             {children}
           </HardGateGate>

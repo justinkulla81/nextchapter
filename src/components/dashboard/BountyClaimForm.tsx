@@ -13,9 +13,9 @@ export function BountyClaimForm() {
 
   if (state?.submitted) {
     return (
-      <div className="rounded-lg border border-success/30 bg-success/5 p-6">
-        <p className="text-lg font-semibold text-foreground">Congratulations!</p>
-        <p className="mt-2 text-sm text-foreground">
+      <div className="space-y-1">
+        <p className="font-display text-xl font-semibold text-ink">Congratulations!</p>
+        <p className="max-w-2xl text-base text-ink">
           Thank you for letting us know. We&apos;ll be reaching out with confirmation and payment
           next steps.
         </p>

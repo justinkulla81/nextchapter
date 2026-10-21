@@ -95,7 +95,7 @@ describe('employer AI-layoff disclosure readiness', () => {
     expect(idx('a-ai-rules')).toBeGreaterThan(idx('next'))
     const text = ['e-ai-rules', 'e-disclosure', 'a-ai-rules'].map((id) => textOf(deck, id)).join(' ')
     expect(text).toMatch(/SB 947/)
-    expect(text).toMatch(/Connecticut SB 5/)
+    expect(text).toMatch(/Connecticut Public Act 26-15/)
     expect(text).toMatch(/October 26/)
     expect(text).not.toMatch(/guarantee|ensure compliance|you must|will keep you compliant|\$\d/i)
   })

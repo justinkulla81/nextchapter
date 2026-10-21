@@ -6,6 +6,13 @@ import { ResumeUploadForm } from '@/components/dashboard/ResumeUploadForm'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { checkAndDeleteDuplicateProfile, findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { redirectIfNotCandidate } from '@/lib/auth/redirect-non-candidate'
+import { BundleShell } from '@/components/onboarding/bundles/BundleShell'
+import { PayoffPanel } from '@/components/onboarding/bundles/PayoffPanel'
+import { PrimaryLink } from '@/components/onboarding/bundles/PrimaryLink'
+import { flowOfProfile } from '@/lib/onboarding/flag'
+import { computePayoff } from '@/lib/onboarding/payoff'
+import { prefilledAnswers } from '@/lib/onboarding/prefilled'
+import { BUNDLE_ROUTE } from '@/lib/onboarding/bundles'
 
 export default async function OnboardingResumePage() {
   const user = await getCurrentUser()
@@ -21,6 +28,8 @@ export default async function OnboardingResumePage() {
   // form's action (uploadResume) lazily starts an anonymous session on
   // submit, so we don't need to create one just to render this page.
   const profile = user ? await getOrCreateCandidateProfile(user.id) : null
+  // Members on the short question bundles (O2) get the same upload and the same duplicate-account checks, in the bundle's frame.
+  const bundles = flowOfProfile(profile, user?.email) === 'bundles'
 
   if (profile) {
     if (profile.registrationCompletedAt) {
@@ -82,8 +91,29 @@ export default async function OnboardingResumePage() {
       // is reachable at all (see requireCandidateId in onboarding/actions.ts),
       // so the next step from here is always the confirm screen (§10's new
       // 4-screen sequence between resume upload and the contract screen).
-      redirect('/onboarding/confirm')
+      if (!bundles) redirect('/onboarding/confirm')
+
+      // Bundles: show what the résumé already answered, then let them go on. Going back here stays possible.
+      const prefilled = prefilledAnswers(profile)
+      return (
+        <BundleShell id="resume" title="We read your résumé.">
+          <PayoffPanel payoff={computePayoff('resume', {}, { journey: null, prefilled })} label="What you gained" />
+          <div className="flex flex-wrap items-center gap-5">
+            <PrimaryLink href={BUNDLE_ROUTE.aiming}>Continue</PrimaryLink>
+            <p className="text-sm text-muted-foreground">Next: check three answers we read from it.</p>
+          </div>
+        </BundleShell>
+      )
     }
+  }
+
+  if (bundles) {
+    return (
+      <BundleShell id="resume" title="Start with your résumé">
+        <ResumeUploadForm showNarrativePicker={false} resumeBookOptIn={profile?.resumeBookOptIn ?? true} />
+        <PayoffPanel payoff={computePayoff('resume', {}, { journey: null, prefilled: [] })} />
+      </BundleShell>
+    )
   }
 
   return (

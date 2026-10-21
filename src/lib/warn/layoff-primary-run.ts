@@ -73,7 +73,7 @@ async function addChro(org: { id: string; name: string; website: string | null }
   if (!domain) return null
   const acct = await hunterAccount().catch(() => null)
   if (!acct || acct.requests.searches.available - acct.requests.searches.used <= HUNTER_RESERVE) return null
-  const found = await hunterDomainSearch(domain, 10).catch(() => null)
+  const found = await hunterDomainSearch(domain, 10, 'hr').catch(() => null)
   const hr = (found?.people ?? [])
     .filter((p) => p.firstName && p.lastName && isHrLeaderTitle(p.position))
     .sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0))[0]

@@ -14,14 +14,16 @@ export const metadata: Metadata = { title: 'Screening Questions' }
 const RED_FLAGS_POINTS = estimateActionEffort({ actionType: 'RED_FLAGS_CONFIRMED' }).points
 
 // One of three sub-pages under the My Profile hub (see
-// /dashboard/profile/page.tsx). Shared with your coach and recruiter/
-// employer contacts — helps them match you to roles you're actually
-// eligible for, and flag issues before an offer, not after. Section order
+// /dashboard/profile/page.tsx). Private to the member (affiliations/
+// visibility.ts: screening is visible to no affiliation); it only sharpens
+// their own plan (redFlagGuidance in journey/engagement.ts). Section order
 // puts the most sensitive item (demographic self-ID — protected-class
 // data) in the middle, flanked by the two less-invasive sections.
 export default async function ScreeningPage() {
   const profile = await getDashboardProfile()
-  const redFlagsAnswered = !!profile.redFlagsBonusAt
+  // Reopens for members who answered before clearance and licenses were added here,
+  // with their earlier answers filled in (the one-time bonus is never paid twice).
+  const redFlagsAnswered = !!profile.redFlagsBonusAt && profile.clearanceLevel !== null && profile.licensesAnsweredAt !== null
 
   return (
     <div className="space-y-8">
@@ -31,8 +33,9 @@ export default async function ScreeningPage() {
         </Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">Screening Questions</h1>
         <p className="mt-1 text-muted-foreground">
-          Shared with your coach and recruiter/employer contacts — helps them match you to roles
-          you&apos;re actually eligible for, and flag issues before an offer, not after.
+          Private to you. Nobody else sees these answers, not your coach, a recruiter, a college or an
+          employer. We use them to sharpen your own weekly plan and warn you about roles you may not be
+          eligible for, before an offer and not after.
         </p>
         <PageHeaderBoxes pageKey="profile" candidateId={profile.id} />
       </div>
@@ -43,7 +46,7 @@ export default async function ScreeningPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Screening questions
             </CardTitle>
-            {!redFlagsAnswered && (
+            {!profile.redFlagsBonusAt && (
               <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
                 +{RED_FLAGS_POINTS} pts
               </span>
@@ -52,7 +55,23 @@ export default async function ScreeningPage() {
         </CardHeader>
         <CardContent>
           <AnsweredConfirmSection answered={redFlagsAnswered}>
-            <RedFlagsQuestionsForm currentJobStatus={profile.currentJobStatus} />
+            <RedFlagsQuestionsForm
+              currentJobStatus={profile.currentJobStatus}
+              prefilled={profile.resumePrefilledFields}
+              initial={{
+                firedForCause: profile.firedForCause,
+                hasRestrictiveCovenant: profile.hasRestrictiveCovenant,
+                restrictiveCovenantDetails: profile.restrictiveCovenantDetails,
+                willingToTakeBackgroundCheck: profile.willingToTakeBackgroundCheck,
+                willingToTakeDrugTest: profile.willingToTakeDrugTest,
+                wantsAnimalFriendlyWorkplace: profile.wantsAnimalFriendlyWorkplace,
+                clearanceLevel: profile.clearanceLevel,
+                clearanceActive: profile.clearanceActive,
+                clearancePolygraph: profile.clearancePolygraph,
+                licensesHeld: profile.licensesHeld,
+                licensesAnsweredAt: profile.licensesAnsweredAt,
+              }}
+            />
           </AnsweredConfirmSection>
         </CardContent>
       </Card>
@@ -87,6 +106,7 @@ export default async function ScreeningPage() {
               workAuthorization={profile.workAuthorization}
               visaStatus={profile.visaStatus}
               confirmedAt={profile.workAuthConfirmedAt}
+              prefilled={profile.resumePrefilledFields}
             />
           </AnsweredConfirmSection>
         </CardContent>

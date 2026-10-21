@@ -16,6 +16,18 @@ const RETRY_WINDOW_MS = 6 * 3_600_000
 const MAX_RETRIES_PER_TICK = 1
 /** The watchdog's own function limit is 300s; leave room to finish after retries. */
 const RETRY_BUDGET_MS = 200_000
+/**
+ * CronJobAlert.reason for a job that has never run: the row's alertedAt is when
+ * the watchdog first saw it. A job added in this deploy gets its full allowed
+ * gap from that moment before it counts as overdue, instead of being judged
+ * against the whole ledger's age (which flagged every new cron within 15 min).
+ */
+const FIRST_SEEN = 'first_seen'
+
+/** "1 background job needs attention" / "2 background jobs need attention". */
+export function alertSubject(count: number): string {
+  return `${count} background job${count === 1 ? ' needs' : 's need'} attention`
+}
 
 export interface JobStatus {
   job: string
@@ -27,10 +39,9 @@ export interface JobStatus {
   lastTrigger: string | null
 }
 
-export async function loadJobStatuses(now = new Date()): Promise<JobStatus[]> {
+export async function loadJobStatuses(now = new Date(), opts: { recordFirstSeen?: boolean } = {}): Promise<JobStatus[]> {
   const schedules = cronSchedules()
-  const [first, latestRuns] = await Promise.all([
-    prisma.cronRun.findFirst({ orderBy: { startedAt: 'asc' }, select: { startedAt: true } }),
+  const [latestRuns] = await Promise.all([
     Promise.all(
       schedules.map((s) =>
         prisma.cronRun.findFirst({
@@ -41,9 +52,25 @@ export async function loadJobStatuses(now = new Date()): Promise<JobStatus[]> {
       ),
     ),
   ])
+  // Jobs with no run yet are timed from when the watchdog first saw them.
+  const neverRan = schedules.filter((_, i) => !latestRuns[i]).map((s) => s.job)
+  const seen = neverRan.length
+    ? await prisma.cronJobAlert.findMany({ where: { job: { in: neverRan }, reason: FIRST_SEEN } })
+    : []
+  const firstSeen = new Map(seen.map((r) => [r.job, r.alertedAt]))
+  if (opts.recordFirstSeen) {
+    const fresh = neverRan.filter((j) => !firstSeen.has(j))
+    if (fresh.length) {
+      await prisma.cronJobAlert.createMany({
+        data: fresh.map((job) => ({ job, reason: FIRST_SEEN, alertedAt: now })),
+        skipDuplicates: true,
+      })
+      for (const j of fresh) firstSeen.set(j, now)
+    }
+  }
   return schedules.map((s, i) => {
     const latest = latestRuns[i]
-    const { health, detail } = assessJob(s, latest, first?.startedAt ?? null, now)
+    const { health, detail } = assessJob(s, latest, latest ? null : firstSeen.get(s.job) ?? now, now)
     return { job: s.job, schedule: s.schedule, health, detail, lastStartedAt: latest?.startedAt ?? null, lastDurationMs: latest?.durationMs ?? null, lastTrigger: latest?.trigger ?? null }
   })
 }
@@ -61,7 +88,7 @@ export async function runJobWatchdog(now = new Date()) {
     data: { status: 'TIMED_OUT', finishedAt: now, error: 'Cut off at the function time limit before finishing.' },
   })
 
-  let statuses = await loadJobStatuses(now)
+  let statuses = await loadJobStatuses(now, { recordFirstSeen: true })
   let bad = statuses.filter((s) => UNHEALTHY.has(s.health))
 
   // One automatic retry per failure, for jobs that are safe to repeat, and only
@@ -80,7 +107,12 @@ export async function runJobWatchdog(now = new Date()) {
   bad = statuses.filter((s) => UNHEALTHY.has(s.health))
   const badJobs = new Set(bad.map((s) => s.job))
 
-  await prisma.cronJobAlert.deleteMany({ where: { job: { notIn: [...badJobs] } } })
+  // Forget alerts for recovered jobs, and first-seen markers once a job has run.
+  // A first-seen marker for a job still waiting on its first run is kept.
+  const ranJobs = statuses.filter((s) => s.lastStartedAt).map((s) => s.job)
+  await prisma.cronJobAlert.deleteMany({
+    where: { OR: [{ job: { notIn: [...badJobs] }, reason: { not: FIRST_SEEN } }, { job: { in: ranJobs }, reason: FIRST_SEEN }] },
+  })
   const prior = await prisma.cronJobAlert.findMany({ where: { job: { in: [...badJobs] } } })
   const priorByJob = new Map(prior.map((p) => [p.job, p]))
   const toAlert = bad.filter((s) => {
@@ -94,10 +126,10 @@ export async function runJobWatchdog(now = new Date()) {
       const rows = toAlert
         .map((s) => `<li><strong>${esc(s.job)}</strong> — ${esc(s.health.replace('_', ' '))}. ${esc(s.detail)}</li>`)
         .join('')
-      const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({
+      const { error } = await createResend(process.env.RESEND_API_KEY, 'admin').emails.send({
         from: 'NextChapter <support@launchyournextchapter.com>',
         to: ALERT_TO,
-        subject: `${toAlert.length} background job${toAlert.length === 1 ? '' : 's'} need attention`,
+        subject: alertSubject(toAlert.length),
         html: `<p>These scheduled jobs are not completing:</p><ul>${rows}</ul><p><a href="${SITE}/support/admin/job-health">Open job health</a></p>`,
       })
       if (error) console.error('Job watchdog email not sent', error)

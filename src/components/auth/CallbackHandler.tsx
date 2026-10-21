@@ -56,7 +56,8 @@ export function CallbackHandler() {
   // An alum joining from their college's email (src/lib/higher-ed/join.ts):
   // only ever a college welcome page, so this can't become an open redirect.
   const joinTo = searchParams.get('next') === 'institution-join' ? searchParams.get('joinTo') : null
-  const institutionJoinPath = joinTo && /^\/i\/[a-z0-9-]+\/welcome(\?t=[A-Za-z0-9_-]+)?$/.test(joinTo) ? joinTo : null
+  // The college join welcome, or a workforce org's member-company invite.
+  const institutionJoinPath = joinTo && (/^\/i\/[a-z0-9-]+\/welcome(\?t=[A-Za-z0-9_-]+)?$/.test(joinTo) || /^\/i\/[a-z0-9-]+\/member\/[A-Za-z0-9_-]+$/.test(joinTo)) ? joinTo : null
   const inviteToken = searchParams.get('inviteToken')
   // Every non-candidate portal now has its own session cookie (see
   // src/lib/supabase/portal.ts) — this is the single shared handler for
@@ -79,7 +80,9 @@ export function CallbackHandler() {
             ? 'eqoveriq'
             : nextIsOutplacementOrgInvite
               ? 'employer'
-              : undefined
+              : nextIsInstitutionInvite || (institutionJoinPath && /\/member\//.test(institutionJoinPath))
+                ? 'org'
+                : undefined
   // Every real token_hash link that lands here comes from CreateAccountForm,
   // which always sets next=secure-account — so skip the extra "Continue"
   // click and go straight to the password form, which consumes the token

@@ -13,6 +13,13 @@ import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
+import { getLifetimeEffortMinutes, sumEffortMinutes } from '@/lib/scoring/effort-minutes'
+import {
+  effortTargetFor,
+  DOSSIER_UNLOCK_REFERENCE_TARGET,
+  DOSSIER_UNLOCK_OUTREACH_TARGET,
+  DOSSIER_UNLOCK_APPLICATION_TARGET,
+} from '@/lib/scoring/dossier-targets'
 import type { SeniorityBand } from '@/lib/scoring/resume-analysis/types'
 
 // §7.3 — band adjustment. Executive is told applications are lowest-yield
@@ -74,9 +81,7 @@ export interface DossierCompleteness {
 export const computeDossierCompleteness = cache(computeDossierCompletenessUncached)
 
 async function computeDossierCompletenessUncached(candidateId: string): Promise<DossierCompleteness> {
-  const band = (await getSeniorityBand(candidateId)) ?? 'MID' // unknown band defaults to the non-Executive target set — never assume the higher-target Executive band without evidence
-  const outreachTarget = OUTREACH_TARGET_BY_BAND[band]
-  const applicationTarget = APPLICATION_TARGET_BY_BAND[band]
+  const band = await getSeniorityBand(candidateId)
 
   const [
     completedReferenceCount,
@@ -85,25 +90,70 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
     hasPersonalityProfile,
     outreachCount,
     applicationCount,
+    effortMinutes,
   ] = await Promise.all([
     prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
-      select: {
-        skillsAssessmentCompletedAt: true,
-        profileConfirmedAt: true,
-        industryConfirmedAt: true,
-        functionConfirmedAt: true,
-        salaryConfirmedAt: true,
-        workAuthConfirmedAt: true,
-        linkedInConfirmedAt: true,
-      },
+      select: COMPLETENESS_PROFILE_SELECT,
     }),
     prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
     prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
     prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches network/page.tsx's existing pattern
     prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window — matches application-trends.ts's existing pattern
+    getLifetimeEffortMinutes(candidateId),
   ])
+
+  return buildDossierCompleteness({
+    band,
+    completedReferenceCount,
+    profile,
+    hasOperatingProfile: Boolean(hasOperatingProfile),
+    hasPersonalityProfile: Boolean(hasPersonalityProfile),
+    outreachCount,
+    applicationCount,
+    effortMinutes,
+  })
+}
+
+const COMPLETENESS_PROFILE_SELECT = {
+  skillsAssessmentCompletedAt: true,
+  effortMinutesTargetOverride: true,
+  profileConfirmedAt: true,
+  industryConfirmedAt: true,
+  functionConfirmedAt: true,
+  salaryConfirmedAt: true,
+  workAuthConfirmedAt: true,
+  linkedInConfirmedAt: true,
+} as const
+
+interface CompletenessInputs {
+  band: SeniorityBand | null
+  completedReferenceCount: number
+  profile: {
+    skillsAssessmentCompletedAt: Date | null
+    effortMinutesTargetOverride: number | null
+    profileConfirmedAt: Date | null
+    industryConfirmedAt: Date | null
+    functionConfirmedAt: Date | null
+    salaryConfirmedAt: Date | null
+    workAuthConfirmedAt: Date | null
+    linkedInConfirmedAt: Date | null
+  }
+  hasOperatingProfile: boolean
+  hasPersonalityProfile: boolean
+  outreachCount: number
+  applicationCount: number
+  effortMinutes: number
+}
+
+// The pure half of the completeness check, shared by the single-candidate and
+// batched loaders so the two can never disagree.
+export function buildDossierCompleteness(input: CompletenessInputs): DossierCompleteness {
+  const { completedReferenceCount, profile, hasOperatingProfile, hasPersonalityProfile, outreachCount, applicationCount, effortMinutes } = input
+  const resolvedBand = input.band ?? 'MID' // unknown band defaults to the non-Executive target set — never assume the higher-target Executive band without evidence
+  const outreachTarget = OUTREACH_TARGET_BY_BAND[resolvedBand]
+  const applicationTarget = APPLICATION_TARGET_BY_BAND[resolvedBand]
 
   // §7.2 item 2 — "100% personalization/profile," approximated from the
   // established one-time confirmation fields this codebase already tracks
@@ -119,7 +169,15 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
   ].filter((v) => v !== null).length
   const profileFieldsTotal = 6
 
+  const effortTarget = effortTargetFor(profile.effortMinutesTargetOverride)
   const requirements: DossierRequirement[] = [
+    {
+      key: 'effort',
+      label: `${effortTarget} minutes of search effort`,
+      met: effortMinutes >= effortTarget,
+      current: Math.min(effortMinutes, effortTarget),
+      target: effortTarget,
+    },
     {
       key: 'references',
       label: `${DOSSIER_REFERENCE_TARGET} references returned`,
@@ -137,7 +195,7 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
     {
       key: 'behavioralAssessments',
       label: 'Both behavioral assessments (Operating Profile + Personality Profile)',
-      met: Boolean(hasOperatingProfile) && Boolean(hasPersonalityProfile),
+      met: hasOperatingProfile && hasPersonalityProfile,
       current: (hasOperatingProfile ? 1 : 0) + (hasPersonalityProfile ? 1 : 0),
       target: 2,
     },
@@ -168,16 +226,77 @@ async function computeDossierCompletenessUncached(candidateId: string): Promise<
   return { requirements, metCount, totalCount: requirements.length, isComplete: metCount === requirements.length }
 }
 
+// One batched read for many candidates (the recruiter search list), returning
+// exactly what computeDossierCompleteness returns for each id: the same counts
+// and flags, grouped in the database instead of fetched candidate by candidate.
+// Ids without a profile are omitted (the single-candidate version throws).
+export async function computeDossierCompletenessMany(candidateIds: string[]): Promise<Map<string, DossierCompleteness>> {
+  const ids = [...new Set(candidateIds)]
+  const result = new Map<string, DossierCompleteness>()
+  if (ids.length === 0) return result
+
+  const [analyses, references, profiles, operating, personality, outreach, applications, sprints] = await Promise.all([
+    prisma.resumeAnalysis.findMany({
+      where: { candidateId: { in: ids } },
+      orderBy: { createdAt: 'desc' },
+      select: { candidateId: true, seniorityBand: true },
+    }),
+    prisma.reference.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids }, status: 'COMPLETED' }, _count: { _all: true } }),
+    prisma.candidateProfile.findMany({ where: { id: { in: ids } }, select: { id: true, ...COMPLETENESS_PROFILE_SELECT } }),
+    prisma.candidateAssessmentResponse.findMany({ where: { candidateId: { in: ids } }, distinct: ['candidateId'], select: { candidateId: true } }),
+    prisma.performanceAssessmentResponse.findMany({ where: { candidateId: { in: ids } }, distinct: ['candidateId'], select: { candidateId: true } }),
+    prisma.outreachLog.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids } }, _count: { _all: true } }),
+    prisma.jobPosting.groupBy({ by: ['candidateId'], where: { candidateId: { in: ids }, appliedAt: { not: null } }, _count: { _all: true } }),
+    prisma.weeklySprint.findMany({ where: { candidateId: { in: ids } }, select: { candidateId: true, committedActions: true } }),
+  ])
+
+  // Newest analysis first, so the first row seen per candidate is the latest.
+  const bandById = new Map<string, SeniorityBand | null>()
+  for (const a of analyses) {
+    if (!bandById.has(a.candidateId)) bandById.set(a.candidateId, (a.seniorityBand as SeniorityBand | undefined) ?? null)
+  }
+  const countOf = (rows: { candidateId: string; _count: { _all: number } }[]) =>
+    new Map(rows.map((r) => [r.candidateId, r._count._all]))
+  const referenceCounts = countOf(references)
+  const outreachCounts = countOf(outreach)
+  const applicationCounts = countOf(applications)
+  const hasOperating = new Set(operating.map((r) => r.candidateId))
+  const hasPersonality = new Set(personality.map((r) => r.candidateId))
+  const sprintsById = new Map<string, { committedActions: unknown }[]>()
+  for (const sprint of sprints) {
+    const list = sprintsById.get(sprint.candidateId)
+    if (list) list.push(sprint)
+    else sprintsById.set(sprint.candidateId, [sprint])
+  }
+
+  for (const { id, ...profile } of profiles) {
+    result.set(
+      id,
+      buildDossierCompleteness({
+        band: bandById.get(id) ?? null,
+        completedReferenceCount: referenceCounts.get(id) ?? 0,
+        profile,
+        hasOperatingProfile: hasOperating.has(id),
+        hasPersonalityProfile: hasPersonality.has(id),
+        outreachCount: outreachCounts.get(id) ?? 0,
+        applicationCount: applicationCounts.get(id) ?? 0,
+        effortMinutes: sumEffortMinutes(sprintsById.get(id) ?? []),
+      })
+    )
+  }
+  return result
+}
+
 // The real access gate — deliberately lighter than full Dossier
 // completeness above. "Complete" (computeDossierCompleteness) is the
 // aspirational, all-7-requirements checklist shown on the Portfolio page.
-// "Unlocked" is the actual bar for every feature gate that used to check
-// the old six-category letter grade (bounty claims, Exclusive Jobs,
-// Candidate+ postings, recruiter visibility, etc.) — real evidence and real
+// "Unlocked" (Candidate+: outreach, applications, search-effort minutes and one
+// assessment; references count toward Candidate+ Verified instead) is the actual
+// bar for every feature gate that used to check
+// the old six-category letter grade (bounty claims, the job extras —
+// who to contact, apply kit, explain-my-gaps —, recruiter visibility, etc.) — real evidence and real
 // effort, not a computed grade, per §7.1's governing principle.
-export const DOSSIER_UNLOCK_REFERENCE_TARGET = 3
-export const DOSSIER_UNLOCK_OUTREACH_TARGET = 5
-export const DOSSIER_UNLOCK_APPLICATION_TARGET = 5
+export { DOSSIER_UNLOCK_REFERENCE_TARGET, DOSSIER_UNLOCK_OUTREACH_TARGET, DOSSIER_UNLOCK_APPLICATION_TARGET }
 
 // Market Reality Redesign Part 2 — the alternate path to a full unlock:
 // achieving a real Market Reality B-or-better, OR consistently hitting
@@ -202,87 +321,155 @@ export async function hasAlternateUnlockPath(candidateId: string): Promise<Alter
     computeCurrentSprintStreak(candidateId, ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS),
   ])
 
+  // A strong Market Reality grade no longer opens Candidate+ on its own: the
+  // dossier proves effort, and a grade partly reflects pedigree. It is still
+  // reported (gradeMet) for display, but only a sustained weekly-goal streak
+  // is an alternate route.
   const gradeMet = component?.probabilityGrade === 'A' || component?.probabilityGrade === 'B'
   const streakMet = streak >= ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS
 
   return {
-    met: gradeMet || streakMet,
+    met: streakMet,
     gradeMet,
     streakMet,
-    reason: gradeMet
-      ? 'Unlocked — your Market Reality Assessment is a B or better.'
-      : streakMet
-        ? `Unlocked — a ${streak}-week Weekly Search Sprint streak.`
-        : 'not yet met',
+    reason: streakMet ? `Unlocked — a ${streak}-week Weekly Search Sprint streak.` : 'not yet met',
   }
 }
 
 export interface DossierUnlockStatus {
   unlocked: boolean
+  /** Shown for context only: references are no longer a Candidate+ requirement (owner, 2026-10-16); they count toward Candidate+ Verified. */
   referencesMet: boolean
   evidenceMet: boolean // at least one of: Operating Profile, Personality Profile, Skills Assessment
   effortMet: boolean // outreach AND applications both at/above target
+  minutesMet: boolean // lifetime search-effort minutes at/above target
+  effortMinutes: number
+  effortTarget: number // this member's target, which an admin may have overridden
   alternatePath: AlternateUnlockPath
   completedReferenceCount: number
   outreachCount: number
   applicationCount: number
   reason: string // plain-language — states what's still missing, or confirms unlock
+  /** When Candidate+ was first earned (kept from then on), and how; null when never earned. */
+  unlockedAt: Date | null
+  unlockSource: CandidatePlusSource | null
+  /** An admin removed Candidate+ (only an admin can). */
+  revoked: boolean
 }
 
-// Pure per-candidate read (no writes): layout, page body, ranking data and
-// several widgets each ask within one request; cache() makes repeats free.
+export type CandidatePlusSource = 'requirements' | 'streak'
+
+/**
+ * The Candidate+ main path (owner, 2026-10-16): outreach + applications (effortMet),
+ * search-effort minutes and one assessment. References are deliberately not here;
+ * they count toward Candidate+ Verified.
+ */
+export function meetsCandidatePlusRequirements(g: { evidenceMet: boolean; effortMet: boolean; minutesMet: boolean }): boolean {
+  return g.evidenceMet && g.effortMet && g.minutesMet
+}
+
+/**
+ * Candidate+ is permanent once earned (owner's rule, 2026-10-16). The main path counts
+ * lifetime work, so it never lapses; the streak path reads the latest weeks, so on its
+ * own it switched off every Monday until that week's goal was met. Recording the first
+ * unlock keeps both on for good. Only an admin revoke turns it off.
+ */
+export function resolveCandidatePlus(input: {
+  requirementsMet: boolean
+  streakMet: boolean
+  unlockedAt: Date | null
+  revokedAt: Date | null
+}): { unlocked: boolean; record: CandidatePlusSource | null } {
+  if (input.revokedAt) return { unlocked: false, record: null }
+  const live: CandidatePlusSource | null = input.requirementsMet ? 'requirements' : input.streakMet ? 'streak' : null
+  return { unlocked: !!input.unlockedAt || live !== null, record: input.unlockedAt ? null : live }
+}
+
+// Per-candidate read; the only write is recording the first unlock (once, ever).
+// Layout, page body, ranking data and several widgets each ask within one request;
+// cache() makes repeats free.
 export const isDossierUnlocked = cache(isDossierUnlockedUncached)
 
 async function isDossierUnlockedUncached(candidateId: string): Promise<DossierUnlockStatus> {
-  const [completedReferenceCount, hasOperatingProfile, hasPersonalityProfile, profile, outreachCount, applicationCount, alternatePath] =
+  const [completedReferenceCount, hasOperatingProfile, hasPersonalityProfile, profile, outreachCount, applicationCount, alternatePath, effortMinutes] =
     await Promise.all([
       prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
       prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
       prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
-      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: { skillsAssessmentCompletedAt: true } }),
+      prisma.candidateProfile.findUniqueOrThrow({ where: { id: candidateId }, select: {
+          skillsAssessmentCompletedAt: true, effortMinutesTargetOverride: true,
+          candidatePlusUnlockedAt: true, candidatePlusUnlockSource: true, candidatePlusRevokedAt: true,
+        },
+      }),
       prisma.outreachLog.count({ where: { candidateId } }), // lifetime, no window — matches computeDossierCompleteness's convention
       prisma.jobPosting.count({ where: { candidateId, appliedAt: { not: null } } }), // lifetime, no window
       hasAlternateUnlockPath(candidateId),
+      getLifetimeEffortMinutes(candidateId),
     ])
 
   const referencesMet = completedReferenceCount >= DOSSIER_UNLOCK_REFERENCE_TARGET
   const evidenceMet = Boolean(hasOperatingProfile) || Boolean(hasPersonalityProfile) || profile.skillsAssessmentCompletedAt !== null
   const effortMet = outreachCount >= DOSSIER_UNLOCK_OUTREACH_TARGET && applicationCount >= DOSSIER_UNLOCK_APPLICATION_TARGET
-  const unlocked = (referencesMet && evidenceMet && effortMet) || alternatePath.met
+  const effortTarget = effortTargetFor(profile.effortMinutesTargetOverride)
+  const minutesMet = effortMinutes >= effortTarget
+  const requirementsMet = meetsCandidatePlusRequirements({ evidenceMet, effortMet, minutesMet })
+  const plus = resolveCandidatePlus({
+    requirementsMet,
+    streakMet: alternatePath.met,
+    unlockedAt: profile.candidatePlusUnlockedAt,
+    revokedAt: profile.candidatePlusRevokedAt,
+  })
+  const unlocked = plus.unlocked
+  let unlockedAt = profile.candidatePlusUnlockedAt
+  let unlockSource = (profile.candidatePlusUnlockSource as CandidatePlusSource | null) ?? null
+  if (plus.record) {
+    // First time earned: record it so it stays on. Guarded so two requests can't both write.
+    unlockedAt = new Date()
+    unlockSource = plus.record
+    await prisma.candidateProfile
+      .updateMany({
+        where: { id: candidateId, candidatePlusUnlockedAt: null, candidatePlusRevokedAt: null },
+        data: { candidatePlusUnlockedAt: unlockedAt, candidatePlusUnlockSource: unlockSource },
+      })
+      .catch((error) => console.error('Failed to record Candidate+ unlock:', error))
+  }
 
   const missing: string[] = []
-  if (!referencesMet) {
-    const remaining = DOSSIER_UNLOCK_REFERENCE_TARGET - completedReferenceCount
-    // [label](/dashboard/references) — every render site (LockedFeatureNotice,
-    // RecruiterDatabaseOptIn, the dashboard and Portfolio pages) renders this
-    // string through renderMarkdownLinks, so the missing piece links straight
-    // to where a candidate actually requests/tracks references.
-    missing.push(`[${remaining} more completed reference${remaining === 1 ? '' : 's'}](/dashboard/references)`)
-  }
   if (!evidenceMet) missing.push('one completed assessment (Operating Profile, Personality Profile, or Skills)')
+  if (!minutesMet) missing.push(`${effortTarget - effortMinutes} more minutes of search effort`)
   if (!effortMet) {
     const missingOutreach = Math.max(0, DOSSIER_UNLOCK_OUTREACH_TARGET - outreachCount)
     const missingApplications = Math.max(0, DOSSIER_UNLOCK_APPLICATION_TARGET - applicationCount)
-    if (missingOutreach > 0) missing.push(`${missingOutreach} more outreach message${missingOutreach === 1 ? '' : 's'}`)
+    if (missingOutreach > 0) missing.push(`${missingOutreach} more outreach or networking message${missingOutreach === 1 ? '' : 's'}`)
     if (missingApplications > 0) missing.push(`${missingApplications} more application${missingApplications === 1 ? '' : 's'}`)
   }
 
-  const reason = unlocked
-    ? alternatePath.met && !(referencesMet && evidenceMet && effortMet)
-      ? alternatePath.reason
-      : 'Unlocked — you have real references, evidence, and effort on file.'
-    : `Need: ${missing.join(', ')}. (Or: ${ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS}-week Sprint streak, or a Market Reality B or better.)`
+  const reason = profile.candidatePlusRevokedAt
+    ? 'Candidate+ was removed by NextChapter. Write to support@launchyournextchapter.com if you think this is a mistake.'
+    : unlocked
+      ? requirementsMet
+        ? 'Unlocked — you have real outreach, applications, search effort and an assessment on file.'
+        : alternatePath.met
+          ? alternatePath.reason
+          : `Unlocked${unlockSource === 'streak' ? ' with a weekly-goal streak' : ''}${unlockedAt ? ` on ${unlockedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''} — Candidate+ stays on once earned.`
+      : `Need: ${missing.join(', ')}. (Or: a ${ALTERNATE_UNLOCK_SPRINT_STREAK_WEEKS}-week streak of meeting your weekly goal.)`
 
   return {
     unlocked,
     referencesMet,
     evidenceMet,
     effortMet,
+    minutesMet,
+    effortMinutes,
+    effortTarget,
     alternatePath,
     completedReferenceCount,
     outreachCount,
     applicationCount,
     reason,
+    unlockedAt,
+    unlockSource,
+    revoked: !!profile.candidatePlusRevokedAt,
   }
 }
 
@@ -362,12 +549,6 @@ export async function getModuleGateStatus(candidateId: string): Promise<ModuleGa
     ladder.completeness.requirements.find((r) => r.key === 'profile')?.met === true
 
   return [
-    {
-      key: 'matchedJobsFullDetail',
-      label: 'Matched jobs full detail / apply',
-      unlocked: sentReferenceCount >= 1,
-      reason: sentReferenceCount >= 1 ? 'Unlocked — you sent a reference request.' : 'Send 1 reference request to unlock (~5 min).',
-    },
     {
       key: 'recruiterIntroductions',
       label: 'Recruiter introductions',

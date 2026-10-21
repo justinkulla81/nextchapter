@@ -6,6 +6,8 @@ import { syncEngagement } from '@/lib/higher-ed/engagement'
 import { scheduleCheckIns } from '@/lib/higher-ed/checkins'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { withCronRun } from '@/lib/cron/run'
+import { runMonthlyEmails } from '@/lib/higher-ed/monthly'
+import { cleanupExpiredDemos } from '@/lib/workforce/demo'
 
 export const maxDuration = 300
 
@@ -15,11 +17,14 @@ export const maxDuration = 300
 //     said the college helped, the gratitude ask goes to Development;
 //   • new WARN notices are matched to alumni employers (staff approve the email);
 //   • engagement events are synced from what alumni did in NextChapter;
-//   • check-ins that came due are scheduled (staff approve the send).
+//   • check-ins that came due are scheduled (staff approve the send);
+//   • the monthly alumni email goes out where a college switched it on.
 // Demo colleges are skipped: their data comes from the demo seed.
 export const GET = withCronRun('higher-ed-nightly', async () => {
   const startedAt = new Date()
   const grace = await clearEndedGrace(startedAt)
+  // Public workforce demos older than 30 days.
+  const demos = await cleanupExpiredDemos(startedAt).catch(() => ({ removed: 0 }))
   const colleges = await prisma.institution.findMany({ where: { isDemo: false }, select: { id: true } })
   const totals = { layoffMatches: 0, engagementEvents: 0, checkInsScheduled: 0, failed: 0 }
   for (const c of colleges) {
@@ -32,7 +37,12 @@ export const GET = withCronRun('higher-ed-nightly', async () => {
       console.error('[higher-ed-nightly]', c.id, err)
     }
   }
-  const result = { ...grace, ...totals, colleges: colleges.length }
+  // The monthly alumni email, for colleges that switched it on (batched).
+  const monthly = await runMonthlyEmails(startedAt).catch((err) => {
+    console.error('[higher-ed-nightly] monthly email', err)
+    return []
+  })
+  const result = { ...grace, ...totals, colleges: colleges.length, monthlySent: monthly.reduce((n, m) => n + m.sent, 0), demosRemoved: demos.removed }
   captureServerEvent('cron', 'he_nightly_ran', { ...result, ms: Date.now() - startedAt.getTime() })
   return NextResponse.json({ ok: true, ...result })
 })

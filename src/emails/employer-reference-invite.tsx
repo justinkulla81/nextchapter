@@ -1,4 +1,5 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface EmployerReferenceInviteEmailProps {
   managerName: string
@@ -55,8 +56,8 @@ export default function EmployerReferenceInviteEmail({
       <p>Hi {employeeFirstName},</p>
       <p>
         {managerName} at {managerCompany} wanted to make sure you landed well — they left you a
-        reference and an invitation to NextChapter, a free platform that turns a job search into a
-        structured, coached plan.
+        reference and an invitation to NextChapter, the leading job transition platform, which is free
+        for candidates and turns a job search into a structured, coached plan.
       </p>
       <p>
         Nothing from their reference is used or shared anywhere until you&apos;ve seen it yourself and
@@ -66,6 +67,7 @@ export default function EmployerReferenceInviteEmail({
         Review {managerName.split(' ')[0]}&apos;s reference →
       </a>
       <p style={footer}>If you weren&apos;t expecting this, you can ignore this email.</p>
+      <AudienceTag audience="employer" />
     </div>
   )
 }

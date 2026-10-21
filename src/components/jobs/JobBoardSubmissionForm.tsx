@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import {
-  AUDIENCE_TIER_OPTIONS,
   DISTRIBUTION_OPTIONS,
   DISTRIBUTION_OPTIONS_WITH_EXCLUDED,
   DISCLOSURE_OPTIONS,
@@ -28,7 +27,6 @@ export interface JobBoardSubmittedValues {
   salaryMax?: string
   salaryCurrency?: string
   description?: string
-  audienceTier?: string
   distribution?: string
   disclosure?: string
   targetFunction?: string
@@ -62,9 +60,6 @@ export function JobBoardSubmissionForm({
     (state?.values?.postingType as 'direct' | 'recruiter_search' | undefined) ?? null
   )
   const values = state?.values
-  const [audienceTier, setAudienceTier] = useState<'ALL_CANDIDATES' | 'A_LIST_ONLY' | null>(
-    (values?.audienceTier as 'ALL_CANDIDATES' | 'A_LIST_ONLY' | undefined) ?? 'A_LIST_ONLY'
-  )
   const [distribution, setDistribution] = useState<'OPEN' | 'TARGETED' | 'EXCLUDED' | null>(
     (values?.distribution as 'OPEN' | 'TARGETED' | 'EXCLUDED' | undefined) ?? 'OPEN'
   )
@@ -189,17 +184,6 @@ export function JobBoardSubmissionForm({
       </div>
 
       <div className="space-y-4 rounded-lg border border-border bg-off-white/50 p-4">
-        <div className="space-y-2">
-          <Label>Who can see this listing?</Label>
-          <ChoiceButtons
-            name="audienceTier"
-            options={AUDIENCE_TIER_OPTIONS}
-            value={audienceTier}
-            onChange={setAudienceTier}
-            responsive
-          />
-        </div>
-
         <div className="space-y-2">
           <Label>Distribution</Label>
           <ChoiceButtons

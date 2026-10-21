@@ -40,7 +40,7 @@ export function renderMeetingPrepHtml(c: MeetingPrepContent, m: MeetingPrepMeta)
 async function send(subject: string, html: string): Promise<boolean> {
   if (!process.env.RESEND_API_KEY) { console.warn('RESEND_API_KEY is not set — skipping Meeting Prep email.'); return false }
   try {
-    const { error } = await createResend(process.env.RESEND_API_KEY).emails.send({
+    const { error } = await createResend(process.env.RESEND_API_KEY, 'admin').emails.send({
       from: 'NextChapter <support@launchyournextchapter.com>', to: meetingPrepRecipient(), subject, html,
     })
     if (error) { console.error('Meeting Prep email failed:', error); return false }

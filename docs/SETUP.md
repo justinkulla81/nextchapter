@@ -58,6 +58,10 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 **Email**
 - `RESEND_API_KEY`
 
+**Gmail push alerts (optional, scam watch)**
+- `GMAIL_PUSH_TOPIC` — full Pub/Sub topic name, e.g. `projects/<gcp-project>/topics/gmail-push`. The topic must live in the same Google Cloud project as the candidate Gmail OAuth client, and `gmail-api-push@system.gserviceaccount.com` needs the Pub/Sub Publisher role on it.
+- `GMAIL_PUSH_SECRET` — any long random string. Create a Pub/Sub **push** subscription on the topic pointing at `https://<app domain>/api/google/gmail-push?token=<GMAIL_PUSH_SECRET>`. Both variables must be set; with either missing, push is off and scam watch relies on the 10-minute `scam-watch` cron. The cron also renews each mailbox's Gmail watch (they expire after 7 days), so no extra schedule is needed. Needs `npx prisma db push` for `EmailConnection.pushWatchExpiresAt`.
+
 **Analytics**
 - `NEXT_PUBLIC_POSTHOG_KEY`
 - `NEXT_PUBLIC_POSTHOG_HOST` — your PostHog region ingest URL (`https://us.i.posthog.com` or `https://eu.i.posthog.com`); also used by `next.config.ts`'s rewrite proxy
@@ -106,6 +110,7 @@ All buckets are accessed server-side via the service-role client (`admin.storage
 | `avatars` | Profile pictures across all 4 portals |
 | `coach-logos` | Coach white-label branding upload (Coach Settings) |
 | `offer-letters` | Got-hired bounty claim offer-letter proof (`BountyClaim.offerLetterUrl`) — private |
+| `requested-documents` | Documents a coach (later an institution or employer) asks a candidate for — **private**, signed URLs only, after an ownership check. Create it by hand; see `prisma/manual/2026-10-14-document-requests.sql` |
 | `crucible-resumes` | Crucible teaser resume uploads (research dataset only, never scored) — private |
 
 ## Local development

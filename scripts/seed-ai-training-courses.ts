@@ -4,6 +4,10 @@
 // exists, so an admin's later edits are never overwritten by a re-run.
 //
 // Run: npm run seed:ai-training-courses
+//
+// The AI skills each course covers (for linking an AI gap to a course) live in
+// src/lib/learning/ai-course-tags.ts, keyed by url; the governance and tool paths are
+// added by scripts/seed-ai-learning-paths.ts.
 
 import { PrismaClient } from '@prisma/client'
 

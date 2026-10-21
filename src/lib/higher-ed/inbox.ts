@@ -54,7 +54,7 @@ export async function sendWeeklyDigests(): Promise<{ emails: number; colleges: n
     where: { isDemo: false },
     select: { id: true, slug: true, name: true, users: { where: { acceptedAt: { not: null }, revokedAt: null }, select: { invitedEmail: true, role: true } } },
   })
-  const resend = process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY) : null
+  const resend = process.env.RESEND_API_KEY ? createResend(process.env.RESEND_API_KEY, 'organization') : null
   let emails = 0
   let reached = 0
   for (const c of colleges) {

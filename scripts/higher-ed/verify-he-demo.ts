@@ -42,7 +42,7 @@ const SLUG = 'demo'
 const userId = `demo-${SLUG}-hero-verify-${randomUUID().slice(0, 6)}`
 
 async function reseed() {
-  const r = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), DEMO_TENANTS[SLUG]), { timeout: 120_000, maxWait: 20_000 })
+  const r = await prisma.$transaction((tx) => resetDemoInstitution(tx, new Date(), DEMO_TENANTS[SLUG]), { timeout: 600_000, maxWait: 20_000 })
   await seedDemoContent(r.institutionId, 'demo-seed')
   return r.institutionId
 }

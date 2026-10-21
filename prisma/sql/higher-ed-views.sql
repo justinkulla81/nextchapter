@@ -16,7 +16,9 @@
 --     expose, so no browser client can query them directly.
 --
 -- Never selected by any view: assessment item responses, Bearing results,
--- coaching notes, email/calendar activity details, resume content. The only
+-- coaching notes, email/calendar activity details, resume content. (v_member_ai_skills
+-- carries derived skill keywords and the function label, never resume text, and only for
+-- members whose SHARE_OUTCOME consent is on; the server returns counts only.) The only
 -- candidate-authored text exposed is the approved Dossier positioning
 -- statement, and only with SHARE_DOSSIER_WITH_EMPLOYERS on.
 
@@ -24,6 +26,7 @@ create schema if not exists private;
 
 -- Dropped and recreated (not just "create or replace") so a column change
 -- in a later step applies cleanly. Nothing outside this file depends on them.
+drop view if exists private.v_member_ai_skills;
 drop view if exists private.v_outcomes_by_bucket;
 drop view if exists private.v_roi_inputs;
 drop view if exists private.v_employer_dossiers;
@@ -65,6 +68,24 @@ left join lateral (
   where c."memberId" = m.id and c.scope = 'SHARE_DOSSIER_WITH_EMPLOYERS'
   order by c."changedAt" desc, c."createdAt" desc limit 1
 ) cd on true;
+
+-- v_member_ai_skills — input to the counts-only "AI skills" panel on the Career Services
+-- Outcomes tab (src/lib/skills/cohort-ai-gap.ts). One row per claimed member whose SHARE_OUTCOME
+-- consent is on: the function label and the derived skill keywords the skills matrix reads.
+-- The server turns these into counts and suppresses any group under 10 people; no row, name
+-- or email reaches the page. Members without consent are absent, not NULL.
+create view private.v_member_ai_skills as
+select
+  m.id as "memberId",
+  m."institutionId",
+  cp."primaryFunction",
+  cp."resumeKeywords",
+  cp."confirmedSkillsHave",
+  cp.certifications,
+  cp."skillLevels"
+from public."InstitutionMember" m
+join public."CandidateProfile" cp on cp.id = m."candidateId"
+join private.v_member_consent mc on mc."memberId" = m.id and mc."shareOutcome";
 
 -- v_member_engagement — the engagement score (spec §7): rolling 12 months,
 -- the §7 caps (logins and outreach clicks 4 points a month, tool use 8 a

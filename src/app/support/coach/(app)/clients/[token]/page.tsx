@@ -3,9 +3,17 @@ import { ChevronDown } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCoachByToken } from '@/lib/coach/access'
 import { getCoachClientSummaries } from '@/lib/coach/client-summary'
+import { getCoachCaseload } from '@/lib/coach/caseload'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
+import { getParallelPathsFor } from '@/lib/job-reviews/data'
+import { parallelPathView } from '@/lib/job-reviews/constants'
 
+const SENTIMENT_TREND_ARROW: Record<'up' | 'down', string> = { up: '↑', down: '↓' }
+
+// One page for a coach's clients (formerly "Your clients" and "Caseload"):
+// stalled clients first, each row with grade, Market Reality, activity and
+// sentiment at a glance; open a row for profile details and the brief.
 const TREND_LABEL: Record<string, string> = {
   up: '↑ improving',
   down: '↓ declining',
@@ -29,18 +37,24 @@ export default async function CoachClientsPage({
     )
   }
 
-  const clients = await getCoachClientSummaries(coach.id)
-  const clientProfiles = await prisma.candidateProfile.findMany({
-    where: { coachId: coach.id },
-    select: {
-      id: true,
-      targetRoleType: true,
-      primaryFunction: true,
-      highestLevelReached: true,
-      targetIndustries: true,
-    },
-  })
+  const [clients, caseload, clientProfiles] = await Promise.all([
+    getCoachClientSummaries(coach.id),
+    getCoachCaseload(coach.id),
+    prisma.candidateProfile.findMany({
+      where: { coachId: coach.id },
+      select: {
+        id: true,
+        targetRoleType: true,
+        primaryFunction: true,
+        highestLevelReached: true,
+        targetIndustries: true,
+      },
+    }),
+  ])
+  const glance = new Map(caseload.map((c) => [c.id, c]))
+  const stalled = caseload.filter((c) => c.isStalled)
   const profileById = new Map(clientProfiles.map((p) => [p.id, p]))
+  const pathsById = await getParallelPathsFor(clientProfiles.map((p) => p.id))
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
@@ -60,11 +74,11 @@ export default async function CoachClientsPage({
       <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <CoachBrandHeader firmName={coach.firmName} logoUrl={coach.logoUrl} />
-          <h1 className="text-2xl font-semibold tracking-tight">Your clients</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Clients</h1>
           <p className="text-muted-foreground">
             {clients.length === 0
-              ? 'No clients yet — share your invite link to get started.'
-              : `${clients.length} client${clients.length === 1 ? '' : 's'} on NextChapter.`}
+              ? 'No clients yet. Invite someone you coach, or share your invite link.'
+              : `${clients.length} client${clients.length === 1 ? '' : 's'} on NextChapter. Open a row for their profile and pre-session brief.`}
           </p>
         </div>
         <Link
@@ -75,9 +89,24 @@ export default async function CoachClientsPage({
         </Link>
       </div>
 
+      {stalled.length > 0 && (
+        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950">
+          <p className="font-medium text-amber-900 dark:text-amber-200">
+            {stalled.length} client{stalled.length > 1 ? 's' : ''} showing an avoidance pattern: {stalled.map((c) => c.name).join(', ')}.
+          </p>
+        </div>
+      )}
+
+      {clients.length === 0 && (
+        <Link href="/support/coach/invite-client" className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
+          Invite a client
+        </Link>
+      )}
+
       <div className="space-y-3">
-        {clients.map((client) => {
+        {[...clients].sort((a, b) => Number(!!glance.get(b.id)?.isStalled) - Number(!!glance.get(a.id)?.isStalled)).map((client) => {
           const detail = profileById.get(client.id)
+          const g = glance.get(client.id)
           return (
             <details key={client.id} className="group rounded-lg border border-border p-4">
               <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3">
@@ -86,7 +115,14 @@ export default async function CoachClientsPage({
                   <p className="text-sm text-muted-foreground">
                     {client.weekNumber !== null ? `Week ${client.weekNumber}` : 'Not yet registered'}
                     {client.lastActiveAt && ` · Last active ${client.lastActiveAt.toLocaleDateString()}`}
+                    {g?.isStalled && ' · Avoidance pattern flagged'}
                   </p>
+                  {g && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Market Reality {g.marketRealityGrade ?? '—'} · {g.activityThisWeekPoints} pts this wk, {g.activityLastWeekPoints} last wk · {g.sentimentLabel ?? 'No check-ins'}
+                      {g.sentimentTrend && ` ${SENTIMENT_TREND_ARROW[g.sentimentTrend]}`}
+                    </p>
+                  )}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <div className="text-right text-sm">
@@ -114,6 +150,7 @@ export default async function CoachClientsPage({
                 {detail && detail.targetIndustries.length > 0 && (
                   <p>Industries: {detail.targetIndustries.join(', ')}</p>
                 )}
+                <AlongsideLine paths={pathsById.get(client.id) ?? null} />
                 {!detail?.targetRoleType && !detail?.primaryFunction && !detail?.highestLevelReached && (
                   <p>Profile still being built out.</p>
                 )}
@@ -138,4 +175,12 @@ export default async function CoachClientsPage({
       </div>
     </div>
   )
+}
+
+// "Alongside the search: …" — what the client does besides looking for a job.
+function AlongsideLine({ paths }: { paths: string[] | null }) {
+  const view = parallelPathView(paths)
+  if (view.state === 'unanswered') return <p>Alongside the search: not answered yet</p>
+  if (view.state === 'none') return <p>Alongside the search: nothing</p>
+  return <p>Alongside the search: {view.labels.join(', ')}</p>
 }

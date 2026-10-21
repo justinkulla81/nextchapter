@@ -1,10 +1,15 @@
 import { emailStyles } from '@/lib/email/email-styles'
+import EngagementBlock from '@/emails/engagement-block'
+import type { EngagementLead } from '@/lib/journey/engagement'
+import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface SearchCheckInEmailProps {
+  engagement?: EngagementLead | null
+  appUrl?: string
   firstName: string | null
   introCopy?: string | null
   stillSearchingUrl: string
-  takingABreakUrl: string
+  managingMyCareerUrl: string
   gotAnOfferUrl: string
   pixelUrl: string
   unsubscribeUrl: string
@@ -50,10 +55,12 @@ const footer: React.CSSProperties = {
 // form. See overlap with Sunday's Finish Line email, which now carries the
 // old "week in review" content this replaces on Saturday.
 export default function SearchCheckInEmail({
+  engagement = null,
+  appUrl = '',
   firstName,
   introCopy,
   stillSearchingUrl,
-  takingABreakUrl,
+  managingMyCareerUrl,
   gotAnOfferUrl,
   pixelUrl,
   unsubscribeUrl,
@@ -70,11 +77,13 @@ export default function SearchCheckInEmail({
       </p>
       {introCopy && <p>{introCopy}</p>}
 
+      <EngagementBlock lead={engagement} appUrl={appUrl} />
+
       <a href={stillSearchingUrl} style={primaryButton}>
         Nothing yet
       </a>
-      <a href={takingABreakUrl} style={neutralButton}>
-        Taking a break
+      <a href={managingMyCareerUrl} style={neutralButton}>
+        Not looking right now: managing my career
       </a>
       <a href={gotAnOfferUrl} style={successButton}>
         Got an offer! 🎉
@@ -88,6 +97,7 @@ export default function SearchCheckInEmail({
       {/* Best-effort open signal — many mail clients block remote images by
           default, so this undercounts opens rather than overcounting. */}
       <img src={pixelUrl} width={1} height={1} alt="" style={{ display: 'none' }} />
+      <AudienceTag audience="candidate" />
     </div>
   )
 }

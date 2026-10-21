@@ -5,22 +5,15 @@ import {
   getSeatUtilization,
   getEngagementAggregates,
   getTimeToPlacementBenchmarks,
-  getAlumniSentiment,
   getBoomerangSignal,
 } from '@/lib/employer/outplacement-reporting'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { OutcomeScorecardCard } from '@/components/employer/OutcomeScorecardCard'
 import { getEmployerOutcomeScorecard } from '@/lib/employer/outcome-scorecard-server'
+import { getCareerGrowthActivity } from '@/lib/employer/career-growth-reporting'
 import { cn } from '@/lib/utils'
 
 const TIER_LABEL: Record<string, string> = { CORE: 'Core', PLUS: 'Plus', PREMIUM: 'Premium' }
-const MOOD_LABEL: Record<string, string> = {
-  STUCK: 'Stuck',
-  GETTING_THERE: 'Getting there',
-  MOVING: 'Moving',
-  FIRED_UP: 'Fired up',
-}
-
 function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div>
@@ -55,13 +48,16 @@ export default async function EmployerReportingPage({
 
   const activeContract = contracts.find((c) => c.id === params.contractId) ?? contracts[0]
 
-  const [utilization, engagement, benchmarks, sentiment, boomerang, outcomeScorecard] = await Promise.all([
+  // Career growth cohorts (people staying and growing) are reported on growth
+  // activity only: no placement, mood or boomerang numbers, which are about leaving.
+  const isGrowth = !!activeContract.journey
+  const [utilization, engagement, benchmarks, boomerang, outcomeScorecard, growth] = await Promise.all([
     getSeatUtilization(orgUser, activeContract.id),
     getEngagementAggregates(orgUser, activeContract.id),
-    getTimeToPlacementBenchmarks(orgUser),
-    getAlumniSentiment(orgUser),
-    getBoomerangSignal(orgUser),
-    getEmployerOutcomeScorecard(orgUser, activeContract.id),
+    isGrowth ? null : getTimeToPlacementBenchmarks(orgUser),
+    isGrowth ? null : getBoomerangSignal(orgUser),
+    isGrowth ? null : getEmployerOutcomeScorecard(orgUser, activeContract.id),
+    isGrowth ? getCareerGrowthActivity(orgUser, activeContract.id) : null,
   ])
 
   return (
@@ -92,6 +88,33 @@ export default async function EmployerReportingPage({
             </Link>
           ))}
         </div>
+      )}
+
+      {growth && (
+        <Card>
+          <CardHeader>
+            <CardTitle>What your people are doing to grow</CardTitle>
+            <CardDescription>
+              Counts of people who did each thing in this cohort. We never report who, and we never report anything about a job search.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!growth.hasEnoughData ? (
+              <p className="text-sm text-muted-foreground">Fewer than 10 people have activated, so nothing is shown yet. This fills in as more people join.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {growth.rows.map((r) => (
+                  <li key={r.key} className="flex justify-between gap-4">
+                    <span>{r.label}</span>
+                    <span className="tabular-nums">
+                      {r.count ?? '—'} <span className="text-muted-foreground">({r.pct ?? '—'}%)</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {outcomeScorecard && <OutcomeScorecardCard scorecard={outcomeScorecard} />}
@@ -132,6 +155,7 @@ export default async function EmployerReportingPage({
         </CardContent>
       </Card>
 
+      {benchmarks && (
       <Card>
         <CardHeader>
           <CardTitle>Time to placement, by function and level</CardTitle>
@@ -169,29 +193,10 @@ export default async function EmployerReportingPage({
           )}
         </CardContent>
       </Card>
+      )}
 
+      {boomerang && (
       <div className="grid gap-6 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Alumni sentiment</CardTitle>
-            <CardDescription>Last 90 days of mood check-ins, across all cohorts.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!sentiment.hasEnoughData ? (
-              <p className="text-sm text-muted-foreground">Fewer than 10 people enrolled — suppressed.</p>
-            ) : (
-              <ul className="space-y-1 text-sm">
-                {sentiment.distribution.map((d) => (
-                  <li key={d.mood} className="flex justify-between">
-                    <span>{MOOD_LABEL[d.mood] ?? d.mood}</span>
-                    <span className="tabular-nums">{d.count ?? '—'}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Boomerang signal</CardTitle>
@@ -206,6 +211,7 @@ export default async function EmployerReportingPage({
           </CardContent>
         </Card>
       </div>
+      )}
     </div>
   )
 }

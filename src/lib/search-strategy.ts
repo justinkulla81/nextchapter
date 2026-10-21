@@ -50,11 +50,11 @@ export function getSearchStage(candidate: {
   gapDuration: GapDurationBucket | null
   journey?: JourneyType | null
 }): SearchStage | null {
-  // Anyone on an employed journey (ready to move, thinking about it,
+  // Anyone on an employed journey (thinking about a move,
   // promotion, career change, next act) is quietly looking, never "since you
   // separated" (src/lib/journey).
   const journey = effectiveJourney(candidate)
-  if (journey && getJourney(journey).employed) return 'QUIETLY_LOOKING'
+  if (journey && getJourney(journey).employed && getJourney(journey).searching) return 'QUIETLY_LOOKING'
   if (candidate.currentJobStatus === 'EMPLOYED_CONSIDERING_MOVE') return 'QUIETLY_LOOKING'
   if (!candidate.gapDuration) return null
   return GAP_DURATION_TO_STAGE[candidate.gapDuration]
@@ -198,6 +198,25 @@ export function isSearchStrategySoFarComplete(candidate: {
 // regardless of whether it still also awards its own points.
 export function isBenefitsComplete(candidate: { benefitsPrioritiesBonusAt: Date | null }): boolean {
   return !!candidate.benefitsPrioritiesBonusAt
+}
+
+// People who are not job searching (managing a career, a break, fractional work, building
+// something) finish the shorter set: marketing, networking, negotiation and benefits, plus what
+// they want from their career when that applies. They are never asked for job-search targets.
+export function isNonSearcherStrategyComplete(
+  candidate: Parameters<typeof isMarketingPlanWillingnessComplete>[0] &
+    Parameters<typeof isNetworkingWillingnessComplete>[0] &
+    Parameters<typeof isNegotiationInterviewComfortComplete>[0] &
+    Parameters<typeof isBenefitsComplete>[0],
+  career: { required: boolean; answered: boolean },
+): boolean {
+  return (
+    isMarketingPlanWillingnessComplete(candidate) &&
+    isNetworkingWillingnessComplete(candidate) &&
+    isNegotiationInterviewComfortComplete(candidate) &&
+    isBenefitsComplete(candidate) &&
+    (!career.required || career.answered)
+  )
 }
 
 // All 7 Search Strategy wizard pages — used both to gate

@@ -1,0 +1,109 @@
+/**
+ * A/B results for cold outreach, read from the CRM. Each send logged by outreach-log.ts carries its template, test and variant.
+ * A send counts as replied when that person has an inbound email within 14 days of it. The measures are replies and human clicks on the report link. A click
+ * within two minutes of the send is a mail scanner and is not counted; opens are shown but not used (scanners inflate them).
+ *
+ *   tsx --conditions=react-server --env-file=.env.local scripts/crm/outreach-ab.ts
+ *
+ * For each template and test: sends and replies per variant, the reply rates, a two-sided p-value, and how many sends per variant
+ * would be needed to tell the observed rates apart (80% power, 5% significance). Differences below 95% confidence are labelled "keep testing".
+ */
+import { prisma } from '../../src/lib/prisma'
+import { humanOpens } from '../../src/lib/outreach/event-rules'
+
+const REPLY_WINDOW_MS = 14 * 86_400_000
+type Cell = { sends: number; replies: number; opens: number; clicks: number }
+
+// Two-proportion z-test (pooled). Returns the two-sided p-value.
+function pValue(a: { sends: number; replies: number }, b: { sends: number; replies: number }): number {
+  const p = (a.replies + b.replies) / (a.sends + b.sends)
+  const se = Math.sqrt(p * (1 - p) * (1 / a.sends + 1 / b.sends))
+  if (!se) return 1
+  const z = Math.abs((a.replies / a.sends - b.replies / b.sends) / se)
+  // Normal tail via the Abramowitz-Stegun approximation.
+  const t = 1 / (1 + 0.2316419 * z), d = 0.3989423 * Math.exp((-z * z) / 2)
+  const tail = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))))
+  return Math.min(1, 2 * tail)
+}
+// Sends per variant to detect p1 vs p2 at 80% power, 5% significance.
+function needed(p1: number, p2: number): number | null {
+  const d = Math.abs(p1 - p2)
+  if (d < 0.005) return null
+  const pb = (p1 + p2) / 2
+  return Math.ceil((2 * (1.96 + 0.84) ** 2 * pb * (1 - pb)) / (d * d))
+}
+
+async function main() {
+  const sends = await prisma.crmActivity.findMany({
+    where: { type: 'EMAIL', direction: 'OUTBOUND', outcome: { startsWith: 'Cold outreach, email 1' }, personId: { not: null } },
+    select: { personId: true, occurredAt: true, outcome: true },
+  })
+  const parse = (o: string | null) => ({ template: /template (\S+?)(,|$)/.exec(o ?? '')?.[1] ?? 'unknown', test: /test (\S+?)(,|$)/.exec(o ?? '')?.[1] ?? 'subject', variant: /variant ([A-Za-z0-9]+)/.exec(o ?? '')?.[1] ?? 'A' })
+  const replies = await prisma.crmActivity.findMany({
+    where: { type: 'EMAIL', direction: 'INBOUND', personId: { in: [...new Set(sends.map((s) => s.personId!))] } },
+    select: { personId: true, occurredAt: true },
+  })
+  const repliedAt = new Map<string, Date[]>()
+  for (const r of replies) repliedAt.set(r.personId!, [...(repliedAt.get(r.personId!) ?? []), r.occurredAt])
+
+  const cells = new Map<string, Cell>()
+  const timing = new Map<string, Cell>()
+  for (const s of sends) {
+    const { template, test, variant } = parse(s.outcome)
+    const k = `${template}|${test}|${variant}`
+    const c = cells.get(k) ?? { sends: 0, replies: 0, opens: 0, clicks: 0 }
+    c.sends++
+    if ((s.outcome ?? '').includes(', opened')) c.opens++
+    if (/, clicked(,|$)/.test(s.outcome ?? '')) c.clicks++
+    if ((repliedAt.get(s.personId!) ?? []).some((t) => t >= s.occurredAt && t.getTime() - s.occurredAt.getTime() <= REPLY_WINDOW_MS)) c.replies++
+    cells.set(k, c)
+    const tm = /timing (T\d)/.exec(s.outcome ?? '')?.[1]
+    if (tm && /timing_test yes/.test(s.outcome ?? '')) {
+      const t = timing.get(tm) ?? { sends: 0, replies: 0, opens: 0, clicks: 0 }
+      t.sends++
+      if ((s.outcome ?? '').includes(', opened')) t.opens++
+      if (/, clicked(,|$)/.test(s.outcome ?? '')) t.clicks++
+      if ((repliedAt.get(s.personId!) ?? []).some((x) => x >= s.occurredAt && x.getTime() - s.occurredAt.getTime() <= REPLY_WINDOW_MS)) t.replies++
+      timing.set(tm, t)
+    }
+  }
+  if (!cells.size) { console.log('No tagged cold-outreach sends logged yet. Log them with outreach-log.ts sent <sends.csv> --apply (CSV needs template and variant).'); return }
+
+  // Pool wordings into concepts (C1 outcome, C2 market data); plain A/B tests compare the two variants directly.
+  const arms = [...cells.entries()].map(([k, c]) => ({ template: k.split('|')[0], test: k.split('|')[1], variant: k.split('|')[2], ...c }))
+  const pct = (n: number, d: number) => (d ? ((100 * n) / d).toFixed(1) + '%' : '-')
+  for (const template of [...new Set(arms.map((a) => a.template))].sort()) {
+    const mine = arms.filter((a) => a.template === template)
+    console.log(`\n${template}`)
+    for (const a of [...mine].sort((x, y) => x.variant.localeCompare(y.variant))) console.log(`  ${a.variant}: ${a.sends} sent, replied ${a.replies} (${pct(a.replies, a.sends)}), clicked ${a.clicks} (${pct(a.clicks, a.sends)}); opens ${pct(a.opens, a.sends)} (not used)`)
+    const pool = (prefix: string) => mine.filter((a) => a.variant.startsWith(prefix)).reduce((x, a) => ({ sends: x.sends + a.sends, replies: x.replies + a.replies, opens: x.opens + a.opens, clicks: x.clicks + a.clicks }), { sends: 0, replies: 0, opens: 0, clicks: 0 })
+    const c1 = pool('C1'), c2 = pool('C2')
+    if (c1.sends && c2.sends) {
+      const po = pValue({ sends: c1.sends, replies: c1.clicks }, { sends: c2.sends, replies: c2.clicks })
+      const pr = pValue(c1, c2)
+      const need = needed(c1.replies / c1.sends, c2.replies / c2.sends)
+      console.log(`  concept C1 vs C2: clicks ${pct(c1.clicks, c1.sends)} vs ${pct(c2.clicks, c2.sends)} (p=${po.toFixed(2)}${po < 0.05 ? ', real' : ', keep testing'}); replies ${pct(c1.replies, c1.sends)} vs ${pct(c2.replies, c2.sends)} (p=${pr.toFixed(2)}${pr < 0.05 ? ', real' : ', keep testing'})${need && pr >= 0.05 ? `; about ${need} sends per concept to confirm a reply gap this size` : ''}`)
+    }
+    if (template === 'college') { const cc = mine.find((x) => x.variant === 'CC'), fy = mine.find((x) => x.variant === '4YR'); if (cc && fy) console.log(`  community colleges vs four-year: replies ${pct(cc.replies, cc.sends)} (${cc.sends}) vs ${pct(fy.replies, fy.sends)} (${fy.sends}), p=${pValue(cc, fy).toFixed(2)}`) }
+    const a = mine.find((x) => x.variant === 'A'), b = mine.find((x) => x.variant === 'B')
+    if (a && b) { const pr = pValue(a, b); console.log(`  A vs B replies p=${pr.toFixed(2)}${pr < 0.05 ? ' (real)' : ' (keep testing)'}`) }
+  }
+  if (timing.size) {
+    const NAMES: Record<string, string> = { T1: 'right after (0-1 days)', T2: 'delayed (about 14 days)', T3: 'right before the effective date', T4: 'after the effective date' }
+    const pctT = (n: number, d: number) => (d ? ((100 * n) / d).toFixed(1) + '%' : '-')
+    console.log('\nTiming test (employer emails, clean assignments only)')
+    for (const [k, c] of [...timing.entries()].sort()) {
+      const rest = [...timing.entries()].filter(([x]) => x !== k).reduce((a, [, v]) => ({ sends: a.sends + v.sends, replies: a.replies + v.replies, opens: a.opens + v.opens, clicks: a.clicks + v.clicks }), { sends: 0, replies: 0, opens: 0, clicks: 0 })
+      const po = rest.sends ? pValue({ sends: c.sends, replies: c.clicks }, { sends: rest.sends, replies: rest.clicks }) : 1
+      console.log(`  ${k} ${NAMES[k] ?? ''}: ${c.sends} sent, replied ${c.replies} (${pctT(c.replies, c.sends)}), clicked ${c.clicks} (${pctT(c.clicks, c.sends)}); clicks vs the other arms p=${po.toFixed(2)}${po < 0.05 ? ' (real)' : ' (keep testing)'}`)
+    }
+  }
+  // People worth a personal follow-up: no reply yet, but they opened more than once after the first two minutes, or clicked the link.
+  const warm = sends.filter((x) => (humanOpens(x.outcome) >= 2 || /, clicked(,|$)/.test(x.outcome ?? '')) && !(repliedAt.get(x.personId!) ?? []).length)
+  if (warm.length) {
+    const people = await prisma.crmPerson.findMany({ where: { id: { in: warm.map((x) => x.personId!) } }, select: { id: true, fullName: true, email: true, affiliations: { where: { isCurrent: true }, select: { org: { select: { name: true } } }, take: 1 } } })
+    console.log(`\nWarm, no reply yet (${warm.length}): more than one human open, or a click`)
+    for (const x of warm) { const p = people.find((q) => q.id === x.personId); console.log(`  ${p?.fullName ?? '?'} (${p?.affiliations[0]?.org.name ?? ''}) ${p?.email ?? ''}: ${humanOpens(x.outcome)} human opens${/, clicked(,|$)/.test(x.outcome ?? '') ? ', clicked' : ''}`) }
+  }
+}
+main().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1) })

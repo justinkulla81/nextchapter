@@ -10,11 +10,14 @@ import { rankPendingPostingsForCandidate, type AdminFitCandidate } from '@/lib/j
 import { displayJobLocation } from '@/lib/jobs/us-location'
 import { approveJobPosting } from '@/app/support/admin/(portal)/exclusive-jobs/actions'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { loadApplicationGapSummary } from '@/lib/applications/skill-snapshot-data'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { MotivationChart } from '@/components/dashboard/MotivationChart'
 import { CandidateNudgeEmailPanel } from '@/components/admin/CandidateNudgeEmailPanel'
 import { ExceptionalGradeOverridePanel } from '@/components/admin/ExceptionalGradeOverridePanel'
+import { AdminAccessPanel } from '@/components/admin/AdminAccessPanel'
+import { grantsFor } from '@/lib/access/grants'
 import { PRIVACY_TIERS } from '@/lib/constants/privacy'
 import { NOTIFICATION_TIERS } from '@/lib/constants/notifications'
 import { formatAdminDateTime } from '@/lib/admin/format-date'
@@ -22,6 +25,8 @@ import { computePageActivitySummary, formatDuration } from '@/lib/admin/page-act
 import { getCandidateProgress } from '@/lib/admin/candidate-progress'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { CandidateProgressPanel } from '@/components/admin/CandidateProgressPanel'
+import { ApplicationFitCard } from '@/components/admin/ApplicationFitCard'
+import { getMemberApplicationFit } from '@/lib/admin/application-fit-data'
 import {
   listStakeholderNotes,
   getRecruiterRelationships,
@@ -32,7 +37,7 @@ import {
 } from '@/lib/admin/stakeholder-relationships'
 import { StakeholderNotesCard } from '@/components/admin/StakeholderNotesCard'
 import { StakeholderCommunicationsCard } from '@/components/admin/StakeholderCommunicationsCard'
-import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource } from './actions'
+import { addCandidateStakeholderNote, sendAdminThreadReply, updateCandidateLeadSource, setEffortMinutesTarget, setCandidatePlusRevoked } from './actions'
 import { LEAD_SOURCES, LEAD_SOURCE_LABELS } from '@/lib/candidates/lead-source'
 
 const NUDGE_TYPE_LABEL: Record<string, string> = {
@@ -230,8 +235,13 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     getStakeholderThreads(id, 'COACH'),
   ])
   stakeholderP.catch(() => {}) // avoid an unhandled rejection if notFound() throws first
+  // Also independent; used far down the JSX, so start it now instead of awaiting inline.
+  const grantsP = grantsFor(id)
+  grantsP.catch(() => {})
+  // What their applications asked for and how they match (src/lib/applications); never throws.
+  const appGapsP = loadApplicationGapSummary(id)
 
-  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports] =
+  const [authUsers, jobRecommendations, { profile: privacyProfile, emailLogs }, ipAndResume, loginHistory, pageActivity, progress, marketRealityReports, applicationFit] =
     await Promise.all([
       listAllAuthUsersCached(),
       loadJobRecommendations(id),
@@ -249,6 +259,12 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         orderBy: { generatedAt: 'desc' },
         select: { id: true, generatedAt: true },
       }),
+      // Reaching / underselling read of their applications — a failure here
+      // shows an error in that card only, never breaks the page.
+      getMemberApplicationFit(id).catch((err) => {
+        console.error('[admin/candidate] application fit failed', err)
+        return null
+      }),
     ])
   const detail = await getAdminCandidateDetail(id, authUsers).catch(() => null)
   if (!detail) notFound()
@@ -264,6 +280,12 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     gmailConnected: progress.connections.find((c) => c.label === 'Gmail')?.connected ?? false,
     assessmentsCompleted: progress.assessments.filter((a) => a.completedAt).length,
     badgeCount: progress.badges.length,
+  })
+
+  captureServerEvent(viewingAdmin.email ?? 'admin', 'admin_application_fit_viewed', {
+    scope: 'member',
+    memberId: id,
+    applications: applicationFit?.rows.length ?? null,
   })
 
   const { view } = detail
@@ -283,6 +305,7 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
     coachThreads,
   ] = await stakeholderP
 
+  const appGaps = await appGapsP
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <Link href="/support/admin/candidates" className="text-sm text-muted-foreground underline underline-offset-4">
@@ -520,7 +543,11 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6 space-y-6">
-          <CandidateProgressPanel progress={progress} />
+          <CandidateProgressPanel
+            progress={progress}
+            setEffortTarget={setEffortMinutesTarget.bind(null, id)}
+            setCandidatePlusRevoked={setCandidatePlusRevoked.bind(null, id)}
+          />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6 space-y-6">
@@ -666,6 +693,30 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
               )}
             </CardContent>
           </Card>
+
+          {appGaps && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Application skills match</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <p>
+                  {appGaps.matchPct ?? '—'}% match now ({appGaps.matchPctAtApply ?? '—'}% when applied) across {appGaps.applications} applications: {appGaps.fromPostings} read from a posting,{' '}
+                  {appGaps.inferred} inferred from the title.
+                </p>
+                {appGaps.best && <p className="text-muted-foreground">{appGaps.best.text}</p>}
+                {appGaps.gaps.length > 0 && (
+                  <p>
+                    <span className="text-muted-foreground">Keeps being asked for: </span>
+                    {appGaps.gaps.map((g) => `${g.term} (${g.applications})`).join(', ')}
+                  </p>
+                )}
+                <Link href="/support/admin/jobs/skills-match" className="text-primary underline underline-offset-4">
+                  All members, by segment
+                </Link>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -1019,6 +1070,8 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
         </TabsContent>
 
         <TabsContent value="results" className="mt-6 space-y-6">
+          <ApplicationFitCard data={applicationFit} />
+
           <Card>
             <CardHeader>
               <CardTitle>Market Reality Reports</CardTitle>
@@ -1135,6 +1188,18 @@ export default async function AdminCandidateDetailPage({ params }: { params: Pro
                 reason={privacyProfile?.exceptionalGradeOverrideReason ?? null}
                 by={privacyProfile?.exceptionalGradeOverrideBy ?? null}
                 at={privacyProfile?.exceptionalGradeOverrideAt ?? null}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Coaching and recruiter access</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdminAccessPanel
+                candidateId={id}
+                grants={(await grantsP).map((g) => ({ id: g.id, feature: g.feature, source: g.source, sessionsTotal: g.sessionsTotal, sessionsUsed: g.sessionsUsed, endsAt: g.endsAt?.toISOString() ?? null, revokedAt: g.revokedAt?.toISOString() ?? null, revokedBy: g.revokedBy, createdBy: g.createdBy }))}
               />
             </CardContent>
           </Card>

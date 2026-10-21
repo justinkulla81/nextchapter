@@ -19,6 +19,9 @@ import { CRM_ACTIVITY_CUTOFF, isAfterCrmCutoff } from './cutoff'
 import { canonicalEmail, findEmailOwner } from './email-owner'
 import { namesLookAlike } from '@/lib/text/person-name-match'
 import { detectReportEdition } from '@/lib/mailing/edition-parser'
+import { buildOutreachReplyEmails } from '@/lib/outreach/reply-context'
+import { classifyReply, replyOutcome } from '@/lib/outreach/reply-class'
+import { alertOutreachReply } from '@/lib/outreach/reply-alert'
 import { buildMailingSweepContext, markReportManual, onInboundMessage, type MailingSweepContext } from '@/lib/mailing/tracking'
 import { raiseListPrompt } from '@/lib/mailing/lists'
 
@@ -121,6 +124,20 @@ export async function buildSweepContext(
   }
 
   return { selfEmails, internalEmails, crmByEmail }
+}
+
+/**
+ * Mail to family and friends is personal, not outreach — it never needs a
+ * "does this belong in the CRM?" review. True when the person's only role is
+ * Friends and family (the same test meeting-prep uses). Cached per sweep.
+ */
+export async function isFriendsFamilyOnly(personId: string, cache: Map<string, boolean>): Promise<boolean> {
+  const hit = cache.get(personId)
+  if (hit !== undefined) return hit
+  const row = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { roles: true } })
+  const only = !!row && row.roles.length > 0 && row.roles.every((r) => r === 'FRIENDS_FAMILY')
+  cache.set(personId, only)
+  return only
 }
 
 /**
@@ -384,6 +401,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     const ids = await listMessagesSince(token, windowFrom, maxMessages)
     const touched = new Set<string>()
     const personCache = new Map<string, string | null>()
+    const familyCache = new Map<string, boolean>()
     const result = { ...base }
 
     // A fetch that fails after retrying is counted, not skipped. It used to
@@ -472,6 +490,8 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     // allowed to fail the sweep — the CRM log matters more.
     let mailingCtx: MailingSweepContext | null = null
     try { mailingCtx = await buildMailingSweepContext() } catch (e) { console.error('Mailing sweep context failed', e) }
+    let outreachEmails = new Set<string>()
+    try { outreachEmails = await buildOutreachReplyEmails() } catch (e) { console.error('Outreach reply context failed', e) }
 
     for (const [i, id] of ids.entries()) {
       const msg = headers[i]
@@ -486,7 +506,9 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
       // the notice is addressed — see appointmentBooker.
       const booking = appointmentBooker(msg.subject)
       const direction = booking ? 'INBOUND' : directionOf(fromEmail, ctx)
-      const relevant = booking ? true : mentionsNextChapter(msg.subject, msg.snippet)
+      // A reply from someone we cold-emailed is always logged, even if it never says NextChapter ("Thanks, send it over").
+      const outreachReply = direction === 'INBOUND' && !!fromEmail && outreachEmails.has(fromEmail)
+      const relevant = booking ? true : outreachReply || mentionsNextChapter(msg.subject, msg.snippet)
       if (direction === 'INBOUND' && mailingCtx && fromEmail && !booking) {
         await onInboundMessage(mailingCtx, { id, fromEmail, subject: msg.subject, snippet: msg.snippet, at: msg.internalDate })
           .catch((e) => console.error('Mailing inbound hook failed', id, e))
@@ -546,6 +568,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
           fullBody = content.body
           attachmentNames = content.attachmentNames
         }
+        const needsReview = direction === 'OUTBOUND' && !relevant && !(await isFriendsFamilyOnly(personId, familyCache))
         const created = await prisma.crmActivity.upsert({
           where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
           create: {
@@ -561,9 +584,11 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
             body: fullBody ?? snippetOf(msg.snippet),
             isAutoLogged: true,
             sourceRef: `${id}:${personId}`,
+            // A reply to cold outreach is labelled positive, a question, a referral, no, or automatic, for the Outreach tests page.
+            outcome: outreachReply ? replyOutcome(classifyReply(msg.subject, fullBody ?? msg.snippet)) : undefined,
             // Always false here — an INBOUND row only ever reaches this line
             // when `relevant` is true (see the guard above).
-            needsReview: direction === 'OUTBOUND' && !relevant,
+            needsReview,
           },
           update: {},
           select: { id: true, createdAt: true },
@@ -573,8 +598,13 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         if (direction === 'OUTBOUND' && !booking) {
           await onOutboundEmail({
             personId, activityId: created.id, at: msg.internalDate, subject: msg.subject,
-            body: fullBody, attachmentNames, needsReview: !relevant,
+            body: fullBody, attachmentNames, needsReview,
           }).catch((e) => console.error('Mailing outbound hook failed', id, e))
+        }
+        if (outreachReply && Date.now() - created.createdAt.getTime() < 5_000) {
+          const replyClass = classifyReply(msg.subject, fullBody ?? msg.snippet)
+          captureServerEvent(personId, 'outreach_reply_received', { class: replyClass })
+          await alertOutreachReply({ personId, replyClass, subject: msg.subject, text: fullBody ?? snippetOf(msg.snippet) })
         }
         if (isNewPerson) result.suggested++
         touched.add(personId)
@@ -900,6 +930,7 @@ export async function backfillPersonFromEmail(
   let found = 0
   let failed = 0
   let oldestAt: Date | null = null
+  const familyOnly = await isFriendsFamilyOnly(personId, new Map())
 
   try {
     // Every message here is kept, so headers and bodies are both needed —
@@ -936,7 +967,7 @@ export async function backfillPersonFromEmail(
           body: fullBody ?? snippetOf(msg.snippet),
           isAutoLogged: true,
           sourceRef: `${id}:${personId}`,
-          needsReview: direction === 'OUTBOUND' && !relevant,
+          needsReview: direction === 'OUTBOUND' && !relevant && !familyOnly,
         },
         update: { threadId: msg.threadId },
       })

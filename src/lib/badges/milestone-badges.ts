@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { pointsNeededForA, getEarnedPoints } from '@/lib/weekly/action-effort'
+import { getPace } from '@/lib/weekly/pace'
 import type { CommittedAction } from '@/lib/weekly/sprint'
 import type { NamedReason } from '@/lib/scoring/named-reasons'
 import { isDossierComplete } from '@/lib/reports/dossier-sections'
@@ -150,18 +151,18 @@ function detectComeback(checkInDates: Date[]): boolean {
 // below and by countOverDeliveringWeeks (Dossier grit stat) — same
 // per-week "did this week beat its A-grade target" boolean, two different
 // reductions of it.
-function overDeliveredByWeek(sprints: { weekStartDate: Date; committedActions: unknown }[]): boolean[] {
+function overDeliveredByWeek(sprints: { weekStartDate: Date; committedActions: unknown }[], pace = 1): boolean[] {
   const ordered = [...sprints].sort((a, b) => a.weekStartDate.getTime() - b.weekStartDate.getTime())
   return ordered.map((sprint, i) => {
     const actions = sprint.committedActions as unknown as CommittedAction[]
     const achieved = actions.reduce((sum, a) => sum + getEarnedPoints(a), 0)
-    const target = pointsNeededForA(i + 1)
+    const target = pointsNeededForA(i + 1, pace)
     return achieved > target
   })
 }
 
-function computeOverDeliveringStreak(sprints: { weekStartDate: Date; committedActions: unknown }[]): number {
-  const flags = overDeliveredByWeek(sprints)
+function computeOverDeliveringStreak(sprints: { weekStartDate: Date; committedActions: unknown }[], pace = 1): number {
+  const flags = overDeliveredByWeek(sprints, pace)
   let streak = 0
   for (let i = flags.length - 1; i >= 0; i--) {
     if (!flags[i]) break
@@ -177,7 +178,7 @@ export async function countOverDeliveringWeeks(candidateId: string): Promise<num
     where: { candidateId },
     select: { weekStartDate: true, committedActions: true },
   })
-  return overDeliveredByWeek(sprints).filter(Boolean).length
+  return overDeliveredByWeek(sprints, await getPace(candidateId)).filter(Boolean).length
 }
 
 export async function computeMilestoneBadges(candidateId: string): Promise<MilestoneBadgeStatus[]> {
@@ -252,7 +253,7 @@ export async function computeMilestoneBadges(candidateId: string): Promise<Miles
   ])
 
   const comeback = detectComeback(checkIns.map((c) => c.checkedInAt))
-  const overDeliveringStreak = computeOverDeliveringStreak(allSprints)
+  const overDeliveringStreak = computeOverDeliveringStreak(allSprints, await getPace(candidateId))
   const landedInterimRole = candidate.workHistory.some(
     (w) => w.engagementType === 'FRACTIONAL' || w.engagementType === 'INTERIM'
   )

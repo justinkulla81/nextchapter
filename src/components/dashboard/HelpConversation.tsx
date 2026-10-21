@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePostHog } from '@/lib/posthog/client'
 import { markHelpRequestRead, replyToHelpRequest, type HelpFormState } from '@/app/dashboard/help/actions'
+import { conversationState } from '@/lib/redesign/network-account'
 
 interface ConversationView {
   id: string
@@ -29,11 +30,7 @@ export function HelpConversation({ request, defaultOpen }: { request: Conversati
   useEffect(() => {
     if (open && request.replyWaiting) void markHelpRequestRead(request.id)
   }, [open, request.id, request.replyWaiting])
-
-  const pill = request.replyWaiting
-    ? 'bg-orange/15 text-navy'
-    : request.resolved ? 'bg-success/10 text-success' : 'bg-brand/10 text-brand'
-  const status = request.replyWaiting ? 'Reply waiting' : request.resolved ? 'Resolved' : 'Open'
+  const stateText = conversationState(request.replyWaiting, request.resolved)
 
   return (
     <div className="rounded-xl border border-border bg-white">
@@ -44,18 +41,19 @@ export function HelpConversation({ request, defaultOpen }: { request: Conversati
         className="flex w-full items-start justify-between gap-3 p-4 text-left"
       >
         <span className="min-w-0">
-          <span className="block font-semibold text-foreground">{request.subject}</span>
-          <span className="text-xs text-muted-foreground">{request.kindLabel} · {request.started}</span>
+          <span className={'block text-base font-semibold text-ink'}>{request.subject}</span>
+          <span className={'text-sm text-muted-foreground'}>{request.kindLabel} · {request.started}</span>
+          <span className={request.replyWaiting ? 'block text-sm font-semibold text-ink' : 'block text-sm text-muted-foreground'}>{stateText}</span>
         </span>
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${pill}`}>{status}</span>
+        
       </button>
 
       {open && (
         <div className="space-y-3 border-t border-border p-4">
           <ol className="space-y-3">
             {request.messages.map((m) => (
-              <li key={m.id} className={`rounded-lg px-3 py-2 text-sm ${m.fromAdmin ? 'bg-brand/5' : 'bg-muted/60'}`}>
-                <p className="mb-1 text-xs font-semibold text-muted-foreground">{m.fromAdmin ? 'NextChapter team' : 'You'} · {m.when}</p>
+              <li key={m.id} className={`px-3 py-2 ${'rounded-2xl text-base'} ${m.fromAdmin ? 'bg-brand/5' : 'bg-muted/60'}`}>
+                <p className={`mb-1 font-semibold text-muted-foreground ${'text-sm'}`}>{m.fromAdmin ? 'NextChapter team' : 'You'} · {m.when}</p>
                 <p className="whitespace-pre-wrap text-foreground">{m.body}</p>
               </li>
             ))}
@@ -80,7 +78,7 @@ export function HelpConversation({ request, defaultOpen }: { request: Conversati
               <button
                 type="submit"
                 disabled={pending}
-                className="mt-2 inline-flex items-center rounded-lg bg-success px-4 py-2 text-sm font-semibold text-white hover:bg-success-hover disabled:cursor-wait disabled:opacity-70"
+                className="mt-2 inline-flex items-center rounded-lg bg-action px-4 py-2 text-sm font-semibold text-action-foreground hover:brightness-95 disabled:cursor-wait disabled:opacity-70"
               >
                 {pending ? 'Sending…' : 'Send reply'}
               </button>

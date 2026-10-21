@@ -56,6 +56,18 @@ const nextConfig: NextConfig = {
         destination: '/support/admin/crm/meeting-prep',
         permanent: true,
       },
+      // The report's former name: editions and files published before the
+      // rename stay reachable from emails, LinkedIn posts and search results.
+      {
+        source: '/reports/displacement-report-september-2026',
+        destination: '/reports/white-collar-employment-report-september-2026',
+        permanent: true,
+      },
+      {
+        source: '/reports/displacement-report-2026-:rest',
+        destination: '/reports/white-collar-employment-report-2026-:rest',
+        permanent: true,
+      },
       {
         source: '/crucible/:path*',
         destination: '/noexperience/:path*',
@@ -79,6 +91,10 @@ const nextConfig: NextConfig = {
         source: "/ingest/decide",
         destination: `${posthogHost}/decide`,
       },
+      // College and workforce org portals: public addresses for the /i app
+      // (its own login cookie; see src/lib/supabase/portal.ts).
+      { source: "/highered/:path*", destination: "/i/:path*" },
+      { source: "/workforce/:path*", destination: "/i/:path*" },
     ];
   },
   // Unhashed files in public/ otherwise get `max-age=0, must-revalidate`, so a returning
@@ -89,9 +105,12 @@ const nextConfig: NextConfig = {
     const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseWs = supabase.replace(/^https:/, "wss:");
     const isProd = process.env.NODE_ENV === "production";
-    // Report-Only first: next/script and inline JSON-LD need 'unsafe-inline',
-    // and admin-curated embeds can hit frame-src. Watch the console for
-    // violations for a few days, then rename the header key to enforce.
+    // Enforcing since 2026-10-15 after a two-day report-only soak (violations
+    // are still reported to /api/csp-report and show in the Vercel logs as
+    // "CSP violation: ..."). next/script and inline JSON-LD need
+    // 'unsafe-inline'; admin-curated embeds are covered by frame-src https:.
+    // To roll back, rename the header key below to
+    // Content-Security-Policy-Report-Only.
     const csp = [
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"} https://www.googletagmanager.com https://www.google-analytics.com`,
@@ -99,7 +118,7 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       `media-src 'self' blob: ${supabase}`,
-      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net`,
+      `connect-src 'self' ${supabase} ${supabaseWs} https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://www.google.com`,
       "frame-src 'self' https:",
       "worker-src 'self' blob:",
       "object-src 'none'",
@@ -111,7 +130,7 @@ const nextConfig: NextConfig = {
       "report-uri /api/csp-report",
     ].join("; ");
     const security = [
-      { key: "Content-Security-Policy-Report-Only", value: csp },
+      { key: "Content-Security-Policy", value: csp },
       { key: "Strict-Transport-Security", value: "max-age=63072000" },
       { key: "X-Frame-Options", value: "SAMEORIGIN" },
       { key: "X-Content-Type-Options", value: "nosniff" },

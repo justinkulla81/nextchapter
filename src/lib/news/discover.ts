@@ -53,16 +53,53 @@ export function unwrapFeedLink(link: string): string | null {
 }
 
 /** One topic's articles from the past week, as the news search returns them. */
-export async function searchTopic(query: string): Promise<DiscoveredArticle[]> {
+export async function searchTopic(query: string, opts: { anyTime?: boolean } = {}): Promise<DiscoveredArticle[]> {
   const url = new URL('https://www.bing.com/news/search')
   url.searchParams.set('q', query)
   url.searchParams.set('format', 'rss')
   url.searchParams.set('setlang', 'en-US')
   url.searchParams.set('cc', 'US')
-  url.searchParams.set('qft', 'interval="8"') // past week
+  if (!opts.anyTime) url.searchParams.set('qft', 'interval="8"') // past week; Bing has no past-year filter
   const res = await fetch(url, { signal: AbortSignal.timeout(10_000), headers: HEADERS })
   if (!res.ok) throw new Error(`News search failed: ${res.status}`)
   return parseFeed(await res.text())
+}
+
+/**
+ * Google News headlines carry the publisher as a " - Publisher" tail; the
+ * feed also names it in <source>, so the tail is dropped to leave the headline.
+ */
+export function parseGoogleFeed(xml: string): DiscoveredArticle[] {
+  const $ = cheerio.load(xml, { xmlMode: true })
+  const out: DiscoveredArticle[] = []
+  $('item').each((_, el) => {
+    const item = $(el)
+    const link = item.children('link').text().trim()
+    const source = item.children('source').text().trim() || null
+    let title = item.children('title').text().replace(/\s+/g, ' ').trim()
+    if (source && title.endsWith(` - ${source}`)) title = title.slice(0, -(source.length + 3)).trim()
+    if (!/^https?:\/\//i.test(link) || !title) return
+    const date = new Date(item.children('pubDate').text())
+    out.push({
+      // Google's article link redirects to the publisher; it is stable per
+      // article, so it serves as the key even though it is not the publisher's own address.
+      url: link, title, description: null, source, imageUrl: null,
+      publishedAt: Number.isNaN(date.getTime()) ? null : date,
+    })
+  })
+  return out
+}
+
+/** One query's articles from the past week on Google News, a second source beside Bing. */
+export async function searchGoogleNews(query: string, opts: { days?: number } = {}): Promise<DiscoveredArticle[]> {
+  const url = new URL('https://news.google.com/rss/search')
+  url.searchParams.set('q', `${query} when:${opts.days ?? 7}d`)
+  url.searchParams.set('hl', 'en-US')
+  url.searchParams.set('gl', 'US')
+  url.searchParams.set('ceid', 'US:en')
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000), headers: HEADERS })
+  if (!res.ok) throw new Error(`Google news search failed: ${res.status}`)
+  return parseGoogleFeed(await res.text())
 }
 
 export function parseFeed(xml: string): DiscoveredArticle[] {

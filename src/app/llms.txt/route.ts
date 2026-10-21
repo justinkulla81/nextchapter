@@ -27,11 +27,13 @@ export function GET() {
 - [Employers](${u('/talent')}): verified candidate profiles and work-style fit signal, flat monthly price, no per-hire fees.
 - [Recruiters](${u('/recruiters')}): a searchable, opted-in candidate pool including strong candidates ATS filters bury.
 - [Outplacement](${u('/outplacement')}): a candid diagnostic, personalized plan, and direct employer matches for departing employees.
-- [Government & Workforce Agencies](${u('/government-workforce')}): a WIOA-aligned partnership, free to every jobseeker served, with placement data for program reporting.
+- [Government & Workforce Agencies](${u('/government-workforce')}): a WIOA-aligned partnership, free to every jobseeker served, with exportable participant progress and self-reported placement counts.
 - [Nonprofits & Academia](${u('/nonprofits')}): free community service plus consent-based research partnerships.
 
 ## Research and data
 
+- [AI skills in job postings](${u('/ai-skills')}): which functions ask for AI skills, the advertised pay premium raw and like for like, and independent research by seniority. Updated weekly.
+- [AI training](${u('/ai-training')}): for colleges, workforce boards and employers, a measured AI-skill gap and the short courses that close it.
 - [NextChapter White Collar Employment Report](${u('/reports')}): a monthly, independent read on the U.S. white-collar labor market — layoffs, long-term unemployment, AI attribution and the safety net, with methods and data files published.
 - [White-Collar Long-Search Index](${u('/reports/white-collar-index')}): monthly long-term unemployment among U.S. managers and professionals, 2019 = 100, from Census CPS microdata; history downloadable as CSV.
 ${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${report.dek}\n` : ''}- [Layoff tracker](${u('/layoffs')}): WARN notices filed with state labor agencies, this year's totals, coverage notes and the BLS context, with a page for each state and employer.

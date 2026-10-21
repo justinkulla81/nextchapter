@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { syncAutoJoinedCommunities } from '@/lib/community/communities'
+import { ensureKitLinks } from '@/lib/cohorts/launch-kit'
 
 export type FormState = { error?: string } | undefined
 
@@ -78,4 +79,11 @@ export async function unassignCandidateFromCohort(candidateId: string) {
     data: { layoffCohortId: null },
   })
   revalidatePath('/support/admin/layoff-cohorts')
+}
+
+export async function createCohortKit(cohortId: string) {
+  const admin = await requireAdmin()
+  await ensureKitLinks(cohortId, admin?.email ?? null)
+  captureServerEvent(cohortId, 'cohort_kit_created', { cohortId })
+  revalidatePath(`/support/admin/layoff-cohorts/${cohortId}/kit`)
 }

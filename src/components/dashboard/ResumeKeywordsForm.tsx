@@ -6,8 +6,9 @@ import { TagInput } from '@/components/onboarding/TagInput'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { FromResumeTag } from '@/components/dashboard/FromResumeTag'
 
-export function ResumeKeywordsForm({ resumeKeywords }: { resumeKeywords: string[] }) {
+export function ResumeKeywordsForm({ resumeKeywords, prefilled = [] }: { resumeKeywords: string[]; prefilled?: string[] }) {
   const [state, formAction, pending] = useActionState(updateResumeKeywords, undefined)
 
   return (
@@ -15,6 +16,7 @@ export function ResumeKeywordsForm({ resumeKeywords }: { resumeKeywords: string[
       action={formAction}
       className={cn('space-y-2', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
+      <FromResumeTag show={prefilled.includes('resumeKeywords')} section="keywords" fields={['resumeKeywords']} />
       <TagInput
         name="resumeKeywords"
         defaultValue={resumeKeywords}

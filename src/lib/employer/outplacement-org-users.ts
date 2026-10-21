@@ -8,6 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import type { OutplacementRole, RoleGrantRole } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { ORG_ROLE_LABEL } from '@/lib/employer/outplacement-org-role-labels'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 export { ORG_ROLE_LABEL }
 
@@ -28,9 +29,6 @@ const ORG_ROLE_TO_GRANT: Record<OutplacementRole, RoleGrantRole> = {
   FINANCE: 'employer_finance',
 }
 
-function appUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-}
 
 export interface OrgUserRow {
   id: string
@@ -73,7 +71,7 @@ export async function inviteOrgUser(
 
   const { actionLink, error } = await createPreConfirmedInviteUser(
     cleanEmail,
-    `${appUrl()}/auth/callback?next=outplacement-org-invite&inviteToken=${orgUserRow.inviteToken}`,
+    `${callbackOriginForAppPath('/employer')}/auth/callback?next=outplacement-org-invite&inviteToken=${orgUserRow.inviteToken}`,
     { isFirstSend: !existing }
   )
   if (error || !actionLink) {

@@ -10,6 +10,7 @@ import type { PrivacyTier } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentWeekSprint, type CommittedAction } from '@/lib/weekly/sprint'
 import { pointsNeededForA, engineForActionType, getEarnedPoints } from '@/lib/weekly/action-effort'
+import { getPace } from '@/lib/weekly/pace'
 import {
   scoreToGrade,
   CATEGORY_MINIMUM_ENFORCED_FROM_WEEK,
@@ -37,7 +38,7 @@ export async function computeWeeklyProgress(
   privacyTier: PrivacyTier,
   confidentialSearchMode: boolean
 ): Promise<WeeklyProgress> {
-  const weeklyPointsTarget = pointsNeededForA(weekNumber)
+  const weeklyPointsTarget = pointsNeededForA(weekNumber, await getPace(candidateId))
   const perEngineTarget = weeklyPointsTarget / 4
 
   const [sprint, weeklySprintCount] = await Promise.all([

@@ -5,9 +5,10 @@ import { updateOtherSearchStrengtheners } from '@/app/dashboard/search-strategy/
 import { useAdvanceSearchStrategyPageOnSave } from '@/components/dashboard/SearchStrategyWizard'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { cn } from '@/lib/utils'
+import { IndependentWorkExperienceQuestion } from '@/components/dashboard/IndependentWorkExperienceQuestion'
+import type { IndependentWorkExperience, IndependentWorkSuggestions } from '@/lib/independent-work/experience'
 
 const YES_NO_OPTIONS = [
   { value: 'yes', label: 'Yes' },
@@ -39,12 +40,15 @@ function yesNoToString(value: boolean | null) {
 export function OtherSearchStrengthenersForm({
   boardAdvisoryInitial,
   optionalQuestionsInitial,
+  independentWorkInitial,
+  independentWorkSuggestions,
 }: {
   boardAdvisoryInitial: boolean | null
+  independentWorkInitial: IndependentWorkExperience
+  independentWorkSuggestions: IndependentWorkSuggestions
   optionalQuestionsInitial?: {
     networkingLevel: number | null
     learnedNewSkillsLevel: number | null
-    triedPartTimeOrConsulting: boolean | null
     triedExecutiveCoaching: boolean | null
     connectedWithRecruiters: boolean | null
     recruiterConnectionCount: number | null
@@ -59,9 +63,6 @@ export function OtherSearchStrengthenersForm({
   const [networkingLevel, setNetworkingLevel] = useState(optionalQuestionsInitial?.networkingLevel?.toString() ?? '')
   const [learnedNewSkillsLevel, setLearnedNewSkillsLevel] = useState(
     optionalQuestionsInitial?.learnedNewSkillsLevel?.toString() ?? ''
-  )
-  const [triedPartTimeOrConsulting, setTriedPartTimeOrConsulting] = useState(
-    yesNoToString(optionalQuestionsInitial?.triedPartTimeOrConsulting ?? null)
   )
   const [triedExecutiveCoaching, setTriedExecutiveCoaching] = useState(
     yesNoToString(optionalQuestionsInitial?.triedExecutiveCoaching ?? null)
@@ -112,16 +113,7 @@ export function OtherSearchStrengthenersForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>Have you done part-time/interim work or consulting?</Label>
-          <ChoiceButtons
-            name="triedPartTimeOrConsulting"
-            options={YES_NO_OPTIONS}
-            value={triedPartTimeOrConsulting || null}
-            onChange={setTriedPartTimeOrConsulting}
-            columns={2}
-          />
-        </div>
+        <IndependentWorkExperienceQuestion initial={independentWorkInitial} suggestions={independentWorkSuggestions} />
 
         <div className="space-y-2">
           <Label>Have you tried Executive Coaching?</Label>
@@ -143,16 +135,6 @@ export function OtherSearchStrengthenersForm({
             onChange={setConnectedWithRecruiters}
             columns={2}
           />
-          {connectedWithRecruiters === 'yes' && (
-            <Input
-              name="recruiterConnectionCount"
-              type="number"
-              min={0}
-              placeholder="How many?"
-              defaultValue={optionalQuestionsInitial?.recruiterConnectionCount ?? undefined}
-              className="max-w-32"
-            />
-          )}
         </div>
       </div>
 

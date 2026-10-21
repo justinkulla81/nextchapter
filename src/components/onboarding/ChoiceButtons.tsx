@@ -23,6 +23,7 @@ export function ChoiceButtons<T extends string>({
   onChange,
   columns,
   responsive,
+  compact,
 }: {
   name: string
   options: readonly { value: T; label: string; subtext?: string }[]
@@ -32,6 +33,8 @@ export function ChoiceButtons<T extends string>({
   // Opt-in only, so every existing call site keeps its exact current
   // (non-responsive, inline-style) grid behavior unless it asks for this.
   responsive?: boolean
+  // Tighter padding and smaller text on phones, for many short questions in a row.
+  compact?: boolean
 }) {
   const resolvedColumns = columns ?? options.length
   return (
@@ -50,7 +53,8 @@ export function ChoiceButtons<T extends string>({
               onClick={() => onChange(opt.value)}
               aria-pressed={isSelected}
               className={cn(
-                'rounded-lg border-2 p-3 text-center text-sm font-medium transition-colors',
+                'rounded-lg border-2 text-center font-medium transition-colors',
+                compact ? 'px-1.5 py-2 text-xs sm:p-3 sm:text-sm' : 'p-3 text-sm',
                 isSelected
                   ? 'border-brand bg-brand/5 text-brand'
                   : 'border-border bg-white text-foreground hover:border-brand/40'

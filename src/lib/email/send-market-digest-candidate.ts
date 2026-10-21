@@ -3,9 +3,12 @@ import { createResend } from '@/lib/email/resend-client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MarketDigestCandidateEmail from '@/emails/market-digest-candidate'
 import type { MarketConditions } from '@/lib/market/types'
-import { recordCandidateEmailSent } from '@/lib/email/send-log'
+import { recordCandidateEmailSent, trackEmailSent } from '@/lib/email/send-log'
+import { buildEmailClickUrl } from '@/lib/email/click-link'
 import { digestClickUrl } from '@/lib/email/digest-click-url'
 import { audienceUnsubscribeUrl } from '@/lib/email/signed-links'
+import { prisma } from '@/lib/prisma'
+import { aiMarketLine } from '@/lib/skills/ai-skill-market'
 
 export async function sendMarketDigestCandidateEmail(
   candidate: { id: string; userId: string; firstName: string | null },
@@ -23,8 +26,12 @@ export async function sendMarketDigestCandidateEmail(
   const email = userData.user?.email
   if (!email) return { sent: false as const }
 
+  // The one AI line, for the member's own function (static analysis, no cost). Never blocks the send.
+  const fnRow = await prisma.candidateProfile.findUnique({ where: { id: candidate.id }, select: { primaryFunction: true } }).catch(() => null)
+  const aiMarketText = aiMarketLine(fnRow?.primaryFunction)?.text ?? null
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const dashboardUrl = `${appUrl}/dashboard`
+  const dashboardUrl = buildEmailClickUrl(appUrl, candidate.id, 'MARKET_UPDATE', `${appUrl}/dashboard`)
   const unsubscribeUrl = audienceUnsubscribeUrl(appUrl, 'candidate', candidate.id)
 
   const resend = createResend(process.env.RESEND_API_KEY)
@@ -42,6 +49,7 @@ export async function sendMarketDigestCandidateEmail(
       nuggetTitle: nugget?.title ?? null,
       nuggetUrl: nugget ? digestClickUrl('candidate', candidate.id, nugget.id) : null,
       nuggetSummary: nugget?.summary ?? null,
+      aiMarketText,
       dashboardUrl,
       unsubscribeUrl,
     }),
@@ -53,6 +61,7 @@ export async function sendMarketDigestCandidateEmail(
   }
 
   await recordCandidateEmailSent(candidate.id, 'MARKET_UPDATE')
+  trackEmailSent(candidate.id, 'MARKET_UPDATE')
 
   return { sent: true as const }
 }

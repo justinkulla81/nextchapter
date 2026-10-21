@@ -1,10 +1,15 @@
 'use client'
 
-import { useActionState, useRef, useEffect } from 'react'
+import { useActionState, useRef, useEffect, useState } from 'react'
+import type { OutplacementProgramType } from '@prisma/client'
+import { PROGRAM_TYPES, PROGRAM_TYPE_LABEL, PROGRAM_TYPE_BLURB } from '@/lib/employer/program-type'
+import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SubmitButton } from '@/components/ui/submit-button'
+import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { SPONSORED_JOURNEYS } from '@/lib/journey/sponsored'
 import { createOrgAction, createContractAction, inviteFirstAdminAction, type ActionState } from '@/app/support/admin/(portal)/outplacement-contracts/actions'
 
 function ActionMessage({ state }: { state: ActionState }) {
@@ -64,6 +69,7 @@ const TIER_OPTIONS: { value: 'CORE' | 'PLUS' | 'PREMIUM'; label: string }[] = [
 export function CreateContractForm({ orgs }: { orgs: { id: string; name: string }[] }) {
   const [state, formAction] = useActionState(createContractAction, undefined)
   const formRef = useRef<HTMLFormElement>(null)
+  const [journey, setJourney] = useState<string>('LAID_OFF')
   useEffect(() => {
     if (state?.success) formRef.current?.reset()
   }, [state])
@@ -71,6 +77,17 @@ export function CreateContractForm({ orgs }: { orgs: { id: string; name: string 
   return (
     <form ref={formRef} action={formAction} className="space-y-3 rounded-lg border border-border p-4">
       <h3 className="font-semibold">New contract</h3>
+      <div className="space-y-2">
+        <Label>What are the seats for?</Label>
+        <ChoiceButtons
+          name="journey"
+          options={SPONSORED_JOURNEYS.map((j) => ({ value: j.key, label: j.label, subtext: j.hint }))}
+          value={journey}
+          onChange={setJourney}
+          columns={4}
+          responsive
+        />
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="contract-org">Organization</Label>
@@ -87,6 +104,7 @@ export function CreateContractForm({ orgs }: { orgs: { id: string; name: string 
             </SelectContent>
           </Select>
         </div>
+        <ProgramTypePicker />
         <div className="space-y-2">
           <Label htmlFor="contract-cohort">Cohort label (optional)</Label>
           <Input id="contract-cohort" name="cohortLabel" placeholder="RIF — Q1 2026 Engineering" />
@@ -175,5 +193,36 @@ export function InviteFirstAdminForm({ orgs }: { orgs: { id: string; name: strin
       <SubmitButton pendingLabel="Sending…">Send invite</SubmitButton>
       <ActionMessage state={state} />
     </form>
+  )
+}
+
+// Three programs: adjacent buttons, Outplacement (the original product) by default.
+function ProgramTypePicker() {
+  const [value, setValue] = useState<OutplacementProgramType>('OUTPLACEMENT')
+  return (
+    <div className="space-y-2 sm:col-span-2">
+      <span id="contract-program-label" className="text-sm font-medium">
+        Program
+      </span>
+      <input type="hidden" name="programType" value={value} />
+      <div role="radiogroup" aria-labelledby="contract-program-label" className="flex flex-wrap gap-2">
+        {PROGRAM_TYPES.map((t) => (
+          <button
+            key={t}
+            type="button"
+            role="radio"
+            aria-checked={value === t}
+            onClick={() => setValue(t)}
+            className={cn(
+              'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
+              value === t ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted'
+            )}
+          >
+            {PROGRAM_TYPE_LABEL[t]}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">{PROGRAM_TYPE_BLURB[value]}</p>
+    </div>
   )
 }

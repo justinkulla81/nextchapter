@@ -39,6 +39,12 @@ export interface BuildInput {
   /** Open grants for this customer type. Empty or absent drops the funding slide. */
   funding?: FundingInput[]
   people?: PersonCard[]
+  /**
+   * "Across N applications in finance, the top missing skills were X, Y and Z." from members'
+   * application snapshots (src/lib/applications/skill-match-aggregate.ts pitchGapLine). Fills the
+   * {{appGapLine}} token only when citable; a bullet using it is dropped otherwise.
+   */
+  applicationGaps?: { text: string; citable: boolean } | null
   now?: Date
 }
 
@@ -59,6 +65,7 @@ export function tokens(i: BuildInput): Record<string, string> {
     natInfo: pct(NATIONAL.information.avg3, 1), natInfoChange: dir(NATIONAL.information.avg3 - NATIONAL.information.yearAgo),
     area: a ? (a.level === 'STATE' ? a.name : `${a.name}, ${a.state}`) : 'your region',
     state: a?.state ?? '', board: board ?? 'the local workforce board',
+    appGapLine: i.applicationGaps?.citable ? i.applicationGaps.text : '',
   }
   if (a) {
     const delta = a.unemploymentRate != null && a.unemploymentRatePrior != null ? a.unemploymentRate - a.unemploymentRatePrior : null
@@ -138,7 +145,11 @@ export function buildDeck(i: BuildInput): Deck {
       title: fill(r.title, t),
       // A county with no filings on file is "no data", not "no layoffs": state sources are
       // incomplete and not every filing could be placed. Never print "0 workers" as a fact.
-      bullets: r.bullets.filter((b) => !(noLayoffData && /\{\{layoffs(12|90)\}\}/.test(b))).map((b) => fill(b, t)),
+      bullets: r.bullets
+        .filter((b) => !(noLayoffData && /\{\{layoffs(12|90)\}\}/.test(b)))
+        // Application-gap numbers only appear once they rest on enough applications and members.
+        .filter((b) => !(b.includes('{{appGapLine}}') && !t.appGapLine))
+        .map((b) => fill(b, t)),
       appendix: r.appendix, constituent: r.constituent, source: r.source, callout: r.callout,
     }
     // A boxed note on the slide (counsel review, for example) always travels with the deck as a warning too.
