@@ -1,13 +1,14 @@
-# One-off: deletes branches whose work is already in main. Each is deleted only if its tip is still the exact commit
-# checked when this was written (so nothing added since is lost). Delete this file after the run.
-# (Re-registered so the manual run can start.)
-name: Delete merged branches (one-off 2)
+# One-off, run by opening its pull request (then close the pull request without merging). Deletes branches whose work is
+# already in main; each is deleted only if its tip is still the exact commit checked when this was written.
+name: Delete merged branches (one-off 3)
 on:
-  workflow_dispatch:
+  pull_request:
+    types: [opened]
 permissions:
   contents: write
 jobs:
   cleanup:
+    if: github.head_ref == 'claude/branch-cleanup-4'
     runs-on: ubuntu-latest
     steps:
       - name: Delete branches
