@@ -4,8 +4,8 @@ import { Prisma, type WarnNotice } from '@prisma/client'
 import { captureServerEvent } from '@/lib/posthog/server'
 import {
   LAYOUTS, MAX_AGE_DAYS, MAX_EMPLOYEES, MIN_EMPLOYEES, RECENT_DRAFT_DAYS, WEEKLY_CAP,
-  assignSlots, credibilityOf, plausibleEmployer, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
-  type Angle, type Credibility, type DraftFacts, type EventRef,
+  assignSlots, audienceFit, credibilityOf, plausibleEmployer, draftText, eligibleAngles, leastRecent, rankScore, sameEvent,
+  type Angle, type AudienceFit, type Credibility, type DraftFacts, type EventRef,
 } from './layoff-post-rules'
 
 const SENIOR = ['EXECUTIVE', 'VP', 'DIRECTOR', 'SENIOR_MANAGER', 'MANAGER']
@@ -57,7 +57,14 @@ export async function runLinkedInDraftSweep(now = new Date()): Promise<DraftSwee
   const relevance = await usRelevance(scored.filter((c) => c.n.source !== 'WARN_FILING' && c.why !== 'sec-filing').map((c) => c.n))
   const eligible = scored
     .filter((c) => c.n.source === 'WARN_FILING' || c.why === 'sec-filing' || relevance.get(c.n.id))
-    .map((c) => ({ ...c, rank: rankScore(c.why, c.n.employees ?? 0, !!relevance.get(c.n.id)?.inCrm) }))
+    .map((c) => ({
+      ...c,
+      rank: rankScore(c.why, c.n.employees ?? 0, {
+        inCrm: !!relevance.get(c.n.id)?.inCrm,
+        publishers: publisherCount(mentions, c.n.id),
+        fit: audienceFit(c.n.employer, c.n.industry),
+      }),
+    }))
     .sort((x, y) => y.rank - x.rank)
 
   const [madeThisWeek, waiting, recent, lately] = await Promise.all([
@@ -160,6 +167,10 @@ export interface DraftableLayoff {
   state: string | null
   /** Industry as published (WARN filings) or as resolved for the company; null when unknown. */
   industry: string | null
+  /** Outlets that covered it, a measure of reach. */
+  publishers: number
+  /** Whether this employer's workers are the people we most help. */
+  fit: AudienceFit
   /** What to double-check before posting, in plain words; empty when nothing looks off. */
   warnings: string[]
   sourceUrl: string | null
@@ -209,12 +220,14 @@ export async function listDraftableLayoffs(now = new Date(), days = 21): Promise
     if ((n.employees ?? 0) > MAX_EMPLOYEES) warnings.push('The job count looks too high for one company')
     if (!credibility && plausibleEmployer(n.employer) && (n.employees ?? 0) <= MAX_EMPLOYEES) warnings.push('Only one source so far')
     if (isNews && !relevance.get(n.id)) warnings.push('No US jobs or CRM record for this employer')
-    const rank = (credibility ? rankScore(credibility, n.employees ?? 0, !!relevance.get(n.id)?.inCrm) : -1) - warnings.length * 0.01
-    return { n, credibility, warnings, rank }
+    const publishers = publisherCount(mentions, n.id)
+    const fit = audienceFit(n.employer, n.industry ?? (n.companyId ? industryOf.get(n.companyId) ?? null : null))
+    const rank = (credibility ? rankScore(credibility, n.employees ?? 0, { inCrm: !!relevance.get(n.id)?.inCrm, publishers, fit }) : -1) - warnings.length * 0.01
+    return { n, credibility, warnings, rank, publishers, fit }
   }).sort((a, b) => b.rank - a.rank)
 
   const out: DraftableLayoff[] = []
-  for (const { n, credibility, warnings } of rows) {
+  for (const { n, credibility, warnings, publishers, fit } of rows) {
     const ref: EventRef = { employer: n.employer, employees: n.employees, date: n.noticeDate }
     if (seen.some((s) => sameEvent(s, ref))) continue
     seen.push(ref)
@@ -224,9 +237,15 @@ export async function listDraftableLayoffs(now = new Date(), days = 21): Promise
       noticeDate: n.noticeDate, credibility, warnings, sourceUrl: n.sourceUrl,
       state: n.state ?? stateOf.get(n.normalizedEmployer) ?? null,
       industry: n.industry ?? (n.companyId ? industryOf.get(n.companyId) ?? null : null),
+      publishers, fit,
     })
   }
   return out
+}
+
+/** Distinct outlets that covered a notice: a story in dozens of outlets has reach. */
+function publisherCount(mentions: { noticeId: string | null; publisher: string | null }[], noticeId: string): number {
+  return new Set(mentions.filter((m) => m.noticeId === noticeId).map((m) => (m.publisher ?? '').toLowerCase()).filter(Boolean)).size
 }
 
 /** Which news-sourced notices belong to a US employer: it has US jobs on the board, or is in the CRM. */

@@ -18,6 +18,8 @@ export interface OtherLayoffRow {
   sourceUrl: string | null
   state: string | null
   industry: string | null
+  publishers: number
+  fit: 'target' | 'neutral' | 'elite'
 }
 
 const SORTS = [
@@ -43,6 +45,8 @@ function Row({ r }: { r: OtherLayoffRow }) {
         <p className="text-sm text-muted-foreground">
           {r.credibilityLabel ?? 'Not confirmed by the usual rules'}
           {r.industry ? ` · ${r.industry}` : ''}
+          {r.publishers > 1 ? ` · ${r.publishers} outlets` : ''}
+          {r.fit === 'target' ? ' · broad-audience employer' : r.fit === 'elite' ? ' · elite tech' : ''}
           {r.dateLabel ? ` · ${r.dateLabel}` : ''}
           {r.sourceUrl ? <> · <a href={r.sourceUrl} target="_blank" rel="noreferrer" className="underline">source</a></> : null}
         </p>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  assignSlots, credibilityOf, employerKey, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
+  assignSlots, credibilityOf, audienceFit, employerKey, plausibleEmployer, rankScore, sameEvent, MAX_EMPLOYEES, draftText, eligibleAngles, leastRecent, MIN_EMPLOYEES, POST_LINK,
   type DraftFacts, type GateNotice,
 } from './layoff-post-rules'
 
@@ -111,9 +111,27 @@ describe('sameEvent', () => {
   })
 })
 
-describe('rankScore', () => {
-  it('puts an official filing ahead of a bigger news story, and a CRM employer ahead of a stranger', () => {
-    expect(rankScore('warn-filing', 1000, false)).toBeGreaterThan(rankScore('two-publishers', 9000, false))
-    expect(rankScore('two-publishers', 500, true)).toBeGreaterThan(rankScore('two-publishers', 900, false))
+describe('audienceFit and rankScore', () => {
+  it('sorts national everyday employers above elite tech', () => {
+    expect(audienceFit('Kroger’s', null)).toBe('target')
+    expect(audienceFit('Hasbro, Inc.', 'Manufacturing')).toBe('target')
+    expect(audienceFit('Netflix', null)).toBe('elite')
+    expect(audienceFit('Acme Software', 'Software publishers')).toBe('elite')
+    expect(audienceFit('Zeta Holdings', null)).toBe('neutral')
+  })
+  it('does not match a brand inside another word', () => {
+    expect(audienceFit('Gaptech Labs', null)).toBe('neutral')
+    expect(audienceFit('Targeted Media', null)).toBe('neutral')
+  })
+  it('ranks a widely covered national employer above a bigger elite-tech filing', () => {
+    const kroger = rankScore('two-publishers', 3000, { inCrm: false, publishers: 40, fit: 'target' })
+    const netflix = rankScore('warn-filing', 1000, { inCrm: false, publishers: 300, fit: 'elite' })
+    expect(kroger).toBeGreaterThan(netflix)
+  })
+  it('still puts an official filing ahead of a thin news story at the same fit', () => {
+    expect(rankScore('warn-filing', 500, { inCrm: false, publishers: 1, fit: 'neutral' })).toBeGreaterThan(rankScore('two-publishers', 500, { inCrm: false, publishers: 2, fit: 'neutral' }))
+  })
+  it('prefers an employer we know, all else equal', () => {
+    expect(rankScore('two-publishers', 500, { inCrm: true, publishers: 5, fit: 'neutral' })).toBeGreaterThan(rankScore('two-publishers', 900, { inCrm: false, publishers: 5, fit: 'neutral' }))
   })
 })

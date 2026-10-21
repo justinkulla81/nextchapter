@@ -94,9 +94,46 @@ export function sameEvent(a: EventRef, b: EventRef): boolean {
 
 const CREDIBILITY_WEIGHT: Record<Credibility, number> = { 'warn-filing': 4, 'sec-filing': 4, 'two-publishers': 2, 'trusted-outlet': 1, unconfirmed: 0 }
 
-/** Which credible layoff to post about first: official records, then size, then someone we already know there. */
-export function rankScore(why: Credibility, employees: number, inCrm: boolean): number {
-  return CREDIBILITY_WEIGHT[why] + Math.log10(Math.max(employees, 1)) + (inCrm ? 1.5 : 0)
+/**
+ * Who a post is most likely to reach and help. The goal is sign-ups from
+ * typical white-collar workers, not elite-tech engineers, so large national
+ * employers in everyday sectors rank highest and elite tech ranks lower (still
+ * postable, just not first). Explicit lists on purpose: an unlisted employer
+ * with no industry on file is neutral, never silently promoted or demoted.
+ */
+export type AudienceFit = 'target' | 'neutral' | 'elite'
+
+const TARGET_SECTOR = /retail|grocer|supermarket|health|hospital|pharma|medical|bank|financ|insur|logistic|transport|freight|airline|telecom|wireless|cable|manufactur|automotive|vehicle|food|beverage|restaurant|hospitality|hotel|consumer|packaged|energy|utilit|education|government|staffing|real estate|construction/i
+const ELITE_SECTOR = /software|internet|semiconductor|artificial intelligence|cloud|saas|social media/i
+const TARGET_BRANDS = [
+  'kroger', 'walmart', 'target', 'costco', 'albertsons', 'safeway', 'home depot', 'lowe', 'best buy', 'macy', 'kohl', 'nordstrom', 'gap', 'dollar general',
+  'cvs', 'walgreens', 'rite aid', 'unitedhealth', 'humana', 'cigna', 'elevance', 'anthem', 'kaiser', 'hca', 'pfizer', 'merck', 'johnson & johnson', 'abbvie',
+  'wells fargo', 'bank of america', 'citi', 'citigroup', 'jpmorgan', 'chase', 'us bancorp', 'u.s. bank', 'pnc', 'truist', 'capital one', 'state farm', 'allstate', 'progressive', 'geico', 'aig', 'metlife', 'prudential',
+  'ups', 'fedex', 'usps', 'delta', 'united airlines', 'american airlines', 'southwest', 'xpo', 'at&t', 'verizon', 't-mobile', 'comcast', 'charter', 'spectrum', 'dish',
+  'ford', 'general motors', 'gm', 'stellantis', 'chrysler', 'boeing', 'lockheed', 'general electric', 'ge ', 'honeywell', '3m', 'caterpillar', 'deere', 'whirlpool',
+  'procter & gamble', 'p&g', 'coca-cola', 'pepsico', 'kraft', 'kellogg', 'general mills', 'tyson', 'nestle', 'mcdonald', 'starbucks', 'disney', 'paramount', 'warner',
+]
+const ELITE_BRANDS = ['google', 'alphabet', 'meta', 'facebook', 'apple', 'microsoft', 'netflix', 'openai', 'anthropic', 'nvidia', 'stripe', 'airbnb', 'uber', 'lyft', 'salesforce', 'oracle', 'linkedin', 'snap', 'pinterest', 'x corp', 'twitter', 'atlassian', 'intel', 'amd', 'cisco', 'ibm', 'adobe']
+
+export function audienceFit(employer: string, industry: string | null): AudienceFit {
+  const k = ` ${employerKey(employer)} `
+  if (ELITE_BRANDS.some((b) => k.includes(` ${b} `))) return 'elite'
+  if (TARGET_BRANDS.some((b) => k.includes(` ${b.trim()} `) || k.includes(` ${b.trim()}s `))) return 'target'
+  if (industry && ELITE_SECTOR.test(industry)) return 'elite'
+  if (industry && TARGET_SECTOR.test(industry)) return 'target'
+  return 'neutral'
+}
+
+const FIT_WEIGHT: Record<AudienceFit, number> = { target: 3, neutral: 0, elite: -2.5 }
+
+/**
+ * Which credible layoff to post about first: how sure we are (official records
+ * first), how many people it touches, how widely it was covered (reach: a
+ * story in dozens of outlets is one people have heard of), whether the
+ * employer's workers are the people we help, and whether we know someone there.
+ */
+export function rankScore(why: Credibility, employees: number, o: { inCrm: boolean; publishers: number; fit: AudienceFit }): number {
+  return CREDIBILITY_WEIGHT[why] + Math.log10(Math.max(employees, 1)) + 1.5 * Math.log10(1 + o.publishers) + FIT_WEIGHT[o.fit] + (o.inCrm ? 1.5 : 0)
 }
 
 export const ANGLES = ['offer-help', 'first-week', 'local-market', 'senior-demand', 'timeline'] as const
