@@ -12,7 +12,7 @@ const MAX_CONTINUATIONS = 3
 // The briefing is a large JSON object; 4000 tokens truncated it mid-object on news-heavy prospects.
 const MAX_TOKENS = 8000
 
-const PRODUCT = `NextChapter helps laid-off and displaced white-collar professionals land their next role: a candidate platform (job search plan, coaching, a daily job email, résumé and narrative tools, a network of coaches and recruiters) plus programs sold to institutions. Buyers and partners include workforce boards, economic-development and chamber organizations, universities and alumni offices, outplacement buyers, employers doing layoffs, and funders. The founder, Justin Kulla, is pitching them.`
+const PRODUCT = `NextChapter helps laid-off white-collar professionals land their next role: a candidate platform (job search plan, coaching, a daily job email, résumé and narrative tools, a network of coaches and recruiters) plus programs sold to institutions. Buyers and partners include workforce boards, economic-development and chamber organizations, universities and alumni offices, outplacement buyers, employers doing layoffs, and funders. The founder, Justin Kulla, is pitching them.`
 
 const SYSTEM = `You are preparing a one-page prospect briefing for a founder walking into a pitch. ${PRODUCT}
 

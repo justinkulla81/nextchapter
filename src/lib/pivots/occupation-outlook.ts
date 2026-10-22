@@ -1,7 +1,8 @@
 // Long-term national outlook per pivot target: BLS Employment Projections
-// (2024-34), the O*NET Bright Outlook flag and the BLS OEWS national median
-// wage, fetched once via CareerOneStop by scripts/pivots/import-occupation-outlook.ts
-// into occupation-outlook.json. No API calls at request time; refresh yearly
+// (2025-35, public domain) with the BLS OEWS national median wage from the same
+// table, plus the O*NET OnLine Bright Outlook flag (CC BY 4.0). Built from the
+// downloaded files by scripts/pivots/import-occupation-outlook.ts into
+// occupation-outlook.json. No API calls at request time; refresh yearly
 // when BLS publishes new projections.
 //
 // Mapping is an allowlist: a role gets an outlook only when one SOC occupation
@@ -81,7 +82,7 @@ export interface OccupationOutlook {
 
 const BY_SOC = (data as { occupations: Record<string, OccupationOutlook> }).occupations
 
-export const OUTLOOK_SOURCE = 'BLS Employment Projections and OEWS wages via CareerOneStop'
+export const OUTLOOK_SOURCE = 'BLS Employment Projections and OEWS wages; O*NET OnLine Bright Outlook'
 
 export function outlookForRole(roleKey: string): OccupationOutlook | null {
   const soc = ROLE_SOC[roleKey]

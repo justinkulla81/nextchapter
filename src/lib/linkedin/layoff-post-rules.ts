@@ -291,7 +291,7 @@ function body(angle: Angle, f: DraftFacts, v: number): string {
       return `WARN notices generally give employees 60 days before a layoff takes effect. The date listed here is ${shortDate(f.effectiveDate ?? '')}. That window is the best time to start: quietly, with a plan, before the pressure of a last paycheck.`
     case 'company-offer':
       return [
-        `${f.employer}: an open offer. If it would help the people affected, we would like to give every one of them a free NextChapter account: a pivot plan from their work history, retraining for the gaps, and networking outreach drafted for them. You would see counts of who engaged and landed, never names. If you lead People or HR there, send me a message.`,
+        `${f.employer}: an open offer. If it would help the people affected, we would like to give every one of them a free NextChapter account: a pivot plan from their work history, retraining for the gaps, and networking outreach drafted for them. You would see counts of who engaged and landed, never names. If you lead People or HR there, send us a message.`,
         `To the team at ${f.employer}: if you want to support the people leaving, we can set up NextChapter for all of them at no cost to them, with a link for your announcement or packet and counts back to you, never names. Happy to talk this week.`,
       ][v % 2]
     case 'hiring-nearby':
@@ -311,8 +311,8 @@ function body(angle: Angle, f: DraftFacts, v: number): string {
       ][v % 2]
     case 'comment-for-plan':
       return [
-        `If you were affected, comment "plan" and I will send you a free 30-day plan: what to do this week, who to call, and what to say.`,
-        `Affected by this? Comment "plan" below and I will send you our free first-30-days checklist. If you know someone at ${f.employer}, tag them.`,
+        `If you were affected, comment "plan" and we will send you a free 30-day plan: what to do this week, who to call, and what to say.`,
+        `Affected by this? Comment "plan" below and we will send you our free first-30-days checklist. If you know someone at ${f.employer}, tag them.`,
       ][v % 2]
     case 'offer-help':
     default:
@@ -333,7 +333,7 @@ const CLOSINGS = [
   (f: DraftFacts) => `Know someone at ${f.employer}? Send this to them directly. A warm intro this week beats ten cold applications.`,
   (f: DraftFacts) => `Hiring? If you have a role for someone coming out of ${f.employer}, say so in the comments so they can find you.`,
   (f: DraftFacts) => `Tag a recruiter or hiring manager who should see this. People from ${f.employer} will be looking.`,
-  (f: DraftFacts) => `If you work at ${f.employer}, you don't have to say anything here. Send me a message and we'll start with what you need.`,
+  (f: DraftFacts) => `If you work at ${f.employer}, you don't have to say anything here. Send us a message and we'll start with what you need.`,
   () => `Repost this so it reaches the people it affects. Most of them won't see it otherwise.`,
   (f: DraftFacts) => `Been through a layoff yourself? Share the one thing that helped most in the comments. Someone from ${f.employer} will read it.`,
   (f: DraftFacts) => `What would you tell someone starting a job search after ${f.employer}? Add it below.`,

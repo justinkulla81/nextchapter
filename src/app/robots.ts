@@ -59,6 +59,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow,
       },
     ],
-    sitemap: `${siteUrl}/sitemap.xml`,
+    // The index lists /sitemap.xml and the job sitemaps (/jobs/sitemap/N.xml).
+    sitemap: [`${siteUrl}/sitemap-index.xml`, `${siteUrl}/sitemap.xml`],
   }
 }

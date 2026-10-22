@@ -65,7 +65,7 @@ export default async function CrmResearchPage({
 
       <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
         <p className="text-muted-foreground">
-          A researcher whose findings argue displacement is overstated is a <strong className="text-foreground">risk</strong> in
+          A researcher whose findings argue AI job losses are overstated is a <strong className="text-foreground">risk</strong> in
           a pitch meeting, not an asset — which is the whole reason stance is recorded, and why it is never inferred
           automatically.
         </p>

@@ -35,9 +35,9 @@ export function LinkedInDraftCard({ d }: { d: DraftCardData }) {
   const [confirming, setConfirming] = useState(false)
   const [pending, start] = useTransition()
   const run = (fn: () => Promise<{ message: string }>) => start(async () => setNote((await fn()).message))
-  const post = (visibility: 'PUBLIC' | 'CONNECTIONS') => start(async () => {
+  const post = () => start(async () => {
     setConfirming(false)
-    const r = await postDraftToLinkedIn(d.id, visibility)
+    const r = await postDraftToLinkedIn(d.id)
     setNote(r.message)
     setPostUrl(r.url ?? null)
   })
@@ -71,9 +71,8 @@ export function LinkedInDraftCard({ d }: { d: DraftCardData }) {
           {d.canPost && !confirming ? <Button size="sm" disabled={pending} onClick={() => setConfirming(true)}>Post to LinkedIn</Button> : null}
           {confirming ? (
             <span className="flex flex-wrap items-center gap-2 rounded-lg border border-border p-2 text-sm">
-              Posts as you, now, with the image and the first comment.
-              <Button size="sm" disabled={pending} onClick={() => post('PUBLIC')}>Post publicly</Button>
-              <Button size="sm" variant="outline" disabled={pending} onClick={() => post('CONNECTIONS')}>Connections only</Button>
+              Posts as NextChapter, publicly and now, with the slides and the first comment.
+              <Button size="sm" disabled={pending} onClick={() => post()}>Post publicly</Button>
               <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>Cancel</Button>
             </span>
           ) : null}

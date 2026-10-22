@@ -1286,7 +1286,7 @@ export async function deleteIntroPath(pathId: string) {
 /**
  * Sets where a piece of research sits relative to the NextChapter thesis.
  *
- * Always a human judgement. A researcher whose findings argue displacement is
+ * Always a human judgement. A researcher whose findings argue AI job losses are
  * overstated is a RISK in a pitch meeting, not an asset, and inferring that
  * automatically is a way to walk in confidently wrong.
  */

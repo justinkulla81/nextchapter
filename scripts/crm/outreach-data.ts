@@ -81,13 +81,17 @@ const roughly = (n: number) => { const m = 10 ** Math.max(0, String(Math.round(n
  * The job-market paragraph for a college email: the county's unemployment (and the white-collar estimate), how many alumni the college
  * has, and how exposed its biggest fields of study are to AI. Each sentence is dropped when its data is missing; nothing is invented.
  */
+function areaMarketLine(area: Area | undefined): string {
+  if (!area || area.unemp == null) return ''
+  const trend = area.unempPrior != null && Math.abs(area.unemp - area.unempPrior) >= 0.2 ? `, ${area.unemp > area.unempPrior ? 'up' : 'down'} from ${area.unempPrior.toFixed(1)}% a year ago` : ''
+  const wc = area.wcUnemp != null ? `; our estimate for white-collar workers there is ${area.wcUnemp.toFixed(1)}%` : ''
+  return `${area.name}'s unemployment rate is ${area.unemp.toFixed(1)}%${trend}${wc}.`
+}
+
 function collegeMarketContext(col: { name: string; alumniEstimate: number | null; alumniReported: number | null; topMajors: unknown }, area: Area): string {
   const out: string[] = []
-  if (area.unemp != null) {
-    const trend = area.unempPrior != null && Math.abs(area.unemp - area.unempPrior) >= 0.2 ? `, ${area.unemp > area.unempPrior ? 'up' : 'down'} from ${area.unempPrior.toFixed(1)}% a year ago` : ''
-    const wc = area.wcUnemp != null ? `; our estimate for white-collar workers there is ${area.wcUnemp.toFixed(1)}%` : ''
-    out.push(`${area.name}'s unemployment rate is ${area.unemp.toFixed(1)}%${trend}${wc}.`)
-  }
+  const line = areaMarketLine(area)
+  if (line) out.push(line)
   const alumni = col.alumniReported ?? col.alumniEstimate
   if (alumni && alumni >= 1000) out.push(`With an estimated ${roughly(alumni)} alumni, a share of the people now looking for work are likely to be yours.`)
   const ex = degreeExposure(col.topMajors as { field: string; share: number }[] | null)
@@ -231,6 +235,8 @@ async function main() {
     row.line_researcher_hook = /labor|employment|unemployment|workforce|economist|future of work|\bAI\b|artificial|insurance|job/i.test(who.title)
       ? `Your work at ${who.org} on work and the labor market is the kind I would like the method checked against.`
       : `If someone at ${who.org} studies layoffs, AI and the labor market, I would like them to check the method.`
+    // The local line already gives the county's unemployment rate, so the extra sentence is the white-collar estimate. (The college email sets its own.)
+    if (!row.market_context && area?.wcUnemp != null && row.line_local.includes('unemployment there')) row.market_context = `For white-collar workers there, our estimate is ${area.wcUnemp.toFixed(1)}%.`
     row.line_college = area?.college ? `${area.college} is nearby, and its career services could use it too.` : ''
 
     row.facts = JSON.stringify({ local: row.line_local, layoff: row.line_company, timing: row.line_timing, board: row.line_board, roles: row.line_open_roles, ai_roles: row.line_ai_roles, functions: row.line_top_functions, majors: row.line_majors, college: row.line_college })

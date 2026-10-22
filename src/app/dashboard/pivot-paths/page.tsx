@@ -47,7 +47,6 @@ import { setTargetFunction } from './actions'
 import { isPivotingProfile, pivotTargetOf } from '@/lib/journey/pivot-target'
 import { PIVOT_PARTS, parsePivotPart, pivotPartHref, transferFacts, type PivotPart } from '@/lib/journey/pivot-parts'
 import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
-import { CareerOneStopCredit } from '@/components/attribution/CareerOneStopCredit'
 
 export const metadata: Metadata = { title: 'Pivot paths' }
 
@@ -347,9 +346,20 @@ async function PivotPathsBody({ profile, params }: { profile: Awaited<ReturnType
       <p className="text-xs text-muted-foreground">
         Job counts come from the live NextChapter job board at a level you could realistically land, refreshed nightly. Trends compare each
         role&apos;s share of new postings with the period before, and appear once there is enough history. Pay is the typical posted salary
-        where enough jobs list one. Layoff notices are state WARN filings across all employers. Long-term outlook and median wages are national BLS figures (Employment Projections and OEWS) via CareerOneStop, refreshed yearly. What O*NET lists for each kind of work, and paths marked as related by O*NET, come from O*NET Web Services, refreshed yearly.
+        where enough jobs list one. Layoff notices are state WARN filings across all employers. Long-term outlook and median wages are national figures from the U.S. Bureau of Labor Statistics{' '}
+        <a href="https://www.bls.gov/emp/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+          Employment Projections
+        </a>{' '}
+        and{' '}
+        <a href="https://www.bls.gov/oes/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+          Occupational Employment and Wage Statistics
+        </a>
+        , refreshed yearly. Bright Outlook marks come from{' '}
+        <a href="https://www.onetonline.org/find/bright" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+          O*NET OnLine
+        </a>{' '}
+        (CC BY 4.0). What O*NET lists for each kind of work, and paths marked as related by O*NET, come from O*NET Web Services, refreshed yearly.
       </p>
-      <CareerOneStopCredit surface="pivot_paths_page" />
     </div>
   )
 }

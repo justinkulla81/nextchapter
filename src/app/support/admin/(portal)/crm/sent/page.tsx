@@ -4,6 +4,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { loadSentEmails, totalsOf, SOURCE_LABEL, SOURCE_CAP, type SentEmailRow, type SentSource } from '@/lib/crm/sent-emails'
 import { Chip, Tile, pct } from '@/components/admin/OutreachParts'
 import { SentEmailsChart, type SentDay } from '@/components/admin/SentEmailsChart'
+import { RepliesByDay } from '@/components/admin/RepliesByDay'
 
 export const maxDuration = 60
 
@@ -23,8 +24,9 @@ function perDay(rows: SentEmailRow[]): SentDay[] {
   const by = new Map<string, SentDay>()
   for (const r of rows) {
     const k = dayKey.format(r.sentAt)
-    const d = by.get(k) ?? { date: k, cold: 0, crm: 0, gmail: 0, mailing: 0 }
+    const d = by.get(k) ?? { date: k, cold: 0, crm: 0, gmail: 0, mailing: 0, replies: 0 }
     d[r.source]++
+    if (r.repliedAt) d.replies = (d.replies ?? 0) + 1
     by.set(k, d)
   }
   const out: SentDay[] = []
@@ -33,7 +35,7 @@ function perDay(rows: SentEmailRow[]): SentDay[] {
   const start = new Date(Math.max(first.getTime(), end.getTime() - (MAX_CHART_DAYS - 1) * 86_400_000))
   for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
     const k = new Date(t).toISOString().slice(0, 10)
-    out.push(by.get(k) ?? { date: k, cold: 0, crm: 0, gmail: 0, mailing: 0 })
+    out.push(by.get(k) ?? { date: k, cold: 0, crm: 0, gmail: 0, mailing: 0, replies: 0 })
   }
   return out
 }
@@ -62,6 +64,7 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
   const page = Math.max(1, Number.parseInt(one('page'), 10) || 1)
 
   const { rows: all, capped } = await loadSentEmails()
+  const days = perDay(all)
   const inSource = source ? all.filter((r) => r.source === source) : all
   const t = totalsOf(inSource)
   const shown = inSource.filter((r) => matches(r, engagement, q))
@@ -98,8 +101,10 @@ export default async function SentEmailPage({ searchParams }: { searchParams: Pr
 
       <div className="space-y-2 rounded-xl border border-border bg-white p-4">
         <h2 className="text-sm font-medium text-muted-foreground">Emails sent per day, by kind</h2>
-        <SentEmailsChart days={perDay(all)} />
+        <SentEmailsChart days={days} />
       </div>
+
+      <RepliesByDay rows={all} days={days} />
 
       <form method="get" action="/support/admin/crm/sent" className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-white p-4">
         <label className="space-y-1 text-xs text-muted-foreground">Source
