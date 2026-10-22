@@ -85,7 +85,7 @@ function collegeMarketContext(col: { name: string; alumniEstimate: number | null
   const out: string[] = []
   if (area.unemp != null) {
     const trend = area.unempPrior != null && Math.abs(area.unemp - area.unempPrior) >= 0.2 ? `, ${area.unemp > area.unempPrior ? 'up' : 'down'} from ${area.unempPrior.toFixed(1)}% a year ago` : ''
-    const wc = area.wcUnemp != null ? `; our estimate for white-collar workers there is ${area.wcUnemp.toFixed(1)}%` : ''
+    const wc = area.wcUnemp != null ? `; our estimate for professionals there is ${area.wcUnemp.toFixed(1)}%` : ''
     out.push(`${area.name}'s unemployment rate is ${area.unemp.toFixed(1)}%${trend}${wc}.`)
   }
   const alumni = col.alumniReported ?? col.alumniEstimate
