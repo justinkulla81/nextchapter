@@ -7,6 +7,9 @@ import { TrainingForOption } from '@/components/dashboard/pivot/TrainingForOptio
 import type { PivotOption } from '@/lib/careers/pivots'
 import { describePay, formatPay, OEWS_WAGE_CEILING } from '@/lib/careers/local-pay'
 import { aiMarketLineForOccupation } from '@/lib/skills/ai-skill-market'
+import { ExposureFact, ExposureTag } from '@/components/candidate/AiExposure'
+import type { OccupationExposure } from '@/lib/skills/ai-exposure'
+import { exposureComparisonLine, payChangeLine } from '@/lib/skills/pivot-exposure'
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -17,14 +20,8 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   )
 }
 
-function payChange(option: PivotOption): string {
-  const pct = option.wageDeltaPct
-  if (pct === null) return ''
-  const where = option.payBasis === 'METRO' ? 'your metro area' : option.payBasis === 'STATE' ? 'your state' : 'nationwide'
-  const sign = pct > 0 ? '+' : ''
-  if (option.payAtLeast) return ` (at least ${sign}${pct}% vs. your field, ${where})`
-  if (pct === 0) return ` (about the same as your field, ${where})`
-  return ` (${sign}${pct}% vs. your field, ${where})`
+function payBasisLabel(option: PivotOption): string {
+  return option.payBasis === 'METRO' ? 'your metro area' : option.payBasis === 'STATE' ? 'your state' : 'nationwide'
 }
 
 function PayFact({ option }: { option: PivotOption }) {
@@ -33,7 +30,6 @@ function PayFact({ option }: { option: PivotOption }) {
   return (
     <Fact label={area ? `Median pay, ${area}` : 'Median pay'}>
       {describePay(pay)}
-      {payChange(option)}
       {pay && pay.median !== null && pay.p25 !== null && pay.p75 !== null && (
         <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
           Middle half earn {formatPay(pay.p25)} to {formatPay(pay.p75)}
@@ -59,6 +55,8 @@ export function PivotRoleDetail({
   tasks,
   currentTarget,
   showLocalOpenings,
+  exposure = null,
+  currentExposure = null,
 }: {
   option: PivotOption
   state: string | null
@@ -68,14 +66,29 @@ export function PivotRoleDetail({
   currentTarget: string | null
   /** Live local job counts. The market-ranked cards already show their own, so they leave this off. */
   showLocalOpenings: boolean
+  /** Observed AI exposure of this role and of the member's current occupation; null when not measured (those lines are then hidden). */
+  exposure?: OccupationExposure | null
+  currentExposure?: OccupationExposure | null
 }) {
   const skillsToAdd = [...option.toolGaps.map((t) => t.name), ...option.ratedGaps.filter((g) => g.kind === 'KNOWLEDGE').map((g) => g.name)]
   const broad = option.ratedGaps.filter((g) => g.kind !== 'KNOWLEDGE')
   // From the AI-skills analysis: how often this occupation's postings ask for AI, and the premium (raw and like-for-like).
   const ai = aiMarketLineForOccupation(option.socCode, option.title)
+  const pay = payChangeLine(option.wageDeltaPct, option.payAtLeast)
+  const comparison = exposureComparisonLine(currentExposure, exposure)
 
   return (
     <div className="space-y-4">
+      {(pay || exposure) && (
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {pay && <span className="text-base font-semibold text-foreground">{pay}</span>}
+            {exposure && <ExposureTag exposure={exposure} />}
+          </div>
+          {pay && <p className="text-xs text-muted-foreground">Median pay for this role, {payBasisLabel(option)}, compared like for like with your field.</p>}
+        </div>
+      )}
+
       <dl className="grid gap-3 sm:grid-cols-3">
         <PayFact option={option} />
         <Fact label="Projected 10-year growth">
@@ -85,6 +98,14 @@ export function PivotRoleDetail({
           {option.annualOpenings === null ? 'Not available' : option.annualOpenings.toLocaleString('en-US')}
         </Fact>
       </dl>
+
+      {exposure && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-foreground">How much AI is used in this work</p>
+          <ExposureFact exposure={exposure} />
+          {comparison && <p className="text-sm font-medium text-foreground">{comparison}</p>}
+        </div>
+      )}
 
       {ai && <p className="text-xs text-muted-foreground">AI skills: {ai.text}</p>}
 

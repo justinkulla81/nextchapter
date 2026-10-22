@@ -35,6 +35,9 @@ import { PivotRoleDetail } from '@/components/dashboard/pivot/PivotRoleDetail'
 import { OccupationChooser } from '@/components/dashboard/pivot/OccupationChooser'
 import { WageFloorButtons } from '@/components/dashboard/pivot/WageFloorButtons'
 import { PivotViewTracker } from '@/components/dashboard/pivot/PivotViewTracker'
+import { ExposureShownTracker } from '@/components/dashboard/pivot/ExposureShownTracker'
+import { exposureFor, type OccupationExposure } from '@/lib/skills/ai-exposure'
+import { loadCandidateExposure, loadExposureMap } from '@/lib/skills/ai-exposure-server'
 import { RoleLookup } from '@/components/dashboard/pivot/RoleLookup'
 import { ClearCareerChoicesForm } from '@/components/dashboard/pivot/ClearCareerChoicesForm'
 import { OnetAttribution } from '@/components/OnetAttribution'
@@ -364,7 +367,7 @@ async function PivotPathsBody({ profile, params }: { profile: Awaited<ReturnType
   )
 }
 
-type SkillsLayer = { details: Record<string, { socCode: string; node: React.ReactNode }>; sections: React.ReactNode }
+type SkillsLayer = { details: Record<string, { socCode: string; node: React.ReactNode; exposure?: OccupationExposure | null }>; sections: React.ReactNode }
 
 // Everything O*NET and BLS add to the market-ranked list: a "what it takes" section on each path,
 // the roles that use similar skills but aren't on the curated map, and a lookup for any role. Empty
@@ -422,6 +425,9 @@ async function buildSkillsLayer({
   const stateLabel = profile.currentState ?? 'near you'
 
   // The curated options and the role-lookup search are independent reads.
+  const [exposureMap, currentExposure] = await Promise.all([loadExposureMap(), loadCandidateExposure(profile.id)])
+  const exposureOf = (socCode: string) => exposureFor(socCode, exposureMap)
+  const trackedExposure = currentExposure ?? exposureOf(depth.sourceSoc)
   const [curated, candidates] = await Promise.all([
     optionsForLabels(
       depth,
@@ -438,6 +444,7 @@ async function buildSkillsLayer({
   for (const [target, option] of curated) {
     details[target] = {
       socCode: option.socCode,
+      exposure: exposureOf(option.socCode),
       node: (
         <PivotRoleDetail
           option={option}
@@ -447,6 +454,8 @@ async function buildSkillsLayer({
           tasks={tasksBySoc.get(option.socCode) ?? []}
           currentTarget={profile.targetRoleType}
           showLocalOpenings={false}
+          exposure={exposureOf(option.socCode)}
+          currentExposure={currentExposure}
         />
       ),
     }
@@ -463,6 +472,8 @@ async function buildSkillsLayer({
       stateLabel={stateLabel}
       stateCode={depth.stateCode}
       tasks={tasksBySoc.get(option.socCode) ?? []}
+      exposure={exposureOf(option.socCode)}
+      currentExposure={currentExposure}
     />
   )
 
@@ -470,6 +481,7 @@ async function buildSkillsLayer({
     details,
     sections: (
       <>
+        {trackedExposure && <ExposureShownTracker soc6={trackedExposure.soc6} band={trackedExposure.band} />}
         <PivotViewTracker sourceSoc={depth.sourceSoc} optionCount={similar.length} wageFloor={wageFloor} source={depth.source} />
 
         <section id="similar-skills" className="scroll-mt-20 space-y-3" aria-labelledby="similar-skills-heading">
