@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { OCCUPATION_TRENDS_SOURCE } from '@/lib/market/occupation-trends-data'
 import { degreeExposure, roleMixExposure } from '@/lib/crm/degree-ai-exposure'
 import { LAYOFF_DAYS, withTimeout, loadCompanyContext, loadCountyJobs, loadCountyLayoffs, loadLocalNetwork } from '@/lib/crm/org-context-data'
+import { CrmOrgContextRefresh } from '@/components/admin/CrmOrgContextRefresh'
 import { resolveOrgPlace, type PlaceBasis } from '@/lib/crm/org-place'
 
 const TYPE_LABEL: Record<string, string> = {
@@ -103,7 +104,8 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-base font-semibold">Account context</h2>
         <span className="text-xs text-muted-foreground">
-          {org.name}{place ? ` · placed by ${BASIS_TEXT[place.basis]}` : ''} · unemployment, layoffs and groups computed live at {computedAt}
+          {org.name}{place ? ` · placed by ${BASIS_TEXT[place.basis]}` : ''} · unemployment, layoffs and groups computed live at {computedAt}{' '}
+          <CrmOrgContextRefresh fips={place?.fips ?? null} />
         </span>
       </div>
 

@@ -4,7 +4,7 @@
  * education — read from each college's own website and extracted with
  * Claude Haiku 4.5 through the Batch API (half price, results within a day).
  *
- *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts crawl <pages.jsonl> [limit] [areas|all4yr|unreadable]
+ *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts crawl <pages.jsonl> [limit] [areas|all4yr|unreadable|unchecked]
  *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts signals <pages.jsonl>
  *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts submit <pages.jsonl>
  *   npx tsx --env-file=.env.local scripts/workforce/college-contacts.ts collect <batchId> <pages.jsonl>
@@ -37,6 +37,14 @@ async function targets(limit: number, scope: string) {
       orderBy: [{ size: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
     })
     return colleges.filter((c) => !isCommunityCollege(c)).slice(0, limit)
+  }
+  // Every college with a website that was never checked, whatever its sector (the for-profit and two-year schools the other scopes skip).
+  if (scope === 'unchecked') {
+    return prisma.localCollege.findMany({
+      where: { website: { not: null }, contactsCheckedAt: null },
+      orderBy: [{ size: { sort: 'desc', nulls: 'last' } }, { name: 'asc' }],
+      take: limit,
+    })
   }
   if (scope === 'all4yr') {
     const colleges = await prisma.localCollege.findMany({
