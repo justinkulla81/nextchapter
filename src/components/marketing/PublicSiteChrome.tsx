@@ -4,6 +4,7 @@ import { Logo } from '@/components/Logo'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { COMPANY_LINKEDIN_URL } from '@/lib/contact/constants'
+import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
 const NAV_LINK = 'hidden text-sm font-medium text-muted-foreground hover:text-foreground'
 
@@ -69,7 +70,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <TrackedLink
-            href="/onboarding/desire"
+            href={MARKET_REALITY_START_HREF}
             event="about_cta_clicked"
             properties={{ cta: 'footer_get_grade', page }}
             className="inline-flex items-center justify-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"

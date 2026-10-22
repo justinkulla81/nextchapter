@@ -6,6 +6,7 @@ import { ClipboardList, Compass, ListChecks, ShieldCheck, Trophy, type LucideIco
 import { Button } from '@/components/ui/button'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
+import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
 export const metadata: Metadata = {
   title: 'How It Works',
@@ -160,7 +161,7 @@ export default function HowItWorksPage() {
         </div>
 
         <div className="mt-16 text-center">
-          <Button nativeButton={false} size="lg" variant="cta" render={<Link href="/onboarding/desire" />}>
+          <Button nativeButton={false} size="lg" variant="cta" render={<Link href={MARKET_REALITY_START_HREF} />}>
             Get your Market Reality Assessment
           </Button>
         </div>

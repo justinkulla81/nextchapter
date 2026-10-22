@@ -16,6 +16,8 @@ export const MARKET_REALITY_ENTRY = 'market_reality'
 /** The query string on a Market Reality link: /onboarding/desire?goal=market-reality */
 export const MARKET_REALITY_GOAL_PARAM = 'goal'
 export const MARKET_REALITY_GOAL_VALUE = 'market-reality'
+/** Where every "Get your Market Reality Assessment" button goes. */
+export const MARKET_REALITY_START_HREF = `/onboarding/desire?${MARKET_REALITY_GOAL_PARAM}=${MARKET_REALITY_GOAL_VALUE}`
 
 export function entryFromGoalParam(goal: string | null | undefined): typeof MARKET_REALITY_ENTRY | null {
   return goal === MARKET_REALITY_GOAL_VALUE ? MARKET_REALITY_ENTRY : null
