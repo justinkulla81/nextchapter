@@ -127,7 +127,7 @@ export function descriptionParagraphs(text: string | null): string[] {
 
 const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-function descriptionHtml(text: string | null): string {
+export function descriptionHtml(text: string | null): string {
   return descriptionParagraphs(text)
     .map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
     .join('')

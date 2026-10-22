@@ -73,6 +73,18 @@
       "schedule": "30 10 * * *"
     },
     {
+      "path": "/api/cron/job-feed",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/indexnow-jobs",
+      "schedule": "30 11 * * *"
+    },
+    {
+      "path": "/api/cron/google-indexing-jobs",
+      "schedule": "45 11 * * *"
+    },
+    {
       "path": "/api/cron/research-inbox-sweep",
       "schedule": "0 12 * * *"
     },
