@@ -15,6 +15,7 @@ import { hasLearningDevHead, missingLearningDevHead } from '@/lib/crm/learning-d
 import { ORG_RELATIONSHIPS, ORG_RELATIONSHIP_LABELS, isOrgRelationshipFilter, relationshipWhere, type OrgRelationshipFilter } from '@/lib/crm/org-relationships'
 import { countOpenByOrg } from '@/lib/funding-opportunities/store'
 import { layoffsByOrg, orgIdsWithLayoffs } from '@/lib/crm/org-layoffs'
+import { communicationByOrg, orgIdsWithCommunication } from '@/lib/crm/org-communication'
 import { DEAL_STATUSES, DEAL_STATUS_LABELS, isDealStatus } from '@/lib/crm/deal-status'
 
 export const maxDuration = 30
@@ -34,6 +35,7 @@ export default async function CrmOrganizationsPage({
   const goal = sp.goal ?? ''
   const deal = sp.deal ?? ''
   const layoffs = sp.layoffs === 'any' ? 'any' : ''
+  const comm = sp.comm === 'any' || sp.comm === 'none' || sp.comm === 'waiting' ? sp.comm : ''
   const ldHead = sp.ldhead === 'missing' || sp.ldhead === 'has' ? sp.ldhead : ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const requested = parseInt(sp.per ?? '', 10)
@@ -46,9 +48,11 @@ export default async function CrmOrganizationsPage({
     : [{ priorityScore: sort.dir }, { name: 'asc' as const }]
 
   const layoffOrgIds = layoffs ? await orgIdsWithLayoffs() : null
+  const commOrgIds = comm ? await orgIdsWithCommunication(comm === 'waiting') : null
   const where: Prisma.CrmOrganizationWhereInput = {
+    ...(commOrgIds ? { AND: [{ id: comm === 'none' ? { notIn: commOrgIds } : { in: commOrgIds } }] } : {}),
     ...(layoffOrgIds ? { id: { in: layoffOrgIds } } : {}),
-    ...(rel ? { AND: [relationshipWhere(rel)] } : {}),
+    ...(rel ? { AND: [...(commOrgIds ? [{ id: comm === 'none' ? { notIn: commOrgIds } : { in: commOrgIds } }] : []), relationshipWhere(rel)] } : {}),
     ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
     ...(type ? { orgTypes: { has: type as CrmOrgType } } : {}),
     ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
@@ -75,11 +79,11 @@ export default async function CrmOrganizationsPage({
       },
     }),
   ])
-  const [oppCounts, layoffCounts] = await Promise.all([countOpenByOrg(rows.map((o) => o.id)), layoffsByOrg(rows.map((o) => o.id))])
+  const [oppCounts, layoffCounts, comms] = await Promise.all([countOpenByOrg(rows.map((o) => o.id)), layoffsByOrg(rows.map((o) => o.id)), communicationByOrg(rows.map((o) => o.id))])
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ q, type, rel, goal, deal, layoffs, ldhead: ldHead, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
+    for (const [k, v] of Object.entries({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
     return p.toString()
   }
 
@@ -126,6 +130,7 @@ export default async function CrmOrganizationsPage({
           { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
           { key: 'ldhead', label: 'Head of L&D', value: ldHead, options: [{ value: 'missing', label: 'Missing a head of L&D' }, { value: 'has', label: 'Has a head of L&D' }] },
           { key: 'layoffs', label: 'Layoffs', value: layoffs, options: [{ value: '', label: 'Any layoff history' }, { value: 'any', label: 'Has layoffs' }] },
+          { key: 'comm', label: 'Communication', value: comm, options: [{ value: '', label: 'Any communication' }, { value: 'any', label: 'We have emailed or heard from them' }, { value: 'waiting', label: 'Waiting on their reply' }, { value: 'none', label: 'No communication yet' }] },
           { key: 'deal', label: 'Deal', value: deal, options: [{ value: '', label: 'Any deal status' }, { value: 'any', label: 'Has a deal' }, ...DEAL_STATUSES.map((d) => ({ value: d, label: DEAL_STATUS_LABELS[d] }))] },
         ]}
       />
@@ -158,11 +163,12 @@ export default async function CrmOrganizationsPage({
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
                 <th className="w-8 px-3 py-2"><CrmSelectAll pageCount={rows.length} /></th>
-                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, ldhead: ldHead, per: String(perPage) }} />
+                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, per: String(perPage) }} />
                 <th className="px-3 py-2 font-medium">What it is to us</th>
                 <th className="px-3 py-2 font-medium">Goal</th>
                 <th className="px-3 py-2 font-medium">Deal</th>
-                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, ldhead: ldHead, per: String(perPage) }} defaultDir="desc" />
+                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, per: String(perPage) }} defaultDir="desc" />
+                <th className="px-3 py-2 font-medium" title="Emails we sent to people at this organization, replies back, and the last one">Communication</th>
                 <th className="px-3 py-2 font-medium" title="WARN filings and announced layoffs at this organization, with the jobs they name and the latest date">Layoffs</th>
                 <th className="px-3 py-2 font-medium">Pipelines</th>
                 <th className="px-3 py-2 font-medium" title="Open grants and forecasts this organization issues">Funding</th>
@@ -203,6 +209,19 @@ export default async function CrmOrganizationsPage({
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    {(() => {
+                      const c = comms.get(o.id)
+                      if (!c) return <span className="text-muted-foreground">None yet</span>
+                      return (
+                        <Link href={`/support/admin/crm/sent?q=${encodeURIComponent(o.name)}`} className="block hover:underline">
+                          <span className="font-medium">{c.sent} sent · {c.received} {c.received === 1 ? 'reply' : 'replies'}</span>
+                          {c.lastAt && <span className="block text-muted-foreground">{c.lastDirection === 'INBOUND' ? 'They wrote' : 'We wrote'} {c.lastAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                          {c.awaitingReply && <span className="block text-amber-700">Waiting on their reply</span>}
+                        </Link>
+                      )
+                    })()}
                   </td>
                   <td className="px-3 py-2 text-xs">
                     {(() => {

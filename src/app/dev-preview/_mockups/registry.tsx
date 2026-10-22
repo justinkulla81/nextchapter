@@ -20,6 +20,7 @@ import { SearchStrategyApplicationMatch, ApplicationMatchFew } from './applicati
 import { AdminSkillsMatch } from './admin-skills-match'
 import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
+import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
 
 const CoachMatchShortlistLive = () => <CoachMatchLive step="shortlist" />
@@ -36,6 +37,10 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'jobs/market/ai-exposure-report', place: 'Jobs', title: 'AI exposure: your market reality', replaces: 'the “AI is reshaping this work” line in the market report', Component: ExposureMarketReport },
+  { path: 'home/tailored/ai-exposure-strategy', place: 'Home', title: 'AI exposure: search strategy', replaces: 'the “AI skills” line under open roles', Component: ExposureSearchStrategy },
+  { path: 'learn/path/ai-exposure-pivots', place: 'Learn', title: 'AI exposure: career pivots', replaces: 'the “AI task exposure” line on each pivot role', Component: ExposurePivots },
+  { path: 'learn/learn/ai-exposure', place: 'Learn', title: 'AI exposure: what to learn next', replaces: 'the generic “AI Training” description line', Component: ExposureLearn },
   { path: 'home/today', place: 'Home', title: 'Your week', replaces: '/dashboard', Component: HomeToday },
   { path: 'home/progress/built', place: 'Home', title: 'Effort and results: what you’ve built', replaces: '/dashboard/stats (badges and leaderboards removed)', Component: ProgressBuilt },
   { path: 'home/progress/timeline', place: 'Home', title: 'Effort and results: your search timeline', replaces: 'new', Component: ProgressTimeline },

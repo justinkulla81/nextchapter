@@ -11,6 +11,8 @@ import { setPivotPathHidden } from '@/app/dashboard/pivot-paths/actions'
 import { pivotJobsHref } from '@/lib/pivots/pivot-map'
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
 import { OnetAttribution } from '@/components/OnetAttribution'
+import { ExposureTag } from '@/components/candidate/AiExposure'
+import type { OccupationExposure } from '@/lib/skills/ai-exposure'
 
 const PEOPLE_TAG: Record<PivotSuggestion['people'], { label: string; icon: typeof Users }> = {
   HIGH: { label: 'People-facing', icon: Users },
@@ -48,7 +50,7 @@ export function PivotPathsList({
   marketReady: boolean
   surface: 'pivot_paths_page' | 'search_strategy'
   // Server-rendered "what it takes" (O*NET skills, local pay, training) per path, keyed by target.
-  details?: Record<string, { socCode: string; node: ReactNode }>
+  details?: Record<string, { socCode: string; node: ReactNode; exposure?: OccupationExposure | null }>
 }) {
   const [hiddenNow, setHiddenNow] = useState<string[]>([])
   const [restored, setRestored] = useState<string[]>([])
@@ -180,7 +182,7 @@ function PivotPathCard({
   sourceRole: string | null
   surface: string
   inSearch: boolean
-  detail?: { socCode: string; node: ReactNode }
+  detail?: { socCode: string; node: ReactNode; exposure?: OccupationExposure | null }
   onHide: () => void
 }) {
   const people = PEOPLE_TAG[s.people]
@@ -234,7 +236,10 @@ function PivotPathCard({
         </div>
         <div>
           <dt className="text-xs font-medium text-muted-foreground">Pay</dt>
-          <dd className="text-foreground">{s.pay.summary}</dd>
+          <dd className="space-y-1 text-foreground">
+            <span className="block">{s.pay.summary}</span>
+            {detail?.exposure && <ExposureTag exposure={detail.exposure} />}
+          </dd>
         </div>
       </dl>
 

@@ -115,6 +115,7 @@ describe('no indirect route from CRM data to a candidate', () => {
   const ALLOWED: Record<string, string> = {
     'src/app/api/cron/crm-sync/route.ts': 'cron',
     'src/components/admin/CrmOrgBackgroundSections.tsx': 'admin UI',
+    'src/components/admin/CrmOrgContext.tsx': 'admin UI',
     'src/components/admin/mailing/PersonMailingSection.tsx': 'admin UI',
     'src/lib/candidates/invite.ts': 'writes an invite into the CRM',
     'src/lib/candidates/lead-source.ts': 'attribution, writes only',

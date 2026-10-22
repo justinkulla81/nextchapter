@@ -145,7 +145,7 @@ export interface PivotSuggestion {
   gaps: { label: string; way: string; example: string }[]
   demand: Demand
   pay: PayChange
-  /** National long-term outlook (BLS projections via CareerOneStop) when one SOC occupation stands for the role. */
+  /** National long-term outlook (BLS Employment Projections and OEWS wages) when one SOC occupation stands for the role. */
   outlook: { line: string; occupation: string; medianWage: number | null; wageYear: string | null } | null
   /** Why personality moved this path, in plain words, when it did. */
   personalityNote: string | null

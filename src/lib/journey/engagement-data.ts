@@ -92,7 +92,7 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     // What they told us they did before joining: if it is a lot, "your search has not started" is wrong.
     priorActivity: (p.jobsAppliedBucket !== null && p.jobsAppliedBucket !== '0-20') || (p.interviewsReceivedCount ?? 0) > 0,
     conversations,
-    aiDisplaced: p.aiDisplacementReason === 'yes' || p.aiDisplacementReason === 'partly',
+    aiJobLoss: p.aiJobLossReason === 'yes' || p.aiJobLossReason === 'partly',
     culture: parseCultureFit(p.cultureFit),
     details: {
       returnDate: returnDateOf(p.journeyDetails),

@@ -36,7 +36,7 @@ for (const j of JOURNEYS) {
 }
 
 lines.push('## Collected outside the spine', '')
-lines.push('Optional answers that drive something but are not asked as a spine question: `aiDisplacementReason` (adds an AI outlook step to the plan), `travelWillingness` (job matching) and `biggestBarriers` (the report and rewrite actions).', '')
+lines.push('Optional answers that drive something but are not asked as a spine question: `aiJobLossReason` (adds an AI outlook step to the plan), `travelWillingness` (job matching) and `biggestBarriers` (the report and rewrite actions).', '')
 
 writeFileSync(join(__dirname, '../../docs/PERSONALIZATION_SPINE.md'), lines.join('\n'))
 console.log('Wrote docs/PERSONALIZATION_SPINE.md')

@@ -49,7 +49,7 @@ export type EngagementSignals = {
   // member's own plan; never shown to anyone else (see affiliations/visibility.ts).
   redFlags: RedFlags
   // Said AI had a part in losing or putting at risk their last role ("yes" or "partly"). Optional, so older callers need not set it.
-  aiDisplaced?: boolean
+  aiJobLoss?: boolean
   // Company culture and working environment, only if it matters to them.
   culture: CultureFit | null
   // From journeyDetails: a return date (taking a break), and a fractional member's offer, open days and when the current engagement ends.
@@ -362,7 +362,7 @@ export function redFlagGuidance(s: EngagementSignals): { text: string; actionTyp
 // Someone whose role was hit by AI gets a step aimed at it: which roles hold up
 // and which skills they ask for. Only while planning or in a search.
 export function aiOutlookItems(s: EngagementSignals): { text: string; actionType?: string }[] {
-  if (!s.aiDisplaced) return []
+  if (!s.aiJobLoss) return []
   const planning = s.stage === 'EXPLORING' || s.stage === 'PREPARING' || s.stage === 'APPLYING' || s.stage === 'INTERVIEWING'
   if (!planning) return []
   return [{ text: 'See which roles hold up against AI, and add one skill they ask for', actionType: 'LEARNING_MODULE' }]
@@ -415,7 +415,7 @@ export function profileDrivenItems(s: EngagementSignals, now: Date = new Date())
         pivot: searching ? (s.pivot ?? null) : null,
         career: s.journey === 'GROWING' || s.journey === 'PROMOTION' ? (s.career ?? null) : null,
         skillsToBuild: s.skillsToBuild ?? [],
-        aiDisplaced: !!s.aiDisplaced,
+        aiJobLoss: !!s.aiJobLoss,
         boardInterest: !!s.boardInterest,
         seniorLevel: s.seniorLevel,
         ownedFunctions: s.ownedFunctions,

@@ -7,6 +7,7 @@
 import { CARD_VERDICT_LABEL, type CardVerdict } from '@/lib/jobs/job-card'
 import { MATCH_DIMENSION_LABEL, MATCH_DIMENSION_ORDER, type JobMatch, type MatchDimensionKey } from '@/lib/jobs/job-match-types'
 import { POSTING_SIGNAL_TAG, type PostingSignal } from '@/lib/jobs/posting-signals'
+import type { OccupationExposure } from '@/lib/skills/ai-exposure'
 
 export interface JobListItem {
   /** The id the URL (`?job=`) and PostHog carry: the board posting id, or the partner-search job id. */
@@ -25,6 +26,8 @@ export interface JobListItem {
   fact: string | null
   /** When the fact is a posting-signal tag ("Open to career changers"), which one — the row shows it as the tag. */
   signal?: PostingSignal | null
+  /** AI exposure of the occupation this opening is placed in; null when it is not placed or not measured. The row shows it on its facts line. */
+  exposure?: OccupationExposure | null
   /** The job's open page, used when the detail cannot render. */
   href: string
 }
@@ -88,6 +91,7 @@ export function listItemOf(input: {
   why: { fits: string[]; gap: string | null } | null | undefined
   fact: string | null
   signal?: PostingSignal | null
+  exposure?: OccupationExposure | null
 }): JobListItem {
   return {
     id: input.id,
@@ -100,6 +104,7 @@ export function listItemOf(input: {
     reason: reasonLine(input.why, input.verdict),
     fact: input.fact,
     signal: input.signal && input.fact === POSTING_SIGNAL_TAG[input.signal] ? input.signal : null,
+    exposure: input.exposure ?? null,
     href: input.kind === 'board' ? `/dashboard/jobs/${input.id}?src=board` : '/dashboard/find-my-job',
   }
 }

@@ -1,0 +1,124 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { cache } from 'react'
+import { SiteNav } from '@/components/marketing/PublicSiteChrome'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { StructuredData } from '@/components/StructuredData'
+import { PersonalizePanel } from '@/components/home/PersonalizePanel'
+import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
+import { buttonVariants } from '@/components/ui/button'
+import { datePostedOf, descriptionParagraphs, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
+import { getPublicJob } from '@/lib/jobs/public-job-page-server'
+import { cn } from '@/lib/utils'
+
+// A public, indexable page for one live job, with Google for Jobs structured data.
+// Which jobs get one: the allowlist in src/lib/jobs/public-job-page.ts. Every other id —
+// closed, private, unverified, unknown — is a 404 (notFound(), ./not-found.tsx), so
+// Google drops a page once its job closes. Rendered on first request and cached (ISR);
+// one primary-key read per render. No IP rate limit: crawlers must be able to read it.
+
+export const revalidate = 21600 // 6 hours
+export const dynamicParams = true
+
+export function generateStaticParams() {
+  return []
+}
+
+type Params = Promise<{ id: string }>
+
+const loadJob = cache((id: string) => getPublicJob(id))
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { id } = await params
+  const job = await loadJob(id)
+  if (!job) return { title: 'Job not found', robots: { index: false, follow: true } }
+  const place = placeLabel(job)
+  const lead = descriptionParagraphs(job.description).join(' ').slice(0, 150).trim()
+  return {
+    title: `${job.title} at ${job.companyName}${place ? ` · ${place}` : ''}`,
+    description: `${job.companyName} is hiring a ${job.title}${place ? ` (${place})` : ''}. ${lead}…`,
+    alternates: { canonical: `/jobs/${job.id}` },
+    robots: { index: true, follow: true },
+  }
+}
+
+const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+
+export default async function PublicJobPage({ params }: { params: Params }) {
+  const { id } = await params
+  const job = await loadJob(id)
+  if (!job) notFound()
+
+  const place = placeLabel(job)
+  const pay = payLabel(job.salaryMin, job.salaryMax, job.payPeriod)
+  const paragraphs = descriptionParagraphs(job.description)
+  const excerpt = (job.description ?? '').trimEnd().endsWith('…')
+  const remote = isRemoteJob(job)
+
+  return (
+    <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
+      <StructuredData data={jobPostingJsonLd(job)} />
+      <PublicJobViewTracker jobId={job.id} company={job.companyName} remote={remote} hasPay={!!pay} />
+      <header>
+        <SiteNav />
+      </header>
+
+      <main className="mx-auto w-full max-w-5xl px-6 pb-16">
+        <Link href="/jobs" className="text-sm text-muted-foreground hover:text-foreground">
+          ← Search all jobs
+        </Link>
+
+        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_21rem]">
+          <article className="min-w-0">
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{job.title}</h1>
+            <p className="mt-2 text-lg">{job.companyName}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {[place, pay, `Posted ${dateFmt.format(datePostedOf(job))}`].filter(Boolean).join(' · ')}
+            </p>
+
+            <TrackedLink
+              href={job.url}
+              rel="nofollow"
+              event="public_job_apply_clicked"
+              properties={{ jobId: job.id, company: job.companyName, placement: 'top' }}
+              className={cn(buttonVariants({ size: 'lg' }), 'mt-6 h-12 rounded-full bg-action px-6 text-action-foreground hover:brightness-95')}
+            >
+              Apply on employer site
+            </TrackedLink>
+
+            <h2 className="mt-10 font-display text-xl font-semibold">About the job</h2>
+            <div className="mt-3 space-y-4 text-[15px] leading-relaxed">
+              {paragraphs.map((p, i) => (
+                <p key={i} className="whitespace-pre-line">
+                  {p}
+                </p>
+              ))}
+            </div>
+            {excerpt && (
+              <p className="mt-4 text-sm text-muted-foreground">
+                This is the start of the posting.{' '}
+                <TrackedLink
+                  href={job.url}
+                  rel="nofollow"
+                  event="public_job_apply_clicked"
+                  properties={{ jobId: job.id, company: job.companyName, placement: 'read_more' }}
+                  className="font-semibold text-brand underline underline-offset-4"
+                >
+                  Read the full posting on the employer&apos;s site
+                </TrackedLink>
+              </p>
+            )}
+          </article>
+
+          <PersonalizePanel
+            heading="This page is not personalized"
+            intro="Anyone sees this same job. Without a profile you don’t get:"
+            properties={{ placement: 'job_page', jobId: job.id }}
+            mobileFirst={false}
+          />
+        </div>
+      </main>
+    </div>
+  )
+}

@@ -42,6 +42,12 @@ import { effectiveJourney } from '@/lib/journey/journey'
 import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { CompanyCoursesCallout } from '@/components/dashboard/StaffProgramCard'
 import { pickLearnCourses } from '@/lib/redesign/learn-picks'
+import { loadCandidateExposure } from '@/lib/skills/ai-exposure-server'
+import { retrainingNeed } from '@/lib/skills/ai-exposure'
+import { aiSkillsForCourse } from '@/lib/learning/ai-course-tags'
+import { aiPayNoteFor } from '@/components/dashboard/learning/AiPaysMoreNote'
+import { aiPaySentence, aiShareSentence, aiTrainingWhy, learnWhyFirst } from '@/lib/redesign/learn-exposure-why'
+import { AiExposureShown } from '@/components/dashboard/learning/AiExposureShown'
 import { LearnHome } from '@/components/dashboard/LearnHome'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 
@@ -121,7 +127,15 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
 
   if (curated) {
     // AI skills the member's best-fit employers ask for and the member lacks, each with a tagged course and the reason.
-    const [aiGap, catalog, appPlan] = await Promise.all([loadMemberSkillGapByKind(profile.id), getActiveCourses(), loadApplicationSkillPlan(profile.id).catch(() => null)])
+    const [aiGap, catalog, appPlan, exposure, live] = await Promise.all([
+      loadMemberSkillGapByKind(profile.id),
+      getActiveCourses(),
+      loadApplicationSkillPlan(profile.id).catch(() => null),
+      loadCandidateExposure(profile.id),
+      loadAiMarket().catch(() => null),
+    ])
+    const need = retrainingNeed(exposure)
+    const fn = profile.targetFunction ?? profile.primaryFunction
     const aiGapItems = aiGap ? aiGapCourseItems(aiGap.rows, aiGap.employersWithSkillData, catalog) : []
     // Skills the member's own applications keep asking for come first (the same ranking as Search Strategy's "What to build next").
     const appGapItems = appPlan ? applicationGapCourseItems(appPlan.recommendations, catalog, courseForSkill) : []
@@ -129,7 +143,17 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       [...appGapItems, ...aiGapItems, ...plan.sections.flatMap((s) => s.items), ...plan.functionTraining, ...plan.aiTrainingCoursesByLevel[plan.aiTrainingTier]],
       completedTitles,
       enrolledTitles,
+      3,
+      { need, isAiCourse: (i) => aiSkillsForCourse(i.url).length > 0 },
     )
+    // "Why this first": exposure of the member's occupation, what postings ask for, and the AI pay premium when it holds
+    // like-for-like. The pay line only appears when AI skills are part of the advice (build_now / build_alongside).
+    const payNote = need === 'build_now' || need === 'build_alongside' ? aiPayNoteFor(fn, live, catalog) : null
+    const why = learnWhyFirst({
+      exposure,
+      shareLine: need === 'build_now' || need === 'build_alongside' ? aiShareSentence(fn, live) : null,
+      payLine: aiPaySentence(payNote),
+    })
     const aiTitles = new Set(aiGapItems.map((i) => i.title))
     captureServerEvent(profile.id, 'learn_home_viewed', {
       hasFeatured: !!picks.featured,
@@ -140,13 +164,16 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       featuredIsApplicationGap: !!picks.featured && appGapItems.some((i) => i.title === picks.featured!.title),
       moreCount: picks.more.length,
       completedCount: badges.length,
+      aiExposureBand: exposure?.band ?? null,
+      retrainingNeed: need,
     })
     return (
       <div className="space-y-8">
+        <AiExposureShown soc6={exposure?.soc6 ?? null} band={exposure?.band ?? null} need={need} />
         <Suspense fallback={null}>
           <TuneStripSection profile={profile} title="Closer to hired: tune your path" />
         </Suspense>
-        <LearnHome featured={picks.featured} more={picks.more} enrolledTitles={enrolledTitles} completedCount={badges.length} allHref="/dashboard/learning?all=1" />
+        <LearnHome featured={picks.featured} more={picks.more} enrolledTitles={enrolledTitles} completedCount={badges.length} allHref="/dashboard/learning?all=1" why={why} aiExposureBand={exposure?.band ?? null} />
       </div>
     )
   }
@@ -159,8 +186,13 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
     hasGapRationale: plan.sections.some((s) => s.items.some((i) => !!i.rationale)),
   })
 
+  const [libExposure, libLive] = await Promise.all([loadCandidateExposure(profile.id), loadAiMarket().catch(() => null)])
+  const libNeed = retrainingNeed(libExposure)
+  const libFallback = aiMarketLine(profile.primaryFunction, libLive)?.text ?? 'How much AI matters depends on your function. The list above shows the AI skills your best-fit jobs ask for.'
+
   return (
     <div className="space-y-8">
+      <AiExposureShown soc6={libExposure?.soc6 ?? null} band={libExposure?.band ?? null} need={libNeed} />
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Learn New Skills</h1>
         <CompanyCoursesCallout candidateId={profile.id} />
@@ -213,7 +245,7 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
 
       <LearningSection
         title="AI Training"
-        description={aiMarketLine(profile.primaryFunction, await loadAiMarket())?.text ?? 'How much AI matters depends on your function. The list above shows the AI skills your best-fit jobs ask for.'}
+        description={aiTrainingWhy(libExposure, libFallback)}
       >
         <AiTrainingTiers
           defaultTier={plan.aiTrainingTier}
@@ -224,7 +256,7 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       </LearningSection>
 
       {isPivotingProfile({ ...profile, journey: effectiveJourney(profile) }) && (
-        <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} />
+        <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} fromExposure={libExposure} />
       )}
 
       <PayChangeCard />

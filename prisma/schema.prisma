@@ -1022,7 +1022,7 @@ model CandidateProfile {
   // Employer sectors the member turned off ('government' | 'nonprofit' | 'academia' |
   // 'private'): the board and every job email leave those jobs out. Empty = all on.
   hiddenEmployerSectors String[] @default([])
-  aiDisplacementReason  String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
+  aiJobLossReason       String?  @map("aiDisplacementReason") // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
   equityImportant       Boolean  @default(false)
   dealBreakers          String?
 
@@ -10381,7 +10381,7 @@ enum CrmIntroPathStatus {
 }
 
 // Where a researcher's findings sit relative to the NextChapter thesis.
-// Always set by a human: a policy analyst whose work argues displacement is
+// Always set by a human: a policy analyst whose work argues AI job losses are
 // overstated is a RISK in a pitch meeting, not an asset, and inferring that
 // automatically is a way to walk in confidently wrong.
 enum CrmResearchStance {
@@ -14371,7 +14371,7 @@ model PivotMarketStat {
 model PayChangeBenchmark {
   id           String            @id @default(cuid())
   pathType     PivotPathType
-  group        String // e.g. 'long-tenured displaced workers', 'occupation switchers'
+  group        String // e.g. 'long-tenured laid-off workers', 'occupation switchers'
   lowPct       Float
   highPct      Float
   medianPct    Float?
@@ -15753,6 +15753,16 @@ model OccupationWage {
   @@index([areaType, areaCode])
 }
 
+// Anthropic Economic Index "observed exposure" per 6-digit SOC (labor market impacts report, 2026-03-05): of the tasks
+// an LLM could speed up, how much already sees automated AI use at work. 0 = no observed use yet, not "safe".
+// CC-BY: always credit "Anthropic Economic Index". SQL: prisma/manual/2026-10-22-occupation-ai-exposure.sql.
+model OccupationAiExposure {
+  soc6             String @id
+  title            String
+  observedExposure Float
+  release          String
+}
+
 // What a job does day to day: O*NET task statements, Core tasks first.
 model OccupationTask {
   id         String     @id @default(cuid())
@@ -16312,6 +16322,9 @@ model LinkedInAdminConnection {
   accessToken    String    @db.Text
   personUrn      String
   memberName     String?
+  /// The company page posts go out as (urn:li:organization:...), found when the admin connects the page. Null until then.
+  organizationUrn  String?
+  organizationName String?
   expiresAt      DateTime
   connectedAt    DateTime  @default(now())
   disconnectedAt DateTime?

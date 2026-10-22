@@ -44,7 +44,8 @@ export default async function LinkedInDraftsPage({ searchParams }: { searchParam
         </p>
       </header>
       <LinkedInConnectionBar
-        connectedAs={conn ? conn.memberName ?? 'your profile' : null}
+        connectedAs={conn?.organizationUrn ? conn.organizationName ?? 'the NextChapter page' : null}
+        personalOnly={!!conn && !conn.organizationUrn}
         expiresLabel={conn ? conn.expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null}
         flash={linkedin ?? null}
       />
@@ -62,7 +63,7 @@ export default async function LinkedInDraftsPage({ searchParams }: { searchParam
                 id: d.id, employer: f.employer, employees: f.employees, place: f.place,
                 credibilityLabel: WHY[f.credibility] ?? f.credibility, sourceUrl: f.sourceUrl, angle: d.angle,
                 body: d.body, firstComment: d.firstComment, slotLabel: slot(d.scheduledFor),
-                due: d.scheduledFor.getTime() <= now, rewritten: !!d.rewrittenAt, tags: f.tagSuggestions ?? [], canPost: !!conn, slides: slidesFor(f, d.noticeId).length,
+                due: d.scheduledFor.getTime() <= now, rewritten: !!d.rewrittenAt, tags: f.tagSuggestions ?? [], canPost: !!conn?.organizationUrn, slides: slidesFor(f, d.noticeId).length,
               }}
             />
           )

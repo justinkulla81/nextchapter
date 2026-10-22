@@ -39,28 +39,35 @@ const hash = (s: string) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >
 const [file, out, startArg] = process.argv.slice(2)
 if (!file || !out) { console.log('usage: outreach-schedule.ts <merge.csv> <out.csv> [startDate]'); process.exit(0) }
 const PER_ARM = Number(process.env.PER_ARM ?? 3), PRODUCT = Number(process.env.PRODUCT_PER_DAY ?? 28), CAP = Number(process.env.DAILY_CAP ?? 100)
-const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => r.send === 'yes')
+// SENT_FILE (lines "email,YYYY-MM-DD"): emails already sent. They stay on the calendar on that date, so their follow-ups are scheduled, and they use no new slots.
+const sentOn = new Map<string, string>()
+if (process.env.SENT_FILE) for (const l of readFileSync(process.env.SENT_FILE, 'utf8').split('\n')) { const [e, d] = l.trim().split(','); if (e && d) sentOn.set(e.toLowerCase(), d) }
+// A person already emailed is tagged "already contacted" by the data build, which keeps them out of new sends. They still belong here so their follow-ups are
+// planned; anyone who replied, was passed, bounced or is on the do-not-contact list stays out.
+const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => r.send === 'yes' || (r.suppressed === 'already contacted' && r.ready === 'yes' && !r.duplicate && sentOn.has(r.email.toLowerCase())))
 const start = nextWeekday(Date.parse(startArg ?? iso(Date.now() + DAY)))
 
-type Aud = { name: string; armOf: (r: Row) => string | null; pool: Row[]; arms: string[]; earliest?: (r: Row) => number }
+type Aud = { noNew?: boolean; name: string; armOf: (r: Row) => string | null; pool: Row[]; arms: string[]; earliest?: (r: Row) => number }
 const seenOrg = new Set<string>()
 const employers = rows.filter((r) => ['head_hr', 'rewards', 'er', 'ta'].includes(r.template) && r.timing).sort((a, b) => a.send_on.localeCompare(b.send_on)).filter((r) => { const k = (r.company || r.recipient_org).toLowerCase(); if (seenOrg.has(k)) return false; seenOrg.add(k); return true })
 const boards = rows.filter((r) => r.template === 'board' && r.board_group).sort((a, b) => hash(a.email) - hash(b.email))
 const pilotBoards = new Set(boards.map((r) => r.recipient_org.toLowerCase()))
 const colleges = rows.filter((r) => r.template === 'college').sort((a, b) => Number((b.college_county_jobs || '0').replace(/,/g, '')) - Number((a.college_county_jobs || '0').replace(/,/g, '')))
+const rapidResponse = rows.filter((r) => r.template === 'rr').sort((a, b) => hash(a.email) - hash(b.email))
+// Job centers (ajc) are off the calendar by Justin's call on 2026-10-21; set INCLUDE_AJC=1 to bring them back, after the other audiences.
+// Already-sent centers keep their follow-ups; no new ones are started unless INCLUDE_AJC=1.
 const centers = rows.filter((r) => r.template === 'ajc' && !pilotBoards.has((r.board ?? '').toLowerCase())).sort((a, b) => hash(a.email) - hash(b.email))
+// Order is priority (Justin, 2026-10-21): state Rapid Response, employers (outplacement), workforce boards, higher ed, then job centers if enabled.
 const audiences: Aud[] = [
+  { name: 'rapid response', pool: rapidResponse, arms: ['C1', 'C2'], armOf: (r) => (r.variant.startsWith('C1') ? 'C1' : r.variant.startsWith('C2') ? 'C2' : null) },
   { name: 'employers', pool: employers, arms: ['early', 'late'], armOf: (r) => (['T1', 'T2'].includes(r.timing) ? 'early' : 'late'), earliest: (r) => Date.parse(r.send_on) },
-  { name: 'higher ed', pool: colleges, arms: ['CC', '4YR'], armOf: (r) => r.variant },
   { name: 'boards', pool: boards, arms: ['GROW', 'FLAT'], armOf: (r) => r.variant },
-  { name: 'job centers', pool: centers, arms: ['C1', 'C2'], armOf: (r) => (r.variant.startsWith('C1') ? 'C1' : r.variant.startsWith('C2') ? 'C2' : null) },
+  { name: 'higher ed', pool: colleges, arms: ['CC', '4YR'], armOf: (r) => r.variant },
+  { noNew: process.env.INCLUDE_AJC !== '1', name: 'job centers', pool: centers, arms: ['C1', 'C2'], armOf: (r) => (r.variant.startsWith('C1') ? 'C1' : r.variant.startsWith('C2') ? 'C2' : null) },
 ]
 
 type Out = { date: string; audience: string; arm: string; step: number; row: Row }
 const sched: Out[] = []
-// SENT_FILE (lines "email,YYYY-MM-DD"): emails already sent. They stay on the calendar on that date, so their follow-ups are scheduled, and they use no new slots.
-const sentOn = new Map<string, string>()
-if (process.env.SENT_FILE) for (const l of readFileSync(process.env.SENT_FILE, 'utf8').split('\n')) { const [e, d] = l.trim().split(','); if (e && d) sentOn.set(e.toLowerCase(), d) }
 for (const a of audiences) for (const r of a.pool) {
   const d = sentOn.get(r.email.toLowerCase()); const arm = a.armOf(r)
   if (d && arm) { ;(r as Row & { _used?: string })._used = '1'; sched.push({ date: d, audience: a.name, arm, step: 1, row: r }) }
@@ -70,6 +77,7 @@ for (let t = start, day = 0; t < start + WEEKS * 7 * DAY; t += DAY) {
   if (isWeekend(t)) continue
   const quota = day < WARMUP ? Math.max(1, PER_ARM - 1) : PER_ARM
   for (const a of audiences) for (const arm of a.arms) {
+    if (a.noNew) continue
     let n = 0
     for (const r of a.pool) {
       if (n >= quota) break

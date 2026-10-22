@@ -21,6 +21,7 @@ import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { MeetingPrepGenerateButton } from '@/components/admin/MeetingPrepControls'
+import { CrmOrgContext } from '@/components/admin/CrmOrgContext'
 import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
 import { MAILING_REF_PREFIX } from '@/lib/mailing/editions'
 import { groupEmailChains, latestReplyOnly } from '@/lib/crm/email-thread'
@@ -322,6 +323,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           title={primaryAff?.title ?? null}
           othersCount={othersAtOrg}
         />
+        {primaryAff && (
+          <Suspense fallback={<section className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground" aria-busy="true">Account context is loading: pulling the latest unemployment, layoffs, open jobs and local groups for this organization…</section>}>
+            <CrmOrgContext orgId={primaryAff.orgId} />
+          </Suspense>
+        )}
       {(person.roles.includes('RECRUITER_PROSPECT') || person.mandates.length > 0) && (
         <section>
           <h2 className="mb-2 text-base font-semibold">Mandates</h2>

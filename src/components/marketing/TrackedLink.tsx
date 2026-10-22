@@ -9,7 +9,7 @@ import type { ReactNode } from 'react'
  * open in a new tab.
  */
 export function TrackedLink({
-  href, event, properties, className, children, ariaLabel,
+  href, event, properties, className, children, ariaLabel, rel,
 }: {
   href: string
   event: string
@@ -17,12 +17,14 @@ export function TrackedLink({
   className?: string
   children: ReactNode
   ariaLabel?: string
+  /** Extra rel tokens for an external link (e.g. 'nofollow'). */
+  rel?: string
 }) {
   const posthog = usePostHog()
   const onClick = () => posthog?.capture(event, properties)
   if (/^https?:\/\//.test(href)) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" onClick={onClick} className={className} aria-label={ariaLabel}>
+      <a href={href} target="_blank" rel={rel ? `noopener noreferrer ${rel}` : 'noopener noreferrer'} onClick={onClick} className={className} aria-label={ariaLabel}>
         {children}
       </a>
     )

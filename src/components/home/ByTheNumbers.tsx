@@ -2,7 +2,7 @@ const STATS = [
   {
     value: '27.1%',
     label: 'Of unemployed people had been jobless 27+ weeks in September 2026, up from 23.6% a year earlier.',
-    href: '/reports/displacement-report-september-2026',
+    href: '/reports/white-collar-employment-report-september-2026',
     source: 'NextChapter, September 2026 report (BLS)',
   },
   {
@@ -14,7 +14,7 @@ const STATS = [
   {
     value: '24.2%',
     label: 'Of mid-career professionals went 5+ years without a meaningful raise or promotion, as of June 2026.',
-    href: '/reports/displacement-report-september-2026',
+    href: '/reports/white-collar-employment-report-september-2026',
     source: 'NextChapter, September 2026 report',
   },
 ]

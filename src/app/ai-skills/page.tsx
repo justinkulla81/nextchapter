@@ -7,6 +7,7 @@ import { SITE_URL } from '@/lib/reports'
 import { canonical } from '@/lib/seo/canonical'
 import { AI_MARKET_AS_OF, AI_MARKET_POSTINGS } from '@/lib/skills/ai-skill-market.data'
 import { LEVEL_COLUMNS, liveDimensionRows, liveFunctionRows, MIN_GROUP_POSTINGS, liveLevelRows, liveOverallSharePct, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
+import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { loadAiShareTrend } from '@/lib/skills/ai-market-trend-server'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
@@ -100,6 +101,10 @@ export default async function AiSkillsPage() {
           and almost none in clinical or academic ones. Where they do ask, the advertised pay is higher
           {range ? `, by ${range.min}% to ${range.max}% after comparing like with like` : ''}.
         </p>
+
+        <div className="mt-12 -mx-6">
+          <AiExposureSection page="ai-skills" />
+        </div>
 
         <section className="mt-12" aria-labelledby="by-function">
           <h2 id="by-function" className="text-xl font-bold tracking-tight text-navy">
