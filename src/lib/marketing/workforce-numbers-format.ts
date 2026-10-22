@@ -20,6 +20,8 @@ export interface WorkforceRaw {
     live: number
     checked24h: number
     aiSkill: number
+    /** Open jobs in occupations with High AI exposure (Anthropic Economic Index, src/lib/aei/). */
+    aiExposureHigh?: number
     government: number
     nonprofit: number
     academia: number
@@ -125,6 +127,13 @@ export function buildWorkforceTiles(raw: WorkforceRaw): WorkforceTileGroup[] {
       value: j ? floorCount(j.aiSkill) : '',
       label: 'jobs asking for an AI skill',
       detail: 'The posting names a specific AI skill: using AI tools in the work, building with LLMs, or AI governance.',
+    }),
+    ...tile(!!j && ok(j.aiExposureHigh) && ok(j.live), {
+      key: 'ai_exposure_high',
+      value: j ? `${Math.floor((100 * (j.aiExposureHigh ?? 0)) / j.live)}%` : '',
+      label: 'of open jobs are in occupations highly exposed to AI',
+      detail:
+        'AI exposure from the Anthropic Economic Index: people use AI on at least half of the occupation’s tasks. It measures how much AI is used on the work, not job loss.',
     }),
     ...tile(ok(raw.aiPremiumPct), {
       key: 'ai_pay_premium',

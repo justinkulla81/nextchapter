@@ -14,6 +14,9 @@ import { memberIndustryBuckets } from '@/lib/profile/industry-reading'
 import { isRedesignOn } from '@/lib/redesign/flag'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { MoreDetails } from '@/components/dashboard/MoreDetails'
+import { SkillAiUseNote } from '@/components/dashboard/SkillAiUseNote'
+import { loadMemberSkillAiUse } from '@/lib/aei/server'
+import { captureServerEvent } from '@/lib/posthog/server'
 
 export const metadata: Metadata = { title: 'Skills Inventory' }
 
@@ -23,6 +26,16 @@ export default async function SkillsAssessmentPage() {
   const tools = (await suggestTools(profile).catch(() => [])).map((t) => ({ name: t.name, checked: t.checked }))
   // "AI you use": the AI tools and skills postings in their function and industry name most (ai-skill-market.ts).
   const aiTools = suggestAiOptions({ ...profile, industries: memberIndustryBuckets(profile) }).map((t) => ({ name: t.name, checked: t.checked }))
+  // Which of their skills AI mostly augments vs automates (Anthropic Economic Index), under the matrix.
+  const skillRows = buildSkillMatrix(profile)
+  const aiUse = await loadMemberSkillAiUse(skillRows.map((r) => r.label)).catch(() => ({ automated: [], augmented: [] }))
+  if (aiUse.automated.length + aiUse.augmented.length > 0) {
+    captureServerEvent(profile.id, 'skill_ai_use_viewed', {
+      surface: 'skills_matrix',
+      automated: aiUse.automated.map((r) => r.skill),
+      augmented: aiUse.augmented.map((r) => r.skill),
+    })
+  }
 
   if (isRedesignOn(profile.email)) {
     // Skills inventory in the redesign: your skills and the tools you use up front, the rest behind one fold.
@@ -46,9 +59,12 @@ export default async function SkillsAssessmentPage() {
           </CardHeader>
           <CardContent>
             <SkillMatrix
-              rows={buildSkillMatrix(profile)}
+              rows={skillRows}
               removed={Object.entries(readSkillLevels(profile.skillLevels)).filter(([, v]) => v.removed).map(([k]) => k)}
             />
+            <div className="mt-4">
+              <SkillAiUseNote use={aiUse} learnHref="/dashboard/learning#ai-skills-for-your-search" />
+            </div>
             <div className="mt-6 border-t border-border pt-4">
               <ToolsChecklist options={tools} aiOptions={aiTools} confirmedAt={profile.toolsConfirmedAt?.toISOString() ?? null} />
             </div>
@@ -106,9 +122,12 @@ export default async function SkillsAssessmentPage() {
         </CardHeader>
         <CardContent>
           <SkillMatrix
-            rows={buildSkillMatrix(profile)}
+            rows={skillRows}
             removed={Object.entries(readSkillLevels(profile.skillLevels)).filter(([, v]) => v.removed).map(([k]) => k)}
           />
+          <div className="mt-4">
+            <SkillAiUseNote use={aiUse} learnHref="/dashboard/learning#ai-skills-for-your-search" />
+          </div>
           <div className="mt-6 border-t border-border pt-4">
             <ToolsChecklist options={tools} aiOptions={aiTools} confirmedAt={profile.toolsConfirmedAt?.toISOString() ?? null} />
           </div>

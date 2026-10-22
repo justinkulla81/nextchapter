@@ -10,6 +10,10 @@ import { SkillGapViews } from '@/components/dashboard/learning/SkillGapViews'
 import type { LearningPlanItem } from '@/lib/learning/build-learning-plan'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { AiPaysMoreNote, aiPayNoteFor } from '@/components/dashboard/learning/AiPaysMoreNote'
+import { SkillAiUseNote } from '@/components/dashboard/SkillAiUseNote'
+import { loadMemberSkillAiUse } from '@/lib/aei/server'
+import { buildSkillMatrix } from '@/lib/profile/skill-matrix'
+import { prisma } from '@/lib/prisma'
 
 /**
  * The skills the member's best-fit jobs ask for, AI skills marked apart (the 24 items of
@@ -29,12 +33,29 @@ export async function AiSkillGapSection({
   /** The member's target (else current) function, for the "AI pays more" note. */
   fn?: string | null
 }) {
-  const [data, catalog, apps, live] = await Promise.all([
+  const [data, catalog, apps, live, skillProfile] = await Promise.all([
     loadMemberSkillGapByKind(candidateId),
     getActiveCourses(),
     loadApplicationGapSummary(candidateId),
     loadAiMarket(),
+    prisma.candidateProfile.findUnique({
+      where: { id: candidateId },
+      select: { resumeKeywords: true, confirmedSkillsHave: true, certifications: true, skillLevels: true },
+    }),
   ])
+  // Which of the member's skills AI mostly augments (learn to use AI on them) vs automates
+  // (Anthropic Economic Index): a note at the top of this existing section, no new section.
+  const aiUse = skillProfile
+    ? await loadMemberSkillAiUse(buildSkillMatrix(skillProfile).map((r) => r.label)).catch(() => ({ automated: [], augmented: [] }))
+    : { automated: [], augmented: [] }
+  if (aiUse.automated.length + aiUse.augmented.length > 0) {
+    captureServerEvent(candidateId, 'skill_ai_use_viewed', {
+      surface: 'learning_gap',
+      automated: aiUse.automated.map((r) => r.skill),
+      augmented: aiUse.augmented.map((r) => r.skill),
+    })
+  }
+  const aiUseNode = aiUse.automated.length + aiUse.augmented.length > 0 ? <SkillAiUseNote use={aiUse} /> : null
   // The same gaps from the member's own applications (src/lib/applications), so both views agree.
   const appAsked = new Map((apps?.gaps ?? []).map((g) => [g.term.toLowerCase(), g.applications]))
   // "AI pays more in your field" (live board, ai-market.ts): a note at the top of this existing
@@ -43,9 +64,10 @@ export async function AiSkillGapSection({
   if (note) captureServerEvent(candidateId, 'ai_pay_note_viewed', { fn: note.fn, likePct: note.likePct, skills: note.skills.map((s) => s.id) })
   const noteNode = note ? <AiPaysMoreNote note={note} surface="learning" /> : null
   if (!data || data.rows.length === 0) {
-    return noteNode ? (
+    return noteNode || aiUseNode ? (
       <LearningSection id="ai-skills-for-your-search" title="AI skills in your field">
         {noteNode}
+        {aiUseNode}
       </LearningSection>
     ) : null
   }
@@ -115,6 +137,7 @@ export async function AiSkillGapSection({
       description={`${data.employersAskingAi} of the ${n} employer${n === 1 ? '' : 's'} with jobs that fit you ask for a specific AI skill. Gaps first, each AI gap with a course that covers it.`}
     >
       {noteNode}
+      {aiUseNode}
       <SkillGapViews items={items} />
     </LearningSection>
   )

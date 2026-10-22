@@ -22,6 +22,7 @@ type JobRow = {
   live: number
   checked_24h: number
   ai_skill: number
+  ai_exposure_high: number
   government: number
   nonprofit: number
   academia: number
@@ -43,7 +44,7 @@ async function jobCounts(): Promise<JobRow> {
   // board has no cheaper signal for that.
   const [row] = await prisma.$queryRawUnsafe<JobRow[]>(`WITH roles AS (
       SELECT DISTINCT ON (COALESCE("crawlerFingerprint", "id"))
-        "lastVerifiedAt", "aiSkillGroups", "employerSector", "requirementFlags", "companyId", "companyName",
+        "lastVerifiedAt", "aiSkillGroups", "aiExposureLevel", "employerSector", "requirementFlags", "companyId", "companyName",
         "socCode", "industry", "targetFunction", "locationState", "locationCity"
       FROM "ExclusiveJobPosting" WHERE ${LIVE}
       ORDER BY COALESCE("crawlerFingerprint", "id"), "lastVerifiedAt" DESC NULLS LAST, "createdAt" DESC
@@ -51,6 +52,7 @@ async function jobCounts(): Promise<JobRow> {
     SELECT count(*)::int AS live,
       count(*) FILTER (WHERE "lastVerifiedAt" > now() - interval '24 hours')::int AS checked_24h,
       count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS ai_skill,
+      count(*) FILTER (WHERE "aiExposureLevel" = 'high')::int AS ai_exposure_high,
       count(*) FILTER (WHERE "employerSector" = 'government')::int AS government,
       count(*) FILTER (WHERE "employerSector" = 'nonprofit')::int AS nonprofit,
       count(*) FILTER (WHERE "employerSector" = 'academia')::int AS academia,
@@ -94,7 +96,7 @@ async function taxonomyCounts(): Promise<TaxonomyRow> {
 }
 
 const DAY = 86_400
-const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v2'], { revalidate: DAY })
+const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v3'], { revalidate: DAY })
 const cachedTaxonomy = unstable_cache(taxonomyCounts, ['workforce-numbers-taxonomy-v1'], { revalidate: DAY })
 
 async function safe<T>(label: string, run: () => Promise<T>): Promise<T | null> {
@@ -132,6 +134,7 @@ export async function loadWorkforceNumbers(): Promise<WorkforceTileGroup[]> {
       live: jobs.live,
       checked24h: jobs.checked_24h,
       aiSkill: jobs.ai_skill,
+      aiExposureHigh: jobs.ai_exposure_high,
       government: jobs.government,
       nonprofit: jobs.nonprofit,
       academia: jobs.academia,
