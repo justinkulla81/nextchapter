@@ -5,7 +5,7 @@ import { exchangeCodeForTokens, fetchLinkedInPersonUrn, isLinkedInPostingConfigu
 import { prisma } from '@/lib/prisma'
 import { ADMIN_HOST } from '@/proxy'
 import { verifyAdminLinkedInState } from '@/lib/linkedin/admin-state'
-import { fetchAdministeredPages, fetchLinkedInProfile, pickNextChapterPage } from '@/lib/linkedin/oauth'
+import { exchangePageCode, fetchAdministeredPages, isPagePostingConfigured, pickNextChapterPage } from '@/lib/linkedin/page-posting'
 import { encryptToken } from '@/lib/security/token-crypto'
 
 // The admin's "Connect LinkedIn" lands here too (the one redirect URL the
@@ -19,8 +19,7 @@ async function adminConnect(request: NextRequest, adminEmail: string): Promise<N
   if (error === 'unauthorized_scope_error') return back('needs_product')
   if (error || !code) return back('denied')
   try {
-    const tokens = await exchangeCodeForTokens(code, { admin: true })
-    const { personUrn, name } = await fetchLinkedInProfile(tokens.access_token)
+    const tokens = await exchangePageCode(code)
     // Posts go out as the company page. The member must administer it, which the page list shows.
     const pages = await fetchAdministeredPages(tokens.access_token).catch((e) => { console.error('LinkedIn page list failed:', e); return null })
     if (pages === null) return back('needs_product')
@@ -28,7 +27,7 @@ async function adminConnect(request: NextRequest, adminEmail: string): Promise<N
     const page = pickNextChapterPage(pages)
     if (!page) return back('which_page')
     const data = {
-      accessToken: encryptToken(tokens.access_token), personUrn, memberName: name, organizationUrn: page.urn, organizationName: page.name,
+      accessToken: encryptToken(tokens.access_token), personUrn: '', memberName: null, organizationUrn: page.urn, organizationName: page.name,
       expiresAt: new Date(Date.now() + tokens.expires_in * 1000), connectedAt: new Date(), disconnectedAt: null,
     }
     await prisma.linkedInAdminConnection.upsert({ where: { adminEmail }, create: { adminEmail, ...data }, update: data })
@@ -44,7 +43,7 @@ async function adminConnect(request: NextRequest, adminEmail: string): Promise<N
 // today).
 export async function GET(request: NextRequest) {
   const adminState = verifyAdminLinkedInState(request.nextUrl.searchParams.get('state'))
-  if (adminState && isLinkedInPostingConfigured()) return adminConnect(request, adminState.adminEmail)
+  if (adminState && isPagePostingConfigured()) return adminConnect(request, adminState.adminEmail)
 
   const supabase = await createClient()
   const {

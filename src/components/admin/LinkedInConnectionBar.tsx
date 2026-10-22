@@ -6,12 +6,12 @@ import { createSampleDraft, disconnectLinkedIn } from '@/app/support/admin/(port
 
 const FLASH: Record<string, string> = {
   connected: 'NextChapter page connected.',
-  needs_product: 'LinkedIn would not let this app post as a company page. The LinkedIn app needs the Community Management API product (LinkedIn developer portal, your app, Products), which LinkedIn approves. Until then, copy and paste each post as the page.',
+  needs_product: 'LinkedIn would not let the NextChapter Publishing app post as the page. That app needs the Community Management API product approved by LinkedIn (developer portal, NextChapter Publishing, Products). Until then, copy and paste each post as the page.',
   no_page: 'You are signed in to LinkedIn, but that account is not an administrator of a company page. Sign in with the account that administers NextChapter.',
   which_page: 'That account administers more than one page and none is named NextChapter. Tell me which one to use.',
   denied: 'LinkedIn sign-in was cancelled. Nothing changed.',
   exchange_failed: 'LinkedIn connected but did not hand over a usable token. Try again; if it repeats, the LinkedIn app may be missing the "Share on LinkedIn" product.',
-  not_configured: 'LinkedIn is not set up on the server yet.',
+  not_configured: 'The NextChapter Publishing LinkedIn app is not set up on the server yet.',
 }
 
 export function LinkedInConnectionBar({ connectedAs, personalOnly, expiresLabel, flash }: { connectedAs: string | null; personalOnly: boolean; expiresLabel: string | null; flash: string | null }) {

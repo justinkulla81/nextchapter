@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
-import { commentOnLinkedInPost, linkedInPostUrl, publishLinkedInShare } from '@/lib/linkedin/oauth'
+import { commentAsPage, postUrl, publishPagePost } from '@/lib/linkedin/page-posting'
 import { renderDraftSlides } from '@/lib/linkedin/draft-slides'
 import { createDraft } from '@/lib/linkedin/layoff-post-sweep'
 import { assignSlots, credibilityOf } from '@/lib/linkedin/layoff-post-rules'
@@ -61,7 +61,7 @@ export async function postDraftToLinkedIn(id: string): Promise<{ message: string
   let postUrn: string
   try {
     const rendered = await renderDraftSlides(id)
-    postUrn = await publishLinkedInShare({ accessToken: conn.accessToken, authorUrn: conn.organizationUrn, text: draft.body, images: rendered?.pngs, visibility: 'PUBLIC' })
+    postUrn = await publishPagePost({ token: conn.accessToken, orgUrn: conn.organizationUrn, text: draft.body, images: rendered?.pngs, altText: `NextChapter: ${rendered?.employer ?? 'layoff'} layoff` })
   } catch (e) {
     await prisma.linkedInPostDraft.update({ where: { id }, data: { status: 'DRAFT', postedAt: null } })
     console.error('LinkedIn post failed for draft', id, e)
@@ -73,7 +73,7 @@ export async function postDraftToLinkedIn(id: string): Promise<{ message: string
   let commented = true
   if (draft.firstComment.trim()) {
     try {
-      await commentOnLinkedInPost(conn.accessToken, conn.organizationUrn, postUrn, draft.firstComment)
+      await commentAsPage(conn.accessToken, conn.organizationUrn, postUrn, draft.firstComment)
     } catch (e) {
       commented = false
       console.error('LinkedIn first comment failed for draft', id, e)
@@ -83,7 +83,7 @@ export async function postDraftToLinkedIn(id: string): Promise<{ message: string
   revalidatePath(BASE)
   return {
     message: commented ? 'Posted, with the link in the first comment.' : 'Posted, but the first comment failed. Paste the link as a comment yourself.',
-    url: linkedInPostUrl(postUrn),
+    url: postUrl(postUrn),
   }
 }
 
