@@ -36,6 +36,31 @@ if limited:
 if limited and a.strict:
     print(notice + "## Labor market\n\n" + f"Unemployment was {me['unemployment_rate']}% in {bls['month']}, against {me['unemployment_rate_year_ago']}% a year earlier; nonfarm employment changed {me['nonfarm_12m_pct']}% over twelve months.\n\n## Employers read\n\n" + table(["Employer", "Postings"], [(e["employer"], e["n"]) for e in d["employers"]]))
     raise SystemExit
+_fp = f"{H}/out/{a.geo}/feed-exposure.json"
+feed_block = ""
+if os.path.exists(_fp):
+    fx = json.load(open(_fp)); wcn = fx["white_collar"]; ex = {x["level"]: x["n"] for x in fx["exposure"]}; exn = {x["level"]: x["n"] for x in fx["exposure_entry"]}
+    lvl = {x["level"]: x["n"] for x in fx["by_level"]}; src = {x["category"]: x["n"] for x in fx["by_source"]}
+    entry_total = sum(exn.values())
+    feed_block = f"""## Job-board feed: more openings, and exposure to AI
+
+The NextChapter job-board feed holds {fx['live']:,} live postings in the area, {wcn:,} of them white-collar ({pct(wcn, fx['live'])}). That is a wider net than the employer career sites above, and it includes aggregator and search-firm postings ({pct(src.get('aggregator', 0) + src.get('search_firm', 0), fx['live'])} of the feed), so it is shown as its own frame and never added to the career-site numbers. Each posting carries an occupation code matched to Anthropic's Economic Index; {fx['soc_from_title_pct']}% were matched from the job title and the rest from the job function.
+
+| White-collar postings in the feed | Postings | Share |
+|---|---|---|
+| Entry and early career | {lvl.get('entry and early', 0):,} | {pct(lvl.get('entry and early', 0), wcn)} |
+| Individual contributor | {lvl.get('individual contributor', 0):,} | {pct(lvl.get('individual contributor', 0), wcn)} |
+| Management and above | {lvl.get('management and above', 0):,} | {pct(lvl.get('management and above', 0), wcn)} |
+
+## Jobs at risk: AI exposure of the openings
+
+Anthropic rates each occupation's observed exposure to AI, which weighs real usage and automated uses more heavily than hypothetical capability. In this feed {pct(ex.get('high', 0), wcn)} of white-collar openings are in highly exposed occupations, {pct(ex.get('medium', 0), wcn)} in medium and {pct(ex.get('low', 0), wcn)} in low. Among entry and early-career openings, {pct(exn.get('high', 0), entry_total)} are in highly exposed occupations. Exposure is not a forecast of job loss: Anthropic found no systematic rise in unemployment for exposed workers so far, with early signs that hiring of younger workers has slowed in exposed occupations.
+
+{table(['Most-posted occupations', 'Postings', 'AI exposure'], [(x['title'], f"{x['n']:,}", x['exposure']) for x in fx['top_occupations']])}
+
+{table(['Highly exposed occupations with the most openings', 'Postings'], [(x['title'], f"{x['n']:,}") for x in fx['top_high_exposure'][:8]])}
+
+Directional only. Retraining paths (related occupations with lower exposure and stronger projected growth) are the next addition."""
 entry_block = ""
 _p = f"{H}/out/{a.geo}/entry-sample.json"
 if os.path.exists(_p):
@@ -85,6 +110,8 @@ Pay is stated in {s['pay_stated_pct']}% of white-collar postings, with a median 
 {table(['Soft skill named','Share of white-collar postings'], [(x['skill'].capitalize(), pct(x['n'], wc)) for x in d['eq']])}
 
 {entry_block}
+
+{feed_block}
 
 ## Peer metros
 

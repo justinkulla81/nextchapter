@@ -45,6 +45,7 @@ def main():
                 print((r.stdout.strip().splitlines() or ["(no output)"])[-1] if r.returncode == 0 else f"{j[1]}: FAILED {r.stderr.strip().splitlines()[-1:]}", flush=True)
         print("tagged rows:", rpc("jobsreport_classify", {"p_all": False}))
     run("peer_bls.py", "--geo", geo, "--out", os.path.join(HERE, "out", f"peer-bls-{geo}.json"), check=False)
+    run("feed_section.py", "--geo", geo, check=False)
     run("geo_report.py", "--geo", geo); run("publish.py", "--geo", geo)
 if __name__ == "__main__":
     main()
