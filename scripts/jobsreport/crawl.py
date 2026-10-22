@@ -301,7 +301,7 @@ def crawl_oracle(src, log):
     base = f"https://{src['host']}/hcmRestApi/resources/latest"
     site = src.get("site", "CX_1001")
     def listing(off):
-        q = f'findReqs;siteNumber={site},limit=25,offset={off},keyword={src.get("search") or GEO["search"]},sortBy=POSTING_DATES_DESC'
+        q = f'findReqs;siteNumber={site},limit=25,offset={off},keyword={src.get("search", GEO["search"])},sortBy=POSTING_DATES_DESC'
         return json.loads(http(f"{base}/recruitingCEJobRequisitions?onlyData=true&expand=requisitionList.secondaryLocations&finder={urllib.parse.quote(q, safe=';=,')}", timeout=60))["items"][0]
     first = listing(0)
     total = first.get("TotalJobsCount", 0)
@@ -704,6 +704,7 @@ def crawl_neogov(src, log):
                      employment_type=sched.group(1) if sched else None, pay_min=lo, pay_max=hi, pay_period=per,
                      pay_stated=lo is not None, posted_at=None, posted_precision="relative",
                      employer_domain=dept.group(1) if dept else None)
+            if src.get("statewide") and not rec["county_fips"]: continue   # a statewide agency lists places all over the state
             rec["county_fips"] = rec["county_fips"] or src.get("county_fips") or (list(GEO["cities"].values())[0] if GEO["cities"] else None)  # city-government postings
             yield rec
             time.sleep(0.2)

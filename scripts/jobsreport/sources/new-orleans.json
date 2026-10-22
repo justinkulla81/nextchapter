@@ -1,0 +1,165 @@
+[
+  {
+    "name": "oracle-tulane",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "Tulane University",
+    "host": "tulane-ibqejb.fa.ocs.oraclecloud.com",
+    "site": "CX_1",
+    "search": ""
+  },
+  {
+    "name": "wd-ochsner",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Ochsner Health",
+    "tenant": "ochsner",
+    "wd": "wd1",
+    "site": "Ochsner"
+  },
+  {
+    "name": "phenom-lcmc",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "LCMC Health",
+    "host": "careers.lcmchealth.org",
+    "path": "us/en"
+  },
+  {
+    "name": "neogov-city-of-new-orleans",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "City of New Orleans",
+    "agency": "neworleans"
+  },
+  {
+    "name": "neogov-state-of-louisiana",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "State of Louisiana",
+    "agency": "louisiana",
+    "statewide": true
+  },
+  {
+    "name": "neogov-jefferson-parish",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "Jefferson Parish",
+    "agency": "jeffparish"
+  },
+  {
+    "name": "lv-nola-public-schools",
+    "adapter": "lever",
+    "type": "public_sector",
+    "employer": "NOLA Public Schools",
+    "token": "nolapublicschools"
+  },
+  {
+    "name": "ls-lsu-health-new-orleans",
+    "adapter": "listing",
+    "type": "public_sector",
+    "employer": "LSU Health Sciences Center New Orleans",
+    "list_url": "https://careers.lsuhsc.edu/jobs/search",
+    "link_regex": "href=\"(https://careers\\.lsuhsc\\.edu/jobs/(?!search)[^\"?#]+)\"",
+    "location": "New Orleans, LA"
+  },
+  {
+    "name": "wd-bcbs-louisiana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Blue Cross and Blue Shield of Louisiana",
+    "tenant": "bcbsla",
+    "wd": "wd1",
+    "site": "External"
+  },
+  {
+    "name": "wd-capital-one",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Capital One",
+    "tenant": "capitalone",
+    "wd": "wd12",
+    "site": "Capital_One"
+  },
+  {
+    "name": "wd-hancock-whitney",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Hancock Whitney",
+    "tenant": "hancockwhitney",
+    "wd": "wd5",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-shell",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Shell",
+    "tenant": "shell",
+    "wd": "wd3",
+    "site": "ShellCareers"
+  },
+  {
+    "name": "wd-regions-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Regions Bank",
+    "tenant": "regions",
+    "wd": "wd5",
+    "site": "regions_careers"
+  },
+  {
+    "name": "wd-republic-services",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Republic Services",
+    "tenant": "republic",
+    "wd": "wd5",
+    "site": "Republic"
+  },
+  {
+    "name": "wd-cox-communications",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cox Communications",
+    "tenant": "cox",
+    "wd": "wd1",
+    "site": "Cox_External_Career_Site_1"
+  },
+  {
+    "name": "wd-at-t",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "AT&T",
+    "tenant": "att",
+    "wd": "wd1",
+    "site": "ATTGeneral"
+  },
+  {
+    "name": "wd-pwc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PwC",
+    "tenant": "pwc",
+    "wd": "wd3",
+    "site": "Global_Experienced_Careers"
+  },
+  {
+    "name": "wd-hntb",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "HNTB",
+    "tenant": "hntb",
+    "wd": "wd5",
+    "site": "HNTB_Careers"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
+  }
+]

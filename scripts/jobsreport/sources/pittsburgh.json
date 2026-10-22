@@ -195,7 +195,8 @@
     "adapter": "neogov",
     "type": "public_sector",
     "employer": "Commonwealth of Pennsylvania",
-    "agency": "pabureau"
+    "agency": "pabureau",
+    "statewide": true
   },
   {
     "name": "oracle-jpmorgan",
