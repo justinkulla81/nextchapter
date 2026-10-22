@@ -28,6 +28,9 @@ import type { JobContacts } from '@/lib/jobs/job-contacts'
 import type { JobSkillGap } from '@/lib/jobs/job-skill-gap'
 import type { JobMatch } from '@/lib/jobs/job-match-types'
 import type { SkillsFit } from '@/lib/careers/skills-fit'
+import type { OccupationExposure } from '@/lib/skills/ai-exposure'
+import type { JobAiView } from '@/lib/jobs/job-ai-view'
+import { JobAiExposure } from '@/components/dashboard/find/JobAiExposure'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import type { MatchReason } from '@/lib/jobs/search-breadth'
 import type { Bridge } from '@/lib/jobs/relevance'
@@ -98,6 +101,10 @@ export interface FindJobDetailProps {
   insiders?: { count: number; href: string }
   track?: CardTrackState
   watched?: boolean
+  /** AI exposure of the occupation this job is placed in (Anthropic Economic Index); null when not placed or not measured. */
+  exposure?: OccupationExposure | null
+  /** The posting asks for AI skills, and what they pay when the live comparison says more. */
+  ai?: JobAiView | null
 }
 
 export function FindJobDetail({
@@ -121,6 +128,8 @@ export function FindJobDetail({
   matchReason,
   bridge,
   candidatePlus = false,
+  exposure = null,
+  ai = null,
 }: FindJobDetailProps) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const { passed, setPassed } = useFindPane()
@@ -249,6 +258,8 @@ export function FindJobDetail({
         {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       </header>
 
+      <JobAiExposure jobId={posting.id} exposure={exposure} ai={ai} />
+
       <Section id={`fit-${posting.id}`} title="Why this fits you">
         <p className="text-lg text-ink">
           {item.verdictLabel && <span className={cn('font-semibold', item.verdict === 'worth_a_look' ? 'text-ink' : 'text-success')}>{item.verdictLabel}.</span>} {item.reason}
@@ -271,13 +282,11 @@ export function FindJobDetail({
         </Section>
       )}
 
-      {(posting.marketPayLow || payLabel || (posting.description && !confidential)) && (
+      {(posting.marketPayLow || payLabel || (standalone && posting.description && !confidential)) && (
         <Section id={`role-${posting.id}`} title={standalone ? 'From the listing' : 'About the role'}>
           {payLabel && !posting.marketPayLow && <p className="text-base text-ink">{payLabel}</p>}
           <MarketPayLine posting={posting} workType={workType} />
-          {posting.description && !confidential && (
-            <p className={cn('text-sm text-muted-foreground', standalone ? 'whitespace-pre-line' : 'line-clamp-3')}>{posting.description}</p>
-          )}
+          {standalone && posting.description && !confidential && <p className="text-sm whitespace-pre-line text-muted-foreground">{posting.description}</p>}
         </Section>
       )}
 
@@ -292,6 +301,7 @@ export function FindJobDetail({
               </>
             )}
           </p>
+          {!standalone && posting.description && !confidential && <p className="line-clamp-6 text-sm text-muted-foreground">{posting.description}</p>}
           <RepostNote posting={posting} />
           {!confidential && (
             <EmployerSignalsLine postingId={posting.id} companyName={posting.companyName} employer={employer} highlights={highlights} payBadge={payBadge} benefitsBadge={benefitsBadge} />
