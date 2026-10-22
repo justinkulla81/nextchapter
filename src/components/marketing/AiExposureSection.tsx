@@ -47,6 +47,9 @@ export function AiExposureSectionView({ page, cta, split, occupations }: AiExpos
         <h2 id={id} className="font-display text-2xl font-semibold tracking-tight text-balance text-ink sm:text-3xl">
           See where AI is already changing the jobs you are looking at
         </h2>
+        <p className="mt-3 text-base text-muted-foreground">
+          We match AI exposure to the openings on our board and show it next to pay, career pivots and learning.
+        </p>
         <ul className="mt-6 space-y-5">
           {points.map((p) => (
             <li key={p.title}>
