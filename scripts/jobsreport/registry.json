@@ -1,0 +1,775 @@
+[
+  {
+    "name": "wd-aes",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "AES",
+    "tenant": "aes",
+    "wd": "wd1"
+  },
+  {
+    "name": "phenom-ati",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "ATI",
+    "host": "careers.atimaterials.com",
+    "path": "us/en"
+  },
+  {
+    "name": "wd-albemarle",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Albemarle",
+    "tenant": "albemarle",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-alcoa",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Alcoa",
+    "tenant": "alcoa",
+    "wd": "wd5",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-alliance-data",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Alliance Data",
+    "tenant": "alliancedata",
+    "wd": "wd5",
+    "site": "ComenityBanks"
+  },
+  {
+    "name": "wd-allison-transmission",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Allison Transmission",
+    "tenant": "allisontransmission",
+    "wd": "wd1",
+    "site": "ATI-External"
+  },
+  {
+    "name": "wd-ally-financial",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Ally Financial",
+    "tenant": "ally",
+    "wd": "wd1",
+    "site": "Ally"
+  },
+  {
+    "name": "amazon",
+    "adapter": "amazon",
+    "type": "direct_ats",
+    "employer": "Amazon"
+  },
+  {
+    "name": "gr-astrobotic",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Astrobotic",
+    "token": "voyagertechnologiesinc"
+  },
+  {
+    "name": "wd-baptist-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Baptist Health",
+    "tenant": "bhs",
+    "wd": "wd1"
+  },
+  {
+    "name": "wd-belk",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Belk",
+    "tenant": "belk",
+    "wd": "wd1",
+    "site": "Jobs-Stores"
+  },
+  {
+    "name": "sr-bosch",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Bosch",
+    "company": "BoschGroup"
+  },
+  {
+    "name": "wd-bridgestone-americas",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Bridgestone Americas",
+    "tenant": "bridgestone",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-brown-forman",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Brown-Forman",
+    "tenant": "bf",
+    "wd": "wd5"
+  },
+  {
+    "name": "wd-cardinal-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cardinal Health",
+    "tenant": "cardinalhealth",
+    "wd": "wd1",
+    "site": "EXT"
+  },
+  {
+    "name": "wd-carnegie-mellon",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Carnegie Mellon University",
+    "tenant": "cmu",
+    "wd": "wd115",
+    "site": "CMU"
+  },
+  {
+    "name": "wd-cmu-sei",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Carnegie Mellon University (SEI)",
+    "tenant": "cmu",
+    "wd": "wd115",
+    "site": "SEI"
+  },
+  {
+    "name": "wd-chatham-university",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Chatham University",
+    "tenant": "chatham",
+    "wd": "wd12",
+    "site": "ChathamUniversityStudent"
+  },
+  {
+    "name": "wd-cigna",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cigna",
+    "tenant": "cigna",
+    "wd": "wd5",
+    "site": "cignacareers"
+  },
+  {
+    "name": "wd-cincinnati-children-s",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cincinnati Children's",
+    "tenant": "cincinnatichildrens",
+    "wd": "wd5",
+    "site": "careersatcincinnatichildrens"
+  },
+  {
+    "name": "le-cologix",
+    "adapter": "lever",
+    "type": "direct_ats",
+    "employer": "Cologix",
+    "token": "cologix"
+  },
+  {
+    "name": "wd-comcast",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Comcast",
+    "tenant": "comcast",
+    "wd": "wd115",
+    "site": "Comcast_Careers"
+  },
+  {
+    "name": "wd-corteva",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Corteva",
+    "tenant": "corteva",
+    "wd": "wd5",
+    "site": "Corteva"
+  },
+  {
+    "name": "wd-covestro",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Covestro",
+    "tenant": "covestro",
+    "wd": "wd3",
+    "site": "cov_external"
+  },
+  {
+    "name": "wd-dick-s-sporting-goods",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Dick's Sporting Goods",
+    "tenant": "dickssportinggoods",
+    "wd": "wd1",
+    "site": "DSG"
+  },
+  {
+    "name": "wd-duke-energy",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Duke Energy",
+    "tenant": "dukeenergy",
+    "wd": "wd1",
+    "site": "Search"
+  },
+  {
+    "name": "gr-duolingo",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Duolingo",
+    "token": "duolingo"
+  },
+  {
+    "name": "gr-eqt",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "EQT",
+    "token": "eqtcorporation"
+  },
+  {
+    "name": "wd-elevance",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1"
+  },
+  {
+    "name": "wd-elevance-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Elevance Health",
+    "tenant": "elevancehealth",
+    "wd": "wd1",
+    "site": "ANT"
+  },
+  {
+    "name": "wd-fifth-third",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Fifth Third",
+    "tenant": "fifththird",
+    "wd": "wd5",
+    "site": "53careers"
+  },
+  {
+    "name": "wd-ge-aerospace",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "GE Aerospace",
+    "tenant": "geaerospace",
+    "wd": "wd5",
+    "site": "GE_ExternalSite"
+  },
+  {
+    "name": "wd-ge-appliances",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "GE Appliances",
+    "tenant": "haier",
+    "wd": "wd3",
+    "site": "GE_Appliances"
+  },
+  {
+    "name": "ab-gecko-robotics",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Gecko Robotics",
+    "token": "gecko-robotics"
+  },
+  {
+    "name": "wd-giant-eagle",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Giant Eagle",
+    "tenant": "gianteagle",
+    "wd": "wd503",
+    "site": "GEExternalcareers"
+  },
+  {
+    "name": "wd-heidelberg-materials",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Heidelberg Materials",
+    "tenant": "heidelbergmaterials",
+    "wd": "wd3",
+    "site": "Global_HM_Career_Site"
+  },
+  {
+    "name": "wd-highmark-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Highmark Health",
+    "tenant": "highmarkhealth",
+    "wd": "wd1",
+    "site": "highmark"
+  },
+  {
+    "name": "wd-hitachi",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Hitachi",
+    "tenant": "hitachi",
+    "wd": "wd1",
+    "site": "hitachi"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "Humana_External_Career_Site"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "CenterWell_External_Career_Site"
+  },
+  {
+    "name": "wd-huntington",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Huntington",
+    "tenant": "huntington",
+    "wd": "wd12",
+    "site": "HNBcareers"
+  },
+  {
+    "name": "oracle-jpmorgan",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "JPMorgan Chase",
+    "host": "jpmc.fa.oraclecloud.com",
+    "site": "CX_1001"
+  },
+  {
+    "name": "gr-kao",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Kao",
+    "token": "kao"
+  },
+  {
+    "name": "wd-key-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Key Bank",
+    "tenant": "keybank",
+    "wd": "wd5",
+    "site": "External_Career_Site"
+  },
+  {
+    "name": "wd-koppers",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Koppers",
+    "tenant": "koppers",
+    "wd": "wd5",
+    "site": "Koppers"
+  },
+  {
+    "name": "oracle-kroger",
+    "adapter": "oracle",
+    "type": "direct_ats",
+    "employer": "Kroger",
+    "host": "eluq.fa.us2.oraclecloud.com",
+    "site": "CX_2001"
+  },
+  {
+    "name": "jibe-lge-ku",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "LG&E and KU (PPL)",
+    "host": "careers.pplweb.com"
+  },
+  {
+    "name": "gr-lendingtree",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "LendingTree",
+    "token": "lendingtree"
+  },
+  {
+    "name": "jibe-msa-safety",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "MSA Safety",
+    "host": "careers.msasafety.com"
+  },
+  {
+    "name": "wd-medtronic",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Medtronic",
+    "tenant": "medtronic",
+    "wd": "wd1",
+    "site": "MedtronicCareers"
+  },
+  {
+    "name": "gr-motional",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Motional",
+    "token": "motional"
+  },
+  {
+    "name": "wd-nationwide",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Nationwide",
+    "tenant": "nationwide",
+    "wd": "wd1",
+    "site": "Nationwide_Career"
+  },
+  {
+    "name": "wd-nationwide-children-s",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Nationwide Children's",
+    "tenant": "nationwidechildrens",
+    "wd": "wd5",
+    "site": "NCHCareers"
+  },
+  {
+    "name": "wd-northwest-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Northwest Bank",
+    "tenant": "northwest",
+    "wd": "wd1",
+    "site": "Northwest_Careers"
+  },
+  {
+    "name": "jibe-norton-healthcare",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "Norton Healthcare",
+    "tenant": "nortonhealthcare"
+  },
+  {
+    "name": "wd-ohio-state-university",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Ohio State University",
+    "tenant": "osu",
+    "wd": "wd1",
+    "site": "OSUCareers"
+  },
+  {
+    "name": "wd-ohiohealth",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "OhioHealth",
+    "tenant": "ohiohealth",
+    "wd": "wd5",
+    "site": "OhioHealthJobs"
+  },
+  {
+    "name": "wd-pnc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PNC",
+    "tenant": "pnc",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-ppg-industries",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PPG Industries",
+    "tenant": "ppg",
+    "wd": "wd5",
+    "site": "ppg_careers"
+  },
+  {
+    "name": "wd-papa-johns",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Papa John's",
+    "tenant": "papajohns",
+    "wd": "wd1"
+  },
+  {
+    "name": "wd-papa-john-s",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Papa John's",
+    "tenant": "papajohns",
+    "wd": "wd1",
+    "site": "PapaJohnsCareers"
+  },
+  {
+    "name": "gr-peptilogics",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Peptilogics",
+    "token": "peptilogics"
+  },
+  {
+    "name": "wd-philips",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Philips",
+    "tenant": "philips",
+    "wd": "wd3",
+    "site": "jobs-and-careers"
+  },
+  {
+    "name": "wd-pwc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PwC",
+    "tenant": "pwc",
+    "wd": "wd3",
+    "site": "Global_Experienced_Careers"
+  },
+  {
+    "name": "wd-regions",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Regions",
+    "tenant": "regions",
+    "wd": "wd5",
+    "site": "regions_careers"
+  },
+  {
+    "name": "wd-republic-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Republic Bank",
+    "tenant": "republic",
+    "wd": "wd5",
+    "site": "Republic"
+  },
+  {
+    "name": "wd-roche-diagnostics",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Roche Diagnostics",
+    "tenant": "roche",
+    "wd": "wd3",
+    "site": "roche-ext"
+  },
+  {
+    "name": "wd-rolls-royce",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Rolls-Royce",
+    "tenant": "rollsroyce",
+    "wd": "wd3",
+    "site": "professional"
+  },
+  {
+    "name": "wd-salesforce",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Salesforce",
+    "tenant": "salesforce",
+    "wd": "wd12",
+    "site": "External_Career_Site"
+  },
+  {
+    "name": "wd-scotts-miracle-gro",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Scotts Miracle-Gro",
+    "tenant": "scottsmiraclegro",
+    "wd": "wd5",
+    "site": "SMGExternal"
+  },
+  {
+    "name": "wd-sedgwick",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Sedgwick",
+    "tenant": "sedgwick",
+    "wd": "wd1",
+    "site": "Sedgwick"
+  },
+  {
+    "name": "wd-simon-property-group",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Simon Property Group",
+    "tenant": "simon",
+    "wd": "wd1",
+    "site": "Simon"
+  },
+  {
+    "name": "wd-smith-nephew",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Smith & Nephew",
+    "tenant": "smithnephew",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-st-jude-children-s-research-hospital",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "St. Jude Children's Research Hospital",
+    "tenant": "stjude",
+    "wd": "wd1",
+    "site": "stjude"
+  },
+  {
+    "name": "gr-stackav",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Stack AV",
+    "token": "stackav"
+  },
+  {
+    "name": "wd-tiaa",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "TIAA",
+    "tenant": "tiaa",
+    "wd": "wd1",
+    "site": "External-Schroder-Internal"
+  },
+  {
+    "name": "wd-terminix",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Terminix",
+    "tenant": "terminix",
+    "wd": "wd1",
+    "site": "terminix"
+  },
+  {
+    "name": "phenom-texas-roadhouse",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "Texas Roadhouse",
+    "host": "careers.becomearoadie.com",
+    "path": "us/en"
+  },
+  {
+    "name": "wd-thermo-fisher",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Thermo Fisher",
+    "tenant": "thermofisher",
+    "wd": "wd5",
+    "site": "ThermofisherCareers"
+  },
+  {
+    "name": "wd-truist",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Truist",
+    "tenant": "truist",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "phenom-ups",
+    "adapter": "phenom",
+    "type": "direct_ats",
+    "employer": "UPS",
+    "host": "www.jobs-ups.com",
+    "path": "us/en"
+  },
+  {
+    "name": "wd-us-bank",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "US Bank",
+    "tenant": "usbank",
+    "wd": "wd1",
+    "site": "US_Bank_Careers"
+  },
+  {
+    "name": "wd-uofl-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "UofL Health",
+    "tenant": "uoflhealth",
+    "wd": "wd1"
+  },
+  {
+    "name": "wd-uofl-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "UofL Health",
+    "tenant": "uofl",
+    "wd": "wd1",
+    "site": "UofLCareerSite"
+  },
+  {
+    "name": "wd-vanderbilt-university-medical-center",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Vanderbilt University Medical Center",
+    "tenant": "vumc",
+    "wd": "wd1",
+    "site": "vumccareers"
+  },
+  {
+    "name": "wd-viatris",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Viatris",
+    "tenant": "viatris",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "sr-wabtec",
+    "adapter": "smartrecruiters",
+    "type": "direct_ats",
+    "employer": "Wabtec",
+    "company": "Wabtec"
+  },
+  {
+    "name": "gr-waymo",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Waymo",
+    "token": "waymo"
+  },
+  {
+    "name": "wd-waystar",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Waystar",
+    "tenant": "waystar",
+    "wd": "wd1",
+    "site": "Waystar"
+  },
+  {
+    "name": "wd-zoll",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Zoll",
+    "tenant": "zoll",
+    "wd": "wd5",
+    "site": "ZOLLMedicalCorp"
+  },
+  {
+    "name": "wd-iheartmedia",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "iHeartMedia",
+    "tenant": "iheartmedia",
+    "wd": "wd5",
+    "site": "External_iHM"
+  }
+]

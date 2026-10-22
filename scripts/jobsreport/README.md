@@ -32,3 +32,12 @@ Pay parsing takes the first dollar range in the text, so values over $1,000,000 
 (source in `edge/jobsreport-stats.ts`; aggregates only, gated by a token in `out/.stats-token` or
 `JOBSREPORT_STATS_TOKEN`) and writes `out/<geo>/report.md` and `report-data.json`, including same-method peer
 metros and the BLS peer table. Deploy the function with a fresh random token in place of the placeholder.
+
+## Any place, no model in the loop
+
+`.github/workflows/jobs-report-build.yml` (Actions, "Run workflow", type "Nashville, TN") adds the metro from Census data
+(`add_geo.py`), sweeps the national employer registry for that place (`sweep.py`), crawls straight into the database,
+tags with the `jobsreport_classify()` database function, reads numbers with `jobsreport_stats()`, and publishes
+`report.html` and `report.pdf` (`build_geo.py`, `publish.py`). Local-only employers (hospitals, school districts, city and
+county boards) are the one part that needs names: optionally `suggest_employers.py` asks the smallest model for them,
+and `discover.py` verifies each against real career systems.

@@ -21,6 +21,24 @@ def token():
     p = os.path.join(HERE, "out", ".stats-token")
     return open(p).read().strip() if os.path.exists(p) else sys.exit("no stats token: set JOBSREPORT_STATS_TOKEN")
 
+def fetch_stats(geo_list):
+    """Numbers for each geo. With SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY: the jobsreport_stats database function
+    (no edge function, no model). Otherwise the read-only edge function with a token."""
+    base, key = os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    out = []
+    for g in geo_list:
+        if base and key:
+            req = urllib.request.Request(base.rstrip("/") + "/rest/v1/rpc/jobsreport_stats", data=json.dumps({"p_geo": g}).encode(),
+                                         headers={"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"})
+            out.append(json.load(urllib.request.urlopen(req, timeout=120)))
+        else:
+            req = urllib.request.Request(URL, data=json.dumps({"geo": g, "peers": []}).encode(),
+                                         headers={"Content-Type": "application/json", "x-stats-token": token()})
+            d = json.load(urllib.request.urlopen(req, timeout=120))
+            if isinstance(d, dict): sys.exit(f"stats error: {d}")
+            out.append(d[0])
+    return out
+
 def pct(a, b): return f"{100 * a / b:.0f}%" if b else "n/a"
 def money(x): return f"${x:,.0f}" if x else "n/a"
 
@@ -35,10 +53,7 @@ def main():
     geos = json.load(open(os.path.join(HERE, "geos.json")))
     g = geos[a.geo]
     peers = [] if a.no_peers else [p for p in g.get("peers", []) if os.path.exists(os.path.join(HERE, "out", p))]
-    req = urllib.request.Request(URL, data=json.dumps({"geo": a.geo, "peers": peers}).encode(),
-                                 headers={"Content-Type": "application/json", "x-stats-token": token()})
-    data = json.load(urllib.request.urlopen(req, timeout=120))
-    if isinstance(data, dict): sys.exit(f"stats error: {data}")
+    data = fetch_stats([a.geo] + peers)
     d, peer_data = data[0], data[1:]
     out_dir = os.path.join(HERE, "out", a.geo); os.makedirs(out_dir, exist_ok=True)
     json.dump(data, open(os.path.join(out_dir, "report-data.json"), "w"), indent=1)

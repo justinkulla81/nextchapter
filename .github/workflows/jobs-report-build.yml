@@ -1,0 +1,58 @@
+name: Jobs report build (any place)
+
+# Builds a finished report for any U.S. metro with no model in the loop:
+# add place -> sweep national employers -> crawl -> tag -> statistics -> HTML and PDF.
+# Run it from the Actions tab: "Run workflow", type a place such as "Nashville, TN".
+# Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY. Optional: ANTHROPIC_API_KEY (only for "suggest local employers").
+
+on:
+  workflow_dispatch:
+    inputs:
+      place:
+        description: 'Place, e.g. "Nashville, TN" (or an existing key such as pittsburgh)'
+        required: true
+      suggest_local_employers:
+        description: "Ask the smallest model for the metro's largest local employers (costs a fraction of a cent)"
+        type: boolean
+        default: false
+      peers:
+        description: "Comma-separated geo keys to compare against (optional)"
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install playwright openpyxl markdown && python -m playwright install --with-deps chromium
+      - name: Build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PLACE: ${{ inputs.place }}
+          PEERS: ${{ inputs.peers }}
+        run: |
+          set -e
+          cd scripts/jobsreport
+          if python3 -c "import json,sys; sys.exit(0 if '$PLACE' in json.load(open('geos.json')) else 1)"; then
+            GEO="$PLACE"
+          else
+            python3 add_geo.py --name "$PLACE" ${PEERS:+--peers "$PEERS"}
+            GEO=$(python3 -c "import json,re,sys; print(re.sub(r'[^a-z0-9]+','-',sys.argv[1].split(',')[0].lower()).strip('-'))" "$PLACE")
+          fi
+          if [ "${{ inputs.suggest_local_employers }}" = "true" ]; then python3 suggest_employers.py --geo "$GEO"; EXTRA=--discover; fi
+          python3 build_geo.py --geo "$GEO" $EXTRA
+          echo "GEO=$GEO" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: report-${{ env.GEO }}
+          path: |
+            scripts/jobsreport/out/${{ env.GEO }}/report.pdf
+            scripts/jobsreport/out/${{ env.GEO }}/report.html
+            scripts/jobsreport/out/${{ env.GEO }}/report.md
+            scripts/jobsreport/geos.json
+            scripts/jobsreport/sources/${{ env.GEO }}*.json
