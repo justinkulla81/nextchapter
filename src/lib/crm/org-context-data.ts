@@ -110,7 +110,9 @@ async function countCountyJobs(fips: string | null, state: string, countyName: s
 /**
  * Counting a county's postings scans the whole open-postings table (no location index), so each county is counted once and kept for six hours.
  */
-export const loadCountyJobs = unstable_cache(countCountyJobs, ['county-open-jobs-v1'], { revalidate: 6 * 3600 })
+export const countyJobsTag = (fips: string) => `county-jobs:${fips}`
+export const loadCountyJobs = (fips: string | null, state: string, countyName: string | null): Promise<OpenJobs | null> =>
+  fips ? unstable_cache(() => countCountyJobs(fips, state, countyName), ['county-open-jobs-v1', fips], { revalidate: 6 * 3600, tags: [countyJobsTag(fips)] })() : countCountyJobs(null, state, countyName)
 
 /** A section that takes too long is left out rather than holding up the page. */
 export function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
