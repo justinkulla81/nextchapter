@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { PivotPathImpression } from '@/components/dashboard/pivot/PivotPathImpression'
 import { PivotRoleDetail } from '@/components/dashboard/pivot/PivotRoleDetail'
 import type { PivotOption } from '@/lib/careers/pivots'
+import type { OccupationExposure } from '@/lib/skills/ai-exposure'
 import { bandFromOverlap, SKILLS_FIT_LABEL } from '@/lib/careers/skills-fit'
 
 // Candidates are shown bands, never precise-looking scores, so the share of skills in common is
@@ -22,6 +23,8 @@ export function PivotOptionCard({
   fromSoc,
   rank,
   currentTarget,
+  exposure = null,
+  currentExposure = null,
 }: {
   option: PivotOption
   state: string | null
@@ -31,6 +34,8 @@ export function PivotOptionCard({
   fromSoc: string
   rank: number
   currentTarget: string | null
+  exposure?: OccupationExposure | null
+  currentExposure?: OccupationExposure | null
 }) {
   const overlapBand = option.overlap === null ? null : bandFor(option.overlap)
 
@@ -56,7 +61,7 @@ export function PivotOptionCard({
               </div>
             )}
           </div>
-          <PivotRoleDetail option={option} state={state} stateLabel={stateLabel} stateCode={stateCode} tasks={tasks} currentTarget={currentTarget} showLocalOpenings />
+          <PivotRoleDetail option={option} state={state} stateLabel={stateLabel} stateCode={stateCode} tasks={tasks} currentTarget={currentTarget} showLocalOpenings exposure={exposure} currentExposure={currentExposure} />
         </CardContent>
       </Card>
     </PivotPathImpression>

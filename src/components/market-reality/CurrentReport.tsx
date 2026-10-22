@@ -6,6 +6,8 @@ import { ShowMore } from '@/components/candidate/ShowMore'
 import { TrackedLink } from '@/components/dashboard/TrackedLink'
 import { PrintReportButton } from '@/components/dashboard/PrintReportButton'
 import { RegenerateReport } from '@/components/market-reality/RegenerateReport'
+import { AiAtWorkBlock } from '@/components/candidate/AiAtWork'
+import type { AiAtWork } from '@/lib/skills/ai-at-work'
 import type { CurrentRead } from '@/lib/reports/market-reality-brief/current-report'
 
 const LINK = 'text-sm font-medium text-brand underline underline-offset-4'
@@ -15,11 +17,14 @@ const LINK = 'text-sm font-medium text-brand underline underline-offset-4'
 // on. No letter grade and no verdict label; the page is always the member's position as of now.
 export function CurrentReport({
   read,
+  aiAtWork,
   asOf,
   lastGeneratedAt,
   regen,
 }: {
   read: CurrentRead
+  /** Occupation exposure and openings split; null when unavailable (nothing is shown then). */
+  aiAtWork?: AiAtWork | null
   asOf: Date
   lastGeneratedAt: Date | null
   regen: { allowed: boolean; message: string }
@@ -53,6 +58,7 @@ export function CurrentReport({
             <span className="font-semibold">{read.market.line}</span> <span className="text-sm text-muted-foreground">{read.market.fact}</span>
           </p>
         )}
+        <AiAtWorkBlock data={aiAtWork ?? null} surface="market_reality" />
       </Module>
 
       <Module title="Your first steps">

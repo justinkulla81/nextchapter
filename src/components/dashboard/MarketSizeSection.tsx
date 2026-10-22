@@ -4,6 +4,7 @@ import { marketTierFor } from '@/lib/jobs/relevance'
 import { computeMatchState } from '@/lib/personalization/match-compute'
 import { MarketSizeBlock } from '@/components/dashboard/MarketSizeBlock'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
+import { loadAiAtWork } from '@/lib/skills/ai-at-work'
 
 /** Loads the member's market size and shows the block; nothing when there's no target or no stats yet. Wrap in Suspense. */
 export async function MarketSizeSection({
@@ -29,5 +30,7 @@ export async function MarketSizeSection({
     loadAiMarket(),
   ])
   if (!view) return null
-  return <MarketSizeBlock view={view} surface={surface} searchCount={searchCount} searchQuery={searchQuery} aiMarket={aiMarket} />
+  // Search strategy shows the openings split by observed AI exposure instead of the "AI skills" line. Fails soft to null, and then the old line stays.
+  const aiAtWork = surface === 'search_strategy' ? await loadAiAtWork(member.id, view.target.fn) : null
+  return <MarketSizeBlock view={view} surface={surface} searchCount={searchCount} searchQuery={searchQuery} aiMarket={aiMarket} aiAtWork={aiAtWork} />
 }
