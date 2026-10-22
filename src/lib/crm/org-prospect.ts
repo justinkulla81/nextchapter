@@ -75,11 +75,11 @@ function trigger(i: ProspectInput): ProspectComponent {
   let points = 0
   let reason: string | null = null
   if (notices > 0 && daysSinceLatest !== null) {
-    // Fresh layoffs are the strongest buying moment: displaced people exist now.
+    // Fresh layoffs are the strongest buying moment: laid-off people exist now.
     points = daysSinceLatest <= 90 ? 24 : daysSinceLatest <= 270 ? 16 : 8
     if (employees && employees >= 1000) points += 6
     else if (employees && employees >= 100) points += 3
-    // Already rehiring means the displaced-worker pitch is weaker, not gone.
+    // Already rehiring means the laid-off-worker pitch is weaker, not gone.
     if (hiringAgain) points = Math.max(0, points - 4)
     reason = `${plural(notices, 'layoff notice')}${employees ? `, ${employees.toLocaleString()} roles` : ''}, latest ${daysSinceLatest} days ago`
   }

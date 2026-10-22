@@ -6,7 +6,7 @@ import { isPersonalEmail } from './college-score'
 /**
  * Puts each local workforce (WIOA) board in the CRM as a government
  * organization, with its director and chair as people — business-development
- * contacts, the people who can send displaced workers our way. A board whose
+ * contacts, the people who can send laid-off workers our way. A board whose
  * area has had a WARN filing in the last year is P2; the rest are in the CRM
  * with no priority set.
  *

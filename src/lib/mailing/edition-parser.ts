@@ -1,12 +1,12 @@
 /**
  * Which month's report an email carried (the NextChapter White Collar Employment
- * Report, formerly the Displacement Report), from what Gmail shows of it: attachment
+ * Report, previously under an earlier name), from what Gmail shows of it: attachment
  * filenames and the body text.
  *
  * A report attachment is named `white-collar-employment-report-2026-10.pdf` or
  * `NextChapter-White-Collar-Employment-Report-2026-10.pdf`, or `employment-report-...`
- * variants, or, for editions published under the former name, `displacement-report-2026-09.pdf` or
- * `NextChapter-Displacement-Report-2026-09.pdf`. Both prefixes are accepted
+ * variants, or, for editions published through September 2026, the report's earlier
+ * file-name prefix (still matched below). Every prefix is accepted
  * so old sends keep resolving and new ones are recognized. A link points somewhere
  * under launchyournextchapter.com/reports/. The month is read as YYYY-MM, or
  * as a month name and year ("september-2026"), which is how the report's own

@@ -33,7 +33,7 @@ const CAT: Record<Cat, { label: string; orgType: string; role: CrmPersonRole }> 
   funder: { label: 'funder', orgType: 'FOUNDATION', role: 'GRANTS' },
   pivot_learning: { label: 'career-pivot learning company', orgType: 'VENDOR', role: 'GTM_PARTNER' },
   outplacement: { label: 'outplacement firm', orgType: 'OUTPLACEMENT_FIRM', role: 'BD_PARTNER' },
-  research: { label: 'research or policy organization on work, unemployment and AI displacement', orgType: 'THINK_TANK', role: 'POLICY_ANALYST' },
+  research: { label: 'research or policy organization on work, unemployment and AI job loss', orgType: 'THINK_TANK', role: 'POLICY_ANALYST' },
   career_dev: { label: 'career-development, career-exploration or talent-skills organization', orgType: 'VENDOR', role: 'BD_PARTNER' },
   policy_assoc: { label: 'association of state legislators, governments or workforce professionals', orgType: 'NONPROFIT', role: 'BD_PARTNER' },
 }
@@ -85,7 +85,7 @@ const ORGS: [string, string, Cat][] = [
   ['Right Management', 'right.com', 'outplacement'], ['Korn Ferry', 'kornferry.com', 'outplacement'], ['Challenger, Gray & Christmas', 'challengergray.com', 'outplacement'], ['FutureFit AI', 'futurefit.ai', 'outplacement'],
 ]
 
-// BUYERS_SET=2: research and policy organizations (AI displacement, unemployment insurance, white-collar work), career-development
+// BUYERS_SET=2: research and policy organizations (AI job loss, unemployment insurance, white-collar work), career-development
 // and career-exploration organizations, and associations of legislators and workforce professionals.
 const ORGS_2: [string, string, Cat][] = [
   ['Brookings Institution', 'brookings.edu', 'research'], ['Urban Institute', 'urban.org', 'research'], ['Economic Policy Institute', 'epi.org', 'research'],

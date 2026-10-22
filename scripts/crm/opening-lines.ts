@@ -24,7 +24,7 @@ const WHO: Record<string, string> = {
   ajc: 'the business-services or general inbox of an American Job Center', edo: 'a leader at a chamber of commerce, economic development group or workforce nonprofit',
   state_ui: 'a state unemployment insurance or reemployment leader', state_career: 'a state labor market information, career information, career pathways or adult learner leader',
   state_agency: 'a state agency head, state workforce board director, economic development head or governor\'s adviser', funder: 'a foundation or funder program officer',
-  partner: 'a leader at an outplacement firm, HR adviser or benefits firm', researcher: 'a researcher or policy analyst on work, unemployment and AI displacement',
+  partner: 'a leader at an outplacement firm, HR adviser or benefits firm', researcher: 'a researcher or policy analyst on work, unemployment and AI job loss',
   career_dev: 'a leader at a career-development, career-exploration, association or career-pivot organization',
 }
 

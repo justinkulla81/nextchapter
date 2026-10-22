@@ -86,7 +86,7 @@ Financial services, healthcare, industrial and manufacturing, technology, life s
 
 | Learner | Starting point | What they need | Best course shape |
 |---|---|---|---|
-| Displaced professional retraining | 10+ years in a function, out of work, often long search | Credible, current evidence in their own function fast; not a new career | Function course (6 to 8 h) plus a finished work sample, delivered in a 2 to 4 week cohort |
+| Laid-off professional retraining | 10+ years in a function, out of work, often long search | Credible, current evidence in their own function fast; not a new career | Function course (6 to 8 h) plus a finished work sample, delivered in a 2 to 4 week cohort |
 | New worker / entry-level | Student or recent graduate, no portfolio | AI as a visible working skill plus 2 or 3 samples employers can open | Foundations plus a launch lab, sold through the college |
 | Career changer | Experienced in one function, entering another | The function's AI practices and vocabulary | A function course in the target function with a bridge module |
 | Current employee | Employed, employer is adopting AI | Role-specific practice inside their company's approved tools | Function course, employer-branded, 2 to 4 weeks, manager track alongside |
@@ -95,7 +95,7 @@ Financial services, healthcare, industrial and manufacturing, technology, life s
 
 Rows are the proposed courses (section 5). Columns: the posting signal behind the course, and the learner types it fits. "Demand" is rated from the data in section 2 where a number exists; the rating itself is **[Judgment]**.
 
-| # | Course | Postings behind it [Data] | Demand | Displaced | New worker | Changer | Employee |
+| # | Course | Postings behind it [Data] | Demand | Laid off | New worker | Changer | Employee |
 |---|---|---|---|:-:|:-:|:-:|:-:|
 | 1 | AI foundations for working professionals | Tool use is the top ask in 18 of 21 functions | Strongest | ● | ● | ● | ● |
 | 2 | AI-ready launch (new workers) | 177 paid entry postings, 34 ask; [Report] entry-gate evidence | Strong on [Report], thin on [Data] | | ● | | |
@@ -139,7 +139,7 @@ All function courses share one spine so the template is built once: (1) the AI s
 
 ### 3. AI in finance and accounting
 
-- **Learner:** accountants, FP&A, controllers, analysts; the largest pool of displaced white-collar finance workers we reach.
+- **Learner:** accountants, FP&A, controllers, analysts; the largest pool of laid-off white-collar finance workers we reach.
 - **Outcome:** produces a variance commentary, a reconciliation check, and a month-end narrative with an AI assistant in spreadsheet and Copilot workflows, and documents what a reviewer must verify.
 - **Prerequisite:** Course 1; working knowledge of financial statements.
 - **Length and format:** 6 hours self-paced, or a 3-week cohort with a review session.

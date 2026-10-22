@@ -32,7 +32,7 @@ const BASE: S[] = [
   ['about', 'Opening', 'bullets', {
     title: 'Who we are', kicker: 'Background',
     bullets: [
-      'NextChapter is the leading job transition platform for laid-off and displaced white-collar workers.',
+      'NextChapter is the leading job transition platform for laid-off white-collar workers.',
       'It pairs each person with a coach and a recruiter, and gives employers a hiring portal.',
       'We publish the NextChapter White Collar Employment Report each month, with the method and code open.',
     ],

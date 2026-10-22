@@ -128,7 +128,7 @@ const LAID_OFF: PlaybookMilestone[] = [
       { text: 'Choose whether to keep targeting your old level or to build toward a new field.', href: '/dashboard/learning' },
       { text: 'Review progress with your coach every two weeks.', href: '/coaching' },
     ],
-    evidence: 'Of long-tenured workers displaced in 2023 to 2025, 66% were re-employed by January 2026, and about half of those earn less than before (BLS Displaced Worker Survey).',
+    evidence: 'Of long-tenured workers who lost a job in 2023 to 2025, 66% were re-employed by January 2026, and about half of those earn less than before (BLS survey of workers who lost jobs).',
   },
 ]
 
@@ -231,7 +231,7 @@ const CAREER_CHANGE: PlaybookMilestone[] = [
       { text: 'Finish one small project or credential you can show.', href: '/dashboard/learning' },
       { text: 'Talk to ten people who do the job now.' },
     ],
-    evidence: 'About half of displaced full-time workers who found work again earn less than before. A bigger change often means re-entering a level lower (BLS Displaced Worker Survey).',
+    evidence: 'About half of full-time workers who lost a job who found work again earn less than before. A bigger change often means re-entering a level lower (BLS survey of workers who lost jobs).',
   },
   {
     atWeek: 20,

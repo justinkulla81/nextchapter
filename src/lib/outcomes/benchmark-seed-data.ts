@@ -88,7 +88,7 @@ export const PAY_CHANGE_SEED: Array<PayBenchmarkRow & { notes: string }> = [
   },
   {
     pathType: 'RESET',
-    group: 'High-tenure displaced workers, long-run annual earnings loss',
+    group: 'High-tenure laid-off workers, long-run annual earnings loss',
     lowPct: -25,
     highPct: -25,
     medianPct: null,
@@ -97,11 +97,11 @@ export const PAY_CHANGE_SEED: Array<PayBenchmarkRow & { notes: string }> = [
     sourceTitle: 'Jacobson, LaLonde and Sullivan, via Chicago Fed Economic Perspectives (2005)',
     sourceUrl: 'https://www.chicagofed.org/publications/economic-perspectives/2005/2q-',
     asOf: '1980s data',
-    notes: 'Earnings (not hourly pay) for 6+ year tenure workers displaced from distressed firms in Pennsylvania, early 1980s. Dated; include only as a worst-case reference.',
+    notes: 'Earnings (not hourly pay) for 6+ year tenure workers laid off from distressed firms in Pennsylvania, early 1980s. Dated; include only as a worst-case reference.',
   },
   {
     pathType: 'RESET',
-    group: 'Displaced men with 3+ years tenure, immediate annual earnings drop in expansions',
+    group: 'Laid-off men with 3+ years tenure, immediate annual earnings drop in expansions',
     lowPct: -25,
     highPct: -25,
     medianPct: null,
@@ -115,11 +115,11 @@ export const PAY_CHANGE_SEED: Array<PayBenchmarkRow & { notes: string }> = [
 ]
 
 // Reference statistics for UI copy (not used as ranges). All from the BLS
-// Displaced Worker Survey release of 2026-08-27 as relayed by search summaries
+// BLS survey of workers who lost jobs, release of 2026-08-27 as relayed by search summaries
 // and the NextChapter White Collar Employment Report (Sept 2026). Verify before publishing.
 export const REFERENCE_STATS = {
   longTenuredReemployedPct: { all: 66.1, age25to54: 72.9, age55to64: 57.3, age65plus: 38.6 },
   fullTimeReemployedEarningAsMuchOrMorePct: 49,
-  source: 'BLS Displaced Worker Survey, displaced 2023-2025 (release 2026-08-27)',
+  source: 'BLS survey of workers who lost jobs, job loss in 2023-2025 (release 2026-08-27)',
   sourceUrl: 'https://www.bls.gov/news.release/disp.nr0.htm',
 } as const
