@@ -8,7 +8,9 @@ export async function googleErrorReason(res: Response): Promise<string> {
   try {
     const body = await res.text()
     const m = body.match(/"reason"\s*:\s*"([A-Za-z_]+)"/)
-    return m ? ` ${m[1]}` : ''
+    // "API has not been used in project 123456789 before or it is disabled": the number says which Cloud project needs the API switched on.
+    const project = body.match(/project[s/ ]+(\d{6,})/i)?.[1]
+    return m ? ` ${m[1]}${project ? ` (project ${project})` : ''}` : ''
   } catch {
     return ''
   }
