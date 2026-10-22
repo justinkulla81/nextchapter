@@ -14454,6 +14454,32 @@ model FundingOpportunity {
   @@index([audience, eligibility])
 }
 
+// Relocation incentives, retraining funds, grants, dividends and free courses for
+// laid-off professionals. Applied by hand: prisma/manual/benefit-programs.sql.
+model BenefitProgram {
+  id          String    @id
+  category    String
+  name        String
+  provider    String?
+  scope       String    @default("NATIONAL")
+  state       String?
+  locality    String?
+  amount      String?
+  eligibility String?
+  status      String    @default("UNKNOWN")
+  statusNote  String?
+  url         String?
+  segments    String[]  @default([])
+  verified    Boolean   @default(false)
+  checkedAt   DateTime?
+  source      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@index([category, state])
+  @@index([status])
+}
+
 // History of journey and stage changes, newest last: what changed, from what,
 // and what changed it. Feeds the dashboard's "since you started" view and the
 // college's outcome reporting (with consent).

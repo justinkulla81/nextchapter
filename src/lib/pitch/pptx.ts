@@ -83,7 +83,7 @@ export async function renderPptx(deck: Deck, opts: { headshot?: string } = {}): 
         }
         break
       }
-      case 'warn': case 'employers': case 'colleges': case 'datacenters': case 'board': case 'constituents': case 'funding': {
+      case 'warn': case 'employers': case 'colleges': case 'datacenters': case 'board': case 'constituents': case 'funding': case 'benefits': {
         const header = (d.head ?? []).map((t) => ({ text: t, options: { bold: true, color: 'FFFFFF', fill: { color: P }, fontFace: FONT, fontSize: 12 } }))
         const body = (d.rows ?? []).map((r) => r.map((t) => ({ text: t, options: { fontFace: FONT, fontSize: 12, color: INK } })))
         if (header.length) s.addTable([header, ...body], { x: 0.6, y: top, w: W - 1.2, border: { type: 'solid', color: 'E5E7EB', pt: 0.75 }, valign: 'middle', rowH: d.kind === 'constituents' ? 0.55 : 0.36, autoPage: false, fontSize: d.kind === 'constituents' ? 11 : 12 })

@@ -20,7 +20,7 @@ export const CUSTOMER_LABELS: Record<CustomerType, string> = {
 export type SlideKind =
   | 'cover' | 'bullets' | 'stats' | 'table' | 'offer' | 'timeline' | 'people' | 'divider'
   | 'warn' | 'employers' | 'colleges' | 'datacenters' | 'board' | 'text' | 'news'
-  | 'demo' | 'packages' | 'constituents' | 'funding'
+  | 'demo' | 'packages' | 'constituents' | 'funding' | 'benefits'
 
 export interface SlideRule {
   id: string

@@ -188,6 +188,21 @@ const BENEFIT_SLIDES: Spec['extra'] = [
     source: BENEFITS_SOURCE,
     why: 'Shows {{org}} that AI reskilling has real money behind it and that NextChapter routes people to it. Rapid Reskill award sizes are not public; do not quote a dollar figure.',
   }],
+  ['a-faq', 'p-relocation', {
+    title: 'Appendix: relocation incentives that could pull your people away', kicker: 'Appendix', appendix: true,
+    bullets: [], source: BENEFITS_SOURCE,
+    why: 'Data-driven from the Benefits catalog (CRM > Benefits): verified, open programs, this state first. Dropped automatically when the catalog has none.',
+  }, { section: 'Appendix' }],
+  ['p-relocation', 'p-training', {
+    title: 'Appendix: retraining, tuition and federal programs', kicker: 'Appendix', appendix: true,
+    bullets: [], source: BENEFITS_SOURCE,
+    why: 'Data-driven from the Benefits catalog: state retraining and tuition programs for this state, then federal ones.',
+  }, { section: 'Appendix' }],
+  ['p-training', 'p-free', {
+    title: 'Appendix: free courses, AI funds and professional help', kicker: 'Appendix', appendix: true,
+    bullets: [], source: BENEFITS_SOURCE,
+    why: 'Data-driven from the Benefits catalog: free courses and certificates, AI and philanthropic funds, profession-specific help.',
+  }, { section: 'Appendix' }],
   ['b-ai', 'b-kentuckiana', {
     title: 'Example: what this looks like in Kentuckiana', kicker: 'Louisville region',
     bullets: [
@@ -538,10 +553,10 @@ function build(spec: Spec, benefits: 'full' | 'compact' | 'none' = 'full'): Slid
     id, section, kind, enabled: true, title: '', bullets: [], ...p, ...(spec.patches[id] ?? {}), ...(spec.off?.includes(id) ? { enabled: false } : {}),
   }))
   // insert per-type extra slides after the slide they name, in order
-  for (const [after, id, patch, opts] of [...spec.extra, ...(benefits === 'none' ? [] : BENEFIT_SLIDES.map(([a, i, pt, o]): [string, string, Patch, ExtraOpts?] => benefits === 'compact' && i !== 'b-benefits' ? [a, i, { ...pt, appendix: true }, { ...o, section: 'Appendix' }] : [a, i, pt, o]))]) {
+  for (const [after, id, patch, opts] of [...spec.extra, ...(benefits === 'none' ? [] : BENEFIT_SLIDES.map(([a, i, pt, o]): [string, string, Patch, ExtraOpts?] => benefits === 'compact' && i !== 'b-benefits' && !i.startsWith('p-') ? [a, i, { ...pt, appendix: true }, { ...o, section: 'Appendix' }] : [a, i, pt, o]))]) {
     const i = rules.findIndex((r) => r.id === after)
     const at = i < 0 ? rules.findIndex((r) => r.id === 'solution') : i
-    const kind: SlideRule['kind'] = opts?.kind ?? (id.startsWith('d-') ? 'demo' : id.startsWith('f-') ? 'funding' : 'bullets')
+    const kind: SlideRule['kind'] = opts?.kind ?? (id.startsWith('d-') ? 'demo' : id.startsWith('f-') ? 'funding' : id.startsWith('p-') ? 'benefits' : 'bullets')
     const section: SlideRule['section'] = opts?.section ?? (patch.appendix ? 'Appendix' : 'Solution')
     rules.splice(at + 1, 0, { id, section, kind, enabled: true, title: '', bullets: [], ...patch })
   }
