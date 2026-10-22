@@ -12,12 +12,21 @@ import { cn } from '@/lib/utils'
 
 // Search results for the homepage job box. Anonymous and unpersonalized by design: newest
 // first, matched on the words typed. The panel beside the list says so, and says exactly how
-// to get the personalized version. Not indexed: result pages are infinite and thin.
+// to get the personalized version. The bare /jobs page is indexed; result pages (any query)
+// are not, because they are infinite and thin.
 
-export const metadata: Metadata = {
-  title: 'Search jobs',
-  robots: { index: false, follow: true },
-  alternates: { canonical: '/jobs' },
+type SearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
+  const sp = await searchParams
+  const searched = ['q', 'loc', 'remote'].some((k) => sp[k] !== undefined && sp[k] !== '')
+  return {
+    title: 'Search jobs',
+    description:
+      'Search hundreds of thousands of live professional jobs, taken from employers’ own career sites and checked to still be open.',
+    robots: { index: !searched, follow: true },
+    alternates: { canonical: '/jobs' },
+  }
 }
 
 const PERSONALIZE_HREF = '/onboarding/desire?from=jobs_page'
@@ -43,14 +52,16 @@ function salary(min: number | null, max: number | null): string | null {
   return null
 }
 
-export default async function JobsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+export default async function JobsPage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
   const query = cleanPublicQuery({ q: one(sp.q), loc: one(sp.loc), remote: one(sp.remote) })
 
   let result: PublicBoardResult | null = null
   let problem: string | null = null
-  if (!(await allowByIp('public-jobs', 60, HOUR_MS))) {
+  const searched = query.q !== '' || query.loc !== '' || query.remote
+  // Only typed searches count toward the limit, so crawlers can always read the bare page.
+  if (searched && !(await allowByIp('public-jobs', 60, HOUR_MS))) {
     problem = 'You have searched a lot this hour. Create a free account to keep searching.'
   } else {
     try {
@@ -62,7 +73,6 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
   }
 
   const jobs = result?.jobs ?? []
-  const searched = query.q !== '' || query.loc !== '' || query.remote
   const what = [query.q, query.loc, query.remote ? 'remote' : ''].filter(Boolean).join(' · ')
 
   return (
