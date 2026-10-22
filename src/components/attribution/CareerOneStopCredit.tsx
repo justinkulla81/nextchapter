@@ -16,7 +16,7 @@ export const CAREERONESTOP_URL = 'https://www.careeronestop.org'
 
 export function CareerOneStopCredit({
   surface,
-  label = 'Outlook and wage data via',
+  label = 'Data via',
   className,
 }: {
   surface: string
