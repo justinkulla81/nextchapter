@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAdminLinkedIn } from '@/lib/linkedin/admin-connection'
-import { commentOnLinkedInPost, linkedInPostUrl, publishLinkedInShare, type LinkedInVisibility } from '@/lib/linkedin/oauth'
+import { commentAsPage, postUrl, publishPagePost } from '@/lib/linkedin/page-posting'
 import { renderDraftSlides } from '@/lib/linkedin/draft-slides'
 import { createDraft } from '@/lib/linkedin/layoff-post-sweep'
 import { assignSlots, credibilityOf } from '@/lib/linkedin/layoff-post-rules'
@@ -42,15 +42,17 @@ export async function skipDraft(id: string): Promise<{ message: string }> {
 }
 
 /**
- * Posts a draft to the admin's own LinkedIn profile: the text with its slides (a swipeable image set),
+ * Posts a draft as the NextChapter company page, public: the text with its slides (a swipeable image set),
  * then the link as the first comment. The draft is claimed (set to POSTED)
  * before anything is sent, so a double click cannot post twice; if LinkedIn
  * refuses, it goes back to DRAFT.
  */
-export async function postDraftToLinkedIn(id: string, visibility: LinkedInVisibility): Promise<{ message: string; url?: string }> {
+export async function postDraftToLinkedIn(id: string): Promise<{ message: string; url?: string }> {
   const admin = await requireAdmin()
   const conn = admin.email ? await getAdminLinkedIn(admin.email) : null
-  if (!conn) return { message: 'LinkedIn is not connected, or the connection has expired. Connect it first.' }
+  if (!conn) return { message: 'LinkedIn is not connected, or the connection has expired. Connect the NextChapter page first.' }
+  // Posts come from NextChapter, never from a person's profile, and are public.
+  if (!conn.organizationUrn) return { message: 'LinkedIn is connected as you, but posts must come from the NextChapter page. Connect the NextChapter page first.' }
 
   const claimed = await prisma.linkedInPostDraft.updateMany({ where: { id, status: 'DRAFT' }, data: { status: 'POSTED', postedAt: new Date() } })
   if (claimed.count === 0) return { message: 'This draft was already posted or skipped.' }
@@ -59,7 +61,7 @@ export async function postDraftToLinkedIn(id: string, visibility: LinkedInVisibi
   let postUrn: string
   try {
     const rendered = await renderDraftSlides(id)
-    postUrn = await publishLinkedInShare({ accessToken: conn.accessToken, personUrn: conn.personUrn, text: draft.body, images: rendered?.pngs, visibility })
+    postUrn = await publishPagePost({ token: conn.accessToken, orgUrn: conn.organizationUrn, text: draft.body, images: rendered?.pngs, altText: `NextChapter: ${rendered?.employer ?? 'layoff'} layoff` })
   } catch (e) {
     await prisma.linkedInPostDraft.update({ where: { id }, data: { status: 'DRAFT', postedAt: null } })
     console.error('LinkedIn post failed for draft', id, e)
@@ -71,17 +73,17 @@ export async function postDraftToLinkedIn(id: string, visibility: LinkedInVisibi
   let commented = true
   if (draft.firstComment.trim()) {
     try {
-      await commentOnLinkedInPost(conn.accessToken, conn.personUrn, postUrn, draft.firstComment)
+      await commentAsPage(conn.accessToken, conn.organizationUrn, postUrn, draft.firstComment)
     } catch (e) {
       commented = false
       console.error('LinkedIn first comment failed for draft', id, e)
     }
   }
-  captureServerEvent(admin.email ?? 'admin', 'linkedin_draft_auto_posted', { draftId: id, angle: draft.angle, credibility: draft.credibility, visibility, commented })
+  captureServerEvent(admin.email ?? 'admin', 'linkedin_draft_auto_posted', { draftId: id, angle: draft.angle, credibility: draft.credibility, as: 'page', commented })
   revalidatePath(BASE)
   return {
     message: commented ? 'Posted, with the link in the first comment.' : 'Posted, but the first comment failed. Paste the link as a comment yourself.',
-    url: linkedInPostUrl(postUrn),
+    url: postUrl(postUrn),
   }
 }
 
