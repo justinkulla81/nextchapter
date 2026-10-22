@@ -54,8 +54,21 @@ OpenAI and Anthropic.
 5. Commit the new vintage (if any) and the `report-YYYY-MM/` folder.
 
 ## Matching
-Normalize titles (drop level words, locations, numerals, plurals), then exact title, then plain
-"A and B" alternates, then a curated alias list, then near-exact fuzzy (token overlap 0.75 or
-more with the same head noun). A title claimed by two occupations is left unmatched. First measured
-coverage on the 125 most common open titles, 2026-10-22: 50.5% of those postings. Grow the alias
-list from the hand-check; never loosen the fuzzy threshold to raise coverage.
+Normalize titles (drop level words, locations, numerals, plurals; a posting title drops its comma
+tail, an occupation title keeps its full name), then exact title, then plain "A and B" alternates
+(never one generic word such as "Directors"), then a curated alias list, then near-exact fuzzy
+(token overlap 0.75 or more with the same head noun). A title claimed by two occupations is left
+unmatched.
+
+Measured coverage, 2026-10-22 (run through Supabase, not the script, because this environment has no
+direct database connection): on a random sample of 794 open postings from the whole table, 12.2%
+match an occupation (95% interval about 10 to 15%); on the 125 most common open titles, which are
+about a quarter of postings, about half match. Long-tail titles are idiosyncratic and many roles are
+not in the AEI file, so the exhibits describe the matched postings only and say so. Hand check of the
+97 matches in the sample: about 5 doubtful (for example a hospital billing operations manager mapped
+to General and Operations Managers), about 95% right.
+
+A first run caught a bug: occupation titles cut at their comma made every "Director, ..." posting
+match "Directors, Religious Activities and Education" (coverage read 17.3%). Fixed, and covered by a
+test. Grow the alias list from each month's hand-check; never loosen the fuzzy threshold to raise
+coverage.
