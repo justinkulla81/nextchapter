@@ -1,3 +1,4 @@
+import type { BenefitProgramRow } from '@/lib/benefits/types'
 import type { Brand, Deck, DeckSlide, Demo, Fact, PersonCard, RuleSet, SlideRule } from './types'
 import { NATIONAL } from './national'
 import { FIXED_FACTS } from './report-facts'
@@ -39,6 +40,8 @@ export interface BuildInput {
   /** Open grants for this customer type. Empty or absent drops the funding slide. */
   funding?: FundingInput[]
   people?: PersonCard[]
+  /** Catalog programs (src/lib/benefits). Only verified, not-closed rows should be passed. */
+  benefits?: BenefitProgramRow[]
   /**
    * "Across N applications in finance, the top missing skills were X, Y and Z." from members'
    * application snapshots (src/lib/applications/skill-match-aggregate.ts pitchGapLine). Fills the
@@ -46,6 +49,13 @@ export interface BuildInput {
    */
   applicationGaps?: { text: string; citable: boolean } | null
   now?: Date
+}
+
+/** Which catalog categories each data-driven program slide lists. */
+export const BENEFIT_SLIDE_CATEGORIES: Record<string, string[]> = {
+  'p-relocation': ['RELOCATION'],
+  'p-training': ['STATE_TRAINING', 'FEDERAL'],
+  'p-free': ['COURSES', 'PRIVATE', 'SEGMENT'],
 }
 
 const cap1 = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
@@ -171,6 +181,22 @@ export function buildDeck(i: BuildInput): Deck {
         break
       }
       case 'people': s.people = i.people ?? []; break
+      case 'benefits': {
+        const cats = BENEFIT_SLIDE_CATEGORIES[r.id] ?? []
+        const state = i.area?.state ?? null
+        const mine = (i.benefits ?? []).filter((x) => cats.includes(x.category))
+        // This state's own programs first, then national ones.
+        const rows = [...mine.filter((x) => x.state && x.state === state), ...mine.filter((x) => !(x.state && x.state === state))]
+        s.head = ['Program', 'Where', 'What you get', 'Status']
+        s.rows = rows.slice(0, r.appendix ? 12 : 6).map((x) => [
+          x.name.length > 60 ? `${x.name.slice(0, 57)}...` : x.name,
+          x.scope === 'NATIONAL' ? 'National' : [x.locality, x.state].filter(Boolean).join(', '),
+          (x.amount ?? x.eligibility ?? '').slice(0, 90),
+          x.status === 'OPEN' ? 'Open' : x.status === 'ROLLING' ? 'Rolling' : 'Check',
+        ])
+        if (!s.rows.length) continue
+        break
+      }
       case 'funding': {
         s.head = ['Grant', 'Issued by', 'Closes', 'How to pursue']
         s.rows = (i.funding ?? []).slice(0, r.appendix ? 10 : 5).map((f) => [

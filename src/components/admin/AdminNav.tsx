@@ -165,6 +165,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/linkedin-drafts', label: 'LinkedIn post drafts' },
         { href: '/support/admin/crm/economic-development', label: 'Econ development leads' },
         { href: '/support/admin/crm/geographies', label: 'Geographies' },
+        { href: '/support/admin/crm/benefits', label: 'Benefits' },
         { href: '/support/admin/crm/pitch', label: 'Pitch builder' },
         { href: '/support/admin/crm/pitch-rules', label: 'Pitch rules' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
