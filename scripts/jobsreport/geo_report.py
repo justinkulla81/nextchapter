@@ -48,15 +48,15 @@ def table(head, rows):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--geo", required=True)
-    ap.add_argument("--no-peers", action="store_true")
+    ap.add_argument("--no-peers", action="store_true"); ap.add_argument("--local", action="store_true", help="use out/<geo>/report-data.json from local_stats.py (no database)")
     a = ap.parse_args()
     geos = json.load(open(os.path.join(HERE, "geos.json")))
     g = geos[a.geo]
-    peers = [] if a.no_peers else [p for p in g.get("peers", []) if os.path.exists(os.path.join(HERE, "out", p))]
-    data = fetch_stats([a.geo] + peers)
+    peers = [] if (a.no_peers or a.local) else [p for p in g.get("peers", []) if os.path.exists(os.path.join(HERE, "out", p))]
+    data = json.load(open(os.path.join(HERE, "out", a.geo, "report-data.json"))) if a.local else fetch_stats([a.geo] + peers)
     d, peer_data = data[0], data[1:]
     out_dir = os.path.join(HERE, "out", a.geo); os.makedirs(out_dir, exist_ok=True)
-    json.dump(data, open(os.path.join(out_dir, "report-data.json"), "w"), indent=1)
+    if not a.local: json.dump(data, open(os.path.join(out_dir, "report-data.json"), "w"), indent=1)
 
     o, s = d["overview"], d["signals"]; wc = o["wc_in_county"]
     lv = {x["level"]: x["n"] for x in d["levels"]}

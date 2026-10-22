@@ -1,20 +1,53 @@
 #!/usr/bin/env python3
 """Prints the body of a published report (Markdown, no title) from out/<geo>/report-data.json and the BLS peer file.
 Run geo_report.py first.  python3 scripts/jobsreport/doc_body.py --geo pittsburgh"""
-import argparse, json, os
+import argparse, json, os, re
 H = os.path.dirname(os.path.abspath(__file__))
 LV = [("ENTRY", "Entry"), ("MID_IC", "Mid-level"), ("SENIOR_IC", "Senior individual contributor"), ("MANAGER", "Manager"), ("DIRECTOR", "Director"), ("VP_PLUS", "VP and above")]
 pct = lambda a, b: f"{100 * a / b:.0f}%" if b else "n/a"
 money = lambda x: f"${x:,.0f}" if x else "not stated"
 def table(head, rows): return "\n".join(["| " + " | ".join(head) + " |", "|" + "---|" * len(head)] + ["| " + " | ".join(str(c) for c in r) + " |" for r in rows])
-ap = argparse.ArgumentParser(); ap.add_argument("--geo", required=True); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument("--geo", required=True); ap.add_argument("--strict", action="store_true", help="below the sample minimum, publish only the labor-market section and employer list"); a = ap.parse_args()
 geos = json.load(open(f"{H}/geos.json")); data = json.load(open(f"{H}/out/{a.geo}/report-data.json")); bls = json.load(open(f"{H}/out/peer-bls-{a.geo}.json"))
 d, peers = data[0], data[1:]; o, s = d["overview"], d["signals"]; wc = o["wc_in_county"]; lv = {x["level"]: x["n"] for x in d["levels"]}
 fn = d["functions"]; emp = [e for e in d["employers"] if e["wc"]]; top = max(d["employers"], key=lambda e: e["n"])
 hc = next((f for f in fn if f["function"] == "Healthcare practitioners"), {"n": 0}); ent = lv.get("ENTRY", 0)
 ai = {bool(x["ai"]): x for x in d["aiVs"]}; me = next(r for r in bls["rows"] if r["geo"] == a.geo)
 sr = sum(lv.get(k, 0) for k in ("SENIOR_IC", "MANAGER", "DIRECTOR", "VP_PLUS")); n_emp_entry = sum(1 for e in d["employers"] if e["wc_entry"])
-print(f"""## Summary
+MIN_EMPLOYERS, MAX_TOP_SHARE = 15, 0.40
+top_share = (top["n"] / o["postings"]) if o["postings"] else 0
+limited = o["employers"] < MIN_EMPLOYERS or top_share > MAX_TOP_SHARE
+_src = []
+for _f in (f"{H}/sources/{a.geo}.json", f"{H}/sources/{a.geo}.sweep.json"):
+    if os.path.exists(_f): _src += [x.get("employer", "") for x in json.load(open(_f))]
+read_names = [re.sub(r"[^a-z]", "", n.lower()) for n in [e["employer"] for e in d["employers"]] + _src if n]
+cand_path = f"{H}/candidates/{a.geo}.txt"
+unread = []
+if os.path.exists(cand_path):
+    for n in [l.strip() for l in open(cand_path) if l.strip() and not l.startswith("#")]:
+        k = re.sub(r"[^a-z]", "", n.lower())
+        if k and not any(k in r or r in k for r in read_names): unread.append(n)
+notice = ""
+if limited:
+    why = []
+    if o["employers"] < MIN_EMPLOYERS: why.append(f"only {o['employers']} employers were readable (minimum {MIN_EMPLOYERS})")
+    if top_share > MAX_TOP_SHARE: why.append(f"{top['employer']} is {top_share:.0%} of all postings (maximum {MAX_TOP_SHARE:.0%})")
+    notice = "> **Limited sample.** " + " and ".join(why).capitalize() + ". Treat the shares and pay figures below as describing these employers only, not the local market.\n\n"
+if limited and a.strict:
+    print(notice + "## Labor market\n\n" + f"Unemployment was {me['unemployment_rate']}% in {bls['month']}, against {me['unemployment_rate_year_ago']}% a year earlier; nonfarm employment changed {me['nonfarm_12m_pct']}% over twelve months.\n\n## Employers read\n\n" + table(["Employer", "Postings"], [(e["employer"], e["n"]) for e in d["employers"]]))
+    raise SystemExit
+entry_block = ""
+_p = f"{H}/out/{a.geo}/entry-sample.json"
+if os.path.exists(_p):
+    _e = json.load(open(_p)); seen = set(); rows = []
+    for x in _e:
+        k = (x["employer"], x["title"])
+        if k in seen: continue
+        seen.add(k); rows.append(x)
+    import random; random.Random(7).shuffle(rows)
+    if rows:
+        entry_block = "## Entry-level openings, a sample\n\n" + table(["Employer", "Role", "Location"], [(x["employer"], (f"[{x['title']}]({x['url']})" if x.get("url") else x["title"]), x.get("location") or "") for x in rows[:15]])
+print(notice + f"""## Summary
 
 The sample is {wc:,} white-collar postings from {o['employers']} employers' own career sites. {pct(hc['n'], wc)} are health care, {pct(ent, wc)} are entry-level, {pct(sr, wc)} are senior individual contributor or above, and median stated pay is {money(s['median_annual_pay'])} a year.
 
@@ -28,6 +61,8 @@ The sample is {wc:,} white-collar postings from {o['employers']} employers' own 
 {o['in_county']:,} postings in the area were read from {o['employers']} employers, and {wc:,} of them are white-collar ({pct(wc, o['in_county'])}). Another {o['unclassified']:,} could not be classified from the title and are left out. The frame is every white-collar job at every level, entry-level included (Census major groups 1 and 2).
 
 Employers on career systems we cannot read are missing, so read these figures as describing the employers listed, not every opening in the area.
+
+{('Large employers we looked for and could not read: ' + ', '.join(unread[:14]) + '.') if unread else ''}
 
 ## Levels and functions
 
@@ -48,6 +83,8 @@ Pay is stated in {s['pay_stated_pct']}% of white-collar postings, with a median 
 **Posting age.** {s['older_than_90d_pct']}% of postings with a posted date went up more than 90 days ago. Reposts and ghost-job risk need a second crawl.
 
 {table(['Soft skill named','Share of white-collar postings'], [(x['skill'].capitalize(), pct(x['n'], wc)) for x in d['eq']])}
+
+{entry_block}
 
 ## Peer metros
 

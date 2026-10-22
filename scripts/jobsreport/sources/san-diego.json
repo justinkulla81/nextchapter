@@ -1,0 +1,260 @@
+[
+  {
+    "name": "wd-sharp-healthcare",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Sharp HealthCare",
+    "tenant": "sharp",
+    "wd": "wd1",
+    "site": "External"
+  },
+  {
+    "name": "wd-scripps-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Scripps Health",
+    "tenant": "scripps",
+    "wd": "wd115",
+    "site": "Scripps_Careers"
+  },
+  {
+    "name": "wd-point-loma-nazarene-university",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Point Loma Nazarene University",
+    "tenant": "pointloma",
+    "wd": "wd1",
+    "site": "PLNUCareers"
+  },
+  {
+    "name": "wd-grossmont-cuyamaca-community-college-district",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Grossmont-Cuyamaca Community College District",
+    "tenant": "gcccd",
+    "wd": "wd1",
+    "site": "gcccdcareers"
+  },
+  {
+    "name": "wd-palomar-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Palomar Health",
+    "tenant": "palomarhealth",
+    "wd": "wd5",
+    "site": "PH"
+  },
+  {
+    "name": "wd-illumina",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Illumina",
+    "tenant": "illumina",
+    "wd": "wd1",
+    "site": "illumina-careers"
+  },
+  {
+    "name": "wd-cubic",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cubic",
+    "tenant": "cubic",
+    "wd": "wd1",
+    "site": "cubic_USA_careers"
+  },
+  {
+    "name": "wd-thermo-fisher-scientific",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Thermo Fisher Scientific",
+    "tenant": "thermofisher",
+    "wd": "wd5",
+    "site": "ThermofisherCareers"
+  },
+  {
+    "name": "wd-dexcom",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Dexcom",
+    "tenant": "dexcom",
+    "wd": "wd1",
+    "site": "Dexcom"
+  },
+  {
+    "name": "gr-natera",
+    "adapter": "greenhouse",
+    "type": "direct_ats",
+    "employer": "Natera",
+    "token": "natera"
+  },
+  {
+    "name": "wd-cox-communications",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Cox Communications",
+    "tenant": "cox",
+    "wd": "wd1",
+    "site": "Cox_External_Career_Site_1"
+  },
+  {
+    "name": "wd-leidos",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Leidos",
+    "tenant": "leidos",
+    "wd": "wd5",
+    "site": "External"
+  },
+  {
+    "name": "wd-edwards-lifesciences",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Edwards Lifesciences",
+    "tenant": "edwards",
+    "wd": "wd5",
+    "site": "EdwardsCareers"
+  },
+  {
+    "name": "wd-medtronic",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Medtronic",
+    "tenant": "medtronic",
+    "wd": "wd1",
+    "site": "MedtronicCareers"
+  },
+  {
+    "name": "wd-amgen",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Amgen",
+    "tenant": "amgen",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-abbott",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Abbott",
+    "tenant": "abbott",
+    "wd": "wd5",
+    "site": "abbottcareers"
+  },
+  {
+    "name": "le-shield-ai",
+    "adapter": "lever",
+    "type": "direct_ats",
+    "employer": "Shield AI",
+    "token": "shieldai"
+  },
+  {
+    "name": "as-applied-medical",
+    "adapter": "ashby",
+    "type": "direct_ats",
+    "employer": "Applied Medical",
+    "token": "applied"
+  },
+  {
+    "name": "wd-neurocrine-biosciences",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Neurocrine Biosciences",
+    "tenant": "neurocrine",
+    "wd": "wd5",
+    "site": "Neurocrinecareers"
+  },
+  {
+    "name": "wd-regeneron",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Regeneron",
+    "tenant": "regeneron",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "wd-humana",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Humana",
+    "tenant": "humana",
+    "wd": "wd5",
+    "site": "CenterWell_External_Career_Site"
+  },
+  {
+    "name": "wd-pwc",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "PwC",
+    "tenant": "pwc",
+    "wd": "wd3",
+    "site": "Global_Experienced_Careers"
+  },
+  {
+    "name": "wd-accenture",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Accenture",
+    "tenant": "accenture",
+    "wd": "wd103",
+    "site": "AccentureCareers"
+  },
+  {
+    "name": "wd-booz-allen-hamilton",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Booz Allen Hamilton",
+    "tenant": "bah",
+    "wd": "wd1",
+    "site": "BAH_Jobs"
+  },
+  {
+    "name": "wd-parsons",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Parsons",
+    "tenant": "parsons",
+    "wd": "wd5",
+    "site": "Search"
+  },
+  {
+    "name": "wd-clark-construction",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Clark Construction",
+    "tenant": "clark",
+    "wd": "wd503",
+    "site": "ClarkExternal"
+  },
+  {
+    "name": "neogov-county-of-san-diego",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "County of San Diego",
+    "agency": "sdcounty"
+  },
+  {
+    "name": "neogov-city-of-san-diego",
+    "adapter": "neogov",
+    "type": "public_sector",
+    "employer": "City of San Diego",
+    "agency": "sandiego"
+  },
+  {
+    "name": "wd-petco",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Petco",
+    "tenant": "petco",
+    "wd": "wd504",
+    "site": "External"
+  },
+  {
+    "name": "jibe-viasat",
+    "adapter": "jibe",
+    "type": "direct_ats",
+    "employer": "Viasat",
+    "host": "careers.viasat.com"
+  }
+]

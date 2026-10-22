@@ -37,7 +37,7 @@ def delineation():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", help='principal city and state, e.g. "Nashville, TN"'); ap.add_argument("--cbsa"); ap.add_argument("--key"); ap.add_argument("--label")
-    ap.add_argument("--peers", default=""); ap.add_argument("--min-pop", type=int, default=0)
+    ap.add_argument("--peers", default=""); ap.add_argument("--min-pop", type=int, default=5000, help="ignore places below this population (avoids neighborhood names that collide with other cities)")
     a = ap.parse_args()
     rows = delineation()
     if a.cbsa: cbsa = a.cbsa

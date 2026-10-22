@@ -1,0 +1,116 @@
+Sharp HealthCare
+Scripps Health
+UC San Diego Health
+University of California San Diego
+San Diego State University
+University of San Diego
+Point Loma Nazarene University
+Grossmont-Cuyamaca Community College District
+San Diego Community College District
+Palomar Health
+Rady Children's Health
+Kaiser Permanente
+Qualcomm
+General Atomics
+Illumina
+Cubic
+Viasat
+Intuit
+Petco
+Jack in the Box
+Mitchell International
+Sempra
+San Diego Gas & Electric
+Biogen
+Genentech
+Thermo Fisher Scientific
+Dexcom
+Natera
+Grail
+Sony
+Northrop Grumman
+Solar Turbines
+Scripps Research
+Salk Institute
+Cox Communications
+SAIC
+Leidos
+BAE Systems
+L3Harris
+Lockheed Martin
+Raytheon
+General Dynamics NASSCO
+Teradata
+Callaway Golf
+Taylor Made
+Edwards Lifesciences
+Medtronic
+Amgen
+Takeda
+Abbott
+Johnson & Johnson
+Apple
+Google
+Microsoft
+Amazon
+Oracle
+ServiceNow
+Salesforce
+Pure Storage
+Rubrik
+Cymer ASML
+Maxar
+Kratos Defense
+Anduril
+Shield AI
+Applied Medical
+Neurocrine Biosciences
+Vertex
+Regeneron
+Bio-Rad
+Seismic
+Gopro
+Wells Fargo
+Bank of America
+JPMorgan Chase
+Union Bank
+Cal Coast
+San Diego County Credit Union
+Navy Federal Credit Union
+American Specialty Health
+Prometheus
+Zovio
+National University
+Alliant International University
+Cal State San Marcos
+MiraCosta College
+Southwestern College
+Grossmont Healthcare
+Tri-City Medical Center
+Alvarado Hospital
+UnitedHealthcare
+Cigna
+Humana
+Aetna
+Blue Shield of California
+Anthem
+Mercy
+Deloitte
+PwC
+KPMG
+EY
+Accenture
+Booz Allen Hamilton
+Parsons
+Jacobs
+AECOM
+Kimley-Horn
+Black & Veatch
+HDR
+Stantec
+Hunt
+Turner Construction
+Clark Construction
+Sundt
+Brandman University
+Westmont

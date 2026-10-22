@@ -21,7 +21,7 @@ li{margin:4px 0}strong{font-weight:600}.foot{margin-top:48px;color:var(--muted);
 @media print{body{background:#fff;color:#000}h2{break-after:avoid}table{display:table}tr{break-inside:avoid}}
 """
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--geo", required=True); ap.add_argument("--brand", default="NextChapter Research")
+    ap = argparse.ArgumentParser(); ap.add_argument("--geo", required=True); ap.add_argument("--brand", default="NextChapter Research"); ap.add_argument("--for", dest="for_", default="", help="prospect or audience name for the byline")
     a = ap.parse_args()
     import markdown
     geos = json.load(open(f"{HERE}/geos.json")); label = geos[a.geo]["label"]
@@ -32,7 +32,7 @@ def main():
     page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{H.escape(label)} white-collar jobs report</title><style>{CSS}</style></head><body><main>
 <h1>{H.escape(label)}: white-collar jobs and employment</h1>
-<p class="sub">Prepared by {H.escape(a.brand)} · career-site data as of {when}</p>
+<p class="sub">{("Prepared for " + H.escape(a.for_) + " by ") if a.for_ else "Prepared by "}{H.escape(a.brand)} · career-site data as of {when} · draft</p>
 {inner}
 <p class="foot">Sources: employers' own career sites; U.S. Bureau of Labor Statistics (LAUS, CES); O*NET. Figures describe the employers listed, not every opening in the area.</p>
 </main></body></html>"""
