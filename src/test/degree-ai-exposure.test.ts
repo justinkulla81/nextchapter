@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { degreeExposure } from '@/lib/crm/degree-ai-exposure'
+import { degreeExposure, roleMixExposure } from '@/lib/crm/degree-ai-exposure'
 
 describe('degreeExposure', () => {
   it('maps known fields, leaves unknown ones unmapped, and weights by share', () => {
@@ -15,5 +15,17 @@ describe('degreeExposure', () => {
   })
   it('handles no data', () => {
     expect(degreeExposure(null).weightedExposure).toBeNull()
+  })
+})
+
+describe('roleMixExposure', () => {
+  it('weights by roles and ignores unmatched functions', () => {
+    const r = roleMixExposure([{ fn: 'it', roles: 50 }, { fn: 'sales', roles: 30 }, { fn: 'mystery', roles: 20 }])
+    expect(r.coveredShare).toBeCloseTo(0.8)
+    expect(r.highShare).toBeCloseTo(0.5)
+    expect(r.weighted).toBeGreaterThan(50)
+  })
+  it('returns null with nothing to match', () => {
+    expect(roleMixExposure([{ fn: 'mystery', roles: 5 }]).weighted).toBeNull()
   })
 })
