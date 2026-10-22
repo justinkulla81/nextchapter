@@ -30,7 +30,7 @@ const jsonLd = organizationJsonLd({
   founder: personJsonLd(),
   knowsAbout: [
     'AI job search', 'Career transitions', 'Career exploration', 'Career pathways',
-    'Education technology', 'Retraining', 'Workforce development', 'AI displacement',
+    'Education technology', 'Retraining', 'Workforce development', 'AI and job loss',
     'Long-term unemployment', 'Age-related unemployment', 'Parental and family leave',
   ],
 })

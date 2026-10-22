@@ -77,7 +77,7 @@ export type Audience = 'rapid_response' | 'workforce_board' | 'job_centers' | 'e
 
 /**
  * What to say to each partner, from the numbers in the picture: the openings,
- * the industries hiring, where displaced workers can retrain toward. Every
+ * the industries hiring, where laid-off workers can retrain toward. Every
  * figure is from our own data and says what it counts; nothing is promised
  * beyond sharing it and supporting the people affected.
  */
@@ -99,7 +99,7 @@ export function talkingPoints(p: LocalPicture, who: Audience): string | null {
       return [lead, market, hiring, 'Offer: share this openings data in the employer meeting and support the affected workers in finding their next role.'].filter(Boolean).join(' ')
     case 'workforce_board':
       return [lead, [unemployment, recent].filter(Boolean).join('; ') + (unemployment || recent ? '.' : ''), market, hiring,
-        'Retraining: the industries above are where displaced workers can move; the board can point retraining funds toward them.'].filter(Boolean).join(' ')
+        'Retraining: the industries above are where laid-off workers can move; the board can point retraining funds toward them.'].filter(Boolean).join(' ')
     case 'job_centers':
       return [lead, market, hiring, 'Walk-in help: bring these openings and the industries hiring most to anyone who comes in from this employer.'].filter(Boolean).join(' ')
     case 'economic_development':

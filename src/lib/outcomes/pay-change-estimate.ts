@@ -10,7 +10,7 @@ export type PayDeltaConfidence = 'LOW' | 'MEDIUM' | 'HIGH'
 
 export interface PayBenchmarkRow {
   pathType: PivotPathType
-  group: string // e.g. 'long-tenured displaced workers', 'occupation switchers'
+  group: string // e.g. 'long-tenured laid-off workers', 'occupation switchers'
   lowPct: number // plausible low end of pay change, e.g. -25
   highPct: number // plausible high end, e.g. 5
   medianPct: number | null

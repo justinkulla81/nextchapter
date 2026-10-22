@@ -10381,7 +10381,7 @@ enum CrmIntroPathStatus {
 }
 
 // Where a researcher's findings sit relative to the NextChapter thesis.
-// Always set by a human: a policy analyst whose work argues displacement is
+// Always set by a human: a policy analyst whose work argues AI job losses are
 // overstated is a RISK in a pitch meeting, not an asset, and inferring that
 // automatically is a way to walk in confidently wrong.
 enum CrmResearchStance {
@@ -14371,7 +14371,7 @@ model PivotMarketStat {
 model PayChangeBenchmark {
   id           String            @id @default(cuid())
   pathType     PivotPathType
-  group        String // e.g. 'long-tenured displaced workers', 'occupation switchers'
+  group        String // e.g. 'long-tenured laid-off workers', 'occupation switchers'
   lowPct       Float
   highPct      Float
   medianPct    Float?

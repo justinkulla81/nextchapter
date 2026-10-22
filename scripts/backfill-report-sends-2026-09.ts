@@ -1,7 +1,7 @@
-// Marks who received the September 2026 Displacement Report (since renamed the White Collar Employment Report) by hand.
+// Marks who received the September 2026 White Collar Employment Report by hand.
 //
 // Scans Gmail activity the CRM sync logged since 2026-10-01 — emails you
-// sent with a displacement-report-*.pdf attachment or a
+// sent with a report PDF attachment (earlier file-name prefix) or a
 // launchyournextchapter.com/reports/... link — and records each person as
 // MANUAL for edition 2026-09. Taylor Stockton, Grant Trahant, Allen Geller
 // and Jason Wendle are always included if they exist (matched on email,

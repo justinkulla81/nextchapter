@@ -24,7 +24,7 @@ export const HERO_STATS: HeroStat[] = [
     value: '66.1%',
     label: 'of long-tenured workers who lost a job were working again by January 2026',
     tone: 'bright-spot',
-    source: 'BLS Displaced Worker Survey, Aug 2026',
+    source: 'BLS survey of workers who lost jobs, Aug 2026',
     sourceUrl: 'https://www.bls.gov/news.release/archives/disp_08272026.htm',
     evidence: 'P',
   },
