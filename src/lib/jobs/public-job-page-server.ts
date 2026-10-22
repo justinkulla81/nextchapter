@@ -99,3 +99,25 @@ export async function publicJobsInShard(shard: number): Promise<{ id: string; la
     ORDER BY id
     LIMIT 50000`
 }
+
+/** Every public job in shard `shard` (0–15) with its dates — the syndication crons' (src/lib/syndication) view of the allowlist. */
+export async function publicJobIdsInShard(shard: number): Promise<{ id: string; createdAt: Date; postedAt: Date | null }[]> {
+  if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
+  return prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null }[]>`
+    SELECT id, "createdAt", "postedAt" FROM "ExclusiveJobPosting"
+    WHERE ${PUBLIC_JOB_STATIC_SQL}
+      AND (hashtext(id) & 15) = ${shard}::int
+      AND ${PUBLIC_JOB_LIVE_SQL}
+    ORDER BY id`
+}
+
+/**
+ * Full rows for ids from publicJobIdsInShard, re-checked against the allowlist (a job can
+ * close between the two reads). The confirmed-ghost rule was already applied in SQL.
+ */
+export async function publicJobRowsByIds(ids: string[]): Promise<PublicJobRow[]> {
+  if (ids.length === 0) return []
+  const rows = await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids } }, select: PUBLIC_JOB_SELECT })
+  const now = Date.now()
+  return rows.filter((r) => isPublicJob(r, now))
+}
