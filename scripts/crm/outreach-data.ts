@@ -10,6 +10,7 @@
  * functions). Only addresses that are published or verified are used, never a guess. A row is `ready` only when every figure its
  * template quotes is present; otherwise `missing` names what to fill in.
  */
+import { degreeExposure } from '../../src/lib/crm/degree-ai-exposure'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
 import { isHrLeaderTitle } from '../../src/lib/crm/org-domains'
@@ -48,7 +49,7 @@ const monthYear = (ym: string | null | undefined) => { const m = /^(\d{4})-(\d{2
 const poss = (n: string) => (/s$/i.test(n) ? `${n}'` : `${n}'s`)
 const list = (a: string[]) => (a.length <= 1 ? a.join('') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`)
 
-interface Area { id: string; name: string; state: string; unemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
+interface Area { id: string; name: string; state: string; unemp: number | null; unempPrior: number | null; wcUnemp: number | null; asOf: string | null; wc: number | null; j90: number; j12: number; majors: string[]; college: string | null }
 interface Notice { industry?: string | null; key?: string; employer: string; employees: number; county: string | null; address: string | null; state: string; effective: Date | null; noticeDate: Date; board: string | null }
 
 // Employer emails go only to layoffs of 50 or more in professional-heavy work. An explicit allowlist, never "everything except": a filing whose industry
@@ -73,6 +74,31 @@ const FOOT_STYLE = 'display:block;margin-top:14px;font-size:11px;line-height:1.5
 const fill = (s: string, row: Row) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => row[k] ?? '').replace(/ +([.,;])/g, '$1').replace(/[ \t]+\n/g, '\n').replace(/ {2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
 const tokens = (s: string) => [...s.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1])
 
+/** Roughly two significant figures, so an estimate does not read as a count: 30,625 becomes 31,000. */
+const roughly = (n: number) => { const m = 10 ** Math.max(0, String(Math.round(n)).length - 2); return (Math.round(n / m) * m).toLocaleString('en-US') }
+
+/**
+ * The job-market paragraph for a college email: the county's unemployment (and the white-collar estimate), how many alumni the college
+ * has, and how exposed its biggest fields of study are to AI. Each sentence is dropped when its data is missing; nothing is invented.
+ */
+function collegeMarketContext(col: { name: string; alumniEstimate: number | null; alumniReported: number | null; topMajors: unknown }, area: Area): string {
+  const out: string[] = []
+  if (area.unemp != null) {
+    const trend = area.unempPrior != null && Math.abs(area.unemp - area.unempPrior) >= 0.2 ? `, ${area.unemp > area.unempPrior ? 'up' : 'down'} from ${area.unempPrior.toFixed(1)}% a year ago` : ''
+    const wc = area.wcUnemp != null ? `; our estimate for white-collar workers there is ${area.wcUnemp.toFixed(1)}%` : ''
+    out.push(`${area.name}'s unemployment rate is ${area.unemp.toFixed(1)}%${trend}${wc}.`)
+  }
+  const alumni = col.alumniReported ?? col.alumniEstimate
+  if (alumni && alumni >= 1000) out.push(`With an estimated ${roughly(alumni)} alumni, a share of the people now looking for work are likely to be yours.`)
+  const ex = degreeExposure(col.topMajors as { field: string; share: number }[] | null)
+  const high = ex.majors.filter((m) => m.band === 'HIGH')
+  if (ex.coveredShare >= 0.5 && ex.highShare >= 0.15) {
+    const names = high.slice(0, 2).map((m) => (m.field === 'Computer & information sciences' ? 'computer science' : m.field.replace(/ & management$/, '').toLowerCase()))
+    out.push(`About ${Math.round(ex.highShare * 100)}% of ${clean(col.name)}'s degrees, including ${names.join(' and ')}, lead into occupations where AI could already do much of the work.`)
+  }
+  return out.join(' ')
+}
+
 async function main() {
   const [out, examplesOut] = process.argv.slice(2)
   // OPENINGS_FILE: {"<template>|<email>": "<opening line>"} written by opening-lines.ts; the line goes right after the greeting.
@@ -82,9 +108,9 @@ async function main() {
   // Employer emails look back further than the 90-day local statistics the other emails quote.
   const employerSince = new Date(Date.now() - Number(process.env.EMPLOYER_DAYS ?? 180) * 86_400_000)
 
-  const areaRows = await prisma.geoArea.findMany({ where: { level: 'COUNTY' }, select: { id: true, name: true, state: true, unemploymentRate: true, unemploymentAsOf: true, whiteCollarShare: true, layoffs90d: true, layoffs12mo: true, majorEmployers: true, higherEd: true } })
+  const areaRows = await prisma.geoArea.findMany({ where: { level: 'COUNTY' }, select: { id: true, name: true, state: true, unemploymentRate: true, unemploymentRatePrior: true, wcUnemploymentEst: true, unemploymentAsOf: true, whiteCollarShare: true, layoffs90d: true, layoffs12mo: true, majorEmployers: true, higherEd: true } })
   const areas: Area[] = areaRows.map((a) => ({
-    id: a.id, name: a.name, state: a.state, unemp: a.unemploymentRate, asOf: a.unemploymentAsOf, wc: a.whiteCollarShare, j90: a.layoffs90d, j12: a.layoffs12mo,
+    id: a.id, name: a.name, state: a.state, unemp: a.unemploymentRate, unempPrior: a.unemploymentRatePrior, wcUnemp: a.wcUnemploymentEst, asOf: a.unemploymentAsOf, wc: a.whiteCollarShare, j90: a.layoffs90d, j12: a.layoffs12mo,
     majors: ((a.majorEmployers as { workers: number; employer: string }[] | null) ?? []).slice(0, 4).map((m) => clean(m.employer)).filter((n) => n.length > 2 && n.length < 40).slice(0, 2),
     college: ((a.higherEd as { name: string; size?: string; level?: string }[] | null) ?? []).filter((c) => c.name && /4-year|2-year/i.test(c.level ?? '4-year'))[0]?.name ?? null,
   }))
@@ -283,7 +309,7 @@ async function main() {
   const triggerAreas = triggerCounties.map(([k, g]) => ({ area: areaByName.get(k), g })).filter((x): x is { area: Area; g: { employers: Set<string>; jobs: number } } => !!x.area)
   if (triggerAreas.length) {
     const byFips = new Map(triggerAreas.map((x) => [x.area.id, x]))
-    const colleges = await prisma.collegeProfile.findMany({ where: { countyFips: { in: [...byFips.keys()] } }, select: { unitid: true, name: true, level: true, countyFips: true, state: true, careerContactName: true, careerContactEmail: true, alumniContactName: true, alumniContactEmail: true } })
+    const colleges = await prisma.collegeProfile.findMany({ where: { countyFips: { in: [...byFips.keys()] } }, select: { unitid: true, name: true, level: true, countyFips: true, state: true, alumniEstimate: true, alumniReported: true, topMajors: true, careerContactName: true, careerContactEmail: true, alumniContactName: true, alumniContactEmail: true } })
     const contacts = await prisma.collegeContact.findMany({ where: { collegeId: { in: colleges.map((c) => c.unitid) }, email: { not: null } }, select: { collegeId: true, role: true, name: true, title: true, email: true } })
     const ROLE_ORDER = ['execEd', 'career', 'alumni', 'development']
     for (const col of colleges) {
@@ -293,7 +319,7 @@ async function main() {
       if (!pick?.email) continue
       add('college', { first: pick.name ? first(pick.name, null) : 'Hello', email: pick.email, org: col.name, title: pick.title ?? 'Career services' }, {
         area: t.area, state: col.state,
-        extra: { college: clean(col.name.replace(/\s*[-–(]\s*Main Campus\)?/i, '')), college_level: col.level ?? '', employers_in_county: String(t.g.employers.size), college_county_jobs: n0(t.g.jobs) },
+        extra: { college: clean(col.name.replace(/\s*[-–(]\s*Main Campus\)?/i, '')), college_level: col.level ?? '', employers_in_county: String(t.g.employers.size), college_county_jobs: n0(t.g.jobs), market_context: collegeMarketContext(col, t.area) },
       })
     }
   }

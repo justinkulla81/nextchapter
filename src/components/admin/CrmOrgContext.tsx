@@ -15,7 +15,39 @@ const BAND_STYLE = { HIGH: 'bg-red-100 text-red-900', MEDIUM: 'bg-amber-100 text
 const BAND_LABEL = { HIGH: 'High exposure', MEDIUM: 'Medium', LOW: 'Low' } as const
 const pct = (n: number, d = 0) => `${(n * 100).toFixed(d)}%`
 
-type Board = { id: string; name: string; website: string | null; statewide?: boolean; directorName: string | null; directorTitle: string | null }
+
+interface LocalGroup { key: string; label: string; name: string; website: string | null; contact: string | null }
+interface LocalNetwork { counts: { boards: number; centers: number; edo: number; chambers: number; other: number }; top: LocalGroup[] }
+
+/** Every workforce, job-center, economic-development and chamber group we hold for one county, counted by kind with the best-fit few listed. */
+async function loadLocalNetwork(fips: string, countyKey: string | null, state: string): Promise<LocalNetwork> {
+  const key = (countyKey ?? '').replace(/\s+/g, '')
+  const [boards, centers, leads, partners] = await Promise.all([
+    prisma.$queryRaw<{ id: string; name: string; website: string | null; directorName: string | null; directorTitle: string | null; fitScore: number | null }[]>`
+      select id, name, website, "directorName", "directorTitle", "fitScore" from "WorkforceBoard"
+       where state = ${state} and statewide = false and (${key} = any(counties) or ${key} = any("placeCounties"))`,
+    prisma.$queryRaw<{ id: string; name: string; centerType: string | null; detailsUrl: string | null; businessEmail: string | null; fitScore: number | null }[]>`
+      select id, name, "centerType", "detailsUrl", "businessEmail", "fitScore" from "AmericanJobCenter" where "countyFips" = ${fips}`,
+    prisma.$queryRaw<{ id: string; name: string; kind: string; website: string | null; contactName: string | null; contactTitle: string | null; fitScore: number | null }[]>`
+      select id, name, kind, website, "contactName", "contactTitle", "fitScore" from "GeoOrgLead" where "geoAreaId" = ${fips} and "dismissedAt" is null`,
+    prisma.$queryRaw<{ id: string; name: string; kind: string; website: string | null; contactName: string | null; contactTitle: string | null; fitScore: number | null }[]>`
+      select id, name, kind, website, "contactName", "contactTitle", "fitScore" from "LocalPartnerOrg" where state = ${state} and ${key} = any(counties)`,
+  ])
+  const byFit = <T extends { fitScore: number | null }>(a: T[]) => [...a].sort((x, y) => (y.fitScore ?? -1) - (x.fitScore ?? -1))
+  const who = (n: string | null, t: string | null) => (n ? `${n}${t ? `, ${t}` : ''}` : null)
+  const edoLeads = leads.filter((l) => l.kind === 'ECON_DEV')
+  const chambers = leads.filter((l) => l.kind === 'CHAMBER')
+  const otherLeads = leads.filter((l) => l.kind === 'WORKFORCE')
+  const top: LocalGroup[] = [
+    ...byFit(boards).slice(0, 2).map((b) => ({ key: `b${b.id}`, label: 'Workforce board', name: b.name, website: b.website, contact: who(b.directorName, b.directorTitle) })),
+    ...byFit(centers).slice(0, 2).map((c) => ({ key: `c${c.id}`, label: 'Job center', name: c.name, website: c.detailsUrl, contact: c.businessEmail })),
+    ...byFit(partners).slice(0, 3).map((x) => ({ key: `p${x.id}`, label: x.kind === 'EDD' ? 'EDA district' : x.kind === 'STATE_AGENCY' ? 'State agency' : 'Economic development', name: x.name, website: x.website, contact: who(x.contactName, x.contactTitle) })),
+    ...byFit(edoLeads).slice(0, 3).map((x) => ({ key: `e${x.id}`, label: 'Economic development', name: x.name, website: x.website, contact: who(x.contactName, x.contactTitle) })),
+    ...byFit(chambers).slice(0, 2).map((x) => ({ key: `h${x.id}`, label: 'Chamber', name: x.name, website: x.website, contact: who(x.contactName, x.contactTitle) })),
+    ...byFit(otherLeads).slice(0, 2).map((x) => ({ key: `w${x.id}`, label: 'Workforce', name: x.name, website: x.website, contact: who(x.contactName, x.contactTitle) })),
+  ]
+  return { counts: { boards: boards.length, centers: centers.length, edo: edoLeads.length + partners.length, chambers: chambers.length, other: otherLeads.length }, top }
+}
 
 function F({ label, value, note }: { label: string; value: React.ReactNode; note?: string }) {
   return (
@@ -39,14 +71,16 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
     id: string; sector: number | null; city: string | null; state: string; countyFips: string | null; countyKey: string | null
     enrollment: number | null; alumniEstimate: number | null; alumniReported: number | null; alumniEstimateMethod: string | null
     topMajors: { field: string; share: number }[] | null; earnings10: number | null; hasRetraining: boolean | null
+    presidentName: string | null; presidentTitle: string | null; phone: string | null
   }[]>`
     select l.id, l.sector, l.city, l.state, l."countyFips", l."countyKey", p.enrollment, p."alumniEstimate", p."alumniReported", p."alumniEstimateMethod",
-      p."topMajors", p.earnings10, p."hasRetraining"
+      p."topMajors", p.earnings10, p."hasRetraining", p."presidentName", p."presidentTitle", p.phone
     from "LocalCollege" l left join "CollegeProfile" p on p.unitid = l.id where l."crmOrgId" = ${orgId} limit 1`
   const area = college?.countyFips ? await prisma.geoArea.findUnique({ where: { id: college.countyFips } }) : null
-  const boards = ((Array.isArray(area?.wioaBoards) ? area!.wioaBoards : []) as unknown as Board[])
-  const localBoards = boards.filter((b) => !b.statewide)
-  const stateBoards = boards.filter((b) => b.statewide)
+  const local = college?.countyFips ? await loadLocalNetwork(college.countyFips, college.countyKey, college.state) : null
+  const contacts = college
+    ? await prisma.collegeContact.findMany({ where: { collegeId: college.id }, select: { id: true, role: true, name: true, title: true, email: true, guessedEmail: true, phone: true, crmPersonId: true }, orderBy: [{ email: { sort: 'asc', nulls: 'last' } }] })
+    : []
   const exposure = college ? degreeExposure(college.topMajors) : null
 
   const types = org.orgTypes.map((t) => TYPE_LABEL[t] ?? t)
@@ -73,26 +107,55 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
             <F label="Layoffs filed" value={`${area.layoffs90d.toLocaleString()} in 90 days`} note={`${area.layoffs12mo.toLocaleString()} jobs, ${area.layoffEvents12mo} notices in 12 months`} />
           </dl>
           <div className="mt-3">
-            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Workforce development in their area</h4>
-            {localBoards.length + stateBoards.length === 0 ? (
-              <p className="mt-1 text-sm text-muted-foreground">No board on file for this county.</p>
-            ) : (
-              <ul className="mt-1 space-y-1 text-sm">
-                {[...localBoards, ...stateBoards].map((b) => (
-                  <li key={b.id}>
-                    {b.website ? <a href={b.website} target="_blank" rel="noreferrer" className="font-medium underline">{b.name}</a> : <span className="font-medium">{b.name}</span>}
-                    {b.statewide && <span className="text-muted-foreground"> (state board)</span>}
-                    {b.directorName && <span className="text-muted-foreground"> · {b.directorName}{b.directorTitle ? `, ${b.directorTitle}` : ''}</span>}
+            <h4 className="text-xs font-semibold uppercase text-muted-foreground">Workforce and economic development in their area</h4>
+            {local && (
+              <p className="mt-1 text-sm">
+                {local.counts.boards} workforce {local.counts.boards === 1 ? 'board' : 'boards'} · {local.counts.centers} American Job {local.counts.centers === 1 ? 'Center' : 'Centers'} · {local.counts.edo} economic development {local.counts.edo === 1 ? 'group' : 'groups'} · {local.counts.chambers} {local.counts.chambers === 1 ? 'chamber' : 'chambers'} · {local.counts.other} other workforce {local.counts.other === 1 ? 'group' : 'groups'}
+              </p>
+            )}
+            {local && local.top.length > 0 ? (
+              <ul className="mt-2 space-y-1 text-sm">
+                {local.top.map((g) => (
+                  <li key={g.key}>
+                    <span className="text-xs uppercase text-muted-foreground">{g.label}</span>{' '}
+                    {g.website ? <a href={g.website} target="_blank" rel="noreferrer" className="font-medium underline">{g.name}</a> : <span className="font-medium">{g.name}</span>}
+                    {g.contact && <span className="text-muted-foreground"> · {g.contact}</span>}
                   </li>
                 ))}
               </ul>
-            )}
+            ) : <p className="mt-1 text-sm text-muted-foreground">None on file for this county.</p>}
+            <p className="mt-1 text-xs text-muted-foreground">Highest fit first. The full list is on the geography page for {area.name}.</p>
           </div>
         </div>
       ) : college ? (
         <p className="mt-4 text-sm text-muted-foreground">No county labor-market data matched this college yet.</p>
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">No location data is tied to this organization yet, so local unemployment and workforce boards are not shown.</p>
+      )}
+
+      {college && (
+        <div className="mt-4">
+          <h3 className="text-xs font-semibold uppercase text-muted-foreground">Who to talk to at {org.name}</h3>
+          <ul className="mt-2 divide-y divide-border rounded-md border border-border text-sm">
+            <li className="flex flex-wrap items-baseline justify-between gap-2 p-2">
+              <span><span className="text-xs uppercase text-muted-foreground">President</span> <span className="font-medium">{college.presidentName ?? 'Not on file'}</span>{college.presidentTitle && <span className="text-muted-foreground">, {college.presidentTitle}</span>}</span>
+              <span className="text-xs text-muted-foreground">{college.phone ?? 'No email on file'}</span>
+            </li>
+            {(['career', 'alumni', 'development', 'execEd'] as const).map((role) => {
+              const mine = contacts.filter((c) => c.role === role).slice(0, 2)
+              const label = { career: 'Career services', alumni: 'Alumni relations', development: 'Development', execEd: 'Executive education' }[role]
+              if (!mine.length) return (
+                <li key={role} className="flex flex-wrap items-baseline justify-between gap-2 p-2"><span className="text-xs uppercase text-muted-foreground">{label}</span><span className="text-xs text-muted-foreground">Not found yet</span></li>
+              )
+              return mine.map((c) => (
+                <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-2 p-2">
+                  <span><span className="text-xs uppercase text-muted-foreground">{label}</span> <span className="font-medium">{c.name ?? 'Office'}</span>{c.title && <span className="text-muted-foreground">, {c.title}</span>}</span>
+                  <span className="text-xs">{c.email ?? (c.guessedEmail ? <span className="text-muted-foreground" title="Guessed from the college's email format. Not confirmed.">{c.guessedEmail} (guess)</span> : <span className="text-muted-foreground">No email</span>)}</span>
+                </li>
+              ))
+            })}
+          </ul>
+        </div>
       )}
 
       {exposure && exposure.majors.length > 0 && (
