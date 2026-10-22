@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { upsertProgramRows } from './upsert'
 import { CATEGORY_ORDER, type BenefitCategory, type BenefitProgramRow } from './types'
 
 /**
@@ -10,22 +11,7 @@ import { CATEGORY_ORDER, type BenefitCategory, type BenefitProgramRow } from './
 
 const COLUMNS = `"id","category","name","provider","scope","state","locality","amount","eligibility","status","statusNote","url","segments","verified","checkedAt","source"`
 
-export async function upsertPrograms(rows: BenefitProgramRow[]): Promise<number> {
-  let n = 0
-  for (const r of rows) {
-    await prisma.$executeRaw`
-      INSERT INTO "BenefitProgram" ("id","category","name","provider","scope","state","locality","amount","eligibility","status","statusNote","url","segments","verified","checkedAt","source")
-      VALUES (${r.id}, ${r.category}, ${r.name}, ${r.provider}, ${r.scope}, ${r.state}, ${r.locality}, ${r.amount}, ${r.eligibility}, ${r.status}, ${r.statusNote},
-              ${r.url}, ${r.segments}::text[], ${r.verified}, ${r.checkedAt}, ${r.source})
-      ON CONFLICT ("id") DO UPDATE SET
-        "name" = EXCLUDED."name", "provider" = EXCLUDED."provider", "scope" = EXCLUDED."scope", "state" = EXCLUDED."state", "locality" = EXCLUDED."locality",
-        "amount" = EXCLUDED."amount", "eligibility" = EXCLUDED."eligibility", "status" = EXCLUDED."status", "statusNote" = EXCLUDED."statusNote",
-        "url" = EXCLUDED."url", "segments" = EXCLUDED."segments", "verified" = EXCLUDED."verified", "checkedAt" = EXCLUDED."checkedAt",
-        "source" = EXCLUDED."source", "updatedAt" = CURRENT_TIMESTAMP`
-    n++
-  }
-  return n
-}
+export const upsertPrograms = (rows: BenefitProgramRow[]) => upsertProgramRows(prisma, rows)
 
 export interface ListFilter {
   category?: BenefitCategory
