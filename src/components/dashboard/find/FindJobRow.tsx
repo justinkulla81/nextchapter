@@ -4,6 +4,7 @@ import { Avatar } from '@/components/candidate/ui'
 import type { JobListItem } from '@/lib/jobs/find-list'
 import { cn } from '@/lib/utils'
 import { PostingSignalTag } from '@/components/jobs/PostingSignalTag'
+import { ExposureTag } from '@/components/candidate/AiExposure'
 
 // One job in the list: title, company and place, ONE verdict with its ONE reason, ONE fact. Nothing else
 // (docs/candidate-redesign.md, page contract 5). Opening it is a link to the job's own address with the
@@ -35,9 +36,10 @@ export function FindJobRow({ item, selected, passed, href, onChoose }: { item: J
               </>
             )}
           </span>
-          {item.fact && !passed && (
-            <span className="block text-xs text-muted-foreground">
-              {item.signal ? <PostingSignalTag jobId={item.id} signal={item.signal} surface="find_list" /> : item.fact}
+          {(item.fact || item.exposure) && !passed && (
+            <span className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-0.5 text-xs text-muted-foreground">
+              {item.fact && (item.signal ? <PostingSignalTag jobId={item.id} signal={item.signal} surface="find_list" /> : <span>{item.fact}</span>)}
+              {item.exposure && <ExposureTag exposure={item.exposure} />}
             </span>
           )}
         </span>
