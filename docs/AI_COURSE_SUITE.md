@@ -358,7 +358,7 @@ On the leading job transition platform the member profile records each work samp
 
 ## 10. The ladder: curate, accept a trade-off, or build
 
-**Method.** Three researchers each opened the actual course pages (about 100 fetches in total, 2026-10-22) and scored candidates against one rubric: current, credible provider, hands-on practice, assessment or credential, role-specific tasks, teaches checking AI output, honest time, price and access. I re-opened four of the highest-stakes claims myself (ACCA certificate, DeepLearning.AI prompting course, NALA paralegal course, Microsoft Copilot for Finance module) and all four matched. Everything else is as reported by the researchers and is marked "not verified" where they could not see it. Prices and dates are as shown on 2026-10-22 and change.
+**Method.** Three researchers each opened the actual course pages (over 100 searches and page fetches in total, 2026-10-22) and scored candidates against one rubric: current, credible provider, hands-on practice, assessment or credential, role-specific tasks, teaches checking AI output, honest time, price and access. I re-opened four of the highest-stakes claims myself (ACCA certificate, DeepLearning.AI prompting course, NALA paralegal course, Microsoft Copilot for Finance module) and all four matched. Everything else is as reported by the researchers and is marked "not verified" where they could not see it. Prices and dates are as shown on 2026-10-22 and change.
 
 **Levels, defined by the learner's AI skill and not by seniority.** *Beginner*: has never used an assistant for work, or only tried it. *Intermediate*: uses an assistant most days, writes reusable prompts, wants reliable workflows and checking habits. *Advanced*: builds multi-step automations or agents, evaluates output systematically, sets policy or leads adoption.
 
@@ -393,7 +393,7 @@ Cell format: best pick, then verdict. "NV" means not verified. Full URLs are in 
 | **Building with AI, non-developers** | None usable: every option assumes an editor, command line, Git or Python. **Gap** | None. **Gap** | None. **Gap** |
 | **AI engineering (builders)** | Hugging Face Agents Course (free, quizzes, needs Python). **Trade-off** as an on-ramp | Anthropic Building with the Claude API (free, certificate, covers evals and RAG; Claude-specific). **Strong** | DeepLearning.AI Agentic AI (9h55m, 8 graded assessments, covers evaluation; graded work needs Pro). **Strong** |
 
-Cells to read as settled: Foundations beginner, HR intermediate, developer intermediate, and all three AI engineering levels. Cells that are real gaps: 21 of the 42 are gaps or leave a weakness that matters (all of non-developer building, every advanced non-engineer cell, and the leadership, legal and finance top ends).
+Cells to read as settled: Foundations beginner, HR intermediate, developer intermediate, and all three AI engineering levels. Gaps: 15 of the 42 cells (all three non-developer building cells, both office intermediate and advanced, both marketing intermediate and advanced, leadership beginner and advanced, and one each for foundations advanced, governance intermediate, finance advanced, legal advanced, sales advanced and data advanced). Another 21 are trade-offs and 6 are strong.
 
 ### 10.3 Links
 
