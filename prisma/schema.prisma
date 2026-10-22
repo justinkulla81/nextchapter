@@ -15753,6 +15753,16 @@ model OccupationWage {
   @@index([areaType, areaCode])
 }
 
+// Anthropic Economic Index "observed exposure" per 6-digit SOC (labor market impacts report, 2026-03-05): of the tasks
+// an LLM could speed up, how much already sees automated AI use at work. 0 = no observed use yet, not "safe".
+// CC-BY: always credit "Anthropic Economic Index". SQL: prisma/manual/2026-10-22-occupation-ai-exposure.sql.
+model OccupationAiExposure {
+  soc6             String @id
+  title            String
+  observedExposure Float
+  release          String
+}
+
 // What a job does day to day: O*NET task statements, Core tasks first.
 model OccupationTask {
   id         String     @id @default(cuid())
