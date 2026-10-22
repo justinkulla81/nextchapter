@@ -323,7 +323,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           title={primaryAff?.title ?? null}
           othersCount={othersAtOrg}
         />
-        {primaryAff && <CrmOrgContext orgId={primaryAff.orgId} />}
+        {primaryAff && (
+          <Suspense fallback={<section className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground" aria-busy="true">Account context is loading: pulling the latest unemployment, layoffs, open jobs and local groups for this organization…</section>}>
+            <CrmOrgContext orgId={primaryAff.orgId} />
+          </Suspense>
+        )}
       {(person.roles.includes('RECRUITER_PROSPECT') || person.mandates.length > 0) && (
         <section>
           <h2 className="mb-2 text-base font-semibold">Mandates</h2>
