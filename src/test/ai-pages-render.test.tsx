@@ -7,6 +7,18 @@ vi.mock('@/lib/skills/ai-market-trend-server', () => ({
 vi.mock('@/lib/skills/ai-market-live', () => ({
   loadAiMarket: async () => null,
 }))
+// The section is an async server component, which renderToStaticMarkup cannot render; its view is rendered with no live data.
+vi.mock('@/components/marketing/AiExposureSection', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/components/marketing/AiExposureSection')>()
+  return {
+    ...actual,
+    AiExposureSection: (props: Parameters<typeof actual.AiExposureSection>[0]) => actual.AiExposureSectionView({ ...props, split: null, occupations: 0 }),
+  }
+})
+vi.mock('@/lib/skills/ai-exposure-server', () => ({
+  loadJobsByExposure: async () => null,
+  loadExposureMap: async () => new Map(),
+}))
 vi.mock('next/navigation', () => ({ usePathname: () => '/', useRouter: () => ({ push() {} }), useSearchParams: () => new URLSearchParams() }))
 
 describe('public AI pages render', () => {
@@ -19,6 +31,8 @@ describe('public AI pages render', () => {
     expect(html).toContain('A trend appears here after four weeks')
     expect(html).not.toMatch(/table stakes|every function/i)
     expect(html).toContain('/ai-training')
+    expect(html).toContain('See where AI is already changing the jobs you are looking at')
+    expect(html).toContain('Anthropic Economic Index')
   }, 60_000)
 
   it('/ai-skills shows industry, state and level tables when the snapshot has them', async () => {

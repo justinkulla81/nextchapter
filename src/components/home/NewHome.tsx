@@ -4,6 +4,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { HomeTryIt } from '@/components/home/HomeTryIt'
 import { HomeLearnMore } from '@/components/home/HomeLearnMore'
 import { AiJobsStat } from '@/components/marketing/AiJobsStat'
+import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { Suspense } from 'react'
 
 // The redesigned homepage (docs/candidate-redesign.md page contract): one headline, one
@@ -78,6 +79,10 @@ export function NewHome() {
 
       <Suspense fallback={null}>
         <AiJobsStat />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <AiExposureSection page="home" cta={{ event: 'homepage_cta_clicked', properties: { cta: 'ai_exposure_assessment' }, className: action }} />
       </Suspense>
 
       <HomeLearnMore />
