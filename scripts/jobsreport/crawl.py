@@ -568,6 +568,58 @@ def crawl_applicantpro(src, log):
                  description=(text or j.get("title", "")) + (" Compensation: " + pay if pay else ""), location_raw=loc, locations=[loc],
                  employment_type=j.get("employmentType"), arrangement=(j.get("workplaceType") or "").lower() or None)
 
+def crawl_listing(src, log):
+    """Career sites that render a job list as plain HTML (many universities). src: list_url, link_regex, page_param (default "page"),
+    max_pages, employer, location (used when a posting states none). Reads each posting's JSON-LD JobPosting when present, else its page text."""
+    from concurrent.futures import ThreadPoolExecutor
+    from urllib.parse import urljoin
+    link_re = re.compile(src["link_regex"])
+    links, page = {}, 1
+    while page <= src.get("max_pages", 25):
+        url = src["list_url"] if page == 1 else src["list_url"] + ("&" if "?" in src["list_url"] else "?") + f"{src.get('page_param', 'page')}={page}"
+        try: h = http(url, headers={"Accept": "text/html"}, timeout=60)
+        except Exception as e:
+            log(f"  {src['name']}: page {page} failed: {e}"); break
+        new = {urljoin(url, m.group(1) if m.groups() else m.group(0)) for m in link_re.finditer(h)} - set(links)
+        if not new: break
+        for u in new: links[u] = True
+        page += 1
+    log(f"  {src['name']}: {len(links)} postings listed")
+    def detail(u):
+        try: return u, http(u, headers={"Accept": "text/html"}, timeout=40)
+        except Exception: return u, ""
+    def ld(h):
+        for m in re.finditer(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', h, re.S):
+            try: d = json.loads(m.group(1))
+            except Exception: continue
+            for x in (d if isinstance(d, list) else [d]):
+                if isinstance(x, dict) and x.get("@type") == "JobPosting": return x
+        return None
+    for u, h in ThreadPoolExecutor(max_workers=6).map(detail, list(links)):
+        j = ld(h) or {}
+        h1 = re.search(r"<h1[^>]*>(.*?)</h1>", h, re.S)
+        title = (j.get("title") or "").strip() or (strip_html(h1.group(1)) if h1 else "")
+        loc = src.get("location", "")
+        jl = j.get("jobLocation")
+        if isinstance(jl, list): jl = jl[0] if jl else None
+        a = (jl or {}).get("address") if isinstance(jl, dict) else None
+        if isinstance(a, dict) and a.get("addressLocality"):
+            reg = a.get("addressRegion") or ""
+            loc = f"{a['addressLocality']}, {STATE_ABBR.get(reg, reg)}"
+        if not title or not in_metro(loc): continue
+        sal = (j.get("baseSalary") or {}).get("value") or {} if isinstance(j.get("baseSalary"), dict) else {}
+        rec_pay = {}
+        try:
+            lo, hi = float(sal.get("minValue")), float(sal.get("maxValue") or sal.get("minValue"))
+            unit = (sal.get("unitText") or "").upper()
+            rec_pay = {"pay_min": lo, "pay_max": hi, "pay_period": "hour" if unit.startswith("HOUR") else ("year" if unit.startswith("YEAR") or lo > 1000 else None), "pay_stated": True}
+        except Exception: pass
+        text = strip_html(j.get("description") or "") or strip_html(h)
+        parts = u.rstrip("/").rsplit("/", 2)
+        yield mk(src, src["employer"], parts[-2] + "-" + parts[-1][:60], title=title, url=u, description=text,
+                 location_raw=loc, locations=[loc], employment_type=j.get("employmentType") if isinstance(j.get("employmentType"), str) else None,
+                 posted_at=j.get("datePosted"), posted_precision="date", **rec_pay)
+
 def crawl_lever(src, log):
     data = json.loads(http(f"https://api.lever.co/v0/postings/{src['token']}?mode=json"))
     for j in data:
@@ -740,7 +792,7 @@ def crawl_csod(src, log):
         page += 1
         time.sleep(0.3)
 
-ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "ashby": crawl_ashby, "ukg": crawl_ukg, "breezy": crawl_breezy, "applicantpro": crawl_applicantpro, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
+ADAPTERS = {"jibe": crawl_jibe, "applitrack": crawl_applitrack, "csod": crawl_csod, "neogov": crawl_neogov, "workday": crawl_workday, "greenhouse": crawl_greenhouse, "mcloud": crawl_mcloud, "taleo": crawl_taleo, "oracle": crawl_oracle, "phenom": crawl_phenom, "amazon": crawl_amazon, "aspnet_grid": crawl_aspnet_grid, "tyler_ess": crawl_tyler_ess, "ashby": crawl_ashby, "ukg": crawl_ukg, "breezy": crawl_breezy, "applicantpro": crawl_applicantpro, "listing": crawl_listing, "smartrecruiters": crawl_smartrecruiters, "lever": crawl_lever, "usajobs": crawl_usajobs}
 
 # ---- loading --------------------------------------------------------------
 

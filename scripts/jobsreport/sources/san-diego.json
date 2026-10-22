@@ -256,5 +256,41 @@
     "type": "direct_ats",
     "employer": "Viasat",
     "host": "careers.viasat.com"
+  },
+  {
+    "name": "ls-university-of-san-diego",
+    "adapter": "listing",
+    "type": "direct_ats",
+    "employer": "University of San Diego",
+    "list_url": "https://jobs.sandiego.edu/jobs/search",
+    "link_regex": "href=\"(https://jobs\\.sandiego\\.edu/jobs/(?!search)[^\"?#]+)\"",
+    "location": "San Diego, CA"
+  },
+  {
+    "name": "ls-san-diego-state",
+    "adapter": "listing",
+    "type": "direct_ats",
+    "employer": "San Diego State University",
+    "list_url": "https://careers.sdsu.edu/en-us/listing/",
+    "link_regex": "href=\"(/en-us/job/\\d+/[^\"?#]+)\"",
+    "location": "San Diego, CA"
+  },
+  {
+    "name": "wd-national-university",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "National University",
+    "tenant": "nus",
+    "wd": "wd1",
+    "site": "Careers"
+  },
+  {
+    "name": "ls-palomar-college",
+    "adapter": "listing",
+    "type": "public_sector",
+    "employer": "Palomar College",
+    "list_url": "https://palomar.peopleadmin.com/postings/search",
+    "link_regex": "href=\"(/postings/\\d+)\"",
+    "location": "San Marcos, CA"
   }
 ]
