@@ -59,9 +59,12 @@ export async function resolveOrgPlace(orgId: string): Promise<OrgPlace | null> {
      where l."crmOrgId" = ${orgId} limit 1`
   if (college?.fips) { const c = await countyByFips(college.fips); if (c) return done(c.state, c, 'college', college.city) }
 
-  // A college we hold under a slightly different record: same name.
+  // A college we hold under a slightly different record: the same name, or the university a school, college or center belongs to
+  // ("University of Tampa - John H. Sykes College of Business", "The Johns Hopkins University School of Medicine").
+  const parent = org.name.replace(/^the\s+/i, '').split(/\s+[-–]\s+/)[0].replace(/\s+(school|college|center|centre|institute|department|graduate school|business school)\s+(of|for|on)\b.*$/i, '').trim()
+  const names = [...new Set([org.name, org.name.replace(/^the\s+/i, ''), parent])].filter((n) => n.length > 3)
   const [byName] = await prisma.$queryRaw<{ fips: string | null; state: string; city: string | null }[]>`
-    select "countyFips" fips, state, city from "CollegeProfile" where lower(name) = lower(${org.name}) and "countyFips" is not null limit 1`
+    select "countyFips" fips, state, city from "CollegeProfile" where lower(name) = any(${names.map((n) => n.toLowerCase())}) and "countyFips" is not null limit 1`
   if (byName?.fips) { const c = await countyByFips(byName.fips); if (c) return done(c.state, c, 'college', byName.city) }
 
   const [board] = await prisma.$queryRaw<{ state: string; counties: string[]; placeCounties: string[] }[]>`
