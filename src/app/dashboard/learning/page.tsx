@@ -256,7 +256,7 @@ export default async function LearningPage({ searchParams }: { searchParams: Pro
       </LearningSection>
 
       {isPivotingProfile({ ...profile, journey: effectiveJourney(profile) }) && (
-        <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} />
+        <OccupationTrendsCard currentFunction={profile.primaryFunction} targetFunction={profile.targetFunction} fromExposure={libExposure} />
       )}
 
       <PayChangeCard />
