@@ -418,3 +418,269 @@ Total for the eight: about 760 to 1,030 hours. This replaces the earlier plan of
 
 **Curate and recheck.** Each curated link gets a quarterly recheck for date, price, access and whether the course still exists. The researchers could not open OpenAI Academy course pages (403), which means the intermediate foundations and leadership picks rest on a track description and a search result.
 
+## 11. What we have today: the live catalog, graded
+
+**Source.** The production `Course` table, 2026-10-22: 93 active courses, all links to other providers' pages (we author none). 40 AI training (10 beginner, 13 intermediate, 17 advanced as labeled), 24 certifications, 17 function courses, 8 business skills, 4 speaking. Three graders opened every link (one fetch, one retry) and recorded what the page shows. I re-checked the dead links myself with a direct request: 12 are confirmed dead or gone.
+
+**Grade scale.** **A**: verified current, credible provider, hands-on or assessed, fits our learners as labeled. **B**: good with a named weakness (usually level or hours). **C**: weak, generic, dated, or a poor fit for mid-career professionals, displaced workers and new workers. **D**: the listing is wrong (dead link, wrong course, misdescribed). **U**: could not be opened. A D grade is about our listing, not the quality of the course behind it. Grades describe fit for our general learner; the developer courses graded C are a good fit for the Software and IT track.
+
+| | A | B | C | D | U | Total |
+|---|---:|---:|---:|---:|---:|---:|
+| AI training | 5 | 16 | 15 | 4 | 0 | 40 |
+| All categories | 17 | 34 | 23 | 15 | 4 | 93 |
+
+**What the grading found.**
+
+1. **Only 5 of our 40 AI courses are A:** Google AI Essentials, Google Prompting Essentials, Anthropic AI Fluency, Generative AI for HR Professionals (sponsor is Vanderbilt, not IBM as we list), and DeepLearning.AI's MCP course.
+2. **15 listings are wrong or gone.** 12 are dead (404 or removed): CPA, Lean Six Sigma Green Belt, NACD, Workplace Communication, Wharton Financial Modeling, Contract Law, Customer Success Specialization, Notre Dame Storytelling, Salesforce SDR Certificate, Success Coaching CSM certification, IBM Generative AI Fundamentals (edX), and MIT Machine Learning with Python (edX, page says no longer available). "High Performance Collaboration" points to a different course (Michigan's Successful Negotiation, which is also listed separately). One is a 2017 blog post listed as a course (NVIDIA CUDA), and "Generative AI for Executives" is a one-hour free overview with no certificate, listed as intermediate and paid.
+3. **Levels are wrong on about 35 rows.** Seven DeepLearning.AI and Coursera courses labeled advanced are beginner or intermediate on their own pages (LLMOps, ML Specialization, crewAI, Red Teaming, LangChain, Evaluating AI Agents, Python for Everybody), and six Coursera function specializations labeled intermediate say beginner.
+4. **"Free" flags are unreliable.** Eleven DeepLearning.AI short courses are free only in a limited-time beta, with graded work and certificates behind a $25 to $30 monthly plan. The Salesforce Administrator exam is flagged free without support. Strategic Leadership has a free audit but is flagged paid.
+5. **Three entries are not courses:** Runway Academy, Emeritus and Toastmasters are catalog or membership homepages; NIST AI RMF is a framework.
+6. **No course in the catalog teaches checking AI output as an assessed skill.** The A-graded Google and Anthropic courses touch it; none grades it.
+7. **The AI list is built for engineers.** More than 20 of the 40 AI rows are machine-learning or developer courses. The AI courses for non-technical functions are Generative AI for HR, the Copilot finance path, Power Automate, Agentblazer, and Agentforce.
+8. **Four could not be opened** (CAP, CCEP, CPIM, PMP; bot blocking or empty pages) and need a manual check.
+
+### 11.1 Fix list for the existing catalog (about 6 to 10 hours **[Estimate]**)
+
+Retire or repair the 12 dead links; correct the "High Performance Collaboration" URL; remove or relabel the five non-courses; fix sponsor on the HR course; re-level the roughly 35 mislabeled rows; mark DeepLearning.AI "free" as "free during beta"; recheck the four blocked pages by hand; add a `lastVerified` date to every row so the quarterly recheck is visible to members.
+
+### 11.2 Full graded list
+
+Rows in database order (category, level, title). Level is our label; the note is what the page shows.
+
+| # | Course (provider) | Our level | Grade | Note |
+|---|---|---|:-:|---|
+| 1 | AI For Everyone (DeepLearning.AI, Coursera) | Beg | B | 7h, 4 quizzes; generic |
+| 2 | AI for Everyone: Master the Basics (IBM, edX) | Beg | C | shell page only |
+| 3 | Claude 101 (Anthropic) | Beg | B | free, certificate; hours not shown |
+| 4 | Generative AI for Everyone (DeepLearning.AI) | Beg | B | 6h; generic |
+| 5 | Getting Started with GitHub Copilot | Beg | C | under 1h; developer-only |
+| 6 | Google AI Essentials | Beg | A | graded; teaches evaluating output |
+| 7 | Google Prompting Essentials | Beg | A | graded; teaches evaluating output |
+| 8 | Introduction to Generative AI (Google Cloud) | Beg | B | 45 min; URL moved to skills.google |
+| 9 | Runway Academy | Beg | C | catalog homepage |
+| 10 | Use Copilot in Power Automate (Microsoft) | Beg | B | current, assessed; narrow |
+| 11 | AI Fluency: Framework & Foundations (Anthropic) | Int | A | assessed; really beginner |
+| 12 | AI for Business (Wharton/Penn) | Int | B | about 44h; page says beginner |
+| 13 | AI Product Management (Duke) | Int | B | PM-specific; page says beginner |
+| 14 | An Even Easier Introduction to CUDA (NVIDIA) | Int | D | 2017 blog post |
+| 15 | Automate Tasks in Copilot Studio (Microsoft) | Int | C | needs Copilot Studio access |
+| 16 | ChatGPT Prompt Engineering for Developers | Int | C | developer; page says beginner |
+| 17 | Claude Code in Action (Anthropic) | Int | B | developer only |
+| 18 | Generative AI for Executives (AWS) | Int | D | 1h free, no certificate; listing wrong |
+| 19 | Generative AI for HR Professionals (Vanderbilt) | Int | A | sponsor wrong; page says beginner |
+| 20 | Generative AI Fundamentals Certificate (IBM, edX) | Int | D | 404 |
+| 21 | How Diffusion Models Work | Int | C | image theory; needs Python |
+| 22 | NIST AI RMF | Int | C | framework, not training |
+| 23 | Prompt Engineering for ChatGPT (Vanderbilt) | Int | B | about 18h; page says beginner |
+| 24 | AI Agents in LangGraph | Adv | C | developer; needs Python |
+| 25 | CS50 Intro to AI with Python (Harvard) | Adv | C | shell page only |
+| 26 | Deep Learning Specialization | Adv | C | about 129h; FAQ dated 2021 |
+| 27 | Evaluating AI Agents | Adv | C | developer; page says beginner |
+| 28 | Fine-tuning & RL for LLMs | Adv | C | 13h; "free" unsupported |
+| 29 | Finetuning Large Language Models | Adv | C | needs PyTorch |
+| 30 | IBM AI Engineering Certificate | Adv | C | page internally inconsistent |
+| 31 | LangChain for LLM Application Development | Adv | C | dated Oct 2025 |
+| 32 | LLMOps | Adv | B | page says beginner |
+| 33 | Machine Learning in Production | Adv | B | page says intermediate |
+| 34 | Machine Learning Specialization | Adv | B | page says beginner |
+| 35 | Machine Learning with Python (MIT, edX) | Adv | D | gone |
+| 36 | MCP: Build Rich-Context AI Apps | Adv | A | current Aug 2026; developer |
+| 37 | Multi AI Agent Systems with crewAI | Adv | B | page says beginner |
+| 38 | Python for Everybody (Michigan) | Adv | B | beginner; not AI |
+| 39 | Red Teaming LLM Applications | Adv | B | page says beginner |
+| 40 | Vector Databases (Weaviate-taught) | Adv | B | developer |
+| 41 | Business Foundations (Wharton) | Beg | A | matches |
+| 42 | Finance for Everyone (McMaster) | Beg | A | matches |
+| 43 | Project Management Principles (UC Irvine) | Beg | A | 35 PMI PDUs |
+| 44 | Successful Negotiation (Michigan) | Beg | A | exam, simulations |
+| 45 | Leading People and Teams (Michigan) | Int | B | page says beginner |
+| 46 | People Analytics (Wharton) | Int | B | 12h; short |
+| 47 | Strategic Leadership and Management (Illinois) | Int | B | free audit exists |
+| 48 | Emeritus executive certificate catalog | Adv | C | homepage |
+| 49 | Google Data Analytics Certificate | Beg | A | about 150 to 180h; listed twice |
+| 50 | Google UX Design Certificate | Beg | A | hours inconsistent on page |
+| 51 | Certified Administrative Professional (IAAP) | Int | U | blocked |
+| 52 | Customer Success Manager (Success Coaching) | Int | D | 404 |
+| 53 | Power BI Data Analyst (PL-300) | Int | A | exam; current |
+| 54 | PHR (HRCI) | Int | A | price and eligibility stated |
+| 55 | Sales Development Rep Certificate (Salesforce) | Int | D | 404 |
+| 56 | Salesforce Administrator | Int | C | free flag unsupported |
+| 57 | Salesforce Agentforce Specialist | Int | C | shell page only |
+| 58 | Advanced in AI Audit (ISACA) | Adv | A | $459 to $599; needs audit credential |
+| 59 | AI Governance Professional (IAPP) | Adv | C | price and eligibility not shown |
+| 60 | AWS Solutions Architect | Adv | B | is the Associate exam |
+| 61 | CCEP (SCCE) | Adv | U | blocked |
+| 62 | Certified Kubernetes Administrator | Adv | A | $445, performance exam |
+| 63 | CFA | Adv | B | credential; $1,140+ per exam |
+| 64 | CIPP/US (IAPP) | Adv | C | no price shown |
+| 65 | CMA (IMA) | Adv | C | URL redirects to imaglobal.org |
+| 66 | CPA (AICPA) | Adv | D | 404 |
+| 67 | CPIM (ASCM) | Adv | U | empty page |
+| 68 | Lean Six Sigma Green Belt (Coursera) | Adv | D | 404 |
+| 69 | Azure Administrator AZ-104 | Adv | B | Associate; level wrong |
+| 70 | NACD Directorship | Adv | D | 404 |
+| 71 | PMP (PMI) | Adv | U | blocked |
+| 72 | SHRM-CP | Adv | B | needs no experience; level wrong |
+| 73 | Automate a business process with Power Automate | Beg | B | current; not AI-checking |
+| 74 | Become an Agentblazer Champion | Beg | B | about 10.7h; current |
+| 75 | CS50x (Harvard) | Beg | C | title differs; unverified |
+| 76 | Draft, Analyze, and Present with Copilot | Beg | B | current; page says intermediate |
+| 77 | Google Data Analytics Professional Certificate | Beg | A | duplicate of row 49 |
+| 78 | Google UX Design Professional Certificate | Beg | B | duplicate of row 50 |
+| 79 | HubSpot Digital Marketing | Beg | B | 3h24m, free, has AI lesson |
+| 80 | Workplace Communication for Administrative Professionals | Beg | D | 404 |
+| 81 | Business and Financial Modeling (Wharton) | Int | D | 404 |
+| 82 | Contract Law (Wesleyan) | Int | D | 404 |
+| 83 | Customer Success Specialization | Int | D | 404 |
+| 84 | Digital Marketing Specialization (Illinois) | Int | B | page says beginner |
+| 85 | Human Resource Management (Minnesota) | Int | B | real title "HR for People Managers" |
+| 86 | IBM Full Stack Software Developer | Int | B | page says beginner |
+| 87 | Sales Operations/Management (WVU) | Int | B | page says beginner |
+| 88 | Supply Chain Management (Rutgers) | Int | B | page says beginner |
+| 89 | High Performance Collaboration (Northwestern) | Adv | D | URL is Michigan's Negotiation course |
+| 90 | Dynamic Public Speaking (Washington) | Beg | A | matches |
+| 91 | Toastmasters International | Beg | C | membership homepage |
+| 92 | Inspiring Leadership through EI (Case Western) | Int | B | page says beginner |
+| 93 | Leadership Communication: Storytelling (Notre Dame) | Int | D | 404 |
+
+## 12. The full catalog: every track, every level, ranked
+
+**Ranking rule [Data, from the section 3 join].** Tracks are groups of O*NET occupations (my grouping **[Judgment]**). "Exposed" means postings in occupations where Anthropic's observed exposure is 0.25 or higher; it measures how much of the work is already done with Claude, not job loss. "Unserved" is exposed postings multiplied by the share of full-text postings that do not name an AI skill: the exposed demand employers have not yet written an AI ask into. Rank is by unserved postings. Operations and executive roles rank last on exposure but hold the largest posting volumes, so they are served by the leadership and governance courses in 12.3.
+
+| Rank | Track | Live postings | Exposed | Ask for AI | Unserved | Mean exposure |
+|---:|---|---:|---:|---:|---:|---:|
+| 1 | Software and IT | 66,112 | 61,552 | 37.7% | 38,340 | 0.33 |
+| 2 | Finance and accounting | 39,617 | 32,094 | 9.5% | 29,031 | 0.35 |
+| 3 | Marketing and content | 22,576 | 20,196 | 30.5% | 14,027 | 0.38 |
+| 4 | Sales | 42,373 | 11,263 | 11.7% | 9,941 | 0.15 |
+| 5 | HR and talent | 16,394 | 9,850 | 13.6% | 8,507 | 0.24 |
+| 6 | Data and analytics | 9,909 | 8,334 | 50.3% | 4,143 | 0.40 |
+| 7 | Office and administrative | 5,807 | 2,436 | 5.0% | 2,314 | 0.28 |
+| 8 | Legal support | 10,338 | 2,322 | 11.5% | 2,056 | 0.20 |
+| 9 | Engineering and science (non-software) | 50,695 | 741 | 7.9% | 682 | 0.06 |
+| 10 | Design and arts | 3,280 | 909 | 25.2% | 680 | 0.21 |
+| 11 | Education and training | 679 | 399 | 12.2% | 350 | 0.22 |
+| 12 | Customer service | 803 | 259 | 8.9% | 236 | 0.29 |
+| 13 | Healthcare and clinical | 11,330 | 238 | 2.8% | 231 | 0.07 |
+| 14 | Executive and general management | 13,668 | 0 | 7.3% | 0 | 0.11 |
+| 15 | Operations, programs and management (other) | 70,075 | 0 | 9.7% | 0 | 0.10 |
+
+### 12.1 Seniority
+
+Share of each track's exposed postings by level **[Data]**:
+
+| Track | Entry or early | Mid | Senior IC | Manager | Director and above |
+|---|---:|---:|---:|---:|---:|
+| Software and IT | 24% | 19% | 47% | 8% | 2% |
+| Finance and accounting | 25% | 8% | 17% | **36%** | 14% |
+| Marketing and content | 25% | 22% | 19% | 15% | 19% |
+| Sales | **47%** | 10% | 9% | 30% | 4% |
+| HR and talent | **46%** | 21% | 18% | 10% | 5% |
+| Data and analytics | 33% | 18% | 36% | 6% | 6% |
+| Office and administrative | **94%** | 2% | 2% | 2% | 0% |
+| Legal support | **82%** | 16% | 2% | 0% | 1% |
+
+Reading it: finance is a manager-heavy track (Financial Managers alone are 14,244 live postings), so a finance course without a manager version misses the largest group. Sales, HR, office and legal exposure sits at entry and early level, which is where the new-worker course and the "check the AI's work" course apply. Software exposure is senior-heavy.
+
+### 12.2 The catalog by track and AI level
+
+"Have" is what is in our live catalog today (grade in brackets). "Add" are verified outside courses from section 10 that we should list. "Gap" is what neither has. "Build" is what we would author. Builds are in section 10.4's order; hours are **[Estimate]**.
+
+| Rank | Track and level | Have today | Add (verified outside) | Gap | Build |
+|---:|---|---|---|---|---|
+| 1 | **Software and IT**: beginner | Getting Started with GitHub Copilot (C) | none needed | none | none |
+| | intermediate | Claude Code in Action (B); ChatGPT Prompt Eng for Developers (C) | DeepLearning.AI Claude Code (strong, free during beta) | team coding-agent policy | none now |
+| | advanced | 12 DeepLearning.AI courses (B and C); Evaluating AI Agents (C) | Anthropic Building with the Claude API; DeepLearning.AI Agentic AI (strong) | none | none |
+| 2 | **Finance and accounting**: beginner | Draft, Analyze, Present with Copilot (B); Finance for Everyone (A, not AI) | ACCA AI for Finance; Microsoft Copilot for Finance | checking AI numbers | none |
+| | intermediate | none | Edureka GenAI for Finance (trade-off); AICPA bootcamp | graded checking, reconciliation | **Build (#2)** |
+| | advanced | AAIA (A, auditors only) | AICPA Accelerator is press-only | agent close and variance with test set | **Build (#2)** |
+| | manager | none | none | AI for finance managers (review, controls, sign-off) | **Build with #2 and #4** |
+| 3 | **Marketing and content**: beginner | HubSpot Digital Marketing (B) | UVA Darden GenAI in Marketing; AMA/LinkedIn certificate | none | none |
+| | intermediate | Digital Marketing Specialization (B) | HubSpot Micro-Internship (students only) | brand-voice and fact-check workflow | later |
+| | advanced | none | none | content pipeline with approvals and brand-safety eval | later |
+| 4 | **Sales**: beginner | Agentblazer Champion (B) | Microsoft Copilot for Sales | none | none |
+| | intermediate | Sales Ops (B); Agentforce Specialist (C) | Nebraska-Lincoln AI for Sales ($1,850); HubSpot GTM (customers only) | price, access | later |
+| | advanced | none | Salesforce Agentforce Sales trail (admin) | account-health agent with a pilot; no customer-success course at any level | later |
+| 5 | **HR and talent**: beginner | GenAI for HR (A) | HRCI AI for HR | compliance depth | none |
+| | intermediate | HR Management (B); PHR (A); SHRM-CP (B) | AIHR AI for HR Certificate (strong, $1,125) | none | none |
+| | advanced | People Analytics (B) | AIHR agents and strategy modules | bias audit of hiring AI, adverse-impact testing | later |
+| 6 | **Data and analytics**: beginner | Google Data Analytics (A) | DataCamp SQL with AI | checking AI-written queries | none |
+| | intermediate | PL-300 (A, no AI) | Microsoft Copilot in Power BI; Google Gemini for analysts | vendor-neutral verification | **Build (#1 module)** |
+| | advanced | none | IBM GenAI for Data Analysts (weak) | reconcile AI output on a messy dataset | later |
+| 7 | **Office and administrative**: all levels | CAP (unverified); Workplace Communication (dead) | Microsoft AI Fluency (beginner) | intermediate and advanced | **Build on signed scope** |
+| 8 | **Legal support**: beginner | none | NALA paralegal course; Microsoft Copilot for Legal | none | none |
+| | intermediate | CIPP/US (C), CCEP (U) | ibl.ai Contract Review; Coursera AI for Legal | credential | none |
+| | advanced | AIGP (C) | BABL governance | agent benchmarking, citation verification | **Build on signed scope** |
+| 9 to 13 | Engineering and science, design, education, customer service, healthcare | Google UX (A); Runway (C) | none verified | all levels | not now |
+| 14 and 15 | **Executive, management, operations** | Leading People and Teams (B); Strategic Leadership (B); AI for Business (B); GenAI for Executives (D) | OpenAI Lead AI Adoption (unverified); Anthropic Deploying Claude Enterprise | graded manager course; affordable executive course | **Build (#4)** |
+
+### 12.3 Cross-cutting tracks
+
+| Track | Beginner | Intermediate | Advanced |
+|---|---|---|---|
+| **AI foundations** | Have: Google AI Essentials (A), Prompting Essentials (A), AI Fluency (A), Claude 101 (B). Add: DeepLearning.AI AI Prompting for Everyone | Gap: reusable prompts plus checking, graded. **Build (#1)** | Gap for non-engineers. **Build (#3)** |
+| **Governance and responsible AI** | Add: Microsoft responsible AI | Have: NIST (C). Gap: practice course. **Build (#5)** | Have: AIGP (C), AAIA (A) |
+| **Workflow automation, no-code** | Have: Power Automate (B). Add: Zapier AI Builder Path | Add: Microsoft autonomous agent in Copilot Studio (licences needed) | Add: Microsoft Agent Academy. Gap: vendor-neutral approvals and test sets. **Build (#3)** |
+| **Building with AI, non-developers** | Gap | Gap | Gap. **Build (#6)** |
+
+**Totals.** Today's catalog has A or B courses mainly at beginner level and for engineers, and nothing in most intermediate and advanced non-engineering cells. After the fix list and the additions above, the catalog would have a verified pick in every beginner cell and most intermediate cells; the eight builds in section 10.4 cover the rest.
+
+## 13. How this compares with catalogs that are out there
+
+**Basis.** A researcher read the vendors' own pages (Coursera, LinkedIn Learning, Pluralsight, DataCamp, edX, Google Skills, Microsoft Learn, OpenAI Academy, Anthropic Academy, WIN Learning, Alison, Section). Udemy Business, Skillsoft and WIN's AI update were blocked and rest on search summaries. "Not shown" means not shown on the page read, not absent. No vendor's price list was verified. **This comparison is internal.** `docs/BRANDING.md` keeps the "leading" claim off any page that compares us to a named competitor on a number we have not verified.
+
+| | Role-specific AI paths | Three AI levels | Graded assessment | Credential | Tied to live postings | Workforce-board channel | Free tier |
+|---|---|---|---|---|---|---|---|
+| **Ours today** | Partly (tags by function; 5 non-technical AI courses) | Labeled, about 35 mislabeled | Not ours; some linked courses grade | Linked only | **Yes** (AI gap view on a member's best-fit jobs; cohort counts) | Pitching | 23 of 40 AI rows flagged free, 11 of them beta-only |
+| Coursera | Generic GenAI track | Not shown | Not shown | Yes | No | Government product | Trial, free section |
+| LinkedIn Learning | Role guides, 35+ roles | Not shown | Skill evaluations | Yes | Not shown | No | Trial |
+| Udemy Business | AI starter paths (search only) | Not shown | Assessments (search only) | Search only | No | No | No |
+| Skillsoft | Role journeys (search only) | Not shown | Benchmarks (search only) | No | No | No | No |
+| Pluralsight | Tech-focused | Not defined | Skill IQ | Prep only | No | Public sector | Trial |
+| DataCamp | By team | Literacy to advanced, undefined | Not shown | No | No | No | No |
+| edX | No | No | No | Yes | No | No | Audit |
+| Google Skills | No | No | Badges, proctored certs | Yes | No | No | Credits |
+| Microsoft Learn | Career paths | No | No | Partly | A job-count figure only | No | Free |
+| OpenAI Academy | **Audience tracks** (workers, leaders, builders) | Bootcamp numbering | No | No | No | Government and nonprofit communities | Not stated |
+| Anthropic Academy | No | No | No | No | No | No | **Free** |
+| WIN Learning | No (AI is a digital-skills lesson set, per a June 2025 press release) | No | **Skills assessments** | **Work readiness credential** | No | **Yes** (workforce, K12, adult ed, corrections) | No |
+
+**Where we could genuinely differ.**
+
+1. **Tied to the learner's own occupation and live postings.** No vendor page showed AI training matched to current demand for the learner's job. This is the clearest opening and the one thing we already have.
+2. **Role-specific, level-specific AI paths** for finance, HR, legal, sales and administration. None of the broad catalogs showed them.
+3. **A graded "check the AI's work" skill.** Nobody was seen teaching it as an assessed skill. We have none today either; it is build #1.
+4. **Vendor neutrality.** Google, Microsoft, OpenAI and Anthropic teach their own tools.
+
+**Where we cannot beat them:** breadth, brand, price (the free tier is saturated by Alison, edX audit and Anthropic), and distribution. WIN Learning already holds the workforce-board, adult-education and corrections channel and has begun adding AI lessons; Coursera Government and Pluralsight already sell to public-sector buyers. The realistic position against WIN is an AI layer above its digital and soft-skills base, which is a partnership question rather than a competitive one.
+
+## 14. How to market the current catalog today
+
+**What is true today, and so what we can say.** We maintain a curated, graded, level-tagged list of other providers' courses, matched to what employers in a person's own function are posting. We do not author courses yet. Marketing has to say that. The existing page https://launchyournextchapter.com/ai-training says we "build the short courses"; until the first build ships, reword it to "curated today, purpose-built on commission" so the claim matches the product.
+
+**Order of work.**
+
+1. **Fix the catalog first (6 to 10 hours [Estimate]).** A buyer who clicks one of our 15 broken or misdescribed entries loses trust in the list. Retire the dead links, fix levels and free flags, add the verified courses from section 12.2. This is the prerequisite for everything below.
+2. **Lead with the data, not the course list.** The offer is "which AI skills the jobs in your people's functions ask for, and which are missing from their profiles," from https://launchyournextchapter.com/ai-skills and the counts-only cohort view at https://launchyournextchapter.com/employer/learning. Put one fact in front of each buyer: for example, finance and accounting is the largest exposed non-technical pool on our board (32,094 postings) and only 9.5% of those postings name an AI skill. State it as a measurement of postings.
+3. **Then the ladder.** For each function, a beginner, intermediate and advanced pick with the trade-off stated (section 12.2). The honesty about gaps is the differentiator against catalogs that present everything as equally good.
+4. **Name the build as a commission, not an existing product.** "Where the list has a gap, we build the course for your program" is accurate and is the course-development revenue model in `docs/AI_COURSE_DEVELOPMENT.md`.
+
+**By buyer, first week.**
+
+| Buyer | Lead with | Asset | Ask |
+|---|---|---|---|
+| Colleges (continuing education, executive education, alumni; career services where that is the budget) | The alumni AI-gap measurement, then the ladder for the functions their alumni work in | Ranked college list at https://launchyournextchapter.com/support/admin/crm/colleges; section 3 and 12 numbers | A scoping call; a pilot cohort or a development quote |
+| Workforce boards and American Job Centers | Exposed white-collar roles in their region and the free or low-cost beginner picks; dislocated-worker training | List at https://launchyournextchapter.com/support/admin/crm/workforce-boards | A role in the next AI-workforce notice, written for them |
+| Employers with layoffs or transitions | AI skills inside the transition package, matched to the leaver's function | Outplacement outreach already running | A per-participant cohort |
+| Members | The AI gap view on their best-fit jobs, linking to the verified course | Already built (`AiSkillGapSection`) | Clicks on the course link |
+
+**Guardrails.**
+
+- No claim that a course raises pay, that AI caused layoffs, or that anyone is "at risk of losing" a job. Use "roles where Claude is already used for much of the work" and "postings that ask for AI skills."
+- No claim of WIOA eligibility, accreditation or provider endorsement. We link to others' courses and say so. Use provider names only to identify the course.
+- "The leading job transition platform" once per page. "Career services" wording only where the buyer's budget is career services.
+- Name no competitor on a number we have not verified; the comparison in section 13 stays internal.
+- Prices and free flags carry a "checked on" date.
+
+**What not to market yet.** Purpose-built courses, a graded AI-skills credential, and "verify the AI's work" training. None exists. They are the eight builds in section 10.4.
