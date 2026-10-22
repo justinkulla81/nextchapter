@@ -48,11 +48,11 @@ const tidyEmployer = (n: string) => n.replace(/\*[^*]*\*/g, '').replace(/&amp;/g
  * State WARN filings for the county in the last LAYOFF_DAYS days, rolled up by employer (a company with several sites is one row).
  * Computed live: the precomputed 90-day and 12-month figures on the area record are only as fresh as its last build.
  */
-export async function loadCountyLayoffs(state: string, countyName: string): Promise<LayoffSummary> {
+export async function loadCountyLayoffs(state: string, countyName: string | null): Promise<LayoffSummary> {
   const since = new Date(Date.now() - LAYOFF_DAYS * 86_400_000)
-  const base = countyName.replace(/\s+(county|parish|borough)$/i, '').trim()
+  const base = countyName ? countyName.replace(/\s+(county|parish|borough)$/i, '').trim() : ''
   const rows = await prisma.warnNotice.findMany({
-    where: { state, source: 'WARN_FILING', dismissedAt: null, county: { contains: base, mode: 'insensitive' }, OR: [{ noticeDate: { gte: since } }, { noticeDate: null, fetchedAt: { gte: since } }] },
+    where: { state, source: 'WARN_FILING', dismissedAt: null, ...(base ? { county: { contains: base, mode: 'insensitive' as const } } : {}), OR: [{ noticeDate: { gte: since } }, { noticeDate: null, fetchedAt: { gte: since } }] },
     select: { employer: true, normalizedEmployer: true, employees: true, noticeDate: true, fetchedAt: true },
   })
   const by = new Map<string, LayoffRow>()
@@ -74,12 +74,12 @@ export interface OpenJobs { roles: number; employers: number; professional: numb
  * Open roles our crawler saw in the last 14 days whose location names a city in the county. Postings carry free-text locations, not a county,
  * so cities come from the job centers, colleges and organizations we hold for the county; remote roles and unlisted towns are not counted.
  */
-export async function loadCountyJobs(fips: string, state: string, countyName: string): Promise<OpenJobs | null> {
-  const cities = await prisma.$queryRaw<{ city: string }[]>`
+export async function loadCountyJobs(fips: string | null, state: string, countyName: string | null): Promise<OpenJobs | null> {
+  const cities = fips ? await prisma.$queryRaw<{ city: string }[]>`
     select distinct city from (
       select city from "AmericanJobCenter" where "countyFips" = ${fips}
       union select city from "LocalCollege" where "countyFips" = ${fips}
-      union select city from "GeoOrgLead" where "geoAreaId" = ${fips}) x where city is not null`
+      union select city from "GeoOrgLead" where "geoAreaId" = ${fips}) x where city is not null` : []
   const abbrev: Record<string, string> = { 'Spgs': 'Springs', 'Spg': 'Spring', 'Hts': 'Heights', 'Mt': 'Mount', 'Pt': 'Point' }
   const names = new Set<string>()
   for (const c of cities) {
@@ -87,7 +87,7 @@ export async function loadCountyJobs(fips: string, state: string, countyName: st
     const full = c.city.replace(/\b(Spgs|Spg|Hts|Mt|Pt)\b/g, (m) => abbrev[m] ?? m)
     if (full !== c.city) names.add(full)
   }
-  const patterns = [...[...names].map((n) => `%${n}, ${state}%`), `%${countyName}%`]
+  const patterns = fips ? [...[...names].map((n) => `%${n}, ${state}%`), `%${countyName}%`] : [`%, ${state}%`]
   const base = Prisma.sql`FROM "CompanyJobOpening" WHERE "closedAt" IS NULL AND "lastSeenAt" >= now() - interval '14 days' AND location ILIKE ANY (${patterns}) AND ${state} = ANY(states)`
   const [agg] = await prisma.$queryRaw<{ roles: bigint; employers: bigint; pro: bigint; median: number | null }[]>(Prisma.sql`
     SELECT count(*) roles, count(DISTINCT "companyName") employers, count(*) FILTER (WHERE "seniorityGroup" = ANY(${PRO_LEVELS})) pro,
@@ -98,5 +98,37 @@ export async function loadCountyJobs(fips: string, state: string, countyName: st
   return {
     roles, employers: Number(agg.employers), professional: Number(agg.pro), medianPay: agg.median ? Math.round(agg.median / 1000) * 1000 : null,
     topFunctions: fns.map((f) => ({ fn: f.fn, label: functionLabel(f.fn), roles: Number(f.roles) })),
+  }
+}
+
+export interface CompanyContext {
+  industry: string | null
+  openNow: number; opened90d: number; opened12mo: number
+  topFunctions: { fn: string; label: string; roles: number }[]
+  topLocations: { location: string; count: number }[]
+  payLevel: string
+  layoffs: LayoffSummary
+  layoffNews12mo: number
+}
+
+/** The hiring and layoff picture for the company behind an organization, from its rolled-up hiring profile and state WARN filings. */
+export async function loadCompanyContext(companyId: string): Promise<CompanyContext | null> {
+  const h = await prisma.companyHiringProfile.findUnique({ where: { companyId } })
+  const since = new Date(Date.now() - LAYOFF_DAYS * 86_400_000)
+  const rows = await prisma.warnNotice.findMany({
+    where: { companyId, dismissedAt: null, OR: [{ noticeDate: { gte: since } }, { noticeDate: null, fetchedAt: { gte: since } }] },
+    select: { employer: true, employees: true, noticeDate: true, fetchedAt: true, state: true, county: true }, orderBy: { noticeDate: 'desc' },
+  })
+  if (!h && rows.length === 0) return null
+  const layoffs: LayoffSummary = {
+    days: LAYOFF_DAYS, filings: rows.length, employers: rows.length ? 1 : 0, jobs: rows.reduce((n, r) => n + (r.employees ?? 0), 0),
+    rows: rows.map((r) => ({ employer: [r.county, r.state].filter(Boolean).join(', ') || r.employer, employees: r.employees ?? 0, noticeDate: r.noticeDate ?? r.fetchedAt, filings: 1 })),
+  }
+  const fns = ((h?.topFunctions as { function: string; count: number }[] | null) ?? []).slice(0, 5)
+  return {
+    industry: h?.industry ?? null, openNow: h?.openNow ?? 0, opened90d: h?.opened90d ?? 0, opened12mo: h?.opened12mo ?? 0,
+    topFunctions: fns.map((f) => ({ fn: f.function, label: functionLabel(f.function), roles: f.count })),
+    topLocations: ((h?.topLocations as { location: string; count: number }[] | null) ?? []).slice(0, 5),
+    payLevel: h?.payLevel ?? 'insufficient', layoffs, layoffNews12mo: h?.layoffNews12mo ?? 0,
   }
 }

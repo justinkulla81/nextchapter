@@ -58,3 +58,28 @@ export function degreeExposure(topMajors: { field: string; share: number }[] | n
     highShare: mapped.filter((m) => m.band === 'HIGH').reduce((s, m) => s + m.share, 0),
   }
 }
+
+/**
+ * The occupation group each job function in our postings mostly maps to. Our function labels are coarser than the occupation groups, so this is
+ * our own rough match; "engineering" in particular mixes software (computer) and other engineering, and is matched to computer and math.
+ */
+const FUNCTION_TO_SOC: Record<string, string> = {
+  marketing: '13', finance: '13', supply_chain: '13', hr: '13', legal: '23', sales: '41', operations: '11', engineering: '15', it: '15',
+  data: '15', product: '11', design: '27', customer_success: '43', healthcare: '29',
+}
+
+export interface RoleMixExposure { weighted: number | null; coveredShare: number; highShare: number }
+
+/** Exposure of a company's open-role mix: each function's occupation-group exposure, weighted by its share of the roles we could match. */
+export function roleMixExposure(fns: { fn: string; roles: number }[]): RoleMixExposure {
+  const byGroup = new Map(OCCUPATION_TRENDS.map((r) => [r.socGroup, r]))
+  const total = fns.reduce((n, f) => n + f.roles, 0)
+  const mapped = fns.map((f) => ({ roles: f.roles, row: FUNCTION_TO_SOC[f.fn] ? byGroup.get(FUNCTION_TO_SOC[f.fn]) : undefined })).filter((m) => m.row)
+  const covered = mapped.reduce((n, m) => n + m.roles, 0)
+  if (!total || !covered) return { weighted: null, coveredShare: 0, highShare: 0 }
+  return {
+    weighted: mapped.reduce((n, m) => n + m.roles * m.row!.aiExposure, 0) / covered,
+    coveredShare: covered / total,
+    highShare: mapped.filter((m) => exposureBand(m.row!.aiExposure) === 'HIGH').reduce((n, m) => n + m.roles, 0) / total,
+  }
+}

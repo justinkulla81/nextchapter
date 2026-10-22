@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { OCCUPATION_TRENDS_SOURCE } from '@/lib/market/occupation-trends-data'
-import { degreeExposure } from '@/lib/crm/degree-ai-exposure'
-import { LAYOFF_DAYS, loadCountyJobs, loadCountyLayoffs, loadLocalNetwork } from '@/lib/crm/org-context-data'
+import { degreeExposure, roleMixExposure } from '@/lib/crm/degree-ai-exposure'
+import { LAYOFF_DAYS, loadCompanyContext, loadCountyJobs, loadCountyLayoffs, loadLocalNetwork } from '@/lib/crm/org-context-data'
+import { resolveOrgPlace, type PlaceBasis } from '@/lib/crm/org-place'
 
 const TYPE_LABEL: Record<string, string> = {
   VC_FUND: 'VC fund', ANGEL_SYNDICATE: 'Angel syndicate', FUNDER_GRANT: 'Funder', EMPLOYER: 'Employer', OUTPLACEMENT_LEAD: 'Outplacement lead',
@@ -16,6 +17,10 @@ const BAND_BAR = { HIGH: 'bg-red-500', MEDIUM: 'bg-amber-500', LOW: 'bg-green-60
 const BAND_TEXT = { HIGH: 'text-red-700', MEDIUM: 'text-amber-700', LOW: 'text-green-700' } as const
 const BAND_LABEL = { HIGH: 'High', MEDIUM: 'Medium', LOW: 'Low' } as const
 const pct = (n: number, d = 0) => `${(n * 100).toFixed(d)}%`
+const BASIS_TEXT: Record<PlaceBasis, string> = {
+  college: 'its college record', board: 'the workforce board record', directory: 'our directory of local organizations', headquarters: 'its headquarters',
+  'job postings': 'the cities its job postings name', 'layoff filing': 'a layoff filing', 'state only': 'the state only (no county could be matched)',
+}
 const shortDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
 function Tile({ label, value, note }: { label: string; value: React.ReactNode; note?: React.ReactNode }) {
@@ -54,44 +59,65 @@ function Row({ label, children, right }: { label: string; children: React.ReactN
  * layoffs, open jobs), the workforce and economic-development groups around it, and what its graduates are exposed to. Reads only data we hold; no model calls.
  */
 export async function CrmOrgContext({ orgId }: { orgId: string }) {
-  const org = await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { id: true, name: true, orgTypes: true, hqCity: true, usState: true } })
+  const org = await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { id: true, name: true, orgTypes: true, hqCity: true, usState: true, companyId: true } })
   if (!org) return null
-  const [college] = await prisma.$queryRaw<{
+  type CollegeRow = {
     id: string; sector: number | null; city: string | null; state: string; countyFips: string | null; countyKey: string | null
     enrollment: number | null; alumniEstimate: number | null; alumniReported: number | null; alumniEstimateMethod: string | null
     topMajors: { field: string; share: number }[] | null; earnings10: number | null
     presidentName: string | null; presidentTitle: string | null; phone: string | null
-  }[]>`
+  }
+  let [college] = await prisma.$queryRaw<CollegeRow[]>`
     select l.id, l.sector, l.city, l.state, l."countyFips", l."countyKey", p.enrollment, p."alumniEstimate", p."alumniReported", p."alumniEstimateMethod",
       p."topMajors", p.earnings10, p."presidentName", p."presidentTitle", p.phone
     from "LocalCollege" l left join "CollegeProfile" p on p.unitid = l.id where l."crmOrgId" = ${orgId} limit 1`
-  const area = college?.countyFips ? await prisma.geoArea.findUnique({ where: { id: college.countyFips } }) : null
-  const [local, layoffs, jobs, contacts] = await Promise.all([
-    area && college ? loadLocalNetwork(area.id, college.countyKey, college.state) : null,
-    area ? loadCountyLayoffs(area.state, area.name) : null,
-    area ? loadCountyJobs(area.id, area.state, area.name) : null,
+  // A college we hold only as a profile (not linked to this organization): matched by exact name.
+  if (!college && org.orgTypes.includes('UNIVERSITY')) {
+    ;[college] = await prisma.$queryRaw<CollegeRow[]>`
+      select p.unitid id, null::int sector, p.city, p.state, p."countyFips", null::text "countyKey", p.enrollment, p."alumniEstimate", p."alumniReported", p."alumniEstimateMethod",
+        p."topMajors", p.earnings10, p."presidentName", p."presidentTitle", p.phone
+      from "CollegeProfile" p where lower(p.name) = lower(${org.name}) limit 1`
+  }
+  const place = await resolveOrgPlace(orgId)
+  const area = place ? await (place.fips
+    ? prisma.geoArea.findUnique({ where: { id: place.fips } })
+    : prisma.geoArea.findFirst({ where: { level: 'STATE', state: place.state } })) : null
+  const [local, layoffs, jobs, contacts, company] = await Promise.all([
+    place?.fips && area ? loadLocalNetwork(place.fips, place.countyKey, place.state) : null,
+    place ? loadCountyLayoffs(place.state, place.fips ? area?.name ?? null : null) : null,
+    place ? loadCountyJobs(place.fips, place.state, place.fips ? area?.name ?? null : null) : null,
     college ? prisma.collegeContact.findMany({ where: { collegeId: college.id }, select: { id: true, role: true, name: true, title: true, email: true, guessedEmail: true }, orderBy: [{ email: { sort: 'asc', nulls: 'last' } }] }) : [],
+    org.companyId ? loadCompanyContext(org.companyId) : null,
   ])
   const exposure = college ? degreeExposure(college.topMajors) : null
   const types = org.orgTypes.map((t) => TYPE_LABEL[t] ?? t)
   const customerType = college ? `Higher ed` : types.join(' · ') || null
   const customerNote = college ? `${college.sector ? SECTOR[college.sector] ?? 'College' : 'College'} · ${[college.city, college.state].filter(Boolean).join(', ')}` : [org.hqCity, org.usState].filter(Boolean).join(', ') || undefined
   const alumni = college ? college.alumniReported ?? college.alumniEstimate : null
+  const mix = company ? roleMixExposure(company.topFunctions.map((f) => ({ fn: f.fn, roles: f.roles }))) : null
+  const areaLabel = area ? (place?.fips ? area.name : `${area.name} (state)`) : ''
+  const computedAt = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 
   return (
     <section className="space-y-4 rounded-xl border border-border bg-muted/20 p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-base font-semibold">Account context</h2>
-        <span className="text-xs text-muted-foreground">{org.name}</span>
+        <span className="text-xs text-muted-foreground">
+          {org.name}{place ? ` · placed by ${BASIS_TEXT[place.basis]}` : ''} · figures computed live at {computedAt}
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Tile label="Customer type" value={customerType} note={customerNote} />
-        <Tile label="Alumni" value={alumni?.toLocaleString()} note={college ? (college.alumniReported ? 'Reported' : 'Estimate') : undefined} />
+        {college || !company ? (
+          <Tile label="Alumni" value={alumni?.toLocaleString()} note={college ? (college.alumniReported ? 'Reported' : 'Estimate') : undefined} />
+        ) : (
+          <Tile label="Open roles here" value={company.openNow.toLocaleString()} note={`${company.opened90d.toLocaleString()} opened in 90 days`} />
+        )}
         <Tile label="Unemployment" value={area?.unemploymentRate != null ? `${area.unemploymentRate.toFixed(1)}%` : null}
-          note={area ? `${area.name}${area.unemploymentRatePrior != null ? ` · ${area.unemploymentRatePrior.toFixed(1)}% a year ago` : ''}` : undefined} />
+          note={area ? `${areaLabel}${area.unemploymentRatePrior != null ? ` · ${area.unemploymentRatePrior.toFixed(1)}% a year ago` : ''}` : undefined} />
         <Tile label={`Layoffs, ${LAYOFF_DAYS} days`} value={layoffs ? `${layoffs.jobs.toLocaleString()} jobs` : null} note={layoffs ? `${layoffs.employers} employers · ${layoffs.filings} filings` : undefined} />
-        <Tile label="Open jobs in area" value={jobs ? jobs.roles.toLocaleString() : area ? '0' : null} note={jobs ? `${jobs.employers.toLocaleString()} employers · ${jobs.professional.toLocaleString()} professional-level` : undefined} />
+        <Tile label={place?.fips ? 'Open jobs in county' : 'Open jobs in state'} value={jobs ? jobs.roles.toLocaleString() : place ? '0' : null} note={jobs ? `${jobs.employers.toLocaleString()} employers · ${jobs.professional.toLocaleString()} professional-level` : undefined} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -116,14 +142,14 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
         )}
 
         {area && (
-          <Card title={`Local job market · ${area.name}, ${area.state}`} aside={area.unemploymentAsOf ? `unemployment as of ${area.unemploymentAsOf}` : undefined}>
+          <Card title={`Local job market · ${place?.fips ? `${area.name}, ${area.state}` : area.name}`} aside={area.unemploymentAsOf ? `unemployment as of ${area.unemploymentAsOf}` : undefined}>
             <dl className="grid grid-cols-2 gap-3 text-sm">
               <div><dt className="text-xs text-muted-foreground">White-collar unemployment (estimate)</dt><dd className="font-medium">{area.wcUnemploymentEst != null ? `${area.wcUnemploymentEst.toFixed(1)}%` : 'Not on file'}</dd></div>
               <div><dt className="text-xs text-muted-foreground">White-collar share of jobs</dt><dd className="font-medium">{area.whiteCollarShare != null ? pct(area.whiteCollarShare) : 'Not on file'}</dd></div>
               <div><dt className="text-xs text-muted-foreground">Median posted pay</dt><dd className="font-medium">{jobs?.medianPay ? `$${jobs.medianPay.toLocaleString()}` : 'Not enough postings'}</dd></div>
               <div><dt className="text-xs text-muted-foreground">Most open roles</dt><dd className="font-medium">{jobs?.topFunctions.length ? jobs.topFunctions.slice(0, 3).map((f) => f.label).join(', ') : 'None'}</dd></div>
             </dl>
-            <h4 className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Layoffs in the last {LAYOFF_DAYS} days</h4>
+            <h4 className="mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Layoffs in the last {LAYOFF_DAYS} days{place?.fips ? '' : ' (state-wide)'}</h4>
             {layoffs && layoffs.rows.length > 0 ? (
               <>
                 <table className="mt-1 w-full text-sm">
@@ -142,10 +168,33 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
                 </p>
               </>
             ) : <p className="mt-1 text-sm text-muted-foreground">No state layoff filings in this window.</p>}
-            <p className="mt-3 text-xs text-muted-foreground">Open jobs are roles our crawler saw in the last 14 days whose location names a city in the county; remote roles are not counted.</p>
+            <p className="mt-3 text-xs text-muted-foreground">Open jobs are roles our crawler saw in the last 14 days whose location names a city in the {place?.fips ? 'county' : 'state'}; remote roles are not counted.</p>
           </Card>
         )}
       </div>
+
+      {company && (
+        <Card title="At this company" aside={company.industry ?? undefined}>
+          <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+            <div><dt className="text-xs text-muted-foreground">Open roles now</dt><dd className="font-medium">{company.openNow.toLocaleString()}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">Opened, 90 days / 12 months</dt><dd className="font-medium">{company.opened90d.toLocaleString()} / {company.opened12mo.toLocaleString()}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">Pay vs market</dt><dd className="font-medium">{{ high: 'Above market', in_line: 'In line', low: 'Below market', insufficient: 'Not enough pay data' }[company.payLevel] ?? company.payLevel}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">Layoffs, {LAYOFF_DAYS} days</dt><dd className="font-medium">{company.layoffs.filings ? `${company.layoffs.jobs.toLocaleString()} jobs, ${company.layoffs.filings} filings` : 'None filed'}{company.layoffNews12mo > 0 && <span className="block text-xs font-normal text-muted-foreground">{company.layoffNews12mo} in the news, 12 months</span>}</dd></div>
+          </dl>
+          {company.topFunctions.length > 0 && (
+            <p className="mt-3 text-sm"><span className="text-xs uppercase tracking-wide text-muted-foreground">Hiring most in </span>{company.topFunctions.map((f) => `${f.label} (${f.roles})`).join(', ')}
+              {mix?.weighted != null && <span className="text-muted-foreground"> · role-mix AI exposure {Math.round(mix.weighted)} of 100 across {pct(mix.coveredShare)} of roles we could match</span>}</p>
+          )}
+          {company.topLocations.length > 0 && <p className="mt-1 text-sm"><span className="text-xs uppercase tracking-wide text-muted-foreground">Where </span>{company.topLocations.map((l) => `${l.location} (${l.count})`).join(', ')}</p>}
+          {company.layoffs.rows.length > 0 && (
+            <ul className="mt-2 divide-y divide-border text-sm">
+              {company.layoffs.rows.slice(0, 5).map((r, i) => (
+                <li key={i} className="flex justify-between gap-2 py-1"><span>{r.employer}</span><span className="tabular-nums">{r.employees.toLocaleString()} jobs · {shortDate(r.noticeDate)}</span></li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
 
       {local && area && (
         <Card title="Workforce and economic development in their area" aside={`full list: geography page for ${area.name}`}>
@@ -168,8 +217,8 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
         </Card>
       )}
 
-      {!area && (
-        <p className="text-sm text-muted-foreground">{college ? 'No county labor-market data matched this college yet.' : 'No location data is tied to this organization yet, so local unemployment, layoffs, jobs and workforce groups are not shown.'}</p>
+      {!area && !company && (
+        <p className="text-sm text-muted-foreground">No location could be worked out for this organization yet, so local unemployment, layoffs, jobs and workforce groups are not shown.</p>
       )}
 
       {exposure && exposure.majors.length > 0 && (
