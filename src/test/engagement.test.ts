@@ -148,8 +148,8 @@ describe('the weekly plan', () => {
 describe('AI outlook step', () => {
   it('adds one step for someone whose role AI hit, while planning or searching', () => {
     const texts = (o: Partial<EngagementSignals>) => engagementPlanItems(s(o)).map((i) => i.text).join(' | ')
-    expect(texts({ aiDisplaced: true, stage: 'PREPARING' })).toMatch(/hold up against AI/)
-    expect(texts({ aiDisplaced: false, stage: 'PREPARING' })).not.toMatch(/hold up against AI/)
-    expect(texts({ aiDisplaced: true, stage: 'LANDED' })).not.toMatch(/hold up against AI/)
+    expect(texts({ aiJobLoss: true, stage: 'PREPARING' })).toMatch(/hold up against AI/)
+    expect(texts({ aiJobLoss: false, stage: 'PREPARING' })).not.toMatch(/hold up against AI/)
+    expect(texts({ aiJobLoss: true, stage: 'LANDED' })).not.toMatch(/hold up against AI/)
   })
 })

@@ -177,7 +177,7 @@ The candidate site has no "employer benefit" place. Fit:
   1. **Job fit verdicts** (merged to main from `claude/friendly-cerf-p3639f`): `src/lib/jobs/job-card.ts` ("Strong fit / Good fit / Worth a look" with one why line), `job-fit-bucket.ts` (score and bucket: strong, good, stretch, below_level, overqualified), `fit-bucket-types.ts`, `job-match.ts`, `job-card-server.ts`, `JobMatchPanel`. This is exactly the redesign's "Job row" and sits in Jobs > Find a job. It already follows rule 4 (one reason) and rule 5.
   2. **Skills fit band** (`src/lib/careers/skills-fit.ts`, `docs/CAREER_TAXONOMY.md`): "lines up closely / mostly / partly / few in common" beside the fit badge, uses O*NET; shows nothing until O*NET is loaded.
   3. **AI outlook of your field** (`src/lib/profile/ai-outlook.ts`, `occupation-trends-data.ts`; shown on https://launchyournextchapter.com/dashboard/market and in the Learn trends card). AI exposure per function, growth or decline, how critical AI tools are. Source: the company's White Collar Employment Report. This is the nearest thing to "future of work".
-  4. **AI displacement question** (`aiDisplacementReason`: yes / partly / no / prefer not to say, asked in onboarding `LocationForm`; read by `engagement-data.ts` and `learning-paths-data.ts` to add an AI outlook item to the weekly plan and a learning path). No visible payoff to the member besides that item; the audit lists it as irrelevant to students.
+  4. **AI displacement question** (`aiJobLossReason`: yes / partly / no / prefer not to say, asked in onboarding `LocationForm`; read by `engagement-data.ts` and `learning-paths-data.ts` to add an AI outlook item to the weekly plan and a learning path). No visible payoff to the member besides that item; the audit lists it as irrelevant to students.
   5. **AI skills layer** (main, documented in `docs/AI_SKILLS.md`): 24 skill items, job board AI / Non-AI / All toggle (`AiViewToggle`), skills gap naming AI asks, Learning section "Skills your best-fit jobs ask for", AI work samples, `ai_*` events. Merged to main; the 16-skill draft was retired 2026-10-17.
   6. **Branch `origin/ai-skills-taxonomy`** (one commit d23db4b2, 2026-10-16): the retired 16-skill draft (`src/lib/ai-skills/*`, `AiSkillGapSection`). Not merged into HEAD or main, and superseded by item 5 per `AI_SKILLS.md`. Also `origin/ai-view-consolidate`: no commits ahead of main in my check (empty diff list).
   7. `docs/AI_SKILLS.md` says "Learn (L2): confidence in AI skills" is a personalization bundle (bundles.md L2 "AI skills", receipt B).
@@ -195,7 +195,7 @@ The candidate site has no "employer benefit" place. Fit:
 - Rule 4/5: the AI toggle, the skills-fit band and the AI gap line add facts per row; keep only one verdict, one reason, one fact on the row (`candidate-redesign.md` Job row). Move the skills-fit band under "Why this fits".
 - Naming: if the owner wants a feature called "Fit future", it collides with the existing "fit" vocabulary (Strong fit / Good fit). Choose a plain-benefit name per "Names say the benefit".
 - Retired draft on `ai-skills-taxonomy` would conflict with main's `src/lib/skills/ai-skills.ts` if ever merged (two taxonomies). Do not merge; delete the branch after the owner agrees.
-- `aiDisplacementReason` is a sensitive question with no visible payoff: the "no honest payoff, no question" rule says wire it into a visible receipt (AI skills plan change) or drop it. It is bundle L2 territory.
+- `aiJobLossReason` is a sensitive question with no visible payoff: the "no honest payoff, no question" rule says wire it into a visible receipt (AI skills plan change) or drop it. It is bundle L2 territory.
 - AI exposure data cites a research estimate ("could do in principle"), not job loss. Keep the stated caveat wherever it shows (every claim says why).
 
 ### 4. Old or does not fit
@@ -215,7 +215,7 @@ The candidate site has no "employer benefit" place. Fit:
 2. Do not merge `origin/ai-skills-taxonomy`; confirm main's AI skills system is the one.
 3. Put AI outlook as one line in Other roles you could do and "What it would take".
 4. Move the AI toggle into the Jobs strip or remove it from the board header; say what it removes.
-5. Wire or drop `aiDisplacementReason` via bundle L2.
+5. Wire or drop `aiJobLossReason` via bundle L2.
 
 ---
 

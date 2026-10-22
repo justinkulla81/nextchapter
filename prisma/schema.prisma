@@ -1022,7 +1022,7 @@ model CandidateProfile {
   // Employer sectors the member turned off ('government' | 'nonprofit' | 'academia' |
   // 'private'): the board and every job email leave those jobs out. Empty = all on.
   hiddenEmployerSectors String[] @default([])
-  aiDisplacementReason  String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
+  aiJobLossReason       String?  @map("aiDisplacementReason") // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
   equityImportant       Boolean  @default(false)
   dealBreakers          String?
 
