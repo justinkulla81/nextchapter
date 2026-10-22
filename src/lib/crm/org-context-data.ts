@@ -43,7 +43,7 @@ export async function loadLocalNetwork(fips: string, countyKey: string | null, s
 export interface LayoffRow { employer: string; employees: number; noticeDate: Date; filings: number }
 export interface LayoffSummary { days: number; filings: number; employers: number; jobs: number; rows: LayoffRow[] }
 
-const tidyEmployer = (n: string) => n.replace(/\*[^*]*\*/g, '').replace(/&amp;/g, '&').replace(/\s*[-–(].*$/, '').replace(/,?\s+(inc|llc|corp|corporation|co|company|ltd)\.?\s*$/i, '').replace(/\s+and$/i, '').replace(/,\s*$/, '').trim() || n
+const tidyEmployer = (n: string) => n.replace(/\*[^*]*\*/g, '').replace(/&amp;/g, '&').replace(/\s*[-–(].*$/, '').replace(/,?\s+(inc|llc|corp|corporation|co|company|ltd)\.?\s*$/i, '').replace(/\s+\d+\s.*$/, '').replace(/\s+and$/i, '').replace(/,\s*$/, '').trim() || n
 
 /**
  * State WARN filings for the county in the last LAYOFF_DAYS days, rolled up by employer (a company with several sites is one row).
@@ -144,7 +144,8 @@ export async function loadCompanyContext(companyId: string): Promise<CompanyCont
   return {
     industry: h?.industry ?? null, openNow: h?.openNow ?? 0, opened90d: h?.opened90d ?? 0, opened12mo: h?.opened12mo ?? 0,
     topFunctions: fns.map((f) => ({ fn: f.function, label: functionLabel(f.function), roles: f.count })),
-    topLocations: ((h?.topLocations as { location: string; count: number }[] | null) ?? []).slice(0, 5),
+    // Multi-city postings ('Chicago, IL; New York, NY') are left out and the country suffix dropped, so the list reads as places.
+    topLocations: ((h?.topLocations as { location: string; count: number }[] | null) ?? []).filter((l) => !l.location.includes(';')).map((l) => ({ ...l, location: l.location.replace(/,\s*(USA|US|United States)$/i, '') })).slice(0, 5),
     payLevel: h?.payLevel ?? 'insufficient', layoffs, layoffNews12mo: h?.layoffNews12mo ?? 0,
   }
 }

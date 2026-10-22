@@ -66,6 +66,9 @@ export function degreeExposure(topMajors: { field: string; share: number }[] | n
 const FUNCTION_TO_SOC: Record<string, string> = {
   marketing: '13', finance: '13', supply_chain: '13', hr: '13', legal: '23', sales: '41', operations: '11', engineering: '15', it: '15',
   data: '15', product: '11', design: '27', customer_success: '43', healthcare: '29',
+  // The names our postings actually carry.
+  Engineering: '15', Sales: '41', Operations: '11', Finance: '13', Legal: '23', Marketing: '13', 'Data & Analytics': '15', 'Human Resources': '13',
+  'Executive Leadership': '11', Product: '11', Design: '27', Administration: '43', 'Customer Success': '43',
 }
 
 export interface RoleMixExposure { weighted: number | null; coveredShare: number; highShare: number }
