@@ -11,7 +11,7 @@ export async function getLearningPaths(candidateId: string): Promise<{ paths: Le
   const [p, tr] = await Promise.all([
     prisma.candidateProfile.findUnique({
       where: { id: candidateId },
-      select: { journey: true, currentJobStatus: true, journeyDetails: true, primaryFunction: true, skillsToBuild: true, aiDisplacementReason: true, boardAdvisoryWillingness: true, levelRankScore: true },
+      select: { journey: true, currentJobStatus: true, journeyDetails: true, primaryFunction: true, skillsToBuild: true, aiJobLossReason: true, boardAdvisoryWillingness: true, levelRankScore: true },
     }),
     prisma.trackRecordResponse.findUnique({ where: { candidateId }, select: { functionsOwnedOutsideCore: true } }),
   ])
@@ -24,7 +24,7 @@ export async function getLearningPaths(candidateId: string): Promise<{ paths: Le
       pivot: searching ? pivotOf(p.journeyDetails) : null,
       career: journey === 'GROWING' || journey === 'PROMOTION' ? careerOf(p.journeyDetails) : null,
       skillsToBuild: p.skillsToBuild ?? [],
-      aiDisplaced: p.aiDisplacementReason === 'yes' || p.aiDisplacementReason === 'partly',
+      aiJobLoss: p.aiJobLossReason === 'yes' || p.aiJobLossReason === 'partly',
       boardInterest: p.boardAdvisoryWillingness === true,
       seniorLevel: (p.levelRankScore ?? 0) >= 60,
       ownedFunctions: ownedFunctionsFrom(tr?.functionsOwnedOutsideCore),

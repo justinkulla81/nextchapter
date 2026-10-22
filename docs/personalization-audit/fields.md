@@ -28,7 +28,7 @@ Verdicts (non-SYSTEM, 211 fields):
 - **Location**: `currentCity` + `currentState` (the only two job match reads), `metroArea` (community, higher-ed, recruiter view only), `currentCountry` (admin/recruiter view), `streetAddress` (form only), `openToRelocation` + `relocationNotes` + `travelWillingness` + `maxTravelPct` (willingness, not place), `onboardingLocationConfirmedAt`. `metroArea` and `currentCity/State` can drift apart.
 - **Status / stage**: `currentJobStatus`, `journey`, `journeyStage`, `justStartedSearch` (write-only), `confidentialModeEnteredJobStatus`, plus the change timestamps. `justStartedSearch` duplicates `currentJobStatus`/`journeyStage`.
 - **Intensity / pace**: `searchIntensity` (live), `jobSearchIntensity` (old slider, kept in the scoring helper and monthly report), `changePacePreference`, `changeReadiness`, `jobSearchDifficultyLevel`.
-- **Barriers / blockers**: `blockers` (live) vs `biggestBarriers` (reports only) vs `blockersOpenText`, `dealBreakers`, `aiDisplacementReason` (unused), `benefitsPressures`. `biggestBarriers` overlaps `blockers`.
+- **Barriers / blockers**: `blockers` (live) vs `biggestBarriers` (reports only) vs `blockersOpenText`, `dealBreakers`, `aiJobLossReason` (unused), `benefitsPressures`. `biggestBarriers` overlaps `blockers`.
 - **Application activity**: `jobsAppliedBucket` / `applicationsBucket` (0 files) and `interviewsReceivedCount` / `interviewsBucket` (0 files) overlap the real application and interview records and `applicationVolumeGoal`. Only the sprint seed reads the first pair.
 - **Industry**: `industryContext`, `secondaryIndustryContext`, `industryBucket`, `industryBuckets`, `targetIndustries`. Five fields for one idea; `industryBucket` (single) and `industryBuckets` (list) overlap.
 - **Function / role**: `primaryFunction`, `secondaryFunction`, `subFunction`, `targetFunction`, `targetRoleType`, `resumeLatestJobTitle`, `activeJobDescription`.
@@ -45,7 +45,7 @@ Verdicts (non-SYSTEM, 211 fields):
 
 **Write-only (collected, shown back, nothing reads it) (18):** `confidentialLinkedInPostingOptIn` (SETT), `independentWorkExperience` (FACT), `recruiterConnectionCount` (SIGN), `functionSkillConfidence` (SIGN), `actionOrientedConfidence` (SIGN), `communicatorConfidence` (SIGN), `willingToFollowUpOnApplications` (SIGN), `restrictiveCovenantDetails` (FACT), `wantsAnimalFriendlyWorkplace` (PREF), `phone` (FACT), `streetAddress` (FACT), `benefitsActionPlanCompletedItems` (SIGN), `boardDiversityListingsOptIn` (SETT), `workSampleType` (PREF), `actionWindow` (SETT), `sprintGoalEmailsOptedOut` (SETT), `smsPhone` (SETT), `smsConsentedAt` (SETT)
 
-**Unused (no real readers) (10):** `aiDisplacementReason` (SIGN), `resumeFirstJobStartDate` (FACT), `resumeAiReadinessScore` (FACT), `resumeAiReadinessNotes` (FACT), `displayCompany` (FACT), `justStartedSearch` (SIGN), `applicationsBucket` (SIGN), `interviewsBucket` (SIGN), `jobBoardUsage` (FACT), `jobBoardUsageOther` (FACT)
+**Unused (no real readers) (10):** `aiJobLossReason` (SIGN), `resumeFirstJobStartDate` (FACT), `resumeAiReadinessScore` (FACT), `resumeAiReadinessNotes` (FACT), `displayCompany` (FACT), `justStartedSearch` (SIGN), `applicationsBucket` (SIGN), `interviewsBucket` (SIGN), `jobBoardUsage` (FACT), `jobBoardUsageOther` (FACT)
 
 **Redundant (overlaps another field) (6):** `jobSearchIntensity` (SIGN), `biggestBarriers` (SIGN), `jobsAppliedBucket` (SIGN), `interviewsReceivedCount` (SIGN), `industryBucket` (FACT), `remoteDaysPerWeekDesired` (PREF)
 
@@ -152,7 +152,7 @@ Other notes: the coach-only fields (`startLowerRationale`, `hasBeenReferredBefor
 | `interviewComfort` | Int? | 14 | USED | interview prep, weekly, reports |
 | `elevatorPitchReady` | Int? | 6 | USED | interview prep, monthly report |
 | `negotiationComfort` | Int? | 8 | USED | curated content, search-strategy checklist |
-| `aiDisplacementReason` | String? | 3 | UNUSED | onboarding write; journey engagement-data only |
+| `aiJobLossReason` | String? | 3 | UNUSED | onboarding write; journey engagement-data only |
 | `blockers` | String[] | 26 | USED | job match, spine, reports; cluster barriers |
 | `consistencySelfRating` | Int? | 7 | USED | market-reality probability, dossier |
 | `blockersOpenText` | String? | 7 | USED | coach notes, probability |

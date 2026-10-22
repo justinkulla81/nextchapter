@@ -83,7 +83,7 @@ describe('learning paths are tied to a goal', () => {
     pivot: { targets: [committed, exploring], updatedAt: '' },
     career: { nextLevel: 'Director', focus: 'level' as const, intent: 'stay' as const },
     skillsToBuild: ['data_storytelling'],
-    aiDisplaced: true,
+    aiJobLoss: true,
     boardInterest: true,
   }
   const paths = deriveLearningPaths(input)
@@ -117,6 +117,6 @@ describe('learning paths are tied to a goal', () => {
     expect(markStepDone(progress, paths, first.id, 'nonsense')).toBeNull()
   })
   it('a member with no goals has no paths', () => {
-    expect(deriveLearningPaths({ from: 'Finance', pivot: null, career: null, skillsToBuild: [], aiDisplaced: false, boardInterest: false })).toEqual([])
+    expect(deriveLearningPaths({ from: 'Finance', pivot: null, career: null, skillsToBuild: [], aiJobLoss: false, boardInterest: false })).toEqual([])
   })
 })

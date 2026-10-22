@@ -16,7 +16,7 @@ import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
 import { INTENSITY_OPTIONS } from '@/lib/journey/intensity'
 import { CultureFitFields } from '@/components/onboarding/CultureFitFields'
 import { parseCultureFit } from '@/lib/culture/culture-fit'
-import { LOCATION_PREFERENCE_OPTIONS, GAP_DURATION_LABELS, AI_DISPLACEMENT_OPTIONS, COACHING_STYLE_OPTIONS } from '@/lib/constants/onboarding'
+import { LOCATION_PREFERENCE_OPTIONS, GAP_DURATION_LABELS, AI_JOB_LOSS_OPTIONS, COACHING_STYLE_OPTIONS } from '@/lib/constants/onboarding'
 
 const GAP_DURATION_OPTIONS = (Object.entries(GAP_DURATION_LABELS) as [GapDurationBucket, string][]).map(
   ([value, label]) => ({ value, label })
@@ -45,7 +45,7 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
   const [moveDriver, setMoveDriver] = useState<MoveDriver | null>(null)
   const [laidOffTiming, setLaidOffTiming] = useState<LaidOffTiming | null>(null)
   const [searchIntensity, setSearchIntensity] = useState<string | null>(profile.searchIntensity)
-  const [aiDisplacementReason, setAiDisplacementReason] = useState<string | null>(profile.aiDisplacementReason)
+  const [aiJobLossReason, setAiJobLossReason] = useState<string | null>(profile.aiJobLossReason)
   const [networkComfortLevel, setNetworkComfortLevel] = useState<NetworkComfortLevel | null>(
     profile.networkComfortLevel
   )
@@ -317,10 +317,10 @@ export function LocationForm({ profile }: { profile: CandidateProfile }) {
                 Was AI part of why your last role ended? <span className="text-muted-foreground">(optional)</span>
               </Label>
               <ChoiceButtons
-                name="aiDisplacementReason"
-                options={AI_DISPLACEMENT_OPTIONS}
-                value={aiDisplacementReason as (typeof AI_DISPLACEMENT_OPTIONS)[number]['value'] | null}
-                onChange={setAiDisplacementReason}
+                name="aiJobLossReason"
+                options={AI_JOB_LOSS_OPTIONS}
+                value={aiJobLossReason as (typeof AI_JOB_LOSS_OPTIONS)[number]['value'] | null}
+                onChange={setAiJobLossReason}
                 responsive
               />
             </div>
