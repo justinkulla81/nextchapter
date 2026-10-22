@@ -1,4 +1,5 @@
 import 'server-only'
+import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { functionLabel } from '@/lib/prospects/market'
@@ -74,7 +75,7 @@ export interface OpenJobs { roles: number; employers: number; professional: numb
  * Open roles our crawler saw in the last 14 days whose location names a city in the county. Postings carry free-text locations, not a county,
  * so cities come from the job centers, colleges and organizations we hold for the county; remote roles and unlisted towns are not counted.
  */
-export async function loadCountyJobs(fips: string | null, state: string, countyName: string | null): Promise<OpenJobs | null> {
+async function countCountyJobs(fips: string | null, state: string, countyName: string | null): Promise<OpenJobs | null> {
   const cities = fips ? await prisma.$queryRaw<{ city: string }[]>`
     select distinct city from (
       select city from "AmericanJobCenter" where "countyFips" = ${fips}
@@ -87,18 +88,33 @@ export async function loadCountyJobs(fips: string | null, state: string, countyN
     const full = c.city.replace(/\b(Spgs|Spg|Hts|Mt|Pt)\b/g, (m) => abbrev[m] ?? m)
     if (full !== c.city) names.add(full)
   }
-  const patterns = fips ? [...[...names].map((n) => `%${n}, ${state}%`), `%${countyName}%`] : [`%, ${state}%`]
-  const base = Prisma.sql`FROM "CompanyJobOpening" WHERE "closedAt" IS NULL AND "lastSeenAt" >= now() - interval '14 days' AND location ILIKE ANY (${patterns}) AND ${state} = ANY(states)`
-  const [agg] = await prisma.$queryRaw<{ roles: bigint; employers: bigint; pro: bigint; median: number | null }[]>(Prisma.sql`
-    SELECT count(*) roles, count(DISTINCT "companyName") employers, count(*) FILTER (WHERE "seniorityGroup" = ANY(${PRO_LEVELS})) pro,
-      percentile_cont(0.5) WITHIN GROUP (ORDER BY "payAnnualMid") FILTER (WHERE "payAnnualMid" BETWEEN 30000 AND 900000) median ${base}`)
-  const roles = Number(agg?.roles ?? 0)
+  if (!fips) return null // A whole state's postings is too big to count on a page view; the company section shows its own openings.
+  const patterns = [...[...names].map((n) => `%${n}, ${state}%`), `%${countyName}%`]
+  // One pass over the postings: the matching rows are pulled once and everything is counted from them.
+  const [r] = await prisma.$queryRaw<{ roles: bigint; employers: bigint; pro: bigint; median: number | null; fns: { fn: string; roles: number }[] | null }[]>(Prisma.sql`
+    WITH b AS MATERIALIZED (
+      SELECT "companyName", "seniorityGroup", "payAnnualMid", "function" FROM "CompanyJobOpening"
+       WHERE "closedAt" IS NULL AND "lastSeenAt" >= now() - interval '14 days' AND ${state} = ANY(states) AND location ILIKE ANY (${patterns}))
+    SELECT (SELECT count(*) FROM b) roles, (SELECT count(DISTINCT "companyName") FROM b) employers,
+           (SELECT count(*) FROM b WHERE "seniorityGroup" = ANY(${PRO_LEVELS})) pro,
+           (SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY "payAnnualMid") FROM b WHERE "payAnnualMid" BETWEEN 30000 AND 900000) median,
+           (SELECT json_agg(x) FROM (SELECT "function" fn, count(*)::int roles FROM b WHERE "function" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 4) x) fns`)
+  const roles = Number(r?.roles ?? 0)
   if (!roles) return null
-  const fns = await prisma.$queryRaw<{ fn: string; roles: bigint }[]>(Prisma.sql`SELECT "function" fn, count(*) roles ${base} AND "function" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 4`)
   return {
-    roles, employers: Number(agg.employers), professional: Number(agg.pro), medianPay: agg.median ? Math.round(agg.median / 1000) * 1000 : null,
-    topFunctions: fns.map((f) => ({ fn: f.fn, label: functionLabel(f.fn), roles: Number(f.roles) })),
+    roles, employers: Number(r.employers), professional: Number(r.pro), medianPay: r.median ? Math.round(r.median / 1000) * 1000 : null,
+    topFunctions: (r.fns ?? []).map((f) => ({ fn: f.fn, label: functionLabel(f.fn), roles: f.roles })),
   }
+}
+
+/**
+ * Counting a county's postings scans the whole open-postings table (no location index), so each county is counted once and kept for six hours.
+ */
+export const loadCountyJobs = unstable_cache(countCountyJobs, ['county-open-jobs-v1'], { revalidate: 6 * 3600 })
+
+/** A section that takes too long is left out rather than holding up the page. */
+export function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([p.catch(() => fallback), new Promise<T>((res) => setTimeout(() => res(fallback), ms))])
 }
 
 export interface CompanyContext {

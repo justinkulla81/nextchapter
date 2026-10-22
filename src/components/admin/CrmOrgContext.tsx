@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { OCCUPATION_TRENDS_SOURCE } from '@/lib/market/occupation-trends-data'
 import { degreeExposure, roleMixExposure } from '@/lib/crm/degree-ai-exposure'
-import { LAYOFF_DAYS, loadCompanyContext, loadCountyJobs, loadCountyLayoffs, loadLocalNetwork } from '@/lib/crm/org-context-data'
+import { LAYOFF_DAYS, withTimeout, loadCompanyContext, loadCountyJobs, loadCountyLayoffs, loadLocalNetwork } from '@/lib/crm/org-context-data'
 import { resolveOrgPlace, type PlaceBasis } from '@/lib/crm/org-place'
 
 const TYPE_LABEL: Record<string, string> = {
@@ -78,16 +78,16 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
         p."topMajors", p.earnings10, p."presidentName", p."presidentTitle", p.phone
       from "CollegeProfile" p where lower(p.name) = lower(${org.name}) limit 1`
   }
-  const place = await resolveOrgPlace(orgId)
+  const place = await withTimeout(resolveOrgPlace(orgId), 8000, null)
   const area = place ? await (place.fips
     ? prisma.geoArea.findUnique({ where: { id: place.fips } })
     : prisma.geoArea.findFirst({ where: { level: 'STATE', state: place.state } })) : null
   const [local, layoffs, jobs, contacts, company] = await Promise.all([
-    place?.fips && area ? loadLocalNetwork(place.fips, place.countyKey, place.state) : null,
-    place ? loadCountyLayoffs(place.state, place.fips ? area?.name ?? null : null) : null,
-    place ? loadCountyJobs(place.fips, place.state, place.fips ? area?.name ?? null : null) : null,
+    place?.fips && area ? withTimeout(loadLocalNetwork(place.fips, place.countyKey, place.state), 8000, null) : null,
+    place ? withTimeout(loadCountyLayoffs(place.state, place.fips ? area?.name ?? null : null), 8000, null) : null,
+    place ? withTimeout(loadCountyJobs(place.fips, place.state, place.fips ? area?.name ?? null : null), 22000, null) : null,
     college ? prisma.collegeContact.findMany({ where: { collegeId: college.id }, select: { id: true, role: true, name: true, title: true, email: true, guessedEmail: true }, orderBy: [{ email: { sort: 'asc', nulls: 'last' } }] }) : [],
-    org.companyId ? loadCompanyContext(org.companyId) : null,
+    org.companyId ? withTimeout(loadCompanyContext(org.companyId), 8000, null) : null,
   ])
   const exposure = college ? degreeExposure(college.topMajors) : null
   const types = org.orgTypes.map((t) => TYPE_LABEL[t] ?? t)
@@ -103,7 +103,7 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-base font-semibold">Account context</h2>
         <span className="text-xs text-muted-foreground">
-          {org.name}{place ? ` · placed by ${BASIS_TEXT[place.basis]}` : ''} · figures computed live at {computedAt}
+          {org.name}{place ? ` · placed by ${BASIS_TEXT[place.basis]}` : ''} · unemployment, layoffs and groups computed live at {computedAt}
         </span>
       </div>
 
@@ -117,7 +117,7 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
         <Tile label="Unemployment" value={area?.unemploymentRate != null ? `${area.unemploymentRate.toFixed(1)}%` : null}
           note={area ? `${areaLabel}${area.unemploymentRatePrior != null ? ` · ${area.unemploymentRatePrior.toFixed(1)}% a year ago` : ''}` : undefined} />
         <Tile label={`Layoffs, ${LAYOFF_DAYS} days`} value={layoffs ? `${layoffs.jobs.toLocaleString()} jobs` : null} note={layoffs ? `${layoffs.employers} employers · ${layoffs.filings} filings` : undefined} />
-        <Tile label={place?.fips ? 'Open jobs in county' : 'Open jobs in state'} value={jobs ? jobs.roles.toLocaleString() : place ? '0' : null} note={jobs ? `${jobs.employers.toLocaleString()} employers · ${jobs.professional.toLocaleString()} professional-level` : undefined} />
+        <Tile label={place?.fips ? 'Open jobs in county' : 'Open jobs in state'} value={jobs ? jobs.roles.toLocaleString() : place?.fips ? '0' : null} note={jobs ? `${jobs.employers.toLocaleString()} employers · ${jobs.professional.toLocaleString()} professional-level` : undefined} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -168,7 +168,7 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
                 </p>
               </>
             ) : <p className="mt-1 text-sm text-muted-foreground">No state layoff filings in this window.</p>}
-            <p className="mt-3 text-xs text-muted-foreground">Open jobs are roles our crawler saw in the last 14 days whose location names a city in the {place?.fips ? 'county' : 'state'}; remote roles are not counted.</p>
+            <p className="mt-3 text-xs text-muted-foreground">Open jobs are roles our crawler saw in the last 14 days whose location names a city in the {place?.fips ? 'county' : 'state'}; remote roles are not counted. Counts are refreshed every 6 hours.</p>
           </Card>
         )}
       </div>
