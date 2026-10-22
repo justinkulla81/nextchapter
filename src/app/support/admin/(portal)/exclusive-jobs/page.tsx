@@ -33,7 +33,7 @@ async function AiCountsLine() {
   if (!live) return null
   return (
     <p className="text-sm text-muted-foreground">
-      AI-skill jobs {live.counts.aiSkill.toLocaleString()} · AI-exposed jobs {live.counts.aiExposed.toLocaleString()} (of {live.counts.live.toLocaleString()} live).{' '}
+      AI-skill jobs {live.counts.aiSkill.toLocaleString()} · AI-in-role jobs {live.counts.aiExposed.toLocaleString()} (of {live.counts.live.toLocaleString()} live).{' '}
       <Link href="/support/admin/ai-market" className="text-primary underline underline-offset-4">
         AI jobs and pay
       </Link>

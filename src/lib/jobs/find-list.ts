@@ -25,6 +25,8 @@ export interface JobListItem {
   fact: string | null
   /** When the fact is a posting-signal tag ("Open to career changers"), which one — the row shows it as the tag. */
   signal?: PostingSignal | null
+  /** High AI exposure (Anthropic Economic Index, src/lib/aei/job-exposure.ts): the row's one small badge. Never set for Medium / Low. */
+  aiExposureHigh?: boolean
   /** The job's open page, used when the detail cannot render. */
   href: string
 }
@@ -88,6 +90,7 @@ export function listItemOf(input: {
   why: { fits: string[]; gap: string | null } | null | undefined
   fact: string | null
   signal?: PostingSignal | null
+  aiExposureHigh?: boolean
 }): JobListItem {
   return {
     id: input.id,
@@ -100,6 +103,7 @@ export function listItemOf(input: {
     reason: reasonLine(input.why, input.verdict),
     fact: input.fact,
     signal: input.signal && input.fact === POSTING_SIGNAL_TAG[input.signal] ? input.signal : null,
+    ...(input.aiExposureHigh ? { aiExposureHigh: true } : {}),
     href: input.kind === 'board' ? `/dashboard/jobs/${input.id}?src=board` : '/dashboard/find-my-job',
   }
 }

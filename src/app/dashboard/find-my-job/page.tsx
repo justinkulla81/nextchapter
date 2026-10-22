@@ -43,6 +43,8 @@ import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSi
 import { becauseLine, DISMISS_REASONS, shouldAskToHide } from '@/lib/jobs/job-dismiss'
 import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
 import { parseAiView, type AiView } from '@/lib/jobs/ai-view'
+import { loadAeiOccupations } from '@/lib/aei/server'
+import { exposureViewFor, loadExposureRank } from '@/lib/aei/board-server'
 import { aiViewKeep, loadAiPostingIds } from '@/lib/jobs/ai-view-server'
 import { loadPostingSignalMap } from '@/lib/jobs/posting-signals-server'
 import { isOpenToChangers, parseOpenParam, wantsChangerLift } from '@/lib/jobs/posting-signals'
@@ -156,6 +158,7 @@ import { BoardSearchTracker } from '@/components/dashboard/one-board/BoardSearch
 import { buildBoardSearch, warmSearchIndex, type BoardSearch } from '@/lib/jobs/board-search-index'
 import { boardHref, boardHrefWithout, BOARD_SEARCH_URL_PARAMS } from '@/lib/jobs/board-url'
 import {
+  isExposureSort,
   isSearchActive,
   metroLabel,
   parseBoardSearchParams,
@@ -522,9 +525,11 @@ async function JobRecommendationsSection({
   // classifies their titles the same way the board's jobs were levelled.
   // Great pay / great benefits: partner-search jobs carry no pay verdict or
   // benefits of their own, so only the employer-level signals can keep them.
-  const [greatSets, payHighCompanies] = await Promise.all([
+  const [greatSets, payHighCompanies, aeiOccupations] = await Promise.all([
     greatFilters.length > 0 ? loadGreatSets() : Promise.resolve(null),
     loadPayHighCompanies(),
+    // AI exposure (Anthropic Economic Index): the High badge and the drawer's details. Fail-soft (empty).
+    loadAeiOccupations(),
   ])
   const keepGreat = greatSets ? greatFilterPredicate(greatFilters, greatSets) : null
   const surfacedJobs = (
@@ -750,6 +755,7 @@ async function JobRecommendationsSection({
         matchReason: reasons.get(posting.id),
         candidatePlus,
         signalLift,
+        aiExposure: exposureViewFor(aeiOccupations, posting),
       }),
       // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
       rank:
@@ -1188,6 +1194,7 @@ async function FindMyJobBody({
     greatSets,
     searchMatcher,
     aiIds,
+    exposureRank,
     signalMap,
   ] = await Promise.all([
     emailConnectionPromise,
@@ -1225,6 +1232,11 @@ async function FindMyJobBody({
     // AI / Non-AI: the ids of jobs that ask for an AI skill (cached; ~80 ms cold). Board tab only.
     onBoard ? loadAiPostingIds().catch((error) => {
       console.error('AI job ids unavailable, AI / Non-AI buttons hidden:', error)
+      return null
+    }) : Promise.resolve(null),
+    // "Most / Least exposed to AI" (Anthropic Economic Index): each row's exposure rank, only for those sorts.
+    onBoard && isExposureSort(boardSearch.sort) ? loadExposureRank().catch((error) => {
+      console.error('AI exposure unavailable, the exposure sort falls back to best match:', error)
       return null
     }) : Promise.resolve(null),
     // Posting signals (posting-signals-server.ts, cached): the open-to-changers filter and the welcome lift.
@@ -1313,6 +1325,7 @@ async function FindMyJobBody({
         : undefined,
       // The welcome lift: a tie-break within a fit level, after the level gate (board-shortlist.ts).
       lift: changerLift && signalMap ? (p) => isOpenToChangers(signalMap.get(p.id)) : undefined,
+      exposure: exposureRank ?? undefined,
     }),
     matchedRoleTypes.length > 0 ? getMatchedRolesForCandidate(profile.id, [...matchedRoleTypes]) : Promise.resolve([]),
     getWatchlistView(profile.id),

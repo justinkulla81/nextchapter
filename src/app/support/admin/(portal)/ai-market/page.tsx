@@ -23,7 +23,8 @@ function PremiumCells({ p }: { p?: AiPremium }) {
 
 /**
  * The two AI metrics and the live AI pay premium (ai-market-live.ts), for the admin and the B2B
- * pitch. Use "AI-skill jobs" for public claims; "AI-exposed" is the broader, labelled count.
+ * pitch. Use "AI-skill jobs" for public claims; "AI-in-role" (the aiExposed column) is the broader, labelled
+ * count — renamed on screen 2026-10-22 so it is not confused with AI exposure from the Anthropic Economic Index.
  */
 export default async function AiMarketAdminPage() {
   await requireAdmin()
@@ -56,9 +57,10 @@ export default async function AiMarketAdminPage() {
           </p>
         </div>
         <div className="rounded-lg border border-border p-4">
-          <p className="text-sm text-muted-foreground">AI-exposed jobs (broader; always say what it means)</p>
+          <p className="text-sm text-muted-foreground">AI-in-role jobs (broader; always say what it means)</p>
           <p className="text-3xl font-semibold">{c.aiExposed.toLocaleString()}</p>
           <p className="text-xs text-muted-foreground">
+            Not the board&apos;s &quot;AI exposure (Anthropic Economic Index)&quot;, which measures AI use on the occupation&apos;s tasks.{' '}
             A specific AI skill, an AI/ML term in the title, a data &amp; AI role whose role text mentions AI, or an AI tool named in the role text.{' '}
             {((100 * c.aiExposed) / Math.max(1, c.live)).toFixed(1)}% of live jobs; {((100 * c.aiExposedFullText) / Math.max(1, c.fullText)).toFixed(1)}% of full-text jobs.
           </p>

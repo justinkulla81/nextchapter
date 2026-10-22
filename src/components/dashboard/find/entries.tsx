@@ -16,6 +16,7 @@ import type { SkillsFit } from '@/lib/careers/skills-fit'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import type { EmployerSignals } from '@/lib/jobs/great-employer-display'
 import type { JobBenefits } from '@/lib/jobs/benefits'
+import type { AiExposureView } from '@/lib/aei/job-exposure'
 import { FindJobDetail } from '@/components/dashboard/find/FindJobDetail'
 import { FindSurfacedDetail } from '@/components/dashboard/find/FindSurfacedDetail'
 
@@ -48,6 +49,8 @@ export function boardEntry(a: {
   candidatePlus: boolean
   /** Changing careers or early career: the welcome tag wins the row's one fact (posting-signals.ts). */
   signalLift?: boolean
+  /** AI exposure from the Anthropic Economic Index (src/lib/aei/); null when the occupation has no data. */
+  aiExposure?: AiExposureView | null
 }): FindEntry {
   const { posting } = a
   const signal = postingSignalTag(posting.postingSignals, { lift: !!a.signalLift })
@@ -71,6 +74,7 @@ export function boardEntry(a: {
       signalFirst: !!signal && tagTakesHintSlot(signal, !!a.signalLift),
     }),
     signal,
+    aiExposureHigh: a.aiExposure?.level === 'high',
   })
   const nextStep = nextStepFor({
     blocker: a.match.requirements.find((r) => r.status === 'blocker')?.label ?? null,
@@ -101,6 +105,7 @@ export function boardEntry(a: {
         matchReason={a.matchReason}
         bridge={a.bridge}
         candidatePlus={a.candidatePlus}
+        aiExposure={a.aiExposure ?? undefined}
       />
     ),
   }

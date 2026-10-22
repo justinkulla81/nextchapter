@@ -34,6 +34,8 @@ import type { Bridge } from '@/lib/jobs/relevance'
 import type { PayVsMarket } from '@/lib/pay/market-pay'
 import { PayVsMarketBadge } from '@/components/companies/CompanyOpeningsList'
 import { RepostNote } from '@/components/jobs/RepostNote'
+import { AiExposureDetail } from '@/components/jobs/AiExposure'
+import type { AiExposureView } from '@/lib/aei/job-exposure'
 import { ReportClosedButton } from '@/components/jobs/ReportClosedButton'
 import { NativeApply } from '@/components/jobs/NativeApply'
 import { ApplyKit } from '@/components/jobs/ApplyKit'
@@ -79,6 +81,8 @@ export interface FindJobDetailProps {
   /** On the job's own page (not beside the list): shows the whole listing and no link back to itself. */
   standalone?: boolean
   posting: ExclusiveJobPosting
+  /** AI exposure (Anthropic Economic Index, src/lib/aei/); absent when the occupation has no data. */
+  aiExposure?: AiExposureView
   /** The list row for this job: the same verdict and reason the member just read. */
   item: JobListItem
   fitBucket: FitBucket
@@ -103,6 +107,7 @@ export interface FindJobDetailProps {
 export function FindJobDetail({
   standalone = false,
   posting,
+  aiExposure,
   item,
   fitBucket,
   nextStep,
@@ -271,13 +276,14 @@ export function FindJobDetail({
         </Section>
       )}
 
-      {(posting.marketPayLow || payLabel || (posting.description && !confidential)) && (
+      {(posting.marketPayLow || payLabel || (posting.description && !confidential) || aiExposure) && (
         <Section id={`role-${posting.id}`} title={standalone ? 'From the listing' : 'About the role'}>
           {payLabel && !posting.marketPayLow && <p className="text-base text-ink">{payLabel}</p>}
           <MarketPayLine posting={posting} workType={workType} />
           {posting.description && !confidential && (
             <p className={cn('text-sm text-muted-foreground', standalone ? 'whitespace-pre-line' : 'line-clamp-3')}>{posting.description}</p>
           )}
+          {aiExposure && <AiExposureDetail jobId={posting.id} view={aiExposure} surface={standalone ? 'job_page' : 'find_pane'} />}
         </Section>
       )}
 

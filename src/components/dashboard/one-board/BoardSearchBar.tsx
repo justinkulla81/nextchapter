@@ -11,6 +11,7 @@ import {
   BOARD_SORTS,
   BOARD_SORT_LABEL,
   EMPTY_BOARD_SEARCH,
+  isExposureSort,
   REMOTE_FILTERS,
   REMOTE_FILTER_LABEL,
   parseBoardSearchParams,
@@ -154,13 +155,29 @@ export function BoardSearchBar() {
           pending={pending}
           onSelect={(k) => apply({ ...current, remote: k === 'any' ? null : (k as RemoteFilter) })}
         />
-        <ButtonGroup
-          label="Sort"
-          options={BOARD_SORTS.map((s) => ({ key: s, label: BOARD_SORT_LABEL[s] }))}
-          value={applied.sort}
-          pending={pending}
-          onSelect={(k) => apply({ ...current, sort: k as BoardSort })}
-        />
+        {/* Five sorts: a list, not buttons (design principles). The AI ones read the Anthropic Economic Index. */}
+        <label className="flex items-center gap-2">
+          <span className="text-muted-foreground">Sort</span>
+          <select
+            value={applied.sort}
+            aria-busy={pending}
+            onChange={(e) => {
+              const sort = e.target.value as BoardSort
+              if (isExposureSort(sort)) posthog.capture('job_board_ai_exposure_sorted', { sort, previous: applied.sort, q: applied.q, loc: applied.loc })
+              apply({ ...current, sort })
+            }}
+            className={cn(
+              'h-8 rounded-md border border-border bg-background px-2 text-sm text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:outline-none',
+              pending && 'cursor-wait'
+            )}
+          >
+            {BOARD_SORTS.map((s) => (
+              <option key={s} value={s}>
+                {BOARD_SORT_LABEL[s]}
+              </option>
+            ))}
+          </select>
+        </label>
         {hasAnything && (
           <button
             type="button"

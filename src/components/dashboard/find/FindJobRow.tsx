@@ -4,8 +4,10 @@ import { Avatar } from '@/components/candidate/ui'
 import type { JobListItem } from '@/lib/jobs/find-list'
 import { cn } from '@/lib/utils'
 import { PostingSignalTag } from '@/components/jobs/PostingSignalTag'
+import { AiExposureBadge } from '@/components/jobs/AiExposure'
 
 // One job in the list: title, company and place, ONE verdict with its ONE reason, ONE fact. Nothing else
+// (a High AI exposure badge shares the fact line; it adds no line and shows on about one row in nine)
 // (docs/candidate-redesign.md, page contract 5). Opening it is a link to the job's own address with the
 // job in the URL, so a new tab or a copied link opens the same job; a plain click only switches the pane.
 export function FindJobRow({ item, selected, passed, href, onChoose }: { item: JobListItem; selected: boolean; passed: boolean; href: string; onChoose: () => void }) {
@@ -35,8 +37,9 @@ export function FindJobRow({ item, selected, passed, href, onChoose }: { item: J
               </>
             )}
           </span>
-          {item.fact && !passed && (
+          {(item.fact || item.aiExposureHigh) && !passed && (
             <span className="block text-xs text-muted-foreground">
+              {item.aiExposureHigh && <AiExposureBadge />}
               {item.signal ? <PostingSignalTag jobId={item.id} signal={item.signal} surface="find_list" /> : item.fact}
             </span>
           )}

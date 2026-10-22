@@ -10,8 +10,12 @@ export type AiView = 'all' | 'ai' | 'other'
 /** Button order: AI, Non-AI, All (All is the default). */
 export const AI_VIEWS: AiView[] = ['ai', 'other', 'all']
 
-/** Labels for jobs (the board). */
-export const AI_VIEW_JOB_LABEL: Record<AiView, string> = { ai: 'AI', other: 'Non-AI', all: 'All' }
+/**
+ * Labels for jobs (the board). Named for what they mean — the posting asks for an AI skill — so they
+ * can't be read as the board's other AI signal, "AI exposure (Anthropic Economic Index)" (src/lib/aei/:
+ * how much AI is already used on the occupation's work, the "Most / Least exposed to AI" sorts).
+ */
+export const AI_VIEW_JOB_LABEL: Record<AiView, string> = { ai: 'Asks for AI skills', other: 'No AI skills asked', all: 'All' }
 /** Labels for skills (skills gap, Learning). */
 export const AI_VIEW_SKILL_LABEL: Record<AiView, string> = { ai: 'AI skills', other: 'Other skills', all: 'All' }
 
