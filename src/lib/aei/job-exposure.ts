@@ -1,4 +1,5 @@
 // AI exposure from the Anthropic Economic Index (AEI): the one signal the job board shows per job.
+// (exposure.ts beside this file is the reports' AEI section: Anthropic's "observed exposure" vintages.)
 // Pure and client-safe; the data lives in AeiOccupation (prisma/manual/2026-10-22-aei-exposure.sql),
 // built from the AEI release on Hugging Face (scripts/careers/aei/).
 //
