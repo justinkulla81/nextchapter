@@ -38,11 +38,16 @@ function stem(token: string): string {
   return token
 }
 
-/** Lowercases, drops location/team tails, parentheses, levels and numerals, and stems. */
-export function normalizeTitle(raw: string): string {
+/**
+ * Lowercases, drops parentheses, levels and numerals, and stems. A job posting title
+ * also drops its location/team tail ("Engineer, Platform - Austin" is "engineer");
+ * an occupation title keeps everything, because its comma is part of the name
+ * ("Directors, Religious Activities and Education" is not just "directors").
+ */
+export function normalizeTitle(raw: string, kind: 'posting' | 'occupation' = 'posting'): string {
   let t = raw.toLowerCase()
   t = t.replace(/\([^)]*\)/g, ' ')
-  t = t.split(/\s[-–—|@]\s|,|;|\/(?=\s)|\bat\b/)[0] ?? t
+  if (kind === 'posting') t = t.split(/\s[-–—|@]\s|,|;|\/(?=\s)|\bat\b/)[0] ?? t
   t = t.replace(/&/g, ' and ').replace(/[^a-z0-9\s]/g, ' ')
   const tokens = t
     .split(/\s+/)
@@ -73,12 +78,23 @@ export interface TitleIndex {
  * titles are split (never lists with commas or "Except" clauses), and a part must
  * be a plural noun or more than one word, so "General" alone is never an alias.
  */
+const GENERIC_ROLE_WORDS = new Set([
+  'director', 'manager', 'specialist', 'analyst', 'assistant', 'clerk', 'officer', 'supervisor', 'coordinator',
+  'technician', 'worker', 'representative', 'agent', 'administrator', 'executive', 'consultant', 'advisor',
+  'adviser', 'associate', 'engineer', 'scientist', 'teacher', 'instructor', 'inspector', 'operator',
+])
+
 function alternatesOf(title: string): string[] {
   const t = title.replace(/\([^)]*\)/g, ' ').trim()
   if (/\ball other\b/i.test(t) || /,|\bexcept\b/i.test(t)) return []
   const parts = t.split(/\s+and\s+/i).map((p) => p.trim()).filter(Boolean)
   if (parts.length !== 2) return []
-  return parts.filter((p) => p.split(/\s+/).length > 1 || /s$/i.test(p))
+  return parts.filter((p) => {
+    const words = p.split(/\s+/)
+    if (words.length > 1) return true
+    // One word must be plural and specific: "Auditors" yes, "Directors" or "Managers" no.
+    return /s$/i.test(p) && !GENERIC_ROLE_WORDS.has(normalizeTitle(p, 'occupation'))
+  })
 }
 
 /**
@@ -114,6 +130,7 @@ const ALIASES: Record<string, string> = {
   'construction project manager': '11-9021', 'construction manager': '11-9021',
   'engineering manager': '11-9041', 'director engineering': '11-9041', 'head engineering': '11-9041',
   'sales manager': '11-2022', 'regional sales manager': '11-2022', 'director sale': '11-2022', 'vice president sale': '11-2022',
+  'claim adjuster': '13-1031', 'claims examiner': '13-1031',
   'human resource manager': '11-3121', 'hr manager': '11-3121', 'human resources director': '11-3121',
 }
 
@@ -123,7 +140,7 @@ export function buildTitleIndex(rows: ExposureRow[]): TitleIndex {
   const bySoc = new Map(rows.map((r) => [r.socCode, r]))
   const add = (row: ExposureRow, text: string, method: 'exact' | 'alternate') => {
     if (/\ball other\b/i.test(text)) return
-    const key = normalizeTitle(text)
+    const key = normalizeTitle(text, 'occupation')
     if (!key) return
     const entry: IndexEntry = { row, tokens: new Set(key.split(' ')), head: key.split(' ').at(-1) ?? '', method }
     const existing = byKey.get(key)

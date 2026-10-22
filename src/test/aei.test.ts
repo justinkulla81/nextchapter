@@ -51,6 +51,11 @@ describe('title matching', () => {
     expect(matchTitle('Auditor', index)?.socCode).toBe('13-2011')
     expect(matchTitle('Chief Executive', index)?.socCode).toBe('11-1011')
   })
+  it('does not collapse an occupation title at its comma', () => {
+    const withDirectors = buildTitleIndex([...ROWS, { socCode: '11-9032', title: 'Directors, Religious Activities and Education', exposure: 0.2 }, { socCode: '27-2012', title: 'Producers and Directors', exposure: 0.2 }])
+    expect(matchTitle('Director, Global Indirect Tax', withDirectors)).toBeNull()
+    expect(matchTitle('Senior Director - Capture Management', withDirectors)).toBeNull()
+  })
   it('leaves unclear titles unmatched and skips "All Other" occupations', () => {
     expect(matchTitle('Growth Hacker Ninja', index)).toBeNull()
     expect(matchTitle('Managers', index)).toBeNull()
