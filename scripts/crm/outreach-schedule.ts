@@ -39,7 +39,12 @@ const hash = (s: string) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >
 const [file, out, startArg] = process.argv.slice(2)
 if (!file || !out) { console.log('usage: outreach-schedule.ts <merge.csv> <out.csv> [startDate]'); process.exit(0) }
 const PER_ARM = Number(process.env.PER_ARM ?? 3), PRODUCT = Number(process.env.PRODUCT_PER_DAY ?? 28), CAP = Number(process.env.DAILY_CAP ?? 100)
-const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => r.send === 'yes')
+// SENT_FILE (lines "email,YYYY-MM-DD"): emails already sent. They stay on the calendar on that date, so their follow-ups are scheduled, and they use no new slots.
+const sentOn = new Map<string, string>()
+if (process.env.SENT_FILE) for (const l of readFileSync(process.env.SENT_FILE, 'utf8').split('\n')) { const [e, d] = l.trim().split(','); if (e && d) sentOn.set(e.toLowerCase(), d) }
+// A person already emailed is tagged "already contacted" by the data build, which keeps them out of new sends. They still belong here so their follow-ups are
+// planned; anyone who replied, was passed, bounced or is on the do-not-contact list stays out.
+const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => r.send === 'yes' || (r.suppressed === 'already contacted' && r.ready === 'yes' && !r.duplicate && sentOn.has(r.email.toLowerCase())))
 const start = nextWeekday(Date.parse(startArg ?? iso(Date.now() + DAY)))
 
 type Aud = { noNew?: boolean; name: string; armOf: (r: Row) => string | null; pool: Row[]; arms: string[]; earliest?: (r: Row) => number }
@@ -63,9 +68,6 @@ const audiences: Aud[] = [
 
 type Out = { date: string; audience: string; arm: string; step: number; row: Row }
 const sched: Out[] = []
-// SENT_FILE (lines "email,YYYY-MM-DD"): emails already sent. They stay on the calendar on that date, so their follow-ups are scheduled, and they use no new slots.
-const sentOn = new Map<string, string>()
-if (process.env.SENT_FILE) for (const l of readFileSync(process.env.SENT_FILE, 'utf8').split('\n')) { const [e, d] = l.trim().split(','); if (e && d) sentOn.set(e.toLowerCase(), d) }
 for (const a of audiences) for (const r of a.pool) {
   const d = sentOn.get(r.email.toLowerCase()); const arm = a.armOf(r)
   if (d && arm) { ;(r as Row & { _used?: string })._used = '1'; sched.push({ date: d, audience: a.name, arm, step: 1, row: r }) }
