@@ -49,6 +49,7 @@ export async function countByCategory(): Promise<Record<string, number>> {
  */
 export async function programsForDeck(state: string | null, perCategory = 3): Promise<BenefitProgramRow[]> {
   try {
+    await seedCatalogIfEmpty()
     const all = await listPrograms({ state: state ?? undefined, limit: 400 })
     const live = all.filter((r) => r.status !== 'CLOSED' && r.url)
     const out: BenefitProgramRow[] = []
@@ -61,4 +62,15 @@ export async function programsForDeck(state: string | null, perCategory = 3): Pr
   } catch {
     return []
   }
+}
+
+/**
+ * Fills an empty table from the catalog bundled with the app (src/lib/benefits/catalog.json, built by
+ * scripts/benefits/build-catalog.ts). Only runs when the table has no rows, so it never overwrites.
+ */
+export async function seedCatalogIfEmpty(): Promise<number> {
+  const [{ n }] = await prisma.$queryRaw<{ n: bigint }[]>`SELECT COUNT(*) AS n FROM "BenefitProgram"`
+  if (Number(n) > 0) return 0
+  const catalog = (await import('./catalog.json')).default as unknown as (Omit<BenefitProgramRow, 'checkedAt'> & { checkedAt: string | null })[]
+  return upsertPrograms(catalog.map((r) => ({ ...r, checkedAt: r.checkedAt ? new Date(r.checkedAt) : null })))
 }

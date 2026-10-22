@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
-import { countByCategory, listPrograms } from '@/lib/benefits/store'
+import { countByCategory, listPrograms, seedCatalogIfEmpty } from '@/lib/benefits/store'
 import { CATEGORY_LABELS, CATEGORY_ORDER, type BenefitCategory } from '@/lib/benefits/types'
 import { formatDate } from '@/lib/crm/labels'
 
@@ -26,6 +26,8 @@ export default async function CrmBenefitsPage({ searchParams }: { searchParams: 
   let counts: Record<string, number> = {}
   let missing = false
   try {
+    // First visit after the table is created: load the bundled catalog (no-op once it has rows).
+    await seedCatalogIfEmpty()
     ;[rows, counts] = await Promise.all([listPrograms({ category, state, status, q, verifiedOnly, limit: 300 }), countByCategory()])
   } catch {
     missing = true
@@ -54,8 +56,7 @@ export default async function CrmBenefitsPage({ searchParams }: { searchParams: 
 
       {missing ? (
         <p className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
-          The BenefitProgram table is not applied yet. Run <code>prisma/manual/benefit-programs.sql</code>, then load the catalog with{' '}
-          <code>npx tsx scripts/benefits/import-benefits.ts --apply</code>.
+          The BenefitProgram table is not applied yet. Run <code>prisma/manual/benefit-programs.sql</code>, then open this tab again; it fills itself from the bundled catalog.
         </p>
       ) : (
         <>

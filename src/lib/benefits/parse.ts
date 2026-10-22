@@ -88,7 +88,8 @@ export function parseCatalog(markdown: string, category: BenefitCategory, source
     const urlRaw = get('url') ?? fields.find((f) => /^https?:\/\//.test(f))
     const url = urlRaw && /^https?:\/\/\S+/.test(urlRaw) ? urlRaw.match(/^https?:\/\/\S+/)![0].replace(/[),.;]+$/, '') : null
     const ver = (get('verified') ?? '').trim().toLowerCase()
-    const verified = /^(y|v|yes)\b/.test(ver)
+    const doubt = /uncertain|unconfirmed|not found|\b404\b|unverified|stale|conflict|dissolved|confirm\b/i
+    const verified = /^(y|v|yes)\b/.test(ver) && !doubt.test(`${get('status') ?? ''} ${get('eligibility') ?? ''}`)
     const statusText = get('status') ?? ''
     const amount = [get('amount'), get('cost')].filter(Boolean).join(' · ') || null
     const id = `${category.toLowerCase()}:${state ?? 'us'}:${slug(name)}`
