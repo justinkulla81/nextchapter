@@ -54,6 +54,10 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     explainGapsEnabled: false,
     watched: false,
     candidatePlus: true,
+    aiExposure: {
+      level: 'high', occupation: 'Financial Managers', source: 'title', tasksUsed: 9, taskCount: 17, collab: 'augments', automationPct: 41, augmentationPct: 59,
+      topTasks: ['Prepare operational or risk reports for management analysis.', 'Evaluate data pertaining to costs to plan budgets.', 'Analyze the financial details of past, present, and expected operations.'],
+    },
   },
   {
     posting: posting({ id: 'ed-byrdcliffe', title: 'Executive Director', companyName: 'Byrdcliffe', location: 'Remote', source: 'employer', submittedByEmployerId: 'emp-1', postingType: 'direct', sourceCategory: 'employer', salaryMin: 210000, salaryMax: 250000, description: DESCRIPTION, createdAt: hoursAgo(5), postedAt: hoursAgo(5), targetRemotePolicy: 'remote', postingSignals: ['high_eq'] }),
@@ -74,6 +78,7 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     explainGapsEnabled: false,
     watched: false,
     candidatePlus: false,
+    aiExposure: { level: 'medium', occupation: 'General and Operations Managers', source: 'function', tasksUsed: 5, taskCount: 17, collab: 'both', automationPct: 48, augmentationPct: 52, topTasks: ['Prepare staff work schedules and assign specific duties.'] },
   },
   {
     posting: posting({ id: 'pres-lemaitre', title: 'President', companyName: 'Lemaitre Vascular', location: 'Burlington, MA', salaryMin: 300000, salaryMax: 380000, description: DESCRIPTION, createdAt: daysAgo(5), postedAt: daysAgo(5), postingSignals: ['ai_upskilled_welcome'] }),

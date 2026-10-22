@@ -35,6 +35,7 @@ describe('the occupation a job is read as', () => {
     expect(aeiSocFor({ socCode: null, title: 'Principal Engineer, Platform', fn: 'Engineering', level: 'PRINCIPAL' }).soc).toBe('15-1252.00')
     expect(aeiSocFor({ socCode: null, title: 'Spacecraft Mechanisms Build Engineer', fn: 'Engineering', level: 'MID_IC' }).soc).toBe('17-2199.00')
     expect(aeiSocFor({ socCode: null, title: 'Support Lead', fn: 'Customer Success', level: 'MID_IC' }).soc).toBe('43-4051.00')
+    expect(aeiSocFor({ socCode: null, title: 'Help Desk Manager', fn: 'Engineering', level: 'MANAGER' }).soc).toBe('11-3021.00')
     expect(aeiSocFor({ socCode: null, title: 'Senior Paralegal', fn: 'Legal', level: 'SENIOR_IC' }).soc).toBe('23-2011.00')
   })
 

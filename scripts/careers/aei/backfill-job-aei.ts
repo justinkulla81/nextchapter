@@ -46,12 +46,23 @@ async function main() {
       }
     }
     if (!dry && ids.length > 0) {
-      await prisma.$transaction([
-        prisma.$executeRaw`SET LOCAL statement_timeout = '60s'`,
-        prisma.$executeRaw`
-          UPDATE "ExclusiveJobPosting" AS j SET "aeiSocCode" = v.soc, "aeiSocSource" = v.src, "aiExposureLevel" = v.lvl
-          FROM unnest(${ids}::text[], ${socs}::text[], ${sources}::text[], ${levels}::text[]) AS v(id, soc, src, lvl) WHERE j."id" = v.id`,
-      ])
+      // A concurrent import can deadlock with a page: retry it (the page is idempotent).
+      for (let attempt = 1; ; attempt++) {
+        try {
+          await prisma.$transaction([
+            prisma.$executeRaw`SET LOCAL statement_timeout = '60s'`,
+            prisma.$executeRaw`SET LOCAL lock_timeout = '10s'`,
+            prisma.$executeRaw`
+              UPDATE "ExclusiveJobPosting" AS j SET "aeiSocCode" = v.soc, "aeiSocSource" = v.src, "aiExposureLevel" = v.lvl
+              FROM unnest(${ids}::text[], ${socs}::text[], ${sources}::text[], ${levels}::text[]) AS v(id, soc, src, lvl) WHERE j."id" = v.id`,
+          ])
+          break
+        } catch (error) {
+          if (attempt >= 5) throw error
+          console.warn(`page after ${lo}: attempt ${attempt} failed, retrying`, (error as Error).message.split('\n')[0])
+          await new Promise((r) => setTimeout(r, 2000 * attempt))
+        }
+      }
     }
     changed += ids.length
     if ((seen / PAGE) % 20 === 0) console.log(`${seen} seen, ${changed} ${dry ? 'would change' : 'changed'} (${Math.round((Date.now() - t0) / 1000)}s)`)

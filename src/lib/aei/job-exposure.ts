@@ -85,6 +85,7 @@ const EXEC_LEVELS = new Set(['C_SUITE', 'EVP_SVP', 'BOARD'])
 
 const SOFTWARE = /\b(software|developer|devops|sre|site reliability|cloud|platform|data|machine learning|ml|ai|frontend|front end|backend|back end|full stack|fullstack|mobile|ios|android|web|application|qa|test|it|salesforce|sap|oracle|workday|servicenow|network|systems?|solutions?)\b/i
 const ACCOUNTING = /\b(accounting|accountants?|audit|auditors?|tax|payroll|billing|accounts? (payable|receivable)|ap|ar|controller|bookkeep\w*|reconcil\w*)\b/i
+const IT_SUPPORT = /\b(help ?desk|service desk|desktop support|it support|technical support|tech support|end user support)\b/i
 const SUPPORT = /\b(support|service|help ?desk|call center|contact center)\b/i
 const PARALEGAL = /\b(paralegal|legal assistant|legal secretary)\b/i
 const COMPLIANCE = /\b(compliance|regulatory|risk)\b/i
@@ -95,6 +96,7 @@ function proxyFor(fn: string, title: string, manager: boolean, exec: boolean): s
   const t = title
   switch (fn) {
     case 'engineering':
+      if (IT_SUPPORT.test(t)) return manager ? '11-3021.00' : '15-1232.00'
       return SOFTWARE.test(t) ? (manager ? '11-3021.00' : '15-1252.00') : manager ? '11-9041.00' : '17-2199.00'
     case 'data & analytics':
       return manager ? '11-3021.00' : '15-2051.00'
