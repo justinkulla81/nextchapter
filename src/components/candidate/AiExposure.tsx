@@ -20,7 +20,7 @@ export function ExposureCredit() {
 }
 
 /** One occupation: what is happening, the number with its band, why we say it, and the credit. */
-export function ExposureFact({ exposure }: { exposure: OccupationExposure }) {
+export function ExposureFact({ exposure, credit = true }: { exposure: OccupationExposure; credit?: boolean }) {
   return (
     <div className="space-y-2">
       <p className="text-base text-ink">{exposureSentence(exposure)}</p>
@@ -32,7 +32,7 @@ export function ExposureFact({ exposure }: { exposure: OccupationExposure }) {
         <span className="text-sm text-muted-foreground">{scorePercent(exposure.score)}</span>
       </div>
       <p className="text-sm text-muted-foreground">{EXPOSURE_WHY}</p>
-      <ExposureCredit />
+      {credit && <ExposureCredit />}
     </div>
   )
 }
@@ -44,7 +44,7 @@ const SEGMENTS: { band: ExposureBand; className: string }[] = [
 ]
 
 /** The jobs we see, split by how much AI use is observed in their occupation, with how much of the market that covers. */
-export function JobsByExposure({ split, label }: { split: JobsByExposure; label: string }) {
+export function JobsByExposure({ split, label, credit = true }: { split: JobsByExposure; label: string; credit?: boolean }) {
   if (!split.measured) return null
   const pct = (n: number) => `${Math.round(n * 100)}%`
   return (
@@ -65,7 +65,7 @@ export function JobsByExposure({ split, label }: { split: JobsByExposure; label:
       <p className="text-sm text-muted-foreground">
         Of the {split.measured.toLocaleString('en-US')} openings we could place in an occupation ({pct(split.coverage)} of all openings we see). Openings we could not place are not counted.
       </p>
-      <ExposureCredit />
+      {credit && <ExposureCredit />}
     </div>
   )
 }

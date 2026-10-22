@@ -45,7 +45,7 @@ export function ExposureMarketReport() {
         <p className="text-lg text-ink">You are qualified for the roles you want, and few people are. The search will be slow unless a warm introduction opens the door, so build that first and fix the résumé in parallel.</p>
         <div className="rounded-xl bg-muted/70 p-4 space-y-4">
           <p className="text-sm font-semibold text-ink">AI at work, for the roles you are going after</p>
-          <ExposureFact exposure={YOU} />
+          <ExposureFact exposure={YOU} credit={false} />
           <JobsByExposure split={SPLIT} label="Openings we see by AI exposure" />
         </div>
       </Module>
