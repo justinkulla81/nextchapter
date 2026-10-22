@@ -758,6 +758,8 @@ export async function loadBoardShortlist(opts: {
    * The board passes it for members changing careers or early in their career.
    */
   lift?: (p: BoardRankRow) => boolean
+  /** AI exposure rank for the "Most / Least exposed to AI" sorts (src/lib/aei/board-server.ts). */
+  exposure?: (p: BoardRankRow) => number
 }): Promise<BoardShortlist> {
   // Only relevant jobs reach a member: not confidently outside the US, and not a
   // listing that looks evergreen or fake (see ghost-risk.ts). Excluded rows are kept
@@ -963,6 +965,8 @@ export function rankBoardRows(
     levelWindow?: StageWindow
     /** Welcome lift: a tie-break within the same fit level (see loadBoardShortlist). */
     lift?: (p: BoardRankRow) => boolean
+    /** AI exposure rank (src/lib/aei/board-server.ts: 3 High … 1 Low, 0 none) for the ai_most / ai_least sorts. */
+    exposure?: (p: BoardRankRow) => number
   }
 ) {
   const defaultSize = opts.size ?? 300
@@ -994,6 +998,8 @@ export function rankBoardRows(
     pen: number
     /** Welcome lift (posting-signals.ts): 0 = lifted, 1 = not. Only breaks ties within a fit level. */
     lift: number
+    /** AI exposure rank (3 High … 1 Low, 0 no data); 0 unless an exposure sort is on. */
+    ex: number
     canOpen: boolean
     fresh: boolean
     low: boolean
@@ -1005,6 +1011,7 @@ export function rankBoardRows(
     notes: string[]
   }
   const now = opts.now ?? new Date()
+  const exposureOn = !!opts.exposure && (opts.sort === 'ai_most' || opts.sort === 'ai_least')
   const typeFilter = opts.workTypes && opts.workTypes.length > 0 ? new Set(opts.workTypes) : null
   const breadthOn = !!opts.place && !!opts.breadth
   const selecting = breadthOn && !opts.breadthKeepUnmatched
@@ -1069,6 +1076,7 @@ export function rankBoardRows(
       cls: placed === undefined ? 0 : placed === null || ring === null ? MATCH_RANK_UNMATCHED : ring === 0 ? placed.rank : 4 + ring,
       pen: opts.dismiss ? opts.dismiss.penalty(p) : 0,
       lift: opts.lift && opts.lift(p) ? 0 : 1,
+      ex: exposureOn ? opts.exposure!(p) : 0,
       canOpen: true, // every member sees every job (owner's rule, 2026-10-16): `locked` is always empty
       fresh: isFresh(p, now),
       low: competition === 'low',
@@ -1175,9 +1183,13 @@ export function rankBoardRows(
         ? (a, b) => b.posted - a.posted || fit(a, b)
         : opts.sort === 'pay'
           ? (a, b) => b.pay - a.pay || fit(a, b)
-          : opts.relevance
-            ? (a, b) => a.rel - b.rel || fit(a, b)
-            : fit
+          : exposureOn && opts.sort === 'ai_most'
+            ? (a, b) => b.ex - a.ex || fit(a, b)
+            : exposureOn && opts.sort === 'ai_least'
+              ? (a, b) => (a.ex || 9) - (b.ex || 9) || fit(a, b)
+              : opts.relevance
+                ? (a, b) => a.rel - b.rel || fit(a, b)
+                : fit
     )
     const perCompanyCap = opts.perCompany ?? PER_COMPANY
     const picked: string[] = []

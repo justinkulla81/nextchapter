@@ -28,9 +28,18 @@ import { SHARED_METRO_STATES } from '@/lib/jobs/metro-states'
 
 // ── URL parameters ──────────────────────────────────────────────────────────
 
-export const BOARD_SORTS = ['best', 'newest', 'pay'] as const
+export const BOARD_SORTS = ['best', 'newest', 'pay', 'ai_most', 'ai_least'] as const
 export type BoardSort = (typeof BOARD_SORTS)[number]
-export const BOARD_SORT_LABEL: Record<BoardSort, string> = { best: 'Best match', newest: 'Newest', pay: 'Highest pay' }
+// ai_most / ai_least: AI exposure from the Anthropic Economic Index (src/lib/aei/job-exposure.ts).
+export const BOARD_SORT_LABEL: Record<BoardSort, string> = {
+  best: 'Best match',
+  newest: 'Newest',
+  pay: 'Highest pay',
+  ai_most: 'Most exposed to AI',
+  ai_least: 'Least exposed to AI',
+}
+/** Sorts by AI exposure (they need the AEI rank, board-server.ts). */
+export const isExposureSort = (s: BoardSort | undefined): boolean => s === 'ai_most' || s === 'ai_least'
 
 export const REMOTE_FILTERS = ['remote', 'hybrid', 'onsite'] as const
 export type RemoteFilter = (typeof REMOTE_FILTERS)[number]

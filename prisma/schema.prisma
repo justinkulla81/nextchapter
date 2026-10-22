@@ -5366,6 +5366,14 @@ model ExclusiveJobPosting {
   aiExposureWhy     String[] @default([])
   aiMention         Boolean?
   aiBasis           String?
+  // AI exposure from the Anthropic Economic Index (src/lib/aei/, prisma/manual/2026-10-22-aei-exposure.sql):
+  // a different thing from aiExposed above (AI asked for in the posting). aeiSocCode is the occupation
+  // the job is read as — the crawler's title match (aeiSocSource 'title'), else a fixed function x level
+  // proxy ('function'), else a generic one by level ('default'). aiExposureLevel: high | medium | low
+  // (AeiOccupation.exposureLevel), null when the occupation has no AEI data.
+  aeiSocCode        String?
+  aeiSocSource      String?
+  aiExposureLevel   String?
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
@@ -15763,6 +15771,60 @@ model OccupationTask {
   taskType   String // CORE | SUPPLEMENTAL
 
   @@unique([socCode, taskId])
+}
+
+// Anthropic Economic Index (AEI) by occupation and task — src/lib/aei/, loaded by
+// scripts/careers/aei/load-aei.ts from the AEI release on Hugging Face (raw files in the crawler's
+// data/aei/). Measures how much people use Claude for an occupation's tasks, not job loss.
+// prisma/manual/2026-10-22-aei-exposure.sql.
+model AeiOccupation {
+  socCode          String   @id
+  title            String
+  release          String
+  basis            String // tasks | related (no O*NET tasks: its siblings' mean)
+  taskCount        Int      @default(0)
+  tasksUsed        Int      @default(0)
+  taskCoveragePct  Float?
+  convSharePct     Float?
+  apiSharePct      Float?
+  automationPct    Float?
+  augmentationPct  Float?
+  observedExposure Float?
+  exposureLevel    String // high | medium | low (src/lib/aei/job-exposure.ts)
+  topTasks         Json     @default("[]")
+  updatedAt        DateTime @default(now())
+}
+
+model AeiTask {
+  taskId          Int     @id
+  socCode         String
+  text            String
+  usagePct        Float?
+  apiUsagePct     Float?
+  automationPct   Float?
+  augmentationPct Float?
+  covered         Boolean @default(false)
+
+  @@index([socCode])
+}
+
+model AeiTaskSkill {
+  taskId  Int
+  skillId String
+  via     String // alias | rule
+
+  @@id([taskId, skillId])
+  @@index([skillId])
+}
+
+model AeiSkill {
+  skillId         String  @id
+  name            String
+  taskCount       Int
+  usagePct        Float
+  automationPct   Float?
+  augmentationPct Float?
+  topTask         String?
 }
 
 // Other ways people write a tool or skill ("SFDC" for Salesforce) mapped to the O*NET skill

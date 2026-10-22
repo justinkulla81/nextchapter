@@ -10,6 +10,8 @@ import { applyMarketPay } from '@/lib/companies/hiring-index'
 import { canonicalIndustry, importOptionalFields, importSpecFields, importText } from '@/lib/jobs/import-optional-fields'
 import { functionLabelForTitle } from '@/lib/jobs/job-functions'
 import { subFunctionFor } from '@/lib/jobs/sub-functions'
+import { aeiSocFor } from '@/lib/aei/job-exposure'
+import { refreshAiExposureLevels } from '@/lib/aei/server'
 import { textSkillIds } from '@/lib/careers/text-skill-ids'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { isEmployerSector } from '@/lib/jobs/employer-sector'
@@ -209,10 +211,19 @@ function yearsRequiredOf(description: string | null | undefined) {
   return { yearsRequired: years ? (years as unknown as Prisma.InputJsonValue) : Prisma.DbNull }
 }
 
+// The occupation the job is read as for the Anthropic Economic Index (src/lib/aei/job-exposure.ts):
+// set only when the sender sent its O*NET match (or said it has none), so a row keeps what it holds.
+function aeiFieldsOf(job: ImportJobInput, level: string, optional: { socCode?: string | null }, sentFunction: string | null) {
+  if (!('socCode' in optional)) return {}
+  const { soc, source } = aeiSocFor({ socCode: optional.socCode ?? null, title: job.title, fn: sentFunction ?? inferFunctionFromTitle(job.title.trim()), level })
+  return { aeiSocCode: soc, aeiSocSource: source }
+}
+
 function rowData({ job, level }: Screened) {
   const optional = importOptionalFields(job)
   const sentFunction = 'function' in job && job.function !== undefined ? functionLabelForTitle(job.function, job.title) : null
   return {
+    ...aeiFieldsOf(job, level, optional as { socCode?: string | null }, sentFunction),
     // Sub-function (sub-functions.ts): allowlisted title patterns / O*NET codes within the job's function.
     subFunction: subFunctionFor({
       title: job.title,
@@ -438,6 +449,7 @@ export async function POST(request: NextRequest) {
       targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
       aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, postingSignals: true, directListing: true,
       aiExposed: true, aiExposureWhy: true, aiMention: true, aiBasis: true,
+      aeiSocCode: true, aeiSocSource: true,
       archivedAt: true, closeReason: true,
     },
   })
@@ -528,6 +540,8 @@ export async function POST(request: NextRequest) {
   const collapsed = await collapseDuplicates(duplicates.map((k) => k.job.url), now)
   await recordOpenings(kept.filter((k) => !staysClosed(k)), (k) => existingByUrl.get(k.job.url)?.companyId ?? companyIds.get(rowData(k).companyName) ?? null, now)
   await recordBenefits(kept)
+  // Each job's AI exposure level from its AEI occupation (best-effort, like the two above).
+  await refreshAiExposureLevels(kept.map((k) => k.job.url))
 
   let archived = 0
   if (body.fullSync) {
