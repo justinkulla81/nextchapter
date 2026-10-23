@@ -306,6 +306,11 @@ export const TIER_LABELS: Record<InstitutionTier, string> = { CAREER: 'Career', 
 
 export type WorkspaceFeatures = { wioa?: boolean }
 
+/** The feature switches in an institution's enabledFeatures JSON that gate workspaces. */
+export function workspaceFeaturesOf(enabledFeatures: unknown): WorkspaceFeatures {
+  return { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
+}
+
 const featureOn = (w: WorkspaceConfig, features: WorkspaceFeatures) => !w.feature || features[w.feature] === true
 const kindOn = (w: WorkspaceConfig, kind: OrgKind) => !w.orgKind || w.orgKind === kind
 

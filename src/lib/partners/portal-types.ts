@@ -18,7 +18,7 @@ export interface PortalTypeInfo {
 }
 
 export const PORTAL_TYPES: Record<PortalType, PortalTypeInfo> = {
-  employer: { key: 'employer', label: 'Employer', uses: ['Outplacement', 'Hiring', 'Retention'], chrome: '#0b2545' },
+  employer: { key: 'employer', label: 'Employer', uses: ['Outplacement', 'Retention', 'Learning and development', 'Job retraining', 'Hiring'], chrome: '#0b2545' },
   higher_ed: { key: 'higher_ed', label: 'Higher education', uses: ['Career services', 'Alumni'], chrome: '#6b1d2a' },
   workforce: { key: 'workforce', label: 'Workforce', uses: ['Workforce boards', 'Economic development'], chrome: '#1e4d3a' },
   recruiter: { key: 'recruiter', label: 'Recruiter', uses: [], chrome: '#3a3f7a' },
@@ -31,4 +31,17 @@ export const PORTAL_TYPE_ORDER: PortalType[] = ['employer', 'higher_ed', 'workfo
 export function portalTypeLabel(type: PortalType, use?: string | null): string {
   const info = PORTAL_TYPES[type]
   return use && info.uses.includes(use) ? `${info.label} · ${use}` : info.label
+}
+
+/**
+ * The employer portal is separately claimable, separately paid parts. The part shown in the top bar follows the route:
+ * Growth (retention contracts) and Learning (learning and development contracts) have their own; every other
+ * employer page belongs to Outplacement. "Job retraining" is declared but has no pages yet.
+ */
+export function employerUseForPath(pathname: string | null | undefined): string {
+  const path = pathname ?? ''
+  const under = (base: string) => path === base || path.startsWith(`${base}/`)
+  if (under('/employer/growth')) return 'Retention'
+  if (under('/employer/learning')) return 'Learning and development'
+  return 'Outplacement'
 }

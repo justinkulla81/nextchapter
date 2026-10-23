@@ -7,7 +7,7 @@ import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole, Prisma, 
 import { prisma } from '@/lib/prisma'
 import { isAdminEmail } from '@/lib/admin/is-admin-email'
 import { adminMfaSatisfied, type Aal } from '@/lib/admin/mfa'
-import { ALL_TOKENS, demoPersonaTokens, orgKindOf, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
+import { ALL_TOKENS, demoPersonaTokens, orgKindOf, workspaceFeaturesOf, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
 
 type Db = PrismaClient | Prisma.TransactionClient
 
@@ -96,7 +96,7 @@ export async function resolveInstitutionAccess(
   // enabledFeatures decides which feature-gated workspaces exist here; it
   // isn't part of the branding handed to pages.
   const { enabledFeatures, ...institution } = row
-  const features = { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
+  const features = workspaceFeaturesOf(enabledFeatures)
 
   const memberOnly = !!args.memberOnly
   const [staffUsers, member, employerLinks, ncAdmin] = await Promise.all([
@@ -192,7 +192,7 @@ export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?:
   })
   if (!row || !row.isDemo || !row.isSampleData) return null
   const { enabledFeatures, isSampleData: _s, ...institution } = row
-  const features = { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
+  const features = workspaceFeaturesOf(enabledFeatures)
   const demoPersona = args.demoPersona ?? 'all'
   const tokens = demoPersonaTokens(demoPersona)
   return {
