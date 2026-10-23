@@ -2,6 +2,7 @@ import { type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { verifyLink } from '@/lib/email/signed-links'
+import { briefOptOutUpdate } from '@/lib/senior-brief/rules'
 import { choicePage, confirmPage, messagePage } from '@/lib/http/confirm-page'
 
 // Unsigned links were sent before links carried a signature; they are honoured
@@ -28,6 +29,8 @@ const MESSAGE_BY_TYPE: Record<string, string> = {
   weekly: "You won't receive the Monday plan, \"a way in\" connection emails, or check-ins when you have been away anymore. Your other NextChapter emails are unchanged.",
   sprintGoal: "You won't receive any more Weekly Search Sprint goal-setting reminders.",
   upgradeOffer: "You won't receive coaching plan offers anymore. Your other NextChapter emails are unchanged.",
+  seniorBrief: "You won't receive the Monday message email anymore. Your other NextChapter emails are unchanged.",
+  seniorBriefPause: "Got it. We won't draft or email you a Monday message for the next 90 days. Your other NextChapter emails are unchanged.",
 }
 const DEFAULT_MESSAGE = "You won't receive any more reminder emails from NextChapter about finishing your account."
 
@@ -94,6 +97,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .catch(() => {})
     captureServerEvent(candidateId, 'email_send_fewer_chosen', { type })
     return messagePage("Done. You'll get your plan on Monday and a check-in on Thursday, plus anything urgent. You can change this anytime in your NextChapter settings.")
+  }
+
+  // The senior Monday brief: stop for good, or "Not for me" (pause 90 days).
+  const briefUpdate = briefOptOutUpdate(type, new Date())
+  if (briefUpdate) {
+    await prisma.candidateProfile.update({ where: { id: candidateId }, data: briefUpdate }).catch(() => {})
+    captureServerEvent(candidateId, 'senior_brief_unsubscribed', { memberId: candidateId, kind: type === 'seniorBrief' ? 'opt_out' : 'pause_90_days', source: 'email' })
+    return messagePage(MESSAGE_BY_TYPE[type!])
   }
 
   const data = (type && FIELD_BY_TYPE[type]) || DEFAULT_DATA
