@@ -12,15 +12,11 @@ import type { BenefitCategory, BenefitProgramRow } from './types'
 export type AudienceTag =
   | 'federal' | 'veteran' | 'military_spouse' | 'educator' | 'clinician' | 'lawyer' | 'tech' | 'finance'
   | 'journalist' | 'age40' | 'age50' | 'disabled' | 'immigrant' | 'reentry' | 'rural' | 'entrepreneur'
-<<<<<<< HEAD
-  | 'returner' | 'student' | 'engineer' | 'hr' | 'pm'
+  | 'returner' | 'student' | 'engineer' | 'hr' | 'pm' | 'socialwork' | 'science' | 'music' | 'community'
   // Community and heritage. Never asked as a new question and never inferred: these come only from the member's own voluntary
   // self-ID answers, and only when they turn that on for funding (see tagsFromSelfId). Religion is never asked or used.
   | 'women' | 'lgbtq' | 'hispanic' | 'black' | 'aapi' | 'native'
   | 'parent' | 'firstgen'
-=======
-  | 'returner' | 'student' | 'engineer' | 'hr' | 'pm' | 'socialwork' | 'science' | 'music' | 'community'
->>>>>>> origin/main
 
 /** What a member can say about themselves. Optional, private, and only used to match. */
 export const SELF_TAGS: { tag: AudienceTag; label: string }[] = [
@@ -341,7 +337,8 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
 
   // A person we know nothing about stays in. A person we know does not fit goes out. Work tags need their work
   // history to match; self-declared traits need the member to have said yes, once they have answered at all.
-  const ok = (t: AudienceTag) => t === 'community' || held.has(t) || (WORK_TAGS.has(t) ? m.workKnown === false : m.answered === false)
+  // Community tags (from the member's own self-ID, opt-in) are strict: someone who has not turned that on never sees a program written for a community.
+  const ok = (t: AudienceTag) => t === 'community' || held.has(t) || (COMMUNITY_TAGS.has(t) ? false : WORK_TAGS.has(t) ? m.workKnown === false : m.answered === false)
   // A professional body's dues waiver or fund: only for that profession; an unlisted body is hidden.
   const prof = professionNeeded(r)
   if (prof === 'unknown') return null
