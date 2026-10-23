@@ -10,7 +10,7 @@ import { CATEGORY_ORDER, type BenefitCategory, type BenefitProgramRow } from './
  * Each function throws on a missing table; callers decide what to do.
  */
 
-const COLUMNS = `"id","category","name","provider","scope","state","locality","amount","eligibility","status","statusNote","url","segments","verified","checkedAt","source","city","employer","employerKey","geoAreaId"`
+const COLUMNS = `"id","category","name","provider","scope","state","locality","amount","eligibility","status","statusNote","url","segments","verified","checkedAt","source","city","employer","employerKey","geoAreaId","applyUrl","affinity"`
 
 export const upsertPrograms = (rows: BenefitProgramRow[]) => upsertProgramRows(prisma, rows)
 

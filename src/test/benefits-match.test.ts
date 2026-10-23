@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import catalog from '@/lib/benefits/catalog.json'
-import { audienceOf, deriveWorkTags, groupByGoal, matchPrograms, parseAmount, type MemberFacts } from '@/lib/benefits/match'
+import { audienceOf, cleanSelfTags, COMMUNITY_TAGS, deriveWorkTags, groupByGoal, matchPrograms, parseAmount, SELF_TAGS, tagsFromSelfId, type AudienceTag, type MemberFacts } from '@/lib/benefits/match'
 import type { BenefitProgramRow } from '@/lib/benefits/types'
 
 const rows = (catalog as unknown as { rows: (Omit<BenefitProgramRow, 'checkedAt'> & { checkedAt: string | null })[] }).rows.map((r) => ({ ...r, checkedAt: r.checkedAt ? new Date(r.checkedAt) : null })) as BenefitProgramRow[]
@@ -108,5 +108,62 @@ describe('matchPrograms against the real catalog', () => {
     const eng = matchPrograms(rows, { ...base, state: 'PA', city: 'Pittsburgh', tags: ['engineer'] })
     expect(names(eng).some((n) => /IEEE|ASME/i.test(n))).toBe(true)
     expect(names(pa).some((n) => /Medicare/i.test(n))).toBe(false)
+  })
+})
+
+describe('community audiences and affinity', () => {
+  const prog = (over: Partial<BenefitProgramRow>): BenefitProgramRow => ({
+    id: 'x', category: 'SEGMENT', name: 'Test program', provider: null, scope: 'NATIONAL', state: null, locality: null, amount: null,
+    eligibility: null, status: 'OPEN', statusNote: null, url: 'https://example.org/p', segments: [], verified: true, checkedAt: null, source: 'audience_a.md',
+    city: null, employer: null, employerKey: null, geoAreaId: null, ...over,
+  })
+  const facts = (tags: AudienceTag[]): MemberFacts => ({ state: 'KY', relocation: { scope: 'LOCAL', states: [] }, laidOff: false, pivoting: false, tags })
+
+  it('shows a Hispanic-community program only to a member who said so', () => {
+    const rows = [prog({ segments: ['Hispanic or Latino'], name: 'Latino fellowship' })]
+    expect(matchPrograms(rows, facts([])).length).toBe(0)
+    expect(matchPrograms(rows, facts(['hispanic'])).length).toBe(1)
+  })
+  it('never shows a community program to a member who has not opted in, even before they answer anything', () => {
+    const rows = [prog({ segments: ['Hispanic or Latino'], name: 'Latino fellowship' })]
+    expect(matchPrograms(rows, { ...facts([]), answered: false }).length).toBe(0)
+    expect(matchPrograms(rows, { ...facts(['hispanic']), answered: false }).length).toBe(1)
+  })
+  it('requires both halves of "student with disability"', () => {
+    const rows = [prog({ segments: ['student with disability'], name: 'Internship for students with disabilities' })]
+    expect(matchPrograms(rows, facts(['student'])).length).toBe(0)
+    expect(matchPrograms(rows, facts(['disabled'])).length).toBe(0)
+    expect(matchPrograms(rows, facts(['student', 'disabled'])).length).toBe(1)
+  })
+  it('ranks a program with a matching affinity above an otherwise equal one, and says why', () => {
+    const rows = [prog({ id: 'a', name: 'Program A' }), prog({ id: 'b', name: 'Program B', affinity: ['parents'] })]
+    const out = matchPrograms(rows, facts(['parent']))
+    expect(out[0].program.id).toBe('b')
+    expect(out[0].why).toMatch(/parents/)
+  })
+  it('never lets an affinity show or hide a row by itself', () => {
+    const rows = [prog({ segments: ['women'], affinity: ['parents'] })]
+    expect(matchPrograms(rows, facts(['parent'])).length).toBe(0)
+  })
+  it('never asks about religion; a faith-specific program stays visible but is never boosted', () => {
+    expect(SELF_TAGS.some((t) => /catholic|jewish|muslim|christian|presbyterian|latter|relig|faith/i.test(`${t.tag} ${t.label}`))).toBe(false)
+    expect(cleanSelfTags(['jewish', 'muslim', 'catholic'])).toEqual([])
+    const rows = [prog({ id: 'faith', segments: ['Jewish'], name: 'Faith-specific scholarship', url: 'https://example.org/faith', amount: 'Free tuition scholarship', eligibility: 'Open to adult learners' }), prog({ id: 'open', name: 'Open to all', url: 'https://example.org/open', segments: [], amount: 'Free tuition scholarship', eligibility: 'Open to adult learners' })]
+    const out = matchPrograms(rows, facts([]))
+    expect(out.map((m) => m.program.id).sort()).toEqual(['faith', 'open'])
+    expect(out.find((m) => m.program.id === 'faith')!.why).not.toMatch(/Built for people like you/)
+  })
+  it('offers no chips for ethnicity, gender or sexual orientation: those come only from the optional self-ID survey', () => {
+    for (const t of ['hispanic', 'black', 'aapi', 'native', 'women', 'lgbtq']) expect(SELF_TAGS.some((x) => x.tag === t)).toBe(false)
+    expect(cleanSelfTags(['hispanic', 'women', 'parent', 'bogus'])).toEqual(['parent'])
+  })
+  it('derives community tags from the voluntary self-ID answers, and gives nothing for declined or unanswered ones', () => {
+    expect(tagsFromSelfId({ race: 'HISPANIC_LATINO', gender: 'WOMAN', veteran: 'YES', disability: 'NO' }).sort()).toEqual(['hispanic', 'veteran', 'women'])
+    expect(tagsFromSelfId({ race: 'ASIAN' })).toEqual(['aapi'])
+    expect(tagsFromSelfId({ race: 'NATIVE_HAWAIIAN_PACIFIC_ISLANDER' })).toEqual(['aapi'])
+    expect(tagsFromSelfId({ race: 'PREFER_NOT_TO_ANSWER', gender: 'PREFER_NOT_TO_ANSWER', veteran: 'PREFER_NOT_TO_ANSWER' })).toEqual([])
+    expect(tagsFromSelfId({ race: 'TWO_OR_MORE_RACES', gender: 'MAN' })).toEqual([])
+    expect(tagsFromSelfId({})).toEqual([])
+    expect(COMMUNITY_TAGS.has('hispanic')).toBe(true)
   })
 })

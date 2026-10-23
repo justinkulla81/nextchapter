@@ -7,7 +7,7 @@ export const CATEGORY_LABELS: Record<BenefitCategory, string> = {
   FEDERAL: 'Federal programs',
   COURSES: 'Free courses and certificates',
   PRIVATE: 'Private, nonprofit and AI funds',
-  SEGMENT: 'By profession and employer incentives',
+  SEGMENT: 'By profession, group and employer',
   PAID: 'Paid to learn, return or retrain',
   TAX: 'Tax credits and deductions',
   SUPPORT: 'Money and cost relief while out of work',
@@ -36,4 +36,8 @@ export interface BenefitProgramRow {
   employer: string | null
   employerKey: string | null
   geoAreaId: string | null
+  /** Direct application page, when different from the program page. Optional so older rows stay valid. */
+  applyUrl?: string | null
+  /** Softer fit signals for ranking (a faith, a heritage, a life stage). Never a gate. */
+  affinity?: string[]
 }

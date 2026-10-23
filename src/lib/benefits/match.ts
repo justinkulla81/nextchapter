@@ -13,6 +13,10 @@ export type AudienceTag =
   | 'federal' | 'veteran' | 'military_spouse' | 'educator' | 'clinician' | 'lawyer' | 'tech' | 'finance'
   | 'journalist' | 'age40' | 'age50' | 'disabled' | 'immigrant' | 'reentry' | 'rural' | 'entrepreneur'
   | 'returner' | 'student' | 'engineer' | 'hr' | 'pm' | 'socialwork' | 'science' | 'music' | 'community'
+  // Community and heritage. Never asked as a new question and never inferred: these come only from the member's own voluntary
+  // self-ID answers, and only when they turn that on for funding (see tagsFromSelfId). Religion is never asked or used.
+  | 'women' | 'lgbtq' | 'hispanic' | 'black' | 'aapi' | 'native'
+  | 'parent' | 'firstgen'
 
 /** What a member can say about themselves. Optional, private, and only used to match. */
 export const SELF_TAGS: { tag: AudienceTag; label: string }[] = [
@@ -27,7 +31,39 @@ export const SELF_TAGS: { tag: AudienceTag; label: string }[] = [
   { tag: 'entrepreneur', label: 'I want to start a business' },
   { tag: 'returner', label: 'I am returning after a career break or caregiving' },
   { tag: 'student', label: 'I am a student or recent graduate' },
+  { tag: 'parent', label: 'I am raising children' },
+  { tag: 'firstgen', label: 'I am the first in my family to go to college' },
 ]
+/** Tags that describe a community, not a situation. Never sent to analytics. */
+export const COMMUNITY_TAGS = new Set<AudienceTag>(['women', 'lgbtq', 'hispanic', 'black', 'aapi', 'native'])
+
+export interface SelfIdAnswers {
+  race?: string | null
+  gender?: string | null
+  veteran?: string | null
+  disability?: string | null
+}
+/**
+ * Tags from the member's own optional EEOC self-ID answers (race or ethnicity, gender, veteran, disability). Used only when the
+ * member turns it on for funding matches, computed on the fly for that member, and never stored or logged. "Prefer not to answer",
+ * "No", "Two or more races" and anything unanswered give no tag.
+ */
+export function tagsFromSelfId(a: SelfIdAnswers): AudienceTag[] {
+  const out: AudienceTag[] = []
+  if (a.race === 'HISPANIC_LATINO') out.push('hispanic')
+  else if (a.race === 'BLACK_AFRICAN_AMERICAN') out.push('black')
+  else if (a.race === 'ASIAN' || a.race === 'NATIVE_HAWAIIAN_PACIFIC_ISLANDER') out.push('aapi')
+  else if (a.race === 'AMERICAN_INDIAN_ALASKA_NATIVE') out.push('native')
+  if (a.gender === 'WOMAN') out.push('women')
+  if (a.veteran === 'YES') out.push('veteran')
+  if (a.disability === 'YES') out.push('disabled')
+  return out
+}
+/** What a held tag is called in a program's soft "affinity" list, which only ranks and never hides or shows. */
+const AFFINITY_OF: Partial<Record<AudienceTag, string>> = {
+  women: 'women', lgbtq: 'LGBTQ+', hispanic: 'Hispanic or Latino', black: 'Black or African American', aapi: 'AAPI', native: 'Native American',
+  parent: 'parents', firstgen: 'first-generation', student: 'student', age50: '50+', veteran: 'veteran', military_spouse: 'military spouse',
+}
 const SELF_TAG_SET = new Set<string>(SELF_TAGS.map((t) => t.tag))
 export const cleanSelfTags = (v: unknown): AudienceTag[] =>
   Array.isArray(v) ? [...new Set(v.filter((t): t is AudienceTag => typeof t === 'string' && SELF_TAG_SET.has(t)))] : []
@@ -49,6 +85,12 @@ function pieceTags(piece: string): Set<AudienceTag | 'employer'> | null {
   if (/\btech\b|\bai\b|ai-exposed|software/i.test(p)) t.add('tech')
   if (/financ|securities/i.test(p)) t.add('finance')
   if (/journalists?|\bnews\b|media/i.test(p)) t.add('journalist')
+  if (/\bwomen\b|\bwoman\b/i.test(p)) t.add('women')
+  if (/lgbtq/i.test(p)) t.add('lgbtq')
+  if (/hispanic|latino|latina|latinx/i.test(p)) t.add('hispanic')
+  if (/african american|\bblack\b/i.test(p)) t.add('black')
+  if (/\baapi\b|asian american|pacific islander/i.test(p)) t.add('aapi')
+  if (/native american|alaska native|american indian/i.test(p)) t.add('native')
   if (/\b(50|55)\+/.test(p)) t.add('age50')
   else if (/\b40\+/.test(p)) t.add('age40')
   if (/disab|ssdi|\bssi\b/i.test(p)) t.add('disabled')
@@ -295,7 +337,8 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
 
   // A person we know nothing about stays in. A person we know does not fit goes out. Work tags need their work
   // history to match; self-declared traits need the member to have said yes, once they have answered at all.
-  const ok = (t: AudienceTag) => t === 'community' || held.has(t) || (WORK_TAGS.has(t) ? m.workKnown === false : m.answered === false)
+  // Community tags (from the member's own self-ID, opt-in) are strict: someone who has not turned that on never sees a program written for a community.
+  const ok = (t: AudienceTag) => t === 'community' || held.has(t) || (COMMUNITY_TAGS.has(t) ? false : WORK_TAGS.has(t) ? m.workKnown === false : m.answered === false)
   // A professional body's dues waiver or fund: only for that profession; an unlisted body is hidden.
   const prof = professionNeeded(r)
   if (prof === 'unknown') return null
@@ -330,6 +373,7 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
 export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[] {
   const held = new Set<AudienceTag>(m.tags)
   age40Implied(held)
+  const heldAffinity = new Set<string>([...held].map((t) => AFFINITY_OF[t]).filter((x): x is string => !!x))
   const out: Match[] = []
   for (const r of rows) {
     const f = fits(r, m, held)
@@ -343,6 +387,12 @@ export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[
     if (f.specific) {
       score += 25
       why = `Built for people like you. ${f.place}.`
+    }
+    // A softer signal than the gates: the program speaks to a community or life stage the member named.
+    const hit = (r.affinity ?? []).find((a) => heldAffinity.has(a))
+    if (hit) {
+      score += 15
+      why = `${why} Written with ${hit === 'parents' ? 'parents' : hit === 'student' ? 'students' : `the ${hit} community`} in mind.`
     }
     if (r.status === 'OPEN' || r.status === 'ROLLING') score += 12
     if (goal === 'retrain' && (m.pivoting || m.laidOff)) score += 8
