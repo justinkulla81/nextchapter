@@ -73,6 +73,8 @@ interface ImportJobInput {
   // Posted on a school/district board (ncrawl k12 sources): bare
   // "Superintendent" there is the district head.
   schoolContext?: boolean
+  // USAJOBS Pathways Recent Graduates hiring path (ncrawl recent_graduate): a GS-5/7(/9) posting is entry-level.
+  pathwaysRecentGraduates?: boolean
   // One-board fields, from ncrawl derive.py. All optional: an older exporter that
   // doesn't send them leaves the stored values untouched (see rowData).
   employmentType?: string | null // employment_type_norm
@@ -186,7 +188,7 @@ function screen(jobs: unknown[]) {
       skipped.push({ url: job.url, reason: 'internship (use /api/admin/internships/import)' })
       continue
     }
-    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, description: job.description })
+    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, recentGraduate: job.pathwaysRecentGraduates === true, description: job.description })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
       continue
