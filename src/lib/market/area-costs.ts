@@ -83,3 +83,11 @@ export function againstLastSalaryLine(pay: number, lastSalary: number, from: Are
   if (d === null) return null
   return d === 0 ? `That is about what you earned before: $${lastSalary.toLocaleString('en-US')}.` : `That is ${Math.abs(d)}% ${d > 0 ? 'more' : 'less'} than your last salary of $${lastSalary.toLocaleString('en-US')}.`
 }
+
+/** Metropolitan areas we can show a price level for, to pick a place from. Smaller micropolitan areas have no price parity. */
+export function metroOptions(): Array<{ code: string; name: string }> {
+  return Object.entries(AREAS)
+    .filter(([k, a]) => k.startsWith('METRO:') && a.rpp !== undefined)
+    .map(([k, a]) => ({ code: k.slice(6), name: shortName(a.name) }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
