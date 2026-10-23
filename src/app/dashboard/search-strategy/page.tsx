@@ -506,6 +506,7 @@ export default async function SearchStrategyPage() {
       </SHeader>
       <SContent>
         <OtherSearchStrengthenersForm
+          candidateId={profile.id}
           boardAdvisoryInitial={profile.boardAdvisoryWillingness}
           independentWorkInitial={independentWorkInitial}
           independentWorkSuggestions={independentWorkSuggestions}
