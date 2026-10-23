@@ -16495,7 +16495,7 @@ model HomepageLead {
   id               String    @id @default(cuid())
   email            String
   kind             String // 'journey' | 'job_alert'
-  source           String // the page and box: 'home' | 'jobs' | 'start'
+  source           String // the page and box: 'home' | 'jobs' | 'start' | 'network:<type>:<slug>'
   /// Journey: a persona slug (laid-off, career-change, ...). Empty for a saved search.
   situation        String    @default("")
   /// Journey: how long it has been going on (just_starting | weeks | months | long). Empty otherwise.
