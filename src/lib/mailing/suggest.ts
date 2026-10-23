@@ -9,7 +9,12 @@ import type { CrmPersonRole } from '@prisma/client'
 const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
   INVESTOR_VC: 'investors',
   INVESTOR_ANGEL: 'investors',
+  ADVISOR: 'advisors',
   JOB_SEEKER: 'candidates',
+  BD_PARTNER: 'bd_partners',
+  GTM_PARTNER: 'bd_partners',
+  STRATEGIC: 'bd_partners',
+  POLICY_ANALYST: 'research_partners',
   ALUMNI_OFFICE: 'higher_ed',
   HIGHER_ED_DEVELOPMENT: 'higher_ed',
   HIGHER_ED_CAREER: 'higher_ed',
@@ -29,6 +34,7 @@ const PIPELINE_LISTS: Record<string, string> = {
   job_seekers: 'candidates',
   candidate_membership: 'candidates',
   outplacement: 'employers',
+  bd_partnerships: 'bd_partners',
   workforce_boards: 'workforce',
   coach_recruiting: 'coaches',
   recruiter_recruiting: 'recruiters',
@@ -37,8 +43,6 @@ const PIPELINE_LISTS: Record<string, string> = {
 export function suggestListKeys(input: {
   roles: CrmPersonRole[]
   pipelineKeys: string[]
-  /** Works at an organization that's a paying customer. */
-  isCustomer: boolean
   /** Works at a workforce board (an org linked to one). */
   isWorkforceBoard?: boolean
 }): string[] {
@@ -46,6 +50,5 @@ export function suggestListKeys(input: {
   for (const r of input.roles) if (ROLE_LISTS[r]) keys.add(ROLE_LISTS[r]!)
   for (const p of input.pipelineKeys) if (PIPELINE_LISTS[p]) keys.add(PIPELINE_LISTS[p])
   if (input.isWorkforceBoard) keys.add('workforce')
-  if (input.isCustomer) keys.add('customers')
   return [...keys]
 }

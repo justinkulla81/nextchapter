@@ -161,7 +161,7 @@ function audienceForEdition(edition: EditionForSend): EmailAudience {
   if (key === 'coaches') return 'coach'
   if (key === 'recruiters') return 'recruiter'
   if (key === 'employers') return 'employer'
-  if (key === 'customers' || key === 'higher_ed' || key === 'workforce') return 'organization'
+  if (key === 'higher_ed' || key === 'workforce' || key === 'bd_partners' || key === 'research_partners') return 'organization'
   return 'general'
 }
 
