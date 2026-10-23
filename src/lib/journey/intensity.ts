@@ -41,7 +41,7 @@ export function workingNowOf(details: unknown): boolean {
 // Journeys that are not a job search, and the stage for people not looking right
 // now. Members here get a light pace and no progress-push emails whatever their
 // "search intensity" says (it is not asked of them, so it is empty).
-export const NOT_SEARCHING_JOURNEYS: readonly JourneyType[] = ['GROWING', 'ENTREPRENEUR', 'FRACTIONAL', 'TIME_OFF']
+export const NOT_SEARCHING_JOURNEYS: readonly JourneyType[] = ['GROWING', 'ENTREPRENEUR', 'FRACTIONAL', 'TIME_OFF', 'BUY_BUSINESS']
 
 export function isNotSearching(journey: JourneyType | null | undefined, stage: JourneyStage | null | undefined): boolean {
   return (!!journey && NOT_SEARCHING_JOURNEYS.includes(journey)) || stage === 'STAYING' || stage === 'PAUSED'

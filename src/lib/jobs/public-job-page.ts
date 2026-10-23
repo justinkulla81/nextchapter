@@ -68,6 +68,9 @@ export interface PublicJobRow {
   salaryMax: number | null
   salaryCurrency: string | null
   payPeriod: string | null
+  /** Posting signals and the no-experience phrase (entry-filters.ts); optional so older callers and fixtures still fit. */
+  postingSignals?: string[]
+  noExperiencePhrase?: string | null
   externalJobId: string | null
   requisitionId: string | null
   company: { website: string | null } | null

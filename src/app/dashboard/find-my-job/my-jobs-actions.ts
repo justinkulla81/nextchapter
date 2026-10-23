@@ -20,7 +20,7 @@ import type { TrackRef } from '@/lib/jobs/my-jobs-data'
 type Result = { ok: true } | { ok: false; error: string }
 
 const NOT_SIGNED_IN: Result = { ok: false, error: 'Your session ended. Sign in again, then try once more.' }
-const SOURCES = new Set(['job_board', 'surfaced', 'matched_role'])
+const SOURCES = new Set(['job_board', 'surfaced', 'matched_role', 'external'])
 
 async function getProfile() {
   const supabase = await createClient()

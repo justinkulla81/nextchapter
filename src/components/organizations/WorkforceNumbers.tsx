@@ -1,7 +1,7 @@
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { AudienceSection } from '@/components/organizations/AudienceShell'
 import { WorkforceStatsTracker } from '@/components/organizations/WorkforceStatsTracker'
-import { loadWorkforceNumbers } from '@/lib/marketing/workforce-numbers'
+import { loadEntryLevelLine, loadWorkforceNumbers } from '@/lib/marketing/workforce-numbers'
 
 /**
  * "By the numbers" for workforce boards: live counts from the board, the skills taxonomy, the
@@ -9,7 +9,7 @@ import { loadWorkforceNumbers } from '@/lib/marketing/workforce-numbers'
  * fails to load drops its tile; if nothing loads, the section is not rendered.
  */
 export async function WorkforceNumbers({ page }: { page: string }) {
-  const groups = await loadWorkforceNumbers()
+  const [groups, entryLine] = await Promise.all([loadWorkforceNumbers(), loadEntryLevelLine()])
   if (groups.length === 0) return null
   const keys = groups.flatMap((g) => g.tiles.map((t) => t.key))
   return (
@@ -31,6 +31,7 @@ export async function WorkforceNumbers({ page }: { page: string }) {
             </div>
           ))}
         </div>
+        {entryLine && <p className="mt-6 text-base text-ink">{entryLine}</p>}
         <p className="mt-6 text-sm text-muted-foreground">
           <span className="font-semibold text-ink">How we count:</span> every figure comes from our live database, is refreshed daily and is
           rounded down (“+” means more than shown); open jobs leave out internships and expired or closed postings, a job listed more than once counts once, and each employer counts once.

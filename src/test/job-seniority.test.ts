@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { classifyTitleRung, screenJobTitle, seniorityGroupOf } from '@/lib/jobs/job-seniority'
+import { classifyTitleRung, levelForPosting, screenJobTitle, seniorityGroupOf } from '@/lib/jobs/job-seniority'
+import { screenImportedJob } from '@/lib/jobs/import-screen'
 import parity from './fixtures/job-seniority-parity.json'
 
 describe('job seniority', () => {
@@ -71,5 +72,31 @@ describe('job seniority', () => {
     expect(seniorityGroupOf('SENIOR_IC')).toBe('SENIOR_IC')
     expect(seniorityGroupOf('OTHER')).toBeNull()
     expect(seniorityGroupOf(null)).toBeNull()
+  })
+
+  it('levels the 2026-10-23 grade-ladder and early-career allowlists (parity titles cover the rest)', () => {
+    expect(classifyTitleRung('Corporate Tax Senior Associate').rung).toBe('MID_IC')
+    expect(classifyTitleRung('IT Audit/SOX - Experienced Associate').rung).toBe('EARLY_IC')
+    expect(classifyTitleRung('Wealth Management Associate').rung).toBe('EARLY_IC')
+    expect(classifyTitleRung('Assistant Project Manager').rung).toBe('EARLY_IC')
+    for (const title of ['Senior Associate Director', 'Associate General Counsel']) expect(classifyTitleRung(title).rank, title).toBeGreaterThanOrEqual(40)
+    for (const title of ['Associate Professor', 'Assistant Store Manager', 'Electrician Apprentice', 'Senior Sales Associate']) {
+      expect(classifyTitleRung(title).rung, title).toBe('OTHER')
+    }
+  })
+
+  it('puts an assistant project manager whose posting manages people back at MANAGER (import screen too)', () => {
+    const people = 'You will supervise a team of 6 field staff. 3+ years of experience.'
+    expect(levelForPosting('Assistant Project Manager', 'Own schedules and budgets. 2-4 years of experience.').rung).toBe('EARLY_IC')
+    expect(levelForPosting('Assistant Project Manager', people).rung).toBe('MANAGER')
+    const v = screenImportedJob('Assistant Project Manager', 'Austin, TX', { description: people })
+    expect(v.keep && v.level).toBe('MANAGER')
+  })
+
+  it('lifts a GS-5/7 posting on the Pathways Recent Graduates hiring path (not the title)', () => {
+    expect(classifyTitleRung('Inventory Management Specialist (GS-5/7)', { recentGraduate: true }).rung).toBe('ENTRY_IC')
+    expect(classifyTitleRung('Contact Representative (GS-5/7)', { recentGraduate: true }).rung).toBe('OTHER')
+    expect(classifyTitleRung('Social Science Research Analyst (GS-5/7)').rung).toBe('ENTRY_IC')
+    expect(classifyTitleRung('Program Support Assistant (GS-5/7)').rung).toBe('OTHER')
   })
 })

@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { CRAWLER_FUNCTION_LABEL } from '@/lib/jobs/job-functions'
+import { computeEntryMarket } from '@/lib/jobs/entry-market-server'
 import { computeAiDimensions } from './ai-market-dimensions-server'
 import { buildAiMarket, type AiMarketCellRow, type AiMarketData, type AiMarketShareRow, type AiMarketTopRow } from './ai-market'
 
@@ -89,7 +90,12 @@ export async function computeAiMarket(now = new Date()): Promise<AiMarketData> {
     tools,
     functionLabels: CRAWLER_FUNCTION_LABEL,
   })
-  return dimensions ? { ...market, dimensions } : market
+  // Entry-level numbers (entry-market-server.ts). Never let them fail the snapshot.
+  const entry = await computeEntryMarket().catch((error) => {
+    console.error('AI market entry-level numbers failed', error)
+    return undefined
+  })
+  return { ...market, ...(dimensions ? { dimensions } : {}), ...(entry ? { entry } : {}) }
 }
 
 /** Compute and store a snapshot; keeps the last 60. */

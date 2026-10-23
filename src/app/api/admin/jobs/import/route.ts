@@ -73,6 +73,8 @@ interface ImportJobInput {
   // Posted on a school/district board (ncrawl k12 sources): bare
   // "Superintendent" there is the district head.
   schoolContext?: boolean
+  // USAJOBS Pathways Recent Graduates hiring path (ncrawl recent_graduate): a GS-5/7(/9) posting is entry-level.
+  pathwaysRecentGraduates?: boolean
   // One-board fields, from ncrawl derive.py. All optional: an older exporter that
   // doesn't send them leaves the stored values untouched (see rowData).
   employmentType?: string | null // employment_type_norm
@@ -132,6 +134,8 @@ interface ImportJobInput {
   // Who the posting says it welcomes (ncrawl/posting_signals.py): career_changer_welcome /
   // ai_upskilled_welcome / high_eq. Optional; left out, the stored value stays; [] clears it.
   postingSignals?: unknown
+  // The phrase that set postingSignals' no_experience_ok (ncrawl/entry_signals.py); null clears it. Optional.
+  noExperiencePhrase?: unknown
   // The broader AI-exposed metric (ai_profile): exposed, which rules fired, any AI mention, and
   // the text the AI fields were read from (full | twin | excerpt). Optional, like the above.
   aiExposed?: unknown
@@ -184,7 +188,7 @@ function screen(jobs: unknown[]) {
       skipped.push({ url: job.url, reason: 'internship (use /api/admin/internships/import)' })
       continue
     }
-    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, description: job.description })
+    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, recentGraduate: job.pathwaysRecentGraduates === true, description: job.description })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
       continue
@@ -249,6 +253,9 @@ function rowData({ job, level }: Screened) {
     ...importAiSkillFields(job),
     // Posting signals (posting-signals.ts): known ids only.
     ...importPostingSignalFields(job),
+    ...('noExperiencePhrase' in job && job.noExperiencePhrase !== undefined
+      ? { noExperiencePhrase: typeof job.noExperiencePhrase === 'string' && job.noExperiencePhrase.trim() ? job.noExperiencePhrase.trim().slice(0, 240) : null }
+      : {}),
     ...(typeof job.directListing === 'boolean' ? { directListing: job.directListing } : {}),
   }
 }
@@ -436,7 +443,7 @@ export async function POST(request: NextRequest) {
       requisitionId: true, repostKey: true, descHash: true, crawlerFingerprint: true, yearsRequired: true, socCode: true, socTitle: true, reopenCount: true,
       repostCount: true, repostFirstSeenAt: true, duplicateCount: true, recruiterName: true,
       targetFunction: true, employerSector: true, requirementFlags: true, requirementTags: true, subFunction: true, skillIds: true,
-      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, postingSignals: true, directListing: true,
+      aiSkillGroups: true, aiSkillItems: true, aiToolsNamed: true, aiCertsNamed: true, postingSignals: true, noExperiencePhrase: true, directListing: true,
       aiExposed: true, aiExposureWhy: true, aiMention: true, aiBasis: true,
       archivedAt: true, closeReason: true,
     },

@@ -31,6 +31,9 @@ export interface WorkforceRaw {
     functions: number
     states: number
     places: number
+    /** Entry / early-career jobs flagged no_experience_ok and entry_ai (src/lib/jobs/entry-filters.ts); absent in older callers. */
+    entryNoExp?: number
+    entryAi?: number
   } | null
   taxonomy: {
     skills: number
@@ -192,4 +195,17 @@ export function buildWorkforceTiles(raw: WorkforceRaw): WorkforceTileGroup[] {
     { key: 'skills', title: 'Skills and AI', tiles: skills },
     { key: 'people', title: 'Pivots, learning and support', tiles: people },
   ].filter((g) => g.tiles.length > 0)
+}
+
+/**
+ * The workforce page's one entry-level line: "X entry-level jobs welcome people with no experience; Y entry-level
+ * jobs ask for AI skills." Floored like every tile; a zero or missing count drops its half, both gone = null.
+ */
+export function entryLevelLine(jobs: WorkforceRaw['jobs']): string | null {
+  if (!jobs) return null
+  const parts = [
+    jobs.entryNoExp ? `${floorCount(jobs.entryNoExp)} entry-level jobs welcome people with no experience` : null,
+    jobs.entryAi ? `${floorCount(jobs.entryAi)} entry-level jobs ask for AI skills` : null,
+  ].filter((x): x is string => !!x)
+  return parts.length ? `${parts.join('; ')}.` : null
 }

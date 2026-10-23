@@ -22,6 +22,8 @@ import { AdminSkillsMatch } from './admin-skills-match'
 import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
 import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
+import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
+import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
 
 const CoachMatchShortlistLive = () => <CoachMatchLive step="shortlist" />
@@ -96,6 +98,13 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/recruiters', place: 'Network', title: 'Recruiters', replaces: '/dashboard/recruiter-requests', Component: RecruitersCircle },
   { path: 'network/week', place: 'Network', title: 'This week', replaces: '/dashboard/network/this-week, /dashboard/network/follow-ups', Component: NetworkThisWeek },
   { path: 'network/messages', place: 'Network', title: 'Messages', replaces: '/dashboard/messages', Component: Messages },
+  { path: 'learn/other-paths/need', place: 'Learn', title: 'Your other paths: needs income soon (sample data)', replaces: 'new: parallel paths', Component: OtherPathsNeedLive },
+  { path: 'learn/other-paths/busy', place: 'Learn', title: 'Your other paths: side work, buying, way back (sample data)', replaces: 'new: parallel paths', Component: OtherPathsBusyLive },
+  { path: 'learn/buy-a-business/plan', place: 'Learn', title: 'Buy a business: your plan (sample data)', replaces: 'new: the 12th journey', Component: BuyPlanLive },
+  { path: 'learn/buy-a-business/start', place: 'Learn', title: 'Buy a business: before starting (sample data)', replaces: 'new: the 12th journey', Component: BuyPlanNewLive },
+  { path: 'learn/buy-a-business/find', place: 'Learn', title: 'Buy a business: find businesses (sample data)', replaces: 'new: the 12th journey', Component: BuyFindLive },
+  { path: 'learn/buy-a-business/financing', place: 'Learn', title: 'Buy a business: pay for it (sample data)', replaces: 'new: the 12th journey', Component: BuyFinancingLive },
+  { path: 'learn/buy-a-business/training', place: 'Learn', title: 'Buy a business: learn (sample data)', replaces: 'new: the 12th journey', Component: BuyTrainingLive },
   { path: 'learn/learn/skills', place: 'Learn', title: 'Skills and courses', replaces: '/dashboard/learning', Component: LearnSkills },
   { path: 'learn/learn/videos', place: 'Learn', title: 'Videos and webinars', replaces: '/dashboard/webinars', Component: LearnVideos },
   { path: 'account/profile', place: 'Account', title: 'Profile', replaces: '/dashboard/profile, complete-profile', Component: ProfileMock },

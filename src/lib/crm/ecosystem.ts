@@ -73,7 +73,7 @@ export async function industryEcosystem(key: string) {
     prisma.crmOrganization.count({ where: { industry: { in: labels } } }),
     prisma.warnNotice.findMany({ where: { dismissedAt: null, noticeDate: { gte: since }, industry: { not: null } }, select: { id: true, employer: true, state: true, employees: true, industry: true, noticeDate: true }, orderBy: { employees: { sort: 'desc', nulls: 'last' } }, take: 4000 }),
     prisma.companyJobOpening.count({ where: { industry: key, closeReason: null } }).catch(() => 0),
-    recruiters({ industry: key }, 60),
+    recruiters({ industry: key }, 400),
   ])
   const layoffs = notices.filter((n) => industryKeyForNaics(n.industry) === key)
   return { labels, employers, employerCount, layoffs: layoffs.slice(0, 25), layoffCount: layoffs.length, layoffWorkers: layoffs.reduce((s, n) => s + (n.employees ?? 0), 0), openings, recruiters: recs }
@@ -81,7 +81,7 @@ export async function industryEcosystem(key: string) {
 
 export async function functionEcosystem(key: string) {
   const [recs, firms] = await Promise.all([
-    recruiters({ fn: key }, 100),
+    recruiters({ fn: key }, 400),
     prisma.searchFirm.findMany({ where: { sampleTitles: { isEmpty: false } }, select: { id: true, name: true, website: true, segment: true, sampleTitles: true, crmOrgId: true }, take: 1500 }),
   ])
   const matching = firms.filter((f) => f.sampleTitles.some((t) => classifyFunctions(t).includes(key)))

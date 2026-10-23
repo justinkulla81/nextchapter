@@ -69,6 +69,25 @@ import {
   GRADE,
   UNDER_DIRECTOR,
   YEARS_ZERO_RANGE,
+  APM_EARLY,
+  APPRENTICE_GLOBAL,
+  APPRENTICE_PRO,
+  ASSISTANT_ENGINEER,
+  ASSOCIATE_OR_SENIOR,
+  BANK_ASSOCIATE,
+  BANK_ASSOCIATE_VETO,
+  BANK_DESK_GLOBAL,
+  CUSTOMER_SUCCESS_ASSOCIATE,
+  EXPERIENCED_ASSOCIATE,
+  GRADE_RULE_MANAGEMENT,
+  GRADE_RULE_VETO,
+  PLANNER_ENTRY,
+  PROJECT_ANALYST,
+  SENIOR_ASSOCIATE_GRADE,
+  SOC_ANALYST,
+  TECH_LEVEL_TWO,
+  TRAINEE_PRO,
+  TRAINEE_VETO,
   type RungName,
 } from './job-seniority-rules.generated'
 import { parseYearsRequired } from './years-required'
@@ -116,6 +135,8 @@ function fedVetoed(bare: string): boolean {
 export type ClassifyOptions = {
   /** Posted on a school or district board: bare "Superintendent" is the district head. */
   schoolContext?: boolean
+  /** A USAJOBS Pathways Recent Graduates posting (the hiring path, not the title). ncrawl recent_graduate. */
+  recentGraduate?: boolean
 }
 
 export function classifyTitleRung(rawTitle: string | null | undefined, opts: ClassifyOptions = {}): { rung: RungName; rank: number } {
@@ -132,8 +153,11 @@ export function classifyTitleRung(rawTitle: string | null | undefined, opts: Cla
   const gs = ['gs', 'gg', 'gm'].includes(m[1].toLowerCase()) // NH/ND bands use other numbers
   // R6 (owner, 2026-10-19): a Pathways "Recent Graduate" posting on a GS-5/7 or GS-5/7/9
   // ladder is entry-level, the one exception to "GS-6 and below stay out"; same vetoes.
-  if (gs && Math.min(...nums) === 5 && Math.max(...nums) >= 7 && Math.max(...nums) <= 9 && RECENT_GRAD.test(rawTitle) &&
-      base.rank <= MID_IC_RANK && !fedVetoed(bare)) {
+  // 2026-10-23: the hiring path counts too (opts.recentGraduate), and a professional title (one
+  // the classifier ranks ENTRY_IC to MID_IC on its own) on a GS-5/7 or GS-5/7/9 ladder is the
+  // bachelor's-entry ladder.
+  if (gs && Math.min(...nums) === 5 && Math.max(...nums) >= 7 && Math.max(...nums) <= 9 && !fedVetoed(bare) &&
+      base.rank <= MID_IC_RANK && (RECENT_GRAD.test(rawTitle) || !!opts.recentGraduate || base.rank >= ENTRY_IC_RANK)) {
     const entry = { rung: 'ENTRY_IC' as RungName, rank: ENTRY_IC_RANK }
     return graded.rank > entry.rank ? graded : entry
   }
@@ -178,9 +202,17 @@ function classifyTitleOnly(rawTitle: string | null | undefined, opts: ClassifyOp
   const title = stripReportingRef(rawTitle)
   if (BOARD.test(title)) return { rung: 'BOARD', rank: 95 }
   const fixed = titleOverride(title, !!opts.schoolContext)
-  if (fixed && fixed.mode === 'set') return { rung: fixed.name, rank: fixed.rank }
-  const base = ladder(title)
-  return earlyBroaden(title, fixed && fixed.rank > base.rank ? { rung: fixed.name, rank: fixed.rank } : base)
+  let base: { rung: RungName; rank: number }
+  if (fixed && fixed.mode === 'set') base = { rung: fixed.name, rank: fixed.rank }
+  else {
+    base = ladder(title)
+    if (fixed && fixed.rank > base.rank) base = { rung: fixed.name, rank: fixed.rank }
+  }
+  // Assistant project / program managers and "Project Manager I" (owner, 2026-10-23): EARLY_IC,
+  // never above (a people-manager posting goes back up in refineLevelByYears).
+  if ((base.rung === 'MANAGER' || base.rung === 'MID_IC') && APM_EARLY.test(title)) return EARLY
+  if (fixed && fixed.mode === 'set') return base
+  return earlyBroaden(title, base)
 }
 
 function ladder(title: string): { rung: RungName; rank: number } {
@@ -283,8 +315,44 @@ function earlyAllow(title: string): { rung: RungName; rank: number } | null {
   return null
 }
 
+// ── Grade ladders and named early-career forms (ncrawl taxonomy.py _grade_rule, 2026-10-23) ──
+// Big 4 Senior / Experienced Associate, bank-desk associates, professional apprenticeships and
+// trainee programs, customer success associates, assistant engineers and EITs, planners, SOC and
+// project analysts, "<tech> Engineer II". Only for a title every rule above left at OTHER.
+function gradeRule(rawTitle: string): { rung: RungName; rank: number } | null {
+  const t = rawTitle.replace(/_+/g, ' - ')
+  if (FRONTLINE.test(t)) return null
+  if (new RegExp(APPRENTICE_GLOBAL.source, 'i').test(t)) {
+    const rest = t.replace(APPRENTICE_GLOBAL, ' ')
+    return APPRENTICE_PRO.test(rest) && !GRADE_RULE_VETO.test(rest) && !GRADE_RULE_MANAGEMENT.test(rest) && !/\btrainee\b/i.test(rest)
+      ? ENTRY
+      : null
+  }
+  if (/\btrainee\b/i.test(t)) {
+    return TRAINEE_PRO.test(t) && !TRAINEE_VETO.test(t) && !GRADE_RULE_VETO.test(t.replace(/\btrainee\b/gi, ' ')) ? ENTRY : null
+  }
+  // Bank desks: "Sales Desk Associate" is a markets grade, judged without the desk words.
+  if (BANK_ASSOCIATE.test(t)) {
+    const rest = t.replace(BANK_DESK_GLOBAL, ' ')
+    if (!(GRADE_RULE_VETO.test(rest) || NEGATIVE.test(rest) || BANK_ASSOCIATE_VETO.test(t) ||
+          GRADE_RULE_MANAGEMENT.test(rest) || /\b(senior|sr)\b/i.test(t))) return EARLY
+  }
+  if (GRADE_RULE_VETO.test(t) || NEGATIVE.test(t)) return null
+  if (SENIOR_ASSOCIATE_GRADE.test(t) && !GRADE_RULE_MANAGEMENT.test(t)) return ASSOCIATE_OR_SENIOR.test(t) ? EARLY : MID
+  if (EXPERIENCED_ASSOCIATE.test(t) && !GRADE_RULE_MANAGEMENT.test(t)) return EARLY
+  if (GRADE_RULE_MANAGEMENT.test(t)) return null
+  if (CUSTOMER_SUCCESS_ASSOCIATE.test(t) && !ALLOW_UPPER.test(t)) return ENTRY
+  if (ASSISTANT_ENGINEER.test(t) && !ALLOW_UPPER.test(t)) return ENTRY
+  if (PLANNER_ENTRY.test(t)) return ENTRY
+  const soc = SOC_ANALYST.exec(t)
+  if (soc && !ALLOW_UPPER.test(t)) return /\b(ii|2)\s*$/i.test(soc[0]) ? EARLY : ENTRY
+  if (PROJECT_ANALYST.test(t)) return ALLOW_UPPER.test(t) ? MID : ALLOW_TWO.test(t) ? EARLY : ALLOW_LOWER_STRICT.test(t) ? ENTRY : EARLY
+  if (TECH_LEVEL_TWO.test(t) && !ALLOW_UPPER.test(t)) return EARLY
+  return null
+}
+
 function earlyBroaden(title: string, base: { rung: RungName; rank: number }): { rung: RungName; rank: number } {
-  if (base.rank === 0) return earlyAllow(title) ?? base
+  if (base.rank === 0) return earlyAllow(title) ?? gradeRule(title) ?? base
   if (base.rung === 'MID_IC' && EARLY_DEFAULT.test(title) && !EARLY_DEFAULT_KEEP.test(title)) return EARLY
   return base
 }
@@ -356,6 +424,9 @@ export function refineLevelByYears(
     return level
   }
   if (!['ENTRY_IC', 'EARLY_IC', 'MID_IC'].includes(level.rung) || !description) return level
+  // An assistant project / program manager (APM_EARLY) whose posting has people-management
+  // language manages people: MANAGER (owner, 2026-10-23). Mirrors ncrawl refine_level_by_years.
+  if (level.rung === 'EARLY_IC' && APM_EARLY.test(title) && PEOPLE_MANAGER_DESC.test(description)) return { rung: 'MANAGER', rank: 40 }
   if (EXPLICIT_LEVEL.test(title) || ENTRY_EXPLICIT.test(title)) return level
   let stage = yearsStage(description)
   // Assistant and coordinator roles top out at early-career, however many years the posting asks for.

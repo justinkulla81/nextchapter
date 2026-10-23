@@ -21,6 +21,7 @@ function categoryFor(f: string): BenefitCategory | null {
   if (/^audience_.*\.md$/.test(f)) return 'SEGMENT'
   if (f === 'paid.md') return 'PAID'
   if (f === 'tax.md') return 'TAX'
+  if (/^unemployed_.*\.md$/.test(f)) return 'SUPPORT'
   if (f === 'segments.md' || f === 'hiring_credits.md') return 'SEGMENT'
   return null
 }

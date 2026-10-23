@@ -43,6 +43,8 @@ export const PUBLIC_JOB_SELECT = {
   salaryMax: true,
   salaryCurrency: true,
   payPeriod: true,
+  postingSignals: true,
+  noExperiencePhrase: true,
   externalJobId: true,
   requisitionId: true,
   company: { select: { website: true } },
