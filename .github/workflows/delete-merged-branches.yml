@@ -1,0 +1,19 @@
+# One-off: delete branches whose work is already in main. Runs when this pull request opens; the pull request is then closed, not merged.
+name: Delete merged branches (one-off)
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  delete:
+    if: github.head_ref == 'claude/cleanup-branches'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete the listed branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for b in claude/jobs-report-merge claude/ai-exposure claude/ai-exposure-claim claude/ai-exposure-report claude/ai-exposure-pivots claude/ai-exposure-learn claude/ai-exposure-jobs claude/cycle-swing claude/cycle-data claude/cycle-crosswalk claude/cycle-crosswalk2 claude/cycle-hr claude/future-ideas claude/portal-headers claude/partner-invite claude/partner-build claude/cleanup-branches; do
+            if curl -sS -o /dev/null -w "%{http_code}" -X DELETE -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/git/refs/heads/$b" | grep -qE '^(204|404|422)$'; then echo "ok: $b"; else echo "FAILED: $b"; fi
+          done
