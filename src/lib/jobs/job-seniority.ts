@@ -70,6 +70,7 @@ import {
   UNDER_DIRECTOR,
   YEARS_ZERO_RANGE,
   APM_EARLY,
+  CLINICAL_PRACTITIONER,
   APPRENTICE_GLOBAL,
   APPRENTICE_PRO,
   ASSISTANT_ENGINEER,
@@ -146,6 +147,9 @@ export function classifyTitleRung(rawTitle: string | null | undefined, opts: Cla
   if (!m || !rawTitle) return classifyTitleOnly(rawTitle, opts)
   const bare = rawTitle.slice(0, m.index).trim()
   let base = classifyTitleOnly(bare, opts)
+  // Level skew audit (2026-10-23): a practising clinician is never lifted by grade
+  // ("Physician (Primary Care) (VM-15)", "Staff Psychologist (GS-13)"). Mirrors ncrawl.
+  if (CLINICAL_PRACTITIONER.test(bare)) return OTHER
   if (m[3]) return 90 > base.rank ? { rung: 'EVP_SVP', rank: 90 } : base
   // A ladder topping out at GS-12 or below is levelled by its LOWEST grade (where a hire
   // starts); one reaching GS-13+ by its highest, as before.
