@@ -1,12 +1,12 @@
 import type { Goal, Match } from '@/lib/benefits/match'
-import { GOAL_LABEL } from '@/lib/benefits/match'
+import { GOAL_LABEL, GOAL_ORDER } from '@/lib/benefits/match'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { H2 } from '@/components/candidate/ui'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 
 // The ranked funding list: three sections (move, retrain, learn), best three of each shown, the rest one click away.
 const SHOWN = 3
-const GOALS: Goal[] = ['move', 'retrain', 'learn']
+const GOALS: Goal[] = GOAL_ORDER
 
 function Row({ m, rank }: { m: Match; rank: number }) {
   const p = m.program
