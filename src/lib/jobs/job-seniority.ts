@@ -88,6 +88,8 @@ import {
   TECH_LEVEL_TWO,
   TRAINEE_PRO,
   TRAINEE_VETO,
+  MANAGER_IN_TRAINING,
+  MUNICIPAL_PLANNER_EARLY,
   type RungName,
 } from './job-seniority-rules.generated'
 import { parseYearsRequired } from './years-required'
@@ -211,6 +213,10 @@ function classifyTitleOnly(rawTitle: string | null | undefined, opts: ClassifyOp
   // Assistant project / program managers and "Project Manager I" (owner, 2026-10-23): EARLY_IC,
   // never above (a people-manager posting goes back up in refineLevelByYears).
   if ((base.rung === 'MANAGER' || base.rung === 'MID_IC') && APM_EARLY.test(title)) return EARLY
+  // Level fix 3 (owner, 2026-10-23): a bare "Manager in Training" is a trainee seat, EARLY_IC
+  // ("... Program" ENTRY_IC). Mirrors ncrawl MANAGER_IN_TRAINING.
+  const mit = base.rung === 'MANAGER' ? MANAGER_IN_TRAINING.exec(title) : null
+  if (mit) return /\bprogram\b/i.test(mit[0]) ? ENTRY : EARLY
   if (fixed && fixed.mode === 'set') return base
   return earlyBroaden(title, base)
 }
@@ -343,6 +349,7 @@ function gradeRule(rawTitle: string): { rung: RungName; rank: number } | null {
   if (GRADE_RULE_MANAGEMENT.test(t)) return null
   if (CUSTOMER_SUCCESS_ASSOCIATE.test(t) && !ALLOW_UPPER.test(t)) return ENTRY
   if (ASSISTANT_ENGINEER.test(t) && !ALLOW_UPPER.test(t)) return ENTRY
+  if (MUNICIPAL_PLANNER_EARLY.test(t)) return EARLY
   if (PLANNER_ENTRY.test(t)) return ENTRY
   const soc = SOC_ANALYST.exec(t)
   if (soc && !ALLOW_UPPER.test(t)) return /\b(ii|2)\s*$/i.test(soc[0]) ? EARLY : ENTRY
@@ -454,7 +461,21 @@ export function degreeLift(title: string, description: string | null | undefined
 export function levelForPosting(title: string, description: string | null | undefined, opts: ClassifyOptions = {}): { rung: RungName; rank: number } {
   let level = classifyTitleRung(title, opts)
   if (level.rank === 0) level = degreeLift(title, description) ?? level
-  return refineLevelByYears(title, level, description)
+  level = refineLevelByYears(title, level, description)
+  // Level fix 3 (owner, 2026-10-23): the bachelor's lift and the years refinement don't know the
+  // federal grade. A Recent Graduates posting on a ladder starting at grade 7 or below and topping
+  // out by grade 9 that they put between ENTRY_IC and MID_IC comes down to ENTRY_IC.
+  if (level.rank > ENTRY_IC_RANK && level.rank <= MID_IC_RANK && fedRecentGradEntry(title, !!opts.recentGraduate)) return ENTRY
+  return level
+}
+
+/** ncrawl fed_recent_grad_entry: a Pathways Recent Graduates GS/GG/GM posting (title or hiring path), ladder from grade <= 7 to <= 9. */
+export function fedRecentGradEntry(title: string, recentGraduate = false): boolean {
+  const m = title ? GRADE.exec(title) : null
+  if (!m || !m[1] || !['gs', 'gg', 'gm'].includes(m[1].toLowerCase())) return false
+  if (!recentGraduate && !RECENT_GRAD.test(title)) return false
+  const nums = (m[0].match(/\d{1,2}/g) ?? []).map(Number)
+  return nums.length > 0 && Math.min(...nums) <= 7 && Math.max(...nums) <= 9
 }
 
 /** The seniority groups shown to people, most senior first. */

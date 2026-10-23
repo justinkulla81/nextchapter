@@ -22985,5 +22985,140 @@ true
 "Construction Project Manager I or II",
 "MANAGER",
 40
+],
+[
+"Manager in Training",
+"EARLY_IC",
+25
+],
+[
+"MANAGER IN TRAINING",
+"EARLY_IC",
+25
+],
+[
+"MIT (Manager in Training)",
+"EARLY_IC",
+25
+],
+[
+"Manager In Training (Roanoke, Va.)",
+"EARLY_IC",
+25
+],
+[
+"Manager in Training #199 - Catersville, GA",
+"EARLY_IC",
+25
+],
+[
+"Manager in Training, Nutrition Services",
+"EARLY_IC",
+25
+],
+[
+"Manager in Training Program",
+"ENTRY_IC",
+20
+],
+[
+"Manager-In-Training (Food & Beverage)",
+"EARLY_IC",
+25
+],
+[
+"Supply Chain Training Manager",
+"MANAGER",
+40
+],
+[
+"District Manager in Training",
+"MANAGER",
+40
+],
+[
+"Deli Manager In Training - Peoria",
+"MANAGER",
+40
+],
+[
+"General Manager in Training",
+"MANAGER",
+40
+],
+[
+"Manager In Training (Part Time)",
+"MANAGER",
+40
+],
+[
+"Senior Engineer- Manager In Training",
+"SENIOR_IC",
+45
+],
+[
+"Assistant City Planner",
+"EARLY_IC",
+25
+],
+[
+"Assistant County Planner - Long Range",
+"EARLY_IC",
+25
+],
+[
+"Assistant Town Planner",
+"EARLY_IC",
+25
+],
+[
+"Assistant City Planner I",
+"ENTRY_IC",
+20
+],
+[
+"Asst. City Planner",
+"MID_IC",
+30
+],
+[
+"City Planning Manager",
+"MANAGER",
+40
+],
+[
+"Assistant City Planning Manager",
+"MANAGER",
+40
+],
+[
+"Assistant City Engineer",
+"DIRECTOR",
+68
+],
+[
+"Principal/Associate Town Planner",
+"DIRECTOR",
+68
+],
+[
+"CONTACT REPRESENTATIVE (RECENT GRADUATE) (GS-4/5)",
+"OTHER",
+0
+],
+[
+"IT Project Manager (Plcypln) - CES Recent Graduate (GG-7/9)",
+"MANAGER",
+40
+],
+[
+"Recent Graduate Program Manager",
+"ENTRY_IC",
+20
+],
+[
+"Recent Graduate Program Manager (GS-12)",
+"MID_IC",
+30
 ]
 ]
