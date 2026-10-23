@@ -72,8 +72,8 @@ export default async function FundingPage() {
             <div>
               <H2 id="funding-sharpen">Which of these are true for you?</H2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Why we ask: some programs are only for veterans, people 50 or older, people with a disability and so on. We show them only if you tell us they apply.
-                Private to you: never shown to employers, recruiters, schools or coaches.
+                Why we ask: some programs are only for veterans, people 50 or older, people with a disability and so on. Until you answer, we keep them in the list in case they apply.
+                Once you save, we hide the ones that do not. Private to you: never shown to employers, recruiters, schools or coaches.
               </p>
             </div>
             <div className="space-y-2">
