@@ -14464,6 +14464,8 @@ model BenefitProgram {
   employerKey String?
   /// County GeoArea this program belongs to, filled from locality/city.
   geoAreaId   String?
+  applyUrl    String?
+  affinity    String[]  @default([])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
 
