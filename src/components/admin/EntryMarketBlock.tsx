@@ -63,7 +63,7 @@ export function EntryMarketBlock({ e }: { e: EntryMarket }) {
           label="Entry-level jobs asking for AI"
           n={e.entryAi}
           of={e.entry}
-          note={`${(e.entryAi - e.entryAiPreferred).toLocaleString()} as a requirement, ${e.entryAiPreferred.toLocaleString()} only preferred or a plus`}
+          note="same AI tagger as the board's Asks for AI skills"
         />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
