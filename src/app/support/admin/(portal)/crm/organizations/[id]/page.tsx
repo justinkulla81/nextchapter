@@ -12,6 +12,8 @@ import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrgBackgroundSections } from '@/components/admin/CrmOrgBackgroundSections'
 import { CrmAddOrgOpportunity } from '@/components/admin/CrmOrgOpportunities'
+import { BenefitsPanel } from '@/components/admin/BenefitsPanel'
+import { programsForEmployer } from '@/lib/benefits/store'
 import { CrmFundingMatches } from '@/components/admin/CrmFundingMatches'
 import { kindsForOrg } from '@/lib/funding-opportunities/eligibility'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
@@ -62,6 +64,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const inBoardDirectory = org.orgTypes.includes('GOVERNMENT')
     ? Boolean(await prisma.workforceBoard.findFirst({ where: { name: { equals: org.name, mode: 'insensitive' } }, select: { id: true } }).catch(() => null))
     : false
+  const employerBenefits = await programsForEmployer(org.canonicalNameNormalized)
   const funding = await opportunitiesForKinds(kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory }), { state: org.usState }).catch(() => [])
   // Everything below depends only on the org, so it all loads together.
   // Meetings tied to this organization directly or through one of its
@@ -737,6 +740,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           </div>
         </div>
 
+        <BenefitsPanel title="Benefits this company offers" note="Relocation packages and incentives this employer itself offers, from the Benefits catalog." groups={[{ label: org.name, rows: employerBenefits }]} />
         <CrmFundingMatches opportunities={funding} />
 
         {org.deadlines.length > 0 && (

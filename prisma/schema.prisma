@@ -14452,11 +14452,19 @@ model BenefitProgram {
   verified    Boolean   @default(false)
   checkedAt   DateTime?
   source      String?
+  city        String?
+  employer    String?
+  /// normalizeOrgName(employer): joins to CrmOrganization.canonicalNameNormalized.
+  employerKey String?
+  /// County GeoArea this program belongs to, filled from locality/city.
+  geoAreaId   String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
 
   @@index([category, state])
   @@index([status])
+  @@index([geoAreaId])
+  @@index([employerKey])
 }
 
 // History of journey and stage changes, newest last: what changed, from what,

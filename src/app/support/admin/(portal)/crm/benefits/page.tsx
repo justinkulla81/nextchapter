@@ -89,10 +89,12 @@ export default async function CrmBenefitsPage({ searchParams }: { searchParams: 
                   <div className="flex flex-wrap items-baseline gap-x-2">
                     {r.url ? <a href={r.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{r.name}</a> : <span className="font-medium">{r.name}</span>}
                     {r.provider && <span className="text-xs text-muted-foreground">{r.provider}</span>}
+                    {r.employer && <span className="rounded border border-border px-1.5 py-0.5 text-xs">Employer: {r.employer}</span>}
+                    {r.geoAreaId && <Link href={`/support/admin/crm/geographies/${r.geoAreaId}`} className="text-xs text-brand hover:underline">Area page</Link>}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="rounded border border-border px-1.5 py-0.5">{CATEGORY_LABELS[r.category] ?? r.category}</span>
-                    <span>{r.scope === 'NATIONAL' ? 'National' : [r.locality, r.state].filter(Boolean).join(', ')}</span>
+                    <span>{r.scope === 'NATIONAL' ? 'National' : [r.city ?? r.locality, r.state].filter(Boolean).join(', ')}</span>
                     <span className="rounded border border-border px-1.5 py-0.5">{STATUS_LABELS[r.status] ?? r.status}</span>
                     <span className={r.verified ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}>
                       {r.verified ? `Verified${r.checkedAt ? ` ${formatDate(r.checkedAt)}` : ''}` : 'Unverified: check before using'}

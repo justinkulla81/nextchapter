@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { placeKey } from '@/lib/workforce/places'
 import { upsertProgramRows } from './upsert'
 import { CATEGORY_ORDER, type BenefitCategory, type BenefitProgramRow } from './types'
 
@@ -9,7 +10,7 @@ import { CATEGORY_ORDER, type BenefitCategory, type BenefitProgramRow } from './
  * Each function throws on a missing table; callers decide what to do.
  */
 
-const COLUMNS = `"id","category","name","provider","scope","state","locality","amount","eligibility","status","statusNote","url","segments","verified","checkedAt","source"`
+const COLUMNS = `"id","category","name","provider","scope","state","locality","amount","eligibility","status","statusNote","url","segments","verified","checkedAt","source","city","employer","employerKey","geoAreaId"`
 
 export const upsertPrograms = (rows: BenefitProgramRow[]) => upsertProgramRows(prisma, rows)
 
@@ -47,15 +48,17 @@ export async function countByCategory(): Promise<Record<string, number>> {
  * Programs for a pitch deck: verified and open first, this state's own before national, spread
  * across categories so a deck is not eight relocation grants. Empty on a missing table.
  */
-export async function programsForDeck(state: string | null, perCategory = 3): Promise<BenefitProgramRow[]> {
+export async function programsForDeck(state: string | null, perCategory = 3, areaId: string | null = null): Promise<BenefitProgramRow[]> {
   try {
     await seedCatalogIfEmpty()
     const all = await listPrograms({ state: state ?? undefined, limit: 400 })
-    const live = all.filter((r) => r.status !== 'CLOSED' && r.url)
+    const live = all.filter((r) => r.status !== 'CLOSED' && r.url && (!r.employerKey || r.category === 'PAID'))
     const out: BenefitProgramRow[] = []
     for (const c of CATEGORY_ORDER) {
       const mine = live.filter((r) => r.category === c)
-      const local = mine.filter((r) => r.state && r.state === state)
+      // This county's own programs first, then this state's, then national ones.
+      const county = mine.filter((r) => areaId && r.geoAreaId === areaId)
+      const local = [...county, ...mine.filter((r) => !county.includes(r) && r.state && r.state === state)]
       out.push(...[...local, ...mine.filter((r) => !local.includes(r))].slice(0, perCategory))
     }
     return out
@@ -73,5 +76,59 @@ export async function seedCatalogIfEmpty(): Promise<number> {
   const [{ n, last }] = await prisma.$queryRaw<{ n: bigint; last: Date | null }[]>`SELECT COUNT(*) AS n, MAX("updatedAt") AS last FROM "BenefitProgram"`
   const catalog = (await import('./catalog.json')).default as unknown as { builtAt: string; rows: (Omit<BenefitProgramRow, 'checkedAt'> & { checkedAt: string | null })[] }
   if (Number(n) > 0 && last && last >= new Date(catalog.builtAt)) return 0
-  return upsertPrograms(catalog.rows.map((r) => ({ ...r, checkedAt: r.checkedAt ? new Date(r.checkedAt) : null })))
+  const written = await upsertPrograms(catalog.rows.map((r) => ({ ...r, checkedAt: r.checkedAt ? new Date(r.checkedAt) : null })))
+  await linkBenefitGeo()
+  return written
+}
+
+const ORDER = `ORDER BY "verified" DESC, ("status" = 'OPEN' OR "status" = 'ROLLING') DESC, "name"`
+
+/**
+ * Ties local programs to a county GeoArea. A program whose locality or city names a county
+ * ("Floyd County") is matched by name; one that names a city or town is matched through the
+ * GeoPlace table to its county. Only fills rows that have no geoAreaId yet.
+ */
+export async function linkBenefitGeo(): Promise<number> {
+  const rows = await prisma.$queryRaw<{ id: string; state: string; locality: string | null; city: string | null }[]>`
+    SELECT "id","state","locality","city" FROM "BenefitProgram"
+    WHERE "geoAreaId" IS NULL AND "state" IS NOT NULL AND ("locality" IS NOT NULL OR "city" IS NOT NULL)`
+  let linked = 0
+  for (const r of rows) {
+    const tokens = [r.city, ...(r.locality ?? '').split(/[;,/]| and /)].map((t) => (t ?? '').trim()).filter((t) => t.length > 2)
+    let areaId: string | null = null
+    for (const t of tokens) {
+      const county = /\b(county|parish|borough)\b/i.test(t)
+        ? await prisma.geoArea.findFirst({ where: { level: 'COUNTY', state: r.state, name: { equals: t.replace(/^.*?\b(?=\w+ (county|parish|borough)$)/i, ''), mode: 'insensitive' } }, select: { id: true } })
+        : null
+      if (county) { areaId = county.id; break }
+      const place = await prisma.geoPlace.findFirst({ where: { state: r.state, nameKey: placeKey(t) }, orderBy: { population: { sort: 'desc', nulls: 'last' } }, select: { county: true } })
+      if (place?.county) {
+        const c = await prisma.geoArea.findFirst({ where: { level: 'COUNTY', state: r.state, name: { startsWith: place.county.replace(/ (County|Parish|Borough)$/i, ''), mode: 'insensitive' } }, select: { id: true } })
+        if (c) { areaId = c.id; break }
+      }
+    }
+    if (areaId) { await prisma.$executeRaw`UPDATE "BenefitProgram" SET "geoAreaId" = ${areaId} WHERE "id" = ${r.id}`; linked++ }
+  }
+  return linked
+}
+
+/** Programs tied to one county, then the ones that apply across its state. Empty on a missing table. */
+export async function programsForArea(areaId: string, state: string): Promise<{ local: BenefitProgramRow[]; statewide: BenefitProgramRow[] }> {
+  try {
+    const local = await prisma.$queryRawUnsafe<BenefitProgramRow[]>(`SELECT ${COLUMNS} FROM "BenefitProgram" WHERE "geoAreaId" = $1 AND "status" <> 'CLOSED' ${ORDER} LIMIT 60`, areaId)
+    const statewide = await prisma.$queryRawUnsafe<BenefitProgramRow[]>(
+      `SELECT ${COLUMNS} FROM "BenefitProgram" WHERE "state" = $1 AND "geoAreaId" IS NULL AND "employerKey" IS NULL AND "status" <> 'CLOSED' ${ORDER} LIMIT 40`, state)
+    return { local, statewide }
+  } catch {
+    return { local: [], statewide: [] }
+  }
+}
+
+/** Programs an employer itself offers (relocation packages and the like), by its normalized name. */
+export async function programsForEmployer(employerKey: string): Promise<BenefitProgramRow[]> {
+  try {
+    return await prisma.$queryRawUnsafe<BenefitProgramRow[]>(`SELECT ${COLUMNS} FROM "BenefitProgram" WHERE "employerKey" = $1 ${ORDER} LIMIT 40`, employerKey)
+  } catch {
+    return []
+  }
 }

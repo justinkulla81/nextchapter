@@ -12,11 +12,14 @@ import type { BenefitCategory } from '../../src/lib/benefits/types'
 
 const DIR = join(__dirname, '../../data/benefits')
 function categoryFor(f: string): BenefitCategory | null {
-  if (f === 'relocation.md' || /^city_.*\.md$/.test(f)) return 'RELOCATION'
+  if (f === 'relocation.md' || /^city_.*\.md$/.test(f) || f === 'company_a.md' || f === 'company_c.md') return 'RELOCATION'
+  if (f === 'company_b.md') return 'PRIVATE'
   if (f === 'state-training.md' || f === 'state_ai.md') return 'STATE_TRAINING'
   if (f === 'federal.md') return 'FEDERAL'
   if (f === 'courses.md') return 'COURSES'
   if (f === 'private.md') return 'PRIVATE'
+  if (f === 'paid.md') return 'PAID'
+  if (f === 'tax.md') return 'TAX'
   if (f === 'segments.md' || f === 'hiring_credits.md') return 'SEGMENT'
   return null
 }

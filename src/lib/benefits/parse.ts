@@ -1,3 +1,4 @@
+import { normalizeOrgName } from '../text/org-name-match'
 import type { BenefitCategory, BenefitProgramRow } from './types'
 
 /**
@@ -20,7 +21,7 @@ const CODES = new Set(Object.values(STATES))
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90)
 const clean = (s: string | undefined) => (s ?? '').replace(/\*\*/g, '').replace(/`/g, '').trim()
 
-type Col = 'name' | 'state' | 'provider' | 'amount' | 'eligibility' | 'status' | 'url' | 'verified' | 'segment' | 'cost' | 'locality'
+type Col = 'employer' | 'city' | 'name' | 'state' | 'provider' | 'amount' | 'eligibility' | 'status' | 'url' | 'verified' | 'segment' | 'cost' | 'locality'
 function colFor(h: string): Col | null {
   const x = h.toLowerCase()
   if (/^#$/.test(x)) return null
@@ -30,7 +31,9 @@ function colFor(h: string): Col | null {
   if (/status/.test(x)) return 'status'
   if (/eligib/.test(x)) return 'eligibility'
   if (/segment/.test(x)) return 'segment'
-  if (/location|locality|city/.test(x)) return 'locality'
+  if (/^employer|^company/.test(x)) return 'employer'
+  if (/^city|^town/.test(x)) return 'city'
+  if (/location|locality/.test(x)) return 'locality'
   if (/^cost/.test(x)) return 'cost'
   if (/provider|^org|organi[sz]ation|agency|issued/.test(x)) return 'provider'
   if (/pays|get|provides|benefit|amount|value|incentive/.test(x)) return 'amount'
@@ -96,11 +99,12 @@ export function parseCatalog(markdown: string, category: BenefitCategory, source
     if (seen.has(id)) continue
     seen.add(id)
     const seg = get('segment')
+    const employer = get('employer')?.slice(0, 120) ?? null
     out.push({
       id, category, name: name.slice(0, 200), provider: get('provider') ?? null, scope: state ? 'STATE' : 'NATIONAL', state: state ?? null,
       locality: get('locality') ?? null, amount: amount ? amount.slice(0, 400) : null, eligibility: get('eligibility')?.slice(0, 500) ?? null,
       status: statusOf(statusText), statusNote: statusText ? statusText.slice(0, 300) : null, url,
-      segments: seg ? [seg.slice(0, 80)] : [], verified: verified && !!url, checkedAt: verified ? checkedAt : null, source,
+      segments: seg ? [seg.slice(0, 80)] : [], city: get('city')?.slice(0, 80) ?? null, employer, employerKey: employer ? normalizeOrgName(employer) : null, geoAreaId: null, verified: verified && !!url, checkedAt: verified ? checkedAt : null, source,
     })
   }
   return out
