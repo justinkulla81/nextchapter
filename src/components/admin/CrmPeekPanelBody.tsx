@@ -42,6 +42,7 @@ interface Peek {
   activities?: Activity[]
   people?: { id: string; name: string; detail: string | null; touched: string }[]
   pipelines?: { label: string; stage: string }[]
+  links?: { label: string; url: string }[]
   paths?: { via: string; strength: string; status: string }[]
   dates?: { label: string; value: string }[]
 }
@@ -249,6 +250,21 @@ export function CrmPeekPanelBody({ initial }: { initial?: { id: string; kind: 'p
               {data.pipelines && data.pipelines.length > 0 && (
                 <Block title="Pipelines">
                   {data.pipelines.map((p, i) => <li key={i}>{p.label} <span className="text-xs text-muted-foreground">· {p.stage}</span></li>)}
+                </Block>
+              )}
+
+              {data.links && data.links.length > 0 && (
+                <Block title="Links">
+                  {data.links.map((l, i) => (
+                    <li key={i}>
+                      <a
+                        href={l.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline"
+                        onClick={() => posthog.capture('crm_funding_link_opened', { orgId: data.id, url: l.url })}
+                      >
+                        {l.label} ↗
+                      </a>
+                    </li>
+                  ))}
                 </Block>
               )}
 

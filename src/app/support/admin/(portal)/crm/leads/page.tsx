@@ -142,14 +142,13 @@ export default async function CrmLeadsPage({
       where: dueOrder ? { id: { in: dueOrder.slice((page - 1) * perPage, page * perPage) } } : where,
       orderBy, ...(dueOrder ? {} : { skip: (page - 1) * perPage, take: perPage }),
       select: {
-        id: true, title: true, stageId: true, leadQuality: true, eligibility: true,
+        id: true, title: true, url: true, stageId: true, leadQuality: true, eligibility: true,
         priorityScore: true, priorityOverride: true, amountUsdMin: true, amountUsdMax: true,
         nextStep: true, nextStepDueAt: true, committedFollowUpAt: true, committedTo: true,
         pipeline: { select: { key: true, label: true } },
         org: {
           select: {
-            id: true, name: true, usState: true,
-            investorProfile: {
+            id: true, name: true, usState: true, website: true,            investorProfile: {
               select: {
                 funderKind: true, valueTypes: true, preconditions: true, preconditionLeadTimeDays: true,
               },
@@ -299,6 +298,15 @@ export default async function CrmLeadsPage({
                       {o.org ? (
                         <CrmPeekButton id={o.org.id} kind="org">{o.org.name}</CrmPeekButton>
                       ) : <span className="font-medium">{o.title}</span>}
+                      {(o.url ?? o.org?.website) && (
+                        <a
+                          href={(o.url ?? o.org?.website)!} target="_blank" rel="noopener noreferrer"
+                          className="block text-xs text-accent hover:underline"
+                          aria-label={`Open the ${o.org?.name ?? o.title} program page`}
+                        >
+                          {o.url ? 'Program page ↗' : 'Website ↗'}
+                        </a>
+                      )}
                       {overdue && (
                         <span className="block text-xs text-orange">Promised {formatDate(o.committedFollowUpAt)}</span>
                       )}
