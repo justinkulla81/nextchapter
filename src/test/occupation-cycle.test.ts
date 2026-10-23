@@ -28,8 +28,8 @@ describe('occupation cycle', () => {
     expect(line).toContain('−15% against −6% for all jobs')
     expect(line).not.toMatch(/\b(safe|risk|recession-proof|will)\b/i)
   })
-  it('shows nothing when no history is loaded for an occupation', () => {
-    expect(cycleLineForSoc('13-2051.00')).toBeNull()
+  it('shows nothing for an occupation with no history', () => {
+    expect(cycleLineForSoc('99-9999.00')).toBeNull()
     expect(cycleLineForSoc(undefined)).toBeNull()
   })
 })
