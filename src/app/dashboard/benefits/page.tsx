@@ -9,6 +9,7 @@ import { isBoardReady } from '@/lib/interim-work/board-readiness'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { GuideCallout } from '@/components/dashboard/GuideCallout'
 import { PageHeaderBoxes } from '@/components/dashboard/PageHeaderBoxes'
+import { sideIncomeOf } from '@/lib/journey/paths'
 import { RunwayCard, type RunwayStateFacts } from '@/components/dashboard/RunwayCard'
 import { STATE_UI } from '@/lib/data/state-ui'
 import { weeksUnemployed } from '@/lib/outcomes/duration-bucket'
@@ -252,7 +253,7 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
           )}
         </Section>
 
-        <RunwayCard redesign facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} />
+        <RunwayCard redesign facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} sideIncome={sideIncomeOf(profile.journeyDetails)} />
 
         <MoreDetails summary="Show more: the full benefits guide">
           {actionPlanLinks.length > 0 && (
@@ -312,7 +313,7 @@ export default async function BenefitsPage({ searchParams }: { searchParams: Pro
         <PageHeaderBoxes pageKey="benefits" candidateId={profile.id} />
       </div>
 
-      <RunwayCard facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} />
+      <RunwayCard facts={runwayFacts} weeksSinceLastJob={weeksSinceLastJob} sideIncome={sideIncomeOf(profile.journeyDetails)} />
 
       {profile.benefitsPressures.length === 0 ? (
         <BenefitsPressureForm />

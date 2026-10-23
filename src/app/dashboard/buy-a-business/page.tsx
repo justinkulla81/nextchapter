@@ -4,6 +4,8 @@ import { after } from 'next/server'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { effectiveJourney, effectiveStage } from '@/lib/journey/journey'
+import { hasSideDetails } from '@/lib/journey/paths'
+import { getParallelPaths } from '@/lib/job-reviews/data'
 import { buyDetailsOf, buyHeadline, buyStageForJourneyStage, hasBuyDetails, missingBuyFields, type BuyStageKey } from '@/lib/journey/buy-business'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ActionSubmit } from '@/components/candidate/ActionSubmit'
@@ -29,6 +31,8 @@ export default async function BuyBusinessPage({ searchParams }: { searchParams: 
   const started = main || hasBuyDetails(profile.journeyDetails)
   const stage: BuyStageKey = details.stage ?? (main ? buyStageForJourneyStage(effectiveStage(profile)) : 'decide')
   const gaps = missingBuyFields(details)
+  const kinds = await getParallelPaths(profile.id)
+  const hasSide = hasSideDetails(profile.journeyDetails) || (kinds ?? []).length > 0
 
   after(() =>
     captureServerEvent(profile.id, 'buy_business_page_viewed', {
@@ -68,7 +72,7 @@ export default async function BuyBusinessPage({ searchParams }: { searchParams: 
         ))}
       </nav>
 
-      {tab === 'plan' && <PlanTab details={details} stage={stage} started={started} main={main} gapsCount={gaps.length} />}
+      {tab === 'plan' && <PlanTab details={details} stage={stage} started={started} main={main} gapsCount={gaps.length} hasSide={hasSide} />}
       {tab === 'find' && <FindTab details={details} stage={stage} />}
       {tab === 'financing' && <FinancingTab details={details} stage={stage} />}
       {tab === 'training' && <TrainingTab stage={stage} />}

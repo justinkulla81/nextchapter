@@ -806,8 +806,13 @@ const WHY_NOTES: Record<string, BuyNote> = {
 }
 
 /** One plain note on what the member's reason for buying means for their plan, or null when they have not said. */
-export function whyNote(d: BuyDetails): BuyNote | null {
-  return d.why ? (WHY_NOTES[d.why] ?? null) : null
+export function whyNote(d: BuyDetails, opts: { hasSide?: boolean } = {}): BuyNote | null {
+  const note = d.why ? (WHY_NOTES[d.why] ?? null) : null
+  // A member who already has side work is sent to that card, not to the general interim work page.
+  if (note && opts.hasSide && note.links === EARN_LINKS) {
+    return { ...note, links: [{ label: 'Your side work', href: '/dashboard/other-paths' }, EARN_LINKS[1]] }
+  }
+  return note
 }
 
 export type HardPart = { key: string; title: string; because: string; learn: { label: string; href: string } }
@@ -852,9 +857,12 @@ const HARD_PARTS: Record<string, HardPart> = {
 }
 
 /** The hard parts the member did not tick, each with why it matters and where to learn. Empty until they have answered. */
-export function hardPartsToPlanFor(d: BuyDetails): HardPart[] {
+export function hardPartsToPlanFor(d: BuyDetails, opts: { hasSide?: boolean } = {}): HardPart[] {
   if (!d.ready) return []
-  return HARD_PART_OPTIONS.filter((o) => !d.ready!.includes(o.value)).map((o) => HARD_PARTS[o.value])
+  return HARD_PART_OPTIONS.filter((o) => !d.ready!.includes(o.value)).map((o) => {
+    const h = HARD_PARTS[o.value]
+    return o.value === 'income' && opts.hasSide ? { ...h, learn: { label: 'Your side work covers part of this: see it and your hours', href: '/dashboard/other-paths' } } : h
+  })
 }
 
 // ── Podcasts and videos ──────────────────────────────────────────────────────

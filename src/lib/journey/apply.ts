@@ -13,6 +13,7 @@ import { rebuildCurrentWeekPlan } from '@/lib/weekly/sprint'
 import { effectiveJourney, effectiveStage, getJourney, type JourneyStage, type JourneyType } from './journey'
 import type { JourneyChangeSource } from '@prisma/client'
 import { appliesAcrossAffiliations } from '@/lib/affiliations/visibility'
+import { rememberPreviousMain } from './paths'
 
 export type JourneyChange = {
   journey?: JourneyType
@@ -59,7 +60,15 @@ export async function applyJourneyChange(candidateId: string, requested: Journey
   }
   // Changing careers means pivoting: ranking and the pivot steps read this flag.
   if (journeyChanged && toJourney === 'CAREER_CHANGE') data.isPivoting = true
-  if (change.details) data.journeyDetails = { ...((p.journeyDetails as Record<string, unknown>) ?? {}), ...change.details } as Prisma.InputJsonValue
+  // Changing the main journey remembers the one they came from, so a parallel path they switch to can be switched back.
+  const previous = journeyChanged ? rememberPreviousMain(p.journeyDetails, fromJourney, toJourney) : null
+  if (change.details || previous) {
+    data.journeyDetails = {
+      ...((p.journeyDetails as Record<string, unknown>) ?? {}),
+      ...(previous ? { alongside: previous } : {}),
+      ...(change.details ?? {}),
+    } as Prisma.InputJsonValue
+  }
   if (Object.keys(data).length) await prisma.candidateProfile.update({ where: { id: candidateId }, data })
 
   let plan: { kept: number; replaced: number } | null = null

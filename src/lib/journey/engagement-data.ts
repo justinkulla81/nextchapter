@@ -13,6 +13,7 @@ import { pivotOf } from './pivot'
 import { careerOf } from './career'
 import { parseRelocation } from './relocation'
 import { ownedFunctionsFrom } from './pathway'
+import { getParallelPaths } from '@/lib/job-reviews/data'
 import { engagementLead, engagementPlanItems, type EngagementSignals } from './engagement'
 
 const WEEK = 7 * 86_400_000
@@ -44,7 +45,8 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
   const journey = effectiveJourney(p)
   const stage = effectiveStage(p)
   const since = p.journeyStageChangedAt ?? p.createdAt
-  const [trackRecord, education, currentEngagement, conversations, gmail, calendar, completedReferences, requestedReferences, openResumeIssues, personality, unlock, outreach, applications, interviews, offers] = await Promise.all([
+  const [parallelKinds, trackRecord, education, currentEngagement, conversations, gmail, calendar, completedReferences, requestedReferences, openResumeIssues, personality, unlock, outreach, applications, interviews, offers] = await Promise.all([
+    getParallelPaths(candidateId),
     prisma.trackRecordResponse.findUnique({ where: { candidateId }, select: { functionsOwnedOutsideCore: true } }),
     // Graduation date, for students and new grads.
     prisma.educationEntry.findFirst({ where: { candidateId, graduationDate: { not: null } }, orderBy: { graduationDate: 'desc' }, select: { graduationDate: true } }),
@@ -69,6 +71,7 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     tone: p.coachingStylePreference,
     casual: isNotSearching(journey, stage) || isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity),
     workingNow: workingNowOf(p.journeyDetails),
+    parallelKinds,
     pivot: pivotOf(p.journeyDetails),
     career: careerOf(p.journeyDetails),
     skillsToBuild: p.skillsToBuild ?? [],
