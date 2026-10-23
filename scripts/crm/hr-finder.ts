@@ -37,7 +37,7 @@ const KIND_LABEL: Record<Kind, string> = {
   learning_development: 'learning and development',
 }
 const ROLES: Record<Kind, CrmPersonRole[]> = {
-  head_hr: ['HIRING_MANAGER', 'OUTPLACEMENT_BUYER'],
+  head_hr: ['HIRING_MANAGER', 'OUTPLACEMENT_BUYER', 'CHRO'],
   total_rewards: ['OUTPLACEMENT_BUYER'],
   employee_relations: ['OUTPLACEMENT_BUYER'],
   talent_acquisition: ['OUTPLACEMENT_BUYER'],

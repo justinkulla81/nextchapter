@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import type { Prisma, CrmOrgType, CrmGoal } from '@prisma/client'
 import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -11,12 +10,13 @@ import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrganizationsViewTracker } from '@/components/admin/WorkforceBoardsViewTracker'
-import { hasLearningDevHead, missingLearningDevHead } from '@/lib/crm/learning-dev'
+import { ExportOrganizationsButton } from '@/components/admin/ExportOrganizationsButton'
+import { organizationsWhere } from '@/lib/crm/organizations-filter'
 import { ORG_RELATIONSHIPS, ORG_RELATIONSHIP_LABELS, isOrgRelationshipFilter, relationshipWhere, type OrgRelationshipFilter } from '@/lib/crm/org-relationships'
 import { countOpenByOrg } from '@/lib/funding-opportunities/store'
-import { layoffsByOrg, orgIdsWithLayoffs } from '@/lib/crm/org-layoffs'
-import { communicationByOrg, orgIdsWithCommunication } from '@/lib/crm/org-communication'
-import { DEAL_STATUSES, DEAL_STATUS_LABELS, isDealStatus } from '@/lib/crm/deal-status'
+import { layoffsByOrg } from '@/lib/crm/org-layoffs'
+import { communicationByOrg } from '@/lib/crm/org-communication'
+import { DEAL_STATUSES, DEAL_STATUS_LABELS } from '@/lib/crm/deal-status'
 
 export const maxDuration = 30
 const PAGE_SIZES = [50, 100, 200, 1500] as const
@@ -37,6 +37,7 @@ export default async function CrmOrganizationsPage({
   const layoffs = sp.layoffs === 'any' ? 'any' : ''
   const comm = sp.comm === 'any' || sp.comm === 'none' || sp.comm === 'waiting' ? sp.comm : ''
   const ldHead = sp.ldhead === 'missing' || sp.ldhead === 'has' ? sp.ldhead : ''
+  const chro = sp.chro === 'missing' || sp.chro === 'has' ? sp.chro : ''
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const requested = parseInt(sp.per ?? '', 10)
   const perPage = (PAGE_SIZES as readonly number[]).includes(requested) ? requested : DEFAULT_PAGE_SIZE
@@ -47,18 +48,7 @@ export default async function CrmOrganizationsPage({
     : sort.sort === 'people' ? [{ affiliations: { _count: sort.dir } }]
     : [{ priorityScore: sort.dir }, { name: 'asc' as const }]
 
-  const layoffOrgIds = layoffs ? await orgIdsWithLayoffs() : null
-  const commOrgIds = comm ? await orgIdsWithCommunication(comm === 'waiting') : null
-  const where: Prisma.CrmOrganizationWhereInput = {
-    ...(commOrgIds ? { AND: [{ id: comm === 'none' ? { notIn: commOrgIds } : { in: commOrgIds } }] } : {}),
-    ...(layoffOrgIds ? { id: { in: layoffOrgIds } } : {}),
-    ...(rel ? { AND: [...(commOrgIds ? [{ id: comm === 'none' ? { notIn: commOrgIds } : { in: commOrgIds } }] : []), relationshipWhere(rel)] } : {}),
-    ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
-    ...(type ? { orgTypes: { has: type as CrmOrgType } } : {}),
-    ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
-    ...(ldHead === 'missing' ? missingLearningDevHead : ldHead === 'has' ? hasLearningDevHead : {}),
-    ...(deal === 'any' ? { dealStatus: { not: null } } : deal && isDealStatus(deal) ? { dealStatus: deal } : {}),
-  }
+  const where = await organizationsWhere({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro })
 
   // Counts for the relationship buttons ignore the other filters, so the
   // numbers say how big each group is, not how many survived a search.
@@ -83,14 +73,14 @@ export default async function CrmOrganizationsPage({
   const totalPages = Math.max(1, Math.ceil(total / perPage))
   const qs = (over: Record<string, string | number>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
+    for (const [k, v] of Object.entries({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, per: String(perPage), sort: sort.sort, dir: sort.dir, ...over })) if (v) p.set(k, String(v))
     return p.toString()
   }
 
   return (
     <div className="space-y-6">
       <CrmPeekPanel />
-      <CrmOrganizationsViewTracker q={q} type={type} rel={rel} goal={goal} deal={deal} ldHead={ldHead} layoffs={layoffs} results={total} />
+      <CrmOrganizationsViewTracker q={q} type={type} rel={rel} goal={goal} deal={deal} ldHead={ldHead} chro={chro} layoffs={layoffs} results={total} />
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Organizations</h1>
@@ -98,9 +88,12 @@ export default async function CrmOrganizationsPage({
             One record per organization, however many things it is to us.
           </p>
         </div>
-        <Link href="/support/admin/crm" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
-          People
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportOrganizationsButton query={qs({ page: '', per: '', sort: '', dir: '' })} />
+          <Link href="/support/admin/crm" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
+            People
+          </Link>
+        </div>
       </header>
 
       {rel && (
@@ -128,6 +121,7 @@ export default async function CrmOrganizationsPage({
         filters={[
           { key: 'type', label: 'Type', value: type, options: [{ value: '', label: 'Any type' }, ...ORG_TYPES.map((t) => ({ value: t, label: ORG_TYPE_LABELS[t] }))] },
           { key: 'goal', label: 'Goal', value: goal, options: [{ value: '', label: 'Any goal' }, ...GOALS.map((g) => ({ value: g, label: GOAL_LABELS[g] }))] },
+          { key: 'chro', label: 'CHRO', value: chro, options: [{ value: 'missing', label: 'Missing a CHRO' }, { value: 'has', label: 'Has a CHRO' }] },
           { key: 'ldhead', label: 'Head of L&D', value: ldHead, options: [{ value: 'missing', label: 'Missing a head of L&D' }, { value: 'has', label: 'Has a head of L&D' }] },
           { key: 'layoffs', label: 'Layoffs', value: layoffs, options: [{ value: '', label: 'Any layoff history' }, { value: 'any', label: 'Has layoffs' }] },
           { key: 'comm', label: 'Communication', value: comm, options: [{ value: '', label: 'Any communication' }, { value: 'any', label: 'We have emailed or heard from them' }, { value: 'waiting', label: 'Waiting on their reply' }, { value: 'none', label: 'No communication yet' }] },
@@ -163,11 +157,11 @@ export default async function CrmOrganizationsPage({
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left">
                 <th className="w-8 px-3 py-2"><CrmSelectAll pageCount={rows.length} /></th>
-                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, per: String(perPage) }} />
+                <SortHeader label="Organization" sortKey="name" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, per: String(perPage) }} />
                 <th className="px-3 py-2 font-medium">What it is to us</th>
                 <th className="px-3 py-2 font-medium">Goal</th>
                 <th className="px-3 py-2 font-medium">Deal</th>
-                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, per: String(perPage) }} defaultDir="desc" />
+                <SortHeader label="People" sortKey="people" current={sort} basePath="/support/admin/crm/organizations" params={{ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro, per: String(perPage) }} defaultDir="desc" />
                 <th className="px-3 py-2 font-medium" title="Emails we sent to people at this organization, replies back, and the last one">Communication</th>
                 <th className="px-3 py-2 font-medium" title="WARN filings and announced layoffs at this organization, with the jobs they name and the latest date">Layoffs</th>
                 <th className="px-3 py-2 font-medium">Pipelines</th>

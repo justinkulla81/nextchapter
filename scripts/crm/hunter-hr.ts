@@ -38,7 +38,7 @@ function kindOf(title: string): Kind | null {
   return null
 }
 const ROLES: Record<Kind, CrmPersonRole[]> = {
-  head_hr: ['HIRING_MANAGER', 'OUTPLACEMENT_BUYER'],
+  head_hr: ['HIRING_MANAGER', 'OUTPLACEMENT_BUYER', 'CHRO'],
   total_rewards: ['OUTPLACEMENT_BUYER'], employee_relations: ['OUTPLACEMENT_BUYER'], talent_acquisition: ['OUTPLACEMENT_BUYER'],
   hr_business_partner: ['OUTPLACEMENT_BUYER'], learning_development: ['LEARNING_DEV_HEAD'], other_hr: ['OUTPLACEMENT_BUYER'],
 }

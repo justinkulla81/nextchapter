@@ -73,7 +73,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
   const head: ContactCard[] = [], hrTeam: ContactCard[] = [], others: ContactCard[] = []
   for (const a of affiliations) {
     const c = card(a.person, a.title, a.org.name)
-    const buyer = a.person.roles.some((r) => r === 'OUTPLACEMENT_BUYER' || r === 'LEARNING_DEV_HEAD')
+    const buyer = a.person.roles.some((r) => r === 'OUTPLACEMENT_BUYER' || r === 'LEARNING_DEV_HEAD' || r === 'CHRO')
     if (isHrLeaderTitle(a.title)) head.push(c)
     else if (buyer || (a.title && HR_TEAM.test(a.title))) hrTeam.push(c)
     else others.push(c)

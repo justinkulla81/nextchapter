@@ -18,6 +18,7 @@ export const PERSON_ROLE_LABELS: Record<CrmPersonRole, string> = {
   COACH_PROSPECT: 'BD: Coach',
   HIRING_MANAGER: 'BD: Hiring Manager',
   OUTPLACEMENT_BUYER: 'BD: Outplacement',
+  CHRO: 'BD: CHRO',
   LEARNING_DEV_HEAD: 'BD: Head of L&D',
   ALUMNI_OFFICE: 'Higher ed: Alumni',
   HIGHER_ED_DEVELOPMENT: 'Higher ed: Development',
