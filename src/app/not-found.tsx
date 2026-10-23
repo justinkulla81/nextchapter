@@ -1,18 +1,8 @@
-import { headers } from 'next/headers'
 import { NotFoundView } from '@/components/not-found/NotFoundView'
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
-import { SUPPORT_HELP_PATH } from '@/lib/help/constants'
 
-// Every unknown address, on the main site and the portal hosts. Home depends on who is looking:
-// admins go back to the admin portal, signed-in candidates to their dashboard, everyone else to the front page.
-export default async function NotFound() {
-  const host = ((await headers()).get('host') ?? '').toLowerCase()
-  if (host.startsWith('admin.')) {
-    return <NotFoundView audience="admin" homeHref="/" homeLabel="Back to admin home" reportHref="https://launchyournextchapter.com/contact" />
-  }
-  const user = await getCurrentUser().catch(() => null)
-  if (user) {
-    return <NotFoundView audience="candidate" homeHref="/dashboard" homeLabel="Back to your dashboard" reportHref={SUPPORT_HELP_PATH} />
-  }
-  return <NotFoundView audience="public" homeHref="/" homeLabel="Go to the home page" reportHref="/contact" />
+// Every unknown address, on the main site and the portal hosts. This must stay static: reading headers or the
+// session here turns every ISR page that calls notFound() (/jobs/<id>, /layoffs/company/<slug>) into a 500.
+// Signed-in members get their own wording from app/dashboard/not-found.tsx.
+export default function NotFound() {
+  return <NotFoundView audience="public" homeHref="/" homeLabel="Go to the home page" reportHref="https://launchyournextchapter.com/contact" />
 }
