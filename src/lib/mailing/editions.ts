@@ -158,7 +158,10 @@ function audienceForEdition(edition: EditionForSend): EmailAudience {
   if (keys.size !== 1) return 'general'
   const [key] = [...keys]
   if (key === 'candidates') return 'candidate'
-  if (key === 'customers' || key === 'leads') return 'organization'
+  if (key === 'coaches') return 'coach'
+  if (key === 'recruiters') return 'recruiter'
+  if (key === 'employers') return 'employer'
+  if (key === 'customers' || key === 'higher_ed' || key === 'workforce') return 'organization'
   return 'general'
 }
 

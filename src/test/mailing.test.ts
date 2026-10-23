@@ -256,7 +256,10 @@ describe('list suggestions', () => {
   it('maps roles, pipelines and customers; always suggests the Monthly Update', () => {
     expect(suggestListKeys({ roles: [], pipelineKeys: [], isCustomer: false })).toEqual(['monthly_update'])
     expect(suggestListKeys({ roles: ['INVESTOR_ANGEL', 'COACH_PROSPECT'], pipelineKeys: ['outplacement'], isCustomer: true }).sort())
-      .toEqual(['customers', 'ecosystem', 'investors', 'leads', 'monthly_update'])
+      .toEqual(['coaches', 'customers', 'employers', 'investors', 'monthly_update'])
+    expect(suggestListKeys({ roles: ['HIGHER_ED_CAREER', 'RECRUITER_PROSPECT'], pipelineKeys: ['workforce_boards'], isCustomer: false }).sort())
+      .toEqual(['higher_ed', 'monthly_update', 'recruiters', 'workforce'])
+    expect(suggestListKeys({ roles: ['BD_PARTNER'], pipelineKeys: ['bd_partnerships'], isCustomer: false })).toEqual(['monthly_update'])
     expect(suggestListKeys({ roles: ['PRESS'], pipelineKeys: ['hiring_managers'], isCustomer: false })).toEqual(['monthly_update'])
   })
 })
