@@ -1,0 +1,202 @@
+[
+ {
+  "ein": "560851147",
+  "name": "Yadkin Valley Economic Development District inc",
+  "kind": "ECON_DEV",
+  "city": "Boonville",
+  "state": "NC",
+  "zip": "27011",
+  "street": "533 N Carolina Ave",
+  "revenue": 13573389.0
+ },
+ {
+  "ein": "376059503",
+  "name": "Illinois Valley Economic Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Gillespie",
+  "state": "IL",
+  "zip": "62033",
+  "street": "223 S Macoupin St",
+  "revenue": 13490878.0
+ },
+ {
+  "ein": "061623757",
+  "name": "Northwest Regional Workforce",
+  "kind": "WORKFORCE",
+  "city": "Waterbury",
+  "state": "CT",
+  "zip": "06702",
+  "street": "249 Thomaston Ave",
+  "revenue": 13426602.0
+ },
+ {
+  "ein": "042676661",
+  "name": "Boston Private Industry Council inc the",
+  "kind": "WORKFORCE",
+  "city": "Boston",
+  "state": "MA",
+  "zip": "02109",
+  "street": "2 Oliver St Lbby 3",
+  "revenue": 13394672.0
+ },
+ {
+  "ein": "710412085",
+  "name": "Crowleys Ridge Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Jonesboro",
+  "state": "AR",
+  "zip": "72404",
+  "street": "2401 Fox Meadow Ln",
+  "revenue": 13259984.0
+ },
+ {
+  "ein": "061090440",
+  "name": "Workforce Alliance inc",
+  "kind": "WORKFORCE",
+  "city": "New Haven",
+  "state": "CT",
+  "zip": "06513",
+  "street": "370 James St Ste 401",
+  "revenue": 13186859.0
+ },
+ {
+  "ein": "760586364",
+  "name": "Old Spanish Trail-almeda Corridors Redevelopment Authority",
+  "kind": "ECON_DEV",
+  "city": "Houston",
+  "state": "TX",
+  "zip": "77004",
+  "street": "3131 Emancipation Ave",
+  "revenue": 13096166.0
+ },
+ {
+  "ein": "264032355",
+  "name": "Nybdc Local Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Latham",
+  "state": "NY",
+  "zip": "12110",
+  "street": "19 British American Blvd",
+  "revenue": 13082282.0
+ },
+ {
+  "ein": "943203203",
+  "name": "Juma Ventures",
+  "kind": "WORKFORCE",
+  "city": "San Francisco",
+  "state": "CA",
+  "zip": "94105",
+  "street": "131 Steuart St",
+  "revenue": 13071605.0
+ },
+ {
+  "ein": "161596825",
+  "name": "Rochesterworks inc",
+  "kind": "WORKFORCE",
+  "city": "Rochester",
+  "state": "NY",
+  "zip": "14607",
+  "street": "100 College Ave Ste 200",
+  "revenue": 12909726.0
+ },
+ {
+  "ein": "010281875",
+  "name": "Eastern Maine Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Bangor",
+  "state": "ME",
+  "zip": "04401",
+  "street": "40 Harlow Street",
+  "revenue": 12893217.0
+ },
+ {
+  "ein": "431758998",
+  "name": "Veterans of Foreign Wars Foundation",
+  "kind": "WORKFORCE",
+  "city": "Kansas City",
+  "state": "MO",
+  "zip": "64111",
+  "street": "406 W 34th St",
+  "revenue": 12851892.0
+ },
+ {
+  "ein": "911283628",
+  "name": "Construction Industry Training Council of Washington",
+  "kind": "WORKFORCE",
+  "city": "Bellevue",
+  "state": "WA",
+  "zip": "98004",
+  "street": "1930 116th Ave Ne",
+  "revenue": 12814946.0
+ },
+ {
+  "ein": "850869795",
+  "name": "Workforce Midsouth inc",
+  "kind": "WORKFORCE",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": "38103",
+  "street": "40 S Main St",
+  "revenue": 12705550.0
+ },
+ {
+  "ein": "470597743",
+  "name": "Omaha Economic Development Corp",
+  "kind": "ECON_DEV",
+  "city": "Omaha",
+  "state": "NE",
+  "zip": "68110",
+  "street": "2221 N 24th St Ste 200",
+  "revenue": 12625428.0
+ },
+ {
+  "ein": "480725806",
+  "name": "East Central Kansas Economic Opportunity Corp",
+  "kind": "ECON_DEV",
+  "city": "Ottawa",
+  "state": "KS",
+  "zip": "66067",
+  "street": "1320 S Ash St Ste 203",
+  "revenue": 12561920.0
+ },
+ {
+  "ein": "231576225",
+  "name": "Chester County Economic Development Council",
+  "kind": "ECON_DEV",
+  "city": "Exton",
+  "state": "PA",
+  "zip": "19341",
+  "street": "737 Constitution Dr",
+  "revenue": 12542133.0
+ },
+ {
+  "ein": "311605749",
+  "name": "Arizona Industries for the Blind",
+  "kind": "WORKFORCE",
+  "city": "Phoenix",
+  "state": "AZ",
+  "zip": "85043",
+  "street": "515 N 51st Ave Ste 130",
+  "revenue": 12535777.0
+ },
+ {
+  "ein": "953929756",
+  "name": "Uaw-labor Employment and Training Corporation",
+  "kind": "WORKFORCE",
+  "city": "Cerritos",
+  "state": "CA",
+  "zip": "90703",
+  "street": "11010 Artesia Blvd",
+  "revenue": 12432901.0
+ },
+ {
+  "ein": "813745360",
+  "name": "Greater Lafayette Commerce Community & Economic Development F",
+  "kind": "ECON_DEV",
+  "city": "Lafayette",
+  "state": "IN",
+  "zip": "47902",
+  "street": "Po Box 348",
+  "revenue": 12387862.0
+ }
+]

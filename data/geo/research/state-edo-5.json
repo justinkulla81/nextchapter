@@ -1,0 +1,37 @@
+{
+"_note": "Partial result: WebSearch budget (200/session) exhausted and WebFetch domain safety checks rate-limited mid-run. Only verified entries included; null = unknown. No emails constructed.",
+"states":{
+"CA":{"stateAgency":{"name":"Governor's Office of Business and Economic Development (GO-Biz)","website":"https://business.ca.gov","phone":"1-877-345-4633","leaderName":"Dee Dee Myers","leaderTitle":"Senior Advisor and Director","contactName":"Poonum Patel","contactTitle":"Deputy Director, Business Investment Services","email":null,"sourceUrl":"https://business.ca.gov/about/our-team/"},
+ "directoryUrl":null,
+ "localEdos":[
+  {"name":"Los Angeles County Economic Development Corporation (LAEDC)","type":"nonprofit","city":"Los Angeles","county":"Los Angeles","website":"https://laedc.org","contactName":null,"contactTitle":null,"email":null,"phone":"(213) 622-4300","sourceUrl":"https://laedc.org/about/"}
+ ]},
+"GA":{"stateAgency":{"name":"Georgia Department of Economic Development (GDEcD)","website":"https://www.georgia.org","phone":"404-962-4000","leaderName":"Pat Wilson","leaderTitle":"Commissioner","contactName":null,"contactTitle":null,"email":null,"sourceUrl":"https://www.georgia.org/contact-us"},
+ "directoryUrl":null,"localEdos":[]},
+"KS":{"stateAgency":{"name":"Kansas Department of Commerce","website":"https://www.kansascommerce.gov","phone":"785-296-3481","leaderName":"David Toland","leaderTitle":"Lieutenant Governor and Secretary of Commerce","contactName":"Mike Beene","contactTitle":"Assistant Secretary of Commerce","email":null,"sourceUrl":"https://www.kansascommerce.gov/contact"},
+ "directoryUrl":"https://www.kansascommerce.gov/about/partners/",
+ "localEdos":[
+  {"name":"Kansas Economic Development Alliance (KEDA)","type":"nonprofit","city":null,"county":null,"website":"https://www.kansaseda.com","contactName":null,"contactTitle":null,"email":null,"phone":null,"sourceUrl":"https://www.kansascommerce.gov/about/partners/"},
+  {"name":"Western Kansas Rural Economic Development Alliance (WKREDA)","type":"regional","city":null,"county":"55 western Kansas counties","website":"https://wkreda.com","contactName":null,"contactTitle":null,"email":null,"phone":null,"sourceUrl":"https://www.kansascommerce.gov/about/partners/"}
+ ]},
+"MI":{"stateAgency":{"name":"Michigan Economic Development Corporation (MEDC)","website":"https://www.michiganbusiness.org","phone":"888-522-0103","leaderName":"Quentin L. Messer Jr.","leaderTitle":"CEO","contactName":null,"contactTitle":null,"email":null,"sourceUrl":"https://www.michiganbusiness.org/"},
+ "directoryUrl":null,"localEdos":[]},
+"NV":{"stateAgency":{"name":"Governor's Office of Economic Development (GOED)","website":"https://goed.nv.gov","phone":"702-486-2700","leaderName":"Tom Burns","leaderTitle":"Executive Director","contactName":null,"contactTitle":null,"email":null,"sourceUrl":"https://goed.nv.gov/regional-development-authorities/"},
+ "directoryUrl":"https://goed.nv.gov/regional-development-authorities/",
+ "localEdos":[
+  {"name":"NorthernNVNow (EDAWN)","type":"regional","city":"Reno","county":"Washoe, Douglas, Carson City, Storey","website":"https://edawn.org","contactName":null,"contactTitle":null,"email":"info@edawn.org","phone":"(775) 829-3700","sourceUrl":"https://goed.nv.gov/regional-development-authorities/"},
+  {"name":"Churchill Fallon Economic Development (CFED)","type":"regional","city":"Fallon","county":"Churchill","website":"https://cfednv.com","contactName":null,"contactTitle":null,"email":"info@cfednv.com","phone":"(775) 813-3000","sourceUrl":"https://goed.nv.gov/regional-development-authorities/"},
+  {"name":"Nevada 95-80 Regional Development Authority","type":"regional","city":null,"county":"Lyon, Lander, Pershing","website":"https://nevada95-80rda.com","contactName":null,"contactTitle":null,"email":"contact@nevada95-80rda.com","phone":"(775) 273-4909","sourceUrl":"https://goed.nv.gov/regional-development-authorities/"},
+  {"name":"Northeastern Nevada Regional Development Authority (NNRDA)","type":"regional","city":"Elko","county":"Elko, Eureka, White Pine, Humboldt","website":"https://nnrda.com","contactName":null,"contactTitle":null,"email":"kris@nnrda.com","phone":"(775) 738-2100","sourceUrl":"https://goed.nv.gov/regional-development-authorities/"},
+  {"name":"Lincoln County Regional Development Authority (LCRDA)","type":"regional","city":null,"county":"Lincoln","website":"https://lcrda.com","contactName":null,"contactTitle":null,"email":"info@LCRDA.com","phone":"(775) 443-7667","sourceUrl":"https://goed.nv.gov/regional-development-authorities/"},
+  {"name":"Las Vegas Global Economic Alliance (LVGEA)","type":"regional","city":"Las Vegas","county":"Clark","website":"https://lvgea.org","contactName":null,"contactTitle":null,"email":"info@lvgea.org","phone":"(702) 791-0000","sourceUrl":"https://goed.nv.gov/regional-development-authorities/"},
+  {"name":"Northern Nevada Development Authority (NNDA)","type":"regional","city":null,"county":"Sierra Region","website":"https://nnda.org","contactName":null,"contactTitle":null,"email":"info@nnda.org","phone":"(775) 883-4413","sourceUrl":"https://goed.nv.gov/regional-development-authorities/"},
+  {"name":"Southwest Central Regional Economic Development Authority (SWCREDA)","type":"regional","city":null,"county":"Nye, Esmeralda","website":"https://swcreda.com","contactName":null,"contactTitle":null,"email":null,"phone":"(775) 727-0716","sourceUrl":"https://goed.nv.gov/regional-development-authorities/"}
+ ]},
+"ND":{"stateAgency":{"name":"North Dakota Department of Commerce","website":"https://www.commerce.nd.gov","phone":"701-328-5300","leaderName":"Chris Schilken","leaderTitle":"Commissioner","contactName":null,"contactTitle":null,"email":null,"sourceUrl":"https://www.commerce.nd.gov/contact-us"},
+ "directoryUrl":null,"localEdos":[]},
+"SC":{"stateAgency":{"name":"South Carolina Department of Commerce","website":"https://www.sccommerce.com","phone":"803-737-0400","leaderName":"Harry M. Lightsey III","leaderTitle":"Secretary of Commerce","contactName":"Ashely Teasdel","contactTitle":"Deputy Secretary of Commerce","email":null,"sourceUrl":"https://www.sccommerce.com/about/leadership-directors"},
+ "directoryUrl":null,"localEdos":[]},
+"VA":{"stateAgency":{"name":"Virginia Economic Development Partnership (VEDP)","website":"https://www.vedp.org","phone":"804-545-5600","leaderName":"Jason El Koubi","leaderTitle":"President and CEO","contactName":null,"contactTitle":null,"email":"info@vedp.org","sourceUrl":"https://www.vedp.org/leadership-governance"},
+ "directoryUrl":null,"localEdos":[]}
+}}

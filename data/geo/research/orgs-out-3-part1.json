@@ -1,0 +1,222 @@
+[
+ {
+  "ein": "201285245",
+  "website": null,
+  "contactName": "Annette Newsome",
+  "contactTitle": null,
+  "email": "anewsome@kingdom-plaza.com",
+  "phone": "904-695-0181",
+  "sourceUrl": "https://ofccp-apps.dol.gov/node/325724",
+  "confidence": "low",
+  "note": "From DOL OFCCP listing for The Potter's House Community Development Empowering Center (5119 Normandy Blvd); listed site pottershousecommunity.org did not resolve; title unknown, may be a Kingdom Plaza contact."
+ },
+ {
+  "ein": "571006531",
+  "website": "https://southerncarolina.org",
+  "contactName": "Danny Black",
+  "contactTitle": "President & CEO",
+  "email": "dblack@southerncarolina.org",
+  "phone": "803-541-0023",
+  "sourceUrl": "https://southerncarolina.org/news_center/article/sca-hires-fulghum-as-chief-operating-officer",
+  "confidence": "medium",
+  "note": "Address matches Barnwell SC. Black retiring end of 2026; Andy Fulghum (hired as COO) to succeed as President & CEO. Email/phone from search summary, site fetch rate-limited."
+ },
+ {
+  "ein": "203974791",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "521744007",
+  "website": "https://www.baltimoredevelopment.com",
+  "contactName": "Colin Tarbert",
+  "contactTitle": "President & CEO",
+  "email": "info@baltimoredevelopment.com",
+  "phone": "(410) 837-9305",
+  "sourceUrl": "https://www.baltimoredevelopment.com/contact",
+  "confidence": "medium",
+  "note": "Contact page confirmed address/phone/info email; CEO name from search result, not on fetched page."
+ },
+ {
+  "ein": "541968125",
+  "website": "https://www.crec.net",
+  "contactName": "Kenneth Poole",
+  "contactTitle": "Founder & President",
+  "email": "info@crec.net",
+  "phone": "703-522-4980",
+  "sourceUrl": "https://www.crec.net/contact-us/",
+  "confidence": "medium",
+  "note": "Address 1700 N Moore St Ste 1500 confirmed on site; leader name/title from search result (Dr. Ken Poole)."
+ },
+ {
+  "ein": "382192028",
+  "website": "https://www.degc.org",
+  "contactName": "Kevin Johnson",
+  "contactTitle": "President & CEO",
+  "email": "kjohnson@degc.org",
+  "phone": "313-963-2940",
+  "sourceUrl": "https://www.degc.org",
+  "confidence": "medium",
+  "note": "Name/email/phone from search result; homepage lists address 150 W. Jefferson Ste 1700 (differs from IRS 500 Griswold). Team page: degc.org/team-members."
+ },
+ {
+  "ein": "452586290",
+  "website": "https://www.employu.org",
+  "contactName": null,
+  "contactTitle": null,
+  "email": "info@employu.org",
+  "phone": "(407) 598-0202",
+  "sourceUrl": "https://www.employu.org/contact",
+  "confidence": "medium",
+  "note": "Address 1351 Sundial Pt Winter Springs confirmed; no executive named on contact page."
+ },
+ {
+  "ein": "161585625",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "860539979",
+  "website": "https://www.gpec.org",
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": "602.256.7700",
+  "sourceUrl": "https://www.gpec.org",
+  "confidence": "low",
+  "note": "Site confirmed (2 N Central Ave Ste 2500); CEO not found, about page https://www.gpec.org/about-us/ not fetched (search budget exhausted)."
+ },
+ {
+  "ein": "362225483",
+  "website": "https://www.thechicagourbanleague.org",
+  "contactName": "Karen Freeman-Wilson",
+  "contactTitle": "President & CEO",
+  "email": null,
+  "phone": "(773) 285-5800",
+  "sourceUrl": "https://www.thechicagourbanleague.org/about",
+  "confidence": "high",
+  "note": "Address 4510 S Michigan Ave confirmed. COO Calmetta Coleman ccoleman@chiul.org, (773) 451-3536 also listed; no general email found."
+ },
+ {
+  "ein": "274026636",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "465533413",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "832188601",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "942816185",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "382009127",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "591767933",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "311075744",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "462952873",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "841963307",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "364024688",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: web search budget exhausted and site fetches rate-limited."
+ }
+]

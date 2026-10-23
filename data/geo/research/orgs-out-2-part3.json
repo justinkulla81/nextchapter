@@ -1,0 +1,222 @@
+[
+ {
+  "ein": "560851147",
+  "website": "https://www.yveddi.com",
+  "contactName": "Kathy Payne",
+  "contactTitle": "Executive Director",
+  "email": "kpayne@yveddi.com",
+  "phone": "336-367-7251",
+  "sourceUrl": "https://www.yveddi.com",
+  "confidence": "high",
+  "note": "Email from directory search result; site shows obfuscated general email."
+ },
+ {
+  "ein": "376059503",
+  "website": null,
+  "contactName": "Stephanie Stahlhut",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": "217-839-4431",
+  "sourceUrl": "https://mytownview.com/illinois/macoupin/gillespie/community/nonprofits/376059503",
+  "confidence": "low",
+  "note": "Website not found; name/phone from search snippet only."
+ },
+ {
+  "ein": "061623757",
+  "website": "https://www.nrwib.org",
+  "contactName": "Catherine Awwad",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": "203-574-6971",
+  "sourceUrl": "https://www.nrwib.org",
+  "confidence": "medium",
+  "note": "Site general email obfuscated; name from search snippet (thewaterbury.com)."
+ },
+ {
+  "ein": "042676661",
+  "website": null,
+  "contactName": "Michael O'Neill",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": "617-488-1300",
+  "sourceUrl": "https://www.bostonglobe.com/2025/10/02/business/boston-private-industry-council-oneill",
+  "confidence": "medium",
+  "note": "Official site URL not verified (fetch rate-limited)."
+ },
+ {
+  "ein": "710412085",
+  "website": null,
+  "contactName": "Jeremy Wooldridge",
+  "contactTitle": "Chief Executive Officer",
+  "email": null,
+  "phone": "870-333-5126",
+  "sourceUrl": "https://de.marketscreener.com/insider/LOYD-PRICE-A0VJA8",
+  "confidence": "low",
+  "note": "Conflicting: older source lists Tony E. Thomas as ED; site not found."
+ },
+ {
+  "ein": "061090440",
+  "website": "https://www.workforcealliance.biz",
+  "contactName": "Bill Villano",
+  "contactTitle": "President/CEO",
+  "email": "info@workforcealliance.biz",
+  "phone": "203-867-4030",
+  "sourceUrl": "https://www.workforcealliance.biz",
+  "confidence": "medium",
+  "note": "Name from search snippet; info@ verified on site."
+ },
+ {
+  "ein": "760586364",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "No site or leadership found; meets at 3131 Emancipation Ave, Houston."
+ },
+ {
+  "ein": "264032355",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; search returned unrelated Colonie LDC."
+ },
+ {
+  "ein": "943203203",
+  "website": null,
+  "contactName": "Abdiel Cerrud",
+  "contactTitle": "Interim CEO",
+  "email": null,
+  "phone": "415-371-0727",
+  "sourceUrl": "https://prospeo.io/c/juma-ventures",
+  "confidence": "low",
+  "note": "Website not verified (juma.org likely, fetch rate-limited); email format guess not used."
+ },
+ {
+  "ein": "161596825",
+  "website": "https://rochesterworks.org",
+  "contactName": "Dave Seeley",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://rochesterworks.org/our-team/",
+  "confidence": "medium",
+  "note": "Seeley named ED 2021; current status not re-verified."
+ },
+ {
+  "ein": "010281875",
+  "website": "https://www.emdc.org",
+  "contactName": "Charles E. Webb",
+  "contactTitle": "President and CEO",
+  "email": null,
+  "phone": "207-942-6389",
+  "sourceUrl": "https://www.emdc.org",
+  "confidence": "medium",
+  "note": "Webb appointment from search snippet; site fetch rate-limited."
+ },
+ {
+  "ein": "431758998",
+  "website": null,
+  "contactName": "Hal Roesch II",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": "816-968-1190",
+  "sourceUrl": "https://vfw.org/media-and-events/latest-releases/archives/2025/1/vfw-foundation-warmly-welcomes-new-executive-director",
+  "confidence": "medium",
+  "note": "Official site URL not verified; email format guess not used."
+ },
+ {
+  "ein": "911283628",
+  "website": "https://citcwa.org",
+  "contactName": "Halene Sigmund",
+  "contactTitle": "President and CEO",
+  "email": null,
+  "phone": "425-454-2482",
+  "sourceUrl": "https://citcwa.org/about-us/halene-sigmund/",
+  "confidence": "medium",
+  "note": null
+ },
+ {
+  "ein": "850869795",
+  "website": null,
+  "contactName": "Kyla Guyette",
+  "contactTitle": "President (Executive Director, Greater Memphis LWDB)",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://results4america.org/people/kyla-guyette/",
+  "confidence": "low",
+  "note": "Website not found."
+ },
+ {
+  "ein": "470597743",
+  "website": "https://www.oedc.info",
+  "contactName": "Michael Maroney",
+  "contactTitle": "President",
+  "email": null,
+  "phone": "402-346-2300",
+  "sourceUrl": "https://www.oedc.info",
+  "confidence": "medium",
+  "note": "Site email obfuscated; VP Ops Michael Robinson mrobinson@oedc.info seen in search snippet."
+ },
+ {
+  "ein": "480725806",
+  "website": "https://www.eckan.org",
+  "contactName": "Crystal Anderson",
+  "contactTitle": "CEO",
+  "email": null,
+  "phone": "785-242-7450",
+  "sourceUrl": "https://www.eckan.org",
+  "confidence": "medium",
+  "note": "Name from search snippet; site fetch rate-limited."
+ },
+ {
+  "ein": "231576225",
+  "website": "https://www.ccedcpa.com",
+  "contactName": "Mike Grigalonis",
+  "contactTitle": "President & CEO",
+  "email": null,
+  "phone": "610-594-2768",
+  "sourceUrl": "https://www.ccedcpa.com",
+  "confidence": "low",
+  "note": "Conflicting older record (Gary Smith); site fetch rate-limited."
+ },
+ {
+  "ein": "311605749",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Search budget exhausted; not researched."
+ },
+ {
+  "ein": "953929756",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Search budget exhausted; not researched."
+ },
+ {
+  "ein": "813745360",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Search budget exhausted; not researched."
+ }
+]

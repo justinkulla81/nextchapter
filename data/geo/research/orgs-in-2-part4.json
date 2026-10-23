@@ -1,0 +1,202 @@
+[
+ {
+  "ein": "420923813",
+  "name": "Southern Iowa Economic Development Association",
+  "kind": "ECON_DEV",
+  "city": "Ottumwa",
+  "state": "IA",
+  "zip": "52501",
+  "street": "Po Box 658",
+  "revenue": 12325334.0
+ },
+ {
+  "ein": "942188609",
+  "name": "Ser-jobs for Progress inc - San Joaquin Valley",
+  "kind": "WORKFORCE",
+  "city": "Fresno",
+  "state": "CA",
+  "zip": "93701",
+  "street": "255 N Fulton St Ste 106",
+  "revenue": 12312339.0
+ },
+ {
+  "ein": "311105962",
+  "name": "Oma Educational and Industrial Development Institute",
+  "kind": "ECON_DEV",
+  "city": "Columbus",
+  "state": "OH",
+  "zip": "43215",
+  "street": "33 N High St Ste 600",
+  "revenue": 12277052.0
+ },
+ {
+  "ein": "382795791",
+  "name": "Michigan State Afl-cio Human Resources Development inc",
+  "kind": "WORKFORCE",
+  "city": "Lansing",
+  "state": "MI",
+  "zip": "48933",
+  "street": "419 S Washington Sq Ste 300",
+  "revenue": 12271272.0
+ },
+ {
+  "ein": "391277471",
+  "name": "Madison Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Madison",
+  "state": "WI",
+  "zip": "53703",
+  "street": "550 W Washington Ave",
+  "revenue": 12216790.0
+ },
+ {
+  "ein": "942581331",
+  "name": "Central Valley Opportunity Center",
+  "kind": "WORKFORCE",
+  "city": "Winton",
+  "state": "CA",
+  "zip": "95388",
+  "street": "Po Box 1389",
+  "revenue": 12210665.0
+ },
+ {
+  "ein": "521123712",
+  "name": "Washington County Human Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Hagerstown",
+  "state": "MD",
+  "zip": "21740",
+  "street": "433 Brewer Ave",
+  "revenue": 12200909.0
+ },
+ {
+  "ein": "410942639",
+  "name": "Rural Minnesota Cep inc",
+  "kind": "WORKFORCE",
+  "city": "Detroit Lakes",
+  "state": "MN",
+  "zip": "56502",
+  "street": "803 Roosevelt Avene",
+  "revenue": 12109121.0
+ },
+ {
+  "ein": "522359350",
+  "name": "Anne Arundel Workforce Development Corporation",
+  "kind": "WORKFORCE",
+  "city": "Millersville",
+  "state": "MD",
+  "zip": "21108",
+  "street": "1131 Benfield Blvd Ste N",
+  "revenue": 12107393.0
+ },
+ {
+  "ein": "742609452",
+  "name": "Edinburg Economic Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Edinburg",
+  "state": "TX",
+  "zip": "78539",
+  "street": "3111 W Freddy Gonzalez Dr",
+  "revenue": 12082816.0
+ },
+ {
+  "ein": "465517841",
+  "name": "Greater Sacramento Area Economic Council",
+  "kind": "ECON_DEV",
+  "city": "Sacramento",
+  "state": "CA",
+  "zip": "95814",
+  "street": "400 Capitol Mall S2520",
+  "revenue": 12028183.0
+ },
+ {
+  "ein": "815339041",
+  "name": "Jobs to Move America",
+  "kind": "WORKFORCE",
+  "city": "Los Angeles",
+  "state": "CA",
+  "zip": "90013",
+  "street": "525 S Hewitt St",
+  "revenue": 11956422.0
+ },
+ {
+  "ein": "550651494",
+  "name": "Job Squad inc",
+  "kind": "WORKFORCE",
+  "city": "Bridgeport",
+  "state": "WV",
+  "zip": "26330",
+  "street": "102 2nd St",
+  "revenue": 11936004.0
+ },
+ {
+  "ein": "741384272",
+  "name": "Waco Industrial Foundation",
+  "kind": "ECON_DEV",
+  "city": "Waco",
+  "state": "TX",
+  "zip": "76703",
+  "street": "Po Box 1220",
+  "revenue": 11867771.0
+ },
+ {
+  "ein": "710387337",
+  "name": "Black River Area Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Pocahontas",
+  "state": "AR",
+  "zip": "72455",
+  "street": "1403 Hospital Dr",
+  "revenue": 11836681.0
+ },
+ {
+  "ein": "330287492",
+  "name": "Workforce Development Corporation Southeast Los Angeles County inc",
+  "kind": "WORKFORCE",
+  "city": "Cerritos",
+  "state": "CA",
+  "zip": "90703",
+  "street": "10900 183rd St Ste 350",
+  "revenue": 11723914.0
+ },
+ {
+  "ein": "751320228",
+  "name": "Odessa Industrial Development Foundation",
+  "kind": "ECON_DEV",
+  "city": "Odessa",
+  "state": "TX",
+  "zip": "79760",
+  "street": "Po Box 3626",
+  "revenue": 11722234.0
+ },
+ {
+  "ein": "133632018",
+  "name": "Workforce Development Corp",
+  "kind": "WORKFORCE",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10006",
+  "street": "1 Liberty Plaza 11th Floor",
+  "revenue": 11637955.0
+ },
+ {
+  "ein": "812807502",
+  "name": "Skills for Rhode Islands Future",
+  "kind": "WORKFORCE",
+  "city": "Providence",
+  "state": "RI",
+  "zip": "02903",
+  "street": "30 Exchange Ter Ste 1",
+  "revenue": 11613299.0
+ },
+ {
+  "ein": "882744474",
+  "name": "Erienet",
+  "kind": "WORKFORCE",
+  "city": "Buffalo",
+  "state": "NY",
+  "zip": "14202",
+  "street": "95 Franklin Street 10th Floor",
+  "revenue": 11573477.0
+ }
+]

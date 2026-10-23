@@ -1,0 +1,222 @@
+[
+ {
+  "ein": "731330787",
+  "website": "http://www.employmentresources.org/",
+  "contactName": null,
+  "contactTitle": null,
+  "email": "info@employmentresources.org",
+  "phone": "918-744-6202",
+  "sourceUrl": "https://www.okdrs.gov/guide/employment-resources-inc-tulsa",
+  "confidence": "medium",
+  "note": "Site redirect confirmed; email/phone from search snippet (address 6202 S Lewis Ave matches); ED name not found."
+ },
+ {
+  "ein": "472080338",
+  "website": "https://theindustrialcommons.org",
+  "contactName": "Molly Hemstreet",
+  "contactTitle": "Co-Founder & CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://theindustrialcommons.org/team",
+  "confidence": "medium",
+  "note": "Team page lists her as Co-Founder & CEO; Sara Chester listed elsewhere as co-executive director; no public email/phone found."
+ },
+ {
+  "ein": "590968911",
+  "website": null,
+  "contactName": "Angela Katz",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://fortmyers.org/blog/larc-welcomes-miriam-pereira-as-director-of-advancement/",
+  "confidence": "low",
+  "note": "LARC (Lee Association for Remarkable Citizens), 2570 Hanson St; ED from search snippet only; official site not verified."
+ },
+ {
+  "ein": "264035530",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "410977257",
+  "website": "https://www.meda.net",
+  "contactName": "Dorothy Bridges",
+  "contactTitle": "President & CEO",
+  "email": "contact@meda.net",
+  "phone": "612-332-6332",
+  "sourceUrl": "https://www.meda.net/meet-meda",
+  "confidence": "high",
+  "note": "Address 1256 Penn Ave N Ste 4800 matches."
+ },
+ {
+  "ein": "680484941",
+  "website": null,
+  "contactName": "Susan Warner",
+  "contactTitle": "Organizational Head (per directory listing)",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://ngobase.org/profile/163491",
+  "confidence": "low",
+  "note": "Does business as Conservation Works; website not verified (conservationworks.org is a parked domain); Peter Braudrick listed as President."
+ },
+ {
+  "ein": "742588704",
+  "website": "https://www.weslacoedc.com",
+  "contactName": null,
+  "contactTitle": null,
+  "email": "info@weslacoedc.com",
+  "phone": "956-969-0838",
+  "sourceUrl": "https://www.weslacoedc.com",
+  "confidence": "medium",
+  "note": "Site confirmed as Weslaco EDC; leader name not found (team page not retrievable)."
+ },
+ {
+  "ein": "770439585",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "311570929",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "474045034",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "351820770",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "010493897",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "941712371",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "251607082",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "251770140",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "133575492",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "631250401",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "061493737",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "942472564",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ },
+ {
+  "ein": "811265157",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; web search budget exhausted and site fetches rate-limited."
+ }
+]

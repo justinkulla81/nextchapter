@@ -1,0 +1,840 @@
+{
+ "states": {
+  "CO": {
+   "stateAgency": {
+    "name": "Colorado Office of Economic Development and International Trade (OEDIT)",
+    "website": "https://oedit.colorado.gov",
+    "phone": "303-892-3840",
+    "leaderName": null,
+    "leaderTitle": "Executive Director",
+    "contactName": null,
+    "contactTitle": null,
+    "email": "oedit.info@state.co.us",
+    "sourceUrl": "https://oedit.colorado.gov/"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "Metro Denver Economic Development Corporation",
+     "type": "regional",
+     "city": "Denver",
+     "county": "Denver",
+     "website": "https://www.metrodenver.org",
+     "contactName": "Raymond H. Gonzales",
+     "contactTitle": "EVP of the Chamber & President, Metro Denver EDC",
+     "email": "raymond.gonzales@metrodenver.org",
+     "phone": "303-620-8039",
+     "sourceUrl": "https://www.metrodenver.org/about-us/contact"
+    },
+    {
+     "name": "Jefferson County Economic Development Corporation",
+     "type": "county",
+     "city": "Golden",
+     "county": "Jefferson",
+     "website": "https://www.jeffcoedc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "303-202-2965",
+     "sourceUrl": "https://www.jeffcoedc.org/"
+    },
+    {
+     "name": "Grand Junction Economic Partnership",
+     "type": "nonprofit",
+     "city": "Grand Junction",
+     "county": "Mesa",
+     "website": "https://www.gjep.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": "info@gjep.org",
+     "phone": "970-245-4332",
+     "sourceUrl": "https://www.gjep.org/"
+    }
+   ]
+  },
+  "HI": {
+   "stateAgency": {
+    "name": "Department of Business, Economic Development & Tourism (DBEDT)",
+    "website": "https://dbedt.hawaii.gov",
+    "phone": "808-586-2355",
+    "leaderName": "James Kunane Tokioka",
+    "leaderTitle": "Director",
+    "contactName": "Director's Office",
+    "contactTitle": null,
+    "email": "dbedt.director@hawaii.gov",
+    "sourceUrl": "https://dbedt.hawaii.gov/contact/"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "Maui Economic Development Board, Inc.",
+     "type": "nonprofit",
+     "city": "Kihei",
+     "county": "Maui",
+     "website": "https://www.medb.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "808-875-2300",
+     "sourceUrl": "https://www.medb.org/"
+    }
+   ]
+  },
+  "KY": {
+   "stateAgency": {
+    "name": "Kentucky Cabinet for Economic Development",
+    "website": "https://ced.ky.gov",
+    "phone": "800-626-2930",
+    "leaderName": "Jeff Noel",
+    "leaderTitle": "Secretary (per third-party directory; not confirmed on agency page)",
+    "contactName": "Kristina Slattery",
+    "contactTitle": "Commissioner of Business Development",
+    "email": "Kristina.Slattery@ky.gov",
+    "sourceUrl": "https://newkentuckyhome.ky.gov/"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "Commerce Lexington Inc.",
+     "type": "nonprofit",
+     "city": "Lexington",
+     "county": "Fayette",
+     "website": "https://www.commercelexington.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "859-254-4447",
+     "sourceUrl": "https://www.commercelexington.com/"
+    },
+    {
+     "name": "Bowling Green Area Chamber of Commerce",
+     "type": "nonprofit",
+     "city": "Bowling Green",
+     "county": "Warren",
+     "website": "https://www.bgchamber.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": "info@bgchamber.com",
+     "phone": "270-781-3200",
+     "sourceUrl": "https://www.bgchamber.com/"
+    }
+   ]
+  },
+  "MN": {
+   "stateAgency": {
+    "name": "Minnesota Department of Employment and Economic Development (DEED)",
+    "website": "https://mn.gov/deed",
+    "phone": "651-259-7114",
+    "leaderName": "Matt Varilek",
+    "leaderTitle": "Commissioner",
+    "contactName": null,
+    "contactTitle": null,
+    "email": "DEED.CustomerService@state.mn.us",
+    "sourceUrl": "https://mn.gov/deed/about/"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "GREATER MSP (Minneapolis-Saint Paul Regional Economic Development Partnership)",
+     "type": "regional",
+     "city": "Saint Paul",
+     "county": "Ramsey",
+     "website": "https://www.greatermsp.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": "info@greatermsp.org",
+     "phone": "651-287-1300",
+     "sourceUrl": "https://www.greatermsp.org/"
+    }
+   ]
+  },
+  "NH": {
+   "stateAgency": {
+    "name": "New Hampshire Department of Business and Economic Affairs (BEA)",
+    "website": "https://www.nheconomy.com",
+    "phone": "603-271-2341",
+    "leaderName": "Lucy Lange",
+    "leaderTitle": "Commissioner",
+    "contactName": "Mark Laliberte",
+    "contactTitle": "Business Development Manager, Division of Economic Development",
+    "email": "mark.j.laliberte@livefree.nh.gov",
+    "sourceUrl": "https://www.nheconomy.com/about-us/meet-the-staff"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "Regional Economic Development Center (REDC)",
+     "type": "nonprofit",
+     "city": "Raymond",
+     "county": "Rockingham",
+     "website": "https://www.redc.com",
+     "contactName": "Dan Gray",
+     "contactTitle": "President",
+     "email": "info@redc.com",
+     "phone": "603-772-2655",
+     "sourceUrl": "https://www.redc.com/"
+    },
+    {
+     "name": "Southern New Hampshire Planning Commission",
+     "type": "regional",
+     "city": "Manchester",
+     "county": "Hillsborough",
+     "website": "https://www.snhpc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "603-669-4664",
+     "sourceUrl": "https://www.snhpc.org/"
+    }
+   ]
+  },
+  "OH": {
+   "stateAgency": {
+    "name": "Ohio Department of Development",
+    "website": "https://development.ohio.gov",
+    "phone": "800-848-1300",
+    "leaderName": "Lydia Mihalik",
+    "leaderTitle": "Director",
+    "contactName": "JobsOhio (state private economic development partner)",
+    "contactTitle": null,
+    "email": "contact@jobsohio.com",
+    "sourceUrl": "https://www.jobsohio.com/"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "One Columbus (Columbus Region)",
+     "type": "regional",
+     "city": "Columbus",
+     "county": "Franklin",
+     "website": "https://www.columbusregion.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "614-225-0500",
+     "sourceUrl": "https://www.columbusregion.com/"
+    },
+    {
+     "name": "Regional Growth Partnership",
+     "type": "regional",
+     "city": "Toledo",
+     "county": "Lucas",
+     "website": "https://www.rgp.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "419-252-2700",
+     "sourceUrl": "https://www.rgp.org/"
+    }
+   ]
+  },
+  "SD": {
+   "stateAgency": {
+    "name": "South Dakota Governor's Office of Economic Development (GOED)",
+    "website": "https://sdgoed.com",
+    "phone": "800-872-6190",
+    "leaderName": "Bill Even",
+    "leaderTitle": "Commissioner",
+    "contactName": "Joe Fiala",
+    "contactTitle": "Deputy Commissioner",
+    "email": "goedinfo@state.sd.us",
+    "sourceUrl": "https://sdgoed.com/about-us/"
+   },
+   "directoryUrl": "https://sdgoed.com/partner-resources/resources/",
+   "localEdos": [
+    {
+     "name": "First District Association of Local Governments",
+     "type": "regional",
+     "city": null,
+     "county": null,
+     "website": "https://association.1stdistrict.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/partner-resources/resources/"
+    },
+    {
+     "name": "South Eastern Council of Governments",
+     "type": "regional",
+     "city": null,
+     "county": null,
+     "website": "https://secog.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/partner-resources/resources/"
+    },
+    {
+     "name": "Planning & Development District III",
+     "type": "regional",
+     "city": null,
+     "county": null,
+     "website": "https://districtiii.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/partner-resources/resources/"
+    },
+    {
+     "name": "Northeastern Council of Governments",
+     "type": "regional",
+     "city": null,
+     "county": null,
+     "website": "https://necog.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/partner-resources/resources/"
+    },
+    {
+     "name": "Central South Dakota Enhancement District",
+     "type": "regional",
+     "city": null,
+     "county": null,
+     "website": "https://csded.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/partner-resources/resources/"
+    },
+    {
+     "name": "Black Hills Council of Local Governments",
+     "type": "regional",
+     "city": null,
+     "county": null,
+     "website": "https://blackhillscouncil.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/partner-resources/resources/"
+    },
+    {
+     "name": "SDGOED Southeast Territory (state field reps; Curtis Egan, Sheldon Jensen)",
+     "type": "other",
+     "city": "Sioux Falls",
+     "county": null,
+     "website": "https://sdgoed.com/regions-and-sites/southeast-region/",
+     "contactName": "Curtis Egan",
+     "contactTitle": "Development Representative, Southeast Territory",
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/regions-and-sites/southeast-region/"
+    },
+    {
+     "name": "SDGOED West Territory (state field rep)",
+     "type": "other",
+     "city": "Rapid City",
+     "county": "Pennington",
+     "website": "https://sdgoed.com/regions-and-sites/west-region/",
+     "contactName": "Lily Bruckner",
+     "contactTitle": "Development Representative, West Territory",
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/regions-and-sites/west-region/"
+    },
+    {
+     "name": "SDGOED Northeast Territory (state field reps; Laure Swanson, Bill Wendling)",
+     "type": "other",
+     "city": null,
+     "county": null,
+     "website": "https://sdgoed.com/regions-and-sites/northeast-region/",
+     "contactName": "Laure Swanson",
+     "contactTitle": "Development Representative, Northeast Territory",
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://sdgoed.com/regions-and-sites/northeast-region/"
+    }
+   ]
+  },
+  "WA": {
+   "stateAgency": {
+    "name": "Washington State Department of Commerce",
+    "website": "https://www.commerce.wa.gov",
+    "phone": "360-725-4000",
+    "leaderName": "Sarah Clifthorne",
+    "leaderTitle": "Interim Director",
+    "contactName": "Choose Washington (business recruitment)",
+    "contactTitle": null,
+    "email": "Info@ChooseWashington.com",
+    "sourceUrl": "https://www.commerce.wa.gov/about/leadership/"
+   },
+   "directoryUrl": "https://www.commerce.wa.gov/economic-development/ado/",
+   "localEdos": [
+    {
+     "name": "Adams County ADO (growadamscounty.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Adams County",
+     "website": "https://www.growadamscounty.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Southeast Washington Economic Development Association (seweda.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Asotin County",
+     "website": "https://www.seweda.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Tri-City Development Council (TRIDEC)",
+     "type": "regional",
+     "city": null,
+     "county": "Benton County",
+     "website": "https://www.tridec.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Chelan Douglas Regional Port Authority (cdrpa.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Chelan County",
+     "website": "https://www.cdrpa.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Clallam County ADO (clallam.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Clallam County",
+     "website": "https://www.clallam.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Columbia River Economic Development Council (CREDC)",
+     "type": "regional",
+     "city": null,
+     "county": "Clark County",
+     "website": "https://www.credc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Port of Columbia (portofcolumbia.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Columbia County",
+     "website": "https://www.portofcolumbia.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Cowlitz Economic Development Council",
+     "type": "regional",
+     "city": null,
+     "county": "Cowlitz County",
+     "website": "https://www.cowlitzedc.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Chelan Douglas Regional Port Authority (cdrpa.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Douglas County",
+     "website": "https://www.cdrpa.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Ferry County ADO (teddonline.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Ferry County",
+     "website": "https://www.teddonline.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Tri-City Development Council (TRIDEC)",
+     "type": "regional",
+     "city": null,
+     "county": "Franklin County",
+     "website": "https://www.tridec.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Southeast Washington Economic Development Association (seweda.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Garfield County",
+     "website": "https://www.seweda.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Grant County Economic Development Council",
+     "type": "regional",
+     "city": null,
+     "county": "Grant County",
+     "website": "https://www.grantedc.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Grays Harbor County ADO (graysharbor.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Grays Harbor County",
+     "website": "https://www.graysharbor.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Island County Economic Development Council",
+     "type": "regional",
+     "city": null,
+     "county": "Island County",
+     "website": "https://www.iscoedc.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "EDC Team Jefferson",
+     "type": "regional",
+     "city": null,
+     "county": "Jefferson County",
+     "website": "https://www.edcteamjefferson.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "King County ADO (seattlechamber.com)",
+     "type": "regional",
+     "city": null,
+     "county": "King County",
+     "website": "https://www.seattlechamber.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Kitsap Economic Development Alliance",
+     "type": "regional",
+     "city": null,
+     "county": "Kitsap County",
+     "website": "https://www.kitsapeda.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Kittitas County ADO (kittitascountychamber.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Kittitas County",
+     "website": "https://www.kittitascountychamber.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Klickitat County ADO (klickitatcounty.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Klickitat County",
+     "website": "https://www.klickitatcounty.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Lewis County ADO (lewiscountyalliance.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Lewis County",
+     "website": "https://www.lewiscountyalliance.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Lincoln County Economic Development Council",
+     "type": "regional",
+     "city": null,
+     "county": "Lincoln County",
+     "website": "https://www.lincolnedc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Mason County ADO (choosemason.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Mason County",
+     "website": "https://www.choosemason.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Okanogan County ADO (economic-alliance.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Okanogan County",
+     "website": "https://www.economic-alliance.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Pacific County Economic Development Council",
+     "type": "regional",
+     "city": null,
+     "county": "Pacific County",
+     "website": "https://www.pacificedc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Port of Pend Oreille (portofpendoreille.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Pend Oreille County",
+     "website": "https://www.portofpendoreille.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Economic Development Board for Tacoma-Pierce County",
+     "type": "regional",
+     "city": null,
+     "county": "Pierce County",
+     "website": "https://www.edbtacomapierce.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "San Juan County Economic Development Council",
+     "type": "regional",
+     "city": null,
+     "county": "San Juan County",
+     "website": "https://www.sanjuansedc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Skagit County ADO (skagit.org)",
+     "type": "regional",
+     "city": null,
+     "county": "Skagit County",
+     "website": "https://www.skagit.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Skamania County Economic Development Council",
+     "type": "regional",
+     "city": null,
+     "county": "Skamania County",
+     "website": "https://www.skamania-edc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Economic Alliance Snohomish County",
+     "type": "regional",
+     "city": null,
+     "county": "Snohomish County",
+     "website": "https://www.economicalliancesc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Greater Spokane Incorporated",
+     "type": "regional",
+     "city": null,
+     "county": "Spokane County",
+     "website": "https://www.greaterspokane.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Stevens County ADO (teddonline.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Stevens County",
+     "website": "https://www.teddonline.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Thurston Economic Development Council",
+     "type": "regional",
+     "city": null,
+     "county": "Thurston County",
+     "website": "https://www.thurstonedc.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Wahkiakum County ADO (wahkiakum.us)",
+     "type": "regional",
+     "city": null,
+     "county": "Wahkiakum County",
+     "website": "https://www.wahkiakum.us",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Port of Walla Walla (portwallawalla.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Walla Walla County",
+     "website": "https://www.portwallawalla.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Whatcom County ADO (whatcomcounty.us)",
+     "type": "regional",
+     "city": null,
+     "county": "Whatcom County",
+     "website": "https://www.whatcomcounty.us",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Port of Whitman County (portwhitman.com)",
+     "type": "regional",
+     "city": null,
+     "county": "Whitman County",
+     "website": "https://www.portwhitman.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    },
+    {
+     "name": "Yakima County Development Association",
+     "type": "regional",
+     "city": null,
+     "county": "Yakima County",
+     "website": "https://www.ycda.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": null,
+     "sourceUrl": "https://www.commerce.wa.gov/economic-development/ado/"
+    }
+   ]
+  }
+ }
+}

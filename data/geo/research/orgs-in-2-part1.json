@@ -1,0 +1,202 @@
+[
+ {
+  "ein": "205242330",
+  "name": "Downtown Streets inc",
+  "kind": "WORKFORCE",
+  "city": "San Jose",
+  "state": "CA",
+  "zip": "95126",
+  "street": "1671 the Alameda Ste 301",
+  "revenue": 17394816.0
+ },
+ {
+  "ein": "351666738",
+  "name": "Jobworks inc",
+  "kind": "WORKFORCE",
+  "city": "Fort Wayne",
+  "state": "IN",
+  "zip": "46804",
+  "street": "7230 Engle Rd",
+  "revenue": 17311991.0
+ },
+ {
+  "ein": "550461336",
+  "name": "Ohio Valley Industrial and Business Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Wheeling",
+  "state": "WV",
+  "zip": "26003",
+  "street": "1100 Main St Ste 3",
+  "revenue": 16957799.0
+ },
+ {
+  "ein": "330352148",
+  "name": "Urban Corps of San Diego",
+  "kind": "WORKFORCE",
+  "city": "San Diego",
+  "state": "CA",
+  "zip": "92138",
+  "street": "Po Box 80156",
+  "revenue": 16703814.0
+ },
+ {
+  "ein": "471972321",
+  "name": "Michigan Statewide Carpenters and Millwrights Jatc Fund",
+  "kind": "WORKFORCE",
+  "city": "Lansing",
+  "state": "MI",
+  "zip": "48917",
+  "street": "6525 Centurion Dr",
+  "revenue": 16633988.0
+ },
+ {
+  "ein": "900183669",
+  "name": "Lubbock Economic Development Alliance inc",
+  "kind": "ECON_DEV",
+  "city": "Lubbock",
+  "state": "TX",
+  "zip": "79401",
+  "street": "1500 Broadway Ste 600",
+  "revenue": 16565554.0
+ },
+ {
+  "ein": "411921126",
+  "name": "Great Plains Institute for Sustainable Development",
+  "kind": "ECON_DEV",
+  "city": "Minneapolis",
+  "state": "MN",
+  "zip": "55407",
+  "street": "2801 21st S Ave Ste 220",
+  "revenue": 16548908.0
+ },
+ {
+  "ein": "310710683",
+  "name": "Adams and Brown Counties Economic Opportunities inc",
+  "kind": "ECON_DEV",
+  "city": "Georgetown",
+  "state": "OH",
+  "zip": "45121",
+  "street": "406 W Plum St",
+  "revenue": 16546946.0
+ },
+ {
+  "ein": "352099782",
+  "name": "The Center of Workforce Innovations inc",
+  "kind": "WORKFORCE",
+  "city": "Gary",
+  "state": "IN",
+  "zip": "46402",
+  "street": "504 Broadway",
+  "revenue": 16379488.0
+ },
+ {
+  "ein": "562420045",
+  "name": "Workforce Development Institute inc",
+  "kind": "WORKFORCE",
+  "city": "Albany",
+  "state": "NY",
+  "zip": "12210",
+  "street": "96 S Swan St",
+  "revenue": 16362655.0
+ },
+ {
+  "ein": "941663434",
+  "name": "Arriba Juntos",
+  "kind": "WORKFORCE",
+  "city": "San Francisco",
+  "state": "CA",
+  "zip": "94103",
+  "street": "1850 Mission St",
+  "revenue": 16193068.0
+ },
+ {
+  "ein": "520887806",
+  "name": "International Economic Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Washington",
+  "state": "DC",
+  "zip": "20005",
+  "street": "1275 K St Nw Ste 300",
+  "revenue": 16117938.0
+ },
+ {
+  "ein": "460908502",
+  "name": "Groundtruth Project inc",
+  "kind": "WORKFORCE",
+  "city": "Boston",
+  "state": "MA",
+  "zip": "02111",
+  "street": "68 Harrison Ave Ste 605 Pmb 46837",
+  "revenue": 16111232.0
+ },
+ {
+  "ein": "391636835",
+  "name": "Employ Milwaukee inc",
+  "kind": "WORKFORCE",
+  "city": "Milwaukee",
+  "state": "WI",
+  "zip": "53205",
+  "street": "1322 N 8th St",
+  "revenue": 16085795.0
+ },
+ {
+  "ein": "930818160",
+  "name": "Northwest Youth Corps",
+  "kind": "WORKFORCE",
+  "city": "Eugene",
+  "state": "OR",
+  "zip": "97403",
+  "street": "2621 Augusta St",
+  "revenue": 16075212.0
+ },
+ {
+  "ein": "061427945",
+  "name": "Career Resources inc",
+  "kind": "WORKFORCE",
+  "city": "Bridgeport",
+  "state": "CT",
+  "zip": "06604",
+  "street": "1000 Lafayette Blvd Ste 303",
+  "revenue": 15988819.0
+ },
+ {
+  "ein": "650179159",
+  "name": "Florida Business Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Tampa",
+  "state": "FL",
+  "zip": "33607",
+  "street": "1715 N West Shore Blvd Ste 780",
+  "revenue": 15826625.0
+ },
+ {
+  "ein": "521749216",
+  "name": "Latino Economic Development Corporation of Washington Dc",
+  "kind": "ECON_DEV",
+  "city": "Washington",
+  "state": "DC",
+  "zip": "20009",
+  "street": "1401 Columbia Rd Nw Unit C-1",
+  "revenue": 15800960.0
+ },
+ {
+  "ein": "593385658",
+  "name": "First Coast Workforce Development inc",
+  "kind": "WORKFORCE",
+  "city": "Orange Park",
+  "state": "FL",
+  "zip": "32073",
+  "street": "2141 Loch Rane Blvd Ste 111",
+  "revenue": 15796436.0
+ },
+ {
+  "ein": "411386986",
+  "name": "Comunidades Latinas Unidas En Servicio inc",
+  "kind": "WORKFORCE",
+  "city": "Saint Paul",
+  "state": "MN",
+  "zip": "55106",
+  "street": "797 East 7th St",
+  "revenue": 15787583.0
+ }
+]

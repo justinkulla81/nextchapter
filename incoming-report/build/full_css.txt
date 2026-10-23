@@ -1,0 +1,24 @@
+@media print{
+ body{font-size:9.2pt;line-height:1.42}
+ .chapter-head{break-before:auto!important;margin-top:8pt}
+ #summary .chapter-head,#method .chapter-head{break-before:page!important}
+ main{gap:12pt!important}
+ section{gap:7pt!important}
+ p,.items p,.box ul,.box ol,.note{max-width:none!important}
+ .lead{font-size:10pt}
+ .chart svg{max-height:2.3in;width:auto!important;max-width:100%;margin:0 auto}
+ .two{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10pt}
+ .findings{grid-template-columns:1fr 1fr!important}
+ .findings ul{font-size:8.8pt}
+ .items li{grid-template-columns:130px minmax(0,1fr)!important;gap:10px!important;padding:5px 0!important}
+ .items p{font-size:9pt}
+ .exhibit{padding:7pt 9pt 5pt!important;gap:4pt!important}
+ .box{padding:9pt 11pt!important;gap:6pt!important}
+ table{font-size:8pt}
+ th,td{padding:2pt 4pt!important}
+ .ex-note{font-size:7.2pt;line-height:1.35}
+ .ex-title{font-size:9.6pt}
+ h2{font-size:17pt!important}
+ h3{margin-top:2pt}
+ .cover h1{font-size:34pt}
+}

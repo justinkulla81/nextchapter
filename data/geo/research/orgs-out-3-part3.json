@@ -1,0 +1,222 @@
+[
+ {
+  "ein": "237021273",
+  "website": "https://gjdc.org",
+  "contactName": null,
+  "contactTitle": null,
+  "email": "info@gjdc.org",
+  "phone": "718-291-0282",
+  "sourceUrl": "https://gjdc.org/contact-us/",
+  "confidence": "medium",
+  "note": "Contact page lists info@ and phone, address 90-04 161st St Jamaica NY matches. CEO not confirmed: search snippet said Hope Knight but she left GJDC in 2022 (likely stale); current CEO not found."
+ },
+ {
+  "ein": "953643339",
+  "website": "https://laedc.org",
+  "contactName": "Stephen Cheung",
+  "contactTitle": "President & CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://laedc.org",
+  "confidence": "medium",
+  "note": "From search snippets only (org is Los Angeles County EDC; EIN matches GuideStar). Contact page fetch 404; email/phone not found."
+ },
+ {
+  "ein": "382433720",
+  "website": "https://degc.org",
+  "contactName": "Kevin D. Johnson",
+  "contactTitle": "President & CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://degc.org",
+  "confidence": "medium",
+  "note": "From search snippets only (Detroit Economic Growth Corporation, CEO since 2018). Contact page fetch 404; email/phone not found."
+ },
+ {
+  "ein": "911247291",
+  "website": "https://www.skillsource.org",
+  "contactName": "Lisa Romine",
+  "contactTitle": "Executive Director",
+  "email": "lisar@skillsource.org",
+  "phone": "509-663-3091",
+  "sourceUrl": "https://www.skillsource.org/contact/",
+  "confidence": "medium",
+  "note": "Phone and 240 N Mission St Wenatchee address confirmed on site contact page; name and email from search snippet, not confirmed on site."
+ },
+ {
+  "ein": "261721255",
+  "website": "https://wfw.org",
+  "contactName": "Hernan Luis y Prado",
+  "contactTitle": "Founder & CEO",
+  "email": "info@wfw.org",
+  "phone": "619-550-1620",
+  "sourceUrl": "https://wfw.org",
+  "confidence": "medium",
+  "note": "From search snippet; address 2970 Main St San Diego matches. Site fetch was rate-limited, not verified on site."
+ },
+ {
+  "ein": "810465605",
+  "website": "https://www.growgreatfalls.org",
+  "contactName": "Brett Doney",
+  "contactTitle": "President & CEO",
+  "email": "BDoney@GrowGreatFalls.org",
+  "phone": null,
+  "sourceUrl": "https://www.growgreatfalls.org",
+  "confidence": "medium",
+  "note": "From search snippet; contact page fetch 404, not verified on site. Email is from published listing, not constructed."
+ },
+ {
+  "ein": "990226377",
+  "website": null,
+  "contactName": "Leslie Wilkins",
+  "contactTitle": "President & CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "low",
+  "note": "From search snippet (CEO since 2017); site fetch (medb.org) was rate-limited, so website and contact details not verified."
+ },
+ {
+  "ein": "132686582",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "431361364",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "861096987",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "251847249",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "954597000",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "237108090",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "391455735",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "300598934",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "942324608",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "611007644",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "251753793",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "810300207",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ },
+ {
+  "ein": "320145183",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not researched: WebSearch session budget exhausted and WebFetch domain checks rate-limited / failed."
+ }
+]

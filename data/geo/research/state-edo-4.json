@@ -1,0 +1,138 @@
+{
+  "_note": "PARTIAL. WebSearch budget (200/200) was exhausted and WebFetch domain safety checks were rate-limited, so local EDO directories could not be fetched. Only state-agency facts from earlier search snippets are recorded; null = not verified. Re-run local EDO collection for all 8 states.",
+  "states": {
+    "AR": {
+      "stateAgency": {
+        "name": "Arkansas Economic Development Commission (AEDC)",
+        "website": "https://www.arkansasedc.com",
+        "phone": "800-275-2672",
+        "leaderName": "Clint O'Neal",
+        "leaderTitle": "Executive Director",
+        "contactName": "Becca Caldwell",
+        "contactTitle": "Director of Rural Services",
+        "email": "bcaldwell@arkansasedc.com",
+        "sourceUrl": "https://info.arkansasedc.com/rural-services-list"
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "FL": {
+      "stateAgency": {
+        "name": "Florida Department of Commerce (FloridaCommerce)",
+        "website": "https://www.floridacommerce.org",
+        "phone": null,
+        "leaderName": "J. Alex Kelly",
+        "leaderTitle": "Secretary",
+        "contactName": null,
+        "contactTitle": null,
+        "email": null,
+        "sourceUrl": "https://en.wikipedia.org/wiki/Florida_Department_of_Commerce"
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "IA": {
+      "stateAgency": {
+        "name": "Iowa Economic Development Authority (IEDA)",
+        "website": "https://www.iowaeda.com",
+        "phone": "515-348-6200",
+        "leaderName": "Debi Durham",
+        "leaderTitle": "Director",
+        "contactName": "Debi Durham",
+        "contactTitle": "Director",
+        "email": "director@iowaeda.com",
+        "sourceUrl": "https://www.IowaEDA.com/contact-us/"
+      },
+      "directoryUrl": null,
+      "localEdos": [
+        {
+          "name": "Kossuth/Palo Alto County Economic Development Corporation",
+          "type": "county",
+          "city": null,
+          "county": "Kossuth; Palo Alto",
+          "website": null,
+          "contactName": null,
+          "contactTitle": null,
+          "email": null,
+          "phone": null,
+          "sourceUrl": "https://www.tradeandindustrydev.com/region/iowa/kossuthpalo-alto-county-economic-development-4161.md"
+        }
+      ]
+    },
+    "MA": {
+      "stateAgency": {
+        "name": "Massachusetts Executive Office of Economic Development",
+        "website": "https://www.mass.gov/orgs/executive-office-of-economic-development",
+        "phone": null,
+        "leaderName": "Eric Paley",
+        "leaderTitle": "Secretary of Economic Development (appointment announced; Ashley Stolba was Interim Secretary - verify current)",
+        "contactName": "Meggie Quackenbush",
+        "contactTitle": "Director of Communications (press contact)",
+        "email": "margaret.m.quackenbush@mass.gov",
+        "sourceUrl": "https://www.mass.gov/orgs/executive-office-of-economic-development"
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "NE": {
+      "stateAgency": {
+        "name": "Nebraska Department of Economic Development (DED)",
+        "website": "https://opportunity.nebraska.gov",
+        "phone": "402-471-3111",
+        "leaderName": null,
+        "leaderTitle": null,
+        "contactName": null,
+        "contactTitle": null,
+        "email": null,
+        "sourceUrl": "https://www.nebraska.gov/datastore/agency_contact/nded.json"
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "NC": {
+      "stateAgency": {
+        "name": "North Carolina Department of Commerce",
+        "website": "https://commerce.nc.gov",
+        "phone": "919-814-4600",
+        "leaderName": "Machelle Baker Sanders",
+        "leaderTitle": "Secretary of Commerce",
+        "contactName": "Christopher Chung",
+        "contactTitle": "CEO, Economic Development Partnership of North Carolina (EDPNC)",
+        "email": "christopher.chung@edpnc.com",
+        "sourceUrl": "https://commerce.nc.gov/about-us/divisions-programs/office-secretary/economic-development"
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "RI": {
+      "stateAgency": {
+        "name": "Rhode Island Executive Office of Commerce / Commerce Corporation (Commerce RI)",
+        "website": "https://eoc.ri.gov",
+        "phone": null,
+        "leaderName": null,
+        "leaderTitle": "Secretary of Commerce (current holder unverified; a Pryor was announced, Elizabeth Tanner previously)",
+        "contactName": null,
+        "contactTitle": null,
+        "email": null,
+        "sourceUrl": "https://thepublicsradio.org/article/pryor-unveils-new-leadership-team-commerce-ri/"
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "VT": {
+      "stateAgency": {
+        "name": "Vermont Agency of Commerce and Community Development (ACCD)",
+        "website": "https://accd.vermont.gov",
+        "phone": null,
+        "leaderName": "Tayt Brooks",
+        "leaderTitle": "Secretary (verify; Lindsay Kurrle presented FY27 budget in 2026)",
+        "contactName": "Lyle Jepson",
+        "contactTitle": "Commissioner, Department of Economic Development",
+        "email": null,
+        "sourceUrl": "https://accd.vermont.gov/about-us"
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    }
+  }
+}

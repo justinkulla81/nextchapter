@@ -1,0 +1,50 @@
+{
+  "_note": "Partial. WebSearch budget (200/200) was exhausted and WebFetch domain safety checks were rate-limited, so only items verified on fetched pages are recorded. Unknown values are null. localEdos not collected for any state; needs rerun.",
+  "states": {
+    "AK": {
+      "stateAgency": {"name": "Alaska Department of Commerce, Community, and Economic Development", "website": "https://www.commerce.alaska.gov/web/", "phone": null, "leaderName": null, "leaderTitle": null, "contactName": null, "contactTitle": null, "email": null, "sourceUrl": null},
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "DE": {
+      "stateAgency": {"name": "Delaware Division of Small Business (Dept. of State) / Delaware Prosperity Partnership", "website": "https://business.delaware.gov/", "phone": "(302) 739-4271", "leaderName": null, "leaderTitle": null, "contactName": null, "contactTitle": null, "email": "business@delaware.gov", "sourceUrl": "https://business.delaware.gov/"},
+      "directoryUrl": "https://business.delaware.gov/",
+      "localEdos": []
+    },
+    "IL": {
+      "stateAgency": {"name": "Illinois Department of Commerce and Economic Opportunity (DCEO)", "website": "https://dceo.illinois.gov/", "phone": "(217) 782-7500", "leaderName": null, "leaderTitle": null, "contactName": null, "contactTitle": null, "email": null, "sourceUrl": "https://dceo.illinois.gov/contactus.html"},
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "ME": {
+      "stateAgency": {"name": "Maine Department of Economic and Community Development (DECD)", "website": "https://www.maine.gov/decd/", "phone": "(207) 624-9800", "leaderName": null, "leaderTitle": null, "contactName": null, "contactTitle": null, "email": null, "sourceUrl": "https://www.maine.gov/decd/about/contact"},
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "MO": {
+      "stateAgency": {"name": "Missouri Department of Economic Development (DED)", "website": "https://ded.mo.gov/", "phone": null, "leaderName": "Michelle Hataway", "leaderTitle": "Director", "contactName": null, "contactTitle": null, "email": "ecodev@ded.mo.gov", "sourceUrl": "https://ded.mo.gov/contact"},
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "NM": {
+      "stateAgency": {"name": "New Mexico Economic Development Department", "website": "https://edd.newmexico.gov/", "phone": null, "leaderName": null, "leaderTitle": null, "contactName": null, "contactTitle": null, "email": null, "sourceUrl": null},
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "OR": {
+      "stateAgency": {"name": "Business Oregon (Oregon Business Development Department)", "website": "https://www.oregon.gov/biz/", "phone": "503-986-0123", "leaderName": null, "leaderTitle": null, "contactName": null, "contactTitle": "Director's office", "email": "business.oregon@oregon.gov", "sourceUrl": "https://www.oregon.gov/biz/Pages/default.aspx"},
+      "directoryUrl": "https://www.oregon.gov/biz/aboutus/contactus/Pages/directory.aspx",
+      "localEdos": []
+    },
+    "TX": {
+      "stateAgency": {"name": "Office of the Governor, Economic Development & Tourism (Texas Economic Development & Tourism Office)", "website": "https://gov.texas.gov/business", "phone": "(512) 936-0100", "leaderName": null, "leaderTitle": null, "contactName": null, "contactTitle": null, "email": null, "sourceUrl": "https://gov.texas.gov/business"},
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "WI": {
+      "stateAgency": {"name": "Wisconsin Economic Development Corporation (WEDC)", "website": "https://wedc.org/", "phone": "608.210.6700", "leaderName": "John W. Miller", "leaderTitle": "Secretary and Chief Executive Officer", "contactName": "Tim Weber", "contactTitle": "Senior Economic Development Director (Regions 1,2,3,4,6,7)", "email": "tim.weber@wedc.org", "sourceUrl": "https://wedc.org/about-us/staff-directory/"},
+      "directoryUrl": "https://wedc.org/about-us/staff-directory/",
+      "localEdos": []
+    }
+  }
+}

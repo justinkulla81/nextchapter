@@ -1,0 +1,222 @@
+[
+ {
+  "ein": "205242330",
+  "website": "https://www.streetsteam.org",
+  "contactName": "Julie Gardner",
+  "contactTitle": "CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://www.streetsteam.org/dst-closure",
+  "confidence": "low",
+  "note": "Org announced it would close all operations effective Oct 31, 2025; CEO name from Jan 2024 news, not re-verified."
+ },
+ {
+  "ein": "351666738",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": "(260) 402-6768",
+  "sourceUrl": null,
+  "confidence": "low",
+  "note": "Org confirmed via search (7230 Engle Rd, Fort Wayne) but site blocked (403/cert error); no exec verified. John Casella listed as Chief Growth Officer in search snippet only."
+ },
+ {
+  "ein": "550461336",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": "(304) 232-7722",
+  "sourceUrl": "https://wvhtf.org/affiliate-members-directory/",
+  "confidence": "low",
+  "note": "Org formerly Regional Economic Development Partnership; official site not found (ovibdc.org/.com are unrelated/parked). Phone and contact Brian Komorowski from state docs snippet; title unverified."
+ },
+ {
+  "ein": "330352148",
+  "website": "https://www.urbancorpssd.org",
+  "contactName": "Robert Chavez",
+  "contactTitle": "CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://www.urbancorpssd.org",
+  "confidence": "low",
+  "note": "Site behind captcha, could not load; CEO name from older San Diego Reader snippet, may be outdated."
+ },
+ {
+  "ein": "471972321",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": "(248) 541-2740",
+  "sourceUrl": null,
+  "confidence": "low",
+  "note": "No official site found; Michael Barnwell is Chair of statewide JATC per Michigan Treasury page, not a verified exec contact."
+ },
+ {
+  "ein": "900183669",
+  "website": "https://www.lubbockeda.org",
+  "contactName": "John Osborne",
+  "contactTitle": "President and CEO",
+  "email": "hello@lubbockeda.org",
+  "phone": "806-749-4500",
+  "sourceUrl": "https://www.lubbockeda.org/",
+  "confidence": "high",
+  "note": "Toll free 800-687-5330. Also media@marketlubbock.org. Direct email john.osborne@lubbockeda.org appeared only in a search snippet."
+ },
+ {
+  "ein": "411921126",
+  "website": "https://betterenergy.org",
+  "contactName": "Louise Miltich",
+  "contactTitle": "Interim President & CEO",
+  "email": null,
+  "phone": "612-278-7150",
+  "sourceUrl": "https://betterenergy.org/who-we-are/staff-and-consultants/",
+  "confidence": "high",
+  "note": "Contact form at betterenergy.org/contact/; no public email listed."
+ },
+ {
+  "ein": "310710683",
+  "website": null,
+  "contactName": "Alvin Norris",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": "937-378-6041",
+  "sourceUrl": null,
+  "confidence": "low",
+  "note": "Official site not verified (abceo.org unreachable, abceo.com unrelated). Name/phone from third-party snippet; snippet address 200 S Green St differs from input."
+ },
+ {
+  "ein": "352099782",
+  "website": null,
+  "contactName": "Lisa Daugherty",
+  "contactTitle": "President and CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://nwindianabusiness.com",
+  "confidence": "low",
+  "note": "Search says org is in Valparaiso IN (input says Gary); official site not found."
+ },
+ {
+  "ein": "562420045",
+  "website": "https://wdiny.org",
+  "contactName": "Amy Desjardins",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": "518-463-2141",
+  "sourceUrl": "https://wdiny.org/About-Us/Our-Staff/Management-Team",
+  "confidence": "high",
+  "note": "Admin office phone from Contact Us page (96 S Swan St, Albany). No exec email public; contact form only."
+ },
+ {
+  "ein": "941663434",
+  "website": "https://www.arribajuntos.org",
+  "contactName": "Dalila Ahumada",
+  "contactTitle": "Executive Director",
+  "email": "info@arribajuntos.org",
+  "phone": "(415) 487-3240",
+  "sourceUrl": "https://www.arribajuntos.org",
+  "confidence": "medium",
+  "note": "Email/phone from official site; ED name from third-party snippet only, not on site."
+ },
+ {
+  "ein": "520887806",
+  "website": "https://www.iedconline.org",
+  "contactName": "Nathan Ohle",
+  "contactTitle": "President & CEO",
+  "email": null,
+  "phone": "(202) 223-7800",
+  "sourceUrl": "https://www.iedconline.org/pages/ceo-nathan-ohle/",
+  "confidence": "high",
+  "note": "No public email found on pages fetched."
+ },
+ {
+  "ein": "460908502",
+  "website": "https://www.reportforamerica.org",
+  "contactName": "Rob Zeaske",
+  "contactTitle": "CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://www.bostonglobe.com/2023/01/10/business/rob-zeaske-returns-groundtruth-project-chief-executive",
+  "confidence": "medium",
+  "note": "Org now branded Report Local (home of Report for America); same Boston address on site. No public email/phone found."
+ },
+ {
+  "ein": "391636835",
+  "website": "https://www.employmilwaukee.org",
+  "contactName": "Julie Cayo",
+  "contactTitle": "President & Chief Executive Officer",
+  "email": null,
+  "phone": "(414) 270-1700",
+  "sourceUrl": "https://www.employmilwaukee.org/Employ-Milwaukee/About/Leadership-Team.htm",
+  "confidence": "high",
+  "note": "Contact is form-based; no general email listed."
+ },
+ {
+  "ein": "930818160",
+  "website": "https://www.nwyouthcorps.org",
+  "contactName": "Jeff Parker",
+  "contactTitle": "President and CEO",
+  "email": "info@nwyouthcorps.org",
+  "phone": "541-349-5055",
+  "sourceUrl": "https://www.nwyouthcorps.org/our-staff/",
+  "confidence": "high",
+  "note": null
+ },
+ {
+  "ein": "061427945",
+  "website": "https://careerresources.org",
+  "contactName": "Scott K. Wilderman",
+  "contactTitle": "President & CEO",
+  "email": "Wilderman@CareerResources.org",
+  "phone": "203-953-3259",
+  "sourceUrl": "https://careerresources.org/meet-the-team/",
+  "confidence": "medium",
+  "note": "Name/title confirmed on site; email and phone from UConn faculty bio snippet, not site."
+ },
+ {
+  "ein": "650179159",
+  "website": "https://www.fbdc.net",
+  "contactName": "Bill Habermeyer",
+  "contactTitle": "President & CEO",
+  "email": "info@fbdc.net",
+  "phone": "(813) 348-0660",
+  "sourceUrl": "https://www.fbdc.net/about",
+  "confidence": "high",
+  "note": null
+ },
+ {
+  "ein": "521749216",
+  "website": "https://www.ledcmetro.org",
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": "202-540-7400",
+  "sourceUrl": "https://www.ledcmetro.org/contact",
+  "confidence": "low",
+  "note": "Now named Latino Economic Development Center; same address. Senior leadership page did not render names; no public email."
+ },
+ {
+  "ein": "593385658",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Not found; search budget exhausted. Likely operates as CareerSource Northeast Florida (unverified; site returned 403)."
+ },
+ {
+  "ein": "411386986",
+  "website": "https://clues.org",
+  "contactName": "Liliana Letran-Garcia",
+  "contactTitle": "President and CEO",
+  "email": "info@clues.org",
+  "phone": "651-379-4200",
+  "sourceUrl": "https://clues.org/",
+  "confidence": "high",
+  "note": "HQ phone 651-379-4200 from site; CEO name from site news posts."
+ }
+]

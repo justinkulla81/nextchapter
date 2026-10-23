@@ -1,0 +1,202 @@
+[
+ {
+  "ein": "942184330",
+  "name": "Proteus inc",
+  "kind": "WORKFORCE",
+  "city": "Visalia",
+  "state": "CA",
+  "zip": "93279",
+  "street": "Po Box 727",
+  "revenue": 20259526.0
+ },
+ {
+  "ein": "363267851",
+  "name": "Rock Island Economic Growth Corporation",
+  "kind": "ECON_DEV",
+  "city": "Milan",
+  "state": "IL",
+  "zip": "61264",
+  "street": "371 3rd St W",
+  "revenue": 19970238.0
+ },
+ {
+  "ein": "232087348",
+  "name": "Impact Services Corp",
+  "kind": "WORKFORCE",
+  "city": "Philadelphia",
+  "state": "PA",
+  "zip": "19134",
+  "street": "1952 E Allegheny Ave",
+  "revenue": 19870083.0
+ },
+ {
+  "ein": "620729622",
+  "name": "Northwest Tennessee Economic Development Council",
+  "kind": "ECON_DEV",
+  "city": "Dresden",
+  "state": "TN",
+  "zip": "38225",
+  "street": "231 S Wilson St",
+  "revenue": 19848025.0
+ },
+ {
+  "ein": "593659026",
+  "name": "Careersource Florida inc",
+  "kind": "WORKFORCE",
+  "city": "Tallahassee",
+  "state": "FL",
+  "zip": "32309",
+  "street": "2308 Killearn Center Blvd Ste 101 1",
+  "revenue": 19823161.0
+ },
+ {
+  "ein": "420939347",
+  "name": "Vocational Development Center inc",
+  "kind": "ECON_DEV",
+  "city": "Council Blfs",
+  "state": "IA",
+  "zip": "51503",
+  "street": "612 S Main St",
+  "revenue": 19822312.0
+ },
+ {
+  "ein": "010482628",
+  "name": "Jobs for Maines Graduates inc",
+  "kind": "WORKFORCE",
+  "city": "Augusta",
+  "state": "ME",
+  "zip": "04330",
+  "street": "65 Stone St",
+  "revenue": 19812413.0
+ },
+ {
+  "ein": "610650246",
+  "name": "Kentucky River Foothills Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Richmond",
+  "state": "KY",
+  "zip": "40475",
+  "street": "6021 Atwood Dr",
+  "revenue": 19125723.0
+ },
+ {
+  "ein": "450332197",
+  "name": "Pride inc",
+  "kind": "WORKFORCE",
+  "city": "Bismarck",
+  "state": "ND",
+  "zip": "58502",
+  "street": "Po Box 4086",
+  "revenue": 18982089.0
+ },
+ {
+  "ein": "382225929",
+  "name": "Alternative Services inc",
+  "kind": "WORKFORCE",
+  "city": "Livonia",
+  "state": "MI",
+  "zip": "48152",
+  "street": "32625 7 Mile Rd",
+  "revenue": 18822422.0
+ },
+ {
+  "ein": "132583087",
+  "name": "New York District Council Crpntrs Apprntcshp Jrnymn Retraing Educa",
+  "kind": "WORKFORCE",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10014",
+  "street": "395 Hudson St 9th Floor",
+  "revenue": 18796209.0
+ },
+ {
+  "ein": "954712513",
+  "name": "Genesis La Economic Growth Corporation",
+  "kind": "ECON_DEV",
+  "city": "Los Angeles",
+  "state": "CA",
+  "zip": "90017",
+  "street": "801 S Grand Ave Ste 850",
+  "revenue": 18549186.0
+ },
+ {
+  "ein": "811497840",
+  "name": "Aspyr",
+  "kind": "WORKFORCE",
+  "city": "Columbus",
+  "state": "OH",
+  "zip": "43204",
+  "street": "1650 Lake Shore Drive",
+  "revenue": 18314373.0
+ },
+ {
+  "ein": "133916164",
+  "name": "Academy of Management inc",
+  "kind": "WORKFORCE",
+  "city": "Valhalla",
+  "state": "NY",
+  "zip": "10595",
+  "street": "100 Summit Lake Dr Ste 110",
+  "revenue": 18300302.0
+ },
+ {
+  "ein": "844667327",
+  "name": "Td Jakes Foundation",
+  "kind": "WORKFORCE",
+  "city": "Dallas",
+  "state": "TX",
+  "zip": "75236",
+  "street": "3303 Potters House Way 250",
+  "revenue": 18214428.0
+ },
+ {
+  "ein": "232552707",
+  "name": "Nueva Esperanza",
+  "kind": "WORKFORCE",
+  "city": "Philadelphia",
+  "state": "PA",
+  "zip": "19140",
+  "street": "4261 N 5th St",
+  "revenue": 18047181.0
+ },
+ {
+  "ein": "411667580",
+  "name": "Hmong American Partnership",
+  "kind": "WORKFORCE",
+  "city": "Saint Paul",
+  "state": "MN",
+  "zip": "55103",
+  "street": "394 University Ave W 2nd Floor",
+  "revenue": 17966696.0
+ },
+ {
+  "ein": "133740011",
+  "name": "Lifestyles for the Disabled inc",
+  "kind": "WORKFORCE",
+  "city": "Staten Island",
+  "state": "NY",
+  "zip": "10314",
+  "street": "930 Willowbrook Rd",
+  "revenue": 17718485.0
+ },
+ {
+  "ein": "621765738",
+  "name": "Tennessee Technology Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Nashville",
+  "state": "TN",
+  "zip": "37208",
+  "street": "601 Taylor Pl Ste 101",
+  "revenue": 17648522.0
+ },
+ {
+  "ein": "942687078",
+  "name": "Tri-city Economic Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Union City",
+  "state": "CA",
+  "zip": "94587",
+  "street": "33377 Western Ave",
+  "revenue": 17615428.0
+ }
+]

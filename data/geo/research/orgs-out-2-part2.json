@@ -1,0 +1,222 @@
+[
+ {
+  "ein": "680200138",
+  "website": "https://summersearch.org",
+  "contactName": "Ursulina Ramirez",
+  "contactTitle": "CEO",
+  "email": "info@summersearch.org",
+  "phone": "415.362.5225",
+  "sourceUrl": "https://www.summersearch.org/contact/",
+  "confidence": "high",
+  "note": "CEO name from search result (began Jan 2023); email/phone/address from contact page"
+ },
+ {
+  "ein": "721341516",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://wilkinson.co.ms.gov/node/11",
+  "confidence": "none",
+  "note": "No dedicated site found; listed as a resource on wilkinson.co.ms.gov county site"
+ },
+ {
+  "ein": "631134289",
+  "website": "https://alabamarcd.org",
+  "contactName": null,
+  "contactTitle": null,
+  "email": "info@alabamarcd.org",
+  "phone": "334-240-3863",
+  "sourceUrl": "https://www.alabamarcd.org",
+  "confidence": "medium",
+  "note": "Alabama Association of RC&D Councils; PO Box 3128 Montgomery matches; staff on /board-staff/ not read"
+ },
+ {
+  "ein": "941643577",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": "530-527-0407",
+  "sourceUrl": null,
+  "confidence": "low",
+  "note": "Operates as North Valley Services, 11799 Hwy 99W Red Bluff; official website and director not found"
+ },
+ {
+  "ein": "043459696",
+  "website": "https://www.massmep.org",
+  "contactName": "Kathie Mahoney",
+  "contactTitle": "President / CEO",
+  "email": "marketing@massmep.org",
+  "phone": "508-831-7020",
+  "sourceUrl": "https://www.massmep.org/contact-us/",
+  "confidence": "high",
+  "note": "Name from search results (WBJ: Mahoney returned as CEO); email is the general contact-page address"
+ },
+ {
+  "ein": "132722428",
+  "website": "https://hawthornevalley.org",
+  "contactName": "Martin Ping",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": "518-672-4465",
+  "sourceUrl": "https://hawthornevalley.org/contact/",
+  "confidence": "high",
+  "note": "Email obfuscated on page; ext 205 for Ping"
+ },
+ {
+  "ein": "911283259",
+  "website": "https://www.nwlett.edu/",
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": "800-554-4557",
+  "sourceUrl": "https://www.nwlett.org",
+  "confidence": "low",
+  "note": "nwlett.org redirects to nwlett.edu; no executive named. Search listed contact Becky Shields (BShields@nwlett.org) but title unknown"
+ },
+ {
+  "ein": "043279555",
+  "website": "https://www.masshiremetronorth.org",
+  "contactName": "Chris Albrizio-Lee",
+  "contactTitle": "Executive Director",
+  "email": "info@MassHireMetroNorth.org",
+  "phone": "508-658-3528",
+  "sourceUrl": "https://www.masshiremetronorth.org",
+  "confidence": "medium",
+  "note": "Name from search result; site lists 350 Main St Suite 620 Malden"
+ },
+ {
+  "ein": "262564855",
+  "website": "https://www.daybreakis.org",
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": "718-704-5055",
+  "sourceUrl": "https://www.daybreakis.org",
+  "confidence": "medium",
+  "note": "Address 511 E 233rd St Bronx confirmed; leadership page not located"
+ },
+ {
+  "ein": "911546757",
+  "website": "https://www.farestart.org",
+  "contactName": "Patrick D'Amelio",
+  "contactTitle": "CEO",
+  "email": "info@farestart.org",
+  "phone": "206.443.1233",
+  "sourceUrl": "https://www.farestart.org/contact/",
+  "confidence": "high",
+  "note": "CEO appointed May 2023 per FareStart news release"
+ },
+ {
+  "ein": "742719298",
+  "website": "https://tayloredc.org",
+  "contactName": "Ben White",
+  "contactTitle": "President/CEO",
+  "email": null,
+  "phone": "512-352-4321",
+  "sourceUrl": "https://tayloredc.org",
+  "confidence": "medium",
+  "note": "Name from search result; email not found; staff page /about-tedc/our-staff-and-board not read"
+ },
+ {
+  "ein": "133255679",
+  "website": "https://strive.org",
+  "contactName": "Philip Weinberg",
+  "contactTitle": "President & CEO",
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://www.striveinternational.org",
+  "confidence": "medium",
+  "note": "striveinternational.org redirects to strive.org; CEO name from search result, strive.org not read"
+ },
+ {
+  "ein": "920076696",
+  "website": "https://www.assetsinc.org",
+  "contactName": "Gina Bastian",
+  "contactTitle": "Executive Director",
+  "email": null,
+  "phone": "907-279-6617",
+  "sourceUrl": "https://digital.akbizmag.com/issue/april-2026/right-moves/",
+  "confidence": "high",
+  "note": "Address 2330 Nichols St confirmed on site; ED named in Alaska Business April 2026"
+ },
+ {
+  "ein": "731084819",
+  "website": "https://www.tedcnet.com",
+  "contactName": "Rose Washington",
+  "contactTitle": "CEO",
+  "email": null,
+  "phone": "918-585-8332",
+  "sourceUrl": "https://www.tedcnet.com",
+  "confidence": "medium",
+  "note": "Name from search results (Rose Washington-Jones); email not listed on homepage"
+ },
+ {
+  "ein": "416078344",
+  "website": "https://www.hired.org",
+  "contactName": "Julie Brekke",
+  "contactTitle": "President & CEO",
+  "email": null,
+  "phone": "612-808-9500",
+  "sourceUrl": "https://www.hired.org",
+  "confidence": "medium",
+  "note": "Site lists Minneapolis office at 1015 Glenwood Ave, not 217 5th Ave N; CEO name from search result"
+ },
+ {
+  "ein": "813306113",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Guessed domain did not resolve; no search budget left"
+ },
+ {
+  "ein": "942831592",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Guessed domain did not resolve; no search budget left"
+ },
+ {
+  "ein": "522168409",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "Guessed domains failed; no search budget left"
+ },
+ {
+  "ein": "621795688",
+  "website": null,
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": null,
+  "confidence": "none",
+  "note": "workforceresource.org is a different org (Menomonie, WI); not a match"
+ },
+ {
+  "ein": "473894644",
+  "website": "https://www.girlswhoinvest.org",
+  "contactName": null,
+  "contactTitle": null,
+  "email": null,
+  "phone": null,
+  "sourceUrl": "https://www.girlswhoinvest.org",
+  "confidence": "low",
+  "note": "Homepage loaded but address not confirmed and no contact info extracted"
+ }
+]

@@ -1,0 +1,202 @@
+[
+ {
+  "ein": "680200138",
+  "name": "Summer Search",
+  "kind": "WORKFORCE",
+  "city": "Oakland",
+  "state": "CA",
+  "zip": "94612",
+  "street": "2201 Broadway Ste 100",
+  "revenue": 15780583.0
+ },
+ {
+  "ein": "721341516",
+  "name": "Wilkinson County Industrial Development Authority",
+  "kind": "ECON_DEV",
+  "city": "Woodville",
+  "state": "MS",
+  "zip": "39669",
+  "street": "Po Box 1918",
+  "revenue": 15765234.0
+ },
+ {
+  "ein": "631134289",
+  "name": "Alabama Resource Conservation and Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Montgomery",
+  "state": "AL",
+  "zip": "36109",
+  "street": "Po Box 3128",
+  "revenue": 15708769.0
+ },
+ {
+  "ein": "941643577",
+  "name": "Tehama County Opportunity Center inc",
+  "kind": "WORKFORCE",
+  "city": "Red Bluff",
+  "state": "CA",
+  "zip": "96080",
+  "street": "11799 Hwy 99w",
+  "revenue": 15596107.0
+ },
+ {
+  "ein": "043459696",
+  "name": "Massachusetts Manufacturing Extension Partnership inc",
+  "kind": "ECON_DEV",
+  "city": "Auburn",
+  "state": "MA",
+  "zip": "01501",
+  "street": "27a Midstate Dr Ste 200",
+  "revenue": 15299869.0
+ },
+ {
+  "ein": "132722428",
+  "name": "Hawthorne Valley Association inc",
+  "kind": "WORKFORCE",
+  "city": "Ghent",
+  "state": "NY",
+  "zip": "12075",
+  "street": "327 County Route 21c",
+  "revenue": 15096672.0
+ },
+ {
+  "ein": "911283259",
+  "name": "Northwest Laborers-employers Train",
+  "kind": "WORKFORCE",
+  "city": "Kingston",
+  "state": "WA",
+  "zip": "98346",
+  "street": "27055 Ohio Ave Ne",
+  "revenue": 15073675.0
+ },
+ {
+  "ein": "043279555",
+  "name": "Metro North Regional Employment Board",
+  "kind": "WORKFORCE",
+  "city": "Malden",
+  "state": "MA",
+  "zip": "02148",
+  "street": "350 Main St - 6th Floor",
+  "revenue": 15019478.0
+ },
+ {
+  "ein": "262564855",
+  "name": "Daybreak Independent Service inc",
+  "kind": "WORKFORCE",
+  "city": "Bronx",
+  "state": "NY",
+  "zip": "10470",
+  "street": "511 E 233rd St",
+  "revenue": 14837951.0
+ },
+ {
+  "ein": "911546757",
+  "name": "Farestart",
+  "kind": "WORKFORCE",
+  "city": "Seattle",
+  "state": "WA",
+  "zip": "98101",
+  "street": "700 Virginia St",
+  "revenue": 14654450.0
+ },
+ {
+  "ein": "742719298",
+  "name": "Taylor Economic Development",
+  "kind": "ECON_DEV",
+  "city": "Taylor",
+  "state": "TX",
+  "zip": "76574",
+  "street": "Po Box 975",
+  "revenue": 14572872.0
+ },
+ {
+  "ein": "133255679",
+  "name": "Strive International inc",
+  "kind": "WORKFORCE",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10035",
+  "street": "205 E 122nd St Fl 3",
+  "revenue": 14563478.0
+ },
+ {
+  "ein": "920076696",
+  "name": "Assets Incorporated",
+  "kind": "WORKFORCE",
+  "city": "Anchorage",
+  "state": "AK",
+  "zip": "99508",
+  "street": "2330 Nichols St",
+  "revenue": 14504489.0
+ },
+ {
+  "ein": "731084819",
+  "name": "Tulsa Economic Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Tulsa",
+  "state": "OK",
+  "zip": "74103",
+  "street": "125 W 3rd St",
+  "revenue": 14471175.0
+ },
+ {
+  "ein": "416078344",
+  "name": "H I R E D",
+  "kind": "WORKFORCE",
+  "city": "Minneapolis",
+  "state": "MN",
+  "zip": "55401",
+  "street": "217 5th Ave N 3rd Fl",
+  "revenue": 14431130.0
+ },
+ {
+  "ein": "813306113",
+  "name": "Cultivate Culinary School and Catering inc",
+  "kind": "WORKFORCE",
+  "city": "South Bend",
+  "state": "IN",
+  "zip": "46613",
+  "street": "1403 Prairie Ave",
+  "revenue": 14330216.0
+ },
+ {
+  "ein": "942831592",
+  "name": "Conservation Corps North Bay inc",
+  "kind": "WORKFORCE",
+  "city": "Novato",
+  "state": "CA",
+  "zip": "94949",
+  "street": "11 Pimentel Ct",
+  "revenue": 14270158.0
+ },
+ {
+  "ein": "522168409",
+  "name": "Lift inc",
+  "kind": "WORKFORCE",
+  "city": "Washington",
+  "state": "DC",
+  "zip": "20002",
+  "street": "999 N Capitol St Ne",
+  "revenue": 14169950.0
+ },
+ {
+  "ein": "621795688",
+  "name": "Workforce Resource inc",
+  "kind": "WORKFORCE",
+  "city": "Wichita Falls",
+  "state": "TX",
+  "zip": "76302",
+  "street": "1501 Midwestern Pkwy Ste 101",
+  "revenue": 14016331.0
+ },
+ {
+  "ein": "473894644",
+  "name": "Girls Who Invest inc",
+  "kind": "WORKFORCE",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10005",
+  "street": "28 Liberty St Fl 6",
+  "revenue": 13837535.0
+ }
+]

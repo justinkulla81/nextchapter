@@ -1,0 +1,190 @@
+{
+  "_meta": {
+    "status": "PARTIAL - research blocked: WebSearch budget (200/200) exhausted and WebFetch domain safety checks rate-limited mid-task. Only items verified from search snippets or fetched pages are included. No emails were constructed; null = unknown/obfuscated on page. Re-run local EDO sweep once search budget is raised.",
+    "date": "2026-10-09"
+  },
+  "states": {
+    "AL": {
+      "stateAgency": {
+        "name": "Alabama Department of Commerce",
+        "website": "https://www.madeinalabama.com",
+        "phone": "334-242-0421 (toll free 800-248-0033)",
+        "leaderName": "Ellen McNair",
+        "leaderTitle": "Secretary of Commerce",
+        "contactName": "Kevin Taylor",
+        "contactTitle": "Director, Recruitment and Retention Division",
+        "email": "ktaylor@aidt.edu",
+        "sourceUrl": "https://www.madeinalabama.com/resources/staff-directory",
+        "note": "Secretary email ellen.mcnair@commerce.alabama.gov, 334-242-0475 (same page). Taylor email as printed on page; domain is aidt.edu. Contact phone 334-328-2520."
+      },
+      "directoryUrl": "https://edaa.org/",
+      "localEdos": [
+        {"name": "Walker County Development Authority", "type": "county", "city": null, "county": "Walker", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"},
+        {"name": "Tuscaloosa County Economic Development Authority", "type": "county", "city": "Tuscaloosa", "county": "Tuscaloosa", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"},
+        {"name": "Talladega County Economic Development Authority", "type": "county", "city": null, "county": "Talladega", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"},
+        {"name": "Shelby County Economic Development Corporation", "type": "county", "city": null, "county": "Shelby", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"},
+        {"name": "Morgan County Economic Development (listed by EDAA)", "type": "county", "city": null, "county": "Morgan", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"},
+        {"name": "Birmingham Business Alliance", "type": "regional", "city": "Birmingham", "county": "Jefferson", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"},
+        {"name": "Mobile Area Chamber of Commerce", "type": "nonprofit", "city": "Mobile", "county": "Mobile", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"},
+        {"name": "Montgomery Area Chamber of Commerce", "type": "nonprofit", "city": "Montgomery", "county": "Montgomery", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"},
+        {"name": "Economic Development Partnership of Alabama", "type": "regional", "city": "Birmingham", "county": "Jefferson", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://www.edaa.org/"}
+      ]
+    },
+    "CT": {
+      "stateAgency": {
+        "name": "Connecticut Department of Economic and Community Development (DECD)",
+        "website": "https://portal.ct.gov/DECD",
+        "phone": "(860) 500-2300",
+        "leaderName": "Daniel H. O'Keefe",
+        "leaderTitle": "Commissioner",
+        "contactName": null,
+        "contactTitle": null,
+        "email": null,
+        "sourceUrl": "https://portal.ct.gov/DECD",
+        "note": "450 Columbus Blvd, Hartford CT 06103. Business-development contact not retrieved."
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "ID": {
+      "stateAgency": {
+        "name": "Idaho Department of Commerce (Idaho Commerce)",
+        "website": "https://commerce.idaho.gov",
+        "phone": "(208) 334-2470",
+        "leaderName": "Tom Kealey",
+        "leaderTitle": "Director",
+        "contactName": "Dennis Porter",
+        "contactTitle": "Community Development Manager",
+        "email": null,
+        "sourceUrl": "https://commerce.idaho.gov/contact-us/",
+        "note": "Contact phone (208) 287-0782. Also Jerry Miller, Rural Services Manager, (208) 287-0780; Sharon Canaday, Business Attraction Manager, (208) 287-3152. Emails obfuscated on page."
+      },
+      "directoryUrl": "https://commerce.idaho.gov/contact-us/",
+      "localEdos": [
+        {"name": "Regional Economic Development for Eastern Idaho (REDI)", "type": "regional", "city": "Idaho Falls", "county": "Bonneville", "website": null, "contactName": "Teresa McKnight", "contactTitle": "CEO", "email": null, "phone": null, "sourceUrl": "https://idahobusinessreview.com/?p=13711"},
+        {"name": "East-Central Idaho Planning & Development Association (ECIPDA)", "type": "regional", "city": "Rexburg", "county": "Madison", "website": null, "contactName": "Ken Poulsen", "contactTitle": "Business Development & Loan Officer", "email": null, "phone": null, "sourceUrl": "https://idahobusinessreview.com/?p=13711"},
+        {"name": "Region IV Development", "type": "regional", "city": "Twin Falls", "county": "Twin Falls", "website": null, "contactName": "Carleen Herring", "contactTitle": "President", "email": null, "phone": null, "sourceUrl": "https://idahobusinessreview.com/?p=13711"},
+        {"name": "Silver Valley Economic Development Corporation", "type": "nonprofit", "city": "Wallace", "county": "Shoshone", "website": null, "contactName": "Colleen Rosson", "contactTitle": "Executive Director", "email": null, "phone": null, "sourceUrl": "https://idahobusinessreview.com/?p=13711"}
+      ]
+    },
+    "LA": {
+      "stateAgency": {
+        "name": "Louisiana Economic Development (LED)",
+        "website": "https://www.opportunitylouisiana.gov",
+        "phone": null,
+        "leaderName": null,
+        "leaderTitle": "Secretary",
+        "contactName": null,
+        "contactTitle": null,
+        "email": null,
+        "sourceUrl": "https://www.doa.la.gov/media/bm5lcbr0/05a_department_of_economic_development.pdf",
+        "note": "Agency name and structure confirmed; leader name/phone not verified (fetch rate-limited)."
+      },
+      "directoryUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm",
+      "localEdos": [
+        {"name": "Acadiana Planning Commission", "type": "regional", "city": "Lafayette", "county": null, "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm"},
+        {"name": "Capital Region Planning Commission", "type": "regional", "city": "Baton Rouge", "county": null, "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm"},
+        {"name": "Coordinating & Development Corporation", "type": "regional", "city": "Shreveport", "county": null, "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm"},
+        {"name": "Imperial Calcasieu Regional Planning and Development Commission", "type": "regional", "city": "Lake Charles", "county": "Calcasieu", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm"},
+        {"name": "Kisatchie-Delta Regional Planning and Development District", "type": "regional", "city": null, "county": null, "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm"},
+        {"name": "North Delta Regional Planning and Development District, Inc.", "type": "regional", "city": null, "county": null, "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm"},
+        {"name": "South Central Planning and Development Commission", "type": "regional", "city": "Gray", "county": "Terrebonne", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm"},
+        {"name": "Southeast Louisiana Economic Development District", "type": "regional", "city": null, "county": null, "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://eda.gov/archives/2021/resources/directory/states/la.htm"}
+      ]
+    },
+    "MS": {
+      "stateAgency": {
+        "name": "Mississippi Development Authority (MDA)",
+        "website": "https://www.mississippi.org",
+        "phone": "601-359-3449",
+        "leaderName": "Bill Cork",
+        "leaderTitle": "Executive Director",
+        "contactName": null,
+        "contactTitle": null,
+        "email": null,
+        "sourceUrl": "https://www.clarkecountytrib.com/reeves-appoints-new-leader-mississippis-economic-development-agency",
+        "note": "501 North West Street, Jackson MS 39201. Leader name from news snippet; confirm on mississippi.org."
+      },
+      "directoryUrl": null,
+      "localEdos": [
+        {"name": "Cleveland-Bolivar County Economic Development Corporation", "type": "county", "city": "Cleveland", "county": "Bolivar", "website": null, "contactName": "Judson Thigpen", "contactTitle": "Executive Director", "email": null, "phone": "662-843-2712", "sourceUrl": "https://digital.tradeandindustrydev.com/marapr13-tid/page-90"},
+        {"name": "Columbus Lowndes Development Link", "type": "county", "city": "Columbus", "county": "Lowndes", "website": null, "contactName": "Joe Max Higgins, Jr.", "contactTitle": "Chief Executive Officer", "email": null, "phone": "662-328-8369", "sourceUrl": "https://digital.tradeandindustrydev.com/marapr13-tid/page-90"},
+        {"name": "Greenwood Leflore Industrial Board", "type": "county", "city": "Greenwood", "county": "Leflore", "website": null, "contactName": "Angela Curry", "contactTitle": "Executive Director", "email": null, "phone": "662-453-5321", "sourceUrl": "https://digital.tradeandindustrydev.com/marapr13-tid/page-90"},
+        {"name": "Rankin First Economic Development Authority", "type": "county", "city": "Brandon", "county": "Rankin", "website": null, "contactName": "Tom Troxler", "contactTitle": "Executive Director", "email": null, "phone": "601-825-5335", "sourceUrl": "https://digital.tradeandindustrydev.com/marapr13-tid/page-90"},
+        {"name": "Tishomingo County Development Foundation", "type": "county", "city": "Iuka", "county": "Tishomingo", "website": null, "contactName": "Gary Matthews", "contactTitle": "Executive Director", "email": null, "phone": "662-423-9933", "sourceUrl": "https://digital.tradeandindustrydev.com/marapr13-tid/page-90"}
+      ],
+      "localEdosNote": "Source is a 2013 directory page; contact names likely stale. Re-verify."
+    },
+    "NJ": {
+      "stateAgency": {
+        "name": "New Jersey Economic Development Authority (NJEDA)",
+        "website": "https://www.njeda.gov",
+        "phone": "(609) 858-6700",
+        "leaderName": "Jewell Antoine-Johnson",
+        "leaderTitle": "President & CEO",
+        "contactName": null,
+        "contactTitle": null,
+        "email": "CustomerCare@njeda.com",
+        "sourceUrl": "https://www.njeda.gov/about/",
+        "note": "36 West State Street, Trenton NJ 08625. Leader name from search snippet; confirm."
+      },
+      "directoryUrl": null,
+      "localEdos": [
+        {"name": "Bergen County Department of Planning & Economic Development", "type": "county", "city": "Hackensack", "county": "Bergen", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": "(201) 336-6447", "sourceUrl": "https://www.businessinitiative.org/states/new-jersey/counties/"},
+        {"name": "Gloucester County Economic Development", "type": "county", "city": "Sewell", "county": "Gloucester", "website": "https://www.gloucestercountynj.gov", "contactName": null, "contactTitle": null, "email": null, "phone": "856-384-6930", "sourceUrl": "https://www.gloucestercountynj.gov/Directory.aspx?did=50"},
+        {"name": "Sussex County Planning & Economic Development", "type": "county", "city": "Newton", "county": "Sussex", "website": "https://www.sussex.nj.us", "contactName": null, "contactTitle": null, "email": null, "phone": "973-579-0500", "sourceUrl": "https://www.sussex.nj.us/Directory.aspx?DID=43"}
+      ]
+    },
+    "OK": {
+      "stateAgency": {
+        "name": "Oklahoma Department of Commerce",
+        "website": "https://www.okcommerce.gov",
+        "phone": null,
+        "leaderName": "Deborah Moorad",
+        "leaderTitle": "Secretary of Commerce",
+        "contactName": "Marshall Vogts",
+        "contactTitle": "Director, Economic & Community Development Services",
+        "email": null,
+        "sourceUrl": "https://en.wikipedia.org/wiki/Oklahoma_Department_of_Commerce",
+        "note": "900 N Stiles Ave, Oklahoma City. Vogts phone (405) 815-5370. Support-team page fetch was rate-limited."
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "TN": {
+      "stateAgency": {
+        "name": "Tennessee Department of Economic and Community Development (TNECD)",
+        "website": "https://www.tnecd.com",
+        "phone": "615-741-1888",
+        "leaderName": "Stuart McWhorter",
+        "leaderTitle": "Commissioner",
+        "contactName": "Allen Borden",
+        "contactTitle": "Deputy Commissioner, Business, Community and Rural Development",
+        "email": "Stuart.mcwhorter@tn.gov",
+        "sourceUrl": "https://www.tn.gov/ecd/about-us/senior-staff/senior-staff/allen-borden.html",
+        "note": "Email is the commissioner's (from search snippet). Borden phone (615) 532-1294."
+      },
+      "directoryUrl": null,
+      "localEdos": []
+    },
+    "WV": {
+      "stateAgency": {
+        "name": "West Virginia Department of Economic Development",
+        "website": "https://westvirginia.gov",
+        "phone": null,
+        "leaderName": "Mitch Carmichael",
+        "leaderTitle": "Secretary",
+        "contactName": "Matt Borror",
+        "contactTitle": "Regional Representative, Region 1",
+        "email": null,
+        "sourceUrl": "https://westvirginia.gov/connect-with-us/wv-economic-development-regional-representative-map",
+        "note": "Regional reps (emails obfuscated): R1 Matt Borror (304) 380-2413; R2 Keith McIntosh (304) 382-3349; R3 Samantha Smith (304) 642-9363; R4 Chris Pauley (304) 957-2065; R5 Leanne Stowers (304) 982-1125; R6 Jennifer Rohrig (304) 767-5596."
+      },
+      "directoryUrl": "https://westvirginia.gov/connect-with-us/wv-economic-development-regional-representative-map",
+      "localEdos": [
+        {"name": "New River Gorge Regional Development Authority", "type": "regional", "city": null, "county": "Fayette, Nicholas, Raleigh, Summers", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://wvpress.org/wvpa-sharing/w-va-commerce-secretary-sees-need-for-regionalization-of-economic-development-efforts/"},
+        {"name": "Greenbrier Valley Economic Development Corporation", "type": "regional", "city": null, "county": "Greenbrier, Pocahontas, Monroe", "website": null, "contactName": null, "contactTitle": null, "email": null, "phone": null, "sourceUrl": "https://wvpress.org/wvpa-sharing/w-va-commerce-secretary-sees-need-for-regionalization-of-economic-development-efforts/"}
+      ]
+    }
+  }
+}

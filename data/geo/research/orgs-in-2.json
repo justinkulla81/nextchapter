@@ -1,0 +1,1002 @@
+[
+ {
+  "ein": "942184330",
+  "name": "Proteus inc",
+  "kind": "WORKFORCE",
+  "city": "Visalia",
+  "state": "CA",
+  "zip": "93279",
+  "street": "Po Box 727",
+  "revenue": 20259526.0
+ },
+ {
+  "ein": "363267851",
+  "name": "Rock Island Economic Growth Corporation",
+  "kind": "ECON_DEV",
+  "city": "Milan",
+  "state": "IL",
+  "zip": "61264",
+  "street": "371 3rd St W",
+  "revenue": 19970238.0
+ },
+ {
+  "ein": "232087348",
+  "name": "Impact Services Corp",
+  "kind": "WORKFORCE",
+  "city": "Philadelphia",
+  "state": "PA",
+  "zip": "19134",
+  "street": "1952 E Allegheny Ave",
+  "revenue": 19870083.0
+ },
+ {
+  "ein": "620729622",
+  "name": "Northwest Tennessee Economic Development Council",
+  "kind": "ECON_DEV",
+  "city": "Dresden",
+  "state": "TN",
+  "zip": "38225",
+  "street": "231 S Wilson St",
+  "revenue": 19848025.0
+ },
+ {
+  "ein": "593659026",
+  "name": "Careersource Florida inc",
+  "kind": "WORKFORCE",
+  "city": "Tallahassee",
+  "state": "FL",
+  "zip": "32309",
+  "street": "2308 Killearn Center Blvd Ste 101 1",
+  "revenue": 19823161.0
+ },
+ {
+  "ein": "420939347",
+  "name": "Vocational Development Center inc",
+  "kind": "ECON_DEV",
+  "city": "Council Blfs",
+  "state": "IA",
+  "zip": "51503",
+  "street": "612 S Main St",
+  "revenue": 19822312.0
+ },
+ {
+  "ein": "010482628",
+  "name": "Jobs for Maines Graduates inc",
+  "kind": "WORKFORCE",
+  "city": "Augusta",
+  "state": "ME",
+  "zip": "04330",
+  "street": "65 Stone St",
+  "revenue": 19812413.0
+ },
+ {
+  "ein": "610650246",
+  "name": "Kentucky River Foothills Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Richmond",
+  "state": "KY",
+  "zip": "40475",
+  "street": "6021 Atwood Dr",
+  "revenue": 19125723.0
+ },
+ {
+  "ein": "450332197",
+  "name": "Pride inc",
+  "kind": "WORKFORCE",
+  "city": "Bismarck",
+  "state": "ND",
+  "zip": "58502",
+  "street": "Po Box 4086",
+  "revenue": 18982089.0
+ },
+ {
+  "ein": "382225929",
+  "name": "Alternative Services inc",
+  "kind": "WORKFORCE",
+  "city": "Livonia",
+  "state": "MI",
+  "zip": "48152",
+  "street": "32625 7 Mile Rd",
+  "revenue": 18822422.0
+ },
+ {
+  "ein": "132583087",
+  "name": "New York District Council Crpntrs Apprntcshp Jrnymn Retraing Educa",
+  "kind": "WORKFORCE",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10014",
+  "street": "395 Hudson St 9th Floor",
+  "revenue": 18796209.0
+ },
+ {
+  "ein": "954712513",
+  "name": "Genesis La Economic Growth Corporation",
+  "kind": "ECON_DEV",
+  "city": "Los Angeles",
+  "state": "CA",
+  "zip": "90017",
+  "street": "801 S Grand Ave Ste 850",
+  "revenue": 18549186.0
+ },
+ {
+  "ein": "811497840",
+  "name": "Aspyr",
+  "kind": "WORKFORCE",
+  "city": "Columbus",
+  "state": "OH",
+  "zip": "43204",
+  "street": "1650 Lake Shore Drive",
+  "revenue": 18314373.0
+ },
+ {
+  "ein": "133916164",
+  "name": "Academy of Management inc",
+  "kind": "WORKFORCE",
+  "city": "Valhalla",
+  "state": "NY",
+  "zip": "10595",
+  "street": "100 Summit Lake Dr Ste 110",
+  "revenue": 18300302.0
+ },
+ {
+  "ein": "844667327",
+  "name": "Td Jakes Foundation",
+  "kind": "WORKFORCE",
+  "city": "Dallas",
+  "state": "TX",
+  "zip": "75236",
+  "street": "3303 Potters House Way 250",
+  "revenue": 18214428.0
+ },
+ {
+  "ein": "232552707",
+  "name": "Nueva Esperanza",
+  "kind": "WORKFORCE",
+  "city": "Philadelphia",
+  "state": "PA",
+  "zip": "19140",
+  "street": "4261 N 5th St",
+  "revenue": 18047181.0
+ },
+ {
+  "ein": "411667580",
+  "name": "Hmong American Partnership",
+  "kind": "WORKFORCE",
+  "city": "Saint Paul",
+  "state": "MN",
+  "zip": "55103",
+  "street": "394 University Ave W 2nd Floor",
+  "revenue": 17966696.0
+ },
+ {
+  "ein": "133740011",
+  "name": "Lifestyles for the Disabled inc",
+  "kind": "WORKFORCE",
+  "city": "Staten Island",
+  "state": "NY",
+  "zip": "10314",
+  "street": "930 Willowbrook Rd",
+  "revenue": 17718485.0
+ },
+ {
+  "ein": "621765738",
+  "name": "Tennessee Technology Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Nashville",
+  "state": "TN",
+  "zip": "37208",
+  "street": "601 Taylor Pl Ste 101",
+  "revenue": 17648522.0
+ },
+ {
+  "ein": "942687078",
+  "name": "Tri-city Economic Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Union City",
+  "state": "CA",
+  "zip": "94587",
+  "street": "33377 Western Ave",
+  "revenue": 17615428.0
+ },
+ {
+  "ein": "205242330",
+  "name": "Downtown Streets inc",
+  "kind": "WORKFORCE",
+  "city": "San Jose",
+  "state": "CA",
+  "zip": "95126",
+  "street": "1671 the Alameda Ste 301",
+  "revenue": 17394816.0
+ },
+ {
+  "ein": "351666738",
+  "name": "Jobworks inc",
+  "kind": "WORKFORCE",
+  "city": "Fort Wayne",
+  "state": "IN",
+  "zip": "46804",
+  "street": "7230 Engle Rd",
+  "revenue": 17311991.0
+ },
+ {
+  "ein": "550461336",
+  "name": "Ohio Valley Industrial and Business Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Wheeling",
+  "state": "WV",
+  "zip": "26003",
+  "street": "1100 Main St Ste 3",
+  "revenue": 16957799.0
+ },
+ {
+  "ein": "330352148",
+  "name": "Urban Corps of San Diego",
+  "kind": "WORKFORCE",
+  "city": "San Diego",
+  "state": "CA",
+  "zip": "92138",
+  "street": "Po Box 80156",
+  "revenue": 16703814.0
+ },
+ {
+  "ein": "471972321",
+  "name": "Michigan Statewide Carpenters and Millwrights Jatc Fund",
+  "kind": "WORKFORCE",
+  "city": "Lansing",
+  "state": "MI",
+  "zip": "48917",
+  "street": "6525 Centurion Dr",
+  "revenue": 16633988.0
+ },
+ {
+  "ein": "900183669",
+  "name": "Lubbock Economic Development Alliance inc",
+  "kind": "ECON_DEV",
+  "city": "Lubbock",
+  "state": "TX",
+  "zip": "79401",
+  "street": "1500 Broadway Ste 600",
+  "revenue": 16565554.0
+ },
+ {
+  "ein": "411921126",
+  "name": "Great Plains Institute for Sustainable Development",
+  "kind": "ECON_DEV",
+  "city": "Minneapolis",
+  "state": "MN",
+  "zip": "55407",
+  "street": "2801 21st S Ave Ste 220",
+  "revenue": 16548908.0
+ },
+ {
+  "ein": "310710683",
+  "name": "Adams and Brown Counties Economic Opportunities inc",
+  "kind": "ECON_DEV",
+  "city": "Georgetown",
+  "state": "OH",
+  "zip": "45121",
+  "street": "406 W Plum St",
+  "revenue": 16546946.0
+ },
+ {
+  "ein": "352099782",
+  "name": "The Center of Workforce Innovations inc",
+  "kind": "WORKFORCE",
+  "city": "Gary",
+  "state": "IN",
+  "zip": "46402",
+  "street": "504 Broadway",
+  "revenue": 16379488.0
+ },
+ {
+  "ein": "562420045",
+  "name": "Workforce Development Institute inc",
+  "kind": "WORKFORCE",
+  "city": "Albany",
+  "state": "NY",
+  "zip": "12210",
+  "street": "96 S Swan St",
+  "revenue": 16362655.0
+ },
+ {
+  "ein": "941663434",
+  "name": "Arriba Juntos",
+  "kind": "WORKFORCE",
+  "city": "San Francisco",
+  "state": "CA",
+  "zip": "94103",
+  "street": "1850 Mission St",
+  "revenue": 16193068.0
+ },
+ {
+  "ein": "520887806",
+  "name": "International Economic Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Washington",
+  "state": "DC",
+  "zip": "20005",
+  "street": "1275 K St Nw Ste 300",
+  "revenue": 16117938.0
+ },
+ {
+  "ein": "460908502",
+  "name": "Groundtruth Project inc",
+  "kind": "WORKFORCE",
+  "city": "Boston",
+  "state": "MA",
+  "zip": "02111",
+  "street": "68 Harrison Ave Ste 605 Pmb 46837",
+  "revenue": 16111232.0
+ },
+ {
+  "ein": "391636835",
+  "name": "Employ Milwaukee inc",
+  "kind": "WORKFORCE",
+  "city": "Milwaukee",
+  "state": "WI",
+  "zip": "53205",
+  "street": "1322 N 8th St",
+  "revenue": 16085795.0
+ },
+ {
+  "ein": "930818160",
+  "name": "Northwest Youth Corps",
+  "kind": "WORKFORCE",
+  "city": "Eugene",
+  "state": "OR",
+  "zip": "97403",
+  "street": "2621 Augusta St",
+  "revenue": 16075212.0
+ },
+ {
+  "ein": "061427945",
+  "name": "Career Resources inc",
+  "kind": "WORKFORCE",
+  "city": "Bridgeport",
+  "state": "CT",
+  "zip": "06604",
+  "street": "1000 Lafayette Blvd Ste 303",
+  "revenue": 15988819.0
+ },
+ {
+  "ein": "650179159",
+  "name": "Florida Business Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Tampa",
+  "state": "FL",
+  "zip": "33607",
+  "street": "1715 N West Shore Blvd Ste 780",
+  "revenue": 15826625.0
+ },
+ {
+  "ein": "521749216",
+  "name": "Latino Economic Development Corporation of Washington Dc",
+  "kind": "ECON_DEV",
+  "city": "Washington",
+  "state": "DC",
+  "zip": "20009",
+  "street": "1401 Columbia Rd Nw Unit C-1",
+  "revenue": 15800960.0
+ },
+ {
+  "ein": "593385658",
+  "name": "First Coast Workforce Development inc",
+  "kind": "WORKFORCE",
+  "city": "Orange Park",
+  "state": "FL",
+  "zip": "32073",
+  "street": "2141 Loch Rane Blvd Ste 111",
+  "revenue": 15796436.0
+ },
+ {
+  "ein": "411386986",
+  "name": "Comunidades Latinas Unidas En Servicio inc",
+  "kind": "WORKFORCE",
+  "city": "Saint Paul",
+  "state": "MN",
+  "zip": "55106",
+  "street": "797 East 7th St",
+  "revenue": 15787583.0
+ },
+ {
+  "ein": "680200138",
+  "name": "Summer Search",
+  "kind": "WORKFORCE",
+  "city": "Oakland",
+  "state": "CA",
+  "zip": "94612",
+  "street": "2201 Broadway Ste 100",
+  "revenue": 15780583.0
+ },
+ {
+  "ein": "721341516",
+  "name": "Wilkinson County Industrial Development Authority",
+  "kind": "ECON_DEV",
+  "city": "Woodville",
+  "state": "MS",
+  "zip": "39669",
+  "street": "Po Box 1918",
+  "revenue": 15765234.0
+ },
+ {
+  "ein": "631134289",
+  "name": "Alabama Resource Conservation and Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Montgomery",
+  "state": "AL",
+  "zip": "36109",
+  "street": "Po Box 3128",
+  "revenue": 15708769.0
+ },
+ {
+  "ein": "941643577",
+  "name": "Tehama County Opportunity Center inc",
+  "kind": "WORKFORCE",
+  "city": "Red Bluff",
+  "state": "CA",
+  "zip": "96080",
+  "street": "11799 Hwy 99w",
+  "revenue": 15596107.0
+ },
+ {
+  "ein": "043459696",
+  "name": "Massachusetts Manufacturing Extension Partnership inc",
+  "kind": "ECON_DEV",
+  "city": "Auburn",
+  "state": "MA",
+  "zip": "01501",
+  "street": "27a Midstate Dr Ste 200",
+  "revenue": 15299869.0
+ },
+ {
+  "ein": "132722428",
+  "name": "Hawthorne Valley Association inc",
+  "kind": "WORKFORCE",
+  "city": "Ghent",
+  "state": "NY",
+  "zip": "12075",
+  "street": "327 County Route 21c",
+  "revenue": 15096672.0
+ },
+ {
+  "ein": "911283259",
+  "name": "Northwest Laborers-employers Train",
+  "kind": "WORKFORCE",
+  "city": "Kingston",
+  "state": "WA",
+  "zip": "98346",
+  "street": "27055 Ohio Ave Ne",
+  "revenue": 15073675.0
+ },
+ {
+  "ein": "043279555",
+  "name": "Metro North Regional Employment Board",
+  "kind": "WORKFORCE",
+  "city": "Malden",
+  "state": "MA",
+  "zip": "02148",
+  "street": "350 Main St - 6th Floor",
+  "revenue": 15019478.0
+ },
+ {
+  "ein": "262564855",
+  "name": "Daybreak Independent Service inc",
+  "kind": "WORKFORCE",
+  "city": "Bronx",
+  "state": "NY",
+  "zip": "10470",
+  "street": "511 E 233rd St",
+  "revenue": 14837951.0
+ },
+ {
+  "ein": "911546757",
+  "name": "Farestart",
+  "kind": "WORKFORCE",
+  "city": "Seattle",
+  "state": "WA",
+  "zip": "98101",
+  "street": "700 Virginia St",
+  "revenue": 14654450.0
+ },
+ {
+  "ein": "742719298",
+  "name": "Taylor Economic Development",
+  "kind": "ECON_DEV",
+  "city": "Taylor",
+  "state": "TX",
+  "zip": "76574",
+  "street": "Po Box 975",
+  "revenue": 14572872.0
+ },
+ {
+  "ein": "133255679",
+  "name": "Strive International inc",
+  "kind": "WORKFORCE",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10035",
+  "street": "205 E 122nd St Fl 3",
+  "revenue": 14563478.0
+ },
+ {
+  "ein": "920076696",
+  "name": "Assets Incorporated",
+  "kind": "WORKFORCE",
+  "city": "Anchorage",
+  "state": "AK",
+  "zip": "99508",
+  "street": "2330 Nichols St",
+  "revenue": 14504489.0
+ },
+ {
+  "ein": "731084819",
+  "name": "Tulsa Economic Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Tulsa",
+  "state": "OK",
+  "zip": "74103",
+  "street": "125 W 3rd St",
+  "revenue": 14471175.0
+ },
+ {
+  "ein": "416078344",
+  "name": "H I R E D",
+  "kind": "WORKFORCE",
+  "city": "Minneapolis",
+  "state": "MN",
+  "zip": "55401",
+  "street": "217 5th Ave N 3rd Fl",
+  "revenue": 14431130.0
+ },
+ {
+  "ein": "813306113",
+  "name": "Cultivate Culinary School and Catering inc",
+  "kind": "WORKFORCE",
+  "city": "South Bend",
+  "state": "IN",
+  "zip": "46613",
+  "street": "1403 Prairie Ave",
+  "revenue": 14330216.0
+ },
+ {
+  "ein": "942831592",
+  "name": "Conservation Corps North Bay inc",
+  "kind": "WORKFORCE",
+  "city": "Novato",
+  "state": "CA",
+  "zip": "94949",
+  "street": "11 Pimentel Ct",
+  "revenue": 14270158.0
+ },
+ {
+  "ein": "522168409",
+  "name": "Lift inc",
+  "kind": "WORKFORCE",
+  "city": "Washington",
+  "state": "DC",
+  "zip": "20002",
+  "street": "999 N Capitol St Ne",
+  "revenue": 14169950.0
+ },
+ {
+  "ein": "621795688",
+  "name": "Workforce Resource inc",
+  "kind": "WORKFORCE",
+  "city": "Wichita Falls",
+  "state": "TX",
+  "zip": "76302",
+  "street": "1501 Midwestern Pkwy Ste 101",
+  "revenue": 14016331.0
+ },
+ {
+  "ein": "473894644",
+  "name": "Girls Who Invest inc",
+  "kind": "WORKFORCE",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10005",
+  "street": "28 Liberty St Fl 6",
+  "revenue": 13837535.0
+ },
+ {
+  "ein": "560851147",
+  "name": "Yadkin Valley Economic Development District inc",
+  "kind": "ECON_DEV",
+  "city": "Boonville",
+  "state": "NC",
+  "zip": "27011",
+  "street": "533 N Carolina Ave",
+  "revenue": 13573389.0
+ },
+ {
+  "ein": "376059503",
+  "name": "Illinois Valley Economic Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Gillespie",
+  "state": "IL",
+  "zip": "62033",
+  "street": "223 S Macoupin St",
+  "revenue": 13490878.0
+ },
+ {
+  "ein": "061623757",
+  "name": "Northwest Regional Workforce",
+  "kind": "WORKFORCE",
+  "city": "Waterbury",
+  "state": "CT",
+  "zip": "06702",
+  "street": "249 Thomaston Ave",
+  "revenue": 13426602.0
+ },
+ {
+  "ein": "042676661",
+  "name": "Boston Private Industry Council inc the",
+  "kind": "WORKFORCE",
+  "city": "Boston",
+  "state": "MA",
+  "zip": "02109",
+  "street": "2 Oliver St Lbby 3",
+  "revenue": 13394672.0
+ },
+ {
+  "ein": "710412085",
+  "name": "Crowleys Ridge Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Jonesboro",
+  "state": "AR",
+  "zip": "72404",
+  "street": "2401 Fox Meadow Ln",
+  "revenue": 13259984.0
+ },
+ {
+  "ein": "061090440",
+  "name": "Workforce Alliance inc",
+  "kind": "WORKFORCE",
+  "city": "New Haven",
+  "state": "CT",
+  "zip": "06513",
+  "street": "370 James St Ste 401",
+  "revenue": 13186859.0
+ },
+ {
+  "ein": "760586364",
+  "name": "Old Spanish Trail-almeda Corridors Redevelopment Authority",
+  "kind": "ECON_DEV",
+  "city": "Houston",
+  "state": "TX",
+  "zip": "77004",
+  "street": "3131 Emancipation Ave",
+  "revenue": 13096166.0
+ },
+ {
+  "ein": "264032355",
+  "name": "Nybdc Local Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Latham",
+  "state": "NY",
+  "zip": "12110",
+  "street": "19 British American Blvd",
+  "revenue": 13082282.0
+ },
+ {
+  "ein": "943203203",
+  "name": "Juma Ventures",
+  "kind": "WORKFORCE",
+  "city": "San Francisco",
+  "state": "CA",
+  "zip": "94105",
+  "street": "131 Steuart St",
+  "revenue": 13071605.0
+ },
+ {
+  "ein": "161596825",
+  "name": "Rochesterworks inc",
+  "kind": "WORKFORCE",
+  "city": "Rochester",
+  "state": "NY",
+  "zip": "14607",
+  "street": "100 College Ave Ste 200",
+  "revenue": 12909726.0
+ },
+ {
+  "ein": "010281875",
+  "name": "Eastern Maine Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Bangor",
+  "state": "ME",
+  "zip": "04401",
+  "street": "40 Harlow Street",
+  "revenue": 12893217.0
+ },
+ {
+  "ein": "431758998",
+  "name": "Veterans of Foreign Wars Foundation",
+  "kind": "WORKFORCE",
+  "city": "Kansas City",
+  "state": "MO",
+  "zip": "64111",
+  "street": "406 W 34th St",
+  "revenue": 12851892.0
+ },
+ {
+  "ein": "911283628",
+  "name": "Construction Industry Training Council of Washington",
+  "kind": "WORKFORCE",
+  "city": "Bellevue",
+  "state": "WA",
+  "zip": "98004",
+  "street": "1930 116th Ave Ne",
+  "revenue": 12814946.0
+ },
+ {
+  "ein": "850869795",
+  "name": "Workforce Midsouth inc",
+  "kind": "WORKFORCE",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": "38103",
+  "street": "40 S Main St",
+  "revenue": 12705550.0
+ },
+ {
+  "ein": "470597743",
+  "name": "Omaha Economic Development Corp",
+  "kind": "ECON_DEV",
+  "city": "Omaha",
+  "state": "NE",
+  "zip": "68110",
+  "street": "2221 N 24th St Ste 200",
+  "revenue": 12625428.0
+ },
+ {
+  "ein": "480725806",
+  "name": "East Central Kansas Economic Opportunity Corp",
+  "kind": "ECON_DEV",
+  "city": "Ottawa",
+  "state": "KS",
+  "zip": "66067",
+  "street": "1320 S Ash St Ste 203",
+  "revenue": 12561920.0
+ },
+ {
+  "ein": "231576225",
+  "name": "Chester County Economic Development Council",
+  "kind": "ECON_DEV",
+  "city": "Exton",
+  "state": "PA",
+  "zip": "19341",
+  "street": "737 Constitution Dr",
+  "revenue": 12542133.0
+ },
+ {
+  "ein": "311605749",
+  "name": "Arizona Industries for the Blind",
+  "kind": "WORKFORCE",
+  "city": "Phoenix",
+  "state": "AZ",
+  "zip": "85043",
+  "street": "515 N 51st Ave Ste 130",
+  "revenue": 12535777.0
+ },
+ {
+  "ein": "953929756",
+  "name": "Uaw-labor Employment and Training Corporation",
+  "kind": "WORKFORCE",
+  "city": "Cerritos",
+  "state": "CA",
+  "zip": "90703",
+  "street": "11010 Artesia Blvd",
+  "revenue": 12432901.0
+ },
+ {
+  "ein": "813745360",
+  "name": "Greater Lafayette Commerce Community & Economic Development F",
+  "kind": "ECON_DEV",
+  "city": "Lafayette",
+  "state": "IN",
+  "zip": "47902",
+  "street": "Po Box 348",
+  "revenue": 12387862.0
+ },
+ {
+  "ein": "420923813",
+  "name": "Southern Iowa Economic Development Association",
+  "kind": "ECON_DEV",
+  "city": "Ottumwa",
+  "state": "IA",
+  "zip": "52501",
+  "street": "Po Box 658",
+  "revenue": 12325334.0
+ },
+ {
+  "ein": "942188609",
+  "name": "Ser-jobs for Progress inc - San Joaquin Valley",
+  "kind": "WORKFORCE",
+  "city": "Fresno",
+  "state": "CA",
+  "zip": "93701",
+  "street": "255 N Fulton St Ste 106",
+  "revenue": 12312339.0
+ },
+ {
+  "ein": "311105962",
+  "name": "Oma Educational and Industrial Development Institute",
+  "kind": "ECON_DEV",
+  "city": "Columbus",
+  "state": "OH",
+  "zip": "43215",
+  "street": "33 N High St Ste 600",
+  "revenue": 12277052.0
+ },
+ {
+  "ein": "382795791",
+  "name": "Michigan State Afl-cio Human Resources Development inc",
+  "kind": "WORKFORCE",
+  "city": "Lansing",
+  "state": "MI",
+  "zip": "48933",
+  "street": "419 S Washington Sq Ste 300",
+  "revenue": 12271272.0
+ },
+ {
+  "ein": "391277471",
+  "name": "Madison Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Madison",
+  "state": "WI",
+  "zip": "53703",
+  "street": "550 W Washington Ave",
+  "revenue": 12216790.0
+ },
+ {
+  "ein": "942581331",
+  "name": "Central Valley Opportunity Center",
+  "kind": "WORKFORCE",
+  "city": "Winton",
+  "state": "CA",
+  "zip": "95388",
+  "street": "Po Box 1389",
+  "revenue": 12210665.0
+ },
+ {
+  "ein": "521123712",
+  "name": "Washington County Human Development Council inc",
+  "kind": "ECON_DEV",
+  "city": "Hagerstown",
+  "state": "MD",
+  "zip": "21740",
+  "street": "433 Brewer Ave",
+  "revenue": 12200909.0
+ },
+ {
+  "ein": "410942639",
+  "name": "Rural Minnesota Cep inc",
+  "kind": "WORKFORCE",
+  "city": "Detroit Lakes",
+  "state": "MN",
+  "zip": "56502",
+  "street": "803 Roosevelt Avene",
+  "revenue": 12109121.0
+ },
+ {
+  "ein": "522359350",
+  "name": "Anne Arundel Workforce Development Corporation",
+  "kind": "WORKFORCE",
+  "city": "Millersville",
+  "state": "MD",
+  "zip": "21108",
+  "street": "1131 Benfield Blvd Ste N",
+  "revenue": 12107393.0
+ },
+ {
+  "ein": "742609452",
+  "name": "Edinburg Economic Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Edinburg",
+  "state": "TX",
+  "zip": "78539",
+  "street": "3111 W Freddy Gonzalez Dr",
+  "revenue": 12082816.0
+ },
+ {
+  "ein": "465517841",
+  "name": "Greater Sacramento Area Economic Council",
+  "kind": "ECON_DEV",
+  "city": "Sacramento",
+  "state": "CA",
+  "zip": "95814",
+  "street": "400 Capitol Mall S2520",
+  "revenue": 12028183.0
+ },
+ {
+  "ein": "815339041",
+  "name": "Jobs to Move America",
+  "kind": "WORKFORCE",
+  "city": "Los Angeles",
+  "state": "CA",
+  "zip": "90013",
+  "street": "525 S Hewitt St",
+  "revenue": 11956422.0
+ },
+ {
+  "ein": "550651494",
+  "name": "Job Squad inc",
+  "kind": "WORKFORCE",
+  "city": "Bridgeport",
+  "state": "WV",
+  "zip": "26330",
+  "street": "102 2nd St",
+  "revenue": 11936004.0
+ },
+ {
+  "ein": "741384272",
+  "name": "Waco Industrial Foundation",
+  "kind": "ECON_DEV",
+  "city": "Waco",
+  "state": "TX",
+  "zip": "76703",
+  "street": "Po Box 1220",
+  "revenue": 11867771.0
+ },
+ {
+  "ein": "710387337",
+  "name": "Black River Area Development Corporation",
+  "kind": "ECON_DEV",
+  "city": "Pocahontas",
+  "state": "AR",
+  "zip": "72455",
+  "street": "1403 Hospital Dr",
+  "revenue": 11836681.0
+ },
+ {
+  "ein": "330287492",
+  "name": "Workforce Development Corporation Southeast Los Angeles County inc",
+  "kind": "WORKFORCE",
+  "city": "Cerritos",
+  "state": "CA",
+  "zip": "90703",
+  "street": "10900 183rd St Ste 350",
+  "revenue": 11723914.0
+ },
+ {
+  "ein": "751320228",
+  "name": "Odessa Industrial Development Foundation",
+  "kind": "ECON_DEV",
+  "city": "Odessa",
+  "state": "TX",
+  "zip": "79760",
+  "street": "Po Box 3626",
+  "revenue": 11722234.0
+ },
+ {
+  "ein": "133632018",
+  "name": "Workforce Development Corp",
+  "kind": "WORKFORCE",
+  "city": "New York",
+  "state": "NY",
+  "zip": "10006",
+  "street": "1 Liberty Plaza 11th Floor",
+  "revenue": 11637955.0
+ },
+ {
+  "ein": "812807502",
+  "name": "Skills for Rhode Islands Future",
+  "kind": "WORKFORCE",
+  "city": "Providence",
+  "state": "RI",
+  "zip": "02903",
+  "street": "30 Exchange Ter Ste 1",
+  "revenue": 11613299.0
+ },
+ {
+  "ein": "882744474",
+  "name": "Erienet",
+  "kind": "WORKFORCE",
+  "city": "Buffalo",
+  "state": "NY",
+  "zip": "14202",
+  "street": "95 Franklin Street 10th Floor",
+  "revenue": 11573477.0
+ }
+]

@@ -1,0 +1,371 @@
+{
+ "states": {
+  "AZ": {
+   "stateAgency": {
+    "name": "Arizona Commerce Authority",
+    "website": "https://www.azcommerce.com",
+    "phone": "602-845-1200",
+    "leaderName": "Sandra Watson",
+    "leaderTitle": "President & CEO",
+    "contactName": null,
+    "contactTitle": null,
+    "email": null,
+    "sourceUrl": "https://azcommerce.com/about-us/contact-us"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "Arizona Association for Economic Development (AAED, statewide membership association)",
+     "type": "other",
+     "city": "Phoenix",
+     "county": null,
+     "website": "https://www.aaed.com",
+     "contactName": "Katie Hurst",
+     "contactTitle": "CEO",
+     "email": null,
+     "phone": "602-240-2233",
+     "sourceUrl": "https://www.aaed.com"
+    }
+   ]
+  },
+  "DC": {
+   "stateAgency": {
+    "name": "Office of the Deputy Mayor for Planning and Economic Development (DMPED)",
+    "website": "https://dmped.dc.gov",
+    "phone": "202-727-6365",
+    "leaderName": null,
+    "leaderTitle": "Deputy Mayor for Planning and Economic Development",
+    "contactName": null,
+    "contactTitle": null,
+    "email": null,
+    "sourceUrl": "https://dc.gov/agency/office-deputy-mayor-planning-and-economic-development"
+   },
+   "directoryUrl": null,
+   "localEdos": []
+  },
+  "IN": {
+   "stateAgency": {
+    "name": "Indiana Economic Development Corporation (IEDC)",
+    "website": "https://www.iedc.in.gov",
+    "phone": "317-232-8800",
+    "leaderName": null,
+    "leaderTitle": null,
+    "contactName": null,
+    "contactTitle": null,
+    "email": "iedc@iedc.in.gov",
+    "sourceUrl": "https://www.iedc.in.gov/"
+   },
+   "directoryUrl": null,
+   "localEdos": []
+  },
+  "MD": {
+   "stateAgency": {
+    "name": "Maryland Department of Commerce",
+    "website": "https://commerce.maryland.gov",
+    "phone": null,
+    "leaderName": null,
+    "leaderTitle": "Secretary of Commerce",
+    "contactName": null,
+    "contactTitle": null,
+    "email": null,
+    "sourceUrl": "https://www.doit.state.md.us/phonebook/OfficeSub.asp?OID=253"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "Calvert County Department of Economic Development",
+     "type": "county",
+     "city": "Prince Frederick",
+     "county": "Calvert",
+     "website": null,
+     "contactName": "Julie Oberg",
+     "contactTitle": "Director",
+     "email": null,
+     "phone": "410-535-4583",
+     "sourceUrl": "https://maco.epubxp.com/i/853813/175"
+    },
+    {
+     "name": "Carroll County Department of Economic Development",
+     "type": "county",
+     "city": "Westminster",
+     "county": "Carroll",
+     "website": null,
+     "contactName": "Paige Sunderland",
+     "contactTitle": "Director",
+     "email": null,
+     "phone": "410-386-2070",
+     "sourceUrl": "https://maco.epubxp.com/i/853813/175"
+    },
+    {
+     "name": "Cecil County Office of Economic Development",
+     "type": "county",
+     "city": "Elkton",
+     "county": "Cecil",
+     "website": null,
+     "contactName": "Bill Sorenson",
+     "contactTitle": "Director",
+     "email": null,
+     "phone": "410-996-8465",
+     "sourceUrl": "https://maco.epubxp.com/i/853813/175"
+    },
+    {
+     "name": "Dorchester County Department of Economic Development",
+     "type": "county",
+     "city": "Cambridge",
+     "county": "Dorchester",
+     "website": null,
+     "contactName": "Susan Banks",
+     "contactTitle": "Director",
+     "email": null,
+     "phone": "410-228-0155",
+     "sourceUrl": "https://maco.epubxp.com/i/853813/175"
+    },
+    {
+     "name": "Kent County Department of Economic Development",
+     "type": "county",
+     "city": "Chestertown",
+     "county": "Kent",
+     "website": null,
+     "contactName": "Jamie L. Williams",
+     "contactTitle": "Director",
+     "email": null,
+     "phone": "410-810-2168",
+     "sourceUrl": "https://maco.epubxp.com/i/853813/175"
+    },
+    {
+     "name": "Montgomery County Department of Economic Development",
+     "type": "county",
+     "city": "Rockville",
+     "county": "Montgomery",
+     "website": null,
+     "contactName": "Laurie Babb",
+     "contactTitle": null,
+     "email": null,
+     "phone": "240-641-6704",
+     "sourceUrl": "https://maco.epubxp.com/i/853813/175"
+    },
+    {
+     "name": "Talbot County Office of Economic Development",
+     "type": "county",
+     "city": "Easton",
+     "county": "Talbot",
+     "website": null,
+     "contactName": "Cassandra Vanhooser",
+     "contactTitle": "Director",
+     "email": null,
+     "phone": "410-770-8000",
+     "sourceUrl": "https://maco.epubxp.com/i/853813/175"
+    }
+   ]
+  },
+  "MT": {
+   "stateAgency": {
+    "name": "Montana Department of Commerce",
+    "website": "https://commerce.mt.gov",
+    "phone": null,
+    "leaderName": "Tara Rice",
+    "leaderTitle": "Director",
+    "contactName": null,
+    "contactTitle": null,
+    "email": null,
+    "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+   },
+   "directoryUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations",
+   "localEdos": [
+    {
+     "name": "Bear Paw Development Corporation",
+     "type": "regional",
+     "city": "Havre",
+     "county": null,
+     "website": "https://bearpaw.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-265-9226",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Beartooth RC&D",
+     "type": "regional",
+     "city": "Joliet",
+     "county": null,
+     "website": "https://beartooth.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-962-3914",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Eastern Plains Economic Development Corporation",
+     "type": "regional",
+     "city": "Baker",
+     "county": null,
+     "website": "https://epedc.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-853-6471",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Great Northern Development Corporation",
+     "type": "regional",
+     "city": "Wolf Point",
+     "county": null,
+     "website": "https://gndc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-653-2590",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Headwaters RC&D",
+     "type": "regional",
+     "city": "Butte",
+     "county": null,
+     "website": "https://headwatersrcd.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-723-4349",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Lake County Community Development Corporation (Mission West CDP)",
+     "type": "regional",
+     "city": "Ronan",
+     "county": null,
+     "website": "https://missionwestcdp.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-676-5901",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Montana Business Assistance Connection, Inc.",
+     "type": "regional",
+     "city": "Helena",
+     "county": null,
+     "website": "https://mbac.biz",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-447-1510",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Prospera Business Network",
+     "type": "regional",
+     "city": "Bozeman",
+     "county": null,
+     "website": "https://prosperamt.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-587-3113",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Snowy Mountain Development Corporation",
+     "type": "regional",
+     "city": "Lewistown",
+     "county": null,
+     "website": "https://snowymountaindevelopment.com",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-535-2591",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    },
+    {
+     "name": "Southeastern MT Development Corporation",
+     "type": "regional",
+     "city": "Colstrip",
+     "county": null,
+     "website": "https://semdc.org",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "406-748-2990",
+     "sourceUrl": "https://commerce.mt.gov/Business/Business-Assistance/Certified-Regional-Development-Corporations"
+    }
+   ]
+  },
+  "NY": {
+   "stateAgency": {
+    "name": "Empire State Development (ESD)",
+    "website": "https://esd.ny.gov",
+    "phone": "212-803-3100",
+    "leaderName": "Hope Knight",
+    "leaderTitle": "President, CEO & Commissioner",
+    "contactName": null,
+    "contactTitle": null,
+    "email": null,
+    "sourceUrl": "https://esd.ny.gov/leadership"
+   },
+   "directoryUrl": null,
+   "localEdos": []
+  },
+  "PA": {
+   "stateAgency": {
+    "name": "Pennsylvania Department of Community and Economic Development (DCED)",
+    "website": "https://dced.pa.gov",
+    "phone": "717-720-1355",
+    "leaderName": "Frederick (Rick) Siger",
+    "leaderTitle": "Secretary",
+    "contactName": null,
+    "contactTitle": null,
+    "email": "fsiger@pa.gov",
+    "sourceUrl": "https://dced.pa.gov/?p=74059"
+   },
+   "directoryUrl": null,
+   "localEdos": [
+    {
+     "name": "Pennsylvania Economic Development Association (PEDA) - Berks regional office",
+     "type": "nonprofit",
+     "city": "Reading",
+     "county": "Berks",
+     "website": "https://www.peda.org/berks",
+     "contactName": null,
+     "contactTitle": null,
+     "email": null,
+     "phone": "717-441-6047",
+     "sourceUrl": "https://blogs.millersville.edu/nrn/nonprofits-directory/pennsylvania-economic-partnership-development-association-berks/"
+    }
+   ]
+  },
+  "UT": {
+   "stateAgency": {
+    "name": "Utah Governor's Office of Economic Opportunity (GOEO)",
+    "website": "https://business.utah.gov",
+    "phone": null,
+    "leaderName": "Jefferson Moss",
+    "leaderTitle": "Executive Director",
+    "contactName": null,
+    "contactTitle": null,
+    "email": null,
+    "sourceUrl": "https://governor.utah.gov/?p=21490"
+   },
+   "directoryUrl": null,
+   "localEdos": []
+  },
+  "WY": {
+   "stateAgency": {
+    "name": "Wyoming Business Council",
+    "website": "https://wyomingbusiness.org",
+    "phone": "800-262-3425",
+    "leaderName": "Josh Dorrell",
+    "leaderTitle": "Chief Executive Officer",
+    "contactName": null,
+    "contactTitle": null,
+    "email": "info.wbc@wyo.gov",
+    "sourceUrl": "https://whitebridge.ai/contacts/companies/wyoming-business-council-503467"
+   },
+   "directoryUrl": null,
+   "localEdos": []
+  }
+ }
+}
