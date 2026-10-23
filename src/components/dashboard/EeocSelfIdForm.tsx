@@ -67,9 +67,9 @@ export function EeocSelfIdForm({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        This helps us check our own system for bias — it&apos;s never used to personalize what you
-        see, and it&apos;s never shared outside internal fairness reviews. Every question here is
-        optional — skip anything you&apos;d rather not answer.
+        This helps us check our own system for bias. It&apos;s never shared outside internal fairness
+        reviews, and it changes what you see only if you turn that on yourself for funding matches.
+        Every question here is optional — skip anything you&apos;d rather not answer.
       </p>
       <form action={updateEeocSelfId} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">

@@ -11,6 +11,7 @@
 import { readFileSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
 import { addContactToCrm, ensureOrg } from '../../src/lib/crm/add-contact'
+import { classifyRecruiter } from '../../src/lib/crm/recruiter-kind'
 import { INDUSTRY_KEYS, FUNCTION_KEYS, STATE_NAMES } from '../../src/lib/crm/coverage'
 
 interface Row {
@@ -25,6 +26,8 @@ async function main() {
   const rows: Row[] = JSON.parse(readFileSync(file, 'utf8'))
   const tally = { added: 0, matched: 0, review: 0, removed: 0, skipped: 0 }
   for (const r of rows) {
+    // "Rick Barr, MD" is a title or credential after the name, not part of it.
+    r.fullName = r.fullName.split(',')[0].trim()
     const industries = r.industries.filter((k) => INDUSTRY_KEYS.includes(k))
     const functions = r.functions.filter((k) => FUNCTION_KEYS.includes(k))
     const states = [...new Set([r.state, ...(r.coverageStates ?? [])].filter((s) => s === 'NATIONAL' || STATE_NAMES[s]))]
@@ -45,6 +48,7 @@ async function main() {
       data: {
         coverageStates: [...new Set([...p.coverageStates, ...states])], coverageIndustries: [...new Set([...p.coverageIndustries, ...industries])],
         coverageFunctions: [...new Set([...p.coverageFunctions, ...functions])], coverageSource: 'research',
+        recruiterKind: classifyRecruiter({ title: r.title, atSearchFirm: true }),
         ...(p.location || !r.city ? {} : { location: `${r.city}, ${r.state}` }),
       },
     })

@@ -43,7 +43,9 @@ export function buildGoogleAuthUrl(state: string): string {
     // re-issue a refresh_token on every connect (otherwise only issued once
     // per user, ever) — needed since we don't support account linking, only
     // create-a-fresh-connection-row.
-    prompt: 'consent',
+    // select_account: always show the chooser, so a second address can be added
+    // instead of Google silently reusing whichever one is signed in.
+    prompt: 'consent select_account',
     state,
   })
   return `${GOOGLE_AUTH_URL}?${params.toString()}`

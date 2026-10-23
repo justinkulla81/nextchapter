@@ -2,7 +2,8 @@ import 'server-only'
 import { applyEmailPriorityBumps } from '@/lib/crm/priority-bump'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/connection'
+import { getAllGoogleConnections, getValidAccessTokenFor } from '@/lib/google/connection'
+import type { GoogleInboxConnection } from '@prisma/client'
 import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getMessageContent, getProfileEmail, getSendAsAddresses } from '@/lib/google/gmail'
 import { listCalendarEvents, fetchGoogleDocText, NotesFetchError } from '@/lib/google/admin-calendar'
 import { capNotes } from '@/lib/google/meeting-notes'
@@ -382,12 +383,267 @@ export interface SweepResult {
  * explicitly, or the scan silently stops partway through the window and
  * never reaches its older, less-recent mail at all.
  */
+/** What one mailbox contributed to a Gmail sweep. */
+interface MailboxOutcome { result: SweepResult; failed: number; ids: number }
+
+/**
+ * Sweeps one connected Gmail mailbox over a window, logging what involves a
+ * CRM person. Called once per connected account by sweepGmail.
+ */
+async function sweepMailbox(
+  connection: GoogleInboxConnection,
+  token: string,
+  windowFrom: Date,
+  maxMessages: number,
+  otherEmails: string[],
+  base: SweepResult,
+): Promise<MailboxOutcome> {
+  const selfEmail = (await getProfileEmail(token)) ?? connection.email
+  // Every connected mailbox is you, so mail between them isn't correspondence.
+  const ctx = await buildSweepContext(selfEmail, [...(await getSendAsAddresses(token)), ...otherEmails])
+  const ids = await listMessagesSince(token, windowFrom, maxMessages)
+  const touched = new Set<string>()
+  const personCache = new Map<string, string | null>()
+  const familyCache = new Map<string, boolean>()
+  const result = { ...base }
+
+  // A fetch that fails after retrying is counted, not skipped. It used to
+  // come back as null and read as "no such message", so throttled mail
+  // vanished from the sync without a trace.
+  const unread: number[] = []
+  const headers = await mapLimit(ids, GMAIL_CONCURRENCY, async (id, i) => {
+    try {
+      return await getMessageHeaders(token, id)
+    } catch {
+      unread.push(i)
+      return null
+    }
+  })
+  // One more go at whatever was refused, one at a time. By now the calls
+  // above have waited out any rate limit, so this is usually all it takes
+  // to turn a partial run into a complete one.
+  let failed = 0
+  for (const i of unread) {
+    try {
+      headers[i] = await getMessageHeaders(token, ids[i])
+    } catch {
+      failed++
+    }
+  }
+
+  // The best display name seen for each address anywhere in the window. A
+  // reply typed to a bare address carries no name, and it is the newest
+  // message, so it is read first — which named a new person "kgold" when
+  // the introduction two hours earlier said "Kelly Gold".
+  const nameByEmail = new Map<string, string>()
+  for (const m of headers) {
+    if (!m) continue
+    for (const raw of [m.from, ...m.to, ...m.cc]) {
+      const e = normalizeEmail(raw)
+      const n = displayNameFrom(raw)
+      if (e && n && !isPlaceholderName(n) && !nameByEmail.has(e)) nameByEmail.set(e, n)
+    }
+  }
+
+  // Messages already logged need no body: the write below is an upsert
+  // that changes nothing. Re-running a window used to re-download every
+  // body anyway, one at a time — most of a sweep's runtime.
+  const logged = new Set<string>()
+  const loggedRefs = new Set<string>()
+  // Rows logged before thread ids were stored — filled in as the sweep meets them again.
+  const needsThreadId = new Set<string>()
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100)
+    const rows = await prisma.crmActivity.findMany({
+      where: { type: 'EMAIL', OR: chunk.map((id) => ({ sourceRef: { startsWith: `${id}:` } })) },
+      select: { sourceRef: true, threadId: true },
+    })
+    for (const r of rows) {
+      if (!r.sourceRef) continue
+      loggedRefs.add(r.sourceRef)
+      logged.add(r.sourceRef.split(':')[0])
+      if (!r.threadId) needsThreadId.add(r.sourceRef.split(':')[0])
+    }
+  }
+
+  // Bodies for everything that will actually be written, fetched together
+  // up front. Whether a message will be written is decidable in memory:
+  // it needs one participant who isn't us, internal, or automated.
+  const wantsBody = (msg: NonNullable<(typeof headers)[number]>) =>
+    [msg.from, ...msg.to, ...msg.cc].some((raw) => {
+      const e = normalizeEmail(raw)
+      if (!e) return false
+      const k = classifyParticipant(e, ctx).kind
+      return k !== 'internal' && k !== 'self' && k !== 'automated'
+    })
+  const bodies = new Map<string, { body: string | null; attachmentNames: string[] }>()
+  const needBodies = ids.filter((id, i) => {
+    const m = headers[i]
+    if (!m || !isAfterCrmCutoff(m.internalDate) || logged.has(id) || !wantsBody(m)) return false
+    // An inbound message that never mentions NextChapter is never written
+    // at all (see the main loop below) — no point paying for its body.
+    if (appointmentBooker(m.subject)) return true
+    const direction = directionOf(normalizeEmail(m.from), ctx)
+    if (direction === 'INBOUND' && !mentionsNextChapter(m.subject, m.snippet)) return false
+    return true
+  })
+  await mapLimit(needBodies, GMAIL_CONCURRENCY, async (id) => { bodies.set(id, await getMessageContent(token, id)) })
+
+  // Mailing lists: unsubscribe replies and replies to a report. Never
+  // allowed to fail the sweep — the CRM log matters more.
+  let mailingCtx: MailingSweepContext | null = null
+  try { mailingCtx = await buildMailingSweepContext() } catch (e) { console.error('Mailing sweep context failed', e) }
+  let outreachEmails = new Set<string>()
+  try { outreachEmails = await buildOutreachReplyEmails() } catch (e) { console.error('Outreach reply context failed', e) }
+
+  for (const [i, id] of ids.entries()) {
+    const msg = headers[i]
+    if (!msg) continue
+    // Belt and braces: the query already asked for nothing older, but a
+    // message's internalDate is the thing the activity is dated by.
+    if (!isAfterCrmCutoff(msg.internalDate)) continue
+    result.scanned++
+
+    const fromEmail = normalizeEmail(msg.from)
+    // A booking on your calendar page is the other person's doing, however
+    // the notice is addressed — see appointmentBooker.
+    const booking = appointmentBooker(msg.subject)
+    const direction = booking ? 'INBOUND' : directionOf(fromEmail, ctx)
+    // A reply from someone we cold-emailed is always logged, even if it never says NextChapter ("Thanks, send it over").
+    const outreachReply = direction === 'INBOUND' && !!fromEmail && outreachEmails.has(fromEmail)
+    const relevant = booking ? true : outreachReply || mentionsNextChapter(msg.subject, msg.snippet)
+    if (direction === 'INBOUND' && mailingCtx && fromEmail && !booking) {
+      await onInboundMessage(mailingCtx, { id, fromEmail, subject: msg.subject, snippet: msg.snippet, at: msg.internalDate })
+        .catch((e) => console.error('Mailing inbound hook failed', id, e))
+    }
+    // Inbound mail that never mentions NextChapter is never added to the
+    // CRM at all — no activity, no new person from it, by direct
+    // instruction. Outbound mail that doesn't mention it is still logged
+    // (see needsReview below) — it's real outreach, just needing a human
+    // to confirm it belongs here before it counts as contact.
+    if (direction === 'INBOUND' && !relevant) continue
+
+    const participants = [msg.from, ...msg.to, ...msg.cc]
+    let loggedForThisMessage = false
+    let hasInternal = false
+    // Fetched at most once per message, and only once a real (or
+    // newly-created) person is actually on it — every purely internal or
+    // automated message never pays for the extra format=full round trip.
+    let fullBody: string | null | undefined
+    let attachmentNames: string[] = []
+
+    for (const raw of participants) {
+      const email = normalizeEmail(raw)
+      if (!email) continue
+      const verdict = classifyParticipant(email, ctx)
+
+      if (verdict.kind === 'internal') { hasInternal = true; continue }
+      if (verdict.kind === 'self' || verdict.kind === 'automated') continue
+
+      let personId: string
+      let isNewPerson = false
+      if (verdict.kind === 'crm') {
+        personId = verdict.personId
+      } else {
+        const resolved = await getOrCreatePerson(email, displayNameFrom(raw) ?? nameByEmail.get(email) ?? booking?.name ?? null, personCache)
+        if (!resolved) continue // deleted before — stays excluded, not silently re-added
+        personId = resolved.id
+        isNewPerson = resolved.created
+      }
+
+      // Already on file for this person: nothing to write, and nothing about
+      // them has changed, so they needn't be refreshed either. Re-covering a
+      // window — which Sync now does deliberately — costs almost nothing.
+      if (loggedRefs.has(`${id}:${personId}`)) {
+        loggedForThisMessage = true
+        if (needsThreadId.delete(id)) {
+          await prisma.crmActivity.updateMany({ where: { type: 'EMAIL', sourceRef: { startsWith: `${id}:` }, threadId: null }, data: { threadId: msg.threadId } })
+        }
+        continue
+      }
+
+      // A message can involve several such people; each gets the activity.
+      // Reaching here means this person has no row for the message yet —
+      // including when someone else on it already does, as when an address
+      // is added to a contact after the message was first swept.
+      if (fullBody === undefined) {
+        const content = bodies.get(id) ?? await getMessageContent(token, id)
+        fullBody = content.body
+        attachmentNames = content.attachmentNames
+      }
+      const needsReview = direction === 'OUTBOUND' && !relevant && !(await isFriendsFamilyOnly(personId, familyCache))
+      const created = await prisma.crmActivity.upsert({
+        where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
+        create: {
+          type: 'EMAIL',
+          direction,
+          occurredAt: msg.internalDate,
+          personId,
+          subject: msg.subject,
+          threadId: msg.threadId,
+          // A known CRM contact's mail is worth the real message, not
+          // Gmail's ~200-char snippet — falls back to the snippet only if
+          // the full-body fetch itself failed (never on an empty body).
+          body: fullBody ?? snippetOf(msg.snippet),
+          isAutoLogged: true,
+          sourceRef: `${id}:${personId}`,
+          // A reply to cold outreach is labelled positive, a question, a referral, no, or automatic, for the Outreach tests page.
+          outcome: outreachReply ? replyOutcome(classifyReply(msg.subject, fullBody ?? msg.snippet)) : undefined,
+          // Always false here — an INBOUND row only ever reaches this line
+          // when `relevant` is true (see the guard above).
+          needsReview,
+        },
+        update: {},
+        select: { id: true, createdAt: true },
+      })
+      // upsert gives no "was created" flag; a fresh row is one written now.
+      if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
+      if (direction === 'OUTBOUND' && !booking) {
+        await onOutboundEmail({
+          personId, activityId: created.id, at: msg.internalDate, subject: msg.subject,
+          body: fullBody, attachmentNames, needsReview,
+        }).catch((e) => console.error('Mailing outbound hook failed', id, e))
+      }
+      if (outreachReply && Date.now() - created.createdAt.getTime() < 5_000) {
+        const replyClass = classifyReply(msg.subject, fullBody ?? msg.snippet)
+        captureServerEvent(personId, 'outreach_reply_received', { class: replyClass })
+        await alertOutreachReply({ personId, replyClass, subject: msg.subject, text: fullBody ?? snippetOf(msg.snippet) })
+      }
+      if (isNewPerson) result.suggested++
+      touched.add(personId)
+      loggedForThisMessage = true
+    }
+
+    if (hasInternal && !loggedForThisMessage) result.skippedInternal++
+    if (loggedForThisMessage) result.matched++
+  }
+
+  await refreshTouchFields([...touched])
+  result.failed = failed
+  return { result, failed, ids: ids.length }
+}
+
 export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gmail'): Promise<SweepResult> {
   const base: SweepResult = { source: 'gmail', scanned: 0, matched: 0, activitiesCreated: 0, suggested: 0, skippedInternal: 0 }
-  const connection = await getActiveGoogleConnection()
-  if (!connection) return { ...base, reason: 'no_connection' }
-  const token = await getValidAccessToken()
-  if (!token) return { ...base, reason: 'no_token' }
+  const connections = await getAllGoogleConnections()
+  if (connections.length === 0) return { ...base, reason: 'no_connection' }
+  // A mailbox whose token can't be refreshed is skipped and reported; the others still sweep.
+  const mailboxes: { connection: GoogleInboxConnection; token: string }[] = []
+  const errors: string[] = []
+  for (const connection of connections) {
+    try {
+      const token = await getValidAccessTokenFor(connection)
+      if (token) mailboxes.push({ connection, token })
+    } catch (e) {
+      errors.push(`${connection.email}: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+  if (mailboxes.length === 0) {
+    if (errors.length) {
+      await prisma.crmSyncRun.create({ data: { source: runSource, windowFrom: new Date(), finishedAt: new Date(), error: errors.join('; ').slice(0, 500) } })
+    }
+    return { ...base, reason: 'no_token' }
+  }
 
   // The rolling window never reaches back past the cutoff, however wide a
   // `days` a manual backfill passes.
@@ -400,226 +656,32 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
   const run = await prisma.crmSyncRun.create({ data: { source: runSource, windowFrom } })
 
   try {
-    const selfEmail = (await getProfileEmail(token)) ?? connection.email
-    const ctx = await buildSweepContext(selfEmail, await getSendAsAddresses(token))
-    const ids = await listMessagesSince(token, windowFrom, maxMessages)
-    const touched = new Set<string>()
-    const personCache = new Map<string, string | null>()
-    const familyCache = new Map<string, boolean>()
     const result = { ...base }
-
-    // A fetch that fails after retrying is counted, not skipped. It used to
-    // come back as null and read as "no such message", so throttled mail
-    // vanished from the sync without a trace.
-    const unread: number[] = []
-    const headers = await mapLimit(ids, GMAIL_CONCURRENCY, async (id, i) => {
-      try {
-        return await getMessageHeaders(token, id)
-      } catch {
-        unread.push(i)
-        return null
-      }
-    })
-    // One more go at whatever was refused, one at a time. By now the calls
-    // above have waited out any rate limit, so this is usually all it takes
-    // to turn a partial run into a complete one.
     let failed = 0
-    for (const i of unread) {
+    let ids = 0
+    for (const { connection, token } of mailboxes) {
       try {
-        headers[i] = await getMessageHeaders(token, ids[i])
-      } catch {
-        failed++
+        // A mailbox never swept before (just connected) starts from 14 days
+        // back, not from the rolling window: its older mail, including replies
+        // to outreach, would otherwise never reach the CRM.
+        const newMailboxFrom = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), Date.now() - 14 * DAY))
+        const from = !connection.lastSweepAt && newMailboxFrom < windowFrom ? newMailboxFrom : windowFrom
+        const one = await sweepMailbox(connection, token, from, maxMessages, connections.map((c) => c.email), base)
+        await prisma.googleInboxConnection.update({ where: { id: connection.id }, data: { lastSweepAt: new Date() } })
+        result.scanned += one.result.scanned
+        result.matched += one.result.matched
+        result.activitiesCreated += one.result.activitiesCreated
+        result.suggested += one.result.suggested
+        result.skippedInternal += one.result.skippedInternal
+        failed += one.failed
+        ids += one.ids
+      } catch (e) {
+        errors.push(`${connection.email}: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
-
-    // The best display name seen for each address anywhere in the window. A
-    // reply typed to a bare address carries no name, and it is the newest
-    // message, so it is read first — which named a new person "kgold" when
-    // the introduction two hours earlier said "Kelly Gold".
-    const nameByEmail = new Map<string, string>()
-    for (const m of headers) {
-      if (!m) continue
-      for (const raw of [m.from, ...m.to, ...m.cc]) {
-        const e = normalizeEmail(raw)
-        const n = displayNameFrom(raw)
-        if (e && n && !isPlaceholderName(n) && !nameByEmail.has(e)) nameByEmail.set(e, n)
-      }
-    }
-
-    // Messages already logged need no body: the write below is an upsert
-    // that changes nothing. Re-running a window used to re-download every
-    // body anyway, one at a time — most of a sweep's runtime.
-    const logged = new Set<string>()
-    const loggedRefs = new Set<string>()
-    // Rows logged before thread ids were stored — filled in as the sweep meets them again.
-    const needsThreadId = new Set<string>()
-    for (let i = 0; i < ids.length; i += 100) {
-      const chunk = ids.slice(i, i + 100)
-      const rows = await prisma.crmActivity.findMany({
-        where: { type: 'EMAIL', OR: chunk.map((id) => ({ sourceRef: { startsWith: `${id}:` } })) },
-        select: { sourceRef: true, threadId: true },
-      })
-      for (const r of rows) {
-        if (!r.sourceRef) continue
-        loggedRefs.add(r.sourceRef)
-        logged.add(r.sourceRef.split(':')[0])
-        if (!r.threadId) needsThreadId.add(r.sourceRef.split(':')[0])
-      }
-    }
-
-    // Bodies for everything that will actually be written, fetched together
-    // up front. Whether a message will be written is decidable in memory:
-    // it needs one participant who isn't us, internal, or automated.
-    const wantsBody = (msg: NonNullable<(typeof headers)[number]>) =>
-      [msg.from, ...msg.to, ...msg.cc].some((raw) => {
-        const e = normalizeEmail(raw)
-        if (!e) return false
-        const k = classifyParticipant(e, ctx).kind
-        return k !== 'internal' && k !== 'self' && k !== 'automated'
-      })
-    const bodies = new Map<string, { body: string | null; attachmentNames: string[] }>()
-    const needBodies = ids.filter((id, i) => {
-      const m = headers[i]
-      if (!m || !isAfterCrmCutoff(m.internalDate) || logged.has(id) || !wantsBody(m)) return false
-      // An inbound message that never mentions NextChapter is never written
-      // at all (see the main loop below) — no point paying for its body.
-      if (appointmentBooker(m.subject)) return true
-      const direction = directionOf(normalizeEmail(m.from), ctx)
-      if (direction === 'INBOUND' && !mentionsNextChapter(m.subject, m.snippet)) return false
-      return true
-    })
-    await mapLimit(needBodies, GMAIL_CONCURRENCY, async (id) => { bodies.set(id, await getMessageContent(token, id)) })
-
-    // Mailing lists: unsubscribe replies and replies to a report. Never
-    // allowed to fail the sweep — the CRM log matters more.
-    let mailingCtx: MailingSweepContext | null = null
-    try { mailingCtx = await buildMailingSweepContext() } catch (e) { console.error('Mailing sweep context failed', e) }
-    let outreachEmails = new Set<string>()
-    try { outreachEmails = await buildOutreachReplyEmails() } catch (e) { console.error('Outreach reply context failed', e) }
-
-    for (const [i, id] of ids.entries()) {
-      const msg = headers[i]
-      if (!msg) continue
-      // Belt and braces: the query already asked for nothing older, but a
-      // message's internalDate is the thing the activity is dated by.
-      if (!isAfterCrmCutoff(msg.internalDate)) continue
-      result.scanned++
-
-      const fromEmail = normalizeEmail(msg.from)
-      // A booking on your calendar page is the other person's doing, however
-      // the notice is addressed — see appointmentBooker.
-      const booking = appointmentBooker(msg.subject)
-      const direction = booking ? 'INBOUND' : directionOf(fromEmail, ctx)
-      // A reply from someone we cold-emailed is always logged, even if it never says NextChapter ("Thanks, send it over").
-      const outreachReply = direction === 'INBOUND' && !!fromEmail && outreachEmails.has(fromEmail)
-      const relevant = booking ? true : outreachReply || mentionsNextChapter(msg.subject, msg.snippet)
-      if (direction === 'INBOUND' && mailingCtx && fromEmail && !booking) {
-        await onInboundMessage(mailingCtx, { id, fromEmail, subject: msg.subject, snippet: msg.snippet, at: msg.internalDate })
-          .catch((e) => console.error('Mailing inbound hook failed', id, e))
-      }
-      // Inbound mail that never mentions NextChapter is never added to the
-      // CRM at all — no activity, no new person from it, by direct
-      // instruction. Outbound mail that doesn't mention it is still logged
-      // (see needsReview below) — it's real outreach, just needing a human
-      // to confirm it belongs here before it counts as contact.
-      if (direction === 'INBOUND' && !relevant) continue
-
-      const participants = [msg.from, ...msg.to, ...msg.cc]
-      let loggedForThisMessage = false
-      let hasInternal = false
-      // Fetched at most once per message, and only once a real (or
-      // newly-created) person is actually on it — every purely internal or
-      // automated message never pays for the extra format=full round trip.
-      let fullBody: string | null | undefined
-      let attachmentNames: string[] = []
-
-      for (const raw of participants) {
-        const email = normalizeEmail(raw)
-        if (!email) continue
-        const verdict = classifyParticipant(email, ctx)
-
-        if (verdict.kind === 'internal') { hasInternal = true; continue }
-        if (verdict.kind === 'self' || verdict.kind === 'automated') continue
-
-        let personId: string
-        let isNewPerson = false
-        if (verdict.kind === 'crm') {
-          personId = verdict.personId
-        } else {
-          const resolved = await getOrCreatePerson(email, displayNameFrom(raw) ?? nameByEmail.get(email) ?? booking?.name ?? null, personCache)
-          if (!resolved) continue // deleted before — stays excluded, not silently re-added
-          personId = resolved.id
-          isNewPerson = resolved.created
-        }
-
-        // Already on file for this person: nothing to write, and nothing about
-        // them has changed, so they needn't be refreshed either. Re-covering a
-        // window — which Sync now does deliberately — costs almost nothing.
-        if (loggedRefs.has(`${id}:${personId}`)) {
-          loggedForThisMessage = true
-          if (needsThreadId.delete(id)) {
-            await prisma.crmActivity.updateMany({ where: { type: 'EMAIL', sourceRef: { startsWith: `${id}:` }, threadId: null }, data: { threadId: msg.threadId } })
-          }
-          continue
-        }
-
-        // A message can involve several such people; each gets the activity.
-        // Reaching here means this person has no row for the message yet —
-        // including when someone else on it already does, as when an address
-        // is added to a contact after the message was first swept.
-        if (fullBody === undefined) {
-          const content = bodies.get(id) ?? await getMessageContent(token, id)
-          fullBody = content.body
-          attachmentNames = content.attachmentNames
-        }
-        const needsReview = direction === 'OUTBOUND' && !relevant && !(await isFriendsFamilyOnly(personId, familyCache))
-        const created = await prisma.crmActivity.upsert({
-          where: { type_sourceRef: { type: 'EMAIL', sourceRef: `${id}:${personId}` } },
-          create: {
-            type: 'EMAIL',
-            direction,
-            occurredAt: msg.internalDate,
-            personId,
-            subject: msg.subject,
-            threadId: msg.threadId,
-            // A known CRM contact's mail is worth the real message, not
-            // Gmail's ~200-char snippet — falls back to the snippet only if
-            // the full-body fetch itself failed (never on an empty body).
-            body: fullBody ?? snippetOf(msg.snippet),
-            isAutoLogged: true,
-            sourceRef: `${id}:${personId}`,
-            // A reply to cold outreach is labelled positive, a question, a referral, no, or automatic, for the Outreach tests page.
-            outcome: outreachReply ? replyOutcome(classifyReply(msg.subject, fullBody ?? msg.snippet)) : undefined,
-            // Always false here — an INBOUND row only ever reaches this line
-            // when `relevant` is true (see the guard above).
-            needsReview,
-          },
-          update: {},
-          select: { id: true, createdAt: true },
-        })
-        // upsert gives no "was created" flag; a fresh row is one written now.
-        if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
-        if (direction === 'OUTBOUND' && !booking) {
-          await onOutboundEmail({
-            personId, activityId: created.id, at: msg.internalDate, subject: msg.subject,
-            body: fullBody, attachmentNames, needsReview,
-          }).catch((e) => console.error('Mailing outbound hook failed', id, e))
-        }
-        if (outreachReply && Date.now() - created.createdAt.getTime() < 5_000) {
-          const replyClass = classifyReply(msg.subject, fullBody ?? msg.snippet)
-          captureServerEvent(personId, 'outreach_reply_received', { class: replyClass })
-          await alertOutreachReply({ personId, replyClass, subject: msg.subject, text: fullBody ?? snippetOf(msg.snippet) })
-        }
-        if (isNewPerson) result.suggested++
-        touched.add(personId)
-        loggedForThisMessage = true
-      }
-
-      if (hasInternal && !loggedForThisMessage) result.skippedInternal++
-      if (loggedForThisMessage) result.matched++
-    }
-
-    await refreshTouchFields([...touched])
+    // Every mailbox failing is the sweep failing; one failing is recorded on
+    // the run (so the sync-health banner shows it) while the rest are kept.
+    if (errors.length >= connections.length) throw new Error(errors.join('; ').slice(0, 500))
     result.failed = failed
     await prisma.crmSyncRun.update({
       where: { id: run.id },
@@ -629,7 +691,7 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
         skippedInternal: result.skippedInternal,
         // Marks the run incomplete, which is the point: Sync now starts from
         // the last CLEAN run, so the next click re-covers this window.
-        ...(failed > 0 ? { error: `${failed} of ${ids.length} messages could not be fetched from Gmail` } : {}),
+        ...(errors.length ? { error: errors.join('; ').slice(0, 500) } : failed > 0 ? { error: `${failed} of ${ids} messages could not be fetched from Gmail` } : {}),
       },
     })
     return result
@@ -657,7 +719,11 @@ export async function calendarLookbackDays(floor = 2): Promise<number> {
     select: { startedAt: true },
   })
   const sinceOk = lastOk ? Math.ceil((Date.now() - lastOk.startedAt.getTime()) / DAY) + 1 : 14
-  return Math.min(60, Math.max(floor, sinceOk))
+  // Until the first meeting notes have ever been copied across, look back two
+  // weeks: notes written before this was switched on are otherwise out of
+  // reach. It stops widening the moment one has been attached.
+  const anyNotes = await prisma.crmActivity.findFirst({ where: { notesDocUrl: { not: null } }, select: { id: true } })
+  return Math.min(60, Math.max(floor, anyNotes ? sinceOk : Math.max(sinceOk, 14)))
 }
 
 /**
@@ -931,56 +997,19 @@ export interface PersonBackfillResult {
   reason?: 'no_connection' | 'no_token' | 'invalid_email' | 'person_deleted'
 }
 
-/**
- * On-demand, single-person history check — triggered from the "do you have
- * their email?" prompt, not the nightly sweep.
- *
- * Narrower than sweepGmail in the ways that matter for a one-off,
- * human-initiated action: it reaches past the sweep's rolling lookback
- * (bounded only by CRM_ACTIVITY_CUTOFF), creates no new people for the
- * other participants on a thread (you already know who this is), and logs
- * every found message straight to `personId` rather than reclassifying it.
- * Upserts on the same `${id}:${personId}` key sweepGmail uses, so a later
- * nightly sweep re-finding the same message updates nothing instead of
- * double-logging it.
- *
- * The refresh at the end runs in a `finally`. It used to be the last line
- * of a loop that could take longer than the request it runs inside: the
- * mail landed, the function was killed, and the person was left with real
- * correspondence logged and a touch count of zero — reading "never
- * contacted" on a record whose history was sitting right there. The cutoff
- * makes that far less likely by shrinking the work; the `finally` makes a
- * partial run self-consistent rather than silently wrong.
- */
-export async function backfillPersonFromEmail(
+/** One mailbox's share of backfillPersonFromEmail. */
+async function backfillFromMailbox(
   personId: string,
-  rawEmail: string,
-  // Capped low on purpose: this runs inside the request that a human is
-  // waiting on, and each message costs two more Gmail round trips. Since the
-  // cutoff, even a chatty thread is a few dozen messages — a cap this size
-  // is the difference between a slow save and a request that dies.
-  maxMessages = 60,
+  email: string,
+  connection: GoogleInboxConnection,
+  token: string,
+  maxMessages: number,
+  otherEmails: string[],
 ): Promise<PersonBackfillResult> {
-  const email = normalizeEmail(rawEmail)
-  if (!email) return { found: 0, oldestAt: null, reason: 'invalid_email' }
-
-  // getOrCreatePerson already refuses to log new activity against a
-  // soft-deleted person (see its own comment) — this direct-by-id entry
-  // point bypasses that lookup entirely, so it needs the same guard, or a
-  // stale personId (a duplicate merged away after the caller loaded the
-  // page) silently resurrects real data onto a hidden row instead of the
-  // live one the CRM actually shows.
-  const target = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { deletedAt: true } })
-  if (!target || target.deletedAt) return { found: 0, oldestAt: null, reason: 'person_deleted' }
-
-  const connection = await getActiveGoogleConnection()
-  if (!connection) return { found: 0, oldestAt: null, reason: 'no_connection' }
-  const token = await getValidAccessToken()
-  if (!token) return { found: 0, oldestAt: null, reason: 'no_token' }
-
   const selfEmail = normalizeEmail((await getProfileEmail(token)) ?? connection.email)
   const ctx: SweepContext = {
-    selfEmails: new Set(selfEmail ? [selfEmail] : []),
+    // Every connected mailbox is you.
+    selfEmails: new Set([selfEmail, ...otherEmails.map(normalizeEmail)].filter((e): e is string => !!e)),
     internalEmails: new Set(),
     crmByEmail: new Map(),
   }
@@ -1040,3 +1069,67 @@ export async function backfillPersonFromEmail(
   }
   return { found, oldestAt, ...(failed > 0 ? { failed } : {}) }
 }
+
+/**
+ * On-demand, single-person history check — triggered from the "do you have
+ * their email?" prompt, not the nightly sweep.
+ *
+ * Narrower than sweepGmail in the ways that matter for a one-off,
+ * human-initiated action: it reaches past the sweep's rolling lookback
+ * (bounded only by CRM_ACTIVITY_CUTOFF), creates no new people for the
+ * other participants on a thread (you already know who this is), and logs
+ * every found message straight to `personId` rather than reclassifying it.
+ * Upserts on the same `${id}:${personId}` key sweepGmail uses, so a later
+ * nightly sweep re-finding the same message updates nothing instead of
+ * double-logging it.
+ *
+ * The refresh at the end runs in a `finally`. It used to be the last line
+ * of a loop that could take longer than the request it runs inside: the
+ * mail landed, the function was killed, and the person was left with real
+ * correspondence logged and a touch count of zero — reading "never
+ * contacted" on a record whose history was sitting right there. The cutoff
+ * makes that far less likely by shrinking the work; the `finally` makes a
+ * partial run self-consistent rather than silently wrong.
+ */
+export async function backfillPersonFromEmail(
+  personId: string,
+  rawEmail: string,
+  // Capped low on purpose: this runs inside the request that a human is
+  // waiting on, and each message costs two more Gmail round trips. Since the
+  // cutoff, even a chatty thread is a few dozen messages — a cap this size
+  // is the difference between a slow save and a request that dies.
+  maxMessages = 60,
+): Promise<PersonBackfillResult> {
+  const email = normalizeEmail(rawEmail)
+  if (!email) return { found: 0, oldestAt: null, reason: 'invalid_email' }
+
+  // getOrCreatePerson already refuses to log new activity against a
+  // soft-deleted person (see its own comment) — this direct-by-id entry
+  // point bypasses that lookup entirely, so it needs the same guard, or a
+  // stale personId (a duplicate merged away after the caller loaded the
+  // page) silently resurrects real data onto a hidden row instead of the
+  // live one the CRM actually shows.
+  const target = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { deletedAt: true } })
+  if (!target || target.deletedAt) return { found: 0, oldestAt: null, reason: 'person_deleted' }
+
+  const connections = await getAllGoogleConnections()
+  if (connections.length === 0) return { found: 0, oldestAt: null, reason: 'no_connection' }
+
+  // Every connected mailbox is checked; one that can't be read is skipped.
+  let found = 0
+  let failed = 0
+  let oldestAt: Date | null = null
+  let readable = 0
+  for (const connection of connections) {
+    const token = await getValidAccessTokenFor(connection).catch(() => null)
+    if (!token) continue
+    readable++
+    const one = await backfillFromMailbox(personId, email, connection, token, maxMessages, connections.map((c) => c.email))
+    found += one.found
+    failed += one.failed ?? 0
+    if (one.oldestAt && (!oldestAt || one.oldestAt < oldestAt)) oldestAt = one.oldestAt
+  }
+  if (readable === 0) return { found: 0, oldestAt: null, reason: 'no_token' }
+  return { found, oldestAt, ...(failed > 0 ? { failed } : {}) }
+}
+

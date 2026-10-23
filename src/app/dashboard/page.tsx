@@ -18,6 +18,8 @@ import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
 import { StalledSearchPromptCard } from '@/components/dashboard/StalledSearchPromptCard'
+import { StalledReaskCard } from '@/components/dashboard/StalledReaskCard'
+import { evaluateStalledReask } from '@/lib/dashboard/stalled-reask'
 import { loadSearchPlaybook } from '@/lib/dashboard/search-playbook-data'
 import { SearchPlaybookCard } from '@/components/dashboard/search-playbook/SearchPlaybookCard'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -324,6 +326,7 @@ export default async function DashboardPage() {
     calendarConnection,
     passiveToActivePrompt,
     stalledSearchPrompt,
+    stalledReask,
     searchPlaybook,
     newCheer,
     coachOffer,
@@ -345,6 +348,8 @@ export default async function DashboardPage() {
     // Same read-only, records-on-render contract, for the "hitting your
     // goals but no interviews" nudge — see stalled-search-prompt.ts.
     timed('home', 'stalledSearchPrompt', profile.id, evaluateStalledSearchPrompt(profile.id)),
+    // The wider question for a long search with no interviews: what do you want to change? Read-only; the card records itself.
+    timed('home', 'stalledReask', profile.id, evaluateStalledReask(profile.id, { hasCoach: !!profile.coachId, earlyCareer: !!audience })),
     // Journey-aware search plan: what to change at this point in the search.
     // Read-only, no metered calls. See src/lib/journey/search-playbook.ts.
     timed('home', 'searchPlaybook', profile.id, loadSearchPlaybook(profile)),
@@ -430,6 +435,7 @@ export default async function DashboardPage() {
     reportReady: showReportReadyMessage,
     accountsNotConnected: !bothConnectedUnlocked,
     coachOffer: !!coachOffer,
+    stalledReask: !!stalledReask,
     stalledSearch: !!stalledSearchPrompt,
     passiveToActive: !!passiveToActivePrompt,
     firstWeek,
@@ -486,6 +492,7 @@ export default async function DashboardPage() {
             <PreConnectDailyMessage firstName={firstName} hasEmailConnection={!!emailConnection} hasCalendarConnection={!!calendarConnection} linkedInConnected={linkedInConnected} />
           )}
           {note === 'coach_offer' && coachOffer && <CoachOfferNote reason={coachOffer.reason} href={COACH_OFFER_HREF} {...COACH_OFFER_COPY[coachOffer.reason]} />}
+          {note === 'stalled_reask' && stalledReask && <StalledReaskCard weeks={stalledReask.weeks} options={stalledReask.options} />}
           {note === 'stalled_search' && stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
           {note === 'passive_to_active' && passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
           {note === 'search_playbook' && searchPlaybook && <SearchPlaybookCard position={searchPlaybook} />}

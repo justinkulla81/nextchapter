@@ -1,0 +1,235 @@
+[
+ {
+  "fullName": "Shannon Bailey",
+  "title": "Managing Director",
+  "firm": "CIO Partners",
+  "firmWebsite": "https://www.ciopartners.com",
+  "city": "Marietta",
+  "state": "GA",
+  "sourceUrl": "https://www.ciopartners.com/team/shannon-bailey/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Barry Cressley",
+  "title": "Executive Director and Partner",
+  "firm": "CIO Partners",
+  "firmWebsite": "https://www.ciopartners.com",
+  "city": "Marietta",
+  "state": "GA",
+  "sourceUrl": "https://www.ciopartners.com/team/barry-cressley/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Blake Dunkerly",
+  "title": "Managing Director",
+  "firm": "CIO Partners",
+  "firmWebsite": "https://www.ciopartners.com",
+  "city": "Marietta",
+  "state": "GA",
+  "sourceUrl": "https://www.ciopartners.com/team/blake-dunkerly/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Topher Gillie",
+  "title": "Managing Director",
+  "firm": "CIO Partners",
+  "firmWebsite": "https://www.ciopartners.com",
+  "city": "Marietta",
+  "state": "GA",
+  "sourceUrl": "https://www.ciopartners.com/team/topher-gillie/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Joe Gross",
+  "title": "President and Managing Partner",
+  "firm": "CIO Partners",
+  "firmWebsite": "https://www.ciopartners.com",
+  "city": "Marietta",
+  "state": "GA",
+  "sourceUrl": "https://www.ciopartners.com/team/joe-gross/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Kris Mintz",
+  "title": "Managing Director",
+  "firm": "CIO Partners",
+  "firmWebsite": "https://www.ciopartners.com",
+  "city": "Marietta",
+  "state": "GA",
+  "sourceUrl": "https://www.ciopartners.com/team/kris-mintz/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Koreena Roof",
+  "title": "Managing Director",
+  "firm": "CIO Partners",
+  "firmWebsite": "https://www.ciopartners.com",
+  "city": "Marietta",
+  "state": "GA",
+  "sourceUrl": "https://www.ciopartners.com/team/koreena-roof/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Connor Treyball",
+  "title": "Managing Director",
+  "firm": "CIO Partners",
+  "firmWebsite": "https://www.ciopartners.com",
+  "city": "Marietta",
+  "state": "GA",
+  "sourceUrl": "https://www.ciopartners.com/team/connor-treyball/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Angelica Chadwick",
+  "title": "Vice President of Executive Search & Technology",
+  "firm": "Blue Signal Search",
+  "firmWebsite": "https://bluesignal.com",
+  "city": "Tampa",
+  "state": "FL",
+  "email": "achadwick@bluesignal.com",
+  "phone": "(656) 269-1803",
+  "sourceUrl": "https://bluesignal.com/recruiter-angelica-chadwick/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "data_ai",
+   "engineering",
+   "product_design",
+   "executive"
+  ],
+  "coverageStates": [
+   "FL"
+  ]
+ },
+ {
+  "fullName": "Richard Ballard",
+  "title": "Director",
+  "firm": "Stanton Chase",
+  "firmWebsite": "https://www.stantonchase.com",
+  "city": "Nashville",
+  "state": "TN",
+  "email": "r.ballard@stantonchase.com",
+  "phone": "615-371-6113",
+  "sourceUrl": "https://www.stantonchase.com/consultant/richard-ballard",
+  "industries": [
+   "technology",
+   "healthcare",
+   "life_sciences"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TN"
+  ]
+ },
+ {
+  "fullName": "Shannon Famosi",
+  "title": "Vice President, Technology Divisions",
+  "firm": "Agile",
+  "firmWebsite": "https://www.gotoagile.com",
+  "city": "Orlando",
+  "state": "FL",
+  "sourceUrl": "https://www.gotoagile.com/locations/it-staffing-orlando/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "data_ai"
+  ],
+  "coverageStates": [
+   "FL"
+  ]
+ }
+]

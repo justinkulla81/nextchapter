@@ -806,8 +806,44 @@ const WHY_NOTES: Record<string, BuyNote> = {
 }
 
 /** One plain note on what the member's reason for buying means for their plan, or null when they have not said. */
-export function whyNote(d: BuyDetails): BuyNote | null {
-  return d.why ? (WHY_NOTES[d.why] ?? null) : null
+// What buying a business means for money, by how long the member could go without new income (their answer on Your other
+// paths, or worked out from a saved cushion). Replaces the general income note for the two reasons that are about income.
+const INCOME_NOTES: Record<string, BuyNote> = {
+  under_3: {
+    text: 'You could go under three months without new income, and buying takes six months to a year. Put income first: benefits if you qualify, then contract, temp or part-time work, then interim or fractional work.',
+    because: 'You told us how long you could go without new income.',
+    links: EARN_LINKS,
+  },
+  '3_6': {
+    text: 'You could go three to six months, and buying takes six months to a year. Add one income step every week, so paid work is ready before the money gets tight.',
+    because: 'You told us how long you could go without new income.',
+    links: EARN_LINKS,
+  },
+  '6_12': {
+    text: 'Your cushion covers most of a buying search. Interim or fractional work is an option if you want income sooner.',
+    because: 'You told us how long you could go without new income.',
+    links: EARN_LINKS,
+  },
+  year: {
+    text: 'You can go a year or more, which is longer than most buying searches. Paid work next to it is optional.',
+    because: 'You told us how long you could go without new income.',
+    links: [],
+  },
+}
+
+const INCOME_QUESTION_LINK = { label: 'Tell us how long you could go without new income', href: '/dashboard/other-paths#paths-income' }
+
+export function whyNote(d: BuyDetails, opts: { hasSide?: boolean; incomeNeed?: string | null } = {}): BuyNote | null {
+  let note = d.why ? (WHY_NOTES[d.why] ?? null) : null
+  if (note && (d.why === 'hiring' || d.why === 'income')) {
+    const byAnswer = opts.incomeNeed ? INCOME_NOTES[opts.incomeNeed] : null
+    note = byAnswer ?? { ...note, links: [...note.links, INCOME_QUESTION_LINK] }
+  }
+  // A member who already has side work is sent to that card, not to the general interim work page.
+  if (note && opts.hasSide && note.links.includes(EARN_LINKS[0])) {
+    return { ...note, links: [{ label: 'Your side work', href: '/dashboard/other-paths' }, ...note.links.filter((l) => l !== EARN_LINKS[0])] }
+  }
+  return note
 }
 
 export type HardPart = { key: string; title: string; because: string; learn: { label: string; href: string } }
@@ -852,9 +888,12 @@ const HARD_PARTS: Record<string, HardPart> = {
 }
 
 /** The hard parts the member did not tick, each with why it matters and where to learn. Empty until they have answered. */
-export function hardPartsToPlanFor(d: BuyDetails): HardPart[] {
+export function hardPartsToPlanFor(d: BuyDetails, opts: { hasSide?: boolean } = {}): HardPart[] {
   if (!d.ready) return []
-  return HARD_PART_OPTIONS.filter((o) => !d.ready!.includes(o.value)).map((o) => HARD_PARTS[o.value])
+  return HARD_PART_OPTIONS.filter((o) => !d.ready!.includes(o.value)).map((o) => {
+    const h = HARD_PARTS[o.value]
+    return o.value === 'income' && opts.hasSide ? { ...h, learn: { label: 'Your side work covers part of this: see it and your hours', href: '/dashboard/other-paths' } } : h
+  })
 }
 
 // ── Podcasts and videos ──────────────────────────────────────────────────────

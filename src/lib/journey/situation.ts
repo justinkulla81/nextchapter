@@ -6,6 +6,7 @@
 
 import type { JourneyType } from '@prisma/client'
 import { RETIREMENT_INCOME, RETIREMENT_PATHS, retirementPlanItems } from './retirement'
+import { INCOME_NEED_OPTIONS, incomePlanItems, sideIncomeOf } from './paths'
 
 const ALL_JOURNEYS: readonly JourneyType[] = ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT', 'TIME_OFF', 'FRACTIONAL', 'ENTREPRENEUR', 'BUY_BUSINESS']
 
@@ -20,6 +21,14 @@ export type SituationField = {
 }
 
 export const SITUATION_FIELDS: readonly SituationField[] = [
+  {
+    key: 'incomeNeed',
+    // Not full-time fractional members: their plan already runs on clients and a pipeline.
+    journeys: ALL_JOURNEYS.filter((j) => j !== 'FRACTIONAL'),
+    label: 'How long could you go without new income?',
+    kind: 'choice',
+    options: INCOME_NEED_OPTIONS,
+  },
   { key: 'hoursAvailable', journeys: ALL_JOURNEYS, label: 'About how many hours a week can you give this?', kind: 'number', min: 1, max: 60 },
   {
     key: 'boardExperience',
@@ -90,13 +99,15 @@ const weeksText = (days: number) => (days <= 7 ? 'about a week' : `${Math.round(
 
 export type SituationPlanItem = { text: string; actionType?: string }
 
-export function situationPlanItems(journey: JourneyType | null, details: unknown, opts: { fn?: string | null; now?: Date } = {}): SituationPlanItem[] {
+export function situationPlanItems(journey: JourneyType | null, details: unknown, opts: { fn?: string | null; now?: Date; kinds?: readonly string[] | null; senior?: boolean } = {}): SituationPlanItem[] {
   if (!journey) return []
   const d = (details ?? {}) as Record<string, unknown>
   const now = opts.now ?? new Date()
   const daysTo = (key: string) => (typeof d[key] === 'string' && DATE.test(d[key] as string) ? Math.ceil((new Date(`${d[key]}T12:00:00Z`).getTime() - now.getTime()) / DAY) : null)
   const num = (key: string) => (typeof d[key] === 'number' ? (d[key] as number) : null)
   const out: SituationPlanItem[] = []
+  // How long they could go without income: what comes first, by their answer, unless they already earn that way.
+  out.push(...incomePlanItems({ details: d, main: journey, kinds: opts.kinds, workingNow: d.workingNow === true, now, senior: opts.senior }))
   const hours = num('hoursAvailable')
   if (hours !== null && hours <= 3) out.push({ text: `You have about ${hours} hours a week: do only the first two steps this week and leave the rest` })
   if (journey === 'NEXT_ACT') {
@@ -118,6 +129,11 @@ export function situationPlanItems(journey: JourneyType | null, details: unknown
     if (ben !== null && ben >= 0 && ben <= 60) out.push({ text: `Your health coverage ends in ${weeksText(ben)}: price COBRA against the marketplace and decide before the deadline` })
     const need = num('monthlyNeed')
     if (need) out.push({ text: `You need about $${need.toLocaleString('en-US')} a month: divide your savings and severance by it to know how many months you have` })
+    // Side or part-time income the member told us about counts against that need.
+    const side = sideIncomeOf(d)
+    if (need && side > 0) {
+      out.push({ text: `Your side income covers about $${Math.min(side, need).toLocaleString('en-US')} of the $${need.toLocaleString('en-US')} you need each month${side >= need ? ': your runway is no longer shrinking' : `: the gap is $${(need - side).toLocaleString('en-US')}`}` })
+    }
   }
   if (journey === 'EXPLORING_MOVE') {
     const by = daysTo('moveBy')

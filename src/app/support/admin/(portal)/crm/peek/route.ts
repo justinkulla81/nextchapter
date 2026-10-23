@@ -57,6 +57,10 @@ export async function GET(req: NextRequest) {
         touched: sinceLabel(a.person.lastTouchedAt),
       })),
       pipelines: org.opportunities.map((o) => ({ label: o.pipeline.label, stage: o.stage.label })),
+      links: [
+        ...org.opportunities.filter((o) => o.url).map((o) => ({ label: o.title, url: o.url! })),
+        ...(org.website && !org.opportunities.some((o) => o.url === org.website) ? [{ label: 'Website', url: org.website }] : []),
+      ],
       dates: org.deadlines.map((d) => ({ label: d.label, value: formatDate(d.dueAt) })),
     })
   }

@@ -29,7 +29,7 @@ const MAX_MESSAGES = 1000
  * hour of overlap; re-reading a message is harmless because writes upsert on
  * the message id.
  */
-export async function POST() {
+export async function POST(request: Request) {
   const admin = await requireAdmin()
 
   // One sweep at a time. The header and the alert each have a Sync now, and
@@ -50,7 +50,13 @@ export async function POST() {
     select: { startedAt: true },
   })
   const sinceLast = last ? (Date.now() - last.startedAt.getTime()) / HOUR + 1 : MAX_WINDOW_HOURS
-  const windowHours = Math.min(MAX_WINDOW_HOURS, Math.max(MIN_WINDOW_HOURS, Math.ceil(sinceLast)))
+  // An admin can ask for a wider catch-up (?days=14), e.g. right after
+  // connecting another mailbox whose older mail was never swept. Same cap.
+  const askedDays = Number(new URL(request.url).searchParams.get('days'))
+  const windowHours = Math.min(
+    MAX_WINDOW_HOURS,
+    Math.max(MIN_WINDOW_HOURS, Math.ceil(Number.isFinite(askedDays) && askedDays > 0 ? Math.max(sinceLast, askedDays * 24) : sinceLast)),
+  )
 
   try {
     const result = await sweepGmail(windowHours / 24, MAX_MESSAGES, 'gmail-manual')

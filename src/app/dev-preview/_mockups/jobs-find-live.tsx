@@ -97,8 +97,9 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     candidatePlus: false,
   },
   {
-    // An entry-level job flagged "No experience needed" (entry-filters.ts): the card tag and the quoted phrase.
-    posting: posting({ id: 'ba-northwind', title: 'Business Analyst, New Grad', companyName: 'Northwind', location: 'Chicago, IL', description: DESCRIPTION, createdAt: daysAgo(2), postedAt: daysAgo(2), level: 'ENTRY_IC', postingSignals: ['no_experience_ok', 'entry_ai'], noExperiencePhrase: 'No prior experience required: recent graduates and career starters are encouraged to apply, and we will train you on our tools.' }),
+    // An entry-level job flagged "No experience needed" and "Training provided" (entry-filters.ts): the card tag and
+    // both quoted phrases.
+    posting: posting({ id: 'ba-northwind', title: 'Business Analyst, New Grad', companyName: 'Northwind', location: 'Chicago, IL', description: DESCRIPTION, createdAt: daysAgo(2), postedAt: daysAgo(2), level: 'ENTRY_IC', postingSignals: ['no_experience_ok', 'training_provided', 'entry_ai'], noExperiencePhrase: 'No prior experience required: recent graduates and career starters are encouraged to apply, and we will train you on our tools.', trainingPhrase: 'You will begin with a 12-week paid training program covering our analytics stack, client work and business writing.' }),
     fitBucket: 'stretch',
     why: { fits: ['analysis'], gap: null },
     competition: { level: 'medium', reasons: [] },
@@ -140,7 +141,7 @@ export function FindJobsLive() {
           <OpenToChangersFilter surface="dev_preview" on={false} />
         </div>
         <div className="mt-3">
-          <EntryFilterChips surface="dev_preview" on={['noexp']} count={1} />
+          <EntryFilterChips surface="dev_preview" on={['noexp', 'train']} count={1} />
         </div>
       </details>
       <FindTwoPane items={all.map((e) => e.item)} details={Object.fromEntries(all.map((e) => [e.item.id, e.detail]))} summary={`${all.length} jobs, best fit first`} />
