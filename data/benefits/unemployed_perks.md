@@ -18,7 +18,7 @@
 | Iowa Child Care Assistance job search |  | IA |  | Child care subsidy; looking for work counts as an approved activity | Income-eligible Iowa parent who is working, in training, or looking for work | Open | https://hhs.iowa.gov/assistance-programs/child-care-assistance | Yes |
 | Texas Initial Job Search Child Care | | TX | | Up to 3 months (90 calendar days from Oct 1, 2026) of child care with no copay while job searching; 12-month eligibility if work found | Texas parents not meeting minimum participation requirements; apply via local Workforce Solutions board | Open | https://www.twc.texas.gov/sites/default/files/wf/policy-letter/wd/13-21-ch3-twc.pdf | No |
 | Delaware child care job-search eligibility | | DE | | 2018 law lets families start child care assistance while seeking work, up to 90 days | Income-eligible Delaware families | Open | https://legis.delaware.gov/BillDetail/25615 | No |
-| Minnesota Child Care Assistance Program | | MN | | Subsidy covers parents searching for a job or in employment-plan activities | Income-eligible; confirm hours with county | Open | https://dcyf.mn.gov/programs-directory/child-care-assistance-program | No |
+| Minnesota Child Care Assistance Program | | MN | | Helps pay for child care while you work, look for a job, study or follow an employment plan | Low-income parents/caregivers; kids 12 or under; assets $1M or less; apply via MNbenefits | Open | https://dcyf.mn.gov/programs-directory/child-care-assistance-program | Yes |
 | New Mexico Child Care Assistance |  | NM |  | Child care cost subsidy; job search is a qualifying activity (copay waiver noted) | Income-eligible NM parent or guardian working, in school, in job training or actively looking for a job | Open | https://www.nmececd.org/child-care-assistance/ | Yes |
 
 ## Phone, internet, devices
@@ -45,7 +45,7 @@
 
 | Name | Employer | State | Locality | What it pays | Eligibility | Status | Official URL | Verified |
 |---|---|---|---|---|---|---|---|---|
-| Arkansas Act 725 of 2021 workforce licensing fee waiver | | AR | | Initial licensing fees waived at state licensing boards | Public benefits, recent unemployment approval, or income under 200% FPL; must request waiver | Open | https://labor.arkansas.gov/home_slides/act-725-of-2021-workforce-waiver | No |
+| Arkansas Act 725 of 2021 workforce licensing fee waiver | | AR | | Initial licensing fee waived for Workforce Expansion Act applicants | On Medicaid/SNAP/WIC/TANF, approved for unemployment in last 12 months, or income under 200% FPL; call 501-682-4500 | Open | https://labor.arkansas.gov/home_slides/act-725-of-2021-workforce-waiver/ | Yes |
 | New York civil service exam application fee waiver | | NY | | Waives civil service exam application fees (county pages, e.g. Saratoga, Rockland) | Certify unemployed and primarily responsible for household support, or on public assistance | Open | https://www.saratogacountyny.gov/wp/wp-content/uploads/2023/04/HR-ApplicationFeeWaiver.pdf | No |
 | Braze Learning laid-off certification offer |  |  |  | 100 free Level 1 certification exams and 50% off higher levels | Laid-off workers with proof of layoff; promo codes expired 12/31/2025 | Closed | https://www.braze.com/resources/articles/braze-learning-100-certifications | Yes |
 
@@ -58,7 +58,6 @@
 | Ramsey County WIOA support services | | MN | Ramsey County | Maximum $1,000 per participant stay in program | WIOA Dislocated Worker/Adult participant | Open | https://www.ramseycounty.us/sites/default/files/Departments/Workforce%20Solutions/WIOA%20documents/DW%20and%20Adult%20support%20services%20policy%20.pdf | No |
 | Lorain County WIOA supportive services | | OH | Lorain County | Auto repair up to $1,000 maximum; other items per policy | WIOA participant | Open | https://loraincountyohio.gov/DocumentCenter/View/4315/Supportive-Services-Policy-PDF | No |
 | Dutchess County WIOA good-faith transport | | NY | Dutchess County | One-time upfront bus pass or gas card | WIOA participant, continued help requires documented participation | Open | https://theworkforceconnection.org/wp-content/uploads/2023/09/2016-43.pdf | No |
-| Career Gear professional clothing | | | New York City | Free professional clothing for job interviews | Referred men in job search; confirm referral process | Unknown | https://www.careergear.org/ | No |
 
 ## Free legal help for unemployed workers
 
