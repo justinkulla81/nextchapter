@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { seedBoardProcurement } from '@/lib/boards/procurement'
 import { Prisma } from '@prisma/client'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -41,6 +42,8 @@ function daysAgo(days: number): Date {
 const loadBoardData = ttlCached(
   5 * 60 * 1000,
   async (state: string, windowDays: number | null) => {
+    // Load the bundled procurement-page crawl on first view (and after a re-crawl); a missing column just skips it.
+    await seedBoardProcurement().catch(() => 0)
     const [allBoards, notices, states, labor, fitRows] = await Promise.all([
     prisma.workforceBoard.findMany({
       where: state ? { state } : {},
@@ -235,6 +238,7 @@ export default async function WorkforceBoardsPage({
                       {b.serviceArea && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground" title={b.serviceArea}>{b.serviceArea}</p>}
                       <p className="mt-1 flex flex-wrap gap-x-3 text-xs">
                         {site && <a href={site} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website</a>}
+                        {b.procurementUrl && <a href={b.procurementUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline" title={b.procurementKind === 'solicitations' ? 'Page lists solicitations' : 'Procurement page'}>Bids and RFPs</a>}
                         <a href={jobCentersUrl(b.zip, b.state)} target="_blank" rel="noreferrer" className="text-primary hover:underline">Job centers (partners)</a>
                         {b.detailsUrl && <a href={b.detailsUrl} target="_blank" rel="noreferrer" className="text-muted-foreground hover:underline">Directory listing</a>}
                         {b.address && <span className="text-muted-foreground">{b.address}</span>}
