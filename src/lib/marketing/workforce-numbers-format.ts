@@ -31,6 +31,10 @@ export interface WorkforceRaw {
     functions: number
     states: number
     places: number
+    /** Entry / early-career jobs flagged no_experience_ok, training_provided and entry_ai (src/lib/jobs/entry-filters.ts); absent in older callers. */
+    entryNoExp?: number
+    entryTraining?: number
+    entryAi?: number
   } | null
   taxonomy: {
     skills: number
@@ -103,7 +107,7 @@ export function buildWorkforceTiles(raw: WorkforceRaw): WorkforceTileGroup[] {
         ...tile(ok(j.government + j.nonprofit + j.academia), {
           key: 'public_mission',
           value: floorCount(j.government + j.nonprofit + j.academia),
-          label: 'government, nonprofit and higher-ed jobs',
+          label: 'government, nonprofit and higher education jobs',
           detail: parts([
             [j.government, 'government'],
             [j.nonprofit, 'nonprofit'],
@@ -192,4 +196,23 @@ export function buildWorkforceTiles(raw: WorkforceRaw): WorkforceTileGroup[] {
     { key: 'skills', title: 'Skills and AI', tiles: skills },
     { key: 'people', title: 'Pivots, learning and support', tiles: people },
   ].filter((g) => g.tiles.length > 0)
+}
+
+/**
+ * The workforce page's one entry-level line: "X entry-level jobs welcome people with no experience; Y include a
+ * training program; Z ask for AI skills." Floored like every tile; a zero or missing count drops its part (the
+ * first part left names "entry-level jobs"), all gone = null.
+ */
+export function entryLevelLine(jobs: WorkforceRaw['jobs']): string | null {
+  if (!jobs) return null
+  const parts = (
+    [
+      [jobs.entryNoExp, 'welcome people with no experience'],
+      [jobs.entryTraining, 'include a training program'],
+      [jobs.entryAi, 'ask for AI skills'],
+    ] as const
+  )
+    .filter(([n]) => !!n)
+    .map(([n, what], i) => `${floorCount(n!)} ${i === 0 ? 'entry-level jobs ' : ''}${what}`)
+  return parts.length ? `${parts.join('; ')}.` : null
 }

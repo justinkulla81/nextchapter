@@ -14,6 +14,8 @@ export type HomeNoteKind =
   | 'setup_strategy'
   | 'report_ready'
   | 'connect_accounts'
+  | 'coach_offer'
+  | 'stalled_reask'
   | 'stalled_search'
   | 'passive_to_active'
   | 'first_week'
@@ -28,6 +30,10 @@ export interface HomeNoteInputs {
   searchStrategyIncomplete: boolean
   reportReady: boolean
   accountsNotConnected: boolean
+  /** A reason to offer a coach today (src/lib/coach/offer.ts); not snoozed, and no coach yet. */
+  coachOffer?: boolean
+  /** A long search with no interviews: ask what they want to change (src/lib/journey/stalled-reask.ts). */
+  stalledReask?: boolean
   stalledSearch: boolean
   passiveToActive: boolean
   firstWeek: FirstWeekStep | null
@@ -42,6 +48,9 @@ export function pickHomeNote(i: HomeNoteInputs): HomeNoteKind {
   if (i.searchStrategyIncomplete) return 'setup_strategy'
   if (i.reportReady) return 'report_ready'
   if (i.accountsNotConnected) return 'connect_accounts'
+  if (i.coachOffer) return 'coach_offer'
+  // The wider question comes before the narrower stalled-search card: both are about a stall, and only one is the note.
+  if (i.stalledReask) return 'stalled_reask'
   if (i.stalledSearch) return 'stalled_search'
   if (i.passiveToActive) return 'passive_to_active'
   if (i.firstWeek) return 'first_week'

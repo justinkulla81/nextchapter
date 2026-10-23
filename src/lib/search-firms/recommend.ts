@@ -133,7 +133,7 @@ export function recommendFirms(member: MemberForRecommend, firms: FirmForRecomme
       const fnList = [...functions].filter((fn) => fnTitles.some((t) => inferFunctionFromTitle(t) === fn))
       why.push(`${fnTitles.length} recent search${fnTitles.length === 1 ? '' : 'es'} in ${fnList.join(' and ')}, e.g. "${shorten(fnTitles[0].trim(), 60)}"`)
     }
-    if (nonprofitFit) why.push('specializes in nonprofit and higher-ed search')
+    if (nonprofitFit) why.push('specializes in nonprofit and higher education search')
     else if (industryHits.length > 0) why.push(`works in ${industryHits[0]}`)
 
     const url = f.website ?? (f.domain ? `https://${f.domain}` : null)

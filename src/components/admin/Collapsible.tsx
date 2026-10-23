@@ -19,7 +19,27 @@ export function Collapsible({
   )
 }
 
+/**
+ * What kind of content a group holds, shown as a colour so a page can be
+ * scanned: things to act on are warm and sit at the top, the conversation is
+ * blue, reference data is grey and sits lowest. Colour marks the section only;
+ * the single accent colour stays reserved for primary actions.
+ */
+export type GroupTone = 'action' | 'history' | 'reference'
+
+const TONE: Record<GroupTone, { dot: string; border: string }> = {
+  action: { dot: 'bg-orange', border: 'border-orange/60' },
+  history: { dot: 'bg-light-blue', border: 'border-light-blue/50' },
+  reference: { dot: 'bg-gray', border: 'border-border' },
+}
+
 /** Heading for a group of related sections on the profile. */
-export function GroupHeading({ children }: { children: ReactNode }) {
-  return <h2 className="border-b border-border pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{children}</h2>
+export function GroupHeading({ children, tone = 'reference' }: { children: ReactNode; tone?: GroupTone }) {
+  const t = TONE[tone]
+  return (
+    <h2 className={`flex items-center gap-2 border-b pb-1 text-xs font-semibold uppercase tracking-wide ${t.border} ${tone === 'reference' ? 'text-muted-foreground' : 'text-foreground'}`}>
+      <span className={`h-2 w-2 rounded-full ${t.dot}`} aria-hidden />
+      {children}
+    </h2>
+  )
 }

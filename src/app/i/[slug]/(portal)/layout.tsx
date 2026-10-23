@@ -17,6 +17,7 @@ import { prisma } from '@/lib/prisma'
 import { readProfile } from '@/lib/higher-ed/profile'
 import { organizationBrandFor } from '@/lib/organizations/service'
 import { SignOutForm } from '@/components/auth/SignOutForm'
+import { PortalTypeBar } from '@/components/partners/PortalTypeBar'
 
 async function getTagline(institutionId: string): Promise<string | null> {
   const row = await prisma.institution.findUnique({ where: { id: institutionId }, select: { profile: true } })
@@ -83,6 +84,10 @@ export default async function InstitutionPortalLayout({
   return (
     <div className="theme-partner flex min-h-screen flex-col bg-background" style={theme}>
       <CanonicalOrgUrl slug={slug} base={orgBasePath(slug, institution.orgType)} />
+      <PortalTypeBar
+        type={orgKindOf(institution.orgType) === 'workforce' ? 'workforce' : 'higher_ed'}
+        use={institution.orgType === 'WORKFORCE_BOARD' ? 'Workforce boards' : institution.orgType === 'ECONOMIC_DEVELOPMENT' ? 'Economic development' : null}
+      />
       {institution.isDemo && (
         <DemoBar
           slug={slug}

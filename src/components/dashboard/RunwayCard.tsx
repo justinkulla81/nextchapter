@@ -21,7 +21,7 @@ export interface RunwayStateFacts {
 const num = (v: string) => (v.trim() === '' ? 0 : Number(v.replace(/[$,\s]/g, '')))
 
 // Savings numbers are computed here in the browser and never sent or stored.
-export function RunwayCard({ facts, weeksSinceLastJob, redesign = false }: { facts: RunwayStateFacts | null; weeksSinceLastJob: number | null; redesign?: boolean }) {
+export function RunwayCard({ facts, weeksSinceLastJob, redesign = false, sideIncome = 0 }: { facts: RunwayStateFacts | null; weeksSinceLastJob: number | null; redesign?: boolean; sideIncome?: number }) {
   // The redesign: a plain section with a serif heading and body-size text, in place of the card with small grey text.
   const { SCard, SContent } = stepCard(redesign)
   const body = redesign ? 'text-base text-ink' : 'text-sm text-foreground'
@@ -33,7 +33,10 @@ export function RunwayCard({ facts, weeksSinceLastJob, redesign = false }: { fac
   const [calculated, setCalculated] = useState(false)
 
   const ui = uiWeeksLeft({ maxWeeks: facts?.maxWeeks ?? null, durationVaries: facts?.durationVaries ?? null, weeksSinceLastJob })
-  const cushion = cushionMonths({ savingsUsd: num(savings), monthlyExpensesUsd: num(expenses), monthlyIncomeUsd: num(income) })
+  // Side or part-time income the member told us about is added to what is coming in, and shown on its own so they can see what it adds.
+  const without = cushionMonths({ savingsUsd: num(savings), monthlyExpensesUsd: num(expenses), monthlyIncomeUsd: num(income) })
+  const cushion = cushionMonths({ savingsUsd: num(savings), monthlyExpensesUsd: num(expenses), monthlyIncomeUsd: num(income) + sideIncome })
+  const sideAdds = sideIncome > 0 && without.months !== null && cushion.months !== null ? cushion.months - without.months : null
 
   return (
     <SCard>
@@ -84,6 +87,7 @@ export function RunwayCard({ facts, weeksSinceLastJob, redesign = false }: { fac
             <div className="space-y-1.5">
               <Label htmlFor="runway-income">Monthly money coming in</Label>
               <Input id="runway-income" inputMode="numeric" value={income} onChange={(e) => { setIncome(e.target.value); setCalculated(false) }} placeholder="Benefits, severance, partner" />
+              {sideIncome > 0 && <p className={small}>Your side income of ${sideIncome.toLocaleString('en-US')} a month is added for you.</p>}
             </div>
           </div>
           <button
@@ -102,7 +106,7 @@ export function RunwayCard({ facts, weeksSinceLastJob, redesign = false }: { fac
                 ? 'Your monthly income covers your expenses, so your savings are not being drawn down.'
                 : cushion.months === null
                   ? 'Enter savings and monthly expenses to see your cushion.'
-                  : `Your savings cover about ${cushion.months.toFixed(1)} months at this pace.`}
+                  : `Your savings cover about ${cushion.months.toFixed(1)} months at this pace.${sideAdds !== null && sideAdds >= 0.1 ? ` Your side income adds about ${sideAdds.toFixed(1)} of them.` : ''}`}
             </p>
           )}
           <p className={small}>These numbers stay on this page and are not saved.</p>

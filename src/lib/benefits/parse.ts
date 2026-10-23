@@ -21,11 +21,14 @@ const CODES = new Set(Object.values(STATES))
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 90)
 const clean = (s: string | undefined) => (s ?? '').replace(/\*\*/g, '').replace(/`/g, '').trim()
 
-type Col = 'employer' | 'city' | 'name' | 'state' | 'provider' | 'amount' | 'eligibility' | 'status' | 'url' | 'verified' | 'segment' | 'cost' | 'locality'
+type Col = 'applyUrl' | 'audience' | 'affinity' | 'employer' | 'city' | 'name' | 'state' | 'provider' | 'amount' | 'eligibility' | 'status' | 'url' | 'verified' | 'segment' | 'cost' | 'locality'
 function colFor(h: string): Col | null {
   const x = h.toLowerCase()
   if (/^#$/.test(x)) return null
   if (/verif|^ver$/.test(x)) return 'verified'
+  if (/^apply/.test(x)) return 'applyUrl'
+  if (/^audience/.test(x)) return 'audience'
+  if (/^affinity/.test(x)) return 'affinity'
   if (/url|link/.test(x)) return 'url'
   if (/^state/.test(x)) return 'state'
   if (/status/.test(x)) return 'status'
@@ -100,11 +103,14 @@ export function parseCatalog(markdown: string, category: BenefitCategory, source
     seen.add(id)
     const seg = get('segment')
     const employer = get('employer')?.slice(0, 120) ?? null
+    const list = (c: Col) => (get(c) ?? '').split(';').map((x) => x.trim().slice(0, 60)).filter(Boolean)
+    const applyRaw = get('applyUrl')
+    const applyUrl = applyRaw && /^https?:\/\/\S+/.test(applyRaw) ? applyRaw.match(/^https?:\/\/\S+/)![0].replace(/[),.;]+$/, '') : null
     out.push({
       id, category, name: name.slice(0, 200), provider: get('provider') ?? null, scope: state ? 'STATE' : 'NATIONAL', state: state ?? null,
       locality: get('locality') ?? null, amount: amount ? amount.slice(0, 400) : null, eligibility: get('eligibility')?.slice(0, 500) ?? null,
       status: statusOf(statusText), statusNote: statusText ? statusText.slice(0, 300) : null, url,
-      segments: seg ? [seg.slice(0, 80)] : [], city: get('city')?.slice(0, 80) ?? null, employer, employerKey: employer ? normalizeOrgName(employer) : null, geoAreaId: null, verified: verified && !!url, checkedAt: verified ? checkedAt : null, source,
+      segments: get('audience') !== undefined ? list('audience') : seg ? [seg.slice(0, 80)] : [], affinity: list('affinity'), applyUrl, city: get('city')?.slice(0, 80) ?? null, employer, employerKey: employer ? normalizeOrgName(employer) : null, geoAreaId: null, verified: verified && !!url, checkedAt: verified ? checkedAt : null, source,
     })
   }
   return out

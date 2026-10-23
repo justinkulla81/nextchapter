@@ -6,8 +6,8 @@ import { APPLICATION_STATUSES, JOB_STATUS_LABEL, type ApplicationStatus } from '
 import { setApplicationStatusById } from '@/app/dashboard/find-my-job/my-jobs-actions'
 
 /** Applied / Interviewing / Offer / Closed for an application found in Gmail or logged in the tracker. */
-export function ApplicationStatusButtons({ jobPostingId, title, initial }: { jobPostingId: string; title: string; initial: ApplicationStatus }) {
-  const [status, setStatus] = useState(initial)
+export function ApplicationStatusButtons({ jobPostingId, title, initial }: { jobPostingId: string; title: string; initial: ApplicationStatus | null }) {
+  const [status, setStatus] = useState<ApplicationStatus | null>(initial)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 

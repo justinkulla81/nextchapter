@@ -1,0 +1,722 @@
+[
+ {
+  "name": "Isaacson, Miller",
+  "website": "https://www.imsearch.com",
+  "teamPageUrl": "https://www.imsearch.com/who-we-are/firm-leadership",
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 231,
+  "onFile": 0
+ },
+ {
+  "name": "Carney, Sandoe & Associates",
+  "website": "https://www.carneysandoe.com",
+  "teamPageUrl": "https://www.carneysandoe.com/about-us/our-team/",
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 75,
+  "onFile": 0
+ },
+ {
+  "name": "Solomon Page",
+  "website": "https://www.solomonpage.com",
+  "teamPageUrl": "https://www.solomonpage.com/about",
+  "segment": "contingent",
+  "liveSearches": 69,
+  "onFile": 3
+ },
+ {
+  "name": "MRINetwork",
+  "website": "https://www.mrinetwork.com",
+  "teamPageUrl": null,
+  "segment": "contingent",
+  "liveSearches": 52,
+  "onFile": 0
+ },
+ {
+  "name": "B.E. Smith",
+  "website": "https://www.besmith.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 50,
+  "onFile": 0
+ },
+ {
+  "name": "Academic Search",
+  "website": "https://academicsearch.org",
+  "teamPageUrl": "https://academicsearch.org/our-team/",
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 38,
+  "onFile": 0
+ },
+ {
+  "name": "Kittleman & Associates",
+  "website": "https://www.kittlemansearch.com",
+  "teamPageUrl": "http://www.kittlemansearch.com/who-we-are/our-team",
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 28,
+  "onFile": 0
+ },
+ {
+  "name": "Kaye/Bassman International",
+  "website": "https://www.kbic.com",
+  "teamPageUrl": "https://www.kbic.com/team/",
+  "segment": "contingent",
+  "liveSearches": 25,
+  "onFile": 0
+ },
+ {
+  "name": "Charles Aris",
+  "website": "https://charlesaris.com",
+  "teamPageUrl": "https://charlesaris.com/our-team",
+  "segment": "retained",
+  "liveSearches": 14,
+  "onFile": 0
+ },
+ {
+  "name": "La Fosse",
+  "website": "https://www.lafosse.com",
+  "teamPageUrl": "https://www.lafosse.com/about-us",
+  "segment": "contingent",
+  "liveSearches": 12,
+  "onFile": 0
+ },
+ {
+  "name": "Smith & Wilkinson",
+  "website": "https://www.smithandwilkinson.com",
+  "teamPageUrl": "https://www.smithandwilkinson.com/team",
+  "segment": "contingent",
+  "liveSearches": 11,
+  "onFile": 0
+ },
+ {
+  "name": "SearchWide Global",
+  "website": "https://www.searchwideglobal.com",
+  "teamPageUrl": "https://searchwideglobal.com/our-team/",
+  "segment": "contingent",
+  "liveSearches": 10,
+  "onFile": 0
+ },
+ {
+  "name": "Kirby Bates Associates",
+  "website": "https://kirbybates.com",
+  "teamPageUrl": "https://kirbybates.com/about-us/team-profiles/",
+  "segment": "retained",
+  "liveSearches": 9,
+  "onFile": 0
+ },
+ {
+  "name": "Odgers Berndtson",
+  "website": "https://www.odgersberndtson.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 3,
+  "onFile": 1
+ },
+ {
+  "name": "Ropella",
+  "website": "https://www.ropella.com",
+  "teamPageUrl": "https://ropella360.com/ourteam/",
+  "segment": "retained",
+  "liveSearches": 2,
+  "onFile": 0
+ },
+ {
+  "name": "The Barton Partnership",
+  "website": "https://www.thebartonpartnership.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 2,
+  "onFile": 0
+ },
+ {
+  "name": "Nonprofit HR",
+  "website": "https://www.nonprofithr.com",
+  "teamPageUrl": "https://www.nonprofithr.com/about-us/our-team/",
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 1,
+  "onFile": 0
+ },
+ {
+  "name": "Weinreb Group",
+  "website": "https://weinrebgroup.com",
+  "teamPageUrl": "https://weinrebgroup.com/team/",
+  "segment": "retained",
+  "liveSearches": 1,
+  "onFile": 0
+ },
+ {
+  "name": "Glocap Search",
+  "website": "https://www.glocap.com",
+  "teamPageUrl": "https://www.glocap.com/our-team",
+  "segment": "retained",
+  "liveSearches": 1,
+  "onFile": 0
+ },
+ {
+  "name": "AGB Search",
+  "website": "https://www.agbsearch.com",
+  "teamPageUrl": null,
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Acertitude",
+  "website": "https://www.acertitude.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Alexander Hughes",
+  "website": "https://www.alexanderhughes.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Amity Search Partners",
+  "website": "https://www.amitysearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Amrop",
+  "website": "https://www.amrop.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Anderson Search Group",
+  "website": "https://www.andersonsearchgroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Berwick Partners",
+  "website": "https://www.berwickpartners.co.uk",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "CFR Global Executive Search",
+  "website": "https://www.cfrglobal.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Cardea Group",
+  "website": "https://www.cardeagroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "Cejka Search",
+  "website": "https://www.cejkasearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Comhar Partners",
+  "website": "https://www.comharpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Cook & Company",
+  "website": "https://www.cookandcompanysearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Direct Recruiters Inc",
+  "website": "https://www.directrecruiters.com",
+  "teamPageUrl": null,
+  "segment": "contingent",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Eastward Partners",
+  "website": "https://www.eastwardpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Erevena",
+  "website": "https://www.erevena.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Eric Salmon & Partners",
+  "website": "https://www.ericsalmon.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "Frederickson Partners",
+  "website": "https://www.fredericksonpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Furst Group",
+  "website": "https://www.furstgroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Grant Cooper",
+  "website": "https://www.grantcooper.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Henkel Search Partners",
+  "website": "https://www.henkelsearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Hobbs & Towne",
+  "website": "https://www.hobbstowne.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Horton International",
+  "website": "https://www.hortonintl.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Hudson Gate Partners",
+  "website": "https://www.hudsongatepartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "EnableGreen",
+  "website": "https://enable.green",
+  "teamPageUrl": "https://enable.green/about-us/",
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Ferguson Partners",
+  "website": "https://www.fergusonpartners.com",
+  "teamPageUrl": "https://www.fergusonpartners.com/team_location/north-america/",
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Atlas Search",
+  "website": "https://www.atlas-search.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 2
+ },
+ {
+  "name": "Bay Street Advisors",
+  "website": "https://www.baystreetadvisors.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Beecher Reagan",
+  "website": "https://www.beecherreagan.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Bench International",
+  "website": "https://www.benchinternational.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "Buffkin / Baker",
+  "website": "https://buffkinbaker.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Cameron Craig Group",
+  "website": "https://www.cameroncraiggroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Chartwell Partners",
+  "website": "https://www.chartwellpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Coulter Partners",
+  "website": "https://www.coulterpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Diversified Search Group",
+  "website": "https://www.diversifiedsearchgroup.com",
+  "teamPageUrl": "https://www.dsgco.com/our-people",
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "Bridge Partners",
+  "website": "https://bridgepartnersllc.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 3
+ },
+ {
+  "name": "GatenbySanderson",
+  "website": "https://www.gatenbysanderson.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Green Park",
+  "website": "https://www.green-park.co.uk",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "HVS Executive Search",
+  "website": "https://www.hvs.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Hanold Associates",
+  "website": "https://www.hanoldassociates.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "IIC Partners",
+  "website": "https://www.iicpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Kestria",
+  "website": "https://www.kestria.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Lancor",
+  "website": "https://www.lancor.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Long Ridge Partners",
+  "website": "https://www.longridgepartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Major, Lindsey & Africa",
+  "website": "https://www.mlaglobal.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "Morgan Consulting Resources",
+  "website": "https://www.morganconsulting.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Newport Board Group",
+  "website": "https://www.newportboardgroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Nigel Wright Group",
+  "website": "https://www.nigelwright.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Notch Partners",
+  "website": "https://www.notchpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "ON Partners",
+  "website": "https://www.onpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "Oxbridge Group",
+  "website": "https://www.oxbridgegroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "Park Avenue Group",
+  "website": "https://www.parkavenuegroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Penrhyn International",
+  "website": "https://www.penrhyn.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Perrett Laver",
+  "website": "https://www.perrettlaver.com",
+  "teamPageUrl": null,
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Preng & Associates",
+  "website": "https://www.preng.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Prodigy Search",
+  "website": "https://www.prodigysearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Quick Leonard Kieffer",
+  "website": "https://www.qlksearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "RETS Associates",
+  "website": "https://www.retsassociates.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Redgrave",
+  "website": "https://www.redgravesearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Reffett Associates",
+  "website": "https://www.reffettassociates.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Rhodes & Company",
+  "website": "https://www.rhodesandcompany.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Riviera Partners",
+  "website": "https://rivierapartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "SG Partners",
+  "website": "https://www.sgpartnerssearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 1
+ },
+ {
+  "name": "Sucherman Group",
+  "website": "https://www.sucherman.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Terra Search Partners",
+  "website": "https://www.terrasearchpartners.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "The Alexander Group",
+  "website": "https://www.thealexandergroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "The Bowdoin Group",
+  "website": "https://www.bowdoingroup.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "The Christopher Group",
+  "website": "https://www.tcgco.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "True Platform",
+  "website": "https://www.truesearch.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Tyler & Company",
+  "website": "https://www.tylerandco.com",
+  "teamPageUrl": null,
+  "segment": "retained",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Greenwood Asher & Associates",
+  "website": "https://www.greenwoodasher.com",
+  "teamPageUrl": "https://www.greenwoodsearch.com/about-us/our-team/",
+  "segment": "nonprofit_higher_ed",
+  "liveSearches": 0,
+  "onFile": 0
+ },
+ {
+  "name": "Sanford Rose Associates",
+  "website": "https://www.sanfordrose.com",
+  "teamPageUrl": null,
+  "segment": "contingent",
+  "liveSearches": 0,
+  "onFile": 0
+ }
+]

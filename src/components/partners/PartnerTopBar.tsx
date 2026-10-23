@@ -2,30 +2,46 @@ import type { ReactNode } from 'react'
 import { PartnerWordmark, type PartnerSurface } from '@/components/partners/PartnerWordmark'
 import { PartnerBrandMark } from '@/components/partners/PartnerBrandMark'
 import type { PartnerBrand } from '@/lib/partners/brand'
+import { PORTAL_TYPES, portalTypeLabel, type PortalType } from '@/lib/partners/portal-types'
 
-// Partners Master Build Script §B3.1 — "chrome inversion," the primary
-// orientation cue: a persistent navy, white-text top bar on every partner
-// surface (candidate keeps its white/off-white bar, unchanged). Fixed at
-// every breakpoint — mobile no longer gets a separate light-colored bar,
-// it gets this one, with the nav-drawer trigger passed in as `children`
-// by the caller (each *Nav component still owns the drawer's open state).
+// The persistent top bar on every non-candidate portal (candidate keeps its white bar). Each portal type has its
+// own chrome color and a fixed label naming it ("Employer · Outplacement"), so a person always knows which portal
+// they are in (src/lib/partners/portal-types.ts). The customer's logo and name follow the label; their color is the
+// thin rule under the bar, an inset shadow, so the bar keeps its exact height. Mobile gets this same bar, with the
+// nav-drawer trigger passed in as `children` by the caller (each *Nav component owns the drawer's open state).
+// Internal admin keeps the plain navy bar.
 //
-// A partner with a brand (logo, name, color) gets its mark after the wordmark
-// and its color as a rule under the bar. The rule is an inset shadow, so the
-// bar keeps its exact height.
-//
-// Callers must offset both the fixed sidebar (`top-14`) and the page
-// content (`pt-[6.5rem]` = this bar's h-14 + the original pt-12) to clear
-// this bar's fixed height.
-export function PartnerTopBar({ surface, brand, children }: { surface: PartnerSurface; brand?: PartnerBrand; children?: ReactNode }) {
+// Callers must offset both the fixed sidebar (`top-14`) and the page content (`pt-[6.5rem]` = this bar's h-14 +
+// the original pt-12) to clear this bar's fixed height.
+const SURFACE_PORTAL: Partial<Record<PartnerSurface, PortalType>> = { coach: 'coach', recruiter: 'recruiter', employer: 'employer' }
+
+/** Chrome color of a portal's sidebar, matching its top bar. Admin stays navy. */
+export function chromeFor(surface: PartnerSurface): string {
+  const type = SURFACE_PORTAL[surface]
+  return type ? PORTAL_TYPES[type].chrome : '#0b2545'
+}
+
+export function PartnerTopBar({ surface, use, brand, children }: { surface: PartnerSurface; use?: string; brand?: PartnerBrand; children?: ReactNode }) {
   const hasBrand = !!brand && (brand.name || brand.logoUrl)
+  const type = SURFACE_PORTAL[surface]
   return (
     <header
-      className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between gap-3 bg-navy px-4 lg:px-6"
-      style={brand?.accent ? { boxShadow: `inset 0 -3px 0 ${brand.accent}` } : undefined}
+      aria-label={type ? `${portalTypeLabel(type, use)} portal` : undefined}
+      className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between gap-3 px-4 lg:px-6"
+      style={{ backgroundColor: chromeFor(surface), ...(brand?.accent ? { boxShadow: `inset 0 -3px 0 ${brand.accent}` } : {}) }}
     >
       <div className="flex min-w-0 items-center gap-3">
-        <PartnerWordmark surface={surface} className="shrink-0 text-base lg:text-lg" />
+        {type ? (
+          <>
+            <span className="shrink-0 text-base font-bold tracking-tight text-white lg:text-lg">
+              Next<span className="font-normal">Chapter</span>
+            </span>
+            <span aria-hidden="true" className="h-5 w-px shrink-0 bg-white/40" />
+            <span className="shrink-0 rounded-md bg-white/15 px-2.5 py-1 text-sm font-semibold text-white">{portalTypeLabel(type, use)}</span>
+          </>
+        ) : (
+          <PartnerWordmark surface={surface} className="shrink-0 text-base lg:text-lg" />
+        )}
         {hasBrand && brand && (
           <>
             <span aria-hidden="true" className="h-5 w-px shrink-0 bg-white/25" />

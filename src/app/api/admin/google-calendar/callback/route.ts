@@ -21,6 +21,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/support/admin/webinars?calendarError=no_refresh_token', request.url))
     }
 
+    // Google lets people untick permissions and still "succeeds". A grant
+    // missing calendar or Docs access would overwrite a working connection
+    // with one that can't read meetings or notes, so refuse it.
+    const granted = (tokens.scope ?? '').split(/\s+/)
+    const needed = ['https://www.googleapis.com/auth/calendar.events', 'https://www.googleapis.com/auth/documents.readonly']
+    if (needed.some((s) => !granted.includes(s))) {
+      return NextResponse.redirect(new URL('/support/admin/webinars?calendarError=missing_scopes', request.url))
+    }
+
     const supabase = await createClient()
     const {
       data: { user },

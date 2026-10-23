@@ -9,6 +9,7 @@
 
 import type { JourneyStage, JourneyType, MoveDriver } from './journey'
 import { ACTIVE_SEARCH_STAGES, normalizeJourney } from './journey'
+import { buyPlanItems, buyStageForJourneyStage, getBuyStage } from './buy-business'
 
 export type PlanItem = { text: string; actionType?: string }
 
@@ -94,6 +95,12 @@ const JOURNEY_PLAN: Record<JourneyType, { firstWeek: PlanItem[]; ongoing: PlanIt
       T('Have two conversations with potential next clients', 'OUTREACH_CALL'),
       T('Publish one post that shows how you work', 'LINKEDIN_POST_IDEA'),
     ],
+  },
+  // Buying a business: the plan follows the purchase (src/lib/journey/buy-business.ts). This entry is the
+  // first stage; journeyPlanItems reads the member's real stage.
+  BUY_BUSINESS: {
+    firstWeek: getBuyStage('decide').firstWeek,
+    ongoing: getBuyStage('decide').ongoing,
   },
   // On leave or taking time off: keep it gentle and make the return easy.
   TIME_OFF: {
@@ -204,6 +211,8 @@ function isSeniorOnly(item: { text: string; actionType?: string }): boolean {
 }
 
 export function journeyPlanItems(journey: JourneyType | null, stage: JourneyStage | null, weekNumber: number, audience: PlanAudience = null, driver: MoveDriver | null = null): PlanItem[] {
+  // Buying a business has its own plan at every stage: the steps of the purchase, never job applications.
+  if (journey && normalizeJourney(journey) === 'BUY_BUSINESS') return buyPlanItems(buyStageForJourneyStage(stage), weekNumber)
   // Not looking right now: the plan is about managing the career they have,
   // whichever journey they started on.
   if (stage === 'STAYING' || stage === 'PAUSED') {
@@ -252,11 +261,13 @@ export function shapePlan<T extends { text: string; actionType?: string }>(
   // Casual searchers get a light plan and no application volume, until they are
   // actually interviewing or have an offer.
   const lightTouch = casual && (stage === 'PREPARING' || stage === 'APPLYING')
-  const allowApply = (!stage || ACTIVE_SEARCH_STAGES.includes(stage)) && !lightTouch
+  // Buying a business: the purchase plan only. No job applications and none of the general job-search menu.
+  const buying = journey === 'BUY_BUSINESS'
+  const allowApply = (!stage || ACTIVE_SEARCH_STAGES.includes(stage)) && !lightTouch && !buying
   const out: (T | PlanItem)[] = []
   const types = new Set<string>()
   const texts = new Set<string>()
-  for (const item of [...engagement, ...(lightTouch ? CASUAL_PLAN : []), ...journeyPlanItems(journey, stage, weekNumber, audience, driver), ...gateItems(stage, weeksInStage), ...general]) {
+  for (const item of [...engagement, ...(lightTouch ? CASUAL_PLAN : []), ...journeyPlanItems(journey, stage, weekNumber, audience, driver), ...gateItems(buying ? null : stage, weeksInStage), ...(buying ? [] : general)]) {
     if (audience && isSeniorOnly(item)) continue
     if (!allowApply && item.actionType && APPLICATION_ACTION_TYPES.includes(item.actionType)) continue
     if (item.actionType ? types.has(item.actionType) : texts.has(item.text)) continue

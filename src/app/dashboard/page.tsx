@@ -18,6 +18,8 @@ import { evaluatePassiveToActivePrompt } from '@/lib/dashboard/passive-to-active
 import { PassiveToActivePromptCard } from '@/components/dashboard/PassiveToActivePromptCard'
 import { evaluateStalledSearchPrompt } from '@/lib/dashboard/stalled-search-prompt'
 import { StalledSearchPromptCard } from '@/components/dashboard/StalledSearchPromptCard'
+import { StalledReaskCard } from '@/components/dashboard/StalledReaskCard'
+import { evaluateStalledReask } from '@/lib/dashboard/stalled-reask'
 import { loadSearchPlaybook } from '@/lib/dashboard/search-playbook-data'
 import { SearchPlaybookCard } from '@/components/dashboard/search-playbook/SearchPlaybookCard'
 import { captureServerEvent } from '@/lib/posthog/server'
@@ -67,6 +69,10 @@ import { withBlockerStep } from '@/lib/personalization/blocker-step'
 import { HomeNote } from '@/components/candidate/HomeNote'
 import { JourneyCard } from '@/components/candidate/JourneyCard'
 import { FundingHomeCard } from '@/components/dashboard/FundingHomeCard'
+import { MarketLine } from '@/components/dashboard/MarketLine'
+import { CoachOfferNote } from '@/components/candidate/CoachOfferNote'
+import { loadCoachOffer } from '@/lib/coach/offer-data'
+import { COACH_OFFER_COPY, COACH_OFFER_HREF } from '@/lib/coach/offer'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -320,8 +326,10 @@ export default async function DashboardPage() {
     calendarConnection,
     passiveToActivePrompt,
     stalledSearchPrompt,
+    stalledReask,
     searchPlaybook,
     newCheer,
+    coachOffer,
   ] = await Promise.all([
     timed('home', 'sessionUser', profile.id, getVerifiedSessionUser()),
     timed('home', 'bountyClaims', profile.id, prisma.bountyClaim.count({ where: { candidateId: profile.id } })),
@@ -340,6 +348,8 @@ export default async function DashboardPage() {
     // Same read-only, records-on-render contract, for the "hitting your
     // goals but no interviews" nudge — see stalled-search-prompt.ts.
     timed('home', 'stalledSearchPrompt', profile.id, evaluateStalledSearchPrompt(profile.id)),
+    // The wider question for a long search with no interviews: what do you want to change? Read-only; the card records itself.
+    timed('home', 'stalledReask', profile.id, evaluateStalledReask(profile.id, { hasCoach: !!profile.coachId, earlyCareer: !!audience })),
     // Journey-aware search plan: what to change at this point in the search.
     // Read-only, no metered calls. See src/lib/journey/search-playbook.ts.
     timed('home', 'searchPlaybook', profile.id, loadSearchPlaybook(profile)),
@@ -348,6 +358,8 @@ export default async function DashboardPage() {
       orderBy: { createdAt: 'desc' },
       select: { message: true, supporter: { select: { name: true } } },
     }),
+    // Rules only, no model calls: a reason to offer a coach today, or null (src/lib/coach/offer.ts).
+    timed('home', 'coachOffer', profile.id, loadCoachOffer(profile).catch(() => null)),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
@@ -422,12 +434,18 @@ export default async function DashboardPage() {
     searchStrategyIncomplete: !isSearchStrategyGateComplete(profile),
     reportReady: showReportReadyMessage,
     accountsNotConnected: !bothConnectedUnlocked,
+    coachOffer: !!coachOffer,
+    stalledReask: !!stalledReask,
     stalledSearch: !!stalledSearchPrompt,
     passiveToActive: !!passiveToActivePrompt,
     firstWeek,
     gotHired: showGotHiredCTA,
     searchPlaybook: !!searchPlaybook,
   })
+  if (note === 'coach_offer' && coachOffer) {
+    const offer = coachOffer
+    after(() => captureServerEvent(profile.id, 'coach_offer_shown', { reason: offer.reason, senior: offer.facts.senior, daysSearching: offer.facts.daysSearching, journey: journeyNow, stage: stageNow }))
+  }
   after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: note, journey: journeyNow, stage: stageNow, weekNumber, audience, redesign: true }))
   const plain = simpleNote(note, { firstName, firstWeek, motivations: profile.motivations })
   const toneSet = profile.coachingStylePreference !== null
@@ -458,6 +476,11 @@ export default async function DashboardPage() {
           ...(toneSet ? ['Notes come in the tone you chose'] : []),
         ]}
         changeHref="/dashboard/privacy"
+        market={
+          <Suspense fallback={null}>
+            <MarketLine member={profile} surface="home" />
+          </Suspense>
+        }
         tune={toneSet && profile.changePacePreference ? undefined : { text: 'Two answers tune your week: how hard to push, and how fast to move.', action: 'Answer two questions', href: '/dashboard/search-strategy' }}
       />
 
@@ -468,6 +491,8 @@ export default async function DashboardPage() {
           {note === 'connect_accounts' && (
             <PreConnectDailyMessage firstName={firstName} hasEmailConnection={!!emailConnection} hasCalendarConnection={!!calendarConnection} linkedInConnected={linkedInConnected} />
           )}
+          {note === 'coach_offer' && coachOffer && <CoachOfferNote reason={coachOffer.reason} href={COACH_OFFER_HREF} {...COACH_OFFER_COPY[coachOffer.reason]} />}
+          {note === 'stalled_reask' && stalledReask && <StalledReaskCard weeks={stalledReask.weeks} options={stalledReask.options} />}
           {note === 'stalled_search' && stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
           {note === 'passive_to_active' && passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
           {note === 'search_playbook' && searchPlaybook && <SearchPlaybookCard position={searchPlaybook} />}

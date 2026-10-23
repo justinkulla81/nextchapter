@@ -17,4 +17,22 @@ export async function setTodoDone(taskId: string, done: boolean): Promise<void> 
     taskId: task.id, fromMeeting: !!task.sourceRef, personId: task.personId, opportunityId: task.opportunityId,
   })
   revalidatePath('/support/admin/crm/todos')
+  if (task.personId) revalidatePath(`/support/admin/crm/people/${task.personId}`)
+}
+
+/** Adds a to-do by hand. Due date is optional (YYYY-MM-DD); it is stored at 9:00 ET like the meeting ones. */
+export async function addTodo(formData: FormData): Promise<void> {
+  const admin = await requireAdmin()
+  const title = String(formData.get('title') ?? '').trim().slice(0, 300)
+  if (!title) return
+  const due = String(formData.get('dueDate') ?? '')
+  const notes = String(formData.get('notes') ?? '').trim() || null
+  const task = await prisma.crmTask.create({
+    data: {
+      title, notes, kind: 'FOLLOW_UP', ownerEmail: admin.email ?? null,
+      dueAt: /^\d{4}-\d{2}-\d{2}$/.test(due) ? new Date(`${due}T13:00:00Z`) : null,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'crm_todo_added', { taskId: task.id, hasDueDate: !!task.dueAt })
+  revalidatePath('/support/admin/crm/todos')
 }

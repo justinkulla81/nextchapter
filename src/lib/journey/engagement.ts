@@ -19,6 +19,8 @@ import { pivotPlanItems, type PivotDetails } from './pivot'
 import { careerPlanItems, type CareerDetails } from './career'
 import type { Relocation } from './relocation'
 import { situationPlanItems } from './situation'
+import { parallelPlanItems } from './paths'
+import { reaskPlanItems } from './stalled-reask'
 import { deriveLearningPaths, pathPlanItems, pathProgressOf } from './learning-paths'
 
 export type EngagementSignals = {
@@ -29,6 +31,10 @@ export type EngagementSignals = {
   // fractional, interim or part-time work right now. See ./intensity.ts.
   casual: boolean
   workingNow: boolean
+  // The kinds of side work they said they do (the ParallelPath answer): contract, fractional, part-time, and so on. Optional.
+  parallelKinds?: string[] | null
+  // profile.interimConsultingInterest: open to interim or consulting work.
+  interimInterest?: boolean
   // What they told us about where they are willing to go, what they want next and what they said they did before joining.
   // Optional so older callers need not set them.
   pivot?: PivotDetails | null
@@ -127,7 +133,7 @@ export function unlockSteps(s: EngagementSignals): Step[] {
   }
   // On a break, or building something of their own: personalization and check-ins
   // only. No pushing to connect accounts or collect references.
-  if (j === 'TIME_OFF' || j === 'ENTREPRENEUR') return out
+  if (j === 'TIME_OFF' || j === 'ENTREPRENEUR' || j === 'BUY_BUSINESS') return out
   if (!s.gmail) {
     out.push({
       key: 'gmail',
@@ -443,7 +449,11 @@ export function profileDrivenItems(s: EngagementSignals, now: Date = new Date())
       else if (r.scope === 'ANYWHERE') out.push({ text: 'Look outside your area: you said you would go anywhere for the right role' })
     }
   }
-  out.push(...situationPlanItems(s.journey, s.rawDetails, { fn: s.targets?.function ?? null, now }))
+  out.push(...situationPlanItems(s.journey, s.rawDetails, { fn: s.targets?.function ?? null, now, kinds: s.parallelKinds, senior: s.seniorLevel }))
+  // What they said they want to change when asked about a stalled search: one matching step for four weeks.
+  out.push(...reaskPlanItems(s.rawDetails, now))
+  // What runs next to the main journey: at most one step per active path (researching or doing it; curious adds nothing).
+  out.push(...parallelPlanItems({ main: s.journey, journeyDetails: s.rawDetails, kinds: s.parallelKinds, workingNow: s.workingNow, interimInterest: s.interimInterest }))
   if (s.journey === 'ENTREPRENEUR' && s.venture) out.push({ text: `Venture check-in: ${s.venture}. Name the one thing that must happen this month` })
   if (s.journey === 'STUDENT_NEW_GRAD' && s.graduation) {
     const days = Math.ceil((s.graduation.getTime() - now.getTime()) / DAYS)

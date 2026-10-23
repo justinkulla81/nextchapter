@@ -98,6 +98,8 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Career story', '/dashboard/my-career'),
       tab('Other roles you could do', '/dashboard/pivot-paths', { alsoMatches: ['/dashboard/pivot'] }),
       tab('Funding you qualify for', '/dashboard/funding'),
+      tab('Your other paths', '/dashboard/other-paths'),
+      tab('Buy a business', '/dashboard/buy-a-business'),
       tab('Courses your company covers', '/dashboard/company-courses', { employedOnly: true }),
     ],
     groups: [
@@ -105,6 +107,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       { label: 'Know yourself', hrefs: ['/dashboard/skills-assessments'] },
       { label: 'Your path', hrefs: ['/dashboard/my-career', '/dashboard/pivot-paths'] },
       { label: 'Funding you qualify for', hrefs: ['/dashboard/funding'] },
+      { label: 'Your other paths', hrefs: ['/dashboard/other-paths', '/dashboard/buy-a-business'] },
     ],
   },
   {

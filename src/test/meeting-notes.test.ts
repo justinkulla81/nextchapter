@@ -31,6 +31,13 @@ describe('geminiNotesDocOf', () => {
   it('handles no attachments', () => {
     expect(geminiNotesDocOf(undefined)).toBeNull()
   })
+  it('reads a real event attachment that has only a link and a title', () => {
+    expect(geminiNotesDocOf([{ fileUrl: 'https://docs.google.com/document/d/1AbC-d_E9/edit?usp=meet_tnfm_calendar', title: 'Notes by Gemini' }]))
+      .toEqual({ fileId: '1AbC-d_E9', url: 'https://docs.google.com/document/d/1AbC-d_E9/edit?usp=meet_tnfm_calendar', title: 'Notes by Gemini' })
+  })
+  it('skips a link-only attachment whose link is not a Google Doc', () => {
+    expect(geminiNotesDocOf([{ fileUrl: 'https://example.com/x', title: 'Notes by Gemini' }])).toBeNull()
+  })
 })
 
 describe('docToText', () => {
@@ -80,5 +87,29 @@ describe('parseNextSteps', () => {
   })
   it('returns nothing without a Next steps heading', () => {
     expect(parseNextSteps('Summary\n[Justin Kulla] Something', ['Justin Kulla'])).toEqual([])
+  })
+})
+
+describe('a real Gemini notes document layout', () => {
+  // Shape observed in a real "Notes by Gemini" doc (content invented): a
+  // "Quick notes" tab that already lists Next steps, then the full notes,
+  // which list them again after Summary and Decisions.
+  const para = (s: string) => ({ paragraph: { elements: [{ textRun: { content: `${s}\n` } }] } })
+  const quick = ['Quick notes', 'Please rate the new Quick notes tab by taking a short survey.', 'Weekly sync', 'Topic one', 'Next steps',
+    '[Alex Kim] Send deck: Email the deck and the latest report.',
+    '[Sam Rivera] Intro to Dana: Forward the blurb to Dana to make the connection.',
+    'Want to see more? View the full notes', 'You should review Gemini\'s notes to make sure they\'re accurate.']
+  const full = ['Full notes', 'Weekly sync', 'Summary', 'A summary.', 'Decisions', 'Aligned', 'Next steps',
+    '[Alex Kim] Send deck: Email the deck and the latest report.',
+    '[Sam Rivera] Intro to Dana: Forward the blurb to Dana to make the connection.', 'Details', 'Some detail line.']
+  const doc = { tabs: [
+    { documentTab: { body: { content: quick.map(para) } } },
+    { documentTab: { body: { content: full.map(para) } } },
+  ] }
+  it('reads each step once, from the first Next steps list', () => {
+    const steps = parseNextSteps(docToText(doc), ['Alex Kim'])
+    expect(steps.map((s) => s.title)).toEqual(['Send deck', 'Intro to Dana'])
+    expect(steps.map((s) => s.mine)).toEqual([true, false])
+    expect(steps[1].owner).toBe('Sam Rivera')
   })
 })

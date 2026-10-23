@@ -2,21 +2,19 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { fundingFor } from '@/lib/benefits/member'
-import { SELF_TAGS } from '@/lib/benefits/match'
+import { fundingFor, usesSelfId } from '@/lib/benefits/member'
+import { goalOrderFor } from '@/lib/benefits/match'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
-import { ShowMore } from '@/components/candidate/ShowMore'
-import { H2 } from '@/components/candidate/ui'
 import { FundingSections } from '@/components/dashboard/FundingList'
-import { saveFundingTags } from './actions'
+import { FundingSharpenForm } from '@/components/dashboard/FundingSharpenForm'
 
 export const metadata: Metadata = { title: 'Funding you qualify for' }
 
 export default async function FundingPage() {
   const profile = await getDashboardData()
   const f = await fundingFor(profile)
-  const counts = { move: f.byGoal.move.length, retrain: f.byGoal.retrain.length, learn: f.byGoal.learn.length }
+  const counts = { move: f.byGoal.move.length, retrain: f.byGoal.retrain.length, support: f.byGoal.support.length, tax: f.byGoal.tax.length, learn: f.byGoal.learn.length }
   after(() =>
     captureServerEvent(profile.id, 'funding_page_viewed', {
       matchCount: f.matches.length,
@@ -28,6 +26,8 @@ export default async function FundingPage() {
     }),
   )
   const held = new Set<string>(f.selfTags)
+  const hasSelfId = [profile.eeocRaceEthnicity, profile.eeocGenderIdentity, profile.eeocVeteranStatus, profile.eeocDisabilityStatus].some((v) => v && v !== 'PREFER_NOT_TO_ANSWER')
+  const useSelfId = usesSelfId(profile.journeyDetails)
   const needsState = !f.facts.state
   const needsMove = !f.relocationAnswered || f.facts.relocation.scope === 'LOCAL'
 
@@ -35,7 +35,7 @@ export default async function FundingPage() {
     <div className="space-y-10">
       <PageHeader
         title={`${f.matches.length} funding programs fit you`}
-        intro="Money to move, retrain and learn, ranked by how well each fits where you live, where you would go and your situation. Programs that do not apply to you are left out."
+        intro="Real dollars first: moving money, tuition and training money, and tax credits, then free courses. Ranked by how well each fits where you live, where you would go and your situation. Programs that do not apply to you are left out."
       />
 
       {(needsState || needsMove) && (
@@ -62,32 +62,9 @@ export default async function FundingPage() {
         </div>
       )}
 
-      <FundingSections byGoal={f.byGoal} />
+      <FundingSections byGoal={f.byGoal} order={goalOrderFor(f.facts.laidOff)} />
 
-      <section className="space-y-3" aria-labelledby="funding-sharpen">
-        <ShowMore label="Sharpen your matches" event="funding_sharpen_opened">
-          <form action={saveFundingTags} className="space-y-4">
-            <div>
-              <H2 id="funding-sharpen">Which of these are true for you?</H2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Why we ask: some programs are only for veterans, people 50 or older, people with a disability and so on. We show them only if you tell us they apply.
-                Private to you: never shown to employers, recruiters, schools or coaches.
-              </p>
-            </div>
-            <div className="space-y-2">
-              {SELF_TAGS.map((t) => (
-                <label key={t.tag} className="flex items-center gap-2 text-sm text-ink">
-                  <input type="checkbox" name="tag" value={t.tag} defaultChecked={held.has(t.tag)} />
-                  {t.label}
-                </label>
-              ))}
-            </div>
-            <button type="submit" className="inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95">
-              Save and re-rank
-            </button>
-          </form>
-        </ShowMore>
-      </section>
+      <FundingSharpenForm held={[...held]} hasSelfId={hasSelfId} useSelfId={useSelfId} />
 
       <p className="text-xs text-muted-foreground">
         Each program links to its official page and was checked against it. Amounts and deadlines change, so confirm there before you apply. We rank; we do not decide

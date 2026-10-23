@@ -8,6 +8,7 @@ import { FindTwoPane } from '@/components/dashboard/find/FindTwoPane'
 import { boardEntry, surfacedEntry, type FindEntry } from '@/components/dashboard/find/entries'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
 import { OpenToChangersFilter } from '@/components/dashboard/OpenToChangersFilter'
+import { EntryFilterChips } from '@/components/dashboard/EntryFilterChips'
 import type { JobMatch, MatchDimension, MatchDimensionKey, MatchStatus } from '@/lib/jobs/job-match-types'
 import type { MyJobItem, MyJobsView } from '@/lib/jobs/my-jobs-data'
 import type { JobStatus } from '@/lib/jobs/my-jobs'
@@ -95,6 +96,18 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     watched: false,
     candidatePlus: false,
   },
+  {
+    // An entry-level job flagged "No experience needed" and "Training provided" (entry-filters.ts): the card tag and
+    // both quoted phrases.
+    posting: posting({ id: 'ba-northwind', title: 'Business Analyst, New Grad', companyName: 'Northwind', location: 'Chicago, IL', description: DESCRIPTION, createdAt: daysAgo(2), postedAt: daysAgo(2), level: 'ENTRY_IC', postingSignals: ['no_experience_ok', 'training_provided', 'entry_ai'], noExperiencePhrase: 'No prior experience required: recent graduates and career starters are encouraged to apply, and we will train you on our tools.', trainingPhrase: 'You will begin with a 12-week paid training program covering our analytics stack, client work and business writing.' }),
+    fitBucket: 'stretch',
+    why: { fits: ['analysis'], gap: null },
+    competition: { level: 'medium', reasons: [] },
+    match: match({ skills: ['strong', ['Same kind of analysis work.']] }),
+    explainGapsEnabled: false,
+    watched: false,
+    candidatePlus: false,
+  },
 ]
 
 const SURFACED = {
@@ -127,6 +140,9 @@ export function FindJobsLive() {
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <OpenToChangersFilter surface="dev_preview" on={false} />
         </div>
+        <div className="mt-3">
+          <EntryFilterChips surface="dev_preview" on={['noexp', 'train']} count={1} />
+        </div>
       </details>
       <FindTwoPane items={all.map((e) => e.item)} details={Object.fromEntries(all.map((e) => [e.item.id, e.detail]))} summary={`${all.length} jobs, best fit first`} />
     </PreviewShell>
@@ -146,9 +162,21 @@ const MINE: MyJobsView = {
     item({ key: 'offer-1', title: 'Chief of Staff', companyName: 'Northwind', status: 'offer' as JobStatus, date: daysAgo(1) }),
     item({ key: 'int-1', title: 'VP Operations (advisory)', companyName: 'Lattice Labs', status: 'interviewing', date: daysAgo(2) }),
     item({ key: 'app-1', title: 'Head of Delivery', companyName: 'Harbor Health', status: 'applied', date: daysAgo(1) }),
-    item({ key: 'app-2', title: 'Director of Operations', companyName: 'Northwind', status: 'applied', date: daysAgo(9) }),
+    item({
+      key: 'app-2', title: 'Director of Operations', companyName: 'Northwind', status: 'applied', date: daysAgo(9),
+      tracker: {
+        notes: 'Spoke to Dana (VP People). Panel is the week of the 2nd.', excitement: 4, followUpAt: daysAgo(0), followUpDoneAt: null,
+        checklist: { resume_tailored: daysAgo(10).toISOString(), referral_asked: daysAgo(9).toISOString() },
+        contacts: [{ id: 'c1', name: 'Dana Whitfield', company: 'Northwind' }], hasJobText: false,
+      },
+      keywordMatch: { score: 63, matched: ['budgeting', 'forecasting', 'vendor management', 'Microsoft Excel', 'agile'], missing: ['netsuite', 'six sigma', 'Tableau'] },
+    }),
     item({ key: 'app-3', title: 'COO', companyName: 'Brightline', status: 'applied', date: daysAgo(15), origin: 'email', ref: null, url: null }),
-    item({ key: 'sav-1', title: 'President', companyName: 'Lemaitre Vascular', status: 'saved', date: daysAgo(3) }),
+    item({
+      key: 'sav-1', title: 'President', companyName: 'Lemaitre Vascular', status: 'saved', date: daysAgo(3),
+      tracker: { notes: null, excitement: 5, followUpAt: null, followUpDoneAt: null, checklist: {}, contacts: [], hasJobText: false },
+      keywordMatch: { score: 38, matched: ['p&l', 'operations'], missing: ['fda', 'medical devices', 'salesforce'] },
+    }),
     item({
       key: 'sav-2', title: 'Executive Director', companyName: 'Byrdcliffe', status: 'saved', date: daysAgo(12),
       listing: { status: 'closed', badge: 'Closed', sentence: 'This job closed on Oct 10. The employer is no longer taking applications.', closedAt: daysAgo(9) },
@@ -160,6 +188,19 @@ const MINE: MyJobsView = {
   insight: null,
   cardStates: new Map(),
   watchedCompanies: new Set(),
+  analytics: {
+    applied: 12, appliedLast7: 3, appliedLast30: 9, replied: 5, interviews: 3, offers: 1, replyRate: 42, interviewRate: 25, offerRate: 33,
+    byFunction: [
+      { label: 'Operations', applied: 7, replied: 4, interviews: 2, replyRate: 57, interviewRate: 29 },
+      { label: 'Executive Leadership', applied: 3, replied: 1, interviews: 1, replyRate: 33, interviewRate: 33 },
+      { label: 'Finance', applied: 2, replied: 0, interviews: 0, replyRate: 0, interviewRate: 0 },
+    ],
+    byLevel: [
+      { label: 'Director', applied: 6, replied: 3, interviews: 2, replyRate: 50, interviewRate: 33 },
+      { label: 'VP', applied: 4, replied: 1, interviews: 0, replyRate: 25, interviewRate: 0 },
+      { label: 'C-Suite', applied: 2, replied: 1, interviews: 1, replyRate: 50, interviewRate: 50 },
+    ],
+  },
 }
 
 export function MyJobsLive() {

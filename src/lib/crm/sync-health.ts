@@ -13,7 +13,7 @@ export interface CrmSyncHealth {
    * isn't — waiting (and Sync now) is the fix for those.
    */
   needsReconnect: boolean
-  reason: 'not_connected' | 'permission' | 'expired' | 'unavailable' | 'partial' | null
+  reason: 'not_connected' | 'permission' | 'expired' | 'unavailable' | 'partial' | 'setup' | null
 }
 
 /**
@@ -55,6 +55,8 @@ export async function getCrmSyncHealth(): Promise<CrmSyncHealth> {
   const errors = failing.map((f) => f.error)
   const reason: CrmSyncHealth['reason'] = !inbox || !calendar
     ? 'not_connected'
+    : errors.some((e) => e.includes('Google Docs API is switched off'))
+      ? 'setup'
     : errors.some((e) => e.includes('invalid_grant'))
       ? 'expired'
       : errors.some((e) => isMissingPermission(e) || (/\b403\b/.test(e) && !isRateLimited(e)))

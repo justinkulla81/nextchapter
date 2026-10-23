@@ -39,6 +39,7 @@ import { GoodMatchesMore } from '@/components/dashboard/GoodMatchesMore'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
+import { MarketLine } from '@/components/dashboard/MarketLine'
 import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
 import { becauseLine, DISMISS_REASONS, shouldAskToHide } from '@/lib/jobs/job-dismiss'
 import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
@@ -48,6 +49,8 @@ import { loadPostingSignalMap } from '@/lib/jobs/posting-signals-server'
 import { isOpenToChangers, parseOpenParam, wantsChangerLift } from '@/lib/jobs/posting-signals'
 import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { OpenToChangersFilter } from '@/components/dashboard/OpenToChangersFilter'
+import { EntryFilterChips } from '@/components/dashboard/EntryFilterChips'
+import { ENTRY_FILTERS, parseEntryParam, passesEntryFilters, type EntryFilterKey } from '@/lib/jobs/entry-filters'
 import { AiViewToggle } from '@/components/dashboard/AiViewToggle'
 import { GreatEmployerFilter } from '@/components/dashboard/GreatEmployerFilter'
 import { FunctionFilter } from '@/components/dashboard/FunctionFilter'
@@ -139,6 +142,7 @@ import { ShowMore } from '@/components/candidate/ShowMore'
 import { FindTwoPane } from '@/components/dashboard/find/FindTwoPane'
 import { boardEntry, surfacedEntry } from '@/components/dashboard/find/entries'
 import { loadExposureMap } from '@/lib/skills/ai-exposure-server'
+import { loadSalaryContext } from '@/lib/market/salary-context'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
 import { AddJobAction } from '@/components/dashboard/find/AddJobAction'
@@ -443,10 +447,13 @@ async function JobRecommendationsSection({
   urlParams,
   aiView,
   openFilter = false,
+  entryFilter = [],
 }: {
   profile: Awaited<ReturnType<typeof getDashboardData>>
   /** "Open to career changers / AI-upskilled" (posting-signals.ts): partner-search jobs carry no signals, so they hide. */
   openFilter?: boolean
+  /** "No experience needed" / "Entry-level + AI" (entry-filters.ts): partner-search jobs carry no signals, so they hide. */
+  entryFilter?: readonly EntryFilterKey[]
   /** AI / Non-AI / All (ai-view.ts): partner-search jobs carry no AI data, so they show under All only. */
   aiView: AiView
   /** Candidate+ (isDossierUnlocked): the extras on each job. Every member sees every job. */
@@ -544,7 +551,8 @@ async function JobRecommendationsSection({
       // known they read as private.
       surfacedPassesBoardFilters(boardFilters) &&
       aiView === 'all' &&
-      !openFilter
+      !openFilter &&
+      entryFilter.length === 0
   )
   const signalLift = changerLiftFor(profile)
   const watchedFor = (companyName: string | null) => !!companyName && myJobs.watchedCompanies.has(normalizeOrgName(companyName))
@@ -597,7 +605,7 @@ async function JobRecommendationsSection({
   // A workforce program's region: its jobs rank first within each fit level.
   const area = await localAreaForCandidate(profile.id).catch(() => null)
   const local = area ? { label: area.label, isLocal: (loc: string | null) => isLocationInArea(area, loc) } : null
-  const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting, exposureMap, aiMarket] = await Promise.all([
+  const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting, exposureMap, aiMarket, salary] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
       ? prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } })
@@ -614,6 +622,8 @@ async function JobRecommendationsSection({
     // Anthropic Economic Index scores (held in memory, fails soft) and the live AI pay comparison: once per page, never per row.
     loadExposureMap(),
     loadAiMarket().catch(() => null),
+    // The member's last salary and home costs, and the area list: once per page, so each open job only does arithmetic.
+    loadSalaryContext(profile).catch(() => null),
   ])
   // Pay / benefits badges: employer signals (hiring index + curated list) and the job's own benefits.
   // A confidential search names no employer, so it gets no employer badge.
@@ -757,6 +767,7 @@ async function JobRecommendationsSection({
         signalLift,
         exposureMap,
         aiMarket,
+        salary,
       }),
       // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
       rank:
@@ -834,6 +845,12 @@ async function JobRecommendationsSection({
           <MarketSizeSection member={profile} surface="board_search" searchCount={searchResultCount} searchQuery={search.params.q} />
         </Suspense>
       )}
+      {/* Everyone sees their market in one line. The fuller block above already says it when a search is too wide or too narrow, so the line steps aside then. */}
+      {!(search && search.active && (searchResultCount >= SEARCH_TOO_MANY || searchResultCount < SEARCH_TOO_FEW)) && (
+        <Suspense fallback={null}>
+          <MarketLine member={profile} surface="board" />
+        </Suspense>
+      )}
       {search && search.active && searchResultCount > 0 && (
         <p className="text-sm text-muted-foreground" aria-live="polite">
           <span className="font-medium text-foreground">
@@ -846,7 +863,12 @@ async function JobRecommendationsSection({
         <BoardSearchEmpty search={search} />
       ) : visibleBoardPostings.length === 0 && surfacedJobs.length === 0 ? (
         <div className="space-y-1 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
-          {openFilter ? (
+          {entryFilter.length > 0 ? (
+            <p>
+              No jobs match {ENTRY_FILTERS.filter((f) => entryFilter.includes(f.key)).map((f) => f.label).join(' and ')} with these filters yet. Turn it
+              off to see every job.
+            </p>
+          ) : openFilter ? (
             <p>No jobs that fit you say they welcome career changers or people learning AI with these filters yet. Turn off Open to career changers to see every job.</p>
           ) : aiView !== 'all' ? (
             <p>
@@ -928,6 +950,7 @@ export default async function JobFitPage({
     breadth?: string
     ai?: string
     open?: string
+    entry?: string
   }>
 }) {
   const profile = await getDashboardData()
@@ -948,6 +971,7 @@ export default async function JobFitPage({
     cleared && 'cleared',
     allParams.ai && parseAiView(allParams.ai) !== 'all' && 'ai',
     parseOpenParam(allParams.open) && 'open',
+    parseEntryParam(allParams.entry).length > 0 && 'entry',
   ].filter((f): f is string => !!f)
   // `job` (the open job in the two-pane list) belongs to the list alone: links built from the other parameters
   // start without it, so a new filter or search never reopens an old job.
@@ -1024,6 +1048,7 @@ export default async function JobFitPage({
           breadthMode={breadthMode}
           aiView={parseAiView(allParams.ai)}
           openFilter={parseOpenParam(allParams.open)}
+          entryFilter={parseEntryParam(allParams.entry)}
           part={part}
         />
       </Suspense>
@@ -1075,10 +1100,13 @@ async function FindMyJobBody({
   breadthMode,
   aiView,
   openFilter,
+  entryFilter,
   part,
 }: {
   /** "Open to career changers / AI-upskilled" (the `open` URL parameter, posting-signals.ts). */
   openFilter: boolean
+  /** "No experience needed" / "Entry-level + AI" (the `entry` URL parameter, entry-filters.ts). */
+  entryFilter: EntryFilterKey[]
   profile: Awaited<ReturnType<typeof getDashboardData>>
   /** One part of the board at a time (docs/candidate-redesign.md): jobs, not posted yet, independent work, resources. */
   part: FindPart
@@ -1235,7 +1263,7 @@ async function FindMyJobBody({
       return null
     }) : Promise.resolve(null),
     // Posting signals (posting-signals-server.ts, cached): the open-to-changers filter and the welcome lift.
-    onBoard && (openFilter || changerLift) ? loadPostingSignalMap().catch((error) => {
+    onBoard && (openFilter || changerLift || entryFilter.length > 0) ? loadPostingSignalMap().catch((error) => {
       console.error('Posting signals unavailable, open-to-changers filter and lift off:', error)
       return null
     }) : Promise.resolve(null),
@@ -1243,6 +1271,8 @@ async function FindMyJobBody({
   // With no signals the filter can't be applied: show every job rather than none.
   const appliedOpenFilter = openFilter && !!signalMap
   const keepOpen = appliedOpenFilter ? (p: { id: string }) => isOpenToChangers(signalMap!.get(p.id)) : null
+  const appliedEntryFilter = signalMap ? entryFilter : []
+  const keepEntry = appliedEntryFilter.length > 0 ? (p: { id: string }) => passesEntryFilters(signalMap!.get(p.id), appliedEntryFilter) : null
   // With no AI ids the choice can't be applied: show every job rather than none.
   const appliedAiView: AiView = aiIds ? aiView : 'all'
   if (searchEfficiency.state !== 'NOT_ENOUGH_DATA') {
@@ -1294,15 +1324,17 @@ async function FindMyJobBody({
       view: boardView,
       // The member's stage, one up and one down (career-stage.ts; a pivot path adds
       // one more down); a seniority-filter choice shows exactly that group instead.
-      stageWindow: seniorityGroup ? ALL_STAGES_WINDOW : memberStageWindow(boardProfile),
+      // The entry-level filters name the stage themselves, so every stage is in the window then.
+      stageWindow: seniorityGroup || appliedEntryFilter.length > 0 ? ALL_STAGES_WINDOW : memberStageWindow(boardProfile),
       // One level beyond their own window is the last widening ring (relevance.ts) — not with an explicit seniority choice.
-      seniorityRing: !seniorityGroup,
+      seniorityRing: !seniorityGroup && appliedEntryFilter.length === 0,
       includeMidLevel: true,
       includeEarlyCareer: true,
       workTypes,
       keep: combineKeeps([
         keepGreat,
         keepOpen,
+        keepEntry,
         pivotFilter ? (p) => pivotFilter.matchesTitle(p.title) : null,
         ...requirementKeeps(boardFilters, profile),
       ]),
@@ -1497,6 +1529,7 @@ async function FindMyJobBody({
                 <RequirementFilters surface="find_my_job" hideBlockers={boardFilters.hideBlockers} clearedOnly={boardFilters.clearedOnly} holdsClearance={holdsClearance(profile)} />
                 <OpenToChangersFilter surface="find_my_job" on={appliedOpenFilter} count={appliedOpenFilter ? board.openTotal : null} />
               </div>
+              <EntryFilterChips surface="find_my_job" on={appliedEntryFilter} count={appliedEntryFilter.length > 0 ? board.openTotal : null} />
               {board.breadth.classifier && breadthMode !== 'off' && !searchView?.active && (
                 <p className="text-sm text-muted-foreground" aria-live="polite">
                   {relevanceLine({
@@ -1535,6 +1568,7 @@ async function FindMyJobBody({
                 urlParams={urlParams}
                 aiView={appliedAiView}
                 openFilter={appliedOpenFilter}
+                entryFilter={appliedEntryFilter}
               />
             </Suspense>
           </div>

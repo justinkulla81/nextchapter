@@ -1,3 +1,4 @@
+import type { EntryMarket } from '@/lib/jobs/entry-market'
 // The AI job market snapshot (ai-market-live.ts computes it from the live board): pure assembly
 // and the member-facing wording. Client-safe; tested in src/test/ai-market.test.ts.
 //
@@ -111,6 +112,8 @@ export interface AiMarketData {
   overall?: AiPremium
   /** Keyed by crawler function code (data_ai, finance, …). */
   functions: Record<string, AiFunctionMarket>
+  /** Entry-level numbers (src/lib/jobs/entry-market.ts); absent in snapshots stored before 2026-10-23. */
+  entry?: EntryMarket
 }
 
 const round1 = (x: number) => Math.round(x * 10) / 10

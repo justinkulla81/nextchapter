@@ -25,6 +25,7 @@ export function PivotOptionCard({
   currentTarget,
   exposure = null,
   currentExposure = null,
+  lastSalary = null,
 }: {
   option: PivotOption
   state: string | null
@@ -36,6 +37,7 @@ export function PivotOptionCard({
   currentTarget: string | null
   exposure?: OccupationExposure | null
   currentExposure?: OccupationExposure | null
+  lastSalary?: number | null
 }) {
   const overlapBand = option.overlap === null ? null : bandFor(option.overlap)
 
@@ -61,7 +63,7 @@ export function PivotOptionCard({
               </div>
             )}
           </div>
-          <PivotRoleDetail option={option} state={state} stateLabel={stateLabel} stateCode={stateCode} tasks={tasks} currentTarget={currentTarget} showLocalOpenings exposure={exposure} currentExposure={currentExposure} />
+          <PivotRoleDetail option={option} state={state} stateLabel={stateLabel} stateCode={stateCode} tasks={tasks} currentTarget={currentTarget} showLocalOpenings exposure={exposure} currentExposure={currentExposure} lastSalary={lastSalary} />
         </CardContent>
       </Card>
     </PivotPathImpression>

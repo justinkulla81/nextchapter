@@ -10,9 +10,9 @@ export interface RecruiterRow {
 }
 
 /** Recruiters matching any combination of state, industry and function. National recruiters match every state. */
-export async function recruiters(f: { state?: string; industry?: string; fn?: string }, take = 200): Promise<{ rows: RecruiterRow[]; total: number }> {
+export async function recruiters(f: { state?: string; industry?: string; fn?: string; kind?: string }, take = 200): Promise<{ rows: RecruiterRow[]; total: number }> {
   const where = {
-    deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' as const },
+    deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' as const }, recruiterKind: f.kind ?? 'recruiter',
     ...(f.state ? { coverageStates: { hasSome: [f.state, 'NATIONAL'] } } : {}),
     ...(f.industry ? { coverageIndustries: { has: f.industry } } : {}),
     ...(f.fn ? { coverageFunctions: { has: f.fn } } : {}),
@@ -41,9 +41,9 @@ export async function recruiters(f: { state?: string; industry?: string; fn?: st
 }
 
 /** How many recruiters are tagged to each state, industry and function. */
-export async function coverageCounts(): Promise<{ states: Record<string, number>; industries: Record<string, number>; functions: Record<string, number>; total: number; untagged: number }> {
+export async function coverageCounts(kind = 'recruiter'): Promise<{ states: Record<string, number>; industries: Record<string, number>; functions: Record<string, number>; total: number; untagged: number }> {
   const all = await prisma.crmPerson.findMany({
-    where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' } },
+    where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' }, recruiterKind: kind },
     select: { coverageStates: true, coverageIndustries: true, coverageFunctions: true },
   })
   const out = { states: {} as Record<string, number>, industries: {} as Record<string, number>, functions: {} as Record<string, number>, total: all.length, untagged: 0 }
@@ -73,7 +73,7 @@ export async function industryEcosystem(key: string) {
     prisma.crmOrganization.count({ where: { industry: { in: labels } } }),
     prisma.warnNotice.findMany({ where: { dismissedAt: null, noticeDate: { gte: since }, industry: { not: null } }, select: { id: true, employer: true, state: true, employees: true, industry: true, noticeDate: true }, orderBy: { employees: { sort: 'desc', nulls: 'last' } }, take: 4000 }),
     prisma.companyJobOpening.count({ where: { industry: key, closeReason: null } }).catch(() => 0),
-    recruiters({ industry: key }, 60),
+    recruiters({ industry: key }, 400),
   ])
   const layoffs = notices.filter((n) => industryKeyForNaics(n.industry) === key)
   return { labels, employers, employerCount, layoffs: layoffs.slice(0, 25), layoffCount: layoffs.length, layoffWorkers: layoffs.reduce((s, n) => s + (n.employees ?? 0), 0), openings, recruiters: recs }
@@ -81,7 +81,7 @@ export async function industryEcosystem(key: string) {
 
 export async function functionEcosystem(key: string) {
   const [recs, firms] = await Promise.all([
-    recruiters({ fn: key }, 100),
+    recruiters({ fn: key }, 400),
     prisma.searchFirm.findMany({ where: { sampleTitles: { isEmpty: false } }, select: { id: true, name: true, website: true, segment: true, sampleTitles: true, crmOrgId: true }, take: 1500 }),
   ])
   const matching = firms.filter((f) => f.sampleTitles.some((t) => classifyFunctions(t).includes(key)))
@@ -90,3 +90,9 @@ export async function functionEcosystem(key: string) {
 
 export const ALL_INDUSTRY_KEYS = INDUSTRY_KEYS
 export const ALL_FUNCTION_KEYS = FUNCTION_KEYS
+
+/** How many people tagged with the recruiter role fall in each kind (null = not classified yet). */
+export async function kindCounts(): Promise<Record<string, number>> {
+  const g = await prisma.crmPerson.groupBy({ by: ['recruiterKind'], where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' } }, _count: true })
+  return Object.fromEntries(g.map((x) => [x.recruiterKind ?? 'unclassified', x._count]))
+}
