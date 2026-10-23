@@ -1,0 +1,1153 @@
+[
+ {
+  "id": "irelaunch-return-to-work-conference",
+  "name": "iRelaunch Return to Work Conference",
+  "organizer": "iRelaunch (Akraya)",
+  "url": "https://www.irelaunch.com/events/rtw-conference-oct-2026",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The flagship gathering for professionals relaunching after a career break of months to years, with employer sponsors such as J.P. Morgan Chase running return programs and a networking day with employer virtual booths.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Oct 6-8, 2026 edition just ended (virtual, content days plus an employer networking day); next edition not yet announced; the site lists a spring and fall pattern. Price not stated on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Open to the public, not only women; gig work and volunteering do not count against you.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "RETURNING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "wicys-conference",
+  "name": "WiCyS Annual Conference",
+  "organizer": "Women in CyberSecurity (WiCyS)",
+  "url": "https://www.wicys.org/events/wicys-2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-17",
+  "endDate": "2027-03-19",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Aurora",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Women and allies from industry, government and academia in cybersecurity, with a career fair where hiring teams meet career-changers and students.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing appears only as an image on the page; general registration opens Dec 9, 2026 at 10am CT.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.wicys.org/events/wicys-2027/",
+  "speakingDeadline": "2026-09-30",
+  "speakingNote": "Presenter call closed Sept 30, 2026; student posters due Nov 4, 2026.",
+  "cheaperWays": "Scholarships (reduced registration, shared lodging, limited travel stipend) applied for Sept 2-30, 2026 (window closed); students need a scholarship or limited open seats.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "roles": [
+   "security analyst",
+   "GRC lead",
+   "security engineer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD",
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "isc2-security-congress",
+  "name": "ISC2 Security Congress",
+  "organizer": "ISC2",
+  "url": "https://www.isc2.org/events",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-10-24",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Aurora",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest gathering of ISC2-certified security practitioners, with a careers track, certification workshops and a virtual option that suits people breaking into cybersecurity.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not on the events page; early bird saved $200; ISC2 members, candidates and associates get discounts.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Member, candidate and associate discounts; virtual on-demand access with CPE credit through Jan 31, 2027.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "roles": [
+   "security analyst",
+   "security engineer",
+   "GRC lead"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "pycon-us",
+  "name": "PyCon US",
+  "organizer": "Python Software Foundation",
+  "url": "https://us.pycon.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Long Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering",
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The big annual Python community gathering, with a job fair, travel grants, proposal mentoring and a welcoming newcomer culture that suits career-changers into software and data.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran May 13-19 in Long Beach; 2027 dates and prices not yet posted on the site.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://us.pycon.org/",
+  "speakingDeadline": null,
+  "speakingNote": "Talks, tutorials, charlas and posters; proposal mentorship program.",
+  "cheaperWays": "Travel Grants (financial aid), volunteer program, Job Fair & Community Showcase.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Data engineering and analytics",
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "data scientist",
+   "data engineer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "pennsylvania-conference-for-women",
+  "name": "Pennsylvania Conference for Women",
+  "organizer": "Conferences for Women",
+  "url": "https://go.conferencesforwomen.org/pa/2026",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-05",
+  "endDate": "2026-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Philadelphia",
+  "state": "PA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "A 9,000-seat style women's professional day with free 1:1 career coaching, resume reviews and headshots plus 100+ exhibitors and employers in the hall.",
+  "access": "PAID",
+  "costLow": 445,
+  "costHigh": 445,
+  "costNote": "Early bird $445 per ticket; table of 10 $4,450; no standard group discount.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free on-site 1:1 career coaching and resume reviews; in-person tickets include the virtual National Conference (March 2027).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement",
+   "HR leadership"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING",
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "massachusetts-conference-for-women",
+  "name": "Massachusetts Conference for Women",
+  "organizer": "Conferences for Women",
+  "url": "https://www.conferencesforwomen.org/ma/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-10",
+  "endDate": "2026-12-10",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "One of the largest annual women's professional conferences, with free CareerWorks 1:1 coaching and resume reviews and an exhibit hall of hiring employers.",
+  "access": "PAID",
+  "costLow": 445,
+  "costHigh": 545,
+  "costNote": "Early bird $445 and standard $545; 2026 in-person tickets are sold out (notify list); VIP $1,000.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free CareerWorks coaching and resume reviews; in-person ticket includes the virtual National Conference.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement",
+   "HR leadership"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "national-conference-for-women",
+  "name": "National Conference for Women (virtual)",
+  "organizer": "Conferences for Women",
+  "url": "https://www.conferencesforwomen.org/ma/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-03-03",
+  "endDate": "2027-03-03",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "A one-day virtual women's professional conference with 1:1 resume reviews and career coaching, the cheapest way into the Conferences for Women network.",
+  "access": "PAID",
+  "costLow": 150,
+  "costHigh": 150,
+  "costNote": "$150 virtual ticket; free with any in-person Conference for Women ticket. Limited space for coaching.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free with an in-person ticket to the PA, TX or MA conference.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "texas-conference-for-women",
+  "name": "Texas Conference for Women",
+  "organizer": "Conferences for Women",
+  "url": "https://www.txconferenceforwomen.org/2025-ticket-types",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The Austin edition of the national women's professional day (9,000+ attendees in 2026) with career coaching and an employer hall.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Oct 5 at the Moody Center; 2027 dates and prices not yet posted; recent tickets $350-$445.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site search result",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "swe-annual-conference",
+  "name": "SWE Annual Conference (WE26)",
+  "organizer": "Society of Women Engineers",
+  "url": "https://we26.swe.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-05",
+  "endDate": "2026-11-07",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Manufacturing & Industrial",
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The world's largest career fair for women and allies in engineering and technology, 300+ employers and 200+ sessions, with member-funded registration grants.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Separate Professional and Collegiate rates, member discounts require FY27 SWE membership; fees not shown on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Registration Grants (member sponsored); SWE member rates; no full virtual option.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "engineering manager"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE",
+   "GROWING",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "women-in-tech-global-conference",
+  "name": "Women in Tech Global Conference",
+  "organizer": "WomenTech Network",
+  "url": "https://www.womentech.net",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-21",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "A virtual-first global gathering of women in technology, including a Career Growth Summit day and returner and career-pivot programming.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates seen via search of the organizer's pages (conflicting 2026-era dates also appear); prices not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site search result",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "engineering manager"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "conference-on-work-and-cancer-national",
+  "name": "National Conference on Work & Cancer",
+  "organizer": "Cancer and Careers",
+  "url": "https://www.cancerandcareers.org/en/events",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-06-25",
+  "endDate": "2027-06-25",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "A free full-day virtual conference for professionals working through or returning to work after cancer, with HR and employer attendees and CE credit for HR, nurses and social workers.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cost not stated on the events page; earlier editions were free daylong events. Date inferred from the event URL.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free virtual attendance in past editions.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement",
+   "HR leadership"
+  ],
+  "roles": [
+   "career coach",
+   "HR business partner"
+  ],
+  "journeys": [
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "conference-on-work-and-cancer-midwest",
+  "name": "Midwest Conference on Work & Cancer",
+  "organizer": "Cancer and Careers",
+  "url": "https://www.cancerandcareers.org/en/events",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-04-02",
+  "endDate": "2027-04-02",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "A free daylong virtual conference on balancing treatment and recovery with employment, aimed at people returning to work after illness and their employers.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Date inferred from the event URL; page does not state cost, past editions were free.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free virtual.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "write-the-docs-portland",
+  "name": "Write the Docs Portland",
+  "organizer": "Write the Docs",
+  "url": "https://www.writethedocs.org/conf/portland/2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-04",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The documentation community's flagship, a friendly route into technical writing for career-changers, with a $100 student-or-unemployed rate last year.",
+  "access": "PAID",
+  "costLow": 100,
+  "costHigh": 650,
+  "costNote": "2026 prices were $100 student/unemployed, $350 independent, $650 corporate; 2027 tickets go on sale December 2026.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.writethedocs.org/conf/portland/2027/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for proposals opens November 2026; talk announcements February 2027.",
+  "cheaperWays": "Student/unemployed ticket rate (2026: $100); opportunity grants offered in earlier years.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Technical writing and documentation"
+  ],
+  "roles": [
+   "technical writer",
+   "documentation lead"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "disability-in-global-conference",
+  "name": "Disability:IN Global Conference & Expo",
+  "organizer": "Disability:IN",
+  "url": "https://www.disabilityin.org/conference",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-07-19",
+  "endDate": "2027-07-22",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Corporate disability-inclusion leaders and HR/talent teams, with a talent readiness track and employers who hire professionals with disabilities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on separate Pricing and Registration page; virtual passes for select content.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Virtual passes for select content.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HR leadership"
+  ],
+  "roles": [
+   "HR director"
+  ],
+  "journeys": [
+   "RETURNING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "aspa-annual-conference",
+  "name": "ASPA Annual Conference",
+  "organizer": "American Society for Public Administration",
+  "url": "https://aspanet.org/ASPA/Events/Annual-Conference/2027-FAQs.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-09",
+  "endDate": "2027-04-13",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector",
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Public administrators, academics and nonprofit leaders; a natural room for people moving into public service.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees on the registration page; student and new-professional rates require ASPA membership.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://aspanet.org/ASPA/Events/Annual-Conference/2027-FAQs.aspx",
+  "speakingDeadline": "2026-09-18",
+  "speakingNote": "Call for proposals closed Sept 18, 2026; notifications in November.",
+  "cheaperWays": "Student and new-professional member rates; hotel at government per diem.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "State government",
+   "City and county government"
+  ],
+  "roles": [
+   "state agency leader",
+   "city manager"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nice-conference-and-expo",
+  "name": "NICE Conference and Expo",
+  "organizer": "NIST NICE (National Initiative for Cybersecurity Education)",
+  "url": "https://www.nist.gov/news-events/events/18th-annual-nice-conference-and-expo",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Government & Public Sector",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Cybersecurity workforce developers, educators and employers working on career-changer and reskilling pathways into cyber.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Location to be announced; price not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site search result",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "roles": [
+   "security analyst"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "nahq-next",
+  "name": "NAHQ Next",
+  "organizer": "National Association for Healthcare Quality",
+  "url": "https://nahq.org/?p=29098",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Virtual healthcare quality conference attended by clinicians moving into quality and safety roles.",
+  "access": "PAID",
+  "costLow": 451,
+  "costHigh": 644,
+  "costNote": "2026 pricing: $451 standard, $644 non-member; next edition not yet announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site search result",
+  "segments": [
+   "Quality, safety and compliance"
+  ],
+  "roles": [
+   "quality improvement lead",
+   "patient safety officer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "aapc-healthcon",
+  "name": "AAPC HEALTHCON",
+  "organizer": "AAPC",
+  "url": "https://www.aapc.com:443/events",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-03-14",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Finance",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Medical coders, billers and compliance people; the deepest credentialing room for people entering healthcare administration.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not on the events page; 18+ CEUs.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Virtual attendance option.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Revenue cycle and healthcare finance"
+  ],
+  "roles": [
+   "medical coder"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "bsides-sf",
+  "name": "BSidesSF",
+  "organizer": "BSidesSF",
+  "url": "https://bsidessf.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-03",
+  "endDate": "2027-04-04",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "A community-run security conference with newcomer-friendly culture and a volunteer crew.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price not stated on the home page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://bsidessf.org/cfp",
+  "speakingDeadline": null,
+  "speakingNote": "Call for Participation and Villages linked on the site; deadline not shown.",
+  "cheaperWays": "Volunteer crew (organizers page).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "roles": [
+   "security analyst"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "wids-worldwide",
+  "name": "WiDS Worldwide Conferences",
+  "organizer": "Women in Data Science Worldwide",
+  "url": "https://www.widsworldwide.org",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Ambassador-run regional data science conferences with a Career Catalyst program for people breaking in.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Stanford flagship 2027 date not found; regional events listed on community.widsworldwide.org/events.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Career Catalyst networking program.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "data scientist"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD",
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "tapia-conference",
+  "name": "Tapia Celebration of Diversity in Computing",
+  "organizer": "CMD-IT / ACM",
+  "url": "https://tapiaconference.cmd-it.org/home-new/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Computing professionals and students from underrepresented groups; the 2026 edition (Atlanta, Sept 16-18) has ended.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "engineering manager"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "sans-cyber-defense-initiative",
+  "name": "SANS Cyber Defense Initiative",
+  "organizer": "SANS Institute",
+  "url": "https://www.sans.org/cyber-security-training-events/cyber-defense-initiative-2026",
+  "kind": "TRADE_SHOW",
+  "format": "HYBRID",
+  "startDate": "2026-12-14",
+  "endDate": "2026-12-19",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Week-long hands-on cyber training in DC, in person or live online, with NetWars and a practitioner network.",
+  "access": "PAID",
+  "costLow": 3000,
+  "costHigh": 9230,
+  "costNote": "Course fees $3,000 to $9,230; Extra Lab Practice Package ($2,000 value) if you pay Sept 4 to Nov 15.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Live online option; NetWars free with a 4-6 day course.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "roles": [
+   "security analyst",
+   "security engineer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "powertofly-veterans-military-spouses-summit",
+  "name": "PowerToFly Supporting Veterans, Service Members & Military Spouses Summit",
+  "organizer": "PowerToFly",
+  "url": "https://powertofly.com/up/a-look-at-our-2024-supporting-veterans-active-service-members-military-spouses-summit",
+  "kind": "SUMMIT",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "",
+  "state": "",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Annual virtual Veterans Day summit with career-transition sessions and employer open roles for veterans and military spouses.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition not confirmed on the page; cost not stated.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "RETURNING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "calcpa-elevate-womens-leadership-forum",
+  "name": "Elevate: Women's Leadership Forum",
+  "organizer": "CalCPA",
+  "url": "https://store.calcpa.org/catalog/activity/elevate--women-s-leadership-forum-2027---1000005075",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-06",
+  "endDate": "2027-05-07",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Sunnyvale",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Women CPAs at every career stage; early-access pricing has closed.",
+  "access": "PAID",
+  "costLow": 405,
+  "costHigh": 545,
+  "costNote": "$405 member / $545 non-member after early access closed July 8, 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site search result",
+  "segments": [
+   "Public accounting"
+  ],
+  "roles": [
+   "CPA"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ }
+]

@@ -1,0 +1,904 @@
+[
+ {
+  "id": "cxpa-cx-leaders-advance",
+  "action": "publish",
+  "reason": "cxleadersadvance.events.cxpaglobal.org (CXPA's own event domain) shows CX Leaders Advance April 26-28, 2027 in Toronto with member/non-member pricing; cxpaglobal.org is the association's current domain.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://cxleadersadvance.events.cxpaglobal.org/",
+   "startDate": "2027-04-26",
+   "endDate": "2027-04-28",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Toronto",
+   "state": "ON",
+   "country": "CA",
+   "access": "PAID",
+   "costLow": 1795,
+   "costHigh": 2395,
+   "costNote": "Members $1,795; non-members $2,095 (includes one-year membership); preconference add-on takes it to $1,995/$2,395. Per official page via search, confirm at checkout.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Non-member rate includes a one-year CXPA membership, so joining costs nothing extra.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING",
+    "EXPO"
+   ]
+  }
+ },
+ {
+  "id": "naaap-national-leadership-convention",
+  "action": "publish",
+  "reason": "leadershipconvention.org (NAAAP's convention site) showed the 2026 convention July 16-19 in Philadelphia with online registration; it rotates cities yearly, 2027 city/date not yet posted.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://leadershipconvention.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "July",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2026 edition ran July 16-19 in Philadelphia; 2027 city, dates and prices not yet posted. 2025 was August in Kansas City.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "NAAAP chapter membership via https://members.naaap.org/join-naaap.",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "NETWORKING",
+    "EXPO"
+   ]
+  }
+ },
+ {
+  "id": "startupfest",
+  "action": "publish",
+  "reason": "startupfest.com home page header reads July 7-9, 2027 | Montreal, with pre-registration open and 120+ speakers/mentors, pitch competitions and a Village.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true,
+   "startDate": "2027-07-07",
+   "endDate": "2027-07-09",
+   "datesConfirmed": true,
+   "typicalMonth": "July",
+   "city": "Montreal",
+   "state": "QC",
+   "country": "CA",
+   "access": "PAID",
+   "costNote": "Pre-registration open; ticket prices not shown on the home page (third-party listings cite about CAD 470 early-bird).",
+   "speaking": "UNKNOWN",
+   "speakingNote": "Speakers double as mentors; startups can apply to pitch/demo for investment prizes.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING",
+    "EXPO"
+   ]
+  }
+ },
+ {
+  "id": "blackline-beyondtheblack",
+  "action": "publish",
+  "reason": "blackline.com pages (via official-domain search) give BeyondTheBlack 2026 in Orlando, Nov 16-18, 2026 with a pre-conference BlackLine University day; registration at beyondtheblack.com/na.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.blackline.com/beyondtheblack/",
+   "startDate": "2026-11-16",
+   "endDate": "2026-11-18",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not published in what was readable; registration on the BlackLine event site.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "advertising-week-new-york",
+  "action": "publish",
+  "reason": "advertisingweek.com shows the 2026 New York edition Oct 5-8 (ended) and 2025 Oct 6-9, so it recurs every October; 2027 NY dates not yet announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://advertisingweek.com/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 125,
+   "costHigh": 2499,
+   "costNote": "2026 passes ran Digital $125 to Platinum $2,499; 2027 pricing not posted.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "NewGen pass $400 for ages 30 and under; student and academic discounts in the FAQ; $125 Digital pass.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "ncsl-capital-forum",
+  "action": "drop",
+  "reason": "ncsl.org/capitalforum is the Nov 17-20, 2025 edition only; ncsl.org/events lists no Capital Forum for 2026 or 2027 (only a Post-Election Forum Nov 5, 2026), so no evidence of a next edition."
+ },
+ {
+  "id": "apmp-bid-and-proposal-con",
+  "action": "publish",
+  "reason": "apmp.org page BPC Anaheim 2027 (https://www.apmp.org/Web/Web/Events/BPCUS27.aspx) shows May 18-21, 2027 at the Hilton Anaheim with early-bird pricing and speaker applications due Jan 11, 2027.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.apmp.org/Web/Web/Events/BPCUS27.aspx",
+   "startDate": "2027-05-18",
+   "endDate": "2027-05-21",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Anaheim",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 1275,
+   "costHigh": 1655,
+   "costNote": "Early bird to Mar 12, 2027: $1,275 corporate member, $1,375 individual member, $1,655 non-member.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.apmp.org/Web/Web/Events/BPCUS27.aspx",
+   "speakingDeadline": "2027-01-11",
+   "speakingNote": "80+ education sessions across 7 tracks.",
+   "cheaperWays": "Member rates are lower; early-bird pricing.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "mariculture-conference-of-alaska",
+  "action": "publish",
+  "reason": "alaskaseagrant.org shows the conference recurring yearly (Feb 2025 Juneau/Sitka, March 10-12 2026 Anchorage, $100 fee, 300+ attendees); 2027 not yet announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true,
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "access": "PAID",
+   "costLow": 100,
+   "costHigh": 100,
+   "costNote": "2026 registration fee $100; location rotates among Alaska cities.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "green-fleet-conference-expo",
+  "action": "drop",
+  "reason": "The only greenfleetconference.com page found is a 2015 notice that it was redesigned as Fleet Technology Expo; no current edition, so defunct or renamed."
+ },
+ {
+  "id": "nahrep-avance",
+  "action": "publish",
+  "reason": "nahrep.org/fallconference shows NAHREP at AVANCE Global Sept 14-16, 2026 at the Bellagio Las Vegas (annual fall event, $599-699 individual); 2027 not announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://nahrep.org/fallconference/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 599,
+   "costHigh": 699,
+   "costNote": "2026: $599 early bird, $699 standard; gala $500 and luncheon $275 extra; 2027 pricing not posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "realcomm-ibcon",
+  "action": "publish",
+  "reason": "realcomm.com shows IBcon/Realcomm 2026 June 2-4 San Diego (2025 June 3-4 Savannah) and a Realcomm IBcon 2027 nav link; recurs every early June, 2027 details not posted.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.realcomm.com/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "access": "PAID",
+   "costLow": 1495,
+   "costHigh": 1695,
+   "costNote": "2026 full conference $1,495 early to $1,695 general; 2027 prices not posted.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Group rates for 3+ registrants.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "lten-annual-conference",
+  "action": "publish",
+  "reason": "l-ten.org shows LTEN 2026 Annual Conference June 15-18 at Gaylord Palms (Kissimmee/Orlando) and 2025 in Aurora CO, exhibit rules reference a 2027 conference; annual in June, 2027 site not posted.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.l-ten.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costNote": "2027 dates, city and prices not posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "greenbiz-27",
+  "action": "publish",
+  "reason": "trellis.net/events/greenbiz shows GreenBiz 27 Feb 23-25, 2027 at Gaylord Pacific Resort (San Diego/Chula Vista), ~2,000 attendees, 75+ sessions; speaker nominations closed Sept 11, 2026.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://trellis.net/events/greenbiz/",
+   "startDate": "2027-02-23",
+   "endDate": "2027-02-25",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Chula Vista",
+   "state": "CA",
+   "access": "PAID",
+   "costNote": "Ticket prices not readable; All-Access Pass sold with promo codes.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://trellis.net/events/greenbiz/speaker-nomination/",
+   "speakingDeadline": "2026-09-11",
+   "speakingNote": "Nomination window closed; watch for next cycle.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING",
+    "EXPO"
+   ]
+  }
+ },
+ {
+  "id": "acu-ceo-council-conference",
+  "action": "publish",
+  "reason": "americascreditunions.org CEO Council Conference 2027 page shows Oct 18-20, 2027 at The US Grant, San Diego; open to non-members; member $2,240, non-member $4,880.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true,
+   "startDate": "2027-10-18",
+   "endDate": "2027-10-20",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "San Diego",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 2240,
+   "costHigh": 4880,
+   "costNote": "Early bird to July 16, 2027 member $2,240, non-member $4,880; guest pass $325.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "ACU member rate is about half the non-member rate; early-bird pricing.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "north-american-finance-executive-summit",
+  "action": "publish",
+  "reason": "executiveplatforms.com/nafes shows the 2027 Spring Edition agenda and speakers (CFOs of Sam's Club, Smurfit Westrock, Airbus) at JW Marriott Turnberry, Aventura FL, March 8-10, 2027; an executive-vetted summit.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.executiveplatforms.com/nafes/",
+   "startDate": "2027-03-08",
+   "endDate": "2027-03-10",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Aventura",
+   "state": "FL",
+   "country": "US",
+   "access": "APPLY",
+   "costNote": "Pricing not published; qualifying finance executives apply for a pass. A separate Fall Edition exists (/nafesf/).",
+   "speaking": "UNKNOWN",
+   "applyUrl": "https://www.executiveplatforms.com/nafes/",
+   "cheaperWays": "Executive Platforms summits are typically hosted-delegate programs for qualifying executives; confirm on the site.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING",
+    "EXPO"
+   ]
+  }
+ },
+ {
+  "id": "metrolab-network-annual-summit",
+  "action": "drop",
+  "reason": "metrolabnetwork.org search shows summits only through 2024 (Washington, Oct 1-2); no 2025 or 2026 edition found and site is partly legacy, so no evidence it still runs."
+ },
+ {
+  "id": "us-conference-of-mayors-annual-meeting",
+  "action": "publish",
+  "reason": "usmayors.org/meetings lists the 94th Annual Meeting in Long Beach June 4-7, 2026 and the 95th in Atlanta for 2027; held each June in a member city; membership required.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.usmayors.org/meetings/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": "Atlanta",
+   "state": "GA",
+   "country": "US",
+   "access": "INVITE",
+   "costNote": "Open to member mayors and invited guests; exact 2027 dates not posted.",
+   "speaking": "BY_INVITE",
+   "applyUrl": "https://www.usmayors.org/the-conference/membership/",
+   "cheaperWays": "Cities over 30,000 join the Conference; membership is how you get in. Staff and partners attend with the mayor.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "chime-fall-forum",
+  "action": "publish",
+  "reason": "chimecentral.org shows CHIME26 Fall Forum Nov 12-13, 2026 (pre-conference Nov 11) at Gaylord Rockies, Denver; limited to CHIME members and Foundation Firms; $2,395.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://chimecentral.org/",
+   "startDate": "2026-11-11",
+   "endDate": "2026-11-14",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Denver",
+   "state": "CO",
+   "country": "US",
+   "access": "INVITE",
+   "costLow": 2395,
+   "costHigh": 2395,
+   "costNote": "Rate $2,395 since Aug 15, 2026 (anniversary rate $795 expired); main sessions Nov 12-13.",
+   "speaking": "UNKNOWN",
+   "applyUrl": "https://chimecentral.org/chime-fall-forum-registration",
+   "cheaperWays": "Join CHIME as an Executive or Leader Provider member to be eligible; ambassador program gives free attendance to leaders who bring 3+ qualified team members.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "shea-spring-conference",
+  "action": "publish",
+  "reason": "shea-online.org says registration is open for SHEA Spring 2027 with abstracts due Jan 4, 2027; recurs every spring in a different US city; dates Mar 30-Apr 2 come only from listings.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://shea-online.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not read. Third-party listings say Washington DC, March 30-April 2, 2027; confirm on registration page.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://shea-online.org/",
+   "speakingDeadline": "2027-01-04",
+   "speakingNote": "Abstracts due Jan 4, 2027.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "applied-net",
+  "action": "publish",
+  "reason": "appliedsystems.com press releases show Applied Net 2023 Las Vegas, 2024 Nashville Sept 9-12, 2025 Las Vegas Oct 6-9, 2026 DC Sept 27-Oct 1 (4,000+ attendees); annual, 2027 not announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www1.appliedsystems.com/en-us/news/press-releases/2026/applied-systems-and-applied-client-network-announce-applied-net-2026/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "access": "PAID",
+   "costNote": "2027 city, dates and price not posted; usually announced early in the year.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "plrb-claims-conference",
+  "action": "publish",
+  "reason": "members.plrb.org lists the 2027 PLRB Claims Conference & Insurance Services Expo April 11-14, 2027 at the Henry B. Gonzalez Convention Center, San Antonio; call for proposals closed May 15, 2026.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://members.plrb.org/events/2027-plrb-claims-conference-insurance-services-expo",
+   "startDate": "2027-04-11",
+   "endDate": "2027-04-14",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "San Antonio",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration opens Jan 1, 2027; fee not shown on the listing.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://members.plrb.org/events/2027-plrb-claims-conference-insurance-services-expo",
+   "speakingDeadline": "2026-05-15",
+   "speakingNote": "Proposal call closed; no marketing pitches.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "nalp-annual-education-conference",
+  "action": "publish",
+  "reason": "nalp.org shows the 2027 Annual Education Conference April 13-16, 2027 at the Hyatt Regency Seattle, with 2028 Las Vegas and 2029 Minneapolis already set; proposals closed July 1, 2026.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.nalp.org/annual_education_conference",
+   "startDate": "2027-04-13",
+   "endDate": "2027-04-16",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Seattle",
+   "state": "WA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration listed as coming soon; pricing not posted.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.nalp.org/conferenceproposals",
+   "speakingDeadline": "2026-07-01",
+   "speakingNote": "Proposal window closed; notifications by Oct 31, 2026.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING",
+    "EXPO"
+   ]
+  }
+ },
+ {
+  "id": "loupe-americas",
+  "action": "publish",
+  "reason": "loupe-americas.com shows LOUPE Americas 2026 Sept 15-17 at Donald E. Stephens Center (Rosemont/Chicago) and lists the next edition 12-14 September 2028; biennial.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.loupe-americas.com/",
+   "startDate": "2028-09-12",
+   "endDate": "2028-09-14",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Rosemont",
+   "state": "IL",
+   "country": "US",
+   "access": "MIXED",
+   "costNote": "Next edition is 2028 (biennial); pricing not posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "EXPO",
+    "WORKSHOP",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "gamesbeat-summit",
+  "action": "publish",
+  "reason": "events.gamesbeat.com shows GamesBeat Summit held in Los Angeles May 2025 and May 18-19, 2026; annual in May, 2027 not announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://events.gamesbeat.com/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "Los Angeles",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 dates and pricing not posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "ssp-annual-meeting",
+  "action": "publish",
+  "reason": "sspnet.org shows the 49th SSP Annual Meeting June 2-4, 2027 at the Rhode Island Convention Center, Providence, with a call for proposals open (sessions due Nov 9, 2026).",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.sspnet.org/events/annual-meeting/",
+   "startDate": "2027-06-02",
+   "endDate": "2027-06-04",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Providence",
+   "state": "RI",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Fees not read; 700-1,000 attendees. 50th meeting is May 31-June 2, 2028 in Baltimore.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.sspnet.org/call-for-proposals-join-us-for-our-49th-annual-meeting/",
+   "speakingDeadline": "2026-11-09",
+   "speakingNote": "Sessions Nov 9, 2026; industry breakouts Feb 1, 2027; posters/previews Feb 12, 2027.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "global-philanthropy-forum",
+  "action": "publish",
+  "reason": "philanthropyforum.org shows the Leaders Summit annually in San Francisco (March 12-14, 2025; March 18-20, 2026, 300 leaders from 45 countries); 2027 not announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.philanthropyforum.org/Programs",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "city": "San Francisco",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Senior philanthropy leaders summit (~300); pricing and any application step not read, confirm on site.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "ismpp-annual-meeting",
+  "action": "publish",
+  "reason": "ismpp.org lists the 23rd Annual Meeting of ISMPP May 3-5, 2027 at Loews Royal Pacific, Orlando (homepage says May 2-5); the 2026 meeting was Apr 20-22 in Washington.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.ismpp.org/annual-meeting",
+   "startDate": "2027-05-03",
+   "endDate": "2027-05-05",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not read; homepage cites May 2-5 (likely including a pre-day).",
+   "speaking": "OPEN_CFP",
+   "speakingNote": "A member call for proposals exists for the 23rd meeting; see ISMPP site for the deadline.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "gartner-product-leadership-conference",
+  "action": "publish",
+  "reason": "gartner.com/en/conferences/na/product-leadership-us and Gartner's conference calendar agree: March 8-9, 2027 at Gaylord Texan, Grapevine TX.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true,
+   "startDate": "2027-03-08",
+   "endDate": "2027-03-09",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Grapevine",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "the-lead-summit",
+  "action": "publish",
+  "reason": "summit.the-lead.co / futurecommerce.com list The Lead Summit 2027 May 19-20 at Pier 36, New York; DTC Symposium has been the co-located day, 2027 details not posted.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://summit.the-lead.co/",
+   "startDate": "2027-05-19",
+   "endDate": "2027-05-20",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read; the DTC Symposium day has been included with summit registration.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "native-american-human-resources-conference",
+  "action": "publish",
+  "reason": "nativenationevents.org event page: 17th Annual Native American Human Resources Conference Jan 28-29, 2027 at Gila River Wild Horse Pass, Chandler AZ, with a Jan 27 pre-conference certification course.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true,
+   "startDate": "2027-01-28",
+   "endDate": "2027-01-29",
+   "datesConfirmed": true,
+   "typicalMonth": "January",
+   "city": "Chandler",
+   "state": "AZ",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Tiered pricing, early rates expired; general fee not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "conveyux",
+  "action": "publish",
+  "reason": "conveyux.com home shows Feb 25-27 | Seattle and Online (hybrid; Feb 25-27, 2025 at Hilton Motif); recurs late February, 2027 dates not posted.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://conveyux.com/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "February",
+   "city": "Seattle",
+   "state": "WA",
+   "country": "US",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costNote": "2027 dates and prices not posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "mtpcon-london",
+  "action": "drop",
+  "reason": "Held in London (June 15-16, 2026), outside North America, and Mind the Product's own page says the 2027 date is still to be announced; not an undisputed global flagship of the field."
+ },
+ {
+  "id": "sim-national-conference",
+  "action": "publish",
+  "reason": "simnet.org (AboutSIMposium) lists the SIM national event Nov 9-11, 2026, Huntington Beach CA; SIM is a membership society of IT executives.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://www.simnet.org/home?page=AboutSIMposium",
+   "startDate": "2026-11-09",
+   "endDate": "2026-11-11",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Huntington Beach",
+   "state": "CA",
+   "country": "US",
+   "access": "INVITE",
+   "costNote": "Membership-based; pricing not read.",
+   "speaking": "UNKNOWN",
+   "applyUrl": "https://www.simnet.org/membership/membership-benefits",
+   "cheaperWays": "Join SIM (membership benefits page) or attend a local SIM chapter event first.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "air-cargo-europe",
+  "action": "drop",
+  "reason": "Held in Munich, Germany, outside North America, and not the undisputed global flagship; dates only from third-party listings."
+ },
+ {
+  "id": "reuters-supply-chain-usa",
+  "action": "publish",
+  "reason": "events.reutersevents.com/supply-chain/usa is Supply Chain USA 2027, a Chicago leadership summit with registrations vetted and ~95% sold out; the site's pages disagree on June 23-24 vs June 15-16, so only June is stated.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true,
+   "url": "https://events.reutersevents.com/supply-chain/usa",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": "Chicago",
+   "state": "IL",
+   "country": "US",
+   "access": "APPLY",
+   "costNote": "Dates: agenda and register pages say June 23-24, calendar and sponsors pages say June 15-16; confirm. About 500 senior attendees; pricing not read.",
+   "speaking": "UNKNOWN",
+   "applyUrl": "https://events.reutersevents.com/supply-chain/usa/register",
+   "cheaperWays": "A free live broadcast registration is offered.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ]
+  }
+ }
+]

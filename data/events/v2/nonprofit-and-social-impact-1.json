@@ -1,0 +1,1132 @@
+[
+ {
+  "id": "afp-icon",
+  "name": "AFP ICON",
+  "organizer": "Association of Fundraising Professionals",
+  "url": "https://afpglobal.org/afp-icon",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-11",
+  "endDate": "2027-04-13",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Baltimore",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest gathering of fundraisers, development directors and major gifts officers in the country.",
+  "access": "PAID",
+  "costLow": 1099,
+  "costHigh": 2299,
+  "costNote": "Four full-conference tiers from preview $1,099 to regular $2,299 (Oct 28, 2026 to Apr 8, 2027); nonmember price includes a year of AFP membership; $300 on-site fee. One-day passes $699 member, $799-$999 nonmember.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://afpglobal.org/professional-development/share-your-knowledge",
+  "speakingDeadline": null,
+  "speakingNote": "AFP's search result said the ICON call for proposals is usually published in February for the following year; next RFP window March 2027 for ICON 2028.",
+  "cheaperWays": "Discounted rates for Collegiate, Young Professional and Small Non-Profit membership categories; group discounts; one-day passes.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Fundraising and development"
+  ],
+  "roles": [
+   "fundraiser",
+   "major gifts officer",
+   "development director"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "exponent-philanthropy-annual-conference",
+  "name": "Exponent Philanthropy Annual Conference",
+  "organizer": "Exponent Philanthropy",
+  "url": "https://exponentphilanthropy.org/programs/conferences/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-11",
+  "endDate": "2026-11-13",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Executive directors and program officers of small, lean foundations and individual philanthropists.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 full fee was $1,480 ($1,380 early-bird for members); 2026 and 2027 fees not seen. 2027 edition: Boston, Nov 17-19, 2027.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://exponentphilanthropy.org/programs/conferences/call-for-sessions/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for sessions is issued the year before the conference; no honoraria or travel paid.",
+  "cheaperWays": "In 2025 up to seven full scholarships covering registration; Next Gen Fellows program.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "program officer",
+   "foundation executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "asae-annual-meeting",
+  "name": "ASAE Annual Meeting & Exposition",
+  "organizer": "ASAE: The Center for Association Leadership",
+  "url": "https://annual.asaecenter.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-07",
+  "endDate": "2027-08-10",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main yearly gathering of association CEOs, membership directors and meetings staff.",
+  "access": "PAID",
+  "costLow": 1248,
+  "costHigh": 1648,
+  "costNote": "2026 association-professional rates shown: $1,248 member, $1,648 nonmember; 2027 fees not yet posted; discounted NextGen rate for age 35 or under.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://annual.asaecenter.org/",
+  "speakingDeadline": "2026-11-02",
+  "speakingNote": "Call for proposals for 2027 sessions runs Oct 6 to Nov 2, 2026.",
+  "cheaperWays": "NextGen rate for those 35 and under.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Associations and membership organizations"
+  ],
+  "roles": [
+   "association executive",
+   "membership director",
+   "association meetings manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "asae-mmc-tech",
+  "name": "ASAE Marketing, Membership, Communications + Tech Conference",
+  "organizer": "ASAE: The Center for Association Leadership",
+  "url": "https://mmct.asaecenter.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-11",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Membership and marketing directors at associations compare recruitment, retention and digital tools.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Associations and membership organizations"
+  ],
+  "roles": [
+   "membership director"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "asae-great-ideas-conference",
+  "name": "ASAE Great Ideas Conference",
+  "organizer": "ASAE: The Center for Association Leadership",
+  "url": "https://greatideas.asaecenter.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Association professionals share innovation case studies; vendors are not eligible to attend.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran Oct 18-20 in Minneapolis; 2027 edition not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Associations and membership organizations"
+  ],
+  "roles": [
+   "association executive",
+   "membership director",
+   "association meetings manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "grantsummit",
+  "name": "GrantSummit",
+  "organizer": "Grant Professionals Association",
+  "url": "https://grantprofessionals.org",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-07",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Grant writers and grants managers, including program staff at foundations and nonprofits, 1,300+ attendees.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "General attendee prices not seen. Hybrid: in-person and livestream.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://grantprofessionals.org/page/callforpresenters",
+  "speakingDeadline": null,
+  "speakingNote": "2026 session window was Jan 1 to Feb 28; main stage call Mar 2 to Apr 30; selected presenters got 30% off registration.",
+  "cheaperWays": "Virtual option; 30% presenter discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Fundraising and development",
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "fundraiser",
+   "development director"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "council-on-foundations-leading-locally",
+  "name": "Leading Locally (Council on Foundations)",
+  "organizer": "Council on Foundations",
+  "url": "https://cof.org/event/leading-locally-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-04",
+  "endDate": "2027-05-06",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Community foundation CEOs and staff focused on place-based philanthropy; the Council no longer holds a single annual conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not yet published; registration expected late 2026. Council's other event, Building Together, is May 22-25, 2028 in Charlotte.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://cof.org/events/conferences",
+  "speakingDeadline": null,
+  "speakingNote": "A Propose a Session link is listed; terms not seen. 2025 edition gave up to three speakers a discounted registration code.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "foundation executive",
+   "program officer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "peak-grantmaking-annual-convening",
+  "name": "PEAK2027 Annual Convening",
+  "organizer": "PEAK Grantmaking",
+  "url": "https://www.peakgrantmaking.org/peak2027-atlanta/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-16",
+  "endDate": "2027-03-18",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Grants managers and operations staff at foundations; about 1,200 expected.",
+  "access": "PAID",
+  "costLow": 1425,
+  "costHigh": 1825,
+  "costNote": "Regular rate $1,425 organization member, $1,825 individual or nonmember through Jan 27, 2027; late rates after. Online edition May 19-20, 2027.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.peakgrantmaking.org/events/peak2027-call-for-proposals/",
+  "speakingDeadline": "2026-11-05",
+  "speakingNote": "Submissions due Nov 5, 2026; no extension planned.",
+  "cheaperWays": "Member scholarships cover in-person registration plus three hotel nights; virtual option.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "program officer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "gih-annual-conference",
+  "name": "GIH Annual Conference on Health Philanthropy",
+  "organizer": "Grantmakers In Health",
+  "url": "https://www.gih.org/event/2027-gih-annual-conference-on-health-philanthropy/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-28",
+  "endDate": "2027-07-01",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Program officers and executives of health foundations meet; discounted rates for GIH Funding Partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dollar fees not shown; funding partners get a discount.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.gih.org/gih-news/submit-a-session-proposal-for-the-2027-gih-annual-conference-on-health-philanthropy/",
+  "speakingDeadline": "2026-10-30",
+  "speakingNote": "Action-oriented session proposals on governance, communications, health equity.",
+  "cheaperWays": "Funding Partner discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "program officer",
+   "foundation executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "geo-learning-conference",
+  "name": "GEO Learning Conference",
+  "organizer": "Grantmakers for Effective Organizations",
+  "url": "https://www.geofunders.org/event/2027-learning-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-26",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "St. Louis",
+  "state": "MO",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Funders practicing nonprofit-centered grantmaking; GEO holds its big national conference in even years (2026 was Boston, June 1-3).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not seen. Held with Philanthropy Missouri.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "program officer",
+   "foundation executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "edfunders-annual-conference",
+  "name": "EdFunders Annual Conference",
+  "organizer": "Grantmakers for Education",
+  "url": "https://www.edfunders.org/annual-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Education funders and foundation staff; 2026 edition (NYC, Oct 13-15) sold out.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Members only may submit sessions; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Only members can submit sessions; selection runs May to August.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "program officer",
+   "foundation executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ahp-international-conference",
+  "name": "AHP International Conference on Healthcare Philanthropy",
+  "organizer": "Association for Healthcare Philanthropy",
+  "url": "https://www.ahp.org/events/ahp-international-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-19",
+  "endDate": "2027-10-21",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The largest annual gathering of hospital and health-system fundraisers and foundation leaders.",
+  "access": "PAID",
+  "costLow": 1019,
+  "costHigh": 1939,
+  "costNote": "2026 full-conference rates ranged $1,019 to $1,939 by tier (AHP Prime, Member, Nonmember); 2027 rates not posted. Sponsorship page says Oct 20-22, so dates conflict.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.ahp.org/events/ahp-international-conference/",
+  "speakingDeadline": null,
+  "speakingNote": "2026 proposal window ran Dec 18 to Feb 9; roughly 27 percent of proposals accepted.",
+  "cheaperWays": "AHP Foundation Scholarship up to $2,000, reopening early 2027; single-day tickets.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Fundraising and development"
+  ],
+  "roles": [
+   "fundraiser",
+   "major gifts officer",
+   "development director"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "apra-prospect-development",
+  "name": "Prospect Development (Apra)",
+  "organizer": "Apra",
+  "url": "https://aprahome.org/Events/Upcoming-Events/Future-Conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-27",
+  "endDate": "2027-07-30",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Prospect researchers and fundraising analytics staff who feed major gifts officers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 fees not seen. City not confirmed for 2027.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Past calls closed in February; speakers received $200 off registration in 2025.",
+  "cheaperWays": "Apra Foundation funds five conference scholarships (2026 cycle).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Fundraising and development"
+  ],
+  "roles": [
+   "major gifts officer",
+   "development director"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "case-transformational-gifts",
+  "name": "CASE Transformational Gifts",
+  "organizer": "CASE (Council for Advancement and Support of Education)",
+  "url": "https://www.case.org/conferences-training/transformational-gifts-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-16",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Senior advancement leaders who close seven- and eight-figure gifts at universities and schools.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee not shown on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Fundraising and development"
+  ],
+  "roles": [
+   "major gifts officer",
+   "development director"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "case-district-i-ii-conference",
+  "name": "CASE District I & II Annual Conference",
+  "organizer": "CASE (Council for Advancement and Support of Education)",
+  "url": "https://www.case.org/conferences-training/district-i-ii-annual-conference-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-07",
+  "endDate": "2027-02-09",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Baltimore",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Regional advancement conference covering fundraising, alumni relations and communications for East Coast schools and colleges.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Fundraising and development"
+  ],
+  "roles": [
+   "fundraiser",
+   "development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "independent-sector-national-summit",
+  "name": "Independent Sector National Summit",
+  "organizer": "Independent Sector",
+  "url": "https://summit.independentsector.org/details/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Nonprofit CEOs, foundation leaders and board members; 2026 edition was Oct 13-16 in Phoenix.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Nonprofit leadership and boards",
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "executive director",
+   "foundation executive",
+   "nonprofit board member"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "independent-sector-policy-symposium",
+  "name": "Symposium on Public Policy for Nonprofits",
+  "organizer": "Independent Sector",
+  "url": "https://independentsector.org/policy/symposium-on-public-policy-for-nonprofits/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-02-19",
+  "endDate": "2027-02-19",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Virtual one-day policy symposium with ARNOVA for nonprofit leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens fall 2026; price not seen.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://independentsector.org/2027-symposium-request-for-proposals/",
+  "speakingDeadline": null,
+  "speakingNote": "2027 request for proposals page exists.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "executive director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "boardsource-leadership-forum",
+  "name": "BoardSource Leadership Forum",
+  "organizer": "BoardSource",
+  "url": "https://boardsource.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Biennial gathering of 800+ board members, executive directors and staff on nonprofit governance.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Held every two years; 2027 dates not found on the site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "nonprofit board member",
+   "executive director"
+  ],
+  "journeys": [
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "pcma-convening-leaders",
+  "name": "PCMA Convening Leaders",
+  "organizer": "PCMA",
+  "url": "https://www.pcma.org/event/2027-convening-leaders/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-10",
+  "endDate": "2027-01-13",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Largest US gathering of business-event planners; association meetings managers are a core audience.",
+  "access": "PAID",
+  "costLow": 1649,
+  "costHigh": 2635,
+  "costNote": "Final tier Dec 18, 2026 to Jan 14, 2027: organizer members $1,649, nonmembers $2,095; supplier members $2,049, nonmembers $2,635. Faculty $699, student $399.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student $399; faculty $699; new-member bundle saves $50.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Associations and membership organizations"
+  ],
+  "roles": [
+   "association meetings manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "skoll-world-forum",
+  "name": "Skoll World Forum",
+  "organizer": "Skoll Foundation",
+  "url": "https://skoll.org/skoll-world-forum/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-04-06",
+  "endDate": "2027-04-08",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Oxford",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Social entrepreneurs, foundation leaders and impact investors; pages disagree on end date (Apr 8 or 9).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Skoll Fellowship and delegate programs exist.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Nonprofit leadership and boards",
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "executive director",
+   "foundation executive"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "native-americans-in-philanthropy-conference",
+  "name": "Native Americans in Philanthropy Annual Conference",
+  "organizer": "Native Americans in Philanthropy",
+  "url": "https://nativephilanthropy.org/events/napcon-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Indigenous and philanthropic leaders; venue not seen.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "program officer",
+   "foundation executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "givecon",
+  "name": "GiveCon",
+  "organizer": "Bloomerang",
+  "url": "https://bloomerang.com/givecon",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-06",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Fundraisers and nonprofit staff at all levels; open to non-customers, 100+ sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration open; current prices not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Fundraising and development"
+  ],
+  "roles": [
+   "fundraiser",
+   "development director"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "philanthropy-roundtable-annual-meeting",
+  "name": "Philanthropy Roundtable Annual Meeting",
+  "organizer": "Philanthropy Roundtable",
+  "url": "https://www.philanthropyroundtable.org/upcoming-annual-meetings/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Invitation-only meeting for principal donors and foundations giving $100,000+ a year.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.philanthropyroundtable.org/upcoming-annual-meetings/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "foundation executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "association-trends-salute-to-association-excellence",
+  "name": "Salute to Association Excellence",
+  "organizer": "Association TRENDS",
+  "url": "https://www.associationtrends.com/salute-to-association-excellence",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Awards event and networking for association executives; 650+ attended in 2026.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 date and price not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Associations and membership organizations"
+  ],
+  "roles": [
+   "association executive"
+  ],
+  "journeys": []
+ }
+]

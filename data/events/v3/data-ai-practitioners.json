@@ -1,0 +1,1743 @@
+[
+ {
+  "id": "informs-annual-meeting",
+  "name": "INFORMS Annual Meeting",
+  "organizer": "INFORMS",
+  "url": "https://meetings.informs.org/wordpress/annual/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-04",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest gathering of operations research and analytics professionals, with practitioners from industry, government and academia and a strong job-market and networking program.",
+  "access": "PAID",
+  "costLow": 750,
+  "costHigh": 1250,
+  "costNote": "2026 rates: member $750 early / $900 regular; nonmember $1,080 early / $1,250 regular (includes one year of membership). Early pricing ended Sept 2, 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Session proposals and speaker registration for 2026 are closed; INFORMS runs a yearly call for session clusters (terms for the next meeting not confirmed).",
+  "cheaperWays": "Student member $325-$425, student nonmember $400-$510, retired $325-$510; groups of 10+ get $675 member / $945 nonmember per person.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "operations research analyst",
+   "data scientist",
+   "statistician",
+   "optimization engineer"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "informs-analytics-plus",
+  "name": "INFORMS Analytics+ Conference",
+  "organizer": "INFORMS",
+  "url": "https://meetings.informs.org/wordpress/analytics/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-04",
+  "endDate": "2027-04-06",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Practitioner-focused analytics conference built around the Franz Edelman Award finalists, with analytics leaders from industry presenting deployed work.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pricing announced when registration opens; INFORMS offers member and nonmember rates, early bird, and reduced student and retiree rates (2026 early bird started at $1,430 member / $1,860 nonmember).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No 2027 call for abstracts found yet; the 2026 submission page is closed.",
+  "cheaperWays": "Reduced student and retiree rates; early bird.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "analytics manager",
+   "operations research analyst",
+   "data scientist",
+   "chief analytics officer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "joint-statistical-meetings",
+  "name": "Joint Statistical Meetings (JSM)",
+  "organizer": "American Statistical Association",
+  "url": "https://ww2.amstat.org/meetings/jsm/2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-08",
+  "endDate": "2027-08-12",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "North America's largest gathering of statisticians and data scientists across government, pharma, finance, tech and academia, with a large career service.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 fees not yet posted (registration opens April 29, 2027; early registration closes June 1, regular June 2-30, late from July 1). For reference the 2026 full-time student member rate was $155.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://ww2.amstat.org/meetings/jsm/2027/sessionsubmission/",
+  "speakingDeadline": "2027-02-01",
+  "speakingNote": "Online abstract submission for all session types opens Dec 1, 2026 and closes Feb 1, 2027.",
+  "cheaperWays": "Student member rate (certification required); early registration window.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "statistician",
+   "biostatistician",
+   "data scientist"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "sabr-analytics-conference",
+  "name": "SABR Analytics Conference",
+  "organizer": "Society for American Baseball Research",
+  "url": "https://sabr.org/analytics",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-03-12",
+  "endDate": "2027-03-14",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The main baseball analytics meeting: team front-office analysts, researchers and students, with career sessions and a student case competition judged by MLB executives.",
+  "access": "PAID",
+  "costLow": 395,
+  "costHigh": 495,
+  "costNote": "Early-bird: $395 SABR members, $495 nonmembers, $150 students (2027). Regular 2026 rates were $545 member / $645 nonmember.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://sabr.org/latest/submit-your-presentation-abstract-for-2027-sabr-analytics-conference/",
+  "speakingDeadline": "2026-11-25",
+  "speakingNote": "Research abstracts capped at 500 words; any area of baseball analytics.",
+  "cheaperWays": "Student rates $50 virtual / $150 in person; Yoseloff Scholarship (up to four, covers registration and expenses) and Sarah Langs Women in Baseball Analytics Scholarship.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "sports analyst",
+   "data scientist",
+   "baseball operations analyst"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "amia-annual-symposium",
+  "name": "AMIA Annual Symposium",
+  "organizer": "American Medical Informatics Association",
+  "url": "https://amia.org/education-events/annual-symposium",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-07",
+  "endDate": "2026-11-11",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The leading US meeting for clinical and biomedical informatics: health data scientists, CMIOs and researchers, 2,300+ attendees and 600+ presentations.",
+  "access": "PAID",
+  "costLow": 1265,
+  "costHigh": 1770,
+  "costNote": "Standard fees after Oct 5: professional member $1,265, early-career member $1,010, student/trainee member $760, nonmember $1,770.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://amia.org/education-events/presenter-and-reviewer-resources/presenter-guidelines",
+  "speakingDeadline": null,
+  "speakingNote": "Papers, panels and posters are peer reviewed on an annual cycle; 2026 submissions are closed.",
+  "cheaperWays": "LEAD Fund covers part of registration for up to 8 trainees/early-career presenters; First Look program gives undergraduates free registration; student volunteers have received waived registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Health IT and informatics"
+  ],
+  "roles": [
+   "clinical informaticist",
+   "health data scientist",
+   "chief medical information officer"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "machine-learning-week",
+  "name": "Machine Learning Week",
+  "organizer": "Rising Media",
+  "url": "https://machinelearningweek.com",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Hands-on conference for machine learning and predictive analytics practitioners (the former Predictive Analytics World), with workshops and enterprise case studies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (HYBRID AI, May 5-6 in San Francisco) has ended; 2027 dates not posted. Ticket prices are on the registration page, not shown in text.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://machinelearningweek.com/call-for-speakers/",
+  "speakingDeadline": null,
+  "speakingNote": "Public call for speakers; deadline not stated.",
+  "cheaperWays": "Academic, government and nonprofit attendees pay half price (email to confirm); $200 off per additional attendee from the same company; 10% newsletter code.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "AI and machine learning"
+  ],
+  "roles": [
+   "machine learning engineer",
+   "data scientist",
+   "analytics manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "fabcon-sqlcon",
+  "name": "FabCon | SQLCon (Microsoft Fabric Community Conference)",
+  "organizer": "Microsoft / Fabric community",
+  "url": "https://www.fabriccon.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-12",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The main Microsoft Fabric, Power BI and SQL Server gathering: BI developers, data engineers and analytics leaders with 200+ sessions and the Power BI visualization championship.",
+  "access": "PAID",
+  "costLow": 1395,
+  "costHigh": 2995,
+  "costNote": "Pass range reported by a third-party guide; confirm on the official ticket page. Dates and city from Sessionize/third-party listings, not read on the official site.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://sessionize.com/fabcon-2027-sqlcon-2027-sessions/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for speakers listed on Sessionize.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "power bi developer",
+   "bi analyst",
+   "data engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "snowflake-summit",
+  "name": "Snowflake Summit",
+  "organizer": "Snowflake",
+  "url": "https://www.snowflake.com/en/summit/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-10",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Data and AI platform users, partners and executives from thousands of companies; a major hub for data engineers, architects and analytics leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pass prices not yet posted (Save-the-Date form only). The 2026 early bird was $2,095 and onsite $2,495.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speaking terms not on the 2027 page.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "data engineer",
+   "analytics engineer",
+   "data architect"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "dbt-summit",
+  "name": "dbt Summit (formerly Coalesce)",
+  "organizer": "dbt Labs",
+  "url": "https://www.getdbt.com/coalesce-2026-waitlist",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-13",
+  "endDate": "2027-09-16",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The analytics-engineering community's yearly conference: data engineers and analytics engineers swapping practice on modeling, governance and AI.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Sept 15-18 at The Cosmopolitan; 2027 dates from a third-party listing only. A guide cited 2026 standard registration at $1,695.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "analytics engineer",
+   "data engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "posit-conf",
+  "name": "posit::conf",
+  "organizer": "Posit",
+  "url": "https://conf.posit.co/2026/pricing/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The main R and Python data science community conference: statisticians, pharma and public-sector analysts and open-source maintainers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Sept 14-16, Houston) has ended; 2027 not announced. 2026 academic in-person all-access was $1,298 and virtual $98.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Academic tier for students and educators; $98 virtual all-access; needs-based $0 conference-only option (2026).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "data scientist",
+   "statistician",
+   "r programmer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "sas-innovate",
+  "name": "SAS Innovate",
+  "organizer": "SAS",
+  "url": "https://www.sas.com/en/events/sas-innovate/save-the-date.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Financial Services & Banking",
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Customer conference for SAS analytics, AI, fraud and risk users, mostly statisticians, risk modelers and data science leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "April 2027 at ARIA, Las Vegas; official pages conflict on exact days (April 12-15 vs April 27-30). Pricing not posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.sas.com/en/events/sas-innovate/call-for-content.html",
+  "speakingDeadline": "2026-10-23",
+  "speakingNote": "Deep dives and customer stories (45 min) or shorter sessions; notifications by January 2027; selected speakers get free registration, travel reimbursed for customers and higher-ed.",
+  "cheaperWays": "Speakers receive complimentary registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "sas programmer",
+   "data scientist",
+   "risk modeler"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "cdoiq-symposium",
+  "name": "MIT CDOIQ Symposium",
+  "organizer": "International Society of Chief Data Officers / MIT CDOIQ",
+  "url": "https://www.cdoiq.org",
+  "kind": "SUMMIT",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Cambridge",
+  "state": "MA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Annual meeting of chief data officers and information-quality leaders from industry, government and academia, with a limited number of complimentary passes for selected delegates.",
+  "access": "MIXED",
+  "costLow": 950,
+  "costHigh": 1950,
+  "costNote": "2026 (20th) edition in person $1,950, virtual $950 per a third-party listing; the 21st symposium is slated for July 2027. Site page returned no text.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Participation form for the 21st symposium invites industry, government and academia.",
+  "cheaperWays": "Limited complimentary passes for selected delegates (per the 21st symposium invitation).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "chief data officer",
+   "head of data governance"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "cdao-financial-services",
+  "name": "CDAO Financial Services",
+  "organizer": "Corinium Global Intelligence",
+  "url": "https://cdaofs.coriniumintelligence.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-02",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking",
+   "Insurance"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Chief data and analytics officers and AI leaders from banks, asset managers and insurers; co-located with CDAO Insurance on March 2.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Practitioner pricing not shown on the page text read; venue listed as Convene One Liberty Plaza (sponsor page).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "chief data officer",
+   "chief analytics officer",
+   "head of ai"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "cdao-fed-ready-summit",
+  "name": "CDAO Fed Ready Summit",
+  "organizer": "Corinium Global Intelligence",
+  "url": "https://cdao-federal.coriniumintelligence.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-05",
+  "endDate": "2027-03-05",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Senior data, analytics and AI leaders across US federal agencies, in its third year.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not shown; 2027 agenda still to come.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "roles": [
+   "chief data officer",
+   "federal data scientist"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "evanta-cdao-executive-summits",
+  "name": "Evanta CDAO Community Executive Summits (Gartner)",
+  "organizer": "Evanta, a Gartner company",
+  "url": "https://www.evanta.com/cdao/boston/boston-cdao-executive-summit-9579",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-09",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Invitation-style one-day peer summits of chief data and analytics officers in Boston, New York, Washington DC and other cities, with Gartner analysts.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not published; members join through a community program manager. Boston is June 9, 2027; Washington DC is May 26, 2027; New York has June 23, 2027.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Peer-led discussion format, not a public call for speakers.",
+  "cheaperWays": null,
+  "applyUrl": "https://www.evanta.com/cdao/boston/boston-cdao-executive-summit-9579",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "chief data officer",
+   "chief analytics officer"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "dgiq-edw",
+  "name": "DGIQ + Enterprise Data World",
+  "organizer": "DATAVERSITY",
+  "url": "https://www.dataversity.net",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Data management, governance and architecture practitioners; the longest-running enterprise data management conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 4-8 in San Diego; 2027 dates and venue are TBD per listings. Official site pages could not be opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "data governance lead",
+   "data architect",
+   "chief data officer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "tdwi-transform",
+  "name": "TDWI Transform",
+  "organizer": "TDWI",
+  "url": "https://tdwi.org/orlando",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "BI, analytics, data management and governance practitioners and managers, with full-day courses.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition was Nov 16-21 at the Rosen Centre; 2026/2027 dates conflict across listings.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "bi developer",
+   "data warehouse architect",
+   "analytics manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "qlik-connect",
+  "name": "Qlik Connect",
+  "organizer": "Qlik",
+  "url": "https://www.qlikconnect.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Kissimmee",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Customer and partner conference for Qlik data integration, analytics and AI users.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was April 13-15 at Gaylord Palms; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "bi analyst",
+   "data engineer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "wids-worldwide-conference",
+  "name": "Women in Data Science (WiDS) Worldwide Conference",
+  "organizer": "WiDS Worldwide / Stanford Data Science",
+  "url": "https://www.widsworldwide.org/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Stanford",
+  "state": "CA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Flagship one-day conference on International Women's Day with 200+ regional events worldwide, strong for finding data science peers and mentors.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Flagship has historically been held in early March at Stanford with online access; 2027 date not found. Cost not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Regional WiDS events worldwide run free or low cost.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "data scientist",
+   "data analyst"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "RETURNING",
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "ai-loves-data-enterprise-ai-awards",
+  "name": "AI Loves Data Enterprise AI Awards & Showcase (formerly Data Science Salon)",
+  "organizer": "AI Loves Data",
+  "url": "https://ailovesdata.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-03",
+  "endDate": "2027-02-03",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Applied data science and enterprise AI community (the former Data Science Salon, since 2016) recognizing real deployed work.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found; the site also lists an Enterprise AI Builders Conference in San Francisco on Nov 5, 2026.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://ailovesdata.com/?p=6260",
+  "speakingDeadline": null,
+  "speakingNote": "Site has a Be a speaker page.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "AI and machine learning"
+  ],
+  "roles": [
+   "data scientist",
+   "ai engineer",
+   "head of data science"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "quantminds-international",
+  "name": "QuantMinds International",
+  "organizer": "Informa Connect",
+  "url": "https://informaconnect.com/quantminds-international/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-19",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "The largest quant finance meeting: 700+ practitioners and academics, 150+ asset managers on derivatives, risk, portfolio construction and ML.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "InterContinental O2, London; pricing not captured. No 2027 edition announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Capital markets and trading",
+   "Wealth and asset management"
+  ],
+  "roles": [
+   "quantitative analyst",
+   "quant developer",
+   "risk modeler"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "acm-facct",
+  "name": "ACM FAccT (Fairness, Accountability, and Transparency)",
+  "organizer": "ACM",
+  "url": "https://facctconference.org/2027/cfp.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-21",
+  "endDate": "2027-06-24",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": null,
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Research and practitioner conference on responsible, safe and trustworthy AI, with AI governance, policy and audit people in the room.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Venue per a third-party listing is Porto, Portugal; not read from the official page. Pricing not published.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://facctconference.org/2027/cfp.html",
+  "speakingDeadline": "2026-11-03",
+  "speakingNote": "Abstract deadline Oct 27, 2026; paper deadline Nov 3, 2026; archival and non-archival tracks.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "AI and machine learning"
+  ],
+  "roles": [
+   "responsible ai lead",
+   "ai ethics researcher",
+   "ai auditor"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "iapp-global-summit",
+  "name": "IAPP Global Summit (Privacy | AI Governance | Cybersecurity Law)",
+  "organizer": "IAPP",
+  "url": "https://iapp.org/conference/iapp-global-summit",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-21",
+  "endDate": "2027-03-24",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The world's largest gathering of privacy and digital-responsibility professionals, now with a major AI governance track.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Main conference March 23-24 with training and workshops before; 2027 prices not found (2026 early bird saved up to $100; groups of five or more save $150 each).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://iapp.org/conferences/speak-at-an-iapp-conference",
+  "speakingDeadline": "2026-09-13",
+  "speakingNote": "2027 call for proposals closed (deadline Sept 13, 2026).",
+  "cheaperWays": "Group rate for five or more.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "ai governance lead",
+   "privacy counsel",
+   "data protection officer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "himss-ai-in-healthcare-forum",
+  "name": "HIMSS AI in Healthcare Forum",
+  "organizer": "HIMSS",
+  "url": "https://www.himss.org/events-overview/ai-in-healthcare-forum-boston/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Health system and health-tech leaders on responsible AI adoption and governance, with a preceding AI Leadership Summit for executives.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 editions: Boston June 25-26 and San Diego Oct 22-23. 2027 dates not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Health IT and informatics"
+  ],
+  "roles": [
+   "chief ai officer",
+   "cmio",
+   "health data scientist"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "stanford-ai-education-summit",
+  "name": "Stanford AI+Education Summit",
+  "organizer": "Stanford HAI / Stanford Accelerator for Learning",
+  "url": "https://hai.stanford.edu/events/ai-education-summit-2026",
+  "kind": "SUMMIT",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Stanford",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Researchers, educators, technology leaders and policymakers on AI in teaching and learning.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Invitation only in person with a livestream; 2026 edition was Feb 11.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Livestream for virtual attendance.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Higher education administration",
+   "EdTech companies"
+  ],
+  "roles": [
+   "learning scientist",
+   "edtech product lead",
+   "provost"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "codex-futurelaw",
+  "name": "CodeX FutureLaw",
+  "organizer": "Stanford Center for Legal Informatics (CodeX)",
+  "url": "https://conferences.law.stanford.edu/futurelaw/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Stanford",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Legal tech, AI and computational law builders and lawyers, including AI-native legal startups.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "13th annual edition was April 16, 2026; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Legal operations and technology"
+  ],
+  "roles": [
+   "legal technologist",
+   "legal engineer",
+   "general counsel"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "rework-ai-in-finance-summit-ny",
+  "name": "RE\u2022WORK AI in Finance Summit New York",
+  "organizer": "RE\u2022WORK",
+  "url": "https://ny-ai-finance.re-work.co",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Applied AI and machine learning practitioners from banks, asset managers and fintechs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was April 15-16 at 237 Park Ave; 2027 unconfirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Capital markets and trading",
+   "Payments and fintech"
+  ],
+  "roles": [
+   "machine learning engineer",
+   "quantitative researcher",
+   "head of ai"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "a-team-ai-data-management-summit",
+  "name": "A-Team AI in Data Management Summit New York",
+  "organizer": "A-Team Group",
+  "url": "https://a-teaminsight.com/events/ai-in-data-management-summit-new-york-city/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Capital-markets data management, governance and AI practitioners.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed for March 2027 in a search snippet only; page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search snippet",
+  "segments": [
+   "Capital markets and trading"
+  ],
+  "roles": [
+   "data management lead",
+   "chief data officer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "healthcare-analytics-summit",
+  "name": "Health Catalyst Healthcare Analytics Summit (HAS)",
+  "organizer": "Health Catalyst",
+  "url": "https://www.healthcatalyst.com",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Healthcare analytics and quality leaders from health systems; attendance is by request with limited space.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "HAS 25 was complimentary with acceptance after a request; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Health IT and informatics"
+  ],
+  "roles": [
+   "healthcare analyst",
+   "chief analytics officer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "kdd",
+  "name": "ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD)",
+  "organizer": "ACM SIGKDD",
+  "url": "https://kdd.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-01",
+  "endDate": "2027-08-05",
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "San Jose",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Premier applied data science and mining conference with an Applied Data Science track for deployed systems.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and San Jose venue from aggregators (another says Aug 9); pricing not published.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://kdd.org",
+  "speakingDeadline": null,
+  "speakingNote": "Cycle 1 closed July 26, 2026; cycle 2 expected February 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "AI and machine learning"
+  ],
+  "roles": [
+   "machine learning engineer",
+   "applied scientist",
+   "data scientist"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "pydata-nyc",
+  "name": "PyData NYC",
+  "organizer": "NumFOCUS / PyData",
+  "url": "https://pydata.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Python data science and engineering community conference with practitioners and open-source maintainers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Past editions early November; 2026 and 2027 NYC dates not found.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://nyc2024.pydata.org/cfp",
+  "speakingDeadline": null,
+  "speakingNote": "CFP page exists for prior editions.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search results",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "data scientist",
+   "python developer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "measurecamp-us",
+  "name": "MeasureCamp (US cities)",
+  "organizer": "MeasureCamp",
+  "url": "https://chicago.measurecamp.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Free analytics unconference where attendees set the schedule; web and marketing analysts, CRO and data people.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Chicago was Sept 19, 2026; other US cities (Santa Monica, Washington DC) run separately; 2027 dates not found.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Sessions are proposed by attendees on the day.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "marketing analyst",
+   "web analyst"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "carnegie-mellon-sports-analytics-conference",
+  "name": "Carnegie Mellon Sports Analytics Conference (CMSAC)",
+  "organizer": "Carnegie Mellon University",
+  "url": "https://www.cmu.edu/dietrich/statistics-datascience/cmsac/index.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Sports analytics research with 200+ attendees and reps from 15 pro teams in 2025.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026/2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search results",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "sports analyst",
+   "data scientist"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "govdatax",
+  "name": "govDATAx",
+  "organizer": "Data Foundation",
+  "url": "https://datafoundation.org/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Federal, state and research data leaders on public data, evidence-based policy and AI.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Sept 15 at George Washington University; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Federal civilian agencies",
+   "Civic technology and digital government"
+  ],
+  "roles": [
+   "chief data officer",
+   "statistician",
+   "policy analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "NEXT_ACT"
+  ]
+ }
+]

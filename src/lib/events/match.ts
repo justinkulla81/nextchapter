@@ -14,12 +14,17 @@ export interface MemberEventFacts {
   industries: string[]
   seniority: Seniority | null
   state: string | null
+  journey: string | null
+  /** Lower-cased job title text (latest title, target role) for matching an event's specific roles. */
+  titleText: string
 }
 
 export interface EventFilters {
   function?: string
   industry?: string
   seniority?: Seniority
+  /** Free text: matches name, organizer, roles, segments, industries. */
+  q?: string
   /** 'cheap' = free, or a way to get in for less; 'speak' = a speaking path exists; 'invite' = apply or invitation. */
   way?: 'cheap' | 'speak' | 'invite'
 }
@@ -39,15 +44,32 @@ export function seniorityFromScore(score: number | null | undefined): Seniority 
   return 'EARLY'
 }
 
+const JOURNEY_PHRASE: Record<string, string> = { ENTREPRENEUR: 'starting or buying a business', FRACTIONAL: 'going fractional or independent', NEXT_ACT: 'in a next act', CAREER_CHANGE: 'changing careers', STUDENT_NEW_GRAD: 'starting out', RETURNING: 'returning to work', LAID_OFF: 'between jobs' }
 const rank = (s: string) => SENIORITIES.indexOf(s as Seniority)
 
 export function isCheapWay(e: ConferenceRow): boolean {
   return e.access === 'FREE' || e.access === 'MIXED' || !!e.cheaperWays
 }
-export const canSpeak = (e: ConferenceRow) => e.speaking === 'OPEN_CFP' || e.speaking === 'BY_INVITE'
+export const canSpeak = (e: ConferenceRow) => e.speaking === 'OPEN_CFP' || e.speaking === 'BY_INVITE' || e.speaking === 'LIKELY'
 export const needsInvite = (e: ConferenceRow) => e.access === 'INVITE' || e.access === 'APPLY'
 
+const words = (s: string) => s.toLowerCase().split(/[^a-z0-9&+]+/).filter((w) => w.length > 2)
+const STOP = new Set(['and', 'the', 'for', 'senior', 'junior', 'lead', 'head', 'manager', 'director', 'officer', 'specialist', 'analyst'])
+/** An event role is hit when every distinctive word of it appears in the member's title text. */
+function roleHits(e: ConferenceRow, titleText: string): string[] {
+  if (!titleText) return []
+  const have = new Set(words(titleText))
+  return e.roles.filter((r) => {
+    const ws = words(r).filter((w) => !STOP.has(w))
+    return ws.length > 0 && ws.every((w) => have.has(w))
+  })
+}
+
 function passes(e: ConferenceRow, f: EventFilters): boolean {
+  if (f.q) {
+    const hay = `${e.name} ${e.organizer ?? ''} ${e.roles.join(' ')} ${e.segments.join(' ')} ${e.industries.join(' ')} ${e.functions.join(' ')} ${e.city ?? ''}`.toLowerCase()
+    if (!words(f.q).every((w) => hay.includes(w))) return false
+  }
   if (f.function && e.functions.length > 0 && !e.functions.includes(f.function)) return false
   if (f.industry && e.industries.length > 0 && !e.industries.includes(f.industry)) return false
   if (f.seniority && e.seniorities.length > 0 && !e.seniorities.includes(f.seniority)) return false
@@ -72,7 +94,10 @@ export function matchEvents(events: ConferenceRow[], facts: MemberEventFacts, fi
     // An event with no function / industry tags is for everyone: a weak fit, never a strong one.
     if (fnHit.length) { score += 4; reasons.push(`${list(fnHit)} work`) }
     if (indHit.length) { score += 3; reasons.push(`the ${list(indHit)} industry`) }
-    if (!e.functions.length && !e.industries.length) score += 1
+    if (facts.journey && e.journeys.includes(facts.journey)) { score += 3; reasons.push(`people ${JOURNEY_PHRASE[facts.journey] ?? 'on your path'}`) }
+    const roleHit = roleHits(e, facts.titleText)
+    if (roleHit.length) { score += 4; reasons.unshift(`${list(roleHit)} roles`) }
+    if (!e.functions.length && !e.industries.length && !e.roles.length) score += 1
 
     if (facts.seniority && e.seniorities.length) {
       const gap = Math.min(...e.seniorities.map((s) => Math.abs(rank(s) - rank(facts.seniority!))))

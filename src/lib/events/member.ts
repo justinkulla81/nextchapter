@@ -6,7 +6,7 @@ import { matchEvents, seniorityFromScore, type EventFilters, type EventMatch, ty
 
 type EventsProfile = Pick<
   CandidateProfile,
-  'id' | 'primaryFunction' | 'targetFunction' | 'industryContext' | 'secondaryIndustryContext' | 'targetIndustries' | 'industryBuckets' | 'currentState' | 'levelRankScore'
+  'id' | 'primaryFunction' | 'targetFunction' | 'industryContext' | 'secondaryIndustryContext' | 'targetIndustries' | 'industryBuckets' | 'currentState' | 'levelRankScore' | 'journey' | 'resumeLatestJobTitle' | 'targetRoleType'
 >
 
 export function factsFor(p: EventsProfile): MemberEventFacts {
@@ -15,6 +15,8 @@ export function factsFor(p: EventsProfile): MemberEventFacts {
     functions: [p.targetFunction, p.primaryFunction].filter((f): f is string => !!f),
     industries: memberIndustryBuckets(p),
     seniority: seniorityFromScore(p.levelRankScore),
+    journey: p.journey ?? null,
+    titleText: [p.resumeLatestJobTitle, p.targetRoleType].filter(Boolean).join(' ').toLowerCase(),
     state: state && /^[A-Z]{2}$/.test(state) ? state : null,
   }
 }

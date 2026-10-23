@@ -1,6 +1,7 @@
 import type { EventMatch } from '@/lib/events/match'
-import { ACCESS_LABEL, KIND_LABEL, SPEAKING_LABEL, type Access, type Speaking } from '@/lib/events/types'
+import { ACCESS_LABEL, KIND_LABEL, PROGRAM_LABEL, SPEAKING_LABEL, SESSION_FORMATS, type Access, type Speaking } from '@/lib/events/types'
 import { costLabel, isPaid, whenLabel, whereLabel } from '@/lib/events/format'
+import { nextStep, networkingDraft, organizerDraft, type InterestStatus } from '@/lib/events/headsup'
 import { setEventInterest } from '@/app/dashboard/network/events/actions'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { Chip } from '@/components/candidate/ui'
@@ -10,9 +11,10 @@ import { cn } from '@/lib/utils'
 // The ranked event list. A row carries a title, one reason it fits, the cost (the fact people ask first) and
 // two actions. How to get in cheaper, how to speak and how to apply open under "How to get in".
 const SHOWN = 5
+const MAX = 60
 const dateOnly = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
-function InterestButton({ eventId, status, current, children }: { eventId: string; status: 'SAVED' | 'GOING'; current?: string; children: string }) {
+function InterestButton({ eventId, status, current, children }: { eventId: string; status: 'SAVED' | 'GOING' | 'SPEAKING'; current?: string; children: string }) {
   const on = current === status
   return (
     <form action={setEventInterest}>
@@ -29,10 +31,33 @@ function InterestButton({ eventId, status, current, children }: { eventId: strin
   )
 }
 
-function Row({ m, rank, interest }: { m: EventMatch; rank: number; interest?: string }) {
+function Drafts({ e, firstName, interest }: { e: EventMatch['event']; firstName: string | null; interest: string }) {
+  const step = nextStep(e, interest as InterestStatus)
+  const org = organizerDraft(e, { firstName })
+  const net = networkingDraft(e, { firstName })
+  const mail = (d: { subject: string; body: string }) => `mailto:?subject=${encodeURIComponent(d.subject)}&body=${encodeURIComponent(d.body)}`
+  return (
+    <details className="group text-sm">
+      <summary className="cursor-pointer list-none font-medium text-brand underline underline-offset-4 [&::-webkit-details-marker]:hidden">Your plan and message drafts</summary>
+      <div className="mt-2 space-y-3 text-ink">
+        {step && <p><span className="font-semibold">Next step:</span> {step}</p>}
+        {[['Note to the organizer', org], ['Note to someone you want to meet', net]].map(([label, d]) => (
+          <div key={label as string} className="space-y-1 rounded-xl bg-muted p-3">
+            <p className="font-semibold">{label as string}</p>
+            <p className="whitespace-pre-line text-muted-foreground">{(d as { body: string }).body}</p>
+            <a href={mail(d as { subject: string; body: string })} className="inline-block text-brand underline underline-offset-4">Open in your email</a>
+          </div>
+        ))}
+        <p className="text-xs text-muted-foreground">You send these yourself. We send nothing for you.</p>
+      </div>
+    </details>
+  )
+}
+
+function Row({ m, rank, interest, firstName }: { m: EventMatch; rank: number; interest?: string; firstName: string | null }) {
   const e = m.event
   const paid = isPaid(e)
-  const hasWays = !!(e.cheaperWays || e.speaking === 'OPEN_CFP' || e.speaking === 'BY_INVITE' || e.applyUrl || e.access === 'INVITE' || e.access === 'APPLY')
+  const hasWays = !!(e.cheaperWays || e.speaking === 'OPEN_CFP' || e.speaking === 'BY_INVITE' || e.speaking === 'LIKELY' || e.applyUrl || e.access === 'INVITE' || e.access === 'APPLY')
   return (
     <li className="space-y-2 rounded-2xl border border-border p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -73,10 +98,10 @@ function Row({ m, rank, interest }: { m: EventMatch; rank: number; interest?: st
                 {e.applyDeadline ? `. Apply by ${dateOnly(e.applyDeadline)}.` : '.'}
               </li>
             )}
-            {(e.speaking === 'OPEN_CFP' || e.speaking === 'BY_INVITE') && (
+            {(e.speaking === 'OPEN_CFP' || e.speaking === 'BY_INVITE' || e.speaking === 'LIKELY') && (
               <li>
                 <span className="font-semibold">{SPEAKING_LABEL[e.speaking as Speaking]}:</span>{' '}
-                {e.speakingNote ?? (e.speaking === 'OPEN_CFP' ? 'You can submit a talk.' : 'Organizers pick speakers; a warm introduction helps.')}
+                {e.speakingNote ?? (e.speaking === 'OPEN_CFP' ? 'You can submit a talk.' : e.speaking === 'LIKELY' ? `${e.programFormats.some((f) => (SESSION_FORMATS as readonly string[]).includes(f)) ? `The program has ${e.programFormats.filter((f) => (SESSION_FORMATS as readonly string[]).includes(f)).map((f) => PROGRAM_LABEL[f as keyof typeof PROGRAM_LABEL]).join(', ')}` : 'This is a conference built from sessions'}, so speakers are chosen somewhere. Ask the organizer how, or whether a sponsor or partner slot is the way in.` : 'Organizers pick speakers; a warm introduction helps.')}
                 {e.speakingDeadline ? ` Submit by ${dateOnly(e.speakingDeadline)}.` : ''}{' '}
                 {e.speakingUrl && (
                   <TrackedLink href={e.speakingUrl} event="conference_event_speak_clicked" properties={{ eventId: e.id, speaking: e.speaking, rank }} className="text-brand underline underline-offset-4">
@@ -89,6 +114,10 @@ function Row({ m, rank, interest }: { m: EventMatch; rank: number; interest?: st
         </details>
       )}
 
+      {interest && <Drafts e={e} firstName={firstName} interest={interest} />}
+
+      {interest === 'FOLLOWING' && <p className="text-sm text-muted-foreground">You went or follow this event. We will tell you when the next dates are announced.</p>}
+
       <div className="flex flex-wrap items-center gap-2 pt-1">
         <TrackedLink
           href={e.url!}
@@ -100,27 +129,29 @@ function Row({ m, rank, interest }: { m: EventMatch; rank: number; interest?: st
         </TrackedLink>
         <InterestButton eventId={e.id} status="GOING" current={interest}>I am going</InterestButton>
         <InterestButton eventId={e.id} status="SAVED" current={interest}>Save</InterestButton>
+        {(e.speaking === 'OPEN_CFP' || e.speaking === 'BY_INVITE' || e.speaking === 'LIKELY') && <InterestButton eventId={e.id} status="SPEAKING" current={interest}>I want to speak</InterestButton>}
         {e.verified && e.checkedAt && <span className="text-xs text-muted-foreground">Checked on the event site {e.checkedAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>}
       </div>
     </li>
   )
 }
 
-export function EventList({ matches, interests }: { matches: EventMatch[]; interests: Record<string, string> }) {
+export function EventList({ matches, interests, firstName }: { matches: EventMatch[]; interests: Record<string, string>; firstName: string | null }) {
   return (
     <section className="space-y-4" aria-label="Events">
       <ul className="space-y-3">
         {matches.slice(0, SHOWN).map((m, i) => (
-          <Row key={m.event.id} m={m} rank={i + 1} interest={interests[m.event.id]} />
+          <Row key={m.event.id} m={m} rank={i + 1} interest={interests[m.event.id]} firstName={firstName} />
         ))}
       </ul>
       {matches.length > SHOWN && (
-        <ShowMore label={`Show ${matches.length - SHOWN} more`} event="conference_events_show_more_opened">
+        <ShowMore label={`Show ${Math.min(matches.length, MAX) - SHOWN} more`} event="conference_events_show_more_opened">
           <ul className="space-y-3">
-            {matches.slice(SHOWN).map((m, i) => (
-              <Row key={m.event.id} m={m} rank={SHOWN + i + 1} interest={interests[m.event.id]} />
+            {matches.slice(SHOWN, MAX).map((m, i) => (
+              <Row key={m.event.id} m={m} rank={SHOWN + i + 1} interest={interests[m.event.id]} firstName={firstName} />
             ))}
           </ul>
+          {matches.length > MAX && <p className="text-sm text-muted-foreground">Showing the best {MAX} of {matches.length}. Search by job or topic, or use the filters, to narrow the rest.</p>}
         </ShowMore>
       )}
     </section>

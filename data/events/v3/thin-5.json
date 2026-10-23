@@ -1,0 +1,2890 @@
+[
+ {
+  "id": "brightonseo-san-diego",
+  "name": "brightonSEO San Diego (with Hero Conf)",
+  "organizer": "brightonSEO",
+  "url": "https://brightonseo.com/events/san-diego-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-09",
+  "endDate": "2027-09-10",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "SEO, content, PPC and paid social practitioners and agency leads share tactics across five stages.",
+  "access": "MIXED",
+  "costLow": 0,
+  "costHigh": 1680,
+  "costNote": "Day Conference request form $0; Full Conference + Perks $550 until Dec 3, 2026; hotel bundle $1,680.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No call for speakers shown on the event page.",
+  "cheaperWays": "Free Day Conference access via request form; early pricing until Dec 3, 2026.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "SEO specialist",
+   "paid media manager",
+   "marketing analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "smx-advanced",
+  "name": "SMX Advanced (San Diego and Boston)",
+  "organizer": "Search Engine Land (Third Door Media)",
+  "url": "https://searchengineland.com/smx-advanced-2027-san-diego-boston-483852",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-17",
+  "endDate": "2027-03-19",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Experienced SEO and paid search practitioners swap advanced tactics; a second 2027 edition is in Boston Sept 20-22.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read (page returned 403 to fetch; dates from Search Engine Land announcement via search).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "SEO specialist",
+   "paid media manager",
+   "marketing analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "affiliate-summit-west",
+  "name": "Affiliate Summit West",
+  "organizer": "Affiliate Summit Corporation",
+  "url": "https://affiliatesummit.com/west",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-26",
+  "endDate": "2027-01-28",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR",
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "7,000+ advertisers, publishers, affiliates and ecommerce sellers do performance-marketing deals in one room.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site states attendance is free; exhibiting costs extra.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No speaker application shown on the home page.",
+  "cheaperWays": "Attendance is free.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "paid media manager",
+   "marketing analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR",
+   "FRACTIONAL",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "act-expo",
+  "name": "ACT Expo (Advanced Clean Transportation Expo)",
+  "organizer": "Stratcom / GNA",
+  "url": "https://www.actexpo.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Automotive & Mobility",
+   "Energy & Utilities",
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Fleet, charging, battery and zero-emission vehicle makers and buyers meet at North America's main clean-transportation show.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pass prices not shown on the home page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.actexpo.com/call-for-speakers/",
+  "speakingDeadline": null,
+  "speakingNote": "Public call for speakers page; deadline not stated.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Electric vehicles and charging"
+  ],
+  "roles": [
+   "EV charging network lead",
+   "battery engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "battery-show-north-america",
+  "name": "The Battery Show North America",
+  "organizer": "Informa Markets",
+  "url": "https://www.thebatteryshow.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-11",
+  "endDate": "2027-10-14",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Detroit",
+  "state": "MI",
+  "country": "US",
+  "industries": [
+   "Automotive & Mobility",
+   "Manufacturing & Industrial",
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Battery, EV and energy-storage engineers and suppliers gather in Detroit; the largest US battery show.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pass prices not shown on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speaker page exists but call details not confirmed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Electric vehicles and charging"
+  ],
+  "roles": [
+   "battery engineer",
+   "EV charging network lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "afs-annual-meeting",
+  "name": "American Fisheries Society Annual Meeting",
+  "organizer": "American Fisheries Society",
+  "url": "https://afsannualmeeting.fisheries.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-26",
+  "endDate": "2027-09-30",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Fisheries scientists, managers and aquaculture researchers from agencies, universities and industry.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site returned 403; dates from a university conference guide only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "fisheries scientist",
+   "aquaculture manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "newtopia-now",
+  "name": "Newtopia Now",
+  "organizer": "New Hope Network (Informa)",
+  "url": "https://newtopianow.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-14",
+  "endDate": "2027-09-16",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Rosemont",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods",
+   "Retail & E-commerce",
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Natural and organic brand founders, retail buyers and investors meet at the main natural products show (show floor Sept 15-16).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open; pass prices not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No call for speakers on the home page.",
+  "cheaperWays": "Notify-me list only; no discounts stated.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Natural, organic and specialty foods"
+  ],
+  "roles": [
+   "natural products founder",
+   "specialty food buyer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "urtec",
+  "name": "URTeC (Unconventional Resources Technology Conference)",
+  "organizer": "SPE / AAPG / SEG",
+  "url": "https://www.urtec.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Petroleum engineers, geoscientists and operators in shale and unconventional plays; co-located with OTC at Reliant Park in 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not shown on the home page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.urtec.org",
+  "speakingDeadline": "2026-11-09",
+  "speakingNote": "Abstracts due Nov 9, 2026 (no extension); manuscripts Mar 8, 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "petroleum engineer",
+   "midstream commercial lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "spe-atce",
+  "name": "SPE Annual Technical Conference and Exhibition (ATCE)",
+  "organizer": "Society of Petroleum Engineers",
+  "url": "https://www.atce.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-11",
+  "endDate": "2027-10-13",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The Society of Petroleum Engineers' flagship: reservoir, drilling and production engineers plus operators and service companies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 21-23 Houston (official); 2027 Oct 11-13 Denver is from a third-party listing only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "petroleum engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "soa-impact-conference",
+  "name": "SOA ImpACT Conference (Annual Meeting & Exhibit)",
+  "organizer": "Society of Actuaries",
+  "url": "https://www.soa.org/prof-dev/events/2027-annual-meeting-exhibit/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The SOA's annual gathering of life, health and pension actuaries; the 2026 edition is Oct 25-28 in Pittsburgh.",
+  "access": "PAID",
+  "costLow": 950,
+  "costHigh": 2300,
+  "costNote": "2026 rates: members $1,900-$2,100, nonmembers $2,100-$2,300; retired, academic, unemployed or government members $950 (from search of SOA page).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Unemployed/retired/academic/government member rate $950; PD Edge+ discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "actuary",
+   "risk manager",
+   "chief risk officer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "LAID_OFF",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "ipbc-global",
+  "name": "IPBC Global",
+  "organizer": "IAM (Intellectual Asset Management)",
+  "url": "https://ipbc.iam-media.com/IPBCGlobal2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-15",
+  "endDate": "2027-06-17",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Chief IP officers, licensing leads and patent counsel from operating companies, universities and funds trade IP monetisation strategy.",
+  "access": "PAID",
+  "costLow": 1395,
+  "costHigh": 2995,
+  "costNote": "IP owners (operating), academia, government $1,395 early bird to $1,795; law firms and non-operating $2,595-$2,995.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No speaker call stated; faculty of 100+ IP experts.",
+  "cheaperWays": "Early bird until Dec 17, 2026; group packages.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Intellectual property"
+  ],
+  "roles": [
+   "patent attorney",
+   "trademark counsel",
+   "IP licensing lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "les-usa-canada-annual-meeting",
+  "name": "LES USA & Canada Annual Meeting",
+  "organizer": "Licensing Executives Society USA & Canada",
+  "url": "https://lesi.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Technology licensing and IP transaction professionals; the 2026 meeting is Oct 18-21 in San Diego.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 USA-Canada details not found; LESI 2027 Annual Conference listed Apr 25-28 in Orlando.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Intellectual property"
+  ],
+  "roles": [
+   "IP licensing lead",
+   "patent attorney"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "amga-annual-conference",
+  "name": "AMGA Annual Conference (AC27)",
+  "organizer": "American Medical Group Association",
+  "url": "https://www.amga.org/ac27",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-16",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Medical group CEOs, COOs and administrators of multispecialty groups and health systems.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates are on a separate Registration Rates page, not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.amga.org/ac27",
+  "speakingDeadline": null,
+  "speakingNote": "A call for content PDF was issued (deadline listed as July 2026, so likely closed).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Physician practice and medical group management"
+  ],
+  "roles": [
+   "medical group executive",
+   "practice administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "tribeca-festival",
+  "name": "Tribeca Festival",
+  "organizer": "Tribeca Enterprises",
+  "url": "https://tribecafilm.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-03",
+  "endDate": "2027-06-12",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Producers, filmmakers, streaming buyers and distributors meet in New York with film, TV, games and audio programming.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from Tribeca press release (via search); ticketing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Submissions open for filmmakers.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Film, television and streaming"
+  ],
+  "roles": [
+   "producer",
+   "streaming executive",
+   "post-production lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "truckload-tca-annual-convention",
+  "name": "TCA Truckload Annual Convention",
+  "organizer": "Truckload Carriers Association",
+  "url": "https://truckload.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-27",
+  "endDate": "2027-03-02",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Truckload carrier executives, brokers and suppliers meet for the main US truckload convention.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from TCA partnership announcement; official convention page not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Freight, trucking and brokerage"
+  ],
+  "roles": [
+   "trucking executive",
+   "freight broker",
+   "logistics sales"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ata-management-conference",
+  "name": "ATA Management Conference & Exhibition (MCE)",
+  "organizer": "American Trucking Associations",
+  "url": "https://trucking.org/ata-event-schedule",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Trucking company owners and executives hear economic and policy outlooks and meet suppliers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Oct 17-20, Charlotte) has passed or is ending; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Freight, trucking and brokerage"
+  ],
+  "roles": [
+   "trucking executive",
+   "freight broker"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "qcon-san-francisco",
+  "name": "QCon San Francisco",
+  "organizer": "InfoQ (C4Media)",
+  "url": "https://qconsf.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-20",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Senior engineers, architects and engineering leaders learn from practitioners; no vendor pitches.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Conference Nov 16-18, training Nov 19-20; prices not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "staff engineer",
+   "engineering manager",
+   "CTO",
+   "VP engineering"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "building-business-capability",
+  "name": "Building Business Capability (BBC)",
+  "organizer": "IIBA (International Institute of Business Analysis)",
+  "url": "https://buildingbusinesscapability.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Business analysts, requirements analysts and product owners trade practice in the main business analysis conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on registration page (not read); 2026 list $2,395 non-member with $479 member discount.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://buildingbusinesscapability.com/",
+  "speakingDeadline": null,
+  "speakingNote": "Call usually opens in July and runs to about September for the following year; current status not stated.",
+  "cheaperWays": "IIBA member discount; 10% newsletter code.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Business analysis and product consulting"
+  ],
+  "roles": [
+   "business analyst",
+   "requirements analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "casss-cmc-strategy-forum-north-america",
+  "name": "CASSS CMC Strategy Forum North America",
+  "organizer": "CASSS",
+  "url": "https://www.casss.org/meetings-and-events/cmc/north-america",
+  "kind": "SUMMIT",
+  "format": "HYBRID",
+  "startDate": "2027-01-25",
+  "endDate": "2027-01-25",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "CMC, process development and regulatory leads discuss biologics manufacturing and quality issues with FDA staff.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees on a linked page; not read. In-person registration closes Jan 12, 2027, virtual Jan 21.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No speaker call stated.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Biomanufacturing and CMC"
+  ],
+  "roles": [
+   "process development scientist",
+   "manufacturing quality lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "pda-annual-meeting",
+  "name": "PDA Annual Meeting (PDA Week)",
+  "organizer": "Parenteral Drug Association",
+  "url": "https://pda.org/global-event-calendar",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-14",
+  "endDate": "2027-03-18",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Raleigh",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Sterile and biologics manufacturing, quality and CMC professionals; part of PDA Week.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and city from a trade-show listing and PDA agenda page; not confirmed on a PDA event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Biomanufacturing and CMC"
+  ],
+  "roles": [
+   "manufacturing quality lead",
+   "process development scientist"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ispe-annual-meeting-expo",
+  "name": "ISPE Annual Meeting & Expo",
+  "organizer": "ISPE (International Society for Pharmaceutical Engineering)",
+  "url": "https://ispe.org/index.php/conferences/2026-annual-meeting-expo",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Pharmaceutical engineers, manufacturing and quality leaders; 2026 edition was Oct 18-21 in Washington, DC.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not yet announced; notify list only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Biomanufacturing and CMC"
+  ],
+  "roles": [
+   "manufacturing quality lead",
+   "process development scientist"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ncea-convention-expo",
+  "name": "NCEA Convention & Expo",
+  "organizer": "National Catholic Educational Association",
+  "url": "https://ncea2027.eventscribe.net/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-30",
+  "endDate": "2027-04-01",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Catholic school and diocesan leaders, administrators and educators gather; theme Bridge Builders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from NCEA site search result; page not read (redirect).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Faith-based and religious organizations"
+  ],
+  "roles": [
+   "faith-based nonprofit leader",
+   "church administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "naswa-winter-policy-forum",
+  "name": "NASWA Winter Policy Forum",
+  "organizer": "National Association of State Workforce Agencies",
+  "url": "https://www.naswa.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "State workforce agency and board leaders on policy; registration listed as open for 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates, city and prices not shown on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director",
+   "career center manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "annual-texas-workforce-conference",
+  "name": "Annual Texas Workforce Conference",
+  "organizer": "Texas Workforce Commission",
+  "url": "https://www.twc.texas.gov/agency/annual-texas-workforce-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": null,
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Texas workforce board, career center and contractor staff share program practice; 2025 edition was Dec 3-5 in Corpus Christi.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Next edition dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director",
+   "career center manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "training-industry-conference-expo",
+  "name": "Training Industry Conference & Expo (TICE)",
+  "organizer": "Training Industry, Inc.",
+  "url": "https://trainingindustry.com/tice/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-08",
+  "endDate": "2027-06-10",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Raleigh",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Corporate learning leaders, training managers and L&D vendors compare practice in breakout sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not listed on the page; save $400 when registering by Dec 31.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://trainingindustry.com/tice/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for Presenters page exists; the 2027 proposal deadline reportedly passed Oct 2, 2026.",
+  "cheaperWays": "Early registration saves $400 through Dec 31.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead",
+   "DEI leader"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "chi-2027",
+  "name": "ACM CHI Conference on Human Factors in Computing Systems (CHI 2027)",
+  "organizer": "ACM SIGCHI",
+  "url": "https://chi2027.acm.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-14",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "UX researchers, designers and HCI academics from Big Tech and universities meet at the field's largest conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees not yet posted on site.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://chi2027.acm.org/",
+  "speakingDeadline": "2027-01-21",
+  "speakingNote": "Papers closed Sept 10, 2026; panels Nov 19, 2026; posters and demos Jan 21, 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX researcher",
+   "UX designer",
+   "design systems lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "dice-summit",
+  "name": "DICE Summit",
+  "organizer": "Academy of Interactive Arts & Sciences",
+  "url": "https://www.dicesummit.org",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-16",
+  "endDate": "2027-02-18",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Game studio and publisher executives meet over three days that end with the D.I.C.E. Awards.",
+  "access": "PAID",
+  "costLow": 499,
+  "costHigh": null,
+  "costNote": "About $499 average pass per PocketGamer.biz listing; official site returned 403.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Video games and esports"
+  ],
+  "roles": [
+   "esports executive",
+   "game marketer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "riskworld",
+  "name": "RIMS RISKWORLD",
+  "organizer": "RIMS, the risk management society",
+  "url": "https://www.rims.org/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-18",
+  "endDate": "2027-04-21",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Corporate risk managers, captive and insurance buyers and brokers at the field's main US conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from RIMS events page via search; prices not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "risk manager",
+   "chief risk officer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "eta-transact",
+  "name": "ETA TRANSACT",
+  "organizer": "Electronic Transactions Association",
+  "url": "https://www.electran.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-21",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Merchants, acquirers, issuers and fintechs meet; about 5,000 payments professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates only from third-party listings; official page not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Payments and fintech"
+  ],
+  "roles": [
+   "payments product manager",
+   "fintech founder",
+   "fraud analyst",
+   "banking-as-a-service lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "mrc-vegas",
+  "name": "MRC Vegas",
+  "organizer": "Merchant Risk Council",
+  "url": "https://www.merchantriskcouncil.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-18",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Fraud, payments and risk leaders at merchants, PSPs and banks; the MRC's flagship.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates only from third-party listings; MRC site home page lists no US events.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Payments and fintech"
+  ],
+  "roles": [
+   "fraud analyst",
+   "payments product manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "etail-west",
+  "name": "eTail West",
+  "organizer": "Worldwide Business Research (WBR)",
+  "url": "https://etailwest.wbresearch.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-25",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Palm Springs",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "E-commerce executives at retailers and brands meet solution providers; sessions on conversion and marketplaces.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from third-party listings; organizer page not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "E-commerce and digital commerce"
+  ],
+  "roles": [
+   "e-commerce manager",
+   "conversion optimization lead",
+   "marketplace seller"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "organic-produce-summit",
+  "name": "Organic Produce Summit",
+  "organizer": "Organic Produce Network (Informa)",
+  "url": "https://organicproducesummit.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Monterey",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods",
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Organic produce growers, buyers and suppliers; 2026 edition drew 750+ attendees and nearly 200 exhibitors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Natural, organic and specialty foods"
+  ],
+  "roles": [
+   "specialty food buyer",
+   "natural products founder"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "mid-america-trucking-show",
+  "name": "Mid-America Trucking Show (MATS)",
+  "organizer": "Exhibit Management Associates",
+  "url": "https://truckingshow.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-18",
+  "endDate": "2027-03-20",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Trucking company owners, fleet managers and suppliers at the largest US heavy-duty trucking show.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates only from listing sites; official page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Freight, trucking and brokerage"
+  ],
+  "roles": [
+   "trucking executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ccda-national-conference",
+  "name": "CCDA National Conference",
+  "organizer": "Christian Community Development Association",
+  "url": "https://ccda.org/ccda-national-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-11-17",
+  "endDate": "2027-11-20",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Madison",
+  "state": "WI",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Faith-based nonprofit leaders, church community-development staff and neighborhood practitioners; the 2026 edition is Oct 7-10 in Richmond.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration opens next year; prices not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "See CCDA help center; no call shown.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Faith-based and religious organizations"
+  ],
+  "roles": [
+   "faith-based nonprofit leader",
+   "church administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "catholic-charities-usa-annual-gathering",
+  "name": "Catholic Charities USA Annual Gathering",
+  "organizer": "Catholic Charities USA",
+  "url": "https://www.catholiccharitiesusa.org/category/annual-gathering/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Leaders and staff of local Catholic Charities agencies (about 600 attendees); 2025 edition Oct 6-9 in San Juan.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026/2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Faith-based and religious organizations"
+  ],
+  "roles": [
+   "faith-based nonprofit leader",
+   "church administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "catholic-health-assembly",
+  "name": "Catholic Health Assembly",
+  "organizer": "Catholic Health Association of the United States",
+  "url": "https://www.chausa.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact",
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Catholic hospital and health-system executives and mission leaders; 2026 edition June 2-4 in St. Louis.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Faith-based and religious organizations"
+  ],
+  "roles": [
+   "faith-based nonprofit leader"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nmsdc-annual-conference-exchange",
+  "name": "NMSDC Annual Conference & Exchange",
+  "organizer": "National Minority Supplier Development Council",
+  "url": "https://www.nmsdcconference.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Minority business owners meet corporate procurement executives and supplier-diversity leaders for matchmaking; 3,000+ attendees.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing menu exists; amounts not shown on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Host committee only; no speaker call shown.",
+  "cheaperWays": "Opportunity Accelerator (Oct 25) is for minority business leaders.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "roles": [
+   "minority business owner",
+   "women founder",
+   "veteran entrepreneur"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "ushcc-national-conference",
+  "name": "USHCC National Conference",
+  "organizer": "U.S. Hispanic Chamber of Commerce",
+  "url": "https://register.ushcc.com/NationalConference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Hispanic business owners meet corporate and government buyers; 2026 edition was Sept 14-16 in Fort Worth.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 host and dates not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "roles": [
+   "minority business owner",
+   "women founder"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "wbenc-summit-salute",
+  "name": "WBENC Summit & Salute",
+  "organizer": "Women's Business Enterprise National Council",
+  "url": "https://www.wbenc.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Women-owned business owners meet corporate procurement leaders and WBENC members.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 details not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "roles": [
+   "women founder"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "natpe-global-miami",
+  "name": "NATPE Global",
+  "organizer": "NATPE",
+  "url": "https://global.natpe.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "TV and streaming content buyers, sellers and producers; the 2026 edition was Feb 4-6 at the InterContinental Miami.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found; Kidscreen Summit reportedly follows it in Miami in 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Film, television and streaming"
+  ],
+  "roles": [
+   "producer",
+   "streaming executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "nape-summit-week",
+  "name": "NAPE Summit Week",
+  "organizer": "AAPL (American Association of Professional Landmen)",
+  "url": "https://www.landman.org/events/nape.html",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-03",
+  "endDate": "2027-02-05",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Landmen, geologists and operators trade prospects and deals in the oil and gas upstream marketplace.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on napeexpo.com, not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "A \"Request to Present\" page exists; no details.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "landman",
+   "petroleum engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "super-dug",
+  "name": "SUPER DUG",
+  "organizer": "Hart Energy",
+  "url": "https://events.hartenergy.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Shale operators, midstream and finance leads; 2026 edition was Sept 15-17 in Houston.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates listed as TBD on aggregators.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "petroleum engineer",
+   "midstream commercial lead",
+   "landman"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "fordham-ip-law-policy-conference",
+  "name": "Fordham Intellectual Property Law & Policy Conference",
+  "organizer": "Fordham Law Hansen IP Institute",
+  "url": "https://www.fordham.edu/school-of-law",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Patent, trademark and copyright lawyers, judges and agency officials meet; the 2026 edition was April 9-10.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found; URL is the school home, not the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Intellectual property"
+  ],
+  "roles": [
+   "patent attorney",
+   "trademark counsel"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "devlearn",
+  "name": "DevLearn Conference & Expo",
+  "organizer": "The Learning Guild",
+  "url": "https://www.learningguild.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-06",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Learning designers, L&D managers and learning-tech buyers share corporate learning practice.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition at MGM Grand per search; 2027 undated. Official page not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead",
+   "DEI leader"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "forum-on-workplace-inclusion",
+  "name": "Forum on Workplace Inclusion",
+  "organizer": "Forum on Workplace Inclusion (Augsburg University)",
+  "url": "https://www.forumworkplaceinclusion.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "DEI, HR and talent leaders; billed as a leading diversity and inclusion conference with a career fair.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found; hosted by Augsburg since 2019.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "DEI leader",
+   "employee experience lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "mgma-financial-conference",
+  "name": "MGMA Financial Conference",
+  "organizer": "MGMA",
+  "url": "https://www.mgma.com/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-04",
+  "endDate": "2027-03-06",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Practice administrators and finance leaders in medical groups.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from search of MGMA events; MGMA page gave no dates/prices.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Physician practice and medical group management"
+  ],
+  "roles": [
+   "practice administrator",
+   "medical group executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "mgma-operations-conference",
+  "name": "MGMA Operations Conference",
+  "organizer": "MGMA",
+  "url": "https://www.mgma.com/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-04",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Practice administrators and operations leaders in medical groups.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from search of MGMA events; not confirmed on page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Physician practice and medical group management"
+  ],
+  "roles": [
+   "practice administrator",
+   "medical group executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "pcsga-nsa-pcs-annual-shellfish-conference",
+  "name": "PCSGA Annual Shellfish Conference & Tradeshow",
+  "organizer": "Pacific Coast Shellfish Growers Association",
+  "url": "https://pcsga.org/events/annual-shellfish-conference-tradeshow",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "West Coast shellfish farmers, hatchery staff and scientists; the 80th edition was Sept 14-17, 2026 in Blaine, WA.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 details not found.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://members.pcsga.org/2025-conference-presentation-submission-form",
+  "speakingDeadline": null,
+  "speakingNote": "Presentation submission form exists each year.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager",
+   "fisheries scientist"
+  ],
+  "journeys": [
+   "GROWING",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "northeast-aquaculture-conference-expo",
+  "name": "Northeast Aquaculture Conference & Exposition (with Milford Aquaculture Seminar)",
+  "organizer": "Maine Aquaculture Innovation Center / NOAA Fisheries Milford Lab",
+  "url": "https://www.fisheries.noaa.gov/feature-story/celebrating-25-years-northeast-aquaculture-conference-and-expo",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Growers, scientists and regulators in northeast aquaculture; 2026 edition drew about 700 in Portland, ME.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Held biennially (2024 Providence, 2026 Portland); 2027/28 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager",
+   "fisheries scientist"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "finovatespring",
+  "name": "FinovateSpring",
+  "organizer": "Finovate (Informa)",
+  "url": "https://finovate.com/finovatespring-2027-is-live-new-venue-same-finovate-experience/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Chula Vista",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Fintech founders, bank innovation leads and investors watch 50+ seven-minute product demos.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket amounts not shown; lowest-priced tickets on sale now; group rate for 3+.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Demo applications open for companies; speaker lineup still forming.",
+  "cheaperWays": "Group rate for three or more.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Payments and fintech"
+  ],
+  "roles": [
+   "fintech founder",
+   "payments product manager",
+   "banking-as-a-service lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "pax-west",
+  "name": "PAX West",
+  "organizer": "Penny Arcade / ReedPop",
+  "url": "https://west.paxsite.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-03",
+  "endDate": "2027-09-06",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Consumer games show where indie and AAA studios, publishers and marketers meet players and press; dates from Gaming Trend report.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Consumer show; prices not read; dates not confirmed on official page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Video games and esports"
+  ],
+  "roles": [
+   "game marketer",
+   "esports executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "mariculture-conference-of-alaska",
+  "name": "Mariculture Conference of Alaska",
+  "organizer": "Alaska Sea Grant (University of Alaska Fairbanks)",
+  "url": "https://alaskaseagrant.org/events/2026-mariculture-conference-of-alaska/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Anchorage",
+  "state": "AK",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Alaska shellfish and seaweed farmers, hatchery staff and regulators; 2026 edition March 10-12 at the Hotel Captain Cook, $100 registration.",
+  "access": "PAID",
+  "costLow": 100,
+  "costHigh": 100,
+  "costNote": "2026 fee $100; a 2027 event page is linked but not described.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://alaskaseagrant.org/events/2026-mariculture-conference-of-alaska/",
+  "speakingDeadline": null,
+  "speakingNote": "A call for presentation abstracts is linked (details not read).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager",
+   "fisheries scientist"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "prosper-show",
+  "name": "Prosper Show",
+  "organizer": "Prosper (Marketplace Seller Event)",
+  "url": "https://prospershow.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-03",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Established Amazon, Walmart and TikTok Shop sellers, brand owners and aggregators; 1,000+ attendees and 170+ solution providers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official pages disagree (Mar 2-3 vs Mar 2-4, 2027); pricing not found; site returned 403 on FAQ.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "E-commerce and digital commerce"
+  ],
+  "roles": [
+   "marketplace seller",
+   "e-commerce manager",
+   "conversion optimization lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "cwa-meeting-of-the-minds",
+  "name": "California Workforce Association Meeting of the Minds",
+  "organizer": "California Workforce Association",
+  "url": "https://www.calworkforce.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-07",
+  "endDate": "2027-09-09",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Monterey",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Workforce board directors, career center managers and state partners (about 500); 2026 edition Sept 8-10 in Monterey.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates only from an aggregator; the CWA conference page returned 404.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director",
+   "career center manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "soa-health-meeting",
+  "name": "SOA Health Meeting",
+  "organizer": "Society of Actuaries",
+  "url": "https://www.soa.org/prof-dev/events/2027-health/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-27",
+  "endDate": "2027-06-30",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Health and benefits actuaries; registration expected to open March 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and venue (JW Marriott Desert Ridge) from SOA 2027 Health Meeting page via search.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "SOA retired/academic/unemployed member rates apply at other meetings; check this one.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "actuary",
+   "risk manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "LAID_OFF"
+  ]
+ },
+ {
+  "id": "ev-charging-summit-expo-2027",
+  "name": "EV Charging Summit & Expo (Las Vegas 2027)",
+  "organizer": "Terrapinn",
+  "url": "https://starbridge.ai/conferences/ev-charging-summit-expo-2027",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-03",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Automotive & Mobility",
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Charging network operators, utilities, fleets and hardware makers; listing says 3,500+ attendees at Caesars Forum.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party listings only; likely duplicates the existing EV Charging Summit row, merge by name.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Electric vehicles and charging"
+  ],
+  "roles": [
+   "EV charging network lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "forth-roadmap-conference",
+  "name": "Forth Roadmap Conference",
+  "organizer": "Forth",
+  "url": "https://forthmobility.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-07",
+  "endDate": "2027-09-09",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Long Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Automotive & Mobility",
+   "Energy & Utilities",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Electric transportation policy and industry conference: EV charging operators, utilities, automakers and advocates.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from Charged EVs listing; official page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Electric vehicles and charging"
+  ],
+  "roles": [
+   "EV charging network lead",
+   "battery engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "dpe-summit",
+  "name": "DPE Summit (Developer Productivity Engineering)",
+  "organizer": "Develocity",
+  "url": "https://dpe.org/dpe-summit/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-02",
+  "endDate": "2027-02-03",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Platform, DevOps and engineering leaders focused on developer productivity.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://sessionize.com/dpesummit2027/",
+  "speakingDeadline": "2026-11-13",
+  "speakingNote": "Call for speakers closes Nov 13, 2026 (Sessionize).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "engineering manager",
+   "VP engineering",
+   "staff engineer",
+   "CTO"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "smashingconf-new-york",
+  "name": "SmashingConf New York",
+  "organizer": "Smashing Magazine",
+  "url": "https://smashingconf.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Front-end and UX designers and developers; two single-track days plus workshops, usually in October.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found; 2025 was Oct 6-9.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX designer",
+   "design systems lead",
+   "content designer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ }
+]

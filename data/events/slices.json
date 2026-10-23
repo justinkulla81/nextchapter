@@ -1,0 +1,1475 @@
+[
+ {
+  "id": "venture-capital-and-private-equity-1",
+  "industry": "Venture Capital & Private Equity",
+  "segments": {
+   "Venture capital": [
+    "venture partner",
+    "principal",
+    "investor relations",
+    "platform and talent partner"
+   ],
+   "Private equity": [
+    "deal professional",
+    "operating partner",
+    "portfolio operations",
+    "fund CFO"
+   ],
+   "Startup founders and operators": [
+    "founder",
+    "chief of staff",
+    "head of growth"
+   ],
+   "Family offices and limited partners": [
+    "family office executive",
+    "limited partner investor"
+   ]
+  }
+ },
+ {
+  "id": "financial-services-and-banking-1",
+  "industry": "Financial Services & Banking",
+  "segments": {
+   "Community and regional banking": [
+    "bank executive",
+    "branch manager",
+    "lender",
+    "community bank CFO"
+   ],
+   "Credit unions": [
+    "credit union executive",
+    "member services leader",
+    "credit union lender"
+   ],
+   "Mortgage and consumer lending": [
+    "mortgage loan officer",
+    "mortgage operations",
+    "servicing and collections"
+   ],
+   "Payments and fintech": [
+    "payments product manager",
+    "fintech founder",
+    "fraud analyst",
+    "banking-as-a-service lead"
+   ]
+  }
+ },
+ {
+  "id": "financial-services-and-banking-2",
+  "industry": "Financial Services & Banking",
+  "segments": {
+   "Wealth and asset management": [
+    "financial advisor",
+    "portfolio manager",
+    "RIA operations",
+    "wealth management marketing"
+   ],
+   "Capital markets and trading": [
+    "trader",
+    "investment banker",
+    "equity research analyst",
+    "market structure specialist"
+   ],
+   "Crypto and digital assets": [
+    "blockchain engineer",
+    "digital asset compliance",
+    "crypto product lead"
+   ],
+   "Compliance, AML and risk": [
+    "compliance officer",
+    "AML analyst",
+    "risk manager",
+    "model risk validator"
+   ]
+  }
+ },
+ {
+  "id": "financial-services-and-banking-3",
+  "industry": "Financial Services & Banking",
+  "segments": {
+   "Treasury and corporate finance": [
+    "treasurer",
+    "cash manager",
+    "FP&A leader",
+    "controller"
+   ]
+  }
+ },
+ {
+  "id": "insurance-1",
+  "industry": "Insurance",
+  "segments": {
+   "Property and casualty": [
+    "underwriter",
+    "claims adjuster",
+    "insurance agent",
+    "product manager"
+   ],
+   "Life, annuity and benefits": [
+    "life insurance agent",
+    "benefits consultant",
+    "annuity specialist"
+   ],
+   "Insurtech": [
+    "insurtech founder",
+    "insurance data scientist",
+    "digital distribution lead"
+   ],
+   "Reinsurance and specialty": [
+    "reinsurance underwriter",
+    "catastrophe modeler",
+    "specialty underwriter"
+   ]
+  }
+ },
+ {
+  "id": "insurance-2",
+  "industry": "Insurance",
+  "segments": {
+   "Actuarial and risk": [
+    "actuary",
+    "risk manager",
+    "chief risk officer"
+   ],
+   "Brokerage and agency": [
+    "insurance broker",
+    "agency principal",
+    "producer"
+   ],
+   "Claims and fraud": [
+    "claims leader",
+    "special investigations unit investigator",
+    "subrogation specialist"
+   ],
+   "Health plans and payers": [
+    "health plan executive",
+    "payer product lead",
+    "utilization management lead"
+   ]
+  }
+ },
+ {
+  "id": "accounting-and-audit-1",
+  "industry": "Accounting & Audit",
+  "segments": {
+   "Public accounting": [
+    "CPA",
+    "audit senior",
+    "tax manager",
+    "firm partner"
+   ],
+   "Tax": [
+    "tax director",
+    "state and local tax specialist",
+    "international tax advisor"
+   ],
+   "Internal audit and risk": [
+    "internal auditor",
+    "chief audit executive",
+    "SOX lead"
+   ],
+   "Forensic and fraud examination": [
+    "forensic accountant",
+    "fraud examiner"
+   ]
+  }
+ },
+ {
+  "id": "accounting-and-audit-2",
+  "industry": "Accounting & Audit",
+  "segments": {
+   "Controllership and finance operations": [
+    "controller",
+    "accounting manager",
+    "finance systems lead"
+   ],
+   "Governmental and nonprofit accounting": [
+    "government accountant",
+    "nonprofit finance director"
+   ]
+  }
+ },
+ {
+  "id": "legal-services-1",
+  "industry": "Legal Services",
+  "segments": {
+   "Litigation and trial": [
+    "trial attorney",
+    "litigation paralegal",
+    "e-discovery specialist"
+   ],
+   "In-house counsel": [
+    "general counsel",
+    "deputy general counsel",
+    "corporate counsel"
+   ],
+   "Legal operations and technology": [
+    "legal operations manager",
+    "legal technologist",
+    "knowledge manager"
+   ],
+   "Corporate, M&A and securities": [
+    "M&A attorney",
+    "securities lawyer",
+    "corporate secretary"
+   ]
+  }
+ },
+ {
+  "id": "legal-services-2",
+  "industry": "Legal Services",
+  "segments": {
+   "Intellectual property": [
+    "patent attorney",
+    "trademark counsel",
+    "IP licensing lead"
+   ],
+   "Employment and immigration": [
+    "employment lawyer",
+    "immigration attorney"
+   ],
+   "Paralegals and legal support": [
+    "paralegal",
+    "legal secretary",
+    "law firm administrator"
+   ],
+   "Courts and public interest law": [
+    "judge and court administrator",
+    "public defender",
+    "legal aid attorney"
+   ]
+  }
+ },
+ {
+  "id": "legal-services-3",
+  "industry": "Legal Services",
+  "segments": {
+   "Privacy, compliance and ethics": [
+    "privacy counsel",
+    "ethics and compliance officer"
+   ]
+  }
+ },
+ {
+  "id": "professional-services-and-consulting-1",
+  "industry": "Professional Services & Consulting",
+  "segments": {
+   "Management consulting": [
+    "strategy consultant",
+    "engagement manager",
+    "principal"
+   ],
+   "IT and digital consulting": [
+    "technology consultant",
+    "digital transformation lead"
+   ],
+   "HR and talent consulting": [
+    "organizational development consultant",
+    "rewards consultant"
+   ],
+   "Independent and fractional consultants": [
+    "independent consultant",
+    "fractional executive"
+   ]
+  }
+ },
+ {
+  "id": "professional-services-and-consulting-2",
+  "industry": "Professional Services & Consulting",
+  "segments": {
+   "Project and program management": [
+    "project manager",
+    "program manager",
+    "PMO director"
+   ],
+   "Change management and operations improvement": [
+    "change manager",
+    "lean six sigma black belt",
+    "business process analyst"
+   ],
+   "Business analysis and product consulting": [
+    "business analyst",
+    "requirements analyst"
+   ]
+  }
+ },
+ {
+  "id": "technology-and-software-1",
+  "industry": "Technology & Software",
+  "segments": {
+   "Cybersecurity": [
+    "security engineer",
+    "CISO",
+    "security analyst",
+    "threat researcher",
+    "GRC lead"
+   ],
+   "Cloud, DevOps and platform engineering": [
+    "DevOps engineer",
+    "site reliability engineer",
+    "cloud architect",
+    "platform engineer"
+   ],
+   "AI and machine learning": [
+    "machine learning engineer",
+    "AI researcher",
+    "AI product manager",
+    "prompt and applied AI engineer"
+   ],
+   "Data engineering and analytics": [
+    "data engineer",
+    "analytics engineer",
+    "BI developer",
+    "data scientist"
+   ]
+  }
+ },
+ {
+  "id": "technology-and-software-2",
+  "industry": "Technology & Software",
+  "segments": {
+   "Software engineering leadership": [
+    "engineering manager",
+    "CTO",
+    "VP engineering",
+    "staff engineer"
+   ],
+   "Open source and developer relations": [
+    "open source maintainer",
+    "developer advocate"
+   ],
+   "Product management": [
+    "product manager",
+    "chief product officer",
+    "product operations"
+   ],
+   "Design and user experience": [
+    "UX designer",
+    "UX researcher",
+    "design systems lead",
+    "content designer"
+   ]
+  }
+ },
+ {
+  "id": "technology-and-software-3",
+  "industry": "Technology & Software",
+  "segments": {
+   "Quality and testing": [
+    "QA engineer",
+    "test automation engineer",
+    "release manager"
+   ],
+   "Enterprise software and ERP users": [
+    "SAP consultant",
+    "Salesforce admin",
+    "Workday analyst",
+    "ServiceNow developer",
+    "Oracle professional"
+   ],
+   "IT leadership and operations": [
+    "CIO",
+    "IT director",
+    "IT service manager",
+    "enterprise architect"
+   ],
+   "Game development": [
+    "game developer",
+    "game designer",
+    "game producer"
+   ]
+  }
+ },
+ {
+  "id": "technology-and-software-4",
+  "industry": "Technology & Software",
+  "segments": {
+   "Technical writing and documentation": [
+    "technical writer",
+    "documentation lead"
+   ],
+   "Robotics and embedded systems": [
+    "robotics engineer",
+    "embedded engineer"
+   ],
+   "Software sales and customer success": [
+    "SaaS account executive",
+    "solutions engineer",
+    "customer success manager"
+   ]
+  }
+ },
+ {
+  "id": "telecommunications-1",
+  "industry": "Telecommunications",
+  "segments": {
+   "Wireless and 5G": [
+    "RF engineer",
+    "network planner",
+    "wireless product manager"
+   ],
+   "Broadband and fiber": [
+    "fiber network engineer",
+    "broadband executive"
+   ],
+   "Satellite and space communications": [
+    "satellite engineer",
+    "spectrum manager"
+   ],
+   "Telecom operations and policy": [
+    "telecom regulatory counsel",
+    "network operations lead"
+   ]
+  }
+ },
+ {
+  "id": "healthcare-and-hospital-systems-1",
+  "industry": "Healthcare & Hospital Systems",
+  "segments": {
+   "Hospital and health system leadership": [
+    "hospital executive",
+    "chief operating officer",
+    "service line leader"
+   ],
+   "Nursing leadership": [
+    "chief nursing officer",
+    "nurse manager",
+    "nurse educator"
+   ],
+   "Physician practice and medical group management": [
+    "practice administrator",
+    "medical group executive"
+   ],
+   "Revenue cycle and healthcare finance": [
+    "revenue cycle director",
+    "medical coder",
+    "healthcare CFO"
+   ]
+  }
+ },
+ {
+  "id": "healthcare-and-hospital-systems-2",
+  "industry": "Healthcare & Hospital Systems",
+  "segments": {
+   "Health IT and informatics": [
+    "CIO health system",
+    "clinical informaticist",
+    "EHR analyst"
+   ],
+   "Digital health and virtual care": [
+    "digital health product lead",
+    "telehealth operations"
+   ],
+   "Behavioral health": [
+    "behavioral health executive",
+    "addiction treatment administrator"
+   ],
+   "Pharmacy": [
+    "pharmacy director",
+    "health-system pharmacist"
+   ]
+  }
+ },
+ {
+  "id": "healthcare-and-hospital-systems-3",
+  "industry": "Healthcare & Hospital Systems",
+  "segments": {
+   "Long-term care and senior living": [
+    "nursing home administrator",
+    "senior living executive"
+   ],
+   "Public health": [
+    "public health director",
+    "epidemiologist",
+    "health department leader"
+   ],
+   "Quality, safety and compliance": [
+    "patient safety officer",
+    "healthcare compliance officer",
+    "quality improvement lead"
+   ],
+   "Healthcare supply chain": [
+    "materials manager",
+    "healthcare supply chain director"
+   ]
+  }
+ },
+ {
+  "id": "healthcare-and-hospital-systems-4",
+  "industry": "Healthcare & Hospital Systems",
+  "segments": {
+   "Dental and specialty practice management": [
+    "dental practice manager",
+    "veterinary practice manager"
+   ],
+   "Healthcare HR and workforce": [
+    "healthcare recruiter",
+    "nurse staffing leader"
+   ]
+  }
+ },
+ {
+  "id": "pharmaceuticals-and-biotech-1",
+  "industry": "Pharmaceuticals & Biotech",
+  "segments": {
+   "Drug discovery and R&D": [
+    "research scientist",
+    "R&D director"
+   ],
+   "Clinical operations and trials": [
+    "clinical research associate",
+    "clinical trial manager",
+    "clinical data manager"
+   ],
+   "Regulatory affairs and quality": [
+    "regulatory affairs manager",
+    "quality assurance lead",
+    "pharmacovigilance specialist"
+   ],
+   "Biomanufacturing and CMC": [
+    "process development scientist",
+    "manufacturing quality lead"
+   ]
+  }
+ },
+ {
+  "id": "pharmaceuticals-and-biotech-2",
+  "industry": "Pharmaceuticals & Biotech",
+  "segments": {
+   "Commercial, market access and medical affairs": [
+    "medical science liaison",
+    "market access lead",
+    "pharma brand manager"
+   ],
+   "Biotech business and investing": [
+    "biotech CEO",
+    "business development lead",
+    "biotech investor"
+   ],
+   "Genomics and bioinformatics": [
+    "bioinformatician",
+    "genomics product lead"
+   ]
+  }
+ },
+ {
+  "id": "medical-devices-1",
+  "industry": "Medical Devices",
+  "segments": {
+   "Device engineering and R&D": [
+    "biomedical engineer",
+    "device R&D lead"
+   ],
+   "Regulatory and quality": [
+    "device regulatory specialist",
+    "quality systems manager"
+   ],
+   "Device sales and clinical support": [
+    "medical device sales rep",
+    "clinical specialist"
+   ],
+   "Device manufacturing and supply chain": [
+    "manufacturing engineer",
+    "supplier quality engineer"
+   ],
+   "Digital health devices and diagnostics": [
+    "diagnostics product manager",
+    "connected device lead"
+   ]
+  }
+ },
+ {
+  "id": "retail-and-e-commerce-1",
+  "industry": "Retail & E-commerce",
+  "segments": {
+   "Retail leadership and merchandising": [
+    "merchant",
+    "store operations executive",
+    "category manager"
+   ],
+   "E-commerce and digital commerce": [
+    "e-commerce manager",
+    "marketplace seller",
+    "conversion optimization lead"
+   ],
+   "Retail technology and omnichannel": [
+    "retail technology lead",
+    "omnichannel manager"
+   ],
+   "Grocery and convenience": [
+    "grocery executive",
+    "convenience store operator"
+   ]
+  }
+ },
+ {
+  "id": "retail-and-e-commerce-2",
+  "industry": "Retail & E-commerce",
+  "segments": {
+   "Fashion, apparel and beauty": [
+    "buyer",
+    "fashion brand manager",
+    "beauty brand lead"
+   ],
+   "Direct-to-consumer brands": [
+    "DTC founder",
+    "growth marketer"
+   ],
+   "Loss prevention and retail supply chain": [
+    "loss prevention leader",
+    "retail supply chain planner"
+   ]
+  }
+ },
+ {
+  "id": "consumer-packaged-goods-1",
+  "industry": "Consumer Packaged Goods",
+  "segments": {
+   "Food and beverage brands": [
+    "brand manager",
+    "food scientist",
+    "beverage founder"
+   ],
+   "Natural, organic and specialty foods": [
+    "natural products founder",
+    "specialty food buyer"
+   ],
+   "Household and personal care": [
+    "personal care brand manager",
+    "category insights lead"
+   ],
+   "Shopper marketing and category management": [
+    "shopper marketer",
+    "category analyst"
+   ]
+  }
+ },
+ {
+  "id": "consumer-packaged-goods-2",
+  "industry": "Consumer Packaged Goods",
+  "segments": {
+   "Retail sales and key accounts": [
+    "key account manager",
+    "CPG sales director"
+   ],
+   "Food safety and regulatory": [
+    "food safety manager",
+    "regulatory affairs food"
+   ]
+  }
+ },
+ {
+  "id": "hospitality-travel-and-food-service-1",
+  "industry": "Hospitality, Travel & Food Service",
+  "segments": {
+   "Hotels and lodging": [
+    "hotel general manager",
+    "revenue manager",
+    "hotel sales director"
+   ],
+   "Restaurants and food service": [
+    "restaurant operator",
+    "culinary director",
+    "foodservice distributor"
+   ],
+   "Travel and tourism": [
+    "travel advisor",
+    "destination marketer",
+    "tour operator"
+   ],
+   "Meetings, events and conventions": [
+    "meeting planner",
+    "event marketer",
+    "convention bureau executive"
+   ]
+  }
+ },
+ {
+  "id": "hospitality-travel-and-food-service-2",
+  "industry": "Hospitality, Travel & Food Service",
+  "segments": {
+   "Airlines and airports": [
+    "airline executive",
+    "airport operations manager"
+   ],
+   "Cruise, gaming and attractions": [
+    "casino executive",
+    "attractions operator"
+   ],
+   "Hospitality technology": [
+    "hospitality technologist",
+    "hotel distribution manager"
+   ]
+  }
+ },
+ {
+  "id": "agriculture-and-food-production-1",
+  "industry": "Agriculture & Food Production",
+  "segments": {
+   "Agtech and precision agriculture": [
+    "agronomist",
+    "agtech founder",
+    "precision ag specialist"
+   ],
+   "Farm management and commodities": [
+    "farm manager",
+    "commodity analyst",
+    "ag lender"
+   ],
+   "Food processing and manufacturing": [
+    "plant manager food",
+    "food quality assurance"
+   ],
+   "Sustainable food systems and alt protein": [
+    "alt protein scientist",
+    "sustainability lead food"
+   ]
+  }
+ },
+ {
+  "id": "agriculture-and-food-production-2",
+  "industry": "Agriculture & Food Production",
+  "segments": {
+   "Forestry, timber and land": [
+    "forester",
+    "land manager"
+   ],
+   "Aquaculture and fisheries": [
+    "aquaculture manager",
+    "fisheries scientist"
+   ]
+  }
+ },
+ {
+  "id": "manufacturing-and-industrial-1",
+  "industry": "Manufacturing & Industrial",
+  "segments": {
+   "Advanced manufacturing and automation": [
+    "manufacturing engineer",
+    "automation engineer",
+    "plant manager"
+   ],
+   "Quality, lean and operational excellence": [
+    "quality manager",
+    "continuous improvement lead",
+    "lean six sigma practitioner"
+   ],
+   "Maintenance, reliability and asset management": [
+    "reliability engineer",
+    "maintenance manager"
+   ],
+   "Environmental, health and safety": [
+    "EHS manager",
+    "safety director"
+   ]
+  }
+ },
+ {
+  "id": "manufacturing-and-industrial-2",
+  "industry": "Manufacturing & Industrial",
+  "segments": {
+   "Chemicals, plastics and materials": [
+    "process chemist",
+    "materials engineer",
+    "plastics engineer"
+   ],
+   "Supply chain and procurement": [
+    "supply chain planner",
+    "procurement director",
+    "buyer"
+   ],
+   "Industrial distribution": [
+    "distribution executive",
+    "industrial sales manager"
+   ],
+   "Packaging and printing": [
+    "packaging engineer",
+    "print operations manager"
+   ]
+  }
+ },
+ {
+  "id": "manufacturing-and-industrial-3",
+  "industry": "Manufacturing & Industrial",
+  "segments": {
+   "Additive manufacturing and Industry 4.0": [
+    "3D printing engineer",
+    "industrial IoT architect"
+   ],
+   "Metals, machinery and tooling": [
+    "tool and die engineer",
+    "machinery sales engineer"
+   ]
+  }
+ },
+ {
+  "id": "automotive-and-mobility-1",
+  "industry": "Automotive & Mobility",
+  "segments": {
+   "Automakers and suppliers": [
+    "automotive engineer",
+    "supplier quality manager"
+   ],
+   "Electric vehicles and charging": [
+    "EV charging network lead",
+    "battery engineer"
+   ],
+   "Autonomous vehicles and mobility tech": [
+    "autonomy engineer",
+    "mobility product lead"
+   ],
+   "Dealerships and aftermarket": [
+    "dealer principal",
+    "fixed operations director"
+   ],
+   "Fleet management": [
+    "fleet manager",
+    "fleet electrification lead"
+   ]
+  }
+ },
+ {
+  "id": "aerospace-and-defense-1",
+  "industry": "Aerospace & Defense",
+  "segments": {
+   "Commercial aerospace and aviation": [
+    "aerospace engineer",
+    "aviation maintenance leader"
+   ],
+   "Defense and government contracting": [
+    "capture manager",
+    "proposal manager",
+    "defense program manager",
+    "contracts manager"
+   ],
+   "Space industry": [
+    "space systems engineer",
+    "launch operations manager"
+   ],
+   "Uncrewed systems and drones": [
+    "UAS program manager",
+    "drone operations lead"
+   ]
+  }
+ },
+ {
+  "id": "aerospace-and-defense-2",
+  "industry": "Aerospace & Defense",
+  "segments": {
+   "Military transition and veterans": [
+    "transitioning service member",
+    "veteran hiring lead"
+   ],
+   "Cybersecurity for defense": [
+    "cleared cybersecurity engineer",
+    "CMMC compliance lead"
+   ]
+  }
+ },
+ {
+  "id": "energy-and-utilities-1",
+  "industry": "Energy & Utilities",
+  "segments": {
+   "Oil and gas": [
+    "petroleum engineer",
+    "landman",
+    "midstream commercial lead"
+   ],
+   "Electric utilities and the grid": [
+    "grid planner",
+    "utility executive",
+    "distribution engineer"
+   ],
+   "Renewables, solar and wind": [
+    "solar developer",
+    "wind project manager",
+    "renewable energy finance"
+   ],
+   "Energy storage, hydrogen and nuclear": [
+    "battery storage developer",
+    "nuclear engineer",
+    "hydrogen project lead"
+   ]
+  }
+ },
+ {
+  "id": "energy-and-utilities-2",
+  "industry": "Energy & Utilities",
+  "segments": {
+   "Energy trading and markets": [
+    "energy trader",
+    "power market analyst"
+   ],
+   "Water and wastewater utilities": [
+    "water utility manager",
+    "wastewater engineer"
+   ],
+   "Mining and minerals": [
+    "mining engineer",
+    "geologist",
+    "critical minerals lead"
+   ],
+   "Sustainability, ESG and climate": [
+    "sustainability director",
+    "ESG analyst",
+    "climate risk lead"
+   ]
+  }
+ },
+ {
+  "id": "energy-and-utilities-3",
+  "industry": "Energy & Utilities",
+  "segments": {
+   "Data centers and power demand": [
+    "data center developer",
+    "critical power engineer"
+   ]
+  }
+ },
+ {
+  "id": "construction-and-real-estate-1",
+  "industry": "Construction & Real Estate",
+  "segments": {
+   "Commercial real estate": [
+    "commercial broker",
+    "asset manager",
+    "real estate investor"
+   ],
+   "Residential real estate and brokerage": [
+    "real estate agent",
+    "broker owner",
+    "title and escrow officer"
+   ],
+   "Property and facilities management": [
+    "property manager",
+    "facilities manager"
+   ],
+   "Proptech": [
+    "proptech founder",
+    "real estate data lead"
+   ]
+  }
+ },
+ {
+  "id": "construction-and-real-estate-2",
+  "industry": "Construction & Real Estate",
+  "segments": {
+   "General contracting and construction management": [
+    "project executive",
+    "construction project manager",
+    "estimator"
+   ],
+   "Architecture, engineering and design": [
+    "architect",
+    "civil engineer",
+    "structural engineer"
+   ],
+   "Homebuilding and development": [
+    "homebuilder executive",
+    "land developer"
+   ],
+   "Construction technology and safety": [
+    "construction technology lead",
+    "construction safety manager"
+   ]
+  }
+ },
+ {
+  "id": "construction-and-real-estate-3",
+  "industry": "Construction & Real Estate",
+  "segments": {
+   "Affordable housing and community development": [
+    "housing developer",
+    "community development officer"
+   ]
+  }
+ },
+ {
+  "id": "transportation-and-logistics-1",
+  "industry": "Transportation & Logistics",
+  "segments": {
+   "Freight, trucking and brokerage": [
+    "freight broker",
+    "trucking executive",
+    "logistics sales"
+   ],
+   "Supply chain planning and visibility": [
+    "supply chain director",
+    "demand planner",
+    "logistics technologist"
+   ],
+   "Warehousing and fulfillment": [
+    "warehouse operations manager",
+    "fulfillment director"
+   ],
+   "Ports, maritime and rail": [
+    "port executive",
+    "rail operations lead"
+   ]
+  }
+ },
+ {
+  "id": "transportation-and-logistics-2",
+  "industry": "Transportation & Logistics",
+  "segments": {
+   "Air cargo and aviation logistics": [
+    "air cargo manager",
+    "airport logistics lead"
+   ],
+   "Last mile and parcel": [
+    "last-mile operations manager",
+    "parcel network planner"
+   ],
+   "Public transit and infrastructure": [
+    "transit agency executive",
+    "transportation planner"
+   ]
+  }
+ },
+ {
+  "id": "media-and-entertainment-1",
+  "industry": "Media & Entertainment",
+  "segments": {
+   "Journalism and news": [
+    "editor",
+    "reporter",
+    "newsroom product lead"
+   ],
+   "Publishing and book industry": [
+    "book editor",
+    "literary agent",
+    "publisher"
+   ],
+   "Film, television and streaming": [
+    "producer",
+    "streaming executive",
+    "post-production lead"
+   ],
+   "Music and live entertainment": [
+    "music executive",
+    "live event producer"
+   ]
+  }
+ },
+ {
+  "id": "media-and-entertainment-2",
+  "industry": "Media & Entertainment",
+  "segments": {
+   "Podcasting and creator economy": [
+    "podcast producer",
+    "creator business manager"
+   ],
+   "Video games and esports": [
+    "esports executive",
+    "game marketer"
+   ],
+   "Sports business": [
+    "sports marketing executive",
+    "team operations leader",
+    "athletic director"
+   ],
+   "Libraries and information science": [
+    "librarian",
+    "archivist"
+   ]
+  }
+ },
+ {
+  "id": "advertising-marketing-and-pr-1",
+  "industry": "Advertising, Marketing & PR",
+  "segments": {
+   "Brand and creative": [
+    "creative director",
+    "brand strategist",
+    "copywriter"
+   ],
+   "Digital marketing, SEO and performance": [
+    "SEO specialist",
+    "paid media manager",
+    "marketing analyst"
+   ],
+   "Content and social media marketing": [
+    "content marketer",
+    "social media manager",
+    "community manager"
+   ],
+   "B2B and demand generation marketing": [
+    "demand generation manager",
+    "account-based marketer",
+    "marketing operations"
+   ]
+  }
+ },
+ {
+  "id": "advertising-marketing-and-pr-2",
+  "industry": "Advertising, Marketing & PR",
+  "segments": {
+   "Public relations and corporate communications": [
+    "PR director",
+    "communications leader",
+    "investor relations officer"
+   ],
+   "Market research and insights": [
+    "market researcher",
+    "consumer insights lead"
+   ],
+   "Advertising technology": [
+    "adtech product manager",
+    "programmatic specialist"
+   ],
+   "Product marketing": [
+    "product marketing manager"
+   ]
+  }
+ },
+ {
+  "id": "advertising-marketing-and-pr-3",
+  "industry": "Advertising, Marketing & PR",
+  "segments": {
+   "Marketing leadership": [
+    "CMO",
+    "VP marketing"
+   ],
+   "Public affairs and government relations": [
+    "lobbyist",
+    "government affairs director"
+   ]
+  }
+ },
+ {
+  "id": "education-and-edtech-1",
+  "industry": "Education & EdTech",
+  "segments": {
+   "K-12 teachers": [
+    "elementary teacher",
+    "math teacher",
+    "English language arts teacher",
+    "science teacher",
+    "social studies teacher",
+    "special education teacher",
+    "teacher of English learners"
+   ],
+   "K-12 school leadership": [
+    "principal",
+    "assistant principal",
+    "superintendent",
+    "school business official"
+   ],
+   "School counselors, librarians and support": [
+    "school counselor",
+    "school librarian",
+    "school psychologist",
+    "school nurse"
+   ],
+   "Early childhood education": [
+    "preschool director",
+    "early childhood educator"
+   ]
+  }
+ },
+ {
+  "id": "education-and-edtech-2",
+  "industry": "Education & EdTech",
+  "segments": {
+   "Career and technical education": [
+    "CTE teacher",
+    "workforce education director"
+   ],
+   "Higher education administration": [
+    "provost",
+    "dean",
+    "registrar",
+    "enrollment manager"
+   ],
+   "Student affairs and advising": [
+    "student affairs professional",
+    "academic advisor",
+    "career services director"
+   ],
+   "University advancement and fundraising": [
+    "development officer",
+    "alumni relations director"
+   ]
+  }
+ },
+ {
+  "id": "education-and-edtech-3",
+  "industry": "Education & EdTech",
+  "segments": {
+   "Institutional research and assessment": [
+    "institutional researcher",
+    "assessment director"
+   ],
+   "Faculty and academic disciplines": [
+    "professor",
+    "department chair",
+    "instructional designer"
+   ],
+   "EdTech companies": [
+    "edtech founder",
+    "learning experience designer",
+    "edtech sales",
+    "curriculum product manager"
+   ],
+   "Corporate learning and development": [
+    "L&D leader",
+    "learning designer",
+    "training manager"
+   ]
+  }
+ },
+ {
+  "id": "education-and-edtech-4",
+  "industry": "Education & EdTech",
+  "segments": {
+   "Education policy and school districts": [
+    "district administrator",
+    "education policy analyst",
+    "school board member"
+   ],
+   "Charter, private and independent schools": [
+    "head of school",
+    "independent school admissions director"
+   ],
+   "Adult education and workforce training": [
+    "adult educator",
+    "community college leader"
+   ]
+  }
+ },
+ {
+  "id": "government-and-public-sector-1",
+  "industry": "Government & Public Sector",
+  "segments": {
+   "Federal civilian agencies": [
+    "federal program manager",
+    "senior executive service"
+   ],
+   "State government": [
+    "state agency leader",
+    "state CIO",
+    "state budget officer"
+   ],
+   "City and county government": [
+    "city manager",
+    "county administrator",
+    "municipal finance officer"
+   ],
+   "Public safety and emergency management": [
+    "emergency manager",
+    "police executive",
+    "fire chief"
+   ]
+  }
+ },
+ {
+  "id": "government-and-public-sector-2",
+  "industry": "Government & Public Sector",
+  "segments": {
+   "Public procurement and contracting": [
+    "procurement officer",
+    "contracting officer"
+   ],
+   "Civic technology and digital government": [
+    "civic technologist",
+    "government CIO"
+   ],
+   "Economic development and planning": [
+    "economic development director",
+    "city planner"
+   ],
+   "Public utilities and transportation agencies": [
+    "public works director",
+    "transit planner"
+   ]
+  }
+ },
+ {
+  "id": "government-and-public-sector-3",
+  "industry": "Government & Public Sector",
+  "segments": {
+   "Workforce development boards": [
+    "workforce board director",
+    "career center manager"
+   ],
+   "Election administration and public records": [
+    "election official",
+    "records manager"
+   ]
+  }
+ },
+ {
+  "id": "nonprofit-and-social-impact-1",
+  "industry": "Nonprofit & Social Impact",
+  "segments": {
+   "Fundraising and development": [
+    "fundraiser",
+    "major gifts officer",
+    "development director"
+   ],
+   "Grantmaking and foundations": [
+    "program officer",
+    "foundation executive"
+   ],
+   "Nonprofit leadership and boards": [
+    "executive director",
+    "nonprofit board member"
+   ],
+   "Associations and membership organizations": [
+    "association executive",
+    "membership director",
+    "association meetings manager"
+   ]
+  }
+ },
+ {
+  "id": "nonprofit-and-social-impact-2",
+  "industry": "Nonprofit & Social Impact",
+  "segments": {
+   "Social work and human services": [
+    "social worker",
+    "case manager",
+    "human services director"
+   ],
+   "Faith-based and religious organizations": [
+    "church administrator",
+    "faith-based nonprofit leader"
+   ],
+   "Environmental and conservation": [
+    "conservation director",
+    "environmental nonprofit leader"
+   ],
+   "Arts, culture and museums": [
+    "museum director",
+    "arts administrator"
+   ]
+  }
+ },
+ {
+  "id": "nonprofit-and-social-impact-3",
+  "industry": "Nonprofit & Social Impact",
+  "segments": {
+   "Volunteer management and community engagement": [
+    "volunteer manager",
+    "community engagement lead"
+   ],
+   "Social enterprise and impact investing": [
+    "impact investor",
+    "social entrepreneur"
+   ]
+  }
+ },
+ {
+  "id": "business-ownership-and-entrepreneurship-1",
+  "industry": "Business Ownership & Entrepreneurship",
+  "segments": {
+   "Buying a business (acquisition entrepreneurship)": [
+    "search fund entrepreneur",
+    "self-funded searcher",
+    "small business buyer",
+    "business broker",
+    "SBA acquisition lender"
+   ],
+   "Starting a business": [
+    "first-time founder",
+    "solo founder",
+    "startup operator",
+    "small business owner"
+   ],
+   "Franchise ownership": [
+    "franchise buyer",
+    "franchisee",
+    "franchise consultant"
+   ],
+   "Selling and succession planning": [
+    "business owner exiting",
+    "M&A advisor",
+    "succession planner"
+   ]
+  }
+ },
+ {
+  "id": "business-ownership-and-entrepreneurship-2",
+  "industry": "Business Ownership & Entrepreneurship",
+  "segments": {
+   "Small business operations and growth": [
+    "small business owner",
+    "owner-operator",
+    "bookkeeper and fractional CFO"
+   ],
+   "Fractional and independent practice": [
+    "fractional executive",
+    "independent consultant",
+    "interim executive",
+    "freelance professional"
+   ],
+   "Founder communities and accelerators": [
+    "accelerator founder",
+    "angel investor",
+    "startup mentor"
+   ],
+   "Underrepresented and veteran founders": [
+    "women founder",
+    "minority business owner",
+    "veteran entrepreneur"
+   ]
+  }
+ },
+ {
+  "id": "staffing-and-human-capital-1",
+  "industry": "Staffing & Human Capital",
+  "segments": {
+   "Staffing and recruiting firms": [
+    "recruiter",
+    "staffing firm owner",
+    "account manager staffing"
+   ],
+   "Corporate talent acquisition": [
+    "talent acquisition leader",
+    "sourcer",
+    "recruiting coordinator"
+   ],
+   "HR leadership": [
+    "CHRO",
+    "HR business partner",
+    "HR director"
+   ],
+   "Compensation and benefits": [
+    "compensation analyst",
+    "benefits manager"
+   ]
+  }
+ },
+ {
+  "id": "staffing-and-human-capital-2",
+  "industry": "Staffing & Human Capital",
+  "segments": {
+   "HRIS and people analytics": [
+    "HRIS analyst",
+    "people analytics lead"
+   ],
+   "Learning, culture and DEI": [
+    "DEI leader",
+    "employee experience lead"
+   ],
+   "Employment law and labor relations": [
+    "employee relations lead",
+    "labor relations specialist"
+   ],
+   "Payroll and workforce management": [
+    "payroll manager",
+    "workforce planner"
+   ]
+  }
+ },
+ {
+  "id": "staffing-and-human-capital-3",
+  "industry": "Staffing & Human Capital",
+  "segments": {
+   "Career coaching and outplacement": [
+    "career coach",
+    "outplacement consultant"
+   ]
+  }
+ }
+]

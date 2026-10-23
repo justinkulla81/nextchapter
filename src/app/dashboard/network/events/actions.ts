@@ -6,8 +6,10 @@ import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { createClient } from '@/lib/supabase/server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { redirect } from 'next/navigation'
+import { applyOutcome } from '@/lib/events/outcome'
+import { OUTCOMES, type Outcome } from '@/lib/events/headsup'
 
-const STATUSES = ['SAVED', 'GOING', 'SPEAKING'] as const
+const STATUSES = ['SAVED', 'GOING', 'SPEAKING'] as const // SPEAKING also means going
 
 /** Marks an event saved, going or speaking for the signed-in member. Pressing the same state again clears it. */
 export async function setEventInterest(formData: FormData): Promise<void> {
@@ -20,8 +22,10 @@ export async function setEventInterest(formData: FormData): Promise<void> {
   const eventId = String(formData.get('eventId') ?? '')
   const status = String(formData.get('status') ?? '')
   if (!eventId || !(STATUSES as readonly string[]).includes(status)) return
-  const event = await prisma.conferenceEvent.findFirst({ where: { id: eventId, published: true }, select: { id: true, importance: true, access: true, speaking: true } })
+  const event = await prisma.conferenceEvent.findFirst({ where: { id: eventId, published: true }, select: { id: true, importance: true, access: true, speaking: true, datesConfirmed: true, startDate: true, endDate: true } })
   if (!event) return
+  // The edition the member is interested in, so we can ask how it went once it has ended.
+  const editionEnd = event.datesConfirmed && event.startDate ? (event.endDate ?? event.startDate) : null
   const current = await prisma.conferenceInterest.findUnique({ where: { candidateId_eventId: { candidateId: profile.id, eventId } } })
   if (current?.status === status) {
     await prisma.conferenceInterest.delete({ where: { id: current.id } })
@@ -29,10 +33,25 @@ export async function setEventInterest(formData: FormData): Promise<void> {
   } else {
     await prisma.conferenceInterest.upsert({
       where: { candidateId_eventId: { candidateId: profile.id, eventId } },
-      create: { candidateId: profile.id, eventId, status },
-      update: { status },
+      create: { candidateId: profile.id, eventId, status, editionEnd },
+      update: { status, editionEnd },
     })
     captureServerEvent(profile.id, 'conference_event_interest_set', { eventId, status, previous: current?.status ?? null, access: event.access, speaking: event.speaking, importance: event.importance })
   }
+  revalidatePath('/dashboard/network/events')
+}
+
+/** "How did it go?" on the events page: went, spoke, or did not go. */
+export async function recordEventOutcome(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const eventId = String(formData.get('eventId') ?? '')
+  const outcome = String(formData.get('outcome') ?? '') as Outcome
+  if (!eventId || !OUTCOMES.includes(outcome)) return
+  await applyOutcome(profile.id, eventId, outcome)
   revalidatePath('/dashboard/network/events')
 }

@@ -55,3 +55,34 @@ CREATE UNIQUE INDEX IF NOT EXISTS "ConferenceInterest_candidateId_eventId_key" O
 CREATE INDEX IF NOT EXISTS "ConferenceInterest_eventId_idx" ON "ConferenceInterest"("eventId");
 ALTER TABLE "ConferenceEvent" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "ConferenceInterest" ENABLE ROW LEVEL SECURITY;
+
+-- 2026-10-23: full mapping by segment and specific job (additive).
+ALTER TABLE "ConferenceEvent" ADD COLUMN IF NOT EXISTS "segments" TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE "ConferenceEvent" ADD COLUMN IF NOT EXISTS "roles" TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE "ConferenceEvent" ADD COLUMN IF NOT EXISTS "journeys" TEXT[] NOT NULL DEFAULT '{}';
+
+-- Heads-up emails: one row per (member, event, stage) so a stage is never sent twice. Additive.
+CREATE TABLE IF NOT EXISTS "ConferenceNudge" (
+  "id" TEXT PRIMARY KEY,
+  "candidateId" TEXT NOT NULL,
+  "eventId" TEXT NOT NULL,
+  "stage" TEXT NOT NULL,
+  "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ConferenceNudge_candidateId_eventId_stage_key" ON "ConferenceNudge"("candidateId","eventId","stage");
+CREATE INDEX IF NOT EXISTS "ConferenceNudge_candidateId_sentAt_idx" ON "ConferenceNudge"("candidateId","sentAt");
+ALTER TABLE "ConferenceNudge" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "ConferenceEvent" ADD COLUMN IF NOT EXISTS "programFormats" TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE "ConferenceEvent" ADD COLUMN IF NOT EXISTS "linkStatus" TEXT;
+ALTER TABLE "ConferenceEvent" ADD COLUMN IF NOT EXISTS "linkCheckedAt" TIMESTAMP(3);
+ALTER TABLE "ConferenceEvent" ADD COLUMN IF NOT EXISTS "linkFailures" INTEGER NOT NULL DEFAULT 0;
+
+-- Follow-through: how it went, and next year's notice (additive; the nudge table was empty).
+ALTER TABLE "ConferenceInterest" ADD COLUMN IF NOT EXISTS "editionEnd" TIMESTAMP(3);
+ALTER TABLE "ConferenceInterest" ADD COLUMN IF NOT EXISTS "outcome" TEXT;
+ALTER TABLE "ConferenceInterest" ADD COLUMN IF NOT EXISTS "outcomeAt" TIMESTAMP(3);
+ALTER TABLE "ConferenceInterest" ADD COLUMN IF NOT EXISTS "attendedCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ConferenceInterest" ADD COLUMN IF NOT EXISTS "spokeCount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "ConferenceNudge" ADD COLUMN IF NOT EXISTS "edition" TEXT NOT NULL DEFAULT '';
+DROP INDEX IF EXISTS "ConferenceNudge_candidateId_eventId_stage_key";
+CREATE UNIQUE INDEX IF NOT EXISTS "ConferenceNudge_candidateId_eventId_stage_edition_key" ON "ConferenceNudge"("candidateId","eventId","stage","edition");

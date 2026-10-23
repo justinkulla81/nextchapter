@@ -7,7 +7,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
-import { ACCESS, FORMATS, KINDS, SENIORITIES, SPEAKING } from '@/lib/events/types'
+import { SEGMENTS } from '@/lib/events/taxonomy'
+import { ACCESS, FORMATS, JOURNEYS, PROGRAM_FORMATS, KINDS, SENIORITIES, SPEAKING } from '@/lib/events/types'
 
 const text = (v: FormDataEntryValue | null) => String(v ?? '').trim() || null
 const pick = <T extends string>(v: FormDataEntryValue | null, allowed: readonly T[], fallback: T): T => (allowed as readonly string[]).includes(String(v)) ? (String(v) as T) : fallback
@@ -43,6 +44,10 @@ export async function saveEvent(formData: FormData) {
     country: text(formData.get('country')) ?? 'US',
     industries: many(formData, 'industries', INDUSTRY_BUCKET_NAMES),
     functions: many(formData, 'functions', PRIMARY_FUNCTION_OPTIONS),
+    journeys: many(formData, 'journeys', JOURNEYS),
+    programFormats: many(formData, 'programFormats', PROGRAM_FORMATS),
+    segments: many(formData, 'segments', SEGMENTS),
+    roles: String(formData.get('roles') ?? '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean).slice(0, 12),
     seniorities: many(formData, 'seniorities', SENIORITIES),
     importance: Math.min(3, Math.max(1, int(formData.get('importance')) ?? 2)),
     whyAttend: text(formData.get('whyAttend')),

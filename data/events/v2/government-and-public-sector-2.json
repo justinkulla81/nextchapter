@@ -1,0 +1,1272 @@
+[
+ {
+  "id": "naspo-exchange",
+  "name": "NASPO Exchange",
+  "organizer": "NASPO and the Procurement Professionals Alliance",
+  "url": "https://www.naspo.org/events-and-webinars/naspo-exchange/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-11",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 1,
+  "whyAttend": "State, local and education procurement staff meet suppliers, with guaranteed one-on-one meetings with government buyers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read (naspo.org returned 403 to fetch; read through domain search). Registration opened Sept 2026. Suppliers attend too.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Scholarships for state, local and education procurement professionals cover registration, travel, lodging and meals.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public procurement and contracting"
+  ],
+  "roles": [
+   "procurement officer",
+   "contracting officer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "naspo-annual-conference",
+  "name": "NASPO Annual Conference",
+  "organizer": "NASPO",
+  "url": "https://naspo.org/events-and-webinars/naspo-annual",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State chief procurement officers and one executive designee per state; the 2026 edition was Sept 27-30 in Phoenix.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Limited to each state's chief procurement officer or NASPO primary member plus one executive-level designee. 2027 edition not yet announced.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public procurement and contracting"
+  ],
+  "roles": [
+   "procurement officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ncma-nexus",
+  "name": "NCMA Nexus",
+  "organizer": "National Contract Management Association",
+  "url": "https://www.ncmahq.org/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-21",
+  "endDate": "2027-02-23",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "A training event bringing together every functional group in the acquisition lifecycle: contracting officers, buyers, program staff and industry.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cost not on the page; registration on events.ncmahq.org. Grand Hyatt San Antonio River Walk.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.ncmahq.org/events",
+  "speakingDeadline": null,
+  "speakingNote": "NCMA says its call for proposals opens this fall (per search of ncmahq.org).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public procurement and contracting"
+  ],
+  "roles": [
+   "contracting officer",
+   "procurement officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "psc-vision-federal-market-forecast",
+  "name": "Vision Federal Market Forecast Conference",
+  "organizer": "Professional Services Council Foundation",
+  "url": "https://vision.pscouncil.org/about",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-08",
+  "endDate": "2026-12-09",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Arlington",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Forecast of the federal defense, civilian and IT markets with government leaders on panels; mainly federal contractors and acquisition staff.",
+  "access": "PAID",
+  "costLow": 999,
+  "costHigh": 1265,
+  "costNote": "Registration $999 PSC members, $1,265 general (from event listings, not read on the official page); venue Hyatt Regency Crystal City per listings.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Government leaders give keynotes and panel comments; 400+ industry and government volunteers produce the studies.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public procurement and contracting"
+  ],
+  "roles": [
+   "contracting officer",
+   "procurement officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "psc-federal-acquisition-conference",
+  "name": "PSC Federal Acquisition Conference",
+  "organizer": "Professional Services Council",
+  "url": "https://acquisition.pscouncil.org/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Arlington",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Federal contracting officers and acquisition staff with industry; 10th edition was June 25, 2026 and open to virtual attendance.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page timed out on fetch; edition details from a news listing. 2027 date not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Public procurement and contracting"
+  ],
+  "roles": [
+   "contracting officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naep-epic",
+  "name": "EPIC (Educational Procurement Innovation Conference)",
+  "organizer": "National Association of Educational Procurement",
+  "url": "https://s2.goeshow.com/naep/annual/2026/about.cfm",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-11",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Purchasing officers at public and private colleges and universities (formerly the NAEP Annual Meeting); CEU credit toward UPPCC and ISM.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates are on an Attendee Rates tab I did not read. Search listings show older dates (Feb 28-Mar 3, 2027); the NAEP page says April 11-14.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public procurement and contracting"
+  ],
+  "roles": [
+   "procurement officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "code-for-america-summit",
+  "name": "Code for America Summit",
+  "organizer": "Code for America",
+  "url": "https://summit.codeforamerica.org/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Government service designers, civic technologists and agency leaders; 2026 was May 7-8 in Chicago and the site points to Washington, DC in 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site returned 403 to fetch; read through search results. 2027 dates and prices not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "roles": [
+   "civic technologist",
+   "government cio"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "esri-user-conference",
+  "name": "Esri User Conference",
+  "organizer": "Esri",
+  "url": "https://www.esri.com/en-us/about/events/uc/overview",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-12",
+  "endDate": "2027-07-16",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The largest GIS gathering: thousands of city, county, state and federal GIS and IT staff using Esri mapping tools.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page says to sign up for an email when registration opens; no price yet.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.esri.com/en-us/about/events/uc/overview",
+  "speakingDeadline": null,
+  "speakingNote": "Page invites abstracts through a call-for-presentations page; deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "roles": [
+   "civic technologist",
+   "government cio"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "smart-cities-connect-spring",
+  "name": "Smart Cities Connect Conference & Expo (Spring)",
+  "organizer": "TechConnect",
+  "url": "https://techconnect.org/2026-spring-smart-cities-connect-conference-and-expo",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-23",
+  "endDate": "2027-03-25",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "City and county leaders, planners and technology providers on smart city projects; expo at the Hynes Convention Center.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page says city leaders attend at no cost; no other prices listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "City leaders attend free.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Civic technology and digital government",
+   "Economic development and planning"
+  ],
+  "roles": [
+   "civic technologist",
+   "government cio",
+   "city planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nascio-midyear",
+  "name": "NASCIO Midyear Conference",
+  "organizer": "NASCIO",
+  "url": "https://www.nascio.org/events/conferences/midyear/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State CIOs, deputy CIOs and other state technology leaders with member vendors; 2026 was April in Philadelphia.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration requires employment by a current NASCIO member. 2027 dates and fee not posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.nascio.org/events/conferences/midyear/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "roles": [
+   "government cio"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "metrolab-network-annual-summit",
+  "name": "MetroLab Network Annual Summit",
+  "organizer": "MetroLab Network",
+  "url": "https://metrolabnetwork.org/events/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "150+ city officials, university researchers and civic data people; earlier editions held in Washington in October.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site would not open (certificate error); based on search listings. 2026/2027 details not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "roles": [
+   "civic technologist",
+   "government cio"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "atarc-public-sector-cio-summit",
+  "name": "ATARC Public Sector CIO Summit",
+  "organizer": "ATARC",
+  "url": "https://atarc.org/2025-atarc-public-sector-cio-summit",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": "Reston",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "One-day gathering of federal, state and local government technology leaders at the Carahsoft center; 300+ government registrants typical.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee not confirmed; ATARC summits are usually free for government. Last edition Dec 11, 2025.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "roles": [
+   "government cio"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "potomac-officers-club-cio-summit",
+  "name": "Potomac Officers Club CIO Summit",
+  "organizer": "Potomac Officers Club (GovCon Wire)",
+  "url": "https://potomacofficersclub.com/event/poc-6th-annual-cio-summit",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Arlington",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Federal agency CIOs and deputies with defense and civilian technology contractors.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Only the sixth-annual listing was seen; no 2027 date or price found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "roles": [
+   "government cio"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "google-public-sector-summit",
+  "name": "Google Public Sector Summit",
+  "organizer": "Google Public Sector",
+  "url": "https://events.govexec.com/google-public-sector-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Federal, state, local and education technology leaders on AI for government; 2026 edition was Oct 20 in Washington.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cost not confirmed from the page; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "roles": [
+   "government cio",
+   "civic technologist"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iedc-annual-conference",
+  "name": "IEDC Annual Conference",
+  "organizer": "International Economic Development Council",
+  "url": "https://www.iedconline.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest yearly gathering of economic developers: city, county, state and regional development directors and their private partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site shows registration open for the 2026 conference; prices not on the page I read. Dates and Hyatt Regency venue from IEDC listings seen in search.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.iedconline.org",
+  "speakingDeadline": null,
+  "speakingNote": "Site has a Speak at a Conference page; deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nado-annual-training-conference",
+  "name": "NADO Annual Training Conference",
+  "organizer": "National Association of Development Organizations",
+  "url": "https://www.nado.org/nado-events/2027-annual-training-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-18",
+  "endDate": "2027-10-21",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Buffalo",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Regional development and planning organization staff working on rural and regional economic development.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration information to be posted in 2027; hotel $209 plus tax at Hyatt Regency Buffalo. The 2026 edition is Oct 26-29 in Reno.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Page lists no call for presentations.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director",
+   "city planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "main-street-now",
+  "name": "Main Street Now Conference",
+  "organizer": "Main Street America",
+  "url": "https://mainstreet.org/resources/main-street-now-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Detroit",
+  "state": "MI",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Main Street program directors, city and downtown development staff and civic leaders; 150+ education sessions.",
+  "access": "PAID",
+  "costLow": 509,
+  "costHigh": 899,
+  "costNote": "Early bird to Feb 9: $509 member / $609 non-member; regular $729 / $829; on-site $699 / $899. Registration opens early December 2026.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://mainstreet.org/resources/main-street-now-2027",
+  "speakingDeadline": "2026-09-03",
+  "speakingNote": "Call for education sessions closed Sept 3, 2026.",
+  "cheaperWays": "Civic Leader and Student passes $275 online / $299 on-site; one-day $425 online.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director",
+   "city planner"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "cdfa-national-development-finance-summit",
+  "name": "CDFA National Development Finance Summit",
+  "organizer": "Council of Development Finance Agencies",
+  "url": "https://www.cdfa.net/e/3006027313",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-18",
+  "endDate": "2026-11-20",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Public and private development finance people: bond issuers, lenders, economic development directors and consultants.",
+  "access": "PAID",
+  "costLow": 850,
+  "costHigh": 1350,
+  "costNote": "Early bird to Oct 9: $850 CDFA member / $1,200 non-member; standard $1,000 / $1,350. Dates from CDFA sponsor prospectus; registration page says November 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Multiple registrations from one organization discounted; CDFA Scholarship Program.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "national-brownfields-training-conference",
+  "name": "National Brownfields Training Conference",
+  "organizer": "U.S. EPA with ICMA",
+  "url": "https://www.gobrownfields.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-28",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Local governments, environmental professionals and developers redeveloping contaminated sites; 2,000+ attendees, held every two years.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site names Salt Lake City but shows no dates; dates from ICMA and a university listing. A third listing says New Orleans in June, so confirm.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.gobrownfields.org",
+  "speakingDeadline": null,
+  "speakingNote": "2027 Call for Ideas page exists; deadline reported as June 12, 2026 and likely closed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director",
+   "city planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "asfpm-annual-national-conference",
+  "name": "ASFPM Annual National Conference",
+  "organizer": "Association of State Floodplain Managers",
+  "url": "https://www.floods.org/conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-23",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Community, state and federal floodplain managers, planners and mitigation staff; about 1,200 attendees.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens early February 2027; earlybird cut-off April 1, 2027; prices not posted yet.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.floods.org/conference/",
+  "speakingDeadline": "2026-11-02",
+  "speakingNote": "Call for abstracts closes Nov 2, 2026; notifications late January 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning",
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "city planner",
+   "public works director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "narc-annual-conference",
+  "name": "NARC Annual Conference",
+  "organizer": "National Association of Regional Councils",
+  "url": "https://narc.org/events-calendar-2/2027-annual-conference-exhibition/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Tulsa",
+  "state": "OK",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Regional council directors, planners and policy staff; 2026 was the 60th, June 7-9 in Tulsa.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 page is a placeholder repeating 2026. A third-party listing shows a Feb 7-10, 2027 Washington event, unconfirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Economic development and planning",
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "city planner",
+   "transit planner",
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "north-american-snow-conference",
+  "name": "North American Snow Conference",
+  "organizer": "American Public Works Association",
+  "url": "https://www.apwa.org/events/north-american-snow-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-18",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Des Moines",
+  "state": "IA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Public works street and fleet supervisors, managers and directors who run winter operations, plus vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not on the page; contact APWA. 2028 edition Spokane, April 23-26.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.apwa.org/events/north-american-snow-conference/2027-snow-conference-call-for-presentations/",
+  "speakingDeadline": "2026-10-02",
+  "speakingNote": "Call for presentations deadline was Oct 2, 2026 (closed); 20-, 50- and 75-minute sessions.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "public works director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "amwa-executive-management-conference",
+  "name": "AMWA Executive Management Conference",
+  "organizer": "Association of Metropolitan Water Agencies",
+  "url": "https://www.amwa.net",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "General managers and executives of the large public water utilities.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "amwa.net returned 403 to fetch; read through search. Fee and eligibility not seen; member-driven.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "public works director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "swana-rcon",
+  "name": "SWANA RCon",
+  "organizer": "Solid Waste Association of North America",
+  "url": "https://swana.org/events/rcon2026",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-24",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Public and private solid waste, recycling and resource managers; 1,500+ attended in 2026 (replaced WASTECON).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not listed. The 2026 edition was Sept 29-Oct 2 in St. Louis.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No 2027 call for proposals on the page.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "public works director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nace-annual-conference",
+  "name": "NACE Annual Conference",
+  "organizer": "National Association of County Engineers",
+  "url": "https://countyengineers.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-05",
+  "endDate": "2027-04-08",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Cleveland",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "County engineers and public works directors who run county road and bridge programs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "No fee shown; members register at a discount. Registration reportedly opens Nov 9, 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Member discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "public works director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "apta-transit-ceos-seminar",
+  "name": "APTA Transit CEOs Seminar",
+  "organizer": "American Public Transportation Association",
+  "url": "https://www.apta.com/event/transit-ceos-seminar/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-19",
+  "endDate": "2027-03-21",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Limited to transit agency CEOs, deputies and chiefs of staff.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "apta.com returned 403 to fetch; read through search. Fee not seen.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "transit planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "act-international-conference",
+  "name": "ACT International Conference",
+  "organizer": "Association for Commuter Transportation",
+  "url": "https://www.actweb.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-01",
+  "endDate": "2027-08-04",
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Transportation demand management and commuter program staff from transit agencies, cities and employers; about 500 attended in 2026.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "actweb.org lists an International Conference page but no dates; 2027 dates come from a design-contest page, unconfirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "transit planner"
+  ],
+  "journeys": []
+ }
+]

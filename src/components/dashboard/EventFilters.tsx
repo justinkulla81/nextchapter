@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
@@ -29,11 +30,23 @@ export function EventFilters({ functions, industries }: { functions: string[]; i
     posthog.capture('conference_events_filtered', { filter: key, value: next.get(key) })
     router.push(`${path}${next.toString() ? `?${next}` : ''}`, { scroll: false })
   }
+  const [q, setQ] = useState(sp.get('q') ?? '')
   const btn = (active: boolean) =>
     cn('inline-flex h-10 items-center rounded-full border px-4 text-sm font-medium', active ? 'border-ink bg-ink text-white' : 'border-border text-ink hover:bg-muted')
   const sel = 'h-10 rounded-full border border-border bg-background px-4 text-sm text-ink'
   return (
     <div className="space-y-3">
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault()
+          set('q', q.trim() || null)
+        }}
+      >
+        <label className="sr-only" htmlFor="ev-q">Search events</label>
+        <input id="ev-q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by job, topic or event, such as school principal or claims" className="h-10 min-w-0 flex-1 rounded-full border border-border bg-background px-4 text-sm text-ink" />
+        <button type="submit" className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted">Search</button>
+      </form>
       <div className="flex flex-wrap gap-2">
         <label className="sr-only" htmlFor="ev-fn">Function</label>
         <select id="ev-fn" className={sel} value={sp.get('function') ?? ''} onChange={(e) => set('function', e.target.value || null)}>

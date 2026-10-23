@@ -1,0 +1,1393 @@
+[
+ {
+  "id": "urtec",
+  "name": "URTeC (Unconventional Resources Technology Conference)",
+  "organizer": "SPE / AAPG / SEG",
+  "url": "https://www.urtec.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Subsurface and completions engineers, geoscientists and operators on unconventionals; 2027 is co-located with OTC.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted on the page opened.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.urtec.org",
+  "speakingDeadline": "2026-11-09",
+  "speakingNote": "Abstract deadline Nov 9, 2026, not extended; manuscripts due Mar 8, 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "petroleum engineer",
+   "landman"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "offshore-technology-conference",
+  "name": "Offshore Technology Conference (OTC)",
+  "organizer": "OTC (SPE, AAPG, IEEE and others)",
+  "url": "https://2027.otcnet.org",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest offshore energy show: operators, service companies and engineers; URTeC co-locates in 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open; contact meetingsotc@otcnet.org.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "petroleum engineer",
+   "midstream commercial lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "spe-atce",
+  "name": "SPE Annual Technical Conference and Exhibition (ATCE)",
+  "organizer": "Society of Petroleum Engineers",
+  "url": "https://www.atce.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Petroleum engineers, operators and service firms; 2026 edition Oct 21-23 in Houston, 2027 listed for Denver by aggregators only.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted on the page opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "petroleum engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aapl-annual-meeting",
+  "name": "AAPL Annual Meeting (LANDMARK)",
+  "organizer": "American Association of Professional Landmen",
+  "url": "https://www.landman.org/events/annual-meeting/2027-landmark.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-23",
+  "endDate": "2027-06-25",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The landmen's national meeting: land, leasing and title professionals from E&P and midstream.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates on a separate page not opened.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.landman.org/events/annual-meeting/2027-landmark.html",
+  "speakingDeadline": null,
+  "speakingNote": "Seeking lecture, guided-interview or panel proposals; deadline not stated.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "landman"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nape-summit",
+  "name": "NAPE Summit Week",
+  "organizer": "NAPE Expo LP",
+  "url": "https://www.napeexpo.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-03",
+  "endDate": "2027-02-05",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The deal-making expo for prospects, acreage and capital; 10,000+ attendees.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not listed; lowest rates for early registration.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "landman",
+   "petroleum engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "gpa-midstream-convention",
+  "name": "GPA Midstream Convention",
+  "organizer": "GPA Midstream Association",
+  "url": "https://www.gpamidstream.org/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Arlington",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Midstream gas gathering, processing and NGL executives; 2027 listed at Loews Arlington, dates not posted.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Sept 20-23 in San Antonio.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "midstream commercial lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ceraweek",
+  "name": "CERAWeek by S&P Global",
+  "organizer": "S&P Global",
+  "url": "https://ceraweek.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-12",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Energy CEOs, ministers and investors; the top annual energy leadership gathering.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site returned 403; dates per aggregators, unconfirmed.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Oil and gas",
+   "Electric utilities and the grid",
+   "Renewables, solar and wind"
+  ],
+  "roles": [
+   "utility executive",
+   "midstream commercial lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "super-dug",
+  "name": "SUPER DUG Conference & Expo",
+  "organizer": "Hart Energy",
+  "url": "https://events.hartenergy.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Operators, midstream and capital providers; 2027 dates not yet announced.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Oil and gas"
+  ],
+  "roles": [
+   "petroleum engineer",
+   "midstream commercial lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "dtech",
+  "name": "DTECH (formerly DISTRIBUTECH)",
+  "organizer": "Clarion Events",
+  "url": "https://www.distributech.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The T&D event: utility engineers, planners and technology vendors; moves to Atlanta in 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Exhibition Pass or All-Access Pass; summit add-ons $299-$399. Base prices not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.distributech.com/education/speaker-hub",
+  "speakingDeadline": null,
+  "speakingNote": "Speaker Hub; registration for speakers by Dec 11.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Electric utilities and the grid"
+  ],
+  "roles": [
+   "distribution engineer",
+   "grid planner",
+   "utility executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "eei-annual-meeting",
+  "name": "EEI 2027 (annual meeting)",
+  "organizer": "Edison Electric Institute",
+  "url": "https://www.eei.org/Events/_Local/eei-annual-meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-16",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Investor-owned utility CEOs, regulators and policymakers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not listed on page.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Electric utilities and the grid"
+  ],
+  "roles": [
+   "utility executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "eei-financial-conference",
+  "name": "EEI Financial Conference",
+  "organizer": "Edison Electric Institute",
+  "url": "https://www.eei.org/Events/_Local/financial-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-08",
+  "endDate": "2026-11-10",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Utility CFOs and treasurers meeting investors and analysts (61st edition).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Electric utilities and the grid",
+   "Renewables, solar and wind"
+  ],
+  "roles": [
+   "utility executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nreca-powerxchange",
+  "name": "NRECA PowerXchange & TechAdvantage",
+  "organizer": "National Rural Electric Cooperative Association",
+  "url": "https://www.cooperative.com/conferences-education/meetings/powerxchange",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-12",
+  "endDate": "2027-02-17",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Electric co-op leaders, engineers and IT staff; includes TechAdvantage expo (dates per listings, 2027 page says San Diego).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "PowerPlus bundle available; fees on separate page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Electric utilities and the grid"
+  ],
+  "roles": [
+   "utility executive",
+   "distribution engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ieee-pes-general-meeting",
+  "name": "IEEE PES General Meeting",
+  "organizer": "IEEE Power & Energy Society",
+  "url": "https://pes-gm.org/2027-san-francisco/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-25",
+  "endDate": "2027-07-29",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Power systems engineers and researchers from utilities, vendors and universities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird rate mentioned; amounts not posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://pes-gm.org/2027-san-francisco/",
+  "speakingDeadline": "2026-11-10",
+  "speakingNote": "Paper submissions open Oct 6, 2026; due Nov 10, 2026 per search.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Electric utilities and the grid"
+  ],
+  "roles": [
+   "grid planner",
+   "distribution engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naruc-annual-meeting",
+  "name": "NARUC Annual Meeting and Education Conference",
+  "organizer": "NARUC",
+  "url": "https://www.naruc.org/annual-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-08",
+  "endDate": "2026-11-11",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State utility commissioners, staff and regulated utilities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Electric utilities and the grid"
+  ],
+  "roles": [
+   "utility executive",
+   "grid planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "powergen-international",
+  "name": "POWERGEN International",
+  "organizer": "Clarion Events",
+  "url": "https://www.powergen.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-18",
+  "endDate": "2027-01-21",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Power generation operators, engineers and developers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted on the page opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://www.powergen.com",
+  "speakingDeadline": null,
+  "speakingNote": "Speaker Hub link on the site.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Electric utilities and the grid"
+  ],
+  "roles": [
+   "grid planner",
+   "utility executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "appa-national-conference",
+  "name": "APPA National Conference",
+  "organizer": "American Public Power Association",
+  "url": "https://www.publicpower.org/event/national-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-18",
+  "endDate": "2027-06-23",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Municipal and public utility leaders; members get registration discounts.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees on registration page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "APPA members receive discounted registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Electric utilities and the grid"
+  ],
+  "roles": [
+   "utility executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "re-plus",
+  "name": "RE+ (national)",
+  "organizer": "SEIA / ACP / SEPA / ACORE",
+  "url": "https://re-plus.events",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-19",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The big clean-energy show: developers, utilities, financiers and vendors in one hall.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted on the page opened.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://re-plus.events/speaking-opportunities/",
+  "speakingDeadline": null,
+  "speakingNote": "Apply To Speak page.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Renewables, solar and wind",
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "solar developer",
+   "wind project manager",
+   "battery storage developer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "re-plus-northeast",
+  "name": "RE+ Northeast",
+  "organizer": "SEIA / ACP / SEPA / ACORE",
+  "url": "https://re-plus.events",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-02",
+  "endDate": "2027-02-04",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Regional renewables show for Northeast developers and utilities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted on the page opened.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://re-plus.events/speaking-opportunities/",
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Renewables, solar and wind"
+  ],
+  "roles": [
+   "solar developer",
+   "wind project manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "re-plus-texas",
+  "name": "RE+ Texas & RE+ Microgrids",
+  "organizer": "SEIA / ACP / SEPA / ACORE",
+  "url": "https://re-plus.events",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-24",
+  "endDate": "2027-03-25",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Texas solar, storage and microgrid developers and offtakers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted on the page opened.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://re-plus.events/speaking-opportunities/",
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Renewables, solar and wind",
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "solar developer",
+   "battery storage developer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "re-plus-southeast",
+  "name": "RE+ Southeast",
+  "organizer": "SEIA / ACP / SEPA / ACORE",
+  "url": "https://re-plus.events",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-11",
+  "endDate": "2027-05-12",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Southeast solar and storage developers, EPCs and utilities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted on the page opened.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://re-plus.events/speaking-opportunities/",
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Renewables, solar and wind"
+  ],
+  "roles": [
+   "solar developer",
+   "renewable energy finance"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cleanpower",
+  "name": "CLEANPOWER Conference & Exhibition",
+  "organizer": "American Clean Power Association",
+  "url": "https://cleanpower.org/expo",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Wind, solar and storage developers, utilities and financiers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open; Rates & Special Discounts page exists.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Renewables, solar and wind",
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "wind project manager",
+   "solar developer",
+   "battery storage developer",
+   "renewable energy finance"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "acore-finance-forum",
+  "name": "ACORE Finance Forum",
+  "organizer": "ACORE",
+  "url": "https://acore.org/events/finance-forum/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-09",
+  "endDate": "2027-06-10",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Tax equity, debt and infrastructure investors with renewable developers; 40+ speakers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page header shows 2027 dates but body references 2026; no prices.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Renewables, solar and wind"
+  ],
+  "roles": [
+   "renewable energy finance"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "oceantic-ipf",
+  "name": "International Partnering Forum (IPF)",
+  "organizer": "Oceantic Network",
+  "url": "https://oceantic.org/oceantic-event/2027-ipf/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-11",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Newport",
+  "state": "RI",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Offshore wind developers, supply chain and ports; about 900 attended 2026.",
+  "access": "PAID",
+  "costLow": 995,
+  "costHigh": 1595,
+  "costNote": "Member $995 (renewal special to Feb 1), early bird $1,195 member / $1,395 non-member to Mar 17; standard $1,395 / $1,595.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Membership renewal special $995.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Renewables, solar and wind"
+  ],
+  "roles": [
+   "wind project manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "intersolar-esna",
+  "name": "Intersolar & Energy Storage North America",
+  "organizer": "Messe Munchen / Solar Promotion",
+  "url": "https://www.iesna.com/pricing",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-09",
+  "endDate": "2027-02-11",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Solar and storage developers, utilities and vendors; early-bird pricing live.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird pricing live; amounts not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government and nonprofit employees get discounted registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Renewables, solar and wind",
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "solar developer",
+   "battery storage developer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hydrogen-americas-summit",
+  "name": "Hydrogen Americas Summit",
+  "organizer": "World Hydrogen Series",
+  "url": "https://www.world-hydrogen-summit.com/americas/en-gb.html",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-26",
+  "endDate": "2027-10-27",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Hydrogen producers, offtakers, engineers and investors in the Americas.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing via register-interest form.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "hydrogen project lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hydrogen-technology-expo-north-america",
+  "name": "Hydrogen Technology Expo North America",
+  "organizer": "Trans-World Events",
+  "url": "https://www.hydrogen-expo.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-10",
+  "endDate": "2027-02-11",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Hydrogen production, storage and fuel-cell technology buyers and engineers; free expo pass.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Expo entry free; conference pass prices not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free exhibition pass.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "hydrogen project lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ans-annual-conference",
+  "name": "ANS Annual Conference",
+  "organizer": "American Nuclear Society",
+  "url": "https://www.ans.org/meetings/c_1",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-13",
+  "endDate": "2027-06-16",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Lake Buena Vista",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Nuclear engineers, researchers and utility staff.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing on individual meeting page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "nuclear engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ans-winter-conference",
+  "name": "ANS Winter Conference & Expo",
+  "organizer": "American Nuclear Society",
+  "url": "https://www.ans.org/meetings/c_1",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-15",
+  "endDate": "2026-11-18",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Nuclear technology, fuel cycle and new-reactor professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing on registration page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "nuclear engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nuclear-energy-conference-and-expo",
+  "name": "Nuclear Energy Conference & Expo (NECX)",
+  "organizer": "American Nuclear Society",
+  "url": "https://www.ans.org/meetings/c_1",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-30",
+  "endDate": "2027-09-02",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Nuclear utility operators and suppliers (ANS and utility working conference combined).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing on individual page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "nuclear engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nei-nuclear-energy-assembly",
+  "name": "NEI Nuclear Energy Assembly",
+  "organizer": "Nuclear Energy Institute",
+  "url": "https://nei.org/conferences/evolution",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Philadelphia",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Nuclear industry executives, utilities and policymakers; 2027 date unconfirmed.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "NEI site returned 403; details from search snippet.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "roles": [
+   "nuclear engineer"
+  ],
+  "journeys": []
+ }
+]

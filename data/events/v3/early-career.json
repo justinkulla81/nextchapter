@@ -1,0 +1,1528 @@
+[
+ {
+  "id": "nbmbaa-annual-conference",
+  "name": "NBMBAA Annual Conference & Expo",
+  "organizer": "National Black MBA Association",
+  "url": "https://nbmbaa.org/conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "MBA students, early-career and experienced professionals and recruiters from hundreds of employers, with a large career expo and an Early Career track.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 city, dates and pricing not yet published; the 48th edition was in Los Angeles in September 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speakers link on the conference site; terms not confirmed.",
+  "cheaperWays": "Volunteer program earns post-conference rewards including complimentary 2027 premium conference registration; early-career conference track.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Management consulting",
+   "Corporate talent acquisition"
+  ],
+  "roles": [],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "ama-international-collegiate-conference",
+  "name": "AMA International Collegiate Conference",
+  "organizer": "American Marketing Association",
+  "url": "https://www.ama.org/events/collegiate/2027-ama-international-collegiate-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-08",
+  "endDate": "2027-04-10",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 2,
+  "whyAttend": "Marketing students from AMA collegiate chapters, faculty advisors and recruiters, with case competitions, career prep and chapter awards.",
+  "access": "PAID",
+  "costLow": 372,
+  "costHigh": 449,
+  "costNote": "Student ticket $372 early-bird through Mar 4, 2027, then $449; faculty advisor ticket same.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": "2027-01-13",
+  "speakingNote": "Only undergraduate research and faculty paper submissions (due Jan 13, 2027) and competitions; no general speaker call.",
+  "cheaperWays": "Groups of 3+ students save 15% ($316 each before the early-bird deadline); conference is chapter-based so students ride on a chapter budget.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative",
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "marketing analyst",
+   "brand coordinator"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "abrcms",
+  "name": "ABRCMS (Annual Biomedical Research Conference for Minoritized Scientists)",
+  "organizer": "American Society for Microbiology",
+  "url": "https://abrcms.org/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-18",
+  "endDate": "2026-11-21",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech",
+   "Healthcare & Hospital Systems",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 2,
+  "whyAttend": "Undergraduate, postbac and graduate students and postdocs in STEM presenting research, meeting graduate programs and employers, with faculty and program directors.",
+  "access": "PAID",
+  "costLow": 595,
+  "costHigh": 700,
+  "costNote": "Undergrad/postbac $595; graduate/postdoc $625; non-students $700; virtual $100 student / $125 non-student; one-day pass $200.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://abrcms.org/register/",
+  "speakingDeadline": null,
+  "speakingNote": "Student abstracts for posters, ePosters and oral talks, plus session proposals; deadlines not read.",
+  "cheaperWays": "Travel award application linked from the Attend menu; virtual student pass $100; one-day pass $200.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Drug discovery and R&D",
+   "Genomics and bioinformatics"
+  ],
+  "roles": [
+   "research assistant",
+   "graduate student"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "tapia-conference",
+  "name": "Tapia Conference (Celebration of Diversity in Computing)",
+  "organizer": "CMD-IT / ACM",
+  "url": "https://tapiaconference.cmd-it.org/home-new/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering",
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "Students, early-career technologists, researchers and industry recruiters in computing, with an emphasis on underrepresented groups.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not published; the 2026 edition ran Sept 16-18 in Atlanta. Registration prices are on a separate page not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software engineering leadership",
+   "AI and machine learning"
+  ],
+  "roles": [
+   "software engineer",
+   "data scientist"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nalp-newer-professionals-forum",
+  "name": "NALP Newer Professionals' Forum",
+  "organizer": "NALP (National Association for Law Placement)",
+  "url": "https://www.nalp.org/events",
+  "kind": "WORKSHOP",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-03",
+  "endDate": "2027-02-05",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Legal Services",
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "People with under four years in legal recruiting, career services, lawyer professional development or inclusion, with 22 programs and foundations courses.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration typically opens in October; prices not read; members get discounted pricing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "NALP members receive discounts and special pricing on the Forum.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Corporate talent acquisition",
+   "Paralegals and legal support"
+  ],
+  "roles": [
+   "legal recruiter",
+   "career services advisor"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "prospanica-conference-career-expo",
+  "name": "Prospanica Conference & Career Expo (formerly NSHMBA)",
+  "organizer": "Prospanica",
+  "url": "https://prospanica.org/conference2026/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "Hispanic MBA and graduate students, recent graduates and professionals meeting recruiters at a large career expo, with leadership sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced; the 2026 edition was Oct 6-9 in Orlando. 2024 student passes were $125 (undergrad expo-only) to $225 (graduate full).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free basic student membership; $50/yr premium student membership gives 30% off all in-person Prospanica events; Career Expo-only student passes cheaper than full pass.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Management consulting",
+   "Corporate talent acquisition"
+  ],
+  "roles": [],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "swe-annual-conference-we26",
+  "name": "SWE Annual Conference (WE26)",
+  "organizer": "Society of Women Engineers",
+  "url": "https://we26.swe.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-05",
+  "endDate": "2026-11-07",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial",
+   "Technology & Software",
+   "Aerospace & Defense",
+   "Automotive & Mobility"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 1,
+  "whyAttend": "The largest gathering of women engineers: collegiates and professionals, a two-day career fair, and employer recruiting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Categories: Professional, Collegiate, Exhibitor; prices on the Cvent registration page not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Collegiate registration category (members, nonmembers and full-time grad students) includes career fair access; Poster and Rapid Fire finalists get travel support and a free code; 1 free faculty registration per 4 students in bulk orders.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Advanced manufacturing and automation",
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "mechanical engineer",
+   "software engineer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "aba-yld-midyear",
+  "name": "ABA Young Lawyers Division Midyear Meeting",
+  "organizer": "American Bar Association Young Lawyers Division",
+  "url": "https://www.americanbar.org/groups/young_lawyers/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-27",
+  "endDate": "2027-02-01",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 2,
+  "whyAttend": "Young lawyers (under 36 or in their first five years) from across the country, with the YLD Assembly on Jan 30, 2027 and CLE.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration through the ABA Midyear Meeting; prices not yet posted (YLD says 2027 information is updated fall 2026).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Litigation and trial",
+   "Corporate, M&A and securities"
+  ],
+  "roles": [
+   "associate attorney"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "aba-yld-annual-conference",
+  "name": "ABA Young Lawyers Division Annual Conference",
+  "organizer": "American Bar Association Young Lawyers Division",
+  "url": "https://www.americanbar.org/groups/young_lawyers/events/annual/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "Young lawyers gathered with the ABA Annual Meeting for CLE, leadership and networking; the 2026 edition ran Jul 30-Aug 4 in Chicago.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and prices not yet published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "associate attorney"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "fpa-gather",
+  "name": "FPA GATHER (formerly NexGen Gathering)",
+  "organizer": "Financial Planning Association",
+  "url": "https://gather.financialplanningassociation.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 2,
+  "whyAttend": "Early-career financial planners finding their place in the profession, with CFP CE credit (2 hours minimum).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Aug 18-20 at the Fairmont Dallas, early-bird ended May 22; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Early-bird pricing; local FPA NexGen mini-gatherings by chapter.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Wealth and asset management"
+  ],
+  "roles": [
+   "financial planner",
+   "paraplanner"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "wicys-conference",
+  "name": "WiCyS Annual Conference",
+  "organizer": "Women in CyberSecurity (WiCyS)",
+  "url": "https://www.wicys.org/events/wicys-2027/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-03-17",
+  "endDate": "2027-03-19",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "Women in cybersecurity from students to practitioners with recruiters on site, and a virtual option on Apr 28-29, 2027.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Students cannot buy open registration; they attend by scholarship. General registration opens in December 2026.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.wicys.org/event/wicys-2027-conference-call-for-scholarships-speakers/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for speakers listed with the scholarship call; student poster deadline Nov 4, 2026.",
+  "cheaperWays": "Student scholarships (reduced registration, lodging, limited travel stipends; applications ran Sept 2-30, 2026); student poster presenters; virtual option.",
+  "applyUrl": "https://www.wicys.org/events/wicys-2026/scholarships/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "roles": [
+   "security analyst",
+   "soc analyst"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "aises-national-conference",
+  "name": "AISES National Conference",
+  "organizer": "American Indian Science and Engineering Society",
+  "url": "https://aises.org/national-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "Indigenous students and professionals in STEM with a career fair, research competitions and employers.",
+  "access": "PAID",
+  "costLow": 275,
+  "costHigh": 725,
+  "costNote": "2026 rates: college members $275 pre / $325 full; non-member students $500-$600; professionals $475-$725. 2027 not announced (2026 was Oct 15-17, Portland).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://2026.aises.org/agenda/session-proposals",
+  "speakingDeadline": null,
+  "speakingNote": "Call for sessions and research ran for the 2026 edition; 2027 not announced.",
+  "cheaperWays": "College-member student rate is roughly half the professional rate; student chapters and sponsors often fund attendance.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "engineer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nsna-annual-convention",
+  "name": "NSNA Annual Convention",
+  "organizer": "National Student Nurses' Association",
+  "url": "https://www.nsna.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-31",
+  "endDate": "2027-04-03",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 2,
+  "whyAttend": "Nursing students, new graduates, educators and healthcare employers; the 75th annual convention with a career fair for new nurses.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Nursing leadership"
+  ],
+  "roles": [
+   "registered nurse",
+   "nursing student"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "reaching-out-mba-conference",
+  "name": "Reaching Out MBA (ROMBA) Conference",
+  "organizer": "Reaching Out MBA",
+  "url": "https://reachingoutmba.org/romba-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "LGBTQ+ business students, alumni and recruiters (Bain, BCG, McKinsey, JPMorgan and others) with a career fair.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced; 2026 edition Oct 1-3 in Dallas, registration opened in spring. Fee not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Fellowship program for LGBTQ+ business students (see site's fellowship page); Corporate partners sponsor attendees.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Management consulting",
+   "Venture capital"
+  ],
+  "roles": [],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "beya-stem-conference",
+  "name": "BEYA STEM Conference",
+  "organizer": "Career Communications Group",
+  "url": "https://www.blackengineer.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Baltimore",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Aerospace & Defense",
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "Black STEM students and professionals with a large career fair and awards; 2026 edition was Feb 13-15 in Baltimore.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 listings (Feb 18-20, Baltimore) seen only on third-party sites; not confirmed on the organizer's site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Many university career centers offer free or sponsored student registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Advanced manufacturing and automation",
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "engineer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "aiche-annual-student-conference",
+  "name": "AIChE Annual Student Conference",
+  "organizer": "American Institute of Chemical Engineers",
+  "url": "https://www.aiche.org/conferences/annual-aiche-student-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-06",
+  "endDate": "2026-11-09",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial",
+   "Energy & Utilities",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 2,
+  "whyAttend": "Undergraduate chemical engineers meeting employers and professionals, running alongside the AIChE Annual Meeting.",
+  "access": "PAID",
+  "costLow": 195,
+  "costHigh": 310,
+  "costNote": "Student standard $195 member / $235 non-member; last-minute $220/$260 to Oct 29; onsite from $270/$310. Online closes Nov 4.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Undergrad registration includes free access to Annual Meeting sessions; group registration discount (request deadline Oct 16 passed); member discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Chemicals, plastics and materials"
+  ],
+  "roles": [
+   "chemical engineer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "sacnas-ndistem",
+  "name": "SACNAS National Diversity in STEM Conference",
+  "organizer": "SACNAS",
+  "url": "https://www.sacnas.org/conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-29",
+  "endDate": "2026-10-31",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Long Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 2,
+  "whyAttend": "Hispanic/Chicano and Native American undergraduates, grad students and postdocs presenting research, with graduate recruiters and professional development.",
+  "access": "PAID",
+  "costLow": 350,
+  "costHigh": 650,
+  "costNote": "Student rates: early-bird $350 member/$450 non-member; regular $450/$550; late $550/$650. SACNAS says the 2027 conference is in Kansas City.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "SACNAS membership takes $100 off registration; student rate covers undergrad, postbac and graduate students.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Drug discovery and R&D",
+   "Genomics and bioinformatics"
+  ],
+  "roles": [
+   "research scientist",
+   "graduate student"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "aaja-convention",
+  "name": "AAJA National Convention",
+  "organizer": "Asian American Journalists Association",
+  "url": "https://www.aaja.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-14",
+  "endDate": "2027-07-18",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "Journalists, media leaders and students with a career fair; 1,200+ attended in 2026.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 prices not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Separate VOICES fellowship program for undergraduate and graduate students; student registration category on site (rate not read).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Journalism and news"
+  ],
+  "roles": [
+   "reporter",
+   "producer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "beta-alpha-psi-annual-meeting",
+  "name": "Beta Alpha Psi Annual Meeting",
+  "organizer": "Beta Alpha Psi",
+  "url": "https://www.bap.org/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Baltimore",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit",
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "Accounting, finance and IS students and faculty from 137+ chapters with professional sessions and competitions; 2026 ran Jul 30-Aug 1 in Baltimore.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and prices not announced.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.bap.org/2026-annual-meeting-faculty-exchange",
+  "speakingDeadline": null,
+  "speakingNote": "Faculty Teaching & Research Exchange call for the 2026 meeting (one-page abstracts); 2027 call not seen.",
+  "cheaperWays": "Chapter-funded student attendance; Competition entry for chapters.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public accounting"
+  ],
+  "roles": [
+   "staff accountant",
+   "audit associate"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "ima-student-leadership-conference",
+  "name": "IMA Student Leadership Conference",
+  "organizer": "Institute of Management Accountants",
+  "url": "https://www.imaslc.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Cleveland",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "Accounting and finance students meeting IMA professionals and recruiters; the 2025 edition was Nov 13-15 in Cleveland.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Recent editions free for IMA student and educator members (2022 notice); 2027 pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free for IMA student and educator members in past editions; IMA Memorial Education Fund grants have helped fund student travel.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party and organizer news pages",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "financial analyst",
+   "staff accountant"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "ostem-annual-conference",
+  "name": "oSTEM Annual Conference",
+  "organizer": "oSTEM",
+  "url": "https://conference.ostem.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-22",
+  "endDate": "2026-10-24",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Albuquerque",
+  "state": "NM",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "LGBTQ+ students and early-career professionals in STEM with recruiters and chapter programming.",
+  "access": "PAID",
+  "costLow": 275,
+  "costHigh": 300,
+  "costNote": "On-site collegiate $275 plus fees, advisor $300 (online sales closed Sept 30). Edition ends Oct 24; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Chapter finance guide for funding student travel.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "software engineer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "hnba-annual-convention",
+  "name": "HNBA Annual Convention",
+  "organizer": "Hispanic National Bar Association",
+  "url": "https://hnba.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-22",
+  "endDate": "2027-09-24",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "San Juan",
+  "state": "PR",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Hispanic attorneys, judges, professors and law students, with a leadership pipeline of young lawyers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not yet published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Litigation and trial",
+   "In-house counsel"
+  ],
+  "roles": [
+   "attorney",
+   "law student"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "npa-annual-conference",
+  "name": "NPA Annual Conference",
+  "organizer": "National Postdoctoral Association",
+  "url": "https://www.nationalpostdoc.org/page/Events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-09",
+  "endDate": "2027-04-10",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Education & EdTech",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "Postdocs and postdoc office staff: career development, advocacy and mentoring tracks, ahead of an academic or industry move.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration prices not yet posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nationalpostdoc.org/news/732044/Combined-Call-for-2027-NPA-Annual-Conference-Abstracts.htm",
+  "speakingDeadline": "2026-10-09",
+  "speakingNote": "Abstracts for 60-minute sessions and posters closed Oct 9, 2026.",
+  "cheaperWays": "Scholarships up to $1,000 for registration, lodging and travel (applications closed Oct 16, 2026).",
+  "applyUrl": "https://www.nationalpostdoc.org/news/732045/Call-for-Applications-for-2027-NPA-Annual-Conference-Scholarships.htm",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Drug discovery and R&D",
+   "Faculty and academic disciplines"
+  ],
+  "roles": [
+   "postdoctoral fellow"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "forte-mba-womens-leadership-conference",
+  "name": "Fort\u00e9 MBA Women's Leadership Conference",
+  "organizer": "Fort\u00e9 Foundation",
+  "url": "https://www.fortefoundation.org/mba/events/women-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "Admitted women MBA students at Fort\u00e9 member schools meeting recruiters and peers before they enroll.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Aimed at admitted students enrolling at member and affiliate schools; 2026 edition Jun 26-27 in Atlanta; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.fortefoundation.org/mba/events/women-conference",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Management consulting"
+  ],
+  "roles": [],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "snma-amec",
+  "name": "SNMA Annual Medical Education Conference (AMEC)",
+  "organizer": "Student National Medical Association",
+  "url": "https://snma.org/page/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "St. Louis",
+  "state": "MO",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "About 2,200 underrepresented medical and premedical students with workshops, residency recruiters and mentoring.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and price not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "organizer site snippet",
+  "segments": [
+   "Hospital and health system leadership"
+  ],
+  "roles": [
+   "medical student"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "iea-aspiring-educators-early-career-conference",
+  "name": "IEA Aspiring Educators Conference & Early Career Retreat",
+  "organizer": "Illinois Education Association (NEA)",
+  "url": "https://ieanea.org/about/leadership/committees/early-career-committee/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-26",
+  "endDate": "2027-02-27",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "St. Charles",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "Student teachers and early-career Illinois educators with PD breakouts and peer networking.",
+  "access": "PAID",
+  "costLow": 25,
+  "costHigh": 25,
+  "costNote": "$25 registration, opening Nov 1, 2026.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://ieanea.org/about/leadership/committees/early-career-committee/",
+  "speakingDeadline": "2026-12-01",
+  "speakingNote": "60-minute breakout sessions on Saturday Feb 27, 2027; RFP form on the page.",
+  "cheaperWays": "Only $25; the IEA lists an event-funding scholarship form.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "K-12 teachers"
+  ],
+  "roles": [
+   "teacher",
+   "student teacher"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "napaba-convention",
+  "name": "NAPABA Convention",
+  "organizer": "National Asian Pacific American Bar Association",
+  "url": "https://www.napaba.org/page/convention",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-12",
+  "endDate": "2026-11-15",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Asian Pacific American attorneys, judges, law firm leaders and law students, with a career fair and affinity programs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration open to members; members save up to $675; law student membership is a non-voting category.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Law student membership with the member discount; NAPABA convention scholarships for members, including a Law Student Scholarship (deadline passed).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "attorney",
+   "law student"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "equal-justice-works-career-fair",
+  "name": "Equal Justice Works Conference & Career Fair",
+  "organizer": "Equal Justice Works",
+  "url": "https://www.equaljusticeworks.org/conference-and-career-fair/about/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Virtual",
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Legal Services",
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 2,
+  "whyAttend": "Law students and recent graduates interviewing with 250+ public interest employers for jobs, fellowships and internships.",
+  "access": "APPLY",
+  "costLow": 25,
+  "costHigh": 25,
+  "costNote": "2026 registration $25, held Oct 8-9 virtually; some schools cover the fee. Member law schools only.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Many law schools pay the $25 fee.",
+  "applyUrl": "https://www.equaljusticeworks.org/conference-and-career-fair/about/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "law student",
+   "staff attorney"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "consortium-orientation-program-career-forum",
+  "name": "Consortium Orientation Program & Career Forum",
+  "organizer": "Consortium for Graduate Study in Management",
+  "url": "https://cgsm.org/orientation-program",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "EARLY"
+  ],
+  "importance": 3,
+  "whyAttend": "About 1,200 incoming MBA fellows, member schools and corporate partners in a five-day recruiting event.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Open to Consortium fellows; typically held in spring before the MBA begins.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "organizer pages via search",
+  "segments": [
+   "Management consulting"
+  ],
+  "roles": [],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "naaap-national-leadership-convention",
+  "name": "NAAAP National Leadership Convention",
+  "organizer": "National Association of Asian American Professionals",
+  "url": "https://www.naaap.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Asian American professionals with a leadership convention, an ERG summit and a recruitment expo, rotating cities yearly.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 and 2027 dates and city not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "NAAAP national STEP mentoring program open to early career.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "organizer chapter pages",
+  "segments": [
+   "Corporate talent acquisition"
+  ],
+  "roles": [],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "STUDENT_NEW_GRAD"
+  ]
+ }
+]

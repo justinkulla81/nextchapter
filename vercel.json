@@ -269,6 +269,14 @@
       "schedule": "*/15 * * * *"
     },
     {
+      "path": "/api/cron/events-refresh",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/conference-heads-up",
+      "schedule": "30 14 * * *"
+    },
+    {
       "path": "/api/cron/monthly-user-report",
       "schedule": "0 23 28-31 * *"
     }

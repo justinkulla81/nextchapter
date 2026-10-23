@@ -1,0 +1,837 @@
+[
+ {
+  "id": "cxpa-cx-leaders-advance",
+  "name": "CX Leaders Advance",
+  "organizer": "Customer Experience Professionals Association",
+  "url": "https://www.cxpa.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition April 27-29 Toronto; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "CXPA members' annual conference: CX practitioners and CCXP certification community.",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "industries": []
+ },
+ {
+  "id": "naaap-national-leadership-convention",
+  "name": "NAAAP National Leadership Convention",
+  "organizer": "National Association of Asian American Professionals",
+  "url": "https://www.naaap.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 and 2027 dates and city not found.",
+  "speaking": "UNKNOWN",
+  "source": "organizer chapter pages",
+  "whyAttend": "Asian American professionals with a leadership convention, an ERG summit and a recruitment expo, rotating cities yearly.",
+  "segments": [
+   "Corporate talent acquisition"
+  ],
+  "industries": []
+ },
+ {
+  "id": "startupfest",
+  "name": "Startupfest",
+  "organizer": "Startupfest",
+  "url": "https://startupfest.com/",
+  "startDate": "2027-07-07",
+  "endDate": "2027-07-09",
+  "typicalMonth": "July",
+  "city": "Montreal",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party listings put the startup ticket near CAD $470 early-bird; confirm on site.",
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "Early-stage founders, seed investors and operators at a summer startup festival.",
+  "segments": [
+   "Starting a business",
+   "Startup founders and operators"
+  ],
+  "industries": []
+ },
+ {
+  "id": "blackline-beyondtheblack",
+  "name": "BlackLine BeyondTheBlack",
+  "organizer": "BlackLine",
+  "url": "https://www.blackline.com/modern-finance-tour",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-18",
+  "typicalMonth": "November",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates read from a search snippet of blackline.com (Nov 18 or Nov 16-18); pricing not seen.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Controllers and accounting leaders using financial close, reconciliation and intercompany automation.",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "industries": [
+   "Accounting & Audit"
+  ]
+ },
+ {
+  "id": "advertising-week-new-york",
+  "name": "Advertising Week New York",
+  "organizer": "Advertising Week",
+  "url": "https://advertisingweek.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Oct 5-8) has ended; 2027 dates not announced. 2026 passes ran from Digital $125 to Platinum $2,499; NewGen $400 for ages 30 and under; student and academic discounts mentioned in the FAQ.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Brands, agencies, media and creators in the ad industry.",
+  "segments": [],
+  "industries": [
+   "Advertising, Marketing & PR",
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "ncsl-capital-forum",
+  "name": "NCSL Capital Forum",
+  "organizer": "National Conference of State Legislatures",
+  "url": "https://www.ncsl.org/events/details/ncsl-capital-forum",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Federal-state policy forum in Washington for NCSL Foundation sponsors and legislators.",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "apmp-bid-and-proposal-con",
+  "name": "APMP Bid & Proposal Con",
+  "organizer": "APMP",
+  "url": "https://www.apmp.org/events",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Denver",
+  "state": "CO",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Proposal and capture professionals; 2026 edition was May 13-16 in Denver. Lead: 2027 dates not found.",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "industries": [
+   "Aerospace & Defense"
+  ]
+ },
+ {
+  "id": "mariculture-conference-of-alaska",
+  "name": "Mariculture Conference of Alaska",
+  "organizer": "Alaska Sea Grant",
+  "url": "https://alaskaseagrant.org/events/2026-mariculture-conference-of-alaska/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": "Anchorage",
+  "state": "AK",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was March 10-12 at Hotel Captain Cook; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "Alaska seaweed and shellfish farmers, regulators and researchers.",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "green-fleet-conference-expo",
+  "name": "Green Fleet Conference & Expo",
+  "organizer": "Bobit Business Media",
+  "url": "https://www.greenfleetconference.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Fleet managers working on electrification and sustainability programs.",
+  "segments": [
+   "Fleet management"
+  ],
+  "industries": [
+   "Automotive & Mobility"
+  ]
+ },
+ {
+  "id": "nahrep-avance",
+  "name": "NAHREP at AVANCE Global Conference",
+  "organizer": "National Association of Hispanic Real Estate Professionals",
+  "url": "https://nahrep.org/events/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "Fall",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / lead",
+  "whyAttend": "The largest gathering of Hispanic real estate professionals.",
+  "segments": [
+   "Residential real estate and brokerage"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "realcomm-ibcon",
+  "name": "Realcomm | IBcon",
+  "organizer": "Realcomm",
+  "url": "https://realcomm.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (June 3-4, San Diego, past): full conference $1,495 early (to Feb 27), $1,595 (to Apr 17), $1,695 general (to May 31); group rates for 3+. 2027 dates and prices not posted.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Commercial real estate owners and operators focused on smart building technology.",
+  "segments": [],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "lten-annual-conference",
+  "name": "LTEN Annual Conference",
+  "organizer": "Life Sciences Trainers & Educators Network",
+  "url": "https://www.l-ten.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Home page says registration is open for LTEN 2026; dates and 2027 edition not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official site (unverified lead)",
+  "whyAttend": "The largest community of life sciences L&D and sales-training professionals.",
+  "segments": [
+   "Corporate learning and development"
+  ],
+  "industries": [
+   "Education & EdTech",
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "greenbiz-27",
+  "name": "GreenBiz 27",
+  "organizer": "Trellis (GreenBiz)",
+  "url": "https://www.trellis.net/events/greenbiz",
+  "startDate": "2027-02-23",
+  "endDate": "2027-02-25",
+  "typicalMonth": "February",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from AASHE and ESG Dive listings; organizer page not read.",
+  "speaking": "OPEN_CFP",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Nearly 2,000 corporate sustainability leaders plus CFOs, COOs and supply chain heads; the field's flagship business gathering.",
+  "segments": [
+   "Sustainability, ESG and climate"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "acu-ceo-council-conference",
+  "name": "CEO Council Conference (America's Credit Unions)",
+  "organizer": "America's Credit Unions",
+  "url": "https://www.americascreditunions.org/events-training/councils-conference/ceo-council-conference-2027",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition page exists; dates and price not read.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "A closed room of credit union CEOs sharing strategy and peer introductions.",
+  "segments": [
+   "Credit unions"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "north-american-finance-executive-summit",
+  "name": "North American Finance Executive Summit",
+  "organizer": "Executive Platforms",
+  "url": "https://www.executiveplatforms.com/event/north-american-finance-executive-summit-nafes/",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-10",
+  "typicalMonth": "March",
+  "city": "Aventura",
+  "state": "FL",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Turnberry venue from trade press only.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "Director-level and above finance leaders; 300+ in prior years.",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "metrolab-network-annual-summit",
+  "name": "MetroLab Network Annual Summit",
+  "organizer": "MetroLab Network",
+  "url": "https://metrolabnetwork.org/events/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site would not open (certificate error); based on search listings. 2026/2027 details not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "150+ city officials, university researchers and civic data people; earlier editions held in Washington in October.",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "us-conference-of-mayors-annual-meeting",
+  "name": "U.S. Conference of Mayors Annual Meeting",
+  "organizer": "The U.S. Conference of Mayors",
+  "url": "https://www.usmayors.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Atlanta",
+  "state": "GA",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Open to member mayors and invited guests. 2027 annual meeting moved from Providence to Atlanta per press; June 2027 date not confirmed on the site.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Mayors of cities over 30,000, with city managers and staff in tow; also holds a Winter Meeting in Washington.",
+  "segments": [
+   "City and county government"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "chime-fall-forum",
+  "name": "CHIME Fall Forum",
+  "organizer": "CHIME",
+  "url": "https://chimecentral.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site returned 403. Not verified.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Healthcare CIOs and senior IT leaders.",
+  "segments": [],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "shea-spring-conference",
+  "name": "SHEA Spring Conference",
+  "organizer": "Society for Healthcare Epidemiology of America",
+  "url": "https://shea-online.org/",
+  "startDate": "2027-03-30",
+  "endDate": "2027-04-02",
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Hospital epidemiologists and infection prevention physicians; dates from a third-party listing only.",
+  "segments": [
+   "Quality, safety and compliance",
+   "Public health"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "applied-net",
+  "name": "Applied Net",
+  "organizer": "Applied Systems",
+  "url": "https://www.appliedsystems.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Independent agents, brokers, carriers and MGAs on agency technology.",
+  "segments": [
+   "Insurtech",
+   "Property and casualty"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "plrb-claims-conference",
+  "name": "PLRB Claims Conference",
+  "organizer": "Property & Liability Resource Bureau",
+  "url": "https://www.plrb.org",
+  "startDate": "2027-04-11",
+  "endDate": "2027-04-14",
+  "typicalMonth": "April",
+  "city": "San Antonio",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Property claims professionals: adjusters, managers, contractors, engineers and carrier leaders.",
+  "segments": [
+   "Property and casualty"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "nalp-annual-education-conference",
+  "name": "NALP Annual Education Conference",
+  "organizer": "NALP",
+  "url": "https://www.nalp.org/annual_education_conference",
+  "startDate": "2027-04-13",
+  "endDate": "2027-04-16",
+  "typicalMonth": "April",
+  "city": "Seattle",
+  "state": "WA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official page blocked (403) for automated access; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Law firm and law school recruiting and professional development leaders.",
+  "segments": [],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "loupe-americas",
+  "name": "LOUPE Americas (formerly Labelexpo Americas)",
+  "organizer": "Tarsus",
+  "url": "https://www.labelexpo-americas.com/",
+  "startDate": "2028-09-12",
+  "endDate": "2028-09-14",
+  "typicalMonth": "September",
+  "city": "Rosemont",
+  "state": "IL",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2028 date seen in one snippet only.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (dates conflict or unconfirmed)",
+  "whyAttend": "Label and package printing show; the 2026 edition just ran, next listed 2028.",
+  "segments": [
+   "Packaging and printing"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "gamesbeat-summit",
+  "name": "GamesBeat Summit",
+  "organizer": "GamesBeat",
+  "url": "https://gamesbeat.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Los Angeles",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Past editions around $997; 2027 pricing not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "search listing (lead)",
+  "whyAttend": "Games business leaders, creators and investors; the 2027 edition is billed as spring 2027 in Los Angeles.",
+  "segments": [
+   "Video games and esports"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "ssp-annual-meeting",
+  "name": "SSP Annual Meeting",
+  "organizer": "Society for Scholarly Publishing",
+  "url": "https://customer.sspnet.org/ssp/AM26/Register-Online.aspx",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 meeting was May 27-29 (Chula Vista); 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Scholarly publishers.",
+  "segments": [
+   "Publishing and book industry"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "global-philanthropy-forum",
+  "name": "Global Philanthropy Forum",
+  "organizer": "World Affairs Council / GPF",
+  "url": "https://philanthropyforum.org/Programs",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": "San Francisco",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was March 18-20; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Global philanthropists and social investors.",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "ismpp-annual-meeting",
+  "name": "ISMPP Annual Meeting",
+  "organizer": "International Society for Medical Publication Professionals",
+  "url": "https://www.ismpp.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found; 2026 meeting ran Apr 20-22 in Washington.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Medical publication planners and medical affairs leaders.",
+  "segments": [
+   "Commercial, market access and medical affairs"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "gartner-product-leadership-conference",
+  "name": "Gartner Product Leadership Conference",
+  "organizer": "Gartner",
+  "url": "https://www.gartner.com/en/conferences/na/product-leadership-us",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "Grapevine",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Gartner's 2027 conference for product leaders and product consulting.",
+  "segments": [
+   "Business analysis and product consulting",
+   "Product management"
+  ],
+  "industries": [
+   "Professional Services & Consulting",
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "the-lead-summit",
+  "name": "The Lead Summit and DTC Symposium",
+  "organizer": "Future Commerce",
+  "url": "https://summit.the-lead.co/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition May 20-21 at Pier 36; 2027 not announced. Official summit site returned 403.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "3,000+ senior retail and DTC executives; DTC Symposium day for founders and VPs ecommerce.",
+  "segments": [
+   "Direct-to-consumer brands"
+  ],
+  "industries": [
+   "Retail & E-commerce"
+  ]
+ },
+ {
+  "id": "native-american-human-resources-conference",
+  "name": "Native American Human Resources Conference",
+  "organizer": "Native Nation Events",
+  "url": "https://nativenationevents.org/events-conferences/17th-annual-native-american-human-resources-conference/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "January",
+  "city": "Chandler",
+  "state": "AZ",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Jan 28-29, 2027 per HR Dive.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "HR for tribal employers.",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "conveyux",
+  "name": "ConveyUX",
+  "organizer": "Blink UX",
+  "url": "https://conveyux.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": "Seattle",
+  "state": "WA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition Feb 25-27 at Hilton Motif; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "Seattle UX conference by and for user experience professionals, with a livestream.",
+  "segments": [
+   "Design and user experience"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "mtpcon-london",
+  "name": "#mtpcon London",
+  "organizer": "Mind the Product",
+  "url": "https://www.mindtheproduct.com/conferences/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "London",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says 2027 date to be announced soon.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "Mind the Product's flagship; one of the largest product-management conferences, with many US attendees.",
+  "segments": [
+   "Product management"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "sim-national-conference",
+  "name": "SIM National Conference",
+  "organizer": "Society for Information Management",
+  "url": "https://www.simnet.org/home",
+  "startDate": "2026-11-09",
+  "endDate": "2026-11-11",
+  "typicalMonth": "November",
+  "city": "Huntington Beach",
+  "state": "CA",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed as a national event Nov 9-11, 2026; membership based, pricing not seen.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "Peer network of CIOs and senior IT executives.",
+  "segments": [
+   "IT leadership and operations"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "air-cargo-europe",
+  "name": "air cargo Europe",
+  "organizer": "Messe Muenchen",
+  "url": "https://aircargoeurope.com/",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-29",
+  "typicalMonth": "April",
+  "city": "Munich",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from third-party listings only.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain exists",
+  "whyAttend": "Europe's largest air cargo show; US forwarders and carriers routinely exhibit.",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ },
+ {
+  "id": "reuters-supply-chain-usa",
+  "name": "Reuters Events Supply Chain USA",
+  "organizer": "Reuters Events",
+  "url": "https://events.reutersevents.com/supply-chain/usa",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site is 403-blocked to automated reads; search snippets show June 2027 in Chicago (two pages disagree: June 15-16 vs June 23-24), registrations vetted, a free live broadcast, passes nearly sold out. Not verified.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Supply chain leaders from large enterprises in a vetted leadership summit.",
+  "segments": [
+   "Supply chain and procurement"
+  ],
+  "industries": [
+   "Transportation & Logistics",
+   "Manufacturing & Industrial",
+   "Retail & E-commerce"
+  ]
+ }
+]

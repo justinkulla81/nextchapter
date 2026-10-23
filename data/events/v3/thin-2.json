@@ -1,0 +1,1804 @@
+[
+ {
+  "id": "iab-connected-commerce-summit",
+  "name": "IAB Connected Commerce Summit",
+  "organizer": "Interactive Advertising Bureau",
+  "url": "https://www.iab.com/events/2027-iab-connected-commerce-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Retail media, commerce media and measurement leaders from brands, platforms and agencies who buy and build connected-commerce ad products.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition page exists on iab.com; dates and pricing not read this session. IAB events need a free iab.com account.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Advertising technology"
+  ],
+  "roles": [
+   "adtech product manager",
+   "programmatic specialist"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "poc-govcon-executive-leadership-summit",
+  "name": "POC GovCon Executive Leadership Summit",
+  "organizer": "Potomac Officers Club",
+  "url": "https://www.potomacofficersclub.com/events/2027-govcon-executive-leadership-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-25",
+  "endDate": "2027-02-25",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Government and industry leaders on the buying side and the contractor side meet in one room, which is where capture and business development relationships start.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Potomac Officers Club membership tiers set the price: Professional $795/yr (40% off), Elite $1,495/yr ($100 per event), Government $50/yr (fees waived). Ticket price not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speakers are chosen by the organizer; no public call found.",
+  "cheaperWays": "Government attendees register free through the $50 Government membership; Professional membership takes 40% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "roles": [
+   "capture manager",
+   "defense program manager",
+   "contracts manager",
+   "proposal manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "poc-army-summit",
+  "name": "POC Army Summit",
+  "organizer": "Potomac Officers Club",
+  "url": "https://www.potomacofficersclub.com/events/poc-2027-army-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Government and industry leaders on the buying side and the contractor side meet in one room, which is where capture and business development relationships start.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Potomac Officers Club membership tiers set the price: Professional $795/yr (40% off), Elite $1,495/yr ($100 per event), Government $50/yr (fees waived). Ticket price not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speakers are chosen by the organizer; no public call found.",
+  "cheaperWays": "Government attendees register free through the $50 Government membership; Professional membership takes 40% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "roles": [
+   "capture manager",
+   "defense program manager",
+   "contracts manager",
+   "proposal manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "poc-navy-summit",
+  "name": "POC Navy Summit",
+  "organizer": "Potomac Officers Club",
+  "url": "https://www.potomacofficersclub.com/events/poc-2027-navy-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Government and industry leaders on the buying side and the contractor side meet in one room, which is where capture and business development relationships start.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Potomac Officers Club membership tiers set the price: Professional $795/yr (40% off), Elite $1,495/yr ($100 per event), Government $50/yr (fees waived). Ticket price not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speakers are chosen by the organizer; no public call found.",
+  "cheaperWays": "Government attendees register free through the $50 Government membership; Professional membership takes 40% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "roles": [
+   "capture manager",
+   "defense program manager",
+   "contracts manager",
+   "proposal manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "poc-cyber-summit",
+  "name": "POC Cyber Summit",
+  "organizer": "Potomac Officers Club",
+  "url": "https://www.potomacofficersclub.com/events/2027-cyber-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Government and industry leaders on the buying side and the contractor side meet in one room, which is where capture and business development relationships start.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Potomac Officers Club membership tiers set the price: Professional $795/yr (40% off), Elite $1,495/yr ($100 per event), Government $50/yr (fees waived). Ticket price not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speakers are chosen by the organizer; no public call found.",
+  "cheaperWays": "Government attendees register free through the $50 Government membership; Professional membership takes 40% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "roles": [
+   "capture manager",
+   "defense program manager",
+   "contracts manager",
+   "proposal manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "national-small-business-conference-8a",
+  "name": "National Small Business Conference (National 8(a) Association)",
+  "organizer": "National 8(a) Association",
+  "url": "https://www.govevents.com/event/28615/2027-national-small-business-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-01",
+  "endDate": "2027-02-03",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Small and 8(a) federal contractors meet agency small-business officers and primes; useful for capture, teaming and subcontract leads.",
+  "access": "MIXED",
+  "costLow": 575,
+  "costHigh": null,
+  "costNote": "Early-bird general registration $575 per a GovEvents listing; government representatives free. Organizer site not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government agency representatives attend free (per listing).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "roles": [
+   "capture manager",
+   "contracts manager",
+   "proposal manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "battery-show-north-america",
+  "name": "The Battery Show North America",
+  "organizer": "Informa Markets",
+  "url": "https://www.thebatteryshow.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-11",
+  "endDate": "2027-10-14",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Detroit",
+  "state": "MI",
+  "country": "US",
+  "industries": [
+   "Automotive & Mobility",
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Battery, EV and power-electronics engineers and sourcing managers from OEMs and tier suppliers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates (Oct 11-14, Huntington Place) from an aggregator only; official site not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Automakers and suppliers"
+  ],
+  "roles": [
+   "automotive engineer",
+   "supplier quality manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "american-automotive-summit",
+  "name": "American Automotive Summit",
+  "organizer": "QAD",
+  "url": "https://www.qad.com/event/american-automotive-summit",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "Detroit",
+  "state": "MI",
+  "country": "US",
+  "industries": [
+   "Automotive & Mobility"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Two-day gathering of OEM, Tier 1 and Tier 2 supplier leaders on operations, quality and supply chain.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "One aggregator lists Oct 19-20, 2027 in Detroit; a vendor page lists a 2026 edition. Date unconfirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Automakers and suppliers"
+  ],
+  "roles": [
+   "automotive engineer",
+   "supplier quality manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aell-national-conference",
+  "name": "Association for Early Learning Leaders National Conference",
+  "organizer": "Association for Early Learning Leaders",
+  "url": "https://www.earlylearningleaders.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-07",
+  "endDate": "2027-04-10",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Directors, administrators and owners of child care centers and preschools trade operating and leadership practice.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "43rd conference, 'How Successful Directors Lead', Sheraton Music City. Site gives April 7-10 and April 8-10 in different places. Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2027 sponsor prospectus and presenter call listed as coming soon.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Early childhood education"
+  ],
+  "roles": [
+   "preschool director"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "leadership-connections-national-conference",
+  "name": "Leadership Connections National Conference for Early Childhood Leaders",
+  "organizer": "McCormick Institute for Early Childhood, National Louis University",
+  "url": "https://www.mccormickinstitute.nl.edu/leadership-connections",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-19",
+  "endDate": "2027-05-21",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Schaumburg",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Early childhood program leaders, Head Start directors and policy people meet at the national leadership conference for the field.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 theme 'Leading in Harmony'. Pricing not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.mccormickinstitute.nl.edu/leadership-connections",
+  "speakingDeadline": "2026-11-04",
+  "speakingNote": "Call for presentation proposals closes Nov 4, 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Early childhood education"
+  ],
+  "roles": [
+   "preschool director",
+   "early childhood educator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "missouri-conference-on-the-young-years",
+  "name": "Missouri Conference on the Young Years",
+  "organizer": "Missouri Department of Elementary and Secondary Education",
+  "url": "https://dese.mo.gov/childhood/news/thank-you-53rd-conference-young-years",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-04",
+  "endDate": "2027-03-06",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "State flagship for Missouri child care, preschool and early intervention staff; good for regional jobs and credentials.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates marked tentative by the state agency; city and pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "A 2027 call for presentation proposals was to open May 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Early childhood education"
+  ],
+  "roles": [
+   "early childhood educator",
+   "preschool director"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "acu-board-of-directors-conference",
+  "name": "Board of Directors Conference (America's Credit Unions)",
+  "organizer": "America's Credit Unions",
+  "url": "https://www.americascreditunions.org/events-training/conference/board-directors-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-17",
+  "endDate": "2027-01-20",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Credit union CEOs and volunteer directors meet on governance, strategy and succession.",
+  "access": "PAID",
+  "costLow": 2076,
+  "costHigh": 5190,
+  "costNote": "ACU member $2,595 (early bird was $2,395 to Oct 16, 2026); small CU $2,076; non-member $5,190. Signia by Hilton Orlando Bonnet Creek.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Small-CU pricing; half-off early-bird scholarships for members with financial need (apply 90 days ahead, so this cycle's window has likely closed).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Credit unions"
+  ],
+  "roles": [
+   "credit union executive"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "acu-ceo-council-conference",
+  "name": "CEO Council Conference (America's Credit Unions)",
+  "organizer": "America's Credit Unions",
+  "url": "https://www.americascreditunions.org/events-training/councils-conference/ceo-council-conference-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "A closed room of credit union CEOs sharing strategy and peer introductions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition page exists; dates and price not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Credit unions"
+  ],
+  "roles": [
+   "credit union executive"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "acu-strategic-growth-conference",
+  "name": "Strategic Growth Conference (America's Credit Unions)",
+  "organizer": "America's Credit Unions",
+  "url": "https://www.americascreditunions.org/events-training/conference/strategic-growth-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Growth, member acquisition and strategy sessions for credit union executives and business-development leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition page exists; dates and price not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Credit unions"
+  ],
+  "roles": [
+   "credit union executive",
+   "member services leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cornerstone-focus-2027",
+  "name": "Cornerstone foCUs (Cornerstone Credit Union League annual event)",
+  "organizer": "Cornerstone Credit Union League",
+  "url": "https://www.cornerstoneleague.coop/about-us/inside-cornerstone/calendar",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-04",
+  "endDate": "2027-05-07",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Arlington",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Texas and Oklahoma credit union staff, leaders and boards meet at the league's regional flagship.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Calendar lists May 4-7, 2027 in Arlington; another page names it 'foCUs' as a new national in-person event. Pricing not published yet.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Credit unions"
+  ],
+  "roles": [
+   "credit union executive",
+   "member services leader",
+   "credit union lender"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "poc-homeland-security-summit",
+  "name": "POC Homeland Security Summit",
+  "organizer": "Potomac Officers Club",
+  "url": "https://www.potomacofficersclub.com/govcon-events/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "DHS and homeland security officials and contractors in one room.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Potomac Officers Club membership tiers set the price: Professional $795/yr (40% off), Elite $1,495/yr ($100 per event), Government $50/yr (fees waived). Ticket price not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government attendees register free through the $50 Government membership; Professional membership takes 40% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "roles": [
+   "federal program manager",
+   "senior executive service"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "poc-healthcare-summit",
+  "name": "POC Healthcare Summit",
+  "organizer": "Potomac Officers Club",
+  "url": "https://www.potomacofficersclub.com/govcon-events/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector",
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "HHS, VA and other federal health officials and the companies that serve them.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Potomac Officers Club membership tiers set the price: Professional $795/yr (40% off), Elite $1,495/yr ($100 per event), Government $50/yr (fees waived). Ticket price not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government attendees register free through the $50 Government membership; Professional membership takes 40% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "roles": [
+   "federal program manager",
+   "senior executive service"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "poc-artificial-intelligence-summit",
+  "name": "POC Artificial Intelligence Summit",
+  "organizer": "Potomac Officers Club",
+  "url": "https://www.potomacofficersclub.com/govcon-events/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector",
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Federal AI leads and program executives meet industry partners.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Potomac Officers Club membership tiers set the price: Professional $795/yr (40% off), Elite $1,495/yr ($100 per event), Government $50/yr (fees waived). Ticket price not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government attendees register free through the $50 Government membership; Professional membership takes 40% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "roles": [
+   "federal program manager",
+   "senior executive service"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "opengov-conference",
+  "name": "OpenGov Conference",
+  "organizer": "OpenGov",
+  "url": "https://opengov.com/?p=1260997",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Public-sector finance, budget, procurement and operations staff using government software; mostly city and county but open to agencies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Washington Hilton. 2026 FAQ describes attendees as OpenGov Cloud users. Pricing not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "roles": [
+   "federal program manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ashhra-talent-acquisition-summit",
+  "name": "ASHHRA Talent Acquisition Summit",
+  "organizer": "American Society for Health Care Human Resources Administration",
+  "url": "https://ashhra.org/ashhra-talent-acquisition-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Invitation-only room of healthcare talent acquisition leaders from health systems.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was July 22-24 in Nashville; application closed. Next edition not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://ashhra.org/ashhra-talent-acquisition-summit/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Healthcare HR and workforce"
+  ],
+  "roles": [
+   "healthcare recruiter"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "iaapa-north-america-summit",
+  "name": "IAAPA North America Summit",
+  "organizer": "IAAPA",
+  "url": "https://iaapa.org/event/iaapa-north-america-summit-2027",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-18",
+  "endDate": "2027-04-20",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Frisco",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Park and attraction executives in one executive-level program.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Omni Frisco Hotel at The Star. Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iaapa-fec-summit",
+  "name": "IAAPA FEC Summit",
+  "organizer": "IAAPA",
+  "url": "https://iaapa.org/news-funworld/north-america-2027-events",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-07",
+  "endDate": "2027-02-09",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Owners and managers of family entertainment centers share operating practice.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from IAAPA's 2027 events notice. Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "western-indian-gaming-conference",
+  "name": "Western Indian Gaming Conference",
+  "organizer": "California Nations Indian Gaming Association",
+  "url": "https://www.indiangaming.com/western-indian-gaming-conference-to-take-place-feb-24-26/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Temecula",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "500+ tribal leaders, regulators and casino professionals meet in California.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "29th edition was Feb 23-26, 2026 at Pechanga. 2027 dates not announced in sources found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "casino executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "insurtech-ny-spring-conference",
+  "name": "InsurTech NY Spring Conference",
+  "organizer": "InsurTech NY",
+  "url": "https://www.insurtechny.com/insurtech-spring-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-05",
+  "endDate": "2027-04-06",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Insurance",
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "1,100+ attendees, about 30% carriers and brokers, with P&C and Life & Health tracks.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Chelsea Piers, Pier 60. Ticket prices not shown.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": "https://www.insurtechny.com/sponsor/",
+  "speakingDeadline": null,
+  "speakingNote": "Panels or 5-7 minute TED-style talks; priority to carriers and insurtech founders; no public call with deadline.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Insurtech"
+  ],
+  "roles": [
+   "insurtech founder",
+   "digital distribution lead"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "marcon",
+  "name": "MARCON Maintenance and Reliability Conference",
+  "organizer": "Reliability & Maintainability Center, University of Tennessee",
+  "url": "https://marcon.utk.edu/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Knoxville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "30-year-old university-run conference where plant maintenance and reliability leaders swap implementation stories.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Presentations March 3-4. Attendee fees not found; exhibitor packages $2,500-3,000 (not attendee).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://marcon.utk.edu/homepage/call-for-abstracts/",
+  "speakingDeadline": "2026-08-28",
+  "speakingNote": "Call for abstracts closed Aug 28, 2026; workshops call also exists.",
+  "cheaperWays": "Discounts for RMC members, groups of 5+, and students with ID (FAQ may be dated).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Maintenance, reliability and asset management"
+  ],
+  "roles": [
+   "reliability engineer",
+   "maintenance manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "machinery-lubrication-conference",
+  "name": "Machinery Lubrication Conference & Exhibition",
+  "organizer": "Noria",
+  "url": "https://conference.machinerylubrication.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-11-02",
+  "endDate": "2027-11-03",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Tulsa",
+  "state": "OK",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Lubrication and machinery reliability specialists plus certification training.",
+  "access": "PAID",
+  "costLow": 695,
+  "costHigh": null,
+  "costNote": "General admission $695 per the conference site, which also says the event was rescheduled to Nov 2-3, 2027 (Renaissance Tulsa) while Noria elsewhere lists Oct 27-28, 2026. Confirm.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Maintenance, reliability and asset management"
+  ],
+  "roles": [
+   "reliability engineer",
+   "maintenance manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "social-media-week-new-york",
+  "name": "Social Media Week New York",
+  "organizer": "Adweek",
+  "url": "https://event.adweek.com/smw-2027/home",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-13",
+  "endDate": "2027-04-13",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR",
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Brand social, influencer and creator-marketing leaders; strong for creator-business and partnership roles.",
+  "access": "PAID",
+  "costLow": 888,
+  "costHigh": 1799,
+  "costNote": "Presale: Brand pass $888.30-$1,299, Agency pass $1,189.30-$1,799 across two pages; page lists April 13, 2027 but also three days. Metropolitan Pavilion.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Group discount of 10% per badge on 3+.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Podcasting and creator economy"
+  ],
+  "roles": [
+   "creator business manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "semc-annual-meeting",
+  "name": "Southeastern Museums Conference Annual Meeting",
+  "organizer": "Southeastern Museums Conference",
+  "url": "https://www.semcdirect.net/future",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-04",
+  "endDate": "2027-10-06",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Columbia",
+  "state": "SC",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Regional meeting for southeastern museum directors, curators and educators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration via members portal; pricing not yet posted. Premium membership gives $25 off early bird.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Premium individual membership ($120/2 years) takes $25 off early bird.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "roles": [
+   "museum director",
+   "arts administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "aaae-annual-conference",
+  "name": "Association of Arts Administration Educators Annual Conference",
+  "organizer": "Association of Arts Administration Educators",
+  "url": "https://artsadministration.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-03",
+  "endDate": "2027-06-06",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Faculty and practitioners who train and hire arts managers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the AAAE site header; location and fees not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "roles": [
+   "arts administrator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "oklahoma-arts-conference",
+  "name": "Oklahoma Arts Conference",
+  "organizer": "Oklahoma Arts Council",
+  "url": "https://oklahoma.gov/arts/newsroom/template/october/save-the-date--the-oklahoma-arts-conference-returns-next-october.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-20",
+  "endDate": "2027-10-22",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Enid",
+  "state": "OK",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Statewide gathering of Oklahoma arts administrators, board members and funders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not yet published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "roles": [
+   "arts administrator",
+   "museum director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "grunin-center-annual-conference",
+  "name": "Annual Conference on Legal Issues in Social Entrepreneurship and Impact Investing",
+  "organizer": "NYU Law Grunin Center for Law and Social Entrepreneurship",
+  "url": "https://www.law.nyu.edu/centers/grunin-social-entrepreneurship/events/AnnualConferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-01",
+  "endDate": "2027-06-03",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact",
+   "Venture Capital & Private Equity",
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Impact fund managers, social-enterprise lawyers and academics on how to structure impact capital.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration not open; student discount cards by email (grunincenter@gmail.com). Grunin Prize awarded June 1.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Grunin Prize submissions due Jan 29, 2027.",
+  "cheaperWays": "Student discount cards available.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "roles": [
+   "impact investor",
+   "social entrepreneur"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "asembia-axs-summit",
+  "name": "Asembia AXS Summit",
+  "organizer": "Asembia",
+  "url": "https://asembia.com/events/axs27-summit/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-25",
+  "endDate": "2027-04-29",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech",
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Specialty pharmacy, manufacturers, payers and market-access teams in one week.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Wynn & Encore. Registration details not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Commercial, market access and medical affairs"
+  ],
+  "roles": [
+   "market access lead",
+   "pharma brand manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ere-recruiting-innovation-summit",
+  "name": "ERE Recruiting Innovation Summit",
+  "organizer": "ERE Media",
+  "url": "https://conference.sourcecon.com",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-10",
+  "endDate": "2026-11-11",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Corporate recruiting leaders and sourcers on AI in talent acquisition, from the ERE and SourceCon team.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Hyatt Regency La Jolla at Aventine; a press release says Nov 9-11, other listings Nov 10-11. Price not found (Atlanta edition promo was $799).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Corporate talent acquisition"
+  ],
+  "roles": [
+   "talent acquisition leader"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ai-devworld",
+  "name": "AI DevWorld",
+  "organizer": "DevNetwork",
+  "url": "https://aidevworld.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-09",
+  "endDate": "2027-02-11",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Santa Clara",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "AI and ML developers, startups and hackathon teams, co-located with DeveloperWeek.",
+  "access": "PAID",
+  "costLow": 1535,
+  "costHigh": 2195,
+  "costNote": "PRO $1,535 and PREMIUM $2,195 per structured data; Hyatt block $299/night. Startup Alley free passes by nomination until Jan 13, 2027.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://aidevworld.com/speakers/apply-to-speak/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for speakers earlier closed Sep 18, 2026 per aggregator.",
+  "cheaperWays": "Startup Alley free passes by nomination.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "AI and machine learning"
+  ],
+  "roles": [
+   "machine learning engineer",
+   "prompt and applied AI engineer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ai-con-usa",
+  "name": "AI Con USA",
+  "organizer": "TechWell",
+  "url": "https://aiconusa.techwell.com/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-11",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Practitioner conference on applying AI and testing AI systems, with training classes.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Hyatt Regency Seattle; pricing not open for 2027. Group discounts up to 20%.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.techwell.com/software-conferences/be-a-speaker",
+  "speakingDeadline": null,
+  "speakingNote": "Speaker program page; deadline not read.",
+  "cheaperWays": "Free virtual pass offered in prior years; early-bird, alumni and group discounts.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "AI and machine learning"
+  ],
+  "roles": [
+   "ai product manager",
+   "machine learning engineer",
+   "prompt and applied AI engineer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "open-developers-summit-dallas",
+  "name": "Open Developers Summit Dallas (openSUSE)",
+  "organizer": "openSUSE Project",
+  "url": "https://news.opensuse.org/2026/07/22/open-dev-summits/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-14",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Open source maintainers and contributors in a one-day summit.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found; announcement is from the project's news site.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://news.opensuse.org/2026/07/22/open-dev-summits/",
+  "speakingDeadline": "2027-01-20",
+  "speakingNote": "CFP closes Jan 20, 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "roles": [
+   "open source maintainer",
+   "developer advocate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "american-supply-chain-summit",
+  "name": "American Supply Chain Summit",
+  "organizer": "Generis Group",
+  "url": "https://www.supplychainus.com",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-27",
+  "endDate": "2027-04-28",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Supply chain, logistics and procurement executives, now in its 10th year.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Dallas from aggregator/vendor listings; organizer site not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Supply chain planning and visibility"
+  ],
+  "roles": [
+   "supply chain director",
+   "logistics technologist"
+  ],
+  "journeys": []
+ }
+]

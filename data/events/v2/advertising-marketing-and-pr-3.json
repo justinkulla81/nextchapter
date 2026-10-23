@@ -1,0 +1,1031 @@
+[
+ {
+  "id": "gartner-marketing-symposium-xpo",
+  "name": "Gartner Marketing Symposium/Xpo",
+  "organizer": "Gartner",
+  "url": "https://www.gartner.com/en/conferences/na/marketing-symposium-us/conference-resources/save-the-date",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Gartner's marketing leadership conference, pitched at CMOs and their direct reports.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Gaylord Rockies, Aurora CO. Pricing not read (Gartner page returned 403).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "forrester-b2b-summit-north-america",
+  "name": "Forrester B2B Summit North America",
+  "organizer": "Forrester",
+  "url": "https://www.forrester.com/speakers/ruth-bolste/?eid=261052",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-05",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "B2B marketing, sales and product leaders on go-to-market strategy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Other sources say May 2-4; registration not yet open.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "mma-cmo-ceo-summit",
+  "name": "MMA CMO + CEO Summit",
+  "organizer": "MMA (Marketing + Media Alliance)",
+  "url": "https://mmaglobal.com/cmosummit2027",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-18",
+  "endDate": "2027-07-20",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Santa Barbara",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Invitation-only summit where CMOs and CEOs share multi-brand experiment results.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://mmaglobal.com/request-invite-cmo-ceo-summit-2027",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "adweek-marketing-vanguard-summit",
+  "name": "Adweek Marketing Vanguard Summit",
+  "organizer": "Adweek",
+  "url": "https://event.adweek.com/MVS2027",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-06",
+  "endDate": "2027-05-06",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Member-only summit of CMOs, CEOs and senior marketing leaders.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cost not stated. Chicago Booth Gleacher Center.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://event.adweek.com/MVS2027",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cmo-alliance-cmo-summit",
+  "name": "CMO Alliance CMO Summit (regional series)",
+  "organizer": "CMO Alliance",
+  "url": "https://events.cmoalliance.com/location/austin/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-25",
+  "endDate": "2027-06-25",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Regional peer summits for marketing chiefs; the New York edition is complimentary and invitation-only.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Also New York Mar 10, 2027 and San Jose Apr 14, 2027 per search results; not read on-page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ana-brand-masters",
+  "name": "ANA Brand Masters Conference",
+  "organizer": "Association of National Advertisers",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Brand-side marketing leaders at ANA member companies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not on the listing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ana-masters-of-b2b-marketing",
+  "name": "ANA Masters of B2B Marketing Conference",
+  "organizer": "Association of National Advertisers",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "B2B marketing heads and CMOs at ANA member companies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not on the listing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ana-ai-technology-for-marketers",
+  "name": "ANA AI and Technology for Marketers Conference",
+  "organizer": "Association of National Advertisers",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Marketing leaders working through AI and martech decisions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "ANA flags the event id may not match these dates; confirm. Price not on the listing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ana-creator-marketing-conference",
+  "name": "ANA Creator Marketing Conference",
+  "organizer": "Association of National Advertisers",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-03",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Brand marketers building creator and influencer programs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not on the listing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "maicon",
+  "name": "MAICON (Marketing AI Conference)",
+  "organizer": "Marketing AI Institute",
+  "url": "https://www.marketingaiinstitute.com/events/marketing-artificial-intelligence-conference/about",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-04",
+  "endDate": "2027-10-07",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Cleveland",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Marketing leaders adopting AI; the 2026 edition also had an AI for CMOs summit.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 prices not published; 2026 on-site main pass was $2,099 and All-Access $2,599.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Marketing leadership"
+  ],
+  "roles": [
+   "CMO",
+   "VP marketing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pac-advocacy-conference",
+  "name": "Public Affairs Council Advocacy Conference",
+  "organizer": "Public Affairs Council",
+  "url": "https://pac.org/signature-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Grassroots, communications, government relations and digital advocacy professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Member discount; prices not listed on the signature-events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pac-national-pac-conference",
+  "name": "National PAC Conference",
+  "organizer": "Public Affairs Council",
+  "url": "https://pac.org/signature-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Fort Lauderdale",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "PAC and political affairs professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Member discount; prices not listed on the signature-events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pac-public-affairs-institute",
+  "name": "Public Affairs Institute",
+  "organizer": "Public Affairs Council",
+  "url": "https://pac.org/signature-events",
+  "kind": "WORKSHOP",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-11",
+  "endDate": "2027-01-14",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Laguna Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Three-year course for senior public affairs professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Member discount; prices not listed on the signature-events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pac-spring-executive-conference",
+  "name": "Public Affairs Council Spring Executive Conference",
+  "organizer": "Public Affairs Council",
+  "url": "https://pac.org/signature-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Senior public affairs executives from companies and associations.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates TBA; member discount.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pac-government-relations-policy-conference",
+  "name": "Government Relations & Policy Conference",
+  "organizer": "Public Affairs Council",
+  "url": "https://pac.org/signature-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Local, state and federal government relations practitioners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates TBA; 2026 edition ran Sept 9-10 per search. Member discount.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pac-futureproof-pa",
+  "name": "FutureProof.PA (AI & Public Affairs)",
+  "organizer": "Public Affairs Council",
+  "url": "https://pac.org/signature-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-03",
+  "endDate": "2026-12-03",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Public affairs professionals tracking AI policy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Washington and Brussels simultaneously; member discount.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ncsl-legislative-summit",
+  "name": "NCSL Legislative Summit",
+  "organizer": "National Conference of State Legislatures",
+  "url": "https://www.ncsl.org/summit",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-09",
+  "endDate": "2027-08-11",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "State legislators and staff, plus the government affairs people who work them.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on a separate registration page, not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naco-legislative-conference",
+  "name": "NACo Legislative Conference",
+  "organizer": "National Association of Counties",
+  "url": "https://www.naco.org/event/2027-naco-legislative-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-20",
+  "endDate": "2027-02-23",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "County officials, Congress members and staff, and corporate partners.",
+  "access": "PAID",
+  "costLow": 599,
+  "costHigh": 1750,
+  "costNote": "Corporate non-member $1,200 early bird to $1,750 onsite; county/government rate $599-$799. Washington Hilton.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Students add-on $200.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nlc-congressional-city-conference",
+  "name": "NLC Congressional City Conference",
+  "organizer": "National League of Cities",
+  "url": "https://nlc.org/events/2027-congressional-city-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Local leaders lobbying Congress and federal agencies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens Nov 2026; prices not listed. Marriott Marquis.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "csg-national-conference",
+  "name": "CSG National Conference",
+  "organizer": "Council of State Governments",
+  "url": "https://csg-erc.org/event/csg-national-conference-in-anaheim-california/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-03",
+  "endDate": "2026-12-06",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "State officials from all branches and the private-sector partners who work with them.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the CSG-ERC event page; prices not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nra-public-affairs-conference",
+  "name": "National Restaurant Association Public Affairs Conference",
+  "organizer": "National Restaurant Association",
+  "url": "https://www.restaurant.org/advocacy/get-involved/Public-Affairs-Conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-21",
+  "endDate": "2027-06-23",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Restaurant industry advocates meeting lawmakers on Capitol Hill.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a search result; not read on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ncsl-capital-forum",
+  "name": "NCSL Capital Forum",
+  "organizer": "National Conference of State Legislatures",
+  "url": "https://www.ncsl.org/events/details/ncsl-capital-forum",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Federal-state policy forum in Washington for NCSL Foundation sponsors and legislators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "lobbyist",
+   "government affairs director"
+  ],
+  "journeys": []
+ }
+]

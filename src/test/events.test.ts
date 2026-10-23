@@ -8,12 +8,12 @@ const NOW = new Date('2026-10-23T12:00:00Z')
 const base: ConferenceRow = {
   id: 'x', name: 'X Summit', organizer: null, url: 'https://x.example', kind: 'CONFERENCE', format: 'IN_PERSON',
   startDate: new Date('2027-03-14T00:00:00Z'), endDate: new Date('2027-03-16T00:00:00Z'), datesConfirmed: true, typicalMonth: 'March',
-  city: 'Austin', state: 'TX', country: 'US', industries: [], functions: [], seniorities: [], importance: 2, whyAttend: null,
+  city: 'Austin', state: 'TX', country: 'US', industries: [], functions: [], segments: [], journeys: [], programFormats: [], roles: [], seniorities: [], importance: 2, whyAttend: null,
   access: 'PAID', costLow: 799, costHigh: 2499, costNote: null, speaking: 'UNKNOWN', speakingUrl: null, speakingDeadline: null,
   speakingNote: null, cheaperWays: null, applyUrl: null, applyDeadline: null, published: true, verified: true, checkedAt: null, locked: false, adminNote: null, source: null,
 }
 const ev = (o: Partial<ConferenceRow>): ConferenceRow => ({ ...base, ...o })
-const facts: MemberEventFacts = { functions: ['Finance'], industries: ['Insurance'], seniority: 'SENIOR', state: 'KY' }
+const facts: MemberEventFacts = { functions: ['Finance'], industries: ['Insurance'], seniority: 'SENIOR', state: 'KY', journey: null, titleText: 'school principal' }
 
 describe('event matching', () => {
   it('ranks function + industry fits above a generic event', () => {
@@ -86,5 +86,19 @@ describe('catalog normalizing', () => {
     expect(row?.startDate).toBeNull()
     expect(row?.datesConfirmed).toBe(false)
     expect(row?.typicalMonth).toBe('May')
+  })
+})
+
+describe('speaking inference', () => {
+  const row = { name: 'X', url: 'https://x.example', verified: true, typicalMonth: 'May' }
+  it('infers a speaking path from the program', () => {
+    expect(normalizeRow({ ...row, kind: 'CONFERENCE', programFormats: ['KEYNOTE', 'PANEL'] }).row?.speaking).toBe('LIKELY')
+    expect(normalizeRow({ ...row, kind: 'CONFERENCE' }).row?.speaking).toBe('LIKELY')
+  })
+  it('does not infer one for a pure expo or when the call is known', () => {
+    expect(normalizeRow({ ...row, kind: 'TRADE_SHOW' }).row?.speaking).toBe('UNKNOWN')
+    expect(normalizeRow({ ...row, kind: 'TRADE_SHOW', programFormats: ['EXPO'] }).row?.speaking).toBe('UNKNOWN')
+    expect(normalizeRow({ ...row, kind: 'CONFERENCE', speaking: 'NONE' }).row?.speaking).toBe('NONE')
+    expect(normalizeRow({ ...row, kind: 'CONFERENCE', speaking: 'OPEN_CFP', speakingUrl: 'https://x.example/cfp' }).row?.speaking).toBe('OPEN_CFP')
   })
 })

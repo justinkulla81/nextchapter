@@ -1,0 +1,859 @@
+[
+ {
+  "id": "dgiq-edw",
+  "action": "publish",
+  "reason": "dataversity.net homepage and dgiq-aigov2026.dataversity.net show DGIQ + AIGov Nov 16-19, 2026, Omni Providence; registration page lists prices (the Enterprise Data World brand has been folded into this governance-focused event).",
+  "patch": {
+   "name": "DGIQ + AIGov (Data Governance & Information Quality)",
+   "url": "https://dgiq-aigov2026.dataversity.net/",
+   "startDate": "2026-11-16",
+   "endDate": "2026-11-19",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Providence",
+   "state": "RI",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 2395,
+   "costHigh": 3295,
+   "costNote": "Conference-only 2 days $2,395; with Monday tutorial day $3,295; single tutorial days $1,195. Groups of four or more save.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Register four or more people and save (per site).",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "nacd-new-england-aspiring-public-company-director-program",
+  "action": "publish",
+  "reason": "nacdonline.org chapter page says the program was held April 9, 2026 at KPMG Boston; the 2025 edition was April 16, 2025, so it recurs each April.",
+  "patch": {
+   "url": "https://www.nacdonline.org/new-england/new-england-events/nacd-aspiring-public-company-director-program/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "city": "Boston",
+   "state": "MA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Price not published on the archived page; contact chapter (drosenthal@nacdne.org). Pitched at C-suite leaders and large nonprofit/private board members.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "state-of-latino-entrepreneurship-summit",
+  "action": "publish",
+  "reason": "Stanford GSB event pages exist for the 2024 and 2026 editions (11th annual SOLE Summit March 25, 2026), so it recurs each March; 2027 date not yet posted.",
+  "patch": {
+   "url": "https://www.gsb.stanford.edu/events/2026-state-latino-entrepreneurship-summit-0",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "city": "Stanford",
+   "state": "CA",
+   "country": "US",
+   "access": "MIXED",
+   "costNote": "Summit forum free; evening gala is separately ticketed.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "calcpa-elevate-womens-leadership-forum",
+  "action": "publish",
+  "reason": "store.calcpa.org page shows Elevate: Women's Leadership Forum 2027, May 6-7, 2027, Sunnyvale CA, early access $375 member/$515 nonmember to July 8, 2026.",
+  "patch": {
+   "startDate": "2027-05-06",
+   "endDate": "2027-05-07",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Sunnyvale",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 405,
+   "costHigh": 545,
+   "costNote": "Standard $405 member / $545 non-member (early access was $375/$515). 7 CPE credits.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "agency-rainmaker-forum",
+  "action": "drop",
+  "reason": "rainmakerforum.com shows only the Feb 26-27, 2026 edition (60-person cap); editions are irregular (Sept 2024, Feb 2026) and the site announces no next edition, so only third-party calendars point to 2027."
+ },
+ {
+  "id": "nra-public-affairs-conference",
+  "action": "publish",
+  "reason": "restaurant.org page: Public Affairs Conference June 21-23, 2027, Washington DC, billed as the industry's largest grassroots advocacy event.",
+  "patch": {
+   "url": "https://www.restaurant.org/issues-and-advocacy/get-involved/public-affairs-conference/",
+   "startDate": "2027-06-21",
+   "endDate": "2027-06-23",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration price not published on the page.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "NETWORKING",
+    "PANEL"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "ausa-annual-meeting",
+  "action": "publish",
+  "reason": "ausa.org future-annual-meeting-dates page (via official-domain search) lists the 2027 Annual Meeting & Exposition Oct 11-13, 2027, Walter E. Washington Convention Center; prior research found free registration with paid add-on events.",
+  "patch": {
+   "startDate": "2027-10-11",
+   "endDate": "2027-10-13",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "FREE",
+   "costNote": "Registration reported free in 2026; dinners/lunches $65-$190. Dates subject to change per AUSA.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "nasf-annual-meeting",
+  "action": "publish",
+  "reason": "stateforesters.org events pages and NASF awards pages show an annual September meeting (2024 Providence, 2025 Sept 16 listing, 2026 Lexington KY Sept 21-24); 2027 not yet posted.",
+  "patch": {
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read; location rotates among states (2026: Lexington, KY).",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "mema-annual-conference",
+  "action": "publish",
+  "reason": "mema.org events listing (via official-domain search) shows Annual Conference & Expo Nov 18-19, 2026 at Vibe Credit Union Showplace, Novi MI; Nov 19 is expo only.",
+  "patch": {
+   "startDate": "2026-11-18",
+   "endDate": "2026-11-19",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Novi",
+   "state": "MI",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not published in sources read (mema.org returned 403 to direct fetch).",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "naiop-cre-converge",
+  "action": "publish",
+  "reason": "naiop.org event page and press page (official-domain search) show CRE.Converge 2027, Sept 27-29, 2027, JW Marriott Austin; naiop.org now redirects to credaglobal.org.",
+  "patch": {
+   "startDate": "2027-09-27",
+   "endDate": "2027-09-29",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Austin",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 fees not yet posted (2025 was $1,435 member / $1,870 non-member).",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "worktech-new-york",
+  "action": "publish",
+  "reason": "worktechevents.com shows WORKTECH26 New York (5th edition) on Oct 8, 2026 with executive roundtable Oct 9; annual each fall; 2027 not announced. Standard ticket $799.",
+  "patch": {
+   "url": "https://worktechevents.com/events/worktech26-new-york/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 199,
+   "costHigh": 799,
+   "costNote": "2026 pricing: $799 standard, $199 exchange ticket.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "naesp-pre-k-8-principals-conference",
+  "action": "publish",
+  "reason": "principals.org (NASSP/NAESP National Principals Association) event page shows the joint National Principals Conference NPC27, Feb 6-9, 2027, Tampa Convention Center, replacing the standalone NAESP July conference.",
+  "patch": {
+   "name": "National Principals Conference (NPC27)",
+   "organizer": "National Principals Association (NASSP + NAESP)",
+   "url": "http://www.principals.org/event/npc27/",
+   "startDate": "2027-02-06",
+   "endDate": "2027-02-09",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Tampa",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration price not shown on the event page.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "nei-nuclear-energy-assembly",
+  "action": "drop",
+  "reason": "nei.org Assembly page shows only the 2024 edition (Sept 2024 Philadelphia) and NEI now lists NECX (Aug 30-Sep 2, 2027, New Orleans, joint with ANS) as its flagship, so the Assembly looks discontinued."
+ },
+ {
+  "id": "acu-strategic-growth-conference",
+  "action": "publish",
+  "reason": "americascreditunions.org page: Strategic Growth Conference 2027, June 15-18, 2027, OMNI Tempe at ASU, for credit union CEOs and senior strategy/growth leaders.",
+  "patch": {
+   "startDate": "2027-06-15",
+   "endDate": "2027-06-18",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Tempe",
+   "state": "AZ",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing on the site's Pricing & registration tab; not captured.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "orion-ascent",
+  "action": "publish",
+  "reason": "orion.com press release and event page: Orion Ascent 2027 at Hyatt Regency Orlando, Feb 22-24 (press release says 22-25), 2,200+ expected; late rate $1,599.",
+  "patch": {
+   "url": "https://orion.com/ascent",
+   "startDate": "2027-02-22",
+   "endDate": "2027-02-24",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": 1599,
+   "costNote": "Late rate $1,599 (Dec 29, 2026 to Feb 22, 2027); earlier rates lower. Page dates 22-24, press release 22-25.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "narc-annual-conference",
+  "action": "publish",
+  "reason": "narc.org (official-domain search): 61st Annual Conference & Exhibition June 6-9, 2027, Eden Roc, Miami Beach FL, co-hosted by Miami-Dade TPO; the Feb 2027 DC event is the separate National Conference of Regions.",
+  "patch": {
+   "startDate": "2027-06-06",
+   "endDate": "2027-06-09",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Miami Beach",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "aappr-annual-conference",
+  "action": "publish",
+  "reason": "aapprconference.org (official-domain search): Advancing Connections 2027, main conference Mar 23-25, 2027, Kentucky International Convention Center, Louisville; attendee registration opens Dec 1, 2026.",
+  "patch": {
+   "url": "https://www.aapprconference.org/",
+   "startDate": "2027-03-23",
+   "endDate": "2027-03-25",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Louisville",
+   "state": "KY",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 rates not yet posted; displayed rates are 2026. Pre-conference courses Mar 22-23.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "gsa-annual-scientific-meeting",
+  "action": "publish",
+  "reason": "gsa2026.org (GSA official) shows the 2026 Annual Scientific Meeting Nov 4-7, 2026, Gaylord National, National Harbor MD, with a published rate table.",
+  "patch": {
+   "url": "https://www.gsa2026.org/",
+   "startDate": "2026-11-04",
+   "endDate": "2026-11-07",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "National Harbor",
+   "state": "MD",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 0,
+   "costHigh": 1049,
+   "costNote": "Standard after Sept 1: member $810, early career member $464; non-member early rate was $1,049. Undergraduate student members $0.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.gsa2026.org/abstracts",
+   "speakingNote": "Call for abstracts; presenters must register separately.",
+   "cheaperWays": "Student, early-career, retired and emeritus rates; free for credentialed journalists.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "sia-healthcare-staffing-summit",
+  "action": "publish",
+  "reason": "staffingindustry.com articles (official-domain search) confirm SIA Healthcare Staffing Summit Nov 9-11, 2026, Loews Arlington, with keynotes, panels, roundtables.",
+  "patch": {
+   "startDate": "2026-11-09",
+   "endDate": "2026-11-11",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Arlington",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read from the official site (blocked); third-party structured data suggests about $2,560-$2,860.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "arias-us-fall-conference",
+  "action": "publish",
+  "reason": "arias-us.org annual conferences page: 2026 Fall Conference Nov 12-13, 2026, New York Marriott Marquis (Nov 11 Umpire Masterclass); 2027 Spring May 5-7 Naples FL; 2027 Fall Nov 11-12 New York Hilton.",
+  "patch": {
+   "startDate": "2026-11-12",
+   "endDate": "2026-11-13",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not captured; ARIAS-U.S. is a reinsurance arbitration society and members get preferred rates.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Membership via arias-us.org.",
+   "programFormats": [
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "rendez-vous-de-septembre-monte-carlo",
+  "action": "publish",
+  "reason": "rvs-monte-carlo.com shows the 69th Rendez-Vous Sept 11-15, 2027; it is the annual global reinsurance gathering, registration phased by seniority and limited to industry participants.",
+  "patch": {
+   "startDate": "2027-09-11",
+   "endDate": "2027-09-15",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Monte Carlo",
+   "state": null,
+   "country": "MC",
+   "importance": 1,
+   "access": "APPLY",
+   "applyUrl": "https://www.rvs-monte-carlo.com/",
+   "costNote": "Registration opens in phases by seniority; fee not read.",
+   "speaking": "NONE",
+   "cheaperWays": null,
+   "programFormats": [
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "napd-leadership-institute",
+  "action": "publish",
+  "reason": "publicdefenders.us lists the Leadership Institute 2026 (May 19-22 Detroit, sold out) and the sold-out 2025 edition (Indianapolis, April); annual in spring; 2027 not yet posted.",
+  "patch": {
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read; sells out; location rotates.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "manufacturing-live-new-york",
+  "action": "publish",
+  "reason": "BizClik's supplychaindigital.com shows Manufacturing LIVE as part of the Industry Impact Summit, NYC, Apr 20-21, 2027, Javits Center, co-located with Procurement/Supply Chain/Sustainability LIVE.",
+  "patch": {
+   "startDate": "2027-04-20",
+   "endDate": "2027-04-21",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Ticket prices not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "ieba-conference",
+  "action": "publish",
+  "reason": "ieba.org conference page lists future conference dates: Oct 17-19, 2027 (2026 edition Oct 4-6 Nashville).",
+  "patch": {
+   "startDate": "2027-10-17",
+   "endDate": "2027-10-19",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 venue and price not yet posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "streaming-media-connect",
+  "action": "drop",
+  "reason": "streamingmedia.com describes Connect as a free online webinar series with no 2027 edition; a pure webinar series."
+ },
+ {
+  "id": "iap2-north-american-conference",
+  "action": "publish",
+  "reason": "iap2.org / iap2nac.com show an annual conference (2025 San Antonio Sept 28-30; 2026 Vancouver Oct 1-3); 2027 host not yet announced.",
+  "patch": {
+   "url": "https://www.iap2.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Location rotates between US and Canada; 2027 not announced.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "jpm-healthcare-conference",
+  "action": "publish",
+  "reason": "jpmorgan.com official page: 45th Annual J.P. Morgan Healthcare Conference Jan 11-14, 2027, San Francisco; by invitation only, contact your J.P. Morgan representative.",
+  "patch": {
+   "url": "https://www.jpmorgan.com/about-us/events-conferences/health-care-conference",
+   "startDate": "2027-01-11",
+   "endDate": "2027-01-14",
+   "datesConfirmed": true,
+   "typicalMonth": "January",
+   "city": "San Francisco",
+   "state": "CA",
+   "country": "US",
+   "importance": 1,
+   "access": "INVITE",
+   "applyUrl": "https://www.jpmorgan.com/about-us/events-conferences/health-care-conference",
+   "costNote": "Invitation only; invitations are not transferable.",
+   "speaking": "BY_INVITE",
+   "cheaperWays": "Invitation comes through a J.P. Morgan banking relationship; many people attend satellite meetings and side events in the city that week.",
+   "programFormats": [
+    "KEYNOTE",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "global-scrum-gathering",
+  "action": "publish",
+  "reason": "scrumalliance.org: annual Global Scrum Gathering; 2026 was Vancouver May 3-6; 2027 city \"stay tuned\".",
+  "patch": {
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Host city rotates worldwide; 2027 not announced.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.scrumalliance.org/events/global/call-for-papers-submission-guidelines",
+   "speakingNote": "Scrum Alliance runs a call for papers each year.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "asa-staffing-world",
+  "action": "publish",
+  "reason": "americanstaffing.net: Staffing World 2026 was Oct 12-14 Denver; ASA says the 2027 Call for Presenters opens October 2026, so it continues.",
+  "patch": {
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2026 rates: member $2,095-$2,905, non-member $4,995.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://americanstaffing.net/call-subject-matter-experts/",
+   "speakingNote": "Call for Presenters for 2027 opens October 2026.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "plansponsor-national-conference",
+  "action": "publish",
+  "reason": "plansponsor.com 2027 event page (official-domain search): JW Marriott Nashville, June 6-9, 2027 (awards June 7); the earlier Orlando listing is wrong; 2026 sold out.",
+  "patch": {
+   "startDate": "2027-06-06",
+   "endDate": "2027-06-09",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Nashville",
+   "state": "TN",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read; the 2026 edition sold out.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "customer-success-festival-london",
+  "action": "drop",
+  "reason": "Held in London on June 17, 2027 (Customer Success Collective); outside North America and not a global flagship for US professionals."
+ },
+ {
+  "id": "nice-conference-and-expo",
+  "action": "publish",
+  "reason": "nist.gov NICE events page lists the 18th Annual NICE Conference and Expo as \"more information coming soon\"; 2026 was June 1-3 Philadelphia, so it recurs each June.",
+  "patch": {
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 location and price not yet announced.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "smashingconf-new-york",
+  "action": "drop",
+  "reason": "smashingconf.com lists New York only through 2025 (Oct 6-9) with no 2026 New York edition and Freiburg Sept 2027 as the next listed event; no evidence the NY edition continues."
+ },
+ {
+  "id": "american-supply-chain-summit",
+  "action": "publish",
+  "reason": "supplychainus.com (Generis Group) shows 11th Annual American Supply Chain Summit Apr 27-28, 2027, Dallas (Sheraton per site; 2026 was Hilton Anatole).",
+  "patch": {
+   "url": "https://supplychainus.com/",
+   "startDate": "2027-04-27",
+   "endDate": "2027-04-28",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Dallas",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration page aimed at senior supply chain/procurement leaders; price not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "tmsa-elevate",
+  "action": "publish",
+  "reason": "tmsatoday.org save-the-date: 2027 ELEVATE Conference June 6-8, 2027, Nashville TN, sales and marketing in transportation/logistics.",
+  "patch": {
+   "url": "https://www.tmsatoday.org/elevate-global-marketing-summit-and-sales-summit",
+   "startDate": "2027-06-06",
+   "endDate": "2027-06-08",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Nashville",
+   "state": "TN",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ }
+]

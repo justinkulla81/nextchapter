@@ -2,7 +2,8 @@
 // rules the page relies on applied (a published row has a link and was verified; past dates are dropped).
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
-import { ACCESS, FORMATS, KINDS, SENIORITIES, SPEAKING } from './types'
+import { SEGMENTS, TAXONOMY } from './taxonomy'
+import { ACCESS, FORMATS, JOURNEYS, KINDS, PROGRAM_FORMATS, SENIORITIES, SESSION_FORMATS, SPEAKING } from './types'
 
 type Raw = Record<string, unknown>
 
@@ -42,26 +43,39 @@ export function normalizeRow(raw: Raw, today = '2026-10-23'): { row: Record<stri
   if (Array.isArray(raw.industries) && industries.length !== raw.industries.length) problems.push('unknown industry name dropped')
   if (Array.isArray(raw.functions) && functions.length !== raw.functions.length) problems.push('unknown function name dropped')
 
-  const speaking = pick(raw.speaking, SPEAKING, 'UNKNOWN')
+  const segments = only(raw.segments, SEGMENTS)
+  const allRoles = new Set(Object.values(TAXONOMY).flatMap((segs) => Object.values(segs).flat()))
+  // Roles come from the taxonomy; a role the taxonomy lacks is kept lower-cased so it is not lost, but flagged.
+  const roles = [...new Set((Array.isArray(raw.roles) ? raw.roles : []).filter((x): x is string => typeof x === 'string').map((x) => x.trim().toLowerCase()).filter(Boolean))].slice(0, 12)
+  if (roles.some((r) => !allRoles.has(r.toLowerCase()) && ![...allRoles].some((a) => a.toLowerCase() === r))) problems.push('role outside the taxonomy kept')
+  if (Array.isArray(raw.segments) && segments.length !== raw.segments.length) problems.push('unknown segment dropped')
+  const programFormats = only(raw.programFormats, PROGRAM_FORMATS)
+  let speaking = pick(raw.speaking, SPEAKING, 'UNKNOWN')
+  // Keynotes, panels, workshops or breakouts mean outside speakers exist even when no call is posted.
+  const kindOf = pick(raw.kind, KINDS, 'CONFERENCE')
+  if (speaking === 'UNKNOWN' && programFormats.some((f) => (SESSION_FORMATS as readonly string[]).includes(f))) speaking = 'LIKELY'
+  // A conference, summit or workshop is built from sessions, so speakers exist even when the program is not listed.
+  else if (speaking === 'UNKNOWN' && kindOf !== 'TRADE_SHOW') speaking = 'LIKELY'
   const row = {
     id, name, organizer: str(raw.organizer, 120), url: link,
-    kind: pick(raw.kind, KINDS, 'CONFERENCE'), format: pick(raw.format, FORMATS, 'IN_PERSON'),
+    kind: kindOf, format: pick(raw.format, FORMATS, 'IN_PERSON'),
     startDate: start, endDate: end, datesConfirmed: confirmed, typicalMonth: str(raw.typicalMonth, 30),
     city: str(raw.city, 80), state: str(raw.state, 2)?.toUpperCase() ?? null, country: str(raw.country, 40) ?? 'US',
-    industries, functions, seniorities: only(raw.seniorities, SENIORITIES),
+    industries, functions, segments, roles, journeys: only(raw.journeys, JOURNEYS), programFormats, seniorities: only(raw.seniorities, SENIORITIES),
     importance: [1, 2, 3].includes(Number(raw.importance)) ? Number(raw.importance) : 2,
     whyAttend: str(raw.whyAttend, 300),
     access, costLow, costHigh, costNote: str(raw.costNote, 300),
-    speaking, speakingUrl: speaking === 'OPEN_CFP' || speaking === 'BY_INVITE' ? url(raw.speakingUrl) : null,
+    speaking, speakingUrl: speaking === 'OPEN_CFP' || speaking === 'BY_INVITE' || speaking === 'LIKELY' ? url(raw.speakingUrl) : null,
     speakingDeadline: speaking === 'OPEN_CFP' ? day(raw.speakingDeadline) : null, speakingNote: str(raw.speakingNote, 300),
     cheaperWays: str(raw.cheaperWays, 400),
     applyUrl: access === 'INVITE' || access === 'APPLY' ? url(raw.applyUrl) : null,
     applyDeadline: access === 'APPLY' ? day(raw.applyDeadline) : null,
     verified,
     // A candidate sees a row only when someone checked it against the event's own site.
-    published: verified,
+    published: verified && !!(start || str(raw.typicalMonth, 30)),
     checkedAt: verified ? day(raw.checkedAt) ?? today : null,
     source: str(raw.source, 80) ?? 'research',
+    adminNote: str(raw.adminNote, 400),
   }
   if (verified && !row.startDate && !row.typicalMonth) problems.push('verified but no dates and no usual month')
   return { row, problems }

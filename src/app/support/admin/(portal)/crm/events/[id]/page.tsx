@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { getEvent } from '@/lib/events/store'
-import { ACCESS, ACCESS_LABEL, FORMATS, FORMAT_LABEL, KINDS, KIND_LABEL, SENIORITIES, SENIORITY_LABEL, SPEAKING, SPEAKING_LABEL } from '@/lib/events/types'
+import { ACCESS, ACCESS_LABEL, FORMATS, JOURNEYS, JOURNEY_LABEL, PROGRAM_FORMATS, PROGRAM_LABEL, FORMAT_LABEL, KINDS, KIND_LABEL, SENIORITIES, SENIORITY_LABEL, SPEAKING, SPEAKING_LABEL } from '@/lib/events/types'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
+import { INDUSTRIES, TAXONOMY } from '@/lib/events/taxonomy'
 import { deleteEvent, saveEvent } from '../actions'
 
 const field = 'w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-brand'
@@ -74,8 +75,19 @@ export default async function EventEditor({ params, searchParams }: { params: Pr
         <fieldset className="space-y-3 rounded-lg border border-border p-4">
           <legend className="px-1 text-sm font-semibold">Who it is for (leave a group empty for everyone)</legend>
           <div><Label>Functions</Label><Checks name="functions" options={PRIMARY_FUNCTION_OPTIONS} selected={e?.functions ?? []} /></div>
+          <div><Label hint="leave empty for any journey">Journeys</Label><Checks name="journeys" options={JOURNEYS} selected={e?.journeys ?? []} labels={JOURNEY_LABEL} /></div>
           <div><Label>Seniority</Label><Checks name="seniorities" options={SENIORITIES} selected={e?.seniorities ?? []} labels={SENIORITY_LABEL} /></div>
           <div><Label>Industries</Label><Checks name="industries" options={INDUSTRY_BUCKET_NAMES} selected={e?.industries ?? []} /></div>
+          <div className="space-y-2">
+            <Label hint="sub-industries and communities, grouped by industry">Segments</Label>
+            {INDUSTRIES.map((ind) => (
+              <details key={ind} open={(e?.industries ?? []).includes(ind) || Object.keys(TAXONOMY[ind]).some((s) => (e?.segments ?? []).includes(s))}>
+                <summary className="cursor-pointer text-sm font-medium">{ind}</summary>
+                <div className="pt-1.5 pl-3"><Checks name="segments" options={Object.keys(TAXONOMY[ind])} selected={e?.segments ?? []} /></div>
+              </details>
+            ))}
+          </div>
+          <label className="block"><Label hint="comma separated, e.g. school principal, assistant principal">Specific jobs this event is for</Label><input name="roles" defaultValue={(e?.roles ?? []).join(', ')} className={field} /></label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label><Label hint="1 flagship, 2 major, 3 niche">Importance</Label><select name="importance" defaultValue={e?.importance ?? 2} className={field}><option value="1">1 · Flagship</option><option value="2">2 · Major</option><option value="3">3 · Niche</option></select></label>
             <label><Label hint="one line on the networking value">Why attend</Label><input name="whyAttend" defaultValue={e?.whyAttend ?? ''} className={field} /></label>
@@ -98,6 +110,7 @@ export default async function EventEditor({ params, searchParams }: { params: Pr
         <fieldset className="space-y-3 rounded-lg border border-border p-4">
           <legend className="px-1 text-sm font-semibold">Speaking</legend>
           <div className="grid gap-3 sm:grid-cols-4">
+            <div className="sm:col-span-4"><Label hint="sessions imply a way onto the stage">Program has</Label><Checks name="programFormats" options={PROGRAM_FORMATS} selected={e?.programFormats ?? []} labels={PROGRAM_LABEL} /></div>
             <label className="sm:col-span-2"><Label>Path</Label><select name="speaking" defaultValue={e?.speaking ?? 'UNKNOWN'} className={field}>{SPEAKING.map((a) => <option key={a} value={a}>{SPEAKING_LABEL[a]}</option>)}</select></label>
             <label className="sm:col-span-2"><Label>Submit by</Label><input type="date" name="speakingDeadline" defaultValue={iso(e?.speakingDeadline ?? null)} className={field} /></label>
             <label className="sm:col-span-4"><Label>Speaker page link</Label><input name="speakingUrl" defaultValue={e?.speakingUrl ?? ''} placeholder="https://" className={field} /></label>

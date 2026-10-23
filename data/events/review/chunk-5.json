@@ -1,0 +1,905 @@
+[
+ {
+  "id": "boardroom-summit-corporate-board-member",
+  "action": "jumpball",
+  "reason": "boardmember.com/boardroomsummit shows the 23rd Boardroom Summit Sept 14-15, 2027 in New York ($2,295-$2,495 individual registration, rate schedule to $2,995) but states it is 'attended exclusively by public company board directors'; owner must decide whether to show it to candidates who are not sitting public-company directors (eligibility gate) and, if so, tag it EXECUTIVE-only with access APPLY."
+ },
+ {
+  "id": "hbs-eta-conference",
+  "action": "publish",
+  "reason": "hbsetaclub.com is an expired Squarespace site, but hbs.edu club-conferences page (official HBS) lists the Entrepreneurship Through Acquisition Conference Saturday, November 14, 2026; no price on the HBS page (tickets via club registration).",
+  "patch": {
+   "url": "https://www.hbs.edu/mba/student-life/activities-government-and-clubs/club-conferences",
+   "startDate": "2026-11-14",
+   "endDate": "2026-11-14",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Boston",
+   "state": "MA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Student-run one-day conference; HBS page lists date only, ticket price not published there; HBS notes dates are subject to change and ticket availability may be limited.",
+   "speaking": "UNKNOWN",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "rice-business-plan-competition",
+  "action": "publish",
+  "reason": "rbpc.rice.edu home shows the 27th RBPC April 8-10, 2027 with student-startup applications opening November 9 and a Volunteer menu; judges page says judging is strictly by invitation.",
+  "patch": {
+   "url": "https://rbpc.rice.edu/",
+   "startDate": "2027-04-08",
+   "endDate": "2027-04-10",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Houston",
+   "state": "TX",
+   "country": "US",
+   "access": "APPLY",
+   "applyUrl": "https://rbpc.rice.edu/",
+   "costNote": "Competing student teams apply (applications open Nov 9, 2026); judges and screeners are by invitation only; no attendee price published.",
+   "speaking": "NONE",
+   "speakingNote": "Judges are invited; no public call for speakers.",
+   "cheaperWays": "Volunteer program listed on rbpc.rice.edu.",
+   "programFormats": [
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "wbenc-summit-salute",
+  "action": "publish",
+  "reason": "wbenc.org conference FAQ/location pages (read via fetch; site blocks plain curl) show the 2026 National Conference June 15-18 in Salt Lake City, open to certified WBEs, corporate members, buyers and non-certified owners; 2027 dates not yet posted but event is annual (WBEC regional page lists complimentary 2027 registration as a prize).",
+  "patch": {
+   "url": "https://www.wbenc.org/conference/faqs/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Attendee pricing is on WBENC's pricing page, not read; exhibitor/sponsor extra full passes $649; companion pass $200.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "naea-tax-summit",
+  "action": "publish",
+  "reason": "naea.org/tax-summit shows Tax Summit 2027 July 18-21, 2027 in Nashville with early-bird $1,000 member / $1,325 nonmember through Feb 28, 2027; call-for-speakers page accepts 2027 proposals until Oct 30, 2026.",
+  "patch": {
+   "url": "https://www.naea.org/tax-summit/",
+   "startDate": "2027-07-18",
+   "endDate": "2027-07-21",
+   "datesConfirmed": true,
+   "typicalMonth": "July",
+   "city": "Nashville",
+   "state": "TN",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 1000,
+   "costHigh": 1325,
+   "costNote": "Early-bird rates valid through Feb 28, 2027 (member $1,000; nonmember $1,325); higher after.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.naea.org/events/call-for-speakers/",
+   "speakingDeadline": "2026-10-30",
+   "speakingNote": "One proposal form covers Tax Summit and webinars.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "esomar-congress",
+  "action": "publish",
+  "reason": "esomar.org/events/congress-2026 shows Congress 2026 1-4 Sept in Valencia (already over) and calls it ESOMAR's flagship annual event; no 2027 edition posted yet, so usual month September; End Clients/Research Buyers get a flat EUR 500 rate.",
+  "patch": {
+   "url": "https://esomar.org/events/congress-2026",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "ES",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2026 edition: flat EUR 500 for end clients/research buyers (qualification review); standard rate not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "End-client/research-buyer flat fee EUR 500 (2026 edition).",
+   "programFormats": [
+    "KEYNOTE",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "pubcon",
+  "action": "drop",
+  "reason": "pubcon.com now only shows Pubcon Pro Virtual (Jan 14, 2026, already past); no in-person or 2027 edition announced, so effectively paused/virtual webinar-style."
+ },
+ {
+  "id": "surface-navy-national-symposium",
+  "action": "publish",
+  "reason": "surfacewarfare.org/events/national-symposium states the 39th Annual National Symposium is January 12-14, 2027 at the Hyatt Regency and Marriott Renaissance, National Landing, Arlington VA; registration opens early November; 90+ exhibitors, 4,000+ attendees.",
+  "patch": {
+   "url": "https://surfacewarfare.org/events/national-symposium/",
+   "startDate": "2027-01-12",
+   "endDate": "2027-01-14",
+   "datesConfirmed": true,
+   "typicalMonth": "January",
+   "city": "Arlington",
+   "state": "VA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration opens early November 2026; price not yet published.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "usda-agricultural-outlook-forum",
+  "action": "publish",
+  "reason": "usda.gov Forum page calls it the Department's oldest and largest annual event (about 1,600 in person plus 3,000 virtual); 102nd Forum was Feb 19-20, 2026 at Crystal City Gateway Marriott; 2027 dates not yet posted.",
+  "patch": {
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "February",
+   "city": "Arlington",
+   "state": "VA",
+   "country": "US",
+   "costNote": "Fee not stated on the Forum page; 2026 sessions were also livestreamed.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Virtual livestream participation was offered in 2026.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "cfma-annual-conference",
+  "action": "publish",
+  "reason": "cfma.org/annual lists May 22-26, 2027 at Gaylord Opryland, Nashville (and June 10-14, 2028 Chula Vista) with registration not yet open.",
+  "patch": {
+   "url": "https://cfma.org/annual",
+   "startDate": "2027-05-22",
+   "endDate": "2027-05-26",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Nashville",
+   "state": "TN",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration for Nashville is not open yet; price not published.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "neocon",
+  "action": "publish",
+  "reason": "neocon.com home shows NeoCon 2027 June 13-16, 2027 at The Mart, Chicago, 400+ exhibitors; register page says show registration opens in February.",
+  "patch": {
+   "url": "https://neocon.com/",
+   "startDate": "2027-06-13",
+   "endDate": "2027-06-16",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Chicago",
+   "state": "IL",
+   "country": "US",
+   "costNote": "2027 registration opens February 2027; price not yet published.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "carnegie-chief-of-staff-summit",
+  "action": "drop",
+  "reason": "Carnegie (higher-ed marketing/consulting vendor) page is its sponsorship listing for a small peer-led summit held July 16-17, 2026; the edition is over, no 2027 edition announced, and it is a vendor-sponsored closed cohort of presidential chiefs of staff rather than an open industry event."
+ },
+ {
+  "id": "bisnow-central-region-data-center-construction-design-development-conference",
+  "action": "publish",
+  "reason": "bisnow.com event page shows the Central Region Data Center Construction, Design & Development Conference and Expo Tuesday March 23, 2027, 7:30 AM CDT, Dallas, super early bird $429; speakers by contacting Bisnow; complimentary passes by request.",
+  "patch": {
+   "url": "https://www.bisnow.com/events/dallas-ft-worth/data-center/central-construction-design-development-10672",
+   "startDate": "2027-03-23",
+   "endDate": "2027-03-23",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Dallas",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 429,
+   "costHigh": null,
+   "costNote": "Super early bird $429; prices rise by tier as tickets sell.",
+   "speaking": "BY_INVITE",
+   "speakingUrl": "https://www.bisnow.com/events/dallas-ft-worth/data-center/central-construction-design-development-10672",
+   "speakingNote": "Speaker interest handled by emailing Bisnow's data center events director.",
+   "cheaperWays": "Page invites email requests for complimentary passes.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "us-power-data-center-development-forum",
+  "action": "drop",
+  "reason": "newprojectmedia.com page is the 2026 edition (April 28, 2026 New York, already over); NPM's events page lists only other 2026 forums (DG & Data Center Oct 21-22, UK, Southern Europe) and no 2027 US Power & Data Center edition, so no evidence of a next edition."
+ },
+ {
+  "id": "future-proof-festival",
+  "action": "publish",
+  "reason": "futureproofhq.com shows Future Proof Festival Sept 14-17, 2026 Huntington Beach (over; 2025 was Sept 7-10) with a waitlist for the next edition and an Apply To Speak page; 2027 dates not posted.",
+  "patch": {
+   "url": "https://futureproofhq.com/festival/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "Huntington Beach",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Next-edition pricing not posted (waitlist open).",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://futureproofhq.com/home/apply-to-speak/",
+   "speakingNote": "Public Apply To Speak page on the site.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "appa-engineering-operations-conference",
+  "action": "publish",
+  "reason": "publicpower.org event page shows Engineering & Operations Conference April 11-14, 2027, Raleigh NC; registration page lists early bird by Feb 22 at $995 members / $1,990 non-members, then $1,095 / $2,090; preconference seminars $395; group discounts.",
+  "patch": {
+   "url": "https://www.publicpower.org/engineering-operations-conference",
+   "startDate": "2027-04-11",
+   "endDate": "2027-04-14",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Raleigh",
+   "state": "NC",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 995,
+   "costHigh": 2090,
+   "costNote": "Early bird by Feb 22: $995 member / $1,990 non-member; later $1,095 / $2,090; preconference seminars $395.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Group discount $50-$200 per person for 5+ registrants; member rates about half the non-member price.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "poc-healthcare-summit",
+  "action": "publish",
+  "reason": "potomacofficersclub.com events page lists the 2026 Healthcare Summit Dec 3, 2026 at the Hilton McLean, VA (federal health leaders from HHS, DHA, VHA, CMS) and a 2027 Healthcare Summit with date TBD; POC is a membership org for government contractors.",
+  "patch": {
+   "url": "https://www.potomacofficersclub.com/events/2026-healthcare-summit/",
+   "startDate": "2026-12-03",
+   "endDate": "2026-12-03",
+   "datesConfirmed": true,
+   "typicalMonth": "December",
+   "city": "McLean",
+   "state": "VA",
+   "country": "US",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Price not shown on the event page (registration form); 2027 edition date TBD.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "ahrmm-spring-summit",
+  "action": "drop",
+  "reason": "ahrmm.org/spring-summit is the 2026 one-day virtual summit (April 15, 2026) now sold only on demand ($79 member / $199 non-member); no 2027 edition announced and it is a virtual webinar-style event."
+ },
+ {
+  "id": "nnphi-annual-conference",
+  "action": "publish",
+  "reason": "nnphi.org event page shows the 2027 NNPHI Annual Conference April 27-29, 2027 in New Orleans with abstract submissions and award nominations open until November 13.",
+  "patch": {
+   "url": "https://nnphi.org/events/2027-nnphi-annual-conference/",
+   "startDate": "2027-04-27",
+   "endDate": "2027-04-29",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "New Orleans",
+   "state": "LA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration price not yet published on the event page.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://nnphi.org/events/2027-nnphi-annual-conference/",
+   "speakingDeadline": "2026-11-13",
+   "speakingNote": "Abstract submissions open until Nov 13, 2026.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "destinations-international-marketing-communications-summit",
+  "action": "publish",
+  "reason": "destinationsinternational.org page shows Marketing & Communications Summit February 23-25, 2027 in Miami, FL (peer-to-peer networking for destination marketing professionals); prior-year agenda and pricing linked, 2027 details to follow.",
+  "patch": {
+   "url": "https://destinationsinternational.org/events/marketing-communications-summit",
+   "startDate": "2027-02-23",
+   "endDate": "2027-02-25",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Miami",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not yet released; sign-up for alerts.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "duck-creek-formation",
+  "action": "drop",
+  "reason": "events.duckcreek.com shows only Formation 2026 (April 27-29, 2026 Orlando, already over) with no 2027 edition or save-the-date; it is a single software vendor's customer conference."
+ },
+ {
+  "id": "diligent-elevate",
+  "action": "publish",
+  "reason": "diligent.com/elevate shows Elevate 2027 April 7-9, 2027 in Orlando with registration open and early-bird pricing; 2026 edition recap (GRC leaders).",
+  "patch": {
+   "url": "https://www.diligent.com/elevate",
+   "startDate": "2027-04-07",
+   "endDate": "2027-04-09",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Early-bird pricing mentioned; amounts not shown on the page.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "astm-icam",
+  "action": "publish",
+  "reason": "amcoe.org/event/icam2027 (organizer AM CoE) shows ICAM 2027 save-the-date Sept 20-24, 2027 at the Marriott Marquis, Washington DC; 2026 edition was Sept 28-Oct 2 Orlando with a call for abstracts (astm.org press release).",
+  "patch": {
+   "source": "official site",
+   "url": "https://amcoe.org/event/icam2027/",
+   "startDate": "2027-09-20",
+   "endDate": "2027-09-24",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration details not yet posted (save the date).",
+   "speaking": "UNKNOWN",
+   "speakingNote": "2026 edition ran a public call for abstracts; 2027 call not posted yet.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "vpppa-safety-symposium",
+  "action": "publish",
+  "reason": "safety.vpppa.org states the 2027 Safety+ Symposium is in Indianapolis August 22-25, 2027 and its call-for-workshops page shows those dates with submission deadline October 9, 2026 (speaker agreement Nov 12).",
+  "patch": {
+   "url": "https://safety.vpppa.org/",
+   "startDate": "2027-08-22",
+   "endDate": "2027-08-25",
+   "datesConfirmed": true,
+   "typicalMonth": "August",
+   "city": "Indianapolis",
+   "state": "IN",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration price not yet published.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://safety.vpppa.org/call-for-workshops/",
+   "speakingDeadline": "2026-10-09",
+   "speakingNote": "2027 call for workshops is open to Oct 9, 2026; speaker agreement due Nov 12.",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "nrl-business-of-sport-conference",
+  "action": "publish",
+  "reason": "nrl.com page shows the NRL Business of Sport Conference Friday Feb 26, 2027, 9:30am-2:00pm at Rose Ballroom, Resorts World Las Vegas; 300+ VIPs/C-suite in 2026; tickets sold via the page.",
+  "patch": {
+   "url": "https://www.nrl.com/rugby-league-in-las-vegas-2027/business-of-sport-conference/",
+   "startDate": "2027-02-26",
+   "endDate": "2027-02-26",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Ticket price not shown on the page.",
+   "speaking": "BY_INVITE",
+   "speakingNote": "Line-up curated by NRL; speakers to be announced.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "catholic-charities-usa-annual-gathering",
+  "action": "publish",
+  "reason": "catholiccharitiesusa.org Annual Gathering archive has posts for the 2024, 2025 and 2026 gatherings (2026 held Oct 12-15 in Richmond VA per CCUSA's Oct 20, 2026 post) so it recurs each fall; 2027 location and dates not announced.",
+  "patch": {
+   "url": "https://www.catholiccharitiesusa.org/category/annual-gathering/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not published on the archive page.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "sri-conference",
+  "action": "drop",
+  "reason": "The row points at an old SRI Conference page; Mission Investors Exchange appears to have replaced the SRI name with its National Conference (April 27-29, 2026, Atlanta, now over per search results), no 2027 edition could be found, and missioninvestors.org sits behind a Cloudflare bot check so the official site could not be read."
+ },
+ {
+  "id": "scdm-annual-conference",
+  "action": "publish",
+  "reason": "scdm.org home shows the SCDM 2026 Annual Conference Sept 14-17, 2026 in Raleigh NC plus a 2027 EMEA conference in Athens April 18-21; the annual conference recurs each fall, 2027 US dates not yet posted.",
+  "patch": {
+   "url": "https://scdm.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "project-control-summit",
+  "action": "publish",
+  "reason": "projectcontrolsummit.com shows the 8th Annual Global Conference April 23-25, 2027 at the Ritz-Carlton Dallas, Las Colinas, Irving TX, super early bird saves $300 and 3+ person group discounts, speakers being selected.",
+  "patch": {
+   "url": "https://projectcontrolsummit.com/",
+   "startDate": "2027-04-23",
+   "endDate": "2027-04-25",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Irving",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Super early bird saves $300 off the ticket; list price not shown on the page.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Super early bird (save $300); group registration savings for 3 or more attendees.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "hro-today-forum-north-america",
+  "action": "publish",
+  "reason": "hrotoday.com page announces the 2027 HRO Today Forum North America May 12-14, 2027 (venue The Westin Old Town, Alexandria VA; page headline says Washington DC), registration open with early-bird pricing, senior HR leaders audience.",
+  "patch": {
+   "url": "https://www.hrotoday.com/hro-today-north-america-forum/",
+   "startDate": "2027-05-12",
+   "endDate": "2027-05-14",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Alexandria",
+   "state": "VA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Early-bird pricing mentioned; amounts not shown on the page.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "agentforce-world-tour-new-york",
+  "action": "publish",
+  "reason": "salesforce.com/events lists Salesforce World Tour New York on December 3, 2026 with 'Register for free' (Agentforce-focused).",
+  "patch": {
+   "name": "Salesforce World Tour New York (Agentforce)",
+   "url": "https://www.salesforce.com/events/",
+   "startDate": "2026-12-03",
+   "endDate": "2026-12-03",
+   "datesConfirmed": true,
+   "typicalMonth": "December",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "FREE",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Free registration.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "genesys-xperience",
+  "action": "publish",
+  "reason": "genesys.com/xperience shows Xperience 2026 now on demand, regional Xperience tour stops (Washington DC Oct 27, San Francisco Nov 5, 2026), and says 2027 dates and location will be announced soon.",
+  "patch": {
+   "url": "https://www.genesys.com/xperience",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not announced.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "revenue-operations-festival-new-york",
+  "action": "publish",
+  "reason": "events.revenueoperationsalliance.com/location/nycjuly shows Revenue Operations Festival, July 8, 2027, Convene 30 Hudson Yards, New York; one-day hands-on festival with agenda and ticket link.",
+  "patch": {
+   "url": "https://events.revenueoperationsalliance.com/location/nycjuly",
+   "startDate": "2027-07-08",
+   "endDate": "2027-07-08",
+   "datesConfirmed": true,
+   "typicalMonth": "July",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Ticket price not shown on the page.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://events.revenueoperationsalliance.com/",
+   "speakingNote": "Series home page has an Apply to be a speaker link.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "women-in-tech-global-conference",
+  "action": "publish",
+  "reason": "womentech.net/women-tech-conference shows the 8th Women in Tech Global Conference May 18-21, 2027, virtual-first with in-person satellite events, an apply-to-speak form, and shop.womentech.net tickets from $49 (ally, super early bird) to $999 regular executive.",
+  "patch": {
+   "url": "https://www.womentech.net/women-tech-conference",
+   "format": "HYBRID",
+   "startDate": "2027-05-18",
+   "endDate": "2027-05-21",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costLow": 49,
+   "costHigh": 999,
+   "costNote": "Super early bird: ally $49, executive $399 (regular $119 and $999); VIP $69 (regular $199); annual membership bundle includes a VIP ticket.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.womentech.net/form/apply-to-speak",
+   "speakingNote": "Public apply-to-speak form; 700+ speakers.",
+   "cheaperWays": "Super early bird ticket pricing; virtual-first format.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "ctaa-expo",
+  "action": "publish",
+  "reason": "ctaa.org/ctaa-events states EXPO 2027 is in Atlantic City, NJ June 6-9 (2026 was Omaha May 10-13); the about page calls it the premier annual event for community and public transportation professionals with a trade fair.",
+  "patch": {
+   "url": "https://ctaa.org/about_expo/",
+   "startDate": "2027-06-06",
+   "endDate": "2027-06-09",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Atlantic City",
+   "state": "NJ",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration price not shown on the pages read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ },
+ {
+  "id": "superreturn-private-credit-north-america",
+  "action": "publish",
+  "reason": "informaconnect.com/superreturn-private-credit shows SuperReturn Private Credit North America November 16-18, 2026 at Convene Madison Avenue, New York; LPs can apply to attend free, final savings (up to $300) end October 30.",
+  "patch": {
+   "url": "https://informaconnect.com/superreturn-private-credit/",
+   "startDate": "2026-11-16",
+   "endDate": "2026-11-18",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "MIXED",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Paid passes for GPs/service providers (price shown at booking; book by Oct 30 to save up to $300); LPs apply for free.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Institutional LPs can apply to attend for free.",
+   "applyUrl": "https://informaconnect.com/superreturn-private-credit/",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "published": true
+  }
+ }
+]

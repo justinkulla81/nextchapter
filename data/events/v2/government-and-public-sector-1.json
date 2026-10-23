@@ -1,0 +1,1601 @@
+[
+ {
+  "id": "nascio-annual-conference",
+  "name": "NASCIO Annual Conference",
+  "organizer": "NASCIO",
+  "url": "https://www.nascio.org/events/conferences/annual/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "State CIOs and senior state IT leaders meet peers and about 200 vendor companies; no exhibit hall, member-driven program.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Open to NASCIO members only (state CIOs, deputies, corporate members); each organization limits how many representatives it can send. Fee not published on the page. 2026 edition was in San Diego; 2027 dates not yet posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.nascio.org/events/conferences/annual/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "State government"
+  ],
+  "roles": [
+   "state cio",
+   "state agency leader"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "icma-annual-conference",
+  "name": "ICMA Annual Conference",
+  "organizer": "ICMA (International City/County Management Association)",
+  "url": "https://conference.icma.org/about-the-show/future-past-icma-conferences/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-25",
+  "endDate": "2027-09-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Toronto",
+  "state": null,
+  "country": "CA",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "The main yearly gathering of city and county managers, assistant managers and local government staff, with an exhibit hall of solution providers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not on the page. ICMA lists early-career and regional discounts under its Registration menu and a Scholarship Opportunities page. 2026 edition is Oct 17-21 in Long Beach, CA.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://conference.icma.org/about-the-show/future-past-icma-conferences/",
+  "speakingDeadline": null,
+  "speakingNote": "Site links a Call for Presentations page; deadline for the 2027 edition not read.",
+  "cheaperWays": "Early-career and regional discounts; scholarship program (details on ICMA pages).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager",
+   "county administrator",
+   "municipal finance officer"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "naco-annual-conference",
+  "name": "NACo Annual Conference & Exposition",
+  "organizer": "National Association of Counties",
+  "url": "https://www.naco.org/events/future-conference-dates",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-23",
+  "endDate": "2027-07-26",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "County commissioners, administrators and finance staff from across the country plus federal and vendor partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not published on the page I read. 2028 edition is Indianapolis, July 21-24.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "county administrator",
+   "municipal finance officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naco-legislative-conference",
+  "name": "NACo Legislative Conference",
+  "organizer": "National Association of Counties",
+  "url": "https://www.naco.org/events/future-conference-dates",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-19",
+  "endDate": "2027-02-23",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "County officials and administrators meet Congress and federal agencies to push county priorities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not published on the page I read. Listing shows Feb 19-23 (featured listing says Feb 20-23).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "county administrator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nlc-congressional-city-conference",
+  "name": "NLC Congressional City Conference",
+  "organizer": "National League of Cities",
+  "url": "https://nlc.org/events/2027-congressional-city-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Mayors, council members and city staff lobby Congress and federal agencies; Hill Day is included in registration at no extra cost.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens November 2026 at City Summit; prices not yet posted. Marriott Marquis; pre-conference Mar 13-14.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site gives no call for speakers.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ncsl-legislative-summit",
+  "name": "NCSL Legislative Summit",
+  "organizer": "National Conference of State Legislatures",
+  "url": "https://www.ncsl.org/events/legislative-summit",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-09",
+  "endDate": "2027-08-11",
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "The largest meeting for state legislators and legislative staff, with state agency and budget leaders in the room.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and city come from press on the host-state gavel handoff, not the NCSL page I read; 2027 registration not posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "State government"
+  ],
+  "roles": [
+   "state agency leader",
+   "state budget officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "gfoa-annual-conference",
+  "name": "GFOA Annual Conference",
+  "organizer": "Government Finance Officers Association",
+  "url": "https://www.gfoa.org/2027-overview",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "The key gathering for local, state and special-district finance officers: 80+ sessions and 6,000+ practitioners and vendors.",
+  "access": "PAID",
+  "costLow": 600,
+  "costHigh": 1140,
+  "costNote": "2026 fees shown for reference: $600 government member to $1,140 non-member full registration; $310 single day; preconference sessions $250-$315 extra. 2027 fees announced fall 2026; registration opens November 2026.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.gfoa.org/2027-overview",
+  "speakingDeadline": null,
+  "speakingNote": "Call for Topics open to practitioners, sponsors and exhibitors; deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "City and county government",
+   "State government"
+  ],
+  "roles": [
+   "municipal finance officer",
+   "state budget officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aspa-annual-conference",
+  "name": "ASPA Annual Conference",
+  "organizer": "American Society for Public Administration",
+  "url": "https://aspanet.org/ASPA/Events/Annual-Conference/2027-FAQs.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-09",
+  "endDate": "2027-04-13",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Public administrators across federal, state and local government plus academics; strong early-career and student presence.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees posted on a separate registration page I did not read; members including students and new professionals get reduced rates. Hyatt Regency New Orleans.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": "2026-09-18",
+  "speakingNote": "Call for Proposals closed Sept 18, 2026; notifications in November. In person only.",
+  "cheaperWays": "Member rates include students and new professionals.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Federal civilian agencies",
+   "State government",
+   "City and county government"
+  ],
+  "roles": [
+   "federal program manager",
+   "state agency leader",
+   "city manager"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nasbo-annual-meeting",
+  "name": "NASBO Annual Meeting",
+  "organizer": "National Association of State Budget Officers",
+  "url": "https://www.nasbo.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State budget directors and fiscal staff meet each summer; NASBO also runs Spring and Fall meetings.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party listings gave July 26-29, 2026 (Philadelphia); 2027 not found. NASBO site lists Spring, Annual and Fall meetings but no dates on the public page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "State government"
+  ],
+  "roles": [
+   "state budget officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nasact-annual-conference",
+  "name": "NASACT Annual Conference",
+  "organizer": "National Association of State Auditors, Comptrollers and Treasurers",
+  "url": "https://www.nasact.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State treasurers, auditors and comptrollers, with corporate sponsors; the field's yearly gathering for state financial management.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and fees for 2027 not on the site pages I read; 2026 edition was in Atlanta in August (third-party). NASACT also hosts NSAA and NASC annual conferences.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "State government"
+  ],
+  "roles": [
+   "state budget officer",
+   "state agency leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "csg-national-conference",
+  "name": "CSG National Conference",
+  "organizer": "The Council of State Governments",
+  "url": "https://www.csg.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-03",
+  "endDate": "2026-12-06",
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Elected and appointed officials from all three branches of state government trade policy ideas.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "csg.org returned 403 to my fetch; dates come from a CSG regional site listing. Cost not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "State government"
+  ],
+  "roles": [
+   "state agency leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "us-conference-of-mayors-annual-meeting",
+  "name": "U.S. Conference of Mayors Annual Meeting",
+  "organizer": "The U.S. Conference of Mayors",
+  "url": "https://www.usmayors.org",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Mayors of cities over 30,000, with city managers and staff in tow; also holds a Winter Meeting in Washington.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Open to member mayors and invited guests. 2027 annual meeting moved from Providence to Atlanta per press; June 2027 date not confirmed on the site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tml-annual-conference",
+  "name": "TML Annual Conference & Exhibition",
+  "organizer": "Texas Municipal League",
+  "url": "https://www.tml.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-11",
+  "endDate": "2026-11-13",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Texas mayors, council members, city managers and finance directors under one roof; one of the largest state municipal league meetings.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "TML site shows Nov 11; city and Nov 13 end from third-party listings. Prices on tmlconference.org, not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager",
+   "municipal finance officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "transforming-local-government",
+  "name": "Transforming Local Government (TLG)",
+  "organizer": "Alliance for Innovation",
+  "url": "https://www.transformgov.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Innovation-minded local government managers and staff share case studies; about 300 attendees and 66 speakers in 2025.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Dallas, April 20-22 (third-party). 2027 dates and fees not found.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.transformgov.org",
+  "speakingDeadline": "2026-10-30",
+  "speakingNote": "TLG 2027 case study submission deadline extended to Oct 30, 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager",
+   "county administrator"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nfbpa-forum",
+  "name": "NFBPA FORUM",
+  "organizer": "National Forum for Black Public Administrators",
+  "url": "https://nfbpaforum.cventevents.com/event/FORUM2027/register-1",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-21",
+  "endDate": "2027-04-25",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Black public managers and executives in over 350 jurisdictions; strong mentoring and executive networking.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration rate not shown (a flash sale was advertised); members get discounted registration.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nfbpa.org",
+  "speakingDeadline": null,
+  "speakingNote": "Call for FORUM 2027 session proposals posted Oct 9, 2026 on nfbpa.org.",
+  "cheaperWays": "Member discounts.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "City and county government",
+   "State government"
+  ],
+  "roles": [
+   "city manager",
+   "county administrator",
+   "state agency leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "lghn-annual-conference",
+  "name": "LGHN Annual Conference",
+  "organizer": "Local Government Hispanic Network",
+  "url": "https://www.lghn.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Hispanic local government leaders and aspiring managers; networking and leadership development.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site shows a 2026 conference recap but no 2027 date, city or fee.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager",
+   "county administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "iacp-annual-conference",
+  "name": "IACP Annual Conference and Exposition",
+  "organizer": "International Association of Chiefs of Police",
+  "url": "https://www.theiacpconference.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-24",
+  "endDate": "2026-10-27",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "The largest law enforcement gathering: 200+ workshops, 600+ vendors and thousands of chiefs and command staff.",
+  "access": "PAID",
+  "costLow": 500,
+  "costHigh": 700,
+  "costNote": "Early rates seen via search: $500 member, $700 non-member (deadline passed Sept 9, 2026). Open to IACP members, qualified non-members, exhibitors.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Call for proposals closed Feb 12, 2026 for this edition.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "police executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iaem-annual-conference",
+  "name": "IAEM Annual Conference & EMEX",
+  "organizer": "International Association of Emergency Managers",
+  "url": "https://www.iaem.org/usconf/2026-registration/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-06",
+  "endDate": "2026-11-12",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Long Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The emergency management profession's annual gathering: sessions, training, EMEX exhibit hall.",
+  "access": "PAID",
+  "costLow": 725,
+  "costHigh": null,
+  "costNote": "Early-bird full registration $725 for members (deadline Aug 31, 2026); lower student and emerging-professional rates. Later rates not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student and emerging professional rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "emergency manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nema-annual-forum",
+  "name": "NEMA Annual Forum",
+  "organizer": "National Emergency Management Association",
+  "url": "https://nemaweb.org/forums/nema-annual-forum/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State emergency management directors, federal partners and corporate members meet; the 2026 edition just ended Oct 22.",
+  "access": "PAID",
+  "costLow": 650,
+  "costHigh": 1000,
+  "costNote": "2026 fees: state member $650, organizational/individual $750 member to $1,000 non-member, corporate $875-$1,575, student $125-$225. 2027 forum not yet posted; Mid-Year Forum sponsorship opens December.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student rate $125 member / $225 non-member.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "emergency manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "national-hurricane-conference",
+  "name": "National Hurricane Conference",
+  "organizer": "National Hurricane Conference",
+  "url": "https://www.hurricanemeeting.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Juan",
+  "state": "PR",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 2,500 federal, state and local emergency managers and officials trade hurricane and disaster preparedness practice.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees on a separate site; not read. Expo May 25-26.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "emergency manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iafc-fire-rescue-international",
+  "name": "Fire-Rescue International (FRI)",
+  "organizer": "International Association of Fire Chiefs",
+  "url": "https://www.iafc.org/events/fri",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-18",
+  "endDate": "2027-08-20",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Chiefs and fire service leaders from across the country with a large apparatus and technology exhibit.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "No price on the page I read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.iafc.org/events/fri",
+  "speakingDeadline": null,
+  "speakingNote": "Page says FRI 2027 Call for Presenters is open via an online form; deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "fire chief"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fdic-international",
+  "name": "FDIC International",
+  "organizer": "Clarion Events",
+  "url": "https://www.fdic.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-17",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The big fire service training show: hands-on training, classes and 800+ exhibitors for officers and chiefs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates come from search listings; the page shows a 2027 banner and says registration is open but no prices. Organizer inferred from Clarion links on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "fire chief"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nsa-annual-conference",
+  "name": "NSA Annual Conference & Exposition",
+  "organizer": "National Sheriffs' Association",
+  "url": "https://www.sheriffs.org/Conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-20",
+  "endDate": "2027-06-24",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Sheriffs, deputies and law enforcement executives with a technology expo.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not listed on the conferences page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "police executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nsa-winter-conference",
+  "name": "NSA Winter Conference",
+  "organizer": "National Sheriffs' Association",
+  "url": "https://www.sheriffs.org/Conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-08",
+  "endDate": "2027-02-11",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Sheriffs meet Congress and federal agencies in Washington.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Omni Shoreham; fees not listed on the page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.sheriffs.org/Conferences",
+  "speakingDeadline": null,
+  "speakingNote": "Seminar submissions for the 2027 Winter Conference opened Aug 1, 2026; seminars must be educational, not sales pitches.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "police executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fbinaa-national-annual-training-conference",
+  "name": "FBINAA National Annual Training Conference",
+  "organizer": "FBI National Academy Associates",
+  "url": "https://www.fbinaa.org/education/national-annual-training-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-12",
+  "endDate": "2027-07-15",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Nearly 2,000 law enforcement leaders (FBI National Academy graduates) with 50 hours of programming and an exhibition.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on the conference microsite, not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.fbinaa.org/education/national-annual-training-conference/",
+  "speakingDeadline": "2026-11-02",
+  "speakingNote": "Proposals due Nov 2, 2026, 5:00 p.m. ET.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "police executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "noble-annual-training-conference",
+  "name": "NOBLE Annual Training Conference",
+  "organizer": "National Organization of Black Law Enforcement Executives",
+  "url": "https://www.noblenational.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Black law enforcement executives and rising leaders; 50th annual conference was July 2026 in Dallas.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not posted; fees not listed on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "police executive"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "apco-annual-conference",
+  "name": "APCO International Annual Conference & Expo",
+  "organizer": "APCO International",
+  "url": "https://www.apcointl.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Public safety communications leaders: 911 center directors, emergency managers and technology vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and fees for APCO 2027 not on the pages I read; city is a guess from the nearby Innovation Summit and not confirmed.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.apcointl.org",
+  "speakingDeadline": "2026-12-07",
+  "speakingNote": "Proposals for APCO 2027 due December 7 (submit at apco2027.org/education).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "emergency manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "perf-annual-meeting",
+  "name": "PERF Annual Meeting",
+  "organizer": "Police Executive Research Forum",
+  "url": "https://www.policeforum.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Police chiefs and executives discuss policy; 2025 edition ran in Nashville with member and non-member registration.",
+  "access": "PAID",
+  "costLow": 600,
+  "costHigh": 700,
+  "costNote": "2025 prices $600 member / $700 non-member (from search); 2027 meeting not found on the site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "roles": [
+   "police executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fedtalks",
+  "name": "FedTalks",
+  "organizer": "Scoop News Group",
+  "url": "https://www.cyberscoop.com/attend",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-17",
+  "endDate": "2026-11-17",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Federal technology and program leaders gather at one day of talks with industry; held at the Waldorf Astoria.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cost and audience rules not listed on the events page (each event has a Register link).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "roles": [
+   "federal program manager",
+   "senior executive service"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "act-iac-emerging-technology-innovation-conference",
+  "name": "ACT-IAC Emerging Technology & Innovation Conference",
+  "organizer": "ACT-IAC",
+  "url": "https://www.actiac.org/upcoming-major-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Federal program and technology leaders with industry partners; ACT-IAC's flagship alongside Imagine Nation ELC.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "actiac.org returned 403 to my fetch; 2026 edition was May 14-15 at Hyatt Regency Crystal City per search. 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "roles": [
+   "federal program manager",
+   "senior executive service"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aga-professional-development-training",
+  "name": "AGA Professional Development Training (PDT)",
+  "organizer": "Association of Government Accountants",
+  "url": "https://pdt.agacgfm.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Federal, state and local government financial managers; earns up to 20 NASBA CPE hours.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "AGA home page links PDT as its national event; 2026 was July 21-23 in Washington per a listing. 2027 dates and fees not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Federal civilian agencies",
+   "State government",
+   "City and county government"
+  ],
+  "roles": [
+   "federal program manager",
+   "municipal finance officer",
+   "state budget officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "senior-executive-leadership-summit",
+  "name": "Senior Executive Leadership Summit",
+  "organizer": "Senior Executives Association with the Partnership for Public Service",
+  "url": "https://www.seniorexecs.org/senior-executive-leadership-summit",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Career members of the Senior Executive Service and those preparing to enter it.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says 2027 summit information is pending; no dates or fees.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "roles": [
+   "senior executive service"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "govhr-conference",
+  "name": "GovHR Conference",
+  "organizer": "Partnership for Public Service",
+  "url": "https://ourpublicservice.org/events/govhr-conference-2026",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "HR leaders across federal, state and local government; third edition was Sept 15-17, 2026.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition not announced; cost not on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Federal civilian agencies",
+   "State government",
+   "City and county government"
+  ],
+  "roles": [
+   "federal program manager",
+   "state agency leader"
+  ],
+  "journeys": []
+ }
+]

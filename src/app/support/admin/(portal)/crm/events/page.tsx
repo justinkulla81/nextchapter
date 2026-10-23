@@ -18,7 +18,7 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
   const sp = await searchParams
   const fn = PRIMARY_FUNCTION_OPTIONS.find((f) => f === sp.function)
   const ind = INDUSTRY_BUCKET_NAMES.find((i) => i === sp.industry)
-  const show = ['published', 'hidden', 'unverified'].includes(sp.show ?? '') ? sp.show : undefined
+  const show = ['published', 'hidden', 'unverified', 'call'].includes(sp.show ?? '') ? sp.show : undefined
   const access = (Object.keys(ACCESS_LABEL) as Access[]).find((a) => a === sp.access)
   const q = sp.q?.slice(0, 80).toLowerCase()
 
@@ -32,6 +32,7 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
     missing = true
   }
   const total = rows.length
+  const rows0 = rows
   rows = rows.filter(
     (r) =>
       (!fn || r.functions.length === 0 || r.functions.includes(fn)) &&
@@ -40,7 +41,8 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
       (show !== 'published' || r.published) &&
       (show !== 'hidden' || !r.published) &&
       (show !== 'unverified' || !r.verified) &&
-      (!q || `${r.name} ${r.organizer ?? ''} ${r.city ?? ''}`.toLowerCase().includes(q)),
+      (show !== 'call' || (r.adminNote ?? '').startsWith('JUMP BALL')) &&
+      (!q || `${r.name} ${r.organizer ?? ''} ${r.city ?? ''} ${r.segments.join(' ')} ${r.roles.join(' ')}`.toLowerCase().includes(q)),
   )
 
   const href = (o: Record<string, string | undefined>) => {
@@ -63,6 +65,7 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
             Publish only what you have checked on the event&apos;s own site.
           </p>
         </div>
+        <Link href="/support/admin/crm/events/coverage" className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">Coverage map</Link>
         <Link href="/support/admin/crm/events/new" className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">Add an event</Link>
       </header>
 
@@ -91,18 +94,19 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
             <Link href={href({ show: 'published' })} className={chip(show === 'published')}>Published</Link>
             <Link href={href({ show: 'hidden' })} className={chip(show === 'hidden')}>Hidden</Link>
             <Link href={href({ show: 'unverified' })} className={chip(show === 'unverified')}>Not verified</Link>
+            <Link href={href({ show: 'call' })} className={chip(show === 'call')}>Needs your call ({rows0.filter((r) => (r.adminNote ?? '').startsWith('JUMP BALL')).length})</Link>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link href={href({ access: '' })} className={chip(!access)}>Any access</Link>
             {(Object.keys(ACCESS_LABEL) as Access[]).map((a) => <Link key={a} href={href({ access: a })} className={chip(access === a)}>{ACCESS_LABEL[a]}</Link>)}
           </div>
-          <p className="text-xs text-muted-foreground">{rows.length} shown, {publishedCount} visible to candidates.</p>
+          <p className="text-xs text-muted-foreground">{rows.length} match{rows.length > 250 ? ' (first 250 listed, narrow with the filters)' : ''}, {publishedCount} visible to candidates.</p>
 
           {rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">{total === 0 ? 'No events yet.' : 'Nothing matches.'}</p>
           ) : (
             <ul className="divide-y divide-border rounded-lg border border-border">
-              {rows.map((r) => {
+              {rows.slice(0, 250).map((r) => {
                 const c = counts[r.id]
                 return (
                   <li key={r.id} className="space-y-1 p-3 text-sm">
@@ -110,7 +114,7 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
                       <Link href={`/support/admin/crm/events/${r.id}`} className="font-medium hover:underline">{r.name}</Link>
                       {r.organizer && <span className="text-xs text-muted-foreground">{r.organizer}</span>}
                       <span className="text-xs text-muted-foreground">{whenLabel(r)} · {whereLabel(r)}</span>
-                      {c && <span className="text-xs text-muted-foreground">{c.going} going, {c.saved} saved{c.speaking ? `, ${c.speaking} speaking` : ''}</span>}
+                      {c && <span className="text-xs text-muted-foreground">{c.going} going, {c.saved} saved{c.speaking ? `, ${c.speaking} speaking` : ''}{c.following ? `, ${c.following} following` : ''}{c.attended ? `, ${c.attended} went before` : ''}{c.spoke ? `, ${c.spoke} spoke` : ''}</span>}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <span className="rounded border border-border px-1.5 py-0.5">{ACCESS_LABEL[r.access as Access] ?? r.access}</span>
@@ -121,6 +125,7 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
                         {r.verified ? 'Verified' : 'Not verified: check before publishing'}
                       </span>
                     </div>
+                    {(r.adminNote ?? '').startsWith('JUMP BALL') && <p className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-900 dark:bg-amber-900/30 dark:text-amber-100">{r.adminNote}</p>}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       <span>{r.functions.length ? r.functions.join(', ') : 'Every function'}</span>
                       <span>·</span>
