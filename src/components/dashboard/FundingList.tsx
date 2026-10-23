@@ -6,7 +6,6 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 
 // The ranked funding list: three sections (move, retrain, learn), best three of each shown, the rest one click away.
 const SHOWN = 3
-const GOALS: Goal[] = GOAL_ORDER
 
 function Row({ m, rank }: { m: Match; rank: number }) {
   const p = m.program
@@ -23,13 +22,23 @@ function Row({ m, rank }: { m: Match; rank: number }) {
       {p.eligibility && <p className="text-sm text-muted-foreground">Who qualifies: {p.eligibility.length > 160 ? `${p.eligibility.slice(0, 157)}…` : p.eligibility}</p>}
       <div className="pt-1">
         <TrackedLink
-          href={p.url!}
+          href={p.applyUrl || p.url!}
           event="funding_program_clicked"
-          properties={{ programId: p.id, category: p.category, goal: m.goal, rank, score: m.score, scope: p.scope, state: p.state, surface: 'dashboard_funding' }}
+          properties={{ programId: p.id, category: p.category, goal: m.goal, rank, score: m.score, scope: p.scope, state: p.state, target: p.applyUrl ? 'apply' : 'details', surface: 'dashboard_funding' }}
           className="inline-flex h-10 items-center rounded-full bg-action px-5 text-sm font-semibold text-action-foreground hover:brightness-95"
         >
-          See how to apply
+          {p.applyUrl ? 'Apply now' : 'See how to apply'}
         </TrackedLink>
+        {p.applyUrl && p.url && p.applyUrl !== p.url && (
+          <TrackedLink
+            href={p.url}
+            event="funding_program_clicked"
+            properties={{ programId: p.id, category: p.category, goal: m.goal, rank, target: 'details', surface: 'dashboard_funding' }}
+            className="ml-3 text-sm font-medium text-brand underline underline-offset-4"
+          >
+            Program details
+          </TrackedLink>
+        )}
         {p.checkedAt && <span className="ml-3 text-xs text-muted-foreground">Checked against the official page {p.checkedAt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>}
       </div>
     </li>
@@ -65,10 +74,10 @@ function Section({ goal, matches }: { goal: Goal; matches: Match[] }) {
 }
 
 
-export function FundingSections({ byGoal }: { byGoal: Record<Goal, Match[]> }) {
+export function FundingSections({ byGoal, order = GOAL_ORDER }: { byGoal: Record<Goal, Match[]>; order?: Goal[] }) {
   return (
     <>
-      {GOALS.map((g) => (byGoal[g].length > 0 ? <Section key={g} goal={g} matches={byGoal[g]} /> : null))}
+      {order.map((g) => (byGoal[g].length > 0 ? <Section key={g} goal={g} matches={byGoal[g]} /> : null))}
     </>
   )
 }

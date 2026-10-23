@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { fundingFor } from '@/lib/benefits/member'
-import { SELF_TAGS } from '@/lib/benefits/match'
+import { fundingFor, usesSelfId } from '@/lib/benefits/member'
+import { SELF_TAGS, goalOrderFor } from '@/lib/benefits/match'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Funding you qualify for' }
 export default async function FundingPage() {
   const profile = await getDashboardData()
   const f = await fundingFor(profile)
-  const counts = { move: f.byGoal.move.length, retrain: f.byGoal.retrain.length, tax: f.byGoal.tax.length, learn: f.byGoal.learn.length }
+  const counts = { move: f.byGoal.move.length, retrain: f.byGoal.retrain.length, support: f.byGoal.support.length, tax: f.byGoal.tax.length, learn: f.byGoal.learn.length }
   after(() =>
     captureServerEvent(profile.id, 'funding_page_viewed', {
       matchCount: f.matches.length,
@@ -28,6 +28,8 @@ export default async function FundingPage() {
     }),
   )
   const held = new Set<string>(f.selfTags)
+  const hasSelfId = [profile.eeocRaceEthnicity, profile.eeocGenderIdentity, profile.eeocVeteranStatus, profile.eeocDisabilityStatus].some((v) => v && v !== 'PREFER_NOT_TO_ANSWER')
+  const useSelfId = usesSelfId(profile.journeyDetails)
   const needsState = !f.facts.state
   const needsMove = !f.relocationAnswered || f.facts.relocation.scope === 'LOCAL'
 
@@ -62,7 +64,7 @@ export default async function FundingPage() {
         </div>
       )}
 
-      <FundingSections byGoal={f.byGoal} />
+      <FundingSections byGoal={f.byGoal} order={goalOrderFor(f.facts.laidOff)} />
 
       <section className="space-y-3" aria-labelledby="funding-sharpen">
         <ShowMore label="Sharpen your matches" event="funding_sharpen_opened">
@@ -70,8 +72,8 @@ export default async function FundingPage() {
             <div>
               <H2 id="funding-sharpen">Which of these are true for you?</H2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Why we ask: some programs are only for veterans, people 50 or older, people with a disability and so on. We show them only if you tell us they apply.
-                Private to you: never shown to employers, recruiters, schools or coaches.
+                Why we ask: some programs are only for veterans, people 50 or older, people with a disability and so on. Until you answer, we keep them in the list in case they apply.
+                Once you save, we hide the ones that do not. Private to you: never shown to employers, recruiters, schools or coaches.
               </p>
             </div>
             <div className="space-y-2">
@@ -82,6 +84,15 @@ export default async function FundingPage() {
                 </label>
               ))}
             </div>
+            {hasSelfId && (
+              <label className="flex items-start gap-2 rounded-xl bg-muted p-4 text-sm text-ink">
+                <input type="checkbox" name="useSelfId" defaultChecked={useSelfId} className="mt-1" />
+                <span>
+                  <span className="font-semibold">Use my voluntary self-ID answers to find programs for my community.</span> You already answered some of these on your screening page
+                  (race or ethnicity, gender, veteran status, disability status). If you turn this on, we read them only to rank programs for you on this page. We do not copy them, show them to anyone or send them to analytics. Turn it off any time.
+                </span>
+              </label>
+            )}
             <button type="submit" className="inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95">
               Save and re-rank
             </button>

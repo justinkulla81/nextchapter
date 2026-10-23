@@ -71,6 +71,7 @@ const tpl = JSON.parse(readFileSync(new URL('./outreach-templates.json', import.
 }
 const T = new Map(tpl.templates.map((t) => [t.id, t]))
 const FOOT_STYLE = 'display:block;margin-top:14px;font-size:11px;line-height:1.5;color:#8a919c'
+const BOOK_BASE = 'https://launchyournextchapter.com/book'
 const fill = (s: string, row: Row) => s.replace(/\{\{(\w+)\}\}/g, (_, k) => row[k] ?? '').replace(/ +([.,;])/g, '$1').replace(/[ \t]+\n/g, '\n').replace(/ {2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
 const tokens = (s: string) => [...s.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1])
 
@@ -191,6 +192,8 @@ async function main() {
     const effDays = ctx.notice?.effective ? Math.ceil((ctx.notice.effective.getTime() - now.getTime()) / 86_400_000) : null
     const row: Row = {
       template, first_name: who.first, email: who.email, recipient_org: who.org, recipient_title: who.title, org: who.org,
+      // Booking link for the follow-ups. It goes through our own /book route, which counts the click and forwards to the Google Calendar booking page; the query holds only the template and step, nothing about the person.
+      book_link_1: `${BOOK_BASE}?t=${template}&s=2`, book_link_2: `${BOOK_BASE}?t=${template}&s=3`,
       company: ctx.notice && ctx.notice.employer.length <= 45 ? ctx.notice.employer : '', employees: ctx.notice ? n0(ctx.notice.employees) : '',
       county: area?.name ?? ctx.notice?.county ?? (cityOf(ctx.notice, state) ? `${cityOf(ctx.notice, state)}, ${stateName}` : stateName), state: stateName, state_code: state,
       state_poss: poss(stateName),

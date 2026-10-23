@@ -4,7 +4,7 @@
 -- Additive only (one new table). Apply by hand; never plain `prisma db push` on prod.
 CREATE TABLE IF NOT EXISTS "BenefitProgram" (
   "id"          TEXT PRIMARY KEY,                  -- slug of category + state + name
-  "category"    TEXT NOT NULL,                     -- RELOCATION | STATE_TRAINING | FEDERAL | COURSES | PRIVATE | SEGMENT
+  "category"    TEXT NOT NULL,                     -- RELOCATION | STATE_TRAINING | FEDERAL | COURSES | PRIVATE | SEGMENT | PAID | TAX | SUPPORT
   "name"        TEXT NOT NULL,
   "provider"    TEXT,
   "scope"       TEXT NOT NULL DEFAULT 'NATIONAL',  -- NATIONAL | STATE | LOCAL

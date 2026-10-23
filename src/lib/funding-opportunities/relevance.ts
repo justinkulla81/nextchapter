@@ -30,6 +30,17 @@ export const GRANT_KEYWORDS = [
   'AI workforce',
   'AI literacy',
   'artificial intelligence workforce',
+  // Retraining, long-term unemployment and career-change money; each is its own request.
+  'reskilling',
+  'retraining',
+  'upskilling',
+  'unemployed workers',
+  'long-term unemployed',
+  'career pathways',
+  'sector partnership',
+  'older workers',
+  'adult education',
+  'individual training account',
 ] as const
 
 /**
@@ -71,6 +82,7 @@ const TITLE_SIGNALS: [RegExp, number][] = [
   [/rapid reskill/i, 4],
   // AI named together with workers or skills; AI alone is not our subject.
   [/(\bAI\b|artificial intelligence).{0,60}(workforce|worker|skills?\b|training|literacy|reskill|upskill|reemployment)|(workforce|worker|skills?\b|training|literacy|reskill|upskill|reemployment).{0,60}(\bAI\b|artificial intelligence)/i, 4],
+  [/unemployed|unemployment|retrain|career pathway|sector partnership|older worker|incumbent worker/i, 3],
   [/employment (services|assistance|and training)|reentry|re-entry/i, 2],
   [/resume|talent (pipeline|acquisition)|upskill|reskill|apprentice/i, 2],
 ]

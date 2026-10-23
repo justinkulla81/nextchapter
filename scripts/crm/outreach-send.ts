@@ -121,7 +121,7 @@ async function main() {
     const subject = step === 1 ? m.subject : m.subject.startsWith('Re:') ? m.subject : `Re: ${m.subject}`
     const body = step === 1 ? null : (step === 2 ? m.followup_1 : m.followup_2)
     const text = step === 1 ? m.email_text : [body, templates.signature, templates.footer.join('\n')].join('\n\n')
-    const html = step === 1 ? m.email_html : '<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111">' + esc([body, templates.signature].join('\n\n')).replace(/\n/g, '<br>') + `<span style="display:block;margin-top:14px;font-size:11px;line-height:1.5;color:#8a919c">${esc(templates.footer.join('\n')).replace(/\n/g, '<br>')}</span></div>`
+    const html = step === 1 ? m.email_html : '<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111">' + esc([body, templates.signature].join('\n\n')).replace(/(https:\/\/[^\s<]+)/g, '<a href="$1">$1</a>').replace(/\n/g, '<br>') + `<span style="display:block;margin-top:14px;font-size:11px;line-height:1.5;color:#8a919c">${esc(templates.footer.join('\n')).replace(/\n/g, '<br>')}</span></div>`
     const tag = (v: string) => (v || 'none').replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 60)
     console.log(`${apply ? 'send' : 'would send'} step ${step} [${s.audience}/${s.arm}] ${email} | ${subject}`)
     if (!apply) { sent++; continue }

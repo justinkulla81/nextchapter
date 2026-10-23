@@ -1535,6 +1535,7 @@ model CandidateProfile {
   // reminderEmailsOptedOut above (account-setup reminders), a different
   // email a candidate might want off independently.
   recruiterUnlockNudgeOptedOut      Boolean   @default(false)
+  upgradeOfferOptedOut              Boolean   @default(false) // the usage-triggered coaching upgrade offer (upgrade-offer cron)
 
   // Deprecated — was the "Mark as fixed" button's tracking field (distinct
   // Resume.atsFeedback/resultsFeedback/experienceFeedback item `issue`
@@ -1674,12 +1675,15 @@ model CandidateProfile {
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
-  // same as never having visited the section. HARD GUARDRAIL: these four
+  // same as never having visited the section. GUARDRAIL: these four
   // fields must never be read by any candidate-facing feature (job board,
   // Job Fit, Interim Work, Victoria, anything) — read only by the
   // admin-only bias-detection dashboard (src/lib/admin/bias-detection.ts),
   // which enforces a server-side minimum-cohort-size suppression before
-  // returning any aggregate built from these fields.
+  // returning any aggregate built from these fields. ONE EXCEPTION, decided
+  // by the owner 2026-10-23: the member's own funding page may read them to
+  // rank programs, only when the member turned on journeyDetails.funding.useSelfId
+  // (src/lib/benefits/member.ts). Computed on the fly, never copied or logged.
   eeocGenderIdentity   EeocGenderIdentity?
   eeocRaceEthnicity    EeocRaceEthnicity?
   eeocDisabilityStatus EeocYesNoDecline?
@@ -6253,6 +6257,7 @@ enum CandidateEmailKey {
   FINISH_LINE // Sun — send-finish-line-email.ts, now also carries the merged weekly community/coaching recap
   JOB_SEARCH_DAILY // every day, its own cron (job-search-daily) — not in CandidateEmailSchedule's one-per-weekday rotation
   WIN_BACK // dormant members: up to three over about two months, its own cron (win-back)
+  UPGRADE_OFFER // free members whose own numbers show a need for coaching; weekly cron (upgrade-offer), capped in src/lib/upgrade-offer/triggers.ts
 }
 
 // STILL_SEARCHING / TAKING_A_BREAK / GOT_AN_OFFER — the three answers to the
@@ -10890,6 +10895,11 @@ model CrmOpportunity {
 
   title String
 
+  // The program's own page (the application or about page), so a lead can be opened
+  // without hunting for it. Distinct from the organization's website: one funder
+  // can hold several programs, each with its own page.
+  url String?
+
   orgId String?
   org   CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
@@ -12085,6 +12095,13 @@ model WorkforceBoard {
   placeCounties     String[]  @default([])
   partnersCheckedAt DateTime?
   newsCheckedAt     DateTime?
+  /// The board's own bids / RFP / procurement page, found by scripts/boards/crawl-procurement.py.
+  procurementUrl       String?
+  /// solicitations (open items seen), procurement_page, or none
+  procurementKind      String?
+  /// Up to six open-solicitation lines seen on that page: [{ title, date }]. Leads, not a bid list.
+  procurementItems     Json?
+  procurementCheckedAt DateTime?
 
   fitScore     Float?
   fitBreakdown Json?
@@ -14504,6 +14521,8 @@ model BenefitProgram {
   employerKey String?
   /// County GeoArea this program belongs to, filled from locality/city.
   geoAreaId   String?
+  applyUrl    String?
+  affinity    String[]  @default([])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
 
