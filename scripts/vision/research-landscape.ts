@@ -79,6 +79,8 @@ async function main() {
   const existing = await prisma.productCompetitor.findMany({ select: { id: true, name: true, url: true } })
   const known = new Set(existing.map((e) => e.name))
   const hosts = new Set(existing.map((e) => (e.url ? hostOf(e.url) : null)).filter(Boolean) as string[])
+  // Never spend on a read that cannot be saved: a stale generated client once threw away the first batch.
+  await prisma.productCompetitor.findFirst({ select: { status: true, lessons: true, partnerIdea: true, category: true } })
   console.log(`tracked ${existing.length}; categories ${CATS.length}; spent so far $${spent(STEP).toFixed(2)} of $${CAP}`)
   if (!arg('--discover') && !arg('--enrich')) { for (const c of CATS) console.log(`  ${c.key.padEnd(20)} up to ${c.n}`); console.log('\nPlan only. Add --discover, then --enrich.'); return }
   const found = arg('--discover') ? await discover(known) : (existsSync(CAND) ? JSON.parse(readFileSync(CAND, 'utf8')) : {})
