@@ -211,13 +211,36 @@ const TIERS = [
   ['INSTITUTION', 'Institution', '+ Teaching, Exec Ed, Workforce board'],
 ] as const
 
+const PLANS = [
+  ['PAID', 'Paid', 'Everything the tier opens, no member cap'],
+  ['FREE', 'Free', 'Up to 50 members; no reporting, exports, CRM exchange, extra staff roles, activity log or NextChapter services'],
+] as const
+
 // The license: which workspaces open (tier), seats, term, priced-on alumni count.
-export function LicenseForm({ institutionId, defaults }: { institutionId: string; defaults: { tier: string; includedSeats: number; alumniCount: number | null; licenseStartAt: string; licenseEndAt: string } }) {
+export function LicenseForm({ institutionId, defaults }: { institutionId: string; defaults: { tier: string; plan: string; includedSeats: number; alumniCount: number | null; licenseStartAt: string; licenseEndAt: string } }) {
   const [state, action] = useActionState(saveCollegeLicense.bind(null, institutionId), undefined)
   const [v, setV] = useState({ ...defaults, includedSeats: String(defaults.includedSeats), alumniCount: defaults.alumniCount === null ? '' : String(defaults.alumniCount) })
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="tier" value={v.tier} />
+      <input type="hidden" name="plan" value={v.plan} />
+      <fieldset className="space-y-1">
+        <legend className="text-sm font-medium">Plan</legend>
+        <div className="flex flex-wrap gap-2">
+          {PLANS.map(([key, label, what]) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={v.plan === key}
+              onClick={() => setV({ ...v, plan: key })}
+              className={`rounded-md border px-3 py-1.5 text-left text-sm ${v.plan === key ? 'border-primary bg-primary text-primary-foreground' : 'border-border'}`}
+            >
+              <span className="font-medium">{label}</span>
+              <span className="block text-xs opacity-80">{what}</span>
+            </button>
+          ))}
+        </div>
+      </fieldset>
       <fieldset className="space-y-1">
         <legend className="text-sm font-medium">Tier</legend>
         <div className="flex flex-wrap gap-2">

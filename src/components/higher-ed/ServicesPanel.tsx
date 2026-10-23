@@ -20,6 +20,7 @@ import {
   type ServiceSetting,
 } from '@/lib/higher-ed/services'
 import type { OrgKind } from '@/lib/higher-ed/workspaces'
+import { LockedFeature } from '@/components/plans/LockedFeature'
 import { saveService } from '@/app/i/[slug]/(portal)/actions'
 
 // Admin › Services (product design, "Admin screen"): one row per service with
@@ -32,13 +33,16 @@ export function ServicesPanel({
   usage,
   canEdit,
   kind = 'college',
+  plan = 'PAID',
 }: {
   slug: string
   initial: Record<string, ServiceSetting>
   usage: Record<string, number>
   canEdit: boolean
   kind?: OrgKind
+  plan?: string
 }) {
+  const ownOnly = plan === 'FREE'
   const catalog = servicesFor(kind)
   const offices = officesFor(kind)
   const ours = kind === 'workforce' ? 'Your organization' : 'Your college'
@@ -90,6 +94,9 @@ export function ServicesPanel({
                 error={error?.key === s.key ? error.message : null}
                 ours={ours}
                 offices={offices}
+                ownOnly={ownOnly}
+                slug={slug}
+                plan={plan}
                 audiences={kind === 'workforce' ? ['job_seekers', 'in_transition'] : (Object.keys(AUDIENCE_LABELS) as Audience[]).filter((a) => a !== 'job_seekers')}
               />
             ))}
@@ -113,6 +120,9 @@ function ServiceRow({
   ours,
   offices,
   audiences,
+  ownOnly,
+  slug,
+  plan,
 }: {
   service: Service
   setting: ServiceSetting
@@ -126,6 +136,9 @@ function ServiceRow({
   ours: string
   offices: readonly string[]
   audiences: Audience[]
+  ownOnly: boolean
+  slug: string
+  plan: string
 }) {
   const id = `svc-${s.key}`
   const needsLink = setting.on && s.memberCard && !serviceTarget(s, setting)
@@ -181,7 +194,7 @@ function ServiceRow({
           {error}
         </p>
       )}
-      {expanded && setting.on && canEdit && <ServiceSettingsForm id={id} service={s} setting={setting} onSave={onSave} pending={pending} ours={ours} offices={offices} audiences={audiences} />}
+      {expanded && setting.on && canEdit && <ServiceSettingsForm id={id} service={s} setting={setting} onSave={onSave} pending={pending} ours={ours} offices={offices} audiences={audiences} ownOnly={ownOnly} slug={slug} plan={plan} />}
     </li>
   )
 }
@@ -195,6 +208,9 @@ function ServiceSettingsForm({
   ours,
   offices,
   audiences,
+  ownOnly,
+  slug,
+  plan,
 }: {
   id: string
   service: Service
@@ -204,13 +220,16 @@ function ServiceSettingsForm({
   ours: string
   offices: readonly string[]
   audiences: Audience[]
+  ownOnly: boolean
+  slug: string
+  plan: string
 }) {
   const [audience, setAudience] = useState<Audience[]>(setting.audience)
   const [ownerOffice, setOwnerOffice] = useState(setting.ownerOffice)
   const [ownerName, setOwnerName] = useState(setting.ownerName ?? '')
   const [pricing, setPricing] = useState<Pricing>(setting.pricing)
   const [linkUrl, setLinkUrl] = useState(setting.linkUrl ?? '')
-  const [provider, setProvider] = useState<Provider>(setting.provider)
+  const [provider, setProvider] = useState<Provider>(ownOnly ? 'college' : setting.provider)
 
   return (
     <form
@@ -225,6 +244,12 @@ function ServiceSettingsForm({
         <fieldset className="space-y-1.5 sm:col-span-2">
           <legend className="text-sm font-medium">Who provides it</legend>
           {s.builtIn ? (
+            ownOnly ? (
+              <>
+                <p className="text-sm text-muted-foreground">{ours} provides it. Using NextChapter’s version is part of the paid plan.</p>
+                <LockedFeature feature="nextchapterServices" slug={slug} plan={plan} compact />
+              </>
+            ) : (
             <div className="flex flex-wrap gap-2">
               {(Object.keys(PROVIDER_LABELS) as Provider[]).map((p) => (
                 <button
@@ -238,6 +263,7 @@ function ServiceSettingsForm({
                 </button>
               ))}
             </div>
+            )
           ) : (
             <p className="text-sm text-muted-foreground">{ours}. NextChapter doesn’t offer this one, so add your link below.</p>
           )}

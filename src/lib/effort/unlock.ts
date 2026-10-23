@@ -15,6 +15,8 @@ export interface UnlockStatus {
   unlocked: boolean
   minutesLeft: number
   daysLeft: number
+  /** The day the fourteen-day wait ends (start of the cycle plus the wait). */
+  readyOn: Date
   /** What still stands in the way, in plain words. Empty when unlocked. */
   blockers: string[]
 }
@@ -27,5 +29,5 @@ export function unlockStatus(minutes: number, opts: { cycleStartedAt: Date; now:
   const blockers: string[] = []
   if (minutesLeft > 0) blockers.push(`${minutesLeft} more minute${minutesLeft === 1 ? '' : 's'} of search effort`)
   if (daysLeft > 0) blockers.push(`${daysLeft} more day${daysLeft === 1 ? '' : 's'}, so the new read has fresh evidence to use`)
-  return { bar: UNLOCK_BAR, minutes: earned, unlocked: blockers.length === 0, minutesLeft, daysLeft, blockers }
+  return { bar: UNLOCK_BAR, minutes: earned, unlocked: blockers.length === 0, minutesLeft, daysLeft, readyOn: new Date(opts.cycleStartedAt.getTime() + UNLOCK_BAR.minDays * DAY_MS), blockers }
 }

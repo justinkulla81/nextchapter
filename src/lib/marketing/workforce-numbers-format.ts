@@ -107,7 +107,7 @@ export function buildWorkforceTiles(raw: WorkforceRaw): WorkforceTileGroup[] {
         ...tile(ok(j.government + j.nonprofit + j.academia), {
           key: 'public_mission',
           value: floorCount(j.government + j.nonprofit + j.academia),
-          label: 'government, nonprofit and higher-ed jobs',
+          label: 'government, nonprofit and higher education jobs',
           detail: parts([
             [j.government, 'government'],
             [j.nonprofit, 'nonprofit'],

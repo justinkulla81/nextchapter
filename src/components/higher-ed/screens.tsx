@@ -49,6 +49,8 @@ import { CoreRecruiterForm, RecruitingDateForm, EarlyCareerRoleForm } from '@/co
 import { listRecruitingDates, listEarlyCareerRoles } from '@/lib/higher-ed/recruiting'
 import { RECRUITING_DATE_LABELS, EARLY_CAREER_LABELS, splitUpcoming, deadlinePassed, safeHttpUrl } from '@/lib/higher-ed/recruiting-rules'
 import { StaffInviteForm } from './StaffInviteForm'
+import { LockedFeature } from '@/components/plans/LockedFeature'
+import { institutionEntitlements } from '@/lib/plans/entitlements'
 import { AlumniEngagement, AlumniLayoffs, AlumniOutreach, CareerCheckIns, WaitingForYou } from './screens-outreach'
 import { InternshipsScreen } from './screens-internships'
 import { AlumniMentors, CandidateJobs, CareerEmployers, CareerStudents, EmployerDossiersWithIntros, EmployerPage, IntroRequestsCard } from './screens-network'
@@ -1231,7 +1233,7 @@ async function SettingsServices({ ctx }: ScreenProps) {
         </p>
       </form>
       )}
-      <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures, kind)} usage={usage} canEdit={canEdit} kind={kind} />
+      <ServicesPanel slug={ctx.institution.slug} initial={serviceSettingsFrom(enabledFeatures, kind)} usage={usage} canEdit={canEdit} kind={kind} plan={ctx.institution.plan} />
     </div>
   )
 }
@@ -1414,8 +1416,9 @@ async function SettingsStaff({ ctx }: ScreenProps) {
       {ctx.institution.isDemo ? (
         <p className="text-xs text-muted-foreground">Invites are off on demo colleges: their staff are fictional.</p>
       ) : (
-        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} />
+        <StaffInviteForm inviteAction={inviteStaff.bind(null, ctx.institution.slug)} lockedRoles={lockedRoles} adminOnly={!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles} />
       )}
+      {!institutionEntitlements({ plan: ctx.institution.plan }).staffRoles && <LockedFeature feature="staffRoles" slug={ctx.institution.slug} plan={ctx.institution.plan} compact />}
     </div>
   )
 }

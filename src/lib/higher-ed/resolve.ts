@@ -25,6 +25,8 @@ export type InstitutionBranding = {
   accentColor: string | null
   isDemo: boolean
   tier: InstitutionTier
+  // 'FREE' or 'PAID' (src/lib/plans/entitlements.ts).
+  plan: string
   orgType: InstitutionOrgType
 }
 
@@ -90,7 +92,7 @@ export async function resolveInstitutionAccess(
 ): Promise<InstitutionAccess | null> {
   const row = await db.institution.findUnique({
     where: { slug: args.slug },
-    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, orgType: true, enabledFeatures: true },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, plan: true, orgType: true, enabledFeatures: true },
   })
   if (!row) return null
   // enabledFeatures decides which feature-gated workspaces exist here; it
@@ -188,7 +190,7 @@ export function holds(ctx: Pick<InstitutionAccess, 'tokens'>, roles: AccessToken
 export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?: string | null }, db: Db = prisma): Promise<InstitutionAccess | null> {
   const row = await db.institution.findUnique({
     where: { slug: args.slug },
-    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, orgType: true, enabledFeatures: true, isSampleData: true },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, plan: true, orgType: true, enabledFeatures: true, isSampleData: true },
   })
   if (!row || !row.isDemo || !row.isSampleData) return null
   const { enabledFeatures, isSampleData: _s, ...institution } = row
