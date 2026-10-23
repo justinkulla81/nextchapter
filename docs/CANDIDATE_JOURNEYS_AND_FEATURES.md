@@ -15,7 +15,7 @@ Free for candidates. People who connect, do the work and prove it get the most.
 
 *Claims to review before launch:* the "best coach" superlative (logged in `docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md`).
 
-## 2. Journeys (why you are moving): 11 (the `JourneyType` enum in `prisma/schema.prisma`; see also `docs/JOURNEY_AUDIT.md`)
+## 2. Journeys (why you are moving): 12 (the `JourneyType` enum in `prisma/schema.prisma`; see also `docs/JOURNEY_AUDIT.md`)
 
 | Journey | Starts at | Confidential by default | Goal |
 |---|---|---|---|
@@ -30,6 +30,7 @@ Free for candidates. People who connect, do the work and prove it get the most.
 | **Taking a break** (leave or time off) | Managing your career | No | A return on your terms, whenever you are ready |
 | **Happy with fractional work** | Managing your career | No | A steady pipeline of the right clients |
 | **Building something of my own** | Managing your career | Yes | Keep your options open while you build |
+| **Buying a business** | Exploring | Yes | Own a business that fits your skills and your money (`docs/BUY_A_BUSINESS_JOURNEY.md`) |
 
 - "Ready for a new job" was merged into *Thinking about a move*. An old value still reads correctly.
 - *Thinking about a move* asks **"What's behind the move?"** (keeping options open / ready to leave / worried about a
@@ -138,8 +139,8 @@ take the Skills Assessment. Each names what it unlocks (Network and Jobs, Dossie
 
 ## 9. Several affiliations at once
 
-A member can have outplacement, a coach, recruiters, colleges, a workforce board and a company hiring funnel together. One journey and stage per member,
-owned by the member. Each affiliation sees only what its rule allows (Privacy shows each member their own connections and what each sees);
+A member can have outplacement, a coach, recruiters, colleges, a workforce board and a company hiring funnel together. One main journey and stage per member,
+owned by the member, plus any number of parallel paths (buying a business, side or part-time work, fractional as a side line, going back to school) that add one card and at most one plan step each and never change the main journey's plan, menu or emails (`docs/PARALLEL_PATHS.md`). Each affiliation sees only what its rule allows (Privacy shows each member their own connections and what each sees);
 **mood check-ins are never shared with anyone**, and only a coach sees coaching style. See `docs/AFFILIATIONS.md`.
 
 ## 10. Feature inventory

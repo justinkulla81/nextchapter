@@ -21,6 +21,19 @@ describe('pickHomeNote', () => {
   })
 })
 
+describe('the coach offer note', () => {
+  it('is the note once setup and connecting accounts are done, ahead of the stalled-search nudge', () => {
+    expect(pickHomeNote({ ...none, coachOffer: true, stalledSearch: true, firstWeek: FIRST_WEEK[0] })).toBe('coach_offer')
+  })
+  it('waits for setup, a report to read and connecting accounts', () => {
+    expect(pickHomeNote({ ...none, coachOffer: true, searchStrategyIncomplete: true })).toBe('setup_strategy')
+    expect(pickHomeNote({ ...none, coachOffer: true, accountsNotConnected: true })).toBe('connect_accounts')
+  })
+  it('keeps its own card, so it has no plain wording', () => {
+    expect(simpleNote('coach_offer', { firstName: 'Maya', firstWeek: null, motivations: [] })).toBeNull()
+  })
+})
+
 describe('simpleNote', () => {
   const ctx = { firstName: 'Maya', firstWeek: FIRST_WEEK[2], motivations: ['provide_for_family'] }
   it('gives every plain note a title, a reason, a start and an explanation', () => {

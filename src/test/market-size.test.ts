@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aggregateStats, bestAreas, marketPrompt, MARKET_TOO_FEW, MARKET_TOO_MANY, relativeGrowth, sumCounts, type StatInput } from '@/lib/market/market-size'
+import { aggregateStats, bestAreas, marketPrompt, MARKET_TOO_FEW, MARKET_TOO_MANY, relativeGrowth, sumCounts, tooFewFor, type StatInput } from '@/lib/market/market-size'
 
 const now = new Date('2026-10-16T00:00:00Z')
 const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000)
@@ -40,5 +40,18 @@ describe('market-size stats', () => {
     ])
     expect(areas.map((a) => a.label)).toEqual(['B', 'A'])
     expect(sumCounts([]).openNow).toBe(0)
+  })
+})
+
+describe('the too-few line by level', () => {
+  it('is lower at the top, where there are few roles in any field', () => {
+    expect(tooFewFor(['MID'])).toBe(MARKET_TOO_FEW)
+    expect(tooFewFor(['DIRECTOR'])).toBeLessThan(MARKET_TOO_FEW)
+    expect(tooFewFor(['VP', 'EXECUTIVE'])).toBeLessThan(tooFewFor(['DIRECTOR']))
+  })
+  it('lets 20 executive roles read as healthy where 20 mid-level roles are too few', () => {
+    expect(marketPrompt(20, null, tooFewFor(['EXECUTIVE']))).toBe('healthy')
+    expect(marketPrompt(20, null, tooFewFor(['MID']))).toBe('too_few')
+    expect(marketPrompt(5, null, tooFewFor(['EXECUTIVE']))).toBe('too_few')
   })
 })

@@ -1,10 +1,11 @@
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { Chip } from './ui'
 
 // The first card on Home. It names the member's journey, shows the few facts that shape their plan,
 // and says plainly what that changes. Each fact has exactly one place it is edited, so this card links
 // there and never asks the same question again.
-export function JourneyCard({ journey, since, facts, changes, switchLabel, tune, changeHref = '#' }: { journey: string; since: string; facts: { label: string; value: string }[]; changes: string[]; switchLabel?: string; tune?: { text: string; action: string; href?: string }; changeHref?: string }) {
+export function JourneyCard({ journey, since, facts, changes, switchLabel, tune, changeHref = '#', market }: { journey: string; since: string; facts: { label: string; value: string }[]; changes: string[]; switchLabel?: string; tune?: { text: string; action: string; href?: string }; changeHref?: string; market?: ReactNode }) {
   return (
     <section aria-label="Your journey" className="space-y-3 rounded-2xl border border-border bg-white p-4 sm:space-y-4 sm:p-6">
       <div className="flex items-start justify-between gap-3">
@@ -23,6 +24,7 @@ export function JourneyCard({ journey, since, facts, changes, switchLabel, tune,
           </div>
         ))}
       </dl>
+      {market}
       <div className="hidden space-y-1.5 sm:block">
         <p className="text-sm font-semibold text-ink">What this changes for you</p>
         <ul className="space-y-1 text-sm text-ink">

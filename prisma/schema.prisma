@@ -1539,6 +1539,9 @@ model CandidateProfile {
   // email a candidate might want off independently.
   recruiterUnlockNudgeOptedOut      Boolean   @default(false)
   upgradeOfferOptedOut              Boolean   @default(false) // the usage-triggered coaching upgrade offer (upgrade-offer cron)
+  seniorBriefOptedOut               Boolean   @default(false) // the senior Monday brief (senior-brief cron)
+  seniorBriefPausedUntil            DateTime? // "Not for me": no brief drafts until this date (90 days)
+  seniorBriefDrafts                 SeniorBriefDraft[]
 
   // Deprecated — was the "Mark as fixed" button's tracking field (distinct
   // Resume.atsFeedback/resultsFeedback/experienceFeedback item `issue`
@@ -16487,6 +16490,36 @@ model LinkedInAdminConnection {
   expiresAt      DateTime
   connectedAt    DateTime  @default(now())
   disconnectedAt DateTime?
+}
+
+// One row per senior Monday brief draft: the message, who it is for, and what the single model call cost.
+// weekKey makes a second real draft in the same week impossible at the database; the 6-day gap is checked in
+// src/lib/senior-brief/rules.ts. Test sends (isTest) use a unique weekKey and never count against a member's cap.
+// SQL: prisma/manual/senior-brief.sql
+model SeniorBriefDraft {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekKey       String
+  isTest        Boolean          @default(false)
+  itemKind      String // recruiter_follow_up | intro_request
+  contactId     String?
+  contactName   String?
+  companyName   String?
+  toEmail       String?
+  subject       String?
+  body          String?          @db.Text
+  model         String?
+  inputTokens   Int              @default(0)
+  outputTokens  Int              @default(0)
+  estCostUsd    Float            @default(0)
+  status        String           @default("DRAFTING") // DRAFTING | DRAFTED | EMAILED | FAILED
+  emailedAt     DateTime?
+  openedAt      DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@unique([candidateId, weekKey])
+  @@index([createdAt])
 }
 
 /// What one buyer's own website says it buys and who to call: a workforce board, an EDA district, a local

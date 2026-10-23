@@ -14,6 +14,10 @@ export function loadCountyContext() {
   return bundled
 }
 
+/** Whole-market job openings by state (BLS JOLTS, 12-month average), bundled; empty when the file is missing. */
+export const loadStateOpenings = () =>
+  import('./data/state-openings.json').then((m) => m.default as Record<string, number>).catch(() => ({}) as Record<string, number>)
+
 /**
  * Open roles on the job board by county FIPS: postings are grouped by the
  * city they name and each city goes to its county. Postings with no city
@@ -39,14 +43,16 @@ export const laborBenchmarks = ttlCached(10 * 60 * 1000, async () => {
   })
   const rate = (u: number, l: number) => (l > 0 ? Math.round((u / l) * 1000) / 10 : null)
   const byState = new Map<string, number>()
+  const unemployedByState = new Map<string, number>()
   let u = 0, l = 0
   for (const r of rows) {
     const [su, sl] = [r._sum.unemployed ?? 0, r._sum.laborForce ?? 0]
     const x = rate(su, sl)
     if (x != null) byState.set(r.state, x)
+    unemployedByState.set(r.state, su)
     u += su; l += sl
   }
-  return { byState, national: rate(u, l) }
+  return { byState, unemployedByState, national: rate(u, l) }
 })
 
 /** Degree-granting colleges by state and county, with how many are public 2-year (community colleges). */
