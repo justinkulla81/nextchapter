@@ -1211,8 +1211,8 @@
 ],
 [
 "Risk and Compliance Senior Associate",
-"OTHER",
-0
+"MID_IC",
+30
 ],
 [
 "Senior Platform Engineer, Growth Product Engineering",
@@ -9576,8 +9576,8 @@
 ],
 [
 "Customer Success Associate - Commercial Accounts",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Systems Engineer, Data Intelligence & Analytics Team",
@@ -21568,8 +21568,8 @@ true
 ],
 [
 "Program Analyst (GS-5/9)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Program Analyst (GS-6)",
@@ -22143,8 +22143,8 @@ true
 ],
 [
 "Project Manager I",
-"MANAGER",
-40
+"EARLY_IC",
+25
 ],
 [
 "Manager, Project Management",
@@ -22258,8 +22258,8 @@ true
 ],
 [
 "Program Analyst (GS-5/7)",
-"OTHER",
-0
+"ENTRY_IC",
+20
 ],
 [
 "Accountant - Recent Graduate (GS-5/7/9/11)",
@@ -22385,5 +22385,605 @@ true
 "SVP, Group Account Director",
 "EVP_SVP",
 90
+],
+[
+"Corporate Tax Senior Associate",
+"MID_IC",
+30
+],
+[
+"Deals - Financial Due Diligence, Senior Associate",
+"MID_IC",
+30
+],
+[
+"Digital Assurance & Transparency - IT Audit Senior Associate",
+"MID_IC",
+30
+],
+[
+"Privileged Access Management - Sr Associate",
+"MID_IC",
+30
+],
+[
+"Firmware Engineer_Senior Associate",
+"MID_IC",
+30
+],
+[
+"Senior Audit Associate - North Bay",
+"MID_IC",
+30
+],
+[
+"Audit Senior - Real Estate",
+"MID_IC",
+30
+],
+[
+"Assurance Senior",
+"MID_IC",
+30
+],
+[
+"Tax Senior, Legal Management Consulting",
+"MID_IC",
+30
+],
+[
+"Senior, Financial Statement Audit",
+"MID_IC",
+30
+],
+[
+"Senior - Transaction Advisory Services",
+"MID_IC",
+30
+],
+[
+"Associate or Senior Associate, Trade & Customs - Export",
+"EARLY_IC",
+25
+],
+[
+"Senior Associate Director",
+"SR_MANAGER",
+52
+],
+[
+"Senior Associate General Counsel",
+"DIRECTOR",
+68
+],
+[
+"Senior Associate Dean",
+"DIRECTOR",
+68
+],
+[
+"Senior Associate Attorney",
+"SENIOR_IC",
+45
+],
+[
+"Senior Sales Associate",
+"OTHER",
+0
+],
+[
+"Senior Associate, Retail Store Operations",
+"OTHER",
+0
+],
+[
+"Executive Concierge- Senior Associate",
+"OTHER",
+0
+],
+[
+"Senior Associate, Administrative Services (OMP Support)",
+"OTHER",
+0
+],
+[
+"Pharmacy Senior Associate",
+"OTHER",
+0
+],
+[
+"Tax Senior Manager",
+"SR_MANAGER",
+50
+],
+[
+"IT Audit/SOX - Experienced Associate",
+"EARLY_IC",
+25
+],
+[
+"Experienced Assurance Associate",
+"EARLY_IC",
+25
+],
+[
+"Tax Experienced Associate",
+"EARLY_IC",
+25
+],
+[
+"Experienced Tax Associate - Global Mobility",
+"EARLY_IC",
+25
+],
+[
+"Experienced Sales Associate",
+"OTHER",
+0
+],
+[
+"Experienced Associate Director",
+"SR_MANAGER",
+52
+],
+[
+"Wealth Management Associate",
+"EARLY_IC",
+25
+],
+[
+"Private Wealth Management, Wealth Management Associate",
+"EARLY_IC",
+25
+],
+[
+"Financial Planning & Analysis Associate",
+"EARLY_IC",
+25
+],
+[
+"Regional Control Associate",
+"EARLY_IC",
+25
+],
+[
+"Alternative Investments Sales Desk Associate",
+"EARLY_IC",
+25
+],
+[
+"Portfolio Management Associate",
+"EARLY_IC",
+25
+],
+[
+"Associate, Financial Crimes",
+"EARLY_IC",
+25
+],
+[
+"Equity Research - Associate, Biopharma (New York)",
+"EARLY_IC",
+25
+],
+[
+"Operations Client Servicing Associate",
+"OTHER",
+0
+],
+[
+"Registered Service Associate",
+"OTHER",
+0
+],
+[
+"Service Associate",
+"OTHER",
+0
+],
+[
+"Quality Control Associate",
+"OTHER",
+0
+],
+[
+"Payroll Associate",
+"OTHER",
+0
+],
+[
+"Associate Professor",
+"OTHER",
+0
+],
+[
+"Associate Director",
+"SR_MANAGER",
+52
+],
+[
+"Wealth Management Operations Associate",
+"OTHER",
+0
+],
+[
+"Fixed Income Settlements Associate",
+"OTHER",
+0
+],
+[
+"Apprentice Software Engineer",
+"ENTRY_IC",
+20
+],
+[
+"Software Engineer Apprentice",
+"ENTRY_IC",
+20
+],
+[
+"Cybersecurity Apprentice",
+"ENTRY_IC",
+20
+],
+[
+"Data Analyst Apprentice",
+"ENTRY_IC",
+20
+],
+[
+"Electrician Apprentice",
+"OTHER",
+0
+],
+[
+"Apprentice Lineman",
+"OTHER",
+0
+],
+[
+"Plumber Apprentice",
+"OTHER",
+0
+],
+[
+"Welder Apprentice",
+"OTHER",
+0
+],
+[
+"Machinist Apprentice",
+"OTHER",
+0
+],
+[
+"Stationary Engineer Apprentice",
+"OTHER",
+0
+],
+[
+"IT Support Apprentice",
+"OTHER",
+0
+],
+[
+"Help Desk Apprentice",
+"OTHER",
+0
+],
+[
+"Network Technician Apprentice",
+"OTHER",
+0
+],
+[
+"Management Trainee",
+"ENTRY_IC",
+20
+],
+[
+"Operations Management Trainee",
+"ENTRY_IC",
+20
+],
+[
+"Credit Management Trainee",
+"ENTRY_IC",
+20
+],
+[
+"Finance Trainee",
+"ENTRY_IC",
+20
+],
+[
+"Store Management Trainee",
+"OTHER",
+0
+],
+[
+"Management Trainee - Rental Branch",
+"OTHER",
+0
+],
+[
+"Retail Management Trainee",
+"OTHER",
+0
+],
+[
+"Restaurant Management Trainee",
+"OTHER",
+0
+],
+[
+"Production Trainee",
+"OTHER",
+0
+],
+[
+"Technical Leadership Program",
+"ENTRY_IC",
+20
+],
+[
+"Business Leadership Program",
+"ENTRY_IC",
+20
+],
+[
+"Early Talent Leadership Program",
+"ENTRY_IC",
+20
+],
+[
+"Customer Success Associate",
+"ENTRY_IC",
+20
+],
+[
+"Assistant Civil Engineer",
+"ENTRY_IC",
+20
+],
+[
+"Assistant Project Engineer",
+"ENTRY_IC",
+20
+],
+[
+"Assistant Engineer - Traffic",
+"ENTRY_IC",
+20
+],
+[
+"Engineer In Training",
+"ENTRY_IC",
+20
+],
+[
+"Assistant Engineer",
+"OTHER",
+0
+],
+[
+"Assistant Engineer - Hotel Maintenance",
+"OTHER",
+0
+],
+[
+"Stationary Engineer in Training",
+"OTHER",
+0
+],
+[
+"Planner I",
+"ENTRY_IC",
+20
+],
+[
+"Assistant Planner",
+"ENTRY_IC",
+20
+],
+[
+"Assistant Urban Planner",
+"ENTRY_IC",
+20
+],
+[
+"Maintenance Planner I",
+"OTHER",
+0
+],
+[
+"Assistant Wedding Planner",
+"OTHER",
+0
+],
+[
+"SOC Analyst I",
+"ENTRY_IC",
+20
+],
+[
+"SOC Analyst II",
+"EARLY_IC",
+25
+],
+[
+"Security Operations Center Analyst I",
+"ENTRY_IC",
+20
+],
+[
+"SOC Support Analyst I",
+"OTHER",
+0
+],
+[
+"Project Analyst",
+"EARLY_IC",
+25
+],
+[
+"PMO Analyst",
+"EARLY_IC",
+25
+],
+[
+"OCM Project Analyst",
+"EARLY_IC",
+25
+],
+[
+"Junior Project Analyst",
+"ENTRY_IC",
+20
+],
+[
+"Project Analyst II",
+"EARLY_IC",
+25
+],
+[
+"Project Support Analyst",
+"OTHER",
+0
+],
+[
+"Databricks Engineer II",
+"EARLY_IC",
+25
+],
+[
+"Snowflake Developer 2",
+"EARLY_IC",
+25
+],
+[
+"Kitchen Engineer II",
+"OTHER",
+0
+],
+[
+"Assistant Project Manager",
+"EARLY_IC",
+25
+],
+[
+"Assistant Program Manager",
+"EARLY_IC",
+25
+],
+[
+"Asst. Project Manager",
+"EARLY_IC",
+25
+],
+[
+"Assistant Project Manager - Construction",
+"EARLY_IC",
+25
+],
+[
+"Senior Assistant Project Manager",
+"SENIOR_IC",
+45
+],
+[
+"Assistant Program Manager, Store Operations",
+"MANAGER",
+40
+],
+[
+"Assistant Manager",
+"OTHER",
+0
+],
+[
+"Project Manager II",
+"MID_IC",
+30
+],
+[
+"Social Science Research Analyst (GS-5/7)",
+"ENTRY_IC",
+20
+],
+[
+"Management Analyst (GS-5/7/9)",
+"ENTRY_IC",
+20
+],
+[
+"Economist (GS-5/7)",
+"ENTRY_IC",
+20
+],
+[
+"Program Support Assistant (GS-5/7)",
+"OTHER",
+0
+],
+[
+"Police Officer (GS-5/7)",
+"OTHER",
+0
+],
+[
+"Social Science Research Analyst (GS-5)",
+"OTHER",
+0
+],
+[
+"Management Analyst (GS-5/7/9/11)",
+"OTHER",
+0
+],
+[
+"Technical Support Analyst",
+"OTHER",
+0
+],
+[
+"Teller",
+"OTHER",
+0
+],
+[
+"Law Clerk",
+"OTHER",
+0
+],
+[
+"Entry-Level Sales Representative",
+"OTHER",
+0
+],
+[
+"Loan Officer Assistant",
+"OTHER",
+0
+],
+[
+"Assistant Professor",
+"OTHER",
+0
+],
+[
+"Project Manager I & II",
+"MANAGER",
+40
+],
+[
+"Learning Program Manager - 1 year term",
+"MANAGER",
+40
+],
+[
+"Construction Project Manager I or II",
+"MANAGER",
+40
 ]
 ]

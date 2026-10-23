@@ -30,6 +30,7 @@ import type { JobMatch } from '@/lib/jobs/job-match-types'
 import type { SkillsFit } from '@/lib/careers/skills-fit'
 import type { OccupationExposure } from '@/lib/skills/ai-exposure'
 import type { JobAiView } from '@/lib/jobs/job-ai-view'
+import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { JobAiExposure } from '@/components/dashboard/find/JobAiExposure'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import type { MatchReason } from '@/lib/jobs/search-breadth'
@@ -258,6 +259,7 @@ export function FindJobDetail({
         {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       </header>
 
+      <NoExperienceLine jobId={posting.id} signals={posting.postingSignals} phrase={posting.noExperiencePhrase} surface="find_pane" />
       <JobAiExposure jobId={posting.id} exposure={exposure} ai={ai} />
 
       <Section id={`fit-${posting.id}`} title="Why this fits you">

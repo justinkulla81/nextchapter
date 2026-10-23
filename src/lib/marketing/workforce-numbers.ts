@@ -6,7 +6,7 @@ import { paysMore } from '@/lib/skills/ai-market'
 import { JOURNEYS } from '@/lib/journey/journey'
 import { ROLES, SOURCES } from '@/lib/pivots/pivot-map'
 import { edgesFor } from '@/lib/pivots/onet'
-import { buildWorkforceTiles, type WorkforceRaw, type WorkforceTileGroup } from './workforce-numbers-format'
+import { buildWorkforceTiles, entryLevelLine, type WorkforceRaw, type WorkforceTileGroup } from './workforce-numbers-format'
 
 // "By the numbers" on the workforce page (https://launchyournextchapter.com/government-workforce).
 // Every figure is counted from the live database or the app's own tables, cached for a day,
@@ -33,6 +33,8 @@ type JobRow = {
   functions: number
   states: number
   places: number
+  entry_no_exp: number
+  entry_ai: number
 }
 
 async function jobCounts(): Promise<JobRow> {
@@ -44,7 +46,7 @@ async function jobCounts(): Promise<JobRow> {
   const [row] = await prisma.$queryRawUnsafe<JobRow[]>(`WITH roles AS (
       SELECT DISTINCT ON (COALESCE("crawlerFingerprint", "id"))
         "lastVerifiedAt", "aiSkillGroups", "employerSector", "requirementFlags", "companyId", "companyName",
-        "socCode", "industry", "targetFunction", "locationState", "locationCity"
+        "socCode", "industry", "targetFunction", "locationState", "locationCity", "level", "postingSignals"
       FROM "ExclusiveJobPosting" WHERE ${LIVE}
       ORDER BY COALESCE("crawlerFingerprint", "id"), "lastVerifiedAt" DESC NULLS LAST, "createdAt" DESC
     )
@@ -62,7 +64,9 @@ async function jobCounts(): Promise<JobRow> {
       count(DISTINCT "targetFunction")::int AS functions,
       count(DISTINCT upper("locationState")) FILTER (WHERE upper("locationState") IN (${US_STATES}))::int AS states,
       count(DISTINCT lower("locationCity") || '|' || upper("locationState"))
-        FILTER (WHERE "locationCity" IS NOT NULL AND upper("locationState") IN (${US_STATES}))::int AS places
+        FILTER (WHERE "locationCity" IS NOT NULL AND upper("locationState") IN (${US_STATES}))::int AS places,
+      count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'no_experience_ok' = ANY("postingSignals"))::int AS entry_no_exp,
+      count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'entry_ai' = ANY("postingSignals"))::int AS entry_ai
     FROM roles`)
   if (!row) throw new Error('job counts returned no row')
   return row
@@ -94,7 +98,7 @@ async function taxonomyCounts(): Promise<TaxonomyRow> {
 }
 
 const DAY = 86_400
-const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v2'], { revalidate: DAY })
+const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v4'], { revalidate: DAY })
 const cachedTaxonomy = unstable_cache(taxonomyCounts, ['workforce-numbers-taxonomy-v1'], { revalidate: DAY })
 
 async function safe<T>(label: string, run: () => Promise<T>): Promise<T | null> {
@@ -143,6 +147,8 @@ export async function loadWorkforceNumbers(): Promise<WorkforceTileGroup[]> {
       functions: jobs.functions,
       states: jobs.states,
       places: jobs.places,
+      entryNoExp: jobs.entry_no_exp,
+      entryAi: jobs.entry_ai,
     },
     taxonomy: taxonomy && {
       skills: taxonomy.skills,
@@ -159,4 +165,16 @@ export async function loadWorkforceNumbers(): Promise<WorkforceTileGroup[]> {
     journeys: JOURNEYS.length,
   }
   return buildWorkforceTiles(raw)
+}
+
+/** "X entry-level jobs welcome people with no experience; Y entry-level jobs ask for AI skills." from the same
+ * deduped, day-cached counts as the tiles; null when they fail or are zero. */
+export async function loadEntryLevelLine(): Promise<string | null> {
+  const jobs = await safe('job counts', cachedJobs)
+  return jobs ? entryLevelLine({ ...emptyJobs, entryNoExp: jobs.entry_no_exp, entryAi: jobs.entry_ai }) : null
+}
+
+const emptyJobs = {
+  live: 0, checked24h: 0, aiSkill: 0, government: 0, nonprofit: 0, academia: 0, flagged: 0, clearance: 0,
+  employers: 0, occupations: 0, industries: 0, functions: 0, states: 0, places: 0,
 }

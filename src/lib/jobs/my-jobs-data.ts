@@ -11,69 +11,18 @@ import {
   shouldAskDidYouApply,
   PROMPT_UNTIL_DAYS,
   skillsGapInsight,
-  type ApplicationStatus,
-  type JobStatus,
   type MyJobsFunnel,
   type SkillsGapInsight,
 } from '@/lib/jobs/my-jobs'
-import { classifyWorkType, isWorkType, type JobWorkType } from '@/lib/jobs/work-type'
 import { loadPostingLifecycles } from '@/lib/jobs/past-jobs-data'
-import { lifecycleBadge, lifecycleSentence, type JobLifecycleStatus } from '@/lib/jobs/job-status'
+import { lifecycleBadge, lifecycleSentence } from '@/lib/jobs/job-status'
 
-/** Which board a tracked job came from — same values as JobClickEvent.source. */
-export type TrackSource = 'job_board' | 'surfaced' | 'matched_role'
+import { mergeMyJobItems, type ApplyPrompt, type CardTrackState, type MyJobItem, type TrackerFields } from '@/lib/jobs/my-jobs-merge'
+import { noteKeysFor, parseChecklist } from '@/lib/jobs/tracker'
+import { loadKeywordMatches, type KeywordMatchJob } from '@/lib/jobs/keyword-match-server'
+import { applicationAnalytics, type ApplicationAnalytics } from '@/lib/jobs/application-analytics'
 
-export interface TrackRef {
-  source: TrackSource
-  sourceId: string
-  title: string
-  companyName: string | null
-  url: string | null
-  workType: JobWorkType
-}
-
-export const trackKey = (source: string, sourceId: string) => `${source}:${sourceId}`
-
-/** What a board card needs to render its Save / Applied controls. */
-export interface CardTrackState {
-  saved: boolean
-  status: ApplicationStatus | null
-}
-
-export interface MyJobItem {
-  key: string
-  trackedJobId: string | null
-  jobPostingId: string | null
-  title: string
-  companyName: string | null
-  url: string | null
-  workType: JobWorkType | null
-  status: JobStatus
-  /** Where we learned of it: saved on the board, applied on the board, found in Gmail, or logged in the tracker. */
-  origin: 'board' | 'email' | 'tracker'
-  appliedVia: string | null
-  /** Saved / applied / last status date. */
-  date: Date
-  nextStep: string
-  ref: TrackRef | null
-  /** For a board job that has closed or aged out since it was saved (job-status.ts); null while it is live. */
-  listing: PastListing | null
-}
-
-/** A saved/applied board job that is no longer listed: shown with a status banner, never silently dropped. */
-export interface PastListing {
-  status: Extract<JobLifecycleStatus, 'closed' | 'expired'>
-  badge: string
-  sentence: string
-  closedAt: Date
-}
-
-export interface ApplyPrompt {
-  trackedJobId: string
-  title: string
-  companyName: string | null
-  clickedAt: Date
-}
+export { trackKey, type TrackSource, type TrackRef, type CardTrackState, type MyJobItem, type PastListing, type ApplyPrompt, type TrackerFields } from '@/lib/jobs/my-jobs-merge'
 
 export interface MyJobsView {
   items: MyJobItem[]
@@ -82,33 +31,8 @@ export interface MyJobsView {
   insight: SkillsGapInsight | null
   cardStates: Map<string, CardTrackState>
   watchedCompanies: Set<string>
-}
-
-const NEXT_STEP: Record<JobStatus, string> = {
-  saved: 'Apply, or ask someone there for an intro',
-  applied: 'Follow up in a week if you have not heard back',
-  interviewing: 'Prepare for the next conversation',
-  offer: 'Compare the offer and negotiate',
-  closed: 'Nothing to do',
-}
-
-function dateOf(status: JobStatus, savedAt: Date | null, app: JobPosting | null, fallback: Date): Date {
-  if (!app) return savedAt ?? fallback
-  if (status === 'closed') return app.declinedAt ?? fallback
-  if (status === 'offer') return app.offerReceivedAt ?? fallback
-  if (status === 'interviewing') return app.interviewLandedAt ?? fallback
-  return app.appliedAt ?? fallback
-}
-
-function refOf(t: TrackedJob): TrackRef {
-  return {
-    source: t.source as TrackSource,
-    sourceId: t.sourceId,
-    title: t.title,
-    companyName: t.companyName,
-    url: t.url,
-    workType: isWorkType(t.workType) ? t.workType : classifyWorkType({ title: t.title }),
-  }
+  /** Applied counts and reply rates, overall and by function and level. */
+  analytics?: ApplicationAnalytics
 }
 
 /**
@@ -189,7 +113,7 @@ export async function loadMyJobs(
   memberKeywords: string[],
   now: Date = new Date()
 ): Promise<MyJobsView> {
-  const [tracked, interestedSurfaced, apps, watch] = await Promise.all([
+  const [tracked, interestedSurfaced, apps, watch, savedPostings] = await Promise.all([
     prisma.trackedJob.findMany({ where: { candidateId }, include: { jobPosting: true }, orderBy: { updatedAt: 'desc' }, take: 500 }),
     prisma.surfacedJob.findMany({
       where: { candidateId, reaction: 'INTERESTED' },
@@ -198,6 +122,12 @@ export async function loadMyJobs(
     // Weekly check-in counts are numbers, not jobs: they count toward Candidate+ but aren't listed.
     prisma.jobPosting.findMany({ where: { candidateId, appliedAt: { not: null }, selfReportKey: null }, orderBy: { appliedAt: 'desc' }, take: 500 }),
     prisma.companyWatchlistEntry.findMany({ where: { candidateId }, select: { companyNameNormalized: true } }),
+    // Added by address (Add a job) and not applied to yet: listed as saved.
+    prisma.jobPosting.findMany({
+      where: { candidateId, source: 'MANUAL', appliedAt: null, declinedAt: null, trackedJob: null },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    }),
   ])
 
   try {
@@ -207,100 +137,19 @@ export async function loadMyJobs(
     console.error('My jobs: linking email applications failed', error)
   }
 
-  const items: MyJobItem[] = []
-  const cardStates = new Map<string, CardTrackState>()
-  const prompts: ApplyPrompt[] = []
-  const linkedAppIds = new Set<string>()
-  const trackedKeys = new Set<string>()
-
-  for (const t of tracked) {
-    const key = trackKey(t.source, t.sourceId)
-    trackedKeys.add(key)
-    const app = t.jobPosting
-    if (app) linkedAppIds.add(app.id)
-    const appStatus = applicationStatus(app)
-    cardStates.set(key, { saved: !!t.savedAt, status: appStatus })
-    if (shouldAskDidYouApply({ ...t, applied: !!appStatus }, now)) {
-      prompts.push({ trackedJobId: t.id, title: t.title, companyName: t.companyName, clickedAt: t.lastClickedAt! })
-    }
-    if (t.dismissedAt && !appStatus) continue
-    const status: JobStatus | null = appStatus ?? (t.savedAt ? 'saved' : null)
-    if (!status) continue // opened only: shows as a prompt, not a job
-    items.push({
-      key,
-      trackedJobId: t.id,
-      jobPostingId: app?.id ?? null,
-      title: t.title,
-      companyName: t.companyName,
-      url: t.url,
-      workType: isWorkType(t.workType) ? t.workType : null,
-      status,
-      origin: t.appliedVia === 'email' ? 'email' : 'board',
-      appliedVia: t.appliedVia,
-      date: dateOf(status, t.savedAt, app, t.updatedAt),
-      nextStep: NEXT_STEP[status],
-      ref: refOf(t),
-      listing: null,
-    })
-  }
-
-  // Surfaced jobs marked Interested before My jobs existed (or from the old list).
-  for (const s of interestedSurfaced) {
-    const key = trackKey('surfaced', s.id)
-    if (trackedKeys.has(key)) continue
-    cardStates.set(key, { saved: true, status: null })
-    const workType = classifyWorkType({ title: s.title, description: s.description })
-    items.push({
-      key,
-      trackedJobId: null,
-      jobPostingId: null,
-      title: s.title,
-      companyName: s.companyName,
-      url: s.url,
-      workType,
-      status: 'saved',
-      origin: 'board',
-      appliedVia: null,
-      date: s.reactedAt ?? s.surfacedAt,
-      nextStep: NEXT_STEP.saved,
-      ref: { source: 'surfaced', sourceId: s.id, title: s.title, companyName: s.companyName, url: s.url, workType },
-      listing: null,
-    })
-  }
-
-  // Every other application: found in Gmail, or logged in the Application Tracker.
-  for (const a of apps) {
-    if (linkedAppIds.has(a.id)) continue
-    const status = applicationStatus(a)!
-    items.push({
-      key: `application:${a.id}`,
-      trackedJobId: null,
-      jobPostingId: a.id,
-      title: a.title || a.companyName || 'Application',
-      companyName: a.companyName,
-      url: a.url,
-      workType: a.title ? classifyWorkType({ title: a.title }) : null,
-      status,
-      origin: a.source === 'EMAIL_DETECTED' ? 'email' : 'tracker',
-      appliedVia: a.source === 'EMAIL_DETECTED' ? 'email' : 'manual',
-      date: dateOf(status, null, a, a.createdAt),
-      nextStep: NEXT_STEP[status],
-      ref: null,
-      listing: null,
-    })
-  }
+  const { items, cardStates, prompts, linkedAppIds } = mergeMyJobItems({ tracked, surfaced: interestedSurfaced, apps, savedPostings, now })
 
   await attachPastListings(items, now)
-
-  const order: Record<JobStatus, number> = { offer: 0, interviewing: 1, applied: 2, saved: 3, closed: 4 }
-  items.sort((x, y) => order[x.status] - order[y.status] || y.date.getTime() - x.date.getTime())
 
   const funnel = myJobsFunnel([
     ...tracked.map((t) => ({ clicked: !!t.firstClickedAt, application: t.jobPosting })),
     ...apps.filter((a) => !linkedAppIds.has(a.id)).map((a) => ({ clicked: false, application: a })),
   ])
 
-  const insight = await loadInsight(items, interestedSurfaced, apps, memberKeywords)
+  const [insight] = await Promise.all([
+    loadInsight(items, interestedSurfaced, apps, memberKeywords),
+    attachTracker(candidateId, items, { surfaced: interestedSurfaced, apps: [...apps, ...savedPostings] }, memberKeywords),
+  ])
 
   return {
     items,
@@ -309,6 +158,84 @@ export async function loadMyJobs(
     insight,
     cardStates,
     watchedCompanies: new Set(watch.map((w) => w.companyNameNormalized)),
+    analytics: applicationAnalytics(apps, now),
+  }
+}
+
+/** Live rows get a keyword match; this caps the work on a very long list. */
+const MAX_MATCHED_ROWS = 80
+
+/**
+ * The member's notes, excitement, follow-up date, checklist and contacts for each row
+ * (JobTrackerNote), and a resume keyword match for each open row that has job text. Best-effort:
+ * a failed read leaves the rows without them, and My jobs still loads.
+ */
+async function attachTracker(
+  candidateId: string,
+  items: MyJobItem[],
+  rows: { surfaced: { id: string; title: string; description: string | null }[]; apps: JobPosting[] },
+  memberKeywords: string[]
+) {
+  try {
+    const notes = await prisma.jobTrackerNote.findMany({ where: { candidateId } })
+    const byKey = new Map(notes.map((n) => [n.itemKey, n]))
+    const noteFor = new Map<string, (typeof notes)[number]>()
+    for (const i of items) {
+      const n = noteKeysFor(i).map((k) => byKey.get(k)).find(Boolean)
+      if (n) noteFor.set(i.key, n)
+    }
+    const contactIds = [...new Set([...noteFor.values()].flatMap((n) => n.contactIds))]
+    const contacts = contactIds.length
+      ? await prisma.supportNetworkContact.findMany({ where: { candidateId, id: { in: contactIds } }, select: { id: true, name: true, company: true } })
+      : []
+    const contactById = new Map(contacts.map((c) => [c.id, c]))
+    for (const i of items) {
+      const n = noteFor.get(i.key)
+      if (!n) continue
+      const fields: TrackerFields = {
+        notes: n.notes,
+        excitement: n.excitement,
+        followUpAt: n.followUpAt,
+        followUpDoneAt: n.followUpDoneAt,
+        checklist: parseChecklist(n.checklist),
+        contacts: n.contactIds.map((id) => contactById.get(id)).filter((c): c is NonNullable<typeof c> => !!c),
+        hasJobText: !!n.jobText,
+      }
+      i.tracker = fields
+    }
+
+    // Keyword match: the job's own text, wherever it lives.
+    const live = items.filter((i) => i.status !== 'closed').slice(0, MAX_MATCHED_ROWS)
+    const boardIds = live.filter((i) => i.ref?.source === 'job_board').map((i) => i.ref!.sourceId)
+    const postings = boardIds.length
+      ? await prisma.exclusiveJobPosting.findMany({ where: { id: { in: boardIds } }, select: { id: true, title: true, description: true, skills: true, skillIds: true } })
+      : []
+    const postingById = new Map(postings.map((p) => [p.id, p]))
+    const surfacedById = new Map(rows.surfaced.map((s) => [s.id, s]))
+    const appById = new Map(rows.apps.map((a) => [a.id, a]))
+    const jobs: KeywordMatchJob[] = []
+    for (const i of live) {
+      const pasted = noteFor.get(i.key)?.jobText
+      if (i.ref?.source === 'job_board') {
+        const p = postingById.get(i.ref.sourceId)
+        if (p) jobs.push({ key: i.key, jobText: `${p.title}\n${p.description ?? ''}`, jobSkills: p.skills, jobSkillIds: p.skillIds })
+      } else if (pasted) {
+        jobs.push({ key: i.key, jobText: `${i.title}\n${pasted}` })
+      } else if (i.ref?.source === 'surfaced') {
+        const s = surfacedById.get(i.ref.sourceId)
+        if (s?.description) jobs.push({ key: i.key, jobText: `${s.title}\n${s.description}` })
+      } else if (i.jobPostingId) {
+        const a = appById.get(i.jobPostingId)
+        if (a?.extractedText) jobs.push({ key: i.key, jobText: `${a.title ?? ''}\n${a.extractedText.slice(0, 8000)}` })
+      }
+    }
+    const matches = await loadKeywordMatches(memberKeywords, jobs)
+    for (const i of items) {
+      const m = matches.get(i.key)
+      if (m && (m.matched.length > 0 || m.missing.length > 0)) i.keywordMatch = m
+    }
+  } catch (error) {
+    console.error('My jobs: tracker notes or keyword match unavailable', error)
   }
 }
 

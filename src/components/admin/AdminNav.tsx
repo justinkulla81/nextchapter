@@ -66,8 +66,10 @@ export const AREAS: { key: AdminArea; label: string; href: string; hint: string 
 ]
 
 /** Which area a path belongs to. Order matters: the specific prefixes first. */
+const CRM_PATHS_OUTSIDE_CRM = ['/support/admin/linkedin-drafts', '/support/admin/network-leads', '/support/admin/school-links']
+
 export function areaForPath(pathname: string): AdminArea {
-  if (pathname.startsWith('/support/admin/crm')) return 'ecosystem'
+  if (pathname.startsWith('/support/admin/crm') || CRM_PATHS_OUTSIDE_CRM.some((p) => pathname.startsWith(p))) return 'ecosystem'
   if (pathname.startsWith('/support/admin/vision')) return 'vision'
   return 'administrator'
 }
@@ -79,31 +81,26 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
   const countFor = (key: string) => (badges[key] > 0 ? String(badges[key]) : undefined)
 
   // Grouped by the job you came to do, not by when each page was built.
-  // Anything with an orange badge (waiting on you) sits in "To do"; email has
-  // one home so "where do I send from" has one answer.
+  // "Today" is everything with an orange badge (waiting on you); a page lives
+  // in exactly one section, so "where do I go for X" has one answer.
   return [
     {
       title: 'Overview',
       links: [{ href: '/support/admin/crm/home', label: 'Home' }],
     },
     {
-      title: 'To do',
+      title: 'Today',
       collapsible: true,
       defaultOpen: true,
       links: [
-        // "Org queue"/"People queue" — same idea (what's overdue right now:
-        // a broken promise, a missed next step), split by whether the
-        // opportunity's overdue item belongs to a company or to a person.
         { href: '/support/admin/crm/todos', label: 'To-dos' },
-        { href: '/support/admin/crm/queue', label: 'Org follow-ups', badge: badgeFor('crmQueue') },
+        // Same idea (what's overdue right now: a broken promise, a missed next
+        // step), split by whether the overdue item belongs to a company or a person.
+        { href: '/support/admin/crm/queue', label: 'Company follow-ups', badge: badgeFor('crmQueue') },
         { href: '/support/admin/crm/queue/people', label: 'People follow-ups', badge: badgeFor('crmPeopleQueue') },
         { href: '/support/admin/crm/contact-messages', label: 'Contact messages', badge: badgeFor('contactUnhandled') },
         { href: '/support/admin/crm/needs-completion', label: 'Review List', badge: badgeFor('needsCompletion') },
-        { href: '/support/admin/crm/needs-review', label: 'Activity to review', badge: badgeFor('activityReview') },
-        { href: '/support/admin/crm/sent', label: 'Sent email' },
-        { href: '/support/admin/crm/outreach', label: 'Outreach tests' },
-        { href: '/support/admin/crm/company-links', label: 'Company links' },
-        { href: '/support/admin/school-links', label: 'Higher education links' },
+        { href: '/support/admin/crm/needs-review', label: 'Emails to confirm', badge: badgeFor('activityReview') },
         { href: '/support/admin/crm/meeting-prep', label: 'Prep for tomorrow' },
       ],
     },
@@ -114,46 +111,42 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/leads', label: 'All leads' },
         { href: '/support/admin/crm/pipelines', label: 'Pipelines' },
         { href: '/support/admin/crm/dates', label: 'Upcoming dates' },
+        { href: '/support/admin/crm/pitch', label: 'Pitch builder' },
+        { href: '/support/admin/crm/pitch-rules', label: 'Pitch rules' },
       ],
     },
     {
-      // One section per kind of organization or person we work with, so the
+      // One entry per kind of organization or person we work with, so the
       // names here are the vocabulary used everywhere else in the CRM.
       // Companies, recruiters and coaches are views over People and
       // Organizations (a filter, not a separate table).
-      title: 'Ecosystem',
-      collapsible: true,
-      links: [
-        { href: '/support/admin/crm/organizations?rel=all', label: 'Companies' },
-        { href: '/support/admin/crm/colleges', label: 'Higher education' },
-        { href: '/support/admin/crm/workforce-boards', label: 'Workforce' },
-        { href: '/support/admin/crm?role=RECRUITER_PROSPECT', label: 'Recruiters' },
-        { href: '/support/admin/crm/mandates', label: 'Mandates' },
-        { href: '/support/admin/crm/search-firms', label: 'Search firms' },
-        { href: '/support/admin/crm?role=COACH_PROSPECT', label: 'Coaches' },
-      ],
-    },
-    {
-      title: 'Records',
+      title: 'People and organizations',
       collapsible: true,
       links: [
         { href: '/support/admin/crm', label: 'People', badge: countFor('peopleTotal'), badgeTone: 'count' },
-        { href: '/support/admin/crm/organizations', label: 'Organizations', badge: countFor('orgsTotal'), badgeTone: 'count' },
-        { href: '/support/admin/crm/research', label: 'Research' },
-        { href: '/support/admin/crm/duplicates', label: 'Duplicates' },
-        { href: '/support/admin/crm/removed', label: 'Removed', badge: countFor('removedTotal'), badgeTone: 'count' },
+        { href: '/support/admin/crm?role=RECRUITER_PROSPECT', label: 'Recruiters' },
+        { href: '/support/admin/crm?role=COACH_PROSPECT', label: 'Coaches' },
+        { href: '/support/admin/crm/organizations', label: 'All organizations', badge: countFor('orgsTotal'), badgeTone: 'count' },
+        { href: '/support/admin/crm/organizations?rel=all', label: 'Companies' },
+        { href: '/support/admin/crm/colleges', label: 'Higher education' },
+        { href: '/support/admin/crm/workforce-boards', label: 'Workforce boards' },
+        { href: '/support/admin/crm/economic-development', label: 'Economic development' },
+        { href: '/support/admin/crm/search-firms', label: 'Search firms' },
+        { href: '/support/admin/crm/mandates', label: 'Mandates' },
       ],
     },
     {
       title: 'Email',
       collapsible: true,
       links: [
-        // The bulk-send surface. Each list has a cadence; due sends are
-        // drafted for you and wait here for approval.
+        // Each list has a cadence; due sends are drafted for you and wait
+        // here for approval.
         { href: '/support/admin/crm/mailing', label: 'Mailing lists', badge: badgeFor('mailingAttention') },
         { href: '/support/admin/crm/mailing/lists', label: 'Lists and sender settings' },
         { href: '/support/admin/crm/mailing/unsubscribes', label: 'Unsubscribes' },
-        { href: '/support/admin/crm/segments', label: 'One-off segment emails' },
+        { href: '/support/admin/crm/segments', label: 'One-off emails' },
+        { href: '/support/admin/crm/outreach', label: 'Cold outreach tests' },
+        { href: '/support/admin/crm/sent', label: 'Sent email' },
       ],
     },
     {
@@ -164,18 +157,29 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // state on this page that is actually waiting on you.
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
         { href: '/support/admin/linkedin-drafts', label: 'LinkedIn post drafts' },
-        { href: '/support/admin/crm/economic-development', label: 'Econ development leads' },
-        { href: '/support/admin/crm/geographies', label: 'Geographies' },
-        { href: '/support/admin/crm/benefits', label: 'Benefits' },
-        { href: '/support/admin/crm/pitch', label: 'Pitch builder' },
-        { href: '/support/admin/crm/pitch-rules', label: 'Pitch rules' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
+        { href: '/support/admin/crm/recruiters', label: 'Recruiters by state and industry' },
       ],
     },
     {
-      title: 'Import and sync',
+      title: 'Reference',
       collapsible: true,
       links: [
+        { href: '/support/admin/crm/benefits', label: 'Benefits' },
+        { href: '/support/admin/crm/research', label: 'Research' },
+        { href: '/support/admin/crm/geographies', label: 'Geographies' },
+        { href: '/support/admin/crm/industries', label: 'Industries' },
+        { href: '/support/admin/crm/functions', label: 'Functions' },
+      ],
+    },
+    {
+      title: 'Data upkeep',
+      collapsible: true,
+      links: [
+        { href: '/support/admin/crm/duplicates', label: 'Duplicates' },
+        { href: '/support/admin/crm/company-links', label: 'Company name matches' },
+        { href: '/support/admin/school-links', label: 'School name matches' },
+        { href: '/support/admin/crm/removed', label: 'Removed', badge: countFor('removedTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm/import', label: 'Upload CSV' },
         { href: '/support/admin/crm/sync', label: 'Activity sync' },
         { href: '/support/admin/crm/capture-tokens', label: 'Capture tokens' },
@@ -253,11 +257,11 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/candidates`, label: 'All candidates' },
         { href: `${A}/candidates/declined-commitment`, label: 'Declined Commitment' },
         { href: `${A}/layoff-cohorts`, label: 'Layoff Cohorts' },
+        { href: `${A}/search-checkins`, label: 'Search Check-ins' },
+        { href: `${A}/platform-engagement`, label: 'Work & Learning' },
         { href: `${A}/performance`, label: 'Performance' },
         { href: `${A}/pacing`, label: 'Pacing' },
-        { href: `${A}/platform-engagement`, label: 'Work & Learning' },
-        { href: `${A}/search-checkins`, label: 'Search Check-ins' },
-        { href: `${A}/weekly-recognition`, label: 'Weekly Recognition Archive' },
+        { href: `${A}/weekly-recognition`, label: 'Weekly Recognition' },
       ],
     },
     {
@@ -268,36 +272,41 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/coach-matches`, label: 'Coach Matches' },
         { href: `${A}/coaching-reassignments`, label: 'Reassignments & Surge' },
         { href: `${A}/coaching-rates`, label: 'Rate Card' },
-        { href: `${A}/coaching-settings`, label: 'Settings' },
+        { href: `${A}/coaching-settings`, label: 'Coaching Settings' },
       ],
     },
     {
-      title: 'Employers & jobs',
+      title: 'Jobs',
       collapsible: true,
       links: [
-        { href: `${A}/employers`, label: 'Employers' },
-        { href: `${A}/companies`, label: 'Companies' },
         { href: `${A}/exclusive-jobs`, label: 'Job Board', badge: badgeFor('jobBoard') },
-        { href: `${A}/job-flags`, label: 'Job Flags (ghost, red flags)' },
-        { href: `${A}/jobs`, label: 'Jobs' },
-        { href: `${A}/jobs/apply-fit`, label: 'Application fit' },
+        { href: `${A}/jobs`, label: 'All Jobs' },
         { href: `${A}/jobs/lifecycle`, label: 'Open vs closed jobs' },
+        { href: `${A}/jobs/apply-fit`, label: 'Application fit' },
+        { href: `${A}/job-flags`, label: 'Job Flags (ghost, red flags)' },
         { href: `${A}/likely-openings`, label: 'Likely Openings' },
-        { href: `${A}/adzuna`, label: 'Adzuna Market Data' },
         { href: `${A}/interim-listings`, label: 'Interim Work Listings' },
       ],
     },
     {
-      title: 'Recruiters',
+      // Every account and paying customer's setup in one place: employers,
+      // recruiters, colleges, outplacement contracts, licenses and staff.
+      title: 'Customers and accounts',
       collapsible: true,
       links: [
-        { href: `${A}/recruiters`, label: 'Recruiters' },
-        { href: `${A}/recruiter-database`, label: 'Database' },
-        { href: `${A}/recruiter-settings`, label: 'Settings' },
+        { href: `${A}/organizations`, label: 'Organizations (all portals)' },
+        { href: `${A}/employers`, label: 'Employer accounts' },
+        { href: `${A}/companies`, label: 'Company ranking' },
+        { href: `${A}/recruiters`, label: 'Recruiter accounts' },
+        { href: `${A}/recruiter-database`, label: 'Recruiter candidate database' },
+        { href: `${A}/recruiter-settings`, label: 'Recruiter settings' },
+        { href: `${A}/institutions`, label: 'Higher education' },
+        { href: `${A}/college-systems`, label: 'Higher education systems' },
+        { href: `${A}/outplacement-contracts`, label: 'Outplacement companies' },
       ],
     },
     {
-      title: 'Trust & community',
+      title: 'Trust and community',
       collapsible: true,
       links: [
         { href: `${A}/references`, label: 'References' },
@@ -308,21 +317,10 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       ],
     },
     {
-      // Every paying customer's setup in one place: licenses, staff, regions,
-      // multi-campus systems, outplacement contracts.
-      title: 'Customers',
+      title: 'Programs and pricing',
       collapsible: true,
       links: [
-        { href: `${A}/organizations`, label: 'Organizations (all portals)' },
-        { href: `${A}/institutions`, label: 'Higher education' },
-        { href: `${A}/college-systems`, label: 'Higher education systems (multi-campus)' },
-        { href: `${A}/outplacement-contracts`, label: 'Outplacement companies' },
-      ],
-    },
-    {
-      title: 'Programs & content',
-      collapsible: true,
-      links: [
+        { href: `${A}/plan-catalog`, label: 'Plan Catalog' },
         { href: `${A}/courses`, label: 'Courses' },
         { href: `${A}/webinars`, label: 'Videos and Webinars' },
         { href: `${A}/nen-sessions`, label: 'NEN Sessions' },
@@ -331,14 +329,6 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/eqoveriq-contributors`, label: 'EQoverIQ Contributors' },
         { href: `${A}/alumni-groups`, label: 'Alumni & Employer Networks' },
         { href: `${A}/benefits-network`, label: 'Higher Education Benefits Network' },
-      ],
-    },
-    {
-      title: 'Money',
-      collapsible: true,
-      links: [
-        { href: `${A}/plan-catalog`, label: 'Plan Catalog' },
-        { href: `${A}/margin-dashboard`, label: 'Margin Dashboard' },
       ],
     },
     {
@@ -351,12 +341,14 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/population`, label: 'Population Report' },
         { href: `${A}/monthly-report`, label: 'Monthly member report' },
         { href: `${A}/education-outcomes`, label: 'Outcomes by college' },
+        { href: `${A}/margin-dashboard`, label: 'Margin Dashboard' },
         { href: `${A}/issues`, label: 'Resume Issue Analytics' },
         { href: `${A}/pedigree-signals`, label: 'Pedigree Signals' },
+        { href: `${A}/adzuna`, label: 'Adzuna Market Data' },
       ],
     },
     {
-      title: 'Site & email',
+      title: 'Site settings',
       collapsible: true,
       links: [
         { href: `${A}/page-content`, label: 'Page Content' },

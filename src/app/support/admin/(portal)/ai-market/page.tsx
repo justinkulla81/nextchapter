@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { requireAdmin } from '@/lib/admin/auth'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { AI_LEVELS, AI_LEVEL_LABEL, asOfText, premiumPhrase, type AiPremium } from '@/lib/skills/ai-market'
+import { EntryMarketBlock } from '@/components/admin/EntryMarketBlock'
 import { aiSkillItem } from '@/lib/skills/ai-skills'
 
 export const dynamic = 'force-dynamic'
@@ -64,6 +65,12 @@ export default async function AiMarketAdminPage() {
           </p>
         </div>
       </section>
+
+      {live.entry ? (
+        <EntryMarketBlock e={live.entry} />
+      ) : (
+        <p className="text-sm text-muted-foreground">Entry-level numbers appear after the next ai-market run.</p>
+      )}
 
       <p className="text-sm text-muted-foreground">
         Text the AI fields were read from: own full description {(c.fullText - c.twin).toLocaleString()}, the same role&apos;s full text at a direct source {c.twin.toLocaleString()},

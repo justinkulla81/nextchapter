@@ -66,7 +66,7 @@ const BLOCKER_PRIORITY = [
 ] as const
 
 // Journeys where we do not push a search task at all.
-const GENTLE_JOURNEYS: JourneyType[] = ['TIME_OFF', 'ENTREPRENEUR', 'FRACTIONAL']
+const GENTLE_JOURNEYS: JourneyType[] = ['TIME_OFF', 'ENTREPRENEUR', 'FRACTIONAL', 'BUY_BUSINESS']
 
 export interface BlockerPick {
   item: PlanItem

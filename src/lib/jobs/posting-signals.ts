@@ -12,16 +12,24 @@
 // board filter ("Open to career changers / AI-upskilled", the `open` URL parameter); and, for members
 // changing careers or early in their career, those jobs rank first within the same fit level.
 
-export const POSTING_SIGNALS = ['career_changer_welcome', 'ai_upskilled_welcome', 'high_eq'] as const
-export type PostingSignal = (typeof POSTING_SIGNALS)[number]
+//
+// Entry-level signals (crawler ncrawl/entry_signals.py, 2026-10-23; rules and filters: entry-filters.ts) share
+// the column: no_experience_ok (an entry / early-career job whose posting says people without experience are
+// welcome; the phrase is in noExperiencePhrase) is the one that can show as a tag; entry_ai and
+// entry_ai_preferred (an entry / early-career job asking for AI skills, the ask only preferred) never do.
 
-const KNOWN = new Set<string>(POSTING_SIGNALS)
+export const POSTING_SIGNALS = ['career_changer_welcome', 'ai_upskilled_welcome', 'high_eq', 'no_experience_ok'] as const
+export type PostingSignal = (typeof POSTING_SIGNALS)[number]
+/** Stored with the others, never shown as a tag. */
+export const ENTRY_ONLY_SIGNALS = ['entry_ai', 'entry_ai_preferred'] as const
+const STORED = [...POSTING_SIGNALS, ...ENTRY_ONLY_SIGNALS] as const
+export type StoredSignal = (typeof STORED)[number]
 
 /** The import route's postingSignals, validated: known ids only, in canonical order. Left out when not sent. */
-export function importPostingSignalFields(job: { postingSignals?: unknown }): { postingSignals?: PostingSignal[] } {
+export function importPostingSignalFields(job: { postingSignals?: unknown }): { postingSignals?: StoredSignal[] } {
   if (!('postingSignals' in job) || job.postingSignals === undefined) return {}
   const sent = Array.isArray(job.postingSignals) ? new Set(job.postingSignals.filter((x): x is string => typeof x === 'string')) : new Set<string>()
-  return { postingSignals: POSTING_SIGNALS.filter((s) => sent.has(s) && KNOWN.has(s)) }
+  return { postingSignals: STORED.filter((s) => sent.has(s)) }
 }
 
 /** The tag text for each signal. */
@@ -29,6 +37,7 @@ export const POSTING_SIGNAL_TAG: Record<PostingSignal, string> = {
   career_changer_welcome: 'Open to career changers',
   ai_upskilled_welcome: 'Open to AI learners',
   high_eq: 'Values EQ',
+  no_experience_ok: 'No experience needed',
 }
 
 /** Why the tag is there (the tag's title and the filter hint): every claim says why. */
@@ -36,6 +45,7 @@ export const POSTING_SIGNAL_WHY: Record<PostingSignal, string> = {
   career_changer_welcome: 'The posting says it welcomes career changers, transferable skills or non-traditional backgrounds.',
   ai_upskilled_welcome: 'The posting says self-taught AI skills, AI courses or a willingness to learn AI count.',
   high_eq: 'The posting asks for emotional intelligence: empathy, self-awareness, reading the room.',
+  no_experience_ok: 'An entry-level job whose posting says people without experience are welcome.',
 }
 
 /** The signals the board filter keeps: either welcome. */
@@ -66,14 +76,15 @@ export function wantsChangerLift(m: { pivoting: boolean; earlyCareer: boolean })
 }
 
 /**
- * The one tag a job shows, or null. One quiet tag at most: for a member the lift applies to, the
- * welcome signals come first; otherwise career changers, then EQ, then AI learners.
+ * The one tag a job shows, or null. One quiet tag at most: "No experience needed" first; then, for a
+ * member the lift applies to, the welcome signals; otherwise career changers, then EQ, then AI learners.
  */
 export function postingSignalTag(signals: readonly string[] | null | undefined, opts: { lift?: boolean } = {}): PostingSignal | null {
   const have = new Set(signals ?? [])
+  // "No experience needed" first: it is the one entry-level tag cards show (entry-filters.ts).
   const order: PostingSignal[] = opts.lift
-    ? ['career_changer_welcome', 'ai_upskilled_welcome', 'high_eq']
-    : ['career_changer_welcome', 'high_eq', 'ai_upskilled_welcome']
+    ? ['no_experience_ok', 'career_changer_welcome', 'ai_upskilled_welcome', 'high_eq']
+    : ['no_experience_ok', 'career_changer_welcome', 'high_eq', 'ai_upskilled_welcome']
   return order.find((s) => have.has(s)) ?? null
 }
 
@@ -83,5 +94,7 @@ export function postingSignalTag(signals: readonly string[] | null | undefined, 
  * and the tag shows only on jobs without a hint. (What the tag removes: that hint, for those members.)
  */
 export function tagTakesHintSlot(signal: PostingSignal, lift: boolean): boolean {
+  // "No experience needed" always takes it (it removes the "Likely fewer applicants" hint on those jobs).
+  if (signal === 'no_experience_ok') return true
   return lift && (OPEN_FILTER_SIGNALS as readonly string[]).includes(signal)
 }
