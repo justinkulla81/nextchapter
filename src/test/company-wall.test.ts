@@ -138,6 +138,11 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/linkedin/layoff-post-sweep.ts': 'admin WARN tooling: drafts suggested LinkedIn posts from credible layoffs; imported only by the layoff-news cron (registered here by the outreach session because main was red on it)',
     'src/lib/outreach/reply-alert.ts': 'admin outreach: puts a person who answered cold email on the follow-up list and emails the owner',
     'src/app/prepared/[slug]/actions.ts': 'admin outreach: the claim button on a prospect page adds the person to the CRM as a lead and emails the owner; it writes to the CRM and reads nothing back to the visitor',
+    // Organization claim pages (owner-requested 2026-10-23). They show a public page for a CRM organization: its name, the state/county its
+    // layoff figures are for, and (as a hint) the email domain a claimant must use. No CRM person, note, status or contact is read for display.
+    'src/lib/org-claims/org.ts': 'public claim page: resolves a CRM organization by slug; returns its name, type and email domain only',
+    'src/lib/org-claims/community-stats.ts': 'public claim page and mailing merge field: reads the organization name to find its place, then public WARN filing counts',
+    'src/lib/org-claims/claim.ts': 'public claim page: a verified claimant is written into the CRM as a lead (writes only) and the owner is emailed',
     'src/lib/outreach/events.ts': 'admin outreach: Resend webhook handler for tagged cold email; marks bounced or complaining addresses',
     'src/lib/warn/layoff-hr-enrich.ts': 'admin WARN tooling: imported only by the layoff alert; adds HR people at the employer to the CRM when a layoff is filed',
     'src/lib/warn/layoff-alert-people.ts': 'admin WARN tooling: imported only by the layoff alert; lists the CRM and workforce contacts tied to one layoff',
