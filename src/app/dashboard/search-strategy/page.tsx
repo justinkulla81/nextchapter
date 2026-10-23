@@ -221,8 +221,7 @@ async function StrategyUnlockCard({ candidateId }: { candidateId: string }) {
   return (
     <UnlockProgress
       status={status}
-      title="Unlock your next strategy and report refresh"
-      what="Victoria writes a new read of your strategy, and your Market Reality Report is refreshed with it, from the work you have done since the last one: who you talked to, what you applied for, what you learned and what you told us. Earn it with search effort, not time alone."
+      what="Victoria writes a new read of your strategy, and your Market Reality Report is refreshed with it, from the work you have done since the last one: who you talked to, what you applied for, what you learned and what you told us. It grows with the search work you do, not with time alone."
       action={unlockNextStrategy}
       buttonLabel="Generate my next strategy"
       pendingLabel="Writing your strategy…"
