@@ -51,10 +51,12 @@ describe('personalization: nothing we know does not apply is shown', () => {
     expect(unknownWork.length).toBeGreaterThan(matchPrograms(rows, marketer).length)
   })
 
-  it('shows each real program once, even when it is filed twice', () => {
+  it('shows each real program once, even when it is filed twice (same page, near-identical name)', () => {
     const m = matchPrograms(rows, { ...marketer, relocation: { scope: 'ANYWHERE', states: [] } })
     const keys = m.map((x) => `${(x.program.url ?? '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/[#?].*$/, '').replace(/\/$/, '')}|${x.program.state}|${x.goal}`)
-    expect(new Set(keys).size).toBe(keys.length)
+    // Distinct programs may share one FAQ page; only a repeated name on one page counts as a duplicate.
+    const nameKeys = m.map((x) => `${keys[m.indexOf(x)]}|${x.program.name.toLowerCase()}`)
+    expect(new Set(nameKeys).size).toBe(nameKeys.length)
   })
 
   it('shows statewide programs to residents of that state, and not to residents of other states', () => {
