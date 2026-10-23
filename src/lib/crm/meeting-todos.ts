@@ -12,6 +12,17 @@ export function dueDateAfterMeeting(meetingAt: Date): string {
 }
 
 /**
+ * When a to-do from a meeting is due. Normally two days after the meeting; if
+ * that has already passed (notes read late, or an older meeting caught up
+ * after an outage) it is the next business day instead, so the to-do shows as
+ * due rather than silently overdue and its calendar reminder is in the future.
+ */
+export function dueDateFor(meetingAt: Date, now: Date = new Date()): string {
+  const normal = dueDateAfterMeeting(meetingAt)
+  return normal >= now.toISOString().slice(0, 10) ? normal : dueDateAfterMeeting(new Date(now.getTime() - 86_400_000))
+}
+
+/**
  * Turns a meeting's Gemini "Next steps" into CRM to-dos on the person,
  * their organization and opportunity. Yours get a Google Calendar reminder;
  * the other party's become "Waiting on" items so you can chase them.
@@ -33,7 +44,7 @@ export async function createTodosFromNotes(input: {
   accessToken: string
 }): Promise<{ created: number; reminders: number }> {
   const steps = parseNextSteps(input.notes, input.selfNames)
-  const dueDate = dueDateAfterMeeting(input.meetingAt)
+  const dueDate = dueDateFor(input.meetingAt)
   let created = 0
   let reminders = 0
   for (const [i, step] of steps.entries()) {
