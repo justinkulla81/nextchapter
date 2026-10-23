@@ -16,6 +16,7 @@ import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, Empty
 import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 import { CareerStoryReal } from './career-story'
 import { SearchStrategySimple } from './strategy'
+import { StrategyNegotiationLive, StrategyNegotiationEmptyLive } from './strategy-negotiation-live'
 import { SearchStrategyApplicationMatch, ApplicationMatchFew } from './application-match'
 import { AdminSkillsMatch } from './admin-skills-match'
 import { MarketReportShort } from './report-short'
@@ -113,6 +114,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'home/strategy/application-match', place: 'Home', title: 'Search strategy: your applications, match and gaps (sample data)', replaces: 'new section; the unlock card moves into More about your search', Component: SearchStrategyApplicationMatch },
   { path: 'home/strategy/application-match-few', place: 'Home', title: 'Applications match: two applications, failed add (sample data)', replaces: 'the same section, early and error states', Component: ApplicationMatchFew },
   { path: 'admin/skills-match', place: 'Admin', title: 'Admin: skills match and gaps in applications (sample data)', replaces: 'new: support/admin/jobs/skills-match', Component: AdminSkillsMatch },
+  { path: 'home/strategy/negotiation', place: 'Home', title: 'Search strategy step 5: interviews, offers and pay (the built form, sample answers)', replaces: 'the step 5 form with nine benefits questions; they moved to Know your worth', Component: StrategyNegotiationLive },
+  { path: 'home/strategy/negotiation-empty', place: 'Home', title: 'Search strategy step 5, nothing answered yet (the built form)', replaces: 'the same form, empty', Component: StrategyNegotiationEmptyLive },
   { path: 'home/strategy', place: 'Home', title: 'Search strategy, simplified', replaces: '/dashboard/search-strategy (about twelve blocks down to three)', Component: SearchStrategySimple },
   { path: 'jobs/market/report', place: 'Jobs', title: 'Market reality report: the one-screen brief', replaces: '/dashboard/market-reality (12 pages down to one screen; the full report stays behind a button)', Component: MarketReportShort },
   { path: 'home/stalled', place: 'Home', title: 'Today: week 4, no interviews, widen the search', replaces: 'new: time-driven personalization', Component: HomeStalled },

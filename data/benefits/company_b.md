@@ -1,0 +1,74 @@
+# Foundation / nonprofit funded move, retrain, bridge programs (checked 2026-10-22)
+Verified=Yes only where the fetched official page states the program/amount and an open apply path. "Unverified" rows come from prior knowledge or a page that did not state amount/status; confirm before use.
+
+| Name | Employer | State | Locality | What it pays | Eligibility | Status | Official URL | Verified |
+|---|---|---|---|---|---|---|---|---|
+## Relocation / talent attraction (foundation- or nonprofit-run)
+| Tulsa Remote | George Kaiser Family Foundation | OK | Tulsa | $10,000 (monthly for renters, lump sum after home purchase) | 18+, authorized to work in US, full-time remote W-2/self-employed outside OK | Open (Apply Now on site) | https://tulsaremote.com/program-details | Yes |
+| Ascend WV | Benedum Foundation / Brad and Alys Smith Outdoor Economic Development Collaborative (WVU) | WV | Morgantown and other WV communities | $12,000 to move plus free outdoor recreation package and coworking | Full-time remote worker or remote-manageable business owner living outside WV | Open (Apply Now, 2026 FAQ) | https://www.ascendwv.com/faq | Yes |
+| Ascend WV Heroes | Ascend WV / Smith OEDC | WV | WV | Relocation incentive for a veteran/service track (amount not read) | Per program page | Listed on site nav; amount not read | https://www.ascendwv.com | No |
+| Ascend WV Healthcare | Ascend WV / Smith OEDC | WV | WV | Relocation incentive for healthcare workers (amount not read) | Per program page | Listed on site nav; amount not read | https://www.ascendwv.com | No |
+| Choose Topeka | Greater Topeka Partnership (nonprofit) | KS | Topeka | Relocation incentive (reported up to about $15,000; page text did not state it) | Remote workers / new residents | Unverified | https://choosetopeka.com | No |
+| Live and Work Remote in Knox County | Knox County community partners via MakeMyMove | IN | Vincennes / Knox Co | $9,300 program value (cash plus benefits, 11 benefits) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Evansville Region remote-worker program | Evansville region partners via MakeMyMove | IN | Evansville | $7,500 program value (cash plus 16 benefits) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Belong and Work Locally, Evansville Region | Evansville region partners via MakeMyMove | IN | Evansville | $7,500 program value (cash plus 16 benefits) | Job seekers moving to take a local job | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Find Your Place in Avon | Avon community partners via MakeMyMove | IN | Avon (Indianapolis area) | $7,200 program value (cash plus 5 benefits) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Start Your Career in New Castle and Henry County | Henry County partners via MakeMyMove | IN | New Castle / Henry Co | $6,900 program value (cash plus 8 benefits) | Job seekers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Move to New Castle and Henry County | Henry County partners via MakeMyMove | IN | New Castle / Henry Co | $6,900 program value (cash plus 8 benefits) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Work Remote in Sharon | Sharon / Mercer County partners via MakeMyMove | PA | Sharon | $8,400 program value (cash plus 12 benefits) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Work Remote in Farrell | Farrell / Mercer County partners via MakeMyMove | PA | Farrell | $7,350 program value (cash plus 11 benefits) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Work Remote in Hermitage | Hermitage / Mercer County partners via MakeMyMove | PA | Hermitage | $3,000 program value (15 benefits, no cash flagged) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Live and Work Remote in Muncie | Muncie partners via MakeMyMove | IN | Muncie | $6,500 program value (cash plus 8 benefits) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Move to Spencer County | Spencer County partners via MakeMyMove | IN | Spencer County | $8,400 program value (cash plus 9 benefits) | Remote workers | Open (Apply Now) | https://www.makemymove.com/get-paid | Yes |
+| Move to Eastern Kentucky | Eastern Kentucky partners via MakeMyMove | KY | Eastern Kentucky | $6,000 program value (cash plus 7 benefits) | Remote workers | Open (Apply Now, Recruiting Now) | https://www.makemymove.com/get-paid | Yes |
+| MakeMyMove program marketplace (322 places; Detroit MI, Texarkana TX, Jacksonville IL, Carmel IN, Red River Gorge KY and others listed) | MakeMyMove (TMap LLC) | | Multiple | Varies by place | Remote workers, teachers, nurses, job seekers | Open; browse for current list | https://www.makemymove.com/moving-living | Yes |
+| Lilly Endowment community and talent grantmaking (Strengthening Indianapolis / Indiana Communities) | Lilly Endowment | IN | Indianapolis / Indiana | Funds organizations, not individuals; funder behind regional talent efforts | Nonprofit grantees | Context only | https://www.lillyendowment.org/ | No |
+| Shoals Shift | Shoals-area remote-worker initiative | AL | Shoals | Remote-worker relocation incentive (site content did not state terms) | Unverified | Unverified | https://www.shoalsshift.com | No |
+## Fellowships and cohort programs (paid time to retrain or reposition)
+| John S. Knight Journalism Fellowships | Stanford University (named for Knight family/Knight Foundation heritage) | CA | Stanford | Fellowship year for mid-career journalists (stipend amount not read) | Journalists; 2027-28 cohort | Open; deadline Dec 2, 1:00 p.m. | https://jsk.stanford.edu/ | No |
+| Knight Science Journalism Fellowship | MIT (Knight Foundation supported) | MA | Cambridge | Fellowship year (stipend amount not read) | Science/health/tech/environment journalists with 3+ consecutive years experience | Application page live; deadline not read | https://ksj.mit.edu/fellowships/ | No |
+| Nieman Fellowships | Nieman Foundation at Harvard | MA | Cambridge | Fellowship year (amount not read) | Journalists | Apply page says encouraged to apply; deadline not read | https://nieman.harvard.edu/fellowships/ | No |
+| Knight-Wallace Fellowships | Wallace House, University of Michigan | MI | Ann Arbor | Fellowship stipend year (site blocked on fetch) | Mid-career journalists | Unverified | https://wallacehouse.umich.edu/fellowships/ | No |
+| Echoing Green Fellowship | Echoing Green | NY | New York (national) | Stipend plus seed funding for social entrepreneurs (amount not read) | Social entrepreneurs | Apply link live; cycle not read | https://echoinggreen.org/fellowship/ | No |
+| Encore Fellowships | Encore.org | | National | Stipended nonprofit fellowships for experienced professionals | 2nd-career professionals | Site blocked on fetch; unverified | https://encore.org/ | No |
+| Fund for Teachers fellowship | Fund for Teachers (nonprofit) | | National | Grants for self-designed professional learning (amount not read; 2027 cycle) | PreK-12 teachers | Open: 2027 application opened Oct 1, deadline Jan 21 | https://fundforteachers.org/ | Yes |
+| SWE reentry scholarships (BK Krenzer Memorial; Olive Lynn Salembier Memorial) | Society of Women Engineers | | National | Scholarship for women returning to engineering (amount not read) | Women re-entering engineering study/work | Listed on scholarships page; cycle not read | https://swe.org/scholarships/ | No |
+| Path Forward returnships | Path Forward (nonprofit) | | National | Paid employer returnship placements after caregiving break | Career-break returners | Active org; open roles list not found | https://www.pathforward.org | No |
+## Career-transition grants, scholarships and services
+| Live Your Dream Education and Training Awards | Soroptimist International of the Americas | | National | Cash awards (aggregate $3.6M to 2,500+ women yearly; per-award amount not read) | Women providing main support for families, pursuing training | Open Aug 1 to Nov 15 | https://soroptimist.org/our-work/live-your-dream-awards/ | No |
+| Amber Grant | WomensNet | | National | $15,000 x 3 monthly plus $75,000 year-end (for business launch bridges) | Women business owners | Open (Apply Now) | https://ambergrantsforwomen.com/ | Yes |
+| AAUW Career Development Grants | AAUW | | National | Grants for women changing careers/returning to workforce (amounts not read) | Women with bachelor's degree | Site returned 403; unverified | https://www.aauw.org/ | No |
+| P.E.O. Program for Continuing Education | P.E.O. International | | National | Grants for women returning to school (amount not read) | Women whose education was interrupted | Page not found; unverified | https://www.peointernational.org/ | No |
+| Per Scholas | Per Scholas (nonprofit) | | National (several metros) | No-cost tech career training | Adults; metro-specific | Active; apply per location | https://www.perscholas.org/ | No |
+| Generation | Generation (nonprofit) | | National / global | Free job training cohorts | Adults, varies by program | Active; cohort-specific | https://www.generation.org/ | No |
+| NPower | NPower (nonprofit) | | National | Free tech training | Young adults / veterans | Apply Now on site | https://npower.org/ | No |
+| Year Up United | Year Up United | | 20+ campuses | Training with stipend/internship | Young adults | Apply Now on site | https://www.yearup.org/ | No |
+| Hire Heroes USA | Hire Heroes USA | | National | Free career coaching | Transitioning service members, veterans, military spouses | Active | https://www.hireheroesusa.org/ | No |
+| Upwardly Global (UpGlo) | Upwardly Global | | National | Free expert coaching for immigrant professionals | Work-authorized immigrant professionals | Active | https://upwardlyglobal.org | No |
+| Dress for Success | Dress for Success Worldwide | | Local affiliates | Professional clothing and career support | Women job seekers | Active; use affiliate locator | https://www.dressforsuccess.org | No |
+| Career Gear | Career Gear (nonprofit) | NY | New York | Suits and interview coaching | Men job seekers | Active | https://www.careergear.org/ | No |
+## Hardship and industry relief funds
+| Emergency Hardship Loan | Federal Employee Education & Assistance Fund (FEEA) | | National | No-interest loan, ceiling $2,000 | Eligible federal employees with a qualifying hardship in last 6 months | Open (apply page) | https://feea.org/our-programs/emergency-loans/ | Yes |
+| Disaster Relief grants | FEEA | | National | Grants after natural disasters | Eligible federal employees | Listed in program list | https://www.feea.org/our-programs/ | No |
+| Emergency Grants | Foundation for Contemporary Arts | NY | National | $500 to $3,000 per grant, about 15-20 monthly | Artists with emergency need | Open (monthly applications) | https://www.foundationforcontemporaryarts.org/grants/emergency-grants/ | Yes |
+| Authors League Fund grants | Authors League Fund | NY | National | Grants for authors in need (amounts not read) | Professional authors; wait 12 months before reapplying | Apply page live | https://www.authorsleaguefund.org/ | No |
+| Direct Grants | Musicians Foundation | NY | National | Grant paid directly to biller | Professional musicians | Apply live | https://www.musiciansfoundation.org/ | No |
+| Financial Assistance | Motion Picture & Television Fund | CA | National | Needs-based temporary financial assistance | Qualified industry members | Listed | https://www.mptf.com/ | No |
+| Emergency financial assistance | Entertainment Community Fund | NY | National | Confidential assistance (service page removed on fetch) | Entertainment professionals | Unverified | https://entertainmentcommunity.org/ | No |
+| Emergency financial assistance | SAG-AFTRA Foundation | CA | National | Emergency grants for members | SAG-AFTRA members | Site blocked on fetch; unverified | https://www.sagaftrafoundation.org/ | No |
+| Emergency Aid | Artists' Fellowship, Inc. | NY | National | Emergency aid for artists (details not read) | Professional fine artists | Emergency Aid info page listed | https://artistsfellowship.org | No |
+| Union Plus hardship help | Union Plus (AFL-CIO affiliated) | | National | Hardship help for union members (page not found at tested path) | Union members | Unverified | https://www.unionplus.org | No |
+| Physicians Foundation grants | Physicians Foundation | | National | Grants to physician-support orgs | Orgs | Context only | https://physiciansfoundation.org/ | No |
+| American Nurses Foundation grants | American Nurses Foundation | | National | Research and relief grants to nurses (about $52.7M across 140 grants 2020-2025) | Nurses | Context only | https://www.americannursesfoundation.org/ | No |
+| NEA Foundation grants | NEA Foundation | | National | Grants to educators (about $19M) | Educators | Context only | https://www.neafoundation.org/ | No |
+## Guaranteed income / cash pilots (nonprofit run)
+| Magnolia Mother's Trust | Springboard to Opportunities | MS | Jackson | $1,000 per month cash | Black mothers in subsidized housing | Cohort-based; status unverified | https://www.springboardto.org/ | No |
+| Guaranteed Income Pilots Dashboard | Stanford Basic Income Lab network | | National | Directory of pilots by city, payment, duration (updated Oct 2026) | n/a | Directory | https://www.guaranteedincome.us/ | No |
+| Mayors for a Guaranteed Income | Mayors for a Guaranteed Income | | National | Network of city pilots | n/a | Directory | https://www.mayorsforagi.org/ | No |
+| Economic Security Project | Economic Security Project | | National | Funder of cash pilots (SEED Stockton) | n/a | Context only | https://www.economicsecurityproject.org/ | No |
+| SEED (Stockton Economic Empowerment Demonstration) | Economic Security Project | CA | Stockton | $500 per month, 2019-2021 | Stockton residents | Closed | https://www.economicsecurityproject.org/ | No |
+| Chicago Resilient Communities Pilot | City of Chicago | IL | Chicago | $500 per month for 12 months | Low-income households | Closed | https://www.guaranteedincome.us/ | No |
+| BIG:LEAP | City of Los Angeles / Mayors for Guaranteed Income | CA | Los Angeles | $1,000 per month for 12 months | Low-income households | Closed | https://www.guaranteedincome.us/ | No |
+| Cook County Promise | Cook County | IL | Cook County | $500 per month for 24 months | Low-income households | Closed | https://www.guaranteedincome.us/ | No |
+| Compton Pledge | Compton | CA | Compton | $300 to $600 per month | Residents | Closed | https://www.guaranteedincome.us/ | No |
+| Denver Basic Income Project | Denver Basic Income Project | CO | Denver | Monthly cash | Unhoused/low-income | Status unverified | https://www.guaranteedincome.us/ | No |

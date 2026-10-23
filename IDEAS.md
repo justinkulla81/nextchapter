@@ -56,6 +56,11 @@ Backlog of ideas that came up in passing but aren't scheduled yet. Not a spec �
 - Real company-email-domain verification for employers/recruiters. Today, anywhere an employer or recruiter self-submits something (NC Job Board postings, Employer Reference & Referral submissions), there's no check that the submitter's email domain actually belongs to the company they claim — see the shared trust-gate comment in `src/lib/employer-references/submission.ts` and `src/lib/jobs/job-board-submission.ts`. A named, real-looking contact (required name/company/work-email fields) is the trust gate instead of a real domain check. A real version would need something like a DNS/MX lookup or a paid company-verification API (Clearbit, Kickbox) — flagged rather than building a second, parallel verification system ad hoc.
 - Live Attio CRM sync. The layoff-context branch of the Employer Reference flow (`src/app/for-managers/give-a-reference/submit/actions.ts`) stamps `attioSyncRequestedAt` on `EmployerReferenceSubmission` rows instead of actually calling Attio's API — there's no Attio client and no credentials configured anywhere in the app. The timestamp exists so a real sync job can sweep up every unsynced record once credentials are available, without losing any submissions in the meantime. Needs: an Attio API key, a client wrapper, and a cron or on-demand sync job that reads `attioSyncRequestedAt IS NOT NULL AND attioSyncedAt IS NULL` and calls the real API.
 
+## Legal
+
+- **Fill in the real company details on the Terms of Service** (https://launchyournextchapter.com/terms). The page still uses placeholders: governing law and court venue are set to Delaware (the `GOVERNING_STATE` constant at the top of `src/app/terms/page.tsx`), and the contracting party is just "NextChapter". Needs Justin's state of incorporation and exact legal entity name (e.g. "NextChapter, Inc."); then swap both in and bump the effective date.
+- **Lawyer review of the Terms of Service and Privacy Policy** (https://launchyournextchapter.com/terms, https://launchyournextchapter.com/privacy-policy) before relying on them. Both are company-friendly boilerplate written without counsel. Highest-priority areas: the arbitration clause and class-action waiver, auto-renewal and no-refund terms (California and New York have specific auto-renewal disclosure rules), the employer/recruiter obligations given the pending NYC Local Law 144 review, and the Google scopes and Limited Use section, which Google's verification reviewers read.
+
 ## Tools & accounts to add (not set up)
 
 Each one costs money or needs Justin's own account or key, so none is set up unprompted. Raise the matching one when related work comes up.
@@ -134,3 +139,21 @@ These involve real legal/compliance exposure (financial advice, legal-document i
 - **Unlock bar from data** — once there is history, replace the guessed 180 minutes with a bar fitted to how much effort precedes a useful new strategy.
 - **Gmail-derived funnel counts** — fill applications, interviews and offers in the last 30 days from connected Gmail so the onboarding fallback question is skipped.
 - **Report history** — keep dated report versions so members can see the read change over months, not just week to week.
+
+## Personal job assistant (not built)
+
+- A personal job assistant that acts for the member, remembers them and reaches them (email, push, share sheet), working on its own or alongside the online portal. The portal stays the deeper workspace and the source of truth. Owner decision 2026-10-23: park it here as a future idea; no spec sign-off and no build yet.
+- Where the thinking is: the draft spec `docs/specs/NextChapter_Personal_Job_Assistant.md` exists only on branch `claude/peaceful-ride-8ib5z2` (not in `main`; v0.3, section 14 lists ideas by journey), and the audit against the redesign is `docs/session-audit/personal-assistant.md`. No assistant code exists. The pieces already in `main` that it would build on: the coach (`src/lib/victoria.ts`, `src/lib/coach/`), the daily one thing, the apply kit, Gmail and Calendar, negotiation.
+- Constraints already decided in the draft: an authority ladder per capability that defaults to draft; nothing that spends money, accepts legal terms or makes first contact with an employer happens without the member's tap; no mass-apply; memory the member can see, edit and delete; nothing runs for members in Confidential Search Mode.
+- Before any build: a half-page decision on what it does first, for whom, and what it must never do.
+
+## Employer pitch: CHRO, head of L&D and the four services (not built)
+
+The CRM now grades employers (A layoff notice, B more than 5 open jobs, C neither), tags CHRO and head of L&D contacts, and exports the Organizations list. What is left:
+
+- **Populate the people from Hunter.** Find the CHRO and head of L&D for the grade A employers (about 2,100; roughly 1,900 lack a CHRO and 2,080 lack a head of L&D). Only companies with an email domain can be searched; most have none yet, so find domains first. Hunter is metered: Starter is $49 a month for 2,000 credits, Growth $149 for 10,000. A first pass over the grade A employers with a known domain is a few hundred credits. Check each domain before spending (Accenture is set to `sloan.mit.edu`; Google, Workday and Visa are set to subdomains).
+- **Four services to sell a company.** (1) Hiring plus outplacement as one service, (2) L&D retraining, (3) coaching, (4) retention. Hiring and outplacement exist (the talent portal; the outplacement portal with contracts, seats, roster, reporting and invoices). Coaching exists only for individuals. Retraining has courses but no company purchase path. Retention has nothing. A contract-level service type on the existing company portal would carry all four rather than a separate retention product.
+- **Company-sponsored coaching.** A company buys coaching seats for its employees; today only individuals buy.
+- **L&D retraining purchase path.** A company enrolls staff in courses and sees counts-only reporting, reusing the portal's enroll, roster and reporting pages.
+- **Grade tweaks.** The 240 employers graded C before openings were counted now have more than 5 openings and could move to B; add a grade filter and column on the Organizations page.
+- **Borderline L&D heads.** Robin Landsman (Beaumont Bailey), Lacy Thompson (Unboxed Training and Technology) and Mary Saxon (Bryant Park Talent Partners) were left untagged; decide after checking what each firm is.

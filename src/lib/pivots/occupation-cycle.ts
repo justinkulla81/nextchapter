@@ -14,6 +14,8 @@ export interface CycleEpisode {
 export interface OccupationCycle {
   /** Percent change in the occupation's employment per episode, in the same order as the episodes. */
   pct: number[]
+  /** Set when BLS codes changed so that this work can only be followed together with close relatives: their titles. */
+  group?: string[]
 }
 
 export type CycleBand = 'swings' | 'held'
@@ -41,17 +43,18 @@ export function cycleBand(pct: number[], episodes: CycleEpisode[]): CycleBand | 
 
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(Math.round(n))}%`
 
-export function cycleLineFor(pct: number[], episodes: CycleEpisode[]): string | null {
+export function cycleLineFor(pct: number[], episodes: CycleEpisode[], group?: string[]): string | null {
   const band = cycleBand(pct, episodes)
   if (!band) return null
   const parts = episodes.map((e, i) => `${e.label}: ${signed(pct[i])} against ${signed(e.allJobsPct)} for all jobs`)
   const verb = band === 'swings' ? 'fell more than jobs overall in at least one' : 'held up better than jobs overall in both'
-  return `In the last two downturns, employment in this work ${verb}${band === 'swings' ? ' of them' : ''} (${parts.join('; ')}). That is what happened before, not a forecast.`
+  const scope = group && group.length > 1 ? `employment in this work and closely related jobs (${group.join('; ')}) ` : 'employment in this work '
+  return `In the last two downturns, ${scope}${verb}${band === 'swings' ? ' of them' : ''} (${parts.join('; ')}). That is what happened before, not a forecast.`
 }
 
 /** The label for a pivot target's occupation, or null when we have no comparable history. */
 export function cycleLineForSoc(soc: string | null | undefined): string | null {
   if (!soc) return null
   const o = BY_SOC[soc6(soc)]
-  return o ? cycleLineFor(o.pct, EPISODES) : null
+  return o ? cycleLineFor(o.pct, EPISODES, o.group) : null
 }

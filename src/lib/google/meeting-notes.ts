@@ -89,3 +89,47 @@ export const NOTES_BODY_LIMIT = 20_000
 export function capNotes(text: string): string {
   return text.length <= NOTES_BODY_LIMIT ? text : `${text.slice(0, NOTES_BODY_LIMIT - 1)}…`
 }
+
+export interface NextStep {
+  /** Who Gemini assigned it to, as written ("Justin Kulla"), or null. */
+  owner: string | null
+  title: string
+  detail: string | null
+  /** Assigned to you (any listed owner matches one of your names). */
+  mine: boolean
+}
+
+const NEXT_STEPS_HEADING = /^(suggested\s+)?next\s+steps?:?$/i
+const OTHER_HEADING = /^(summary|decisions?|details|more details|key points|attachments?|transcript)\s*:?$/i
+
+/**
+ * The action items in a Gemini notes doc: lines of the form
+ * "[Owner] Title: detail" under its "Next steps" heading. Lines without an
+ * owner in brackets are skipped — a stray sentence is not worth a to-do.
+ * `selfNames` are the display names that are you; matching is case-insensitive
+ * and on whole names or a first-name match, since Gemini writes either.
+ */
+export function parseNextSteps(text: string, selfNames: string[]): NextStep[] {
+  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+  const start = lines.findIndex((l) => NEXT_STEPS_HEADING.test(l))
+  if (start === -1) return []
+  const selves = selfNames.map((n) => n.trim().toLowerCase()).filter(Boolean)
+  const isMe = (owner: string) => {
+    const o = owner.toLowerCase()
+    return selves.some((s) => o === s || o.split(/\s+/)[0] === s.split(/\s+/)[0])
+  }
+  const steps: NextStep[] = []
+  for (const line of lines.slice(start + 1)) {
+    if (OTHER_HEADING.test(line)) break
+    const m = line.match(/^\[([^\]]+)\]\s*(.+)$/)
+    if (!m) continue
+    const owners = m[1].split(/,|\band\b|&/).map((o) => o.trim()).filter(Boolean)
+    const rest = m[2].trim()
+    const colon = rest.indexOf(': ')
+    const title = (colon > 0 ? rest.slice(0, colon) : rest).trim()
+    const detail = colon > 0 ? rest.slice(colon + 2).trim() : null
+    if (!title) continue
+    steps.push({ owner: m[1].trim(), title, detail, mine: owners.some(isMe) })
+  }
+  return steps
+}

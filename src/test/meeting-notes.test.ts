@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { meetUrlOf, geminiNotesDocOf, docToText, capNotes, NOTES_BODY_LIMIT } from '@/lib/google/meeting-notes'
+import { meetUrlOf, geminiNotesDocOf, docToText, capNotes, parseNextSteps, NOTES_BODY_LIMIT } from '@/lib/google/meeting-notes'
 
 describe('meetUrlOf', () => {
   it('prefers hangoutLink', () => {
@@ -53,5 +53,32 @@ describe('capNotes', () => {
   })
   it('leaves short notes alone', () => {
     expect(capNotes('short')).toBe('short')
+  })
+})
+
+describe('parseNextSteps', () => {
+  const notes = [
+    'Summary', 'They want a pilot.', 'Decisions', 'Start in January.',
+    'Suggested next steps',
+    '[Justin Kulla] Send deck: Justin will email the deck by Friday.',
+    '[Susan Lee] Intro to HR: Susan will introduce Justin to the CHRO.',
+    '[Justin Kulla, Susan Lee] Book follow-up',
+    'A stray sentence that is not an item.',
+    'Details', '[Justin Kulla] Not a step: this is in Details.',
+  ].join('\n')
+  const steps = parseNextSteps(notes, ['Justin Kulla'])
+  it('reads owner, title and detail, stopping at the next heading', () => {
+    expect(steps.map((s) => s.title)).toEqual(['Send deck', 'Intro to HR', 'Book follow-up'])
+    expect(steps[0].detail).toBe('Justin will email the deck by Friday.')
+    expect(steps[2].detail).toBeNull()
+  })
+  it('marks only your own items, including shared ones', () => {
+    expect(steps.map((s) => s.mine)).toEqual([true, false, true])
+  })
+  it('matches on first name alone', () => {
+    expect(parseNextSteps('Next steps\n[Justin] Call back', ['Justin Kulla'])[0].mine).toBe(true)
+  })
+  it('returns nothing without a Next steps heading', () => {
+    expect(parseNextSteps('Summary\n[Justin Kulla] Something', ['Justin Kulla'])).toEqual([])
   })
 })

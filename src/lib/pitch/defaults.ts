@@ -203,7 +203,17 @@ const BENEFIT_SLIDES: Spec['extra'] = [
     bullets: [], source: BENEFITS_SOURCE,
     why: 'Data-driven from the Benefits catalog: free courses and certificates, AI and philanthropic funds, profession-specific help.',
   }, { section: 'Appendix' }],
-  ['p-free', 'b-kentuckiana', {
+  ['p-free', 'p-paid', {
+    title: 'Appendix: programs that pay people to learn, return or re-enter, and tax credits', kicker: 'Appendix', appendix: true,
+    bullets: [], source: BENEFITS_SOURCE,
+    why: 'Data-driven from the Benefits catalog: paid returnships, paid family leave, paid training into new industries, paid AI fellowships, and tax credits. Verified rows only.',
+  }, { section: 'Appendix' }],
+  ['p-paid', 'p-employer', {
+    title: 'Appendix: what employers offer to move and retrain people', kicker: 'Appendix', appendix: true,
+    bullets: [], source: BENEFITS_SOURCE,
+    why: 'Data-driven from the Benefits catalog: relocation packages and incentives that employers themselves offer, for the organization this deck is for when it is in the CRM.',
+  }, { section: 'Appendix' }],
+  ['p-employer', 'b-kentuckiana', {
     title: 'Appendix: what this looks like in Kentuckiana', kicker: 'Appendix', appendix: true,
     bullets: [
       'Work Ready Kentucky Scholarship: up to 60 credit hours tuition-free for Kentuckians without an associate degree, in approved fields that include professional, scientific and technical services.',

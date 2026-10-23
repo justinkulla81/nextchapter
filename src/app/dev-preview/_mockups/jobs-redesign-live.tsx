@@ -116,7 +116,7 @@ export function PayLive() {
     <PreviewShell place="jobs" entry="market" part="pay">
       <PayRedesign
         top={['INDEPENDENCE', 'SUPPORT']}
-        asks={['Four weeks of vacation', 'A hybrid schedule']}
+        wishes={{ benefits: ['wants401kMatch', 'wantsProfessionalDevReimbursement'], numbers: { ptoWeeksExpected: 4, remoteDaysPerWeekDesired: 3, paidParentalLeaveWeeksExpected: null } }}
         position={<VerdictPanel id="pay-position" title={t.headline} because={t.because} />}
         filed={
           <OfferedWagesView

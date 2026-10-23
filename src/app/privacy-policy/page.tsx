@@ -77,8 +77,8 @@ export default function PrivacyPolicyPage() {
               address is connected.
             </li>
             <li>
-              <strong>profile</strong> — reads your name and profile picture to set up and display
-              your NextChapter profile.
+              <strong>profile</strong> — reads your name to set up your NextChapter profile. Google
+              also includes your profile picture with this permission; we do not use or display it.
             </li>
             <li>
               <strong>gmail.readonly</strong> — reads your Gmail messages so we can automatically

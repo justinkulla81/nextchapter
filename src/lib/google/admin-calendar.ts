@@ -94,3 +94,28 @@ export async function fetchGoogleDocText(accessToken: string, fileId: string): P
   if (!res.ok) throw new NotesFetchError('failed', `Docs read failed: ${res.status}${await googleErrorReason(res)}`)
   return docToText((await res.json()) as GoogleDocJson)
 }
+
+/**
+ * A to-do reminder on the primary calendar: a short timed event at 9:00 ET
+ * on the due date with a pop-up at the start. No attendees, so nobody is
+ * invited and nothing is sent to anyone. Returns the new event's id.
+ * Needs only the calendar.events scope the sweep already holds.
+ */
+export async function createReminderEvent(
+  accessToken: string,
+  input: { title: string; description: string; dueDate: string },
+): Promise<string> {
+  const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      summary: `To do: ${input.title}`,
+      description: input.description,
+      start: { dateTime: `${input.dueDate}T09:00:00`, timeZone: 'America/New_York' },
+      end: { dateTime: `${input.dueDate}T09:15:00`, timeZone: 'America/New_York' },
+      reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] },
+    }),
+  })
+  if (!res.ok) throw new Error(`Reminder create failed: ${res.status}${await googleErrorReason(res)}`)
+  return ((await res.json()) as { id: string }).id
+}

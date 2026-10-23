@@ -21,7 +21,6 @@ import {
   isNetworkingWillingnessComplete,
   isNegotiationInterviewComfortComplete,
   isSearchStrategySoFarComplete,
-  isBenefitsComplete,
   isBoardAdvisoryWillingnessComplete,
 } from '@/lib/search-strategy'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
@@ -262,7 +261,6 @@ export default async function SearchStrategyPage() {
   const networkingWillingnessComplete = isNetworkingWillingnessComplete(profile)
   const negotiationInterviewComfortComplete = isNegotiationInterviewComfortComplete(profile)
   const optionalQuestionsAnswered = isSearchStrategySoFarComplete(profile)
-  const benefitsAnswered = isBenefitsComplete(profile)
   // getDashboardData doesn't order workHistory — sort here so the recency
   // tiebreak inside inferIndustriesFromWorkHistory (first-seen index wins)
   // actually reflects most-recent-first.
@@ -363,10 +361,7 @@ export default async function SearchStrategyPage() {
     {
       key: 'negotiation-compensation',
       label: 'Negotiation, Interview & Compensation Readiness',
-      items: [
-        { key: 'negotiation-interview', complete: negotiationInterviewComfortComplete },
-        { key: 'benefits', complete: benefitsAnswered },
-      ],
+      items: [{ key: 'negotiation-interview', complete: negotiationInterviewComfortComplete }],
     },
     {
       key: 'other-ways',
@@ -492,11 +487,15 @@ export default async function SearchStrategyPage() {
       </SHeader>
       <SContent>
         <p className="mb-4 text-sm text-muted-foreground">
-          Where you&apos;re genuinely comfortable, and what matters to you beyond salary — shapes
-          the skills and videos we surface, and helps your coach and recruiter contacts steer you
-          toward offers that fit.
+          Where you&apos;re genuinely comfortable, and the lowest pay you could take — shapes the
+          skills and videos we surface and the jobs we match.
         </p>
-        <NegotiationCompensationForm profile={profile} targetCompMin={profile.targetCompMin} />
+        <NegotiationCompensationForm
+          candidateId={profile.id}
+          negotiationComfort={profile.negotiationComfort}
+          interviewComfort={profile.interviewComfort}
+          targetCompMin={profile.targetCompMin}
+        />
       </SContent>
     </SCard>,
 
@@ -538,7 +537,7 @@ export default async function SearchStrategyPage() {
   ]
 
   // Someone who is not looking for a job is not asked job-search questions: no target role,
-  // blockers, culture or "strengthen your search". They keep marketing, networking, negotiation and benefits.
+  // blockers, culture or "strengthen your search". They keep marketing, networking, negotiation.
   const SEARCH_ONLY_PAGES = new Set(['target-role', 'blockers-motivations', 'culture', 'other-ways'])
   const keep = (key: string) => searchingJourney || !SEARCH_ONLY_PAGES.has(key)
   const careerFirst = (arr: unknown[], keyOf: (x: never) => string) => [...arr].sort((a, b) => Number(keyOf(b as never) === 'career') - Number(keyOf(a as never) === 'career'))

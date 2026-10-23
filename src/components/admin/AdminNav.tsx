@@ -94,6 +94,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         // "Org queue"/"People queue" — same idea (what's overdue right now:
         // a broken promise, a missed next step), split by whether the
         // opportunity's overdue item belongs to a company or to a person.
+        { href: '/support/admin/crm/todos', label: 'To-dos' },
         { href: '/support/admin/crm/queue', label: 'Org follow-ups', badge: badgeFor('crmQueue') },
         { href: '/support/admin/crm/queue/people', label: 'People follow-ups', badge: badgeFor('crmPeopleQueue') },
         { href: '/support/admin/crm/contact-messages', label: 'Contact messages', badge: badgeFor('contactUnhandled') },

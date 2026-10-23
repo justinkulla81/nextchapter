@@ -13,6 +13,12 @@ import {
 } from '@/components/dashboard/IndependentWorkExperienceQuestion'
 import { posthog } from '@/lib/posthog/client'
 import {
+  MissingNote,
+  MissingSummary,
+  scrollToQuestion,
+  type MissingQuestion,
+} from '@/components/dashboard/RequiredQuestions'
+import {
   INDEPENDENT_WORK_TYPES,
   type IndependentWorkExperience,
   type IndependentWorkStatus,
@@ -37,15 +43,6 @@ const LEARNED_NEW_SKILLS_OPTIONS = [
   { value: '2', label: 'A little' },
   { value: '3', label: 'Yes, actively' },
 ] as const
-
-function MissingNote({ show }: { show: boolean }) {
-  if (!show) return null
-  return (
-    <p role="alert" className="text-sm text-destructive">
-      Pick one to save.
-    </p>
-  )
-}
 
 function yesNoToString(value: boolean | null) {
   return value === true ? 'yes' : value === false ? 'no' : ''
@@ -101,7 +98,7 @@ export function OtherSearchStrengthenersForm({
 
   // Every question on this page is required. Listed in page order so the
   // first one is the one we scroll to.
-  const missing: { id: string; label: string }[] = [
+  const missing: MissingQuestion[] = [
     ...(boardAdvisoryAnswer === null ? [{ id: 'question-board-advisory', label: 'Board advisory work' }] : []),
     ...(networkingLevel === '' ? [{ id: 'question-networking', label: 'How much you have been networking' }] : []),
     ...(learnedNewSkillsLevel === ''
@@ -126,7 +123,7 @@ export function OtherSearchStrengthenersForm({
       missing: missing.map((m) => m.id.replace('question-', '')),
       missingCount: missing.length,
     })
-    document.getElementById(missing[0].id)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    scrollToQuestion(missing[0].id)
   }
 
   return (
@@ -214,16 +211,7 @@ export function OtherSearchStrengthenersForm({
         </div>
       </div>
 
-      {showMissing && missing.length > 0 && (
-        <div role="alert" className="space-y-1 text-sm text-destructive">
-          <p>Answer these to save. Everything you have already picked is kept:</p>
-          <ul className="list-disc pl-5">
-            {missing.map((m) => (
-              <li key={m.id}>{m.label}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <MissingSummary show={showMissing} missing={missing} />
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
       <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
     </form>

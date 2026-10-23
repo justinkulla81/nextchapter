@@ -45,7 +45,6 @@ export async function maybeAwardSearchStrategyCompleteBonus(candidateId: string)
       networkingOutreachTargetPerWeek: true,
       negotiationComfort: true,
       interviewComfort: true,
-      benefitsPrioritiesBonusAt: true,
       journey: true,
       currentJobStatus: true,
       journeyDetails: true,
