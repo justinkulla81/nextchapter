@@ -40,13 +40,16 @@ export function valueInHomeDollars(pay: number, from: AreaCosts | null, to: Area
   return Math.round((pay * from.rpp) / to.rpp / 100) * 100
 }
 
+/** "Columbus, OH Metro Area" reads as "Columbus, OH". */
+export const shortName = (name: string) => name.replace(/ (Metro|Micro) Area$/, '')
+
 const sign = (n: number) => (n === 0 ? 'about the same' : `${Math.abs(n)}% ${n < 0 ? 'lower' : 'higher'}`)
 
 /** One plain line about what everything costs there compared with where the member lives. */
 export function priceLine(from: AreaCosts | null, to: AreaCosts | null): string | null {
   const d = pctDiff(from?.rpp, to?.rpp)
   if (d === null || !from || !to) return null
-  return d === 0 ? `Everyday prices are about the same as in ${from.name}.` : `Everyday prices run about ${sign(d)} than in ${from.name}.`
+  return d === 0 ? `Everyday prices are about the same as in ${shortName(from.name)}.` : `Everyday prices run about ${sign(d)} than in ${shortName(from.name)}.`
 }
 
 /** "Typical rent $1,573 a month (14% lower than ...)" or null when we have no rent for the place. */
@@ -54,7 +57,7 @@ export function rentLine(from: AreaCosts | null, to: AreaCosts | null): string |
   if (!to?.rent) return null
   const d = pctDiff(from?.rent, to.rent)
   const base = `Typical rent $${to.rent.toLocaleString('en-US')} a month`
-  return d === null || !from ? `${base}.` : d === 0 ? `${base}, about the same as in ${from.name}.` : `${base}, ${sign(d)} than in ${from.name}.`
+  return d === null || !from ? `${base}.` : d === 0 ? `${base}, about the same as in ${shortName(from.name)}.` : `${base}, ${sign(d)} than in ${shortName(from.name)}.`
 }
 
 /** "Typical home value $418,400 (...)" or null when we have no home value for the place. */
@@ -62,12 +65,21 @@ export function homeLine(from: AreaCosts | null, to: AreaCosts | null): string |
   if (!to?.home) return null
   const d = pctDiff(from?.home, to.home)
   const base = `Typical home value $${to.home.toLocaleString('en-US')}`
-  return d === null || !from ? `${base}.` : d === 0 ? `${base}, about the same as in ${from.name}.` : `${base}, ${sign(d)} than in ${from.name}.`
+  return d === null || !from ? `${base}.` : d === 0 ? `${base}, about the same as in ${shortName(from.name)}.` : `${base}, ${sign(d)} than in ${shortName(from.name)}.`
 }
 
 /** "$128,000 in Raleigh covers about what $134,000 does in Columbus." The home place is named so the reader knows the base. */
 export function worthLine(pay: number, from: AreaCosts | null, to: AreaCosts | null): string | null {
   const v = valueInHomeDollars(pay, from, to)
   if (v === null || !from || !to) return null
-  return `$${pay.toLocaleString('en-US')} in ${to.name} covers about what $${v.toLocaleString('en-US')} does in ${from.name}.`
+  return `$${pay.toLocaleString('en-US')} in ${shortName(to.name)} covers about what $${v.toLocaleString('en-US')} does in ${shortName(from.name)}.`
+}
+
+/** How the value of a pay figure at home compares with the member's last salary: "That is 4% more than your last salary of $120,000." */
+export function againstLastSalaryLine(pay: number, lastSalary: number, from: AreaCosts | null, to: AreaCosts | null): string | null {
+  const v = valueInHomeDollars(pay, from, to)
+  if (v === null || !(lastSalary > 0)) return null
+  const d = pctDiff(lastSalary, v)
+  if (d === null) return null
+  return d === 0 ? `That is about what you earned before: $${lastSalary.toLocaleString('en-US')}.` : `That is ${Math.abs(d)}% ${d > 0 ? 'more' : 'less'} than your last salary of $${lastSalary.toLocaleString('en-US')}.`
 }

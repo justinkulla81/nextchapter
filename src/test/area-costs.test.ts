@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { costsFor, homeLine, priceLine, rentLine, valueInHomeDollars, worthLine, type AreaCosts } from '@/lib/market/area-costs'
+import { againstLastSalaryLine, costsFor, homeLine, priceLine, rentLine, valueInHomeDollars, worthLine, type AreaCosts } from '@/lib/market/area-costs'
 
 const columbus: AreaCosts = { name: 'Columbus, OH', rent: 1274, home: 300800, rpp: 95.5 }
 const raleigh: AreaCosts = { name: 'Raleigh, NC', rent: 1573, home: 418400, rpp: 98.2 }
@@ -29,6 +29,11 @@ describe('area costs', () => {
   it('still shows rent and home value where there is no comparison', () => {
     expect(rentLine(null, raleigh)).toBe('Typical rent $1,573 a month.')
     expect(homeLine(columbus, micro)).toContain('lower than in Columbus, OH')
+  })
+  it('compares a place’s pay, in home dollars, with the last salary', () => {
+    expect(againstLastSalaryLine(128000, 120000, columbus, raleigh)).toBe('That is 4% more than your last salary of $120,000.')
+    expect(againstLastSalaryLine(100000, 120000, columbus, raleigh)).toBe('That is 19% less than your last salary of $120,000.')
+    expect(againstLastSalaryLine(128000, 0, columbus, raleigh)).toBeNull()
   })
   it('never calls the price figures a forecast or a guarantee', () => {
     expect(priceLine(columbus, raleigh)).not.toMatch(/will|guarantee|forecast/i)

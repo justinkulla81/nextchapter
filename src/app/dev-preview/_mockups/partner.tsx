@@ -2,7 +2,7 @@ import { Check, Lock } from 'lucide-react'
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { Avatar, Chip, PrimaryButton, SecondaryButton, Section, TextLink } from '@/components/candidate/ui'
-import { AREA_COSTS_SOURCE, costsFor, homeLine, priceLine, rentLine, valueInHomeDollars, worthLine } from '@/lib/market/area-costs'
+import { AREA_COSTS_SOURCE, againstLastSalaryLine, costsFor, homeLine, priceLine, rentLine, shortName, worthLine } from '@/lib/market/area-costs'
 
 // Sample data only. "Your partner" means a spouse, partner or significant other who works the search with the member,
 // especially when the family is moving. It is a different role from a supporter (a weekly effort note and a cheer, no
@@ -97,21 +97,19 @@ function MovePlan({ asked, salary }: { asked: boolean; salary?: number }) {
           {places.map((p) => {
             const c = costsFor({ metroCode: p.code })
             const lines = [priceLine(home, c), rentLine(home, c), homeLine(home, c)].filter(Boolean) as string[]
-            const worth = salary ? worthLine(salary, home, c) : null
             return (
               <li key={p.code} className="rounded-2xl border border-border p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3"><p className="font-display text-xl font-semibold text-ink">{c?.name.replace(/ Metro Area$/, '')}</p>{p.pick && <Chip tone="good"><Check className="mr-1 inline size-3" aria-hidden />Best fit for both</Chip>}</div>
+                <div className="flex flex-wrap items-center justify-between gap-3"><p className="font-display text-xl font-semibold text-ink">{c ? shortName(c.name) : ''}</p>{p.pick && <Chip tone="good"><Check className="mr-1 inline size-3" aria-hidden />Best fit for both</Chip>}</div>
                 <dl className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-xl bg-muted/60 p-3"><dt className="text-xs text-muted-foreground">Your search</dt><dd className="text-base font-semibold text-ink">{p.you} openings · median ${p.youPay.toLocaleString('en-US')}</dd></div>
                   <div className="rounded-xl bg-muted/60 p-3"><dt className="text-xs text-muted-foreground">Sam’s search</dt><dd className="text-base font-semibold text-ink">{p.sam} openings · median ${p.samPay.toLocaleString('en-US')}</dd></div>
                 </dl>
                 {salary && (
-                  <p className="mt-3 text-base font-semibold text-ink">
-                    {p.youPay >= salary ? `A typical offer here is $${p.youPay.toLocaleString('en-US')}, ` : ''}
-                    {worthLine(p.youPay, home, c)}
-                  </p>
+                  <div className="mt-3">
+                    <p className="text-base font-semibold text-ink">{worthLine(p.youPay, home, c)}</p>
+                    <p className="text-sm text-muted-foreground">{againstLastSalaryLine(p.youPay, salary, home, c)}</p>
+                  </div>
                 )}
-                {worth && <p className="mt-1 text-sm text-muted-foreground">Your last salary was ${salary!.toLocaleString('en-US')}; so this place pays {valueInHomeDollars(p.youPay, home, c)! >= salary! ? 'more' : 'less'} than you earned, in real terms.</p>}
                 <ul className="mt-3 space-y-1 text-sm text-ink">{lines.map((l) => <li key={l}>{l}</li>)}</ul>
                 {p.pick && <p className="mt-2 text-sm text-muted-foreground">Why: it is the place where both of you have the most openings that match.</p>}
               </li>
