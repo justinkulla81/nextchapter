@@ -12095,6 +12095,13 @@ model WorkforceBoard {
   placeCounties     String[]  @default([])
   partnersCheckedAt DateTime?
   newsCheckedAt     DateTime?
+  /// The board's own bids / RFP / procurement page, found by scripts/boards/crawl-procurement.py.
+  procurementUrl       String?
+  /// solicitations (open items seen), procurement_page, or none
+  procurementKind      String?
+  /// Up to six open-solicitation lines seen on that page: [{ title, date }]. Leads, not a bid list.
+  procurementItems     Json?
+  procurementCheckedAt DateTime?
 
   fitScore     Float?
   fitBreakdown Json?
