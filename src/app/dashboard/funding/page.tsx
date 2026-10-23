@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { fundingFor } from '@/lib/benefits/member'
-import { SELF_TAGS } from '@/lib/benefits/match'
+import { SELF_TAGS, goalOrderFor } from '@/lib/benefits/match'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ShowMore } from '@/components/candidate/ShowMore'
@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Funding you qualify for' }
 export default async function FundingPage() {
   const profile = await getDashboardData()
   const f = await fundingFor(profile)
-  const counts = { move: f.byGoal.move.length, retrain: f.byGoal.retrain.length, tax: f.byGoal.tax.length, learn: f.byGoal.learn.length }
+  const counts = { move: f.byGoal.move.length, retrain: f.byGoal.retrain.length, support: f.byGoal.support.length, tax: f.byGoal.tax.length, learn: f.byGoal.learn.length }
   after(() =>
     captureServerEvent(profile.id, 'funding_page_viewed', {
       matchCount: f.matches.length,
@@ -62,7 +62,7 @@ export default async function FundingPage() {
         </div>
       )}
 
-      <FundingSections byGoal={f.byGoal} />
+      <FundingSections byGoal={f.byGoal} order={goalOrderFor(f.facts.laidOff)} />
 
       <section className="space-y-3" aria-labelledby="funding-sharpen">
         <ShowMore label="Sharpen your matches" event="funding_sharpen_opened">
