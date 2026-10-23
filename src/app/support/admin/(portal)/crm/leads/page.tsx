@@ -301,7 +301,7 @@ export default async function CrmLeadsPage({
                       {(o.url ?? o.org?.website) && (
                         <a
                           href={(o.url ?? o.org?.website)!} target="_blank" rel="noopener noreferrer"
-                          className="block text-xs text-accent hover:underline"
+                          className="block text-xs text-primary hover:underline"
                           aria-label={`Open the ${o.org?.name ?? o.title} program page`}
                         >
                           {o.url ? 'Program page ↗' : 'Website ↗'}

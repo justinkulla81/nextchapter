@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
+import posthog from 'posthog-js'
 import {
   updatePersonField, logCallWithFollowUp, clearPersonFollowUp,
 } from '@/app/support/admin/(portal)/crm/actions'
@@ -258,7 +259,7 @@ export function CrmPeekPanelBody({ initial }: { initial?: { id: string; kind: 'p
                   {data.links.map((l, i) => (
                     <li key={i}>
                       <a
-                        href={l.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline"
+                        href={l.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline"
                         onClick={() => posthog.capture('crm_funding_link_opened', { orgId: data.id, url: l.url })}
                       >
                         {l.label} ↗
