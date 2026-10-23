@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { parseInterestQuestions } from '@/lib/onet/interest-profiler'
 import { interestBonus, TOP_INTEREST_POINTS, OTHER_TOP_INTEREST_POINTS } from '@/lib/work-interests/job-interest-fit'
 import { INTEREST_AREA_ORDER, scoreInterests, type InterestQuestion } from '@/lib/work-interests/areas'
 
@@ -38,5 +41,15 @@ describe('interestBonus', () => {
     expect(interestBonus([], ['engineering'])).toBe(0)
     expect(interestBonus(['SOCIAL'], ['general'])).toBe(0)
     expect(interestBonus(['ARTISTIC', 'SOCIAL', 'REALISTIC'], ['finance'])).toBe(0)
+  })
+})
+
+describe('parseInterestQuestions', () => {
+  it('parses a real O*NET Interest Profiler response (mnm/interestprofiler/questions, 60 items)', () => {
+    const fixture = JSON.parse(readFileSync(join(__dirname, 'fixtures/onet-interest-questions.json'), 'utf8'))
+    const parsed = parseInterestQuestions(fixture)
+    expect(parsed).toHaveLength(60)
+    expect(parsed[0]).toMatchObject({ index: 1, area: 'REALISTIC' })
+    expect(parsed[59]).toMatchObject({ index: 60, area: 'CONVENTIONAL' })
   })
 })
