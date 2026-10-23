@@ -7,7 +7,7 @@ import type { BenefitProgramRow } from './types'
 
 type FundingProfile = Pick<
   CandidateProfile,
-  'currentState' | 'journeyDetails' | 'openToRelocation' | 'currentJobStatus' | 'isPivoting' | 'primaryFunction' | 'industryContext' | 'industryBucket' | 'targetFunction'
+  'currentState' | 'currentCity' | 'journeyDetails' | 'openToRelocation' | 'currentJobStatus' | 'isPivoting' | 'primaryFunction' | 'industryContext' | 'industryBucket' | 'targetFunction'
 >
 
 const US_STATE = /^[A-Z]{2}$/
@@ -28,6 +28,7 @@ export function factsFor(p: FundingProfile): { facts: MemberFacts; selfTags: Aud
     facts: {
       state,
       relocation: { scope: relocation.scope, states: relocation.states ?? [] },
+      city: p.currentCity,
       laidOff: p.currentJobStatus === 'LAID_OFF',
       pivoting: p.isPivoting || p.currentJobStatus === 'CAREER_PIVOT',
       tags: [...new Set([...selfTags, ...deriveWorkTags(p)])],
