@@ -10540,11 +10540,35 @@ model CrmOrganization {
   companyLinkState String?
   institution      Institution?
   organization     Organization?
+  orgClaims        OrgClaim[]
 
   @@index([priorityScore(sort: Desc)])
   @@index([leadQuality])
   @@index([companyId])
   @@index([usState])
+}
+
+/// Someone at a CRM organization asking to claim its public page (/prepared/<slug>). The claim is VERIFIED only when the
+/// one-time link sent to their work email is used. Only a SHA-256 of the token is stored; ipHash is a salted hash, never the IP.
+model OrgClaim {
+  id                String          @id @default(cuid())
+  crmOrganizationId String
+  crmOrganization   CrmOrganization @relation(fields: [crmOrganizationId], references: [id], onDelete: Cascade)
+  name              String
+  title             String
+  email             String
+  emailDomain       String
+  tokenHash         String          @unique
+  expiresAt         DateTime
+  verifiedAt        DateTime?
+  /// The organization has no known email domain, so a person decides whether this claim is genuine.
+  needsReview       Boolean         @default(false)
+  ipHash            String?
+  createdAt         DateTime        @default(now())
+
+  @@index([crmOrganizationId])
+  @@index([email, createdAt])
+  @@index([ipHash, createdAt])
 }
 
 model CrmPerson {

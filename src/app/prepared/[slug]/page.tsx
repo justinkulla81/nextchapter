@@ -7,6 +7,9 @@ import { HubTabs } from '@/components/prospects/HubTabs'
 import { ContactsPanel, EmployersPanel, EngagePanel, HomePanel, JobsPanel, LearnPanel, SkillsPanel } from '@/components/prospects/HubPanels'
 import { ClaimForm } from '@/components/prospects/ClaimForm'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { resolveClaimableOrg } from '@/lib/org-claims/org'
+import { communityStatsFor } from '@/lib/org-claims/community-stats'
+import { OrgClaimPage } from '@/components/prospects/OrgClaimPage'
 
 // Unlisted: built from public data for one organization, not for search engines (yet).
 export const metadata: Metadata = { robots: { index: false, follow: false }, title: { absolute: 'Prepared for you | NextChapter' } }
@@ -19,7 +22,14 @@ const asOfLabel = (s: string) => { const m = /^(\d{4})-(\d{2})$/.exec(s); return
 export default async function ProspectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const p = PROSPECTS[slug]
-  if (!p) notFound()
+  if (!p) {
+    // Any other organization in the CRM gets the generic claim page; a slug that matches nothing is a 404.
+    const org = await resolveClaimableOrg(slug)
+    if (!org) notFound()
+    const stats = await communityStatsFor({ crmOrgId: org.id })
+    captureServerEvent(`org-claim:${org.id}`, 'org_claim_page_viewed', { orgId: org.id, slug, hasStats: !!stats?.warn, scope: stats?.scope ?? null, needsReviewDomain: !org.emailDomain })
+    return <OrgClaimPage org={org} stats={stats} />
+  }
   const [market, notices, area, college, hub, readiness] = await Promise.all([
     getMarket(p), getNotices(p), getArea(p.areaId), p.kind === 'college' ? getCollege('Washington & Jefferson') : Promise.resolve(null), getHub(p), getReadiness(p),
   ])

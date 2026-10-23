@@ -81,6 +81,10 @@ export interface MergeValues {
   firstName: string | null
   orgName: string | null
   reportUrl: string | null
+  /** The organization's own page (https://launchyournextchapter.com/prepared/<slug>); empty when it has none. */
+  claimUrl?: string | null
+  /** One factual sentence about the organization's community; empty when we have no figure. */
+  communityStat?: string | null
 }
 
 export function applyMergeTags(html: string, v: MergeValues): string {
@@ -88,6 +92,8 @@ export function applyMergeTags(html: string, v: MergeValues): string {
     .replace(/\{\{\s*firstName\s*\}\}/g, escapeHtml(v.firstName?.trim() || 'there'))
     .replace(/\{\{\s*orgName\s*\}\}/g, escapeHtml(v.orgName?.trim() || 'your team'))
     .replace(/\{\{\s*reportUrl\s*\}\}/g, escapeHtml(v.reportUrl ?? ''))
+    .replace(/\{\{\s*claimUrl\s*\}\}/g, escapeHtml(v.claimUrl ?? ''))
+    .replace(/\{\{\s*communityStat\s*\}\}/g, escapeHtml(v.communityStat ?? ''))
 }
 
 export interface RenderInput {
@@ -111,7 +117,9 @@ function footerHtml(text: string, postalAddress: string, unsubscribeUrl: string)
 }
 
 export function renderEmail(input: RenderInput): { html: string; text: string } {
+  // A merge field with no value (no community figure) can leave an empty paragraph behind; drop it.
   let body = applyMergeTags(sanitizeBodyHtml(input.bodyHtml), { ...input.merge, reportUrl: input.reportUrl ?? null })
+    .replace(/<(p|div)>(?:\s|&nbsp;|<br>)*<\/\1>/gi, '')
   // A report link the body doesn't already carry goes at the end, plainly.
   if (input.reportUrl && !body.includes(escapeHtml(input.reportUrl))) {
     body += `<p><a href="${escapeHtml(input.reportUrl)}">${escapeHtml(input.reportUrl)}</a></p>`
