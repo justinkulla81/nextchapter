@@ -9,6 +9,9 @@ import {
   RUN_TRAINING,
   TYPICAL_MULTIPLE_NOTE,
   buyReach,
+  hardPartsToPlanFor,
+  mediaForStage,
+  whyNote,
   getBuyStage,
   missingBuyFields,
   rankFinancing,
@@ -16,6 +19,7 @@ import {
   type BuyDetails,
   type BuyStageKey,
   type FinancingOption,
+  type MediaItem,
   type Marketplace,
   type MarketplaceKind,
   type TrainingItem,
@@ -39,6 +43,8 @@ export function PlanTab({ details, stage, started, main, gapsCount }: { details:
   const s = getBuyStage(stage)
   const reach = buyReach(details)
   const next = missingBuyFields(details).slice(0, 3)
+  const why = whyNote(details)
+  const hard = hardPartsToPlanFor(details)
   return (
     <div className="space-y-10">
       {!started && (
@@ -79,6 +85,21 @@ export function PlanTab({ details, stage, started, main, gapsCount }: { details:
               What to learn first
             </TrackedAction>
           </div>
+          {why && (
+            <div className="space-y-2 rounded-2xl bg-muted p-5 text-sm text-ink">
+              <p className="font-semibold">{why.text}</p>
+              <p className="text-muted-foreground">Why you see this: {why.because}</p>
+              {why.links.length > 0 && (
+                <div className="flex flex-wrap gap-x-5 gap-y-1">
+                  {why.links.map((l) => (
+                    <TrackedAction key={l.href} href={l.href} variant="text" event="buy_business_resource_clicked" properties={{ kind: 'parallel_income', id: l.href, stage, why: details.why }}>
+                      {l.label}
+                    </TrackedAction>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </section>
       )}
 
@@ -91,6 +112,29 @@ export function PlanTab({ details, stage, started, main, gapsCount }: { details:
             </p>
             <p className="text-muted-foreground">{reach.because}</p>
             <p className="text-muted-foreground">{TYPICAL_MULTIPLE_NOTE}</p>
+          </div>
+        )}
+        {hard.length > 0 && (
+          <div className="space-y-3 rounded-2xl border border-border p-5">
+            <p className="text-base font-semibold text-ink">Hard parts to plan for</p>
+            <p className="text-sm text-muted-foreground">Not a test. Each one you were not sure about gets a reason and a place to learn.</p>
+            <ul className="space-y-3">
+              {hard.map((h) => (
+                <li key={h.key} className="space-y-0.5 text-sm">
+                  <p className="font-semibold text-ink">{h.title}</p>
+                  <p className="text-muted-foreground">Why: {h.because}</p>
+                  {h.learn.href.startsWith('/') ? (
+                    <TrackedAction href={h.learn.href} variant="text" event="buy_business_resource_clicked" properties={{ kind: 'hard_part', id: h.key, stage }}>
+                      {h.learn.label}
+                    </TrackedAction>
+                  ) : (
+                    <BuyLink href={h.learn.href} kind="training" id={`hard-${h.key}`} stage={stage}>
+                      {h.learn.label}
+                    </BuyLink>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
         {next.length > 0 ? (
@@ -389,6 +433,15 @@ export function TrainingTab({ stage }: { stage: BuyStageKey }) {
           ))}
         </ul>
       </section>
+      <section className="space-y-3" aria-labelledby="buy-learn-media">
+        <H2 id="buy-learn-media">Podcasts and videos</H2>
+        <p className="text-sm text-muted-foreground">Free to listen to. Public shows we link to; we are not affiliated with them. The ones for your stage come first.</p>
+        <ul className="space-y-3">
+          {mediaForStage(stage).map((m) => (
+            <MediaRow key={m.id} m={m} now={m.stage === stage} stage={stage} />
+          ))}
+        </ul>
+      </section>
       <ShowMore label="Books worth reading" event="buy_business_books_opened" properties={{ stage }}>
         <ul className="space-y-3">
           {BUY_BOOKS.map((b) => (
@@ -405,5 +458,24 @@ export function TrainingTab({ stage }: { stage: BuyStageKey }) {
         </TrackedAction>
       </ShowMore>
     </div>
+  )
+}
+
+function MediaRow({ m, now, stage }: { m: MediaItem; now: boolean; stage: BuyStageKey }) {
+  return (
+    <li className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-border p-4">
+      <div className="max-w-xl space-y-1">
+        <p className="flex flex-wrap items-center gap-2 text-base font-semibold text-ink">
+          {m.title}
+          <Chip>{m.kind === 'podcast' ? 'Podcast' : 'YouTube'}</Chip>
+          {now && <Chip tone="warm">Good for now</Chip>}
+        </p>
+        <p className="text-xs text-muted-foreground">{m.by}</p>
+        <p className="text-sm text-muted-foreground">{m.summary}</p>
+      </div>
+      <BuyLink href={m.href} kind="training" id={m.id} stage={stage}>
+        {m.kind === 'podcast' ? 'Listen' : 'Watch'}
+      </BuyLink>
+    </li>
   )
 }

@@ -1535,6 +1535,7 @@ model CandidateProfile {
   // reminderEmailsOptedOut above (account-setup reminders), a different
   // email a candidate might want off independently.
   recruiterUnlockNudgeOptedOut      Boolean   @default(false)
+  upgradeOfferOptedOut              Boolean   @default(false) // the usage-triggered coaching upgrade offer (upgrade-offer cron)
 
   // Deprecated — was the "Mark as fixed" button's tracking field (distinct
   // Resume.atsFeedback/resultsFeedback/experienceFeedback item `issue`
@@ -6253,6 +6254,7 @@ enum CandidateEmailKey {
   FINISH_LINE // Sun — send-finish-line-email.ts, now also carries the merged weekly community/coaching recap
   JOB_SEARCH_DAILY // every day, its own cron (job-search-daily) — not in CandidateEmailSchedule's one-per-weekday rotation
   WIN_BACK // dormant members: up to three over about two months, its own cron (win-back)
+  UPGRADE_OFFER // free members whose own numbers show a need for coaching; weekly cron (upgrade-offer), capped in src/lib/upgrade-offer/triggers.ts
 }
 
 // STILL_SEARCHING / TAKING_A_BREAK / GOT_AN_OFFER — the three answers to the

@@ -15,6 +15,7 @@ const FIELD_BY_TYPE: Record<string, Record<string, boolean>> = {
   weekly: { weeklyReportOptedOut: true },
   sprintGoal: { sprintGoalEmailsOptedOut: true },
   recruiterUnlockNudge: { recruiterUnlockNudgeOptedOut: true },
+  upgradeOffer: { upgradeOfferOptedOut: true },
 }
 const DEFAULT_DATA = { reminderEmailsOptedOut: true }
 // The recurring streams where "send me fewer" makes sense.
@@ -26,6 +27,7 @@ const MESSAGE_BY_TYPE: Record<string, string> = {
   freshJobAlerts: "You won't receive new-job alerts anymore. Your other NextChapter emails are unchanged.",
   weekly: "You won't receive the Monday plan, \"a way in\" connection emails, or check-ins when you have been away anymore. Your other NextChapter emails are unchanged.",
   sprintGoal: "You won't receive any more Weekly Search Sprint goal-setting reminders.",
+  upgradeOffer: "You won't receive coaching plan offers anymore. Your other NextChapter emails are unchanged.",
 }
 const DEFAULT_MESSAGE = "You won't receive any more reminder emails from NextChapter about finishing your account."
 

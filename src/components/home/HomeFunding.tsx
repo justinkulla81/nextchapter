@@ -13,8 +13,9 @@ export function HomeFunding() {
   const s = FUNDING_STATS
   const rows = [
     { goal: 'move' as const, title: 'Money to move', sample: s.examples.move[0] },
-    { goal: 'retrain' as const, title: 'Money to retrain', sample: s.examples.retrain[0] },
-    { goal: 'learn' as const, title: 'Free courses and certificates', sample: null },
+    { goal: 'retrain' as const, title: 'Tuition and training money', sample: s.examples.retrain[0] },
+    { goal: 'tax' as const, title: 'Tax credits and deductions', sample: s.examples.tax[0] },
+    { goal: 'learn' as const, title: 'Free courses', sample: null },
   ]
   return (
     <section className="bg-white py-16" aria-labelledby="home-funding-heading">
@@ -25,7 +26,7 @@ export function HomeFunding() {
             There is money to relocate, retrain and reskill. We find the part that is yours.
           </h2>
           <p className="mt-5 text-lg text-muted-foreground">
-            Relocation grants, home-buying help, tuition aid, federal training money and free courses exist across the country. Whether you qualify depends on
+            Relocation grants, home-buying help, tuition aid, federal training money and tax credits exist across the country, with free courses on top. Whether you qualify depends on
             where you live, where you would go and your situation. Join and we rank the programs that fit you, best first, and leave out the ones that do not.
           </p>
         </div>
@@ -46,7 +47,7 @@ export function HomeFunding() {
           ))}
         </dl>
 
-        <ul className="mx-auto mt-8 grid max-w-4xl gap-4 sm:grid-cols-3">
+        <ul className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {rows.map((r) => (
             <li key={r.goal} className="space-y-1.5 rounded-2xl bg-off-white p-5">
               <p className="font-semibold text-ink">{r.title}</p>

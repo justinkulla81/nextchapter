@@ -87,6 +87,17 @@ describe('matchPrograms against the real catalog', () => {
   })
   it('groups by goal', () => {
     const g = groupByGoal(matchPrograms(rows, { ...base, relocation: { scope: 'ANYWHERE', states: [] } }))
-    expect(Object.keys(g).sort()).toEqual(['learn', 'move', 'retrain'])
+    expect(Object.keys(g).sort()).toEqual(['learn', 'move', 'retrain', 'tax'])
+  })
+  it('lists real dollars before any free course', () => {
+    const m = matchPrograms(rows, { ...base, relocation: { scope: 'ANYWHERE', states: [] } })
+    const firstLearn = m.findIndex((x) => x.goal === 'learn')
+    expect(firstLearn).toBeGreaterThan(0)
+    expect(m.slice(firstLearn).every((x) => x.goal === 'learn')).toBe(true)
+  })
+  it('includes tax benefits and no freemium courses', () => {
+    const m = matchPrograms(rows, base)
+    expect(m.some((x) => x.goal === 'tax')).toBe(true)
+    for (const x of m.filter((y) => y.goal === 'learn')) expect(x.program.amount ?? '').not.toMatch(/\$\s?\d|paid|\bpro\b|tier|trial/i)
   })
 })

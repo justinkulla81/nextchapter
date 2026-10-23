@@ -97,7 +97,9 @@ export function deriveWorkTags(p: { primaryFunction?: string | null; industryCon
   return out
 }
 
-export type Goal = 'move' | 'retrain' | 'learn'
+export type Goal = 'move' | 'retrain' | 'tax' | 'learn'
+/** Real money first, free learning last. */
+export const GOAL_ORDER: Goal[] = ['move', 'retrain', 'tax', 'learn']
 export const GOAL_OF: Record<BenefitCategory, Goal> = {
   RELOCATION: 'move',
   STATE_TRAINING: 'retrain',
@@ -105,13 +107,14 @@ export const GOAL_OF: Record<BenefitCategory, Goal> = {
   PRIVATE: 'retrain',
   SEGMENT: 'retrain',
   PAID: 'retrain',
-  TAX: 'retrain',
+  TAX: 'tax',
   COURSES: 'learn',
 }
 export const GOAL_LABEL: Record<Goal, { title: string; blurb: string }> = {
   move: { title: 'Money to move', blurb: 'Relocation grants, home-buying help and moving incentives.' },
-  retrain: { title: 'Money to retrain', blurb: 'Tuition, training grants and funds for your situation.' },
-  learn: { title: 'Free courses and certificates', blurb: 'Learning that is free or has financial aid.' },
+  retrain: { title: 'Tuition and training money', blurb: 'Real dollars toward tuition, training and your next credential.' },
+  tax: { title: 'Tax credits and deductions', blurb: 'Money back at tax time that a job change can unlock.' },
+  learn: { title: 'Free courses', blurb: 'Learning that costs nothing. Useful, but not money in your pocket.' },
 }
 
 export interface MemberFacts {
@@ -141,7 +144,7 @@ const US_STATE = /^[A-Z]{2}$/
  * decided here by name, because the free-text segment column is blank for them.
  */
 const NOT_FOR_THIS_PAGE =
-  /child tax credit|eitc|child and dependent|liheap|trump accounts|food bank|\b988\b|\bnami\b|open path|mental health|lawhelp|legal services|warn act|layoffs\.fyi|trueup|united way|catholic charities|emergency grants|self-sufficiency|rx kids|givedirectly|abundant birth|guaranteed income|f4gi|bonding program|work share|short-time|pslf employer|job accommodation|openai foundation|anthropic economic|^[a-z]\d{3,5}\b|executive order|wage-insurance|state pilot bill|entertainment community|motion picture|sag-aftra|authors league|aicpa|dress for success|appalachian regional|^\d+$/i
+  /rapid response|child tax credit|child and dependent|relocation incentive act|liheap|trump accounts|food bank|\b988\b|\bnami\b|open path|mental health|lawhelp|legal services|warn act|layoffs\.fyi|trueup|united way|catholic charities|emergency grants|self-sufficiency|rx kids|givedirectly|abundant birth|guaranteed income|f4gi|bonding program|work share|short-time|pslf employer|job accommodation|openai foundation|anthropic economic|^[a-z]\d{3,5}\b|executive order|wage-insurance|state pilot bill|entertainment community|motion picture|sag-aftra|authors league|aicpa|dress for success|appalachian regional|^\d+$/i
 // A row filed as nationwide whose name is one state's program (the catalog has a few) is not nationwide.
 const STATE_NAMED = new RegExp(`\\b(${US_STATES.filter((x) => x.code !== 'DC').map((x) => x.name).join('|')})\\b`, 'i')
 /**
@@ -150,7 +153,7 @@ const STATE_NAMED = new RegExp(`\\b(${US_STATES.filter((x) => x.code !== 'DC').m
  * a scholarship, free classes, an individual training account) and does not say it pays a business.
  */
 const PAYS_THE_PERSON = /tuition|scholarship|\bfree\b|dislocated worker|individual training|\bita\b|training expenses|financial assistance|promise|last-dollar|paid training|per credential|certificate programs|reconnect|stipend|upskill|apprenticeship|career training|training for/i
-const PAYS_A_BUSINESS = /sponsors?\b|states, tribes|local boards|industry partnerships?|young adults|\byouth\b|techcred|on-the-job|\bojt\b|incumbent worker|reimburses? employers?|employer (training |reimbursement|grant)|customized (workforce )?training|skills development fund|self-sufficiency fund|small business|for new and expanding|sector partnership|training panel|eligible training provider|\bdirectory\b|policy framework|case management|\bresea\b|job-search platform|job search platform|grant opportunities page|financial aid page|\bunemployment insurance\b|work-search|free advising|lists? providers?|not a payment/i
+const PAYS_A_BUSINESS = /\bemployers? (relocating|hiring)|sponsors?\b|states, tribes|local boards|industry partnerships?|young adults|\byouth\b|techcred|on-the-job|\bojt\b|incumbent worker|reimburses? employers?|employer (training |reimbursement|grant)|customized (workforce )?training|skills development fund|self-sufficiency fund|small business|for new and expanding|sector partnership|training panel|eligible training provider|\bdirectory\b|policy framework|case management|\bresea\b|job-search platform|job search platform|grant opportunities page|financial aid page|\bunemployment insurance\b|work-search|free advising|lists? providers?|not a payment/i
 function memberFacing(r: BenefitProgramRow): boolean {
   const text = `${r.name} | ${r.amount ?? ''} | ${r.eligibility ?? ''}`
   if (PAYS_A_BUSINESS.test(text)) return false
@@ -165,12 +168,17 @@ function memberFacing(r: BenefitProgramRow): boolean {
     if (/\bresidents?\b/i.test(el) && !/non-?residents|new residents|relocat|\bmov(e|ing)\b|newcomers/i.test(el)) return false
   }
   if (r.category === 'PAID') return !/leave|family|medical|insurance|\bpaid sick/i.test(text) && /returnship|paid (training|program|internship|apprentice)|stipend|fellowship|apprenticeship/i.test(text)
-  if (r.category === 'COURSES') return /free|no cost|tuition-free|\$0|scholarship|financial aid/i.test(`${r.amount ?? ''} ${r.eligibility ?? ''}`)
+  // A course is listed as free only if its own amount line is free with no price in it.
+  if (r.category === 'COURSES') {
+    const a = r.amount ?? ''
+    return !/\$\s?\d|paid|\bpro\b|tier|trial|shown|start free|freemium|premium|\bplus\b|\*|discount|aid/i.test(a) && /free|no cost|tuition-free/i.test(a)
+  }
+  if (r.category === 'TAX') return true
   if (r.category === 'STATE_TRAINING' || r.category === 'FEDERAL' || r.category === 'PRIVATE') return PAYS_THE_PERSON.test(text)
   return true
 }
-/** Tax credits are not funding a member applies for, and a program tied to one employer is for that employer's staff. */
-const eligibleKind = (r: BenefitProgramRow) => r.category !== 'TAX' && !r.employer && !r.employerKey
+/** A program tied to one employer is for that employer's staff. */
+const eligibleKind = (r: BenefitProgramRow) => !r.employer && !r.employerKey
 
 const NAME_AUDIENCE: [RegExp, AudienceTag][] = [
   [/\bva\b|gi bill|vet tec|hire heroes|ascend heroes|veterans?\b|military|soldiers|operation homefront|choose topeka|hiring our heroes|vr&e/i, 'veteran'],
@@ -204,7 +212,7 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
   if (r.scope === 'NATIONAL') {
     // Filed as nationwide but written for one state ("Job seekers in California"): not nationwide.
     if (STATE_NAMED.test(r.name) || STATE_NAMED.test(r.eligibility ?? '')) return null
-    place = 'Anyone can use it, in any state'
+    place = r.category === 'TAX' ? 'A federal tax rule, subject to the limits below' : 'Anyone can use it, in any state'
   } else if (!rowState) {
     return null
   } else if (goal === 'move') {
@@ -255,7 +263,10 @@ export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[
     if (r.status === 'OPEN' || r.status === 'ROLLING') score += 12
     if (goal === 'retrain' && (m.pivoting || m.laidOff)) score += 8
     if (goal === 'move' && m.relocation.scope !== 'LOCAL') score += 6
-    if (amount !== null) score += amount >= 10000 ? 10 : amount >= 2500 ? 5 : 2
+    if (amount !== null) score += amount >= 50000 ? 16 : amount >= 10000 ? 12 : amount >= 2500 ? 7 : 3
+    // Real dollars always list above free learning.
+    if (goal === 'learn') score -= 60
+    else score += 10
     out.push({ program: r, goal, score, why, amount })
   }
   out.sort((a, b) => b.score - a.score || (b.amount ?? 0) - (a.amount ?? 0) || a.program.name.localeCompare(b.program.name))
@@ -271,7 +282,7 @@ export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[
 
 /** Best first within each goal, at most `per` of each plus a count of the rest. */
 export function groupByGoal(matches: Match[]): Record<Goal, Match[]> {
-  const g: Record<Goal, Match[]> = { move: [], retrain: [], learn: [] }
+  const g: Record<Goal, Match[]> = { move: [], retrain: [], tax: [], learn: [] }
   for (const x of matches) g[x.goal].push(x)
   return g
 }

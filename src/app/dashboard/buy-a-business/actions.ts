@@ -70,6 +70,8 @@ export async function saveBuyIntake(formData: FormData): Promise<void> {
     cash: buy.cash ?? null,
     financing: buy.financing ?? [],
     involvement: buy.involvement ?? null,
+    why: buy.why ?? null,
+    ready: buy.ready ?? [],
     stage: buy.stage,
   })
   revalidatePath(PAGE)
