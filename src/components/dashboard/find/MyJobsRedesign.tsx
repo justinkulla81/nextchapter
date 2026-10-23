@@ -8,6 +8,7 @@ import { MyJobsFunnel } from '@/components/dashboard/one-board/MyJobsPanel'
 import { MyJobsList, type MyJobRow } from '@/components/dashboard/find/MyJobsList'
 import { ApplyPrompts } from '@/components/dashboard/one-board/ApplyPrompts'
 import { MyJobsViewed } from '@/components/dashboard/one-board/MyJobsViewed'
+import { ApplicationAnalyticsBlock } from '@/components/dashboard/find/ApplicationAnalyticsBlock'
 import { SkillsGapInsightCard } from '@/components/dashboard/one-board/SkillsGapInsightCard'
 
 const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -37,6 +38,8 @@ export function MyJobsRedesign({ view, now = new Date() }: { view: MyJobsView; n
       watched: !!i.companyName && view.watchedCompanies.has(normalizeOrgName(i.companyName)),
       closed: i.listing && i.ref ? { sentence: i.listing.sentence, jobId: i.ref.sourceId } : null,
       pageHref,
+      tracker: i.tracker ?? null,
+      keywordMatch: i.keywordMatch ?? null,
     }
   })
   const sorted = sortRows(rows)
@@ -72,11 +75,12 @@ export function MyJobsRedesign({ view, now = new Date() }: { view: MyJobsView; n
         </div>
       )}
 
-      <MyJobsList rows={sorted} empty={empty} />
+      <MyJobsList rows={sorted} empty={empty} now={now} />
 
       {rows.length > 0 && (
-        <ShowMore event="my_jobs_more_opened" properties={{ section: 'funnel_and_skills' }} label="Your search funnel and what your saved jobs ask for">
+        <ShowMore event="my_jobs_more_opened" properties={{ section: 'funnel_and_skills' }} label="Your search funnel, reply rates and what your saved jobs ask for">
           <MyJobsFunnel funnel={view.funnel} />
+          {view.analytics && <ApplicationAnalyticsBlock analytics={view.analytics} />}
           {view.insight && <SkillsGapInsightCard insight={view.insight} surface="my_jobs" />}
         </ShowMore>
       )}

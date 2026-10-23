@@ -1556,6 +1556,7 @@ model CandidateProfile {
   claimedEmployerReferences      EmployerReferenceSubmission[]
   jobClickEvents                 JobClickEvent[]
   trackedJobs                    TrackedJob[]
+  jobTrackerNotes                JobTrackerNote[]
   workSamples                    WorkSample[]
   externalReviewStats            ExternalReviewStat[]
   clientReviews                  ClientReview[]
@@ -5570,6 +5571,31 @@ model TrackedJob {
 
   @@unique([candidateId, source, sourceId])
   @@index([candidateId, updatedAt])
+}
+
+// The member's own notes on a job in My jobs (Teal parity, 2026-10-23): notes, excitement 1-5,
+// a follow-up date (shown in My jobs and in Job Search Daily), an application checklist and the
+// contacts who can help. itemKey is MyJobItem.key (src/lib/jobs/my-jobs-data.ts); title and
+// companyName are a snapshot for the email. prisma/manual/2026-10-23-job-tracker-notes.sql.
+model JobTrackerNote {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  itemKey        String
+  title          String
+  companyName    String?
+  notes          String?          @db.Text
+  excitement     Int?
+  followUpAt     DateTime?
+  followUpDoneAt DateTime?
+  checklist      Json             @default("{}")
+  contactIds     String[]         @default([])
+  // Pasted posting text for a job saved from another site, for the keyword match.
+  jobText        String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([candidateId, itemKey])
 }
 
 // Postgres mirror of every captureServerEvent() call, written from inside
