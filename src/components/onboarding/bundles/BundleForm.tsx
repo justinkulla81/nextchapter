@@ -22,6 +22,7 @@ export function BundleForm({
   payoffInput,
   action,
   previewJobs,
+  hidden,
 }: {
   bundle: BundleId
   initial: Answers
@@ -30,6 +31,8 @@ export function BundleForm({
   action: (prev: BundleFormState, formData: FormData) => Promise<BundleFormState>
   /** Which job-count preview to run, if any. */
   previewJobs?: 'aiming' | 'where'
+  /** Extra values the server action reads that are not questions (for example where the visitor came from). */
+  hidden?: Record<string, string>
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
   const [answers, setAnswers] = useState<Answers>(initial)
@@ -89,6 +92,7 @@ export function BundleForm({
 
   return (
     <form action={formAction} className={cn('space-y-8', pending && 'cursor-progress [&_*]:cursor-progress')}>
+      {hidden && Object.entries(hidden).map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
       <div className="space-y-6">
         {questions.map((q) => (
           <QuestionField

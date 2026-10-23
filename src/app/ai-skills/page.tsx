@@ -10,6 +10,7 @@ import { LEVEL_COLUMNS, liveDimensionRows, liveFunctionRows, MIN_GROUP_POSTINGS,
 import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { loadAiShareTrend } from '@/lib/skills/ai-market-trend-server'
+import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
 export const revalidate = 3600
 
@@ -294,7 +295,7 @@ export default async function AiSkillsPage() {
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <TrackedLink
-              href="/onboarding/desire"
+              href={MARKET_REALITY_START_HREF}
               event="ai_skills_page_cta_clicked"
               properties={{ cta: 'candidate_assessment' }}
               className="inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"

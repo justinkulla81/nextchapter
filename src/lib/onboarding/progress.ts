@@ -39,7 +39,14 @@ export function progressPatch(journeyDetails: unknown, change: { completed?: Bun
   }
 }
 
-/** Where the hub sends a member in the bundles flow who has not created an account yet. */
+export const CONNECT_PATH = '/onboarding/connect'
+export const FINISH_PATH = '/onboarding/finish'
+
+/**
+ * Where the hub sends a member in the bundles flow who has not created an account yet. After the five question steps
+ * comes one required step, "Continue with Google", which creates the account and connects Gmail and Calendar; the
+ * payoff (finish) comes after it.
+ */
 export function nextPreAccountPath(p: {
   desireComplete: boolean
   resumeStepComplete: boolean
@@ -53,6 +60,15 @@ export function nextPreAccountPath(p: {
   if (!p.onboardingLocationConfirmedAt) return BUNDLE_ROUTE.where
   const done = progressOf(p.journeyDetails)
   if (!done.completed.includes('coach')) return BUNDLE_ROUTE.coach
-  if (!done.finishedAt) return '/onboarding/finish'
-  return '/onboarding/score'
+  return CONNECT_PATH
+}
+
+/**
+ * Where the hub sends a member in the bundles flow who has an account. The payoff first; members who registered
+ * under the earlier order (account, then an optional Google reveal) still get that reveal once; then welcome.
+ */
+export function afterAccountPath(p: { finishedAt: string | null; googleRevealAt: string | null; introCommitted: boolean }): string {
+  if (!p.finishedAt) return FINISH_PATH
+  if (!p.googleRevealAt) return '/onboarding/google'
+  return p.introCommitted ? '/dashboard' : '/onboarding/welcome'
 }

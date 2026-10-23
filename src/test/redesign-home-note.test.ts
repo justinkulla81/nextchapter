@@ -9,9 +9,9 @@ describe('pickHomeNote', () => {
     expect(pickHomeNote(none)).toBe('culture_survey')
   })
   it('picks exactly one, in order of how time-sensitive it is', () => {
-    const all: HomeNoteInputs = { needsCoachingForm: true, searchStrategyIncomplete: true, reportReady: true, accountsNotConnected: true, stalledSearch: true, passiveToActive: true, firstWeek: FIRST_WEEK[0], gotHired: true, searchPlaybook: true }
-    const order: (keyof HomeNoteInputs)[] = ['needsCoachingForm', 'searchStrategyIncomplete', 'reportReady', 'accountsNotConnected', 'stalledSearch', 'passiveToActive', 'firstWeek', 'gotHired', 'searchPlaybook']
-    const expected = ['coaching_form', 'setup_strategy', 'report_ready', 'connect_accounts', 'stalled_search', 'passive_to_active', 'first_week', 'got_hired', 'search_playbook']
+    const all: HomeNoteInputs = { needsCoachingForm: true, needsResume: true, searchStrategyIncomplete: true, reportReady: true, accountsNotConnected: true, stalledSearch: true, passiveToActive: true, firstWeek: FIRST_WEEK[0], gotHired: true, searchPlaybook: true }
+    const order: (keyof HomeNoteInputs)[] = ['needsCoachingForm', 'needsResume', 'searchStrategyIncomplete', 'reportReady', 'accountsNotConnected', 'stalledSearch', 'passiveToActive', 'firstWeek', 'gotHired', 'searchPlaybook']
+    const expected = ['coaching_form', 'upload_resume', 'setup_strategy', 'report_ready', 'connect_accounts', 'stalled_search', 'passive_to_active', 'first_week', 'got_hired', 'search_playbook']
     const cur: HomeNoteInputs = { ...all }
     order.forEach((k, idx) => {
       expect(pickHomeNote(cur)).toBe(expected[idx])
@@ -24,7 +24,7 @@ describe('pickHomeNote', () => {
 describe('simpleNote', () => {
   const ctx = { firstName: 'Maya', firstWeek: FIRST_WEEK[2], motivations: ['provide_for_family'] }
   it('gives every plain note a title, a reason, a start and an explanation', () => {
-    for (const kind of ['coaching_form', 'setup_strategy', 'report_ready', 'first_week', 'got_hired'] as const) {
+    for (const kind of ['coaching_form', 'upload_resume', 'setup_strategy', 'report_ready', 'first_week', 'got_hired'] as const) {
       const n = simpleNote(kind, ctx)
       expect(n, kind).not.toBeNull()
       expect(n!.title.length).toBeGreaterThan(0)

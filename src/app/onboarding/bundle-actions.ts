@@ -17,6 +17,7 @@ import { saveSituation } from '@/lib/onboarding/save-situation'
 import { coachWrites, matchOverrides, parsePlace, whereYouAreWrites } from '@/lib/onboarding/answers'
 import { BUNDLE_ROUTE, journeyOfSituation, validateAnswers, type Answers, type BundleId, type QuestionId } from '@/lib/onboarding/bundles'
 import { progressPatch } from '@/lib/onboarding/progress'
+import { ENTRY_KEY, entryFromGoalParam, entryOf, resumeRequired } from '@/lib/onboarding/resume-rule'
 import { NETWORK_COMFORT_VALUES } from '@/lib/onboarding/finish'
 import { loadScanStatus, type ScanStatus } from '@/lib/onboarding/scan-counts'
 import { computeMatchState } from '@/lib/personalization/match-compute'
@@ -33,6 +34,9 @@ const FIELDS: QuestionId[] = [
   'situation', 'startTiming', 'lastDayWorked', 'applyTiming', 'moveDriver', 'gapDuration', 'returnDate', 'offering', 'openDays', 'venture',
   'targetRole', 'function', 'level', 'place', 'workSetup', 'relocation', 'pushStyle', 'pace', 'intensity',
 ]
+
+/** The hidden field the first screen carries when the visitor arrived through a Market Reality link. */
+const ENTRY_FIELD = 'entry'
 
 function answersFrom(formData: FormData): Answers {
   const out: Answers = {}
@@ -68,9 +72,11 @@ export async function submitWhereYouAre(_prev: BundleFormState, formData: FormDa
 
   const writes = whereYouAreWrites(journey, answers)
   const now = await detailsOf(candidateId)
+  // A Market Reality link (?goal=market-reality) makes the résumé required later; see resume-rule.ts. Kept once set.
+  const entry = entryFromGoalParam(String(formData.get(ENTRY_FIELD) ?? '')) ?? entryOf(now.journeyDetails)
   await applyJourneyChange(candidateId, {
     stage: writes.stage,
-    details: { ...writes.details, ...progressPatch(now.journeyDetails, { completed: 'where_you_are' }) },
+    details: { ...writes.details, ...(entry ? { [ENTRY_KEY]: entry } : {}), ...progressPatch(now.journeyDetails, { completed: 'where_you_are' }) },
     source: 'ONBOARDING',
   })
   if (Object.keys(writes.profile).length > 0) await prisma.candidateProfile.update({ where: { id: candidateId }, data: writes.profile })
@@ -78,6 +84,22 @@ export async function submitWhereYouAre(_prev: BundleFormState, formData: FormDa
   bundleDone('where_you_are', candidateId, journey, answers)
   revalidatePath('/onboarding', 'layout')
   redirect(BUNDLE_ROUTE.resume)
+}
+
+// O2, for members who may skip it (everyone except the unemployed and Market Reality arrivals; see resume-rule.ts).
+// Checked here too, not only on the screen, so a required résumé cannot be skipped by posting to this action. They are
+// asked to upload one on login instead.
+export async function skipResume(): Promise<void> {
+  const candidateId = await requireCandidateId()
+  const p = await detailsOf(candidateId)
+  const journey = effectiveJourney(p)
+  if (resumeRequired({ journey, entry: entryOf(p.journeyDetails) })) redirect(BUNDLE_ROUTE.resume)
+
+  await prisma.candidateProfile.update({ where: { id: candidateId }, data: { resumeStepComplete: true } })
+  await applyJourneyChange(candidateId, { details: { resumeSkippedAt: new Date().toISOString() }, source: 'ONBOARDING' })
+  captureServerEvent(candidateId, 'onboarding_resume_skipped', { candidateId, journey, flow: 'bundles' })
+  revalidatePath('/onboarding', 'layout')
+  redirect(BUNDLE_ROUTE.aiming)
 }
 
 // O3. Level, function and target role, confirmed from the résumé. Years and industries stay as the résumé read them.
@@ -167,7 +189,8 @@ export async function submitCoach(_prev: BundleFormState, formData: FormData): P
   captureServerEvent(candidateId, 'onboarding_coaching_style_chosen', { candidateId, journey, pushStyle: writes.coachingStylePreference ?? null, pace: writes.changePacePreference ?? null, intensity: writes.searchIntensity ?? null })
   bundleDone('coach', candidateId, journey, answers)
   revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding/finish')
+  // The hub sends them on: coach-invited members give consent first, then the required Google step.
+  redirect('/onboarding')
 }
 
 // The finish screen's one optional next question. Network comfort is saved the way the classic comfort step saved it
@@ -195,7 +218,9 @@ export async function finishBundles(formData: FormData): Promise<void> {
     nextQuestionAnswered: formData.get('nextQuestionAnswered') === '1',
   })
   revalidatePath('/onboarding', 'layout')
-  redirect('/onboarding')
+  // Members who gave a résumé see their starting grade next; everyone else goes on to the welcome.
+  const hasResume = (await prisma.resume.count({ where: { candidateId, looksLikeResume: { not: false } } })) > 0
+  redirect(hasResume ? '/onboarding/score' : '/onboarding')
 }
 
 // The live "how many jobs fit" count under O3 and O4: today's jobs run against the profile with the answers

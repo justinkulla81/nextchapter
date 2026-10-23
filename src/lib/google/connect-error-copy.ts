@@ -21,5 +21,11 @@ export function googleConnectErrorMessage(code: string, kind: 'gmail' | 'calenda
                   `Google didn't give us ${
                     code === 'missing_gmail' ? 'Gmail' : code === 'missing_calendar' ? 'Calendar' : 'Gmail or Calendar'
                   } access, and we need both to track your search. We only read, and we never send or delete. Try again and leave both boxes ticked.`
-                : null
+                : code === 'work_account'
+                  ? 'That looks like a work or school Google account. Use your personal Gmail so your search stays private from your employer.'
+                  : code === 'not_gmail'
+                    ? 'For now we can only connect a personal Gmail account. Use your Gmail address, or leave your email below and we will tell you when we support more.'
+                    : code === 'no_identity'
+                      ? "We couldn't confirm which Google account that was. Please try again."
+                      : null
 }
