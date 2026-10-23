@@ -8,6 +8,7 @@ import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessag
 import { listCalendarEvents, fetchGoogleDocText, NotesFetchError } from '@/lib/google/admin-calendar'
 import { capNotes } from '@/lib/google/meeting-notes'
 import { createTodosFromNotes } from '@/lib/crm/meeting-todos'
+import { OWNER_NAMES } from '@/lib/crm/owner'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAllAdminCalendarAccess } from '@/lib/webinars/admin-calendar-oauth'
 import {
@@ -913,7 +914,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
           const made = await createTodosFromNotes({
             notes, eventId: ev.id, eventTitle: ev.summary ?? 'Meeting', meetingAt: ev.start, notesUrl: ev.notesDoc.url,
             personId, personName: person?.fullName ?? 'them', orgId: ctxRow.orgId, opportunityId: ctxRow.opportunityId,
-            selfNames: ev.attendees.filter((a) => a.email && isSelf(a.email, ctx)).map((a) => a.displayName ?? '').filter(Boolean),
+            selfNames: [...OWNER_NAMES, ...ev.attendees.filter((a) => a.email && isSelf(a.email, ctx)).map((a) => a.displayName ?? '').filter(Boolean)],
             accessToken: token,
           })
           todosCreated += made.created

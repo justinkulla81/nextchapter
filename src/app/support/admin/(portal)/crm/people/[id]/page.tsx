@@ -21,6 +21,7 @@ import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { parseNextSteps } from '@/lib/google/meeting-notes'
+import { OWNER_NAMES } from '@/lib/crm/owner'
 import { setTodoDone } from '../../todos/actions'
 import { MeetingPrepGenerateButton } from '@/components/admin/MeetingPrepControls'
 import { CrmOrgContext } from '@/components/admin/CrmOrgContext'
@@ -36,8 +37,6 @@ import {
 
 export const maxDuration = 30
 
-/** The names Gemini writes for you in meeting notes. */
-const OWNER_NAMES = ['Justin Kulla']
 
 export default async function CrmPersonPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
