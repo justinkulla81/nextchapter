@@ -3,13 +3,11 @@ import Link from 'next/link'
 import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
 import { fundingFor, usesSelfId } from '@/lib/benefits/member'
-import { SELF_TAGS, goalOrderFor } from '@/lib/benefits/match'
+import { goalOrderFor } from '@/lib/benefits/match'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
-import { ShowMore } from '@/components/candidate/ShowMore'
-import { H2 } from '@/components/candidate/ui'
 import { FundingSections } from '@/components/dashboard/FundingList'
-import { saveFundingTags } from './actions'
+import { FundingSharpenForm } from '@/components/dashboard/FundingSharpenForm'
 
 export const metadata: Metadata = { title: 'Funding you qualify for' }
 
@@ -66,39 +64,7 @@ export default async function FundingPage() {
 
       <FundingSections byGoal={f.byGoal} order={goalOrderFor(f.facts.laidOff)} />
 
-      <section className="space-y-3" aria-labelledby="funding-sharpen">
-        <ShowMore label="Sharpen your matches" event="funding_sharpen_opened">
-          <form action={saveFundingTags} className="space-y-4">
-            <div>
-              <H2 id="funding-sharpen">Which of these are true for you?</H2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Why we ask: some programs are only for veterans, people 50 or older, people with a disability and so on. Until you answer, we keep them in the list in case they apply.
-                Once you save, we hide the ones that do not. Private to you: never shown to employers, recruiters, schools or coaches.
-              </p>
-            </div>
-            <div className="space-y-2">
-              {SELF_TAGS.map((t) => (
-                <label key={t.tag} className="flex items-center gap-2 text-sm text-ink">
-                  <input type="checkbox" name="tag" value={t.tag} defaultChecked={held.has(t.tag)} />
-                  {t.label}
-                </label>
-              ))}
-            </div>
-            {hasSelfId && (
-              <label className="flex items-start gap-2 rounded-xl bg-muted p-4 text-sm text-ink">
-                <input type="checkbox" name="useSelfId" defaultChecked={useSelfId} className="mt-1" />
-                <span>
-                  <span className="font-semibold">Use my voluntary self-ID answers to find programs for my community.</span> You already answered some of these on your screening page
-                  (race or ethnicity, gender, veteran status, disability status). If you turn this on, we read them only to rank programs for you on this page. We do not copy them, show them to anyone or send them to analytics. Turn it off any time.
-                </span>
-              </label>
-            )}
-            <button type="submit" className="inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95">
-              Save and re-rank
-            </button>
-          </form>
-        </ShowMore>
-      </section>
+      <FundingSharpenForm held={[...held]} hasSelfId={hasSelfId} useSelfId={useSelfId} />
 
       <p className="text-xs text-muted-foreground">
         Each program links to its official page and was checked against it. Amounts and deadlines change, so confirm there before you apply. We rank; we do not decide

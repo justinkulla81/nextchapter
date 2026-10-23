@@ -23,6 +23,7 @@ import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
 import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
 import { PortalHeaders } from './portal-headers'
+import { FundingLive } from './funding-live'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
@@ -41,6 +42,7 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'learn/funding-live', place: 'Learn', title: 'Funding you qualify for: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: FundingLive },
   { path: 'jobs/market/ai-exposure-report', place: 'Jobs', title: 'AI exposure: your market reality', replaces: 'the “AI is reshaping this work” line in the market report', Component: ExposureMarketReport },
   { path: 'home/tailored/ai-exposure-strategy', place: 'Home', title: 'AI exposure: search strategy', replaces: 'the “AI skills” line under open roles', Component: ExposureSearchStrategy },
   { path: 'learn/path/ai-exposure-pivots', place: 'Learn', title: 'AI exposure: career pivots', replaces: 'the “AI task exposure” line on each pivot role', Component: ExposurePivots },
