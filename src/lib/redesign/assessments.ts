@@ -8,7 +8,6 @@ export const ASSESSMENT_WHY: Record<string, string> = {
   skills: 'Opens up more jobs and courses that fit what you can already do.',
   'track-record': 'Backs your résumé with the scope and ownership you have actually had.',
   'what-i-need': 'Keeps your search and your offers pointed at what you will not trade away.',
-  'work-interests': 'Finds roles you would enjoy, not only roles you could do.',
   'reference-check': 'Lets people who worked with you confirm what you say about yourself, which is what hiring managers trust most.',
 }
 
@@ -19,7 +18,6 @@ export const ASSESSMENT_TITLE: Record<string, string> = {
   skills: 'Skills',
   'track-record': 'Track record',
   'what-i-need': 'What I need',
-  'work-interests': 'Work interests',
   'reference-check': 'Reference check',
 }
 

@@ -15,7 +15,6 @@ import { isVagueTargetRole } from '@/lib/constants/onboarding'
 import { roleFamiliesOf } from '@/lib/constants/role-family-keywords'
 import type { FitBucket, LevelStep } from '@/lib/jobs/fit-bucket-types'
 import type { Grade } from '@/lib/scoring/grade'
-import { interestBonus } from '@/lib/work-interests/job-interest-fit'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
 import { assessYearsFit, quickYearsRange, type YearsRange } from '@/lib/jobs/years-fit'
 
@@ -48,7 +47,6 @@ import { assessYearsFit, quickYearsRange, type YearsRange } from '@/lib/jobs/yea
 //   years     0-5  meets the stated years requirement
 //   pay     -10-5  posted top of range vs their minimum
 //   size      0-5  company size they asked for
-//   interests 0-6  the job's function draws on one of their top Work Interests areas
 //
 // …and four gates that cap the score (so the bucket and every score-threshold
 // caller agree):
@@ -121,9 +119,6 @@ type FitCandidate = Pick<
   skillLevels?: unknown
   // What they opted to add to their search (more states, pivot roles).
   searchExpansion?: unknown
-  // Top Holland RIASEC areas from Work Interests, highest first; absent or
-  // empty = assessment not taken, which scores exactly as before.
-  interestAreas?: string[]
 }
 
 // id/firstName/lastName/email are only needed by admin-side display and the
@@ -641,8 +636,7 @@ function assessFit(
     keywordBonus(m, j.postingTextLower) +
     yearsBonus(c.yearsExperience, j.years) +
     payPoints(c, posting) +
-    companySizeMatchBonus(c, posting.companySizeBand) +
-    interestBonus(c.interestAreas ?? [], j.jobFns)
+    companySizeMatchBonus(c, posting.companySizeBand)
   score = Math.max(0, Math.min(100, score))
 
   let cappedBy: FitAssessment['cappedBy'] = null

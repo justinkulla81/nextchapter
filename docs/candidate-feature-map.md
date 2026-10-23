@@ -88,7 +88,7 @@ Note: Personalize is no longer a place in the redesign: its pieces are the first
 | https://launchyournextchapter.com/dashboard/resume/walkthrough | Résumé review walkthrough (**buried**) | Only links from résumé versions |
 | https://launchyournextchapter.com/dashboard/linkedin, portfolio | LinkedIn and headshot, Portfolio | Only links inside My profile |
 | https://launchyournextchapter.com/dashboard/skills-assessments | Skills and behavioral assessments hub | Menu: Personalize, My work profile |
-| https://launchyournextchapter.com/dashboard/skills-assessment, retake-assessment, work-interests | Skills inventory, How I Work Best, work interests (**buried**) | Only links inside the hub |
+| https://launchyournextchapter.com/dashboard/skills-assessment, retake-assessment | Skills inventory, How I Work Best (**buried**) | Only links inside the hub |
 | https://launchyournextchapter.com/dashboard/search-strategy | Search strategy | Menu: Personalize, My search |
 | https://launchyournextchapter.com/dashboard/what-i-need, marketing-plan | What I need, My marketing plan (**buried**) | Only links inside My search, Pay and Portfolio |
 | https://launchyournextchapter.com/dashboard/recruiter-report | What recruiters see | Menu: Personalize, For recruiters |

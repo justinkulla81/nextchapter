@@ -101,7 +101,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'jobs/apply/resume', place: 'Jobs', title: 'Résumé', replaces: '/dashboard/resume, resume/studio, resume/walkthrough', Component: ResumeMock },
   { path: 'jobs/apply/whyhire', place: 'Jobs', title: 'Why hire me', replaces: '/dashboard/strengths, track-record', Component: WhyHireMe },
   { path: 'learn/path/story', place: 'Learn', title: 'Career story', replaces: '/dashboard/my-career (the real page, sample data)', Component: CareerStoryReal },
-  { path: 'learn/know', place: 'Learn', title: 'How I work', replaces: '/dashboard/skills-assessments, how-i-perform, work-interests', Component: HowIWork },
+  { path: 'learn/know', place: 'Learn', title: 'How I work', replaces: '/dashboard/skills-assessments, how-i-perform', Component: HowIWork },
   { path: 'account/visibility', place: 'Account', title: 'What recruiters see', replaces: '/dashboard/recruiter-report, privacy', Component: WhatRecruitersSee },
   { path: 'account/documents', place: 'Account', title: 'Documents', replaces: '/dashboard/documents', Component: DocumentsMock },
   { path: 'account/membership', place: 'Account', title: 'Membership', replaces: '/dashboard/membership', Component: MembershipMock },
