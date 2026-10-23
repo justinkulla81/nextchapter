@@ -12,8 +12,10 @@ export const metadata: Metadata = { title: 'Help & feedback' }
 
 const day = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' })
 
-export default async function HelpAndFeedbackPage({ searchParams }: { searchParams: Promise<{ request?: string; kind?: string }> }) {
-  const [profile, { request: openId, kind }] = await Promise.all([getDashboardProfile(), searchParams])
+export default async function HelpAndFeedbackPage({ searchParams }: { searchParams: Promise<{ request?: string; kind?: string; from?: string }> }) {
+  const [profile, { request: openId, kind, from }] = await Promise.all([getDashboardProfile(), searchParams])
+  // Set by the page-not-found screen: only a site path, so the message can say which address was missing.
+  const reportedFrom = from && /^\/[\w\-./%]{0,200}$/.test(from) ? from : null
   const initialKind = HELP_FORM_KINDS.some((k) => k.value === kind) ? (kind as HelpFormKind) : 'help'
 
   const [requests, feedback] = await Promise.all([
@@ -63,7 +65,7 @@ export default async function HelpAndFeedbackPage({ searchParams }: { searchPara
       <PageHeader title="Help and feedback" intro="Ask us anything, report a problem, or tell us what to build next. We read every message and reply here and by email." />
       <section aria-labelledby="new-message" className="max-w-xl space-y-4 rounded-2xl border border-border p-6">
         <h2 id="new-message" className="font-display text-xl font-semibold text-ink">Your message</h2>
-        <HelpFeedbackForm contextPath="/dashboard/help" contextTitle="" initialKind={initialKind} />
+        <HelpFeedbackForm contextPath={reportedFrom ?? '/dashboard/help'} contextTitle={reportedFrom ? 'Page not found' : ''} initialKind={initialKind} />
       </section>
       <section aria-labelledby="conversations" className="space-y-3">
         <h2 id="conversations" className="font-display text-xl font-semibold text-ink">Your conversations</h2>
