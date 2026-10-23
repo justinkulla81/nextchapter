@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { ChoiceButtons } from '@/components/onboarding/ChoiceButtons'
+import { MissingNote } from '@/components/dashboard/RequiredQuestions'
 import {
   INDEPENDENT_WORK_STATUS_OPTIONS,
   INDEPENDENT_WORK_TYPES,
@@ -78,11 +79,7 @@ export function IndependentWorkExperienceQuestion({
                 We saw {suggestion.evidence.slice(0, 3).join(', ')}. Change this if it&apos;s not right.
               </p>
             )}
-            {showMissing && answers[key] === null && (
-              <p role="alert" className="text-sm text-destructive">
-                Pick one to save.
-              </p>
-            )}
+            <MissingNote show={showMissing && answers[key] === null} />
           </fieldset>
         )
       })}

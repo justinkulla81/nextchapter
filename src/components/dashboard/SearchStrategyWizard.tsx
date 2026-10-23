@@ -32,7 +32,6 @@ const ANCHOR_TO_STEP_KEY: Record<string, string> = {
   highestLevelReached: 'target-role',
   targetRoleType: 'target-role',
   remotePreference: 'target-role',
-  'comp-benefits': 'benefits',
 }
 
 function findPageIndexForItemKey(pages: WizardPage[], itemKey: string): number {
@@ -96,6 +95,10 @@ export function SearchStrategyWizard({
   // to the questions; restoring the remembered page on load does not.
   const scrollOnPageChangeRef = useRef(false)
   const pageContentRef = useRef<HTMLDivElement>(null)
+  // Set by any click or typing inside the open page; cleared when the page
+  // changes. Next only re-saves a page that has something new to save, so a
+  // member paging through finished pages does not re-run their save actions.
+  const touchedRef = useRef(false)
 
   useIsomorphicLayoutEffect(() => {
     if (restoredRef.current) return
@@ -171,6 +174,32 @@ export function SearchStrategyWizard({
     if (target) target.scrollIntoView({ block: 'start' })
     else window.scrollTo(0, 0)
   }, [openPage])
+
+  useEffect(() => {
+    touchedRef.current = false
+  }, [openPage])
+
+  // "Next" saves the page first. Each form's own save-then-advance moves to the
+  // next page once everything on it is complete; if a required answer is missing
+  // the form flags it and the member stays on the page, with their answers kept.
+  // A finished page nobody touched just moves on.
+  function nextOrSave() {
+    if (openPage === null) return
+    const forms = pageContentRef.current?.querySelectorAll('form')
+    const pageComplete = pages[openPage].items.every((item) => item.complete)
+    const needsSave = !!forms && forms.length > 0 && (!pageComplete || touchedRef.current)
+    posthog.capture('search_strategy_next_clicked', {
+      candidateId,
+      pageKey: pages[openPage].key,
+      saved: needsSave,
+      pageComplete,
+    })
+    if (!needsSave) {
+      setOpenPage(Math.min(pages.length - 1, openPage + 1))
+      return
+    }
+    forms.forEach((form) => form.requestSubmit())
+  }
 
   // "Save and finish" on the last page: submit each form on the page. Each
   // form's own save-then-advance exits to the list once every item is
@@ -276,7 +305,15 @@ export function SearchStrategyWizard({
         </span>
       </div>
 
-      <div ref={pageContentRef}>
+      <div
+        ref={pageContentRef}
+        onClickCapture={() => {
+          touchedRef.current = true
+        }}
+        onInputCapture={() => {
+          touchedRef.current = true
+        }}
+      >
         <SearchStrategyPageContext.Provider value={{ advance }}>{children[openPage]}</SearchStrategyPageContext.Provider>
       </div>
 
@@ -299,7 +336,7 @@ export function SearchStrategyWizard({
         {openPage < pages.length - 1 ? (
           <button
             type="button"
-            onClick={() => setOpenPage(Math.min(pages.length - 1, openPage + 1))}
+            onClick={nextOrSave}
             className="text-sm font-medium text-primary underline underline-offset-4"
           >
             Next →

@@ -180,7 +180,7 @@ export default async function CompleteProfilePage() {
 
         {isIncomplete('RED_FLAGS_CONFIRMED') && linkTask('RED_FLAGS_CONFIRMED', 'Complete Screening Questions', 'Drug test, background check, and other deal-breakers — on the Screening Questions page.', '/dashboard/profile/screening#screening-questions', 5, 'Answer')}
 
-        {isIncomplete('BENEFITS_PRIORITIES_CONFIRMED') && linkTask('BENEFITS_PRIORITIES_CONFIRMED', 'Compensation & benefits', 'On the Search Strategy page.', '/dashboard/search-strategy#comp-benefits', 10, 'Answer')}
+        {isIncomplete('BENEFITS_PRIORITIES_CONFIRMED') && linkTask('BENEFITS_PRIORITIES_CONFIRMED', 'Compensation & benefits', 'On the Know your worth page.', '/dashboard/pay#asks', 10, 'Answer')}
     </>
     )
   }

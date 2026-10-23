@@ -5,6 +5,8 @@ import { ShowMore } from '@/components/candidate/ShowMore'
 import { ActionLink } from '@/components/candidate/ActionLink'
 import { PlainNote, SectionBlock } from '@/components/candidate/Blocks'
 import { WORK_VALUE_DOMAIN_LABELS, type WorkValueDomain } from '@/lib/constants/what-i-need'
+import { PackageWishesForm } from '@/components/market/PackageWishesForm'
+import type { PackageBenefitKey, PackageNumberKey } from '@/lib/review-prep/package-wishes'
 
 // Know your worth in the redesign: one verdict on where the member's pay sits, a second signal from public filings,
 // and what to ask for besides money. The market chart and the package wishes sit behind "Show more".
@@ -13,13 +15,14 @@ export function PayRedesign({
   position,
   filed,
   top,
-  asks,
+  wishes,
   market,
 }: {
   position: ReactNode
   filed: ReactNode
   top: WorkValueDomain[]
-  asks: string[]
+  /** What the member ticked and typed for the package, to edit in place. */
+  wishes: { benefits: PackageBenefitKey[]; numbers: Record<PackageNumberKey, number | null> }
   /** The advertised-pay chart for the member's role, or null when it is switched off. */
   market: ReactNode | null
 }) {
@@ -56,27 +59,16 @@ export function PayRedesign({
           </PlainNote>
         )}
       </SectionBlock>
-      {(asks.length > 0 || market) && (
-        <ShowMore page="pay">
-          {market && (
-            <SectionBlock id="market" title="The market for your role">
-              {market}
-            </SectionBlock>
-          )}
-          {asks.length > 0 && (
-            <SectionBlock id="asks" title="What you said you want in the package">
-              <ul className="list-disc space-y-1 pl-5 text-base text-ink">
-                {asks.map((a) => (
-                  <li key={a}>{a}</li>
-                ))}
-              </ul>
-              <Link href="/dashboard/search-strategy" className="text-sm font-medium text-brand underline underline-offset-4">
-                Update your priorities
-              </Link>
-            </SectionBlock>
-          )}
-        </ShowMore>
-      )}
+      <ShowMore page="pay">
+        <SectionBlock id="asks" title="What you want in the package" why="Tick what matters. It becomes your list of things to ask for, in the conversation you build above.">
+          <PackageWishesForm initialBenefits={wishes.benefits} initialNumbers={wishes.numbers} />
+        </SectionBlock>
+        {market && (
+          <SectionBlock id="market" title="The market for your role">
+            {market}
+          </SectionBlock>
+        )}
+      </ShowMore>
     </div>
   )
 }
