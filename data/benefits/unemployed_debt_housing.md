@@ -79,7 +79,6 @@
 | Missouri Bar CLE financial hardship waiver | | MO | | Full waiver or reduced fee for MoBarCLE seminars; aid capped once 9 MCLE hours earned in a reporting period | Missouri Bar member with financial hardship; apply at least 3 weeks before the program; decided case by case | Open | https://mobar.org/site/content/MoBarCLE/Financial_Hardship.aspx | Yes |
 | Onondaga County Bar CLE fee waiver | | NY | Onondaga County | Unemployed (and spouse unemployed): full scholarship; income up to $15,000: 75% off; $15,000-$30,000: 50% off | Local legal community member with genuine financial hardship; apply in writing | Open | https://www.onbar.org/cle-programs/cle-waiver-policy/ | Yes |
 | Nevada MCLE hardship exemption | | NV | | Exemption from annual CLE credit hour or fee requirements | Nevada attorney unable to comply because of hardship; application must be received before the Board considers it | Open | https://nvbar.org/licensing-compliance/mcle/application-for-exemption-based-on-hardship/ | Yes |
-| New York CLE Board waiver for undue hardship | | NY | | Waiver or modification of CLE requirement | Undue hardship or extenuating circumstances, with documents | Open | https://www.nycourts.gov/attorneys/cle/ | No |
 
 ## Property tax relief
 
