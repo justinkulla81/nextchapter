@@ -124,8 +124,18 @@ export function relativeGrowth(target: Counts, board: Counts): number | null {
 
 export type MarketPrompt = 'too_many' | 'too_few' | 'shrinking' | 'healthy'
 
-export function marketPrompt(openNow: number, growth: number | null): MarketPrompt {
-  if (openNow < MARKET_TOO_FEW) return 'too_few'
+/**
+ * Fewer than this reads as too few for the member's level. There are few roles at the top of any
+ * function, so a VP or executive market is not "narrow" at 30 the way a mid-level one is.
+ */
+export function tooFewFor(stages: readonly string[]): number {
+  if (stages.includes('EXECUTIVE') || stages.includes('VP')) return 8
+  if (stages.includes('DIRECTOR')) return 15
+  return MARKET_TOO_FEW
+}
+
+export function marketPrompt(openNow: number, growth: number | null, tooFew: number = MARKET_TOO_FEW): MarketPrompt {
+  if (openNow < tooFew) return 'too_few'
   if (growth !== null && growth <= SHRINKING_BELOW) return 'shrinking'
   if (openNow > MARKET_TOO_MANY) return 'too_many'
   return 'healthy'
