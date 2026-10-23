@@ -1,5 +1,8 @@
 // Shared by the portal form, the Help & feedback page and the admin inbox.
 
+/** The candidate Help and feedback page, opened on "Report a problem". */
+export const SUPPORT_HELP_PATH = '/dashboard/help?kind=problem'
+
 export type HelpFormKind = 'help' | 'problem' | 'idea' | 'feedback'
 
 export const HELP_FORM_KINDS: { value: HelpFormKind; label: string; hint: string; prompt: string; placeholder: string }[] = [
