@@ -1,16 +1,18 @@
 import 'server-only'
 import { CALENDAR_READ_SCOPE, GMAIL_READ_SCOPE } from '@/lib/google/grant'
+import { callbackOriginForAppPath } from '@/lib/portal-hosts'
 
 // The Google round trip that creates the account and connects Gmail and Calendar. It uses the same candidate OAuth client as the
 // Connect Gmail buttons, with its own redirect URI, which must be added to that
-// client in Google Cloud Console: <NEXT_PUBLIC_APP_URL>/api/auth/join/callback
+// client in Google Cloud Console: <candidate origin>/api/auth/join/callback
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 
 const IDENTITY_SCOPES = ['openid', 'email', 'profile']
 
 export function getJoinRedirectUri(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  return `${appUrl}/api/auth/join/callback`
+  // The candidate app's host (candidate.<site> once it's switched on): the nonce cookie and the session are host-only,
+  // so the round trip has to come back to the host that started it.
+  return `${callbackOriginForAppPath('/onboarding')}/api/auth/join/callback`
 }
 
 // One consent covers sign-in and both permissions: connecting is the account step, not an extra.
