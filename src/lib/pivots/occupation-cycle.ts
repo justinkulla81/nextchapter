@@ -21,7 +21,7 @@ export type CycleBand = 'swings' | 'held'
 const EPISODES = (data as { episodes: CycleEpisode[] }).episodes
 const BY_SOC = (data as { occupations: Record<string, OccupationCycle> }).occupations
 
-/** Falling this many points below all jobs, in both downturns, counts as swinging with the economy. */
+/** Falling this many points below all jobs in a downturn, without beating all jobs in the other, counts as swinging with the economy. */
 export const SWING_POINTS = 5
 /** Beating all jobs by this many points in both counts as holding up. */
 export const HELD_POINTS = 2
@@ -34,7 +34,7 @@ function soc6(soc: string): string {
 export function cycleBand(pct: number[], episodes: CycleEpisode[]): CycleBand | null {
   if (episodes.length < 2 || pct.length !== episodes.length) return null
   const rel = pct.map((p, i) => p - episodes[i].allJobsPct)
-  if (rel.every((r) => r <= -SWING_POINTS)) return 'swings'
+  if (rel.some((r) => r <= -SWING_POINTS) && rel.every((r) => r < HELD_POINTS)) return 'swings'
   if (rel.every((r) => r >= HELD_POINTS)) return 'held'
   return null
 }
@@ -45,8 +45,8 @@ export function cycleLineFor(pct: number[], episodes: CycleEpisode[]): string | 
   const band = cycleBand(pct, episodes)
   if (!band) return null
   const parts = episodes.map((e, i) => `${e.label}: ${signed(pct[i])} against ${signed(e.allJobsPct)} for all jobs`)
-  const verb = band === 'swings' ? 'fell more than jobs overall' : 'held up better than jobs overall'
-  return `In the last two downturns, employment in this work ${verb} (${parts.join('; ')}). That is what happened before, not a forecast.`
+  const verb = band === 'swings' ? 'fell more than jobs overall in at least one' : 'held up better than jobs overall in both'
+  return `In the last two downturns, employment in this work ${verb}${band === 'swings' ? ' of them' : ''} (${parts.join('; ')}). That is what happened before, not a forecast.`
 }
 
 /** The label for a pivot target's occupation, or null when we have no comparable history. */
