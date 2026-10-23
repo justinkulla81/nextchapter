@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { likePremiumRange, liveFunctionRows, liveLevelRows, liveOverallSharePct, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
+import { formatPct, formatPremium, likePremiumRange, liveFunctionRows, liveLevelRows, liveOverallSharePct, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
 import { weeklyShareTrend } from '@/lib/skills/ai-market-trend'
 import type { AiMarketData } from '@/lib/skills/ai-market'
 import { UNLOCK_NUDGES, type RotationContext } from '@/lib/job-search-daily/rotations'
@@ -93,5 +93,17 @@ describe('weekly share trend', () => {
     expect(t).toHaveLength(4)
     expect(t[0]).toEqual({ weekOf: '2026-10-19', sharePct: 11 }) // Oct 21's 110 replaces Oct 19's 100
     expect(t[t.length - 1].sharePct).toBe(14)
+  })
+})
+
+
+describe('premium formatting', () => {
+  it('puts the sign on the number, never "+-"', () => {
+    expect(formatPct(18)).toBe('+18%')
+    expect(formatPct(-1)).toBe('-1%')
+    expect(formatPct(0)).toBe('0%')
+    expect(formatPremium(18, 29500)).toBe('+18% (about $29.5k)')
+    expect(formatPremium(-1, -1000)).toBe('-1% (about -$1k)')
+    expect(formatPremium(0, 0)).toBe('0% (about $0k)')
   })
 })
