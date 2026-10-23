@@ -682,6 +682,7 @@ Reading it: finance is a manager-heavy track (Financial Managers alone are 14,24
 - "The leading job transition platform" once per page. "Career services" wording only where the buyer's budget is career services.
 - Name no competitor on a number we have not verified; the comparison in section 13 stays internal.
 - Prices and free flags carry a "checked on" date.
+- Wherever Anthropic Economic Index numbers appear on a public page, carry the disclosure and the association-only wording required in `docs/AEI_SECTION.md` (the measure's authors are AI developers; exposure and openings moving together is not causation).
 
 **What not to market yet.** Purpose-built courses, a graded AI-skills credential, and "verify the AI's work" training. None exists. They are the eight builds in section 10.4.
 
