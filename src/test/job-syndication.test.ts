@@ -74,6 +74,10 @@ describe('XML feed', () => {
     expect(xml).toContain('<salary><![CDATA[$80k–$110k a year]]></salary>')
     expect(xml).toContain('<date><![CDATA[Thu, 08 Oct 2026 00:00:00 GMT]]></date>')
     expect(xml).not.toContain('<remotetype>')
+    // Talent.com's required/recommended tags
+    expect(xml).toContain('<dateposted><![CDATA[2026-10-08T00:00:00.000Z]]></dateposted>')
+    expect(xml).toMatch(/<expirationdate><!\[CDATA\[\d{4}-\d{2}-\d{2}T[\d:.]+Z\]\]><\/expirationdate>/)
+    expect(xml).toContain('<isremote><![CDATA[no]]></isremote>')
   })
   it('uses the given url instead of our job page (employer feed)', () => {
     const xml = feedJobXml(job(), 'https://employer.example.com/apply/123')

@@ -9,7 +9,7 @@
 // Every URL sent anywhere is OUR job page, never the employer's.
 
 import { SITE_URL } from '@/lib/seo/facts'
-import { datePostedOf, descriptionHtml, isRemoteJob, payLabel, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { datePostedOf, descriptionHtml, isRemoteJob, payLabel, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 export const jobPageUrl = (id: string) => `${SITE_URL}/jobs/${id}`
 
@@ -103,6 +103,8 @@ export function feedJobXml(job: PublicJobRow, url: string = jobPageUrl(job.id)):
   const parts = [
     `<title>${cdata(job.title)}</title>`,
     `<date>${cdata(datePostedOf(job).toUTCString())}</date>`,
+    // Talent.com's required name for the posted date (https://www.talent.com/integrations), ISO 8601.
+    `<dateposted>${cdata(datePostedOf(job).toISOString())}</dateposted>`,
     `<referencenumber>${cdata(job.id)}</referencenumber>`,
     `<url>${cdata(url)}</url>`,
     `<company>${cdata(job.companyName)}</company>`,
@@ -111,6 +113,9 @@ export function feedJobXml(job: PublicJobRow, url: string = jobPageUrl(job.id)):
     `<country>${cdata('US')}</country>`,
     `<description>${cdata(descriptionHtml(job.description))}</description>`,
   ]
+  const expires = validThroughOf(job)
+  if (expires) parts.push(`<expirationdate>${cdata(expires.toISOString())}</expirationdate>`)
+  parts.push(`<isremote>${cdata(remote ? 'yes' : 'no')}</isremote>`)
   const pay = payLabel(job.salaryMin, job.salaryMax, job.payPeriod)
   if (pay) parts.push(`<salary>${cdata(pay)}</salary>`)
   const type = job.employmentType ? FEED_JOB_TYPE[job.employmentType] : undefined
