@@ -53,10 +53,10 @@ export function CollegeProfileViewedTracker({ unitid, tier, hasExecEd, hasRetrai
 }
 
 /** The Organizations list, per search or filter — including the missing-L&D-head view. */
-export function CrmOrganizationsViewTracker(props: { q: string; type: string; rel?: string; goal: string; deal: string; ldHead: string; layoffs?: string; results: number }) {
-  const { q, type, rel, goal, deal, ldHead, layoffs, results } = props
+export function CrmOrganizationsViewTracker(props: { q: string; type: string; rel?: string; goal: string; deal: string; ldHead: string; chro?: string; layoffs?: string; results: number }) {
+  const { q, type, rel, goal, deal, ldHead, chro, layoffs, results } = props
   useEffect(() => {
-    posthog.capture('crm_organizations_viewed', { q: q || null, type: type || null, relationship: rel || null, goal: goal || null, deal: deal || null, ldHead: ldHead || null, layoffs: layoffs || null, results })
-  }, [q, type, rel, goal, deal, ldHead, layoffs, results])
+    posthog.capture('crm_organizations_viewed', { q: q || null, type: type || null, relationship: rel || null, goal: goal || null, deal: deal || null, ldHead: ldHead || null, chro: chro || null, layoffs: layoffs || null, results })
+  }, [q, type, rel, goal, deal, ldHead, chro, layoffs, results])
   return null
 }

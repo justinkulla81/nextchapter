@@ -10243,6 +10243,7 @@ enum CrmPersonRole {
   RECRUITER_PROSPECT
   HIRING_MANAGER // also covers the old CHRO_HR, folded in during the contact-type relabel
   OUTPLACEMENT_BUYER
+  CHRO // chief human resources / chief people officer — the head of HR for the whole company
   LEARNING_DEV_HEAD // head of learning and development (or talent/leadership development) at an employer we pitch
   POLICY_ANALYST // also covers the old ACADEMIC, folded in during the contact-type relabel
   ALUMNI_OFFICE // higher ed: alumni relations
