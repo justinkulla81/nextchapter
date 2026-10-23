@@ -148,7 +148,6 @@ What exists:
 - **Personalization signals meter** — `src/lib/personalization/signals.ts`, `know-you.ts`, card `KnowYouCard` / `KnowYouSection` ("Your search is X% tuned": city 25, title 20, tools 20, industries 15, function 10, work setup 10). `retune.ts` and `RetuneMoment` show what changed in matches after a profile edit. This is profile-question personalization with a measurable effect on matching.
 - **Spine** — `src/lib/personalization/spine.ts` + `docs/PERSONALIZATION_SPINE.md`: for each journey and stage, which question drives which of plan, learning, networking, opportunities, report, coaching; `spineGaps` feed the engagement card ("Answer one question that sharpens your plan").
 - **Learning** — `src/lib/learning/build-learning-plan.ts` and `rationale.ts`: sections ordered by Market Reality Report gaps, "skills to build" tags, function; page `https://launchyournextchapter.com/dashboard/learning`. Course-to-skill link `coursesForSkills` in `src/lib/careers/training.ts`.
-- **Interest profiler** — `src/lib/onet/interest-profiler.ts` (O*NET Interest Profiler short form), page `https://launchyournextchapter.com/dashboard/work-interests`.
 - Strengths / work style / likes: `src/lib/profile/strengths*.ts`, `work-profile.ts`; pages `https://launchyournextchapter.com/dashboard/strengths`, `https://launchyournextchapter.com/dashboard/work-profile`.
 
 Real data vs empty:

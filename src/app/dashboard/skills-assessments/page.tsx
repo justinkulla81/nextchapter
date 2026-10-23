@@ -30,7 +30,6 @@ export default async function SkillsAssessmentsPage() {
 
   const trackRecordCompletedAt = profile.trackRecordCompletedAt
   const whatINeedCompletedAt = profile.whatINeedCompletedAt
-  const workInterestsCompletedAt = profile.workInterestsCompletedAt
 
   const assessments = [
     {
@@ -100,18 +99,6 @@ export default async function SkillsAssessmentsPage() {
       points: estimateActionEffort({ actionType: 'WHAT_I_NEED_COMPLETED' }).points,
       href: '/dashboard/what-i-need',
       ctaLabel: whatINeedCompletedAt ? 'Retake' : 'Take the assessment',
-    },
-    {
-      key: 'work-interests',
-      title: 'Work Interests',
-      description:
-        'What kind of work actually energizes you, based on the Holland RIASEC framework used across career counseling (O*NET Interest Profiler).',
-      feeds: 'Feeds: Job Recommendations · Learning recommendations',
-      sharedWith: 'Who sees it: no one — personalization only, used to match jobs and courses to you.',
-      completedAt: workInterestsCompletedAt,
-      points: estimateActionEffort({ actionType: 'WORK_INTERESTS_COMPLETED' }).points,
-      href: '/dashboard/work-interests',
-      ctaLabel: workInterestsCompletedAt ? 'Retake' : 'Take the assessment',
     },
     {
       key: 'reference-check',

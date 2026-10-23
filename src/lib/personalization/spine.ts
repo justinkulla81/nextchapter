@@ -592,17 +592,6 @@ export const SIGNALS: readonly Signal[] = [
     readBy: ['src/lib/profile/work-profile-load.ts', 'src/lib/profile/people-like-you.ts'],
   },
   {
-    key: 'work_interests',
-    group: 'want',
-    question: 'Which kinds of work interest you most?',
-    field: 'interestAreas',
-    where: { label: 'Work Interests', href: '/dashboard/work-interests' },
-    needs: { journeys: SEARCHING, stages: ALL_STAGES_BUT_LANDED },
-    drives: { opportunities: 'Roles in the areas you like rank higher.' },
-    opportunity: 'A shortlist that leans toward the work you would enjoy.',
-    readBy: ['src/lib/jobs/job-fit-bucket.ts'],
-  },
-  {
     key: 'coaching_form',
     group: 'how',
     question: 'What are your non-negotiables and your biggest worry about this search?',

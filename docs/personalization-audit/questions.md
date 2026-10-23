@@ -425,14 +425,6 @@ How I Work Best (retake, once per 7 days)
 | 168 | assessment | How I Work Best: 57 agreement items plus quad blocks ("least like me") | CandidateAssessmentResponse.dimensionVectors | REPORT (dossier competencies, self-awareness vs references), work-profile-load, pivots | outcome | **UNCLEAR** | Retake page claims it keeps job matches personalized; job matching does not read the vectors, only per-job work-style read and the dossier do. |
 | 169 | assessment | How would former colleagues describe you? | CandidateProfile.knownFor | MATCH (cover note, apply-kit, discover card), share pages, references, great-employers | function, outcome | **KEEP** | Reused in applications. |
 
-### https://launchyournextchapter.com/dashboard/work-interests
-
-Work Interests
-
-| # | Where | Question (user-facing wording) | Stores | Read by | Changes | Verdict | Why |
-|---|---|---|---|---|---|---|---|
-| 170 | items | 60 O*NET Interest Profiler questions (5-point like/dislike) | WorkInterestsResponse.answers, .scores, .topAreas | MATCH (job-fit-bucket interestBonus: a nudge of up to 6 points, only lifts) | outcome | **UNCLEAR** | 60 questions for a 0-6 point nudge that never lowers a score. Consider dropping or shortening. |
-
 ### https://launchyournextchapter.com/dashboard/early-career
 
 Early career plan
