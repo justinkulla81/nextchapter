@@ -96,12 +96,14 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Know yourself', '/dashboard/skills-assessments', { menuKeys: ['assessments'], alsoMatches: ['/dashboard/skills-assessment', '/dashboard/retake-assessment'] }),
       tab('Career story', '/dashboard/my-career'),
       tab('Other roles you could do', '/dashboard/pivot-paths', { alsoMatches: ['/dashboard/pivot'] }),
+      tab('Funding you qualify for', '/dashboard/funding'),
       tab('Courses your company covers', '/dashboard/company-courses', { employedOnly: true }),
     ],
     groups: [
       { label: 'Learn new skills', hrefs: ['/dashboard/learning', '/dashboard/webinars', '/dashboard/company-courses'] },
       { label: 'Know yourself', hrefs: ['/dashboard/skills-assessments'] },
       { label: 'Your path', hrefs: ['/dashboard/my-career', '/dashboard/pivot-paths'] },
+      { label: 'Funding you qualify for', hrefs: ['/dashboard/funding'] },
     ],
   },
   {

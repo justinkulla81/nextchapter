@@ -2,7 +2,7 @@ import 'server-only'
 import { PUBLIC_JOB_SITEMAP_SHARDS } from '@/lib/jobs/public-job-page'
 import { publicJobIdsInShard, publicJobRowsByIds } from '@/lib/jobs/public-job-page-server'
 import { FEED_BUCKET, getObject, gzip, publicObjectUrl, putObject } from '@/lib/syndication/storage'
-import { chunk, FEED_TAIL, feedHead, feedJobXml } from '@/lib/syndication/syndication'
+import { chunk, FEED_TAIL, feedHead, feedJobXml, isFreshForJooble, JOOBLE_HEAD, JOOBLE_TAIL, joobleJobXml } from '@/lib/syndication/syndication'
 
 // The aggregator feed: every public job as Indeed-style XML, gzipped, in the public
 // 'job-feeds' bucket. ~320k jobs is ~80 MB gzipped, over Storage's 50 MB object limit
@@ -19,10 +19,12 @@ import { chunk, FEED_TAIL, feedHead, feedJobXml } from '@/lib/syndication/syndic
 // (/feeds/jobs.xml.gz). 'direct': only jobs listed straight on the employer's own career
 // system (directListing), each <url> the employer's apply link, so we aren't presented as
 // the source (/feeds/jobs-direct.xml.gz) — the one to submit to aggregators.
-export type FeedVariant = 'all' | 'direct'
+// 'jooble': the direct jobs again, in Jooble's own tag set (/feeds/jobs-jooble.xml.gz).
+export type FeedVariant = 'all' | 'direct' | 'jooble'
 const VARIANTS: Record<FeedVariant, { manifest: string; prefix: string; filename: string }> = {
   all: { manifest: 'jobs/manifest.json', prefix: 'jobs/part-', filename: 'jobs.xml.gz' },
   direct: { manifest: 'direct/manifest.json', prefix: 'direct/part-', filename: 'jobs-direct.xml.gz' },
+  jooble: { manifest: 'jooble/manifest.json', prefix: 'jooble/part-', filename: 'jobs-jooble.xml.gz' },
 }
 export const FEED_MANIFEST_PATH = VARIANTS.all.manifest
 const ROW_CHUNK = 5_000
@@ -54,7 +56,8 @@ export const feedPartUrl = (p: FeedPart) => publicObjectUrl(FEED_BUCKET, p.path)
 
 /** One part's XML (the <job> elements of one shard), and how many jobs it holds. */
 export async function buildShardXml(shard: number, variant: FeedVariant = 'all'): Promise<{ xml: string; jobs: number }> {
-  const direct = variant === 'direct'
+  const direct = variant !== 'all'
+  const now = Date.now()
   const ids = (await publicJobIdsInShard(shard, direct)).map((r) => r.id)
   const pieces: string[] = []
   let jobs = 0
@@ -70,7 +73,10 @@ export async function buildShardXml(shard: number, variant: FeedVariant = 'all')
       // Direct feed: the employer's apply link; a job without a usable one is left out.
       const url = r.directListing ? httpUrl(r.url) : null
       if (!url) continue
-      pieces.push(feedJobXml(r, url))
+      if (variant === 'jooble') {
+        if (!isFreshForJooble(r, now)) continue
+        pieces.push(joobleJobXml(r, url))
+      } else pieces.push(feedJobXml(r, url))
       jobs++
     }
   }
@@ -137,8 +143,12 @@ export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; sh
 }
 
 /** The feed's gzipped header and footer members (small; built per request). */
-export async function feedHeadTail(m: FeedManifest): Promise<{ head: Buffer; tail: Buffer }> {
-  const [head, tail] = await Promise.all([gzip(Buffer.from(feedHead(new Date(m.updatedAt)))), gzip(Buffer.from(FEED_TAIL))])
+export async function feedHeadTail(m: FeedManifest, variant: FeedVariant = 'all'): Promise<{ head: Buffer; tail: Buffer }> {
+  const jooble = variant === 'jooble'
+  const [head, tail] = await Promise.all([
+    gzip(Buffer.from(jooble ? JOOBLE_HEAD : feedHead(new Date(m.updatedAt)))),
+    gzip(Buffer.from(jooble ? JOOBLE_TAIL : FEED_TAIL)),
+  ])
   return { head, tail }
 }
 
@@ -146,7 +156,7 @@ export async function feedHeadTail(m: FeedManifest): Promise<{ head: Buffer; tai
 export async function feedResponse(variant: FeedVariant): Promise<Response> {
   const m = await readFeedManifest(variant).catch(() => null)
   if (!m || m.parts.length === 0) return new Response('The job feed is being built. Try again later.', { status: 503, headers: { 'Retry-After': '3600' } })
-  const { head, tail } = await feedHeadTail(m)
+  const { head, tail } = await feedHeadTail(m, variant)
   const length = head.length + tail.length + m.parts.reduce((n, p) => n + p.bytes, 0)
 
   const body = new ReadableStream<Uint8Array>({
