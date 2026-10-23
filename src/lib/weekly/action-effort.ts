@@ -245,6 +245,9 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // Daily mood check-in — small recurring bonus, awarded once per week, the
   // first time that week's check-in happens, via autoCompleteEngagementAction.
   MOOD_CHECKIN: { minutes: 2, points: 3 },
+  // Once a week, the first time a member logs in: showing up is the first step. Deliberately
+  // tiny; it counts toward search effort only as capped engagement (scoring/effort-actions.ts).
+  LOGIN_VISIT: { minutes: 1, points: 2 },
 
   // One-time unlock-gate bonuses — every gate that unlocks a whole section
   // gets the same small, clearly-labeled one-time award as the confirms
@@ -272,6 +275,10 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // "Your Search Strategy So Far" bundle (5) — same total value, one award.
   SEARCH_STRATEGY_COMPLETE: { minutes: 20, points: 35 },
 }
+
+// Every action type that earns points, so a test can insist each one is classified as search
+// effort or not (see scoring/effort-actions.ts).
+export const POINT_ACTION_TYPES: readonly string[] = Object.keys(ACTION_TYPE_EFFORT)
 
 const DEFAULT_EFFORT: ActionEffort = { minutes: 15, points: 15 }
 
@@ -370,6 +377,7 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   COMFORT_CHECK_CONFIRM: 'effort',
   VISIBILITY_COMFORT_CHECKIN: 'connecting',
   MOOD_CHECKIN: 'connecting',
+  LOGIN_VISIT: 'connecting',
   MARKETING_PLAN_UNLOCK: 'working',
   GIG_DIRECTORY_UNLOCK: 'connecting',
   LINKEDIN_UNLOCK: 'working',
@@ -467,6 +475,7 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   ENGAGE_POST_UPDATE: 'Connecting',
   ENGAGE_PEER_SUPPORT: 'Connecting',
   MOOD_CHECKIN: 'Connecting',
+  LOGIN_VISIT: 'Connecting',
   VISIBILITY_COMFORT_CHECKIN: 'Connecting',
   THANK_YOU_NOTE_SENT: 'Connecting',
   FOLLOW_UP_NOTE_SENT: 'Connecting',

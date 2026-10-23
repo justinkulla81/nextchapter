@@ -1,6 +1,6 @@
-import Link from 'next/link'
 import { stateName } from '@/lib/pivots/scoring'
-import { AI_NEED_LABEL } from '@/lib/profile/ai-outlook'
+import { AiAtWorkBlock, AI_AT_WORK_TITLE } from '@/components/candidate/AiAtWork'
+import type { AiAtWork } from '@/lib/skills/ai-at-work'
 import type { AddressableMarket } from '@/lib/profile/addressable-market'
 import { ExpansionToggle } from '@/components/dashboard/ExpansionToggle'
 import { marketHeadline } from '@/lib/redesign/jobs-pages'
@@ -15,14 +15,18 @@ const n = (x: number) => x.toLocaleString()
 
 // Your market in the redesign: one verdict that sizes the market and says what it rests on, three ways to widen it,
 // one thing worth knowing, and everything else behind "Show more". Used by the page and by the dev-preview.
-export function MarketRedesign({ m }: { m: AddressableMarket }) {
+export function MarketRedesign({ m, aiAtWork = null }: { m: AddressableMarket; aiAtWork?: AiAtWork | null }) {
   const places = m.expansions.filter((e) => e.kind === 'remote' || e.kind === 'state' || e.kind === 'relocate')
   const roles = m.expansions.filter((e) => e.kind === 'role')
   const industries = m.expansions.filter((e) => e.kind === 'industry')
   const { headline, because } = marketHeadline(m)
   // Three ways to widen, best first: each is one switch that adds jobs to the search. Nothing is added unless chosen.
   const widen = [...places.slice(0, 1), ...roles.slice(0, 1), ...industries.slice(0, 1)]
-  const firstFlag = m.flags[0]
+  // The old "AI is reshaping this work" flag is replaced by the measured AI block, so the page never says both.
+  const flags = m.flags.filter((f) => f.key !== 'ai')
+  // With the AI block on the first view, the first flag moves behind "Show more" so the page stays at three sections.
+  const firstFlag = aiAtWork ? undefined : flags[0]
+  const moreFlags = aiAtWork ? flags : flags.slice(1)
   const toggleFor = (e: (typeof m.expansions)[number]) => (
     <ExpansionToggle
       quiet
@@ -42,10 +46,10 @@ export function MarketRedesign({ m }: { m: AddressableMarket }) {
   // Everything else, in plain rows: no card chrome, one reason and one switch per row.
   const everyOption = (
     <>
-      {m.flags.slice(1).length > 0 && (
+      {moreFlags.length > 0 && (
         <SectionBlock id="more-flags-h" title="Also worth knowing">
           <ul className="space-y-2">
-            {m.flags.slice(1).map((f) => (
+            {moreFlags.map((f) => (
               <li key={f.key}>
                 <PlainNote>
                   <span className="font-semibold">{f.title}.</span> {f.detail}
@@ -131,21 +135,16 @@ export function MarketRedesign({ m }: { m: AddressableMarket }) {
             </SectionBlock>
           )}
 
-          {(firstFlag || m.ai) && (
-            <SectionBlock id="know-h" title="Good to know" className="space-y-2">
-              {firstFlag && (
-                <PlainNote>
-                  <span className="font-semibold">{firstFlag.title}.</span> {firstFlag.detail}
-                </PlainNote>
-              )}
-              {m.ai && (
-                <PlainNote>
-                  <span className="font-semibold">{AI_NEED_LABEL[m.ai.aiSkills]} for staying current in your field.</span> {m.ai.line}{' '}
-                  <Link className="text-sm font-medium text-brand underline underline-offset-4" href="/dashboard/learning">
-                    Find AI courses
-                  </Link>
-                </PlainNote>
-              )}
+          {firstFlag && (
+            <SectionBlock id="know-h" title="Good to know">
+              <PlainNote>
+                <span className="font-semibold">{firstFlag.title}.</span> {firstFlag.detail}
+              </PlainNote>
+            </SectionBlock>
+          )}
+          {aiAtWork && (
+            <SectionBlock id="ai-h" title={AI_AT_WORK_TITLE} why="How much AI is already used for the tasks in your occupation, and in the openings we see for your field.">
+              <AiAtWorkBlock data={aiAtWork} surface="market" heading={false} />
             </SectionBlock>
           )}
         </>

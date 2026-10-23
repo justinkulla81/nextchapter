@@ -20,7 +20,7 @@ export const CUSTOMER_LABELS: Record<CustomerType, string> = {
 export type SlideKind =
   | 'cover' | 'bullets' | 'stats' | 'table' | 'offer' | 'timeline' | 'people' | 'divider'
   | 'warn' | 'employers' | 'colleges' | 'datacenters' | 'board' | 'text' | 'news'
-  | 'demo' | 'packages' | 'constituents' | 'funding'
+  | 'demo' | 'packages' | 'constituents' | 'funding' | 'benefits'
 
 export interface SlideRule {
   id: string
@@ -36,6 +36,8 @@ export interface SlideRule {
   enabled: boolean
   /** Needs a local area's numbers; dropped automatically for a generic deck. */
   needsGeo?: boolean
+  /** Shown only in decks for an area in one of these states (two-letter codes); dropped for generic decks and other states. */
+  onlyStates?: string[]
   /** Which part of the deck it sits in. Appendix slides come after the main close. */
   appendix?: boolean
   /** Why it is in the deck, shown in the admin tool. */

@@ -65,7 +65,7 @@ export const BUNDLES: Record<BundleId, BundleMeta> = {
   aiming: {
     id: 'aiming',
     title: 'What you are aiming for',
-    why: 'These three answers decide which jobs we show you. We read them from your résumé; correct anything that is off.',
+    why: 'These three answers decide which jobs we show you. If we read your résumé we filled them in; correct anything that is off.',
     action: 'Continue',
     seconds: 30,
   },

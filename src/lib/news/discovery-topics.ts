@@ -21,7 +21,7 @@ export const DISCOVERY_TOPICS = [
   // Leadership changes, including at private companies no SEC filing covers
   { key: 'exec_changes', label: 'Executive changes', query: 'CFO resigns OR "steps down" OR "executive search" chief officer' },
   // AI and work
-  { key: 'ai_displacement', label: 'AI job displacement', query: 'AI job displacement' },
+  { key: 'ai_displacement', label: 'AI and job loss', query: 'AI job loss' },
   { key: 'ai_retraining', label: 'AI retraining for mid-careers', query: 'AI reskilling mid-career workers' },
   // The way back in
   { key: 'family_leave_returnships', label: 'Family leave returnships', query: 'returnship family leave caregivers' },

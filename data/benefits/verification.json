@@ -1,0 +1,1874 @@
+[
+{
+"id": "courses:us:google-career-certificates-data-analytics-ux-pm-project-mgmt-cybersecurity-it-support-digi",
+"verified": true,
+"status": "OPEN",
+"amount": "$49/mo US/Canada after 7-day trial; Coursera aid",
+"eligibility": "Anyone, no experience",
+"url": "https://grow.google/certificates/",
+"note": "grow.google lists certs + $49/mo"
+},
+{
+"id": "courses:us:google-career-certificates-financial-aid",
+"verified": true,
+"status": "OPEN",
+"amount": "Financial aid available (Coursera); $49/mo otherwise",
+"eligibility": "Application per course",
+"url": "https://www.coursera.org/professional-certificates/google-data-analytics",
+"note": "Course page shows \"Financial aid available\"; $49/mo after 7-day trial"
+},
+{
+"id": "courses:us:google-skills",
+"verified": true,
+"status": "OPEN",
+"amount": "Free tier; GEAR gives 35 monthly credits at no cost",
+"eligibility": "Anyone",
+"url": "https://www.skills.google",
+"note": "Google Skills page: 35 monthly credits at no cost via GEAR program"
+},
+{
+"id": "courses:us:google-cloud-skills-boost-legacy",
+"verified": false,
+"status": "CLOSED",
+"amount": "Labs, courses, gen AI learning path \u00b7 Free + credits/subscription",
+"eligibility": "Anyone",
+"url": "https://www.cloudskillsboost.google",
+"note": "cloudskillsboost.google now redirects to Google Skills (legacy brand retired)"
+},
+{
+"id": "courses:us:google-cloud-digital-leader-associate-certs",
+"verified": false,
+"status": "OPEN",
+"amount": "Cert exams \u00b7 Exam $99-$125+",
+"eligibility": "Anyone",
+"url": "https://cloud.google.com/learn/certification",
+"note": "Cert page live but lists no exam prices"
+},
+{
+"id": "courses:us:google-it-automation-machine-learning-crash-course",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "Anyone",
+"url": "https://developers.google.com/machine-learning/crash-course",
+"note": "Page: Machine Learning Crash Course, fast-paced intro with videos/exercises"
+},
+{
+"id": "courses:us:google-for-startups-grow-with-google-digital-garage",
+"verified": false,
+"status": "CLOSED",
+"amount": "Free digital marketing and career courses \u00b7 Free",
+"eligibility": "Anyone",
+"url": "https://learndigital.withgoogle.com",
+"note": "learndigital.withgoogle.com redirects to grow.google homepage; Digital Garage appears retired"
+},
+{
+"id": "courses:us:microsoft-elevate",
+"verified": true,
+"status": "OPEN",
+"amount": "Free, flexible AI learning paths and certifications",
+"eligibility": "Students, jobseekers, career changers",
+"url": "https://www.microsoft.com/en-us/elevate",
+"note": "Page: explore free, flexible AI learning paths and certifications"
+},
+{
+"id": "courses:us:microsoft-learn",
+"verified": true,
+"status": "OPEN",
+"amount": "Free modules and learning paths",
+"eligibility": "Anyone",
+"url": "https://learn.microsoft.com/en-us/training/",
+"note": "Microsoft Learn page: self-directed modules, learning paths"
+},
+{
+"id": "courses:us:microsoft-certifications-ai-900-az-900-ai-102-etc",
+"verified": true,
+"status": "OPEN",
+"amount": "Exam-based certifications (price not on page)",
+"eligibility": "Anyone",
+"url": "https://learn.microsoft.com/en-us/credentials/",
+"note": "Page: earn Certifications by passing an exam; Fundamentals to Expert"
+},
+{
+"id": "courses:us:microsoft-career-connector",
+"verified": false,
+"status": "CLOSED",
+"amount": "Job-seeker support, free skilling, mentors \u00b7 Free",
+"eligibility": "US job seekers",
+"url": "https://www.microsoft.com/en-us/corporate-responsibility/careerconnector",
+"note": "URL returns 404; page gone"
+},
+{
+"id": "courses:us:github-copilot-free-student-pack",
+"verified": true,
+"status": "OPEN",
+"amount": "Student Developer Pack incl. GitHub Copilot",
+"eligibility": "Students",
+"url": "https://education.github.com/pack",
+"note": "Page: GitHub Student Developer Pack with GitHub Copilot in bundle"
+},
+{
+"id": "courses:us:linkedin-learning-free-months-premium-trial",
+"verified": true,
+"status": "OPEN",
+"amount": "Free month trial",
+"eligibility": "Anyone (trial); library access not on page",
+"url": "https://www.linkedin.com/learning",
+"note": "Page shows \"Start my free month\""
+},
+{
+"id": "courses:us:anthropic-academy-skilljar",
+"verified": true,
+"status": "OPEN",
+"amount": "Free courses (Claude 101, AI Fluency, API, MCP, Claude Code)",
+"eligibility": "Anyone",
+"url": "https://anthropic.skilljar.com",
+"note": "Skilljar lists these courses; academy page says free courses; certs not confirmed"
+},
+{
+"id": "courses:us:ai-fluency-framework-foundations",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "Anyone",
+"url": "https://anthropic.skilljar.com",
+"note": "Course listed on Anthropic Skilljar; academy says free courses"
+},
+{
+"id": "courses:us:claude-101",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "Anyone",
+"url": "https://anthropic.skilljar.com",
+"note": "Claude 101 listed on Skilljar; academy says free courses"
+},
+{
+"id": "courses:us:building-with-the-claude-api-intro-to-mcp-claude-code-in-action",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "Anyone",
+"url": "https://anthropic.skilljar.com",
+"note": "Building with Claude API, Intro to MCP listed on Skilljar"
+},
+{
+"id": "courses:us:aws-cloud-practitioner-ai-practitioner-exams",
+"verified": true,
+"status": "OPEN",
+"amount": "Exam fee (not stated on page)",
+"eligibility": "Anyone, no prior experience needed",
+"url": "https://aws.amazon.com/certification/",
+"note": "Page lists AWS Certified Cloud Practitioner and AI Practitioner"
+},
+{
+"id": "courses:us:aws-re-start",
+"verified": true,
+"status": "OPEN",
+"amount": "Free to the learner",
+"eligibility": "Cohort-based, partner-run; unemployed/underemployed not confirmed",
+"url": "https://aws.amazon.com/training/restart/",
+"note": "Page says free-to-the-learner cohort training"
+},
+{
+"id": "courses:us:aws-educate",
+"verified": true,
+"status": "OPEN",
+"amount": "Completely free",
+"eligibility": "Students/educators; register",
+"url": "https://aws.amazon.com/education/awseducate/",
+"note": "Page: \"completely for free\""
+},
+{
+"id": "courses:us:ibm-skillsbuild-ai-fundamentals-cybersecurity-badges",
+"verified": true,
+"status": "OPEN",
+"amount": "100% free",
+"eligibility": "Adult learners, students",
+"url": "https://skillsbuild.org",
+"note": "Site says 100% free AI/cyber/data learning; badges not itemized"
+},
+{
+"id": "courses:us:salesforce-trailhead",
+"verified": true,
+"status": "OPEN",
+"amount": "100% free",
+"eligibility": "Anyone",
+"url": "https://trailhead.salesforce.com",
+"note": "Trailhead page: learn for free, 100% free"
+},
+{
+"id": "courses:us:meta-blueprint",
+"verified": true,
+"status": "OPEN",
+"amount": "Courses/webinars free; cert fee not on page",
+"eligibility": "Anyone",
+"url": "https://www.facebookblueprint.com/student/catalog",
+"note": "Meta Blueprint page lists Certifications, webinars, enrollable trainings"
+},
+{
+"id": "courses:us:meta-professional-certificates-coursera",
+"verified": true,
+"status": "OPEN",
+"amount": "Professional certificates (price not on page)",
+"eligibility": "Anyone, no degree needed",
+"url": "https://www.coursera.org/partners/meta",
+"note": "Page: Meta Professional Certificates, no degree or experience required"
+},
+{
+"id": "courses:us:nvidia-deep-learning-institute-free-courses",
+"verified": false,
+"status": "OPEN",
+"amount": "Fundamentals of Deep Learning, etc. \u00b7 Free self-paced; some $90+",
+"eligibility": "Anyone",
+"url": "https://www.nvidia.com/en-us/training/",
+"note": "DLI page lists \"Free Self-Paced Courses\"; no $90 price"
+},
+{
+"id": "courses:us:nvidia-certifications-nca-genl-etc",
+"verified": false,
+"status": "OPEN",
+"amount": "Exams \u00b7 ~$135",
+"eligibility": "Anyone",
+"url": "https://www.nvidia.com/en-us/learn/certification/",
+"note": "Cert page shows NCP exams $400-$500; NCA-GENL ~$135 not confirmed"
+},
+{
+"id": "courses:us:oracle-university-free-training-and-cert-ai-foundations-oci",
+"verified": true,
+"status": "OPEN",
+"amount": "Free training and certifications (Foundations)",
+"eligibility": "Anyone",
+"url": "https://www.oracle.com/education/",
+"note": "Page: \"New free Foundations training... free training and certifications\""
+},
+{
+"id": "courses:us:edx-audit-track",
+"verified": true,
+"status": "OPEN",
+"amount": "Free audit; verified cert ~$50-$300",
+"eligibility": "Anyone",
+"url": "https://www.edx.org/cs50",
+"note": "CS50 edX page: audit free, verified cert typically $50-$300"
+},
+{
+"id": "courses:us:udacity-aws-google-microsoft-scholarships",
+"verified": true,
+"status": "OPEN",
+"amount": "Sponsored scholarship (AWS AI & ML Scholars)",
+"eligibility": "18+ ; competitive",
+"url": "https://www.udacity.com/scholarships",
+"note": "Page: Available scholarships: AWS AI & ML Scholars, learners 18+"
+},
+{
+"id": "courses:us:harvard-cs50-cs50x-cs50-ai-cs50-python",
+"verified": true,
+"status": "OPEN",
+"amount": "Free audit; verified cert typically $50-$300 (edX)",
+"eligibility": "Anyone",
+"url": "https://cs50.harvard.edu",
+"note": "CS50 edX page: audit at no cost; cert $50-$300 (not $199)"
+},
+{
+"id": "courses:us:harvard-online-free-courses",
+"verified": true,
+"status": "OPEN",
+"amount": "Select courses Free*; others $595+",
+"eligibility": "Anyone",
+"url": "https://pll.harvard.edu",
+"note": "PLL lists CS50 Python/AI/Cyber as Free*, available now"
+},
+{
+"id": "courses:us:mit-opencourseware",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "Anyone, no registration",
+"url": "https://ocw.mit.edu",
+"note": "OCW: free materials, no registration"
+},
+{
+"id": "courses:us:mit-open-learning-library",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "Anyone, no registration",
+"url": "https://openlearning.mit.edu/courses-programs/open-learning-library",
+"note": "Page: free to all without registration"
+},
+{
+"id": "courses:us:stanford-online-free-courses",
+"verified": false,
+"status": "OPEN",
+"amount": "Free self-paced \u00b7 Free",
+"eligibility": "Anyone",
+"url": "https://online.stanford.edu",
+"note": "free-online-courses URL 404; Stanford Online nav shows Free Content Library"
+},
+{
+"id": "courses:us:university-of-michigan-python-for-everybody",
+"verified": true,
+"status": "OPEN",
+"amount": "Enroll for free (audit); financial aid available",
+"eligibility": "Anyone",
+"url": "https://www.coursera.org/specializations/python",
+"note": "Coursera page: University of Michigan, enroll for free, aid available"
+},
+{
+"id": "courses:us:elements-of-ai",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "Anyone",
+"url": "https://www.elementsofai.com",
+"note": "Site: free online course by Helsinki/MinnaLearn"
+},
+{
+"id": "courses:us:fast-ai-practical-deep-learning",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "People with some coding experience",
+"url": "https://course.fast.ai",
+"note": "Page: free course, Part 1 and 2"
+},
+{
+"id": "courses:us:deeplearning-ai-short-courses",
+"verified": false,
+"status": "OPEN",
+"amount": "Free short courses \u00b7 Free",
+"eligibility": "Anyone",
+"url": "https://www.deeplearning.ai/courses",
+"note": "Courses page live; free not stated in text"
+},
+{
+"id": "segment:us:va-veteran-readiness-and-employment-ch-31",
+"verified": true,
+"status": "ROLLING",
+"amount": "Training, employment services, subsistence allowance",
+"eligibility": "Veterans/service members with service-connected disability limiting work",
+"url": "https://www.va.gov/careers-employment/",
+"note": "Page: vocational rehab for service-connected disability; VR&E subsistence allowance; updated Jul 202"
+},
+{
+"id": "segment:us:hiring-our-heroes-corporate-fellowship",
+"verified": true,
+"status": "ROLLING",
+"amount": "12-week fellowship (internship)",
+"eligibility": "Transitioning service members (SkillBridge)",
+"url": "https://www.hiringourheroes.org",
+"note": "Page: \"SkillBridge-approved Fellows Program provides a 12-week internship for service members\""
+},
+{
+"id": "segment:us:path-forward",
+"verified": true,
+"status": "ROLLING",
+"amount": "Returnship directory/matcher (length and pay not stated)",
+"eligibility": "People returning after caregiving career break",
+"url": "https://pathforward.org",
+"note": "Page: \"Returnship Matcher\" lists U.S. returnship programs; 16-week/paid not stated"
+},
+{
+"id": "segment:us:irelaunch",
+"verified": true,
+"status": "ROLLING",
+"amount": "Return-to-work resources, job board, events, employer programs",
+"eligibility": "Career relaunchers (breaks 1-20+ yrs)",
+"url": "https://www.irelaunch.com",
+"note": "Page: iRelaunch Return to Work Conference Oct 2026, job board, 330+ employer partners"
+},
+{
+"id": "segment:us:scsep",
+"verified": true,
+"status": "ROLLING",
+"amount": "Paid training ~20 hrs/wk at highest of federal/state/local minimum wage",
+"eligibility": "Age 55+, unemployed, income at most 125% of poverty level",
+"url": "https://www.dol.gov/agencies/eta/seniors",
+"note": "Page: \"Participants work an average of 20 hours a week and are paid the highest of federal, state or"
+},
+{
+"id": "segment:us:ticket-to-work",
+"verified": true,
+"status": "ROLLING",
+"amount": "Free employment support services and work incentives info",
+"eligibility": "Social Security disability (SSDI/SSI) beneficiaries who want to work",
+"url": "https://choosework.ssa.gov",
+"note": "Page: \"Access to Employment Support Services for Social Security Disability Beneficiaries Who Want t"
+},
+{
+"id": "segment:us:workforce-recruitment-program-wrp",
+"verified": true,
+"status": "ROLLING",
+"amount": "Federal internships or permanent jobs via talent database",
+"eligibility": "College/grad students and recent grads with disabilities",
+"url": "https://www.dol.gov:443/agencies/odep/wrp",
+"note": "Page: candidates \"apply to the WRP each fall\"; connects federal employers with students with disabil"
+},
+{
+"id": "segment:us:jan-job-accommodation-network",
+"verified": true,
+"status": "ROLLING",
+"amount": "Free, confidential accommodation guidance",
+"eligibility": "Employers, workers, anyone (open)",
+"url": "https://askjan.org",
+"note": "Page: \"JAN is the leading source of free, expert, and confidential guidance on workplace accommodati"
+},
+{
+"id": "segment:us:disability-in",
+"verified": true,
+"status": "ROLLING",
+"amount": "Employer network membership; NextGen Leaders program",
+"eligibility": "Corporate partners; emerging talent and veterans for NextGen",
+"url": "https://www.disabilityin.org/",
+"note": "Page: \"Become a Partner\"; \"NextGen Leader Applications are Now Open!\""
+},
+{
+"id": "segment:us:upwardly-global-upglo",
+"verified": true,
+"status": "OPEN",
+"amount": "Free coaching and resources (offices not stated)",
+"eligibility": "Immigrants, refugees, asylees with professional credentials",
+"url": "https://www.upwardlyglobal.org",
+"note": "Page: \"resources and programs ... completely free\"; Get Free Expert Coaching"
+},
+{
+"id": "segment:us:116",
+"verified": true,
+"status": "ROLLING",
+"amount": "Paid credential evaluation (fee not stated); separate WES grants",
+"eligibility": "Immigrants, refugees, international students",
+"url": "https://www.wes.org",
+"note": "Page: WES credential evaluations; Mariam Assefa Fund committed $37M grants (to partners, not individ"
+},
+{
+"id": "segment:us:refugee-employment-services-orr",
+"verified": true,
+"status": "ROLLING",
+"amount": "Refugee cash/medical assistance and support services; RCA/RMA now 12 months",
+"eligibility": "Refugees and other eligible individuals",
+"url": "https://acf.gov:443/orr",
+"note": "Page: Jul 14 2026 policy extends RCA/RMA eligibility to 12 months; Refugee Program Bureau services"
+},
+{
+"id": "segment:us:federal-bonding-program",
+"verified": true,
+"status": "ROLLING",
+"amount": "Free fidelity bond, first 6 months, $0 deductible ($5,000 not stated)",
+"eligibility": "At-risk, hard-to-place job seekers",
+"url": "https://bonds4jobs.com",
+"note": "Page: \"bonds cover the first six months of employment at no cost to the job applicant or the employe"
+},
+{
+"id": "segment:us:appalachian-regional-commission-delta-regional-authority-denali-commission",
+"verified": true,
+"status": "OPEN",
+"amount": "Workforce ecosystem and community grants (amounts not stated)",
+"eligibility": "Appalachian-region communities/orgs",
+"url": "https://www.arc.gov",
+"note": "Page: ARC Funding Opportunities list shows Area Development Program \"Open\"; DRA/Denali not on page"
+},
+{
+"id": "segment:us:sba-small-business-development-centers",
+"verified": true,
+"status": "ROLLING",
+"amount": "Counseling and training (cost not stated)",
+"eligibility": "Small business owners and pre-venture entrepreneurs",
+"url": "https://www.sba.gov/counseling/local-assistance/resource-partners/#sbdcs",
+"note": "Page: SBDCs \"provide counseling and training to small businesses\""
+},
+{
+"id": "segment:us:women-s-business-centers",
+"verified": true,
+"status": "ROLLING",
+"amount": "Counseling and training",
+"eligibility": "Women entrepreneurs",
+"url": "https://www.sba.gov/counseling/local-assistance/resource-partners/#womens-centers",
+"note": "Page lists \"Women's Business Centers: Find a Women's Business Center in your area\" as SBA resource p"
+},
+{
+"id": "segment:us:work-share-short-time-compensation",
+"verified": true,
+"status": "ROLLING",
+"amount": "Partial UI benefits as alternative to layoffs",
+"eligibility": "Employers/workers in states with STC programs",
+"url": "https://oui.doleta.gov/unemploy/stc.asp",
+"note": "Page: STC is a \"Voluntary state program that provides employers an alternative to layoffs\"; updated "
+},
+{
+"id": "state_training:AL:reengage-alabama-ache-some-college-no-degree",
+"verified": true,
+"status": "UNKNOWN",
+"amount": "Not stated on page",
+"eligibility": "Former students with some college and no degree",
+"url": "https://www.ache.edu/index.php/reengage-alabama/",
+"note": "Page: \"Reengage Alabama focuses on former students in Alabama with some college and no degree\"; no a"
+},
+{
+"id": "state_training:AZ:wioa-individual-training-accounts-itas-via-arizona-work",
+"verified": false,
+"status": "ROLLING",
+"amount": "Payment to an ETPL provider. Caps and tiers are set by each local board. The Maricopa policy gives higher caps for in-demand sectors.",
+"eligibility": "Adults and dislocated workers. Training costs incurred before enrollment are not reimbursable.",
+"url": "https://des.az.gov/sites/default/files/media/Individual-Training-Accounts-and-Participant-Budgets-in-AZ-Job-Connection.pdf",
+"note": "Official PDF returned 403; could not read"
+},
+{
+"id": "state_training:AZ:arizona-work-dislocated-worker-rapid-response-services",
+"verified": false,
+"status": "ROLLING",
+"amount": "Not stated",
+"eligibility": "Laid-off workers",
+"url": "https://arizonaatwork.com/",
+"note": "arizonaatwork.com returned 403; could not read"
+},
+{
+"id": "state_training:AR:arkansas-adult-education-ged-adult-high-school-english-language-learners",
+"verified": true,
+"status": "ROLLING",
+"amount": "Free classes",
+"eligibility": "Adults lacking a high school education; below 9th-grade level for ABE",
+"url": "https://dws.arkansas.gov/adult-education/",
+"note": "Page says free programs; 35 locations, 75 counties; register via portal"
+},
+{
+"id": "state_training:DE:on-the-job-training-ojt-and-registered-apprenticeships",
+"verified": true,
+"status": "ROLLING",
+"amount": "Up to 50% of OJT wages; up to $1,000 supportive services",
+"eligibility": "Delaware for-profit employers; full-time 37.5+ hrs, $16+/hr start wage; 4-26 weeks",
+"url": "https://labor.delaware.gov/divisions/employment-training/on-the-job-training-program/",
+"note": "OJT page lists terms and interest form; funding availability not stated"
+},
+{
+"id": "state_training:GA:tcsg-adult-education-ged",
+"verified": true,
+"status": "ROLLING",
+"amount": "Free classes; free GED/HiSET testing for those who qualify",
+"eligibility": "Adults needing high school equivalency, English, college/career prep",
+"url": "https://www.tcsg.edu/adult-education/",
+"note": "TCSG page: free classes via 30 providers statewide"
+},
+{
+"id": "state_training:IN:trade-adjustment-assistance-taa",
+"verified": false,
+"status": "CLOSED",
+"amount": "N/A",
+"eligibility": "Previously certified trade-affected workers; contact WorkOne",
+"url": "https://www.in.gov/dwd/taa",
+"note": "Page: TAA expired 6/30/2022; benefits may have changed or ended"
+},
+{
+"id": "state_training:IN:power-up-indiana-dwd",
+"verified": true,
+"status": "OPEN",
+"amount": "Employer reimbursement; amount not on page (wage increase threshold now 10%)",
+"eligibility": "Indiana employers who train and raise employee wages",
+"url": "https://www.in.gov/dwd/power-up",
+"note": "Official page live, 'apply today'; dollar terms are in linked downloads"
+},
+{
+"id": "state_training:KS:wioa-dislocated-worker-training-local-workforce-boards-e-g-workforce-alliance-of-south-cen",
+"verified": true,
+"status": "ROLLING",
+"amount": "Financial assistance for training in a demand occupation",
+"eligibility": "Eligible adults/dislocated workers who complete core and intensive services",
+"url": "https://www.workforce-ks.com/services/trainingeducation/",
+"note": "Page: eligible adults and dislocated workers may receive financial assistance for training"
+},
+{
+"id": "state_training:KY:kctcs-adult-education-ged-college-prep",
+"verified": false,
+"status": "ROLLING",
+"amount": "13 colleges in 57 counties; $6M/yr customized workforce training",
+"eligibility": "Not stated",
+"url": "https://apps.legislature.ky.gov/CommitteeDocuments/345/44485/CRAO_Sept_2026_slides.pdf",
+"note": "Sept 2026 legislature slides confirm adult ed operating; not KCTCS page"
+},
+{
+"id": "state_training:MD:maryland-workforce-exchange",
+"verified": true,
+"status": "OPEN",
+"amount": "Free job-search platform",
+"eligibility": "Anyone; job seekers and employers",
+"url": "https://mwejobs.maryland.gov/vosnet/default.aspx",
+"note": "Page: MWE links to over 75,000 jobs; sign in/register"
+},
+{
+"id": "state_training:MN:dislocated-worker-local-delivery-e-g-aeoa-city-of-minneapolis",
+"verified": true,
+"status": "ROLLING",
+"amount": "Services per local provider; no amount stated",
+"eligibility": "Laid off, unemployed/underemployed, MN resident or worker; in listed counties",
+"url": "https://www.aeoa.org/programs/career-help/dw/",
+"note": "Page: \"If you have lost your job through no fault of your own, AEOA can help\"; eligibility listed"
+},
+{
+"id": "state_training:MS:workforce-pell-mississippi-implementation-acceleratems",
+"verified": true,
+"status": "ROLLING",
+"amount": "Federal Pell for approved short-term programs (8+ weeks)",
+"eligibility": "Pell-eligible students in state-approved credit-bearing programs",
+"url": "https://www.wjtv.com/news/mississippi-accepting-workforce-pell-applications/amp/",
+"note": "Page: July 1, 2026 implementation; AccelerateMS accepting institutional applications from July 1, 20"
+},
+{
+"id": "state_training:MT:iwt-fy27-application-portal",
+"verified": true,
+"status": "OPEN",
+"amount": "$1,000 part-time / $2,500 full-time per worker",
+"eligibility": "Montana private-sector employers; workers 20+ hrs/wk for 6+ months",
+"url": "https://montanadepartmentoflaborandindustry.submittable.com/submit/359176/dli-incumbent-worker-training-iwt-fy27",
+"note": "Page: IWT FY27 submission portal; caps $1,000 (20-34 hrs) and $2,500 (35+ hrs); first-come first-ser"
+},
+{
+"id": "state_training:NE:dislocated-worker-grant-tyson-lexington-plant",
+"verified": true,
+"status": "UNKNOWN",
+"amount": "$1.67M federal dislocated worker grant",
+"eligibility": "Workers laid off from Tyson Lexington plant",
+"url": "https://www.knopnews2.com/2026/03/25/nebraska-department-labor-expands-support-former-tyson-employees/",
+"note": "Mar 25, 2026 news: NDOL received $1.67M federal grant; services via Lexington Job Center"
+},
+{
+"id": "state_training:NJ:community-college-opportunity-grant-ccog",
+"verified": true,
+"status": "OPEN",
+"amount": "Tuition-free first associate degree; no dollar amount stated",
+"eligibility": "NJ resident, AGI $0-$65,000, FAFSA/NJ aid app, 6+ credits/semester, no degree",
+"url": "https://www.nj.gov/highereducation/sdnc/financial.shtml",
+"note": "Official NJ OSHE page (updated 05/26/26) confirms CCOG, $65K AGI cap"
+},
+{
+"id": "state_training:NM:job-training-incentive-program-jtip-economic-development-dept-background-unchecked",
+"verified": true,
+"status": "ROLLING",
+"amount": "Funds employer training; amount not stated",
+"eligibility": "New Mexico businesses training workers",
+"url": "https://edd.newmexico.gov/",
+"note": "Homepage: JTIP funds training and upskill 398 workers in the first quarter of 2026"
+},
+{
+"id": "state_training:NY:part-time-tap-nys-hesc-background-unchecked",
+"verified": true,
+"status": "OPEN",
+"amount": "Need-based grant",
+"eligibility": "Full-time, part-time and non-degree students",
+"url": "https://hesc.ny.gov/",
+"note": "HESC home: TAP 'available for students attending full-time, part-time' with Apply Now"
+},
+{
+"id": "state_training:NC:finish-line-grants",
+"verified": true,
+"status": "ROLLING",
+"amount": "Amount not stated on page",
+"eligibility": "Community college students facing unforeseen hardships; apply via college financial aid office",
+"url": "https://www.commerce.nc.gov/jobs-training/workforce-professionals-tools-resources/finish-line-grants",
+"note": "Program announced 2018, now run by NCCCS; apply through college Financial Aid Office"
+},
+{
+"id": "state_training:ND:trainnd",
+"verified": true,
+"status": "OPEN",
+"amount": "State-funded non-credit training via four regional ND colleges",
+"eligibility": "Businesses and individuals; non-credit courses and certifications",
+"url": "https://trainnd.org/",
+"note": "trainnd.org and commerce.nd.gov listing confirm running; no price info"
+},
+{
+"id": "state_training:OH:techcred",
+"verified": true,
+"status": "OPEN",
+"amount": "Up to $1,000 per credential, $30,000 per application",
+"eligibility": "Ohio-registered employers; one application per FEIN per period",
+"url": "https://development.ohio.gov/business/workforce-development/tech-cred/apply",
+"note": "Next period opens Oct 1, 2026, closes Oct 30, 2026; $1,000 per person per credential"
+},
+{
+"id": "state_training:OK:reach-higher-adult-degree-completion-flexfinish-directcomplete",
+"verified": true,
+"status": "OPEN",
+"amount": "Scholarships; amount not stated",
+"eligibility": "Adult learners with some college credit",
+"url": "https://okhighered.org/",
+"note": "Finish Line Scholarship: adult learners with some college credit; Reach Higher for working adults"
+},
+{
+"id": "state_training:PA:tutoring-program-for-adults-grant-adult-basic-education-pde",
+"verified": false,
+"status": "OPEN",
+"amount": "More than $1M per year for adult education programs, not tuition for professionals.",
+"eligibility": "Providers",
+"url": "https://www.pa.gov/agencies/education",
+"note": "PDE homepage has no such grant; ABE page not fetched"
+},
+{
+"id": "state_training:RI:fresh-start-scholarship-ccri",
+"verified": false,
+"status": "OPEN",
+"amount": "Tuition-free completion of a previously started degree. Amount and cap not found.",
+"eligibility": "Adults returning to finish a degree (per search summary). Exact criteria unchecked.",
+"url": "https://www.ccri.edu/",
+"note": "Generic homepage/unchecked; not fetched, not verified"
+},
+{
+"id": "state_training:RI:real-jobs-ri-governor-s-workforce-board",
+"verified": false,
+"status": "OPEN",
+"amount": "Grants to employer-led partnerships for training and upskilling. Not an individual application.",
+"eligibility": "Employers and partners",
+"url": "https://eoc.ri.gov/business-resources/real-jobs-ri",
+"note": "403 Forbidden on fetch (or not fetched); could not verify"
+},
+{
+"id": "state_training:RI:educational-opportunity-center-at-ccri",
+"verified": true,
+"status": "OPEN",
+"amount": "Free advising",
+"eligibility": "Adults in Rhode Island",
+"url": "https://ccri.edu/eoc/",
+"note": "RIEOC gives one-on-one assistance to RI adults exploring postsecondary options"
+},
+{
+"id": "state_training:RI:ri-promise",
+"verified": true,
+"status": "OPEN",
+"amount": "Free CCRI tuition for recent HS grads",
+"eligibility": "Rhode Islanders coming right out of high school",
+"url": "https://ccri.edu/",
+"note": "Page: free tuition to all Rhode Islanders coming right out of high school; not for adults"
+},
+{
+"id": "state_training:SC:sc-wins-workforce-industry-needs-scholarship",
+"verified": false,
+"status": "OPEN",
+"amount": "Up to $5,000 per academic year, for up to 3 years for an associate degree or up to 2 years for a credential. Covers tuit",
+"eligibility": "SC resident in an approved program (healthcare, IT, advanced manufacturing, construction, logistics, early care). Needs ",
+"url": "https://www.sctechsystem.edu/sc-wins/",
+"note": "403 Forbidden on fetch (or not fetched); could not verify"
+},
+{
+"id": "state_training:SC:readysc",
+"verified": false,
+"status": "OPEN",
+"amount": "Employer-facing recruiting and training services for new or expanding companies. Not for individuals.",
+"eligibility": "Companies creating new full-time jobs",
+"url": "https://www.sccommerce.com/",
+"note": "Generic homepage/unchecked; not fetched, not verified"
+},
+{
+"id": "state_training:SC:reconnect-with-york-tech",
+"verified": true,
+"status": "OPEN",
+"amount": "Not stated",
+"eligibility": "Former York Tech students who did not complete a program",
+"url": "https://www.yorktech.edu/reconnect/",
+"note": "Program assisting former York Tech students to return and complete a credential"
+},
+{
+"id": "state_training:TN:tennessee-reconnect-grant",
+"verified": true,
+"status": "OPEN",
+"amount": "Not stated on page",
+"eligibility": "Adults returning to school",
+"url": "https://tnreconnect.gov",
+"note": "Home page: 'Click here to apply for the Tennessee Reconnect Grant'"
+},
+{
+"id": "state_training:VA:workforce-credential-grant-wcg",
+"verified": true,
+"status": "OPEN",
+"amount": "Covers noncredit workforce credential program cost",
+"eligibility": "Virginia students in approved noncredit programs",
+"url": "https://rga.lis.virginia.gov/Published/2026/RD542",
+"note": "2025-26 report: 5,063 students in noncredit Workforce Credential Grant programs"
+},
+{
+"id": "state_training:VA:virginia-fastforward-vccs",
+"verified": true,
+"status": "OPEN",
+"amount": "Covers two-thirds of tuition on completion",
+"eligibility": "Qualifying Virginia residents",
+"url": "https://www.vccs.edu/",
+"note": "Page: FastForward covers two-thirds of tuition for qualifying Virginia residents who complete"
+},
+{
+"id": "state_training:WV:learn-earn-wvctcs",
+"verified": true,
+"status": "ROLLING",
+"amount": "State covers half of intern wages",
+"eligibility": "Employers partnering with a WV community college; students in certificate/associate programs",
+"url": "https://wvctcs.edu/",
+"note": "Page: paid internships, 'we cover half of the student intern's wages'"
+},
+{
+"id": "state_training:WY:workforce-development-training-fund-business-training-grants",
+"verified": true,
+"status": "ROLLING",
+"amount": "Amounts not stated",
+"eligibility": "Employers",
+"url": "https://dws.wyo.gov/dws-division/business-training-support-unit/",
+"note": "Page lists Business Training Grants under Workforce Development Training Fund"
+},
+{
+"id": "courses:us:deeplearning-ai-specializations-ml-ai-for-everyone",
+"verified": true,
+"status": "OPEN",
+"amount": "Start free; full access via Pro (price not shown)",
+"eligibility": "Anyone",
+"url": "https://www.deeplearning.ai",
+"note": "Page lists Machine Learning Specialization; 'Start free'; Pro plan"
+},
+{
+"id": "courses:us:kaggle-learn",
+"verified": true,
+"status": "OPEN",
+"amount": "Not stated on page",
+"eligibility": "Anyone",
+"url": "https://www.kaggle.com/learn",
+"note": "Page title: Learn Python, Data Viz, Pandas tutorials (free not stated)"
+},
+{
+"id": "courses:us:hugging-face-courses",
+"verified": true,
+"status": "OPEN",
+"amount": "Not stated on page",
+"eligibility": "Anyone",
+"url": "https://huggingface.co/learn",
+"note": "Page lists Agents, Deep RL, Computer Vision, Audio courses"
+},
+{
+"id": "courses:us:andrew-ng-ai-for-everyone",
+"verified": true,
+"status": "OPEN",
+"amount": "7 hours; 'Join for Free' shown",
+"eligibility": "Beginner, no prior experience",
+"url": "https://www.coursera.org/learn/ai-for-everyone",
+"note": "Coursera: AI For Everyone, Andrew Ng, Enroll now, 'Join for Free'"
+},
+{
+"id": "courses:us:year-up-united",
+"verified": true,
+"status": "OPEN",
+"amount": "Tuition-free job training",
+"eligibility": "Young adults (age range not on page)",
+"url": "https://www.yearup.org",
+"note": "Page: Career Pathways, 'our tuition-free job training offering'"
+},
+{
+"id": "courses:us:merit-america",
+"verified": true,
+"status": "OPEN",
+"amount": "Cost details on separate page",
+"eligibility": "Working adults, no degree needed",
+"url": "https://meritamerica.org",
+"note": "Page: nonprofit, build AI-ready skills 'without quitting your day job'; Covering the Cost"
+},
+{
+"id": "courses:us:code-org",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "K-12 teachers and students",
+"url": "https://code.org/en-US",
+"note": "Page: 'Free K-12 Curriculum for Digital Fluency'"
+},
+{
+"id": "courses:us:pursuit",
+"verified": true,
+"status": "OPEN",
+"amount": "Not stated on page",
+"eligibility": "Underrepresented New Yorkers",
+"url": "https://www.pursuit.org",
+"note": "Applications close Dec 4 for Winter 2027 AI-Native Cohort"
+},
+{
+"id": "courses:us:resilient-coders",
+"verified": true,
+"status": "OPEN",
+"amount": "Fellowships described as free",
+"eligibility": "Underrepresented Black and brown talent",
+"url": "https://www.resilientcoders.org",
+"note": "Page: 'keep our fellowships free'; Apply Today"
+},
+{
+"id": "courses:us:hack-reactor-scholarships",
+"verified": true,
+"status": "OPEN",
+"amount": "Merit and Represent Tech scholarships; full-tuition for Represent Tech",
+"eligibility": "Applicants",
+"url": "https://www.hackreactor.com",
+"note": "Page: Merit and Represent Tech scholarships offered"
+},
+{
+"id": "courses:us:girls-who-code-adults",
+"verified": true,
+"status": "OPEN",
+"amount": "Programs free",
+"eligibility": "Girls, women, nonbinary individuals",
+"url": "https://girlswhocode.com",
+"note": "Page: programs free; has adult student sign-up; no adult-specific program"
+},
+{
+"id": "courses:us:scsep-senior-community-service-employment-program",
+"verified": true,
+"status": "OPEN",
+"amount": "Paid community-service training (~20 hrs/wk at highest applicable minimum wage)",
+"eligibility": "Age 55+, unemployed, income <=125% FPL",
+"url": "https://www.dol.gov/agencies/eta/seniors",
+"note": "Participants must be at least 55, unemployed, income no more than 125% of poverty"
+},
+{
+"id": "courses:us:upwardly-global",
+"verified": true,
+"status": "OPEN",
+"amount": "Free expert coaching and resources",
+"eligibility": "Immigrant professionals",
+"url": "https://www.upwardlyglobal.org",
+"note": "Programs for immigrant professionals \"completely free\""
+},
+{
+"id": "courses:us:isc2-one-million-certified-in-cybersecurity",
+"verified": false,
+"status": "CLOSED",
+"amount": "Free CC course and exam \u00b7 Free",
+"eligibility": "Anyone",
+"url": "https://www.isc2.org/landing/1mcc",
+"note": "WebFetch safety check rate-limited; page not read, unverified"
+},
+{
+"id": "courses:us:isaca-training-scholarship",
+"verified": true,
+"status": "OPEN",
+"amount": "Cybersecurity scholarship; discounted courses (up to 50% through Oct 31)",
+"eligibility": "Students pursuing a cybersecurity degree (scholarship)",
+"url": "https://www.isaca.org",
+"note": "\"ISACA's Cybersecurity Scholarship Is Open!\" for cyber-degree students"
+},
+{
+"id": "courses:us:yale-science-of-well-being-free-ivy-courses",
+"verified": true,
+"status": "OPEN",
+"amount": "Free to join/audit course",
+"eligibility": "Anyone",
+"url": "https://www.coursera.org/learn/the-science-of-well-being",
+"note": "Coursera course page: Join for Free, \"Free Access to the Course\""
+},
+{
+"id": "courses:us:georgia-tech-omscs",
+"verified": true,
+"status": "OPEN",
+"amount": "Low-cost online master's (no dollar figure on page)",
+"eligibility": "Applicants",
+"url": "https://omscs.gatech.edu",
+"note": "Page: online MS CS without high cost of on-campus; no total stated"
+},
+{
+"id": "courses:us:ut-austin-msai-online",
+"verified": true,
+"status": "OPEN",
+"amount": "Affordable online MS AI (no dollar figure on page)",
+"eligibility": "Applicants",
+"url": "https://cdso.utexas.edu",
+"note": "Page lists Master's of Artificial Intelligence online, \"Affordable\""
+},
+{
+"id": "courses:us:university-of-the-people",
+"verified": true,
+"status": "OPEN",
+"amount": "Tuition-free; $60 application fee, modest per-course assessment fee",
+"eligibility": "Anyone (application deadline Oct 22, 2026 shown)",
+"url": "https://www.uopeople.edu",
+"note": "\"Tuition-free; $60 application fee, modest assessment fee per course\""
+},
+{
+"id": "courses:us:microsoft-software-systems-academy",
+"verified": true,
+"status": "OPEN",
+"amount": "Free; Microsoft fully funds program costs",
+"eligibility": "Military community (veterans, transitioning service members; spouses path)",
+"url": "https://military.microsoft.com",
+"note": "\"Microsoft is fully funding MSSA program costs\"; accepting applications"
+},
+{
+"id": "courses:us:codecademy-free-tier",
+"verified": true,
+"status": "OPEN",
+"amount": "Free lessons; paid Pro/bootcamps",
+"eligibility": "Anyone",
+"url": "https://www.codecademy.com",
+"note": "Page title \"Learn to Code - for Free\"; Codecademy Pro offered"
+},
+{
+"id": "courses:us:the-odin-project",
+"verified": true,
+"status": "OPEN",
+"amount": "Free",
+"eligibility": "Anyone",
+"url": "https://www.theodinproject.com",
+"note": "\"Our full stack curriculum is free\""
+},
+{
+"id": "courses:us:snowflake-free-training",
+"verified": true,
+"status": "OPEN",
+"amount": "Free on-demand training/certification offerings",
+"eligibility": "Anyone",
+"url": "https://learn.snowflake.com/en/",
+"note": "Page lists \"Training Free OnDemand Certification\""
+},
+{
+"id": "courses:us:cybrary-free",
+"verified": true,
+"status": "OPEN",
+"amount": "Free access tier; paid Insider Pro",
+"eligibility": "Anyone",
+"url": "https://www.cybrary.it",
+"note": "Page: \"Free Access\" tier of catalog"
+},
+{
+"id": "courses:us:red-hat-free-learning",
+"verified": true,
+"status": "OPEN",
+"amount": "No-cost Learning Subscription trial",
+"eligibility": "Anyone",
+"url": "https://www.redhat.com/en/services/training-and-certification",
+"note": "Page: \"Red Hat Learning Subscription trial (No cost)\""
+},
+{
+"id": "courses:us:linux-foundation-free-courses",
+"verified": true,
+"status": "OPEN",
+"amount": "Free learning resources/courses; paid training",
+"eligibility": "Anyone",
+"url": "https://training.linuxfoundation.org",
+"note": "Page links \"Free Courses\" and \"free learning resources\""
+},
+{
+"id": "courses:us:grow-with-google-career-dreamer",
+"verified": true,
+"status": "OPEN",
+"amount": "Career exploration tool (price not stated)",
+"eligibility": "Anyone",
+"url": "https://grow.google/career-dreamer",
+"note": "Career Dreamer helps explore career possibilities, build resume with Gemini"
+},
+{
+"id": "federal:us:wioa-adult-program-priority-for-low-income-public-assistance-basic-skills-deficient",
+"verified": true,
+"status": "ROLLING",
+"amount": "Career/training services via American Job Centers; varies by locality",
+"eligibility": "Eligible adults; priority to public assistance, low-income, basic-skills-deficient; vets priority",
+"url": "https://www.dol.gov/agencies/eta/workforce-investment/adult",
+"note": "DOL page confirms priority of service; age 18+ not stated"
+},
+{
+"id": "federal:us:rapid-response-layoff-aversion-on-site-services",
+"verified": true,
+"status": "ROLLING",
+"amount": "Workshops, career counseling, job search help, reskilling/training info",
+"eligibility": "Laid-off workers and employers facing layoffs/closings; contact state Dislocated Worker Unit",
+"url": "https://www.dol.gov/agencies/eta/layoffs",
+"note": "DOL page confirms Rapid Response services"
+},
+{
+"id": "federal:us:national-dislocated-worker-grants-dwg",
+"verified": true,
+"status": "ROLLING",
+"amount": "Discretionary grants to states/boards for temp jobs and services",
+"eligibility": "Applicants: states, tribes, local boards; participants: dislocated workers, disaster-affected",
+"url": "https://www.dol.gov/agencies/eta/dislocated-workers/grants",
+"note": "Page describes Disaster and Employment Recovery DWGs; no open deadline shown"
+},
+{
+"id": "federal:us:federal-layoff-supports-opm",
+"verified": false,
+"status": "ROLLING",
+"amount": "VERA/VSIP named as RIF tools; severance/CTAP/ICTAP/TCC not listed on page",
+"eligibility": "Federal employees facing RIF",
+"url": "https://www.opm.gov/policy-data-oversight/workforce-restructuring/",
+"note": "OPM page mentions only VERA/VSIP and career transition programs"
+},
+{
+"id": "federal:us:federal-bonding-program",
+"verified": true,
+"status": "ROLLING",
+"amount": "Free fidelity bonds covering first 6 months of employment",
+"eligibility": "Hard-to-place/at-risk job seekers",
+"url": "https://bonds4jobs.com",
+"note": "Bonds cover first six months at no cost to applicant or employer"
+},
+{
+"id": "federal:us:post-9-11-gi-bill",
+"verified": true,
+"status": "OPEN",
+"amount": "Full public in-state tuition, monthly housing allowance, books stipend",
+"eligibility": "90+ days active duty after 9/11/2001, or Purple Heart/disability discharge after 30 days",
+"url": "https://www.va.gov/education/about-gi-bill-benefits/post-9-11/",
+"note": "VA page confirms benefits and eligibility"
+},
+{
+"id": "federal:us:hire-heroes-usa",
+"verified": true,
+"status": "OPEN",
+"amount": "Free personalized career support",
+"eligibility": "Veterans and military spouses",
+"url": "https://www.hireheroesusa.org",
+"note": "Homepage confirms no-cost career support"
+},
+{
+"id": "federal:us:transition-assistance-program-tap-dol-vets",
+"verified": false,
+"status": "OPEN",
+"amount": "Employment Navigator 1-on-1 career help at select installations",
+"eligibility": "Transitioning service members and spouses",
+"url": "https://www.dol.gov/agencies/vets",
+"note": "Page lists TAP/ENPP but no TAP details"
+},
+{
+"id": "federal:us:ticket-to-work",
+"verified": true,
+"status": "OPEN",
+"amount": "Free employment support; WISE webinars",
+"eligibility": "SSDI/SSI recipients (age range not stated)",
+"url": "https://choosework.ssa.gov",
+"note": "SSA page confirms free services"
+},
+{
+"id": "federal:us:sba-7-a",
+"verified": true,
+"status": "OPEN",
+"amount": "Up to $5M",
+"eligibility": "For-profit US small businesses meeting SBA size standards, creditworthy",
+"url": "https://www.sba.gov/funding-programs/loans/7a-loans",
+"note": "SBA page confirms $5M max; FY26 fee tiers not on page"
+},
+{
+"id": "federal:us:sbdc-america-s-sbdcs",
+"verified": true,
+"status": "OPEN",
+"amount": "No-cost consulting, low-cost training",
+"eligibility": "Small business owners/entrepreneurs (via local SBDC)",
+"url": "https://americassbdc.org",
+"note": "Homepage confirms no-cost consulting and low-cost training"
+},
+{
+"id": "federal:us:women-s-business-centers",
+"verified": true,
+"status": "OPEN",
+"amount": "Free to low-cost counseling and training",
+"eligibility": "Women starting/growing small businesses",
+"url": "https://www.sba.gov/local-assistance/resource-partners/womens-business-centers",
+"note": "SBA page confirms; 168 centers and competition not on page"
+},
+{
+"id": "federal:us:pslf-employer-eligibility-rule",
+"verified": true,
+"status": "OPEN",
+"amount": "Rule excluding employers with substantial illegal purpose",
+"eligibility": "Public service workers/PSLF qualifying employers",
+"url": "https://www.federalregister.gov/documents/2025/10/31/2025-19729/william-d-ford-federal-direct-loan-direct-loan-program",
+"note": "Federal Register final rule effective July 1, 2026 (PSLF 685.219)"
+},
+{
+"id": "federal:us:child-tax-credit",
+"verified": true,
+"status": "OPEN",
+"amount": "Up to $2,200/child; refundable up to $1,700",
+"eligibility": "Income up to $200k ($400k joint) full credit; valid SSN required",
+"url": "https://www.irs.gov/credits-deductions/individuals/child-tax-credit",
+"note": "IRS page shows 2025 tax year figures; $500 other dependent not seen"
+},
+{
+"id": "federal:us:child-and-dependent-care-credit",
+"verified": true,
+"status": "OPEN",
+"amount": "Expenses capped $3,000 (one) / $6,000 (two+); credit % depends on AGI",
+"eligibility": "Taxpayers paying care for qualifying individual so they can work",
+"url": "https://www.irs.gov/taxtopics/tc602",
+"note": "IRS topic 602: expense limits $3,000/$6,000; percentage depends on AGI"
+},
+{
+"id": "federal:us:liheap",
+"verified": true,
+"status": "OPEN",
+"amount": "Help with home heating bills, shutoff prevention, weatherization/repair",
+"eligibility": "Eligible low-income households",
+"url": "https://acf.gov:443/ocs/programs-services/liheap",
+"note": "\"LIHEAP funds can help households... home heating bills, preventing energy shutoffs\""
+},
+{
+"id": "private:us:openai-foundation-workforce-commitment",
+"verified": true,
+"status": "UNKNOWN",
+"amount": "$250M initial (announced 2026-05-27): data infrastructure, near-term displaced-worker support (job search, wage-loss insurance, retraining pilots), long-run gai",
+"eligibility": "Grants to orgs; not individuals",
+"url": "https://www.pymnts.com/news/artificial-intelligence/2026/openai-pledges-250-million-to-help-ai-disrupted-workers/",
+"note": "OpenAI nonprofit commits at least $250M for AI-disrupted workers (May 27, 2026)"
+},
+{
+"id": "private:us:anthropic-economic-futures-research-fund",
+"verified": true,
+"status": "OPEN",
+"amount": "$200M research fund",
+"eligibility": "Institutions (no individuals applying personally)",
+"url": "https://www.anthropic.com/news/economic-futures-research-fund-agenda",
+"note": "Published Jul 22, 2026: 'See our request for proposals and apply here'"
+},
+{
+"id": "private:us:claude-corps-fellowship",
+"verified": false,
+"status": "CLOSED",
+"amount": "$150M; 12-month paid placement at nonprofit, reported $85K salary + $10K grant, 1,000 fellows",
+"eligibility": "18+, U.S. work-authorized, under ~2 yrs full-time experience (NOT mid-career)",
+"url": "https://www.techtimes.com/articles/318249/20260611/claude-corps-fellowship-pays-85k-anthropic-admits-its-ai-will-displace-workers.htm",
+"note": "Third-party news URL, not official page; not verified"
+},
+{
+"id": "private:us:google-org-ai-opportunity-fund-usa",
+"verified": false,
+"status": "ROLLING",
+"amount": "$75M for AI skills training via nonprofits/community colleges",
+"eligibility": "Underserved U.S. workers (training, no cash)",
+"url": "https://www.google.org",
+"note": "google.org page has only footer link; no $75M or status"
+},
+{
+"id": "private:us:google-career-certificates-ai-essentials",
+"verified": true,
+"status": "ROLLING",
+"amount": "$49/mo after 7-day trial (Coursera); aid for Specializations",
+"eligibility": "Open, no prior experience",
+"url": "https://grow.google/certificates/",
+"note": "grow.google confirms certificates available; pricing differs from 'low-cost/free'"
+},
+{
+"id": "private:us:microsoft-elevate-microsoft-elevate-academy",
+"verified": false,
+"status": "ROLLING",
+"amount": "Free AI skilling, nonprofit and community college grants (pledged $4B over 5 years, 2025)",
+"eligibility": "Open to learners; grants to orgs",
+"url": "https://www.microsoft.com/en-us/corporate-responsibility/elevate",
+"note": "URL returned 404; could not verify"
+},
+{
+"id": "private:us:amazon-future-engineer-upskilling-2025-aws-skills-builder",
+"verified": false,
+"status": "ROLLING",
+"amount": "Free training, scholarships",
+"eligibility": "Open",
+"url": "https://www.aboutamazon.com",
+"note": "Homepage only mentions employee upskilling; AFE/Skills Builder not shown"
+},
+{
+"id": "private:us:mayors-for-a-guaranteed-income-index-of-pilots",
+"verified": false,
+"status": "OPEN",
+"amount": "Directory/network of ~30+ city pilots",
+"eligibility": "n/a",
+"url": "https://www.mayorsforagi.org",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:givedirectly-u-s-programs",
+"verified": true,
+"status": "ROLLING",
+"amount": "Unconditional cash via active programs (Rx Kids, RISE GMI, etc.)",
+"eligibility": "Varies by program/community",
+"url": "https://www.givedirectly.org/united-states/",
+"note": "Page lists ACTIVE PROGRAMS incl. Rx Kids and Mississippi RISE GMI"
+},
+{
+"id": "private:us:la-county-breathe",
+"verified": false,
+"status": "CLOSED",
+"amount": "$1,000/month for 3 years",
+"eligibility": "Low-income residents",
+"url": "https://breathe.lacounty.gov",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:san-francisco-abundant-birth-project-expecting-justice",
+"verified": true,
+"status": "UNKNOWN",
+"amount": "Pregnancy income supplement",
+"eligibility": "Black/Pacific Islander pregnant people; now Alameda, Contra Costa, LA, Riverside counties",
+"url": "https://expectingjustice.org/",
+"note": "Page: ABP 'Now offered in Alameda, Contra Costa, Los Angeles, and Riverside Counties'"
+},
+{
+"id": "private:us:evanston-reparations-housing-cash",
+"verified": false,
+"status": "ROLLING",
+"amount": "Up to $25,000 housing grants",
+"eligibility": "Qualified Black residents",
+"url": "https://www.cityofevanston.org/government/city-council/reparations",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:fund-for-guaranteed-income-f4gi",
+"verified": true,
+"status": "OPEN",
+"amount": "Builds/runs guaranteed income programs; $28M disbursed to 10,000 beneficiaries",
+"eligibility": "Varies by pilot",
+"url": "https://f4gi.org/",
+"note": "Page: F4GI implements GI programs; 'AI Dividend' not named"
+},
+{
+"id": "private:us:catholic-charities-local-agencies",
+"verified": true,
+"status": "OPEN",
+"amount": "Rent/utility help, food, case management",
+"eligibility": "All people in need",
+"url": "https://www.catholiccharitiesusa.org/about-us/find-a-local-agency/",
+"note": "Page: 170 agencies 'offer a broad array of services to all people in need'"
+},
+{
+"id": "private:us:united-way-211",
+"verified": true,
+"status": "OPEN",
+"amount": "Referral to local help (bills, utilities, housing, food)",
+"eligibility": "Anyone",
+"url": "https://211.org/",
+"note": "Page: 211 connects you to help; paying bills, utilities, food, housing"
+},
+{
+"id": "private:us:emergency-grants-for-individuals-directory",
+"verified": true,
+"status": "OPEN",
+"amount": "Benefit finder",
+"eligibility": "Varies",
+"url": "https://www.usa.gov/benefit-finder?utm_source=usa_benefits-gov&utm_medium=redirect&utm_campaign=redirect_benefits-gov&modal=b-welcome-1899",
+"note": "USAGov page: find government benefits and financial help"
+},
+{
+"id": "private:us:dave-ramsey-feeding-america-food-banks",
+"verified": true,
+"status": "OPEN",
+"amount": "Food",
+"eligibility": "Anyone",
+"url": "https://www.feedingamerica.org/find-your-local-foodbank",
+"note": "Page: enter ZIP to find nearby food banks in the network"
+},
+{
+"id": "private:us:iatse-local-798-fund",
+"verified": false,
+"status": "OPEN",
+"amount": "Aid for union members",
+"eligibility": "Members 2+ yrs",
+"url": "https://www.instrumentl.com/grants/iatse-local-798-fund",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:motion-picture-television-fund-mptf",
+"verified": true,
+"status": "OPEN",
+"amount": "Financial assistance and support services",
+"eligibility": "Entertainment industry community: union, guild, or non-affiliated",
+"url": "https://mptf.com/",
+"note": "Page lists Financial Assistance service; help for union, guild, or non-affiliated"
+},
+{
+"id": "private:us:sag-aftra-foundation-emergency-assistance",
+"verified": true,
+"status": "OPEN",
+"amount": "Emergency grants for urgent crises",
+"eligibility": "SAG-AFTRA members: dues current, joined 1+ yr, earnings benchmark; lack of work alone not eligible",
+"url": "https://sagaftra.foundation/emergency-financial-assistance/",
+"note": "Page: Emergency Financial Assistance Fund eligibility requirements"
+},
+{
+"id": "private:us:writers-guild-foundation-wga-health-fund-emergency",
+"verified": false,
+"status": "OPEN",
+"amount": "Hardship aid",
+"eligibility": "Members",
+"url": "https://www.wgf.org",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:directors-guild-producers-pension",
+"verified": false,
+"status": "OPEN",
+"amount": "Hardship aid",
+"eligibility": "Members",
+"url": "https://www.dga.org",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:american-bar-endowment-aba-retirement-funds",
+"verified": false,
+"status": "OPEN",
+"amount": "Limited; refer to state bars",
+"eligibility": "Members",
+"url": "https://www.americanbar.org",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:lawyer-assistance-programs-lap",
+"verified": false,
+"status": "OPEN",
+"amount": "Free confidential mental health/addiction counseling",
+"eligibility": "Lawyers, judges, students",
+"url": "https://www.americanbar.org/groups/lawyer_assistance/",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:dr-lorna-breen-heroes-foundation-resources",
+"verified": false,
+"status": "OPEN",
+"amount": "Clinician well-being, mental health",
+"eligibility": "Health workers",
+"url": "https://drlornabreen.org",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:acm-career-job-center-acm-scholarships",
+"verified": false,
+"status": "OPEN",
+"amount": "Career tools, not cash",
+"eligibility": "Members",
+"url": "https://www.acm.org",
+"note": "WebFetch safety check rate-limited or third-party/generic/no URL; not verified"
+},
+{
+"id": "private:us:publishing-authors-league-fund",
+"verified": true,
+"status": "OPEN",
+"amount": "No-strings emergency 'loans'; repayment not required",
+"eligibility": "Professional writers in financial need",
+"url": "https://authorsleaguefund.org/",
+"note": "Page: no-strings 'loans'; repayment of emergency support not required"
+},
+{
+"id": "private:us:veterans-soldiers-angels-operation-homefront",
+"verified": true,
+"status": "OPEN",
+"amount": "Critical Financial Assistance",
+"eligibility": "Military and veteran families",
+"url": "https://operationhomefront.org/",
+"note": "Page lists Critical Financial Assistance program and 'Get help now'"
+},
+{
+"id": "private:us:40plus-chapters-e-g-40plus-of-greater-washington",
+"verified": true,
+"status": "OPEN",
+"amount": "Peer career-transition programs, career portal",
+"eligibility": "Experienced professionals",
+"url": "https://www.40plusdc.org",
+"note": "Page: 'Empowering Experienced Professionals'; event Oct 26, 2026"
+},
+{
+"id": "private:us:dress-for-success",
+"verified": true,
+"status": "OPEN",
+"amount": "Professional attire and development tools",
+"eligibility": "Women",
+"url": "https://dressforsuccess.org",
+"note": "Page: network provides workplace attire; 1,500,000+ women served"
+},
+{
+"id": "private:us:per-scholas",
+"verified": true,
+"status": "OPEN",
+"amount": "Zero-tuition tech training, 3-4 months",
+"eligibility": "Adults; varies by campus/course",
+"url": "https://perscholas.org",
+"note": "Homepage says no-cost training; enrollment dates not shown"
+},
+{
+"id": "private:us:jvs-jvs-socal-jvs-boston-jvs-bay-area",
+"verified": true,
+"status": "OPEN",
+"amount": "Career training; avg salary $106,000 five years after",
+"eligibility": "Job seekers in California",
+"url": "https://jvs.org/",
+"note": "Page: JVS skills training across California"
+},
+{
+"id": "private:us:upwardly-global",
+"verified": true,
+"status": "OPEN",
+"amount": "Free coaching and job-search resources",
+"eligibility": "Immigrants, refugees, asylees with professional credentials",
+"url": "https://www.upwardlyglobal.org",
+"note": "Site says programs completely free; UpGlo Direct coaching promoted"
+},
+{
+"id": "private:us:bridges-to-work-year-up-merit-america",
+"verified": true,
+"status": "OPEN",
+"amount": "Tuition-free job training",
+"eligibility": "Young adults",
+"url": "https://www.yearup.org",
+"note": "Page: tuition-free Career Pathways; Apply Now"
+},
+{
+"id": "private:us:kiva-us-0-loans",
+"verified": true,
+"status": "OPEN",
+"amount": "$1K-15K at 0% interest ($1K-3K without govt business docs)",
+"eligibility": "US residents 18+, running a US business, PayPal account",
+"url": "https://www.kiva.org/borrow",
+"note": "Page shows loan terms and Apply now; no explicit open-status statement"
+},
+{
+"id": "private:us:liftfund",
+"verified": true,
+"status": "OPEN",
+"amount": "SBA 7(a), 504, small business loans",
+"eligibility": "Small businesses",
+"url": "https://www.liftfund.com/",
+"note": "Page lists loan products and Apply Now; $500-$150K not stated"
+},
+{
+"id": "private:us:grameen-america",
+"verified": true,
+"status": "OPEN",
+"amount": "Microloans",
+"eligibility": "Women entrepreneurs",
+"url": "https://www.grameenamerica.org/",
+"note": "Page: 'Inquire About A Loan'; capital for underserved women entrepreneurs"
+},
+{
+"id": "private:us:ifundwomen-cartier-women-s-initiative",
+"verified": true,
+"status": "OPEN",
+"amount": "Grants, coaching, crowdfunding",
+"eligibility": "Women-owned businesses",
+"url": "https://www.ifundwomen.com/",
+"note": "Page: 'Apply for grant programs supporting women-owned businesses'"
+},
+{
+"id": "private:us:path-forward",
+"verified": true,
+"status": "OPEN",
+"amount": "Returnship Matcher, directory of U.S. returnships",
+"eligibility": "People returning after a career break",
+"url": "https://pathforward.org",
+"note": "Page: search directory of all U.S. returnship programs"
+},
+{
+"id": "private:us:irelaunch",
+"verified": true,
+"status": "OPEN",
+"amount": "Returnship listings, coaching, conference",
+"eligibility": "Career-break returners",
+"url": "https://www.irelaunch.com",
+"note": "Page: Return to Work Conference Oct 2026; Returnships 101"
+},
+{
+"id": "private:us:microsoft-leap",
+"verified": true,
+"status": "UNKNOWN",
+"amount": "16-week immersive program",
+"eligibility": "Career changers with base technical training",
+"url": "https://leap.microsoft.com/en-US/",
+"note": "Page: Leap offers immersive 16-week experience; no application dates"
+},
+{
+"id": "private:us:988-suicide-crisis-lifeline",
+"verified": true,
+"status": "OPEN",
+"amount": "Free, confidential, 24/7/365 call/text/chat",
+"eligibility": "Anyone",
+"url": "https://988lifeline.org",
+"note": "Page states 24/7/365 free, for everyone"
+},
+{
+"id": "private:us:nami-helpline",
+"verified": true,
+"status": "OPEN",
+"amount": "Free info/referrals",
+"eligibility": "Anyone",
+"url": "https://www.nami.org/nami-helpline/",
+"note": "\"Call our HelpLine at 800-950-6264, text NAMI to 62640\""
+},
+{
+"id": "private:us:open-path-collective",
+"verified": true,
+"status": "OPEN",
+"amount": "$40-70/session + one-time $65 membership",
+"eligibility": "Uninsured/under-insured",
+"url": "https://openpathcollective.org",
+"note": "\"therapist for only $40-70 per session, plus a one-time membership fee\" $65"
+},
+{
+"id": "private:us:mental-health-america",
+"verified": true,
+"status": "OPEN",
+"amount": "Free screening tools",
+"eligibility": "Anyone",
+"url": "https://mhanational.org",
+"note": "\"develop free and accessible tools\"; 4.2M screened in 2025"
+},
+{
+"id": "private:us:lawhelp-org",
+"verified": true,
+"status": "OPEN",
+"amount": "Free legal help directory",
+"eligibility": "Varies by state/provider",
+"url": "https://www.lawhelp.org",
+"note": "\"Find free legal help... from nonprofit legal aid providers in your state\""
+},
+{
+"id": "private:us:legal-services-corporation-grantees",
+"verified": true,
+"status": "OPEN",
+"amount": "Free civil legal aid",
+"eligibility": "Low-income Americans (125% FPL not on page)",
+"url": "https://www.lsc.gov/about-lsc/what-legal-aid/i-need-legal-help",
+"note": "LSC funds 129 nonprofit legal aid orgs for low-income Americans"
+},
+{
+"id": "private:us:warn-act-guidance",
+"verified": true,
+"status": "ROLLING",
+"amount": "Guidance only",
+"eligibility": "Workers and employers",
+"url": "https://www.dol.gov/agencies/eta/layoffs/warn",
+"note": "DOL page: WARN Act compliance assistance for qualified plant closings/mass layoffs"
+},
+{
+"id": "relocation:AK:permanent-fund-dividend-not-a-relocation-incentive",
+"verified": true,
+"status": "UNKNOWN",
+"amount": "2026 PFD $1,200 (incl. $200 energy relief)",
+"eligibility": "Alaska residents who apply; see eligibility requirements",
+"url": "https://pfd.alaska.gov",
+"note": "\"The 2026 PFD amount is $1,200, which includes a $200 energy relief payment\""
+},
+{
+"id": "relocation:AR:call-texarkana-home",
+"verified": false,
+"status": "ROLLING",
+"amount": "$5,000 cash (up to $18,900 value)",
+"eligibility": "Remote FT, $60k+, outside AR/75mi from Texarkana, move in 6 mo",
+"url": "https://www.makemymove.com/get-paid/texarkana-usa",
+"note": "MakeMyMove only; shows recruiting; no official page found"
+},
+{
+"id": "relocation:IN:evansville-region-remote-job-seekers",
+"verified": false,
+"status": "OPEN",
+"amount": "$3,000 cash (up to $7,500 value)",
+"eligibility": "$50k+, outside IN, 2-yr stay, move in 6 mo",
+"url": "https://www.makemymove.com/get-paid/evansville-indiana",
+"note": "MakeMyMove only; official evansvilleregion.com fetch rate-limited"
+},
+{
+"id": "relocation:IN:step-into-life-in-the-indy-region-work-local-healthcare-jobs",
+"verified": false,
+"status": "OPEN",
+"amount": "Value $7,500 (no cash listed)",
+"eligibility": "Income $50k+, live outside IN",
+"url": "https://www.makemymove.com/get-paid/indyregion-indiana",
+"note": "Not checked: no official page located; WebFetch domain checks rate-limited"
+},
+{
+"id": "relocation:IN:live-and-work-remote-in-knox-county",
+"verified": false,
+"status": "OPEN",
+"amount": "$5,000 cash (value $9,300)",
+"eligibility": "Income $55k+, outside IN",
+"url": "https://www.makemymove.com/get-paid/vincennes-knox-county-indiana",
+"note": "Not checked: no official page located; WebFetch domain checks rate-limited"
+},
+{
+"id": "relocation:IN:live-and-work-remote-in-muncie",
+"verified": false,
+"status": "OPEN",
+"amount": "$5,000 cash (up to $6,500 value)",
+"eligibility": "$50k+, US citizen, outside IN, move in 6 mo",
+"url": "https://www.makemymove.com/get-paid/muncie-indiana",
+"note": "MakeMyMove only; shows recruiting; no official city page found"
+},
+{
+"id": "relocation:KY:move-to-paducah",
+"verified": false,
+"status": "OPEN",
+"amount": "$5,000 on establishing residency + coworking",
+"eligibility": "Age 21+, 100+ mi away, $40k+, remote, 1-yr+ stay",
+"url": "https://www.paducahky.gov",
+"note": "City of Paducah sponsors (per MMM); city site check rate-limited, MMM only"
+},
+{
+"id": "relocation:ME:student-loan-repayment-tax-credit-formerly-opportunity-maine",
+"verified": true,
+"status": "ROLLING",
+"amount": "Refundable credit up to $2,500/yr, $25,000 lifetime",
+"eligibility": "Maine resident, degree after 2007, min earnings, loans in own name paid directly",
+"url": "https://www.liveandworkinmaine.com/opportunity-maine",
+"note": "Official page confirms amounts; 2025 worksheet posted; no deadline stated"
+},
+{
+"id": "relocation:MI:make-mi-home-remote-workers-state-of-michigan",
+"verified": false,
+"status": "OPEN",
+"amount": "\"6 benefits\", amount not stated",
+"eligibility": "Age 18+, live outside MI, move within 6 mo",
+"url": "https://www.michigan.gov/makemihome",
+"note": "michigan.gov/makemihome returned 403; makemihome.com not found"
+},
+{
+"id": "relocation:MI:mi-10k-down-payment-assistance",
+"verified": false,
+"status": "ROLLING",
+"amount": "Up to $10,000 interest-free loan, must pair with MI Home Loan",
+"eligibility": "Low/moderate income, homebuyer education",
+"url": "https://www.michigan.gov/mshda/pathway-to-housing/mi-10k-dpa-loan",
+"note": "michigan.gov MSHDA page returned 403"
+},
+{
+"id": "relocation:VT:worker-relocation-incentive-program-wrip",
+"verified": false,
+"status": "CLOSED",
+"amount": "Up to $7,500 reimbursement",
+"eligibility": "New or remote workers moving to VT",
+"url": "https://accd.vermont.gov/economic-development/relocation-incentives",
+"note": "403 on official page; search snippet says fully subscribed, unfunded since 2023"
+},
+{
+"id": "relocation:us:maine-student-loan-repayment-tax-credit",
+"verified": true,
+"status": "ROLLING",
+"amount": "$2,500/yr, $25,000 lifetime",
+"eligibility": "Maine resident, degree after 2007, paid own loans, earned income minimum",
+"url": "https://www.liveandworkinmaine.com/opportunity-maine",
+"note": "Official page confirms caps; 2025 worksheet current, no end date"
+},
+{
+"id": "relocation:us:moving-expense-deduction-exclusion",
+"verified": true,
+"status": "OPEN",
+"amount": "Deduct/exclude moving expenses",
+"eligibility": "Armed Forces on active duty (PCS) and, from 2026, intelligence community",
+"url": "https://www.irs.gov/taxtopics/tc455",
+"note": "IRS Topic 455: military/IC members may deduct or exclude moving expenses; not general"
+},
+{
+"id": "relocation:us:program-payments-are-taxable",
+"verified": true,
+"status": "ROLLING",
+"amount": "Up to $12,000 cash over 24 months",
+"eligibility": "Remote worker outside WV, 18+, US citizen/LPR; payments taxable",
+"url": "https://ascendwv.com/faq/",
+"note": "Ascend WV FAQ: rolling applications open, recipients responsible for taxes"
+},
+{
+"id": "relocation:us:employer-paid-incentives-choose-topeka",
+"verified": true,
+"status": "ROLLING",
+"amount": "Varies by employer; Choose Topeka reimburses employer 50% after 1 yr",
+"eligibility": "Take job with participating Shawnee County employer and move there",
+"url": "https://choosetopeka.com/faq/",
+"note": "Official FAQ: ongoing, no deadline, funding not guaranteed"
+},
+{
+"id": "segment:us:work-for-america-civic-match",
+"verified": true,
+"status": "OPEN",
+"amount": "Job board, career fairs, matching with state/local hiring managers",
+"eligibility": "Mission-driven professionals seeking state/local government jobs",
+"url": "https://www.workforamerica.org",
+"note": "\"Civic Match is a talent-matching program... jobs in state and local governments\""
+},
+{
+"id": "segment:us:national-dislocated-worker-grants-dwg-for-federal-layoff-areas",
+"verified": true,
+"status": "UNKNOWN",
+"amount": "Discretionary; awards vary",
+"eligibility": "Grants to states/entities; mass layoffs and disasters",
+"url": "https://www.dol.gov/agencies/eta/dislocated-workers/grants",
+"note": "DOL: \"DWGs are discretionary grants... for dislocated workers\"; federal-layoff focus not stated"
+},
+{
+"id": "segment:us:hiring-our-heroes-fed-to-private-transition-chamber-of-commerce",
+"verified": true,
+"status": "OPEN",
+"amount": "Fellowships, hiring events",
+"eligibility": "Service members, veterans, military spouses",
+"url": "https://www.hiringourheroes.org",
+"note": "\"SkillBridge-approved Fellows Program provides a 12-week internship\"; hiring events"
+},
+{
+"id": "segment:us:google-career-certificates-ai-essentials",
+"verified": true,
+"status": "OPEN",
+"amount": "$49/mo (US/Canada) via Coursera, 7-day trial",
+"eligibility": "No prior experience required",
+"url": "https://grow.google/certificates/",
+"note": "$49/mo after 7-day trial on Coursera; no prior experience needed; AI Essentials separate course"
+},
+{
+"id": "segment:us:microsoft-elevate-ai-skilling",
+"verified": true,
+"status": "OPEN",
+"amount": "Free AI learning paths and certifications",
+"eligibility": "Open to anyone",
+"url": "https://www.microsoft.com/elevate",
+"note": "Live page: free AI learning paths and certifications for students, jobseekers, career changers"
+},
+{
+"id": "segment:us:aws-skill-builder-re-start",
+"verified": true,
+"status": "ROLLING",
+"amount": "Free to learner",
+"eligibility": "Unemployed/underemployed; cohort-based",
+"url": "https://aws.amazon.com/training/restart/",
+"note": "\"AWS re/Start... free to the learner cohort-based training\""
+},
+{
+"id": "segment:us:year-up-united-professional-training-corps-adult-tracks",
+"verified": true,
+"status": "OPEN",
+"amount": "Tuition-free",
+"eligibility": "Young adults (age range not on page)",
+"url": "https://www.yearup.org",
+"note": "\"tuition-free job training offering\" for young adults; adult tracks not shown"
+},
+{
+"id": "segment:us:layoffs-fyi-trueup",
+"verified": true,
+"status": "OPEN",
+"amount": "Free layoff tracker",
+"eligibility": "Open",
+"url": "https://layoffs.fyi",
+"note": "Live layoff tracker, filters through 2026, free with attribution (Layoffs.fyi only)"
+},
+{
+"id": "segment:us:indian-health-service-loan-repayment",
+"verified": true,
+"status": "OPEN",
+"amount": "Up to $40k+ per 2-yr contract",
+"eligibility": "Health professionals at IHS sites",
+"url": "https://www.ihs.gov/loanrepayment/",
+"note": "\"Now accepting applications for FY2027 competition\"; amount not on page"
+},
+{
+"id": "segment:us:nurse-licensure-compact-interstate-medical-licensure-compact",
+"verified": true,
+"status": "OPEN",
+"amount": "Multistate nursing license",
+"eligibility": "Nurses in compact states; apply in new state within 60 days",
+"url": "https://www.nursecompact.com",
+"note": "\"43 jurisdictions are currently part of the NLC\"; IMLC not shown"
+},
+{
+"id": "segment:us:teach-for-america-transition-to-teaching",
+"verified": true,
+"status": "OPEN",
+"amount": "Full teaching salary and benefits (Corps)",
+"eligibility": "Corps apply by Oct 26; Ignite by Nov 18",
+"url": "https://www.teachforamerica.org",
+"note": "\"TFA Corps Apply by October 26. 2-year paid teaching placement\"; licensure support not shown"
+},
+{
+"id": "segment:us:partnership-for-public-service",
+"verified": true,
+"status": "OPEN",
+"amount": "Career navigation",
+"eligibility": "Current and former federal employees",
+"url": "https://ourpublicservice.org",
+"note": "FedSupport Hub gives federal employees \"guidance... seek new career opportunities\""
+}
+]

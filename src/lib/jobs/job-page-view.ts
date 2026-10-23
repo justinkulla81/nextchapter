@@ -27,6 +27,10 @@ import { statesFromLocation } from '@/lib/pay/market-pay'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/insider-network'
 import { getCandidateMarketIntelTier, tierMeetsFeature } from '@/lib/market-intelligence/access'
+import { loadExposureMap } from '@/lib/skills/ai-exposure-server'
+import { exposureFor } from '@/lib/skills/ai-exposure'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
+import { jobAiView } from '@/lib/jobs/job-ai-view'
 import type { FindJobDetailProps } from '@/components/dashboard/find/FindJobDetail'
 
 type Profile = Awaited<ReturnType<typeof getDashboardData>>
@@ -45,6 +49,8 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
       return null
     })
   const memberKeywords = memberSkillKeywords(profile)
+  const [exposureMap, aiMarket] = await Promise.all([loadExposureMap(), soft(loadAiMarket(), 'AI market')])
+  const exposure = exposureFor(posting.socCode, exposureMap)
   const [bands, company, culturePrefs, workProfile, strengthKeysNow, area, tracked, watch, payHigh, benefits, openAtCompany, contactsMap, skillsFitFor] = await Promise.all([
     posting.companyName ? resolveCompanySizeBands([posting.companyName]) : Promise.resolve([{ band: null }]),
     posting.companyId ? prisma.company.findUnique({ where: { id: posting.companyId }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } }) : Promise.resolve(null),
@@ -96,6 +102,7 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
     verdict: cardVerdict(fitBucket),
     why,
     fact: oneFact({ posted: postedAgo(posting), fewerApplicants: fewerApplicantsHint(competition), pay: payBasisLabel({ ...posting, workType }) }),
+    exposure,
   })
 
   // Members who worked at this company (Plus Market Intelligence), the same gate as the company page.
@@ -113,6 +120,8 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
   return {
     posting,
     item,
+    exposure,
+    ai: jobAiView(posting, aiMarket),
     fitBucket,
     nextStep: nextStepFor({
       blocker: match.requirements.find((r) => r.status === 'blocker')?.label ?? null,

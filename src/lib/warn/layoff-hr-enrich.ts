@@ -25,19 +25,22 @@ const hostOf = (website: string | null | undefined): string | null => {
  * Returns the organization id (created if the company was new) or null.
  */
 export async function enrichLayoffHr(employer: string, orgId: string | null): Promise<string | null> {
+  /** Says why no one was added, so an empty alert can be traced to one step. */
+  const skip = (why: string) => console.warn(`Layoff HR enrichment for ${employer}: no one added, ${why}`)
   try {
-    if (!hunterConfigured()) return orgId
+    if (!hunterConfigured()) { skip('Hunter is not configured'); return orgId }
     const org = orgId ? await prisma.crmOrganization.findUnique({ where: { id: orgId }, select: { id: true, name: true, website: true, emailDomain: true } }) : null
     if (org) {
       const titles = await prisma.crmAffiliation.findMany({ where: { orgId: org.id, isCurrent: true, person: { deletedAt: null } }, select: { title: true } })
-      if (titles.some((t) => isHrLeaderTitle(t.title))) return org.id
+      if (titles.some((t) => isHrLeaderTitle(t.title))) { skip('a head of HR is already on file'); return org.id }
     }
     const domain = org?.emailDomain ?? hostOf(org?.website) ?? (await lookupDomain(org?.name ?? employer).catch(() => null))
-    if (!domain) return org?.id ?? null
-    const acct = await hunterAccount().catch(() => null)
-    if (!acct || acct.requests.searches.available - acct.requests.searches.used <= HUNTER_RESERVE) return org?.id ?? null
+    if (!domain) { skip('no website or email domain found'); return org?.id ?? null }
+    const acct = await hunterAccount().catch((e) => { console.error('Hunter account check failed for', employer, e); return null })
+    if (!acct) { skip('Hunter account check returned nothing'); return org?.id ?? null }
+    if (acct.requests.searches.available - acct.requests.searches.used <= HUNTER_RESERVE) { skip('Hunter searches are down to the reserve'); return org?.id ?? null }
 
-    const found = await hunterDomainSearch(domain, 10, 'hr').catch(() => null)
+    const found = await hunterDomainSearch(domain, 10, 'hr').catch((e) => { console.error('Hunter domain search failed for', employer, domain, e); return null })
     const picks = (found?.people ?? [])
       .filter((p) => p.firstName && p.lastName && p.position && !isUsWideTitle(p.position) && (p.confidence ?? 0) >= 60)
       .map((p) => ({ p, kind: isHrLeaderTitle(p.position) ? ('head_hr' as const) : hrTeamKind(p.position!) }))
@@ -45,6 +48,8 @@ export async function enrichLayoffHr(employer: string, orgId: string | null): Pr
       .sort((a, b) => Number(b.kind === 'head_hr') - Number(a.kind === 'head_hr') || (b.p.confidence ?? 0) - (a.p.confidence ?? 0))
       .slice(0, MAX_ADDED)
 
+    if (!found) skip(`Hunter domain search on ${domain} returned nothing`)
+    else if (!picks.length) skip(`none of ${found.people.length} people from ${domain} had a usable HR title`)
     // A company new to the CRM is created now, so the people have somewhere to attach.
     const target = org ?? (picks.length ? await ensureOrg({ name: employer, type: 'EMPLOYER', website: domain }) : null)
     const resolved = target?.id ?? null
@@ -56,8 +61,8 @@ export async function enrichLayoffHr(employer: string, orgId: string | null): Pr
         guessedEmail: trusted ? null : p.email, guessedEmailBasis: trusted ? null : 'Hunter domain search, not verified',
         orgId: target!.id, orgName: target!.name, roles: [...roles], goals: goalsForRoles([...roles]), priority: 'P2',
         note: `${kind === 'head_hr' ? 'Head of HR' : 'HR'} at ${employer}, found by Hunter domain search on ${domain} when ${employer} filed a layoff. Confirm before outreach.`,
-      }).catch(() => null)
-      void r
+      }).catch((e) => { console.error('Layoff HR enrichment: save failed for', p.email, e); return null })
+      if (!r) skip(`could not save ${p.firstName} ${p.lastName}`)
     }
     return resolved
   } catch (e) {

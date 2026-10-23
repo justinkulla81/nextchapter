@@ -117,3 +117,14 @@ export function liveDimensionRows(rows: AiDimensionRow[] | undefined, keepOrder 
     .map((r) => ({ key: r.key, label: r.label, postings: r.n, sharePct: r.sharePct, ...premiumFields(r.premium) }))
   return keepOrder ? out : out.sort((a, b) => b.sharePct - a.sharePct)
 }
+
+/** "+18%", "-1%", "0%": the sign belongs to the number. */
+export function formatPct(n: number): string {
+  return `${n > 0 ? '+' : n < 0 ? '-' : ''}${Math.abs(n)}%`
+}
+
+/** "+18% (about $29.5k)", "-1% (about -$1k)". */
+export function formatPremium(pct: number, usd: number): string {
+  const k = Math.round(Math.abs(usd) / 100) / 10
+  return `${formatPct(pct)} (about ${usd < 0 ? '-' : ''}$${k}k)`
+}

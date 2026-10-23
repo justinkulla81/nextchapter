@@ -6,9 +6,11 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { SITE_URL } from '@/lib/reports'
 import { canonical } from '@/lib/seo/canonical'
 import { AI_MARKET_AS_OF, AI_MARKET_POSTINGS } from '@/lib/skills/ai-skill-market.data'
-import { LEVEL_COLUMNS, liveDimensionRows, liveFunctionRows, MIN_GROUP_POSTINGS, liveLevelRows, liveOverallSharePct, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
+import { LEVEL_COLUMNS, formatPct, formatPremium, liveDimensionRows, liveFunctionRows, MIN_GROUP_POSTINGS, liveLevelRows, liveOverallSharePct, overallSharePct, publicFunctionRows, skillGroupsForDisplay } from '@/lib/skills/ai-skills-public'
+import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { loadAiShareTrend } from '@/lib/skills/ai-market-trend-server'
+import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
 export const revalidate = 3600
 
@@ -24,7 +26,6 @@ export const metadata: Metadata = {
 }
 
 const longDate = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
-const pct = (n: number | null) => (n === null ? 'Not enough paid postings' : `+${n}%`)
 
 const RESEARCH = [
   { who: 'Lightcast', what: 'U.S. postings that list AI skills offer about 28% more pay (roughly $18,000 a year), and 51% of them are outside IT.' },
@@ -52,8 +53,8 @@ function DimensionTable({ caption, first, rows }: { caption: string; first: stri
             <tr key={r.key}>
               <th scope="row" className="px-3 py-2 font-medium">{r.label}</th>
               <td className="px-3 py-2">{r.sharePct}%</td>
-              <td className="px-3 py-2">{r.rawPremiumPct === null ? '—' : pct(r.rawPremiumPct)}</td>
-              <td className="px-3 py-2">{r.likePremiumPct === null ? '—' : `${pct(r.likePremiumPct)} (about $${Math.round((r.likePremiumUsd ?? 0) / 100) / 10}k)`}</td>
+              <td className="px-3 py-2">{r.rawPremiumPct === null ? '—' : formatPct(r.rawPremiumPct)}</td>
+              <td className="px-3 py-2">{r.likePremiumPct === null ? '—' : formatPremium(r.likePremiumPct, r.likePremiumUsd ?? 0)}</td>
             </tr>
           ))}
         </tbody>
@@ -95,10 +96,14 @@ export default async function AiSkillsPage() {
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Market data · as of {asOf}</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy text-balance sm:text-4xl">{TITLE}</h1>
         <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-          About {Math.round(overall)}% of the {analyzed.toLocaleString('en-US')} U.S. postings we analyzed ask for a specific AI skill. It is close to half in data roles
-          and almost none in clinical or academic ones. Where they do ask, the advertised pay is higher
-          {range ? `, by ${range.min}% to ${range.max}% after comparing like with like` : ''}.
+          About {Math.round(overall)}% of the {analyzed.toLocaleString('en-US')} U.S. postings we analyzed ask for a specific AI skill. The share runs from {rows[0]?.sharePct}% in {rows[0]?.label} postings
+          to {rows[rows.length - 1]?.sharePct}% in {rows[rows.length - 1]?.label}. Where they do ask, the advertised pay is usually higher
+          {range ? `, ${range.min > 0 ? `by ${range.min}% to ${range.max}%` : `by up to ${range.max}%`} after comparing like with like` : ''}.
         </p>
+
+        <div className="mt-12 -mx-6">
+          <AiExposureSection page="ai-skills" />
+        </div>
 
         <section className="mt-12" aria-labelledby="by-function">
           <h2 id="by-function" className="text-xl font-bold tracking-tight text-navy">
@@ -124,9 +129,9 @@ export default async function AiSkillsPage() {
                   <tr key={r.fn}>
                     <th scope="row" className="px-3 py-2 font-medium">{r.label}</th>
                     <td className="px-3 py-2">{r.sharePct}%</td>
-                    <td className="px-3 py-2">{r.rawPremiumPct === null ? '—' : pct(r.rawPremiumPct)}</td>
+                    <td className="px-3 py-2">{r.rawPremiumPct === null ? '—' : formatPct(r.rawPremiumPct)}</td>
                     <td className="px-3 py-2">
-                      {r.likePremiumPct === null ? '—' : `${pct(r.likePremiumPct)} (about $${Math.round((r.likePremiumUsd ?? 0) / 100) / 10}k)`}
+                      {r.likePremiumPct === null ? '—' : formatPremium(r.likePremiumPct, r.likePremiumUsd ?? 0)}
                     </td>
                   </tr>
                 ))}
@@ -216,7 +221,7 @@ export default async function AiSkillsPage() {
                       <tr key={r.fn}>
                         <th scope="row" className="px-3 py-2 font-medium">{r.label}</th>
                         {LEVEL_COLUMNS.map((c) => (
-                          <td key={c.key} className="px-3 py-2">{r.byLevel[c.key] === undefined ? '—' : pct(r.byLevel[c.key] ?? null)}</td>
+                          <td key={c.key} className="px-3 py-2">{r.byLevel[c.key] === undefined ? '—' : formatPct(r.byLevel[c.key] ?? 0)}</td>
                         ))}
                       </tr>
                     ))}
@@ -289,7 +294,7 @@ export default async function AiSkillsPage() {
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <TrackedLink
-              href="/onboarding/desire"
+              href={MARKET_REALITY_START_HREF}
               event="ai_skills_page_cta_clicked"
               properties={{ cta: 'candidate_assessment' }}
               className="inline-flex items-center rounded-lg bg-action px-5 py-3 text-sm font-semibold text-action-foreground hover:brightness-95"

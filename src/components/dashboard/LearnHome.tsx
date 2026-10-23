@@ -3,6 +3,8 @@ import { PageHeader } from '@/components/candidate/PageHeader'
 import { Chip, Section } from '@/components/candidate/ui'
 import { CourseLink } from '@/components/dashboard/CourseLink'
 import { LEARNING_PROVIDERS } from '@/lib/constants/learning-partners'
+import { LearnWhyFirst } from '@/components/dashboard/learning/LearnWhyFirst'
+import type { LearnWhy } from '@/lib/redesign/learn-exposure-why'
 import type { LearningPlanItem } from '@/lib/learning/build-learning-plan'
 
 const providerName = (item: LearningPlanItem) => LEARNING_PROVIDERS[item.provider]?.name ?? String(item.provider)
@@ -13,7 +15,7 @@ const SECONDARY = 'inline-flex h-10 items-center rounded-full border border-bord
 
 // Learn in the redesign: one course up front with the reason, a few more behind it, and what you have finished.
 // The full library (AI training tiers, tools, interview skills, guides) is one link away.
-export function LearnHome({ featured, more, enrolledTitles, completedCount, allHref }: { featured: LearningPlanItem | null; more: LearningPlanItem[]; enrolledTitles: Set<string>; completedCount: number; allHref: string }) {
+export function LearnHome({ featured, more, enrolledTitles, completedCount, allHref, why, aiExposureBand }: { featured: LearningPlanItem | null; more: LearningPlanItem[]; enrolledTitles: Set<string>; completedCount: number; allHref: string; why?: LearnWhy | null; aiExposureBand?: string | null }) {
   return (
     <>
       <PageHeader title="Skills and courses" intro="The few courses that would do the most for your search. Each one says why." />
@@ -25,8 +27,9 @@ export function LearnHome({ featured, more, enrolledTitles, completedCount, allH
           <p className="max-w-2xl text-base text-ink">
             <span className="font-semibold">Why:</span> {featured.rationale ?? featured.description}
           </p>
+          {why && <LearnWhyFirst why={why} />}
           <p className="text-sm text-muted-foreground">{meta(featured)}</p>
-          <CourseLink href={featured.url} partnerName={providerName(featured)} title={featured.title} slot="featured" hasReason={!!featured.rationale} className={PRIMARY}>
+          <CourseLink href={featured.url} partnerName={providerName(featured)} title={featured.title} slot="featured" hasReason={!!featured.rationale} aiExposureBand={aiExposureBand} className={PRIMARY}>
             {enrolledTitles.has(featured.title) ? 'Keep going' : 'Start the course'}
           </CourseLink>
         </section>

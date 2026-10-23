@@ -29,7 +29,7 @@ export async function PayChangeCard() {
       <div>
         <p className="text-sm font-semibold text-foreground">What a career change may do to your pay</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Among full-time workers displaced in 2023 to 2025 who found work again, about {REFERENCE_STATS.fullTimeReemployedEarningAsMuchOrMorePct}% earn as much or
+          Among full-time workers who lost a job in 2023 to 2025 who found work again, about {REFERENCE_STATS.fullTimeReemployedEarningAsMuchOrMorePct}% earn as much or
           more than before, which means about half earn less. Pay depends heavily on field, level and how you are hired, so treat the ranges
           below as a starting point, not a prediction.
         </p>
@@ -48,7 +48,7 @@ export async function PayChangeCard() {
         })}
       </div>
       <p className="text-xs text-muted-foreground">
-        Source for the full-time figure: {REFERENCE_STATS.source}. Ranges come from published studies of displaced workers and career changers and are
+        Source for the full-time figure: {REFERENCE_STATS.source}. Ranges come from published studies of workers who lost jobs and career changers and are
         marked low confidence until verified against the originals.
       </p>
     </div>

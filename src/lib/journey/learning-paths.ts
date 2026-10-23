@@ -31,7 +31,7 @@ export type PathInput = {
   pivot: PivotDetails | null
   career: CareerDetails | null
   skillsToBuild: string[]
-  aiDisplaced: boolean
+  aiJobLoss: boolean
   boardInterest: boolean
   seniorLevel?: boolean
   ownedFunctions?: string[]
@@ -120,7 +120,7 @@ export function deriveLearningPaths(input: PathInput): LearningPath[] {
       steps: [step(id, 1, `Pick one course in ${label} and finish it`, 'learn', 10), step(id, 2, `Use ${label} on a real piece of work`, 'build', 8), step(id, 3, 'Ask someone who knows it for feedback', 'talk')],
     })
   }
-  if (input.aiDisplaced) {
+  if (input.aiJobLoss) {
     const id = 'ai-outlook'
     paths.push({
       id, goalKind: 'AI', goal: 'Stay valuable as AI changes your field', source: 'implied', because: 'You said AI had a part in your last role.', title: 'Hold up against AI',

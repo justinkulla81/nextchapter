@@ -66,7 +66,7 @@ export interface PartnerInput {
 /** Same values as college-score.ts CONTACT_POINTS. */
 const CONTACT_POINTS = { hot: 25, warm: 20, any: 5 } as const
 
-/** How directly this kind of body can act on a displaced professional (0-1). */
+/** How directly this kind of body can act on a laid-off professional (0-1). */
 const KIND_MISSION: Record<PartnerKind, { v: number; why: string }> = {
   WIOA_BOARD: { v: 1.0, why: 'Dislocated-worker services and Rapid Response are statutory for a local board' },
   STATE_BOARD: { v: 0.8, why: 'Sets state policy and funds Rapid Response, but delivery is local' },

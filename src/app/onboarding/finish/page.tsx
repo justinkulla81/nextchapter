@@ -9,14 +9,24 @@ import { progressOf } from '@/lib/onboarding/progress'
 import { prefilledAnswers } from '@/lib/onboarding/prefilled'
 import { finishGains, nextOptionalQuestion } from '@/lib/onboarding/finish'
 import { computeMatchState } from '@/lib/personalization/match-compute'
+import { loadScanStatus } from '@/lib/onboarding/scan-counts'
+import { prisma } from '@/lib/prisma'
+import { ScanFound } from '@/components/onboarding/bundles/ScanFound'
 
 // The finish screen of the short question bundles: what the member gained, and one optional next question.
 // The one navy block on the page is the reveal; everything else is plain.
-export default async function FinishPage() {
+export default async function FinishPage({ searchParams }: { searchParams: Promise<{ tracking?: string }> }) {
   const profile = await getCandidateProfileForUser()
-  if (profile.registrationCompletedAt) redirect('/dashboard')
   if (flowOfProfile(profile) !== 'bundles') redirect('/onboarding')
   if (!progressOf(profile.journeyDetails).completed.includes('coach')) redirect('/onboarding')
+  // The payoff comes after the Google step, which is what creates the account.
+  if (!profile.registrationCompletedAt) redirect('/onboarding')
+
+  const { tracking } = await searchParams
+  const [scan, hasResume] = await Promise.all([
+    loadScanStatus(profile.id),
+    prisma.resume.count({ where: { candidateId: profile.id, looksLikeResume: { not: false } } }).then((n) => n > 0),
+  ])
 
   const journey = effectiveJourney(profile)
   // Today's jobs against the saved answers. If counting fails the gain is simply left out, never faked.
@@ -41,6 +51,8 @@ export default async function FinishPage() {
         </h1>
       </div>
 
+      <ScanFound initial={scan} tracking={tracking === 'on' || tracking === 'pending' || tracking === 'off' ? tracking : null} />
+
       <Module title="What changed for you" tone="dark">
         <ul className="space-y-4">
           {gains.map((g) => (
@@ -55,7 +67,7 @@ export default async function FinishPage() {
         </ul>
       </Module>
 
-      <FinishActions question={nextOptionalQuestion({ networkComfortLevel: profile.networkComfortLevel, searching })} continueLabel="See my starting grade" />
+      <FinishActions question={nextOptionalQuestion({ networkComfortLevel: profile.networkComfortLevel, searching })} continueLabel={hasResume ? 'See my starting grade' : 'Continue'} />
     </div>
   )
 }

@@ -9,7 +9,7 @@ import {
 // O*NET Web Services v2 — Interest Profiler short form (60 questions).
 // Auth is an X-API-Key header; the key lives in ONET_API_KEY and never
 // reaches the browser. Endpoint shape follows the v2 docs
-// (https://services.onetcenter.org/reference/mnm/interest_profiler).
+// (https://services.onetcenter.org/reference/mnm/interestprofiler).
 const BASE_URL = 'https://api-v2.onetcenter.org'
 
 // The question bank is static, so cache it a day rather than hit O*NET on
@@ -56,7 +56,7 @@ export async function fetchInterestQuestions(): Promise<InterestQuestion[]> {
   let res: Response
   try {
     res = await fetch(
-      `${BASE_URL}/mnm/interest_profiler/questions?start=1&end=${INTEREST_QUESTION_COUNT}`,
+      `${BASE_URL}/mnm/interestprofiler/questions?start=1&end=${INTEREST_QUESTION_COUNT}`,
       {
         headers: { 'X-API-Key': key, Accept: 'application/json' },
         next: { revalidate: REVALIDATE_SECONDS },

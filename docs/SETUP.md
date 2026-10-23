@@ -44,6 +44,12 @@ All in `.env.local` (never committed — check `.gitignore`). Every variable act
 - `DATABASE_URL` — pooled connection string (used at runtime)
 - `DIRECT_URL` — direct (non-pooled) connection string (used for migrations)
 
+**Simplified onboarding (`ONBOARDING_BUNDLES=on`)**
+- Flow: questions, résumé (required for unemployed journeys and `?goal=market-reality` arrivals, otherwise skippable and prompted on Home), then one required "Continue with Google" step that creates the account and connects Gmail and Calendar.
+- Add `https://candidate.launchyournextchapter.com/api/auth/join/callback` (the candidate host, where the session cookie lives) to the Google OAuth client's authorised redirect URIs. Needs `SUPABASE_SERVICE_ROLE_KEY`.
+- Lead-gen and campaign links for the Market Reality must end in `?goal=market-reality`, or the résumé step is skippable.
+- Until Google approves the app, only allow-listed testers get Gmail tracking; others are marked pending and the admin is notified.
+
 **Supabase**
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`

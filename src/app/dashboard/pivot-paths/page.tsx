@@ -35,6 +35,9 @@ import { PivotRoleDetail } from '@/components/dashboard/pivot/PivotRoleDetail'
 import { OccupationChooser } from '@/components/dashboard/pivot/OccupationChooser'
 import { WageFloorButtons } from '@/components/dashboard/pivot/WageFloorButtons'
 import { PivotViewTracker } from '@/components/dashboard/pivot/PivotViewTracker'
+import { ExposureShownTracker } from '@/components/dashboard/pivot/ExposureShownTracker'
+import { exposureFor, type OccupationExposure } from '@/lib/skills/ai-exposure'
+import { loadCandidateExposure, loadExposureMap } from '@/lib/skills/ai-exposure-server'
 import { RoleLookup } from '@/components/dashboard/pivot/RoleLookup'
 import { ClearCareerChoicesForm } from '@/components/dashboard/pivot/ClearCareerChoicesForm'
 import { OnetAttribution } from '@/components/OnetAttribution'
@@ -47,7 +50,6 @@ import { setTargetFunction } from './actions'
 import { isPivotingProfile, pivotTargetOf } from '@/lib/journey/pivot-target'
 import { PIVOT_PARTS, parsePivotPart, pivotPartHref, transferFacts, type PivotPart } from '@/lib/journey/pivot-parts'
 import { AdzunaAttribution } from '@/components/market/AdzunaAttribution'
-import { CareerOneStopCredit } from '@/components/attribution/CareerOneStopCredit'
 
 export const metadata: Metadata = { title: 'Pivot paths' }
 
@@ -347,14 +349,25 @@ async function PivotPathsBody({ profile, params }: { profile: Awaited<ReturnType
       <p className="text-xs text-muted-foreground">
         Job counts come from the live NextChapter job board at a level you could realistically land, refreshed nightly. Trends compare each
         role&apos;s share of new postings with the period before, and appear once there is enough history. Pay is the typical posted salary
-        where enough jobs list one. Layoff notices are state WARN filings across all employers. Long-term outlook and median wages are national BLS figures (Employment Projections and OEWS) via CareerOneStop, refreshed yearly. What O*NET lists for each kind of work, and paths marked as related by O*NET, come from O*NET Web Services, refreshed yearly.
+        where enough jobs list one. Layoff notices are state WARN filings across all employers. Long-term outlook and median wages are national figures from the U.S. Bureau of Labor Statistics{' '}
+        <a href="https://www.bls.gov/emp/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+          Employment Projections
+        </a>{' '}
+        and{' '}
+        <a href="https://www.bls.gov/oes/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+          Occupational Employment and Wage Statistics
+        </a>
+        , refreshed yearly. Bright Outlook marks come from{' '}
+        <a href="https://www.onetonline.org/find/bright" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+          O*NET OnLine
+        </a>{' '}
+        (CC BY 4.0). What O*NET lists for each kind of work, and paths marked as related by O*NET, come from O*NET Web Services, refreshed yearly.
       </p>
-      <CareerOneStopCredit surface="pivot_paths_page" />
     </div>
   )
 }
 
-type SkillsLayer = { details: Record<string, { socCode: string; node: React.ReactNode }>; sections: React.ReactNode }
+type SkillsLayer = { details: Record<string, { socCode: string; node: React.ReactNode; exposure?: OccupationExposure | null }>; sections: React.ReactNode }
 
 // Everything O*NET and BLS add to the market-ranked list: a "what it takes" section on each path,
 // the roles that use similar skills but aren't on the curated map, and a lookup for any role. Empty
@@ -412,6 +425,9 @@ async function buildSkillsLayer({
   const stateLabel = profile.currentState ?? 'near you'
 
   // The curated options and the role-lookup search are independent reads.
+  const [exposureMap, currentExposure] = await Promise.all([loadExposureMap(), loadCandidateExposure(profile.id)])
+  const exposureOf = (socCode: string) => exposureFor(socCode, exposureMap)
+  const trackedExposure = currentExposure ?? exposureOf(depth.sourceSoc)
   const [curated, candidates] = await Promise.all([
     optionsForLabels(
       depth,
@@ -428,6 +444,7 @@ async function buildSkillsLayer({
   for (const [target, option] of curated) {
     details[target] = {
       socCode: option.socCode,
+      exposure: exposureOf(option.socCode),
       node: (
         <PivotRoleDetail
           option={option}
@@ -437,6 +454,8 @@ async function buildSkillsLayer({
           tasks={tasksBySoc.get(option.socCode) ?? []}
           currentTarget={profile.targetRoleType}
           showLocalOpenings={false}
+          exposure={exposureOf(option.socCode)}
+          currentExposure={currentExposure}
         />
       ),
     }
@@ -453,6 +472,8 @@ async function buildSkillsLayer({
       stateLabel={stateLabel}
       stateCode={depth.stateCode}
       tasks={tasksBySoc.get(option.socCode) ?? []}
+      exposure={exposureOf(option.socCode)}
+      currentExposure={currentExposure}
     />
   )
 
@@ -460,6 +481,7 @@ async function buildSkillsLayer({
     details,
     sections: (
       <>
+        {trackedExposure && <ExposureShownTracker soc6={trackedExposure.soc6} band={trackedExposure.band} />}
         <PivotViewTracker sourceSoc={depth.sourceSoc} optionCount={similar.length} wageFloor={wageFloor} source={depth.source} />
 
         <section id="similar-skills" className="scroll-mt-20 space-y-3" aria-labelledby="similar-skills-heading">

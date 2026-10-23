@@ -32,7 +32,7 @@ const BASE: S[] = [
   ['about', 'Opening', 'bullets', {
     title: 'Who we are', kicker: 'Background',
     bullets: [
-      'NextChapter is the leading job transition platform for laid-off and displaced white-collar workers.',
+      'NextChapter is the leading job transition platform for laid-off white-collar workers.',
       'It pairs each person with a coach and a recruiter, and gives employers a hiring portal.',
       'We publish the NextChapter White Collar Employment Report each month, with the method and code open.',
     ],
@@ -145,6 +145,78 @@ const wioaSlide = (who: string, bullets: string[], extra: Patch = {}): Patch => 
 })
 const WIOA_STAT = 'The program is flat and trains about 1 in 5. Its typical outcomes are pitched at middle-wage jobs.'
 const WIOA_NOTE = 'WIOA slide: Individual Training Account and on-the-job training use is set by each board\'s own policy and state guidance, so confirm it with the board before presenting. The geo data has no board program-year counts; add the board\'s own served and trained numbers to the slide if you have them, and never show a zero.'
+
+// ── benefits, relocation and AI retraining slides (added 2026-10-22) ────────
+// Shared by every customer type except recruiters. Figures were checked against
+// each program's own page on 2026-10-22 where noted; programs change often, so
+// the review note tells the presenter to reconfirm before sending.
+const BENEFITS_NOTE = 'Benefits, relocation and AI-training slides: program amounts, dates and eligibility were checked on 2026-10-22 and change often. Reconfirm each against the program\'s own page before presenting. Third-party lists (MakeMyMove, news roundups) disagree on some amounts, so quote the official page.'
+const BENEFITS_SOURCE = 'Program pages checked 2026-10-22: tulsaremote.com, ascendwv.com, dol.gov (Make America AI-Ready, Rapid Reskill grants), Kentucky Chamber Foundation, RAISE US launch coverage. Federal and state programs: WIOA, Workforce Pell, state UI and ACA marketplace rules.'
+const BENEFIT_SLIDES: Spec['extra'] = [
+  ['solution', 'b-benefits', {
+    title: 'What a laid-off professional can draw on', kicker: 'Money and benefits most people never claim',
+    bullets: [
+      'Unemployment insurance, then Dislocated Worker training money (WIOA). It has no income test for laid-off workers.',
+      'Health coverage: a 60-day marketplace enrollment window, and Medicaid and CHIP that count current monthly income.',
+      'Food, energy and child care help that looks at this month\'s income, not last year\'s salary.',
+      'Tax moves in a low-income year, penalty-free IRA withdrawals for health premiums after 12 weeks of unemployment, and hospital charity care.',
+      'NextChapter maps each person to what applies to them in {{area}} and walks them through claiming it.',
+    ],
+    source: BENEFITS_SOURCE,
+    why: 'Most laid-off professionals assume they qualify for nothing. This slide shows the value of the benefits map and why {{org}} should want it for its people. No prices.',
+  }],
+  ['cost', 'b-relocation', {
+    title: 'Other regions pay your talent to leave', kicker: 'The cost of a layoff that ends in a move',
+    bullets: [
+      'Tulsa Remote pays $10,000. Ascend West Virginia pays $12,000 over two years. Dozens of towns pay $5,000 to $15,000 to remote-capable professionals.',
+      'A professional with no local landing spot is exactly who these programs recruit.',
+      'Keeping people in {{area}} means giving them a faster path to a local role, plus the local help they can claim.',
+      'NextChapter ranks local jobs first and reports how many people stayed in the region.',
+    ],
+    source: BENEFITS_SOURCE,
+    why: 'Turns relocation incentives from a curiosity into the reason the stay-local feature matters. Amounts are from the programs\' own pages; reconfirm before presenting.',
+  }, { section: 'Problem' }],
+  ['b-benefits', 'b-ai', {
+    title: 'Money and programs for AI retraining', kicker: 'Where reskilling dollars are coming from',
+    bullets: [
+      'Federal: the Labor Department\'s free Make America AI-Ready course (text READY to 20202) and Rapid Reskill dislocated-worker grants for AI-related layoffs, announced August 2026.',
+      'WIOA training vouchers and Workforce Pell for short programs, both usable for approved AI and data courses.',
+      'Private: RAISE US has raised more than $500 million toward $1 billion for AI-era retraining, wage insurance and career transitions, starting in AR, CT, MD and UT.',
+      'Free vendor training: Google AI Essentials (about six hours, free through Goodwill) and Microsoft Elevate.',
+      'NextChapter points each person to the course and the funding that fit their role.',
+    ],
+    source: BENEFITS_SOURCE,
+    why: 'Shows {{org}} that AI reskilling has real money behind it and that NextChapter routes people to it. Rapid Reskill award sizes are not public; do not quote a dollar figure.',
+  }],
+  ['a-faq', 'p-relocation', {
+    title: 'Appendix: relocation incentives that could pull your people away', kicker: 'Appendix', appendix: true,
+    bullets: [], source: BENEFITS_SOURCE,
+    why: 'Data-driven from the Benefits catalog (CRM > Benefits): verified, open programs, this state first. Dropped automatically when the catalog has none.',
+  }, { section: 'Appendix' }],
+  ['p-relocation', 'p-training', {
+    title: 'Appendix: retraining, tuition and federal programs', kicker: 'Appendix', appendix: true,
+    bullets: [], source: BENEFITS_SOURCE,
+    why: 'Data-driven from the Benefits catalog: state retraining and tuition programs for this state, then federal ones.',
+  }, { section: 'Appendix' }],
+  ['p-training', 'p-free', {
+    title: 'Appendix: free courses, AI funds and professional help', kicker: 'Appendix', appendix: true,
+    bullets: [], source: BENEFITS_SOURCE,
+    why: 'Data-driven from the Benefits catalog: free courses and certificates, AI and philanthropic funds, profession-specific help.',
+  }, { section: 'Appendix' }],
+  ['p-free', 'b-kentuckiana', {
+    title: 'Appendix: what this looks like in Kentuckiana', kicker: 'Appendix', appendix: true,
+    bullets: [
+      'Work Ready Kentucky Scholarship: up to 60 credit hours tuition-free for Kentuckians without an associate degree, in approved fields that include professional, scientific and technical services.',
+      'Kentucky Chamber Foundation Small Business B(AI)sics: free AI training for small business owners, with an in-person session at One Louisville on November 18.',
+      'Louisville\'s own remote-worker relocation offer is closed. Nearby, Perry County, Indiana pays $7,000 and eastern Kentucky\'s SOAR pays $5,000, so people can leave the region for money.',
+      'Rapid Response through the Kentucky Career Center is free to workers when an employer files a WARN notice.',
+      'Replace this slide with the same map for your own region.',
+    ],
+    onlyStates: ['KY', 'IN'],
+    source: 'Kentucky Chamber Foundation, MakeMyMove program pages, Work Ready Kentucky Scholarship pages. Checked 2026-10-22.',
+    why: 'Appears automatically in decks for an area in Kentucky or Indiana (One Louisville, KentuckianaWorks); other states and generic decks never see it. Confirm each amount before presenting.',
+  }, { section: 'Appendix' }],
+]
 
 const SPEC: Record<CustomerType, Spec> = {
   // ───────────────────────────── Higher education ─────────────────────────────
@@ -475,15 +547,16 @@ const SUGGESTED: Record<CustomerType, string[]> = {
   OUTPLACEMENT_EMPLOYER: ['Justin Kulla (presenter)', 'The CHRO or head of HR (their side)', 'The local workforce board director (their side; Rapid Response)'],
 }
 
-function build(spec: Spec): SlideRule[] {
+/** 'compact' keeps only the benefits slide in the main deck (Higher Ed is at the length cap); the rest go to the appendix. */
+function build(spec: Spec, benefits: 'full' | 'compact' | 'none' = 'full'): SlideRule[] {
   const rules: SlideRule[] = BASE.map(([id, section, kind, p]) => ({
     id, section, kind, enabled: true, title: '', bullets: [], ...p, ...(spec.patches[id] ?? {}), ...(spec.off?.includes(id) ? { enabled: false } : {}),
   }))
   // insert per-type extra slides after the slide they name, in order
-  for (const [after, id, patch, opts] of spec.extra) {
+  for (const [after, id, patch, opts] of [...spec.extra, ...(benefits === 'none' ? [] : BENEFIT_SLIDES.map(([a, i, pt, o]): [string, string, Patch, ExtraOpts?] => benefits === 'compact' && i !== 'b-benefits' && !i.startsWith('p-') ? [a, i, { ...pt, appendix: true }, { ...o, section: 'Appendix' }] : [a, i, pt, o]))]) {
     const i = rules.findIndex((r) => r.id === after)
     const at = i < 0 ? rules.findIndex((r) => r.id === 'solution') : i
-    const kind: SlideRule['kind'] = opts?.kind ?? (id.startsWith('d-') ? 'demo' : id.startsWith('f-') ? 'funding' : 'bullets')
+    const kind: SlideRule['kind'] = opts?.kind ?? (id.startsWith('d-') ? 'demo' : id.startsWith('f-') ? 'funding' : id.startsWith('p-') ? 'benefits' : 'bullets')
     const section: SlideRule['section'] = opts?.section ?? (patch.appendix ? 'Appendix' : 'Solution')
     rules.splice(at + 1, 0, { id, section, kind, enabled: true, title: '', bullets: [], ...patch })
   }
@@ -494,6 +567,6 @@ export function defaultRuleSet(type: CustomerType): RuleSet {
   const s = SPEC[type]
   return {
     type, label: CUSTOMER_LABELS[type], buyer: s.buyer, angle: s.angle, tone: s.tone, ask: s.ask,
-    offer: s.offer, packages: s.packages, reviewNotes: s.reviewNotes ?? [], suggestedPeople: SUGGESTED[type], slides: build(s),
+    offer: s.offer, packages: s.packages, reviewNotes: [...(s.reviewNotes ?? []), ...(type !== 'RECRUITER' ? [BENEFITS_NOTE] : [])], suggestedPeople: SUGGESTED[type], slides: build(s, type === 'RECRUITER' ? 'none' : type === 'HIGHER_ED' ? 'compact' : 'full'),
   }
 }

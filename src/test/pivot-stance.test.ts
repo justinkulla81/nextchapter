@@ -42,7 +42,7 @@ describe('thinking about a change is not a commitment', () => {
     expect(searchableTargets(details)).toEqual([])
     expect(activeTargets(details)).toEqual([])
     expect(details.targets).toHaveLength(1)
-    expect(deriveLearningPaths({ from: 'Finance', pivot: details, career: null, skillsToBuild: [], aiDisplaced: false, boardInterest: false })).toEqual([])
+    expect(deriveLearningPaths({ from: 'Finance', pivot: details, career: null, skillsToBuild: [], aiJobLoss: false, boardInterest: false })).toEqual([])
     const back = mergeTarget(aside, buildTarget('Finance', 'Design', {}, t2), t2)
     expect(stanceOf(back)).toBe('WONDERING')
     expect(back.since).toBe(t0.toISOString())

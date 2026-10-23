@@ -7,6 +7,7 @@ import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
 import { CrmCollegeProfile } from '@/components/admin/CrmCollegeProfile'
+import { CrmOrgContext } from '@/components/admin/CrmOrgContext'
 import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrgBackgroundSections } from '@/components/admin/CrmOrgBackgroundSections'
@@ -652,6 +653,10 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             value={org.company ? <Link href={`/support/admin/companies/${org.company.id}`} className="underline">Open</Link> : null}
           />
         </dl>
+
+        <Suspense fallback={<section className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground" aria-busy="true">Account context is loading: pulling the latest unemployment, layoffs, open jobs and local groups…</section>}>
+          <CrmOrgContext orgId={org.id} />
+        </Suspense>
 
         <CrmCollegeProfile orgId={org.id} />
 

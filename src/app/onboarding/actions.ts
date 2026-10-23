@@ -197,7 +197,7 @@ export async function updateLocationAndSearchStatus(
   const openToRelocation = formData.get('openToRelocation') === 'on'
   const relocationNotes = (formData.get('relocationNotes') as string | null)?.trim() || null
   const travelWillingness = formData.get('travelWillingness') === 'on'
-  const aiDisplacementReason = (formData.get('aiDisplacementReason') as string | null) || null
+  const aiJobLossReason = (formData.get('aiJobLossReason') as string | null) || null
 
   const intensityRaw = formData.get('searchIntensity') as string | null
   const searchIntensityPicked = INTENSITY_OPTIONS.find((o) => o.key === intensityRaw)?.key ?? null
@@ -276,7 +276,7 @@ export async function updateLocationAndSearchStatus(
       openToRelocation,
       relocationNotes: openToRelocation ? relocationNotes : null,
       travelWillingness,
-      aiDisplacementReason,
+      aiJobLossReason,
       onboardingLocationConfirmedAt: now,
       justStartedSearch: searching ? justStartedSearch : true,
       gapDuration: employed || !searching ? null : (gapDuration as GapDurationBucket),

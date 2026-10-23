@@ -1,0 +1,11 @@
+{
+  "vintages": [
+    {
+      "file": "vintages/exposure-2026-10-22.csv",
+      "sha256": "4f0a3adf5feeb2ec5f5d02ab18cc5e851a2a4b8470bde84c0c9335017be12d68",
+      "retrievedAt": "2026-10-22T00:00:00.000Z",
+      "rows": 756,
+      "source": "https://huggingface.co/datasets/Anthropic/EconomicIndex/resolve/main/labor_market_impacts/job_exposure.csv"
+    }
+  ]
+}

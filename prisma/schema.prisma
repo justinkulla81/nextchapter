@@ -1022,7 +1022,7 @@ model CandidateProfile {
   // Employer sectors the member turned off ('government' | 'nonprofit' | 'academia' |
   // 'private'): the board and every job email leave those jobs out. Empty = all on.
   hiddenEmployerSectors String[] @default([])
-  aiDisplacementReason  String? // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
+  aiJobLossReason       String?  @map("aiDisplacementReason") // "yes" | "partly" | "no" | "prefer_not_to_say" — optional, gently framed. Read by the weekly plan (aiOutlookItems in src/lib/journey/engagement.ts).
   equityImportant       Boolean  @default(false)
   dealBreakers          String?
 
@@ -10243,6 +10243,7 @@ enum CrmPersonRole {
   RECRUITER_PROSPECT
   HIRING_MANAGER // also covers the old CHRO_HR, folded in during the contact-type relabel
   OUTPLACEMENT_BUYER
+  CHRO // chief human resources / chief people officer — the head of HR for the whole company
   LEARNING_DEV_HEAD // head of learning and development (or talent/leadership development) at an employer we pitch
   POLICY_ANALYST // also covers the old ACADEMIC, folded in during the contact-type relabel
   ALUMNI_OFFICE // higher ed: alumni relations
@@ -10381,7 +10382,7 @@ enum CrmIntroPathStatus {
 }
 
 // Where a researcher's findings sit relative to the NextChapter thesis.
-// Always set by a human: a policy analyst whose work argues displacement is
+// Always set by a human: a policy analyst whose work argues AI job losses are
 // overstated is a RISK in a pitch meeting, not an asset, and inferring that
 // automatically is a way to walk in confidently wrong.
 enum CrmResearchStance {
@@ -10453,6 +10454,9 @@ model CrmOrganization {
   // one list without a join through opportunities. Opportunities carry their
   // own independent score.
   leadQuality        CrmLeadQuality @default(UNGRADED)
+  /// Who set the grade: 'AUTO' (the nightly grading job may raise it), 'ADMIN' (set by hand,
+  /// never touched). Null = not graded yet, or graded before this column and so treated as hand-set.
+  leadQualitySetBy   String?
   priorityScore      Float          @default(0)
   priorityOverride   Int? // 0-100; wins over the computed score when set
   priorityComputedAt DateTime?
@@ -14371,7 +14375,7 @@ model PivotMarketStat {
 model PayChangeBenchmark {
   id           String            @id @default(cuid())
   pathType     PivotPathType
-  group        String // e.g. 'long-tenured displaced workers', 'occupation switchers'
+  group        String // e.g. 'long-tenured laid-off workers', 'occupation switchers'
   lowPct       Float
   highPct      Float
   medianPct    Float?
@@ -14452,6 +14456,32 @@ model FundingOpportunity {
   @@unique([source, externalId])
   @@index([closesAt])
   @@index([audience, eligibility])
+}
+
+// Relocation incentives, retraining funds, grants, dividends and free courses for
+// laid-off professionals. Applied by hand: prisma/manual/benefit-programs.sql.
+model BenefitProgram {
+  id          String    @id
+  category    String
+  name        String
+  provider    String?
+  scope       String    @default("NATIONAL")
+  state       String?
+  locality    String?
+  amount      String?
+  eligibility String?
+  status      String    @default("UNKNOWN")
+  statusNote  String?
+  url         String?
+  segments    String[]  @default([])
+  verified    Boolean   @default(false)
+  checkedAt   DateTime?
+  source      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  @@index([category, state])
+  @@index([status])
 }
 
 // History of journey and stage changes, newest last: what changed, from what,
@@ -15753,6 +15783,16 @@ model OccupationWage {
   @@index([areaType, areaCode])
 }
 
+// Anthropic Economic Index "observed exposure" per 6-digit SOC (labor market impacts report, 2026-03-05): of the tasks
+// an LLM could speed up, how much already sees automated AI use at work. 0 = no observed use yet, not "safe".
+// CC-BY: always credit "Anthropic Economic Index". SQL: prisma/manual/2026-10-22-occupation-ai-exposure.sql.
+model OccupationAiExposure {
+  soc6             String @id
+  title            String
+  observedExposure Float
+  release          String
+}
+
 // What a job does day to day: O*NET task statements, Core tasks first.
 model OccupationTask {
   id         String     @id @default(cuid())
@@ -16312,6 +16352,9 @@ model LinkedInAdminConnection {
   accessToken    String    @db.Text
   personUrn      String
   memberName     String?
+  /// The company page posts go out as (urn:li:organization:...), found when the admin connects the page. Null until then.
+  organizationUrn  String?
+  organizationName String?
   expiresAt      DateTime
   connectedAt    DateTime  @default(now())
   disconnectedAt DateTime?

@@ -89,7 +89,7 @@ export const GAP_DURATION_LABELS: Record<GapDurationBucket, string> = {
 // can feel loaded right after a job loss. Not yet wired into any
 // downstream guidance — stored as a data point for now, same as
 // travelWillingness.
-export const AI_DISPLACEMENT_OPTIONS = [
+export const AI_JOB_LOSS_OPTIONS = [
   { value: 'yes', label: 'Yes, directly' },
   { value: 'partly', label: 'Partly' },
   { value: 'no', label: 'Not that I know of' },

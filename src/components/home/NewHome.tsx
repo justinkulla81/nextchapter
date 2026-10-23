@@ -4,7 +4,9 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { HomeTryIt } from '@/components/home/HomeTryIt'
 import { HomeLearnMore } from '@/components/home/HomeLearnMore'
 import { AiJobsStat } from '@/components/marketing/AiJobsStat'
+import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { Suspense } from 'react'
+import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
 // The redesigned homepage (docs/candidate-redesign.md page contract): one headline, one
 // primary action, three sections (hero, jobs, what you get), then a row for everyone who
@@ -49,7 +51,7 @@ export function NewHome() {
           and tailors every step to you.
         </p>
         <div className="mt-8">
-          <TrackedLink href="/onboarding/desire" event="homepage_cta_clicked" properties={{ cta: 'hero_assessment' }} className={action}>
+          <TrackedLink href={MARKET_REALITY_START_HREF} event="homepage_cta_clicked" properties={{ cta: 'hero_assessment' }} className={action}>
             Get your Market Reality Assessment
           </TrackedLink>
         </div>
@@ -78,6 +80,10 @@ export function NewHome() {
 
       <Suspense fallback={null}>
         <AiJobsStat />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <AiExposureSection page="home" cta={{ event: 'homepage_cta_clicked', properties: { cta: 'ai_exposure_assessment' }, className: action }} />
       </Suspense>
 
       <HomeLearnMore />

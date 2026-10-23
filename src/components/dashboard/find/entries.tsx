@@ -16,6 +16,9 @@ import type { SkillsFit } from '@/lib/careers/skills-fit'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import type { EmployerSignals } from '@/lib/jobs/great-employer-display'
 import type { JobBenefits } from '@/lib/jobs/benefits'
+import { exposureFor, type ExposureMap } from '@/lib/skills/ai-exposure'
+import { jobAiView } from '@/lib/jobs/job-ai-view'
+import type { AiMarketData } from '@/lib/skills/ai-market'
 import { FindJobDetail } from '@/components/dashboard/find/FindJobDetail'
 import { FindSurfacedDetail } from '@/components/dashboard/find/FindSurfacedDetail'
 
@@ -48,8 +51,13 @@ export function boardEntry(a: {
   candidatePlus: boolean
   /** Changing careers or early career: the welcome tag wins the row's one fact (posting-signals.ts). */
   signalLift?: boolean
+  /** The Anthropic Economic Index scores, loaded once for the page (ai-exposure-server.ts), never per row. */
+  exposureMap?: ExposureMap
+  /** The live AI pay comparison, loaded once for the page. */
+  aiMarket?: AiMarketData | null
 }): FindEntry {
   const { posting } = a
+  const exposure = a.exposureMap ? exposureFor(posting.socCode, a.exposureMap) : null
   const signal = postingSignalTag(posting.postingSignals, { lift: !!a.signalLift })
   const confidential = posting.disclosure === 'CONFIDENTIAL'
   const workType = classifyWorkType(posting)
@@ -71,6 +79,7 @@ export function boardEntry(a: {
       signalFirst: !!signal && tagTakesHintSlot(signal, !!a.signalLift),
     }),
     signal,
+    exposure,
   })
   const nextStep = nextStepFor({
     blocker: a.match.requirements.find((r) => r.status === 'blocker')?.label ?? null,
@@ -101,6 +110,8 @@ export function boardEntry(a: {
         matchReason={a.matchReason}
         bridge={a.bridge}
         candidatePlus={a.candidatePlus}
+        exposure={exposure}
+        ai={jobAiView(posting, a.aiMarket)}
       />
     ),
   }

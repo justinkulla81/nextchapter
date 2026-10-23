@@ -152,7 +152,7 @@ Financial services, healthcare, industrial and manufacturing, technology, life s
 
 | Learner | Starting point | What they need | Best course shape |
 |---|---|---|---|
-| Displaced professional retraining | 10+ years in a function, out of work, often long search | Credible, current evidence in their own function fast; not a new career | Function course (6 to 8 h) plus a finished work sample, delivered in a 2 to 4 week cohort |
+| Laid-off professional retraining | 10+ years in a function, out of work, often long search | Credible, current evidence in their own function fast; not a new career | Function course (6 to 8 h) plus a finished work sample, delivered in a 2 to 4 week cohort |
 | New worker / entry-level | Student or recent graduate, no portfolio | AI as a visible working skill plus 2 or 3 samples employers can open | Foundations plus a launch lab, sold through the college |
 | Career changer | Experienced in one function, entering another | The function's AI practices and vocabulary | A function course in the target function with a bridge module |
 | Current employee | Employed, employer is adopting AI | Role-specific practice inside their company's approved tools | Function course, employer-branded, 2 to 4 weeks, manager track alongside |
@@ -161,7 +161,7 @@ Financial services, healthcare, industrial and manufacturing, technology, life s
 
 Rows are the proposed courses (section 6). Columns: the posting signal behind the course, the Anthropic Economic Index reading from section 3 (mean observed exposure of the course's occupations), and the learner types it fits. "Demand" is rated from the data in sections 2 and 3 where a number exists; the rating itself is **[Judgment]**.
 
-| # | Course | Postings behind it [Data] | Index exposure [Data] | Demand | Displaced | New worker | Changer | Employee |
+| # | Course | Postings behind it [Data] | Index exposure [Data] | Demand | Laid off | New worker | Changer | Employee |
 |---|---|---|---|---|:-:|:-:|:-:|:-:|
 | 1 | AI foundations for working professionals | Tool use is the top ask in 18 of 21 functions | n/a | Strongest | ● | ● | ● | ● |
 | 2 | AI-ready launch (new workers) | 177 paid entry postings, 34 ask; [Report] entry-gate evidence | 30% entry or early in exposed occupations | Strong on [Report], thin on [Data] | | ● | | |
@@ -206,7 +206,7 @@ All function courses share one spine so the template is built once: (1) the AI s
 
 ### 3. AI in finance and accounting
 
-- **Learner:** accountants, FP&A, controllers, analysts; the largest pool of displaced white-collar finance workers we reach.
+- **Learner:** accountants, FP&A, controllers, analysts; the largest pool of laid-off white-collar finance workers we reach.
 - **Outcome:** produces a variance commentary, a reconciliation check, and a month-end narrative with an AI assistant in spreadsheet and Copilot workflows, and documents what a reviewer must verify.
 - **Prerequisite:** Course 1; working knowledge of financial statements.
 - **Length and format:** 6 hours self-paced, or a 3-week cohort with a review session.
@@ -296,7 +296,7 @@ All function courses share one spine so the template is built once: (1) the AI s
 
 ### 12. AI in office, administrative and customer-support roles
 
-- **Learner:** administrative assistants, office and records clerks, customer service and support staff, medical records and transcription staff; displaced or at risk of search, and new workers entering these roles.
+- **Learner:** administrative assistants, office and records clerks, customer service and support staff, medical records and transcription staff; laid off or facing a long search, and new workers entering these roles.
 - **Outcome:** drafts correspondence, summarizes calls and tickets, handles scheduling and data cleanup with an assistant, and states what a person must still check or decide.
 - **Prerequisite:** none beyond Course 1.
 - **Length and format:** 6 hours self-paced, or a 2-week cohort.
@@ -352,7 +352,7 @@ On the leading job transition platform the member profile records each work samp
 7. **Automated-decision rules.** Course 7 touches NYC Local Law 144 and similar rules, and the AI review is member-only until counsel has looked at them (`docs/AI_SKILLS.md`). Same counsel pass for both.
 8. **Ownership of the course.** Under course development the buyer owns and runs the course. Decide in advance whether we keep the right to reuse the shared template and Course 1 core across buyers. Without it, Waves 3 to 5 cost much more.
 9. **Capacity.** At 100 to 180 hours per build, two concurrent builds is roughly 6 to 10 working weeks of one person for Waves 1 and 2. Any additional hour sold must fit that.
-10. **Anthropic Economic Index limits.** Observed exposure measures Claude usage only, weights it by an early-2023 estimate of which tasks a model could speed up, and covers August and November 2025 usage. Anthropic states it is not a forecast of job loss. Our match depends on the crawler's O*NET codes, which are not audited, and 23,728 live postings sit on codes the index does not list. Cite it as a measure of where usage is, never as evidence that AI caused or will cause a loss of jobs, and attribute it to Anthropic. The folder is MIT-licensed per the dataset page; confirm the terms before republishing the numbers outside this document.
+10. **Anthropic Economic Index limits.** Observed exposure measures Claude usage only, weights it by an early-2023 estimate of which tasks a model could speed up, and covers August and November 2025 usage. Anthropic states it is not a forecast of job loss. Our match depends on the crawler's O*NET codes, which are not audited, and 23,728 live postings sit on codes the index does not list. Cite it as a measure of where usage is, never as evidence that AI caused or will cause a loss of jobs, and attribute it to Anthropic. The dataset page states the data is CC BY and the code MIT (the labor-market folder shows an MIT badge), and `data/aei/README.md` records it as CC BY, so attribute Anthropic wherever the numbers are republished.
 11. **Our board under-represents the most exposed clerical and service roles** (173 Customer Service Representative, 22 Data Entry and 1 Medical Transcriptionist live postings). Retraining need for those audiences cannot be sized from our data.
 12. **Placeholder prices.** Nothing here sets a price. The $15,000 to $40,000 development range and $150 to $400 per participant range in `docs/AI_COURSE_DEVELOPMENT.md` are still unverified placeholders.
 
@@ -422,7 +422,7 @@ Total for the eight: about 760 to 1,030 hours. This replaces the earlier plan of
 
 **Source.** The production `Course` table, 2026-10-22: 93 active courses, all links to other providers' pages (we author none). 40 AI training (10 beginner, 13 intermediate, 17 advanced as labeled), 24 certifications, 17 function courses, 8 business skills, 4 speaking. Three graders opened every link (one fetch, one retry) and recorded what the page shows. I re-checked the dead links myself with a direct request: 12 are confirmed dead or gone.
 
-**Grade scale.** **A**: verified current, credible provider, hands-on or assessed, fits our learners as labeled. **B**: good with a named weakness (usually level or hours). **C**: weak, generic, dated, or a poor fit for mid-career professionals, displaced workers and new workers. **D**: the listing is wrong (dead link, wrong course, misdescribed). **U**: could not be opened. A D grade is about our listing, not the quality of the course behind it. Grades describe fit for our general learner; the developer courses graded C are a good fit for the Software and IT track.
+**Grade scale.** **A**: verified current, credible provider, hands-on or assessed, fits our learners as labeled. **B**: good with a named weakness (usually level or hours). **C**: weak, generic, dated, or a poor fit for mid-career professionals, laid-off workers and new workers. **D**: the listing is wrong (dead link, wrong course, misdescribed). **U**: could not be opened. A D grade is about our listing, not the quality of the course behind it. Grades describe fit for our general learner; the developer courses graded C are a good fit for the Software and IT track.
 
 | | A | B | C | D | U | Total |
 |---|---:|---:|---:|---:|---:|---:|
@@ -695,7 +695,7 @@ Reading it: finance is a manager-heavy track (Financial Managers alone are 14,24
 
 | Signal | Sources (reachable to a plain request on 2026-10-23 unless noted) | Method | Model call? |
 |---|---|---|---|
-| Our own job data | The nightly `AiMarketSnapshot`: a tool newly in a function's top eight, a skill item rising | Compare this month to last | No |
+| Our own job data | The nightly `AiMarketSnapshot`: a tool newly in a function's top eight, a skill item rising. The monthly Anthropic exposure comparison already built in `data/aei/` (`npm run aei:report`, see `docs/AEI_SECTION.md`): an occupation whose exposure moved | Compare this month to last | No |
 | Link health of every catalog course | Every URL in the `Course` table | Status, redirect, title change, price and free-flag drift | No |
 | Vendor tools and models | Anthropic release notes (https://platform.claude.com/docs/en/release-notes/overview), Google Gemini API changelog (https://ai.google.dev/gemini-api/docs/changelog), Microsoft 365 Copilot release notes (https://learn.microsoft.com/en-us/copilot/microsoft-365/release-notes). OpenAI's help-center release notes returned 403 to a plain request, so OpenAI is a manual source until a feed is found | Hash the page, read only what changed | Yes, on changed pages |
 | Vendor news and best practice | https://www.anthropic.com/news, https://blog.google/technology/ai/, DeepLearning.AI The Batch (https://www.deeplearning.ai/the-batch/) | Same | Yes |

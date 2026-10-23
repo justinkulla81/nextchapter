@@ -21,7 +21,8 @@ import {
 import { likesFit, workFit, type Likes, type WorkProfile } from '@/lib/profile/work-profile'
 import { strengthNotes, type StrengthKeys } from '@/lib/profile/strengths'
 import { aiOutlookForRole, type AiOutlook } from '@/lib/profile/ai-outlook'
-import { outlookForRole, outlookLine, outlookMultiplier } from './occupation-outlook'
+import { outlookForRole, outlookLine, outlookMultiplier, ROLE_SOC } from './occupation-outlook'
+import { cycleLineForSoc } from './occupation-cycle'
 import { ONET_EDGE_MIN_OPEN, edgesFor, onetGaps, type OnetGaps } from './onet'
 
 // ── Inputs ──────────────────────────────────────────────────────────────────
@@ -145,8 +146,8 @@ export interface PivotSuggestion {
   gaps: { label: string; way: string; example: string }[]
   demand: Demand
   pay: PayChange
-  /** National long-term outlook (BLS projections via CareerOneStop) when one SOC occupation stands for the role. */
-  outlook: { line: string; occupation: string; medianWage: number | null; wageYear: string | null } | null
+  /** National long-term outlook (BLS Employment Projections and OEWS wages) when one SOC occupation stands for the role. */
+  outlook: { line: string; occupation: string; medianWage: number | null; wageYear: string | null; cycle: string | null } | null
   /** Why personality moved this path, in plain words, when it did. */
   personalityNote: string | null
   /** How the role suits how the member likes to work (work profile): what matches and what clashes. */
@@ -574,7 +575,7 @@ export function rankPivots(member: MemberPivotInput, ctx: MarketContext): PivotP
       gaps,
       demand,
       pay,
-      outlook: occ ? { line: outlookLine(occ), occupation: occ.title, medianWage: occ.medianWage, wageYear: occ.wageYear } : null,
+      outlook: occ ? { line: outlookLine(occ), occupation: occ.title, medianWage: occ.medianWage, wageYear: occ.wageYear, cycle: cycleLineForSoc(ROLE_SOC[target.key]) } : null,
       personalityNote: tilt.note,
       workFits: wf?.fits ?? [],
       workClashes: wf?.clashes.map((c) => c.line) ?? [],

@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { notifyAdminOfCandidateLogin } from '@/lib/email/send-admin-candidate-login'
+import { creditWeeklyLogin } from '@/lib/weekly/login-credit'
 
 // Collapses repeated dashboard page loads within one sitting into a single
 // login event — getDashboardProfile runs on every candidate page request, but a
@@ -27,6 +28,10 @@ export async function recordCandidateLoginIfDue(
     await prisma.candidateLoginEvent.create({
       data: { candidateId, ip, userAgent },
     })
+
+    // Showing up is the first step: a small once-a-week credit toward the weekly plan. A
+    // failure here must never stop the admin login notification below.
+    await creditWeeklyLogin(candidateId).catch((error) => console.error('Failed to credit weekly login:', error))
 
     // Awaited (not fire-and-forget) — this whole function runs inside
     // next/server's after(), which only keeps the process alive until the

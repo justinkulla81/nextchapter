@@ -213,4 +213,4 @@ Only questions that apply are asked. Culture details are asked only when someone
 
 ## Collected outside the spine
 
-Optional answers that drive something but are not asked as a spine question: `aiDisplacementReason` (adds an AI outlook step to the plan), `travelWillingness` (job matching) and `biggestBarriers` (the report and rewrite actions).
+Optional answers that drive something but are not asked as a spine question: `aiJobLossReason` (adds an AI outlook step to the plan), `travelWillingness` (job matching) and `biggestBarriers` (the report and rewrite actions).

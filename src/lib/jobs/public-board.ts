@@ -2,6 +2,9 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { classifyLocation } from '@/lib/jobs/us-location'
+import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
+import { isPublicJob } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
 
 // The homepage job board: an anonymous, unpersonalized search over the same live
 // board members see. No fit score, no ranking by who you are — newest first, then
@@ -25,6 +28,8 @@ export interface PublicBoardJob {
   salaryMin: number | null
   salaryMax: number | null
   url: string
+  /** Our public page for the job (/jobs/[id]) when it has one (public-job-page.ts), else null. */
+  pagePath: string | null
 }
 
 export interface PublicBoardResult {
@@ -103,11 +108,16 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
   const usRows = rows.filter((r) => classifyLocation(r.location) !== 'non_us')
   const approxTotal = roundCount(Math.round(total * (usRows.length / rows.length)))
 
-  const wide = await prisma.exclusiveJobPosting.findMany({
-    where: { id: { in: usRows.map((r) => r.id) }, disclosure: 'OPEN' },
-    select: { id: true, url: true },
-  })
+  const [wide, ghosts] = await Promise.all([
+    prisma.exclusiveJobPosting.findMany({
+      where: { id: { in: usRows.map((r) => r.id) }, disclosure: 'OPEN' },
+      select: PUBLIC_JOB_SELECT,
+    }),
+    getConfirmedGhostIds(),
+  ])
+  const nowMs = Date.now()
   const urlById = new Map(wide.map((w) => [w.id, w.url]))
+  const publicIds = new Set(wide.filter((w) => isPublicJob(w, nowMs, ghosts.has(w.id))).map((w) => w.id))
 
   const jobs: PublicBoardJob[] = []
   for (const r of usRows) {
@@ -122,6 +132,7 @@ export async function searchPublicBoard(query: PublicBoardQuery): Promise<Public
       salaryMin: r.salaryMin,
       salaryMax: r.salaryMax,
       url,
+      pagePath: publicIds.has(r.id) ? `/jobs/${r.id}` : null,
     })
     if (jobs.length === PUBLIC_BOARD_PAGE_SIZE) break
   }

@@ -3,6 +3,9 @@ import { growthPhrase, type MarketPrompt } from '@/lib/market/market-size'
 import type { MarketSizeView } from '@/lib/market/market-size-server'
 import { aiMarketLine } from '@/lib/skills/ai-skill-market'
 import type { AiMarketData } from '@/lib/skills/ai-market'
+import type { AiAtWork } from '@/lib/skills/ai-at-work'
+import { JobsByExposure } from '@/components/candidate/AiExposure'
+import { ExposureShown } from '@/components/candidate/ExposureShown'
 
 /** Board search results this many or more: too many to work through. */
 export const SEARCH_TOO_MANY = 500
@@ -23,10 +26,13 @@ export function MarketSizeBlock({
   searchCount,
   searchQuery,
   aiMarket,
+  aiAtWork,
 }: {
   view: MarketSizeView
   /** The live AI market snapshot (ai-market-live.ts); the static Oct 16 numbers when null. */
   aiMarket?: AiMarketData | null
+  /** Search strategy only: the split of openings in the target field by observed AI exposure. It replaces the "AI skills" line there. */
+  aiAtWork?: AiAtWork | null
   surface: 'board_search' | 'search_strategy' | 'market_reality'
   /** On the board: the search's result count, which decides the prompt there. */
   searchCount?: number
@@ -38,7 +44,8 @@ export function MarketSizeBlock({
   const open = view.relevant?.count ?? view.counts.openNow
   const growth = growthPhrase(view.growth)
   // One line from the AI-skills analysis for the target's function: share asking, and the premium raw and like-for-like.
-  const ai = aiMarketLine(view.target.fn, aiMarket)
+  const split = surface === 'search_strategy' ? (aiAtWork?.split ?? null) : null
+  const ai = split ? null : aiMarketLine(view.target.fn, aiMarket)
   const track = (step: string, area?: string) => ({ surface, prompt, step, area, target: view.target.label, openNow: open })
 
   const headline =
@@ -72,6 +79,16 @@ export function MarketSizeBlock({
           Target: {view.target.label}
           {searchQuery ? ` · search “${searchQuery}”` : ''}. {view.counts.openNow.toLocaleString()} open in this wider market; the trend compares its last 2 weeks with the 4 before.
         </p>
+        {split && aiAtWork && (
+          <div className="mt-3 space-y-2">
+            <ExposureShown surface={surface} {...aiAtWork.event} />
+            <p className="font-medium text-foreground">AI at work in your target field</p>
+            <JobsByExposure split={split} label="Openings in your target field by AI exposure" />
+            <TrackedLink href="/dashboard/learning" event="ai_exposure_learn_clicked" properties={{ surface, soc6: aiAtWork.event.soc6, band: aiAtWork.event.band, need: null, fn: view.target.fn }} className={LINK}>
+              Find AI courses
+            </TrackedLink>
+          </div>
+        )}
         {ai && (
           <p className="mt-1 text-xs text-muted-foreground">
             AI skills: {ai.text}{' '}

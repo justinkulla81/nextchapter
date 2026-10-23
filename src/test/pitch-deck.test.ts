@@ -47,7 +47,8 @@ describe('pitch rules', () => {
   it('shows no price anywhere and does not warn about one', () => {
     const deck = buildDeck({ rules: defaultRuleSet('HIGHER_ED'), brand, area: area() })
     expect(deck.warnings.some((w) => /price/i.test(w))).toBe(false)
-    const text = JSON.stringify(deck.slides.map((x) => ({ b: x.bullets, p: x.packages, o: x.offer, t: x.title })))
+    // b-* slides quote other organizations' grant amounts (relocation, training); they are not NextChapter prices.
+    const text = JSON.stringify(deck.slides.filter((x) => !x.id.startsWith('b-')).map((x) => ({ b: x.bullets, p: x.packages, o: x.offer, t: x.title })))
     expect(text).not.toMatch(/\$\d|per seat|pricing/i)
   })
   it('keeps the higher-ed confirm-what-is-live reminder as a warning', () => {
@@ -113,5 +114,13 @@ describe('deck colors', () => {
   it('leaves a readable color alone and rejects junk', () => {
     expect(ensureReadable('#2e7d5b')).toBe('#2e7d5b')
     expect(ensureReadable('not a color')).toBe('#2e7d5b')
+  })
+  it('shows the Kentuckiana benefits slide only for Kentucky and Indiana areas', () => {
+    const ky = buildDeck({ rules: defaultRuleSet('ECON_DEV'), brand, area: area() })
+    expect(ky.slides.some((x) => x.id === 'b-kentuckiana')).toBe(true)
+    const tx = buildDeck({ rules: defaultRuleSet('ECON_DEV'), brand, area: area({ state: 'TX', name: 'Travis County' }) })
+    expect(tx.slides.some((x) => x.id === 'b-kentuckiana')).toBe(false)
+    const generic = buildDeck({ rules: defaultRuleSet('ECON_DEV'), brand, area: null })
+    expect(generic.slides.some((x) => x.id === 'b-kentuckiana')).toBe(false)
   })
 })

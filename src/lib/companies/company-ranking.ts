@@ -350,7 +350,7 @@ export function industryTrendAdjustment(yoyPct: number | null): Adjustment | nul
 }
 
 // When the member's own area is under strain (rising unemployment, a heavy run
-// of local layoffs), a local opening is contested by more displaced workers.
+// of local layoffs), a local opening is contested by more laid-off workers.
 // Applies only to companies actually hiring in the member's metro.
 export function localStrainAdjustment(company: RankingCompany, candidate: RankingCandidate): Adjustment | null {
   if (candidate.localStress === 0 || !isLocalTo(company, candidate)) return null

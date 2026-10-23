@@ -94,3 +94,8 @@ SmartRecruiters, Jibe/iCIMS, Oracle, Taleo, UKG, NEOGOV, Phenom, Tyler, and the 
 employers want their openings found. A 403 on `www.<employer>` says nothing about the jobs. Try `careers.`, `jobs.`,
 `employment.` hosts and the job-system links on them (`scripts/jobsreport/career_site.py`), and follow the "Apply"
 links on the corporate careers page. Only call an employer unreadable after the career site and its job system were tried.
+
+## Onboarding flow
+
+The onboarding order is decided and final: `docs/onboarding-flow.md`. Any
+personalization, Home or dashboard work must fit it.

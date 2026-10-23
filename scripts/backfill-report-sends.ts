@@ -1,7 +1,7 @@
-// Records who got a White Collar Employment Report (published as the Displacement Report through Oct 12, 2026) by hand, for any edition.
+// Records who got a White Collar Employment Report by hand, for any edition.
 //
 // Scans outbound Gmail activity the CRM sync logged since --since (default
-// 2026-09-01) for emails you sent with a displacement-report-*.pdf
+// 2026-09-01) for emails you sent with a report PDF (earlier file-name prefix)
 // attachment or a launchyournextchapter.com/reports/... link, reads the
 // edition (YYYY-MM) off the attachment name or link, and records each
 // person as MANUAL for that edition so later editions' "already sent"
