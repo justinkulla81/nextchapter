@@ -172,3 +172,25 @@ describe('senior overlay', () => {
     expect(menuEntries(jobs, '/dashboard', { ...ctx('ACTIVE'), senior: { on: true, jobsRestored: true } })[0].label).toBe('Find a job')
   })
 })
+
+import { engagementFor, seniorOverlayFor } from '@/lib/journey/senior-overlay'
+
+describe('senior engagement in Home and Stats', () => {
+  const vp = { highestLevelReached: 'VP', resumeLatestJobTitle: 'VP Finance' }
+  const ic = { highestLevelReached: 'IC', resumeLatestJobTitle: 'Analyst' }
+  it('a senior member starts with points, streaks and daily prompts off', () => {
+    expect(engagementFor(vp)).toEqual({ points: false, streaks: false, dailyApplicationPrompts: false })
+  })
+  it('everyone else keeps them on', () => {
+    expect(engagementFor(ic)).toEqual({ points: true, streaks: true, dailyApplicationPrompts: true })
+  })
+  it('the switch wins both ways', () => {
+    expect(engagementFor({ ...ic, journeyDetails: { seniorTrack: { override: true } } }).points).toBe(false)
+    expect(engagementFor({ ...vp, journeyDetails: { seniorTrack: { override: false } } }).points).toBe(true)
+  })
+  it('restoring the job board turns them back on', () => {
+    const m = { ...vp, journeyDetails: { seniorTrack: { jobsRestored: true } } }
+    expect(seniorOverlayFor(m)).toEqual({ on: true, jobsRestored: true })
+    expect(engagementFor(m)).toEqual({ points: true, streaks: true, dailyApplicationPrompts: true })
+  })
+})

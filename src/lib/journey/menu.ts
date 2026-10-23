@@ -346,7 +346,8 @@ export function seniorPillarOrder(mode: MenuMode, overlay: SeniorOverlay): Pilla
 
 /** What the overlay turns off by default; each stays something the member can turn back on. */
 export function seniorEngagementDefaults(overlay: SeniorOverlay): { points: boolean; streaks: boolean; dailyApplicationPrompts: boolean } {
-  const on = !overlay.on
+  // Off while the overlay is on; restoring the job board brings them back too.
+  const on = !overlay.on || overlay.jobsRestored
   return { points: on, streaks: on, dailyApplicationPrompts: on }
 }
 
