@@ -10,38 +10,63 @@ A member has **one main focus** (`profile.journey`, 12 journeys) and any number 
 
 - The main journey alone sets the weekly plan's base, the menu mode and which emails go out
   (`notLookingNow`, `NOT_CASUAL_WHERE`, `menuMode`). Nothing about a parallel path changes those.
-- Each parallel path adds **at most one plan step** (`parallelPlanItems`) and **one card** on the page.
-- Full-time fractional work stays a journey (`FRACTIONAL`). Fractional work as a side line is one of the kinds of side work.
-- "Thinking about a new job" is a main journey (`EXPLORING_MOVE`), not a path. A member whose main focus is buying who
-  says "I'm ready to start applying" becomes `EXPLORING_MOVE` with buying kept as a path (nothing is lost, see below).
+- A path is **active only at researching or doing it**. Curious costs the plan and the page nothing.
+- Each active path adds **at most one plan step** (`parallelPlanItems`) and **one card**. Home says at most one thing, as it
+  always has; paths add no Home note.
+- Full-time fractional work stays a journey (`FRACTIONAL`). Fractional work as a side line is a path.
+- A new job is a main journey (`EXPLORING_MOVE`); it shows as a path only when the main journey is not a search.
+
+## What else are you thinking about?
+
+Asked once, in one short step on Your other paths: a new job, buying a business, starting a business, fractional or
+consulting work, side income or part-time, going back to school. Per item: curious, researching, doing it, or not thinking
+about it. **We do not re-ask what we know**, so these are derived and shown as known:
+
+| Path | Derived from |
+| --- | --- |
+| A new job | main journey is a search |
+| Buying a business | main journey is Buy a business, or a started buying plan (decide or prepare = researching; search or later = doing) |
+| Starting a business | main journey is Building something of my own, or "own business" in the side-work answer |
+| Fractional or consulting | main journey is fractional, or fractional or consulting in the side-work answer; `interimConsultingInterest` = researching |
+| Side income or part-time | part-time or 1099 in the side-work answer, `workingNow`, or side-work details |
+| Going back to school | "school or training" in the side-work answer |
+
+The member's own answer always beats a derived one. It is stored as `journeyDetails.paths.<key>.level`, beside that path's own
+answers. It is private; the coach sees "thinking about" with levels only where the member shared their search with that coach
+(the same check as the rest of the pre-session brief, `getCoachClient`). PostHog: `paths_interest_saved` with the levels.
+
+## How long could you go without new income?
+
+One question for every journey except full-time fractional, with four answers: a year or more, 6 to 12 months, 3 to 6 months,
+under 3 months. **Derived, not asked,** when `journeyDetails.cushionMonths` (saved on Career story) or an entrepreneur's
+`runwayMonths` exists. (The laid-off `monthlyNeed` is dollars a month, not months of cushion, so it cannot be turned into an
+answer without savings, which we do not store.) The member can still override it.
+
+| Answer | What the plan does |
+| --- | --- |
+| Under 3 months | Income first, in order: unemployment and benefits (laid off only), then contract, temp or part-time, then interim or fractional (a first client takes weeks) |
+| 3 to 6 months | One income step a week, alternating the quicker kind with interim or fractional (non-senior members always get the quicker kind) |
+| 6 months or more | No step. Interim and fractional work shows as an option on Your other paths |
+
+Not shown to full-time fractional members or anyone already earning on the side (any side-work kind, or "working now").
+Early-career members never see interim or fractional steps (the plan drops any step that says so) and get part-time and contract
+steps. The Buy plan's income note now comes from this answer instead of a general line.
 
 ## Where the data lives (no schema change)
 
 | What | Where |
 | --- | --- |
+| Level of each path | `journeyDetails.paths.<job, buy, start, fractional, side, school>.level` |
+| Side work: hours a week, monthly income, goal | `journeyDetails.paths.side` |
+| Kinds of side work | the existing `ParallelPath` table (Past jobs; read by the job board and coach brief) |
 | Buying a business: answers and stage | `journeyDetails.buy` (unchanged) |
-| Side work: hours a week, monthly income, goal | `journeyDetails.alongside.side` |
-| Kinds of side work (1099, fractional or interim, consulting, own business, part-time, training) | the existing `ParallelPath` table, first asked on Past jobs and read by the job board and the coach brief. One answer, one place. |
-| How soon income is needed | `journeyDetails.incomeNeed` (`now`, `soon`, `covered`) |
-| The journey they came from | `journeyDetails.alongside.previousMain`, set by `applyJourneyChange` on every journey change |
+| How long they could go without income | `journeyDetails.incomeNeed`, or derived |
+| The journey they came from | `journeyDetails.paths.previousMain`, set by `applyJourneyChange` |
 
-## What we ask, and what was already asked
+## Already asked, not repeated
 
-Already asked and not repeated: what they do alongside the search (Past jobs, `ParallelPath`); "working now"
-(`workingNow`); monthly need and severance and coverage dates for the laid off (`situation.ts`); financial pressures and
-"money help" (Finances and benefits); the runway calculator (savings and expenses, never stored).
-
-New, because nothing asked it: **How soon do you need income?** (within two months, three to six months, covered for six
-months or more). It is a situation question for every journey except full-time fractional, so it also appears in Account and
-privacy. And for side work: hours a week, about what it earns a month, and what it is for (cover bills, extra money, grow it
-into main work, test an idea).
-
-## When interim or fractional work is recommended
-
-Only when income is needed within six months (`now` strongest, `soon` lighter) **and** the member is not already earning that
-way (any of 1099, fractional or interim, consulting, part-time, or "working now") **and** their main journey is not full-time
-fractional. It shows as one plan step and one card with the reason. Early-career members never see it (the plan drops any step
-that says fractional or interim for them). Nothing is recommended to someone who is covered or has not answered.
+What they do alongside the search (Past jobs, `ParallelPath`); `workingNow`; `interimConsultingInterest`; monthly need and
+severance and coverage dates for the laid off; financial pressures and money help; the runway calculator (never stored).
 
 ## Money
 
@@ -58,12 +83,18 @@ previous one. Everything told about the other paths is kept. Settings in Account
 ## What it adds and removes
 
 Adds one Learn entry, "Your other paths" (the Buy a business entry now sits inside it as a second switch, so Learn has no more
-entries than before), one page, one question, and one plan step per active path. Adds nothing to Home: the steps appear in
+entries than before), one page, two questions, and one plan step per active path. Adds nothing to Home: the steps appear in
 the weekly plan Home already shows. Removes nothing.
+
+## For partnership conversations
+
+`pathInterestCounts` (`src/lib/journey/path-interest-counts.ts`) and `getPathInterestCounts` (`src/lib/admin/path-interest.ts`) return
+counts per path and level only, from members' own stated levels, real members only, nobody in Confidential Search Mode, and any
+cell under 10 members withheld. No rows, names or ids. Nothing goes to any outside party. There is no screen for it yet.
 
 ## Analytics (PostHog)
 
-`other_paths_viewed`, `income_need_saved`, `income_recommendation_clicked`, `side_work_saved`, `parallel_path_opened`,
+`paths_interest_saved` (levels, stated, activeCount), `other_paths_viewed`, `income_need_saved`, `income_recommendation_clicked`, `side_work_saved`, `parallel_path_opened`,
 `parallel_path_switched_main` (from, to, direction), plus the button events (`*_pressed`).
 
 ## Cost

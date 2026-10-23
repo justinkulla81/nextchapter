@@ -1,7 +1,6 @@
 import { PreviewShell } from '@/components/candidate/PreviewShell'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { OtherPathsView } from '@/components/dashboard/paths/OtherPathsView'
-import { activePaths } from '@/lib/journey/paths'
 
 // "Your other paths" as built (src/app/dashboard/other-paths/page.tsx), fed sample data.
 
@@ -18,10 +17,10 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 // Needs income soon, nothing alongside yet: the recommendation shows.
 export function OtherPathsNeedLive() {
-  const details = { incomeNeed: 'now' }
+  const details = { incomeNeed: 'under_3', paths: { job: { level: 'curious' } } }
   return (
     <Shell>
-      <OtherPathsView main="LAID_OFF" journeyDetails={details} kinds={[]} cards={activePaths({ main: 'LAID_OFF', journeyDetails: details, kinds: [] })} buyStarted={false} />
+      <OtherPathsView main="LAID_OFF" journeyDetails={details} kinds={[]} buyStarted={false} />
     </Shell>
   )
 }
@@ -29,14 +28,14 @@ export function OtherPathsNeedLive() {
 // Side work and a buying plan next to a job search, with a way back.
 export function OtherPathsBusyLive() {
   const details = {
-    incomeNeed: 'soon',
+    incomeNeed: '3_6',
     buy: { stage: 'search', why: 'income' },
-    alongside: { side: { hours: 6, income: 1500, goal: 'cover' }, previousMain: 'EXPLORING_MOVE' },
+    paths: { side: { level: 'doing', hours: 6, income: 1500, goal: 'cover' }, school: { level: 'curious' }, previousMain: 'EXPLORING_MOVE' },
   }
   const kinds = ['CONSULTING', 'FRACTIONAL']
   return (
     <Shell>
-      <OtherPathsView main="BUY_BUSINESS" journeyDetails={details} kinds={kinds} cards={activePaths({ main: 'BUY_BUSINESS', journeyDetails: details, kinds })} buyStarted />
+      <OtherPathsView main="BUY_BUSINESS" journeyDetails={details} kinds={kinds} buyStarted />
     </Shell>
   )
 }

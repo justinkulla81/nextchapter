@@ -16,7 +16,8 @@ export default async function OtherPathsPage() {
   const profile = await getDashboardProfile()
   const kinds = await getParallelPaths(profile.id)
   const main = effectiveJourney(profile)
-  const cards = activePaths({ main, journeyDetails: profile.journeyDetails, kinds })
+  const workingNow = workingNowOf(profile.journeyDetails)
+  const cards = activePaths({ main, journeyDetails: profile.journeyDetails, kinds, workingNow, interimInterest: profile.interimConsultingInterest })
   const buyStarted = hasBuyDetails(profile.journeyDetails)
   after(() =>
     captureServerEvent(profile.id, 'other_paths_viewed', { main, paths: cards.map((c) => c.key), incomeNeed: incomeNeedOf(profile.journeyDetails), kinds: kinds ?? [], buyStarted }),
@@ -27,7 +28,7 @@ export default async function OtherPathsPage() {
         title="Your other paths"
         intro="Side work, buying a business, fractional work on the side. Your main focus keeps your weekly plan, and each path here adds one step."
       />
-      <OtherPathsView main={main} journeyDetails={profile.journeyDetails} kinds={kinds} cards={cards} workingNow={workingNowOf(profile.journeyDetails)} buyStarted={buyStarted} />
+      <OtherPathsView main={main} journeyDetails={profile.journeyDetails} kinds={kinds} workingNow={workingNow} interimInterest={profile.interimConsultingInterest} buyStarted={buyStarted} />
     </div>
   )
 }

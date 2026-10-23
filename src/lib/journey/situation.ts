@@ -6,7 +6,7 @@
 
 import type { JourneyType } from '@prisma/client'
 import { RETIREMENT_INCOME, RETIREMENT_PATHS, retirementPlanItems } from './retirement'
-import { INCOME_NEED_OPTIONS, incomePlanItem, sideIncomeOf } from './paths'
+import { INCOME_NEED_OPTIONS, incomePlanItems, sideIncomeOf } from './paths'
 
 const ALL_JOURNEYS: readonly JourneyType[] = ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT', 'TIME_OFF', 'FRACTIONAL', 'ENTREPRENEUR', 'BUY_BUSINESS']
 
@@ -25,7 +25,7 @@ export const SITUATION_FIELDS: readonly SituationField[] = [
     key: 'incomeNeed',
     // Not full-time fractional members: their plan already runs on clients and a pipeline.
     journeys: ALL_JOURNEYS.filter((j) => j !== 'FRACTIONAL'),
-    label: 'How soon do you need income?',
+    label: 'How long could you go without new income?',
     kind: 'choice',
     options: INCOME_NEED_OPTIONS,
   },
@@ -99,16 +99,15 @@ const weeksText = (days: number) => (days <= 7 ? 'about a week' : `${Math.round(
 
 export type SituationPlanItem = { text: string; actionType?: string }
 
-export function situationPlanItems(journey: JourneyType | null, details: unknown, opts: { fn?: string | null; now?: Date; kinds?: readonly string[] | null } = {}): SituationPlanItem[] {
+export function situationPlanItems(journey: JourneyType | null, details: unknown, opts: { fn?: string | null; now?: Date; kinds?: readonly string[] | null; senior?: boolean } = {}): SituationPlanItem[] {
   if (!journey) return []
   const d = (details ?? {}) as Record<string, unknown>
   const now = opts.now ?? new Date()
   const daysTo = (key: string) => (typeof d[key] === 'string' && DATE.test(d[key] as string) ? Math.ceil((new Date(`${d[key]}T12:00:00Z`).getTime() - now.getTime()) / DAY) : null)
   const num = (key: string) => (typeof d[key] === 'number' ? (d[key] as number) : null)
   const out: SituationPlanItem[] = []
-  // How soon they need income: interim or fractional work, unless they already earn that way.
-  const income = incomePlanItem({ details: d, main: journey, kinds: opts.kinds, workingNow: d.workingNow === true })
-  if (income) out.push(income)
+  // How long they could go without income: what comes first, by their answer, unless they already earn that way.
+  out.push(...incomePlanItems({ details: d, main: journey, kinds: opts.kinds, workingNow: d.workingNow === true, now, senior: opts.senior }))
   const hours = num('hoursAvailable')
   if (hours !== null && hours <= 3) out.push({ text: `You have about ${hours} hours a week: do only the first two steps this week and leave the rest` })
   if (journey === 'NEXT_ACT') {

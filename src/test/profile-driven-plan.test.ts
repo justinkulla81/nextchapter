@@ -68,7 +68,7 @@ describe('situation facts', () => {
   it('every fact belongs to a journey and is read by a plan step', () => {
     const sample: Record<string, string | number> = {
       hoursAvailable: 2, boardExperience: 'NONE', boardSectors: 'health', clientCount: 0, returnHours: 'PART', monthlyNeed: 6000,
-      runwayMonths: 3, incomeNeed: 'now', retirementPath: 'PHASED', retirementIncome: 'SOME', noticeWeeks: 6, breakMonths: 18, dayRate: 1500, hoursPerWeek: 20,
+      runwayMonths: 3, incomeNeed: 'under_3', retirementPath: 'PHASED', retirementIncome: 'SOME', noticeWeeks: 6, breakMonths: 18, dayRate: 1500, hoursPerWeek: 20,
     }
     const detailsFor = (k: string) => {
       const f = SITUATION_FIELDS.find((x) => x.key === k)!

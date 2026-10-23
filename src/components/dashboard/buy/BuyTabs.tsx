@@ -39,11 +39,11 @@ const KIND_ORDER: MarketplaceKind[] = ['marketplace', 'aggregator', 'brokers', '
 
 // ── Your plan ────────────────────────────────────────────────────────────────
 
-export function PlanTab({ details, stage, started, main, gapsCount, hasSide = false }: { details: BuyDetails; stage: BuyStageKey; started: boolean; main: boolean; gapsCount: number; hasSide?: boolean }) {
+export function PlanTab({ details, stage, started, main, gapsCount, hasSide = false, incomeNeed = null }: { details: BuyDetails; stage: BuyStageKey; started: boolean; main: boolean; gapsCount: number; hasSide?: boolean; incomeNeed?: string | null }) {
   const s = getBuyStage(stage)
   const reach = buyReach(details)
   const next = missingBuyFields(details).slice(0, 3)
-  const why = whyNote(details, { hasSide })
+  const why = whyNote(details, { hasSide, incomeNeed })
   const hard = hardPartsToPlanFor(details, { hasSide })
   return (
     <div className="space-y-10">

@@ -9,9 +9,10 @@ import { createClient } from '@/lib/supabase/server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { effectiveJourney, getJourney } from '@/lib/journey/journey'
-import { INCOME_NEED_OPTIONS, SWITCHABLE_MAIN, parseSideInput, previousMainOf, sideDetailsOf } from '@/lib/journey/paths'
+import { INCOME_NEED_OPTIONS, SWITCHABLE_MAIN, askableInterests, effectiveLevelsOf, mergeInterestLevels, mergeSideDetails, parseInterestInput, parseSideInput, previousMainOf } from '@/lib/journey/paths'
 import { buyDetailsOf, journeyStageForBuyStage } from '@/lib/journey/buy-business'
 import { getParallelPaths, saveParallelPaths } from '@/lib/job-reviews/data'
+import { workingNowOf } from '@/lib/journey/intensity'
 
 const PAGE = '/dashboard/other-paths'
 
@@ -30,7 +31,8 @@ function refresh() {
   revalidatePath('/dashboard/buy-a-business')
 }
 
-// How soon the member needs income. Asked once, for every journey; it drives whether interim or fractional work is suggested.
+// How long the member could go without new income. Asked once, for every journey (and not at all when we already know from a
+// saved cushion); it decides how much of the plan is income and whether interim or fractional work is suggested.
 export async function saveIncomeNeed(formData: FormData): Promise<void> {
   const profile = await currentProfile()
   const need = String(formData.get('incomeNeed') ?? '')
@@ -38,7 +40,7 @@ export async function saveIncomeNeed(formData: FormData): Promise<void> {
   const details = { ...((profile.journeyDetails as Record<string, unknown> | null) ?? {}), incomeNeed: need }
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { journeyDetails: details as Prisma.InputJsonValue } })
   const kinds = await getParallelPaths(profile.id)
-  captureServerEvent(profile.id, 'income_need_saved', { need, main: effectiveJourney(profile), alreadyEarning: (kinds ?? []).length > 0 })
+  captureServerEvent(profile.id, 'income_need_saved', { need, main: effectiveJourney(profile), alreadyEarning: (kinds ?? []).length > 0, source: 'asked' })
   refresh()
 }
 
@@ -48,8 +50,8 @@ export async function saveSideWork(formData: FormData): Promise<void> {
   const kinds = await saveParallelPaths(profile.id, formData.getAll('kind').map(String))
   const parsed = parseSideInput({ hours: String(formData.get('hours') ?? ''), income: String(formData.get('income') ?? ''), goal: String(formData.get('goal') ?? '') })
   const existing = (profile.journeyDetails as Record<string, unknown> | null) ?? {}
-  const alongside = { ...((existing.alongside as Record<string, unknown> | undefined) ?? {}), side: { ...sideDetailsOf(existing), ...parsed } }
-  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { journeyDetails: { ...existing, alongside } as Prisma.InputJsonValue } })
+  const paths = mergeSideDetails(existing, parsed)
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { journeyDetails: { ...existing, paths } as Prisma.InputJsonValue } })
   captureServerEvent(profile.id, 'side_work_saved', { kinds, kindCount: kinds.length, hours: parsed.hours ?? null, income: parsed.income ?? null, goal: parsed.goal ?? null, main: effectiveJourney(profile) })
   refresh()
 }
@@ -82,5 +84,28 @@ export async function switchMainFocus(formData: FormData): Promise<void> {
   } else {
     return
   }
+  refresh()
+}
+
+// "What else are you thinking about?": one level per thing (curious, researching, doing it) or "not thinking about it".
+// Asked once, only about what we do not already know. A path is active only at researching or doing it.
+export async function savePathInterests(formData: FormData): Promise<void> {
+  const profile = await currentProfile()
+  const kinds = await getParallelPaths(profile.id)
+  const signals = { main: effectiveJourney(profile), journeyDetails: profile.journeyDetails, kinds, workingNow: workingNowOf(profile.journeyDetails), interimInterest: profile.interimConsultingInterest }
+  const askable = new Set(askableInterests(signals))
+  const raw: Record<string, string | undefined> = {}
+  for (const [k, v] of formData.entries()) if (typeof v === 'string') raw[k] = v
+  const parsed = Object.fromEntries(Object.entries(parseInterestInput(raw)).filter(([k]) => askable.has(k as never)))
+  const existing = (profile.journeyDetails as Record<string, unknown> | null) ?? {}
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { journeyDetails: { ...existing, paths: mergeInterestLevels(existing, parsed) } as Prisma.InputJsonValue } })
+  const after = effectiveLevelsOf({ ...signals, journeyDetails: { ...existing, paths: mergeInterestLevels(existing, parsed) } })
+  captureServerEvent(profile.id, 'paths_interest_saved', {
+    levels: after,
+    stated: parsed,
+    count: Object.keys(after).length,
+    activeCount: Object.values(after).filter((l) => l === 'researching' || l === 'doing').length,
+    main: signals.main,
+  })
   refresh()
 }

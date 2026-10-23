@@ -1,69 +1,247 @@
-// Parallel paths: what a member does alongside their main focus. A member has ONE main journey
-// (profile.journey: it alone sets the weekly plan's base, the menu and which emails go out) and any
-// number of paths next to it: buying a business, side or part-time work, fractional work as a side
-// line. A path never changes the main journey's plan except by adding at most ONE step each, so the
-// plan never balloons (see parallelPlanItems). Pure and client-safe.
+// Parallel paths: what a member is thinking about or doing next to their main focus. A member has ONE main
+// journey (profile.journey: it alone sets the weekly plan's base, the menu and which emails go out) and any
+// number of paths beside it. A path costs the plan nothing until it is active (researching or doing it, never
+// merely curious) and then adds at most ONE step (parallelPlanItems). Pure and client-safe.
 //
-// Where things live:
-//   journeyDetails.buy            the Buy a business intake and stage (src/lib/journey/buy-business.ts)
-//   journeyDetails.alongside.side hours, monthly income and goal for side work (below)
-//   journeyDetails.alongside.previousMain  the journey the member was on before the current one
-//   journeyDetails.incomeNeed     how soon they need income (every journey; asked once)
-//   ParallelPath table            which kinds of side work they do (contract, fractional, part-time, ...),
-//                                 first asked on Past jobs and read by the job board (src/lib/job-reviews)
+// Where things live (no schema change):
+//   journeyDetails.paths.<key>.level   curious | researching | doing, for job, buy, start, fractional, side, school
+//   journeyDetails.paths.side          hours, monthly income and goal for side work, beside its level
+//   journeyDetails.paths.previousMain  the journey the member was on before the current one
+//   journeyDetails.buy                 the Buy a business intake and stage (src/lib/journey/buy-business.ts)
+//   journeyDetails.incomeNeed          how long they could go without new income (derived when we already know)
+//   ParallelPath table                 which kinds of side work they do (contract, fractional, part-time, ...),
+//                                      first asked on Past jobs and read by the job board and the coach brief
 //
-// Full-time fractional work stays a journey (FRACTIONAL). Fractional work as a side line is one of the
-// kinds in the ParallelPath answer.
+// Full-time fractional work stays a journey (FRACTIONAL). Fractional work as a side line is a path.
+// Nothing here goes to anyone outside the product. Aggregates, when counted, are per path and level with a floor
+// of ten members (./path-interest-counts.ts).
 
 import type { JourneyType } from '@prisma/client'
 import { buyDetailsOf, getBuyStage, hasBuyDetails, type BuyStageKey } from './buy-business'
+import { getJourney } from './journey'
 
 export type PathPlanItem = { text: string; actionType?: string }
 
-// ── How soon do you need income? ─────────────────────────────────────────────
+const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
+const pathsOf = (details: unknown): Record<string, unknown> => {
+  const p = (details as { paths?: unknown } | null)?.paths
+  return isObj(p) ? p : {}
+}
+
+// ── What else are you thinking about? ────────────────────────────────────────
+
+export const INTEREST_KEYS = ['job', 'buy', 'start', 'fractional', 'side', 'school'] as const
+export type InterestKey = (typeof INTEREST_KEYS)[number]
+
+export const INTEREST_LABELS: Record<InterestKey, string> = {
+  job: 'A new job',
+  buy: 'Buying a business',
+  start: 'Starting a business',
+  fractional: 'Fractional or consulting work',
+  side: 'Side income or part-time work',
+  school: 'Going back to school',
+}
+
+export const INTEREST_LEVELS = [
+  { value: 'curious', label: 'Curious' },
+  { value: 'researching', label: 'Researching' },
+  { value: 'doing', label: 'Doing it' },
+] as const
+export type InterestLevel = (typeof INTEREST_LEVELS)[number]['value']
+export const isInterestLevel = (v: unknown): v is InterestLevel => INTEREST_LEVELS.some((l) => l.value === v)
+
+/** Researching or doing it: the only levels that put a step in the plan or a card on the page. */
+export const isActiveLevel = (l: InterestLevel | undefined): boolean => l === 'researching' || l === 'doing'
+
+export type InterestLevels = Partial<Record<InterestKey, InterestLevel>>
+
+/** What the member said themselves, from journeyDetails.paths.<key>.level. */
+export function statedLevelsOf(journeyDetails: unknown): InterestLevels {
+  const p = pathsOf(journeyDetails)
+  const out: InterestLevels = {}
+  for (const k of INTEREST_KEYS) {
+    const v = p[k]
+    if (isObj(v) && isInterestLevel(v.level)) out[k] = v.level
+  }
+  return out
+}
+
+export type LevelSignals = {
+  main: JourneyType | null
+  journeyDetails: unknown
+  /** The ParallelPath answer (kinds of side work). */
+  kinds?: readonly string[] | null
+  workingNow?: boolean
+  /** profile.interimConsultingInterest */
+  interimInterest?: boolean
+}
+
+const has = (kinds: readonly string[] | null | undefined, ...k: string[]) => (kinds ?? []).some((x) => k.includes(x))
+
+/** What we already know without asking: from the main journey, a started buying plan, side-work answers and flags. */
+export function derivedLevelsOf(s: LevelSignals): InterestLevels {
+  const out: InterestLevels = {}
+  if (s.main && getJourney(s.main).searching) out.job = 'doing'
+  if (s.main === 'BUY_BUSINESS') out.buy = 'doing'
+  else if (hasBuyDetails(s.journeyDetails)) {
+    const stage = buyDetailsOf(s.journeyDetails).stage ?? 'decide'
+    out.buy = stage === 'decide' || stage === 'prepare' ? 'researching' : 'doing'
+  }
+  if (s.main === 'ENTREPRENEUR' || has(s.kinds, 'OWN_BUSINESS')) out.start = 'doing'
+  if (s.main === 'FRACTIONAL' || has(s.kinds, 'FRACTIONAL', 'CONSULTING')) out.fractional = 'doing'
+  else if (s.interimInterest) out.fractional = 'researching'
+  if (has(s.kinds, 'PART_TIME', 'CONTRACT_1099') || s.workingNow || hasSideDetails(s.journeyDetails)) out.side = 'doing'
+  if (has(s.kinds, 'TRAINING')) out.school = 'doing'
+  return out
+}
+
+/** The member's own answer wins over what we derived. */
+export function effectiveLevelsOf(s: LevelSignals): InterestLevels {
+  return { ...derivedLevelsOf(s), ...statedLevelsOf(s.journeyDetails) }
+}
+
+/** The interests still worth asking about: not the main journey's own path and not already known. */
+export function askableInterests(s: LevelSignals): InterestKey[] {
+  const known = derivedLevelsOf(s)
+  const own: Partial<Record<JourneyType, InterestKey>> = { BUY_BUSINESS: 'buy', FRACTIONAL: 'fractional', ENTREPRENEUR: 'start' }
+  const mainOwn = s.main ? own[s.main] : undefined
+  return INTEREST_KEYS.filter((k) => !known[k] && k !== mainOwn)
+}
+
+/** A form's answers (one level or "none" per interest) made safe. Unknown keys and values are dropped. */
+export function parseInterestInput(raw: Record<string, string | undefined>): Partial<Record<InterestKey, InterestLevel | 'none'>> {
+  const out: Partial<Record<InterestKey, InterestLevel | 'none'>> = {}
+  for (const k of INTEREST_KEYS) {
+    const v = raw[`level_${k}`]
+    if (v === 'none' || isInterestLevel(v)) out[k] = v
+  }
+  return out
+}
+
+/** The paths object to store: levels set or cleared, every other answer (side work, previous main) kept. */
+export function mergeInterestLevels(journeyDetails: unknown, input: Partial<Record<InterestKey, InterestLevel | 'none'>>): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...pathsOf(journeyDetails) }
+  for (const k of INTEREST_KEYS) {
+    const v = input[k]
+    if (!v) continue
+    const cur = isObj(next[k]) ? { ...(next[k] as Record<string, unknown>) } : {}
+    if (v === 'none') delete cur.level
+    else cur.level = v
+    if (Object.keys(cur).length) next[k] = cur
+    else delete next[k]
+  }
+  return next
+}
+
+// ── How long could you go without new income? ────────────────────────────────
 
 export const INCOME_NEED_OPTIONS = [
-  { value: 'now', label: 'Within two months' },
-  { value: 'soon', label: 'In three to six months' },
-  { value: 'covered', label: 'I am covered for six months or more' },
+  { value: 'year', label: 'A year or more' },
+  { value: '6_12', label: '6 to 12 months' },
+  { value: '3_6', label: '3 to 6 months' },
+  { value: 'under_3', label: 'Under 3 months' },
 ] as const
 
 export type IncomeNeed = (typeof INCOME_NEED_OPTIONS)[number]['value']
 
-export function incomeNeedOf(details: unknown): IncomeNeed | null {
-  const v = (details as { incomeNeed?: unknown } | null)?.incomeNeed
-  return INCOME_NEED_OPTIONS.some((o) => o.value === v) ? (v as IncomeNeed) : null
+export function incomeNeedFromMonths(months: number): IncomeNeed {
+  return months >= 12 ? 'year' : months >= 6 ? '6_12' : months >= 3 ? '3_6' : 'under_3'
 }
 
-export type IncomeRecommendation = { title: string; because: string; href: string; label: string }
+const monthsIn = (details: unknown, key: string): number | null => {
+  const v = (details as Record<string, unknown> | null)?.[key]
+  return typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 600 ? v : null
+}
+
+/** What we already know about how long they could go: a saved cushion, or an entrepreneur's runway. */
+export function derivedIncomeNeed(details: unknown): IncomeNeed | null {
+  const m = monthsIn(details, 'cushionMonths') ?? monthsIn(details, 'runwayMonths')
+  return m === null ? null : incomeNeedFromMonths(m)
+}
+
+/** The member's answer if they gave one, otherwise what we can derive. */
+export function incomeNeedOf(details: unknown): IncomeNeed | null {
+  const v = (details as { incomeNeed?: unknown } | null)?.incomeNeed
+  if (INCOME_NEED_OPTIONS.some((o) => o.value === v)) return v as IncomeNeed
+  return derivedIncomeNeed(details)
+}
+
+/** True when we are using what we know and did not need to ask. */
+export function incomeNeedIsDerived(details: unknown): boolean {
+  const v = (details as { incomeNeed?: unknown } | null)?.incomeNeed
+  return !INCOME_NEED_OPTIONS.some((o) => o.value === v) && derivedIncomeNeed(details) !== null
+}
+
+export type IncomeStrength = 'first' | 'steady' | 'option'
+
+export type IncomeRecommendation = { strength: IncomeStrength; title: string; because: string; href: string; label: string }
 
 // The kinds of side work in the ParallelPath answer (src/lib/job-reviews/constants.ts) that already bring in money.
-const EARNING_KINDS = ['CONTRACT_1099', 'FRACTIONAL', 'CONSULTING', 'PART_TIME'] as const
+const EARNING_KINDS = ['CONTRACT_1099', 'FRACTIONAL', 'CONSULTING', 'PART_TIME']
+
+function alreadyEarning(kinds: readonly string[] | null | undefined, workingNow?: boolean): boolean {
+  return !!workingNow || has(kinds, ...EARNING_KINDS)
+}
 
 /**
- * Whether to suggest interim or fractional work, and how strongly. Only when income matters soon, and only to someone
- * not already earning that way. Full-time fractional members already have it. Early-career members never see this
- * (the plan filters anything that says fractional or interim for them; see SENIOR_ONLY in ./plan.ts).
+ * How income should shape the member's options. Under three months, income comes first; three to six adds one step a week;
+ * six or more only shows interim and fractional work as an option. Not for full-time fractional members, nor for someone
+ * already earning on the side. Early-career members never see interim or fractional steps (the plan drops them) and get
+ * part-time and contract steps instead.
  */
 export function incomeRecommendation(input: { need: IncomeNeed | null; main: JourneyType | null; kinds: readonly string[] | null | undefined; workingNow?: boolean }): IncomeRecommendation | null {
-  const { need, main, kinds } = input
-  if (!need || need === 'covered') return null
-  if (main === 'FRACTIONAL') return null
-  const earning = (kinds ?? []).some((k) => (EARNING_KINDS as readonly string[]).includes(k)) || !!input.workingNow
-  if (earning) return null
-  return need === 'now'
-    ? {
-        title: 'Interim or fractional work can bring income in weeks, not months',
-        because: 'You said you need income within two months. A search for a full-time job usually takes longer, so line up paid work next to it.',
-        href: '/dashboard/interim-work',
-        label: 'Look at interim and fractional work',
-      }
-    : {
-        title: 'Line up interim or fractional work before the money gets tight',
-        because: 'You said you need income in three to six months. Starting the conversations early means paid work is ready when you need it.',
-        href: '/dashboard/interim-work',
-        label: 'Look at interim and fractional work',
-      }
+  const { need, main, kinds, workingNow } = input
+  if (!need || main === 'FRACTIONAL' || alreadyEarning(kinds, workingNow)) return null
+  const href = '/dashboard/interim-work'
+  const label = 'Look at interim and fractional work'
+  if (need === 'under_3')
+    return {
+      strength: 'first',
+      title: 'Put income first',
+      because: 'You said you could go under three months without new income. A full-time search usually takes longer, and a first fractional client takes weeks, so start with what pays soonest.',
+      href,
+      label,
+    }
+  if (need === '3_6')
+    return {
+      strength: 'steady',
+      title: 'Add one income step every week',
+      because: 'You said you could go three to six months. Starting the conversations now means paid work is ready before the money gets tight.',
+      href,
+      label,
+    }
+  return {
+    strength: 'option',
+    title: 'Interim or fractional work is an option',
+    because: 'You have a long cushion, so there is no pressure. It is here if you want income sooner.',
+    href,
+    label,
+  }
+}
+
+const T = (text: string, actionType?: string): PathPlanItem => ({ text, actionType })
+
+const WEEK_MS = 7 * 86_400_000
+const weekIndex = (now: Date) => Math.floor(now.getTime() / WEEK_MS)
+
+/**
+ * The income steps for this week's plan. Under three months: in order, unemployment and benefits (if laid off), then contract,
+ * temp or part-time work, then interim or fractional work. Three to six: one step a week, alternating the quickest kind with the
+ * longer one (a non-senior member always gets the quicker kind). Six or more: none; fractional shows as an option on the page.
+ */
+export function incomePlanItems(input: { details: unknown; main: JourneyType | null; kinds?: readonly string[] | null; workingNow?: boolean; now?: Date; senior?: boolean }): PathPlanItem[] {
+  const rec = incomeRecommendation({ need: incomeNeedOf(input.details), main: input.main, kinds: input.kinds, workingNow: input.workingNow })
+  if (!rec || rec.strength === 'option') return []
+  const quick = T('Look for contract, temp or part-time work that pays within weeks, and tell three people what you can do', 'OUTREACH_MESSAGE')
+  const interim = T('Start one conversation about interim or fractional work: a first client takes weeks, so begin now', 'OUTREACH_CALL')
+  if (rec.strength === 'first') {
+    const out: PathPlanItem[] = []
+    if (input.main === 'LAID_OFF') out.push(T('Income comes first: confirm your unemployment benefits, what they pay and when your coverage ends'))
+    out.push(quick, interim)
+    return out
+  }
+  const senior = input.senior !== false
+  return [senior && weekIndex(input.now ?? new Date()) % 2 === 1 ? interim : quick]
 }
 
 // ── Side work ────────────────────────────────────────────────────────────────
@@ -79,12 +257,9 @@ export type SideGoal = (typeof SIDE_GOALS)[number]['value']
 
 export type SideDetails = { hours?: number; income?: number; goal?: SideGoal }
 
-const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
-
 /** The side-work answers, read back safely from journeyDetails. */
 export function sideDetailsOf(journeyDetails: unknown): SideDetails {
-  const alongside = (journeyDetails as { alongside?: unknown } | null)?.alongside
-  const raw = isObj(alongside) ? alongside.side : null
+  const raw = pathsOf(journeyDetails).side
   if (!isObj(raw)) return {}
   const out: SideDetails = {}
   if (typeof raw.hours === 'number' && Number.isInteger(raw.hours) && raw.hours >= 1 && raw.hours <= 60) out.hours = raw.hours
@@ -119,54 +294,71 @@ export function sideIncomeOf(journeyDetails: unknown): number {
   return sideDetailsOf(journeyDetails).income ?? 0
 }
 
+/** The paths object to store for side work: its answers merged in, its level and every other key kept. */
+export function mergeSideDetails(journeyDetails: unknown, parsed: SideDetails): Record<string, unknown> {
+  const paths = pathsOf(journeyDetails)
+  const cur = isObj(paths.side) ? (paths.side as Record<string, unknown>) : {}
+  return { ...paths, side: { ...cur, ...parsed } }
+}
+
 export function previousMainOf(journeyDetails: unknown): JourneyType | null {
-  const alongside = (journeyDetails as { alongside?: unknown } | null)?.alongside
-  const v = isObj(alongside) ? alongside.previousMain : null
+  const v = pathsOf(journeyDetails).previousMain
   return typeof v === 'string' && /^[A-Z_]+$/.test(v) ? (v as JourneyType) : null
 }
 
 // ── The paths a member has ───────────────────────────────────────────────────
 
-export type PathKey = 'side' | 'buy'
-
 export type ParallelPathCard = {
-  key: PathKey
+  key: InterestKey
   label: string
   /** Where they stand, in a few words. */
   line: string
   /** Why this card is here. */
   because: string
   href: string
+  level: InterestLevel
 }
 
-/**
- * The paths running next to the main journey. Buying shows when started and it is not already the main journey.
- * Side work shows when the member said they do any (the ParallelPath answer) or told us hours, income or a goal.
- */
-export function activePaths(input: { main: JourneyType | null; journeyDetails: unknown; kinds: readonly string[] | null | undefined }): ParallelPathCard[] {
+const LEVEL_LABEL: Record<InterestLevel, string> = { curious: 'Curious', researching: 'Researching', doing: 'Doing it' }
+
+const PATH_HREF: Record<InterestKey, string> = {
+  job: '/dashboard/find-my-job',
+  buy: '/dashboard/buy-a-business',
+  start: '/dashboard/other-paths',
+  fractional: '/dashboard/interim-work',
+  side: '/dashboard/other-paths',
+  school: '/dashboard/learning',
+}
+
+// A path the main journey already is: never a card or a step beside itself.
+function isMainsOwn(main: JourneyType | null, k: InterestKey): boolean {
+  if (k === 'buy') return main === 'BUY_BUSINESS'
+  if (k === 'fractional') return main === 'FRACTIONAL'
+  if (k === 'start') return main === 'ENTREPRENEUR'
+  if (k === 'job') return !!main && getJourney(main).searching
+  return false
+}
+
+/** The active paths (researching or doing it) beside the main journey, one card each. Curious never shows. */
+export function activePaths(s: LevelSignals): ParallelPathCard[] {
+  const levels = effectiveLevelsOf(s)
   const out: ParallelPathCard[] = []
-  const side = sideDetailsOf(input.journeyDetails)
-  const doingSide = (input.kinds ?? []).length > 0 || Object.keys(side).length > 0
-  if (doingSide) {
-    const bits = [side.hours ? `${side.hours} hours a week` : null, side.income ? `$${side.income.toLocaleString('en-US')} a month` : null].filter(Boolean)
-    out.push({
-      key: 'side',
-      label: 'Side or part-time work',
-      line: bits.length ? bits.join(', ') : 'Tell us the hours and what it earns',
-      because: 'You said you do this next to your main focus.',
-      href: '/dashboard/other-paths',
-    })
-  }
-  if (input.main !== 'BUY_BUSINESS' && hasBuyDetails(input.journeyDetails)) {
-    const stage = getBuyStage(buyDetailsOf(input.journeyDetails).stage ?? 'decide')
-    out.push({ key: 'buy', label: 'Buying a business', line: stage.label, because: 'You started a buying plan next to your main focus.', href: '/dashboard/buy-a-business' })
+  for (const k of INTEREST_KEYS) {
+    const level = levels[k]
+    if (!level || !isActiveLevel(level) || isMainsOwn(s.main, k)) continue
+    let line = LEVEL_LABEL[level]
+    if (k === 'buy') line = `${LEVEL_LABEL[level]}: ${getBuyStage(buyDetailsOf(s.journeyDetails).stage ?? 'decide').label}`
+    if (k === 'side') {
+      const d = sideDetailsOf(s.journeyDetails)
+      const bits = [d.hours ? `${d.hours} hours a week` : null, d.income ? `$${d.income.toLocaleString('en-US')} a month` : null].filter(Boolean)
+      if (bits.length) line = `${LEVEL_LABEL[level]}: ${bits.join(', ')}`
+    }
+    out.push({ key: k, label: INTEREST_LABELS[k], line, because: `You said you are ${level === 'doing' ? 'doing this' : 'researching this'} next to your main focus.`, href: PATH_HREF[k], level })
   }
   return out
 }
 
-// ── Plan: at most one step per path ──────────────────────────────────────────
-
-const T = (text: string, actionType?: string): PathPlanItem => ({ text, actionType })
+// ── Plan: at most one step per active path ───────────────────────────────────
 
 function sideItem(side: SideDetails): PathPlanItem {
   if (side.goal === 'grow') return T('Pick the one client or customer who could make your side work bigger, and have a conversation with them', 'OUTREACH_CALL')
@@ -175,31 +367,28 @@ function sideItem(side: SideDetails): PathPlanItem {
   return T(side.hours ? `Keep your ${side.hours} side-work hours to a fixed time this week, so they do not crowd out your main plan` : 'Set a fixed time for your side work this week, so it does not crowd out your main plan')
 }
 
-/**
- * One step from each parallel path, never more: the member's main journey keeps the plan. Buying contributes its stage's
- * next step; side work one step shaped by its goal. Never called for the main journey's own path.
- */
-export function parallelPlanItems(input: { main: JourneyType | null; journeyDetails: unknown; kinds?: readonly string[] | null }): PathPlanItem[] {
-  const out: PathPlanItem[] = []
-  const cards = activePaths({ main: input.main, journeyDetails: input.journeyDetails, kinds: input.kinds })
-  for (const c of cards) {
-    if (c.key === 'side') out.push(sideItem(sideDetailsOf(input.journeyDetails)))
-    if (c.key === 'buy') {
-      const stage: BuyStageKey = buyDetailsOf(input.journeyDetails).stage ?? 'decide'
-      out.push(T(`Buying a business: ${getBuyStage(stage).next}`))
+function stepFor(k: InterestKey, level: InterestLevel, s: LevelSignals): PathPlanItem {
+  switch (k) {
+    case 'side':
+      return sideItem(sideDetailsOf(s.journeyDetails))
+    case 'buy': {
+      const stage: BuyStageKey = buyDetailsOf(s.journeyDetails).stage ?? 'decide'
+      return T(`Buying a business: ${getBuyStage(stage).next}`)
     }
+    case 'job':
+      return T('Look through this week’s strongest-fit roles and save one worth a second look')
+    case 'start':
+      return level === 'doing' ? T('Write down the one thing that must happen in your business this month') : T('Talk to one person who started a business in your field and ask what the first year cost', 'OUTREACH_CALL')
+    case 'fractional':
+      return level === 'doing' ? T('Ask one past client or colleague for an introduction to someone who could use your help', 'OUTREACH_CALL') : T('Write your one-line offer for fractional work: who you help and the result')
+    case 'school':
+      return level === 'doing' ? T('Spend one session on your course or program this week') : T('Look at one program you would consider and write down its cost, time and what it leads to')
   }
-  return out
 }
 
-/** The income step for the plan: strongest when income is needed within two months. Null when none is called for. */
-export function incomePlanItem(input: { details: unknown; main: JourneyType | null; kinds?: readonly string[] | null; workingNow?: boolean }): PathPlanItem | null {
-  const rec = incomeRecommendation({ need: incomeNeedOf(input.details), main: input.main, kinds: input.kinds, workingNow: input.workingNow })
-  if (!rec) return null
-  const need = incomeNeedOf(input.details)
-  return need === 'now'
-    ? T('You need income within two months: have two conversations about interim or fractional work this week', 'OUTREACH_CALL')
-    : T('Start one conversation about interim or fractional work, so paid work is ready before the money gets tight', 'OUTREACH_CALL')
+/** One step from each active path, never more: the main journey keeps the plan. Curious paths add nothing. */
+export function parallelPlanItems(s: LevelSignals): PathPlanItem[] {
+  return activePaths(s).map((c) => stepFor(c.key, c.level, s))
 }
 
 // ── Switching main focus ─────────────────────────────────────────────────────
@@ -207,10 +396,8 @@ export function incomePlanItem(input: { details: unknown; main: JourneyType | nu
 /** The journeys a member can switch to from the paths page: the ones that a path can become. */
 export const SWITCHABLE_MAIN: readonly JourneyType[] = ['BUY_BUSINESS', 'FRACTIONAL']
 
-/** Returns the details to store when the journey changes: the old main journey is remembered so they can go back. */
+/** Returns the paths object to store when the journey changes: the old main journey is remembered so they can go back. */
 export function rememberPreviousMain(existing: unknown, from: JourneyType | null, to: JourneyType | null): Record<string, unknown> | null {
   if (!from || !to || from === to) return null
-  const alongside = (existing as { alongside?: unknown } | null)?.alongside
-  const base = isObj(alongside) ? alongside : {}
-  return { ...base, previousMain: from }
+  return { ...pathsOf(existing), previousMain: from }
 }

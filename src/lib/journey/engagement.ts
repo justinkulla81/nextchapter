@@ -32,6 +32,8 @@ export type EngagementSignals = {
   workingNow: boolean
   // The kinds of side work they said they do (the ParallelPath answer): contract, fractional, part-time, and so on. Optional.
   parallelKinds?: string[] | null
+  // profile.interimConsultingInterest: open to interim or consulting work.
+  interimInterest?: boolean
   // What they told us about where they are willing to go, what they want next and what they said they did before joining.
   // Optional so older callers need not set them.
   pivot?: PivotDetails | null
@@ -446,9 +448,9 @@ export function profileDrivenItems(s: EngagementSignals, now: Date = new Date())
       else if (r.scope === 'ANYWHERE') out.push({ text: 'Look outside your area: you said you would go anywhere for the right role' })
     }
   }
-  out.push(...situationPlanItems(s.journey, s.rawDetails, { fn: s.targets?.function ?? null, now, kinds: s.parallelKinds }))
-  // What runs alongside the main journey: at most one step per other path.
-  out.push(...parallelPlanItems({ main: s.journey, journeyDetails: s.rawDetails, kinds: s.parallelKinds }))
+  out.push(...situationPlanItems(s.journey, s.rawDetails, { fn: s.targets?.function ?? null, now, kinds: s.parallelKinds, senior: s.seniorLevel }))
+  // What runs next to the main journey: at most one step per active path (researching or doing it; curious adds nothing).
+  out.push(...parallelPlanItems({ main: s.journey, journeyDetails: s.rawDetails, kinds: s.parallelKinds, workingNow: s.workingNow, interimInterest: s.interimInterest }))
   if (s.journey === 'ENTREPRENEUR' && s.venture) out.push({ text: `Venture check-in: ${s.venture}. Name the one thing that must happen this month` })
   if (s.journey === 'STUDENT_NEW_GRAD' && s.graduation) {
     const days = Math.ceil((s.graduation.getTime() - now.getTime()) / DAYS)

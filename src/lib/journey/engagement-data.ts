@@ -72,6 +72,7 @@ export const loadEngagementSignals = cache(async (candidateId: string, now = new
     casual: isNotSearching(journey, stage) || isCasuallySearching(p.jobSearchDifficultyLevel, p.searchIntensity),
     workingNow: workingNowOf(p.journeyDetails),
     parallelKinds,
+    interimInterest: p.interimConsultingInterest,
     pivot: pivotOf(p.journeyDetails),
     career: careerOf(p.journeyDetails),
     skillsToBuild: p.skillsToBuild ?? [],

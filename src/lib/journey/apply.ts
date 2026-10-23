@@ -65,7 +65,7 @@ export async function applyJourneyChange(candidateId: string, requested: Journey
   if (change.details || previous) {
     data.journeyDetails = {
       ...((p.journeyDetails as Record<string, unknown>) ?? {}),
-      ...(previous ? { alongside: previous } : {}),
+      ...(previous ? { paths: previous } : {}),
       ...(change.details ?? {}),
     } as Prisma.InputJsonValue
   }
