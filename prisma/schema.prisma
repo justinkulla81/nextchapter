@@ -13276,8 +13276,15 @@ enum HelpRequestStatus {
 model HelpRequest {
   id             String            @id @default(cuid())
   /// Plain id, like CoachClientInvite.candidateId: no relation, so the
-  /// candidate model needn't change.
-  candidateId    String
+  /// candidate model needn't change. Null for partner-portal requests
+  /// (portal != CANDIDATE), which carry the requester* fields instead.
+  candidateId    String?
+  /// 'CANDIDATE' | 'EMPLOYER' | 'RECRUITER' | 'COACH' | 'INSTITUTION'.
+  portal         String            @default("CANDIDATE")
+  requesterName  String?
+  requesterEmail String?
+  /// Employer org, recruiting firm or institution the requester belongs to.
+  requesterOrg   String?
   kind           HelpRequestKind
   status         HelpRequestStatus @default(OPEN)
   /// The first line of the first message, for lists.
@@ -13303,6 +13310,7 @@ model HelpRequest {
 
   @@index([candidateId, lastMessageAt])
   @@index([status, lastMessageAt])
+  @@index([portal, status])
 }
 
 model HelpMessage {

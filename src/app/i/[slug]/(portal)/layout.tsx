@@ -16,6 +16,7 @@ import { brandStyle } from '@/lib/partners/brand'
 import { prisma } from '@/lib/prisma'
 import { readProfile } from '@/lib/higher-ed/profile'
 import { organizationBrandFor } from '@/lib/organizations/service'
+import { PortalHelpLauncher } from '@/components/portal/PortalHelpLauncher'
 import { SignOutForm } from '@/components/auth/SignOutForm'
 import { PortalTypeBar } from '@/components/partners/PortalTypeBar'
 
@@ -145,6 +146,7 @@ export default async function InstitutionPortalLayout({
       <footer className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground">
         powered by NextChapter
       </footer>
+      {access.mode !== 'demo-guest' && <PortalHelpLauncher portal="INSTITUTION" slug={slug} />}
     </div>
   )
 }

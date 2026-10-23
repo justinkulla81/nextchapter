@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { HELP_SCREENSHOT_BUCKET } from '@/lib/help/constants'
+import { HELP_SCREENSHOT_BUCKET, PORTAL_LABEL } from '@/lib/help/constants'
 import { AdminHelpReplyForm, AdminHelpActions } from '@/components/admin/AdminHelpThread'
 
 const stamp = (d: Date) => d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })
@@ -13,17 +13,20 @@ export default async function HelpThreadPage({ params }: { params: Promise<{ id:
   const { id } = await params
   const r = await prisma.helpRequest.findUnique({ where: { id }, include: { messages: { orderBy: { createdAt: 'asc' } } } })
   if (!r) notFound()
-  const c = await prisma.candidateProfile.findUnique({
-    where: { id: r.candidateId },
-    select: { id: true, firstName: true, lastName: true, email: true },
-  })
-  const name = [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.email || 'Candidate'
+  const isPartner = r.portal !== 'CANDIDATE' || !r.candidateId
+  const c = r.candidateId
+    ? await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { id: true, firstName: true, lastName: true, email: true } })
+    : null
+  const name = isPartner
+    ? r.requesterName || r.requesterEmail || 'Partner user'
+    : [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.email || 'Candidate'
+  const email = isPartner ? r.requesterEmail : c?.email
   let screenshotUrl: string | null = null
   if (r.screenshotPath) {
     const { data } = await createAdminClient().storage.from(HELP_SCREENSHOT_BUCKET).createSignedUrl(r.screenshotPath, 60 * 30)
     screenshotUrl = data?.signedUrl ?? null
   }
-  const inVision = r.kind === 'PROBLEM'
+  const inVision = r.kind === 'PROBLEM' && r.candidateId
     ? await prisma.productFeedback.findFirst({ where: { candidateId: r.candidateId, channel: 'in-app problem', rawText: r.messages[0]?.body ?? '' }, select: { id: true } })
     : null
 
@@ -38,8 +41,10 @@ export default async function HelpThreadPage({ params }: { params: Promise<{ id:
         </p>
         <h1 className="text-2xl font-semibold">{r.subject}</h1>
         <p className="text-sm text-muted-foreground">
-          <Link href={`/support/admin/candidates/${r.candidateId}`} className="font-medium text-foreground underline">{name}</Link>
-          {c?.email ? <> · <span className="select-all">{c.email}</span></> : null}
+          {isPartner
+            ? <><span className="font-medium text-foreground">{name}</span> · {PORTAL_LABEL[r.portal] ?? r.portal} portal{r.requesterOrg ? <> · {r.requesterOrg}</> : null}</>
+            : <Link href={`/support/admin/candidates/${r.candidateId}`} className="font-medium text-foreground underline">{name}</Link>}
+          {email ? <> · <span className="select-all">{email}</span></> : null}
           {' · '}{r.contextTitle || r.contextPath || 'Help & feedback page'}
           {r.contextPath ? <> (<span className="font-mono text-xs">{r.contextPath}</span>)</> : null}
         </p>
@@ -72,8 +77,8 @@ export default async function HelpThreadPage({ params }: { params: Promise<{ id:
         </figure>
       )}
 
-      <AdminHelpReplyForm requestId={r.id} firstName={c?.firstName ?? null} resolved={r.status === 'RESOLVED'} />
-      <AdminHelpActions requestId={r.id} resolved={r.status === 'RESOLVED'} isProblem={r.kind === 'PROBLEM'} inVision={!!inVision} />
+      <AdminHelpReplyForm requestId={r.id} firstName={isPartner ? (r.requesterName?.split(' ')[0] ?? null) : (c?.firstName ?? null)} resolved={r.status === 'RESOLVED'} />
+      <AdminHelpActions requestId={r.id} resolved={r.status === 'RESOLVED'} isProblem={r.kind === 'PROBLEM' && !isPartner} inVision={!!inVision} />
     </div>
   )
 }

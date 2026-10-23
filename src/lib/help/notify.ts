@@ -1,6 +1,7 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
+import { PORTAL_LABEL } from '@/lib/help/constants'
 
 /** Where new help requests are emailed. Override with HELP_FORWARD_TO. */
 const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO || 'justin@launchyournextchapter.com'
@@ -40,7 +41,7 @@ const candidateName = (c: { firstName: string | null; lastName: string | null } 
 /** A new help request or problem, or a candidate's follow-up on one: email the admin. */
 export async function notifyAdminOfHelp(requestId: string, body: string, isFollowUp: boolean): Promise<void> {
   const r = await prisma.helpRequest.findUnique({ where: { id: requestId } })
-  if (!r) return
+  if (!r?.candidateId) return
   const c = await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, lastName: true, email: true } })
   const name = candidateName(c)
   const kind = r.kind === 'PROBLEM' ? 'Problem' : 'Help'
@@ -59,10 +60,47 @@ export async function notifyAdminOfHelp(requestId: string, body: string, isFollo
   })
 }
 
+/** A new help request or problem from a partner portal (employer, recruiter, coach, institution): email the admin. */
+export async function notifyAdminOfPortalHelp(requestId: string, body: string): Promise<void> {
+  const r = await prisma.helpRequest.findUnique({ where: { id: requestId } })
+  if (!r) return
+  const kind = r.kind === 'PROBLEM' ? 'Problem' : 'Help'
+  const where = PORTAL_LABEL[r.portal] ?? r.portal
+  const who = [r.requesterName, r.requesterOrg].filter(Boolean).join(' · ') || where
+  const link = `${ADMIN_URL}/support/admin/help/${r.id}`
+  const flag = r.flaggedCrisis ? '[Check in] ' : ''
+  await send({
+    to: ADMIN_TO,
+    subject: `${flag}${where} ${kind.toLowerCase()}: ${who} · ${r.subject}`,
+    html: wrap(`
+      <p style="margin:0 0 12px;font-size:17px;font-weight:600">${kind} request from ${escapeHtml(who)} (${where} portal)</p>
+      ${quote(body)}
+      <p style="margin:0 0 4px;color:#55606e;font-size:13px">${r.contextTitle || r.contextPath ? `Page: ${escapeHtml(r.contextTitle || r.contextPath || '')}` : ''}</p>
+      <p style="margin:0;font-size:14px"><a href="${link}">Reply in the Help inbox</a></p>`),
+    text: `${kind} request from ${who} (${where} portal)\n\n${body}\n\nReply: ${link}`,
+  })
+}
+
 /** The admin replied: email the candidate with the reply and a link back. */
 export async function notifyCandidateOfReply(requestId: string, body: string): Promise<boolean> {
-  const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, subject: true } })
+  const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, subject: true, requesterName: true, requesterEmail: true } })
   if (!r) return false
+  // Partner-portal requesters have no in-app inbox: the reply goes by email and
+  // they answer by replying to it, which lands in support@.
+  if (!r.candidateId) {
+    if (!r.requesterEmail) return false
+    const first = r.requesterName?.split(' ')[0]
+    return send({
+      to: r.requesterEmail,
+      subject: `Re: ${r.subject}`,
+      replyTo: 'support@launchyournextchapter.com',
+      html: wrap(`
+        <p style="margin:0 0 12px">Hi${first ? ` ${escapeHtml(first)}` : ''},</p>
+        ${quote(body)}
+        <p style="margin:0;font-size:14px;color:#55606e">Reply to this email and it comes straight to us.</p>`),
+      text: `Hi${first ? ` ${first}` : ''},\n\n${body}\n\nReply to this email and it comes straight to us.`,
+    })
+  }
   const c = await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, email: true } })
   if (!c?.email) return false
   const link = `${APP_URL}/dashboard/help?request=${requestId}`
@@ -108,21 +146,21 @@ export async function notifyCandidateFeedbackAddressed(feedbackId: string): Prom
 /** Yesterday's in-app ideas and feedback, in one email. Nothing sent when there are none. */
 export async function sendDailyFeedbackDigest(since: Date): Promise<number> {
   const items = await prisma.productFeedback.findMany({
-    where: { channel: { in: ['in-app idea', 'in-app feedback'] }, createdAt: { gte: since } },
+    where: { channel: { in: ['in-app idea', 'in-app feedback', 'portal idea', 'portal feedback'] }, createdAt: { gte: since } },
     orderBy: { createdAt: 'asc' },
-    select: { id: true, rawText: true, channel: true, contextPath: true, candidate: { select: { firstName: true, lastName: true } } },
+    select: { id: true, rawText: true, channel: true, contextPath: true, personLabel: true, candidate: { select: { firstName: true, lastName: true } } },
   })
   if (items.length === 0) return 0
   const link = `${ADMIN_URL}/support/admin/vision/feedback`
   const rows = items.map((i) => {
-    const who = candidateName(i.candidate)
-    const what = i.channel === 'in-app idea' ? 'Idea' : 'Feedback'
+    const who = i.personLabel ?? candidateName(i.candidate)
+    const what = i.channel?.endsWith('idea') ? 'Idea' : 'Feedback'
     return { html: `<p style="margin:0 0 4px;font-size:13px;color:#55606e">${what} · ${escapeHtml(who)}${i.contextPath ? ` · ${escapeHtml(i.contextPath)}` : ''}</p>${quote(i.rawText)}`, text: `${what} · ${who}\n${i.rawText}` }
   })
   await send({
     to: ADMIN_TO,
-    subject: `${items.length} new ${items.length === 1 ? 'idea or piece of feedback' : 'ideas and feedback'} from candidates`,
-    html: wrap(`<p style="margin:0 0 14px;font-size:17px;font-weight:600">From candidates in the last day</p>${rows.map((r) => r.html).join('')}<p style="margin:0;font-size:14px"><a href="${link}">Triage in Vision → Feedback</a></p>`),
+    subject: `${items.length} new ${items.length === 1 ? 'idea or piece of feedback' : 'ideas and feedback'} from customers`,
+    html: wrap(`<p style="margin:0 0 14px;font-size:17px;font-weight:600">From candidates and partners in the last day</p>${rows.map((r) => r.html).join('')}<p style="margin:0;font-size:14px"><a href="${link}">Triage in Vision → Feedback</a></p>`),
     text: `${rows.map((r) => r.text).join('\n\n')}\n\nTriage: ${link}`,
   })
   return items.length

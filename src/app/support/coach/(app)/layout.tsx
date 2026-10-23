@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
+import { PortalHelpLauncher } from '@/components/portal/PortalHelpLauncher'
 import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { getCurrentCoach } from '@/lib/coach/current-coach'
@@ -43,6 +44,7 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
   return (
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
       <PortalActivityTracker portal="COACH" />
+      <PortalHelpLauncher portal="COACH" />
       <Suspense fallback={<CoachNav accessToken={coach.accessToken} brand={brand} />}>
         <CoachNavWithBadges coachId={coach.id} accessToken={coach.accessToken} brand={brand} />
       </Suspense>
