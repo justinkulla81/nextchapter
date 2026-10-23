@@ -150,6 +150,7 @@ export function buildDeck(i: BuildInput): Deck {
   for (const r of i.rules.slides) {
     if (!r.enabled) continue
     if (r.needsGeo && generic) continue
+    if (r.onlyStates?.length && !(i.area && r.onlyStates.includes(i.area.state))) continue
     const s: DeckSlide = {
       id: r.id, section: r.section, kind: r.kind, kicker: r.kicker ? fill(r.kicker, t) : undefined,
       title: fill(r.title, t),

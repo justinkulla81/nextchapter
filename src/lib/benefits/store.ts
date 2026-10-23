@@ -65,12 +65,13 @@ export async function programsForDeck(state: string | null, perCategory = 3): Pr
 }
 
 /**
- * Fills an empty table from the catalog bundled with the app (src/lib/benefits/catalog.json, built by
- * scripts/benefits/build-catalog.ts). Only runs when the table has no rows, so it never overwrites.
+ * Fills the table from the catalog bundled with the app (src/lib/benefits/catalog.json, built by
+ * scripts/benefits/build-catalog.ts). Runs when the table is empty or was last written before the
+ * bundled catalog was built, so a catalog update reaches production on the next admin visit.
  */
 export async function seedCatalogIfEmpty(): Promise<number> {
-  const [{ n }] = await prisma.$queryRaw<{ n: bigint }[]>`SELECT COUNT(*) AS n FROM "BenefitProgram"`
-  if (Number(n) > 0) return 0
-  const catalog = (await import('./catalog.json')).default as unknown as (Omit<BenefitProgramRow, 'checkedAt'> & { checkedAt: string | null })[]
-  return upsertPrograms(catalog.map((r) => ({ ...r, checkedAt: r.checkedAt ? new Date(r.checkedAt) : null })))
+  const [{ n, last }] = await prisma.$queryRaw<{ n: bigint; last: Date | null }[]>`SELECT COUNT(*) AS n, MAX("updatedAt") AS last FROM "BenefitProgram"`
+  const catalog = (await import('./catalog.json')).default as unknown as { builtAt: string; rows: (Omit<BenefitProgramRow, 'checkedAt'> & { checkedAt: string | null })[] }
+  if (Number(n) > 0 && last && last >= new Date(catalog.builtAt)) return 0
+  return upsertPrograms(catalog.rows.map((r) => ({ ...r, checkedAt: r.checkedAt ? new Date(r.checkedAt) : null })))
 }

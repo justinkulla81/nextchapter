@@ -203,8 +203,8 @@ const BENEFIT_SLIDES: Spec['extra'] = [
     bullets: [], source: BENEFITS_SOURCE,
     why: 'Data-driven from the Benefits catalog: free courses and certificates, AI and philanthropic funds, profession-specific help.',
   }, { section: 'Appendix' }],
-  ['b-ai', 'b-kentuckiana', {
-    title: 'Example: what this looks like in Kentuckiana', kicker: 'Louisville region',
+  ['p-free', 'b-kentuckiana', {
+    title: 'Appendix: what this looks like in Kentuckiana', kicker: 'Appendix', appendix: true,
     bullets: [
       'Work Ready Kentucky Scholarship: up to 60 credit hours tuition-free for Kentuckians without an associate degree, in approved fields that include professional, scientific and technical services.',
       'Kentucky Chamber Foundation Small Business B(AI)sics: free AI training for small business owners, with an in-person session at One Louisville on November 18.',
@@ -212,10 +212,10 @@ const BENEFIT_SLIDES: Spec['extra'] = [
       'Rapid Response through the Kentucky Career Center is free to workers when an employer files a WARN notice.',
       'Replace this slide with the same map for your own region.',
     ],
-    enabled: false,
+    onlyStates: ['KY', 'IN'],
     source: 'Kentucky Chamber Foundation, MakeMyMove program pages, Work Ready Kentucky Scholarship pages. Checked 2026-10-22.',
-    why: 'OFF by default. Turn it on for Louisville and Kentucky decks (One Louisville, KentuckianaWorks) and swap it for the equivalent regional map elsewhere.',
-  }],
+    why: 'Appears automatically in decks for an area in Kentucky or Indiana (One Louisville, KentuckianaWorks); other states and generic decks never see it. Confirm each amount before presenting.',
+  }, { section: 'Appendix' }],
 ]
 
 const SPEC: Record<CustomerType, Spec> = {
