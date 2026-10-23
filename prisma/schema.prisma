@@ -11803,6 +11803,30 @@ model ProductCompetitor {
   /// When the competitor is also an organisation we track.
   crmOrgId String?
 
+  /// DIRECT | ADJACENT | PARTNER | SUPPLIER. A data supplier or a possible partner is not a rival, and the
+  /// page says so rather than leaving them out.
+  relationship String @default("DIRECT")
+  /// Where they compete, from the fixed vocabulary in src/lib/vision/competitor-areas.ts.
+  areas        String[] @default([])
+  keyFeatures  String[] @default([])
+  /// [{ name, note?, url? }] named buyers or users, from their site, press or public records.
+  customers    Json?
+  /// [{ what, buyer?, amount?, year?, url? }] grants, funding and RFPs or contracts they have won.
+  wins         Json?
+  weWin        String[] @default([])
+  theyWin      String[] @default([])
+  /// Features we would need to build to compete where they are ahead.
+  weNeed       String[] @default([])
+  pricingNote  String?
+  foundedYear  Int?
+  hq           String?
+  lastRound    String?
+  investors    String?
+  notes        String?  @db.Text
+  /// How the row was filled: hand | website | seed. A website or seed fill is a draft until reviewed.
+  filledBy     String?
+  needsReview  Boolean  @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
