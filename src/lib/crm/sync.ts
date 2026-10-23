@@ -823,6 +823,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     // Accounts whose grant can't read Docs, and notes reads that failed for a
     // reason worth retrying: both are recorded on the run (see `problems`).
     const needsDocsAccess = new Set<string>()
+    let docsApiOff = false
     let notesFailed = 0
 
     const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
@@ -837,11 +838,12 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
       // and a call with a stranger is not something to copy notes onto.
       let notesRead: Promise<string | null> | undefined
       const notesFor = () => {
-        if (!ev.notesDoc || needsDocsAccess.has(token)) return Promise.resolve(null)
+        if (!ev.notesDoc || docsApiOff || needsDocsAccess.has(token)) return Promise.resolve(null)
         notesRead ??= fetchGoogleDocText(token, ev.notesDoc.fileId)
           .then((t) => (t ? capNotes(t) : null))
           .catch((e) => {
             if (e instanceof NotesFetchError && e.kind === 'needs_reconnect') needsDocsAccess.add(token)
+            else if (e instanceof NotesFetchError && e.kind === 'api_disabled') docsApiOff = true
             else if (!(e instanceof NotesFetchError) || e.kind === 'failed') notesFailed++
             return null
           })
@@ -945,6 +947,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     const problems = [
       ...accountErrors,
       ...(notesNeedReconnect ? ['Gemini notes unreadable — Docs read refused: 403 PERMISSION_DENIED'] : []),
+      ...(docsApiOff ? ['Gemini notes unreadable — the Google Docs API is switched off in the Google Cloud project'] : []),
     ]
     await prisma.crmSyncRun.update({
       where: { id: run.id },

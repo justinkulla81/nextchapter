@@ -18,6 +18,10 @@ describe('fetchGoogleDocText', () => {
   it('treats insufficient scopes as needing a reconnect', async () => {
     expect(await kindOf(reply(403, { error: { details: [{ reason: 'ACCESS_TOKEN_SCOPE_INSUFFICIENT' }] } }))).toBe('needs_reconnect')
   })
+  it('recognises the Docs API being switched off in the Cloud project', async () => {
+    expect(await kindOf(reply(403, { error: { status: 'PERMISSION_DENIED', details: [{ reason: 'SERVICE_DISABLED' }] } }))).toBe('api_disabled')
+    expect(await kindOf(reply(403, 'Google Docs API has not been used in project 123 before or it is disabled.'))).toBe('api_disabled')
+  })
   it('treats a plain 403 or 404 as one inaccessible doc, not a reconnect', async () => {
     expect(await kindOf(reply(403, { error: { status: 'PERMISSION_DENIED' } }))).toBe('inaccessible')
     expect(await kindOf(reply(404, {}))).toBe('inaccessible')

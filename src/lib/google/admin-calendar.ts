@@ -86,10 +86,11 @@ export async function listCalendarEvents(
  * Why a notes fetch produced nothing. `needs_reconnect` is the actionable one
  * (the grant lacks Docs access); `inaccessible` is one doc this account can't
  * open (not shared with it) — the other connected account may still read it;
- * `failed` is Google having a bad moment, worth retrying on the next sweep.
+ * `api_disabled` is the Docs API switched off in the Cloud project (enable it
+ * there); `failed` is Google having a bad moment, worth retrying on the next sweep.
  */
 export class NotesFetchError extends Error {
-  constructor(public readonly kind: 'needs_reconnect' | 'inaccessible' | 'failed', message: string) {
+  constructor(public readonly kind: 'needs_reconnect' | 'api_disabled' | 'inaccessible' | 'failed', message: string) {
     super(message)
   }
 }
@@ -111,6 +112,11 @@ export async function fetchGoogleDocText(accessToken: string, fileId: string): P
     // document this account was never given, which no reconnect would fix.
     if (res.status === 401 || /ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient authentication scopes|insufficientPermissions/i.test(body)) {
       throw new NotesFetchError('needs_reconnect', `Docs read refused: ${res.status} ACCESS_TOKEN_SCOPE_INSUFFICIENT`)
+    }
+    // The Docs API itself switched off in the Google Cloud project: no document
+    // can be read until someone enables it, and no reconnect changes that.
+    if (/SERVICE_DISABLED|accessNotConfigured|has not been used in project|API has not been enabled/i.test(body)) {
+      throw new NotesFetchError('api_disabled', 'Docs API is switched off in the Google Cloud project')
     }
     if (res.status === 403 || res.status === 404) throw new NotesFetchError('inaccessible', `Docs read: ${res.status}`)
     throw new NotesFetchError('failed', `Docs read failed: ${res.status}`)
