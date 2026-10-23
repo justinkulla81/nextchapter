@@ -13,12 +13,13 @@ export type AudienceTag =
   | 'federal' | 'veteran' | 'military_spouse' | 'educator' | 'clinician' | 'lawyer' | 'tech' | 'finance'
   | 'journalist' | 'age40' | 'age50' | 'disabled' | 'immigrant' | 'reentry' | 'rural' | 'entrepreneur'
   | 'returner' | 'student' | 'engineer' | 'hr' | 'pm'
-  // Community and heritage. Self-declared only, never inferred. The first group can gate a program; the faith and family tags only rank.
-  | 'women' | 'lgbtq' | 'hispanic' | 'black' | 'aapi' | 'native' | 'catholic' | 'presbyterian' | 'jewish' | 'muslim'
-  | 'christian' | 'lds' | 'parent' | 'firstgen'
+  // Community and heritage. Never asked as a new question and never inferred: these come only from the member's own voluntary
+  // self-ID answers, and only when they turn that on for funding (see tagsFromSelfId). Religion is never asked or used.
+  | 'women' | 'lgbtq' | 'hispanic' | 'black' | 'aapi' | 'native'
+  | 'parent' | 'firstgen'
 
 /** What a member can say about themselves. Optional, private, and only used to match. */
-export const SELF_TAGS: { tag: AudienceTag; label: string; group?: 'community' }[] = [
+export const SELF_TAGS: { tag: AudienceTag; label: string }[] = [
   { tag: 'veteran', label: 'I served in the military' },
   { tag: 'military_spouse', label: 'I am a military spouse' },
   { tag: 'federal', label: 'I work or worked for the federal government or a federal contractor' },
@@ -30,28 +31,37 @@ export const SELF_TAGS: { tag: AudienceTag; label: string; group?: 'community' }
   { tag: 'entrepreneur', label: 'I want to start a business' },
   { tag: 'returner', label: 'I am returning after a career break or caregiving' },
   { tag: 'student', label: 'I am a student or recent graduate' },
-  // Optional, shown under their own heading: programs written for a community are shown only to people who say they belong.
-  { tag: 'parent', label: 'I am raising children', group: 'community' },
-  { tag: 'firstgen', label: 'I am the first in my family to go to college', group: 'community' },
-  { tag: 'women', label: 'I am a woman', group: 'community' },
-  { tag: 'lgbtq', label: 'I am LGBTQ+', group: 'community' },
-  { tag: 'hispanic', label: 'I am Hispanic or Latino', group: 'community' },
-  { tag: 'black', label: 'I am Black or African American', group: 'community' },
-  { tag: 'aapi', label: 'I am Asian American or Pacific Islander', group: 'community' },
-  { tag: 'native', label: 'I am Native American or Alaska Native', group: 'community' },
-  { tag: 'christian', label: 'I am Christian', group: 'community' },
-  { tag: 'catholic', label: 'I am Catholic', group: 'community' },
-  { tag: 'presbyterian', label: 'I am Presbyterian', group: 'community' },
-  { tag: 'lds', label: 'I am a Latter-day Saint', group: 'community' },
-  { tag: 'jewish', label: 'I am Jewish', group: 'community' },
-  { tag: 'muslim', label: 'I am Muslim', group: 'community' },
+  { tag: 'parent', label: 'I am raising children' },
+  { tag: 'firstgen', label: 'I am the first in my family to go to college' },
 ]
 /** Tags that describe a community, not a situation. Never sent to analytics. */
-export const COMMUNITY_TAGS = new Set<AudienceTag>(SELF_TAGS.filter((t) => t.group === 'community').map((t) => t.tag))
+export const COMMUNITY_TAGS = new Set<AudienceTag>(['women', 'lgbtq', 'hispanic', 'black', 'aapi', 'native'])
+
+export interface SelfIdAnswers {
+  race?: string | null
+  gender?: string | null
+  veteran?: string | null
+  disability?: string | null
+}
+/**
+ * Tags from the member's own optional EEOC self-ID answers (race or ethnicity, gender, veteran, disability). Used only when the
+ * member turns it on for funding matches, computed on the fly for that member, and never stored or logged. "Prefer not to answer",
+ * "No", "Two or more races" and anything unanswered give no tag.
+ */
+export function tagsFromSelfId(a: SelfIdAnswers): AudienceTag[] {
+  const out: AudienceTag[] = []
+  if (a.race === 'HISPANIC_LATINO') out.push('hispanic')
+  else if (a.race === 'BLACK_AFRICAN_AMERICAN') out.push('black')
+  else if (a.race === 'ASIAN' || a.race === 'NATIVE_HAWAIIAN_PACIFIC_ISLANDER') out.push('aapi')
+  else if (a.race === 'AMERICAN_INDIAN_ALASKA_NATIVE') out.push('native')
+  if (a.gender === 'WOMAN') out.push('women')
+  if (a.veteran === 'YES') out.push('veteran')
+  if (a.disability === 'YES') out.push('disabled')
+  return out
+}
 /** What a held tag is called in a program's soft "affinity" list, which only ranks and never hides or shows. */
 const AFFINITY_OF: Partial<Record<AudienceTag, string>> = {
   women: 'women', lgbtq: 'LGBTQ+', hispanic: 'Hispanic or Latino', black: 'Black or African American', aapi: 'AAPI', native: 'Native American',
-  catholic: 'Catholic', presbyterian: 'Christian', christian: 'Christian', lds: 'Latter-day Saint', jewish: 'Jewish', muslim: 'Muslim',
   parent: 'parents', firstgen: 'first-generation', student: 'student', age50: '50+', veteran: 'veteran', military_spouse: 'military spouse',
 }
 const SELF_TAG_SET = new Set<string>(SELF_TAGS.map((t) => t.tag))
@@ -81,10 +91,6 @@ function pieceTags(piece: string): Set<AudienceTag | 'employer'> | null {
   if (/african american|\bblack\b/i.test(p)) t.add('black')
   if (/\baapi\b|asian american|pacific islander/i.test(p)) t.add('aapi')
   if (/native american|alaska native|american indian/i.test(p)) t.add('native')
-  if (/\bcatholic\b/i.test(p)) t.add('catholic')
-  if (/presbyterian/i.test(p)) t.add('presbyterian')
-  if (/\bjewish\b/i.test(p)) t.add('jewish')
-  if (/\bmuslim\b|\bislamic\b/i.test(p)) t.add('muslim')
   if (/\b(50|55)\+/.test(p)) t.add('age50')
   else if (/\b40\+/.test(p)) t.add('age40')
   if (/disab|ssdi|\bssi\b/i.test(p)) t.add('disabled')

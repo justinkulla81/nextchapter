@@ -18,10 +18,12 @@ export async function saveFundingTags(formData: FormData): Promise<void> {
   if (!user) redirect('/auth/login')
   const profile = await getOrCreateCandidateProfile(user.id)
   const tags = cleanSelfTags(formData.getAll('tag'))
-  const details = { ...((profile.journeyDetails as Record<string, unknown> | null) ?? {}), funding: { tags, savedAt: new Date().toISOString() } }
+  // Opt-in to use the answers they already gave in the voluntary self-ID survey. The answers are read at match time and never copied here.
+  const useSelfId = formData.get('useSelfId') === 'on'
+  const details = { ...((profile.journeyDetails as Record<string, unknown> | null) ?? {}), funding: { tags, useSelfId, savedAt: new Date().toISOString() } }
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { journeyDetails: details as never } })
   // Community and heritage answers are never sent to analytics: only situation tags and a count.
-  captureServerEvent(profile.id, 'funding_tags_saved', { tags: tags.filter((t) => !COMMUNITY_TAGS.has(t)), count: tags.length, communityCount: tags.filter((t) => COMMUNITY_TAGS.has(t)).length })
+  captureServerEvent(profile.id, 'funding_tags_saved', { tags: tags.filter((t) => !COMMUNITY_TAGS.has(t)), count: tags.length, communityCount: tags.filter((t) => COMMUNITY_TAGS.has(t)).length, useSelfId })
   revalidatePath('/dashboard/funding')
   revalidatePath('/dashboard')
 }

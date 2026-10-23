@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { after } from 'next/server'
 import { getDashboardData } from '@/lib/dashboard/get-dashboard-data'
-import { fundingFor } from '@/lib/benefits/member'
+import { fundingFor, usesSelfId } from '@/lib/benefits/member'
 import { SELF_TAGS, goalOrderFor } from '@/lib/benefits/match'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { PageHeader } from '@/components/candidate/PageHeader'
@@ -28,6 +28,8 @@ export default async function FundingPage() {
     }),
   )
   const held = new Set<string>(f.selfTags)
+  const hasSelfId = [profile.eeocRaceEthnicity, profile.eeocGenderIdentity, profile.eeocVeteranStatus, profile.eeocDisabilityStatus].some((v) => v && v !== 'PREFER_NOT_TO_ANSWER')
+  const useSelfId = usesSelfId(profile.journeyDetails)
   const needsState = !f.facts.state
   const needsMove = !f.relocationAnswered || f.facts.relocation.scope === 'LOCAL'
 
@@ -75,26 +77,22 @@ export default async function FundingPage() {
               </p>
             </div>
             <div className="space-y-2">
-              {SELF_TAGS.filter((t) => t.group !== 'community').map((t) => (
+              {SELF_TAGS.map((t) => (
                 <label key={t.tag} className="flex items-center gap-2 text-sm text-ink">
                   <input type="checkbox" name="tag" value={t.tag} defaultChecked={held.has(t.tag)} />
                   {t.label}
                 </label>
               ))}
             </div>
-            <fieldset className="space-y-2">
-              <legend className="text-sm font-semibold text-ink">Optional: programs made for your community</legend>
-              <p className="text-sm text-muted-foreground">
-                Scholarships, fellowships and career programs are often written for a specific community. Leave these blank if you prefer: you will still see everything open to you.
-                We use your answers only to rank programs on this page. They are not read from any other form, and they are not sent to analytics.
-              </p>
-              {SELF_TAGS.filter((t) => t.group === 'community').map((t) => (
-                <label key={t.tag} className="flex items-center gap-2 text-sm text-ink">
-                  <input type="checkbox" name="tag" value={t.tag} defaultChecked={held.has(t.tag)} />
-                  {t.label}
-                </label>
-              ))}
-            </fieldset>
+            {hasSelfId && (
+              <label className="flex items-start gap-2 rounded-xl bg-muted p-4 text-sm text-ink">
+                <input type="checkbox" name="useSelfId" defaultChecked={useSelfId} className="mt-1" />
+                <span>
+                  <span className="font-semibold">Use my voluntary self-ID answers to find programs for my community.</span> You already answered some of these on your screening page
+                  (race or ethnicity, gender, veteran status, disability status). If you turn this on, we read them only to rank programs for you on this page. We do not copy them, show them to anyone or send them to analytics. Turn it off any time.
+                </span>
+              </label>
+            )}
             <button type="submit" className="inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95">
               Save and re-rank
             </button>
