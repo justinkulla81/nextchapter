@@ -20,6 +20,8 @@ import { Collapsible, GroupHeading } from '@/components/admin/Collapsible'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
+import { parseNextSteps } from '@/lib/google/meeting-notes'
+import { setTodoDone } from '../../todos/actions'
 import { MeetingPrepGenerateButton } from '@/components/admin/MeetingPrepControls'
 import { CrmOrgContext } from '@/components/admin/CrmOrgContext'
 import { PersonMailingSection } from '@/components/admin/mailing/PersonMailingSection'
@@ -33,6 +35,9 @@ import {
 } from '@/lib/crm/labels'
 
 export const maxDuration = 30
+
+/** The names Gemini writes for you in meeting notes. */
+const OWNER_NAMES = ['Justin Kulla']
 
 export default async function CrmPersonPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -64,6 +69,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         include: { connectorPerson: { select: { id: true, fullName: true } } },
         orderBy: [{ strength: 'asc' }, { createdAt: 'asc' }],
       },
+      tasks: { where: { status: 'OPEN' }, orderBy: [{ dueAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }] },
       opportunities: {
         select: { id: true, title: true, pipeline: { select: { label: true } }, stage: { select: { label: true } } },
       },
@@ -124,6 +130,8 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   const renderActivity = (a: Activity, showSubject: boolean) => {
     // Synced mail stores the whole quoted thread; only the newest message's own text is shown.
     const reply = a.type === 'EMAIL' ? latestReplyOnly(a.body) : (a.body ?? '')
+    // What came out of a meeting, read from its Gemini notes: shown without opening them.
+    const followUps = a.type === 'MEETING' && a.body ? parseNextSteps(a.body, OWNER_NAMES) : []
     const m = a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? mailingRecipients.get(a.sourceRef.slice(MAILING_REF_PREFIX.length)) : undefined
     const mailingBits = m ? [
       m.bouncedAt ? 'Bounced' : m.deliveredAt ? 'Delivered' : 'Not delivered yet',
@@ -138,6 +146,21 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           {showSubject && <span className="font-medium">{a.subject ?? a.type}</span>}
           {!showSubject && (
             <span className="text-xs font-medium">{a.direction === 'INBOUND' ? 'Received' : 'Sent'}</span>
+          )}
+          {followUps.length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Follow-ups</p>
+              <ul className="mt-1 space-y-1 text-sm">
+                {followUps.map((f, i) => (
+                  <li key={i} className="flex items-baseline gap-2">
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-foreground ${f.mine ? 'bg-orange/25' : 'bg-muted'}`}>
+                      {f.mine ? 'You' : (f.owner ?? 'Them')}
+                    </span>
+                    <span>{f.title}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           {reply && (
             <details className="mt-1">
@@ -289,13 +312,6 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         </div>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-4">
-        <Stat label="Last contacted" value={sinceLabel(person.lastTouchedAt)} hint={meetingLabel(person.nextMeetingAt) ? `Meeting scheduled · ${meetingLabel(person.nextMeetingAt)}` : person.awaitingReplySince ? 'Waiting on their reply' : undefined} action={person.nextMeetingUrl ? <CrmMeetLink href={person.nextMeetingUrl} label="Join on Google Meet" kind="join" personId={person.id} /> : undefined} />
-        <Stat label="Touches" value={String(person.touchCount)} />
-        <Stat label="First replied" value={person.firstRepliedAt ? formatDate(person.firstRepliedAt) : '—'} />
-        <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />
-      </section>
-
       {contradicting.length > 0 && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
           <p className="text-sm font-medium">Before you meet them</p>
@@ -315,67 +331,43 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         </div>
       )}
 
-      <section className="space-y-3">
-        <GroupHeading>Organization</GroupHeading>
-        <CrmPersonOrg
-          personId={person.id}
-          org={primaryAff ? { id: primaryAff.orgId, name: primaryAff.org.name } : null}
-          title={primaryAff?.title ?? null}
-          othersCount={othersAtOrg}
-        />
-        {primaryAff && (
-          <Suspense fallback={<section className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground" aria-busy="true">Account context is loading: pulling the latest unemployment, layoffs, open jobs and local groups for this organization…</section>}>
-            <CrmOrgContext orgId={primaryAff.orgId} />
-          </Suspense>
-        )}
-      {(person.roles.includes('RECRUITER_PROSPECT') || person.mandates.length > 0) && (
-        <section>
-          <h2 className="mb-2 text-base font-semibold">Mandates</h2>
-          <CrmMandates
-            recruiterId={person.id}
-            mandates={person.mandates.map((m) => ({ id: m.id, orgId: m.orgId, orgName: m.org.name, scope: m.scope, status: m.status }))}
-          />
+      {(person.nextMeetingAt || person.tasks.length > 0) && (
+        <section className="space-y-3">
+          <GroupHeading tone="action">Next up</GroupHeading>
+          {person.nextMeetingAt && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-orange/50 bg-orange/10 p-3 text-sm">
+              <span className="font-medium">Meeting {meetingLabel(person.nextMeetingAt)}</span>
+              {person.nextMeetingUrl && <CrmMeetLink href={person.nextMeetingUrl} label="Join on Google Meet" kind="join" personId={person.id} />}
+            </div>
+          )}
+          {person.tasks.length > 0 && (
+            <ul className="divide-y divide-orange/20 rounded-lg border border-orange/30 bg-orange/5">
+              {person.tasks.map((t) => {
+                const late = t.dueAt && t.dueAt < new Date(new Date().setHours(0, 0, 0, 0))
+                return (
+                  <li key={t.id} className="flex flex-wrap items-start justify-between gap-3 p-3 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{t.title}</p>
+                      {t.notes && <p className="mt-0.5 line-clamp-2 whitespace-pre-line text-xs text-muted-foreground">{t.notes}</p>}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs ${late ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>
+                        {t.dueAt ? `${late ? 'Overdue · ' : 'Due '}${formatDate(t.dueAt)}` : 'No date'}
+                      </span>
+                      <form action={setTodoDone.bind(null, t.id, true)}>
+                        <button type="submit" className="rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-muted">Done</button>
+                      </form>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </section>
       )}
-
-      {person.affiliations.length > 1 && (
-        <section>
-          <h2 className="mb-2 text-base font-semibold">Affiliations</h2>
-          <ul className="rounded-lg border border-border divide-y divide-border">
-            {person.affiliations.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                <span>
-                  <Link href={`/support/admin/crm/organizations/${a.orgId}`} className="font-medium hover:underline">{a.org.name}</Link>
-                  {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
-                </span>
-                <span className="text-xs text-muted-foreground">{a.isCurrent ? 'Current' : 'Past'}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {person.backgrounds.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-base font-semibold">Background</h2>
-          <ul className="rounded-lg border border-border divide-y divide-border">
-            {person.backgrounds.map((b) => (
-              <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                <span>
-                  <Link href={`/support/admin/crm/organizations/${b.orgId}`} className="font-medium hover:underline">{b.org.name}</Link>
-                  {b.detail && <span className="text-muted-foreground"> — {b.detail}</span>}
-                </span>
-                <span className="text-xs text-muted-foreground">{b.kind === 'SCHOOL' ? 'School' : 'Former employer'}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      </section>
 
       <section className="space-y-3">
-        <GroupHeading>Conversation</GroupHeading>
+        <GroupHeading tone="history">Conversation</GroupHeading>
         <Collapsible title="Send outreach" hint={person.email ? `to ${person.email}` : 'no email on file'}>
           <CrmOutreachCompose personId={person.id} personEmail={person.email} personName={person.fullName} />
         </Collapsible>
@@ -438,7 +430,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
                     </details>
                   </li>
                 ) : (
-                  <li key={item.activity.id} className="rounded-lg border border-border p-3 text-sm">{renderActivity(item.activity, true)}</li>
+                  <li key={item.activity.id} className={`rounded-lg border border-border p-3 text-sm ${item.activity.type === 'MEETING' ? 'border-l-4 border-l-light-blue' : ''}`}>{renderActivity(item.activity, true)}</li>
                 ),
               )}
             </ul>
@@ -447,7 +439,7 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
       </section>
 
       <section className="space-y-3">
-        <GroupHeading>Meeting Prep</GroupHeading>
+        <GroupHeading tone="action">Meeting Prep</GroupHeading>
         <p className="text-sm text-muted-foreground">
           Local layoffs, initiatives, white-collar metrics and a tailored pitch for a meeting with {person.fullName.split(' ')[0]}, emailed to you.
           Costs about $0.30–1.00 per build.
@@ -465,6 +457,75 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
           </ul>
         )}
         <MeetingPrepGenerateButton personId={person.id} label={person.meetingPreps[0] ? 'Rebuild Meeting Prep and email me' : 'Build Meeting Prep and email me'} />
+      </section>
+
+      <section className="space-y-3">
+        <GroupHeading>At a glance</GroupHeading>
+      <div className="grid gap-4 sm:grid-cols-4">
+        <Stat label="Last contacted" value={sinceLabel(person.lastTouchedAt)} hint={meetingLabel(person.nextMeetingAt) ? `Meeting scheduled · ${meetingLabel(person.nextMeetingAt)}` : person.awaitingReplySince ? 'Waiting on their reply' : undefined} action={person.nextMeetingUrl ? <CrmMeetLink href={person.nextMeetingUrl} label="Join on Google Meet" kind="join" personId={person.id} /> : undefined} />
+        <Stat label="Touches" value={String(person.touchCount)} />
+        <Stat label="First replied" value={person.firstRepliedAt ? formatDate(person.firstRepliedAt) : '—'} />
+        <Stat label="Connected" value={person.connectedAt ? formatDate(person.connectedAt) : '—'} />
+      </div>
+      </section>
+
+      <section className="space-y-3">
+        <GroupHeading>Organization</GroupHeading>
+        <CrmPersonOrg
+          personId={person.id}
+          org={primaryAff ? { id: primaryAff.orgId, name: primaryAff.org.name } : null}
+          title={primaryAff?.title ?? null}
+          othersCount={othersAtOrg}
+        />
+        {primaryAff && (
+          <Suspense fallback={<section className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground" aria-busy="true">Account context is loading: pulling the latest unemployment, layoffs, open jobs and local groups for this organization…</section>}>
+            <CrmOrgContext orgId={primaryAff.orgId} />
+          </Suspense>
+        )}
+      {(person.roles.includes('RECRUITER_PROSPECT') || person.mandates.length > 0) && (
+        <section>
+          <h2 className="mb-2 text-base font-semibold">Mandates</h2>
+          <CrmMandates
+            recruiterId={person.id}
+            mandates={person.mandates.map((m) => ({ id: m.id, orgId: m.orgId, orgName: m.org.name, scope: m.scope, status: m.status }))}
+          />
+        </section>
+      )}
+
+      {person.affiliations.length > 1 && (
+        <section>
+          <h2 className="mb-2 text-base font-semibold">Affiliations</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {person.affiliations.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                <span>
+                  <Link href={`/support/admin/crm/organizations/${a.orgId}`} className="font-medium hover:underline">{a.org.name}</Link>
+                  {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
+                </span>
+                <span className="text-xs text-muted-foreground">{a.isCurrent ? 'Current' : 'Past'}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {person.backgrounds.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-base font-semibold">Background</h2>
+          <ul className="rounded-lg border border-border divide-y divide-border">
+            {person.backgrounds.map((b) => (
+              <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                <span>
+                  <Link href={`/support/admin/crm/organizations/${b.orgId}`} className="font-medium hover:underline">{b.org.name}</Link>
+                  {b.detail && <span className="text-muted-foreground"> — {b.detail}</span>}
+                </span>
+                <span className="text-xs text-muted-foreground">{b.kind === 'SCHOOL' ? 'School' : 'Former employer'}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       </section>
 
       <section className="space-y-3">

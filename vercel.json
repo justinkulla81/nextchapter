@@ -45,6 +45,10 @@
       "schedule": "0 13 * * *"
     },
     {
+      "path": "/api/cron/senior-brief",
+      "schedule": "0 11 * * 1"
+    },
+    {
       "path": "/api/cron/auto-assign-sprint",
       "schedule": "0 9 * * 1"
     },
@@ -163,6 +167,10 @@
     {
       "path": "/api/cron/funding-opportunities",
       "schedule": "15 10 * * *"
+    },
+    {
+      "path": "/api/cron/catalog-seeds",
+      "schedule": "10 18 * * *"
     },
     {
       "path": "/api/cron/federal-contracts",

@@ -54,6 +54,7 @@ export const ORG_TYPE_LABELS: Record<CrmOrgType, string> = {
   ACCELERATOR: 'Accelerator',
   VENDOR: 'Vendor / partner',
   OTHER: 'Other',
+  WORKFORCE_PROVIDER: 'Workforce provider',
 }
 
 export const QUALITY_LABELS: Record<CrmLeadQuality, string> = {

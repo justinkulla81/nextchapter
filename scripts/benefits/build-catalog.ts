@@ -17,7 +17,7 @@ function categoryFor(f: string): BenefitCategory | null {
   if (f === 'state-training.md' || f === 'state_ai.md' || /^state_local_.*\.md$/.test(f)) return 'STATE_TRAINING'
   if (f === 'federal.md') return 'FEDERAL'
   if (f === 'courses.md') return 'COURSES'
-  if (f === 'private.md') return 'PRIVATE'
+  if (f === 'private.md' || /^community_.*\.md$/.test(f)) return 'PRIVATE'
   if (/^audience_.*\.md$/.test(f)) return 'SEGMENT'
   if (f === 'paid.md') return 'PAID'
   if (f === 'tax.md') return 'TAX'

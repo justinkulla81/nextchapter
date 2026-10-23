@@ -1,6 +1,6 @@
 import { SubmitButton } from '@/components/ui/submit-button'
 import { upsertCompetitor } from '@/app/support/admin/(portal)/vision/actions'
-import { COMPETITOR_AREAS, RELATIONSHIPS, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
+import { COMPETITOR_AREAS, RELATIONSHIPS, STATUSES, CATEGORIES, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
 
 export interface CompetitorFormValues {
   id?: string
@@ -10,6 +10,7 @@ export interface CompetitorFormValues {
   pricingNote?: string | null; foundedYear?: number | null; hq?: string | null; lastRound?: string | null; investors?: string | null
   fundingRaisedUsd?: number | null; headcount?: number | null; revenueNote?: string | null; userCountNote?: string | null
   sourceUrl?: string | null; notes?: string | null
+  status?: string; statusNote?: string | null; lessons?: string[]; partnerIdea?: string | null; category?: string | null
 }
 
 const input = 'h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm'
@@ -54,6 +55,26 @@ export function CompetitorForm({ v = {}, submitLabel }: { v?: CompetitorFormValu
           ))}
         </div>
       </fieldset>
+
+      <fieldset className="sm:col-span-3">
+        <legend className="mb-1 text-sm font-medium">Status</legend>
+        <div className="flex flex-wrap gap-2">
+          {STATUSES.map((x) => (
+            <label key={x.key} className="cursor-pointer rounded-md border border-input px-3 py-1.5 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+              <input type="radio" name="status" value={x.key} defaultChecked={(v.status ?? 'ACTIVE') === x.key} className="mr-1.5" />{x.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <Field label="What happened (if not operating)" hint="Who bought them, or when and why they stopped." wide><input name="statusNote" defaultValue={v.statusNote ?? ''} className={input} /></Field>
+      <Field label="Market">
+        <select name="category" defaultValue={v.category ?? ''} className={input}>
+          <option value="">Not set</option>
+          {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+        </select>
+      </Field>
+      <Field label="How we could partner" wide><input name="partnerIdea" defaultValue={v.partnerIdea ?? ''} placeholder="Referral, integration, data, channel…" className={input} /></Field>
+      <Field label="What we can learn from them" hint="One per line." wide><textarea name="lessons" rows={3} defaultValue={(v.lessons ?? []).join('\n')} className={area} /></Field>
 
       <Field label="What they sell and to whom" wide><textarea name="positioning" rows={2} defaultValue={v.positioning ?? ''} className={area} /></Field>
       <Field label="Key features" hint="One per line." wide><textarea name="keyFeatures" rows={4} defaultValue={(v.keyFeatures ?? []).join('\n')} className={area} /></Field>

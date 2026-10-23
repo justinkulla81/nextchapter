@@ -576,6 +576,9 @@ enum CandidateInterestStatus {
 
 model CandidateProfile {
   id        String   @id @default(cuid())
+  partnerLinksOwned  PartnerLink[] @relation("PartnerLinkOwner")
+  partnerLinksJoined PartnerLink[] @relation("PartnerLinkPartner")
+  movePlaces         MovePlace[]   @relation("MovePlaceOwner")
   userId    String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1536,6 +1539,9 @@ model CandidateProfile {
   // email a candidate might want off independently.
   recruiterUnlockNudgeOptedOut      Boolean   @default(false)
   upgradeOfferOptedOut              Boolean   @default(false) // the usage-triggered coaching upgrade offer (upgrade-offer cron)
+  seniorBriefOptedOut               Boolean   @default(false) // the senior Monday brief (senior-brief cron)
+  seniorBriefPausedUntil            DateTime? // "Not for me": no brief drafts until this date (90 days)
+  seniorBriefDrafts                 SeniorBriefDraft[]
 
   // Deprecated — was the "Mark as fixed" button's tracking field (distinct
   // Resume.atsFeedback/resultsFeedback/experienceFeedback item `issue`
@@ -10301,6 +10307,7 @@ enum CrmOrgType {
   ACCELERATOR
   VENDOR
   OTHER
+  WORKFORCE_PROVIDER // runs job training and career services, often on workforce grants (nonprofits, colleges, companies)
 }
 
 // How good a fit this is — your judgement, set by hand, rarely changes.
@@ -11836,6 +11843,15 @@ model ProductCompetitor {
   /// How the row was filled: hand | website | seed. A website or seed fill is a draft until reviewed.
   filledBy     String?
   needsReview  Boolean  @default(false)
+  /// ACTIVE | ACQUIRED | SHUT_DOWN | PIVOTED. A company that failed or was folded in is on the list on purpose:
+  /// what went wrong is the cheapest lesson there is.
+  status       String   @default("ACTIVE")
+  statusNote   String?
+  lessons      String[] @default([])
+  /// One sentence on how we could work with them, when they are more useful beside us than against us.
+  partnerIdea  String?
+  /// The market this company was found in (outplacement, coaching, recruiter CRM ...), for grouping.
+  category     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -15464,6 +15480,40 @@ model InstitutionSystemUser {
 // or coach with no NextChapter login. They get a weekly summary of effort only
 // (minutes, days active, counts; never names, jobs or messages) and can send a
 // short cheer. Never available in Confidential Search Mode.
+// A member's partner, invited to search together (mostly for a move). The partner joins with their own account, matched by the
+// email the invite went to. SQL: prisma/manual/2026-10-23-partner-search.sql.
+model PartnerLink {
+  id           String           @id @default(cuid())
+  ownerId      String
+  owner        CandidateProfile @relation("PartnerLinkOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  partnerName  String
+  partnerEmail String
+  partnerId    String?
+  partner      CandidateProfile? @relation("PartnerLinkPartner", fields: [partnerId], references: [id], onDelete: SetNull)
+  sharePlaces  Boolean          @default(true)
+  shareJobsPay Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  joinedAt     DateTime?
+  revokedAt    DateTime?
+
+  @@unique([ownerId, partnerEmail])
+  @@index([partnerId])
+  @@index([partnerEmail])
+}
+
+// The metro areas a pair of partners is comparing for a move. Owned by the member who invited; either partner can add.
+model MovePlace {
+  id        String           @id @default(cuid())
+  ownerId   String
+  owner     CandidateProfile @relation("MovePlaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  addedById String
+  metroCode String
+  name      String
+  createdAt DateTime         @default(now())
+
+  @@unique([ownerId, metroCode])
+}
+
 model SearchSupporter {
   id           String           @id @default(cuid())
   candidateId  String
@@ -16440,4 +16490,68 @@ model LinkedInAdminConnection {
   expiresAt      DateTime
   connectedAt    DateTime  @default(now())
   disconnectedAt DateTime?
+}
+
+// One row per senior Monday brief draft: the message, who it is for, and what the single model call cost.
+// weekKey makes a second real draft in the same week impossible at the database; the 6-day gap is checked in
+// src/lib/senior-brief/rules.ts. Test sends (isTest) use a unique weekKey and never count against a member's cap.
+// SQL: prisma/manual/senior-brief.sql
+model SeniorBriefDraft {
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekKey       String
+  isTest        Boolean          @default(false)
+  itemKind      String // recruiter_follow_up | intro_request
+  contactId     String?
+  contactName   String?
+  companyName   String?
+  toEmail       String?
+  subject       String?
+  body          String?          @db.Text
+  model         String?
+  inputTokens   Int              @default(0)
+  outputTokens  Int              @default(0)
+  estCostUsd    Float            @default(0)
+  status        String           @default("DRAFTING") // DRAFTING | DRAFTED | EMAILED | FAILED
+  emailedAt     DateTime?
+  openedAt      DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@unique([candidateId, weekKey])
+  @@index([createdAt])
+}
+
+/// What one buyer's own website says it buys and who to call: a workforce board, an EDA district, a local
+/// economic development group or a state workforce agency. Written by scripts/geo/crawl_procurement.py and
+/// loaded by scripts/geo/load-buyer-crawl.ts. One row per site, replaced on each crawl.
+model BuyerCrawl {
+  /// "<KIND>-<id>", e.g. BOARD-1234, EDD-edd-12, EDO-edo-ab12cd, STATE-state-KY.
+  id                String   @id
+  kind              String // BOARD | EDD | EDO | STATE
+  targetId          String
+  name              String
+  state             String
+  website           String?
+  crawledAt         DateTime
+  httpStatus        Int?
+  error             String?
+  pagesCrawled      Int      @default(0)
+  /// The page most likely to list open solicitations.
+  procurementUrl    String?
+  solicitations     Json? // [{ label, url, dates[], context, pdf }]
+  solicitationCount Int      @default(0)
+  /// Solicitations with a date inside the last 12 months or in the future.
+  recentCount       Int      @default(0)
+  people            Json? // [{ name, title, email, phone }] as published, unverified
+  emails            String[] @default([])
+  phones            String[] @default([])
+  systems           String[] @default([]) // vendors and platforms the site names
+  topics            String[] @default([]) // ai, reskilling, rapid_response, ...
+  policy            Json? // sentences about sole source, small purchase, competitive bids
+  rapidResponseNote String?  @db.Text
+  updatedAt         DateTime @default(now()) @updatedAt
+
+  @@index([kind, state])
+  @@index([recentCount])
 }

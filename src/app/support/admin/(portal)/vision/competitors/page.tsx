@@ -6,7 +6,7 @@ import { VisionMatrixCell } from '@/components/admin/VisionMatrixCell'
 import { CompetitorForm } from '@/components/admin/CompetitorForm'
 import { quickAddCompetitor, refreshCompetitorFromWebsite, deleteCompetitor } from '../actions'
 import { formatDate } from '@/lib/vision/labels'
-import { COMPETITOR_AREAS, RELATIONSHIPS, areaLabel, relationshipLabel, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
+import { COMPETITOR_AREAS, RELATIONSHIPS, CATEGORIES, areaLabel, relationshipLabel, statusLabel, categoryLabel, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
 
 export const maxDuration = 60
 
@@ -53,6 +53,8 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   const sp = await searchParams
   const areaFilter = sp.area ?? ''
   const relFilter = sp.rel ?? ''
+  const catFilter = sp.cat ?? ''
+  const gone = sp.gone === '1'
 
   const [allCompetitors, features] = await Promise.all([
     prisma.productCompetitor.findMany({ orderBy: { name: 'asc' }, include: { cells: true } }),
@@ -64,7 +66,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
     }),
   ])
   const competitors = allCompetitors
-  const shown = allCompetitors.filter((c) => (!areaFilter || c.areas.includes(areaFilter)) && (!relFilter || c.relationship === relFilter))
+  const shown = allCompetitors.filter((c) => (!areaFilter || c.areas.includes(areaFilter)) && (!relFilter || c.relationship === relFilter) && (!catFilter || c.category === catFilter) && (!gone || c.status !== 'ACTIVE'))
   const relOrder = (r: string) => RELATIONSHIPS.findIndex((x) => x.key === r)
   shown.sort((a, b) => relOrder(a.relationship) - relOrder(b.relationship) || a.name.localeCompare(b.name))
 
@@ -93,7 +95,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   const reviewCount = competitors.filter((c) => c.needsReview).length
   const qs = (over: Record<string, string>) => {
     const p = new URLSearchParams()
-    for (const [k, v] of Object.entries({ area: areaFilter, rel: relFilter, ...over })) if (v) p.set(k, v)
+    for (const [k, v] of Object.entries({ area: areaFilter, rel: relFilter, cat: catFilter, gone: gone ? '1' : '', ...over })) if (v) p.set(k, v)
     const t = p.toString()
     return `/support/admin/vision/competitors${t ? `?${t}` : ''}`
   }
@@ -172,8 +174,22 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
               {r.label} {competitors.filter((c) => c.relationship === r.key).length}
             </Link>
           ))}
+          <Link href={qs({ gone: gone ? '' : '1' })} className={`rounded-md border px-2.5 py-1 ${gone ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:bg-muted'}`} title="Acquired, shut down or left the market: what went wrong is the cheapest lesson">Failed or gone {competitors.filter((c) => c.status !== 'ACTIVE').length}</Link>
           {areaFilter && <Link href={qs({ area: '' })} className="rounded-md border border-border px-2.5 py-1 hover:bg-muted">Area: {areaLabel(areaFilter)} ✕</Link>}
           {reviewCount > 0 && <span className="ml-auto text-xs text-muted-foreground">{reviewCount} drafts to check</span>}
+        </div>
+      )}
+
+      {competitors.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="text-sm text-muted-foreground">Market:</span>
+          {CATEGORIES.map((c) => {
+            const n = competitors.filter((x) => x.category === c.key).length
+            if (n === 0) return null
+            const on = catFilter === c.key
+            return <Link key={c.key} href={qs({ cat: on ? '' : c.key })} className={`rounded-full border px-2.5 py-1 ${on ? 'border-primary bg-primary/10 font-medium' : 'border-border hover:bg-muted'}`}>{c.label} <span className="text-muted-foreground">{n}</span></Link>
+          })}
+          {catFilter && <Link href={qs({ cat: '' })} className="rounded-full border border-border px-2.5 py-1 hover:bg-muted">Clear ✕</Link>}
         </div>
       )}
 
@@ -189,7 +205,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
           {competitors.length === 0 ? 'No competitors yet. Paste a website above to add the first.' : 'No competitors match this filter.'}
         </p>
       ) : (
-        <section className="grid gap-4 xl:grid-cols-2">
+        <section className="space-y-2">
           {shown.map((c) => {
             const customers = (c.customers as NamedEntry[] | null) ?? []
             const wins = (c.wins as WinEntry[] | null) ?? []
@@ -205,19 +221,25 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
               c.pricingNote && { k: 'Pricing', v: c.pricingNote },
             ].filter(Boolean) as { k: string; v: string }[]
             return (
-              <article key={c.id} id={`c-${c.id}`} className={`rounded-xl border p-4 ${sp.added === c.id ? 'border-emerald-500 ring-1 ring-emerald-500/40' : 'border-border'}`}>
-                <header className="flex flex-wrap items-start justify-between gap-2">
+              <details key={c.id} id={`c-${c.id}`} open={sp.added === c.id} className={`group rounded-xl border p-3 ${sp.added === c.id ? 'border-emerald-500 ring-1 ring-emerald-500/40' : 'border-border'}`}>
+                <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="text-lg font-semibold">{c.url ? <a href={c.url} target="_blank" rel="noreferrer" className="hover:underline">{c.name} ↗</a> : c.name}</h3>
-                    <p className="text-xs text-muted-foreground">{[c.segment, c.lastReviewedAt ? `checked ${formatDate(c.lastReviewedAt)}` : 'never checked'].filter(Boolean).join(' · ')}</p>
+                    <p className="text-xs text-muted-foreground">{[categoryLabel(c.category), c.segment, c.lastReviewedAt ? `checked ${formatDate(c.lastReviewedAt)}` : 'never checked'].filter(Boolean).join(' · ')}</p>
+                    {c.positioning && <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground group-open:hidden">{c.positioning}</p>}
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 text-xs">
                     <span className={`rounded-full px-2 py-0.5 font-medium ${REL_STYLE[c.relationship] ?? ''}`}>{relationshipLabel(c.relationship)}</span>
+                    {c.status !== 'ACTIVE' && <span className="rounded-full bg-red-500/10 px-2 py-0.5 font-medium text-red-700 dark:text-red-300">{statusLabel(c.status)}</span>}
                     {c.needsReview && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-medium text-amber-700 dark:text-amber-300" title="Filled from a website or a memo. Open Edit, check it, save.">Check this</span>}
                   </div>
-                </header>
-
+                </summary>
+                <div className="mt-3">
+                {c.status !== 'ACTIVE' && (
+                  <p className="mb-2 rounded-md bg-red-500/5 p-2 text-sm"><strong>{statusLabel(c.status)}.</strong> {c.statusNote ?? ''}</p>
+                )}
                 {c.positioning && <p className="mt-2 text-sm">{c.positioning}</p>}
+                {c.partnerIdea && <p className="mt-2 rounded-md bg-emerald-500/5 p-2 text-sm"><strong>How we could work together.</strong> {c.partnerIdea}</p>}
                 {c.areas.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {c.areas.map((a) => <Link key={a} href={qs({ area: a })} className="rounded-full border border-border px-2 py-0.5 text-xs hover:bg-muted">{areaLabel(a)}</Link>)}
@@ -259,6 +281,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
                     </ul>
                   </details>
                 )}
+                {c.lessons.length > 0 && <div className="mt-3"><List title="What we can learn from them" items={c.lessons} tone="text-sky-700 dark:text-sky-300" /></div>}
                 {c.notes && <p className="mt-2 text-xs text-muted-foreground">{c.notes}</p>}
 
                 <footer className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
@@ -275,7 +298,8 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
                     <SubmitButton size="sm" variant="outline" pendingLabel="Removing…">Remove</SubmitButton>
                   </form>
                 </footer>
-              </article>
+                </div>
+              </details>
             )
           })}
         </section>

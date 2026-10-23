@@ -35,10 +35,14 @@ export function meetUrlOf(ev: {
  */
 export function geminiNotesDocOf(attachments: CalendarAttachment[] | undefined): NotesDoc | null {
   for (const a of attachments ?? []) {
-    if (a.mimeType !== GOOGLE_DOC || !a.fileId || !a.fileUrl) continue
-    if (/notes by gemini|gemini notes/i.test(a.title ?? '')) {
-      return { fileId: a.fileId, url: a.fileUrl, title: a.title ?? 'Notes by Gemini' }
-    }
+    // A real event's attachment can be just { fileUrl, title } — no fileId and
+    // no mimeType — so the document id comes from the link when it's absent.
+    if (!a.fileUrl) continue
+    if (a.mimeType && a.mimeType !== GOOGLE_DOC) continue
+    if (!/notes by gemini|gemini notes/i.test(a.title ?? '')) continue
+    const fileId = a.fileId ?? a.fileUrl.match(/\/document\/d\/([A-Za-z0-9_-]+)/)?.[1]
+    if (!fileId) continue
+    return { fileId, url: a.fileUrl, title: a.title ?? 'Notes by Gemini' }
   }
   return null
 }

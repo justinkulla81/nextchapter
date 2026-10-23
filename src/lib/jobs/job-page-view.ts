@@ -29,6 +29,8 @@ import { countInsidersByCompany, hasTaggedEmployment } from '@/lib/companies/ins
 import { getCandidateMarketIntelTier, tierMeetsFeature } from '@/lib/market-intelligence/access'
 import { loadExposureMap } from '@/lib/skills/ai-exposure-server'
 import { exposureFor } from '@/lib/skills/ai-exposure'
+import { loadSalaryContext } from '@/lib/market/salary-context'
+import { jobSalaryView } from '@/lib/market/salary-compare'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { jobAiView } from '@/lib/jobs/job-ai-view'
 import type { FindJobDetailProps } from '@/components/dashboard/find/FindJobDetail'
@@ -51,6 +53,8 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
   const memberKeywords = memberSkillKeywords(profile)
   const [exposureMap, aiMarket] = await Promise.all([loadExposureMap(), soft(loadAiMarket(), 'AI market')])
   const exposure = exposureFor(posting.socCode, exposureMap)
+  const salaryCtx = await soft(loadSalaryContext(profile), 'salary context')
+  const salary = salaryCtx ? jobSalaryView(posting, salaryCtx.ctx, salaryCtx.catalog) : null
   const [bands, company, culturePrefs, workProfile, strengthKeysNow, area, tracked, watch, payHigh, benefits, openAtCompany, contactsMap, skillsFitFor] = await Promise.all([
     posting.companyName ? resolveCompanySizeBands([posting.companyName]) : Promise.resolve([{ band: null }]),
     posting.companyId ? prisma.company.findUnique({ where: { id: posting.companyId }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } }) : Promise.resolve(null),
@@ -121,6 +125,7 @@ export async function loadJobPageView(profile: Profile, posting: ExclusiveJobPos
     posting,
     item,
     exposure,
+    salary,
     ai: jobAiView(posting, aiMarket),
     fitBucket,
     nextStep: nextStepFor({

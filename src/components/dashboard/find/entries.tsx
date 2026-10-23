@@ -16,6 +16,8 @@ import type { SkillsFit } from '@/lib/careers/skills-fit'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import type { EmployerSignals } from '@/lib/jobs/great-employer-display'
 import type { JobBenefits } from '@/lib/jobs/benefits'
+import { jobSalaryView, type SalaryContext } from '@/lib/market/salary-compare'
+import type { AreaCatalog } from '@/lib/careers/area'
 import { exposureFor, type ExposureMap } from '@/lib/skills/ai-exposure'
 import { jobAiView } from '@/lib/jobs/job-ai-view'
 import type { AiMarketData } from '@/lib/skills/ai-market'
@@ -55,6 +57,8 @@ export function boardEntry(a: {
   exposureMap?: ExposureMap
   /** The live AI pay comparison, loaded once for the page. */
   aiMarket?: AiMarketData | null
+  /** The member's last salary and home costs, loaded once for the page (salary-context.ts), never per row. */
+  salary?: { ctx: SalaryContext; catalog: AreaCatalog } | null
 }): FindEntry {
   const { posting } = a
   const exposure = a.exposureMap ? exposureFor(posting.socCode, a.exposureMap) : null
@@ -112,6 +116,7 @@ export function boardEntry(a: {
         candidatePlus={a.candidatePlus}
         exposure={exposure}
         ai={jobAiView(posting, a.aiMarket)}
+        salary={a.salary ? jobSalaryView(posting, a.salary.ctx, a.salary.catalog) : null}
       />
     ),
   }
