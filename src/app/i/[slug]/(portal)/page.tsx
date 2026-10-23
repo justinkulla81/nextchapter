@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { getWorkspace, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS } from '@/lib/higher-ed/workspaces'
+import { getWorkspace, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS, workspaceFeaturesOf } from '@/lib/higher-ed/workspaces'
 import { prisma } from '@/lib/prisma'
 import { ViewAsForm } from '@/components/higher-ed/ViewAsForm'
 
@@ -23,8 +23,8 @@ export default async function InstitutionRootPage({
   const deniedLabel = denied ? (getWorkspace(denied)?.label ?? denied) : null
   if (first && !denied) redirect(`${orgBasePath(slug, access.institution.orgType)}/${getWorkspace(first)!.homePath}`)
   // A staff role whose workspaces the college's license doesn't include.
-  const inst = first ? null : await prisma.institution.findUnique({ where: { id: access.institution.id }, select: { tier: true } })
-  const locked = inst ? lockedWorkspacesFor(access.ownTokens, inst.tier, {}, orgKindOf(access.institution.orgType)) : []
+  const inst = first ? null : await prisma.institution.findUnique({ where: { id: access.institution.id }, select: { tier: true, enabledFeatures: true } })
+  const locked = inst ? lockedWorkspacesFor(access.ownTokens, inst.tier, workspaceFeaturesOf(inst.enabledFeatures), orgKindOf(access.institution.orgType)) : []
 
   return (
     <div className="mx-auto max-w-xl space-y-4 py-8">
