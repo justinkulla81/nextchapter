@@ -6,7 +6,8 @@ import { countyKey } from './places'
  */
 export function boardCountyKeys(b: { counties: string[]; placeCounties: string[]; statewide: boolean }): string[] | 'all' {
   if (b.statewide) return 'all'
-  return [...new Set([...b.counties, ...b.placeCounties.filter((c) => c !== '-')])]
+  // Keys come with and without the space ("los angeles" from places, "losangeles" from boards' own lists): one form.
+  return [...new Set([...b.counties, ...b.placeCounties.filter((c) => c !== '-')].map((k) => k.replace(/\s+/g, '')))]
 }
 
 /** Boards to show for a state: its local boards, or its state board when it has no local ones. */
