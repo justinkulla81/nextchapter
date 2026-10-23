@@ -37,6 +37,7 @@ export const SITUATION_TO_JOURNEY = {
   taking_a_break: 'TIME_OFF',
   happy_fractional: 'FRACTIONAL',
   building_something: 'ENTREPRENEUR',
+  buying_a_business: 'BUY_BUSINESS',
 } as const satisfies Record<string, JourneyType>
 
 export type SituationKey = keyof typeof SITUATION_TO_JOURNEY
@@ -57,6 +58,7 @@ export const SITUATION_TO_JOB_STATUS: Record<SituationKey, CurrentJobStatus> = {
   taking_a_break: 'CAREGIVER_LEAVE_SABBATICAL',
   happy_fractional: 'EMPLOYED_CONSIDERING_MOVE',
   building_something: 'EMPLOYED_CONSIDERING_MOVE',
+  buying_a_business: 'EMPLOYED_CONSIDERING_MOVE',
 }
 
 // The card to pre-select for a member re-visiting the picker.
@@ -72,6 +74,7 @@ export const JOURNEY_TO_SITUATION: Record<JourneyType, SituationKey> = {
   TIME_OFF: 'taking_a_break',
   FRACTIONAL: 'happy_fractional',
   ENTREPRENEUR: 'building_something',
+  BUY_BUSINESS: 'buying_a_business',
 }
 
 export const SITUATION_SESSION_KEY = 'nc_situation'

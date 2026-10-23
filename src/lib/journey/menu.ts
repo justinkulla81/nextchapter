@@ -14,11 +14,13 @@
 import type { CheckInAnswer, JourneyStage, JourneyType } from './journey'
 import { normalizeJourney } from './journey'
 
-export type MenuMode = 'EXPLORING' | 'PREPARING' | 'ACTIVE' | 'STAYING' | 'LANDED' | 'PORTFOLIO' | 'LEAVE'
+export type MenuMode = 'EXPLORING' | 'PREPARING' | 'ACTIVE' | 'STAYING' | 'LANDED' | 'PORTFOLIO' | 'LEAVE' | 'BUYING'
 
 // Where in the search someone is, as far as the menu cares. No stage yet (a
 // member from before journeys) sees everything, as an active search does.
 export function menuMode(stage: JourneyStage | null, journey: JourneyType | null = null): MenuMode {
+  // Buying a business is its own situation at every stage of the purchase.
+  if (journey && normalizeJourney(journey) === 'BUY_BUSINESS') return 'BUYING'
   // Going for a promotion before applying elsewhere is about the job they have.
   if (journey && normalizeJourney(journey) === 'PROMOTION' && (stage === 'EXPLORING' || stage === 'PREPARING')) return 'STAYING'
   // Not looking, but not in a job to grow in either: running a portfolio of clients, or on a break.
@@ -71,6 +73,8 @@ export const PILLAR_ORDER: Record<MenuMode, Pillar[]> = {
   PORTFOLIO: ['work', 'prove', 'network', 'plan', 'learn', 'coach', 'search', 'support'],
   // On leave or time off: gentle, with the return in mind.
   LEAVE: ['plan', 'prove', 'network', 'learn', 'coach', 'search', 'support'],
+  // Buying a business: learning, advisors and the network first; job tools wait.
+  BUYING: ['plan', 'learn', 'network', 'coach', 'prove', 'work', 'search', 'support'],
 }
 
 // The phone's bottom bar has room for four tabs: Home, one situational tab,
@@ -85,6 +89,7 @@ export const MOBILE_TAB: Record<MenuMode, MobileTab> = {
   LANDED: 'first90',
   PORTFOLIO: 'worth',
   LEAVE: 'plan',
+  BUYING: 'plan',
 }
 
 export type Visibility = 'show' | 'locked' | 'hide'
@@ -154,7 +159,7 @@ const H = 'hide' as const
 
 // The job-search tools turn on once someone is applying; until then they show
 // as locked (exploring, preparing, staying) so people know what is waiting.
-const SEARCH_TOOLS: Partial<Record<MenuMode, Visibility>> = { EXPLORING: L, STAYING: L, PORTFOLIO: L, LEAVE: L, LANDED: H }
+const SEARCH_TOOLS: Partial<Record<MenuMode, Visibility>> = { EXPLORING: L, STAYING: L, PORTFOLIO: L, LEAVE: L, BUYING: L, LANDED: H }
 
 export const MENU_RULES: Record<MenuItemKey, Rule> = {
   // Personalize
@@ -173,8 +178,8 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   // Search and apply
   jobs: { pillar: 'search', modes: SEARCH_TOOLS },
   companies: { pillar: 'search', pillarIn: { LANDED: 'career' } },
-  interviewPrep: { pillar: 'search', modes: { EXPLORING: L, STAYING: L, LEAVE: L, LANDED: H } },
-  offer: { pillar: 'search', modes: { EXPLORING: L, PREPARING: L, STAYING: L, PORTFOLIO: L, LEAVE: L }, pillarIn: { LANDED: 'career' } },
+  interviewPrep: { pillar: 'search', modes: { EXPLORING: L, STAYING: L, LEAVE: L, BUYING: L, LANDED: H } },
+  offer: { pillar: 'search', modes: { EXPLORING: L, PREPARING: L, STAYING: L, PORTFOLIO: L, LEAVE: L, BUYING: L }, pillarIn: { LANDED: 'career' } },
   marketIntel: { pillar: 'search', pillarIn: { LANDED: 'career' } },
   // Network
   network: { pillar: 'network' },
@@ -259,6 +264,14 @@ export function statusUnlock(mode: MenuMode): StatusUnlock | null {
         answers: [
           { answer: 'ready', label: "I'm ready to start applying", because: 'Turns on Find a Full-time Job and interview practice, and your plan switches to applications and outreach.' },
           { answer: 'laid_off', label: 'I lost my main client or role', because: 'Starts a laid-off plan: benefits first, then a fast search.' },
+        ],
+      }
+    case 'BUYING':
+      return {
+        why: 'Job-search tools are off while you are buying a business. Your plan follows the steps of the purchase.',
+        answers: [
+          { answer: 'ready', label: "I'm ready to start applying", because: 'Turns on Find a Full-time Job and interview practice, and your plan switches to applications and outreach.' },
+          { answer: 'laid_off', label: 'I was laid off or let go', because: 'Starts a laid-off plan: benefits and severance first, then a fast search.' },
         ],
       }
     case 'LEAVE':

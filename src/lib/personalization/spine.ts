@@ -57,7 +57,7 @@ export interface Signal {
 }
 
 const SEARCHING: readonly JourneyType[] = ['LAID_OFF', 'EXPLORING_MOVE', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT']
-const NOT_SEARCHING: readonly JourneyType[] = ['GROWING', 'ENTREPRENEUR', 'FRACTIONAL', 'TIME_OFF']
+const NOT_SEARCHING: readonly JourneyType[] = ['GROWING', 'ENTREPRENEUR', 'FRACTIONAL', 'TIME_OFF', 'BUY_BUSINESS']
 const ALL_STAGES_BUT_LANDED: readonly JourneyStage[] = ['EXPLORING', 'PREPARING', 'APPLYING', 'INTERVIEWING', 'OFFER']
 const READY: readonly JourneyStage[] = ['PREPARING', 'APPLYING', 'INTERVIEWING', 'OFFER']
 

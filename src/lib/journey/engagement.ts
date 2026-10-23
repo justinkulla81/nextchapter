@@ -127,7 +127,7 @@ export function unlockSteps(s: EngagementSignals): Step[] {
   }
   // On a break, or building something of their own: personalization and check-ins
   // only. No pushing to connect accounts or collect references.
-  if (j === 'TIME_OFF' || j === 'ENTREPRENEUR') return out
+  if (j === 'TIME_OFF' || j === 'ENTREPRENEUR' || j === 'BUY_BUSINESS') return out
   if (!s.gmail) {
     out.push({
       key: 'gmail',

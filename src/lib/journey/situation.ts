@@ -7,7 +7,7 @@
 import type { JourneyType } from '@prisma/client'
 import { RETIREMENT_INCOME, RETIREMENT_PATHS, retirementPlanItems } from './retirement'
 
-const ALL_JOURNEYS: readonly JourneyType[] = ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT', 'TIME_OFF', 'FRACTIONAL', 'ENTREPRENEUR']
+const ALL_JOURNEYS: readonly JourneyType[] = ['LAID_OFF', 'EXPLORING_MOVE', 'GROWING', 'PROMOTION', 'CAREER_CHANGE', 'STUDENT_NEW_GRAD', 'RETURNING', 'NEXT_ACT', 'TIME_OFF', 'FRACTIONAL', 'ENTREPRENEUR', 'BUY_BUSINESS']
 
 export type SituationField = {
   key: string

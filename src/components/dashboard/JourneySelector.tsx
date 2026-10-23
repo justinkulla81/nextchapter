@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import { updateJourney } from '@/app/dashboard/privacy/actions'
 import { SubmitButton } from '@/components/ui/submit-button'
@@ -34,7 +35,8 @@ export function JourneySelector({
   const initialI = intensity === 'ACTIVELY_SEARCHING' ? 'ACTIVELY_SEARCHING' : intensity ? 'CASUALLY_LOOKING' : null
   const [sit, setSit] = useState<Record<string, string>>(details.situation)
   const hasDetails = j === 'TIME_OFF' || j === 'FRACTIONAL' || j === 'ENTREPRENEUR' || situationFieldsFor(j).length > 0
-  const notASearch = !getJourney(j).searching && ACTIVE_SEARCH_STAGES.includes(s)
+  // Buying a business keeps its own stages (the Buy a business page), so the job-search stage rule does not apply.
+  const notASearch = j !== 'BUY_BUSINESS' && !getJourney(j).searching && ACTIVE_SEARCH_STAGES.includes(s)
   const unchanged = j === journey && s === stage && (j !== 'EXPLORING_MOVE' || d === moveDriver) && i === initialI && !hasDetails
 
   return (
@@ -56,6 +58,18 @@ export function JourneySelector({
             ))}
           </select>
         </div>
+        {j === 'BUY_BUSINESS' ? (
+          <div className="space-y-1.5">
+            <input type="hidden" name="stage" value={s} />
+            <Label>Where you are</Label>
+            <p className="flex h-9 items-center text-sm text-muted-foreground">
+              Set on your{' '}
+              <Link href="/dashboard/buy-a-business" className="ml-1 font-medium text-brand underline underline-offset-4">
+                Buy a business page
+              </Link>
+            </p>
+          </div>
+        ) : (
         <div className="space-y-1.5">
           <Label htmlFor="stage-select">Where you are</Label>
           <select
@@ -72,6 +86,7 @@ export function JourneySelector({
             ))}
           </select>
         </div>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <SubmitButton variant="outline" className="h-10 rounded-full px-5 text-sm" disabled={unchanged || notASearch}>
             Save situation
