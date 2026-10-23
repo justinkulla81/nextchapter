@@ -1,0 +1,652 @@
+[
+ {
+  "id": "gartner-it-symposium-xpo",
+  "name": "Gartner IT Symposium/Xpo",
+  "organizer": "Gartner",
+  "url": "https://reg.gartner.com/flow/gartner/sym36/rfr/process",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "CIOs and senior IT leaders (7,000+) and the consultants who advise them; 2026 edition ran Oct 19-22 in Orlando.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party listings show about $8,200 standard; unconfirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing / search lead",
+  "segments": [
+   "IT and digital consulting"
+  ],
+  "roles": [
+   "technology consultant",
+   "digital transformation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aws-reinvent",
+  "name": "AWS re:Invent",
+  "organizer": "Amazon Web Services",
+  "url": "https://aws.amazon.com/events/reinvent/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-30",
+  "endDate": "2026-12-04",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Cloud builders, AWS partners and consulting firm practitioners in one week.",
+  "access": "PAID",
+  "costLow": 2499,
+  "costHigh": 2499,
+  "costNote": "Full pass $2,499 (early bird closed Aug 25); 10% off for 10+ passes.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free livestream of keynotes.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "IT and digital consulting"
+  ],
+  "roles": [
+   "technology consultant",
+   "digital transformation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "google-cloud-next",
+  "name": "Google Cloud Next",
+  "organizer": "Google Cloud",
+  "url": "https://www.googlecloudevents.com/next-vegas/faq",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-13",
+  "endDate": "2027-04-15",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Google Cloud partners, SIs and customer IT leaders; Partner Summit the day before.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "IT and digital consulting"
+  ],
+  "roles": [
+   "technology consultant",
+   "digital transformation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "servicenow-knowledge",
+  "name": "ServiceNow Knowledge",
+  "organizer": "ServiceNow",
+  "url": "https://www.servicenow.com/community/ham-blog/knowledge-2027-call-for-speakers-is-live-closes-oct-30th/ba-p/3605661",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-04",
+  "endDate": "2027-05-06",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Workflow/ITSM platform customers and the large partner-consulting ecosystem.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pass prices not published.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.servicenow.com/community/ham-blog/knowledge-2027-call-for-speakers-is-live-closes-oct-30th/ba-p/3605661",
+  "speakingDeadline": "2026-10-30",
+  "speakingNote": "Call for speakers is live.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "IT and digital consulting"
+  ],
+  "roles": [
+   "technology consultant",
+   "digital transformation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "mit-sloan-cio-symposium",
+  "name": "MIT Sloan CIO Symposium",
+  "organizer": "MIT Sloan / MIT CIO",
+  "url": "https://mitcio.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Cambridge",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "CIOs, academics and advisers on digital strategy; 2026 edition was May 19.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing / search lead",
+  "segments": [
+   "IT and digital consulting"
+  ],
+  "roles": [
+   "digital transformation lead",
+   "technology consultant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tsia-world",
+  "name": "TSIA World",
+  "organizer": "Technology Services Industry Association",
+  "url": "https://www.tsia.com/conference-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Tech-services and professional-services leaders on services growth, customer success and delivery; 2026 edition was Oct 19-21.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "IT and digital consulting",
+   "Management consulting"
+  ],
+  "roles": [
+   "digital transformation lead",
+   "engagement manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "worldatwork-total-rewards",
+  "name": "WorldatWork Total Rewards Conference (TR27)",
+  "organizer": "WorldatWork",
+  "url": "https://worldatwork.org/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-25",
+  "endDate": "2027-04-28",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The compensation, benefits and rewards profession's flagship; rewards consultants and buyers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not on listing page; see totalrewards.worldatwork.org/2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HR and talent consulting"
+  ],
+  "roles": [
+   "rewards consultant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "worldatwork-sales-comp",
+  "name": "WorldatWork Sales Comp '27",
+  "organizer": "WorldatWork",
+  "url": "https://worldatwork.org/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-23",
+  "endDate": "2027-08-25",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Human Resources",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Sales compensation design specialists and the consultants who advise on incentive plans.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HR and talent consulting"
+  ],
+  "roles": [
+   "rewards consultant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "siop-annual-conference",
+  "name": "SIOP Annual Conference",
+  "organizer": "Society for Industrial and Organizational Psychology",
+  "url": "https://www.siop.org/events/the-annual-conference/future-conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-14",
+  "endDate": "2027-04-17",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "I-O psychologists, talent assessment and OD consultants from firms and universities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices and call dates not on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HR and talent consulting"
+  ],
+  "roles": [
+   "organizational development consultant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "od-network-annual-conference",
+  "name": "OD Network Annual Conference",
+  "organizer": "Organization Development Network",
+  "url": "https://www.odnetwork.org/page/Conference_2026",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Organization development practitioners and consultants; the 2026 edition was virtual Sep 30 - Oct 2.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 early-bird non-member $375; student/emerging member $150. 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student/emerging practitioner member rate in 2026.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing / search lead",
+  "segments": [
+   "HR and talent consulting"
+  ],
+  "roles": [
+   "organizational development consultant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "workhuman-live",
+  "name": "Workhuman Live",
+  "organizer": "Workhuman",
+  "url": "https://www.workhuman.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-29",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Recognition, culture and employee-experience leaders and their advisers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates seen only on third-party listings.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing / search lead",
+  "segments": [
+   "HR and talent consulting"
+  ],
+  "roles": [
+   "organizational development consultant",
+   "rewards consultant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "josh-bersin-irresistible",
+  "name": "Josh Bersin Irresistible",
+  "organizer": "The Josh Bersin Company",
+  "url": "https://joshbersin.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "HR leaders and analysts on AI and workforce strategy; 2026 edition was June 8-10 at USC Marshall.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing / search lead",
+  "segments": [
+   "HR and talent consulting"
+  ],
+  "roles": [
+   "organizational development consultant",
+   "rewards consultant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "wharton-people-analytics-conference",
+  "name": "Wharton People Analytics Conference",
+  "organizer": "Wharton People Analytics",
+  "url": "https://wpa.wharton.upenn.edu/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Philadelphia",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Human Resources",
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "People-analytics practitioners and researchers; 2026 edition was Oct 9.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "HR and talent consulting"
+  ],
+  "roles": [
+   "organizational development consultant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "million-dollar-consulting-convention",
+  "name": "Million Dollar Consulting Convention",
+  "organizer": "Alan Weiss / Summit Consulting Group",
+  "url": "https://alanweiss.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Solo practitioners and boutique owners learning to price and win premium work.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing / search lead",
+  "segments": [
+   "Independent and fractional consultants",
+   "Management consulting"
+  ],
+  "roles": [
+   "independent consultant"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ }
+]

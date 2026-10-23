@@ -1814,6 +1814,7 @@ model CandidateProfile {
   levelRankScore     Int?
   levelRankLabel     String?
   levelRankUpdatedAt DateTime?
+  conferenceInterests ConferenceInterest[]
 
   // Phase 8, Partners Master Build Script §A2.4 (Membership) and §A4
   // (Alumni Benefits Network) -- see the models near the end of this file.
@@ -14607,6 +14608,117 @@ model BenefitProgram {
   @@index([status])
   @@index([geoAreaId])
   @@index([employerKey])
+}
+
+// Conferences, trade shows and summits worth attending to network, learn or speak, tagged by
+// industry, function and seniority. Controlled in the CRM (/support/admin/crm/events); published
+// rows show to candidates at /dashboard/network/events. One row per recurring event: the dates
+// move forward each year. Applied by hand: prisma/manual/conference-events.sql.
+model ConferenceEvent {
+  id               String               @id
+  name             String
+  organizer        String?
+  url              String?
+  /// CONFERENCE | TRADE_SHOW | SUMMIT | WORKSHOP
+  kind             String               @default("CONFERENCE")
+  /// IN_PERSON | VIRTUAL | HYBRID
+  format           String               @default("IN_PERSON")
+  startDate        DateTime?
+  endDate          DateTime?
+  /// False until the dates for the next edition are announced on the event's own site.
+  datesConfirmed   Boolean              @default(false)
+  /// "March": shown when no dates are confirmed.
+  typicalMonth     String?
+  city             String?
+  state            String?
+  country          String               @default("US")
+  /// INDUSTRY_BUCKET_NAMES; empty = every industry.
+  industries       String[]             @default([])
+  /// PRIMARY_FUNCTION_OPTIONS; empty = every function.
+  functions        String[]             @default([])
+  /// Segments from src/lib/events/taxonomy.ts (sub-industries, communities); empty = the whole industry.
+  segments         String[]             @default([])
+  /// JourneyType values the event suits (ENTREPRENEUR, FRACTIONAL, NEXT_ACT, ...); empty = any journey.
+  journeys         String[]             @default([])
+  /// What the program has: KEYNOTE | PANEL | WORKSHOP | BREAKOUT | EXPO | NETWORKING. Sessions imply speakers.
+  programFormats   String[]             @default([])
+  /// Specific jobs the event is for, from the taxonomy ("school principal", "claims adjuster").
+  roles            String[]             @default([])
+  /// EARLY | MID | SENIOR | EXECUTIVE; empty = every level.
+  seniorities      String[]             @default([])
+  /// 1 flagship, 2 major, 3 niche.
+  importance       Int                  @default(2)
+  whyAttend        String?
+  /// PAID | FREE | INVITE | APPLY | MIXED
+  access           String               @default("PAID")
+  costLow          Int?
+  costHigh         Int?
+  costNote         String?
+  /// OPEN_CFP | BY_INVITE | NONE | UNKNOWN
+  speaking         String               @default("UNKNOWN")
+  speakingUrl      String?
+  speakingDeadline DateTime?
+  speakingNote     String?
+  /// Volunteer, scholarship, expo-only pass, student rate, press pass.
+  cheaperWays      String?
+  applyUrl         String?
+  applyDeadline    DateTime?
+  /// Candidates see it only when true.
+  published        Boolean              @default(false)
+  /// Confirmed against the event's own site.
+  verified         Boolean              @default(false)
+  checkedAt        DateTime?
+  /// Set when someone edits the row in the CRM: the bundled catalog no longer overwrites it.
+  locked           Boolean              @default(false)
+  /// OK | BROKEN | BLOCKED | ERROR, from the free link check (src/lib/events/refresh.ts).
+  linkStatus       String?
+  linkCheckedAt    DateTime?
+  linkFailures     Int                  @default(0)
+  adminNote        String?
+  source           String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @default(now()) @updatedAt
+  interests        ConferenceInterest[]
+
+  @@index([published, startDate])
+  @@index([importance])
+}
+
+model ConferenceInterest {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  eventId     String
+  event       ConferenceEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  /// SAVED | GOING | SPEAKING | FOLLOWING (went or spoke before, or wants next year's dates)
+  status      String
+  /// End of the edition the member marked interest in; after it passes we ask how it went.
+  editionEnd  DateTime?
+  /// ATTENDED | SPOKE | DID_NOT_GO, from the check-in. Cleared when the next edition is announced.
+  outcome     String?
+  outcomeAt   DateTime?
+  attendedCount Int      @default(0)
+  spokeCount  Int        @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+
+  @@unique([candidateId, eventId])
+  @@index([eventId])
+}
+
+/// One row per heads-up email sent for an event to a member, so a stage is never sent twice.
+/// stage: EXPLORE | SPEAK_30 | SPEAK_7 | DECIDE | BOOK | NETWORK_PREP | FINAL | CHECK_IN | NEXT_EDITION (src/lib/events/headsup.ts).
+model ConferenceNudge {
+  id          String   @id @default(cuid())
+  candidateId String
+  eventId     String
+  stage       String
+  /// The edition (year of its start, or the check-in month) so a stage can recur for the next year's event.
+  edition     String   @default("")
+  sentAt      DateTime @default(now())
+
+  @@unique([candidateId, eventId, stage, edition])
+  @@index([candidateId, sentAt])
 }
 
 // History of journey and stage changes, newest last: what changed, from what,

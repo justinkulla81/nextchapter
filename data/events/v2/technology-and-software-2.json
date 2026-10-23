@@ -1,0 +1,1055 @@
+[
+ {
+  "id": "qcon-san-francisco",
+  "name": "QCon San Francisco",
+  "organizer": "InfoQ",
+  "url": "https://qconsf.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-18",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Senior software engineers, architects and engineering leaders swapping practitioner-run talks on how systems and teams are built.",
+  "access": "PAID",
+  "costLow": 2995,
+  "costHigh": 2995,
+  "costNote": "3-day conference pass $2,995; early bird until Nov 10; training days Nov 19-20 priced separately (not shown).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site shows only a speaker inquiries form; no public CFP seen.",
+  "cheaperWays": "Diversity scholarships for senior developers from underrepresented communities; team discounts by emailing the organizers.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "engineering manager",
+   "cto",
+   "vp engineering",
+   "staff engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "leaddev-london",
+  "name": "LeadDev London (LDX3)",
+  "organizer": "LeadDev",
+  "url": "https://leaddev.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-28",
+  "endDate": "2027-06-29",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Engineering managers, directors and staff engineers from across Europe and the US; the main engineering-leadership gathering.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices not shown on the home page; a supported-tickets programme is linked. Berlin edition Nov 9-10, 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://leaddev.com/get-involved",
+  "speakingDeadline": null,
+  "speakingNote": "Site links a general contribute-a-talk page; no specific CFP confirmed.",
+  "cheaperWays": "Supported tickets programme linked from the site.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "engineering manager",
+   "cto",
+   "vp engineering",
+   "staff engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "enterprise-ai-summit-portland",
+  "name": "Enterprise AI Summit (IT Revolution)",
+  "organizer": "IT Revolution",
+  "url": "https://events.itrevolution.com/2027-portland/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Technology executives and engineering leaders from large enterprises (the DevOps Enterprise Summit community) sharing transformation case studies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "IT Revolution home page says Portland 2027 registration is open; dates and price not seen. Its 2025 Las Vegas summit was listed at $2,500.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party lead; official page not confirmed",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "cto",
+   "vp engineering"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "developerweek",
+  "name": "DeveloperWeek",
+  "organizer": "Developer Nation / DevNetwork",
+  "url": "https://www.developerweek.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-09",
+  "endDate": "2027-02-11",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Santa Clara",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Large developer conference and expo with engineering leaders, devrel teams, startups and tool vendors in one hall.",
+  "access": "MIXED",
+  "costLow": 195,
+  "costHigh": 1395,
+  "costNote": "Open pass $195 (limited access); Pro pass early-bird tiers from $785 rising to $1,395; the site's structured data shows $1,535, so confirm at checkout.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "$195 Open pass covers expo, keynotes and community events; online hackathon via Devpost.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Software engineering leadership",
+   "Open source and developer relations"
+  ],
+  "roles": [
+   "engineering manager",
+   "developer advocate",
+   "cto"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "github-universe",
+  "name": "GitHub Universe",
+  "organizer": "GitHub",
+  "url": "https://githubuniverse.com",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-10-28",
+  "endDate": "2026-10-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Developers, maintainers and platform teams; GitHub's own flagship with its product team and open source community.",
+  "access": "MIXED",
+  "costLow": 1399,
+  "costHigh": 1399,
+  "costNote": "In-person $1,399; team pass $1,119 each for 4+; workshop add-on $99; virtual attendance free. Oct 27 is invitation-only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free virtual pass; team pass about 20% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Open source and developer relations",
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "open source maintainer",
+   "developer advocate",
+   "engineering manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "open-source-summit-north-america",
+  "name": "Open Source Summit North America",
+  "organizer": "The Linux Foundation",
+  "url": "https://events.linuxfoundation.org/open-source-summit-north-america/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Vancouver",
+  "state": "BC",
+  "country": "CA",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The Linux Foundation's main open source gathering: maintainers, foundation staff, community managers and corporate OSPO leads.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Save-the-date page only; 2027 registration price not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "LF events calendar shows the CFP as details coming soon.",
+  "cheaperWays": "Registration scholarships were offered for the 2026 edition (underrepresented groups); 2027 programme not yet published.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "roles": [
+   "open source maintainer",
+   "developer advocate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pycon-us",
+  "name": "PyCon US",
+  "organizer": "Python Software Foundation",
+  "url": "https://us.pycon.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Long Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The Python community's main US meeting: maintainers, core developers, educators and hiring teams, with a job fair.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not on the home page; 2026 and 2027 editions are both in Long Beach, 2027 dates not yet announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site has a Proposing a Talk page; 2027 deadline not seen.",
+  "cheaperWays": "Travel grants programme and a grants FAQ are linked from the site.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "roles": [
+   "open source maintainer",
+   "developer advocate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "scale-southern-california-linux-expo",
+  "name": "SCaLE (Southern California Linux Expo)",
+  "organizer": "SCALE",
+  "url": "https://www.socallinuxexpo.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-01",
+  "endDate": "2027-04-04",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Pasadena",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Community-run open source and Linux conference; maintainers, sysadmins and project booths in a free expo.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird prices are on the registration site; amounts not shown on the home page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.socallinuxexpo.org",
+  "speakingDeadline": "2026-11-01",
+  "speakingNote": "Call for presentations open through Nov 1, 2026.",
+  "cheaperWays": "Free booth space for open source projects; volunteer form; speakers.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "roles": [
+   "open source maintainer",
+   "developer advocate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "all-things-open",
+  "name": "All Things Open",
+  "organizer": "All Things Open",
+  "url": "https://2026.allthingsopen.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Raleigh",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Large open source conference in Raleigh drawing maintainers, developer advocates and enterprise OSPO teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Oct 19-20 (ended); 2027 dates not announced. Site blocked automated fetch.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party lead; official page not confirmed",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "roles": [
+   "open source maintainer",
+   "developer advocate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "community-over-code-north-america",
+  "name": "Community Over Code North America",
+  "organizer": "Apache Software Foundation",
+  "url": "https://communityovercode.apache.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "The ASF's flagship; committers and contributors across Apache projects plus open source community builders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 NA edition was Sept 11-14 in Minneapolis; the 2026 site lists a Sydney event Nov 18-19 and a Glasgow edition; no 2027 NA edition announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party lead; official page not confirmed",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "roles": [
+   "open source maintainer",
+   "developer advocate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "devrelcon-new-york",
+  "name": "DevRelCon New York",
+  "organizer": "DevRelCon",
+  "url": "https://nyc.devrelcon.dev",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The developer relations community conference: devrel, developer experience and developer marketing practitioners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition reported for July in Brooklyn; page opened showed only the title, so no 2027 facts confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party lead; official page not confirmed",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "roles": [
+   "developer advocate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "mind-the-product-industry-chicago",
+  "name": "INDUSTRY: The Product Conference (Mind the Product Chicago)",
+  "organizer": "Mind the Product",
+  "url": "https://www.mindtheproduct.com/conferences/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Product managers and product leaders in one day of talks plus a workshop day; a main product-management community event in the US.",
+  "access": "PAID",
+  "costLow": 895,
+  "costHigh": 1895,
+  "costNote": "2026 edition (Oct 6-7) was from $895 conference-only, $1,895 with workshop; 2027 edition not yet announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://www.mindtheproduct.com/conferences/",
+  "speakingDeadline": null,
+  "speakingNote": "Site links a Speak at Mind the Product page.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Product management"
+  ],
+  "roles": [
+   "product manager",
+   "chief product officer",
+   "product operations"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "mtpcon-london",
+  "name": "#mtpcon London",
+  "organizer": "Mind the Product",
+  "url": "https://www.mindtheproduct.com/conferences/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Mind the Product's flagship; one of the largest product-management conferences, with many US attendees.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says 2027 date to be announced soon.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party lead; official page not confirmed",
+  "segments": [
+   "Product management"
+  ],
+  "roles": [
+   "product manager",
+   "chief product officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pendomonium",
+  "name": "Pendomonium",
+  "organizer": "Pendo",
+  "url": "https://www.pendo.io/pendomonium/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Raleigh",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Pendo's product-experience event; product managers, product ops and CPOs, heavily on product analytics and adoption.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Save-the-date; registration price not yet published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Product management"
+  ],
+  "roles": [
+   "product manager",
+   "chief product officer",
+   "product operations"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "product-led-summit",
+  "name": "Product-Led Summit",
+  "organizer": "Product-Led Alliance",
+  "url": "https://world.productledalliance.com/location/newyork/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-24",
+  "endDate": "2027-02-25",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Traveling two-day summit for product-led growth teams: product, growth and marketing leaders from SaaS companies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Multi-city 2027 series: Austin Feb 24-25, New York Mar 25-26, Denver Apr 7-8, Seattle Jun 16-17; prices not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Product management"
+  ],
+  "roles": [
+   "product manager",
+   "chief product officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "figma-config",
+  "name": "Config",
+  "organizer": "Figma",
+  "url": "https://config.figma.com/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Figma's design and product conference; designers, design-systems leads and product people who build with Figma.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 ticket price not shown; the 2026 in-person pass was $899 and virtual attendance was free.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://config.figma.com/",
+  "speakingDeadline": "2026-11-16",
+  "speakingNote": "Speaker applications open Oct 19 to Nov 16, 2026.",
+  "cheaperWays": "Free virtual attendance.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Design and user experience",
+   "Product management"
+  ],
+  "roles": [
+   "ux designer",
+   "design systems lead",
+   "product manager",
+   "content designer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "uxpa-international",
+  "name": "UXPA International Conference",
+  "organizer": "UXPA International",
+  "url": "https://uxpa.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The professional association's annual conference for UX practitioners, researchers and managers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was in Las Vegas; 2027 dates and venue not found on the site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party lead; official page not confirmed",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "ux designer",
+   "ux researcher"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "chi-conference",
+  "name": "ACM CHI Conference on Human Factors in Computing Systems",
+  "organizer": "ACM SIGCHI",
+  "url": "https://chi2027.acm.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-14",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The main academic and industry human-computer interaction conference; UX researchers, design researchers and HCI faculty.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees not yet posted on the site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site says guidance for authors and organizers is coming; no calls seen yet.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "ux researcher",
+   "ux designer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "advancing-research",
+  "name": "Advancing Research",
+  "organizer": "Rosenfeld Media",
+  "url": "https://rosenfeldmedia.com/advancing-research/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Conference on research operations and the practice of UX research; researchers, ReOps and research leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was live online Mar 10-12; 2027 edition not yet announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "ux researcher"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "shift-ux",
+  "name": "Shift UX",
+  "organizer": "Rosenfeld Media",
+  "url": "https://rosenfeldmedia.com/upcoming-conferences/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-22",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "New Rosenfeld Media conference for UX and design practitioners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed with a notify-me sign-up; price and format not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party lead; official page not confirmed",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "ux designer",
+   "design systems lead",
+   "content designer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "lavacon",
+  "name": "LavaCon Content Strategy Conference",
+  "organizer": "LavaCon",
+  "url": "https://lavacon.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Content strategy, technical writing and content design practitioners and leads.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "content designer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "interaction-ixda",
+  "name": "Interaction (IxDA)",
+  "organizer": "Interaction Design Association",
+  "url": "https://ixda.org/initiatives/interaction/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "IxDA's annual global interaction-design conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page lists past editions only (latest Interaction 23, Zurich); no upcoming edition found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party lead; official page not confirmed",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "ux designer"
+  ],
+  "journeys": []
+ }
+]

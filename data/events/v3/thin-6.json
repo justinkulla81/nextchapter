@@ -1,0 +1,1318 @@
+[
+ {
+  "id": "iabc-world-conference",
+  "name": "IABC World Conference",
+  "organizer": "International Association of Business Communicators",
+  "url": "https://www.iabc.com/events-and-education/events-calendar/details/iabc-world-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-13",
+  "endDate": "2027-06-15",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Calgary",
+  "state": "AB",
+  "country": "CA",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Corporate, agency and internal communicators from the US and Canada at the main annual gathering of the IABC community.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read this session.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.iabc.com/events-and-education/world-conference/call-for-proposals",
+  "speakingDeadline": "2026-11-06",
+  "speakingNote": "Call for proposals for the 2027 edition closes 6 Nov 2026; questions to learning@iabc.com.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public relations and corporate communications"
+  ],
+  "roles": [
+   "communications leader",
+   "PR director"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "the-conference-board-corporate-communications-brand-summit",
+  "name": "The Conference Board Corporate Communications & Brand Summit",
+  "organizer": "The Conference Board",
+  "url": "https://www.conference-board.org/pdf_free/agendas/Corporate-Communications-Brand-Agenda-915027.pdf",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-03",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Brooklyn",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Chief communications and corporate affairs officers swap notes on the CEO-CCO relationship, AI and trust.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a search snippet of an agenda PDF; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Public relations and corporate communications"
+  ],
+  "roles": [
+   "communications leader",
+   "PR director"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "mass-timber-conference",
+  "name": "Mass Timber Conference",
+  "organizer": "Trifecta Collective",
+  "url": "https://masstimberconference.com/portland-event/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-16",
+  "endDate": "2027-03-19",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production",
+   "Construction & Real Estate"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Foresters, timber suppliers, architects and builders meet around mass timber supply chains; 3,000+ attendees and 200+ exhibitors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opened 25 Aug 2026; price not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester",
+   "land manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "penn-state-forest-landowners-conference",
+  "name": "Penn State Forest Landowners Conference",
+  "organizer": "Penn State Extension, Center for Private Forests",
+  "url": "https://ecosystems.psu.edu/research/centers/private-forests/outreach/conferences/2027-forest-landowners-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-05",
+  "endDate": "2027-03-06",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "State College",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Consulting foresters, land managers and private landowners across the Northeast; biennial.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens December 2026; price not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester",
+   "land manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sustainable-fleet-technology-conference-expo",
+  "name": "Sustainable Fleet Technology Conference & Expo",
+  "organizer": "NC Clean Energy Technology Center",
+  "url": "https://vacleancities.org/?p=41148",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-17",
+  "endDate": "2027-08-19",
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Durham",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Automotive & Mobility"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Public and private fleet managers comparing electric, hybrid and alternative-fuel vehicles and charging.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a clean-cities listing; not read on organizer site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Fleet management"
+  ],
+  "roles": [
+   "fleet manager",
+   "fleet electrification lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "green-fleet-conference-expo",
+  "name": "Green Fleet Conference & Expo",
+  "organizer": "Bobit Business Media",
+  "url": "https://www.greenfleetconference.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Automotive & Mobility"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Fleet managers working on electrification and sustainability programs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Fleet management"
+  ],
+  "roles": [
+   "fleet manager",
+   "fleet electrification lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "builtworlds-construction-tech-conference",
+  "name": "BuiltWorlds Construction Tech Conference",
+  "organizer": "BuiltWorlds",
+  "url": "https://builtworlds.com/event/2027-construction-tech-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Construction & Real Estate"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Contractors, owners and construction-tech founders on jobsite productivity, safety and logistics; billed as BuiltWorlds' largest event.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listings disagree on dates (July 14-15, 2027 in one); confirm with organizer.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Construction technology and safety"
+  ],
+  "roles": [
+   "construction technology lead",
+   "construction safety manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "retail-media-summit",
+  "name": "Retail Media Summit",
+  "organizer": "Path to Purchase Institute",
+  "url": "https://p2pi.com/institute-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods",
+   "Retail & E-commerce",
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "CPG brand and retailer shopper marketers working on retail media performance; 2026 edition ran June 2-4.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Shopper marketing and category management"
+  ],
+  "roles": [
+   "shopper marketer",
+   "category analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "p2pi-live-expo",
+  "name": "P2PI LIVE & Expo",
+  "organizer": "Path to Purchase Institute",
+  "url": "https://p2pi.com/institute-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods",
+   "Retail & E-commerce",
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "The long-running shopper marketing conference (formerly Shopper Marketing Conference & Expo) for brand and retailer marketers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Past editions held in November; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Shopper marketing and category management"
+  ],
+  "roles": [
+   "shopper marketer",
+   "category analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "greenbiz-27",
+  "name": "GreenBiz 27",
+  "organizer": "Trellis (GreenBiz)",
+  "url": "https://www.trellis.net/events/greenbiz",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-23",
+  "endDate": "2027-02-25",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Nearly 2,000 corporate sustainability leaders plus CFOs, COOs and supply chain heads; the field's flagship business gathering.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from AASHE and ESG Dive listings; organizer page not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Call for speakers closed 11 Sep 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Sustainability, ESG and climate"
+  ],
+  "roles": [
+   "sustainability director",
+   "ESG analyst",
+   "climate risk lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "sustainable-brands",
+  "name": "Sustainable Brands",
+  "organizer": "Sustainable Brands",
+  "url": "https://sustainablebrands.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities",
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Brand sustainability and purpose leaders; 2026 edition was June 8-10 at Town & Country Resort.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Sustainability, ESG and climate"
+  ],
+  "roles": [
+   "sustainability director",
+   "ESG analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "bhb-value",
+  "name": "BHB VALUE",
+  "organizer": "Behavioral Health Business",
+  "url": "https://bhbusiness.com/bhb-live-event/value/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Behavioral health operators, investors and payers talk growth, value-based care and deals; 2026 edition was in Orlando in March.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Organizer page says 2027 dates & location 'Coming Soon'.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Behavioral health"
+  ],
+  "roles": [
+   "behavioral health executive",
+   "addiction treatment administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "bhb-sud-business-summit",
+  "name": "BHB SUD Business Summit",
+  "organizer": "Behavioral Health Business",
+  "url": "https://bhbusiness.com/bhb-live-event/addiction-treatment-forum/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Substance use disorder treatment executives and investors; 2026 edition was in Chicago.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Behavioral health"
+  ],
+  "roles": [
+   "addiction treatment administrator",
+   "behavioral health executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "bhb-invest",
+  "name": "BHB INVEST",
+  "organizer": "Behavioral Health Business",
+  "url": "https://www.bhbusiness.com/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Investors and operators in behavioral health M&A and capital; 2026 edition in Phoenix in late October.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Behavioral health"
+  ],
+  "roles": [
+   "behavioral health executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "behavioral-health-tech-bht",
+  "name": "Behavioral Health Tech (BHT)",
+  "organizer": "Behavioral Health Tech",
+  "url": "https://behavioralhealthtech.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Behavioral health providers, payers and tech vendors; 2026 edition was Sept 22-24 in Nashville.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Behavioral health"
+  ],
+  "roles": [
+   "behavioral health executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "asam-annual-conference",
+  "name": "ASAM Annual Conference",
+  "organizer": "American Society of Addiction Medicine",
+  "url": "https://asam.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Addiction medicine physicians and treatment program leaders; 2026 edition was April 23-26 in San Diego.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not confirmed on asam.org.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Behavioral health"
+  ],
+  "roles": [
+   "addiction treatment administrator",
+   "behavioral health executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "cadca-national-leadership-forum",
+  "name": "CADCA National Leadership Forum",
+  "organizer": "Community Anti-Drug Coalitions of America",
+  "url": "https://forum.cadca.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-01",
+  "endDate": "2027-02-04",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Nonprofit & Social Impact",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Prevention coalition leaders, SAMHSA and federal partners; includes Capitol Hill Day and SAMHSA Prevention Day.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration page exists; price not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Behavioral health"
+  ],
+  "roles": [
+   "behavioral health executive",
+   "addiction treatment administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "naccho-preparedness-summit",
+  "name": "NACCHO Preparedness Summit",
+  "organizer": "National Association of County and City Health Officials",
+  "url": "https://www.naccho.org/blog/articles/2027-preparedness-summit-planning-abstracts",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Local, state and tribal preparedness leaders; billed as the first and longest-running national public health preparedness conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public health"
+  ],
+  "roles": [
+   "public health director",
+   "health department leader"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ser-annual-meeting-society-for-epidemiologic-research",
+  "name": "SER Annual Meeting (Society for Epidemiologic Research)",
+  "organizer": "Society for Epidemiologic Research",
+  "url": "https://epiresearch.org/meetings/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-15",
+  "endDate": "2027-06-18",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Detroit",
+  "state": "MI",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Academic and health-department epidemiologists; abstract deadlines posted for 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from an aggregator; abstract deadlines (Nov 4, 2026 first round) seen on epiresearch.org.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://epiresearch.org/meetings/",
+  "speakingDeadline": "2026-11-04",
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Public health"
+  ],
+  "roles": [
+   "epidemiologist"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "aohc-american-occupational-health-conference",
+  "name": "AOHC (American Occupational Health Conference)",
+  "organizer": "American College of Occupational and Environmental Medicine",
+  "url": "https://acoem.org/American-Occupational-Health-Conference-(AOHC)/AOHC-Home",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial",
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Occupational health physicians, nurses and corporate EHS and medical directors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "EHS manager",
+   "safety director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aiche-spring-meeting-global-congress-on-process-safety",
+  "name": "AIChE Spring Meeting & Global Congress on Process Safety",
+  "organizer": "AIChE / Center for Chemical Process Safety",
+  "url": "https://www.aiche.org/conferences/aiche-spring-meeting-and-global-congress-on-process-safety/2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-21",
+  "endDate": "2027-03-25",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial",
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Process safety engineers and EHS leaders from chemical, refining and manufacturing plants.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read; abstract deadline Oct 2, 2026 may have passed.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.aiche.org/spring",
+  "speakingDeadline": "2026-10-02",
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "EHS manager",
+   "safety director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "vertafore-accelerate-netvu",
+  "name": "Vertafore Accelerate (NetVU)",
+  "organizer": "Vertafore / NetVU",
+  "url": "https://vertafore.com/resources/press-releases/vertafore-and-netvu-set-welcome-thousands-insurance-professionals",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Agencies, carriers and MGAs on Vertafore tools; roughly 2,000 attend.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition April 13-16; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Brokerage and agency"
+  ],
+  "roles": [
+   "insurance broker",
+   "agency principal",
+   "producer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "bio-it-world-venture-innovation-partnering-conference",
+  "name": "Bio-IT World Venture, Innovation & Partnering Conference",
+  "organizer": "Cambridge Healthtech Institute",
+  "url": "https://bio-itworldexpo.com/investor",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-18",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Senior investors, corporate executives and startup leaders in biotech and drug discovery.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Date from a search summary; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Biotech business and investing"
+  ],
+  "roles": [
+   "biotech investor",
+   "business development lead",
+   "biotech CEO"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "lsx-congress-usa",
+  "name": "LSX Congress USA",
+  "organizer": "Informa Connect",
+  "url": "https://informaconnect.com/lsx-congress-usa/biotech-week-boston/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "250+ qualified investors and pharma partners meeting biotech teams that are raising; part of Biotech Week Boston.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Sept 23-24; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Biotech business and investing"
+  ],
+  "roles": [
+   "biotech investor",
+   "business development lead",
+   "biotech CEO"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "medical-device-manufacturing-excellence-summit-mdmes",
+  "name": "Medical Device Manufacturing Excellence Summit (MDMES)",
+  "organizer": "Executive Platforms / BCI Global",
+  "url": "https://www.bciglobal.com/medical-device-manufacturing-excellence-summit-mdmes",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Medical Devices"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Device manufacturing, quality and supply chain leaders; 2026 edition Feb 23-25.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Device manufacturing and supply chain"
+  ],
+  "roles": [
+   "manufacturing engineer",
+   "supplier quality engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "mla-annual-meeting-medical-library-association",
+  "name": "MLA Annual Meeting (Medical Library Association)",
+  "organizer": "Medical Library Association",
+  "url": "https://www.mlanet.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-28",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Health sciences and hospital librarians and informationists; Colorado Convention Center.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the Denver convention center listing; mlanet.org not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing (lead)",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "librarian"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "tcworld-conference",
+  "name": "tcworld conference",
+  "organizer": "tekom Europe",
+  "url": "https://tcworldconference.tekom.de/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-10",
+  "endDate": "2026-11-12",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Stuttgart",
+  "state": null,
+  "country": "DE",
+  "industries": [
+   "Technology & Software",
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The largest technical communication conference worldwide; technical writers, doc leads and tool vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Next edition Nov 10-12, 2026 per official site navigation; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Technical writing and documentation"
+  ],
+  "roles": [
+   "technical writer",
+   "documentation lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ }
+]
