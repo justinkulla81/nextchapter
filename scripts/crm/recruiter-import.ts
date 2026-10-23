@@ -25,6 +25,8 @@ async function main() {
   const rows: Row[] = JSON.parse(readFileSync(file, 'utf8'))
   const tally = { added: 0, matched: 0, review: 0, removed: 0, skipped: 0 }
   for (const r of rows) {
+    // "Rick Barr, MD" is a title or credential after the name, not part of it.
+    r.fullName = r.fullName.split(',')[0].trim()
     const industries = r.industries.filter((k) => INDUSTRY_KEYS.includes(k))
     const functions = r.functions.filter((k) => FUNCTION_KEYS.includes(k))
     const states = [...new Set([r.state, ...(r.coverageStates ?? [])].filter((s) => s === 'NATIONAL' || STATE_NAMES[s]))]
