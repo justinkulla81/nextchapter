@@ -29,7 +29,11 @@ import { ShowMoreList } from '@/components/dashboard/ShowMoreList'
 import { SeniorityFilter } from '@/components/dashboard/SeniorityFilter'
 import { loadBoardShortlist, type BoardShortlist, type BoardView } from '@/lib/jobs/board-shortlist'
 import { BoardViewToggle } from '@/components/dashboard/BoardViewToggle'
-import { BreadthToggle } from '@/components/dashboard/BreadthToggle'
+import { ScopeToggle } from '@/components/dashboard/ScopeToggle'
+import { ExploreQuestionCard, ExploredOptionsList, PivotMessageCard } from '@/components/dashboard/PivotScopeCards'
+import { applyScope, widenedFitNote } from '@/lib/jobs/search-scope'
+import { loadScopeContext, type ScopeContext } from '@/lib/jobs/search-scope-server'
+import { postingFunctions } from '@/lib/jobs/job-fit-bucket'
 import { boardBreadthFor, MATCH_KIND_RANK, type Breadth, type MatchReason, type MemberBreadthVector } from '@/lib/jobs/search-breadth'
 import { buildBridge, relevanceLine, type Bridge } from '@/lib/jobs/relevance'
 import { subFunctionLabel } from '@/lib/jobs/sub-functions'
@@ -739,7 +743,14 @@ async function JobRecommendationsSection({
     const bridge = bridgeFor(posting)
     const searchRank = search ? (shortlistOrder.get(posting.id) ?? shortlistOrder.size) : null
     const competition = competitionFor(posting)
-    const why = whyFor(posting, match, gap, bridge, assessment.level)
+    // A job in a widened area says why it fits less; it is never hidden (search-scope.ts).
+    const lowerFit = widenedFitNote(
+      { functions: postingFunctions(posting), industry: jobIndustryBucket(posting.industry), states: statesFromLocation(posting.location).states },
+      scopeCtx.outside,
+      scopeCtx.home
+    )
+    const baseWhy = whyFor(posting, match, gap, bridge, assessment.level)
+    const why = lowerFit ? { ...baseWhy, lowerFit } : baseWhy
     const searchResult = searchRank !== null && search ? { rank: searchRank + 1, q: search.params.q, loc: search.params.loc } : undefined
     return {
       entry: boardEntry({
@@ -944,13 +955,18 @@ export default async function JobFitPage({
     blockers?: string
     cleared?: string
     breadth?: string
+    scope?: string
     ai?: string
     open?: string
     entry?: string
   }>
 }) {
-  const profile = await getDashboardData()
+  const baseProfile = await getDashboardData()
   const allParams = await searchParams
+  // Search scope (search-scope.ts): Narrow reads home only, Broader adds the options that are on (what the board
+  // did before scope existed), Everything adds every explored option. The fit score reads the scoped profile.
+  const scopeCtx = await loadScopeContext(baseProfile, allParams.scope)
+  const profile = applyScope(baseProfile, scopeCtx.resolved)
   const part = parseFindPart(allParams.part)
   const { seniority, view, types, tab: tabParam, great, pivot, fn, sectors, blockers, cleared } = allParams
   const boardSearch = parseBoardSearchParams(allParams)
@@ -989,7 +1005,9 @@ export default async function JobFitPage({
   // Search breadth (search-breadth.ts): the URL, else the member's saved choice, else
   // Narrow for senior members and Wide for junior ones. A pivot path or an explicit
   // function filter already says which jobs to show, so breadth is off then.
-  const breadth = boardBreadthFor(profile, allParams.breadth)
+  // The scope sets the reach: Narrow keeps to the member's field, Everything goes as wide as the board does,
+  // and Broader keeps their saved or default breadth.
+  const breadth: Breadth = scopeCtx.scope === 'narrow' ? 'narrow' : scopeCtx.scope === 'everything' ? 'wide' : boardBreadthFor(profile, allParams.breadth)
   const breadthMode: Breadth | 'off' = pivotFilter || urlParams.fn ? 'off' : breadth
   const seniorityGroup = SENIORITY_GROUPS.find((g) => g.key === seniority)?.key ?? null
   const boardView: BoardView = view === 'fresh' || view === 'low_competition' ? view : 'all'
@@ -1042,6 +1060,7 @@ export default async function JobFitPage({
           urlParams={urlParams}
           boardFilters={boardFilters}
           breadthMode={breadthMode}
+          scopeCtx={scopeCtx}
           aiView={parseAiView(allParams.ai)}
           openFilter={parseOpenParam(allParams.open)}
           entryFilter={parseEntryParam(allParams.entry)}
@@ -1094,6 +1113,7 @@ async function FindMyJobBody({
   urlParams,
   boardFilters,
   breadthMode,
+  scopeCtx,
   aiView,
   openFilter,
   entryFilter,
@@ -1118,6 +1138,8 @@ async function FindMyJobBody({
   urlParams: Record<string, string>
   boardFilters: BoardRequirementFilters
   breadthMode: Breadth | 'off'
+  /** The search scope and the pivot flag it raises (search-scope-server.ts). */
+  scopeCtx: ScopeContext
   /** AI / Non-AI / All (ai-view.ts, the `ai` URL parameter). */
   aiView: AiView
 }) {
@@ -1498,6 +1520,17 @@ async function FindMyJobBody({
               clearHref={boardHrefWithout(urlParams, ['pivot'], { pathname: '/dashboard/find-my-job', hash: 'job-recommendations' })}
             />
           )}
+          <div className="space-y-3">
+            <ScopeToggle surface="find_my_job" current={scopeCtx.scope} />
+            {scopeCtx.message && (
+              <PivotMessageCard
+                message={scopeCtx.message}
+                counts={{ functions: scopeCtx.outside.functions.length, industries: scopeCtx.outside.industries.length, places: scopeCtx.outside.places.length }}
+              />
+            )}
+            {scopeCtx.question && <ExploreQuestionCard question={scopeCtx.question} />}
+            <ExploredOptionsList options={scopeCtx.options} />
+          </div>
           <details className="rounded-lg border border-border px-3 py-2">
             <summary className="cursor-pointer text-sm font-medium text-ink">Filters and views</summary>
             <div className="mt-3 space-y-3">
@@ -1506,9 +1539,6 @@ async function FindMyJobBody({
                 <WorkTypeToggle selected={workTypes} counts={board.countByWorkType} />
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                {board.breadth.classifier && breadthMode !== 'off' && (
-                  <BreadthToggle surface="find_my_job" current={breadthMode} counts={{ narrow: board.breadth.narrowTotal, wide: board.breadth.wideTotal }} />
-                )}
                 {aiIds && (
                   <AiViewToggle
                     surface="find_my_job"
@@ -1536,10 +1566,7 @@ async function FindMyJobBody({
                     extras: board.breadth.extrasTotal,
                     field: `${subFunctionLabel(board.breadth.classifier.member.subFunction) ?? board.breadth.classifier.member.functionLabel ?? 'matching'}`,
                     place: placePhrase(profile, board.breadth.classifier.member),
-                  })}{' '}
-                  <a href={boardHref(urlParams, { breadth: breadthMode === 'narrow' ? 'wide' : 'narrow' }, { hash: 'job-recommendations' })} className="text-primary underline underline-offset-4">
-                    {breadthMode === 'narrow' ? 'Widen' : 'Narrow it'}
-                  </a>
+                  })}
                 </p>
               )}
             </div>
