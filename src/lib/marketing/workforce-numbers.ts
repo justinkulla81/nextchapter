@@ -98,7 +98,7 @@ async function taxonomyCounts(): Promise<TaxonomyRow> {
 }
 
 const DAY = 86_400
-const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v3'], { revalidate: DAY })
+const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v4'], { revalidate: DAY })
 const cachedTaxonomy = unstable_cache(taxonomyCounts, ['workforce-numbers-taxonomy-v1'], { revalidate: DAY })
 
 async function safe<T>(label: string, run: () => Promise<T>): Promise<T | null> {
