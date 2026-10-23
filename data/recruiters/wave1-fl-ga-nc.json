@@ -1,0 +1,1397 @@
+[
+  {
+    "fullName": "Ed Flowers",
+    "title": "Managing Partner, Chief Human Resources Practice",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "eflowers@dhrglobal.com",
+    "phone": "+1 678 385 5000 x5010",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/ed-flowers/",
+    "industries": [
+      "consumer"
+    ],
+    "functions": [
+      "hr",
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Joan Gee",
+    "title": "Managing Partner, Healthcare Services & Solutions Practice",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "jgee@dhrglobal.com",
+    "phone": "+1 678 385 5000",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/joan-gee/",
+    "industries": [
+      "healthcare",
+      "professional_services"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Robert (Bob) Baker",
+    "title": "Partner",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "rbaker@dhrglobal.com",
+    "phone": "+1 678 385 5011",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/robert-baker/",
+    "industries": [
+      "consumer",
+      "professional_services"
+    ],
+    "functions": [
+      "hr",
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Brian McGowan",
+    "title": "Managing Partner; Global Healthcare Life Sciences Practice Leader",
+    "firm": "ZRG Partners",
+    "firmWebsite": "https://www.zrgpartners.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "bmcgowan@zrgpartners.com",
+    "phone": "+1.678.999.2481",
+    "sourceUrl": "https://www.zrgpartners.com/our-team/brian-mcgowan",
+    "industries": [
+      "healthcare",
+      "life_sciences"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Tammy Jackson",
+    "title": "Partner, Healthcare and Technology Practices",
+    "firm": "Odgers Berndtson",
+    "firmWebsite": "https://www.odgers.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "sourceUrl": "https://www.odgers.com/en-us/insights/tammy-jackson-joins-odgers-berndtson-us-as-a-partner-in-the-healthcare-and-technology-practices/",
+    "industries": [
+      "healthcare",
+      "technology",
+      "life_sciences"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Noah W. Waldman",
+    "title": "Senior Client Partner",
+    "firm": "Korn Ferry",
+    "firmWebsite": "https://www.kornferry.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "noah.waldman@kornferry.com",
+    "phone": "404-222-4002",
+    "sourceUrl": "https://www.kornferry.com/about-us/consultants/noahwaldman",
+    "industries": [
+      "healthcare"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Robert L. Lamp III",
+    "title": "Senior Client Partner, Financial Officer Practice",
+    "firm": "Korn Ferry",
+    "firmWebsite": "https://www.kornferry.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "robert.lamp@kornferry.com",
+    "phone": "404-222-4067",
+    "sourceUrl": "https://www.kornferry.com/about-us/consultants/robertlamp",
+    "industries": [
+      "industrial",
+      "healthcare",
+      "consumer",
+      "technology"
+    ],
+    "functions": [
+      "finance"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Stacey Shapiro",
+    "title": "Leadership Advisor; Atlanta Office Leader",
+    "firm": "Russell Reynolds Associates",
+    "firmWebsite": "https://www.russellreynolds.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "stacey.shapiro@russellreynolds.com",
+    "phone": "+1.404.577.3000",
+    "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/stacey-shapiro",
+    "industries": [
+      "consumer",
+      "industrial",
+      "healthcare",
+      "energy"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Rob Sherry",
+    "title": "Leadership Advisor",
+    "firm": "Russell Reynolds Associates",
+    "firmWebsite": "https://www.russellreynolds.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "rob.sherry@russellreynolds.com",
+    "phone": "+1.404.577.3000",
+    "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/rob-sherry",
+    "industries": [
+      "energy",
+      "industrial",
+      "technology"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Jessica Edwards",
+    "title": "Leadership Advisor",
+    "firm": "Russell Reynolds Associates",
+    "firmWebsite": "https://www.russellreynolds.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "jessica.edwards@russellreynolds.com",
+    "phone": "+1.470.845.1900",
+    "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/jessica-edwards",
+    "industries": [
+      "financial_services",
+      "professional_services",
+      "technology"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Lawrence Kenny",
+    "title": "Leadership Advisor",
+    "firm": "Russell Reynolds Associates",
+    "firmWebsite": "https://www.russellreynolds.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "lawrence.kenny@russellreynolds.com",
+    "phone": "+1.404.577.3000",
+    "sourceUrl": "https://russellreynolds.com/consultants/lawrence-kenny",
+    "industries": [
+      "professional_services"
+    ],
+    "functions": [
+      "executive",
+      "finance"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Katie M. Tucker",
+    "title": "Consultant",
+    "firm": "Spencer Stuart",
+    "firmWebsite": "https://www.spencerstuart.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "ktucker@spencerstuart.com",
+    "phone": "+1 404.504.4400",
+    "sourceUrl": "https://www.spencerstuart.com/our-consultants/katie-mitchell-tucker",
+    "industries": [
+      "healthcare",
+      "technology",
+      "telecom",
+      "media"
+    ],
+    "functions": [
+      "executive",
+      "it_security"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Charles L. Jordan",
+    "title": "Consultant",
+    "firm": "Spencer Stuart",
+    "firmWebsite": "https://www.spencerstuart.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "cjordan@spencerstuart.com",
+    "phone": "+1 404.504.4400",
+    "sourceUrl": "https://www.spencerstuart.com/our-consultants/charles-l-jordan",
+    "industries": [
+      "healthcare",
+      "education"
+    ],
+    "functions": [
+      "executive",
+      "clinical"
+    ],
+    "coverageStates": [
+      "GA",
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Scott Adams",
+    "title": "Partner in Charge, Atlanta",
+    "firm": "Heidrick & Struggles",
+    "firmWebsite": "https://www.heidrick.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "sadams@heidrick.com",
+    "phone": "+1 404 682 7337",
+    "sourceUrl": "https://www.heidrick.com/en/people/a/scott_adams",
+    "industries": [
+      "consumer"
+    ],
+    "functions": [
+      "operations",
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Charles E. Commander",
+    "title": "Partner",
+    "firm": "Heidrick & Struggles",
+    "firmWebsite": "https://www.heidrick.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "ccommander@heidrick.com",
+    "phone": "+1 404 682 7400",
+    "sourceUrl": "https://www.heidrick.com/en/people/c/charlesecommander",
+    "industries": [
+      "industrial",
+      "logistics"
+    ],
+    "functions": [
+      "executive",
+      "finance",
+      "operations"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Daniel C. Grassi",
+    "title": "Managing Partner, United States; Global Sector Leader, Media, Gaming & Consumer Electronics",
+    "firm": "Boyden",
+    "firmWebsite": "https://www.boyden.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "dgrassi@boyden.com",
+    "phone": "+1 678 441 9600",
+    "sourceUrl": "https://www.boyden.com/daniel-grassi/",
+    "industries": [
+      "consumer",
+      "technology",
+      "media"
+    ],
+    "functions": [
+      "executive",
+      "marketing",
+      "sales",
+      "finance",
+      "hr",
+      "operations"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Trisha Hutchison",
+    "title": "Managing Partner, United States",
+    "firm": "Boyden",
+    "firmWebsite": "https://www.boyden.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "thutchison@boyden.com",
+    "phone": "+1 312-343-6930",
+    "sourceUrl": "https://www.boyden.com/trisha-hutchison/",
+    "industries": [
+      "consumer",
+      "technology"
+    ],
+    "functions": [
+      "executive",
+      "sales",
+      "marketing",
+      "operations"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Dan Kepler",
+    "title": "Managing Partner, United States",
+    "firm": "Boyden",
+    "firmWebsite": "https://www.boyden.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "dkepler@boyden.com",
+    "phone": "+1 312-543-1408",
+    "sourceUrl": "https://www.boyden.com/dan-kepler/",
+    "industries": [
+      "industrial",
+      "logistics"
+    ],
+    "functions": [
+      "finance",
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Robert Travis",
+    "title": "Managing Partner, United States",
+    "firm": "Boyden",
+    "firmWebsite": "https://www.boyden.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "rtravis@boyden.com",
+    "phone": "+1 678 441 9600",
+    "sourceUrl": "https://www.boyden.com/robert-travis/",
+    "industries": [
+      "industrial",
+      "energy",
+      "technology",
+      "aerospace_defense"
+    ],
+    "functions": [
+      "executive",
+      "finance",
+      "sales",
+      "marketing",
+      "operations",
+      "hr"
+    ],
+    "coverageStates": [
+      "GA",
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Grant Clayton",
+    "title": "Leads Egon Zehnder in the United States",
+    "firm": "Egon Zehnder",
+    "firmWebsite": "https://www.egonzehnder.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "phone": "+1 404 836 2923",
+    "sourceUrl": "https://www.egonzehnder.com/de/office/atlanta/consultant/grant-clayton",
+    "industries": [
+      "industrial",
+      "technology"
+    ],
+    "functions": [
+      "finance",
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Craig Scheiblauer",
+    "title": "Managing Partner, Atlanta; North American Life Sciences and Healthcare Practice Leader",
+    "firm": "EMA Partners",
+    "firmWebsite": "https://www.emapartners.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "sourceUrl": "https://huntscanlon.com/ema-partners-opens-new-office-in-atlanta/",
+    "industries": [
+      "life_sciences",
+      "healthcare"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Daniel Singer",
+    "title": "Managing Partner, FPC Peachtree",
+    "firm": "FPC (Fortune Personnel Consultants)",
+    "firmWebsite": "https://fpcnational.com",
+    "city": "Atlanta",
+    "state": "GA",
+    "email": "daniel.singer@fpcpeachtree.com",
+    "sourceUrl": "https://fpcnational.com/fpc/peachtree/",
+    "industries": [
+      "technology"
+    ],
+    "functions": [
+      "finance"
+    ],
+    "coverageStates": [
+      "GA"
+    ]
+  },
+  {
+    "fullName": "Katherine S. Young",
+    "title": "President & CEO",
+    "firm": "Young Search Partners",
+    "firmWebsite": "https://www.youngsearchpartners.com",
+    "city": "Tampa",
+    "state": "FL",
+    "email": "kyoung@youngsearchpartners.com",
+    "sourceUrl": "https://www.youngsearchpartners.com/the-team",
+    "industries": [
+      "industrial",
+      "consumer",
+      "energy",
+      "financial_services",
+      "professional_services",
+      "technology"
+    ],
+    "functions": [
+      "hr",
+      "finance",
+      "sales",
+      "marketing",
+      "operations",
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Sheila Cassidy",
+    "title": "Senior Consultant",
+    "firm": "Young Search Partners",
+    "firmWebsite": "https://www.youngsearchpartners.com",
+    "city": "Tampa",
+    "state": "FL",
+    "email": "scassidy@youngsearchpartners.com",
+    "sourceUrl": "https://www.youngsearchpartners.com/the-team",
+    "industries": [
+      "healthcare",
+      "industrial",
+      "aerospace_defense",
+      "professional_services"
+    ],
+    "functions": [
+      "engineering"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Peter Blau",
+    "title": "Managing Partner, Global Healthcare Services & Solutions",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "pblau@dhrglobal.com",
+    "phone": "+1 856 942 1232",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/peter-blau/",
+    "industries": [
+      "healthcare"
+    ],
+    "functions": [
+      "clinical",
+      "finance",
+      "operations",
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Wendy Brown-Blau",
+    "title": "Managing Partner, Healthcare Services & Managed Care",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "wbrownblau@dhrglobal.com",
+    "phone": "+1 856 942 1227",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/wendy-brown-blau/",
+    "industries": [
+      "healthcare"
+    ],
+    "functions": [
+      "clinical",
+      "finance",
+      "marketing",
+      "operations"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Philip DeBoer",
+    "title": "Associate Partner, Nonprofit Practice Group",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "pdeboer@dhrglobal.com",
+    "phone": "+1 786 668 2636",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/philip-deboer/",
+    "industries": [
+      "nonprofit"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Jennifer Rockwood",
+    "title": "Leadership Advisor; Leader, Global Power & Utilities Practice",
+    "firm": "Russell Reynolds Associates",
+    "firmWebsite": "https://www.russellreynolds.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "jennifer.rockwood@russellreynolds.com",
+    "phone": "+1.305.717.7400",
+    "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/jennifer-rockwood",
+    "industries": [
+      "energy"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "David MacEachern",
+    "title": "Consultant",
+    "firm": "Spencer Stuart",
+    "firmWebsite": "https://www.spencerstuart.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "dmaceachern@spencerstuart.com",
+    "phone": "+1 305.443.9911",
+    "sourceUrl": "https://www.spencerstuart.com/our-consultants/david-maceachern",
+    "industries": [
+      "logistics",
+      "industrial"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Moses Zonana",
+    "title": "Senior Client Partner, Digital & Technology",
+    "firm": "Korn Ferry",
+    "firmWebsite": "https://www.kornferry.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "moses.zonana@kornferry.com",
+    "sourceUrl": "https://www.kornferry.com/about-us/consultants/moses-zonana",
+    "industries": [
+      "technology",
+      "telecom"
+    ],
+    "functions": [
+      "executive",
+      "sales",
+      "product_design"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Ricardo Rocco",
+    "title": "Senior Client Partner",
+    "firm": "Korn Ferry",
+    "firmWebsite": "https://www.kornferry.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "ricardo.rocco@kornferry.com",
+    "phone": "+1 786-281-2599",
+    "sourceUrl": "https://www.kornferry.com/about-us/consultants/ricardo-rocco",
+    "industries": [],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Stephanie Mansfield",
+    "title": "Partner",
+    "firm": "Heidrick & Struggles",
+    "firmWebsite": "https://www.heidrick.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "smansfield@heidrick.com",
+    "phone": "+1 305 262 2606",
+    "sourceUrl": "https://www.heidrick.com/en/people/m/stephanie_mansfield",
+    "industries": [
+      "technology",
+      "financial_services"
+    ],
+    "functions": [
+      "finance",
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "John Rubinetti",
+    "title": "Partner",
+    "firm": "Heidrick & Struggles",
+    "firmWebsite": "https://www.heidrick.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "jrubinetti@heidrick.com",
+    "phone": "+1 305 262 2606",
+    "sourceUrl": "https://www.heidrick.com/en/people/r/john_rubinetti",
+    "industries": [
+      "financial_services"
+    ],
+    "functions": [
+      "executive",
+      "finance"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Peter Lawson",
+    "title": "Managing Director",
+    "firm": "Stanton Chase",
+    "firmWebsite": "https://www.stantonchase.com",
+    "city": "Boca Raton",
+    "state": "FL",
+    "email": "p.lawson@stantonchase.com",
+    "sourceUrl": "https://www.stantonchase.com/consultant/peter-lawson",
+    "industries": [
+      "industrial",
+      "consumer"
+    ],
+    "functions": [
+      "executive",
+      "finance",
+      "marketing",
+      "sales"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Lee Grandovic",
+    "title": "Managing Director",
+    "firm": "ZRG Partners",
+    "firmWebsite": "https://www.zrgpartners.com",
+    "city": "Tampa",
+    "state": "FL",
+    "email": "lgrandovic@zrgpartners.com",
+    "sourceUrl": "https://www.zrgpartners.com/our-team/lee-grandovic",
+    "industries": [
+      "real_estate",
+      "education",
+      "nonprofit"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Caroline Waddington",
+    "title": "Managing Director, Interim Solutions & Project Consulting",
+    "firm": "ZRG Partners",
+    "firmWebsite": "https://www.zrgpartners.com",
+    "city": "Coral Gables",
+    "state": "FL",
+    "email": "cwaddington@zrgpartners.com",
+    "phone": "+1.786.408.5582",
+    "sourceUrl": "https://www.zrgpartners.com/our-team/caroline-waddington",
+    "industries": [
+      "consumer",
+      "industrial",
+      "technology",
+      "media",
+      "professional_services"
+    ],
+    "functions": [
+      "finance",
+      "hr",
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Roberto Laub",
+    "title": "Managing Partner, United States",
+    "firm": "Boyden",
+    "firmWebsite": "https://www.boyden.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "rlaub@boyden.com",
+    "phone": "+1 305 586 7390",
+    "sourceUrl": "https://www.boyden.com/roberto-laub/",
+    "industries": [
+      "consumer",
+      "industrial"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Eduardo Rabassa",
+    "title": "Managing Partner, United States",
+    "firm": "Boyden",
+    "firmWebsite": "https://www.boyden.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "erabassa@boyden.com",
+    "phone": "+1 305 577 8558",
+    "sourceUrl": "https://www.boyden.com/eduardo-rabassa/",
+    "industries": [
+      "financial_services",
+      "consumer",
+      "education",
+      "nonprofit"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Carla Palazio",
+    "title": "Partner, United States",
+    "firm": "Boyden",
+    "firmWebsite": "https://www.boyden.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "cpalazio@boyden.com",
+    "phone": "+1 305 577 8558",
+    "sourceUrl": "https://www.boyden.com/carla-palazio/",
+    "industries": [
+      "aerospace_defense",
+      "financial_services",
+      "telecom",
+      "media",
+      "consumer",
+      "energy",
+      "industrial"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Annie Rothe",
+    "title": "Partner",
+    "firm": "Boyden",
+    "firmWebsite": "https://www.boyden.com",
+    "city": "Miami",
+    "state": "FL",
+    "email": "arothe@boyden.com",
+    "phone": "+1 305 577 8558",
+    "sourceUrl": "https://www.boyden.com/annie-rothe/",
+    "industries": [
+      "real_estate",
+      "media",
+      "financial_services",
+      "professional_services"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Mike Imperiale",
+    "title": "Managing Partner",
+    "firm": "Sterling Search & Consulting",
+    "firmWebsite": "https://sterlingsearchandconsulting.com",
+    "city": "Jacksonville",
+    "state": "FL",
+    "email": "Mike@SterlingSearchJax.com",
+    "phone": "(904) 536-6666",
+    "sourceUrl": "https://sterlingsearchandconsulting.com/leadership/",
+    "industries": [
+      "nonprofit",
+      "healthcare",
+      "financial_services"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Betsy Jacobs",
+    "title": "Managing Partner / Client Development",
+    "firm": "Sterling Search & Consulting",
+    "firmWebsite": "https://sterlingsearchandconsulting.com",
+    "city": "Jacksonville",
+    "state": "FL",
+    "email": "Betsy@SterlingSearchJax.com",
+    "phone": "(904) 537-3630",
+    "sourceUrl": "https://sterlingsearchandconsulting.com/leadership/",
+    "industries": [],
+    "functions": [
+      "operations",
+      "customer",
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "John Gilmore",
+    "title": "Managing Partner",
+    "firm": "BarkerGilmore",
+    "firmWebsite": "https://barkergilmore.com",
+    "city": "Naples",
+    "state": "FL",
+    "sourceUrl": "https://barkergilmore.com/advisor/john-gilmore/",
+    "industries": [],
+    "functions": [
+      "legal"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Olivier Safir",
+    "title": "CEO",
+    "firm": "Pact & Partners",
+    "firmWebsite": "https://pactandpartners.com",
+    "city": "Miami",
+    "state": "FL",
+    "sourceUrl": "https://pactandpartners.com/location/executive-search-charlotte",
+    "industries": [
+      "financial_services",
+      "energy",
+      "logistics"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "FL"
+    ]
+  },
+  {
+    "fullName": "Steve Godwin",
+    "title": "Partner",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "email": "sgodwin@dhrglobal.com",
+    "phone": "+1 404 822 9064",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/steve-godwin/",
+    "industries": [
+      "industrial",
+      "professional_services",
+      "healthcare"
+    ],
+    "functions": [
+      "finance",
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Amara Kea",
+    "title": "Partner",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "email": "akea@dhrglobal.com",
+    "phone": "+1 704 323 7660",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/amara-kea/",
+    "industries": [
+      "consumer"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Don Kilinski",
+    "title": "Partner",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "email": "dkilinski@dhrglobal.com",
+    "phone": "+1 201 314 7177",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/donald-m-kilinski/",
+    "industries": [
+      "industrial",
+      "consumer",
+      "life_sciences"
+    ],
+    "functions": [
+      "finance"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Tony Hernandez",
+    "title": "Partner, Sports Practice Group",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "email": "thernandez@dhrglobal.com",
+    "phone": "+1 305 301 9843",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/tony-hernandez/",
+    "industries": [
+      "education",
+      "nonprofit"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Michele Counter",
+    "title": "Partner, Nonprofit Practice",
+    "firm": "DHR Global",
+    "firmWebsite": "https://www.dhrglobal.com",
+    "city": "Raleigh",
+    "state": "NC",
+    "email": "mcounter@dhrglobal.com",
+    "phone": "+1 919 244 1201",
+    "sourceUrl": "https://www.dhrglobal.com/consultant/michele-counter/",
+    "industries": [
+      "nonprofit"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Gerry McNamara",
+    "title": "Vice Chairman, Technology Officers Practice",
+    "firm": "Korn Ferry",
+    "firmWebsite": "https://www.kornferry.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "email": "gerry.mcnamara@kornferry.com",
+    "phone": "704.591.2681",
+    "sourceUrl": "https://www.kornferry.com/about-us/consultants/gerrymcnamara",
+    "industries": [
+      "financial_services",
+      "consumer",
+      "healthcare",
+      "technology"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Kathleen Lehman Hajek",
+    "title": "Managing Director; Regional Sector Leader, Life Sciences & Healthcare",
+    "firm": "Stanton Chase",
+    "firmWebsite": "https://www.stantonchase.com",
+    "city": "Raleigh",
+    "state": "NC",
+    "email": "k.hajek@stantonchase.com",
+    "phone": "(919) 780-2911",
+    "sourceUrl": "https://www.stantonchase.com/consultant/kathleen-lehman-hajek",
+    "industries": [
+      "life_sciences",
+      "healthcare",
+      "government",
+      "education"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Sundar Rajan Ramalingam",
+    "title": "Partner",
+    "firm": "Stanton Chase",
+    "firmWebsite": "https://www.stantonchase.com",
+    "city": "Raleigh",
+    "state": "NC",
+    "email": "s.rajan@stantonchase.com",
+    "phone": "+1 919 593 4831",
+    "sourceUrl": "https://www.stantonchase.com/consultant/sundar-rajan-ramalingam",
+    "industries": [
+      "technology",
+      "professional_services",
+      "industrial"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Bob Sherrill",
+    "title": "Managing Director",
+    "firm": "Sockwell Partners",
+    "firmWebsite": "https://www.sockwell.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "email": "rsherrill@sockwell.com",
+    "phone": "(704) 887-0972",
+    "sourceUrl": "https://www.sockwell.com/team/",
+    "industries": [],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Norwood Teague",
+    "title": "Managing Director",
+    "firm": "Sockwell Partners",
+    "firmWebsite": "https://www.sockwell.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "email": "nteague@sockwell.com",
+    "phone": "(704) 887-0976",
+    "sourceUrl": "https://www.sockwell.com/team/",
+    "industries": [],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Shana Plott",
+    "title": "Chief Executive Officer",
+    "firm": "Coleman Lew Canny Bowen",
+    "firmWebsite": "https://clcbsearch.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "email": "splott@clcbsearch.com",
+    "phone": "704-377-0362",
+    "sourceUrl": "https://clcbsearch.com/plott/",
+    "industries": [],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Wyman Wilson",
+    "title": "Global Revenue Leader, Healthcare & Life Sciences Interim Solutions & Project Consulting",
+    "firm": "ZRG Partners",
+    "firmWebsite": "https://www.zrgpartners.com",
+    "city": "Greensboro",
+    "state": "NC",
+    "email": "wwilson@zrgpartners.com",
+    "phone": "704-491-0410",
+    "sourceUrl": "https://www.zrgpartners.com/our-team/wyman-wilson",
+    "industries": [
+      "healthcare",
+      "life_sciences"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Randy Cagan",
+    "title": "Managing Partner, FPC Raleigh",
+    "firm": "FPC (Fortune Personnel Consultants)",
+    "firmWebsite": "https://fpcnational.com",
+    "city": "Raleigh",
+    "state": "NC",
+    "sourceUrl": "https://fpcnational.com/fpc/raleigh/",
+    "industries": [
+      "industrial",
+      "life_sciences",
+      "healthcare"
+    ],
+    "functions": [
+      "operations",
+      "engineering"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Kevin Gaffney",
+    "title": "Executive Recruiter, FPC Raleigh",
+    "firm": "FPC (Fortune Personnel Consultants)",
+    "firmWebsite": "https://fpcnational.com",
+    "city": "Raleigh",
+    "state": "NC",
+    "sourceUrl": "https://fpcnational.com/fpc/raleigh/",
+    "industries": [
+      "life_sciences"
+    ],
+    "functions": [
+      "engineering",
+      "operations"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Cindy Hicks",
+    "title": "Executive Recruiter, FPC Raleigh",
+    "firm": "FPC (Fortune Personnel Consultants)",
+    "firmWebsite": "https://fpcnational.com",
+    "city": "Raleigh",
+    "state": "NC",
+    "sourceUrl": "https://fpcnational.com/fpc/raleigh/",
+    "industries": [
+      "industrial"
+    ],
+    "functions": [],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Robert Dineen",
+    "title": "Executive Recruiter, FPC Raleigh",
+    "firm": "FPC (Fortune Personnel Consultants)",
+    "firmWebsite": "https://fpcnational.com",
+    "city": "Raleigh",
+    "state": "NC",
+    "sourceUrl": "https://fpcnational.com/fpc/raleigh/",
+    "industries": [
+      "industrial",
+      "logistics"
+    ],
+    "functions": [
+      "operations"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Thaddeus V. Jones",
+    "title": "Managing Partner & Founder",
+    "firm": "Nexus Search Partners",
+    "firmWebsite": "https://www.nexussearchpartners.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "sourceUrl": "https://www.nexussearchpartners.com/team",
+    "industries": [],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Ali Summerville",
+    "title": "Partner, Financial Services",
+    "firm": "Nexus Search Partners",
+    "firmWebsite": "https://www.nexussearchpartners.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "sourceUrl": "https://www.nexussearchpartners.com/team",
+    "industries": [
+      "financial_services"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Sam Worobec",
+    "title": "Managing Director, Human Capital",
+    "firm": "Nexus Search Partners",
+    "firmWebsite": "https://www.nexussearchpartners.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "sourceUrl": "https://www.nexussearchpartners.com/team",
+    "industries": [],
+    "functions": [
+      "hr"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Adonai Aloma",
+    "title": "Principal, Executive Search",
+    "firm": "Nexus Search Partners",
+    "firmWebsite": "https://www.nexussearchpartners.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "sourceUrl": "https://www.nexussearchpartners.com/team",
+    "industries": [],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Amanda Yaffa",
+    "title": "Principal, Executive Search",
+    "firm": "Nexus Search Partners",
+    "firmWebsite": "https://www.nexussearchpartners.com",
+    "city": "Charlotte",
+    "state": "NC",
+    "sourceUrl": "https://www.nexussearchpartners.com/team",
+    "industries": [],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  },
+  {
+    "fullName": "Brian Soper",
+    "title": "President",
+    "firm": "KSB Consulting",
+    "firmWebsite": "https://www.ksbconsulting.com",
+    "city": "North Carolina",
+    "state": "NC",
+    "email": "bsoper@ksbconsulting.com",
+    "sourceUrl": "https://www.ksbconsulting.com/",
+    "industries": [
+      "financial_services"
+    ],
+    "functions": [
+      "executive"
+    ],
+    "coverageStates": [
+      "NC"
+    ]
+  }
+]

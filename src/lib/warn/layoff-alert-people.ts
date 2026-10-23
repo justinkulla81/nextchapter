@@ -4,12 +4,13 @@ import { contactStrength } from '@/lib/crm/contact-strength'
 import { isHrLeaderTitle } from '@/lib/crm/org-domains'
 import { pickBoard } from '@/lib/workforce/match'
 import { cityFromAddress } from '@/lib/workforce/places'
+import { industryName, recruiterFit } from '@/lib/crm/coverage'
 import { orderGroups, type ContactCard, type ContactGroup } from './layoff-alert-rules'
 
 const SITE = 'https://launchyournextchapter.com'
 /** Cards shown per group, the people worth a call or email; the rest are counted and linked. */
 const SHOWN = 3
-const SHOWN_BY_GROUP: Record<string, number> = { head_hr: 2, hr_team: 3, rapid_response: 2, workforce_board: 2, job_centers: 2, economic_development: 3, employer_other: 2 }
+const SHOWN_BY_GROUP: Record<string, number> = { head_hr: 2, hr_team: 3, rapid_response: 2, workforce_board: 2, job_centers: 2, economic_development: 3, employer_other: 2, recruiters: 4 }
 /** Notes written by scripts/crm/rapid-response-import.ts on each state coordinator. */
 const RAPID_RESPONSE_NOTE = 'State Rapid Response Coordinators page'
 /** The rest of an HR department, by title: rewards, relations, talent, partners, learning. */
@@ -52,6 +53,8 @@ export interface LayoffPlace {
   city?: string | null
   address: string | null
   workforceBoardId: string | null
+  /** The layoff's industry as a job-board key (src/lib/crm/coverage.ts), when known. */
+  industryKey?: string | null
 }
 
 /**
@@ -130,6 +133,25 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
       })
     : []
 
+  // Recruiters who cover the layoff's state (or are national) and, ranked first, its industry: the people who can place the laid-off.
+  const recruiterRows = state
+    ? await prisma.crmPerson.findMany({
+        where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' }, coverageStates: { hasSome: [state, 'NATIONAL'] } },
+        select: { ...personSelect, coverageStates: true, coverageIndustries: true, coverageFunctions: true, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { name: true } } }, take: 1 } },
+        take: 400,
+      })
+    : []
+  const recruiterCards: ContactCard[] = recruiterRows
+    .map((p) => ({ p, fit: recruiterFit({ states: p.coverageStates, industries: p.coverageIndustries, functions: p.coverageFunctions }, { state, industry: place.industryKey ?? null }) }))
+    .filter((x) => x.fit > 0)
+    .sort((a, b) => b.fit - a.fit)
+    .map(({ p, fit }) => {
+      const c = card(p, p.affiliations[0]?.title ?? null, p.affiliations[0]?.org.name ?? null)
+      const tags = [p.coverageStates.includes(state!) ? state : 'national', ...p.coverageIndustries.slice(0, 2).map(industryName)].filter(Boolean)
+      return { c: { ...c, title: [c.title, tags.length ? `covers ${tags.join(', ')}` : null].filter(Boolean).join(' · ') }, fit }
+    })
+    .map((x) => x.c)
+
   // Chambers, economic development and workforce nonprofits in the layoff's county (the geography lead list).
   const county =place.county?.replace(/\s+county$/i, '').trim() || null
   const geo = state && county
@@ -155,6 +177,8 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
     group('rapid_response', `State Rapid Response${state ? ` (${state})` : ''}`, 'Meets the employer within days and offers state services.', 'Add the state coordinator from the Department of Labor directory.', rapid.map((p) => card(p, p.affiliations[0]?.title ?? 'Rapid Response contact', p.affiliations[0]?.org.name ?? null))),
     group('workforce_board', board ? `Local workforce board: ${board.name}` : 'Local workforce board', 'Funds dislocated-worker services in the area and joins the Rapid Response meeting.', 'No board matched this notice yet.', boardCards),
     group('job_centers', 'American Job Centers nearby', 'Where laid-off people walk in. The business-services inbox is the employer-facing contact.', 'No centers listed for this board.', centerCards),
+    // Ranked by fit already (state first, then industry), so the strongest recruiter leads regardless of relationship strength.
+    { ...group('recruiters', `Recruiters${state ? ` covering ${state}` : ''}${place.industryKey ? ` in ${industryName(place.industryKey)}` : ''}`, 'Place the laid-off people. Local ones first, then national firms that work this industry.', 'Add recruiters for this state and industry on the Recruiters page.', recruiterCards, `${SITE}/support/admin/crm/recruiters${state ? `?state=${state}${place.industryKey ? `&industry=${place.industryKey}` : ''}` : ''}`), cards: recruiterCards.slice(0, SHOWN_BY_GROUP.recruiters), more: Math.max(0, recruiterCards.length - SHOWN_BY_GROUP.recruiters) || undefined },
     group('economic_development', `Economic development, chambers and workforce groups${county ? ` in ${county} County` : state ? ` in ${state}` : ''}`, 'Local relationships and some incentive money. Organizations without a named contact are listed by name and website.', 'Add the local development group.', econCards),
   ]
   if (others.length) {

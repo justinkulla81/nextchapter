@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { KIND_LABELS, localFirst, money, pct, num } from '@/lib/geo/filters'
+import { recruiters } from '@/lib/crm/ecosystem'
+import { RecruiterTable } from '@/components/admin/RecruiterTable'
 import { BenefitsPanel } from '@/components/admin/BenefitsPanel'
 import { programsForArea } from '@/lib/benefits/store'
 import { FitScoreBadge, type FitBreakdown } from '@/components/admin/FitScoreBadge'
@@ -40,6 +42,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
     take: 25,
     select: { id: true, employer: true, employees: true, noticeDate: true, effectiveDate: true, industry: true, sourceUrl: true },
   })
+  const recs = await recruiters({ state: a.state }, 25)
   const benefits = a.level === 'STATE' ? { local: [], statewide: (await programsForArea('-', a.state)).statewide } : await programsForArea(a.id, a.state)
   const colleges = (a.higherEd as College[] | null) ?? []
   const boards = localFirst((a.wioaBoards as Board[] | null) ?? [])
@@ -147,6 +150,13 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
         {news.length === 0 ? <p className="text-sm text-muted-foreground">Not pulled yet.</p> : (
           <ul className="space-y-1 text-sm">{news.map((n) => <li key={n.url}><a href={n.url} className="text-brand hover:underline" target="_blank" rel="noreferrer">{n.title}</a> <span className="text-muted-foreground">{n.publisher}{n.publishedAt ? ` · ${n.publishedAt.slice(0, 10)}` : ''}</span></li>)}</ul>
         )}
+      </section>
+
+      <section aria-labelledby="recruiters" className="space-y-2">
+        <h2 id="recruiters" className="text-lg font-semibold">Recruiters covering {state?.name ?? a.name}</h2>
+        <p className="text-xs text-muted-foreground">Recruiters tagged to {a.state}, local first, then national. These appear in the layoff alert for a notice here.</p>
+        <RecruiterTable rows={recs.rows} total={recs.total} empty={`No recruiters tagged to ${a.state} yet.`} />
+        <Link href={`/support/admin/crm/recruiters?state=${a.state}`} className="text-sm text-brand hover:underline">Filter by industry and function</Link>
       </section>
 
       <section aria-labelledby="leads" className="space-y-2">

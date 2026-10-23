@@ -25,6 +25,9 @@ export function SiteNav({ current }: { current?: 'about' | 'news' | 'reports' })
         <Link href="/how-it-works" className={`${NAV_LINK} sm:inline-block`}>
           How it works
         </Link>
+        <Link href="/funding" className={`${NAV_LINK} lg:inline-block`}>
+          Funding
+        </Link>
         <Link href="/coaches" className={`${NAV_LINK} lg:inline-block`}>
           For coaches
         </Link>
@@ -55,7 +58,7 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'careers' | 'ai-skills' | 'ai-training' }) {
+export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'careers' | 'ai-skills' | 'ai-training' | 'funding' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="border-b border-white/10">

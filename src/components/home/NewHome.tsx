@@ -3,6 +3,7 @@ import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { HomeTryIt } from '@/components/home/HomeTryIt'
 import { HomeLearnMore } from '@/components/home/HomeLearnMore'
+import { HomeFunding } from '@/components/home/HomeFunding'
 import { AiJobsStat } from '@/components/marketing/AiJobsStat'
 import { AiExposureSection } from '@/components/marketing/AiExposureSection'
 import { Suspense } from 'react'
@@ -26,6 +27,7 @@ const AUDIENCES = [
 const FOOTER_LINKS = [
   { label: 'About', href: '/about' },
   { label: 'News', href: '/news' },
+  { label: 'Funding', href: '/funding' },
   { label: 'Resources', href: '/resources' },
   { label: 'FAQ', href: '/faq' },
   { label: 'Pricing', href: '/pricing' },
@@ -85,6 +87,8 @@ export function NewHome() {
       <Suspense fallback={null}>
         <AiExposureSection page="home" cta={{ event: 'homepage_cta_clicked', properties: { cta: 'ai_exposure_assessment' }, className: action }} />
       </Suspense>
+
+      <HomeFunding />
 
       <HomeLearnMore />
 

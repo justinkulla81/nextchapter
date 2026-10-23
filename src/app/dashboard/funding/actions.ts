@@ -1,0 +1,26 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
+import { getOrCreateCandidateProfile } from '@/lib/profile'
+import { createClient } from '@/lib/supabase/server'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { cleanSelfTags } from '@/lib/benefits/match'
+
+// The member's own answers about which groups they belong to, used only to match funding. Private: never
+// shown to employers, recruiters, schools or coaches, and nothing here reads the EEOC survey fields.
+export async function saveFundingTags(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const tags = cleanSelfTags(formData.getAll('tag'))
+  const details = { ...((profile.journeyDetails as Record<string, unknown> | null) ?? {}), funding: { tags, savedAt: new Date().toISOString() } }
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { journeyDetails: details as never } })
+  captureServerEvent(profile.id, 'funding_tags_saved', { tags, count: tags.length })
+  revalidatePath('/dashboard/funding')
+  revalidatePath('/dashboard')
+}
