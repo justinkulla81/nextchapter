@@ -104,6 +104,8 @@ export const GOAL_OF: Record<BenefitCategory, Goal> = {
   FEDERAL: 'retrain',
   PRIVATE: 'retrain',
   SEGMENT: 'retrain',
+  PAID: 'retrain',
+  TAX: 'retrain',
   COURSES: 'learn',
 }
 export const GOAL_LABEL: Record<Goal, { title: string; blurb: string }> = {
@@ -148,7 +150,7 @@ const STATE_NAMED = new RegExp(`\\b(${US_STATES.filter((x) => x.code !== 'DC').m
  * a scholarship, free classes, an individual training account) and does not say it pays a business.
  */
 const PAYS_THE_PERSON = /tuition|scholarship|\bfree\b|dislocated worker|individual training|\bita\b|training expenses|financial assistance|promise|last-dollar|paid training|per credential|certificate programs|reconnect|stipend|upskill|apprenticeship|career training|training for/i
-const PAYS_A_BUSINESS = /techcred|on-the-job|\bojt\b|incumbent worker|reimburses? employers?|employer (training |reimbursement|grant)|customized (workforce )?training|skills development fund|self-sufficiency fund|small business|for new and expanding|sector partnership|training panel|eligible training provider|\bdirectory\b|policy framework|case management|\bresea\b|job-search platform|job search platform|grant opportunities page|financial aid page|\bunemployment insurance\b|work-search|free advising|lists? providers?|not a payment/i
+const PAYS_A_BUSINESS = /sponsors?\b|states, tribes|local boards|industry partnerships?|young adults|\byouth\b|techcred|on-the-job|\bojt\b|incumbent worker|reimburses? employers?|employer (training |reimbursement|grant)|customized (workforce )?training|skills development fund|self-sufficiency fund|small business|for new and expanding|sector partnership|training panel|eligible training provider|\bdirectory\b|policy framework|case management|\bresea\b|job-search platform|job search platform|grant opportunities page|financial aid page|\bunemployment insurance\b|work-search|free advising|lists? providers?|not a payment/i
 function memberFacing(r: BenefitProgramRow): boolean {
   const text = `${r.name} | ${r.amount ?? ''} | ${r.eligibility ?? ''}`
   if (PAYS_A_BUSINESS.test(text)) return false
@@ -162,10 +164,14 @@ function memberFacing(r: BenefitProgramRow): boolean {
     if (/homeless|developer|employees?\b|county government|scholar|adult learners|college|basic income|training|income support/i.test(el)) return false
     if (/\bresidents?\b/i.test(el) && !/non-?residents|new residents|relocat|\bmov(e|ing)\b|newcomers/i.test(el)) return false
   }
+  if (r.category === 'PAID') return !/leave|family|medical|insurance|\bpaid sick/i.test(text) && /returnship|paid (training|program|internship|apprentice)|stipend|fellowship|apprenticeship/i.test(text)
   if (r.category === 'COURSES') return /free|no cost|tuition-free|\$0|scholarship|financial aid/i.test(`${r.amount ?? ''} ${r.eligibility ?? ''}`)
   if (r.category === 'STATE_TRAINING' || r.category === 'FEDERAL' || r.category === 'PRIVATE') return PAYS_THE_PERSON.test(text)
   return true
 }
+/** Tax credits are not funding a member applies for, and a program tied to one employer is for that employer's staff. */
+const eligibleKind = (r: BenefitProgramRow) => r.category !== 'TAX' && !r.employer && !r.employerKey
+
 const NAME_AUDIENCE: [RegExp, AudienceTag][] = [
   [/\bva\b|gi bill|vet tec|hire heroes|ascend heroes|veterans?\b|military|soldiers|operation homefront|choose topeka|hiring our heroes|vr&e/i, 'veteran'],
   [/\bsba\b|sbdc|microloan|business center|amber grant|kiva|liftfund|grameen|fedex small|ifundwomen|cartier/i, 'entrepreneur'],
@@ -190,13 +196,14 @@ export function parseAmount(text: string | null): number | null {
 /** The gates. Returns why the row fits, or null to hide it. */
 function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { place: string; specific: boolean } | null {
   if (!r.verified || !r.url || r.status === 'CLOSED') return null
-  if (NOT_FOR_THIS_PAGE.test(r.name.trim()) || !memberFacing(r)) return null
+  if (!eligibleKind(r) || NOT_FOR_THIS_PAGE.test(r.name.trim()) || !memberFacing(r)) return null
   const goal = GOAL_OF[r.category]
   const rowState = r.state && US_STATE.test(r.state) ? r.state : null
 
   let place: string
   if (r.scope === 'NATIONAL') {
-    if (STATE_NAMED.test(r.name)) return null
+    // Filed as nationwide but written for one state ("Job seekers in California"): not nationwide.
+    if (STATE_NAMED.test(r.name) || STATE_NAMED.test(r.eligibility ?? '')) return null
     place = 'Anyone can use it, in any state'
   } else if (!rowState) {
     return null
@@ -272,8 +279,8 @@ export function groupByGoal(matches: Match[]): Record<Goal, Match[]> {
 /** A real program a person can claim: verified, open, aimed at a person, and with an audience we can read. */
 export function isMemberProgram(r: BenefitProgramRow): boolean {
   if (!r.verified || !r.url || r.status === 'CLOSED') return false
-  if (NOT_FOR_THIS_PAGE.test(r.name.trim()) || !memberFacing(r)) return false
-  if (r.scope === 'NATIONAL' && STATE_NAMED.test(r.name)) return false
+  if (!eligibleKind(r) || NOT_FOR_THIS_PAGE.test(r.name.trim()) || !memberFacing(r)) return false
+  if (r.scope === 'NATIONAL' && (STATE_NAMED.test(r.name) || STATE_NAMED.test(r.eligibility ?? ''))) return false
   return audienceOf(r.segments).kind !== 'unreadable'
 }
 
