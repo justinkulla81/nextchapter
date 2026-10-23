@@ -116,7 +116,9 @@ export async function fetchGoogleDocText(accessToken: string, fileId: string): P
     // The Docs API itself switched off in the Google Cloud project: no document
     // can be read until someone enables it, and no reconnect changes that.
     if (/SERVICE_DISABLED|accessNotConfigured|has not been used in project|API has not been enabled/i.test(body)) {
-      throw new NotesFetchError('api_disabled', 'Docs API is switched off in the Google Cloud project')
+      // The project number Google names is what to look for in the Cloud console.
+      const project = body.match(/project[s/ ]+(\d{6,})/i)?.[1]
+      throw new NotesFetchError('api_disabled', project ? ` (project ${project})` : '')
     }
     if (res.status === 403 || res.status === 404) throw new NotesFetchError('inaccessible', `Docs read: ${res.status}`)
     throw new NotesFetchError('failed', `Docs read failed: ${res.status}`)

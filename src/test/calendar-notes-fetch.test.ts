@@ -20,7 +20,9 @@ describe('fetchGoogleDocText', () => {
   })
   it('recognises the Docs API being switched off in the Cloud project', async () => {
     expect(await kindOf(reply(403, { error: { status: 'PERMISSION_DENIED', details: [{ reason: 'SERVICE_DISABLED' }] } }))).toBe('api_disabled')
-    expect(await kindOf(reply(403, 'Google Docs API has not been used in project 123 before or it is disabled.'))).toBe('api_disabled')
+    expect(await kindOf(reply(403, 'Google Docs API has not been used in project 123456789 before or it is disabled.'))).toBe('api_disabled')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(reply(403, 'Google Docs API has not been used in project 123456789 before or it is disabled.'))
+    await expect(fetchGoogleDocText('tok', 'doc1')).rejects.toThrow('project 123456789')
   })
   it('treats a plain 403 or 404 as one inaccessible doc, not a reconnect', async () => {
     expect(await kindOf(reply(403, { error: { status: 'PERMISSION_DENIED' } }))).toBe('inaccessible')
