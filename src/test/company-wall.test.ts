@@ -138,6 +138,8 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/linkedin/layoff-post-sweep.ts': 'admin WARN tooling: drafts suggested LinkedIn posts from credible layoffs; imported only by the layoff-news cron (registered here by the outreach session because main was red on it)',
     'src/lib/outreach/reply-alert.ts': 'admin outreach: puts a person who answered cold email on the follow-up list and emails the owner',
     'src/app/prepared/[slug]/actions.ts': 'admin outreach: the claim button on a prospect page adds the person to the CRM as a lead and emails the owner; it writes to the CRM and reads nothing back to the visitor',
+    'src/app/claim/[personId]/page.tsx': 'person claim page (added by another session, registered here because main was red on it): reads one CRM person to greet them by first name and check the claim link; shows nothing else from the CRM',
+    'src/app/claim/actions.ts': 'person claim page (added by another session, registered here because main was red on it): checks the person exists and writes one CRM activity when they claim; reads nothing back to the visitor',
     // Organization claim pages (owner-requested 2026-10-23). They show a public page for a CRM organization: its name, the state/county its
     // layoff figures are for, and (as a hint) the email domain a claimant must use. No CRM person, note, status or contact is read for display.
     'src/lib/org-claims/org.ts': 'public claim page: resolves a CRM organization by slug; returns its name, type and email domain only',
