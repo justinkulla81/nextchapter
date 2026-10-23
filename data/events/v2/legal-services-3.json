@@ -1,0 +1,548 @@
+[
+ {
+  "id": "iapp-global-summit",
+  "name": "IAPP Global Summit",
+  "organizer": "IAPP",
+  "url": "https://iapp.org/conference/iapp-global-summit",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-21",
+  "endDate": "2027-03-24",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest gathering of privacy counsel, CPOs and regulators in the world, with training, workshops and the main conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not published on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2027 call for proposals is closed and under review.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iapp-privacy-security-risk-ai-governance",
+  "name": "IAPP Privacy. Security. Risk. + AI Governance Global",
+  "organizer": "IAPP",
+  "url": "https://iapp.org/conference/iapp-psr",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-14",
+  "endDate": "2027-09-17",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Vancouver",
+  "state": null,
+  "country": "CA",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Privacy, security and AI-governance leaders working the overlap of the three disciplines.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pricing not published; Vancouver 2027 dates seen only on an older page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing / search lead",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "scce-compliance-ethics-institute",
+  "name": "SCCE Compliance & Ethics Institute",
+  "organizer": "Society of Corporate Compliance and Ethics",
+  "url": "https://www.corporatecompliance.org/conferences/institutes",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-26",
+  "endDate": "2027-09-29",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main US annual gathering of compliance and ethics officers, with the CCEP certification exam on site.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Past years: members about $1,200-1,300, non-members about $1,500-1,600 (2022 form); 2027 prices not published.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.corporatecompliance.org/conferences/compliance-and-ethics-institute-call-speakers",
+  "speakingDeadline": null,
+  "speakingNote": "Annual call runs roughly January to mid-February (2026: Jan 5 to Feb 16); SCCE/HCCA members preferred.",
+  "cheaperWays": "Registration plus first-year membership bundle gives the member rate; virtual option offered.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel",
+   "ethics and compliance officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "scce-higher-education-compliance-conference",
+  "name": "SCCE Higher Education Compliance Conference",
+  "organizer": "Society of Corporate Compliance and Ethics",
+  "url": "https://www.corporatecompliance.org/conferences/specialized-knowledge/2027-higher-education-compliance-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "University compliance officers, general counsel staff and research administrators swapping practice on Title IX, research and athletics rules.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and prices not read; 2026 was June 7-9, San Antonio.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "ethics and compliance officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "scce-european-compliance-ethics-institute",
+  "name": "SCCE European Compliance & Ethics Institute",
+  "organizer": "Society of Corporate Compliance and Ethics",
+  "url": "https://www.corporatecompliance.org/conferences/institutes/15th-annual-european-compliance-ethics-institute-ecei",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-10",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Prague",
+  "state": null,
+  "country": "CZ",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Global compliance officers at multinationals; the international sibling of the US Institute.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel",
+   "ethics and compliance officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "privacy-security-forum-spring-academy",
+  "name": "Privacy + Security Forum Spring Academy",
+  "organizer": "Privacy + Security Academy (Solove/Schwartz)",
+  "url": "https://www.privacysecurityacademy.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-05",
+  "endDate": "2027-05-07",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Practice-oriented privacy and security law forum founded by GW Law's Daniel Solove and Berkeley's Paul Schwartz; CLE credit available.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "privacy-security-forum-fall-academy",
+  "name": "Privacy + Security Forum Fall Academy",
+  "organizer": "Privacy + Security Academy (Solove/Schwartz)",
+  "url": "https://www.privacysecurityacademy.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-06",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Fall edition of the practitioner privacy and security law forum in DC.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "privacy-law-salon-miami",
+  "name": "Privacy Law Salon (Miami Roundtable)",
+  "organizer": "Privacy + Security Academy",
+  "url": "https://www.privacysecurityacademy.com/miami-salon/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-24",
+  "endDate": "2027-01-26",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Invitation-only roundtable capped at about 100 seasoned privacy leaders at the Four Seasons Miami.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed around $1,999-2,999 depending on group; may be outdated.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.privacysecurityacademy.com/salon-faqs/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pli-institute-privacy-cybersecurity-law",
+  "name": "PLI Annual Institute on Privacy and Cybersecurity Law",
+  "organizer": "Practising Law Institute",
+  "url": "https://www.pli.edu/programs/institute-on-privacy-and-data-security-law/470350",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-18",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Two-day CLE institute for lawyers advising on privacy and cybersecurity, with CPO/CISO panels and regulator updates.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read; PLI also lists a California offering May 3-4 and a June 7-8 session.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ethisphere-global-ethics-summit",
+  "name": "Ethisphere Global Ethics Summit",
+  "organizer": "Ethisphere",
+  "url": "https://ethisphere.com/global-ethics-summit",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Chief ethics and compliance officers from the World's Most Ethical Companies (2,000+ participants in 2026).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran March 29-31, Atlanta + online; 2027 dates not yet published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "ethics and compliance officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "acc-annual-meeting",
+  "name": "ACC Annual Meeting",
+  "organizer": "Association of Corporate Counsel",
+  "url": "https://www.acc.com/education-events/2026/2026-annual-meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-17",
+  "endDate": "2027-10-20",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The in-house counsel flagship; privacy, compliance and ethics counsel all attend.",
+  "access": "PAID",
+  "costLow": 2020,
+  "costHigh": 2560,
+  "costNote": "2026 rates: $1,750-2,125 member, $2,185-2,560 non-member by registration date (2027 not published).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "privacy counsel",
+   "ethics and compliance officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aba-national-conference-professional-responsibility",
+  "name": "ABA National Conference on Professional Responsibility",
+  "organizer": "American Bar Association",
+  "url": "https://www.americanbar.org/groups/professional_responsibility/events_cle/national-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Legal ethics counsel, bar regulators and law firm general counsel on professional responsibility.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition May 27-29 Los Angeles; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "ethics and compliance officer"
+  ],
+  "journeys": []
+ }
+]

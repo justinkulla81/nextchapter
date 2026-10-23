@@ -1,0 +1,1159 @@
+[
+ {
+  "id": "cdoiq-symposium",
+  "action": "publish",
+  "reason": "cdoiq.org/2026cdoiq.org show the 20th annual symposium July 21-23, 2026 at Hyatt Regency Cambridge; a CDOIQ survey invitation refers to the 21st annual in July 2027, so it recurs each July; 2027 dates not yet announced.",
+  "patch": {
+   "url": "https://www.cdoiq.org",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "July",
+   "city": "Cambridge",
+   "state": "MA",
+   "access": "PAID",
+   "costNote": "2027 pricing not published; prior editions listed roughly $950 to $1,950.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": "Site has a Request to Participate link; 2027 call not yet seen.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "ivmf-v-wise",
+  "action": "publish",
+  "reason": "IVMF's V-WISE pages list the 2027 cohort: online Phase I March 15 to April 9 and in-person capstone April 16-18 in Atlanta; application required, $75 fee, applications opening via interest form.",
+  "patch": {
+   "url": "https://ivmf.syracuse.edu/programs/entrepreneurship/v-wise/",
+   "startDate": "2027-04-16",
+   "endDate": "2027-04-18",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Atlanta",
+   "state": "GA",
+   "format": "HYBRID",
+   "access": "APPLY",
+   "costLow": 75,
+   "costHigh": 75,
+   "costNote": "$75 registration covers the online course plus two nights lodging and most meals at the capstone; attendees pay their own travel. Online Phase I runs March 15 to April 9, 2027.",
+   "applyUrl": "https://ivmf.syracuse.edu/programs/entrepreneurship/v-wise/",
+   "cheaperWays": "Program is already heavily subsidized; open to women veterans, active duty and military spouses.",
+   "speaking": "NONE",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "programFormats": [
+    "WORKSHOP",
+    "KEYNOTE",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "sdgc-service-design-global-conference",
+  "action": "publish",
+  "reason": "servicedesignglobalconference.com shows SDGC26 October 28-30, 2026 in Frankfurt RheinMain, Germany, onsite and online, early-bird tickets on sale.",
+  "patch": {
+   "url": "https://servicedesignglobalconference.com",
+   "startDate": "2026-10-28",
+   "endDate": "2026-10-30",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Frankfurt",
+   "state": null,
+   "country": "DE",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Ticket prices not readable on the page text; early-bird tickets offered; some workshops and events cost extra.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": "Speakers listed; 20+ speakers.",
+   "cheaperWays": "Online attendance option; early-bird tickets.",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true
+  }
+ },
+ {
+  "id": "wids-worldwide-conference",
+  "action": "publish",
+  "reason": "widsworldwide.org shows the flagship WiDS Stanford conference held each year around International Women's Day (March 8) with free livestream and hundreds of regional events; 2027 date not yet posted.",
+  "patch": {
+   "url": "https://www.widsworldwide.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "city": "Stanford",
+   "state": "CA",
+   "format": "HYBRID",
+   "access": "FREE",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Livestream and regional WiDS events are free; Stanford in-person registration details not posted for 2027.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": "Free livestream and free regional WiDS events worldwide.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "ssow-orlando",
+  "action": "publish",
+  "reason": "ssonetwork.com lists Shared Services & Outsourcing Week North America March 8-11, 2027 at Rosen Shingle Creek, Orlando; main conference plus workshops pass listed $2,199 discounted / $3,599 list.",
+  "patch": {
+   "url": "https://www.ssonetwork.com/events-shared-services-week",
+   "startDate": "2027-03-08",
+   "endDate": "2027-03-11",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Orlando",
+   "state": "FL",
+   "access": "PAID",
+   "industries": [],
+   "functions": [
+    "Operations",
+    "Finance",
+    "Human Resources"
+   ],
+   "costLow": 2199,
+   "costHigh": 3599,
+   "costNote": "Discounted $2,199 vs $3,599 list for main conference plus workshops (page prices partly conflicting); vendor pass $4,599; add-ons $199 to $279.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "iab-tech-lab-summit",
+  "action": "drop",
+  "reason": "iabtechlab.com events list shows only a London summit (Nov 5, 2026) and a CTV event; the New York Summit last appears in 2024 with no announced 2027 edition, so no evidence of a next US edition."
+ },
+ {
+  "id": "smx-advanced",
+  "action": "publish",
+  "reason": "searchengineland.com/smx/advanced announces SMX Advanced San Diego March 17-19, 2027 (Marriott Marquis San Diego Marina) and Boston Sept 20-22, 2027; speaker pitches open with Nov 6 deadline; super early bird $1,295, on-site $1,745.",
+  "patch": {
+   "url": "https://searchengineland.com/smx/advanced",
+   "startDate": "2027-03-17",
+   "endDate": "2027-03-19",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "San Diego",
+   "state": "CA",
+   "access": "PAID",
+   "functions": [
+    "Marketing"
+   ],
+   "costLow": 1295,
+   "costHigh": 1745,
+   "costNote": "Super early bird $1,295 until Dec 19; on-site All Access $1,745. A second edition runs in Boston Sept 20-22, 2027.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://searchengineland.com/smx/submit-speaking-pitch",
+   "speakingDeadline": "2026-11-06",
+   "speakingNote": "Speaker pitches for San Diego due Nov 6, 2026.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "asian-pacific-aquaculture",
+  "action": "drop",
+  "reason": "was.org shows Asian-Pacific Aquaculture 2027 is Sept 7-10, 2027 in Nha Trang, Vietnam: outside the US with little US-professional relevance."
+ },
+ {
+  "id": "apsg-conference",
+  "action": "publish",
+  "reason": "AftermarketNews reports APSG will hold its 2027 conference March 30 to April 2 at the Galt House, Louisville, with registration not yet open; trade press only, organizer site not read.",
+  "patch": {
+   "url": "https://www.aftermarketnews.com/?p=251429",
+   "startDate": "2027-03-30",
+   "endDate": "2027-04-02",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Louisville",
+   "state": "KY",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration not yet open; The Group (APSG) is a member organization, so eligibility may depend on membership.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": false,
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "published": false,
+   "country": "US"
+  }
+ },
+ {
+  "id": "greenbuild",
+  "action": "publish",
+  "reason": "informaconnect.com/greenbuild lists Greenbuild 2026 Oct 20-23 at Javits Center NYC (ends today) and Greenbuild 2027 for October 19-22, 2027 with city to be announced.",
+  "patch": {
+   "url": "https://informaconnect.com/greenbuild/",
+   "startDate": "2027-10-19",
+   "endDate": "2027-10-22",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "industries": [
+    "Construction & Real Estate"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 city not yet announced; USGBC member discounts offered; pricing not read.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": "USGBC member discounts.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "nhra-annual-meeting",
+  "action": "publish",
+  "reason": "housingonline.com lists the NH&RA Annual Meeting & Symposium 2027 at The Breakers, Palm Beach, Feb 17-20, 2027 (2026 edition Feb 18-21 same venue).",
+  "patch": {
+   "url": "https://www.housingonline.com/?p=71612",
+   "startDate": "2027-02-17",
+   "endDate": "2027-02-20",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Palm Beach",
+   "state": "FL",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 member and non-member rates not yet posted.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": "Site is collecting topic suggestions.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "educause-annual-conference",
+  "action": "publish",
+  "reason": "events.educause.edu/annual-conference/2027 shows the 2027 conference in person in Orlando Oct 18-21 plus an online portion Nov 9-10; 2027 registration not yet open (2026 member rates $649 to $809).",
+  "patch": {
+   "url": "https://events.educause.edu/annual-conference/2027",
+   "startDate": "2027-10-18",
+   "endDate": "2027-10-21",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Orlando",
+   "state": "FL",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 rates not yet published; 2026 was $649 early bird / $809 regular for members, higher for nonmembers. Online portion Nov 9-10, 2027.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": "Online conference registration option.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "dcd-connect-virginia",
+  "action": "publish",
+  "reason": "datacenterdynamics.com page for DCD Connect Virginia 2026 shows Nov 3-4, 2026 at Lansdowne Resort & Spa, Leesburg; free pass for end-users, $1,495 general admission.",
+  "patch": {
+   "url": "https://www.datacenterdynamics.com/en/dcdconnect-live/virginia/2026/",
+   "startDate": "2026-11-03",
+   "endDate": "2026-11-04",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Leesburg",
+   "state": "VA",
+   "access": "MIXED",
+   "industries": [
+    "Technology & Software",
+    "Energy & Utilities"
+   ],
+   "costLow": 0,
+   "costHigh": 1495,
+   "costNote": "End-user/specifier pass free for qualifying data center operators; general admission $1,495; vendors pay more.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": "Free End-User/Specifier pass for qualifying roles.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "wef-watereuse-industrial-water-solutions",
+  "action": "publish",
+  "reason": "wef.org events listing shows Industrial Water Solutions Nov 15-17, 2027 in Tucson (in person); 2026 edition was June 8-10 in Chicago.",
+  "patch": {
+   "url": "https://www.wef.org/events/",
+   "startDate": "2027-11-15",
+   "endDate": "2027-11-17",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Tucson",
+   "state": "AZ",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not yet posted.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": "Prior editions ran a call for content; 2027 call not seen.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "mba-secondary-capital-markets-conference",
+  "action": "publish",
+  "reason": "mba.org event listing shows the Secondary and Capital Markets Conference May 16-19, 2027 in Chicago (registration not yet open); 2026 edition was in NYC.",
+  "patch": {
+   "url": "https://www.mba.org/conferences-and-education/event/2027/05/16/default-calendar/secondary-and-capital-markets-conference-82436",
+   "startDate": "2027-05-16",
+   "endDate": "2027-05-19",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Chicago",
+   "state": "IL",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration not yet open; MBA member discounts typical.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "cwa-meeting-of-the-minds",
+  "action": "publish",
+  "reason": "calworkforce.org shows Meeting of the Minds recurs each September in Monterey (2025 Sept 2-4, 2026 Sept 8-10); 2027 dates only on an aggregator (Sept 7-9), so only the usual month is stated.",
+  "patch": {
+   "url": "https://www.calworkforce.org/annual-conferences",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "Monterey",
+   "state": "CA",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not read; audience is California local workforce board leaders and partners.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": "https://proposals.calworkforce.org/",
+   "speakingNote": "Workshop proposals were solicited for 2026; 2027 call not yet posted.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "psc-federal-acquisition-conference",
+  "action": "publish",
+  "reason": "acquisition.pscouncil.org shows the 10th Annual Federal Acquisition Conference held June 25, 2026 at Hyatt Regency Crystal City (or virtual); recurring each June, 2027 not announced.",
+  "patch": {
+   "url": "https://acquisition.pscouncil.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": "Arlington",
+   "state": "VA",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not read; PSC member rates apply.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": "Virtual attendance option.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "astho-events",
+  "action": "drop",
+  "reason": "astho.org lists Annual Meeting and Policy Summit only as a flagship series with no dates or usual month found; row URL was a staging host (integration.astho.org) and visible events are virtual trainings for state health agency staff."
+ },
+ {
+  "id": "public-health-law-conference",
+  "action": "publish",
+  "reason": "networkforphl.org says the Public Health Law Conference is biennial, 2027 edition Oct 4-6, 2027 in Detroit; call for abstracts open Oct 15 to Nov 27, 2026.",
+  "patch": {
+   "url": "https://events.networkforphl.org/2027-conference/",
+   "startDate": "2027-10-04",
+   "endDate": "2027-10-06",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Detroit",
+   "state": "MI",
+   "access": "PAID",
+   "industries": [
+    "Healthcare & Hospital Systems",
+    "Government & Public Sector",
+    "Legal Services"
+   ],
+   "functions": [
+    "Legal"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 registration not yet open.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://events.networkforphl.org/2027-conference/call-for-abstracts/",
+   "speakingDeadline": "2026-11-27",
+   "speakingNote": "Panels prioritized; theme Community Power and Resilience.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "ifma-presidents-conference",
+  "action": "publish",
+  "reason": "ifmaworld.com events list shows the 2026 Presidents Conference Nov 1-3, 2026 in Scottsdale (the next edition) with the 2027 edition Nov 7-9; the 2025 edition was members-only (manufacturer membership pass $2,695).",
+  "patch": {
+   "url": "https://www.ifmaworld.com/events",
+   "startDate": "2026-11-01",
+   "endDate": "2026-11-03",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Scottsdale",
+   "state": "AZ",
+   "access": "INVITE",
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Members-only top-to-top forum for foodservice operators, manufacturers and distributors; 2025 manufacturer-member registration was $2,695. 2027 edition scheduled Nov 7-9, 2027, Scottsdale.",
+   "applyUrl": "https://www.ifmaworld.com/events",
+   "cheaperWays": "Join IFMA (International Foodservice Manufacturers Association) as a member to register; no public ticket.",
+   "speaking": "BY_INVITE",
+   "speakingUrl": null,
+   "speakingNote": "Curated executive program.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "insurtech-insights-usa",
+  "action": "publish",
+  "reason": "insurtechinsights.com pages list Insurtech Insights USA June 9-10, 2027 at Javits Center NYC, with one older registration page showing June 2-3; general pass $1,499, premium $4,499.",
+  "patch": {
+   "url": "https://www.insurtechinsights.com/america/",
+   "startDate": "2027-06-09",
+   "endDate": "2027-06-10",
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": "New York",
+   "state": "NY",
+   "access": "PAID",
+   "costLow": 1499,
+   "costHigh": 4499,
+   "costNote": "General pass $1,499, premium $4,499; startup and investor passes also exist. Site shows conflicting dates (June 9-10 on most pages, June 2-3 on registration page).",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": "Startup and investor pass tiers.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "iapp-privacy-security-risk-ai-governance",
+  "action": "publish",
+  "reason": "iapp.org conferences page lists IAPP Privacy. Security. Risk. + AI Governance Global 2027 for Sept 14-17, 2027 in Vancouver (training 14-15, conference 16-17); the 2026 edition was Seattle Oct 6-9.",
+  "patch": {
+   "url": "https://iapp.org/conference/iapp-psr",
+   "startDate": "2027-09-14",
+   "endDate": "2027-09-17",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Vancouver",
+   "state": null,
+   "country": "CA",
+   "access": "PAID",
+   "industries": [
+    "Legal Services",
+    "Technology & Software"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not yet posted.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://iapp.org/conferences/speak-at-an-iapp-conference",
+   "speakingDeadline": null,
+   "speakingNote": "IAPP runs a speak-at-a-conference page; check it for the 2027 call timing.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true
+  }
+ },
+ {
+  "id": "gartner-procurement-conference",
+  "action": "publish",
+  "reason": "gartner.com conference page and structured data list the Gartner Procurement Conference Sept 13-14, 2027 at Gaylord Pacific, San Diego (some session pages still show the 2026 dates Sept 15-16).",
+  "patch": {
+   "url": "https://www.gartner.com/en/conferences/na/procurement-us",
+   "startDate": "2027-09-13",
+   "endDate": "2027-09-14",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "San Diego",
+   "state": "CA",
+   "access": "PAID",
+   "industries": [],
+   "functions": [
+    "Operations"
+   ],
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not posted; Gartner client subscription not required to attend; CPO Circle program for eligible CPOs.",
+   "speaking": "BY_INVITE",
+   "speakingUrl": null,
+   "speakingNote": "Gartner analyst-led program.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "asja-annual-conference",
+  "action": "publish",
+  "reason": "asja.org announced the 2027 ASJA conference as virtual April 26-30, 2027 (returning to NYC in 2028); session proposals closed Sept 30, 2026.",
+  "patch": {
+   "url": "https://www.asja.org/save-the-date-for-the-2027-asja-virtual-conference/",
+   "startDate": "2027-04-26",
+   "endDate": "2027-04-30",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": null,
+   "state": null,
+   "format": "VIRTUAL",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 rates not yet posted; scholarships offered.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.asja.org/what-we-do/conferences/",
+   "speakingDeadline": "2026-09-30",
+   "speakingNote": "Session proposals were due Sept 30, 2026.",
+   "cheaperWays": "Scholarships; volunteers on the conference committee can sign up.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "produced-by-conference",
+  "action": "publish",
+  "reason": "producersguild.org shows the 2026 Produced By Conference was May 30 on the Universal Studios Lot and its PGA Create page lists the 2027 edition as late May/early June in Los Angeles; exact date not announced.",
+  "patch": {
+   "url": "https://producersguild.org/pga-create/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "Los Angeles",
+   "state": "CA",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not posted.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "collective-impact-action-summit",
+  "action": "publish",
+  "reason": "collectiveimpactforum.org blog (Oct 9, 2026) says 2027 replaces the spring three-day virtual Summit with a one-day virtual convening in the fall, with an annual Call for Sessions continuing; no spring 2027 Summit.",
+  "patch": {
+   "url": "https://collectiveimpactforum.org/events/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": null,
+   "city": null,
+   "state": null,
+   "format": "VIRTUAL",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "One-day virtual convening in fall 2027; dates and pricing not yet announced.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://collectiveimpactforum.org/events/",
+   "speakingDeadline": null,
+   "speakingNote": "Annual Call for Sessions continues for the 2027 convening.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "bio-europe",
+  "action": "publish",
+  "reason": "informaconnect.com/bioeurope (Informa Connect / EBD Group) lists BIO-Europe Nov 9-11, 2026 at Koelnmesse, Cologne; the world's main biopharma partnering meeting, spring edition was in Lisbon.",
+  "patch": {
+   "url": "https://informaconnect.com/bioeurope/",
+   "startDate": "2026-11-09",
+   "endDate": "2026-11-11",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Cologne",
+   "state": null,
+   "country": "DE",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not read; partnering delegate registration.",
+   "speaking": "NONE",
+   "speakingUrl": null,
+   "speakingNote": "Partnering-focused meeting.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true
+  }
+ },
+ {
+  "id": "socra-annual-conference",
+  "action": "publish",
+  "reason": "socra.org shows the 2026 conference Sept 25-27 in Denver ($900 member / $975 non-member) and Orlando hotel promotion for the next one; recurs each September, 2027 dates not yet posted.",
+  "patch": {
+   "url": "https://www.socra.org/annual-conference/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costLow": 900,
+   "costHigh": 975,
+   "costNote": "2026 fees ($900 member, $975 non-member; preconference workshops +$200); 2027 city likely Orlando but not confirmed.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "safe-summit",
+  "action": "publish",
+  "reason": "scaledagile.com blog pages show SAFe Summit held Sept 2025 in Denver and SAFe & AI Summits in Amsterdam (March 2026) and San Diego (mid-September); no 2027 dates found, so only recurrence is stated.",
+  "patch": {
+   "url": "https://framework.scaledagile.com/blog/tag/safe-summit",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not read.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": false,
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "published": false,
+   "country": "US"
+  }
+ },
+ {
+  "id": "icmi-contact-center-expo",
+  "action": "publish",
+  "reason": "resources.icmi.com page announces ICMI Contact Center Expo 2027 for Nov 2-5, 2027 at MGM Grand, Las Vegas (Save the Date).",
+  "patch": {
+   "url": "https://resources.icmi.com/events",
+   "startDate": "2027-11-02",
+   "endDate": "2027-11-05",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Las Vegas",
+   "state": "NV",
+   "access": "PAID",
+   "industries": [],
+   "functions": [
+    "Customer Success",
+    "Operations"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not yet posted.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "atlassian-team",
+  "action": "publish",
+  "reason": "events.atlassian.com/team page shows Team '27 April 20-22, 2027 in San Francisco with a Call for Proposals and sponsor pages; registration not yet open.",
+  "patch": {
+   "url": "https://events.atlassian.com/team",
+   "startDate": "2027-04-20",
+   "endDate": "2027-04-22",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "San Francisco",
+   "state": "CA",
+   "access": "PAID",
+   "industries": [
+    "Technology & Software"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration not yet open.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://events.atlassian.com/team/call-for-speakers",
+   "speakingDeadline": null,
+   "speakingNote": "Call for Proposals page live; deadline not read.",
+   "cheaperWays": "Online attendee option exists.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "iia-isaca-grc-conference",
+  "action": "publish",
+  "reason": "ISACA's GRC conference page lists the 2027 GRC Conference Aug 16-18, 2027 in Dallas (expected); theiia.org page still shows prior editions, 2026 was Aug 17-19 in San Diego.",
+  "patch": {
+   "url": "https://www.isaca.org/training-and-events/conferences/grc-conference",
+   "startDate": "2027-08-16",
+   "endDate": "2027-08-18",
+   "datesConfirmed": false,
+   "typicalMonth": "August",
+   "city": "Dallas",
+   "state": "TX",
+   "format": "HYBRID",
+   "access": "PAID",
+   "industries": [
+    "Accounting & Audit",
+    "Technology & Software"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not yet posted; ISACA and IIA member rates apply.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": null,
+   "cheaperWays": "Member discounts; virtual option in past editions.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "sales-enablement-summit",
+  "action": "publish",
+  "reason": "world.salesenablementcollective.com shows Sales Enablement Summit Austin Feb 24-25, 2027 with agenda, tickets and an Apply to be a speaker link; 750+ attendees, 80% senior management.",
+  "patch": {
+   "url": "https://world.salesenablementcollective.com/location/austin",
+   "startDate": "2027-02-24",
+   "endDate": "2027-02-25",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Austin",
+   "state": "TX",
+   "access": "PAID",
+   "industries": [],
+   "functions": [
+    "Sales",
+    "Marketing"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Ticket price not readable in page text.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://world.salesenablementcollective.com/location/austin",
+   "speakingDeadline": null,
+   "speakingNote": "Apply to be a speaker link on the page.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "nate-unite",
+  "action": "publish",
+  "reason": "natehome.com lists NATE UNITE 2027 Feb 22-25, 2027 in Orlando (Rosen Shingle Creek); NATE members get discounts on attending and exhibiting.",
+  "patch": {
+   "url": "https://natehome.com/events/nate-unite-2027/",
+   "startDate": "2027-02-22",
+   "endDate": "2027-02-25",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Orlando",
+   "state": "FL",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration not yet open; NATE member discount.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": null,
+   "speakingNote": "Microsite covers speaking.",
+   "cheaperWays": "NATE member discount.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ },
+ {
+  "id": "nacto-designing-cities",
+  "action": "publish",
+  "reason": "nacto.org says Designing Cities 2027 is May 11-14, 2027 in Nashville; attendance is mostly city transportation staff with limited private-sector participation screened by application; no open session proposals.",
+  "patch": {
+   "url": "https://nacto.org/events/about-the-designing-cities-conference/",
+   "startDate": "2027-05-11",
+   "endDate": "2027-05-14",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Nashville",
+   "state": "TN",
+   "access": "APPLY",
+   "industries": [
+    "Government & Public Sector",
+    "Transportation & Logistics"
+   ],
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration expected late 2026; private-sector attendees apply for approval.",
+   "applyUrl": "https://nacto.org/events/about-the-designing-cities-conference/",
+   "speaking": "NONE",
+   "speakingUrl": null,
+   "speakingNote": "Sessions planned by host city, NACTO staff and member program committee; no open proposals.",
+   "cheaperWays": "City transportation agency staff of NACTO member cities attend as core audience.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "checkedAt": "2026-10-23",
+   "verified": true,
+   "published": true,
+   "country": "US"
+  }
+ }
+]

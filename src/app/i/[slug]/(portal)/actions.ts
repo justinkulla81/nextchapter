@@ -11,6 +11,7 @@ import { redirect } from 'next/navigation'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getInstitutionAccess, requireWorkspace, DEMO_PREVIEW_COOKIE } from '@/lib/higher-ed/access'
+import { institutionEntitlements, lockedReason } from '@/lib/plans/entitlements'
 import { AUDIENCE_LABELS, getService, PRICING_LABELS, type Audience, type Pricing, type ServiceSetting } from '@/lib/higher-ed/services'
 import { DEMO_PERSONAS, demoPersonaTokens, getWorkspace, orgBasePath, orgKindOf, workspacesFor } from '@/lib/higher-ed/workspaces'
 import { advanceDemoTime, resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
@@ -109,7 +110,7 @@ export async function saveService(
   key: string,
   patch: { on?: boolean; audience?: string[]; ownerOffice?: string; ownerName?: string | null; pricing?: string; linkUrl?: string | null; provider?: string },
 ): Promise<{ error?: string }> {
-  const inst = await prisma.institution.findUnique({ where: { slug }, select: { orgType: true } })
+  const inst = await prisma.institution.findUnique({ where: { slug }, select: { orgType: true, plan: true } })
   const service = getService(key, orgKindOf(inst?.orgType))
   if (!service) return { error: 'That service no longer exists. Reload the page.' }
   const clean: Partial<ServiceSetting> = {}
@@ -123,6 +124,8 @@ export async function saveService(
   }
   if (patch.provider !== undefined) {
     if (!['college', 'nextchapter', 'both'].includes(patch.provider)) return { error: 'Pick who provides it.' }
+    // The free plan lists the organization's own services; NextChapter's coaching and courses are paid.
+    if (patch.provider !== 'college' && !institutionEntitlements({ plan: inst?.plan }).nextchapterServices) return { error: lockedReason('nextchapterServices') }
     if (!service.builtIn && patch.provider !== 'college') return { error: 'NextChapter doesn’t offer this one; it has to be your own.' }
     clean.provider = patch.provider as ServiceSetting['provider']
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentType, type ReactNode } from 'react'
+import { createContext, useContext, type ComponentType, type ReactNode } from 'react'
 import Link from 'next/link'
 import { User, Users, BookOpen, Sparkles, Zap, Lock, Rocket } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -334,6 +334,7 @@ function ActionRow({
   hasCalendarConnection: boolean
   completedReferencesCount: number
 }) {
+  const hidePointsHere = useContext(HidePoints)
   let link = actionType ? ACTION_TYPE_LINK[actionType] : undefined
   // "Have a coffee chat or call" only pays out automatically once Calendar
   // is connected — if it isn't, route straight to connecting it instead of
@@ -463,18 +464,23 @@ function ActionRow({
             1 / 1
           </span>
         ) : null}
-        <span
-          className={cn(
-            'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
-            locked ? 'bg-muted text-muted-foreground' : 'bg-brand/10 text-brand'
-          )}
-        >
-          {points} pts
-        </span>
+        {!hidePointsHere && (
+          <span
+            className={cn(
+              'rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums',
+              locked ? 'bg-muted text-muted-foreground' : 'bg-brand/10 text-brand'
+            )}
+          >
+            {points} pts
+          </span>
+        )}
       </div>
     </div>
   )
 }
+
+// Senior overlay: points are off by default (seniorEngagementDefaults in src/lib/journey/menu.ts).
+const HidePoints = createContext(false)
 
 export function SuccessSprintCard({
   actions,
@@ -492,7 +498,9 @@ export function SuccessSprintCard({
   marketRealityGrade,
   hasUnresolvedResumeIssues,
   title = 'Weekly Search Sprint',
+  hidePoints = false,
 }: {
+  hidePoints?: boolean
   // "Weekly Search Sprint" for people searching; "Your weekly plan" for people
   // growing in a job, where "search" would be the wrong word.
   title?: string
@@ -798,12 +806,14 @@ export function SuccessSprintCard({
   ]
 
   return (
+    <HidePoints.Provider value={hidePoints}>
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-3">
+          {!hidePoints && (
           <div
             className={cn(
               'rounded-lg border-2 p-4',
@@ -823,6 +833,7 @@ export function SuccessSprintCard({
               </span>
             </p>
           </div>
+          )}
 
           {allRows.length > 0 ? (
             <>
@@ -914,5 +925,6 @@ export function SuccessSprintCard({
 
       </CardContent>
     </Card>
+    </HidePoints.Provider>
   )
 }

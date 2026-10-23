@@ -10,6 +10,9 @@ import { renderEmail } from './render'
 import { makeUnsubscribeToken } from './unsubscribe-token'
 import { addToLists, doNotEmailPeople, getMailingSettings, syncWebsiteSignups } from './lists'
 import { withAudienceHtml, withAudienceText, type EmailAudience } from '@/lib/email/audience-tag'
+import { communityStatsFor } from '@/lib/org-claims/community-stats'
+import { communityStatSentence } from '@/lib/org-claims/format'
+import { claimUrlFor } from '@/lib/org-claims/urls'
 
 export const MAILING_BUCKET = 'mailing-files'
 export const ATTACH_WARN_BYTES = 5 * 1024 * 1024
@@ -136,15 +139,23 @@ async function attachmentFor(edition: EditionForSend) {
   return [{ filename: edition.attachmentName ?? 'report.pdf', path: data.signedUrl }]
 }
 
-async function mergeFor(personId: string | null) {
+async function mergeFor(personId: string | null, bodyHtml = '') {
   if (!personId) return { firstName: null, orgName: null }
   const p = await prisma.crmPerson.findUnique({
     where: { id: personId },
-    select: { firstName: true, fullName: true, affiliations: { where: { isPrimary: true }, take: 1, select: { org: { select: { name: true } } } } },
+    select: { firstName: true, fullName: true, affiliations: { where: { isPrimary: true }, take: 1, select: { org: { select: { id: true, name: true, canonicalNameNormalized: true } } } } },
   })
   const first = p?.firstName || p?.fullName?.split(/\s+/)[0] || null
+  const org = p?.affiliations[0]?.org ?? null
   // A name that is really an address ("jason.wendle") isn't a first name.
-  return { firstName: first && !first.includes('.') && !first.includes('@') ? first : null, orgName: p?.affiliations[0]?.org.name ?? null }
+  const out: { firstName: string | null; orgName: string | null; claimUrl?: string | null; communityStat?: string | null } = {
+    firstName: first && !first.includes('.') && !first.includes('@') ? first : null,
+    orgName: org?.name ?? null,
+  }
+  // The organization's page and its community figure are looked up only when the message uses them. Both are empty when we have none.
+  if (org && /\{\{\s*claimUrl\s*\}\}/.test(bodyHtml)) out.claimUrl = claimUrlFor(org.canonicalNameNormalized)
+  if (org && /\{\{\s*communityStat\s*\}\}/.test(bodyHtml)) out.communityStat = communityStatSentence(await communityStatsFor({ crmOrgId: org.id }))
+  return out
 }
 
 export function reportLinkFor(edition: { key: string; reportUrl: string | null; attachmentPath: string | null }): string | null {
@@ -179,7 +190,7 @@ async function sendOne(
     bodyHtml: edition.bodyHtml,
     previewText: edition.previewText,
     reportUrl: reportLinkFor(edition),
-    merge: { ...(await mergeFor(to.personId)), reportUrl: null },
+    merge: { ...(await mergeFor(to.personId, edition.bodyHtml)), reportUrl: null },
     footerText: settings.footerText,
     postalAddress: settings.postalAddress || '[postal address not set]',
     unsubscribeUrl,

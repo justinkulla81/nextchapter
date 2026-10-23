@@ -367,5 +367,78 @@
     ],
     "stateFips": "24",
     "cbsa": "12580"
+  },
+  "new-orleans": {
+    "label": "New Orleans / Orleans Parish, LA",
+    "include": "new orleans|metairie|kenner|harvey|gretna|slidell|covington|mandeville|chalmette|marrero|westwego",
+    "exclude": "",
+    "countyFips": [
+      "22071"
+    ],
+    "peers": [],
+    "stateFips": "22",
+    "cbsa": "35380",
+    "cities": {
+      "new orleans": "22071",
+      "metairie": "22051",
+      "kenner": "22051",
+      "harvey": "22051",
+      "gretna": "22051",
+      "marrero": "22051",
+      "westwego": "22051",
+      "chalmette": "22087",
+      "slidell": "22103",
+      "covington": "22103",
+      "mandeville": "22103"
+    },
+    "states": [
+      "LA"
+    ],
+    "search": "New Orleans",
+    "defaultLocation": "New Orleans, LA",
+    "counties": {
+      "orleans": "22071",
+      "jefferson": "22051",
+      "st. bernard": "22087",
+      "st. tammany": "22103",
+      "plaquemines": "22075"
+    }
+  },
+  "washington-pa": {
+    "label": "Washington County, PA",
+    "include": "washington,?\\s*(pa|pennsylvania)|canonsburg|mcmurray|peters township|cecil|burgettstown|eighty four|monongahela|charleroi",
+    "exclude": "washington,?\\s*(dc|d\\.c\\.|wa|state)",
+    "countyFips": [
+      "42125"
+    ],
+    "peers": [
+      "pittsburgh"
+    ],
+    "stateFips": "42",
+    "cbsa": "38300",
+    "cities": {
+      "washington": "42125",
+      "canonsburg": "42125",
+      "mcmurray": "42125",
+      "houston": "42125",
+      "cecil": "42125",
+      "burgettstown": "42125",
+      "eighty four": "42125",
+      "monongahela": "42125",
+      "charleroi": "42125"
+    },
+    "states": [
+      "PA"
+    ],
+    "search": "Washington",
+    "defaultLocation": "Washington, PA",
+    "counties": {
+      "washington": "42125",
+      "allegheny": "42003",
+      "beaver": "42007",
+      "fayette": "42051",
+      "greene": "42059",
+      "westmoreland": "42129"
+    }
   }
 }

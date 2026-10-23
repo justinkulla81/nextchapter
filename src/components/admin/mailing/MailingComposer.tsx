@@ -218,7 +218,7 @@ export function MailingComposer({
               <span className="mb-1 block font-medium">Message</span>
               <MailingEditor initialHtml={edition.bodyHtml} onChange={(html) => update('bodyHtml', html)} disabled={locked} />
               <p className="mt-1 text-xs text-muted-foreground">
-                &ldquo;Justin&rdquo; is added at the end unless you sign it yourself. {'{{firstName}}'} becomes &ldquo;there&rdquo; when there&apos;s no name.
+                &ldquo;Justin&rdquo; is added at the end unless you sign it yourself. {'{{firstName}}'} becomes &ldquo;there&rdquo; when there&apos;s no name. {'{{claimUrl}}'} is their organization&apos;s page and {'{{communityStat}}'} is one sentence of layoff-filing figures for their county or state; each is left empty when we have none, so put {'{{communityStat}}'} in its own paragraph. They only fill in on a real send or test, not in this preview.
               </p>
             </div>
 

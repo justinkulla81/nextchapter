@@ -26,11 +26,16 @@ import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } f
 import { ScopeBroaderFirst, ScopeEverythingQuestion, ScopeNarrow } from './search-scope'
 import { PortalHeaders } from './portal-headers'
 import { PartnerInvite, PartnerYourPeople, PartnerMoving, PartnerMovingAsk, PartnerMovingWorth } from './partner'
+import { CoachSessionPrep, CoachSessionNotes } from './coach-session'
+import { CoachWhatCandidateSees } from './coach-candidate'
+import { CoachSchedulingConnected, CoachSchedulingEmpty, CoachSchedulingBroken } from './coach-scheduling'
 import { FundingLive } from './funding-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
+
+import { BeFoundQuiet, BeFoundPublic, SeniorMenuCompare } from './be-found-live'
 
 const CoachMatchShortlistLive = () => <CoachMatchLive step="shortlist" />
 const ContactsEmptyLive = () => <ContactsLive empty />
@@ -46,6 +51,15 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'coach/session-prep', place: 'Coach', title: 'Before you meet Dana: one prep page from what she shares', replaces: 'the pre-session brief and the Coaching Notes panel, read before a session', Component: CoachSessionPrep },
+  { path: 'coach/session-notes', place: 'Coach', title: 'Notes during and after: capture, Meet import, reviewed summary, follow-ups, interests', replaces: 'LogSessionForm (free-text notes and directives) and the notes summary card', Component: CoachSessionNotes },
+  { path: 'coach/candidate-view', place: 'Coach', title: 'What Dana sees after a session: steps, topics, summary, message', replaces: 'the directives list on /dashboard/my-coaching', Component: CoachWhatCandidateSees },
+  { path: 'coach/scheduling', place: 'Coach', title: 'Calendar and booking: your own Google Calendar, connected', replaces: '/support/coach/booking (shared NextChapter calendar, availability form)', Component: CoachSchedulingConnected },
+  { path: 'coach/scheduling-not-connected', place: 'Coach', title: 'Calendar and booking: not connected yet', replaces: 'the first-run state of /support/coach/booking', Component: CoachSchedulingEmpty },
+  { path: 'coach/scheduling-disconnected', place: 'Coach', title: 'Calendar and booking: Google access lost', replaces: 'new (no error state today)', Component: CoachSchedulingBroken },
+  { path: 'network/found/quiet', place: 'Network', title: 'Be found: quiet version (Confidential Search Mode on)', replaces: 'new tab in Network', Component: BeFoundQuiet },
+  { path: 'network/found/public', place: 'Network', title: 'Be found: public version', replaces: 'new tab in Network', Component: BeFoundPublic },
+  { path: 'network/found/senior-menu', place: 'Network', title: 'Senior overlay: menu order, standard vs senior leader', replaces: 'the order and emphasis of existing menu entries', Component: SeniorMenuCompare },
   { path: 'jobs/find/scope-broader', place: 'Jobs', title: 'Find a job: search scope Broader, with the once-only pivot message', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeBroaderFirst },
   { path: 'jobs/find/scope-everything', place: 'Jobs', title: 'Find a job: search scope Everything, with the exploring question', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeEverythingQuestion },
   { path: 'jobs/find/scope-narrow', place: 'Jobs', title: 'Find a job: search scope Narrow (home only)', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeNarrow },

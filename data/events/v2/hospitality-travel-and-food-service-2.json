@@ -1,0 +1,1465 @@
+[
+ {
+  "id": "aaae-annual-conference",
+  "name": "AAAE Annual Conference & Exposition",
+  "organizer": "American Association of Airport Executives",
+  "url": "https://aaae.org/about/industry-engagement/live-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-16",
+  "endDate": "2027-05-18",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main yearly gathering of US airport directors, operations and facilities managers, plus FAA, TSA and DHS staff and the vendors who sell to them.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not shown on the AAAE events page; registration site was still 'coming soon'.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No speaker process stated on the events page.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airline executive",
+   "airport operations manager"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "aaae-aviation-issues-conference",
+  "name": "AAAE Aviation Issues Conference",
+  "organizer": "American Association of Airport Executives",
+  "url": "https://aaae.org/about/industry-engagement/live-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-10",
+  "endDate": "2027-01-14",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Koloa",
+  "state": "HI",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Airport executives and federal aviation policymakers meet on funding, regulation and legislation.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not published on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airline executive",
+   "airport operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aaae-acc-airport-planning-design-construction-symposium",
+  "name": "AAAE/ACC Airport Planning, Design & Construction Symposium",
+  "organizer": "AAAE and Airport Consultants Council",
+  "url": "https://aaae.org/about/industry-engagement/live-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-16",
+  "endDate": "2027-03-18",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Airport planners, engineers and facilities managers meet the consultants and contractors who build terminals and airfields.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not published on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airport operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aaae-airport-operations-technology-symposium",
+  "name": "AAAE Airport Operations and Technology Symposium",
+  "organizer": "American Association of Airport Executives",
+  "url": "https://aaae.org/about/industry-engagement/live-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-09",
+  "endDate": "2027-08-11",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Airfield operations, IT and security managers compare tools and practices for running an airport day to day.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not published on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airport operations manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "aaae-aviation-security-summit",
+  "name": "AAAE Aviation Security Summit",
+  "organizer": "American Association of Airport Executives",
+  "url": "https://aaae.org/about/industry-engagement/live-events",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-08",
+  "endDate": "2026-12-09",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Airport security directors meet TSA and DHS officials on rules, funding and threats.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not published on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airport operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aci-na-annual-conference-exhibition",
+  "name": "ACI-NA Annual Conference & Exhibition",
+  "organizer": "Airports Council International - North America",
+  "url": "https://airportscouncil.org/education/conferences/future-aci-na-events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-04",
+  "endDate": "2027-10-07",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Airport CEOs, commercial and operations leaders and suppliers in the largest airport-run trade show in North America.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not shown on the future-events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airline executive",
+   "airport operations manager"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "aci-na-business-of-airports-conference",
+  "name": "ACI-NA Business of Airports Conference",
+  "organizer": "Airports Council International - North America",
+  "url": "https://airportscouncil.org/conference/2027-business-of-airports-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-16",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Finance",
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Airport finance, concessions and commercial managers swap revenue and contracting practice.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not shown in the listing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airport operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aci-na-aaae-airport-customer-experience-symposium",
+  "name": "ACI-NA/AAAE Airport Customer Experience Symposium",
+  "organizer": "ACI-NA and AAAE",
+  "url": "https://airportscouncil.org/conference/2027-aci-na-aaae-airport-customer-experience-symposium/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-09",
+  "endDate": "2027-03-11",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Asheville",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Airport passenger-experience and terminal operations leads share what lifts satisfaction scores.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not shown in the listing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airline executive",
+   "airport operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aci-na-airports-at-work",
+  "name": "ACI-NA Airports@Work",
+  "organizer": "Airports Council International - North America",
+  "url": "https://airportscouncil.org/conference/2027-airportswork/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-29",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Airport operations, safety and workforce staff meet peers who run daily airport functions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not shown in the listing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airport operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aci-na-jumpstart-air-service-development",
+  "name": "ACI-NA JumpStart Air Service Development Conference",
+  "organizer": "Airports Council International - North America",
+  "url": "https://airportscouncil.org/education/conferences/future-aci-na-events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Columbus",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Airport air-service teams pitch routes to airline network planners in one room.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not shown on the future-events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airline executive",
+   "airport operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "routes-americas",
+  "name": "Routes Americas",
+  "organizer": "Routes (Informa)",
+  "url": "https://www.routesonline.com/events/287/routes-americas-2027/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-10",
+  "endDate": "2027-02-12",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "San Juan",
+  "state": "PR",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Airline network planners and airport and destination marketers hold pre-booked route-development meetings, 100+ airlines expected.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees are on the order form at routesonline.com/events/register-now/; not shown in extracted text.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airline executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aviation-festival-americas",
+  "name": "Aviation Festival Americas",
+  "organizer": "Terrapinn",
+  "url": "https://www.terrapinn.com/conference/aviation-festival-americas/frequently-asked-questions.stm",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-12",
+  "endDate": "2027-05-13",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "1,500+ airline, airport and travel-tech leaders from North and South America, with airline CEOs on stage.",
+  "access": "PAID",
+  "costLow": 2495,
+  "costHigh": 2495,
+  "costNote": "Two-day ticket $2,495; early bird and group discounts; separate Airlines & Airport Executive Pass for airline, airport and ground-handling executives (price not stated).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.terrapinn.com/conference/aviation-festival-americas/frequently-asked-questions.stm",
+  "speakingDeadline": null,
+  "speakingNote": "Apply via the site's 'Apply to Speak' link.",
+  "cheaperWays": "Early bird, group discounts, executive pass.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airline executive",
+   "airport operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "apex-fte-expo",
+  "name": "APEX FTE EXPO",
+  "organizer": "Airline Passenger Experience Association (APEX)",
+  "url": "https://apex.aero/events/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-18",
+  "endDate": "2026-11-19",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Singapore",
+  "state": null,
+  "country": "SG",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Airline cabin, inflight-entertainment and passenger-experience buyers meet suppliers (international flagship).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Airlines and airports"
+  ],
+  "roles": [
+   "airline executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "global-gaming-expo-g2e",
+  "name": "Global Gaming Expo (G2E)",
+  "organizer": "American Gaming Association and Clarion Events",
+  "url": "https://globalgamingexpo.com/en-us/attend/attendee-resources.html",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-27",
+  "endDate": "2027-09-30",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "25,000+ casino operators, suppliers and regulators on the Venetian expo floor and education sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pass prices not published; a registration inquiry link only. AGA members get 35% off Education Passes (2026).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://globalgamingexpo.com/en-us/attend/attendee-resources.html",
+  "speakingDeadline": null,
+  "speakingNote": "Site links a Speaker Resources page; no open call shown.",
+  "cheaperWays": "AGA member discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "casino executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "indian-gaming-tradeshow-convention",
+  "name": "Indian Gaming Tradeshow & Convention",
+  "organizer": "Indian Gaming Association and Clarion Events",
+  "url": "https://www.indiangamingtradeshow.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-22",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Tribal gaming leaders, casino managers and suppliers; exhibit hall April 21-22.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "casino executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "east-coast-gaming-congress",
+  "name": "East Coast Gaming Congress",
+  "organizer": "Gaming industry event (CDC Gaming Reports listing)",
+  "url": "https://cdcgaming.com/events/east-coast-gaming-congress-ecgc-2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-27",
+  "endDate": "2027-04-28",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Atlantic City",
+  "state": "NJ",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Operators, regulators and policymakers in a regional gaming forum at Hard Rock Atlantic City.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing only",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "casino executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sbc-summit-americas",
+  "name": "SBC Summit Americas",
+  "organizer": "SBC",
+  "url": "https://sbcevents.com/sbc-summit/sbc-summit-2026-2027-dates/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Fort Lauderdale",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Sports-betting and iGaming operators and suppliers across the Americas.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing only",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "casino executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "seatrade-cruise-global",
+  "name": "Seatrade Cruise Global",
+  "organizer": "Seatrade (Informa)",
+  "url": "https://www.seatradecruiseevents.com/global/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-05",
+  "endDate": "2027-04-08",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "12,500+ cruise-line brands, destinations and suppliers (hotel ops, entertainment, ports) under one roof.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket pricing not listed; register-interest form only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "New Ports & Destination stage in 2027; no speaker submission info on page.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "casino executive",
+   "attractions operator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "clia-cruise360",
+  "name": "CLIA Cruise360",
+  "organizer": "Cruise Lines International Association",
+  "url": "https://events.cruising.org/cruise360/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Fort Lauderdale",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Cruise line, port and travel-agent leaders at CLIA's annual US event.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2027 dates unconfirmed on the official page (2026 was Apr 21-26).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing only",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iaapa-expo",
+  "name": "IAAPA Expo",
+  "organizer": "IAAPA",
+  "url": "https://iaapa.org/expos-and-events/iaapa-expo",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-20",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The world's largest amusement-and-attractions trade show: park, zoo, museum and family-entertainment operators and suppliers.",
+  "access": "PAID",
+  "costLow": 219,
+  "costHigh": 539,
+  "costNote": "Show-floor pass: member $219 advance/$319 onsite; nonmember $379/$539. Education upgrade $449 nonmember. Plus 6.5% tax.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Page links 'Speak at an Expo or Event'; details not read.",
+  "cheaperWays": "Student pass $75 member/$150 nonmember; group rates $159-169 per member.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aza-annual-conference",
+  "name": "AZA Annual Conference",
+  "organizer": "Association of Zoos & Aquariums",
+  "url": "https://www.aza.org/conferences-meetings",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-28",
+  "endDate": "2027-09-02",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Cleveland",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Zoo and aquarium directors and curators plus the suppliers serving them.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nsaa-national-convention",
+  "name": "NSAA National Convention & Tradeshow",
+  "organizer": "National Ski Areas Association",
+  "url": "https://www.nsaa.org/NSAA/Events/National_Convention/National_Convention.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Amelia Island",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Ski resort general managers and owners meet suppliers and peers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 fees not published in results.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tea-inspire-thea-awards",
+  "name": "TEA INSPIRE Conference and Thea Awards",
+  "organizer": "Themed Entertainment Association",
+  "url": "https://www.teaconnect.org/signature-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Theme-park designers, creative directors and attraction operators in themed entertainment.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates not yet announced; TEA says spring 2027 in Orlando.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "roles": [
+   "attractions operator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hitec-north-america",
+  "name": "HITEC North America",
+  "organizer": "Hospitality Financial and Technology Professionals (HFTP)",
+  "url": "https://www.hitec.org/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-28",
+  "endDate": "2027-07-01",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "6,100+ hotel IT, finance and distribution professionals at the flagship hospitality technology show.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens early January 2027; rates not yet posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.hitec.org/about-hitec/speaking-opportunities",
+  "speakingDeadline": "2027-01-07",
+  "speakingNote": "Call for Presentations Dec 1, 2026 to Jan 7, 2027; Council may also curate sessions.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "roles": [
+   "hospitality technologist",
+   "hotel distribution manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hsmai-commercial-strategy-conference",
+  "name": "HSMAI Commercial Strategy Conference",
+  "organizer": "Hospitality Sales & Marketing Association International",
+  "url": "https://commercial.hsmai.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-29",
+  "endDate": "2027-06-30",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Sales",
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Hotel revenue, distribution and marketing leaders (the former ROC and Marketing Strategy conferences, merged).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not shown on the home page; registration on a linked site.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://commercial.hsmai.org/",
+  "speakingDeadline": null,
+  "speakingNote": "Online 'Call for Presentation Proposals' form linked; no deadline shown.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "roles": [
+   "hotel distribution manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hedna-global-distribution-conference",
+  "name": "HEDNA Global Distribution Conference (North America)",
+  "organizer": "Hotel Electronic Distribution Network Association",
+  "url": "https://www.hedna.org/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-25",
+  "endDate": "2027-01-27",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Hotel distribution, e-commerce and travel-tech executives; the industry's distribution-specific forum.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not on the events page; registration link only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "roles": [
+   "hotel distribution manager",
+   "hospitality technologist"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hotel-data-conference",
+  "name": "Hotel Data Conference",
+  "organizer": "CoStar",
+  "url": "https://web.cvent.com/event/34d31964-ee50-4c8f-844a-e31ba5cd6203/home-2-1",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-04",
+  "endDate": "2027-08-06",
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Hotel analysts, revenue managers and brand data leaders on benchmarking and market data.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing only",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "roles": [
+   "hospitality technologist",
+   "hotel distribution manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "phocuswright-conference",
+  "name": "Phocuswright Conference",
+  "organizer": "Phocuswright",
+  "url": "https://www.phocuswright.com/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-17",
+  "endDate": "2026-11-19",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Fort Lauderdale",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Travel-tech founders, OTAs, hotel and airline distribution executives and investors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees not shown in results.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "roles": [
+   "hospitality technologist",
+   "hotel distribution manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "skift-global-forum",
+  "name": "Skift Global Forum",
+  "organizer": "Skift",
+  "url": "https://live.skift.com/events/skift-global-forum-2026/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-23",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Hotel, airline and travel-tech CEOs and strategy leaders in the industry's biggest business forum.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 single ticket was $3,695 ($3,545 each for groups of 3+); 2027 pricing not yet published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2027 date listed on the Skift site as Sept 21-23; confirm.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Hospitality technology",
+   "Airlines and airports"
+  ],
+  "roles": [
+   "hospitality technologist",
+   "airline executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "americas-lodging-investment-summit-alis",
+  "name": "Americas Lodging Investment Summit (ALIS)",
+  "organizer": "ALIS",
+  "url": "https://www.alisconference.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-25",
+  "endDate": "2027-01-27",
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Hotel owners, brands, lenders and technology vendors dealmaking.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing only",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "roles": [
+   "hospitality technologist"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "lodging-conference",
+  "name": "The Lodging Conference",
+  "organizer": "Lodging Conference",
+  "url": "https://lodgingconference.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-27",
+  "endDate": "2027-09-30",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Hotel brand, owner and operator executives and their tech and distribution partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing only",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "roles": [
+   "hospitality technologist",
+   "hotel distribution manager"
+  ],
+  "journeys": []
+ }
+]

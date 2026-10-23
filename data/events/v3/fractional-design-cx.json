@@ -1,0 +1,1786 @@
+[
+ {
+  "id": "axe-con",
+  "name": "axe-con",
+  "organizer": "Deque Systems",
+  "url": "https://www.deque.com/axe-con/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-02-23",
+  "endDate": "2027-02-24",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design",
+   "Engineering",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Free two-day virtual digital accessibility conference where designers, developers and accessibility leads trade practice and hear case studies.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Free to attend; registered attendees get recordings of past talks.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.deque.com/axe-con/call-for-presenters/",
+  "speakingDeadline": "2026-10-30",
+  "speakingNote": "50-minute talks in Development, Design, Organizational Success and Wildcard tracks; first-time presenters welcome; notifications Nov 13, 2026.",
+  "cheaperWays": "Free for everyone.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX designer",
+   "content designer",
+   "design systems lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "sdgc-service-design-global-conference",
+  "name": "Service Design Global Conference",
+  "organizer": "Service Design Network",
+  "url": "https://servicedesignglobalconference.com",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-10-28",
+  "endDate": "2026-10-30",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Wiesbaden",
+  "state": null,
+  "country": "DE",
+  "industries": [],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The annual gathering of the global service design community, with practitioners, in-house leads and agency principals; moves city each year.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not confirmed on the official site this session; workshops sold separately.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (search results only)",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX designer",
+   "UX researcher"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "idsa-international-design-conference",
+  "name": "IDSA International Design Conference & Education Symposium",
+  "organizer": "Industrial Designers Society of America",
+  "url": "https://idc.idsa.org/website/94396/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Pasadena (2026 edition)",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Manufacturing & Industrial",
+   "Consumer Packaged Goods"
+  ],
+  "functions": [
+   "Design",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The US industrial design society's annual conference: product designers, design-firm principals, in-house leaders and educators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Aug 18-21, Pasadena) has ended; rates by IDSA member category incl. young professional and student; 5+ group discount 5%. 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No public call seen on the 2026 page.",
+  "cheaperWays": "Student-member and young-professional-member rates; 5% group discount for 5 or more.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX designer",
+   "design systems lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "segd-conference-experience",
+  "name": "SEGD Conference Experience",
+  "organizer": "Society for Experiential Graphic Design",
+  "url": "https://segd.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-22",
+  "endDate": "2026-10-24",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Kansas City",
+  "state": "MO",
+  "country": "US",
+  "industries": [
+   "Construction & Real Estate",
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Wayfinding, environmental and experiential graphic designers, architects and brand-experience leads meet in the field's annual conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not shown on the page read; pre-conference bootcamps Oct 21.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "creative director",
+   "graphic designer"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "cx-forum-east",
+  "name": "Forrester CX Forum East",
+  "organizer": "Forrester",
+  "url": "http://www.forrester.com/event/cx-east/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-15",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Customer Success",
+   "Marketing"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Capped at under 400 delegates: CX, B2C marketing and digital leaders working from Forrester's research.",
+  "access": "PAID",
+  "costLow": 799,
+  "costHigh": 1099,
+  "costNote": "Early bird $799 (client) / $899 (non-client) through Dec 31, 2026; standard $999 / $1,099 from Jan 1; 5 tickets for the price of 4.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Team discount: buy 5 tickets, pay for 4.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "cx-forum-west",
+  "name": "Forrester CX Forum West",
+  "organizer": "Forrester",
+  "url": "http://www.forrester.com/event/cx-west/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-25",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Customer Success",
+   "Marketing"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "West Coast edition of Forrester's capped CX leadership forum for CX, marketing and digital leaders.",
+  "access": "PAID",
+  "costLow": 799,
+  "costHigh": 1099,
+  "costNote": "Early bird $799 (client) / $899 (non-client) through Dec 31, 2026; standard $999 / $1,099 from Jan 1; 5 tickets for the price of 4.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Team discount: buy 5 tickets, pay for 4.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "cx-usa-exchange",
+  "name": "CX USA Exchange",
+  "organizer": "IQPC / CX Network",
+  "url": "https://www.cxnetwork.com/events-customer-experience-exchange-usa/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-24",
+  "endDate": "2027-02-25",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "About 70 senior CX, customer service and digital leaders from large US customer-facing companies, by invitation.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price not published; invitation required.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.cxnetwork.com/events-customer-experience-exchange-usa/downloads/request-an-invite",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "cx-retail-exchange-usa",
+  "name": "CX Retail Exchange USA",
+  "organizer": "IQPC / CX Network",
+  "url": "https://www.cxnetwork.com/events-customer-experience-exchange-retail-us",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Invite-only room of senior customer and experience leaders at retailers.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price not published; contact enquire@iqpc.com.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.cxnetwork.com/events-customer-experience-exchange-retail-us/downloads/request-an-invitation",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Retail leadership and merchandising"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "customer-success-summit-new-york",
+  "name": "Customer Success Summit New York",
+  "organizer": "Customer Success Collective",
+  "url": "https://events.customersuccesscollective.com/location/newyork/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-16",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Two days of CS leaders and CSMs on renewals, expansion and org design, at Convene, 360 Madison.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price behind a registration form; team discounts via the organizer.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://events.customersuccesscollective.com/location/newyork/requesttospeak",
+  "speakingDeadline": null,
+  "speakingNote": "Speaker application form on the event page.",
+  "cheaperWays": "Team discounts on request.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "customer-success-summit-denver",
+  "name": "Customer Success Summit Denver",
+  "organizer": "Customer Success Collective",
+  "url": "https://events.customersuccesscollective.com/location/denver/whyattend",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-07",
+  "endDate": "2027-04-08",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Customer success and support leaders from software and services companies; DoubleTree by Hilton Denver.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price behind the registration page; large-group discounts on request.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": "https://events.customersuccesscollective.com/location/denver/requesttospeak",
+  "speakingDeadline": null,
+  "speakingNote": "Speaker enquiries form; no formal call described.",
+  "cheaperWays": "Group discounts on request.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nonprofit-consulting-conference",
+  "name": "Nonprofit Consulting Conference (NPCC)",
+  "organizer": "Funding for Good",
+  "url": "https://nonprofitconsultingconference.org/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-08-10",
+  "endDate": "2027-08-11",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact",
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Nonprofit consultants from first-year solo practitioners to established firms swap client-trust, AI and pricing practice.",
+  "access": "PAID",
+  "costLow": 397,
+  "costHigh": 497,
+  "costNote": "Early bird $397, then $497; VIP happy hour bundle $572; no refunds, transferable to July 5.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No open call; 2027 lineup set; email the organizer to ask about speaking.",
+  "cheaperWays": "Early-bird $397 vs $497.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Independent and fractional consultants"
+  ],
+  "roles": [
+   "independent consultant",
+   "fractional executive"
+  ],
+  "journeys": [
+   "FRACTIONAL",
+   "ENTREPRENEUR",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "agency-builders-retreat",
+  "name": "Agency Builders Retreat",
+  "organizer": "Future Focused Events",
+  "url": "https://www.agencybuildersretreat.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-13",
+  "endDate": "2027-04-15",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "St. Augustine Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Marketing"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "About 100-120 agency owners at hot-seat workshops and dinners; last four retreats sold out.",
+  "access": "PAID",
+  "costLow": 897,
+  "costHigh": 1497,
+  "costNote": "Super Early Bird owner ticket $897 (limited to 50), regular $1,497; plus-one $279.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.agencybuildersretreat.com/",
+  "speakingDeadline": null,
+  "speakingNote": "Owners can apply to speak; 2027 lineup not yet announced.",
+  "cheaperWays": "Super Early Bird $897.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "agency owner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "agency-hackers-miami-super-summit",
+  "name": "Agency Hackers + The Bureau Miami Super Summit",
+  "organizer": "Agency Hackers",
+  "url": "https://www.agencyhackers.com/events/miami/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-08",
+  "endDate": "2027-04-09",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Sales",
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Agency owners and leaders in two days at Ampersand Studios, with a South Beach welcome reception.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price on the Tickettailor checkout, not the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No call for speakers on the page.",
+  "cheaperWays": "Group discounts sometimes available; ask organizers.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "agency owner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "prsa-counselors-academy-spring",
+  "name": "PRSA Counselors Academy Spring Conference",
+  "organizer": "PRSA",
+  "url": "https://www.prsa.org/home/get-involved/professional-interest-sections/counselors-academy/prsa-counselors-academy-2027-spring-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-05",
+  "endDate": "2027-04-07",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Carolina",
+  "state": "PR",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "PR agency owners and executives, with consultants invited to present; the peer network for firm leaders.",
+  "access": "PAID",
+  "costLow": 795,
+  "costHigh": 2545,
+  "costNote": "Section member $1,545 super saver to $2,045; nonmember $2,045 to $2,545; single day $795.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Page invites consultants and business experts to present; no call link read.",
+  "cheaperWays": "Single-day pass $795; member rates; APR CEUs.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public relations and corporate communications"
+  ],
+  "roles": [
+   "agency owner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "agencycon",
+  "name": "AgencyCon",
+  "organizer": "AgencyCon",
+  "url": "https://agencycon.events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Marketing"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Digital agency owners and leaders on finances, leadership, automation and lead gen; 2026 edition was Oct 8-9 in Denver.",
+  "access": "PAID",
+  "costLow": 375,
+  "costHigh": 375,
+  "costNote": "2026 standard pass $375 (agency leaders only), vendor pass $1,000; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Newsletter early-bird deals.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "agency owner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "build-a-better-agency-summit",
+  "name": "Build a Better Agency Summit",
+  "organizer": "Agency Management Institute",
+  "url": "https://agencymanagementinstitute.com/babasummit/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-26",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Marketing"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Over 350 small and mid-sized agency owners in Denver; the biggest owner-focused agency business event.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing on registration page not read; dates from third-party calendar, official page says only 'block the dates'.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "agency owner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "aiga-design-conference",
+  "name": "AIGA Design Conference",
+  "organizer": "AIGA",
+  "url": "https://www.aiga.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The US professional association for design's national conference: graphic, brand and product designers, studio leads and educators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition was Oct 9-11 in Los Angeles; 2026/2027 details not read (site returned 403); member and non-member tiers with early-bird deadlines.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Brand and creative",
+   "Design and user experience"
+  ],
+  "roles": [
+   "graphic designer",
+   "creative director",
+   "UX designer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "how-design-live",
+  "name": "HOW Design Live",
+  "organizer": "Emerald",
+  "url": "https://www.howdesign.com/how-design-live/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Design",
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Large gathering of in-house and agency creative professionals, with roughly 4,000 attendees in past editions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Next edition and pricing not confirmed; official pages returned 404/redirect.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "graphic designer",
+   "creative director"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "dmi-design-leadership-conference",
+  "name": "dmi:Design Leadership Conference",
+  "organizer": "Design Management Institute",
+  "url": "https://dmi.org/page/DLC26",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Design",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Heads of design and design-management leaders; the 2026 edition (Sept 22-24, Boston) had proposals open.",
+  "access": "PAID",
+  "costLow": 1100,
+  "costHigh": 1300,
+  "costNote": "2026 fees per search: members $1,100, non-members $1,300; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "design systems lead",
+   "UX designer"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "conveyux",
+  "name": "ConveyUX",
+  "organizer": "Blink UX",
+  "url": "https://conveyux.com/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Seattle UX conference by and for user experience professionals, with a livestream.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition Feb 25-27 at Hilton Motif; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX designer",
+   "UX researcher",
+   "content designer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "acm-chi-conference",
+  "name": "ACM CHI Conference on Human Factors in Computing Systems",
+  "organizer": "ACM SIGCHI",
+  "url": "https://chi2027.acm.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-14",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest HCI venue: UX researchers, interaction designers and academics, with a strong industry hiring presence.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees not yet posted; dates from SIGCHI listing (search).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Paper deadlines past; posters, demos and student competition due Jan 21, 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX researcher",
+   "UX designer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "adobe-max",
+  "name": "Adobe MAX",
+  "organizer": "Adobe",
+  "url": "https://max.adobe.com/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-10",
+  "endDate": "2026-11-12",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR",
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Design",
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Creative professionals' flagship: designers, video and brand creatives, with a free online option.",
+  "access": "MIXED",
+  "costLow": 1995,
+  "costHigh": 1995,
+  "costNote": "Full conference pass $1,995 (standard); MAX Online free Nov 8-9, 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "graphic designer",
+   "creative director"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "quant-ux-con",
+  "name": "Quant UX Con",
+  "organizer": "Quant UX Association",
+  "url": "https://quantuxcon.org",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design",
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Online conference for quantitative UX researchers and data-minded designers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition reportedly Oct 27-29 virtual (third-party listing); pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX researcher"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "ux-london",
+  "name": "UX London",
+  "organizer": "Clearleft",
+  "url": "https://uxlondon.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-06",
+  "endDate": "2027-07-08",
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Design",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Three-day UX conference with workshops; international flagship US designers attend.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from search listing; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX designer",
+   "UX researcher",
+   "design systems lead"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "hfes-aspire",
+  "name": "ASPIRE: HFES International Annual Meeting",
+  "organizer": "Human Factors and Ergonomics Society",
+  "url": "https://www.hfes.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-27",
+  "endDate": "2027-10-01",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Grand Rapids",
+  "state": "MI",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Healthcare & Hospital Systems",
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Design",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Human factors practitioners, UX researchers and safety engineers across industries.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates per search of hfes.org; fees not read (members-only article).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Design and user experience"
+  ],
+  "roles": [
+   "UX researcher"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "neocon",
+  "name": "NeoCon",
+  "organizer": "Merchandise Mart",
+  "url": "https://www.neocon.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-16",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Construction & Real Estate"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Commercial interior design show: interior designers, architects and workplace strategists meet manufacturers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates per listings; confirm on neocon.com; registration cost not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Architecture, engineering and design"
+  ],
+  "roles": [
+   "interior designer",
+   "architect"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "asid-gather-national-conference",
+  "name": "ASID GATHER National Conference",
+  "organizer": "American Society of Interior Designers",
+  "url": "https://www.asid.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Construction & Real Estate"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Interior designers' national conference; 2026 edition at the Dallas Market Center Sept 16-18.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Architecture, engineering and design"
+  ],
+  "roles": [
+   "interior designer"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "ccw-orlando",
+  "name": "Customer Contact Week Orlando",
+  "organizer": "Customer Management Practice",
+  "url": "https://www.customercontactweek.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-25",
+  "endDate": "2027-01-27",
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Contact center and CX leaders from large brands with an expo floor.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates per listing; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "ccw-nashville",
+  "name": "Customer Contact Week Nashville",
+  "organizer": "Customer Management Practice",
+  "url": "https://www.customercontactweek.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Fall CCW edition for contact center and customer service leaders at the Omni Nashville.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 7-9; 2027 dates TBD.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "support-driven-expo",
+  "name": "Support Driven Expo",
+  "organizer": "Support Driven",
+  "url": "https://www.supportdriven.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Practitioner-led customer support conference with no sales pitches; talks, workshops and roundtables.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 Las Vegas Aug 10-12 (about 112 attendees); 2026 tentative last week of August; prices not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "cxpa-cx-leaders-advance",
+  "name": "CX Leaders Advance",
+  "organizer": "Customer Experience Professionals Association",
+  "url": "https://www.cxpa.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "CXPA members' annual conference: CX practitioners and CCXP certification community.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition April 27-29 Toronto; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "genesys-xperience",
+  "name": "Genesys Xperience",
+  "organizer": "Genesys",
+  "url": "https://www.genesys.com/events/xperience",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Vendor user conference for contact center and CX operations leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Sept 1-3; 2027 'announced soon'; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "mirren-live",
+  "name": "Mirren Live",
+  "organizer": "Mirren",
+  "url": "https://live.mirren.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Agency new-business and growth leaders; May 2027 announced.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and price not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "agency owner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "agency-rainmaker-forum",
+  "name": "Agency Rainmaker Forum",
+  "organizer": "RSW/US",
+  "url": "https://rainmakerforum.com/agency-rainmaker-forum/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Sales",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Agency new-business leaders and owners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Late winter estimate from third-party calendar; not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "agency owner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "asja-annual-conference",
+  "name": "ASJA Annual Conference",
+  "organizer": "American Society of Journalists and Authors",
+  "url": "https://www.asja.org/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Independent nonfiction writers and freelance authors, with a Client Connections day with editors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition April 20-22 virtual plus Client Connections April 23-24; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (not opened)",
+  "segments": [
+   "Independent and fractional consultants"
+  ],
+  "roles": [
+   "freelance professional"
+  ],
+  "journeys": [
+   "FRACTIONAL",
+   "ENTREPRENEUR"
+  ]
+ }
+]

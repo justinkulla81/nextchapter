@@ -9,6 +9,9 @@ import { inviteInstitutionUser } from '@/lib/institution/invite'
 import type { InstitutionUserRole } from '@prisma/client'
 import { DEMO_TENANTS } from '@/lib/higher-ed/demo-tenants'
 import { resetDemoInstitution } from '@/lib/higher-ed/demo-seed'
+import { isInstitutionPlan } from '@/lib/plans/entitlements'
+import { recordPartnerAudit } from '@/lib/partners/audit'
+import { auditPortalOf } from '@/lib/higher-ed/workspaces'
 
 export type InstitutionFormState = { error?: string; ok?: string } | undefined
 
@@ -152,6 +155,8 @@ export async function saveCollegeLicense(institutionId: string, _prev: Instituti
   const get = (k: string) => (formData.get(k) as string | null)?.trim() ?? ''
   const tier = get('tier')
   if (!['CAREER', 'ADVANCEMENT', 'INSTITUTION'].includes(tier)) return { error: 'Pick a tier.' }
+  const plan = get('plan')
+  if (!isInstitutionPlan(plan)) return { error: 'Pick the free or the paid plan.' }
   const num = (k: string) => (get(k) === '' ? null : Number(get(k)))
   const seats = num('includedSeats')
   const alumni = num('alumniCount')
@@ -160,11 +165,17 @@ export async function saveCollegeLicense(institutionId: string, _prev: Instituti
   const start = date('licenseStartAt')
   const end = date('licenseEndAt')
   if (start && end && end <= start) return { error: 'The license has to end after it starts.' }
+  const before = await prisma.institution.findUnique({ where: { id: institutionId }, select: { plan: true, tier: true, orgType: true } })
   await prisma.institution.update({
     where: { id: institutionId },
-    data: { tier: tier as 'CAREER' | 'ADVANCEMENT' | 'INSTITUTION', includedSeats: seats ?? 0, alumniCount: alumni, licenseStartAt: start, licenseEndAt: end },
+    data: { plan, tier: tier as 'CAREER' | 'ADVANCEMENT' | 'INSTITUTION', includedSeats: seats ?? 0, alumniCount: alumni, licenseStartAt: start, licenseEndAt: end },
   })
-  captureServerEvent(admin?.email ?? 'admin', 'institution_license_saved', { institutionId, tier, seats })
+  captureServerEvent(admin?.email ?? 'admin', 'institution_license_saved', { institutionId, tier, seats, plan, previousPlan: before?.plan ?? null })
+  // The org's own activity log (Admin > Activity) records a plan change, like other changes to what it can do.
+  if (before && before.plan !== plan) {
+    captureServerEvent(admin?.email ?? 'admin', 'institution_plan_changed', { institutionId, from: before.plan, to: plan })
+    await recordPartnerAudit({ portal: auditPortalOf(before.orgType), refId: institutionId, actorLabel: admin?.email ?? 'NextChapter staff', action: 'plan.changed', targetType: 'institution', targetId: institutionId, detail: { from: before.plan, to: plan } })
+  }
   revalidatePath('/support/admin/institutions')
   return { ok: 'License saved. The college sees the new workspaces on its next page load.' }
 }

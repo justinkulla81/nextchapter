@@ -309,6 +309,8 @@ Demo script: (1) Alumni Relations sees the WARN alert and sends outreach. (2) He
 
 ## 13. V2 (do not build now; design so it fits)
 
+*2026-10-23: the Workforce board is built (Institution `orgType` WORKFORCE_BOARD, `enabledFeatures.wioa`); see the V2, lean release note below.*
+
 New tables: Program, Track, Cohort, Session, Enrollment, Payer (SELF_PAY, EMPLOYER, RESILIENCE_FUND, WIOA_VOUCHER, BOARD_CONTRACT, PELL), Invoice, Attendance, Assessment, Credential, placement proof (extends OutcomeReport), WageMatch, VendorFee. Candidate "My program". Workspaces: Exec Ed, Teaching. Employer capstones, interview commitments, sponsored seats. `enabledFeatures.wioa` unlocks the Workforce board workspace, voucher tracking, state performance export, encrypted SSN vault.
 
 V1 must not block this: data-driven workspace config, extensible EngagementEvent types, no hard-coded five workspaces.

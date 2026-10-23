@@ -1,0 +1,948 @@
+[
+ {
+  "id": "chief-summit",
+  "action": "publish",
+  "reason": "chief.com membership-criteria page read: application-only membership for women leaders with 15+ years; membership includes ChiefX summits (2026 editions Oct), no 2027 dates yet.",
+  "patch": {
+   "url": "https://chief.com/chiefx-and-events",
+   "access": "INVITE",
+   "typicalMonth": "October",
+   "startDate": null,
+   "endDate": null,
+   "costNote": "Not sold as tickets; ChiefX summits are included with Chief membership (annual dues not published on pages read).",
+   "speaking": "BY_INVITE",
+   "speakingNote": "Speakers are curated by Chief; no public call.",
+   "cheaperWays": "Membership is the only way in; ask via applications@chief.com or apply at chief.com. Employers can sponsor an executive member.",
+   "applyUrl": "https://chief.com/membership-criteria",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "source": "official site",
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "leadscon",
+  "action": "publish",
+  "reason": "leadscon.com homepage read: LeadsCon 2027, April 5-7, 2027, MGM Grand Las Vegas; domain search of the pricing page shows $999 rising to $2,499.",
+  "patch": {
+   "url": "https://www.leadscon.com/",
+   "startDate": "2027-04-05",
+   "endDate": "2027-04-07",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Las Vegas",
+   "state": "NV",
+   "access": "PAID",
+   "costLow": 999,
+   "costHigh": 2499,
+   "costNote": "Tiered: $999 until Dec 4 2026, then $1,499, $1,999, $2,499; supplier pass $1,995+. Pricing page template looks dated, confirm with info@leadscon.com.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Corporate lead buyers can email info@leadscon.com for a special rate; Power150 companies get preferred rates.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "source": "official site",
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "silicon-slopes-summit",
+  "action": "publish",
+  "reason": "siliconslopes.com search: 10th annual Summit ran Feb 4-7, 2026 at the Salt Palace; no 2027 dates posted yet, but an annual event (Jan 2025, Feb 2026).",
+  "patch": {
+   "url": "https://www.siliconslopes.com/summit-agenda",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "February",
+   "city": "Salt Lake City",
+   "state": "UT",
+   "access": "PAID",
+   "costNote": "Early-bird tickets sold each year; 2025 was free for Utahns with $95 VIP. 2027 pricing not published.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Veterans and transitioning service members have registered free in past editions.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "wpo-annual-conference",
+  "action": "publish",
+  "reason": "womenpresidentsorg.com search: annual conference (25th in May 2022, 22nd in April 2019) for WPO members, with the 50 Fastest-Growing Women-Owned/Led Companies list; 2027 details not posted and the page would not load.",
+  "patch": {
+   "url": "https://www.womenpresidentsorg.com/news-events/annual-conference",
+   "access": "INVITE",
+   "typicalMonth": "May",
+   "startDate": null,
+   "endDate": null,
+   "costNote": "Member event; price not published.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Join WPO (membership for presidents of multimillion-dollar women-owned or -led firms), then register as a member.",
+   "applyUrl": "https://www.womenpresidentsorg.com/membership",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "adcolor-conference",
+  "action": "publish",
+  "reason": "adcolor.org/conference read: banner says ADCOLOR 20th Anniversary Event, February 2027 in Los Angeles, more details coming soon; 2025 edition was Nov 11-14.",
+  "patch": {
+   "url": "https://adcolor.org/conference/",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "February",
+   "city": "Los Angeles",
+   "state": "CA",
+   "access": "PAID",
+   "costNote": "2027 prices not yet posted; virtual ticket sold for the 2025 content.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "FUTURES program participants get complimentary conference access; virtual tickets available.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "source": "official site",
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "marketingprofs-b2b-forum",
+  "action": "publish",
+  "reason": "mpb2b.marketingprofs.com domain search: B2B Forum Nov 2-4, 2026 (sessions Nov 2-3, workshops Nov 4) at Omni Boston Seaport; main pass $995 early to $1,995, all-access $2,595; volunteer and speaker pages exist.",
+  "patch": {
+   "url": "https://mpb2b.marketingprofs.com/",
+   "startDate": "2026-11-02",
+   "endDate": "2026-11-04",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Boston",
+   "state": "MA",
+   "access": "PAID",
+   "costLow": 995,
+   "costHigh": 2595,
+   "costNote": "Main conference $995 early rising to $1,995; All-Access (with Nov 4 workshops) up to $2,595.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.marketingprofs.com/cmp/31/speaker-proposal/sa/",
+   "speakingNote": "Public speaker proposal form (2026 deadline unverified).",
+   "cheaperWays": "Volunteer program at mpb2b.marketingprofs.com/volunteer; group registration.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "the-conference-board-corporate-communications-brand-summit",
+  "action": "publish",
+  "reason": "conference-board.org/events/corpcomms domain search: 2027 summit March 2-3, 2027, 333 Adams Street Brooklyn, in-person, two tracks for CCOs and brand leaders.",
+  "patch": {
+   "url": "https://www.conference-board.org/events/corpcomms",
+   "startDate": "2027-03-02",
+   "endDate": "2027-03-03",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Brooklyn",
+   "state": "NY",
+   "access": "PAID",
+   "costNote": "Pricing not shown on pages read.",
+   "speaking": "BY_INVITE",
+   "speakingNote": "Speaking inquiries go to a Conference Board contact on the event page.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "conference-for-shellfish-growers",
+  "action": "publish",
+  "reason": "wsg.washington.edu domain search: held every year at Alderbrook Resort, Union WA since 1991; 2026 edition Feb 9-10 and past; 2027 not posted.",
+  "patch": {
+   "url": "https://wsg.washington.edu/events/list/",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "February",
+   "city": "Union",
+   "state": "WA",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "automated-transportation-symposium",
+  "action": "publish",
+  "reason": "sae.org domain search: the TRB ARTS series (last TRB edition July 2024 San Diego) is now SAE International Automated Transportation Symposium; 2025 edition Nov 3-6 Tempe AZ; 2027 San Diego dates appear only on aggregators.",
+  "patch": {
+   "name": "SAE Automated Transportation Symposium",
+   "url": "https://www.sae.org/attend/ats",
+   "organizer": "SAE International",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "November",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costNote": "Price not read; aggregators list a July 26-29, 2027 San Diego edition (unconfirmed by SAE).",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "grounded-solutions-network-conference",
+  "action": "publish",
+  "reason": "groundedsolutions.org homepage via domain search: next national housing conference May 25-27, 2027, AT&T Hotel and Conference Center, Austin TX.",
+  "patch": {
+   "url": "https://groundedsolutions.org/event-type/national-conference/",
+   "startDate": "2027-05-25",
+   "endDate": "2027-05-27",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Austin",
+   "state": "TX",
+   "access": "PAID",
+   "costNote": "Registration and pricing not yet posted.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "novogradac-new-markets-tax-credit-conference",
+  "action": "publish",
+  "reason": "novoco.com upcoming conferences via domain search: 2027 NMTC Conference Jan 21-22, 2027, Manchester Grand Hyatt San Diego (2026 edition was Jan 22-23); another NMTC event in DC Jun 3-4, 2027.",
+  "patch": {
+   "url": "https://www.novoco.com/events/upcoming-conferences",
+   "startDate": "2027-01-21",
+   "endDate": "2027-01-22",
+   "datesConfirmed": true,
+   "typicalMonth": "January",
+   "city": "San Diego",
+   "state": "CA",
+   "access": "PAID",
+   "costNote": "Prices not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "ewa-national-seminar",
+  "action": "publish",
+  "reason": "ewa.org domain search: 79th seminar was Baltimore June 2-5, 2026 (fees $550-$800 for members); the 80th is slated for Minneapolis, dates not posted; seminar is a membership-based event for education journalists.",
+  "patch": {
+   "url": "https://ewa.org/events",
+   "access": "INVITE",
+   "typicalMonth": "June",
+   "startDate": null,
+   "endDate": null,
+   "city": "Minneapolis",
+   "state": "MN",
+   "costLow": 550,
+   "costHigh": 800,
+   "costNote": "2026 fees: $550 early, $650 regular, $800 late. Requires EWA membership.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Journalist registration scholarships (recipient pays $35).",
+   "applyUrl": "https://ewa.org/membership",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "garp-climate-and-nature-risk-symposium",
+  "action": "publish",
+  "reason": "garp.org domain search: 2026 symposium ran June 9-10 in London; GARP says planning for the 2027 edition (two days, London) is under way, dates not posted. Held in London so US relevance is for risk professionals at global banks.",
+  "patch": {
+   "url": "https://www.garp.org/event/2026-climate-nature-symposium",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "June",
+   "city": "London",
+   "state": null,
+   "country": "GB",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "a-team-ai-data-management-summit",
+  "action": "publish",
+  "reason": "a-teaminsight.com domain search: second AI in Data Management Summit NYC, March 18, 2027 at @Ease, 1345 Avenue of the Americas (an older blog said March 19); Chatham House Rules; speaker enquiries speakers@a-teamgroup.com.",
+  "patch": {
+   "url": "https://a-teaminsight.com/events/ai-in-data-management-summit-new-york-city/",
+   "startDate": "2027-03-18",
+   "endDate": "2027-03-18",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "New York",
+   "state": "NY",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "BY_INVITE",
+   "speakingNote": "Email speakers@a-teamgroup.com.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "money20-20-europe",
+  "action": "publish",
+  "reason": "europe.money2020.com search: Money20/20 Europe June 8-10, 2027, RAI Amsterdam, registration open with launch-rate savings of 1,200 EUR. Include as an international flagship for US fintechs.",
+  "patch": {
+   "url": "https://europe.money2020.com/",
+   "startDate": "2027-06-08",
+   "endDate": "2027-06-10",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Amsterdam",
+   "state": null,
+   "country": "NL",
+   "access": "PAID",
+   "costNote": "Launch-rate pass discount of up to 1,200 EUR; pass prices not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "fdic-international",
+  "action": "publish",
+  "reason": "fdic.com domain search: FDIC International 2027 April 12-17, Indianapolis, registration open, conference passes from $690, summit add-ons $230-$255.",
+  "patch": {
+   "url": "https://www.fdic.com/ready-fdic-2027",
+   "startDate": "2027-04-12",
+   "endDate": "2027-04-17",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Indianapolis",
+   "state": "IN",
+   "access": "PAID",
+   "costLow": 690,
+   "costNote": "Conference passes from $690; EMS and industrial summits $230 early ($255 after Feb 26, 2027); hands-on training priced higher.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Group discounts for three or more attendees.",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "senior-executive-leadership-summit",
+  "action": "publish",
+  "reason": "seniorexecs.org domain search: the 2026 summit page says 2027 SEA Summit information is pending; 2025 summit was Feb 11-13 in DC and virtual, so it recurs annually, usually winter.",
+  "patch": {
+   "url": "https://www.seniorexecs.org/senior-executive-leadership-summit",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "February",
+   "city": "Washington",
+   "state": "DC",
+   "access": "PAID",
+   "costNote": "2027 fees pending.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "becker-s-annual-meeting",
+  "action": "publish",
+  "reason": "conferences.beckershospitalreview.com domain search: 17th Annual Meeting April 19-22, 2027, Hyatt Regency Chicago; call-for-speakers page exists; pricing not shown (provider tier closed at capacity in 2026).",
+  "patch": {
+   "name": "Becker's Healthcare Annual Meeting",
+   "url": "https://conferences.beckershospitalreview.com/annual-meeting-2027/12326302",
+   "startDate": "2027-04-19",
+   "endDate": "2027-04-22",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Chicago",
+   "state": "IL",
+   "access": "PAID",
+   "costNote": "Pricing not published; provider registration sells out; contact becker@beckershealthcare.com.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://conferences.beckershospitalreview.com/call-for-speakers",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "reuters-events-digital-health-usa",
+  "action": "publish",
+  "reason": "events.reutersevents.com domain search: Digital Health USA 2027 Chicago, May 26-27, 2027, leadership summit capped at 300 attendees, about 50% C-suite/SVP/VP.",
+  "patch": {
+   "url": "https://events.reutersevents.com/healthcare/digital-health-usa",
+   "startDate": "2027-05-26",
+   "endDate": "2027-05-27",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Chicago",
+   "state": "IL",
+   "access": "PAID",
+   "costNote": "Pricing not shown; early-bird via interest list.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "rfdc",
+  "action": "publish",
+  "reason": "restfinance.com read: Restaurant Finance & Development Conference November 9-11, 2026, Wynn Las Vegas, produced by Restaurant Finance Monitor.",
+  "patch": {
+   "url": "https://www.restfinance.com",
+   "organizer": "Restaurant Finance Monitor",
+   "startDate": "2026-11-09",
+   "endDate": "2026-11-11",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Las Vegas",
+   "state": "NV",
+   "access": "PAID",
+   "costNote": "Price not shown on the home page.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "source": "official site",
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "iri-annual-conference",
+  "action": "publish",
+  "reason": "irionline.org domain search: 2027 IRI Annual Conference April 27-29, 2027, Orlando FL (2026 was Tampa Apr 22-24, 800+ attendees); registration at IRIConference.com.",
+  "patch": {
+   "url": "https://www.irionline.org/programs/conferences-events/",
+   "startDate": "2027-04-27",
+   "endDate": "2027-04-29",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Orlando",
+   "state": "FL",
+   "access": "PAID",
+   "costNote": "Prices not read; IRI members get reduced conference rates.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "IRI membership gives reduced rates for annual conferences.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "les-usa-canada-annual-meeting",
+  "action": "publish",
+  "reason": "lesusacanada.org domain search: 2027 Annual Meeting Toronto Oct 17-20, 2027 (save the date); 2026 meeting was San Diego Oct 18-21; Denver 2028.",
+  "patch": {
+   "url": "https://www.lesusacanada.org/events/",
+   "startDate": "2027-10-17",
+   "endDate": "2027-10-20",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Toronto",
+   "state": null,
+   "country": "CA",
+   "access": "PAID",
+   "costNote": "Pricing not posted yet.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "international-maintenance-conference",
+  "action": "publish",
+  "reason": "maintenanceconference.com domain search: 40th IMC Dec 7-10, 2026, JW Marriott Marco Island; Reliabilityweb runs a call for papers.",
+  "patch": {
+   "url": "http://www.maintenanceconference.com/",
+   "startDate": "2026-12-07",
+   "endDate": "2026-12-10",
+   "datesConfirmed": true,
+   "typicalMonth": "December",
+   "city": "Marco Island",
+   "state": "FL",
+   "access": "PAID",
+   "costNote": "Prices not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://reliabilityweb.com/en/imc-call-for-papers",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "aupresses-annual-meeting",
+  "action": "publish",
+  "reason": "aupresses.org domain search: AUPresses 2027 is a virtual meeting June 7-10, 2027; proposals due Nov 13, 2026 and open to non-members.",
+  "patch": {
+   "url": "https://aupresses.org/programs-events/annual-meeting/aupresses-2027/",
+   "format": "VIRTUAL",
+   "startDate": "2027-06-07",
+   "endDate": "2027-06-10",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://aupresses.org/events/aupresses-2027-virtual-annual-meeting-call-for-proposals/",
+   "speakingDeadline": "2026-11-13",
+   "speakingNote": "Sessions of one moderator plus up to three presenters.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "spj-national-convention",
+  "action": "publish",
+  "reason": "spj.org domain search: SPJ26 was in Columbus Oct 1-4, 2026; convention is SPJ flagship and rotates cities each year; 2027 not posted.",
+  "patch": {
+   "url": "https://www.spj.org/calendar/",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "compact27-campus-compact",
+  "action": "publish",
+  "reason": "compact.org domain search: Compact27 June 7-9, 2027, InterContinental Downtown LA; session proposals open (deadline Jan 15, year unstated).",
+  "patch": {
+   "url": "https://www.compact.org/current-programs/annual-conference",
+   "startDate": "2027-06-07",
+   "endDate": "2027-06-09",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Los Angeles",
+   "state": "CA",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.compact.org/current-programs/annual-conference",
+   "speakingNote": "Session proposal call on compact.org; deadline reads January 15.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "bio-it-world-venture-innovation-partnering-conference",
+  "action": "publish",
+  "reason": "bio-itworldexpo.com domain search: investor page and call for papers put the 4th Venture, Innovation & Partnering Conference on May 18, 2027 in Boston, day one of Bio-IT World May 18-20 at the Hynes.",
+  "patch": {
+   "url": "https://www.bio-itworldexpo.com/investor",
+   "startDate": "2027-05-18",
+   "endDate": "2027-05-18",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Boston",
+   "state": "MA",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.bio-itworldexpo.com/call-for-papers",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "agile-devops-usa",
+  "action": "drop",
+  "reason": "techwell.com domain search shows the last Agile + DevOps USA was Oct 13-18, 2024 in Orlando; no 2026 or 2027 edition found and site did not load, so no evidence it continues."
+ },
+ {
+  "id": "etail-west",
+  "action": "publish",
+  "reason": "etailwest.wbresearch.com domain search: eTail Palm Springs 2027, Feb 22-25, 2027 (JW Marriott Desert Springs); pricing page $1,199 four-day pass ($599.50 early bird ended Sep 30); retailers are screened, non-retailers pay more.",
+  "patch": {
+   "url": "https://etailwest.wbresearch.com/",
+   "startDate": "2027-02-22",
+   "endDate": "2027-02-25",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Palm Springs",
+   "state": "CA",
+   "access": "MIXED",
+   "costLow": 499,
+   "costHigh": 1199,
+   "costNote": "Four-day pass $1,199 list; retailer/brand rates are discounted or free to approved retailers, solution providers pay the non-retailer rate. Homepage shows $499; confirm.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Speakers get 20% off with code SPEAKER; approved retail and brand executives get lower rates.",
+   "applyUrl": "https://etailwest.wbresearch.com/srspricing",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "international-columbia-coaching-conference",
+  "action": "publish",
+  "reason": "columbiacoachingconference.org domain search: biennial conference (5th was Oct 14-16, 2025 at Teachers College; earlier 2014, 2016, 2018, 2021), so next is expected around Oct 2027, not yet announced.",
+  "patch": {
+   "url": "https://www.columbiacoachingconference.org/",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "October",
+   "city": "New York",
+   "state": "NY",
+   "access": "PAID",
+   "costNote": "Biennial; no 2027 pricing yet.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "beya-stem-conference",
+  "action": "publish",
+  "reason": "ccgmag.com (organizer Career Communications Group) domain search: 41st BEYA STEM DTX Conference Feb 18-20, 2027, Baltimore Convention Center, with career fair, professional development and networking; pricing not yet posted.",
+  "patch": {
+   "url": "https://ccgmag.com/mpage/beya-home",
+   "startDate": "2027-02-18",
+   "endDate": "2027-02-20",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Baltimore",
+   "state": "MD",
+   "access": "PAID",
+   "costNote": "Registration pricing not posted (\"save the date\").",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "interaction-ixda",
+  "action": "drop",
+  "reason": "ixda.org calendar page states the IxDA non-profit was dissolved and will not hold another Interaction conference; defunct."
+ },
+ {
+  "id": "seleniumconf",
+  "action": "drop",
+  "reason": "seleniumconf.com read: 2026 edition was in Valencia, Spain (May 6-8, 2026); no 2027 edition announced and not US-based, so no US-professional relevance can be stated."
+ },
+ {
+  "id": "scte-techexpo",
+  "action": "publish",
+  "reason": "techexpo.scte.org domain search: TechExpo26 ran Sep 29-Oct 1, 2026 in Atlanta (Full Access $1,299 member/$1,399 non-member, expo-only $179/$219); 2027 interest list open, dates not posted.",
+  "patch": {
+   "url": "https://techexpo.scte.org/",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "October",
+   "city": "Atlanta",
+   "state": "GA",
+   "access": "PAID",
+   "costLow": 179,
+   "costHigh": 1399,
+   "costNote": "2026 prices: Full Access $1,299 SCTE member / $1,399 non-member; expo-only $179 / $219.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Expo-only pass $179-$219; CableLabs members get a complimentary Full Access pass.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "checkedAt": "2026-10-23",
+   "published": true,
+   "verified": false,
+   "source": "official domain search",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "nasstrac-shippers-conference",
+  "action": "drop",
+  "reason": "nasstrac.org pages would not load and domain searches returned only 2013-2018 conference listings; no 2026 or 2027 edition found, so no evidence it still runs."
+ }
+]
