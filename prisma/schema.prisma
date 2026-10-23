@@ -10895,6 +10895,11 @@ model CrmOpportunity {
 
   title String
 
+  // The program's own page (the application or about page), so a lead can be opened
+  // without hunting for it. Distinct from the organization's website: one funder
+  // can hold several programs, each with its own page.
+  url String?
+
   orgId String?
   org   CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
