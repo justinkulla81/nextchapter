@@ -15,8 +15,19 @@ import { chunk, FEED_TAIL, feedHead, feedJobXml } from '@/lib/syndication/syndic
 // The daily cron rebuilds the oldest parts first until its time budget runs out, so a
 // slow day finishes on the next run instead of failing; each part is ~20k jobs.
 
-export const FEED_MANIFEST_PATH = 'jobs/manifest.json'
+// Two feeds share this builder. 'all': every public job, each <url> our job page
+// (/feeds/jobs.xml.gz). 'direct': only jobs listed straight on the employer's own career
+// system (directListing), each <url> the employer's apply link, so we aren't presented as
+// the source (/feeds/jobs-direct.xml.gz) — the one to submit to aggregators.
+export type FeedVariant = 'all' | 'direct'
+const VARIANTS: Record<FeedVariant, { manifest: string; prefix: string; filename: string }> = {
+  all: { manifest: 'jobs/manifest.json', prefix: 'jobs/part-', filename: 'jobs.xml.gz' },
+  direct: { manifest: 'direct/manifest.json', prefix: 'direct/part-', filename: 'jobs-direct.xml.gz' },
+}
+export const FEED_MANIFEST_PATH = VARIANTS.all.manifest
 const ROW_CHUNK = 5_000
+
+const httpUrl = (u: string | null | undefined) => (u && /^https?:\/\//i.test(u) ? u : null)
 
 export interface FeedPart {
   shard: number
@@ -32,8 +43,8 @@ export interface FeedManifest {
   updatedAt: string
 }
 
-export async function readFeedManifest(): Promise<FeedManifest | null> {
-  const buf = await getObject(FEED_BUCKET, FEED_MANIFEST_PATH)
+export async function readFeedManifest(variant: FeedVariant = 'all'): Promise<FeedManifest | null> {
+  const buf = await getObject(FEED_BUCKET, VARIANTS[variant].manifest)
   if (!buf) return null
   const m = JSON.parse(buf.toString('utf8')) as FeedManifest
   return m.v === 1 ? m : null
@@ -42,15 +53,26 @@ export async function readFeedManifest(): Promise<FeedManifest | null> {
 export const feedPartUrl = (p: FeedPart) => publicObjectUrl(FEED_BUCKET, p.path)
 
 /** One part's XML (the <job> elements of one shard), and how many jobs it holds. */
-export async function buildShardXml(shard: number): Promise<{ xml: string; jobs: number }> {
-  const ids = (await publicJobIdsInShard(shard)).map((r) => r.id)
+export async function buildShardXml(shard: number, variant: FeedVariant = 'all'): Promise<{ xml: string; jobs: number }> {
+  const direct = variant === 'direct'
+  const ids = (await publicJobIdsInShard(shard, direct)).map((r) => r.id)
   const pieces: string[] = []
   let jobs = 0
   for (const part of chunk(ids, ROW_CHUNK)) {
     const rows = await publicJobRowsByIds(part)
     rows.sort((a, b) => (a.id < b.id ? -1 : 1))
-    for (const r of rows) pieces.push(feedJobXml(r))
-    jobs += rows.length
+    for (const r of rows) {
+      if (!direct) {
+        pieces.push(feedJobXml(r))
+        jobs++
+        continue
+      }
+      // Direct feed: the employer's apply link; a job without a usable one is left out.
+      const url = r.directListing ? httpUrl(r.url) : null
+      if (!url) continue
+      pieces.push(feedJobXml(r, url))
+      jobs++
+    }
   }
   return { xml: pieces.join(''), jobs }
 }
@@ -69,11 +91,13 @@ export interface JobFeedResult {
  * Rebuilds feed parts, oldest first, while `budgetMs` lasts (always at least one).
  * `shards` limits it to those parts (a dry run on one shard, say). Dry run: nothing written.
  */
-export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; shards?: number[] } = {}): Promise<JobFeedResult> {
+export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; shards?: number[]; variant?: FeedVariant } = {}): Promise<JobFeedResult> {
+  const variant = opts.variant ?? 'all'
+  const v = VARIANTS[variant]
   const started = Date.now()
   const dryRun = !!opts.dryRun
   const budget = opts.budgetMs ?? 600_000
-  const manifest: FeedManifest = (await readFeedManifest()) ?? { v: 1, parts: [], updatedAt: new Date(0).toISOString() }
+  const manifest: FeedManifest = (await readFeedManifest(variant)) ?? { v: 1, parts: [], updatedAt: new Date(0).toISOString() }
   const builtAt = (s: number) => Date.parse(manifest.parts.find((p) => p.shard === s)?.builtAt ?? '') || 0
   const order = (opts.shards ?? Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => i)).sort((a, b) => builtAt(a) - builtAt(b) || a - b)
   const result: JobFeedResult = { dryRun, built: [], partsFresh: 0, totalJobs: 0, totalGzBytes: 0, timedOut: false }
@@ -86,19 +110,19 @@ export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; sh
       break
     }
     const t = Date.now()
-    const { xml, jobs } = await buildShardXml(shard)
+    const { xml, jobs } = await buildShardXml(shard, variant)
     const raw = Buffer.from(xml, 'utf8')
     const gz = await gzip(raw, { level: 9 })
     if (!result.sampleXml && xml) result.sampleXml = xml.slice(0, xml.indexOf('</job>') + 7)
     if (!dryRun) {
-      const path = `jobs/part-${String(shard).padStart(2, '0')}.xml.gz`
+      const path = `${v.prefix}${String(shard).padStart(2, '0')}.xml.gz`
       // Part names are stable, so they're read past the CDN cache by the feed route (?v=).
       await putObject(FEED_BUCKET, path, gz, 'application/gzip')
       manifest.parts = [...manifest.parts.filter((p) => p.shard !== shard), { shard, path, jobs, bytes: gz.length, builtAt: new Date().toISOString() }].sort(
         (a, b) => a.shard - b.shard,
       )
       manifest.updatedAt = new Date().toISOString()
-      await putObject(FEED_BUCKET, FEED_MANIFEST_PATH, Buffer.from(JSON.stringify(manifest)), 'application/json')
+      await putObject(FEED_BUCKET, v.manifest, Buffer.from(JSON.stringify(manifest)), 'application/json')
     }
     const ms = Date.now() - t
     slowest = Math.max(slowest, ms)
@@ -108,7 +132,7 @@ export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; sh
   result.partsFresh = parts.filter((p) => Date.now() - Date.parse(p.builtAt) < 36 * 3600_000).length
   result.totalJobs = parts.reduce((n, p) => n + p.jobs, 0)
   result.totalGzBytes = parts.reduce((n, p) => n + p.bytes, 0)
-  console.log('Job feed run', { ...result, sampleXml: undefined })
+  console.log('Job feed run', { variant, ...result, sampleXml: undefined })
   return result
 }
 
@@ -116,4 +140,46 @@ export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; sh
 export async function feedHeadTail(m: FeedManifest): Promise<{ head: Buffer; tail: Buffer }> {
   const [head, tail] = await Promise.all([gzip(Buffer.from(feedHead(new Date(m.updatedAt)))), gzip(Buffer.from(FEED_TAIL))])
   return { head, tail }
+}
+
+/** The feed as one streamed .gz: gzipped header, the stored parts in order, gzipped footer (see the module note). */
+export async function feedResponse(variant: FeedVariant): Promise<Response> {
+  const m = await readFeedManifest(variant).catch(() => null)
+  if (!m || m.parts.length === 0) return new Response('The job feed is being built. Try again later.', { status: 503, headers: { 'Retry-After': '3600' } })
+  const { head, tail } = await feedHeadTail(m)
+  const length = head.length + tail.length + m.parts.reduce((n, p) => n + p.bytes, 0)
+
+  const body = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        controller.enqueue(new Uint8Array(head))
+        for (const part of m.parts) {
+          // ?v= reads past the storage CDN's copy of an older build of the part.
+          const res = await fetch(`${feedPartUrl(part)}?v=${encodeURIComponent(part.builtAt)}`, { cache: 'no-store' })
+          if (!res.ok || !res.body) throw new Error(`feed part ${part.path}: ${res.status}`)
+          const reader = res.body.getReader()
+          for (;;) {
+            const { done, value } = await reader.read()
+            if (done) break
+            controller.enqueue(value)
+          }
+        }
+        controller.enqueue(new Uint8Array(tail))
+        controller.close()
+      } catch (error) {
+        console.error('Job feed stream failed', error)
+        controller.error(error)
+      }
+    },
+  })
+
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'application/gzip',
+      'Content-Length': String(length),
+      'Content-Disposition': `attachment; filename="${VARIANTS[variant].filename}"`,
+      'Last-Modified': new Date(m.updatedAt).toUTCString(),
+      'Cache-Control': 'public, max-age=3600',
+    },
+  })
 }
