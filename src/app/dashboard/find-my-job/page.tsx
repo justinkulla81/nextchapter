@@ -443,6 +443,7 @@ async function JobRecommendationsSection({
   parallelPaths,
   greatFilters,
   boardFilters,
+  scopeCtx,
   pivotFilter,
   myJobs,
   expertNetworks,
@@ -472,6 +473,8 @@ async function JobRecommendationsSection({
   parallelPaths: string[] | null
   greatFilters: GreatFilter[]
   boardFilters: BoardRequirementFilters
+  /** The search scope and what is outside home, for the lower-fit lines (search-scope.ts). */
+  scopeCtx: ScopeContext
   pivotFilter: PivotBoardFilter | null
   myJobs: MyJobsView
   expertNetworks: ExpertNetworkCard[]
@@ -1585,6 +1588,7 @@ async function FindMyJobBody({
                 parallelPaths={parallelPaths}
                 greatFilters={greatFilters}
                 boardFilters={boardFilters}
+                scopeCtx={scopeCtx}
                 myJobs={myJobs}
                 expertNetworks={expertNetworks}
                 search={searchView}
