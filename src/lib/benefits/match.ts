@@ -240,7 +240,9 @@ const PAYS_THE_PERSON = /tuition|scholarship|\bfree\b|dislocated worker|individu
 const PAYS_A_BUSINESS = /\bapprentices\b|\bemployers? (relocating|hiring)|sponsors?\b|states, tribes|local boards|industry partnerships?|young adults|\byouth\b|techcred|on-the-job|\bojt\b|incumbent worker|reimburses? employers?|employer (training |reimbursement|grant)|customized (workforce )?training|skills development fund|self-sufficiency fund|small business|for new and expanding|sector partnership|training panel|eligible training provider|\bdirectory\b|policy framework|case management|\bresea\b|job-search platform|job search platform|grant opportunities page|financial aid page|\bunemployment insurance\b|work-search|free advising|lists? providers?|not a payment/i
 function memberFacing(r: BenefitProgramRow): boolean {
   const text = `${r.name} | ${r.amount ?? ''} | ${r.eligibility ?? ''}`
-  if (PAYS_A_BUSINESS.test(text)) return false
+  // Help-while-unemployed and tax rows are about the member's own benefits, so words like "unemployment insurance" are
+  // expected in them; only employer-facing wording hides them.
+  if (r.category === 'SUPPORT' || r.category === 'TAX' ? /\bemployers? (relocating|hiring)|reimburses? employers?|for employers\b|employer (training |reimbursement|grant)/i.test(text) : PAYS_A_BUSINESS.test(text)) return false
   // Relocation rows are allowlisted: the catalog files some scholarships, training and aid for people in
   // crisis under "relocation". A row stays only if its own text is about moving or buying a home, it names
   // who it is for, and that is not one employer's staff, existing residents or a group in crisis.
@@ -334,8 +336,9 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
     // Money for residents: fits only the state they live in.
     if (!m.state || m.state !== rowState) return null
     // A city or county program fits only if they live there.
-    if (r.locality && !cityFits(r.locality, m.city)) return null
-    place = `You live in ${r.locality ? r.locality : rowState}`
+    const local = r.locality && !/^(statewide|state-wide|state|all|nationwide|national|various)\b/i.test(r.locality.trim()) ? r.locality : null
+    if (local && !cityFits(local, m.city)) return null
+    place = `You live in ${local ?? rowState}`
   }
 
   // A person we know nothing about stays in. A person we know does not fit goes out. Work tags need their work
@@ -409,13 +412,26 @@ export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[
   }
   out.sort((a, b) => b.score - a.score || (b.amount ?? 0) - (a.amount ?? 0) || a.program.name.localeCompare(b.program.name))
   // The same program is filed under two categories in places (Google certificates, SCSEP): keep the best.
-  const seen = new Set<string>()
+  const seenNames = new Set<string>()
+  const byUrl = new Map<string, Set<string>[]>()
+  const words = (n: string) => new Set(n.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter((w) => w.length > 2))
+  const similar = (a: Set<string>, b: Set<string>) => {
+    let both = 0
+    for (const w of a) if (b.has(w)) both++
+    return both / Math.max(1, a.size + b.size - both) >= 0.5
+  }
   return out.filter((x) => {
-    // Same name, or the same official page for the same state and kind of help, is one program shown once.
+    // Same name, or the same official page for the same state and kind of help under a near-identical name
+    // (a page that lists several different programs is not a duplicate), is one program shown once.
+    const name = x.program.name.trim().toLowerCase()
+    if (seenNames.has(name)) return false
     const url = (x.program.url ?? '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/[#?].*$/, '').replace(/\/$/, '')
-    const keys = [`n:${x.program.name.trim().toLowerCase()}`, ...(url ? [`u:${url}|${x.program.state ?? ''}|${x.goal}`] : [])]
-    if (keys.some((k) => seen.has(k))) return false
-    keys.forEach((k) => seen.add(k))
+    const key = `${url}|${x.program.state ?? ''}|${x.goal}`
+    const w = words(name)
+    const prior = url ? (byUrl.get(key) ?? []) : []
+    if (prior.some((p) => similar(p, w))) return false
+    seenNames.add(name)
+    if (url) byUrl.set(key, [...prior, w])
     return true
   })
 }
