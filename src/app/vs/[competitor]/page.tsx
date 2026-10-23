@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { StructuredData } from '@/components/StructuredData'
 import { ComparisonPageTemplate } from '@/components/marketing/ComparisonPageTemplate'
 import { COMPETITOR_COMPARISONS, getComparison } from '@/lib/marketing/competitor-comparisons'
-import { getCurrentPlan } from '@/lib/admin/plan-catalog'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export function generateStaticParams() {
@@ -47,12 +46,6 @@ export default async function ComparisonPage({
   const comparison = getComparison(competitor)
   if (!comparison) notFound()
 
-  const [core, plus, premium] = await Promise.all([
-    getCurrentPlan('outplacement_core'),
-    getCurrentPlan('outplacement_plus'),
-    getCurrentPlan('outplacement_premium'),
-  ])
-
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
@@ -65,14 +58,7 @@ export default async function ComparisonPage({
     <>
       <StructuredData data={jsonLd} />
       <StructuredData data={breadcrumbJsonLd([{ name: 'Compare', path: '/vs' }, { name: `vs. ${comparison.name}`, path: `/vs/${comparison.slug}` }])} />
-      <ComparisonPageTemplate
-        comparison={comparison}
-        ourPricing={{
-          core: core?.priceCents ?? null,
-          plus: plus?.priceCents ?? null,
-          premium: premium?.priceCents ?? null,
-        }}
-      />
+      <ComparisonPageTemplate comparison={comparison} />
     </>
   )
 }

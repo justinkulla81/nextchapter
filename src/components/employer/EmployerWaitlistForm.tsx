@@ -17,8 +17,7 @@ const INITIAL_STATE: SubmitEmployerWaitlistState = { status: 'idle' }
 
 // Partners Master Build Script §C3.3/§C4.3 — the employer form is "a
 // walkthrough-booking flow, not a contact form," and the confirmation
-// "should give something: a sample compliance pack and a one-page cost
-// comparison. Not 'we'll be in touch.'"
+// "should give something: a sample compliance pack. Not 'we'll be in touch.'"
 export function EmployerWaitlistForm() {
   const [state, formAction, pending] = useActionState(submitEmployerWaitlist, INITIAL_STATE)
 
@@ -31,11 +30,6 @@ export function EmployerWaitlistForm() {
           <li>
             <Link href="/outplacement#compliance-pack" className="text-primary underline underline-offset-4">
               See a sample compliance pack →
-            </Link>
-          </li>
-          <li>
-            <Link href="/pricing" className="text-primary underline underline-offset-4">
-              Compare our list prices to a typical incumbent quote →
             </Link>
           </li>
         </ul>

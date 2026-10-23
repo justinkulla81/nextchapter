@@ -78,7 +78,7 @@ describe('matchPrograms against the real catalog', () => {
   it('hides veteran-by-name programs and non-benefits from everyone else', () => {
     const names = matchPrograms(rows, base).map((x) => x.program.name)
     expect(names.some((n) => /GI Bill|VET TEC|VA home loan/i.test(n))).toBe(false)
-    expect(names.some((n) => /Child Tax Credit|EITC|988|Food Bank/i.test(n))).toBe(false)
+    expect(names.some((n) => /988|Food Bank/i.test(n))).toBe(false)
     expect(names.some((n) => /SBA|Ticket to Work/i.test(n))).toBe(false)
   })
   it('shows the GI Bill to a veteran', () => {

@@ -1,0 +1,1225 @@
+[
+ {
+  "id": "lcda-board-leaders-convening",
+  "name": "LCDA Annual Board Leaders Convening",
+  "organizer": "Latino Corporate Directors Association",
+  "url": "https://www.latinocorporatedirectors.org/2026_-_11th_annual_board_leaders_convening.php",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-11",
+  "endDate": "2026-11-13",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Board-proven and board-aspiring leaders, CEOs and search-firm partners meet in person; the convening is built around board placement.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Invitation only; the page shows a member registration portal and no public price.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Program is curated by LCDA.",
+  "cheaperWays": null,
+  "applyUrl": "https://www.latinocorporatedirectors.org/2026_-_11th_annual_board_leaders_convening.php",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "board director",
+   "board-aspiring executive"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "asa-on-aging",
+  "name": "ASA On Aging",
+  "organizer": "American Society on Aging",
+  "url": "https://www.asaging.org/on-aging",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-29",
+  "endDate": "2027-04-01",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main US gathering of aging-services professionals, researchers and encore-career and longevity-economy leaders.",
+  "access": "PAID",
+  "costLow": 625,
+  "costHigh": 1075,
+  "costNote": "Member $730; non-member $1,075; retired professional or student member $625; retired or student non-member $790.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Retired professional rate $625-$790; accepted volunteers register for $350 (volunteer applications due 2026-10-31).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Long-term care and senior living",
+   "Public health"
+  ],
+  "roles": [
+   "aging services director",
+   "gerontologist"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "texas-eta-conference",
+  "name": "Texas ETA Conference (Rice Business)",
+  "organizer": "Rice Business",
+  "url": "https://business.rice.edu/texas-eta-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Searchers, investors, lenders and operators who buy and run small and mid-sized companies; a route from layoff or executive role to ownership.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fourth edition held 2026-10-16 at Rice; price not published on the page and 2027 date not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Buying a business (acquisition entrepreneurship)"
+  ],
+  "roles": [
+   "search fund entrepreneur",
+   "self-funded searcher",
+   "small business buyer"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "NEXT_ACT",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "rocky-mountain-eta-conference",
+  "name": "Rocky Mountain ETA Conference",
+  "organizer": "Searchfunder community",
+  "url": "https://searchfunder.com/post/rocky-mountain-eta-conference-1",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-07",
+  "endDate": "2026-11-07",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Boulder",
+  "state": "CO",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Attendees range from people still deciding whether to buy a business to searchers deep in a search, plus investors, lenders and advisors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price not shown on the listing page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing on organizer community site",
+  "segments": [
+   "Buying a business (acquisition entrepreneurship)"
+  ],
+  "roles": [
+   "search fund entrepreneur",
+   "small business buyer"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "NEXT_ACT",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "informs-annual-meeting",
+  "name": "INFORMS Annual Meeting",
+  "organizer": "INFORMS",
+  "url": "https://www.informs.org/Meetings-Conferences/INFORMS-Conference-Calendar/2026-INFORMS-Annual-Meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-04",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Data & Analytics",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Operations research and analytics professionals; has a career fair with next-day interviews for experienced hires.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not shown on the page read; the career fair requires meeting registration plus a Career Center profile.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Career fair on Nov 1 with interviews Nov 2-3; virtual resume review offered.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "operations research analyst",
+   "data scientist"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "acs-national-meeting-spring",
+  "name": "ACS Spring National Meeting",
+  "organizer": "American Chemical Society",
+  "url": "https://www.acs.org/events/acs-meetings/future-meetings.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-21",
+  "endDate": "2027-03-25",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Chemists and chemical engineers from industry and academia; ACS Career Navigator services run alongside its meetings.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read; career fair dates for this meeting not confirmed.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Abstract submissions were slated to open August 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Chemicals, plastics and materials"
+  ],
+  "roles": [
+   "chemist",
+   "chemical engineer"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "jsm-joint-statistical-meetings",
+  "name": "Joint Statistical Meetings (JSM)",
+  "organizer": "American Statistical Association",
+  "url": "https://ww2.amstat.org/meetings/jsm/2026/conferenceinfo.cfm",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-08",
+  "endDate": "2027-08-12",
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Pharmaceuticals & Biotech",
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest gathering of statisticians and data scientists, with a JSM Career Service for employers and job seekers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and McCormick Place venue come from third-party listings; the 2026 ASA page does not state them.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain + third-party listing",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "roles": [
+   "statistician",
+   "data scientist"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "irelaunch-return-to-work-conference",
+  "name": "iRelaunch Return to Work Conference and Job Fair",
+  "organizer": "iRelaunch (Akraya)",
+  "url": "https://www.irelaunch.com/events/rtw-conference-oct-2026",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 1,
+  "whyAttend": "Professionals returning after a career break meet employers running returnships and re-entry programs; employer booths open on day three.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Oct 6-8, 2026 edition (registration closed) was the 40th; spring editions have run in May; price not published on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career returner",
+   "returnship candidate"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "RETURNING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "wcd-public-company-directors-forum",
+  "name": "WCD Public Company Directors Forum",
+  "organizer": "WomenCorporateDirectors",
+  "url": "https://wcdglobal.org/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-05",
+  "endDate": "2026-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Women who sit on large public company boards, plus prospective WCD members.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Open to US WCD members and prospective members only; fee not published.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://wcdglobal.org/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "board director"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "wcd-global-institute",
+  "name": "WCD Global Institute",
+  "organizer": "WomenCorporateDirectors",
+  "url": "https://wcdglobal.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Roughly 250 women corporate directors from around the world; historically members and invited guests.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition ran Oct 5-7 in Chicago; 2026 and 2027 dates were not on the page read.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://wcdglobal.org/",
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "board director"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "harvard-women-on-boards",
+  "name": "Women on Boards: Getting On and Adding Value (Harvard Chan)",
+  "organizer": "Harvard T.H. Chan School of Public Health",
+  "url": "https://hsph.harvard.edu/exec-ed/women-on-boards-getting-on-and-adding-value/",
+  "kind": "WORKSHOP",
+  "format": "HYBRID",
+  "startDate": "2027-05-12",
+  "endDate": "2027-05-14",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Women executives in health care with little board experience prepare for a first board seat with peers and faculty.",
+  "access": "APPLY",
+  "costLow": 4000,
+  "costHigh": 4000,
+  "costNote": "$4,000 program fee; virtual kickoff May 12, on campus May 13-14; requires 10+ years of management with budget oversight.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://hsph.harvard.edu/exec-ed/women-on-boards-getting-on-and-adding-value/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "board director"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "boardroom-summit-corporate-board-member",
+  "name": "Boardroom Summit (Corporate Board Member)",
+  "organizer": "Corporate Board Member",
+  "url": "https://boardmember.com/boardroomsummit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Exclusively sitting public company directors, in committee-based peer exchange groups.",
+  "access": "PAID",
+  "costLow": 1995,
+  "costHigh": 2995,
+  "costNote": "Page shows conflicting tiers ($1,995-$2,995, standard $2,495); page's own 2026/2027 dates conflict, so confirm; 2025 edition was Sept 18-19 in Washington DC.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "board director"
+  ],
+  "journeys": [
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "diligent-elevate",
+  "name": "Diligent Elevate",
+  "organizer": "Diligent",
+  "url": "https://www.diligent.com/elevate",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-07",
+  "endDate": "2027-04-09",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Legal Services",
+   "Accounting & Audit",
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Legal",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "General counsel, corporate secretaries, audit and risk leaders and board members focused on governance; 700+ attendees.",
+  "access": "PAID",
+  "costLow": 895,
+  "costHigh": 1295,
+  "costNote": "Early bird Corporate $1,295; Education, Government and Nonprofit $895; the FAQ also names Atlanta, so confirm the city.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "roles": [
+   "corporate secretary",
+   "general counsel",
+   "board administrator"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "gsa-annual-scientific-meeting",
+  "name": "GSA Annual Scientific Meeting",
+  "organizer": "Gerontological Society of America",
+  "url": "https://www.vumedi.com/event/gsa-2026-annual-scientific-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-07",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Researchers and practitioners in aging and longevity, a feeder for second-career work in the aging economy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from GSA-linked sources; the link here is a third-party listing and GSA's own site was not opened.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2026 abstract deadline (March 5, 2026) has passed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Long-term care and senior living",
+   "Public health"
+  ],
+  "roles": [
+   "gerontologist",
+   "researcher"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "usaging-annual-conference",
+  "name": "USAging Annual Conference and Tradeshow",
+  "organizer": "USAging",
+  "url": "https://usaging.org/majorevents",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-02",
+  "endDate": "2027-08-05",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Directors and staff of Area Agencies on Aging and aging-network partners, where 55+ services and employment programs are shaped.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Member discount; price not published on the major-events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Long-term care and senior living"
+  ],
+  "roles": [
+   "area agency on aging director"
+  ],
+  "journeys": [
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "aging2-optimize",
+  "name": "Aging2.0 OPTIMIZE",
+  "organizer": "Aging2.0",
+  "url": "https://www.aging2.com/Optimize",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Care providers, payers, startups and investors in aging innovation and the longevity market.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Last edition found was Oct 24-25, 2024 (Louisville); no later edition announced on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Digital health and virtual care"
+  ],
+  "roles": [
+   "aging innovation lead"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "massachusetts-conference-for-women",
+  "name": "Massachusetts Conference for Women",
+  "organizer": "Conferences for Women",
+  "url": "https://www.conferencesforwomen.org/ma/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-10",
+  "endDate": "2026-12-10",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Thousands of professional women at every level; a free CareerWorks area offers 1:1 career coaching, resume reviews and headshots.",
+  "access": "PAID",
+  "costLow": 445,
+  "costHigh": 1000,
+  "costNote": "In-person tickets sold out: early bird $445, standard $545, VIP $1,000; $150 virtual National Conference.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "CareerWorks coaching and resume reviews are included with a ticket; ticket notification list for released seats; all tickets include the March 3, 2027 virtual conference.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [],
+  "roles": [],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE",
+   "PROMOTION",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "pennsylvania-conference-for-women",
+  "name": "Pennsylvania Conference for Women",
+  "organizer": "Conferences for Women",
+  "url": "https://www.conferencesforwomen.org/pa",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-05",
+  "endDate": "2026-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Philadelphia",
+  "state": "PA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Professional women across industries; on-site CareerWorks coaching and resume reviews, SHRM and HRCI credits at select sessions.",
+  "access": "PAID",
+  "costLow": 445,
+  "costHigh": 699,
+  "costNote": "Early bird $445, standard $545, VIP $699 (sold out); tables of 10 available.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free CareerWorks coaching and resume reviews with a ticket; virtual National Conference access included.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [],
+  "roles": [],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE",
+   "PROMOTION",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "texas-conference-for-women",
+  "name": "Texas Conference for Women",
+  "organizer": "Conferences for Women",
+  "url": "https://www.conferencesforwomen.org/tx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-07",
+  "endDate": "2027-10-07",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "One of the largest women's professional conferences; on-site career coaching and resume reviews.",
+  "access": "PAID",
+  "costLow": 445,
+  "costHigh": 495,
+  "costNote": "2026 pricing was early bird $445 and standard $495; 2027 tickets on sale spring 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "CareerWorks coaching and resume reviews included with a ticket.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [],
+  "roles": [],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE",
+   "PROMOTION",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "national-conference-for-women",
+  "name": "National Conference for Women (virtual)",
+  "organizer": "Conferences for Women",
+  "url": "https://www.conferencesforwomen.org/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-03-03",
+  "endDate": "2027-03-03",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Virtual day for professional women; included free with any regional conference ticket.",
+  "access": "PAID",
+  "costLow": 150,
+  "costHigh": 150,
+  "costNote": "$150 virtual; free with any regional in-person ticket.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Included with any regional conference ticket.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [],
+  "roles": [],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "apha-annual-meeting",
+  "name": "APHA Annual Meeting and Expo",
+  "organizer": "American Public Health Association",
+  "url": "https://www.apha.org/events-and-meetings/annual/past-and-future-annual-meetings",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-04",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Government & Public Sector",
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Public health professionals from agencies, universities and nonprofits; a CareerMart operates at the meeting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read; 2027 meeting is Nov 7-10 in Philadelphia; CareerMart dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public health"
+  ],
+  "roles": [
+   "public health professional",
+   "epidemiologist"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "ashp-midyear",
+  "name": "ASHP Midyear Clinical Meeting and Exhibition",
+  "organizer": "ASHP",
+  "url": "https://www.ashp.org/Meetings-and-Conferences/Midyear-Clinical-Meeting-and-Exhibition",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-06",
+  "endDate": "2026-12-09",
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The pharmacist hiring hub of the year: a Personnel Placement Service connects pharmacists with health systems.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates come from search of ASHP's page (the page itself returned 403); PPS hours not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Pharmacy"
+  ],
+  "roles": [
+   "pharmacist"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "socap-global",
+  "name": "SOCAP Global",
+  "organizer": "SOCAP",
+  "url": "https://socapglobal.com/2026/01/socap-global-announces-chicago-as-host-city-for-2026-2027-flagship-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact",
+   "Venture Capital & Private Equity"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Impact investors, social entrepreneurs and funders; a fellowship program brings in emerging leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran Oct 12-14 in Chicago with spring tickets at $1,599; 2027 plans to be announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "roles": [
+   "impact investor",
+   "social entrepreneur"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "NEXT_ACT",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "icf-converge",
+  "name": "ICF Converge",
+  "organizer": "International Coaching Federation",
+  "url": "https://coachingfederation.org/community-events/events/icf-converge",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-28",
+  "endDate": "2026-10-30",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Professional Services & Consulting",
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Coaches, many second-career, plus career and leadership coaches who serve laid-off and mid-career clients.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Full 3-day, one-day and on-demand passes; ICF members save at every phase; amounts not on the page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2026 proposal deadline was March 6.",
+  "cheaperWays": "ICF members save on every registration type.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement",
+   "Independent and fractional consultants"
+  ],
+  "roles": [
+   "career coach",
+   "executive coach"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "NEXT_ACT",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "nacd-new-england-aspiring-public-company-director-program",
+  "name": "NACD New England Aspiring Public Company Director Program",
+  "organizer": "NACD New England",
+  "url": "https://www.nacdonline.org/new-england/new-england-events/aspiring-public-company-director-program/",
+  "kind": "WORKSHOP",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Nonprofit and private-company board members and C-suite leaders preparing for a public company board seat.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page is an archive of the April 16, 2025 edition at KPMG; price not listed; repeat not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.nacdonline.org/new-england/new-england-events/aspiring-public-company-director-program/",
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "board director"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "PROMOTION"
+  ]
+ }
+]

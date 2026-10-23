@@ -1,0 +1,905 @@
+[
+ {
+  "id": "ask-a-chief-of-staff-summit",
+  "action": "drop",
+  "reason": "Only a Luma listing (registration closed, 'rescheduled from February' 2026 one-day NYC event); askachiefofstaff.com homepage shows no 2027 summit or recurring-summit page, so it reads as a one-off."
+ },
+ {
+  "id": "gartner-finance-symposium",
+  "action": "publish",
+  "reason": "gartner.com 2027 Finance Symposium/Xpo pages (via domain search; direct fetch is 403) show National Harbor MD, 2-4 June 2027, with Public-sector $4,125, early-bird $4,375, standard $4,975 and a Finance Xpo.",
+  "patch": {
+   "url": "https://www.gartner.com/en/conferences/na/cfo-finance-us",
+   "startDate": "2027-06-02",
+   "endDate": "2027-06-04",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "National Harbor",
+   "state": "MD",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 4125,
+   "costHigh": 4975,
+   "costNote": "Public-sector $4,125 (proof required), early-bird $4,375, standard $4,975; free registrations for teams (1 per 4 paid).",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Public-sector rate and team registrations (one free per four paid).",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23"
+  }
+ },
+ {
+  "id": "nvsbc-vets-conference",
+  "action": "publish",
+  "reason": "nvsbc.org events page lists the VETS National Conference 2027, May 18-21, 2027, New Orleans; audience is veteran business owners, primes and federal buyers; members get discounted admission, price not listed.",
+  "patch": {
+   "url": "https://www.nvsbc.org/",
+   "startDate": "2027-05-18",
+   "endDate": "2027-05-21",
+   "typicalMonth": "May",
+   "city": "New Orleans",
+   "state": "LA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Price not published on the events page; NVSBC members get discounted admission.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "NVSBC membership discount.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "the-ea-campus-conference",
+  "action": "drop",
+  "reason": "theeacampus.com is a London-based (ISH Venues) executive-assistant event with an online option; its own page contradicts itself on dates (banner 19-21 May 2027 vs schedule 22-24 April and 2026 references), no call for speakers, and it is not US-based, so low US relevance and no clean next edition."
+ },
+ {
+  "id": "iafci-international-training-conference",
+  "action": "publish",
+  "reason": "iafci.org lists an annual International Training Conference (2025 Oklahoma City Aug 25-29, 2026 Nashville Aug 25-27); 2027 host and dates are not yet posted.",
+  "patch": {
+   "url": "https://www.iafci.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "August",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Price not published; association for financial-crime investigators with membership tiers (law and corporate).",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "cmo-alliance-cmo-summit",
+  "action": "publish",
+  "reason": "events.cmoalliance.com Austin page reads 'June 24, 2027, Austin', attendance by invitation only with a 'Request your invite' application, and an 'Apply to speak' link; row's June 25 date was wrong.",
+  "patch": {
+   "url": "https://events.cmoalliance.com/location/austin/",
+   "startDate": "2027-06-24",
+   "endDate": "2027-06-24",
+   "typicalMonth": "June",
+   "city": "Austin",
+   "state": "TX",
+   "country": "US",
+   "access": "APPLY",
+   "costNote": "Invite-only; request an invite. Other cities in the series exist (New York, San Jose).",
+   "applyUrl": "https://events.cmoalliance.com/location/austin/",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://events.cmoalliance.com/location/austin/requesttospeak",
+   "speakingNote": "'Apply to speak' request form on the summit page.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "programmatic-io-new-york",
+  "action": "publish",
+  "reason": "adexchanger.com/upcoming-events lists AdExchanger Next: Programmatic I/O 2027, Sept 27-28, 2027, Marriott Marquis NYC; ticket price not shown on that page.",
+  "patch": {
+   "url": "https://www.adexchanger.com/upcoming-events/",
+   "startDate": "2027-09-27",
+   "endDate": "2027-09-28",
+   "typicalMonth": "September",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Ticket price on the Swoogo registration page, not published on the events listing.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "iitsec",
+  "action": "publish",
+  "reason": "iitsec.org fees pages (via domain search; direct fetch blocked) show I/ITSEC 2026 30 Nov - 3 Dec in Orlando, industry $775-$925, gov non-DoD $350, Monday exhibit hall free, Dec 2 career fair free; call for submissions PDF exists for 2026.",
+  "patch": {
+   "url": "https://www.iitsec.org/",
+   "startDate": "2026-11-30",
+   "endDate": "2026-12-03",
+   "typicalMonth": "December",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 350,
+   "costHigh": 925,
+   "costNote": "Industry $775 (NTSA/NDIA member) to $925 late non-member; US gov non-DoD civilians $350; .gov/.mil email needed for gov rate.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": "https://www.iitsec.org/-/media/sites/iitsec/authorscommittees/2026/iitsec2026callforpresentationsv2.pdf",
+   "speakingNote": "A call for submissions is published each year; the 2026 one is listed.",
+   "cheaperWays": "Free Monday exhibit-hall pass; free Dec 2 career fair registration; academia and government rates.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "society-for-range-management-annual-meeting",
+  "action": "publish",
+  "reason": "rangelands.org annual-meeting page: 2027 Annual Meeting Feb 14-18, 2027, Wichita KS, registration open (theme Our Enduring Grasslands).",
+  "patch": {
+   "url": "https://rangelands.org/annual-meeting/",
+   "startDate": "2027-02-14",
+   "endDate": "2027-02-18",
+   "typicalMonth": "February",
+   "city": "Wichita",
+   "state": "KS",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration open via SRM online form; price not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "alta-edge",
+  "action": "publish",
+  "reason": "meetings.alta.org/edge2027 shows ALTA EDge March 8-10, 2027, Hyatt Regency Salt Lake City, with a Call for Faculty; rates on a separate Information & Rates page.",
+  "patch": {
+   "url": "https://meetings.alta.org/edge2027/",
+   "startDate": "2027-03-08",
+   "endDate": "2027-03-10",
+   "typicalMonth": "March",
+   "city": "Salt Lake City",
+   "state": "UT",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Rates on ALTA's Information & Rates page; not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://meetings.alta.org/edge2027/",
+   "speakingNote": "Page has a Call for Faculty section.",
+   "programFormats": [
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "ncsha-hfa-institute",
+  "action": "publish",
+  "reason": "ncsha.org/events (archive copy) lists HFA Institute 2027, January 10-15, 2027, Washington DC; NCSHA sessions are generally restricted to member housing finance agency staff.",
+  "patch": {
+   "url": "https://www.ncsha.org/events/",
+   "startDate": "2027-01-10",
+   "endDate": "2027-01-15",
+   "typicalMonth": "January",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "INVITE",
+   "costNote": "Member-agency staff only per NCSHA registration policy (read on the 2025 conference page); fees not published.",
+   "speaking": "NONE",
+   "programFormats": [
+    "WORKSHOP",
+    "BREAKOUT"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "organic-produce-summit",
+  "action": "publish",
+  "reason": "Official site is Cloudflare-blocked; Organic Produce Network/CCOF pass listing and FreshPlaza recap give July 20-22, 2027 at Monterey Conference Center (one recap says July 21-23), 2026 edition ran July 14-16 with record turnout, so it recurs.",
+  "patch": {
+   "url": "https://organicproducesummit.com",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "July",
+   "city": "Monterey",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Attendee pass sold via CCOF store and the summit site; price not read. 2027 reported July 20-22 (unconfirmed).",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23"
+  }
+ },
+ {
+  "id": "ai-infra-summit",
+  "action": "publish",
+  "reason": "ai-infra-summit.com FAQ page states AI Infra Summit 2027 is Aug 30 - Sept 2, 2027 at San Jose McEnery Convention Center (10th anniversary), 5 tracks plus expo, 2026 agenda/speakers, invite-only side events.",
+  "patch": {
+   "url": "https://ai-infra-summit.com/",
+   "startDate": "2027-08-30",
+   "endDate": "2027-09-02",
+   "typicalMonth": "September",
+   "city": "San Jose",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Tickets sold through Book Tickets link; price not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "sustainability-live-new-york",
+  "action": "publish",
+  "reason": "sustainabilitymag.com event pages (via domain search; direct fetch 403) list The New York Summit: Sustainability LIVE 2027, 20-21 April 2027, Javits Center, with Get Tickets buttons.",
+  "patch": {
+   "url": "https://sustainabilitymag.com/events/sustainability-live/the-new-york-summit-sustainability-live-2027",
+   "startDate": "2027-04-20",
+   "endDate": "2027-04-21",
+   "typicalMonth": "April",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Ticket price not shown in search snippet.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "finovatefall",
+  "action": "publish",
+  "reason": "finovate.com home page shows FinovateFall 2027, September 13-15, 2027, New York, and an Apply to Demo page; no ticket price on the page.",
+  "patch": {
+   "url": "https://finovate.com/",
+   "startDate": "2027-09-13",
+   "endDate": "2027-09-15",
+   "typicalMonth": "September",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not published on the home page.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://finovate.com/apply-to-demo/",
+   "speakingNote": "Fintech companies apply to give live demos.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "act-iac-emerging-technology-innovation-conference",
+  "action": "publish",
+  "reason": "actiac.org pages (via domain search; direct fetch 403) list the Emerging Technology & Innovation Conference April 2027 (calendar April 18-20, location TBD); recurs annually (2026 edition May 14-15 Crystal City).",
+  "patch": {
+   "url": "https://www.actiac.org/event-agenda/emerging-technology-and-innovation-conference",
+   "startDate": "2027-04-18",
+   "endDate": "2027-04-20",
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not published; ACT-IAC membership affects rates.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23"
+  }
+ },
+ {
+  "id": "nawb-workforce-impact-summit",
+  "action": "drop",
+  "reason": "nawb.org events list shows only the 2026 Workforce Impact Summit (Sept 28-30, past); NAWB's current national gathering is The Forum 2027 (Apr 5-8, NYC), already a separate row 'nawb-forum', and no 2027 Impact Summit is announced."
+ },
+ {
+  "id": "ahca-ncal-convention",
+  "action": "publish",
+  "reason": "ahcancal.org press release 10.12.2026 describes Delivering Solutions 26, the 73rd annual AHCA/NCAL Convention & Expo (Oct 11-14, 2026, Boston), so it recurs each October; 2027 city and dates not posted.",
+  "patch": {
+   "url": "https://www.ahcancal.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not read; 2027 not announced.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "mgma-annual-conference",
+  "action": "publish",
+  "reason": "mgma.com venue/conference pages show the 2026 Annual Conference Sept 27-30 San Antonio and a 2027 call for speakers (closed) plus 2027 spring conferences; 2027 annual dates not posted, but the event recurs each fall.",
+  "patch": {
+   "url": "https://www.mgma.com/annual-conference",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costLow": 699,
+   "costHigh": 2100,
+   "costNote": "2026 edition: provider organization $1,400, non-provider $2,100, student $699 with proof of enrollment; 2027 prices not posted.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.mgma.com/call-for-speakers-2027",
+   "speakingNote": "2027 call for speakers page exists; submission deadline CLOSED as of 2026-10-23.",
+   "cheaperWays": "Student rate $699 with proof of enrollment.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "asta-travel-advisor-conference",
+  "action": "publish",
+  "reason": "asta.org press release 'ASTA announces 2027 Travel Advisor Conference in Orlando' plus event site events.asta.org/event/TAC27; 2026 edition was May 27-29 San Diego; 2027 dates not on the pages read.",
+  "patch": {
+   "url": "https://www.asta.org/content/About/press-releases/2026/asta-announces-2027-travel-advisor-conference-in-orlando.aspx",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration at events.asta.org/event/TAC27/home/; price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Emerging Leaders Award winners get complimentary registration.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "clm-annual-conference",
+  "action": "publish",
+  "reason": "theclm.org event page: 2027 Annual Conference Wed March 31 - Fri April 2, 2027 at Gaylord Pacific, San Diego (not Orlando as the row said); Fellows $899-$999, Members $1,649-$1,749, Corporate Fellows $449-$499.",
+  "patch": {
+   "url": "https://www.theclm.org/event/showeventdescription/35516",
+   "startDate": "2027-03-31",
+   "endDate": "2027-04-02",
+   "typicalMonth": "March",
+   "city": "San Diego",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 449,
+   "costHigh": 1749,
+   "costNote": "Early bird through Jan 22 then regular; Corporate Fellows get 50% discount.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Early-bird rates through January 22; Fellow and Corporate Fellow tiers.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "aba-national-conference-on-equal-employment-opportunity-law",
+  "action": "publish",
+  "reason": "americanbar.org Labor & Employment Law Section upcoming-events page (via domain search; direct fetch 403) lists the National Conference on EEO Law April 6-9, 2027, Omni San Diego at the Ballpark; recurring ABA section conference (2026 edition page exists).",
+  "patch": {
+   "url": "https://www.americanbar.org/groups/labor_law/events/upcoming/",
+   "startDate": "2027-04-06",
+   "endDate": "2027-04-09",
+   "typicalMonth": "April",
+   "city": "San Diego",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration price not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "uf-law-e-discovery-conference",
+  "action": "publish",
+  "reason": "aceds.org and ufediscoveryconference.com: 14th Annual UF Law E-Discovery Conference Feb 10-11, 2027 at UF Levin College of Law, Gainesville, virtual pre-conference Feb 9; virtual attendance free, in-person price on a separate page.",
+  "patch": {
+   "url": "https://ufediscoveryconference.com",
+   "startDate": "2027-02-10",
+   "endDate": "2027-02-11",
+   "typicalMonth": "February",
+   "city": "Gainesville",
+   "state": "FL",
+   "country": "US",
+   "access": "MIXED",
+   "costNote": "Virtual attendance free; in-person limited space, price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Free virtual registration.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "smrp-annual-conference",
+  "action": "publish",
+  "reason": "smrp.org save-the-date (via domain search): 2027 SMRP Annual Conference Oct 4-7, 2027, Indianapolis; registration and program details coming.",
+  "patch": {
+   "url": "https://smrp.org/events/annual-conference/",
+   "startDate": "2027-10-04",
+   "endDate": "2027-10-07",
+   "typicalMonth": "October",
+   "city": "Indianapolis",
+   "state": "IN",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration not yet open.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "nacda-convention",
+  "action": "publish",
+  "reason": "nacda.com events pages (via domain search) list the 2027 NACDA & Affiliates Convention June 13-16, 2027, Orlando (not Las Vegas); 2026 edition June 7-10 Mandalay Bay, 2026 walk-around badge $1,750.",
+  "patch": {
+   "url": "https://nacda.com/convention",
+   "startDate": "2027-06-13",
+   "endDate": "2027-06-16",
+   "typicalMonth": "June",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2026 walk-around badge $1,750; 2027 prices not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "association-forum-holiday-showcase",
+  "action": "publish",
+  "reason": "associationforum.org calendar (via domain search) lists Holiday Showcase 2026 Dec 2-3, 2026 at McCormick Place, Chicago; recurring annual two-day conference with expo.",
+  "patch": {
+   "url": "https://www.associationforum.org/",
+   "startDate": "2026-12-02",
+   "endDate": "2026-12-03",
+   "typicalMonth": "December",
+   "city": "Chicago",
+   "state": "IL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Price not read; Association Forum members get member rates.",
+   "speaking": "UNKNOWN",
+   "speakingNote": "Association Forum invites members to bring a story to the Holiday Showcase stage.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "ncif-convening",
+  "action": "drop",
+  "reason": "ncif.org conference page covers only 'NCIF at 30', held Sept 1-3, 2026 (past), with no next convening announced, so it reads as an anniversary one-off."
+ },
+ {
+  "id": "msl-society-conference",
+  "action": "publish",
+  "reason": "themsls.org annual-conference page: 13th Annual MSL Society Conference ran Oct 13-14, 2025 at JW Marriott Miami Turnberry (300+ attendees, breakouts, networking); annual recurring, 2026/2027 dates not found on the page.",
+  "patch": {
+   "url": "https://themsls.org/annual-conference/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Ticket link exists; price not published on the page.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "od-network-annual-conference",
+  "action": "publish",
+  "reason": "odnetwork.org (via domain search) shows the annual conference recurring: 2025 Sept 28-Oct 1 at Gonzaga, 2026 virtual Sept 30-Oct 2; 2027 not announced.",
+  "patch": {
+   "url": "https://www.odnetwork.org/page/Conference",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2026 early-bird non-member $375, student/emerging member $150 (from earlier lead); 2027 not announced.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Student/emerging-member rate.",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23"
+  }
+ },
+ {
+  "id": "emcc-global-annual-conference",
+  "action": "drop",
+  "reason": "emccglobal.org says the 2027 conference is in South Korea in May 2027 with dates not announced; European body with no US-professional relevance."
+ },
+ {
+  "id": "ukg-aspire",
+  "action": "publish",
+  "reason": "ukg.com blog and events pages (via domain search): UKG Aspire returns in 2027 at The Venetian Las Vegas, official dates 'to be announced' (2025 edition was Nov 3-6); customer conference.",
+  "patch": {
+   "url": "https://www.ukg.com/learn/events",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "November",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Customer conference; registration 'coming soon'.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23"
+  }
+ },
+ {
+  "id": "enterprise-ai-summit-portland",
+  "action": "publish",
+  "reason": "events.itrevolution.com/2027-portland: Enterprise AI Summit May 5-6, 2027 at Porsche Studio Portland, individual pass $1,600, 4-pack $5,500, group rates by email.",
+  "patch": {
+   "url": "https://events.itrevolution.com/2027-portland/",
+   "startDate": "2027-05-05",
+   "endDate": "2027-05-06",
+   "typicalMonth": "May",
+   "city": "Portland",
+   "state": "OR",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 1600,
+   "costHigh": 1600,
+   "costNote": "Individual pass $1,600; 4-pack $5,500.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Team 4-pack ($5,500) and group rates.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "presales-collective-solcon",
+  "action": "publish",
+  "reason": "presalescollective.com Sol/Con 2026 page: Aug 26-27, 2026 Chicago (past), tickets $699 early to $999 late, group $599; recurring flagship with regional Sol/Con events; 2027 not posted.",
+  "patch": {
+   "url": "https://www.presalescollective.com/solcon-2026",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "August",
+   "city": "Chicago",
+   "state": "IL",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 699,
+   "costHigh": 999,
+   "costNote": "2026 pricing: early bird $699, regular $899, late $999; group (3+) $599.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Group pricing $599 for 3+ attendees; referral program.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "ux-london",
+  "action": "publish",
+  "reason": "2027.uxlondon.com: UX London 2027 is 6-8 July 2027 at CodeNode, London; single-day or three-day tickets, 20% off for teams of 5+, scholarship ticket, Apply to speak form.",
+  "patch": {
+   "url": "https://2027.uxlondon.com/",
+   "startDate": "2027-07-06",
+   "endDate": "2027-07-08",
+   "typicalMonth": "July",
+   "city": "London",
+   "state": null,
+   "country": "UK",
+   "access": "PAID",
+   "costNote": "Ticket prices not shown on the page; super early-bird tickets on sale.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://2027.uxlondon.com/",
+   "speakingNote": "Apply to speak form for talks and workshops.",
+   "cheaperWays": "Scholarship ticket application; 20% team discount for 5+.",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "arema-annual-conference",
+  "action": "publish",
+  "reason": "arema.org event page AC2027 (via domain search): 2027 Annual Conference & Expo 9/26-9/29/2027, Minneapolis, with a 2027 Call for Papers and registration link.",
+  "patch": {
+   "url": "https://arema.org/Web/iCore/Events/Event_display.aspx?EventKey=AC2027",
+   "startDate": "2027-09-26",
+   "endDate": "2027-09-29",
+   "typicalMonth": "September",
+   "city": "Minneapolis",
+   "state": "MN",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Registration fees not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://conference.arema.org/",
+   "speakingNote": "Papers submitted via the 2027 Call for Papers.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "datesConfirmed": true
+  }
+ },
+ {
+  "id": "family-wealth-report-family-office-investment-summit",
+  "action": "publish",
+  "reason": "clearviewpublishing.com summits page: Twelfth Family Wealth Report Family Office Investment Summit Mon Nov 16, 2026 at PwC, 300 Madison Ave, New York; audience single and multi-family office principals and advisers; access terms not on the page.",
+  "patch": {
+   "url": "https://clearviewpublishing.com/events-category/summits/",
+   "startDate": "2026-11-16",
+   "endDate": "2026-11-16",
+   "typicalMonth": "November",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "APPLY",
+   "costNote": "Earlier lead says complimentary for approved delegates; terms not stated on the summit listing.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "datesConfirmed": true
+  }
+ }
+]

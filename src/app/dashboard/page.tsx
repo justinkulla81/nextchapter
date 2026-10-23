@@ -30,6 +30,7 @@ import {
   getCandidateWeekNumber,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
+import { engagementFor } from '@/lib/journey/senior-overlay'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
@@ -68,7 +69,15 @@ import { pickHomeNote, simpleNote } from '@/lib/redesign/home-note'
 import { withBlockerStep } from '@/lib/personalization/blocker-step'
 import { HomeNote } from '@/components/candidate/HomeNote'
 import { JourneyCard } from '@/components/candidate/JourneyCard'
+import { JourneyPaths } from '@/components/candidate/JourneyPaths'
+import { focusOptions, homePathsRow } from '@/lib/journey/paths'
+import { workingNowOf } from '@/lib/journey/intensity'
+import { getParallelPaths } from '@/lib/job-reviews/data'
 import { FundingHomeCard } from '@/components/dashboard/FundingHomeCard'
+import { MarketLine } from '@/components/dashboard/MarketLine'
+import { CoachOfferNote } from '@/components/candidate/CoachOfferNote'
+import { loadCoachOffer } from '@/lib/coach/offer-data'
+import { COACH_OFFER_COPY, COACH_OFFER_HREF } from '@/lib/coach/offer'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -248,6 +257,7 @@ async function HomeWeeklyPlan({
     <>
       <Suspense fallback={<WeeklyFocusSkeleton />}>
         <WeeklyFocusCard
+          hidePoints={!engagementFor(profile).points}
           candidateId={profile.id}
           locked={!bothConnectedUnlocked}
           hasEmailConnection={hasEmailConnection}
@@ -258,6 +268,7 @@ async function HomeWeeklyPlan({
         />
       </Suspense>
       <SuccessSprintCard
+        hidePoints={!engagementFor(profile).points}
         actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
         suggestedActions={blockerPlan ? blockerPlan.plan : suggestedActions}
         weeklyPoints={weeklyProgress.weeklyPoints}
@@ -325,6 +336,7 @@ export default async function DashboardPage() {
     stalledReask,
     searchPlaybook,
     newCheer,
+    coachOffer,
   ] = await Promise.all([
     timed('home', 'sessionUser', profile.id, getVerifiedSessionUser()),
     timed('home', 'bountyClaims', profile.id, prisma.bountyClaim.count({ where: { candidateId: profile.id } })),
@@ -353,6 +365,8 @@ export default async function DashboardPage() {
       orderBy: { createdAt: 'desc' },
       select: { message: true, supporter: { select: { name: true } } },
     }),
+    // Rules only, no model calls: a reason to offer a coach today, or null (src/lib/coach/offer.ts).
+    timed('home', 'coachOffer', profile.id, loadCoachOffer(profile).catch(() => null)),
   ])
   const needsCoachingForm = !!profile.coachId && !!profile.coachDossierConsentedAt && !hasCoachingFormResponse
 
@@ -419,6 +433,10 @@ export default async function DashboardPage() {
   // the modules you act from. Replaces the stage chip, the daily message box, the first-week card, the
   // engagement card and the recruiter goal card, which are now the one note or live on other pages.
   const jobCounts = await timed('home', 'jobCounts', profile.id, getHomeJobCounts(profile.id))
+  // Paths next to the main focus: one row and the focus switch in the journey card. Fail-soft: no row if the lookup fails.
+  const pathKinds = await getParallelPaths(profile.id).catch(() => null)
+  const pathSignals = { main: journeyNow, journeyDetails: profile.journeyDetails, kinds: pathKinds, workingNow: workingNowOf(profile.journeyDetails), interimInterest: profile.interimConsultingInterest }
+  const pathsRow = homePathsRow(pathSignals)
   const searching = !journeyNow || getJourney(journeyNow).searching
   const firstName = profile.firstName ?? 'there'
   const note = pickHomeNote({
@@ -427,6 +445,7 @@ export default async function DashboardPage() {
     searchStrategyIncomplete: !isSearchStrategyGateComplete(profile),
     reportReady: showReportReadyMessage,
     accountsNotConnected: !bothConnectedUnlocked,
+    coachOffer: !!coachOffer,
     stalledReask: !!stalledReask,
     stalledSearch: !!stalledSearchPrompt,
     passiveToActive: !!passiveToActivePrompt,
@@ -434,6 +453,10 @@ export default async function DashboardPage() {
     gotHired: showGotHiredCTA,
     searchPlaybook: !!searchPlaybook,
   })
+  if (note === 'coach_offer' && coachOffer) {
+    const offer = coachOffer
+    after(() => captureServerEvent(profile.id, 'coach_offer_shown', { reason: offer.reason, senior: offer.facts.senior, daysSearching: offer.facts.daysSearching, journey: journeyNow, stage: stageNow }))
+  }
   after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: note, journey: journeyNow, stage: stageNow, weekNumber, audience, redesign: true }))
   const plain = simpleNote(note, { firstName, firstWeek, motivations: profile.motivations })
   const toneSet = profile.coachingStylePreference !== null
@@ -464,6 +487,12 @@ export default async function DashboardPage() {
           ...(toneSet ? ['Notes come in the tone you chose'] : []),
         ]}
         changeHref="/dashboard/privacy"
+        paths={pathsRow ? <JourneyPaths row={pathsRow} options={focusOptions(pathSignals)} main={journeyNow ?? ''} /> : undefined}
+        market={
+          <Suspense fallback={null}>
+            <MarketLine member={profile} surface="home" />
+          </Suspense>
+        }
         tune={toneSet && profile.changePacePreference ? undefined : { text: 'Two answers tune your week: how hard to push, and how fast to move.', action: 'Answer two questions', href: '/dashboard/search-strategy' }}
       />
 
@@ -474,6 +503,7 @@ export default async function DashboardPage() {
           {note === 'connect_accounts' && (
             <PreConnectDailyMessage firstName={firstName} hasEmailConnection={!!emailConnection} hasCalendarConnection={!!calendarConnection} linkedInConnected={linkedInConnected} />
           )}
+          {note === 'coach_offer' && coachOffer && <CoachOfferNote reason={coachOffer.reason} href={COACH_OFFER_HREF} {...COACH_OFFER_COPY[coachOffer.reason]} />}
           {note === 'stalled_reask' && stalledReask && <StalledReaskCard weeks={stalledReask.weeks} options={stalledReask.options} />}
           {note === 'stalled_search' && stalledSearchPrompt && <StalledSearchPromptCard {...stalledSearchPrompt} />}
           {note === 'passive_to_active' && passiveToActivePrompt && <PassiveToActivePromptCard trigger={passiveToActivePrompt.trigger} />}
@@ -486,9 +516,11 @@ export default async function DashboardPage() {
         </>
       )}
 
-      <Suspense fallback={null}>
-        <HomeApplyPrompts candidateId={profile.id} />
-      </Suspense>
+      {engagementFor(profile).dailyApplicationPrompts && (
+        <Suspense fallback={null}>
+          <HomeApplyPrompts candidateId={profile.id} />
+        </Suspense>
+      )}
 
       <Suspense fallback={null}>
         <FundingHomeCard profile={profile} />

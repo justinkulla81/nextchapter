@@ -38,6 +38,7 @@ import { buildUnlockLadder } from '@/lib/unlocks/ladder'
 import { ProgressUnlocks } from '@/components/dashboard/home/ProgressUnlocks'
 import { buildEvidenceTraits } from '@/lib/dossier/evidence-traits'
 import { loadTraitSignals } from '@/lib/dossier/evidence-signals'
+import { engagementFor } from '@/lib/journey/senior-overlay'
 import { StatsRedesign } from '@/components/dashboard/StatsRedesign'
 import { SeeAllLink } from '@/components/candidate/SeeAllLink'
 
@@ -196,16 +197,18 @@ export default async function YourStatsPage({ searchParams }: { searchParams: Pr
           <CardTitle className="text-sm font-medium text-muted-foreground">Your Stats</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          <StatTile icon={Flame} value={`${profile.currentStreak}`} label="day streak" accent="warning" />
-          <StatTile icon={Trophy} value={`${profile.longestStreak}`} label="longest streak" accent="brand" />
+          {engagementFor(profile).streaks && <StatTile icon={Flame} value={`${profile.currentStreak}`} label="day streak" accent="warning" />}
+          {engagementFor(profile).streaks && <StatTile icon={Trophy} value={`${profile.longestStreak}`} label="longest streak" accent="brand" />}
           
-          <StatTile
-            icon={Target}
-            value={`${weeklyEngineData.weeklyPoints} / ${weeklyEngineData.weeklyPointsTarget}`}
-            label="points this week"
-            accent={weeklyEngineData.weeklyPoints >= weeklyEngineData.weeklyPointsTarget ? 'success' : 'brand'}
-            href="#actions"
-          />
+          {engagementFor(profile).points && (
+            <StatTile
+              icon={Target}
+              value={`${weeklyEngineData.weeklyPoints} / ${weeklyEngineData.weeklyPointsTarget}`}
+              label="points this week"
+              accent={weeklyEngineData.weeklyPoints >= weeklyEngineData.weeklyPointsTarget ? 'success' : 'brand'}
+              href="#actions"
+            />
+          )}
           <StatTile icon={Award} value={`${earnedBadgesCount} / ${totalBadgesCount}`} label="badges earned" accent="success" href="#badges" />
           <StatTile icon={Send} value={`${applicationsCount}`} label="jobs applied — total" accent="brand" />
           <StatTile icon={Briefcase} value={`${applicationsThisWeekCount}`} label="jobs applied — this week" accent="warning" />

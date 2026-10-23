@@ -7,7 +7,7 @@ import { ReferredByBanner } from '@/components/marketing/ReferredByBanner'
 export const metadata: Metadata = {
   title: 'Submit Your Resume',
   description:
-    'Send your resume to NextChapter and we\'ll pass strong matches along to recruiters in our network — no cost, no obligation.',
+    'Send your resume to NextChapter and we\'ll pass strong matches along to recruiters in our network — free, no obligation.',
   alternates: { canonical: '/submit-resume' },
 }
 
@@ -22,8 +22,8 @@ export default function SubmitResumePage() {
           Get your resume in front of recruiters
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Send us your resume and we&apos;ll review it for a fit with recruiters in our network. No
-          cost, no obligation — and no need to sign up first.
+          Send us your resume and we&apos;ll review it for a fit with recruiters in our network. Free,
+          no obligation — and no need to sign up first.
         </p>
         <div className="mt-8">
           <ResumeSubmissionForm />

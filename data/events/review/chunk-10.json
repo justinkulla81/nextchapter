@@ -1,0 +1,919 @@
+[
+ {
+  "id": "consortium-orientation-program-career-forum",
+  "action": "publish",
+  "reason": "cgsm.org/orientation-program describes the annual OP & Career Forum open only to admitted Consortium fellows, current students, alumni, member-school and corporate-partner reps; 2025 edition ran May 31-Jun 4 in Indianapolis; 2027 dates not posted.",
+  "patch": {
+   "url": "https://cgsm.org/orientation-program",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "Indianapolis",
+   "state": "IN",
+   "format": "IN_PERSON",
+   "access": "INVITE",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not sold to the public; attendance is for admitted Consortium fellows and partner organizations.",
+   "speaking": "NONE",
+   "cheaperWays": "Eligibility is by Consortium admission to a member MBA school; employers can attend by becoming a Consortium corporate partner (cgsm.org Become a Partner).",
+   "applyUrl": "https://cgsm.org/",
+   "programFormats": [
+    "NETWORKING",
+    "EXPO"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "mo-summit",
+  "action": "publish",
+  "reason": "Organizer's Ticket Tailor page lists 2027 MO Summit Apr 12-14, 2027 at Renaissance Asheville Downtown with Buy tickets; mo-summit.com itself was Cloudflare-blocked; recurring since 2018.",
+  "patch": {
+   "url": "https://www.mo-summit.com/",
+   "startDate": "2027-04-12",
+   "endDate": "2027-04-14",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Asheville",
+   "state": "NC",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Ticket price not shown on the listing read; tickets sold through the organizer Ticket Tailor page.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "small-business-expo",
+  "action": "drop",
+  "reason": "thesmallbusinessexpo.com is behind Cloudflare; only aggregator listings give 2027 dates (Miami, Seattle, none for Charlotte), multi-city consumer-style expo with no organizer-confirmed date or price."
+ },
+ {
+  "id": "xerocon-us",
+  "action": "publish",
+  "reason": "xero.com/us/xerocon shows Xerocon Denver 2026 wrap-up (ran Aug 2026); the program recurs annually but no 2027 edition is announced on the page.",
+  "patch": {
+   "url": "https://www.xero.com/us/xerocon/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "August",
+   "city": null,
+   "state": null,
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "2027 pricing not published.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "admonsters-publisher-forum",
+  "action": "drop",
+  "reason": "admonsters.com events page lists no upcoming Publisher Forum; the latest was Scottsdale Nov 10-12, 2024 and the only upcoming AdMonsters event is CTV World (Mar 2027), so the forum looks paused."
+ },
+ {
+  "id": "mirren-live",
+  "action": "publish",
+  "reason": "Domain search shows Mirren Live has run every May in New York (May 7-8 2024, May 7-8 2025, May 13-14 2026); live.mirren.com was Cloudflare-blocked so 2027 dates are unconfirmed.",
+  "patch": {
+   "url": "https://live.mirren.com/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "New York",
+   "state": "NY",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "the-one-show",
+  "action": "publish",
+  "reason": "oneclub.org/theoneshow shows The One Show winners celebrated May 15, 2026 during Creative Week in New York and 2027 entry deadlines running Dec 2026 to Mar 2027, so it recurs each spring.",
+  "patch": {
+   "url": "https://www.oneclub.org/theoneshow/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "New York",
+   "state": "NY",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Creative Week ticket prices not published on the page.",
+   "speaking": "NONE",
+   "cheaperWays": "Young Ones and Creative Week student programs listed on oneclub.org.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "icamp-cultivated-meat-alt-protein-summit",
+  "action": "publish",
+  "reason": "Domain search shows UC Davis iCAMP26 was the 5th annual summit, Sept 1-2, 2026 at the ARC Conference Center in Davis, so it recurs each early autumn; 2027 dates not announced.",
+  "patch": {
+   "url": "https://icamp.ucdavis.edu/annual-summit",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "Davis",
+   "state": "CA",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Program includes student innovation sessions.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "ev-charging-summit-expo-2027",
+  "action": "publish",
+  "reason": "terrapinn.com/exhibition/evchargingsummit shows EV Charging Summit & Expo March 1-3, 2027 at Caesars Forum, Las Vegas, with Apply to Speak and Get tickets links; no other row in the data files uses this event.",
+  "patch": {
+   "name": "EV Charging Summit & Expo",
+   "url": "https://www.terrapinn.com/exhibition/evchargingsummit/index.stm",
+   "startDate": "2027-03-01",
+   "endDate": "2027-03-03",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Las Vegas",
+   "state": "NV",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Ticket prices vary by attendee type and sit behind registration.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.terrapinn.com/exhibition/evchargingsummit/index.stm",
+   "speakingNote": "Site has an Apply to Speak link; deadline not read.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "housingwire-annual",
+  "action": "drop",
+  "reason": "events.housingwire.com/housingwire-annual returns 404 and housingwire.com/events lists only Mortgage Banking Summit, a webinar and Housing Economic Summit 2027; no HW Annual after the 2024 Scottsdale edition, so it looks discontinued."
+ },
+ {
+  "id": "npha-nph-annual-affordable-housing-conference",
+  "action": "publish",
+  "reason": "Listings of the organizer's registration show the 47th annual conference on Sept 24, 2026 at Moscone Center South, San Francisco, $450 member / $550 non-member; annual event, 2027 not announced.",
+  "patch": {
+   "url": "https://yerbabuena.org/do/47th-annual-affordable-housing-conference",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "San Francisco",
+   "state": "CA",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costLow": 450,
+   "costHigh": 550,
+   "costNote": "2026 prices: $450 NPH member, $550 non-member.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "NPH member rate saves $100.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "learning-solutions-conference",
+  "action": "drop",
+  "reason": "learningsolutionsmag.com is Cloudflare-blocked and Learning Guild's 2026 calendar lists only Learning Leadership (Las Vegas, Nov 2-3), DevLearn (Nov 4-6) and online events; the Learning Solutions brand no longer appears for 2026 or 2027."
+ },
+ {
+  "id": "gcpa-fall-conference",
+  "action": "publish",
+  "reason": "gulfcoastpower.org's save-the-dates page lists Fall Conference in Austin, TX Oct 4-6, 2027 (and Oct 2-4, 2028).",
+  "patch": {
+   "url": "https://www.gulfcoastpower.org/",
+   "startDate": "2027-10-04",
+   "endDate": "2027-10-06",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Austin",
+   "state": "TX",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Registration prices not yet posted.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "GCPA offers emPOWERing Scholarships and young professional programs (listed on site).",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "aba-annual-convention",
+  "action": "publish",
+  "reason": "aba.com/events lists Annual Convention starting Oct 25, 2026; the Salt Palace, Salt Lake City, Oct 25-27 detail is corroborated by a travel guide, not read from aba.com.",
+  "patch": {
+   "url": "https://www.aba.com/events",
+   "startDate": "2026-10-25",
+   "endDate": "2026-10-27",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Salt Lake City",
+   "state": "UT",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Registration price not read; ABA member rates likely lower.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "nacha-smarter-faster-payments",
+  "action": "publish",
+  "reason": "payments.nacha.org shows Smarter Faster Payments 2027 April 11-14 at Gaylord National Harbor, a call for presentations link, and a virtual Remote Connect option June 7-9, 2027.",
+  "patch": {
+   "url": "https://payments.nacha.org/",
+   "startDate": "2027-04-11",
+   "endDate": "2027-04-14",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "National Harbor",
+   "state": "MD",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costNote": "Prices on registration form, not published on the page.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://payments.nacha.org/call-presentations",
+   "speakingNote": "Site invites ideas for the agenda via Call for Presentations; deadline not read.",
+   "cheaperWays": "Remote Connect virtual option June 7-9, 2027.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "google-public-sector-summit",
+  "action": "publish",
+  "reason": "events.govexec.com shows the 2026 summit on Oct 20 in Washington, free for federal, defense, state/local government and higher-ed leaders but GovExec can restrict registrations; no 2027 edition posted.",
+  "patch": {
+   "url": "https://events.govexec.com/google-public-sector-summit/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Washington",
+   "state": "DC",
+   "format": "IN_PERSON",
+   "access": "APPLY",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Complimentary for qualifying public-sector attendees; GovExec may restrict registration.",
+   "speaking": "BY_INVITE",
+   "cheaperWays": "Free for qualifying public sector officials; walk-ins with government ID if capacity allows.",
+   "applyUrl": "https://events.govexec.com/google-public-sector-summit/",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "tml-annual-conference",
+  "action": "publish",
+  "reason": "tmlconference.org shows TML 114th Annual Conference and Exhibition Nov 11-13, 2026 in San Antonio, with a registration link.",
+  "patch": {
+   "url": "https://www.tmlconference.org/",
+   "startDate": "2026-11-11",
+   "endDate": "2026-11-13",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "San Antonio",
+   "state": "TX",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Prices on registration page, not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "behavioral-health-tech-bht",
+  "action": "publish",
+  "reason": "behavioralhealthtech.com lists BHT2027 Dec 1-3, 2027 at Gaylord Pacific, San Diego (page also shows an unexplained Nov 4-7 agenda line); passes: GA $3,148, free Hosted VIP and Government/Press, scholarships.",
+  "patch": {
+   "url": "https://behavioralhealthtech.com/",
+   "startDate": "2027-12-01",
+   "endDate": "2027-12-03",
+   "datesConfirmed": true,
+   "typicalMonth": "December",
+   "city": "San Diego",
+   "state": "CA",
+   "format": "IN_PERSON",
+   "access": "MIXED",
+   "costLow": 0,
+   "costHigh": 3148,
+   "costNote": "General admission shown at $3,148 (may be the 2026 price); Hosted VIP is complimentary by application.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Hosted VIP free for qualifying senior decision-makers (application, up to $750 travel); free Government and Press pass; scholarships for direct service providers, startups and nonprofits.",
+   "applyUrl": "https://behavioralhealthtech.com/",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "rock-health-summit",
+  "action": "publish",
+  "reason": "rockhealth.com/events says Rock Health Summit returns to San Francisco Oct 14, 2026 with registration open; 2025 edition was Sept 30, so it recurs each fall; 2027 not announced.",
+  "patch": {
+   "url": "https://rockhealth.com/events",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "San Francisco",
+   "state": "CA",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Ticket prices not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "sbc-summit-americas",
+  "action": "publish",
+  "reason": "Domain search shows SBC Summit Americas ran May 2025 and Jun 9-11, 2026 at Broward County Convention Center, Fort Lauderdale; June 2027 listed by a vendor; sbcevents.com blocked automated reads.",
+  "patch": {
+   "url": "https://sbcevents.com/sbc-summit/sbc-summit-2026-2027-dates/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": "Fort Lauderdale",
+   "state": "FL",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "itc-vegas",
+  "action": "publish",
+  "reason": "vegas.insuretechconnect.com shows ITC Vegas Sept 21-23, 2027 at Mandalay Bay with an Apply to Speak menu and interest list.",
+  "patch": {
+   "url": "https://vegas.insuretechconnect.com/",
+   "startDate": "2027-09-21",
+   "endDate": "2027-09-23",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Las Vegas",
+   "state": "NV",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "2027 pass prices not posted yet (interest list open).",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://vegas.insuretechconnect.com/",
+   "speakingNote": "Site menu has Apply to Speak for the Main Stage.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "liebert-cassidy-whitmore-annual-employment-law-conference",
+  "action": "publish",
+  "reason": "lcwlegal.com page shows LCW 2027 Annual Public Sector Employment Law Conference Feb 18-19, 2027 in San Diego, more details to come.",
+  "patch": {
+   "name": "LCW Annual Public Sector Employment Law Conference",
+   "url": "https://www.lcwlegal.com/events-and-training/lcw-conference/2027-liebert-cassidy-whitmore-annual-employment-law-conference/",
+   "startDate": "2027-02-18",
+   "endDate": "2027-02-19",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "San Diego",
+   "state": "CA",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Pricing to come.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "iot-tech-expo-na",
+  "action": "publish",
+  "reason": "iottechexpo.com/northamerica shows June 16-17, 2027 at San Jose McEnery Convention Center with Free Expo pass, $499 Gold Pass and free Enterprise Leadership/media access by request.",
+  "patch": {
+   "url": "https://www.iottechexpo.com/northamerica/",
+   "startDate": "2027-06-16",
+   "endDate": "2027-06-17",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "San Jose",
+   "state": "CA",
+   "format": "IN_PERSON",
+   "access": "MIXED",
+   "costLow": 0,
+   "costHigh": 499,
+   "costNote": "Free Expo pass; Gold Pass shown at $499 (discounted); list price may rise.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Free Expo pass; Enterprise Leadership pass free on request; media application free; Startup pass $499.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "carnegie-mellon-sports-analytics-conference",
+  "action": "publish",
+  "reason": "CMU CMSAC pages say the annual CMSAConference is run by the Sports Analytics Center; 2025 edition had 200+ attendees and 15 pro teams; autumn timing, 2026/2027 dates not posted.",
+  "patch": {
+   "url": "https://www.cmu.edu/dietrich/statistics-datascience/cmsac/index.html",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Pittsburgh",
+   "state": "PA",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costNote": "Price not read; 2024 offered in-person and virtual registration.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Virtual registration offered in 2024.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "spobis-conference",
+  "action": "drop",
+  "reason": "Held in Hamburg, Germany; a European sports-business meeting that is not the undisputed global flagship, and the organizer site was never opened."
+ },
+ {
+  "id": "dance-usa-national-conference",
+  "action": "publish",
+  "reason": "danceusa.org/conference shows Save the Date: Dance/USA 2027 National Conference, June 23-25, 2027 in Denver, Colorado.",
+  "patch": {
+   "url": "https://danceusa.org/conference",
+   "startDate": "2027-06-23",
+   "endDate": "2027-06-25",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Denver",
+   "state": "CO",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Registration details to come.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "cell-and-gene-meeting-on-the-mesa",
+  "action": "publish",
+  "reason": "armiusa.org event page shows the 2026 meeting Oct 5-7 at Arizona Biltmore, Phoenix with panels, company presentations and partnering for 1,500+; recurs each October; 2027 not announced.",
+  "patch": {
+   "url": "https://www.armiusa.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Phoenix",
+   "state": "AZ",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Price not listed.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "digital-pm-summit",
+  "action": "publish",
+  "reason": "thebureau.community shows the 2026 Digital PM Summit Oct 19-20 in Asheville, the Bureau's annual event; 2027 not announced.",
+  "patch": {
+   "url": "https://thebureau.community/2026-digital-pm-summit",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Asheville",
+   "state": "NC",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costLow": 1150,
+   "costHigh": 1650,
+   "costNote": "2026 ticketing listing: $1,150 Bureau member / $1,650 non-member.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Bureau of Digital member rate.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "groceryshop",
+  "action": "publish",
+  "reason": "groceryshop.com shows Groceryshop Sept 13-15, 2027 at Mandalay Bay, Las Vegas with a Get your 2027 ticket link.",
+  "patch": {
+   "url": "https://groceryshop.com/",
+   "startDate": "2027-09-13",
+   "endDate": "2027-09-15",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Las Vegas",
+   "state": "NV",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Prices on ticket page, not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "jff-horizons-summit",
+  "action": "publish",
+  "reason": "horizons.jff.org announces Horizons Summit 2027 (sign-up for updates); JFF FAQ per domain search lists June 22-23, 2027 in Philadelphia after July 13-14, 2026 in DC.",
+  "patch": {
+   "url": "https://horizons.jff.org",
+   "startDate": "2027-06-22",
+   "endDate": "2027-06-23",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Philadelphia",
+   "state": "PA",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Registration not open yet.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "community-over-code-north-america",
+  "action": "drop",
+  "reason": "communityovercode.apache.org lists only Sydney (Nov 18-19, 2026) and Glasgow editions; no North America edition is announced and it is not the field-wide flagship."
+ },
+ {
+  "id": "kdd",
+  "action": "publish",
+  "reason": "kdd2027.kdd.org shows KDD 2027 Aug 1-5, 2027 at San Jose McEnery Convention Center with research, ADS and datasets calls for papers.",
+  "patch": {
+   "url": "https://kdd2027.kdd.org/",
+   "startDate": "2027-08-01",
+   "endDate": "2027-08-05",
+   "datesConfirmed": true,
+   "typicalMonth": "August",
+   "city": "San Jose",
+   "state": "CA",
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Registration prices not posted yet.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://kdd2027.kdd.org/",
+   "speakingNote": "Calls for papers per track; research cycle 2 deadline reportedly Feb 2027.",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site"
+  }
+ },
+ {
+  "id": "shift-ux",
+  "action": "publish",
+  "reason": "Rosenfeld Media pages (domain search) show the inaugural Shift UX held Sept 23-25, 2026 in NYC plus virtual; 2027 date not confirmed from an organizer page.",
+  "patch": {
+   "url": "https://shiftux.rosenfeldmedia.com/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "New York",
+   "state": "NY",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Virtual attendance offered.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "wispamerica",
+  "action": "publish",
+  "reason": "wispa.org lists the spring show now branded ISPAMERICA (Mar 2-5, 2026, Atlanta; 2025 was Oklahoma City); annual in March; 2027 not found.",
+  "patch": {
+   "name": "ISPAMERICA (formerly WISPAmerica)",
+   "url": "https://www.wispa.org/events/ispamerica-2026/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "city": null,
+   "state": null,
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ },
+ {
+  "id": "parcel-forum",
+  "action": "publish",
+  "reason": "Transportation Insight's page shows Parcel Forum Sept 14-16, 2026 at Gaylord Palms Orlando (2025 was Sept 8-10 Chicago); annual September, city varies; 2027 not announced.",
+  "patch": {
+   "url": "https://transportationinsight.com/events/parcel-forum-2026/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "format": "IN_PERSON",
+   "access": "PAID",
+   "costNote": "Price not read.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "country": "US",
+   "verified": false,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search"
+  }
+ }
+]

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PORTAL_TYPES, PORTAL_TYPE_ORDER, portalTypeLabel } from '@/lib/partners/portal-types'
+import { PORTAL_TYPES, PORTAL_TYPE_ORDER, employerUseForPath, portalTypeLabel } from '@/lib/partners/portal-types'
 import { contrastRatio } from '@/lib/partners/brand'
 
 describe('portal types', () => {
@@ -14,6 +14,21 @@ describe('portal types', () => {
     expect(portalTypeLabel('employer', 'Outplacement')).toBe('Employer · Outplacement')
     expect(portalTypeLabel('employer')).toBe('Employer')
     expect(portalTypeLabel('recruiter', 'Anything')).toBe('Recruiter')
+  })
+  it('declares the five separately claimable employer parts', () => {
+    expect(PORTAL_TYPES.employer.uses).toEqual(['Outplacement', 'Retention', 'Learning and development', 'Job retraining', 'Hiring'])
+    expect(portalTypeLabel('employer', 'Learning and development')).toBe('Employer · Learning and development')
+    expect(portalTypeLabel('employer', 'Job retraining')).toBe('Employer · Job retraining')
+    expect(portalTypeLabel('employer', 'Made up')).toBe('Employer')
+  })
+  it('picks the employer part from the route', () => {
+    expect(employerUseForPath('/employer/growth')).toBe('Retention')
+    expect(employerUseForPath('/employer/growth/roles/abc')).toBe('Retention')
+    expect(employerUseForPath('/employer/learning')).toBe('Learning and development')
+    expect(employerUseForPath('/employer')).toBe('Outplacement')
+    expect(employerUseForPath('/employer/roster')).toBe('Outplacement')
+    expect(employerUseForPath('/employer/growthy')).toBe('Outplacement')
+    expect(employerUseForPath(null)).toBe('Outplacement')
   })
   it('uses sentence case and never says who pays', () => {
     for (const t of PORTAL_TYPE_ORDER) expect(PORTAL_TYPES[t].label).not.toMatch(/b2b|paying|free/i)

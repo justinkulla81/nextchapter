@@ -33,7 +33,7 @@ export default async function ScholarshipPage() {
         </Link>
         <h1 className="mt-2 font-heading text-2xl font-semibold text-foreground">Scholarship application</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          If cost is what&apos;s standing between you and Coaching Premium, tell us what&apos;s going on and
+          If you want Coaching Premium and can&apos;t take it on right now, tell us what&apos;s going on and
           we&apos;ll see what we can do. This isn&apos;t about proving anything — a person reads every
           application and reaches out either way.
         </p>

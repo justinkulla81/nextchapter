@@ -114,3 +114,18 @@ vendors named on the `/vs` pages), recording for each the URL, the date visited,
 recommendation. Keep screenshots or archived copies. Re-run it on the quarterly cycle above, since a stale claim is also a risk. Even a clean survey supports only a statement scoped to what was surveyed and dated.
 
 Wording used on the site instead (`src/components/marketing/AiExposureSection.tsx`, shown on `https://launchyournextchapter.com/` and `https://launchyournextchapter.com/ai-skills`): plain statements of what the product does, each with its reason, and no comparison. "Every opening shows how much AI use is observed in its occupation." "Career pivots show the change in pay and the AI exposure side by side." "Learning starts with the course that matches your role's exposure and what postings ask for." Exposure is defined as the share of a job's tasks that AI is already used for at work, measured from real usage today, not a forecast, and a low number means no use seen yet. The openings split states its coverage ("of the N openings we could place in an occupation") and credits the Anthropic Economic Index (https://www.anthropic.com/research/labor-market-impacts, March 2026). All figures are measured from our own data and Anthropic's published data and are computed live.
+
+## Added 2026-10-23: cost claims removed (do not re-add)
+
+Owner decision 2026-10-23: the website shows plans, not prices, and carries no cost references. These claims were taken off the site. Do not put them back in any form (copy, ads, outreach, metadata, JSON-LD, llms.txt).
+
+| Rows | Removed claim | Was on |
+|---|---|---|
+| 1, 2, 3 | Incumbent per-person outplacement price ranges (LHH, Randstad RiseSmart, Careerminds, INTOO) | `/vs/*`, `/outplacement`, the retired cost article |
+| 4 | "Incumbents hide pricing" / list pricing not published | `/vs/*` "List pricing" row, `/outplacement` |
+| 5 | Price as a structural incumbent weakness | no longer stated anywhere |
+| 13 | "Lowest-sticker-price" framing of Careerminds and INTOO | `/vs/careerminds`, `/vs/intoo` |
+| 14 | "35-40% less than the incumbents" and per-tier "under" percentages | `/outplacement`, page descriptions, Open Graph, JSON-LD |
+| 16, 17 | Our own prices, volume discounts, per-seat amounts | `/pricing`, `/outplacement`, `/vs/*`, `/membership`, llms.txt |
+
+Also retired: the outplacement cost calculator and the article `/insights/outplacement-cost-per-employee` (permanent redirect to `/outplacement`), and `src/lib/marketing/incumbent-cost-ranges.ts`. Rows 6 to 12, 15 and 18 to 19 are not cost claims and stay. `src/test/no-public-prices.test.ts` fails if an amount or "per seat", "per month", "discount" or "savings" wording returns to the listed files.

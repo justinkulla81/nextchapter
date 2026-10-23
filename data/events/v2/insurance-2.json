@@ -1,0 +1,1298 @@
+[
+ {
+  "id": "soa-impact-annual-conference",
+  "name": "SOA ImpACT Annual Conference (SOA Annual Meeting & Exhibit)",
+  "organizer": "Society of Actuaries",
+  "url": "https://www.soa.org/prof-dev/events/2026-annual-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Finance",
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest annual gathering of U.S. life, health, pension and general-insurance actuaries, with the employers and credentialed candidates who hire them.",
+  "access": "PAID",
+  "costLow": 950,
+  "costHigh": 2300,
+  "costNote": "Member $1,900-$2,100; non-member $2,100-$2,300; retired/academic/unemployed/government members $950 (rate request form). Early rate ended Sept 28.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2026 call for proposals closed May 11, 2026; the 2026 page lists no speaker call.",
+  "cheaperWays": "Unemployed, retired, academic and government members pay $950; Candidate Connect event for exam candidates (sold out for 2026).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "actuary",
+   "chief risk officer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "garp-financial-risk-symposium",
+  "name": "GARP Financial Risk Symposium",
+  "organizer": "Global Association of Risk Professionals",
+  "url": "https://www.garp.org/event/2027-financial-risk-symposium",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-03",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Finance",
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "CROs, heads of risk, regulators and academics from banks, asset managers and insurers, with roundtables by risk discipline (credit, market, cyber, model risk).",
+  "access": "PAID",
+  "costLow": 650,
+  "costHigh": 1295,
+  "costNote": "Symposium only; member $650-$995 and non-member $995-$1,295 across Premiere/Early/Standard tiers (Premiere opens Nov 4, 2026). Bundle with March 4 workshop $800-$1,495.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Team rates for groups of three or more (events@garp.com).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "risk manager",
+   "chief risk officer"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "cas-spring-meeting",
+  "name": "CAS Spring Meeting",
+  "organizer": "Casualty Actuarial Society",
+  "url": "https://www.casact.org/event/2027-cas-spring-meeting",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-05-16",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Property-casualty actuaries and chief actuaries from carriers, reinsurers, brokers and regulators in a three-day technical meeting.",
+  "access": "PAID",
+  "costLow": 900,
+  "costHigh": 2400,
+  "costNote": "2026 edition (New York) charged $1,800-$2,200 members, $2,000-$2,400 non-members, $900-$1,200 government and retired members; 2027 rates not yet posted. Livestream option in 2026.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.casact.org/event/2027-cas-spring-meeting",
+  "speakingDeadline": "2026-10-02",
+  "speakingNote": "Call for presentations closed Oct 2, 2026 (per CAS call page); speakers get a reduced registration rate.",
+  "cheaperWays": "Government and retired members half price; Monday-only $250 for active exam candidates; livestream and group livestream rates (2026 terms).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "actuary",
+   "chief risk officer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "casualty-loss-reserve-seminar",
+  "name": "Casualty Loss Reserve Seminar (CLRS)",
+  "organizer": "Casualty Actuarial Society and American Academy of Actuaries",
+  "url": "https://clrs.casact.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Finance",
+   "Data & Analytics"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Reserving actuaries and appointed actuaries from P&C carriers, consultancies and regulators, focused on loss reserving and opinions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pricing not found; the 2026 edition ran Sept 14-16 in Las Vegas.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.casact.org/article/call-presentations-2026-casualty-loss-reserve-seminar",
+  "speakingDeadline": null,
+  "speakingNote": "A call for presentations opens each spring (2026 deadline extended to Apr 13, 2026).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "actuary"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "rims-erm-conference",
+  "name": "RIMS ERM Conference",
+  "organizer": "Risk and Insurance Management Society",
+  "url": "https://www.rims.org/events/erm/erm-conference-2026",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-19",
+  "endDate": "2026-11-20",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Columbus",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Operations",
+   "Legal"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "400+ senior enterprise-risk, internal audit and compliance practitioners from corporates and insurers.",
+  "access": "PAID",
+  "costLow": 550,
+  "costHigh": 1450,
+  "costNote": "Member $910-$1,150, non-member $1,210-$1,450 (advance/regular/on-site); educational member $550-$650.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No call for speakers on the 2026 page.",
+  "cheaperWays": "Limited student slots with the Spencer Educational Foundation; educational member rate $550.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "risk manager",
+   "chief risk officer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "iasa-xchange",
+  "name": "IASA Xchange",
+  "organizer": "Insurance Accounting & Systems Association (IASA)",
+  "url": "https://www.iasa.org/IASA/Insights/News/2026/call-for-content-27.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-08",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Finance",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Insurer finance, accounting, ERM, technology and executive-education sessions for the people running carrier back offices.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not published on the call page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.iasa.org/IASA/Insights/News/2026/call-for-content-27.aspx",
+  "speakingDeadline": "2026-08-31",
+  "speakingNote": "30+ sessions across Accounting & Finance, ERM, Professional Development, Technology and Executive Education.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "roles": [
+   "risk manager",
+   "chief risk officer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "vertafore-accelerate",
+  "name": "Accelerate, Powered by NetVU (Vertafore user conference)",
+  "organizer": "Vertafore and NetVU",
+  "url": "https://accelerate.netvu.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Operations",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Thousands of independent agency owners, MGAs and carrier staff using Vertafore agency systems.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices are on the separate registration site, not the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brokerage and agency"
+  ],
+  "roles": [
+   "insurance broker",
+   "agency principal",
+   "producer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "healthapalooza",
+  "name": "HealthAPalooza (HAP27)",
+  "organizer": "LeClair Group",
+  "url": "https://healthapalooza.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-25",
+  "endDate": "2027-07-27",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Prior Lake",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Midwest health and life insurance agents meeting carriers and vendors, with CE credits in nine states.",
+  "access": "PAID",
+  "costLow": 249,
+  "costHigh": 249,
+  "costNote": "$249 two-day ticket per the site; the page still carried some HAP26 details.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Discount code available through a LeClair sales relationship manager (training@leclairgroup.com).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brokerage and agency"
+  ],
+  "roles": [
+   "insurance broker",
+   "producer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "pia-national-leadership-conference",
+  "name": "PIA National Annual Leadership Conference & Advocacy Day",
+  "organizer": "Professional Insurance Agents (PIA National)",
+  "url": "https://www.pianational.org/events-webinars/national-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Alexandria",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Independent agency principals and state-association leaders from across PIA affiliates, with an Advocacy Day on Capitol Hill.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not posted; 2026 edition ran Sept 13-16 in Alexandria, VA (with an Ascending Leaders Summit).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brokerage and agency"
+  ],
+  "roles": [
+   "agency principal",
+   "insurance broker",
+   "producer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "big-i-winter-meeting",
+  "name": "Big I Winter Meeting",
+  "organizer": "Independent Insurance Agents & Brokers of America",
+  "url": "https://www.independentagent.com/events/big-i-winter-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-13",
+  "endDate": "2027-01-16",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Rancho Mirage",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "State and national Big I leaders, boards and committee members from independent agencies across the country.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration not yet open.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Gathering of state and national leadership, boards and committees.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Brokerage and agency"
+  ],
+  "roles": [
+   "agency principal",
+   "insurance broker"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "insurexpo-north-carolina",
+  "name": "InsurEXPO (Independent Insurance Agents of North Carolina)",
+  "organizer": "Independent Insurance Agents of North Carolina (IIANC)",
+  "url": "https://iianc.com/conferences-events/insurexpo26",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Winston-Salem",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "About 800 attendees, 400+ of them North Carolina independent agents, meeting carriers and vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 listing found only on third-party sites; 2026 edition was Sept 17-18 in Winston-Salem.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Brokerage and agency"
+  ],
+  "roles": [
+   "insurance broker",
+   "producer",
+   "agency principal"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iasiu-annual-conference",
+  "name": "IASIU Annual Conference",
+  "organizer": "International Association of Special Investigation Units",
+  "url": "https://na.eventscloud.com/website/89890/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The premier training conference for insurance SIU investigators, with workshops on auto, property, workers' comp and life fraud.",
+  "access": "PAID",
+  "costLow": 825,
+  "costHigh": 1150,
+  "costNote": "2026 rates: member $825-$1,025, non-member $950-$1,150 by registration date. 2027 dates not yet posted (2026 ran Sept 20-23).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Contact iasiuinfo@iasiu.org for law-enforcement or other rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "special investigations unit investigator",
+   "claims leader"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "coalition-against-insurance-fraud-annual-meeting",
+  "name": "Coalition Against Insurance Fraud Annual Meeting",
+  "organizer": "Coalition Against Insurance Fraud",
+  "url": "https://insurancefraud.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-07",
+  "endDate": "2026-12-08",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Alexandria",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Insurer fraud executives, regulators, prosecutors and consumer advocates in one room.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration price not found; committee meetings are held Dec 7 at the Hilton Alexandria Mark Center.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "special investigations unit investigator",
+   "claims leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nasp-annual-conference",
+  "name": "NASP Annual Conference",
+  "organizer": "National Association of Subrogation Professionals",
+  "url": "https://www.subrogation.org/education/events2/annualconference-home",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-15",
+  "endDate": "2026-11-18",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The subrogation industry's biggest event: property, workers' comp and auto recovery professionals from carriers, law firms and vendors.",
+  "access": "PAID",
+  "costLow": 1950,
+  "costHigh": 2700,
+  "costNote": "Member $1,950; non-member $2,700; CLE add-on $700; guests $600.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.subrogation.org/education/events2/annualconference-home",
+  "speakingDeadline": null,
+  "speakingNote": "Call for speakers runs through Whova; deadline not shown.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "subrogation specialist",
+   "claims leader"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "iaiabc-convention",
+  "name": "IAIABC Convention",
+  "organizer": "International Association of Industrial Accident Boards and Commissions",
+  "url": "https://www.iaiabc.org/events/iaiabc-113th-convention",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-20",
+  "endDate": "2027-09-22",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Philadelphia",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Workers' comp regulators, medical directors, insurers, claims administrators and attorneys.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found; 2026 speakers got a $575 registration rate.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://iaiabc.org/convention-call-for-proposals",
+  "speakingDeadline": null,
+  "speakingNote": "Annual call for proposals opens in February for that year's convention.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "claims leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iaiabc-forum",
+  "name": "IAIABC Forum",
+  "organizer": "International Association of Industrial Accident Boards and Commissions",
+  "url": "https://www.iaiabc.org/events/the-iaiabc-forum-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Santa Fe",
+  "state": "NM",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Workers' comp claims, data and regulatory professionals in a spring working meeting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "claims leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "acfe-global-fraud-conference",
+  "name": "ACFE Global Fraud Conference",
+  "organizer": "Association of Certified Fraud Examiners",
+  "url": "https://www.acfe.com/speaker-proposal.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-11",
+  "endDate": "2027-07-16",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Philadelphia",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Legal",
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The world's largest anti-fraud gathering: fraud examiners, SIU investigators, auditors and compliance staff.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration price not shown on the call page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.acfe.com/speaker-proposal.aspx",
+  "speakingDeadline": "2026-12-11",
+  "speakingNote": "Concurrent sessions only; anyone may submit; keynotes are not in the call.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "special investigations unit investigator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naca-annual-convention",
+  "name": "NACA Annual Convention",
+  "organizer": "National Association of Catastrophe Adjusters",
+  "url": "https://www.nacaadjuster.org/events-0",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-24",
+  "endDate": "2027-01-28",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Reno",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Catastrophe adjusters, independent adjusting firms and carrier claims staff.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed; NACA members get the member rate.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "claims leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "national-comp-conference",
+  "name": "National Comp Conference and Trade Show",
+  "organizer": "National Comp",
+  "url": "https://nationalcomp.org/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-11-02",
+  "endDate": "2027-11-03",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "3,000+ workers' comp claims, risk, benefits and return-to-work professionals; 63% director level or above.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing is on a separate 2027 registration page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "claims leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ccwc-annual-conference",
+  "name": "CCWC Annual Conference",
+  "organizer": "California Coalition on Workers' Compensation",
+  "url": "https://ccwcworkcomp.org/Events/Annual-Conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-06",
+  "endDate": "2027-07-08",
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "California workers' comp claims leaders, employers, defense attorneys and regulators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 member early-bird was $550; 2027 rates not posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://ccwcworkcomp.org/Events/Annual-Conference",
+  "speakingDeadline": "2026-10-30",
+  "speakingNote": "One-hour sessions, max three panelists; members get priority.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Claims and fraud"
+  ],
+  "roles": [
+   "claims leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "mhpa-annual-conference",
+  "name": "MHPA Annual Conference (Medicaid Health Plans of America)",
+  "organizer": "Medicaid Health Plans of America",
+  "url": "https://www.medicaidplans.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-20",
+  "endDate": "2027-10-22",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Executives of multistate, regional and single-state Medicaid managed care plans with policymakers and regulators.",
+  "access": "PAID",
+  "costLow": 595,
+  "costHigh": 2495,
+  "costNote": "2025 rates: MHPA member plans $595, non-member plans $1,795, partners $1,595, industry $2,495; 2027 rates not posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government officials free (pre-approval); academics $995; speakers $595.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Health plans and payers"
+  ],
+  "roles": [
+   "health plan executive",
+   "payer product lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "amcp-nexus",
+  "name": "AMCP Nexus",
+  "organizer": "Academy of Managed Care Pharmacy",
+  "url": "https://amcpnexus.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-26",
+  "endDate": "2026-10-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Pharmacy and medical directors from health plans, PBMs and payers plus manufacturers, on formulary and utilization topics.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not read; next Nexus Oct 18-21, 2027 in Orlando.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Health plans and payers"
+  ],
+  "roles": [
+   "utilization management lead",
+   "payer product lead",
+   "health plan executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ncqa-health-innovation-summit",
+  "name": "NCQA Health Innovation Summit",
+  "organizer": "National Committee for Quality Assurance",
+  "url": "https://www.ncqa.org/about-ncqa/sponsorship-events",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-11-14",
+  "endDate": "2027-11-17",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Data & Analytics",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "1,500+ health plan and quality leaders: HEDIS, digital quality and accreditation decision-makers.",
+  "access": "PAID",
+  "costLow": 1650,
+  "costHigh": 2395,
+  "costNote": "2026 rates: general $2,250-$2,395; government/FQHC/nonprofit $1,650-$1,900; groups of 10-20 from $1,850. 2027 rates not posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://events.ncqa.org/summit2026/cfs/faq",
+  "speakingDeadline": null,
+  "speakingNote": "Call for speakers run annually (2026 FAQ).",
+  "cheaperWays": "Government, FQHC and nonprofit rates; group rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Health plans and payers"
+  ],
+  "roles": [
+   "health plan executive",
+   "payer product lead",
+   "utilization management lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "beckers-fall-payer-issues-roundtable",
+  "name": "Becker's Fall Payer Issues Roundtable",
+  "organizer": "Becker's Healthcare",
+  "url": "https://conferences.beckershospitalreview.com/FallPayer-2026",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-02",
+  "endDate": "2026-11-03",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "500+ payer and health plan executives plus ACO and CIN leaders.",
+  "access": "PAID",
+  "costLow": 2500,
+  "costHigh": 6500,
+  "costNote": "Payer, provider, health plan and ACO staff $2,500; vendors $6,500.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": "https://conferences.beckershospitalreview.com/call-for-speakers",
+  "speakingDeadline": null,
+  "speakingNote": "Becker's runs a call for speakers page.",
+  "cheaperWays": "Complimentary participation application for qualifying attendees.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Health plans and payers"
+  ],
+  "roles": [
+   "health plan executive",
+   "payer product lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "beckers-spring-payer-issues-roundtable",
+  "name": "Becker's Spring Payer Issues Roundtable",
+  "organizer": "Becker's Healthcare",
+  "url": "https://www.beckershospitalreview.com/events/spring-payer-issues-roundtable-2027/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-20",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "300+ payer executives and health plan leaders with 120+ speakers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pricing not read (fall edition payer rate is $2,500).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Health plans and payers"
+  ],
+  "roles": [
+   "health plan executive",
+   "payer product lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fierce-health-payer-summit",
+  "name": "Fierce Health Payer Summit",
+  "organizer": "Fierce Healthcare",
+  "url": "https://www.fiercehealthpayersummit.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-30",
+  "endDate": "2026-12-02",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Curated 1:1 meetings between payer decision-makers and solution providers on Medicare, Medicaid and Stars strategy.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Advance rates up to $300 off through Nov 2; paid passes for providers and vendors, price not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Health plan employees can apply for a complimentary VIP pass (limited, 1:1 meetings required for travel credits); .edu/.gov applicants have a separate category.",
+  "applyUrl": "https://www.fiercehealthpayersummit.com/fiercehealthpayersummi/register",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Health plans and payers"
+  ],
+  "roles": [
+   "health plan executive",
+   "payer product lead",
+   "utilization management lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "acma-national-conference",
+  "name": "ACMA National Conference",
+  "organizer": "American Case Management Association",
+  "url": "https://www.acmaweb.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-18",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Insurance"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Case management, utilization review and physician-advisor leaders across hospitals and payers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed; leadership and physician advisor conference is separate (Nov 2026, Nashville).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Health plans and payers"
+  ],
+  "roles": [
+   "utilization management lead"
+  ],
+  "journeys": []
+ }
+]

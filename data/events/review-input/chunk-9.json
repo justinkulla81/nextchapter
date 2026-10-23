@@ -1,0 +1,837 @@
+[
+ {
+  "id": "chief-summit",
+  "name": "Chief annual summit",
+  "organizer": "Chief",
+  "url": "https://chief.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Chief is a members-only network (annual membership, aimed at leaders with 15+ years of experience); ChiefX summits are for members. Membership price and 2027 summit dates not published on pages read.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Senior women leaders in a vetted community with annual summits and private clubhouse events.",
+  "segments": [],
+  "industries": []
+ },
+ {
+  "id": "leadscon",
+  "name": "LeadsCon",
+  "organizer": "LeadsCon",
+  "url": "https://www.leadscon.com/",
+  "startDate": "2027-04-05",
+  "endDate": "2027-04-07",
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a roundup, not read from the site.",
+  "speaking": "UNKNOWN",
+  "source": "event listing",
+  "whyAttend": "Lead generation, inside sales and performance marketing professionals.",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "industries": []
+ },
+ {
+  "id": "silicon-slopes-summit",
+  "name": "Silicon Slopes Summit",
+  "organizer": "Silicon Slopes",
+  "url": "https://siliconslopes.com/summit",
+  "startDate": "2027-03-18",
+  "endDate": "2027-03-19",
+  "typicalMonth": "March",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read. Page says veterans and transitioning service members register free.",
+  "speaking": "OPEN_CFP",
+  "source": "official site",
+  "whyAttend": "Utah and Mountain West founders, investors and operators; includes a veteran pitch competition.",
+  "segments": [
+   "Founder communities and accelerators",
+   "Underrepresented and veteran founders"
+  ],
+  "industries": []
+ },
+ {
+  "id": "wpo-annual-conference",
+  "name": "WPO Annual Conference",
+  "organizer": "Women Presidents' Organization",
+  "url": "https://www.womenpresidentsorg.com/news-events/annual-conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official page not readable this session; 2027 details not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Presidents of multimillion-dollar women-owned or -led firms; the 50 Fastest-Growing Women-Owned/Led Companies are announced there.",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "industries": []
+ },
+ {
+  "id": "adcolor-conference",
+  "name": "ADCOLOR Conference",
+  "organizer": "ADCOLOR",
+  "url": "https://www.adcolor.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "November",
+  "city": "Los Angeles",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page still showed the Nov 2023 edition; current dates unconfirmed.",
+  "speaking": "UNKNOWN",
+  "source": "search listing (lead)",
+  "whyAttend": "Diversity-focused gathering of ad, marketing, media and tech professionals at all levels.",
+  "segments": [
+   "Brand and creative"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "marketingprofs-b2b-forum",
+  "name": "MarketingProfs B2B Marketing Forum",
+  "organizer": "MarketingProfs",
+  "url": "https://www.marketingprofs.com",
+  "startDate": "2026-11-02",
+  "endDate": "2026-11-04",
+  "typicalMonth": "November",
+  "city": "Boston",
+  "state": "MA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official event page blocked; pricing unknown.",
+  "speaking": "UNKNOWN",
+  "source": "search listing (lead)",
+  "whyAttend": "B2B content, demand gen and brand marketers; 2026 edition per MarketingProfs and a CMO roundup.",
+  "segments": [
+   "B2B and demand generation marketing",
+   "Content and social media marketing"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "the-conference-board-corporate-communications-brand-summit",
+  "name": "The Conference Board Corporate Communications & Brand Summit",
+  "organizer": "The Conference Board",
+  "url": "https://www.conference-board.org/pdf_free/agendas/Corporate-Communications-Brand-Agenda-915027.pdf",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-03",
+  "typicalMonth": "March",
+  "city": "Brooklyn",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a search snippet of an agenda PDF; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Chief communications and corporate affairs officers swap notes on the CEO-CCO relationship, AI and trust.",
+  "segments": [
+   "Public relations and corporate communications"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "conference-for-shellfish-growers",
+  "name": "Conference for Shellfish Growers",
+  "organizer": "Washington Sea Grant",
+  "url": "https://wsg.washington.edu/event/2026-conference-for-shellfish-growers",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": "Union",
+  "state": "WA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Feb 9-10; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "Pacific Northwest shellfish producers, researchers and regulators.",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "automated-transportation-symposium",
+  "name": "Automated Road Transportation Symposium",
+  "organizer": "TRB / SAE International",
+  "url": "https://trb.secure-platform.com/a/page/AutomatedRoadTransportationSymposium",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "July",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 listed by aggregators for late July in San Diego; not confirmed on an official page.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Researchers, OEMs and public agencies working on automated driving policy and deployment.",
+  "segments": [
+   "Autonomous vehicles and mobility tech"
+  ],
+  "industries": [
+   "Automotive & Mobility",
+   "Transportation & Logistics",
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "grounded-solutions-network-conference",
+  "name": "Grounded Solutions Network Conference",
+  "organizer": "Grounded Solutions Network",
+  "url": "https://groundedsolutions.org/?p=669",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition May 27-29; 2027 not announced on pages seen.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Community land trust, shared-equity and inclusionary housing practitioners (460+ attended in 2025).",
+  "segments": [
+   "Affordable housing and community development"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "novogradac-new-markets-tax-credit-conference",
+  "name": "Novogradac New Markets Tax Credit Conference",
+  "organizer": "Novogradac",
+  "url": "https://www.novoco.com/events/upcoming-conferences",
+  "startDate": "2027-01-21",
+  "endDate": "2027-01-22",
+  "typicalMonth": "January",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read; two Novogradac sources disagree on the day.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Community development entities, CDFIs and investors doing NMTC deals; the Novogradac site and its sponsor document show Jan 21-22 vs Jan 22-23.",
+  "segments": [
+   "Affordable housing and community development"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "ewa-national-seminar",
+  "name": "EWA National Seminar",
+  "organizer": "Education Writers Association",
+  "url": "https://ewa.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "Spring",
+  "city": "Minneapolis",
+  "state": "MN",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates not confirmed; attendance requires EWA membership.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Education journalists, researchers and policy analysts; the 80th seminar is slated for Minneapolis.",
+  "segments": [
+   "Education policy and school districts"
+  ],
+  "industries": [
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "garp-climate-and-nature-risk-symposium",
+  "name": "GARP Climate and Nature Risk Symposium",
+  "organizer": "GARP",
+  "url": "https://www.garp.org/event/2026-climate-and-nature-risk-symposium/recap",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "London",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition in early planning; dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Bank, regulator and asset-manager climate risk professionals.",
+  "segments": [
+   "Sustainability, ESG and climate"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "a-team-ai-data-management-summit",
+  "name": "A-Team AI in Data Management Summit New York",
+  "organizer": "A-Team Group",
+  "url": "https://a-teaminsight.com/events/ai-in-data-management-summit-new-york-city/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed for March 2027 in a search snippet only; page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "search snippet",
+  "whyAttend": "Capital-markets data management, governance and AI practitioners.",
+  "segments": [
+   "Capital markets and trading"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "money20-20-europe",
+  "name": "Money20/20 Europe",
+  "organizer": "Money20/20",
+  "url": "https://europe.money2020.com/",
+  "startDate": "2027-06-08",
+  "endDate": "2027-06-10",
+  "typicalMonth": "June",
+  "city": "Amsterdam",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from third-party listings (RAI Amsterdam).",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing; lead only",
+  "whyAttend": "The European arm of the main payments and fintech show; American fintechs attend for expansion.",
+  "segments": [
+   "Payments and fintech"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "fdic-international",
+  "name": "FDIC International",
+  "organizer": "Clarion Events",
+  "url": "https://www.fdic.com",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-17",
+  "typicalMonth": "April",
+  "city": "Indianapolis",
+  "state": "IN",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates come from search listings; the page shows a 2027 banner and says registration is open but no prices. Organizer inferred from Clarion links on the page.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "The big fire service training show: hands-on training, classes and 800+ exhibitors for officers and chiefs.",
+  "segments": [
+   "Public safety and emergency management"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "senior-executive-leadership-summit",
+  "name": "Senior Executive Leadership Summit",
+  "organizer": "Senior Executives Association with the Partnership for Public Service",
+  "url": "https://www.seniorexecs.org/senior-executive-leadership-summit",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says 2027 summit information is pending; no dates or fees.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Career members of the Senior Executive Service and those preparing to enter it.",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "becker-s-annual-meeting",
+  "name": "Becker's Healthcare Annual Meeting",
+  "organizer": "Becker's Healthcare",
+  "url": "https://www.beckershospitalreview.com/events/17th-annual-meeting/",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-22",
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Search snippet of Becker's page gives Apr 19-22, 2027 Hyatt Regency Chicago; page returned 403.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Health system CEOs, CFOs, CIOs and executives.",
+  "segments": [],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "reuters-events-digital-health-usa",
+  "name": "Reuters Events Digital Health USA",
+  "organizer": "Reuters Events",
+  "url": "https://events.reutersevents.com/healthcare/digital-health-usa",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page blocked automated reading; 2027 dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official site (unverified lead)",
+  "whyAttend": "Senior digital, technology and clinical leaders across health systems and payers.",
+  "segments": [
+   "Digital health and virtual care"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "rfdc",
+  "name": "Restaurant Finance & Development Conference (RFDC)",
+  "organizer": "Restaurant Finance Monitor",
+  "url": "https://www.franchisetimes.com/franchise_news/conference-preview-operators-tap-into-key-restaurant-intel-at-rfdc/article_cc6717d5-84e5-4abb-95be-94df9b93aef4.html",
+  "startDate": "2026-11-09",
+  "endDate": "2026-11-11",
+  "typicalMonth": "November",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a Franchise Times preview, not the conference site.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Restaurant operators, lenders and investors.",
+  "segments": [
+   "Restaurants and food service"
+  ],
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ]
+ },
+ {
+  "id": "iri-annual-conference",
+  "name": "IRI Annual Conference",
+  "organizer": "Insured Retirement Institute",
+  "url": "https://www.irionline.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "950+ annuity and retirement-income leaders from carriers, distributors and asset managers.",
+  "segments": [
+   "Life, annuity and benefits"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "les-usa-canada-annual-meeting",
+  "name": "LES USA & Canada Annual Meeting",
+  "organizer": "Licensing Executives Society USA & Canada",
+  "url": "https://lesi.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 USA-Canada details not found; LESI 2027 Annual Conference listed Apr 25-28 in Orlando.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Technology licensing and IP transaction professionals; the 2026 meeting is Oct 18-21 in San Diego.",
+  "segments": [
+   "Intellectual property"
+  ],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "international-maintenance-conference",
+  "name": "International Maintenance Conference (IMC)",
+  "organizer": "Reliabilityweb",
+  "url": "https://reliabilityweb.com",
+  "startDate": "2026-12-07",
+  "endDate": "2026-12-10",
+  "typicalMonth": "December",
+  "city": "Marco Island",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from search snippets; event page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "Reliability leaders and asset managers; 40th edition.",
+  "segments": [
+   "Maintenance, reliability and asset management"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "aupresses-annual-meeting",
+  "name": "AUPresses Annual Meeting",
+  "organizer": "Association of University Presses",
+  "url": "https://aupresses.org/events/aupresses-2026-annual-meeting/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 meeting June 13-15 Seattle; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "University press staff.",
+  "segments": [
+   "Publishing and book industry"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "spj-national-convention",
+  "name": "SPJ National Convention",
+  "organizer": "Society of Professional Journalists",
+  "url": "https://www.spj.org/calendar/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "SPJ26 was in Columbus; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Working journalists, student chapters and press-freedom advocates.",
+  "segments": [
+   "Journalism and news"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "compact27-campus-compact",
+  "name": "Compact27 (Campus Compact)",
+  "organizer": "Campus Compact",
+  "url": "https://www.compact.org/current-programs/annual-conference",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "typicalMonth": "June",
+  "city": "Los Angeles",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a listing; compact.org page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "Community engagement staff and campus-community partners.",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "bio-it-world-venture-innovation-partnering-conference",
+  "name": "Bio-IT World Venture, Innovation & Partnering Conference",
+  "organizer": "Cambridge Healthtech Institute",
+  "url": "https://bio-itworldexpo.com/investor",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-18",
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Date from a search summary; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Senior investors, corporate executives and startup leaders in biotech and drug discovery.",
+  "segments": [
+   "Biotech business and investing"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "agile-devops-usa",
+  "name": "Agile + DevOps USA",
+  "organizer": "TechWell",
+  "url": "https://agiledevopseast.techwell.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Agile, delivery and DevOps conference with leadership summit for managers.",
+  "segments": [
+   "Project and program management"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ]
+ },
+ {
+  "id": "etail-west",
+  "name": "eTail West",
+  "organizer": "Worldwide Business Research (WBR)",
+  "url": "https://etailwest.wbresearch.com",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-25",
+  "typicalMonth": "February",
+  "city": "Palm Springs",
+  "state": "CA",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from third-party listings; organizer page not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "E-commerce executives at retailers and brands meet solution providers; sessions on conversion and marketplaces.",
+  "segments": [
+   "E-commerce and digital commerce"
+  ],
+  "industries": [
+   "Retail & E-commerce"
+  ]
+ },
+ {
+  "id": "international-columbia-coaching-conference",
+  "name": "International Columbia Coaching Conference",
+  "organizer": "Teachers College, Columbia University",
+  "url": "https://www.columbiacoachingconference.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "official site + search snippet",
+  "whyAttend": "Academic and practitioner coaching conference run since 2014; most recent edition found was October 2025.",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "beya-stem-conference",
+  "name": "BEYA STEM Conference",
+  "organizer": "Career Communications Group",
+  "url": "https://www.blackengineer.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": "Baltimore",
+  "state": "MD",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 listings (Feb 18-20, Baltimore) seen only on third-party sites; not confirmed on the organizer's site.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "Black STEM students and professionals with a large career fair and awards; 2026 edition was Feb 13-15 in Baltimore.",
+  "segments": [
+   "Advanced manufacturing and automation",
+   "Software engineering leadership"
+  ],
+  "industries": [
+   "Technology & Software",
+   "Aerospace & Defense",
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "interaction-ixda",
+  "name": "Interaction (IxDA)",
+  "organizer": "Interaction Design Association",
+  "url": "https://ixda.org/initiatives/interaction/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page lists past editions only (latest Interaction 23, Zurich); no upcoming edition found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "IxDA's annual global interaction-design conference.",
+  "segments": [
+   "Design and user experience"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "seleniumconf",
+  "name": "SeleniumConf",
+  "organizer": "Selenium project",
+  "url": "https://selenium.dev/events",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Events page shows the 2025 edition in Valencia and a 2026 banner for May 6-8; no 2027 edition found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "The Selenium and Appium open source community's conference for test automation engineers.",
+  "segments": [
+   "Quality and testing"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "scte-techexpo",
+  "name": "SCTE TechExpo",
+  "organizer": "SCTE",
+  "url": "https://techexpo.scte.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "OPEN_CFP",
+  "source": "official site (partial)",
+  "whyAttend": "Cable and broadband engineers and operators; 2026 edition is current, 2027 interest list open.",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "industries": [
+   "Telecommunications"
+  ]
+ },
+ {
+  "id": "nasstrac-shippers-conference",
+  "name": "NASSTRAC Shippers Conference & Transportation Expo",
+  "organizer": "National Shippers Strategic Transportation Council",
+  "url": "https://www.nasstrac.org/conference/default.html",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "No 2027 dates or pricing found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (no 2027 info)",
+  "whyAttend": "Shipper transportation managers meet parcel, LTL and truckload carriers.",
+  "segments": [
+   "Last mile and parcel"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ }
+]

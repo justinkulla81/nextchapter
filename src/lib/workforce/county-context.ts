@@ -1,8 +1,8 @@
 /**
  * A board's local economy from bundled public data (built by
  * scripts/workforce/build-county-context.ts): county population from the
- * Census Bureau (2020 → 2024) and private-sector employment by NAICS sector
- * from BLS QCEW (2022 → 2024). Sums a board's counties; a sector a county
+ * Census Bureau (2020 → 2025) and private-sector employment by NAICS sector
+ * from BLS QCEW (2022 → 2025). Sums a board's counties; a sector a county
  * suppresses for confidentiality is left out of that county, never counted as
  * zero.
  */
@@ -34,7 +34,7 @@ export interface AreaContext {
   population: { now: number; changePct: number } | null
   /** Share of private-sector jobs in AI-exposed sectors, and the biggest of them. */
   exposed: { share: number; top: { label: string; share: number }[] } | null
-  /** Sectors that lost the most jobs 2022 → 2024 (a real loss: 2%+ and 300+ jobs). */
+  /** Sectors that lost the most jobs 2022 → 2025 (a real loss: 2%+ and 300+ jobs). */
   shrinking: SectorChange[]
   /** Sectors that added the most jobs (3%+ and 300+ jobs). */
   growing: SectorChange[]

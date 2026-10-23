@@ -17,7 +17,7 @@ function categoryFor(f: string): BenefitCategory | null {
   if (f === 'state-training.md' || f === 'state_ai.md' || /^state_local_.*\.md$/.test(f)) return 'STATE_TRAINING'
   if (f === 'federal.md') return 'FEDERAL'
   if (f === 'courses.md') return 'COURSES'
-  if (f === 'private.md') return 'PRIVATE'
+  if (f === 'private.md' || /^community_.*\.md$/.test(f)) return 'PRIVATE'
   if (/^audience_.*\.md$/.test(f)) return 'SEGMENT'
   if (f === 'paid.md') return 'PAID'
   if (f === 'tax.md') return 'TAX'
@@ -54,5 +54,13 @@ const slim = rows.filter((r) => !NOT_A_PROGRAM.test(r.name)).map((r) => {
     checkedAt: verified ? (c ? builtAt.toISOString() : r.checkedAt ? r.checkedAt.toISOString() : null) : null,
   }
 })
-writeFileSync(join(__dirname, '../../src/lib/benefits/catalog.json'), JSON.stringify({ builtAt: builtAt.toISOString(), rows: slim }))
-console.log(`${slim.length} programs, ${slim.filter((r) => r.verified).length} verified`)
+// A program listed in two research files is one program: keep one row per id, preferring the confirmed copy, so the database
+// (one row per id) never keeps an unconfirmed copy over a confirmed one.
+const byId = new Map<string, (typeof slim)[number]>()
+for (const r of slim) {
+  const cur = byId.get(r.id)
+  if (!cur || (r.verified && !cur.verified) || (r.verified === cur.verified && !cur.url && r.url)) byId.set(r.id, r)
+}
+const deduped = [...byId.values()]
+writeFileSync(join(__dirname, '../../src/lib/benefits/catalog.json'), JSON.stringify({ builtAt: builtAt.toISOString(), rows: deduped }))
+console.log(`${deduped.length} programs (${slim.length - deduped.length} duplicate rows merged), ${deduped.filter((r) => r.verified).length} verified`)

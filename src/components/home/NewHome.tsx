@@ -30,7 +30,7 @@ const FOOTER_LINKS = [
   { label: 'Funding', href: '/funding' },
   { label: 'Resources', href: '/resources' },
   { label: 'FAQ', href: '/faq' },
-  { label: 'Pricing', href: '/pricing' },
+  { label: 'Plans', href: '/pricing' },
   { label: 'Security', href: '/security' },
   { label: 'Contact', href: '/contact' },
   { label: 'Privacy', href: '/privacy-policy' },

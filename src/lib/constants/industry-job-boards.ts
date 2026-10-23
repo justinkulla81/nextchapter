@@ -29,7 +29,7 @@ const INDUSTRY_JOB_BOARDS_BY_KEYWORD: { keywords: string[]; boards: JobBoardReco
   },
   {
     keywords: ['education', 'higher ed', 'university', 'academic', 'academia'],
-    boards: [{ name: 'HigherEdJobs', url: 'https://www.higheredjobs.com', description: 'University and higher-ed administration roles' }],
+    boards: [{ name: 'HigherEdJobs', url: 'https://www.higheredjobs.com', description: 'University and higher education administration roles' }],
   },
   {
     keywords: ['tech', 'technology', 'software', 'engineering', 'startup', 'saas'],

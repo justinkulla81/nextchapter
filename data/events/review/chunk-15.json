@@ -1,0 +1,1015 @@
+[
+ {
+  "id": "forbes-under-30-summit",
+  "action": "publish",
+  "reason": "forbes.com Forbes Connect page lists 2027 Forbes Under 30 Summit Feb 21-24, 2027 in Scottsdale AZ (hybrid); venue to be announced to registrants.",
+  "patch": {
+   "url": "https://www.forbes.com/connect/event/2027-forbes-under-30-summit/",
+   "startDate": "2027-02-21",
+   "endDate": "2027-02-24",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Scottsdale",
+   "state": "AZ",
+   "format": "HYBRID",
+   "access": "MIXED",
+   "costNote": "Pricing not published on the page read; register through Forbes Connect.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "seniorities": [
+    "EARLY"
+   ],
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "nawbo-womens-business-conference",
+  "action": "publish",
+  "reason": "nawbo.org lists NAWBO national events (NAWBO Days May 31-Jun 2 2026 in DC, sold out) and a 2027 national women business conference listing for Oct 25-27 2027 in Nashville on an archived page; usual national slot is early June, 2027 dates not firmly confirmed.",
+  "patch": {
+   "url": "https://nawbo.org/events/category/national",
+   "startDate": null,
+   "endDate": null,
+   "typicalMonth": "June",
+   "city": "Washington",
+   "state": "DC",
+   "access": "PAID",
+   "costNote": "Pricing not read; NAWBO Days 2026 was sold out. A 2027 national conference in Nashville (Oct 25-27) appears on an older nawbo.org listing, confirm before relying on it.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Join a local NAWBO chapter for member rates.",
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "texas-eta-conference-rice",
+  "action": "publish",
+  "reason": "Rice Business page: 4th annual Texas ETA Conference held Oct 16 2026 at Rice (now over, registration had hit capacity); annual so next is expected October.",
+  "patch": {
+   "url": "https://business.rice.edu/texas-eta-conference",
+   "typicalMonth": "October",
+   "city": "Houston",
+   "state": "TX",
+   "access": "PAID",
+   "costLow": 50,
+   "costHigh": 150,
+   "costNote": "Registration page (undated) lists $150 general, $100 Rice alumni, $50 Rice students; 2026 edition sold out with a waitlist.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Rice Business student rate $50, alumni rate $100; complimentary access page for sponsors and volunteers.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Venture Capital & Private Equity"
+   ],
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "fei-cfri",
+  "action": "publish",
+  "reason": "FEI search results on financialexecutives.org/cfri.financialexecutives.org: CFRI 2026 is virtual, Nov 10-12 2026, 45th year, up to 15 CPE.",
+  "patch": {
+   "url": "https://cfri.financialexecutives.org/",
+   "startDate": "2026-11-10",
+   "endDate": "2026-11-12",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "format": "VIRTUAL",
+   "access": "PAID",
+   "costNote": "Pricing not read; CPE-accredited replays and one-year on-demand access offered.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT"
+   ],
+   "industries": [
+    "Accounting & Audit",
+    "Financial Services & Banking"
+   ],
+   "functions": [
+    "Finance"
+   ],
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "arf-audiencexscience",
+  "action": "publish",
+  "reason": "thearf.org shows AUDIENCExSCIENCE annual in NYC (2026 edition Mar 18-19, 2025 Mar 25-26); 2027 not yet announced.",
+  "patch": {
+   "url": "https://thearf.org/arf-events/audiencexscience-2026/",
+   "typicalMonth": "March",
+   "city": "New York",
+   "state": "NY",
+   "access": "PAID",
+   "costNote": "Speaker 2-day passes were $599 for 2026; general pricing not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://thearf.org/arf-events/audiencexscience-2026-call-for-content-frequently-asked-questions/",
+   "speakingNote": "Annual call for content reviewed by a Board of Curators; no entry fee.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "podcast-movement-new-york",
+  "action": "publish",
+  "reason": "podcastmovement.com lists Podcast Movement returning to New York City in 2027 (2026 edition was NYC in September); exact 2027 dates not published.",
+  "patch": {
+   "url": "https://podcastmovement.com/events/",
+   "typicalMonth": "September",
+   "city": "New York",
+   "state": "NY",
+   "access": "PAID",
+   "costNote": "2027 pricing not published.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://podcastmovement.com/events/",
+   "speakingNote": "Speaker submissions ran ahead of the 2026 NYC edition.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "commercial-uav-expo",
+  "action": "publish",
+  "reason": "expouav.com: Commercial UAV Expo Sept 7-9, 2027 at Caesars Forum Las Vegas; registration open; call for speakers closes Feb 20 2027.",
+  "patch": {
+   "url": "https://www.expouav.com/",
+   "startDate": "2027-09-07",
+   "endDate": "2027-09-09",
+   "datesConfirmed": true,
+   "city": "Las Vegas",
+   "state": "NV",
+   "access": "MIXED",
+   "costNote": "Pricing page still shows 2026 rates; exhibit-hall pass available; group discount for 5+.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.expouav.com/call-for-speakers/",
+   "speakingDeadline": "2027-02-20",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "cheaperWays": "Exhibit hall pass access.",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "pcsga-nsa-pcs-annual-shellfish-conference",
+  "action": "publish",
+  "reason": "pcsga.org: 80th conference 2026; 81st annual listed for Sept 13 at Hilton Vancouver Washington; call for presentations page exists.",
+  "patch": {
+   "url": "https://pcsga.org/events/",
+   "typicalMonth": "September",
+   "city": "Vancouver",
+   "state": "WA",
+   "access": "PAID",
+   "costLow": 475,
+   "costHigh": 675,
+   "costNote": "2025 prices: member $475, non-member $675.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://pcsga.org/call-for-presentations/",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "cheaperWays": "PCSGA / NSA-PCS member price.",
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "sustainable-fleet-technology-conference-expo",
+  "action": "publish",
+  "reason": "NC State NC Clean Energy Technology Center and sustainablefleetexpo.com: 2027 SFT Conference & Expo Aug 17-19 2027, Durham Convention Center; call for topics opens this fall.",
+  "patch": {
+   "url": "https://www.sustainablefleetexpo.com/",
+   "startDate": "2027-08-17",
+   "endDate": "2027-08-19",
+   "datesConfirmed": true,
+   "city": "Durham",
+   "state": "NC",
+   "access": "PAID",
+   "costNote": "2027 pricing not yet published.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.sustainablefleetexpo.com/",
+   "speakingNote": "Call for Topics opens fall 2026.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "ncda-national-conference",
+  "action": "publish",
+  "reason": "ncdaonline.org: NCDA annual conference held June 2026 (Pittsburgh), event app NCDAAnnual26; annual in June; 2027 winter meeting also listed.",
+  "patch": {
+   "url": "https://ncdaonline.org/",
+   "typicalMonth": "June",
+   "access": "PAID",
+   "costNote": "Pricing not read; NCDA is a membership association of local governments and some events sit under members-only pages.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Join NCDA (membership page) for member rates.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "source": "official domain search",
+   "industries": [
+    "Government & Public Sector"
+   ],
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "ecrm-sessions",
+  "action": "publish",
+  "reason": "ecrm.marketgate.com lists 2027 sessions across categories, e.g. Convenience Jan 25-27 2027 Dallas, Snack/Canned Dry Feb 16-18 Chicago, Private Label Apr 12-14 Las Vegas, Foodservice Apr 13-15 Las Vegas; dates differ across pages.",
+  "patch": {
+   "url": "https://ecrm.marketgate.com/sessions",
+   "startDate": "2027-01-25",
+   "endDate": "2027-01-27",
+   "datesConfirmed": true,
+   "typicalMonth": "January",
+   "city": "Dallas",
+   "state": "TX",
+   "access": "APPLY",
+   "applyUrl": "https://ecrm.marketgate.com/sessions",
+   "costNote": "Curated buyer-supplier meeting sessions; supplier fees apply and pricing is per program, not read. Many sessions per year in different categories and cities.",
+   "speaking": "NONE",
+   "cheaperWays": "Buyers attend at no cost per ECRM buyer program pages; apply through the sessions page.",
+   "programFormats": [
+    "NETWORKING",
+    "EXPO"
+   ],
+   "industries": [
+    "Consumer Packaged Goods",
+    "Retail & E-commerce"
+   ],
+   "functions": [
+    "Sales"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "ncpn-connect",
+  "action": "publish",
+  "reason": "ncpn.info: NCPN CONNECT 2027 Feb 18-20, Grand Hyatt San Antonio Riverwalk; registration open; proposals closed.",
+  "patch": {
+   "url": "https://www.ncpn.info/ncpn-connect-2027/",
+   "startDate": "2027-02-18",
+   "endDate": "2027-02-20",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "San Antonio",
+   "state": "TX",
+   "access": "PAID",
+   "costNote": "Rates on registration page, not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.ncpn.info/ncpn-connect-2027/",
+   "speakingNote": "2027 proposal submissions have closed; annual call.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Education & EdTech",
+    "Government & Public Sector"
+   ],
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "country": "US"
+  }
+ },
+ {
+  "id": "responsible-business-usa",
+  "action": "publish",
+  "reason": "Reuters Events official page: Responsible Business USA 2027 in Boston, May 2027, register interest open; pages disagree on exact May dates.",
+  "patch": {
+   "url": "https://events.reutersevents.com/sustainable-business/responsible-business-usa",
+   "typicalMonth": "May",
+   "city": "Boston",
+   "state": "MA",
+   "access": "PAID",
+   "costNote": "2027 pricing not published; register interest.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "dc-fintech-week",
+  "action": "drop",
+  "reason": "2026 edition (Oct 13-16) is over and dcfintechweek.com/.org redirects to an empty page; only third-party listings (GDF, BIS, Georgetown) support dates, so no organizer evidence for a next edition."
+ },
+ {
+  "id": "wsj-cfo-coo-council-summit",
+  "action": "drop",
+  "reason": "Only a CFO Dive roundup supports the May 2027 Middleburg dates; wsj.com not reachable and no organizer page found, invitation-only council event with no usable organizer evidence."
+ },
+ {
+  "id": "naswa-winter-policy-forum",
+  "action": "publish",
+  "reason": "naswa.org: 2027 Winter Policy Forum Feb 10 2027 (conference week Feb 9-12), Hyatt Regency Capitol Hill, Washington DC.",
+  "patch": {
+   "url": "https://www.naswa.org/conferences/save-the-date-naswa-conferences",
+   "startDate": "2027-02-10",
+   "endDate": "2027-02-10",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Washington",
+   "state": "DC",
+   "access": "PAID",
+   "costNote": "Registration prices not read; audience is state workforce agency leaders and partners.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Government & Public Sector"
+   ],
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "ada-scientific-session",
+  "action": "drop",
+  "reason": "ada.org says the ADA paused its annual Scientific Session after Oct 2026 (bylaws no longer require it); only the House of Delegates continues."
+ },
+ {
+  "id": "healthcare-analytics-summit",
+  "action": "publish",
+  "reason": "healthcatalyst.com and hasummit.com: Health Catalyst runs the annual Healthcare Analytics Summit in Salt Lake City (HAS 25 Aug 26-28 2025); attendance is limited and clients request to attend, others reviewed case by case; no 2026/27 dates found.",
+  "patch": {
+   "url": "https://hasummit.com/",
+   "typicalMonth": "August",
+   "city": "Salt Lake City",
+   "state": "UT",
+   "access": "APPLY",
+   "applyUrl": "https://hasummit.com/",
+   "costNote": "Cost not published; attendance by request, client-focused.",
+   "speaking": "BY_INVITE",
+   "cheaperWays": "Health Catalyst clients attend through the request-to-attend process.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Healthcare & Hospital Systems"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "state-hit-connect-summit",
+  "action": "publish",
+  "reason": "Organizer-run sessionize call for papers: 2027 State HIT Connect Conference Mar 29-Apr 1 2027, Gaylord National Resort, National Harbor MD; call closed Oct 16 2026; organizer contact at healthcareitconnect.com.",
+  "patch": {
+   "url": "https://sessionize.com/2027-state-hit-connect-summit-copy/",
+   "organizer": "State HIT Connect",
+   "startDate": "2027-03-29",
+   "endDate": "2027-04-01",
+   "datesConfirmed": true,
+   "city": "National Harbor",
+   "state": "MD",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://sessionize.com/2027-state-hit-connect-summit-copy/",
+   "speakingNote": "Call for papers closed 2026-10-16; annual call.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Healthcare & Hospital Systems",
+    "Government & Public Sector"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "cas-seminar-on-reinsurance",
+  "action": "publish",
+  "reason": "casact.org: 2027 Seminar on Reinsurance listed June 1-3, 2027, Hamilton Bermuda (with virtual component); call for presentations posted 2026-10-22.",
+  "patch": {
+   "url": "https://reinsurance.casact.org/",
+   "startDate": "2027-06-01",
+   "endDate": "2027-06-03",
+   "datesConfirmed": true,
+   "typicalMonth": "June",
+   "city": "Hamilton",
+   "state": null,
+   "country": "Bermuda",
+   "access": "PAID",
+   "costNote": "2027 pricing not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.casact.org/calendar",
+   "speakingNote": "Call for presentations posted by CAS in Oct 2026.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Insurance"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23"
+  }
+ },
+ {
+  "id": "vertafore-accelerate-netvu",
+  "action": "publish",
+  "reason": "accelerate.netvu.org and netvu.org: Accelerate 2027 May 17-20 2027, San Antonio TX (2026 was Las Vegas); registration opens soon, early pricing through Nov 23 2026.",
+  "patch": {
+   "url": "https://accelerate.netvu.org/",
+   "organizer": "NetVU / Vertafore",
+   "startDate": "2027-05-17",
+   "endDate": "2027-05-20",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "San Antonio",
+   "state": "TX",
+   "access": "PAID",
+   "costNote": "Registration page says opening soon; prices not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Insurance"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "securities-enforcement-forum-dc",
+  "action": "publish",
+  "reason": "dwt.com (host firm) event page: Securities Enforcement Forum DC Nov 17 2026, Mayflower Hotel, in person or online; Cooley, WilmerHale, Morgan Lewis host pages agree.",
+  "patch": {
+   "url": "https://www.dwt.com/about/events/2026/11/securities-enforcement-forum-dc-2026",
+   "startDate": "2026-11-17",
+   "endDate": "2026-11-17",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Washington",
+   "state": "DC",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costLow": 650,
+   "costHigh": 1295,
+   "costNote": "2025 prices (virtual $650, in person $1,295); 2026 fees not read.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Legal Services",
+    "Financial Services & Banking"
+   ],
+   "functions": [
+    "Legal"
+   ],
+   "seniorities": [
+    "MID",
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "source": "official domain search",
+   "cheaperWays": "Virtual attendance is the lower-priced option.",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "reliable-plant-conference",
+  "action": "publish",
+  "reason": "conference.reliableplant.com (Noria): RP27 June 14-17 2027, Mobile Convention Center, Mobile AL; speakers get free VIP pass.",
+  "patch": {
+   "url": "https://conference.reliableplant.com/",
+   "startDate": "2027-06-14",
+   "endDate": "2027-06-17",
+   "datesConfirmed": true,
+   "city": "Mobile",
+   "state": "AL",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://app.reliableplant.com/Conference/SpeakerResources/Default.aspx",
+   "speakingNote": "Speakers get a free VIP all-access pass; presentations due 6 weeks before.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "cheaperWays": "Speaker VIP pass.",
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "local-media-association-summit",
+  "action": "publish",
+  "reason": "localmedia.org: 2026 LMA Summit (NYC, April 2026) was invite-only for LMA/LMF boards, collaborative program participants and partners; the public event is Local Media Fest (Aug 16-18 2027).",
+  "patch": {
+   "url": "https://localmedia.org/events/",
+   "typicalMonth": "April",
+   "city": "New York",
+   "state": "NY",
+   "access": "INVITE",
+   "applyUrl": "https://localmedia.org/events/",
+   "costNote": "Invitation only; no ticket sale.",
+   "speaking": "BY_INVITE",
+   "cheaperWays": "Join LMA/LMF (membership or cohort programs) to be invited; public alternative is Local Media Fest, Aug 16-18 2027.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Media & Entertainment"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "pda-miniverse-conference",
+  "action": "publish",
+  "reason": "pda.org event page: PDA Miniverse Conference Mar 15-17 2027, Raleigh Convention Center, part of PDA Week; registration coming soon.",
+  "patch": {
+   "url": "https://www.pda.org/global-event-calendar/event-detail/pda-miniverse-conference-2027",
+   "startDate": "2027-03-15",
+   "endDate": "2027-03-17",
+   "datesConfirmed": true,
+   "city": "Raleigh",
+   "state": "NC",
+   "access": "PAID",
+   "costNote": "Registration coming soon.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.pda.org/global-event-calendar/abstract-submissions",
+   "speakingDeadline": "2027-02-01",
+   "speakingNote": "Podium/poster abstract deadline 2026-08-31; late-breaking poster deadline 2027-02-01.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Pharmaceuticals & Biotech",
+    "Medical Devices"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "nasw-national-conference",
+  "action": "publish",
+  "reason": "socialworkers.org: NASW National Conference June 21-25 2027, Portland OR; call for proposals closes Nov 16 2026.",
+  "patch": {
+   "url": "https://www.socialworkers.org/Events/NASW-National-Conferences",
+   "startDate": "2027-06-21",
+   "endDate": "2027-06-25",
+   "datesConfirmed": true,
+   "city": "Portland",
+   "state": "OR",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.socialworkers.org/Events/NASW-National-Conferences",
+   "speakingDeadline": "2026-11-16",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Nonprofit & Social Impact",
+    "Healthcare & Hospital Systems"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "magi-clinical-research-conference",
+  "action": "publish",
+  "reason": "events.wcgclinical.com: MAGI runs once a year in person in spring (2026: Apr 12-15 Chicago) plus virtual fall MAGI@home (Oct 19-23 2026); 2027 not announced.",
+  "patch": {
+   "url": "https://events.wcgclinical.com/magi2026",
+   "typicalMonth": "April",
+   "city": "Chicago",
+   "state": "IL",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Pharmaceuticals & Biotech",
+    "Healthcare & Hospital Systems"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "mind-the-product-chicago",
+  "action": "publish",
+  "reason": "mindtheproduct.com: Mind the Product Chicago (INDUSTRY) held Oct 6-7 2026; 2027 edition not announced; conference passes from $895, workshop bundle $1,895; call for speakers pages exist.",
+  "patch": {
+   "url": "https://www.mindtheproduct.com/conferences/",
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costLow": 895,
+   "costHigh": 1895,
+   "costNote": "2026 prices: conference from $895, with workshop bundle $1,895.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.mindtheproduct.com/speak/",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "functions": [
+    "Product"
+   ],
+   "industries": [
+    "Technology & Software"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "business-group-on-health-annual-conference",
+  "action": "publish",
+  "reason": "businessgrouphealth.org: 2027 Annual Conference April 28-30 2027, Washington DC (Marriott Marquis); speaker call closed Oct 16 2026.",
+  "patch": {
+   "url": "https://www.businessgrouphealth.org/annual-conference",
+   "startDate": "2027-04-28",
+   "endDate": "2027-04-30",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Washington",
+   "state": "DC",
+   "access": "PAID",
+   "costNote": "Registration pricing not read; sponsorships are members-only.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.businessgrouphealth.org/annual-conference/speaking-opportunities",
+   "speakingNote": "Call for session proposals closed 2026-10-16; annual.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "functions": [
+    "Human Resources"
+   ],
+   "industries": [
+    "Healthcare & Hospital Systems"
+   ],
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "sourcecon",
+  "action": "publish",
+  "reason": "conference.sourcecon.com (ERE/SourceCon): ERE Recruiting Innovation Summit Nov 10-11 2026, Hyatt Regency La Jolla, San Diego; SourceCon is the sourcing community behind it.",
+  "patch": {
+   "url": "https://conference.sourcecon.com/",
+   "startDate": "2026-11-10",
+   "endDate": "2026-11-11",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "San Diego",
+   "state": "CA",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "functions": [
+    "Human Resources"
+   ],
+   "industries": [
+    "Staffing & Human Capital"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "devrelcon-new-york",
+  "action": "drop",
+  "reason": "nyc.devrelcon.dev is a JavaScript shell with no dates, venue or edition year; search shows nothing current, so no evidence a new edition exists."
+ },
+ {
+  "id": "open-group-summit",
+  "action": "publish",
+  "reason": "opengroup.org/events: Open Group US Summit listed Oct 18-21 2027, location TBD (2026 US Summit in Houston).",
+  "patch": {
+   "url": "https://www.opengroup.org/events",
+   "startDate": "2027-10-18",
+   "endDate": "2027-10-21",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costNote": "Pricing not published.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Technology & Software"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US"
+  }
+ },
+ {
+  "id": "support-driven-expo",
+  "action": "publish",
+  "reason": "supportdriven.com: Support Driven Expo Chicago was Aug 24-26 2026 (50+ sessions) and a NYC Summit Oct 27-29 2026 (sold out); 2027 Expo not announced.",
+  "patch": {
+   "url": "https://www.supportdriven.com/events",
+   "typicalMonth": "August",
+   "city": null,
+   "state": null,
+   "access": "PAID",
+   "costNote": "Pricing not read; NYC Summit 2026 sold out.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "functions": [
+    "Customer Success"
+   ],
+   "source": "official domain search",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "app-annual-conference",
+  "action": "publish",
+  "reason": "pacificports.org: APP 113th Annual Conference hosted by Port of Stockton, summer 2027; exact dates not yet published.",
+  "patch": {
+   "url": "https://pacificports.org/apps-113th-annual-conference-2027-stockton-california/",
+   "typicalMonth": "Summer",
+   "city": "Stockton",
+   "state": "CA",
+   "access": "PAID",
+   "costNote": "Pricing not published.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Transportation & Logistics"
+   ],
+   "source": "official domain search",
+   "cheaperWays": "Join APP (join page) for member rates.",
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "country": "US",
+   "datesConfirmed": false
+  }
+ },
+ {
+  "id": "truckload-tca-annual-convention",
+  "action": "publish",
+  "reason": "truckload.org event page: Truckload 2027 Feb 28-Mar 3 2027 at Caesars Forum Las Vegas (some TCA pages show Feb 27-Mar 2); prices not yet listed.",
+  "patch": {
+   "url": "https://truckload.org/events/2027-annual-convention/",
+   "startDate": "2027-02-28",
+   "endDate": "2027-03-03",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Las Vegas",
+   "state": "NV",
+   "access": "PAID",
+   "costNote": "Registration prices not listed yet; one TCA page shows Feb 27-Mar 2, confirm.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "industries": [
+    "Transportation & Logistics"
+   ],
+   "verified": true,
+   "published": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "country": "US"
+  }
+ }
+]

@@ -32,6 +32,8 @@ import type { OccupationExposure } from '@/lib/skills/ai-exposure'
 import type { JobAiView } from '@/lib/jobs/job-ai-view'
 import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
+import { LastSalaryAsk } from '@/components/dashboard/LastSalaryAsk'
+import type { SalaryView } from '@/lib/market/salary-compare'
 import { JobAiExposure } from '@/components/dashboard/find/JobAiExposure'
 import type { CardTrackState } from '@/lib/jobs/my-jobs-data'
 import type { MatchReason } from '@/lib/jobs/search-breadth'
@@ -107,6 +109,8 @@ export interface FindJobDetailProps {
   exposure?: OccupationExposure | null
   /** The posting asks for AI skills, and what they pay when the live comparison says more. */
   ai?: JobAiView | null
+  /** The posting's pay against the member's last salary (or the ask for it), built once per page; null when the pay is not an annual figure. */
+  salary?: SalaryView | null
 }
 
 export function FindJobDetail({
@@ -132,6 +136,7 @@ export function FindJobDetail({
   candidatePlus = false,
   exposure = null,
   ai = null,
+  salary = null,
 }: FindJobDetailProps) {
   const [state, formAction, pending] = useActionState(promoteJobBoardListing.bind(null, posting.id), undefined)
   const { passed, setPassed } = useFindPane()
@@ -290,6 +295,21 @@ export function FindJobDetail({
         <Section id={`role-${posting.id}`} title={standalone ? 'From the listing' : 'About the role'}>
           {payLabel && !posting.marketPayLow && <p className="text-base text-ink">{payLabel}</p>}
           <MarketPayLine posting={posting} workType={workType} />
+          {salary?.kind === 'line' && (
+            <div className="space-y-0.5" data-salary-compare={posting.id}>
+              <p className="text-base font-semibold text-ink">{salary.line}</p>
+              <p className="text-xs text-muted-foreground">{salary.note}</p>
+            </div>
+          )}
+          {salary?.kind === 'ask' && (
+            <LastSalaryAsk
+              heading="Compare this pay with your last salary"
+              body="This job posts an annual pay range. Tell us what you earned in your last role and we will show how the middle of this range compares."
+              source="job_detail"
+              contextId={posting.id}
+              homeName={salary.homeName}
+            />
+          )}
           {standalone && posting.description && !confidential && <p className="text-sm whitespace-pre-line text-muted-foreground">{posting.description}</p>}
         </Section>
       )}
@@ -297,7 +317,7 @@ export function FindJobDetail({
       <ShowMore event="job_detail_more_opened" properties={{ jobId: posting.id, source: 'find_pane' }} label="More about this job">
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            {[kind, posting.location, payLabel].filter(Boolean).join(' · ')}
+            {[kind, posting.location].filter(Boolean).join(' · ')}
             {comparePay && posting.payVsMarket && (
               <>
                 {' '}

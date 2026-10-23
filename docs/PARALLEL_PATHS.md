@@ -83,8 +83,14 @@ previous one. Everything told about the other paths is kept. Settings in Account
 ## What it adds and removes
 
 Adds one Learn entry, "Your other paths" (the Buy a business entry now sits inside it as a second switch, so Learn has no more
-entries than before), one page, two questions, and one plan step per active path. Adds nothing to Home: the steps appear in
-the weekly plan Home already shows. Removes nothing.
+entries than before), one page, two questions, and one plan step per active path.
+
+On Home (inside the journey card, only for members with an active path): one "Also: ..." row linking to Your other paths, and
+"Focus right now", adjacent buttons for the main journey, each active path that can become main, and the journey they came
+from (the same `switchMainFocus` action as the paths page). **Removes** the "What this changes for you" list from the card for
+those members; the row and the switch replace it. A member with no active path sees the card exactly as before. Active paths add
+at most one step each to the weekly plan Home already shows; at 3 hours a week or less (`hoursAvailable`) they add none, and the
+row says why (`pathsWait`, `PATHS_WAIT_HOURS`).
 
 ## For partnership conversations
 
@@ -95,7 +101,7 @@ cell under 10 members withheld. No rows, names or ids. Nothing goes to any outsi
 ## Analytics (PostHog)
 
 `paths_interest_saved` (levels, stated, activeCount), `other_paths_viewed`, `income_need_saved`, `income_recommendation_clicked`, `side_work_saved`, `parallel_path_opened`,
-`parallel_path_switched_main` (from, to, direction), plus the button events (`*_pressed`).
+`parallel_path_switched_main` (from, to, direction), `home_focus_switched` (from, to) and `home_paths_row_clicked` (paths, main) on Home, plus the button events (`*_pressed`).
 
 ## Cost
 
