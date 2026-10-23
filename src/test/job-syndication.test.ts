@@ -7,6 +7,8 @@ import {
   FEED_TAIL,
   feedHead,
   feedJobXml,
+  isFreshForJooble,
+  joobleJobXml,
   googleIndexingEnabled,
   googleIndexingQuota,
   INDEXNOW_KEY,
@@ -100,5 +102,22 @@ describe('XML feed', () => {
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n<source>')).toBe(true)
     expect(xml.match(/<job>/g)?.length).toBe(2)
     expect(xml.trimEnd().endsWith('</source>')).toBe(true)
+  })
+})
+
+describe('Jooble feed', () => {
+  it('uses Jooble tags, DD.MM.YYYY dates and the given link', () => {
+    const xml = joobleJobXml(job(), 'https://employer.example.com/apply/9')
+    expect(xml).toContain('<job id="cmvafjckb044kif06euqw4en5">')
+    expect(xml).toContain('<link><![CDATA[https://employer.example.com/apply/9]]></link>')
+    expect(xml).toContain('<pubdate><![CDATA[08.10.2026]]></pubdate>')
+    expect(xml).toContain('<name><![CDATA[')
+    expect(xml).toContain('<region><![CDATA[')
+    expect(xml).not.toContain('<url>')
+  })
+  it('skips jobs older than 45 days', () => {
+    const now = Date.parse('2026-10-22T00:00:00Z')
+    expect(isFreshForJooble({ postedAt: new Date('2026-10-01T00:00:00Z'), createdAt: new Date('2026-09-01T00:00:00Z') }, now)).toBe(true)
+    expect(isFreshForJooble({ postedAt: new Date('2026-08-01T00:00:00Z'), createdAt: new Date('2026-08-01T00:00:00Z') }, now)).toBe(false)
   })
 })

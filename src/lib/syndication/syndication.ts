@@ -9,7 +9,7 @@
 // Every URL sent anywhere is OUR job page, never the employer's.
 
 import { SITE_URL } from '@/lib/seo/facts'
-import { datePostedOf, descriptionHtml, isRemoteJob, payLabel, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { datePostedOf, descriptionHtml, isRemoteJob, payLabel, placeLabel, validThroughOf, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 export const jobPageUrl = (id: string) => `${SITE_URL}/jobs/${id}`
 
@@ -123,4 +123,40 @@ export function feedJobXml(job: PublicJobRow, url: string = jobPageUrl(job.id)):
   if (remote) parts.push(`<remotetype>${cdata('Fully remote')}</remotetype>`)
   else if (job.workArrangement === 'hybrid') parts.push(`<remotetype>${cdata('Hybrid remote')}</remotetype>`)
   return `<job>\n${parts.join('\n')}\n</job>\n`
+}
+
+// ── Jooble feed ───────────────────────────────────────────────────────────────
+// Jooble's own tag set (https://jooble.org/files/xml_feed_specifications.pdf): <job id="…">
+// with <link>, <name>, <region>, <description>, <pubdate> in DD.MM.YYYY and optional
+// <salary>, <company>, <expire>, <jobtype>. Jooble only indexes jobs published within 45
+// days of first indexing, so the builder skips older ones.
+
+export const JOOBLE_MAX_AGE_DAYS = 45
+export const JOOBLE_HEAD = '<?xml version="1.0" encoding="UTF-8"?>\n<jobs>\n'
+export const JOOBLE_TAIL = '</jobs>\n'
+
+const ddmmyyyy = (d: Date) => `${String(d.getUTCDate()).padStart(2, '0')}.${String(d.getUTCMonth() + 1).padStart(2, '0')}.${d.getUTCFullYear()}`
+const JOOBLE_JOB_TYPE: Record<string, string> = { full_time: 'full-time', part_time: 'part-time', contract: 'contract', temporary: 'temporary' }
+
+/** True when Jooble would index the job (published within JOOBLE_MAX_AGE_DAYS of `nowMs`). */
+export function isFreshForJooble(job: Pick<PublicJobRow, 'postedAt' | 'createdAt'>, nowMs: number): boolean {
+  return nowMs - datePostedOf(job).getTime() <= JOOBLE_MAX_AGE_DAYS * 86_400_000
+}
+
+export function joobleJobXml(job: PublicJobRow, url: string): string {
+  const parts = [
+    `<link>${cdata(url)}</link>`,
+    `<name>${cdata(job.title)}</name>`,
+    `<region>${cdata(placeLabel(job) ?? job.locationState ?? 'United States')}</region>`,
+    `<description>${cdata(descriptionHtml(job.description))}</description>`,
+    `<pubdate>${cdata(ddmmyyyy(datePostedOf(job)))}</pubdate>`,
+    `<company>${cdata(job.companyName)}</company>`,
+  ]
+  const expires = validThroughOf(job)
+  if (expires) parts.push(`<expire>${cdata(ddmmyyyy(expires))}</expire>`)
+  const pay = payLabel(job.salaryMin, job.salaryMax, job.payPeriod)
+  if (pay) parts.push(`<salary>${cdata(pay)}</salary>`)
+  const type = job.employmentType ? JOOBLE_JOB_TYPE[job.employmentType] : undefined
+  if (type) parts.push(`<jobtype>${cdata(type)}</jobtype>`)
+  return `<job id="${job.id}">\n${parts.join('\n')}\n</job>\n`
 }
