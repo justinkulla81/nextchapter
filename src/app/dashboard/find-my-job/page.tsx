@@ -142,6 +142,7 @@ import { ShowMore } from '@/components/candidate/ShowMore'
 import { FindTwoPane } from '@/components/dashboard/find/FindTwoPane'
 import { boardEntry, surfacedEntry } from '@/components/dashboard/find/entries'
 import { loadExposureMap } from '@/lib/skills/ai-exposure-server'
+import { loadSalaryContext } from '@/lib/market/salary-context'
 import { loadAiMarket } from '@/lib/skills/ai-market-live'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
 import { AddJobAction } from '@/components/dashboard/find/AddJobAction'
@@ -604,7 +605,7 @@ async function JobRecommendationsSection({
   // A workforce program's region: its jobs rank first within each fit level.
   const area = await localAreaForCandidate(profile.id).catch(() => null)
   const local = area ? { label: area.label, isLocal: (loc: string | null) => isLocationInArea(area, loc) } : null
-  const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting, exposureMap, aiMarket] = await Promise.all([
+  const [contactsByPosting, companies, cultureProfiles, culturePrefs, insiderGate, benefitsByPosting, exposureMap, aiMarket, salary] = await Promise.all([
     loadJobContacts(visibleBoardPostings, profile.id),
     companyIds.length > 0
       ? prisma.company.findMany({ where: { id: { in: companyIds } }, select: { id: true, sizeBand: true, ownershipType: true, canonicalNameNormalized: true } })
@@ -621,6 +622,8 @@ async function JobRecommendationsSection({
     // Anthropic Economic Index scores (held in memory, fails soft) and the live AI pay comparison: once per page, never per row.
     loadExposureMap(),
     loadAiMarket().catch(() => null),
+    // The member's last salary and home costs, and the area list: once per page, so each open job only does arithmetic.
+    loadSalaryContext(profile).catch(() => null),
   ])
   // Pay / benefits badges: employer signals (hiring index + curated list) and the job's own benefits.
   // A confidential search names no employer, so it gets no employer badge.
@@ -764,6 +767,7 @@ async function JobRecommendationsSection({
         signalLift,
         exposureMap,
         aiMarket,
+        salary,
       }),
       // A search keeps the shortlist's order (relevance, then fit — or the chosen sort).
       rank:

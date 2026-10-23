@@ -26,6 +26,13 @@
 - Group related controls together; separate unrelated groups with whitespace, not with borders or lines wherever possible.
 - Keep primary content and primary actions above the fold on the default viewport.
 
+## CRM pages
+
+- Order every record page by what you can do with it: things to act on (next meeting, open to-dos, unanswered replies, the primary action) first; the conversation and its follow-ups next; reference data (identity, organization, stats, notes, account details) lowest.
+- Secondary or rarely used actions (mutual connections, converting a record, list membership) are collapsed and sit below the reference data. Never show a section that cannot apply (no mutual-connection prompt for someone you already know directly).
+- Mark each group's kind with colour, not just a heading: warm for act-on-this, blue for the conversation, grey for reference. Colour labels a section; the single accent colour stays reserved for primary actions.
+- For every meeting, show its follow-ups as short bullets (who owes what) where the meeting appears, so you don't have to open the notes.
+
 ## Interaction
 
 - Every action that changes data or state must give immediate visible feedback (loading state, success confirmation, or error).

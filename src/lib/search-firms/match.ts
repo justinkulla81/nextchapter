@@ -91,7 +91,7 @@ export type FirmSegment = 'retained' | 'contingent' | 'nonprofit_higher_ed'
 export const SEGMENT_LABEL: Record<FirmSegment, string> = {
   retained: 'Retained executive search',
   contingent: 'Contingent professional recruiting',
-  nonprofit_higher_ed: 'Nonprofit / higher-ed search',
+  nonprofit_higher_ed: 'Nonprofit / higher education search',
 }
 
 // Firms whose model is known — by ncrawl source id. Anything else falls back

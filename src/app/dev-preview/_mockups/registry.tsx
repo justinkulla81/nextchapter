@@ -26,6 +26,7 @@ import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } f
 import { PortalHeaders } from './portal-headers'
 import { PartnerInvite, PartnerYourPeople, PartnerMoving, PartnerMovingAsk, PartnerMovingWorth } from './partner'
 import { FundingLive } from './funding-live'
+import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
@@ -55,6 +56,9 @@ export const MOCKUPS: Mockup[] = [
   { path: 'learn/path/ai-exposure-pivots', place: 'Learn', title: 'AI exposure: career pivots', replaces: 'the “AI task exposure” line on each pivot role', Component: ExposurePivots },
   { path: 'learn/learn/ai-exposure', place: 'Learn', title: 'AI exposure: what to learn next', replaces: 'the generic “AI Training” description line', Component: ExposureLearn },
   { path: 'home/today', place: 'Home', title: 'Your week', replaces: '/dashboard', Component: HomeToday },
+  { path: 'home/paths/open', place: 'Home', title: 'Your journey: paths and focus switch (sample data)', replaces: 'the “What this changes for you” list, for members with active paths', Component: HomePathsOpen },
+  { path: 'home/paths/waiting', place: 'Home', title: 'Your journey: paths wait at 3 hours a week (sample data)', replaces: 'the “What this changes for you” list, for members with active paths', Component: HomePathsWaiting },
+  { path: 'home/paths/none', place: 'Home', title: 'Your journey: no active paths (unchanged)', replaces: 'nothing', Component: HomePathsNone },
   { path: 'home/progress/built', place: 'Home', title: 'Effort and results: what you’ve built', replaces: '/dashboard/stats (badges and leaderboards removed)', Component: ProgressBuilt },
   { path: 'home/progress/timeline', place: 'Home', title: 'Effort and results: your search timeline', replaces: 'new', Component: ProgressTimeline },
   { path: 'network/circles/overview', place: 'Network', title: 'Your network: all circles', replaces: '/dashboard/network', Component: NetworkOverviewMock },

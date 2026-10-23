@@ -1,8 +1,8 @@
 /**
  * Builds the two bundled files behind the Workforce boards table's local-economy columns:
  *
- *   src/lib/workforce/data/county-context.json  per-county population (Census, 2020 and 2024) and private-sector
- *                                               employment by NAICS sector (BLS QCEW, 2022 and 2024; both NAICS 2022, so a reclassified
+ *   src/lib/workforce/data/county-context.json  per-county population (Census, 2020 and 2025) and private-sector
+ *                                               employment by NAICS sector (BLS QCEW, 2022 and 2025; both NAICS 2022, so a reclassified
  *                                               industry is not mistaken for a gain or loss)
  *   src/lib/workforce/data/place-county.json    "ST|place" → county FIPS for every city a posting on the job board
  *                                               names, so open roles can be counted by county
@@ -11,11 +11,11 @@
  * each (never run this from inside them), then:
  *
  *   npx tsx --env-file=.env.local scripts/workforce/build-county-context.ts \
- *     --qcew24 <dir with 2024.annual.singlefile.csv> --qcew22 <dir with 2022.annual.singlefile.csv> \
- *     --census <co-est2024-alldata.csv> --places <national_place_by_county2020.txt> --gaz <2020_Gaz_counties_national.txt>
+ *     --qcew25 <dir with 2025.annual.singlefile.csv> --qcew22 <dir with 2022.annual.singlefile.csv> \
+ *     --census <co-est2025-alldata.csv> --places <national_place_by_county2020.txt> --gaz <2020_Gaz_counties_national.txt>
  *
- * Sources: https://data.bls.gov/cew/data/files/{year}/csv/{year}_annual_singlefile.zip (2022 and 2024),
- * https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/co-est2024-alldata.csv,
+ * Sources: https://data.bls.gov/cew/data/files/{year}/csv/{year}_annual_singlefile.zip (2022 and 2025),
+ * https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv,
  * https://www2.census.gov/geo/docs/reference/codes2020/national_place_by_county2020.txt,
  * https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2020_Gazetteer/2020_Gaz_counties_national.zip
  */
@@ -33,6 +33,44 @@ const arg = (name: string) => {
 }
 const OUT = path.join(__dirname, '../../src/lib/workforce/data')
 const SECTOR_CODES = COUNTY_SECTORS.map((s) => s.code)
+
+const STATE_FIPS: Record<string, string> = {
+  AL: '01', AK: '02', AZ: '04', AR: '05', CA: '06', CO: '08', CT: '09', DE: '10', DC: '11', FL: '12', GA: '13', HI: '15', ID: '16',
+  IL: '17', IN: '18', IA: '19', KS: '20', KY: '21', LA: '22', ME: '23', MD: '24', MA: '25', MI: '26', MN: '27', MS: '28', MO: '29',
+  MT: '30', NE: '31', NV: '32', NH: '33', NJ: '34', NM: '35', NY: '36', NC: '37', ND: '38', OH: '39', OK: '40', OR: '41', PA: '42',
+  RI: '44', SC: '45', SD: '46', TN: '47', TX: '48', UT: '49', VT: '50', VA: '51', WA: '53', WV: '54', WI: '55', WY: '56',
+}
+
+/**
+ * Job openings by state, the whole market, from BLS JOLTS (thousands, seasonally adjusted): the average of the latest
+ * twelve months. Shown beside a board's own open-roles count so that count is read as a slice, not the market.
+ */
+async function readJolts(): Promise<Record<string, number>> {
+  const codes = Object.keys(STATE_FIPS)
+  const out: Record<string, number> = {}
+  const year = new Date().getFullYear()
+  for (let i = 0; i < codes.length; i += 25) {
+    const batch = codes.slice(i, i + 25)
+    const res = await fetch('https://api.bls.gov/publicAPI/v2/timeseries/data/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        seriesid: batch.map((c) => `JTS000000${STATE_FIPS[c]}0000000JOL`),
+        startyear: String(year - 2), endyear: String(year),
+        ...(process.env.BLS_API_KEY ? { registrationkey: process.env.BLS_API_KEY } : {}),
+      }),
+    })
+    const data = (await res.json()) as { Results?: { series?: { seriesID: string; data?: { year: string; period: string; value: string }[] }[] } }
+    for (const s of data.Results?.series ?? []) {
+      const fips = s.seriesID.slice(9, 11)
+      const st = codes.find((c) => STATE_FIPS[c] === fips)
+      const vals = (s.data ?? []).filter((d) => /^M(0[1-9]|1[0-2])$/.test(d.period)).sort((a, b) => (b.year + b.period).localeCompare(a.year + a.period)).slice(0, 12).map((d) => Number(d.value)).filter(Number.isFinite)
+      if (st && vals.length >= 6) out[st] = Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 1000)
+    }
+    await new Promise((r) => setTimeout(r, 1000))
+  }
+  return out
+}
 
 /** Private-sector employment by sector for one year: fips → sector → employment, plus the private total. */
 async function readQcew(file: string): Promise<Map<string, Map<string, number>>> {
@@ -56,9 +94,9 @@ async function readQcew(file: string): Promise<Map<string, Map<string, number>>>
 }
 
 async function main() {
-  const dir24 = path.join(arg('qcew24'), '2024.annual.singlefile.csv')
+  const dir25 = path.join(arg('qcew25'), '2025.annual.singlefile.csv')
   const dir22 = path.join(arg('qcew22'), '2022.annual.singlefile.csv')
-  const [q24, q22] = [await readQcew(dir24), await readQcew(dir22)]
+  const [q25, q22] = [await readQcew(dir25), await readQcew(dir22)]
 
   const pop = new Map<string, [number, number]>()
   const lines = fs.readFileSync(arg('census'), 'latin1').split('\n')
@@ -67,12 +105,12 @@ async function main() {
   for (const line of lines.slice(1)) {
     const f = line.split(',')
     if (f[col('SUMLEV')] !== '050') continue
-    pop.set(f[col('STATE')] + f[col('COUNTY')], [Number(f[col('POPESTIMATE2020')]), Number(f[col('POPESTIMATE2024')])])
+    pop.set(f[col('STATE')] + f[col('COUNTY')], [Number(f[col('POPESTIMATE2020')]), Number(f[col('POPESTIMATE2025')])])
   }
 
   const counties: Record<string, { p?: [number, number]; t?: [number, number]; e: number[] }> = {}
-  for (const fips of new Set([...pop.keys(), ...q24.keys()])) {
-    const a = q22.get(fips), b = q24.get(fips)
+  for (const fips of new Set([...pop.keys(), ...q25.keys()])) {
+    const a = q22.get(fips), b = q25.get(fips)
     counties[fips] = {
       ...(pop.has(fips) ? { p: pop.get(fips) } : {}),
       ...(a?.has('total') && b?.has('total') ? { t: [a.get('total')!, b.get('total')!] as [number, number] } : {}),
@@ -80,8 +118,11 @@ async function main() {
     }
   }
   fs.mkdirSync(OUT, { recursive: true })
-  fs.writeFileSync(path.join(OUT, 'county-context.json'), JSON.stringify({ sectors: SECTOR_CODES, years: [2022, 2024], popYears: [2020, 2024], counties }))
+  fs.writeFileSync(path.join(OUT, 'county-context.json'), JSON.stringify({ sectors: SECTOR_CODES, years: [2022, 2025], popYears: [2020, 2025], counties }))
   console.log(`county-context.json: ${Object.keys(counties).length} counties`)
+  const jolts = await readJolts()
+  fs.writeFileSync(path.join(OUT, 'state-openings.json'), JSON.stringify(jolts))
+  console.log(`state-openings.json: ${Object.keys(jolts).length} states`)
 
   // Counties' centres, to pick between the counties a city spans.
   const centre = new Map<string, [number, number]>()

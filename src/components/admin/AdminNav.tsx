@@ -358,6 +358,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/digest`, label: 'Market Pulse' },
         { href: `${A}/tracking-testers`, label: 'Gmail/Calendar Testers' },
         { href: `${A}/job-health`, label: 'Background job health' },
+        { href: `${A}/senior-brief`, label: 'Senior Monday brief' },
       ],
     },
   ]

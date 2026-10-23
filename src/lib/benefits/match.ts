@@ -228,7 +228,7 @@ const US_STATE = /^[A-Z]{2}$/
  * decided here by name, because the free-text segment column is blank for them.
  */
 const NOT_FOR_THIS_PAGE =
-  /lifeline|medicare|rxpathways|patient assistance|rapid response|child tax credit|child and dependent|relocation incentive act|liheap|trump accounts|food bank|\b988\b|\bnami\b|open path|mental health|lawhelp|legal services|warn act|layoffs\.fyi|trueup|united way|catholic charities|emergency grants|self-sufficiency|rx kids|givedirectly|abundant birth|guaranteed income|f4gi|bonding program|work share|short-time|pslf employer|job accommodation|openai foundation|anthropic economic|^[a-z]\d{3,5}\b|executive order|wage-insurance|state pilot bill|entertainment community|motion picture|sag-aftra|authors league|aicpa|dress for success|appalachian regional|^\d+$/i
+  /lifeline|medicare|rxpathways|patient assistance|rapid response|relocation incentive act|liheap|trump accounts|food bank|\b988\b|\bnami\b|open path|mental health|lawhelp|legal services|^warn act guidance|layoffs\.fyi|trueup|united way|catholic charities|emergency grants|self-sufficiency|rx kids|givedirectly|abundant birth|guaranteed income|f4gi|bonding program|work share|short-time|pslf employer|job accommodation|openai foundation|anthropic economic|^[a-z]\d{3,5}\b|executive order|wage-insurance|state pilot bill|entertainment community|motion picture|sag-aftra|authors league|aicpa|dress for success|appalachian regional|^\d+$/i
 // A row filed as nationwide whose name is one state's program (the catalog has a few) is not nationwide.
 const STATE_NAMED = new RegExp(`\\b(${US_STATES.filter((x) => x.code !== 'DC').map((x) => x.name).join('|')})\\b`, 'i')
 /**
@@ -240,7 +240,9 @@ const PAYS_THE_PERSON = /tuition|scholarship|\bfree\b|dislocated worker|individu
 const PAYS_A_BUSINESS = /\bapprentices\b|\bemployers? (relocating|hiring)|sponsors?\b|states, tribes|local boards|industry partnerships?|young adults|\byouth\b|techcred|on-the-job|\bojt\b|incumbent worker|reimburses? employers?|employer (training |reimbursement|grant)|customized (workforce )?training|skills development fund|self-sufficiency fund|small business|for new and expanding|sector partnership|training panel|eligible training provider|\bdirectory\b|policy framework|case management|\bresea\b|job-search platform|job search platform|grant opportunities page|financial aid page|\bunemployment insurance\b|work-search|free advising|lists? providers?|not a payment/i
 function memberFacing(r: BenefitProgramRow): boolean {
   const text = `${r.name} | ${r.amount ?? ''} | ${r.eligibility ?? ''}`
-  if (PAYS_A_BUSINESS.test(text)) return false
+  // Help-while-unemployed and tax rows are about the member's own benefits, so words like "unemployment insurance" are
+  // expected in them; only employer-facing wording hides them.
+  if (r.category === 'SUPPORT' || r.category === 'TAX' ? /\bemployers? (relocating|hiring)|reimburses? employers?|for employers\b|employer (training |reimbursement|grant)/i.test(text) : PAYS_A_BUSINESS.test(text)) return false
   // Relocation rows are allowlisted: the catalog files some scholarships, training and aid for people in
   // crisis under "relocation". A row stays only if its own text is about moving or buying a home, it names
   // who it is for, and that is not one employer's staff, existing residents or a group in crisis.
@@ -269,7 +271,7 @@ const PROFESSION_BODY: [RegExp, AudienceTag][] = [
   [/ieee|asme|asce|nspe|\bisa\b|engineer/i, 'engineer'],
   [/acep|ahra|\bama\b|physician|nurs|medical|health information|radiolog|dental|pharm/i, 'clinician'],
   [/cfa institute|\bafp\b|aicpa|cpa|accounting|finance|actuar|ccaf/i, 'finance'],
-  [/\bbar\b|bar association|lawyer|attorney|legal/i, 'lawyer'],
+  [/\bbar\b|bar association|nysba|\baba\b|state bar|lawyer|attorney|legal/i, 'lawyer'],
   [/isc2|isaca|comptia|\bacm\b|cyber|\bit\b|software/i, 'tech'],
   [/shrm|human resources|\bhr\b/i, 'hr'],
   [/\bpmi\b|project management/i, 'pm'],
@@ -279,9 +281,13 @@ const PROFESSION_BODY: [RegExp, AudienceTag][] = [
   [/\basha\b|speech-language|audiolog/i, 'clinician'],
 ]
 const professionNeeded = (r: BenefitProgramRow): AudienceTag | 'unknown' | null => {
-  if (!/^unemployed_(professional|ext_adds)\.md$/.test(r.source ?? '')) return null
+  const file = r.source ?? ''
+  if (!/^unemployed_(professional|ext_adds)\.md$/.test(file)) return null
   const hit = PROFESSION_BODY.find(([re]) => re.test(r.name))
-  return hit ? hit[1] : 'unknown'
+  if (hit) return hit[1]
+  // A school's alumni fund or discount is about the school, not the profession; outside suggestions are judged by name only.
+  if (/alumni|universit|college|school|institute of technology/i.test(r.name) || file === 'unemployed_ext_adds.md') return null
+  return 'unknown'
 }
 
 const NAME_AUDIENCE: [RegExp, AudienceTag][] = [
@@ -334,8 +340,9 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
     // Money for residents: fits only the state they live in.
     if (!m.state || m.state !== rowState) return null
     // A city or county program fits only if they live there.
-    if (r.locality && !cityFits(r.locality, m.city)) return null
-    place = `You live in ${r.locality ? r.locality : rowState}`
+    const local = r.locality && !/^(statewide|state-wide|state|all|nationwide|national|various)\b/i.test(r.locality.trim()) ? r.locality : null
+    if (local && !cityFits(local, m.city)) return null
+    place = `You live in ${local ?? rowState}`
   }
 
   // A person we know nothing about stays in. A person we know does not fit goes out. Work tags need their work
@@ -344,8 +351,9 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
   const ok = (t: AudienceTag) => t === 'community' || held.has(t) || (COMMUNITY_TAGS.has(t) ? false : WORK_TAGS.has(t) ? m.workKnown === false : m.answered === false)
   // A professional body's dues waiver or fund: only for that profession; an unlisted body is hidden.
   const prof = professionNeeded(r)
-  if (prof === 'unknown') return null
-  if (prof && !ok(prof)) return null
+  // A professional body we cannot map to a work tag: hidden once we know the member's work, kept in while we do not.
+  if (prof === 'unknown' && m.workKnown !== false) return null
+  if (prof && prof !== 'unknown' && !ok(prof)) return null
   // Veteran-only by name and the like: every tag the name implies must hold.
   const named = NAME_AUDIENCE.filter(([re]) => re.test(r.name)).map(([, t]) => t)
   if (named.some((t) => !ok(t))) return null
@@ -358,6 +366,7 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
   if (!OPEN_TO_ALL.test(el) && !/including|and also|as well as/i.test(el)) {
     const mil = /veterans?|service members?|military (community|members?|families|spouses?)/i.test(el)
     if (mil && !ok('veteran') && !(/spouse/i.test(el) && ok('military_spouse'))) return null
+    if (/federal (employees?|workers?|government employees?)|displaced federal|furloughed federal/i.test(el) && !ok('federal')) return null
     if (/criminal record|incarcerat|reentry|formerly incarcerated/i.test(el) && !ok('reentry')) return null
     if (/(people|persons|individuals|adults|workers|students|beneficiaries) with (a )?disabilit|\bdisabled (people|persons|individuals|adults|workers|students|veterans)|\bSSDI\b|\bSSI\b/i.test(el) && !ok('disabled')) return null
   }
@@ -409,13 +418,26 @@ export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[
   }
   out.sort((a, b) => b.score - a.score || (b.amount ?? 0) - (a.amount ?? 0) || a.program.name.localeCompare(b.program.name))
   // The same program is filed under two categories in places (Google certificates, SCSEP): keep the best.
-  const seen = new Set<string>()
+  const seenNames = new Set<string>()
+  const byUrl = new Map<string, Set<string>[]>()
+  const words = (n: string) => new Set(n.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter((w) => w.length > 2))
+  const similar = (a: Set<string>, b: Set<string>) => {
+    let both = 0
+    for (const w of a) if (b.has(w)) both++
+    return both / Math.max(1, a.size + b.size - both) >= 0.5
+  }
   return out.filter((x) => {
-    // Same name, or the same official page for the same state and kind of help, is one program shown once.
+    // Same name, or the same official page for the same state and kind of help under a near-identical name
+    // (a page that lists several different programs is not a duplicate), is one program shown once.
+    const name = x.program.name.trim().toLowerCase()
+    if (seenNames.has(name)) return false
     const url = (x.program.url ?? '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/[#?].*$/, '').replace(/\/$/, '')
-    const keys = [`n:${x.program.name.trim().toLowerCase()}`, ...(url ? [`u:${url}|${x.program.state ?? ''}|${x.goal}`] : [])]
-    if (keys.some((k) => seen.has(k))) return false
-    keys.forEach((k) => seen.add(k))
+    const key = `${url}|${x.program.state ?? ''}|${x.goal}`
+    const w = words(name)
+    const prior = url ? (byUrl.get(key) ?? []) : []
+    if (prior.some((p) => similar(p, w))) return false
+    seenNames.add(name)
+    if (url) byUrl.set(key, [...prior, w])
     return true
   })
 }
