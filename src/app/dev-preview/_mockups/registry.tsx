@@ -18,6 +18,7 @@ import { CareerStoryReal } from './career-story'
 import { SearchStrategySimple } from './strategy'
 import { StrategyNegotiationLive, StrategyNegotiationEmptyLive } from './strategy-negotiation-live'
 import { SearchStrategyApplicationMatch, ApplicationMatchFew } from './application-match'
+import { NotFoundCandidate, NotFoundAdmin } from './not-found'
 import { AdminSkillsMatch } from './admin-skills-match'
 import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
@@ -30,6 +31,7 @@ import { CoachSessionPrep, CoachSessionNotes } from './coach-session'
 import { CoachWhatCandidateSees } from './coach-candidate'
 import { CoachSchedulingConnected, CoachSchedulingEmpty, CoachSchedulingBroken } from './coach-scheduling'
 import { FundingLive } from './funding-live'
+import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
@@ -51,6 +53,11 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'jobs/live/compare-places', place: 'Jobs', title: 'Compare places: out of work, two places (sample data)', replaces: 'new page; adds one entry under Market and pay, removes nothing', Component: ComparePlacesJobless },
+  { path: 'jobs/live/compare-places-employed', place: 'Jobs', title: 'Compare places: employed, two places (sample data)', replaces: 'new page', Component: ComparePlacesEmployed },
+  { path: 'jobs/live/compare-places-life', place: 'Jobs', title: 'Compare places: just for life there (sample data)', replaces: 'new page', Component: ComparePlacesLife },
+  { path: 'jobs/live/compare-places-empty', place: 'Jobs', title: 'Compare places: nothing chosen yet (sample data)', replaces: 'new page', Component: ComparePlacesEmpty },
+  { path: 'jobs/live/compare-places-no-city', place: 'Jobs', title: 'Compare places: no city on the profile (sample data)', replaces: 'new page', Component: ComparePlacesNoCity },
   { path: 'coach/session-prep', place: 'Coach', title: 'Before you meet Dana: one prep page from what she shares', replaces: 'the pre-session brief and the Coaching Notes panel, read before a session', Component: CoachSessionPrep },
   { path: 'coach/session-notes', place: 'Coach', title: 'Notes during and after: capture, Meet import, reviewed summary, follow-ups, interests', replaces: 'LogSessionForm (free-text notes and directives) and the notes summary card', Component: CoachSessionNotes },
   { path: 'coach/candidate-view', place: 'Coach', title: 'What Dana sees after a session: steps, topics, summary, message', replaces: 'the directives list on /dashboard/my-coaching', Component: CoachWhatCandidateSees },
@@ -149,6 +156,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'home/tailored', place: 'Home', title: 'Improve your search', replaces: 'new: every personalization in one place', Component: TailoredForYou },
   { path: 'home/strategy/application-match', place: 'Home', title: 'Search strategy: your applications, match and gaps (sample data)', replaces: 'new section; the unlock card moves into More about your search', Component: SearchStrategyApplicationMatch },
   { path: 'home/strategy/application-match-few', place: 'Home', title: 'Applications match: two applications, failed add (sample data)', replaces: 'the same section, early and error states', Component: ApplicationMatchFew },
+  { path: 'help/not-found', place: 'Help', title: 'Page not found: signed-in member (the built view)', replaces: 'the default Next.js 404', Component: NotFoundCandidate },
+  { path: 'admin/not-found', place: 'Admin', title: 'Page not found: admin (the built view)', replaces: 'the default Next.js 404', Component: NotFoundAdmin },
   { path: 'admin/skills-match', place: 'Admin', title: 'Admin: skills match and gaps in applications (sample data)', replaces: 'new: support/admin/jobs/skills-match', Component: AdminSkillsMatch },
   { path: 'home/strategy/negotiation', place: 'Home', title: 'Search strategy step 5: interviews, offers and pay (the built form, sample answers)', replaces: 'the step 5 form with nine benefits questions; they moved to Know your worth', Component: StrategyNegotiationLive },
   { path: 'home/strategy/negotiation-empty', place: 'Home', title: 'Search strategy step 5, nothing answered yet (the built form)', replaces: 'the same form, empty', Component: StrategyNegotiationEmptyLive },
