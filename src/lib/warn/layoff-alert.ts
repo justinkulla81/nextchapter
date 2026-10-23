@@ -97,7 +97,7 @@ export async function alertNewLayoff(l: NewLayoff): Promise<boolean> {
     const picture = await buildLocalPicture({ employer: l.employer, employees: l.employees, state, county: notice?.county ?? null, industryKey: industry?.key ?? null })
 
     const related = await layoffPeople(orgId, {
-      state, county: notice?.county ?? null, city, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null,
+      state, county: notice?.county ?? null, city, address: notice?.address ?? null, workforceBoardId: notice?.workforceBoardId ?? null, industryKey: industry?.key ?? null,
     }).catch((e) => { console.error('Layoff alert people failed for', l.employer, e); return null })
     const PARTNER: Record<string, Audience> = { rapid_response: 'rapid_response', workforce_board: 'workforce_board', job_centers: 'job_centers', economic_development: 'economic_development' }
     const groups = related?.groups.map((g) => (PARTNER[g.key] ? { ...g, pitch: talkingPoints(picture, PARTNER[g.key]) ?? undefined } : g)) ?? []
