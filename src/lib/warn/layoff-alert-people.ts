@@ -136,7 +136,7 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
   // Recruiters who cover the layoff's state (or are national) and, ranked first, its industry: the people who can place the laid-off.
   const recruiterRows = state
     ? await prisma.crmPerson.findMany({
-        where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' }, coverageStates: { hasSome: [state, 'NATIONAL'] } },
+        where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' }, recruiterKind: 'recruiter', coverageStates: { hasSome: [state, 'NATIONAL'] } },
         select: { ...personSelect, coverageStates: true, coverageIndustries: true, coverageFunctions: true, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { id: true, name: true } } }, take: 1 } },
         take: 1500,
       })

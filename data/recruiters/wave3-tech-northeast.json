@@ -1,0 +1,483 @@
+[
+ {
+  "fullName": "Kelly Doyle",
+  "title": "Managing Director",
+  "firm": "Heller Search Associates",
+  "firmWebsite": "https://www.hellersearch.com",
+  "city": "Westborough",
+  "state": "MA",
+  "email": "kelly.doyle@hellersearch.com",
+  "phone": "774-512-0036",
+  "sourceUrl": "https://www.hellersearch.com/team/kelly-doyle",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "executive"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Charley Betzig",
+  "title": "Managing Director",
+  "firm": "Heller Search Associates",
+  "firmWebsite": "https://www.hellersearch.com",
+  "city": "Westborough",
+  "state": "MA",
+  "email": "charley.betzig@hellersearch.com",
+  "phone": "248-419-9267",
+  "sourceUrl": "https://www.hellersearch.com/team/charley-betzig",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "executive"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Jason Henninger",
+  "title": "Managing Director",
+  "firm": "Heller Search Associates",
+  "firmWebsite": "https://www.hellersearch.com",
+  "city": "Westborough",
+  "state": "MA",
+  "email": "jason.henninger@hellersearch.com",
+  "phone": "312-224-8535",
+  "sourceUrl": "https://www.hellersearch.com/team/jason-henninger",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "it_security"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Pamela Kurko",
+  "title": "Managing Principal",
+  "firm": "Heller Search Associates",
+  "firmWebsite": "https://www.hellersearch.com",
+  "city": "Westborough",
+  "state": "MA",
+  "email": "pam.kurko@hellersearch.com",
+  "phone": "508-281-1727",
+  "sourceUrl": "https://www.hellersearch.com/team/pamela-kurko",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "executive"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Brittany Danehy",
+  "title": "Client Partner, Director of Performance & Insights",
+  "firm": "Heller Search Associates",
+  "firmWebsite": "https://www.hellersearch.com",
+  "city": "Westborough",
+  "state": "MA",
+  "email": "brittany.danehy@hellersearch.com",
+  "phone": "508-475-9286",
+  "sourceUrl": "https://www.hellersearch.com/team/brittany-danehy",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Morgan Breschi",
+  "title": "Senior Principal",
+  "firm": "Heller Search Associates",
+  "firmWebsite": "https://www.hellersearch.com",
+  "city": "Westborough",
+  "state": "MA",
+  "email": "Morgan.Breschi@hellersearch.com",
+  "phone": "847-386-2083",
+  "sourceUrl": "https://www.hellersearch.com/team/morgan-breschi",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Kate Aparicio",
+  "title": "Principal",
+  "firm": "Heller Search Associates",
+  "firmWebsite": "https://www.hellersearch.com",
+  "city": "Westborough",
+  "state": "MA",
+  "email": "kate.aparicio@hellersearch.com",
+  "phone": "279-777-0707",
+  "sourceUrl": "https://www.hellersearch.com/team/kate-aparicio",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Britt Mullen",
+  "title": "Principal",
+  "firm": "Heller Search Associates",
+  "firmWebsite": "https://www.hellersearch.com",
+  "city": "Westborough",
+  "state": "MA",
+  "phone": "774-289-5033",
+  "sourceUrl": "https://www.hellersearch.com/team/britt-mullen",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Tom Figueroa",
+  "title": "Managing Partner",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "figueroat@jmsearch.com",
+  "phone": "610.964.0200 ext. 221",
+  "sourceUrl": "https://jmsearch.com/team/tom-figueroa/",
+  "industries": [
+   "technology",
+   "financial_services"
+  ],
+  "functions": [
+   "it_security",
+   "data_ai",
+   "executive"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Bill Hogenauer",
+  "title": "Partner & Practice Leader",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "hogenauerb@jmsearch.com",
+  "phone": "610.960.6599",
+  "sourceUrl": "https://jmsearch.com/team/bill-hogenauer/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "product_design",
+   "executive"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Ben Millrood",
+  "title": "Partner & Practice Leader",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "millroodb@jmsearch.com",
+  "phone": "843.816.6301",
+  "sourceUrl": "https://jmsearch.com/team/ben-millrood/",
+  "industries": [
+   "professional_services"
+  ],
+  "functions": [
+   "it_security"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Kevin Kernan",
+  "title": "Partner",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "kernank@jmsearch.com",
+  "phone": "301.367.5049",
+  "sourceUrl": "https://jmsearch.com/team/kevin-kernan/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "executive"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Jesse Annunziata",
+  "title": "Partner",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "annunziataj@jmsearch.com",
+  "sourceUrl": "https://jmsearch.com/team/jesse-annunziata/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "data_ai",
+   "it_security",
+   "product_design"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Rob Lee",
+  "title": "Partner & Practice Leader",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "leer@jmsearch.com",
+  "phone": "610.964.0200 ext. 214",
+  "sourceUrl": "https://jmsearch.com/team/robert-lee/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "executive",
+   "sales"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Renee Forcey",
+  "title": "Principal",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "forceyr@jmsearch.com",
+  "phone": "610.964.0200 ext. 207",
+  "sourceUrl": "https://jmsearch.com/team/renee-forcey/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "data_ai",
+   "product_design"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Corey Korbisch",
+  "title": "Principal",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "korbischc@jmsearch.com",
+  "phone": "610.964.0200 ext. 213",
+  "sourceUrl": "https://jmsearch.com/team/corey-korbisch/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "data_ai",
+   "product_design"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Sanjay Sama",
+  "title": "Partner",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "samas@jmsearch.com",
+  "phone": "646.844.0800",
+  "sourceUrl": "https://jmsearch.com/team/sanjay-sama/",
+  "industries": [
+   "technology",
+   "financial_services"
+  ],
+  "functions": [
+   "executive",
+   "sales"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Robert Sargent",
+  "title": "Partner",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "sargentr@jmsearch.com",
+  "phone": "610.964.0200 ext. 228",
+  "sourceUrl": "https://jmsearch.com/team/robert-sargent/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ },
+ {
+  "fullName": "David Speicher",
+  "title": "Partner",
+  "firm": "JM Search",
+  "firmWebsite": "https://jmsearch.com",
+  "city": "King of Prussia",
+  "state": "PA",
+  "email": "speicherd@jmsearch.com",
+  "phone": "610.964.0200 ext. 211",
+  "sourceUrl": "https://jmsearch.com/team/david-speicher/",
+  "industries": [
+   "technology",
+   "financial_services"
+  ],
+  "functions": [
+   "executive",
+   "finance"
+  ],
+  "coverageStates": [
+   "PA",
+   "NJ",
+   "NY",
+   "MA",
+   "MD",
+   "DC",
+   "DE",
+   "CT"
+  ]
+ }
+]

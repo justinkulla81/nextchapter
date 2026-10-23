@@ -719,7 +719,11 @@ export async function calendarLookbackDays(floor = 2): Promise<number> {
     select: { startedAt: true },
   })
   const sinceOk = lastOk ? Math.ceil((Date.now() - lastOk.startedAt.getTime()) / DAY) + 1 : 14
-  return Math.min(60, Math.max(floor, sinceOk))
+  // Until the first meeting notes have ever been copied across, look back two
+  // weeks: notes written before this was switched on are otherwise out of
+  // reach. It stops widening the moment one has been attached.
+  const anyNotes = await prisma.crmActivity.findFirst({ where: { notesDocUrl: { not: null } }, select: { id: true } })
+  return Math.min(60, Math.max(floor, anyNotes ? sinceOk : Math.max(sinceOk, 14)))
 }
 
 /**

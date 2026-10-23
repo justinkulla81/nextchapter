@@ -71,6 +71,7 @@ export interface PublicJobRow {
   /** Posting signals and the no-experience phrase (entry-filters.ts); optional so older callers and fixtures still fit. */
   postingSignals?: string[]
   noExperiencePhrase?: string | null
+  trainingPhrase?: string | null
   externalJobId: string | null
   requisitionId: string | null
   company: { website: string | null } | null

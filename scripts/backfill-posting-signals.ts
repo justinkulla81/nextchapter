@@ -15,7 +15,7 @@ import { importPostingSignalFields } from '../src/lib/jobs/posting-signals'
 
 const CHUNK = 5_000
 // The entry-level ids (scripts/backfill-entry-signals.ts sets them) are kept as they are.
-const ENTRY_KEEP = `ARRAY(SELECT x FROM unnest(e."postingSignals") AS x WHERE x = ANY('{no_experience_ok,entry_ai,entry_ai_preferred}'::text[]))`
+const ENTRY_KEEP = `ARRAY(SELECT x FROM unnest(e."postingSignals") AS x WHERE x = ANY('{no_experience_ok,training_provided,entry_ai,entry_ai_preferred}'::text[]))`
 const LOAD_BATCH = 5_000
 
 const [file, ...flags] = process.argv.slice(2)
@@ -36,7 +36,7 @@ async function main() {
     const r = JSON.parse(line) as { f?: string; url: string; s: string[] }
     fp.push(r.f ?? null)
     urls.push(r.url)
-    sigs.push((importPostingSignalFields({ postingSignals: r.s }).postingSignals ?? []).filter((x) => !['no_experience_ok', 'entry_ai', 'entry_ai_preferred'].includes(x)).join(','))
+    sigs.push((importPostingSignalFields({ postingSignals: r.s }).postingSignals ?? []).filter((x) => !['no_experience_ok', 'training_provided', 'entry_ai', 'entry_ai_preferred'].includes(x)).join(','))
   }
   console.log(`read ${urls.length} crawler rows`)
 
