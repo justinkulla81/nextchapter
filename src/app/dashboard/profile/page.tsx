@@ -38,9 +38,8 @@ interface SectionDef {
 // on a sub-page carries points (e.g. Education and demographic self-ID are
 // unscored) — this only reflects the scored items, same as everywhere else
 // in the app. Compensation & benefits (BENEFITS_PRIORITIES_CONFIRMED) used
-// to be a third "Search Goals" sub-page here — it now lives as a section on
-// My Search Strategy instead (see search-strategy/page.tsx), since it's a
-// search-goals question, not a profile-identity one.
+// to be a third "Search Goals" sub-page here — it now lives on the Pay page
+// ("What you want in the package", pay/page.tsx), where the answers are used.
 const SECTIONS: SectionDef[] = [
   {
     href: '/dashboard/profile/personal',

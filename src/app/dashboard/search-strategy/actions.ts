@@ -16,7 +16,7 @@ import { PRIMARY_FUNCTION_OPTIONS, TRADEOFF_PRIORITIES } from '@/lib/constants/o
 import { recomputeCandidateLevelRank } from '@/lib/scoring/level-rank-service'
 import { maybeAwardSearchStrategyCompleteBonus } from '@/lib/weekly/search-strategy-complete'
 import { setBoardAdvisoryWillingness } from '@/lib/search-strategy/board-advisory-willingness'
-import { answerBenefitsPriorities, answerOptionalQuestions } from '@/app/dashboard/complete-profile/actions'
+import { answerOptionalQuestions } from '@/app/dashboard/complete-profile/actions'
 import { buildRelocation, opensToMove } from '@/lib/journey/relocation'
 import { buildTarget, isCommitted, mergeTarget, moveStance, pivotOf, primaryPivot, stanceOf } from '@/lib/journey/pivot'
 import { applyJourneyChange } from '@/lib/journey/apply'
@@ -478,7 +478,22 @@ export async function updateNegotiationAndCompensationReadiness(
 ): Promise<FormState> {
   const negotiation = await updateNegotiationInterviewComfort(undefined, formData)
   if (negotiation?.error) return negotiation
-  return answerBenefitsPriorities(undefined, formData)
+
+  // The lowest pay the member could take. Blank clears it, the same as before
+  // this page also carried the benefits questions (which now live on the Pay page).
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'You need to be logged in to do this.' }
+  const profile = await getOrCreateCandidateProfile(user.id)
+  const targetCompMinThousands = parseCompMinThousands(formData.get('targetCompMinThousands'))
+  await prisma.candidateProfile.update({
+    where: { id: profile.id },
+    data: { targetCompMin: targetCompMinThousands ? targetCompMinThousands * 1000 : null },
+  })
+
+  revalidatePath('/dashboard/search-strategy')
 }
 
 export async function updateOtherSearchStrengtheners(_prevState: FormState, formData: FormData): Promise<FormState> {

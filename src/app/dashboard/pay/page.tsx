@@ -8,7 +8,7 @@ import { AdzunaMarketSection, AdzunaMarketSectionLoading } from '@/components/ma
 import { isAdzunaInsightsEnabled } from '@/lib/market/adzuna-insights'
 import { InlineLoadingState } from '@/components/ui/spinner'
 import { type WorkValueDomain } from '@/lib/constants/what-i-need'
-import { benefitsAsks } from '@/lib/review-prep/benefits'
+import { PACKAGE_BENEFIT_OPTIONS } from '@/lib/review-prep/package-wishes'
 import { PayRedesign } from '@/components/market/PayRedesign'
 
 export const metadata: Metadata = { title: 'Know your worth' }
@@ -21,11 +21,18 @@ export default async function PayPage() {
   const profile = await getDashboardProfile()
   const need = await prisma.whatINeedResponse.findUnique({ where: { candidateId: profile.id }, select: { domainRank: true } })
   const top = ((need?.domainRank ?? []) as WorkValueDomain[]).slice(0, 3)
-  const asks = benefitsAsks(profile)
+  const wishes = {
+    benefits: PACKAGE_BENEFIT_OPTIONS.filter((o) => profile[o.value] === true).map((o) => o.value),
+    numbers: {
+      ptoWeeksExpected: profile.ptoWeeksExpected,
+      remoteDaysPerWeekDesired: profile.remoteDaysPerWeekDesired,
+      paidParentalLeaveWeeksExpected: profile.paidParentalLeaveWeeksExpected,
+    },
+  }
   return (
     <PayRedesign
       top={top}
-      asks={asks}
+      wishes={wishes}
       position={
         <Suspense fallback={<InlineLoadingState label="Comparing your pay with the market" />}>
           <PayPosition candidateId={profile.id} />
