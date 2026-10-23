@@ -7,14 +7,15 @@ const EP: CycleEpisode[] = [
 ]
 
 describe('occupation cycle', () => {
-  it('calls work that fell well below all jobs in both downturns "swings"', () => {
+  it('calls work that fell well below all jobs in a downturn, without beating all jobs in the other, "swings"', () => {
     expect(cycleBand([-15, -20], EP)).toBe('swings')
+    expect(cycleBand([-25, -8], EP)).toBe('swings')
   })
   it('calls work that beat all jobs in both downturns "held"', () => {
     expect(cycleBand([-3, -4], EP)).toBe('held')
   })
   it('says nothing when the two downturns disagree or the gap is small', () => {
-    expect(cycleBand([-15, -5], EP)).toBeNull()
+    expect(cycleBand([-15, 3], EP)).toBeNull()
     expect(cycleBand([-7, -8], EP)).toBeNull()
   })
   it('says nothing without two comparable episodes', () => {
