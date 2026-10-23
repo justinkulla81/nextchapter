@@ -17,6 +17,7 @@ export async function setTodoDone(taskId: string, done: boolean): Promise<void> 
     taskId: task.id, fromMeeting: !!task.sourceRef, personId: task.personId, opportunityId: task.opportunityId,
   })
   revalidatePath('/support/admin/crm/todos')
+  if (task.personId) revalidatePath(`/support/admin/crm/people/${task.personId}`)
 }
 
 /** Adds a to-do by hand. Due date is optional (YYYY-MM-DD); it is stored at 9:00 ET like the meeting ones. */
