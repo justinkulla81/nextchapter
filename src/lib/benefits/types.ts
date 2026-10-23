@@ -1,4 +1,4 @@
-export const CATEGORY_ORDER = ['RELOCATION', 'STATE_TRAINING', 'FEDERAL', 'COURSES', 'PRIVATE', 'SEGMENT'] as const
+export const CATEGORY_ORDER = ['RELOCATION', 'STATE_TRAINING', 'FEDERAL', 'COURSES', 'PRIVATE', 'SEGMENT', 'PAID', 'TAX'] as const
 export type BenefitCategory = (typeof CATEGORY_ORDER)[number]
 
 export const CATEGORY_LABELS: Record<BenefitCategory, string> = {
@@ -8,6 +8,8 @@ export const CATEGORY_LABELS: Record<BenefitCategory, string> = {
   COURSES: 'Free courses and certificates',
   PRIVATE: 'Private, nonprofit and AI funds',
   SEGMENT: 'By profession and employer incentives',
+  PAID: 'Paid to learn, return or retrain',
+  TAX: 'Tax credits and deductions',
 }
 
 export const STATUSES = ['OPEN', 'ROLLING', 'CLOSED', 'UNKNOWN'] as const

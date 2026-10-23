@@ -56,6 +56,7 @@ export const BENEFIT_SLIDE_CATEGORIES: Record<string, string[]> = {
   'p-relocation': ['RELOCATION'],
   'p-training': ['STATE_TRAINING', 'FEDERAL'],
   'p-free': ['COURSES', 'PRIVATE', 'SEGMENT'],
+  'p-paid': ['PAID', 'TAX'],
   /** Employer-offered programs (relocation packages and the like), any category. */
   'p-employer': [],
 }
@@ -188,13 +189,13 @@ export function buildDeck(i: BuildInput): Deck {
         const cats = BENEFIT_SLIDE_CATEGORIES[r.id] ?? []
         const state = i.area?.state ?? null
         const employerSlide = r.id === 'p-employer'
-        const mine = (i.benefits ?? []).filter((x) => (employerSlide ? !!x.employer : cats.includes(x.category) && !x.employer))
+        const mine = (i.benefits ?? []).filter((x) => (employerSlide ? !!x.employer && x.category !== 'PAID' : cats.includes(x.category) && (!x.employer || x.category === 'PAID')))
         // This state's own programs first, then national ones.
         const rows = [...mine.filter((x) => x.state && x.state === state), ...mine.filter((x) => !(x.state && x.state === state))]
         s.head = ['Program', employerSlide ? 'Employer' : 'Where', 'What you get', 'Status']
         s.rows = rows.slice(0, r.appendix ? 12 : 6).map((x) => [
           x.name.length > 60 ? `${x.name.slice(0, 57)}...` : x.name,
-          employerSlide ? (x.employer ?? '') : x.scope === 'NATIONAL' ? 'National' : [x.city ?? x.locality, x.state].filter(Boolean).join(', '),
+          employerSlide ? (x.employer ?? '') : x.scope === 'NATIONAL' ? (x.employer ?? 'National') : [x.city ?? x.locality, x.state].filter(Boolean).join(', '),
           (x.amount ?? x.eligibility ?? '').slice(0, 90),
           x.status === 'OPEN' ? 'Open' : x.status === 'ROLLING' ? 'Rolling' : 'Check',
         ])

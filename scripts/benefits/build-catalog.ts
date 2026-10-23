@@ -18,6 +18,8 @@ function categoryFor(f: string): BenefitCategory | null {
   if (f === 'federal.md') return 'FEDERAL'
   if (f === 'courses.md') return 'COURSES'
   if (f === 'private.md') return 'PRIVATE'
+  if (f === 'paid.md') return 'PAID'
+  if (f === 'tax.md') return 'TAX'
   if (f === 'segments.md' || f === 'hiring_credits.md') return 'SEGMENT'
   return null
 }

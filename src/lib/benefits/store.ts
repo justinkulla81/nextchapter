@@ -52,7 +52,7 @@ export async function programsForDeck(state: string | null, perCategory = 3, are
   try {
     await seedCatalogIfEmpty()
     const all = await listPrograms({ state: state ?? undefined, limit: 400 })
-    const live = all.filter((r) => r.status !== 'CLOSED' && r.url && !r.employerKey)
+    const live = all.filter((r) => r.status !== 'CLOSED' && r.url && (!r.employerKey || r.category === 'PAID'))
     const out: BenefitProgramRow[] = []
     for (const c of CATEGORY_ORDER) {
       const mine = live.filter((r) => r.category === c)
