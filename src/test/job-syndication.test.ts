@@ -75,6 +75,11 @@ describe('XML feed', () => {
     expect(xml).toContain('<date><![CDATA[Thu, 08 Oct 2026 00:00:00 GMT]]></date>')
     expect(xml).not.toContain('<remotetype>')
   })
+  it('uses the given url instead of our job page (employer feed)', () => {
+    const xml = feedJobXml(job(), 'https://employer.example.com/apply/123')
+    expect(xml).toContain('<url><![CDATA[https://employer.example.com/apply/123]]></url>')
+    expect(xml).not.toContain('launchyournextchapter.com/jobs/')
+  })
   it('remote and unknown fields', () => {
     const xml = feedJobXml(job({ workArrangement: 'remote', employmentType: 'interim', salaryMin: null, salaryMax: null, locationCity: null }))
     expect(xml).toContain('<remotetype><![CDATA[Fully remote]]></remotetype>')

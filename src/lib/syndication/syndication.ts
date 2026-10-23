@@ -97,13 +97,14 @@ export function feedHead(builtAt: Date): string {
 
 export const FEED_TAIL = '</source>\n'
 
-export function feedJobXml(job: PublicJobRow): string {
+/** `url` overrides the job's link in the feed (the employer feed sends applicants to the employer's own apply link). */
+export function feedJobXml(job: PublicJobRow, url: string = jobPageUrl(job.id)): string {
   const remote = isRemoteJob(job)
   const parts = [
     `<title>${cdata(job.title)}</title>`,
     `<date>${cdata(datePostedOf(job).toUTCString())}</date>`,
     `<referencenumber>${cdata(job.id)}</referencenumber>`,
-    `<url>${cdata(jobPageUrl(job.id))}</url>`,
+    `<url>${cdata(url)}</url>`,
     `<company>${cdata(job.companyName)}</company>`,
     `<city>${cdata(job.locationCity)}</city>`,
     `<state>${cdata(job.locationState)}</state>`,
