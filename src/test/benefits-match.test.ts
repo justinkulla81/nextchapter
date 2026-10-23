@@ -145,13 +145,13 @@ describe('community audiences and affinity', () => {
     const rows = [prog({ segments: ['women'], affinity: ['parents'] })]
     expect(matchPrograms(rows, facts(['parent'])).length).toBe(0)
   })
-  it('never asks about religion; a faith-specific program stays visible but is never boosted', () => {
-    expect(SELF_TAGS.some((t) => /catholic|jewish|muslim|christian|presbyterian|latter|relig|faith/i.test(`${t.tag} ${t.label}`))).toBe(false)
-    expect(cleanSelfTags(['jewish', 'muslim', 'catholic'])).toEqual([])
-    const rows = [prog({ id: 'faith', segments: ['Jewish'], name: 'Faith-specific scholarship', url: 'https://example.org/faith', amount: 'Free tuition scholarship', eligibility: 'Open to adult learners' }), prog({ id: 'open', name: 'Open to all', url: 'https://example.org/open', segments: [], amount: 'Free tuition scholarship', eligibility: 'Open to adult learners' })]
-    const out = matchPrograms(rows, facts([]))
-    expect(out.map((m) => m.program.id).sort()).toEqual(['faith', 'open'])
-    expect(out.find((m) => m.program.id === 'faith')!.why).not.toMatch(/Built for people like you/)
+  it('never asks about religion, so a program that requires a faith is not shown to anyone', () => {
+    expect(SELF_TAGS.some((x) => /catholic|jewish|muslim|christian|presbyterian|latter|relig|faith/i.test(`${x.tag} ${x.label}`))).toBe(false)
+    expect(cleanSelfTags(['jewish', 'muslim', 'catholic', 'faith'])).toEqual([])
+    const row = (id: string, segments: string[]) => prog({ id, segments, name: id, url: `https://example.org/${id}`, amount: 'Free tuition scholarship', eligibility: 'Open to adult learners' })
+    const rows = [row('faith', ['Jewish']), row('open', [])]
+    expect(matchPrograms(rows, facts([])).map((x) => x.program.id)).toEqual(['open'])
+    expect(matchPrograms(rows, { ...facts([]), answered: false }).map((x) => x.program.id)).toEqual(['open'])
   })
   it('offers no chips for ethnicity, gender or sexual orientation: those come only from the optional self-ID survey', () => {
     for (const t of ['hispanic', 'black', 'aapi', 'native', 'women', 'lgbtq']) expect(SELF_TAGS.some((x) => x.tag === t)).toBe(false)

@@ -16,6 +16,8 @@ export type AudienceTag =
   // Community and heritage. Never asked as a new question and never inferred: these come only from the member's own voluntary
   // self-ID answers, and only when they turn that on for funding (see tagsFromSelfId). Religion is never asked or used.
   | 'women' | 'lgbtq' | 'hispanic' | 'black' | 'aapi' | 'native'
+  // A program that requires a faith. We never ask about religion, so this tag is never held and those programs are not shown.
+  | 'faith'
   | 'parent' | 'firstgen'
 
 /** What a member can say about themselves. Optional, private, and only used to match. */
@@ -35,7 +37,9 @@ export const SELF_TAGS: { tag: AudienceTag; label: string }[] = [
   { tag: 'firstgen', label: 'I am the first in my family to go to college' },
 ]
 /** Tags that describe a community, not a situation. Never sent to analytics. */
-export const COMMUNITY_TAGS = new Set<AudienceTag>(['women', 'lgbtq', 'hispanic', 'black', 'aapi', 'native'])
+// One rule for every group we do not ask about directly: a program written for a group is shown only to someone we positively know belongs to it.
+// Ethnicity and gender come from the member's own opt-in self-ID. Religion and sexual orientation are never asked, so those programs are not shown.
+export const COMMUNITY_TAGS = new Set<AudienceTag>(['women', 'lgbtq', 'hispanic', 'black', 'aapi', 'native', 'faith'])
 
 export interface SelfIdAnswers {
   race?: string | null
@@ -89,8 +93,9 @@ function pieceTags(piece: string): Set<AudienceTag | 'employer'> | null {
   if (/lgbtq/i.test(p)) t.add('lgbtq')
   if (/hispanic|latino|latina|latinx/i.test(p)) t.add('hispanic')
   if (/african american|\bblack\b/i.test(p)) t.add('black')
-  if (/\baapi\b|asian american|pacific islander/i.test(p)) t.add('aapi')
-  if (/native american|alaska native|american indian/i.test(p)) t.add('native')
+  if (/\baapi\b|\basian\b|pacific islander/i.test(p)) t.add('aapi')
+  if (/native american|alaska native|american indian|indigenous|tribal/i.test(p)) t.add('native')
+  if (/jewish|catholic|muslim|islamic|christian|presbyterian|methodist|lutheran|latter-day|\bfaith\b|\bchurch\b/i.test(p)) t.add('faith')
   if (/\b(50|55)\+/.test(p)) t.add('age50')
   else if (/\b40\+/.test(p)) t.add('age40')
   if (/disab|ssdi|\bssi\b/i.test(p)) t.add('disabled')
@@ -100,8 +105,6 @@ function pieceTags(piece: string): Set<AudienceTag | 'employer'> | null {
   if (/entrepreneur/i.test(p)) t.add('entrepreneur')
   if (/returner|returning|career-break|caregiver/i.test(p)) t.add('returner')
   if (/students?|grads?\b/i.test(p)) t.add('student')
-  // Identity groups we never ask about (faith, ethnicity, LGBTQ+, women): unknown, so the program stays in.
-  if (/jewish|hispanic|latin[oa]x?|\bblack\b|african american|\basian\b|\baapi\b|native|indigenous|tribal|lgbtq|\bwomen\b|\bwoman\b|female|catholic|muslim|christian|faith/i.test(p)) t.add('community')
   return t.size ? t : null
 }
 
