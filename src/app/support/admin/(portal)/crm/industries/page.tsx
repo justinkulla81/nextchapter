@@ -6,9 +6,11 @@ import { INDUSTRY_KEYS, industryKeyForNaics, industryName } from '@/lib/crm/cove
 
 export const maxDuration = 30
 
+const yearAgo = () => new Date(Date.now() - 365 * 86_400_000)
+
 export default async function IndustriesPage() {
   await requireAdmin()
-  const since = new Date(Date.now() - 365 * 86_400_000)
+  const since = yearAgo()
   const [counts, notices, openings] = await Promise.all([
     coverageCounts(),
     prisma.warnNotice.findMany({ where: { dismissedAt: null, noticeDate: { gte: since }, industry: { not: null } }, select: { industry: true, employees: true } }),
