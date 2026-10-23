@@ -25,6 +25,9 @@ import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureL
 import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
 import { PortalHeaders } from './portal-headers'
 import { PartnerInvite, PartnerYourPeople, PartnerMoving, PartnerMovingAsk, PartnerMovingWorth } from './partner'
+import { CoachSessionPrep, CoachSessionNotes } from './coach-session'
+import { CoachWhatCandidateSees } from './coach-candidate'
+import { CoachSchedulingConnected, CoachSchedulingEmpty, CoachSchedulingBroken } from './coach-scheduling'
 import { FundingLive } from './funding-live'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
@@ -44,6 +47,12 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'coach/session-prep', place: 'Coach', title: 'Before you meet Dana: one prep page from what she shares', replaces: 'the pre-session brief and the Coaching Notes panel, read before a session', Component: CoachSessionPrep },
+  { path: 'coach/session-notes', place: 'Coach', title: 'Notes during and after: capture, Meet import, reviewed summary, follow-ups, interests', replaces: 'LogSessionForm (free-text notes and directives) and the notes summary card', Component: CoachSessionNotes },
+  { path: 'coach/candidate-view', place: 'Coach', title: 'What Dana sees after a session: steps, topics, summary, message', replaces: 'the directives list on /dashboard/my-coaching', Component: CoachWhatCandidateSees },
+  { path: 'coach/scheduling', place: 'Coach', title: 'Calendar and booking: your own Google Calendar, connected', replaces: '/support/coach/booking (shared NextChapter calendar, availability form)', Component: CoachSchedulingConnected },
+  { path: 'coach/scheduling-not-connected', place: 'Coach', title: 'Calendar and booking: not connected yet', replaces: 'the first-run state of /support/coach/booking', Component: CoachSchedulingEmpty },
+  { path: 'coach/scheduling-disconnected', place: 'Coach', title: 'Calendar and booking: Google access lost', replaces: 'new (no error state today)', Component: CoachSchedulingBroken },
   { path: 'learn/funding-live', place: 'Learn', title: 'Funding you qualify for: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: FundingLive },
   { path: 'jobs/market/ai-exposure-report', place: 'Jobs', title: 'AI exposure: your market reality', replaces: 'the “AI is reshaping this work” line in the market report', Component: ExposureMarketReport },
   { path: 'home/tailored/ai-exposure-strategy', place: 'Home', title: 'AI exposure: search strategy', replaces: 'the “AI skills” line under open roles', Component: ExposureSearchStrategy },
