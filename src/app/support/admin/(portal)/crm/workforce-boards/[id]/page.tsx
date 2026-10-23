@@ -6,6 +6,8 @@ import { BoardContact } from '@/components/admin/WarnWorkforceBoard'
 import { WorkforceBoardOpenedTracker } from '@/components/admin/WorkforceBoardsViewTracker'
 import { buildBoardReport, isCompanyWide } from '@/lib/workforce/board-report'
 import { boardCountyKeys, COLLEGE_SECTORS, COLLEGE_SIZES } from '@/lib/workforce/board-area'
+import { countyKey } from '@/lib/workforce/places'
+import { correctFutureDates } from '@/lib/warn/filed-date'
 import { jobCentersUrl, STATE_NAMES } from '@/lib/workforce/directory'
 import { boardLabor } from '@/lib/workforce/labor'
 import { SECTOR_LABELS } from '@/lib/workforce/sector'
@@ -70,7 +72,14 @@ export default async function WorkforceBoardPage({
   const windowKey = WINDOWS.some((w) => w.key === sp.window) ? sp.window! : '12m'
   const windowDef = WINDOWS.find((w) => w.key === windowKey)!
   const keys = boardCountyKeys(board)
-  const inArea = keys === 'all' ? {} : { in: keys }
+  // Stored county keys keep the space ("los angeles"), boards list "losangeles": join on the key of the county's name,
+  // and colleges on the county's FIPS code.
+  const stateCounties = await prisma.countyLabor.findMany({
+    where: { state: board.state },
+    select: { fips: true, name: true, nameKey: true, laborForce: true, unemployed: true, rate: true, rateYearAgo: true, period: true },
+    orderBy: { laborForce: { sort: 'desc', nulls: 'last' } },
+  })
+  const boardCounties = keys === 'all' ? stateCounties : stateCounties.filter((c) => keys.includes(countyKey(c.name)))
 
   const [notices, labor, partners, colleges, news, national] = await Promise.all([
     prisma.warnNotice.findMany({
@@ -80,20 +89,16 @@ export default async function WorkforceBoardPage({
       },
       select: {
         id: true, workforceBoardId: true, employer: true, normalizedEmployer: true, employees: true,
-        noticeDate: true, effectiveDate: true, companyId: true, sourceUrl: true, source: true, industry: true,
+        noticeDate: true, effectiveDate: true, companyId: true, sourceUrl: true, source: true, industry: true, fetchedAt: true,
       },
     }),
-    prisma.countyLabor.findMany({
-      where: { state: board.state, ...(keys === 'all' ? {} : { nameKey: inArea }) },
-      select: { name: true, nameKey: true, laborForce: true, unemployed: true, rate: true, rateYearAgo: true, period: true },
-      orderBy: { laborForce: { sort: 'desc', nulls: 'last' } },
-    }),
+    Promise.resolve(boardCounties),
     prisma.workforceBoardPartner.findMany({
       where: { boardId: board.id },
       orderBy: [{ kind: 'asc' }, { distanceMiles: { sort: 'asc', nulls: 'last' } }],
     }),
     prisma.localCollege.findMany({
-      where: { state: board.state, ...(keys === 'all' ? {} : { countyKey: inArea }) },
+      where: { state: board.state, ...(keys === 'all' ? {} : { countyFips: { in: boardCounties.map((c) => c.fips) } }) },
       // Best pilot partners first (see the Colleges page for how they are ranked).
       orderBy: [{ rank: { sort: 'asc', nulls: 'last' } }, { name: 'asc' }],
     }),
@@ -112,7 +117,7 @@ export default async function WorkforceBoardPage({
   for (const c of contacts) contactsByCollege.set(c.collegeId, [...(contactsByCollege.get(c.collegeId) ?? []), c])
   const roleOrder = Object.keys(COLLEGE_ROLES) as CollegeRole[]
 
-  const [report] = buildBoardReport([board], notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { includeEmpty: true })
+  const [report] = buildBoardReport([board], notices.map((n) => ({ ...correctFutureDates(n), companyWide: isCompanyWide(n) })), { includeEmpty: true })
   const area = boardLabor(labor)
   const change = area?.rateYearAgo != null ? Math.round((area.rate - area.rateYearAgo) * 10) / 10 : null
   const longShare = national?.longTermShare?.latest
