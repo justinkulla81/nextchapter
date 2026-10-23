@@ -1,11 +1,14 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { defaultAreaForKind } from '@/lib/vision/labels'
+import { cleanAreas, cleanRelationship, hostOf, homepageOf, parseCustomers, parseLines, parseWins, parseUsd, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
+import { enrichCompetitor, type EnrichedCompetitor } from '@/lib/vision/competitor-enrich'
 import { notifyCandidateFeedbackAddressed } from '@/lib/help/notify'
 import type {
   ProductItemKind, ProductItemArea, ProductItemStatus, ProductRoadmapBucket, ProductEffort,
@@ -300,28 +303,133 @@ export async function upsertCompetitor(formData: FormData) {
   const name = String(formData.get('name') ?? '').trim()
   if (!name) return
   const id = String(formData.get('id') ?? '').trim()
+  const text = (k: string, max = 400) => String(formData.get(k) ?? '').trim().slice(0, max) || null
   const num = (k: string) => {
     const v = String(formData.get(k) ?? '').replace(/[^\d]/g, '')
     return v ? parseInt(v, 10) : null
   }
+  const funding = parseUsd(String(formData.get('fundingRaisedUsd') ?? ''))
   const data = {
     name,
-    url: String(formData.get('url') ?? '').trim() || null,
-    positioning: String(formData.get('positioning') ?? '').trim() || null,
-    segment: String(formData.get('segment') ?? '').trim() || null,
-    revenueNote: String(formData.get('revenueNote') ?? '').trim() || null,
-    fundingRaisedUsd: num('fundingRaisedUsd'),
+    url: homepageOf(String(formData.get('url') ?? '')) ?? (String(formData.get('url') ?? '').trim() || null),
+    positioning: text('positioning', 800),
+    segment: text('segment', 120),
+    relationship: cleanRelationship(formData.get('relationship')),
+    areas: cleanAreas(formData.getAll('areas').map(String)),
+    keyFeatures: parseLines(formData.get('keyFeatures'), 15),
+    customers: parseCustomers(formData.get('customers')) as unknown as object,
+    wins: parseWins(formData.get('wins')) as unknown as object,
+    weWin: parseLines(formData.get('weWin'), 8),
+    theyWin: parseLines(formData.get('theyWin'), 8),
+    weNeed: parseLines(formData.get('weNeed'), 8),
+    pricingNote: text('pricingNote', 200),
+    foundedYear: num('foundedYear'),
+    hq: text('hq', 80),
+    lastRound: text('lastRound', 120),
+    investors: text('investors', 200),
+    notes: text('notes', 1200),
+    revenueNote: text('revenueNote', 160),
+    fundingRaisedUsd: funding && funding <= 2_147_483_647 ? funding : null,
     headcount: num('headcount'),
-    userCountNote: String(formData.get('userCountNote') ?? '').trim() || null,
-    sourceUrl: String(formData.get('sourceUrl') ?? '').trim() || null,
-    // Every firmographic edit re-dates the row: these go stale silently, and
-    // an undated number in a deck is worse than no number.
+    userCountNote: text('userCountNote', 160),
+    sourceUrl: text('sourceUrl', 300),
+    // A person saving the card is the review; every save re-dates it, since these go stale silently.
+    filledBy: 'hand',
+    needsReview: false,
     lastReviewedAt: new Date(),
   }
   if (id) await prisma.productCompetitor.update({ where: { id }, data })
   else await prisma.productCompetitor.create({ data })
-  captureServerEvent(admin.email ?? 'admin', 'vision_competitor_saved', { name, isNew: !id })
+  captureServerEvent(admin.email ?? 'admin', 'vision_competitor_saved', { name, isNew: !id, areas: data.areas.length, relationship: data.relationship })
   revalidatePath(`${V}/competitors`)
+}
+
+/** Most website reads in a day; each costs a few cents of model use, so a runaway paste cannot run up a bill. */
+const QUICK_ADD_DAILY_CAP = 40
+
+function cardData(e: EnrichedCompetitor) {
+  return {
+    name: e.name, segment: e.segment, positioning: e.positioning, relationship: e.relationship, areas: e.areas, keyFeatures: e.keyFeatures,
+    customers: e.customers as unknown as object, wins: e.wins as unknown as object, weWin: e.weWin, theyWin: e.theyWin, weNeed: e.weNeed,
+    pricingNote: e.pricingNote, foundedYear: e.foundedYear, hq: e.hq, lastRound: e.lastRound, investors: e.investors,
+    fundingRaisedUsd: e.fundingRaisedUsd && e.fundingRaisedUsd <= 2_147_483_647 ? e.fundingRaisedUsd : null,
+    headcount: e.headcount, revenueNote: e.revenueNote, userCountNote: e.userCountNote, sourceUrl: e.sourceUrl, notes: e.notes,
+  }
+}
+
+/**
+ * Paste a website, get a draft card: we read the site and a little public reporting and fill what they do, who
+ * they sell to, features, customers, wins, and the numbers when they are public. The row is marked "check this"
+ * until someone saves it by hand.
+ */
+export async function quickAddCompetitor(formData: FormData) {
+  const admin = await requireAdmin()
+  const url = homepageOf(String(formData.get('url') ?? ''))
+  const back = (q: string) => redirect(`${V}/competitors?${q}`)
+  if (!url) return back(`error=${encodeURIComponent('That does not look like a website. Paste something like example.com.')}`)
+  const host = hostOf(url)!
+  const all = await prisma.productCompetitor.findMany({ select: { id: true, url: true, name: true, updatedAt: true, filledBy: true } })
+  const existing = all.find((c) => c.url && hostOf(c.url) === host)
+  if (existing) return back(`added=${existing.id}&existing=1`)
+  const today = all.filter((c) => c.filledBy === 'website' && Date.now() - c.updatedAt.getTime() < 86_400_000).length
+  if (today >= QUICK_ADD_DAILY_CAP) return back(`error=${encodeURIComponent(`Daily limit of ${QUICK_ADD_DAILY_CAP} website reads reached. Add this one by hand, or try tomorrow.`)}`)
+
+  let created: { id: string } | null = null
+  let failure: string | null = null
+  try {
+    const { data, cost, searches } = await enrichCompetitor(url)
+    const taken = all.some((c) => c.name.toLowerCase() === data.name.toLowerCase())
+    created = await prisma.productCompetitor.create({
+      data: { ...cardData(data), name: taken ? `${data.name} (${host})` : data.name, url, filledBy: 'website', needsReview: true, lastReviewedAt: new Date() },
+      select: { id: true },
+    })
+    captureServerEvent(admin.email ?? 'admin', 'vision_competitor_quick_added', { host, ok: true, areas: data.areas.length, costUsd: Math.round(cost * 1000) / 1000, searches })
+  } catch (e) {
+    failure = e instanceof Error ? e.message : 'unknown error'
+    captureServerEvent(admin.email ?? 'admin', 'vision_competitor_quick_added', { host, ok: false, error: failure.slice(0, 120) })
+  }
+  revalidatePath(`${V}/competitors`)
+  if (created) return back(`added=${created.id}`)
+  return back(`error=${encodeURIComponent(`Could not read ${host}: ${failure}. Try again, or add it by hand below.`)}`)
+}
+
+const keyOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
+function unionNamed<T extends { name?: string; what?: string }>(current: T[], incoming: T[], max: number): T[] {
+  const seen = new Set(current.map((x) => keyOf(x.name ?? x.what ?? '')))
+  return [...current, ...incoming.filter((x) => !seen.has(keyOf(x.name ?? x.what ?? '')))].slice(0, max)
+}
+
+/** Reads the site again. Fills blanks, adds new customers and wins, refreshes the public numbers; never deletes what is there. */
+export async function refreshCompetitorFromWebsite(competitorId: string) {
+  const admin = await requireAdmin()
+  const c = await prisma.productCompetitor.findUnique({ where: { id: competitorId } })
+  if (!c?.url) return redirect(`${V}/competitors?error=${encodeURIComponent('This competitor has no website saved to read.')}`)
+  let failure: string | null = null
+  try {
+    const { data: e, cost } = await enrichCompetitor(c.url)
+    const n = cardData(e)
+    const customers = unionNamed((c.customers as NamedEntry[] | null) ?? [], e.customers, 60)
+    const wins = unionNamed((c.wins as WinEntry[] | null) ?? [], e.wins, 60)
+    const union = (a: string[], b: string[], max: number) => [...new Set([...a, ...b])].slice(0, max)
+    await prisma.productCompetitor.update({
+      where: { id: c.id },
+      data: {
+        positioning: c.positioning ?? n.positioning, segment: c.segment ?? n.segment,
+        areas: union(c.areas, e.areas, 18), keyFeatures: union(c.keyFeatures, e.keyFeatures, 20),
+        customers: customers as unknown as object, wins: wins as unknown as object,
+        weWin: union(c.weWin, e.weWin, 8), theyWin: union(c.theyWin, e.theyWin, 8), weNeed: union(c.weNeed, e.weNeed, 8),
+        pricingNote: n.pricingNote ?? c.pricingNote, foundedYear: c.foundedYear ?? n.foundedYear, hq: c.hq ?? n.hq,
+        lastRound: n.lastRound ?? c.lastRound, investors: n.investors ?? c.investors,
+        fundingRaisedUsd: n.fundingRaisedUsd ?? c.fundingRaisedUsd, headcount: n.headcount ?? c.headcount,
+        revenueNote: n.revenueNote ?? c.revenueNote, userCountNote: n.userCountNote ?? c.userCountNote,
+        sourceUrl: n.sourceUrl ?? c.sourceUrl, notes: c.notes ?? n.notes,
+        needsReview: true, lastReviewedAt: new Date(), filledBy: c.filledBy ?? 'website',
+      },
+    })
+    captureServerEvent(admin.email ?? 'admin', 'vision_competitor_refreshed', { name: c.name, costUsd: Math.round(cost * 1000) / 1000 })
+  } catch (err) { failure = err instanceof Error ? err.message : 'unknown error' }
+  revalidatePath(`${V}/competitors`)
+  return redirect(`${V}/competitors?${failure ? `error=${encodeURIComponent(`Could not refresh ${c.name}: ${failure}`)}` : `added=${c.id}&refreshed=1`}`)
 }
 
 export async function deleteCompetitor(competitorId: string) {
