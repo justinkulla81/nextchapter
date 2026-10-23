@@ -115,4 +115,12 @@ describe('deck colors', () => {
     expect(ensureReadable('#2e7d5b')).toBe('#2e7d5b')
     expect(ensureReadable('not a color')).toBe('#2e7d5b')
   })
+  it('shows the Kentuckiana benefits slide only for Kentucky and Indiana areas', () => {
+    const ky = buildDeck({ rules: defaultRuleSet('ECON_DEV'), brand, area: area() })
+    expect(ky.slides.some((x) => x.id === 'b-kentuckiana')).toBe(true)
+    const tx = buildDeck({ rules: defaultRuleSet('ECON_DEV'), brand, area: area({ state: 'TX', name: 'Travis County' }) })
+    expect(tx.slides.some((x) => x.id === 'b-kentuckiana')).toBe(false)
+    const generic = buildDeck({ rules: defaultRuleSet('ECON_DEV'), brand, area: null })
+    expect(generic.slides.some((x) => x.id === 'b-kentuckiana')).toBe(false)
+  })
 })
