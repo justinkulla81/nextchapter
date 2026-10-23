@@ -134,3 +134,14 @@ These involve real legal/compliance exposure (financial advice, legal-document i
 - **Unlock bar from data** — once there is history, replace the guessed 180 minutes with a bar fitted to how much effort precedes a useful new strategy.
 - **Gmail-derived funnel counts** — fill applications, interviews and offers in the last 30 days from connected Gmail so the onboarding fallback question is skipped.
 - **Report history** — keep dated report versions so members can see the read change over months, not just week to week.
+
+## Employer pitch: CHRO, head of L&D and the four services (not built)
+
+The CRM now grades employers (A layoff notice, B more than 5 open jobs, C neither), tags CHRO and head of L&D contacts, and exports the Organizations list. What is left:
+
+- **Populate the people from Hunter.** Find the CHRO and head of L&D for the grade A employers (about 2,100; roughly 1,900 lack a CHRO and 2,080 lack a head of L&D). Only companies with an email domain can be searched; most have none yet, so find domains first. Hunter is metered: Starter is $49 a month for 2,000 credits, Growth $149 for 10,000. A first pass over the grade A employers with a known domain is a few hundred credits. Check each domain before spending (Accenture is set to `sloan.mit.edu`; Google, Workday and Visa are set to subdomains).
+- **Four services to sell a company.** (1) Hiring plus outplacement as one service, (2) L&D retraining, (3) coaching, (4) retention. Hiring and outplacement exist (the talent portal; the outplacement portal with contracts, seats, roster, reporting and invoices). Coaching exists only for individuals. Retraining has courses but no company purchase path. Retention has nothing. A contract-level service type on the existing company portal would carry all four rather than a separate retention product.
+- **Company-sponsored coaching.** A company buys coaching seats for its employees; today only individuals buy.
+- **L&D retraining purchase path.** A company enrolls staff in courses and sees counts-only reporting, reusing the portal's enroll, roster and reporting pages.
+- **Grade tweaks.** The 240 employers graded C before openings were counted now have more than 5 openings and could move to B; add a grade filter and column on the Organizations page.
+- **Borderline L&D heads.** Robin Landsman (Beaumont Bailey), Lacy Thompson (Unboxed Training and Technology) and Mary Saxon (Bryant Park Talent Partners) were left untagged; decide after checking what each firm is.
