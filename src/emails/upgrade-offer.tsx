@@ -4,8 +4,6 @@ import type { OfferCopy } from '@/lib/upgrade-offer/triggers'
 interface UpgradeOfferEmailProps {
   copy: OfferCopy
   planName: string
-  /** e.g. "$99/mo"; null when the catalog has no live price. */
-  priceLabel: string | null
   ctaUrl: string
   unsubscribeUrl: string
 }
@@ -22,7 +20,7 @@ const card: React.CSSProperties = { backgroundColor: '#ffffff', borderRadius: '2
 // one large headline, a hero card showing the member's own number, one button,
 // then three short benefit rows (title, description, tile), and a closing button.
 // Table layout and inline styles only, so it renders the same in Gmail and Outlook.
-export default function UpgradeOfferEmail({ copy, planName, priceLabel, ctaUrl, unsubscribeUrl }: UpgradeOfferEmailProps) {
+export default function UpgradeOfferEmail({ copy, planName, ctaUrl, unsubscribeUrl }: UpgradeOfferEmailProps) {
   return (
     <div style={{ backgroundColor: '#f1f3f4', padding: '24px 12px', fontFamily: FONT, color: INK }}>
       <div style={{ display: 'none', maxHeight: 0, overflow: 'hidden', opacity: 0 }}>{copy.preheader}</div>
@@ -48,7 +46,7 @@ export default function UpgradeOfferEmail({ copy, planName, priceLabel, ctaUrl, 
               <a href={ctaUrl} style={{ display: 'inline-block', padding: '14px 28px', backgroundColor: GREEN, color: '#ffffff', borderRadius: '999px', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}>
                 See {planName}
               </a>
-              {priceLabel ? <p style={{ margin: '12px 0 0', fontSize: '14px', color: MUTED }}>{planName} is {priceLabel}. Cancel anytime.</p> : null}
+              <p style={{ margin: '12px 0 0', fontSize: '14px', color: MUTED }}>Cancel anytime.</p>
             </td>
           </tr>
 

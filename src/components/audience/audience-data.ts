@@ -60,12 +60,8 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     subhead:
       'Every candidate on NextChapter completes a structured How They Work Best assessment and gathers verified references before you ever see their profile — so you\'re evaluating demonstrated fit and work ethic, not a résumé\'s best guess at itself.',
     insightSection: {
-      heading: 'What a bad hire actually costs you',
+      heading: 'Why verification matters',
       items: [
-        {
-          lead: 'A bad hire costs far more than the salary.',
-          body: 'The U.S. Department of Labor estimates the price of a bad hiring decision at roughly 30% of that employee\'s first-year earnings once you count ramp time, lost productivity, and backfilling the role.',
-        },
         {
           lead: 'Your own ATS is filtering out your best candidates.',
           body: 'Harvard Business School\'s "Hidden Workers" research found the large majority of employers unknowingly screen out qualified people through automated keyword matching — not because they lack the skills, but because the system never saw the signal.',
@@ -84,10 +80,6 @@ export const AUDIENCE_TABS: AudienceTab[] = [
       {
         lead: 'See the person, the way an executive recruiter would.',
         body: "Our 9-dimension How They Work Best assessment, cross-checked against verified references, shows how someone collaborates, decides, and handles ambiguity — the fit signal a résumé can't give you.",
-      },
-      {
-        lead: 'One flat price, no per-hire tax.',
-        body: "A predictable monthly subscription. Hire one person or ten — you're never penalized for succeeding.",
       },
       {
         lead: 'Engaged candidates who want to work.',
@@ -196,10 +188,6 @@ export const AUDIENCE_TABS: AudienceTab[] = [
           lead: 'How you exit people is retention insurance.',
           body: 'The employees who remain are watching how you treat the ones who leave. A dignified, effective transition protects the employer brand that keeps your best people from job-hunting themselves.',
         },
-        {
-          lead: 'A bad rehire elsewhere still reflects on your process.',
-          body: 'The U.S. Department of Labor estimates a bad hire costs roughly 30% of first-year earnings — the same dynamic that makes a real, verified relaunch (not a passive resource library) worth measuring.',
-        },
       ],
     },
     points: [
@@ -222,7 +210,7 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     ],
     contrastLabel: 'vs. legacy outplacement (LHH, RiseSmart, Careerminds):',
     contrastBody:
-      "candidate-first by design, faster to real interviews, and priced to scale to your whole affected workforce — not just executives.",
+      "candidate-first by design, faster to real interviews, and built for your whole affected workforce — not just executives.",
     formHeading: 'Talk to us about outplacement',
     formSubtext: 'Join the waitlist for employer transition packages and pilot programs.',
     fields: [
@@ -306,8 +294,8 @@ export const AUDIENCE_TABS: AudienceTab[] = [
     },
     points: [
       {
-        lead: 'Serve your constituents at no cost to them.',
-        body: 'Bring your community an honest assessment of where they stand, a personalized action plan, and real employer matches — extending your programs without adding fees.',
+        lead: 'Serve your constituents free.',
+        body: 'Bring your community an honest assessment of where they stand, a personalized action plan, and real employer matches — extending your programs to more people.',
       },
       {
         lead: 'A research asset, ethically sourced.',

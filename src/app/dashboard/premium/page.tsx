@@ -31,8 +31,6 @@ const MARKET_INTEL_INCLUDED = [
   'A generated weekly brief on openings, comp movement, and warm paths at your target companies',
 ]
 
-const PRICE_LABEL = '$799/month'
-
 export default async function PremiumPage() {
   const [profile, {
     data: { user },
@@ -71,18 +69,9 @@ export default async function PremiumPage() {
         </p>
       </div>
 
-      <Card className="border-orange/30 bg-orange/5">
-        <CardContent className="flex flex-wrap items-baseline justify-between gap-2">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Proposed price</p>
-            <p className="mt-1 text-2xl font-bold text-navy">{PRICE_LABEL}</p>
-          </div>
-          <p className="max-w-sm text-xs text-muted-foreground">
-            This is a starting number to gauge interest, not a locked price — nothing is billed today. Joining
-            the waitlist doesn&apos;t commit you to anything.
-          </p>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-muted-foreground">
+        Joining the waitlist doesn&apos;t commit you to anything.
+      </p>
 
       <Card>
         <CardHeader>

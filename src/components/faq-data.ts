@@ -15,12 +15,12 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       {
         question: 'Is NextChapter really free for me?',
         answer:
-          "Yes — completely, and always. Building your profile, taking the assessment, and getting your Market Reality Assessment and action plan cost you nothing. We never charge candidates a cent. Employers pay a flat monthly subscription to use the platform, and that's the only way we make money.",
+          "Yes — completely, and always. Building your profile, taking the assessment, and getting your Market Reality Assessment and action plan cost you nothing. We never charge candidates a cent.",
       },
       {
-        question: "Then what's the catch? How do you actually make money?",
+        question: "Then what's the catch?",
         answer:
-          "No catch. Employers pay a flat subscription to use NextChapter — no fees per hire, no upcharges. That flat model is deliberate: because employers aren't paying more to reach you, there's no incentive to sell your attention or your data. You're the reason the platform exists, not the product being sold.",
+          "No catch. NextChapter is free for candidates. You're the reason the platform exists, not the product being sold, and we don't sell your attention or your data.",
       },
       {
         question: 'Who is NextChapter for?',
@@ -123,8 +123,8 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
           'No. Even if you’re just testing the waters, your grades and action plan are worth having — and you control how visible you are to employers the whole time.',
       },
       {
-        question: 'What does it cost me if I get hired through NextChapter?',
-        answer: 'Nothing. Ever. There are no success fees or hidden charges to candidates at any stage.',
+        question: 'Is it still free if I get hired through NextChapter?',
+        answer: 'Yes. Candidates are never charged at any stage.',
       },
     ],
   },

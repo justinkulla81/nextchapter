@@ -103,7 +103,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
             <p>{p.claimLine}</p>
             <ul className="list-inside list-disc space-y-1 text-sm">
               <li>Takes about a minute. Nothing is created until you confirm.</li>
-              <li>Free for the people you refer. Pricing for your workspace on request.</li>
+              <li>Free for the people you refer.</li>
               <li>We report counts only, never names.</li>
             </ul>
           </div>

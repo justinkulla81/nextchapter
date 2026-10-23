@@ -23,18 +23,9 @@ import { MoreDetails } from '@/components/dashboard/MoreDetails'
 
 export const metadata: Metadata = { title: 'Membership' }
 
-function formatUsd(cents: number): string {
-  return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-}
-
 function formatDate(d: Date | null): string {
   if (!d) return 'never'
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-function formatPrice(cents: number, period: string): string {
-  if (cents === 0) return 'Free'
-  return `$${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}/${period === 'ANNUAL' ? 'yr' : 'mo'}`
 }
 
 // Same dtc_* PlanCatalogEntry tiers shown on the public /pricing page
@@ -95,12 +86,11 @@ const TIER_ORDER = ['dtc_free', 'dtc_resume', 'dtc_coaching_plus', 'dtc_coaching
 export default async function MembershipPage() {
   const [profile, user] = await Promise.all([getDashboardProfile(), getVerifiedSessionUser()])
 
-  const [isAlum, subscription, monthlyPlan, annualPlan, latestMarketCheck, plusStatus, ...dtcPlans] =
+  const [isAlum, subscription, monthlyPlan, latestMarketCheck, plusStatus, ...dtcPlans] =
     await Promise.all([
       hasRoleGrant(profile.userId, 'alum'),
       getMembershipSubscription(profile.id),
       getCurrentPlan('membership_monthly'),
-      getCurrentPlan('membership_annual'),
       prisma.membershipMarketCheck.findFirst({ where: { candidateId: profile.id }, orderBy: { checkedAt: 'desc' } }),
       isDossierUnlocked(profile.id),
       ...TIER_ORDER.map((key) => getCurrentPlan(key)),
@@ -126,10 +116,7 @@ export default async function MembershipPage() {
   // The redesign: the same two blocks without the bordered cards, the capitals status word and the small grey labels.
   const becomeMemberBlockRedesign = isAlum && !subscription ? (
     <Section id="become-member" title="Become a member">
-      <MembershipSignupButtons
-        monthlyLabel={monthlyPlan ? formatPrice(monthlyPlan.priceCents, 'MONTHLY') : '$19/mo'}
-        annualLabel={annualPlan ? formatPrice(annualPlan.priceCents, 'ANNUAL') : '$180/yr'}
-      />
+      <MembershipSignupButtons monthlyLabel="Join monthly" annualLabel="Join annually" />
       <ul className="list-disc space-y-1 pl-5 text-base text-ink">
         {(monthlyPlan?.features as string[] | undefined)?.map((f) => <li key={f}>{f}</li>) ?? null}
       </ul>
@@ -196,9 +183,7 @@ export default async function MembershipPage() {
       <section key={key} className="flex flex-col gap-3 rounded-2xl border border-border p-5">
         <div>
           <h3 className="text-base font-semibold text-ink">{copy.name}</h3>
-          <p className="font-display text-2xl font-semibold text-ink">
-            {plan ? (plan.priceCents === 0 ? 'Free' : `${formatUsd(plan.priceCents)}${plan.billingPeriod === 'MONTHLY' ? ' a month' : ''}`) : 'Price soon'}
-          </p>
+          {plan?.priceCents === 0 && <p className="font-display text-2xl font-semibold text-ink">Free</p>}
         </div>
         <p className="text-sm text-ink">{copy.audience}</p>
         <ul className="space-y-1.5">
@@ -256,15 +241,9 @@ export default async function MembershipPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {['dtc_resume', 'dtc_executive'].map(tierCard)}
         </div>
-        <div className="space-y-2 rounded-2xl bg-muted/60 p-5">
-          <h2 className="font-display text-lg font-semibold text-ink">Why timing matters</h2>
-          <p className="text-sm text-ink">
-            A search that drags on costs paychecks, momentum and confidence. Landing your next role even a few weeks sooner is worth more than a year of Coaching Premium at {dtcPlans[3] ? formatUsd(dtcPlans[3].priceCents) : '$599'} a month. What you see here is the whole cost.
-          </p>
-        </div>
         <div className="space-y-1">
-          <p className="text-base font-semibold text-ink">Cost should not stand between you and support.</p>
-          <p className="text-sm text-ink">If you are facing real financial hardship, you may qualify for reduced or free access to Coaching Premium.</p>
+          <p className="text-base font-semibold text-ink">Scholarships for coaching.</p>
+          <p className="text-sm text-ink">If you are facing real financial hardship, you may qualify for a scholarship to Coaching Premium.</p>
           <ActionLink href="/dashboard/plans/scholarship" variant="text" event="membership_scholarship_clicked" props={{ source: 'membership' }}>Apply for a scholarship</ActionLink>
         </div>
         <div className="space-y-1">

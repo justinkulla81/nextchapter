@@ -194,11 +194,7 @@ export default function TermsOfServicePage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-navy">11. Paid Plans, Billing, and Refunds</h2>
           <p>
-            Some parts of the Service require payment. Current prices are listed on our{' '}
-            <Link href="/pricing" className="text-primary underline underline-offset-4">
-              Pricing
-            </Link>{' '}
-            page or in your order. By purchasing, you authorize us and our payment processor to
+            Some parts of the Service require payment. The amount is shown at purchase or in your order. By purchasing, you authorize us and our payment processor to
             charge your payment method for all fees and applicable taxes.
           </p>
           <ul className="list-disc space-y-2 pl-6">

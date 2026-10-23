@@ -476,7 +476,7 @@ const SPEC: Record<CustomerType, Spec> = {
   // ─────────────────────────── Employers with layoffs ─────────────────────────
   OUTPLACEMENT_EMPLOYER: {
     buyer: 'Chief human resources officer; vice president of people; head of HR',
-    angle: 'A transition benefit for departing white-collar employees that goes further than a hotline and costs less than legacy outplacement.',
+    angle: 'A transition benefit for departing white-collar employees that goes further than a hotline.',
     tone: 'Respectful of the people affected, no hype, quick to act',
     ask: 'A call this week, before the effective date',
     offer: { name: 'Transition benefit for departing employees', scope: ['Every departing employee gets coaching and job-search tools', 'A custom landing page for departing employees', 'Aggregate reporting to HR, never individual data without consent'], theyProvide: ['The list of affected employees or an invitation link', 'A named HR owner'], term: '6 months from notice', price: NO_PRICE },
@@ -491,7 +491,7 @@ const SPEC: Record<CustomerType, Spec> = {
     ],
     patches: {
       summary: { bullets: ['{{org}} is reducing its workforce; departing employees will search in a market where white-collar searches run long.', 'NextChapter coaches each person toward their next role and reports in aggregate.', 'Proposal: a transition benefit for the affected group. Ask: a call before the effective date.'] },
-      problem: { bullets: ['Departing employees get a short severance and a hotline.', 'Remaining employees watch how the company treats those who leave.', 'Legacy outplacement is expensive and generic.'] },
+      problem: { bullets: ['Departing employees get a short severance and a hotline.', 'Remaining employees watch how the company treats those who leave.'] },
       cost: { bullets: ['Departing employees who feel abandoned talk about it.', 'Remaining employees reconsider their own commitment.', 'A poor transition affects the employer brand for years.'] },
       solution: { bullets: ['A coached, evidence-based path for each departing employee, starting on day one.', 'Coordination with the local workforce board for Rapid Response.', 'Aggregate reporting for HR; individual data only with consent.'] },
       how: { bullets: ['Announce: employees receive the benefit with the notice', 'Support: a plan, coaching and introductions', 'Report: HR sees aggregate progress'] },
@@ -541,7 +541,7 @@ const SPEC: Record<CustomerType, Spec> = {
       ['who', ...aud('departing', 'departing employees', 'dignity, a plan and fast help', 'a plan, coaching and introductions from day one', 'their own progress')],
       ['c-departing', ...aud('hr', 'your HR team', 'a transition that reflects well on the company', 'a landing page, a FAQ and an aggregate report', 'participation and outcomes in aggregate')],
       ['c-hr', ...aud('managers', 'managers and remaining employees', 'to see the company handle this well', 'guidance for conversations and a visible benefit', 'steadier engagement')],
-      ['c-managers', ...aud('leadership', 'leadership and finance', 'a cost-effective benefit', 'an alternative to legacy outplacement', 'cost per participant and use')],
+      ['c-managers', ...aud('leadership', 'leadership and finance', 'a benefit for departing employees', 'coaching and job-search tools for each person', 'participation and use')],
     ],
     off: ['a-colleges', 'a-datacenters', 'a-initiatives', 'a-employers'],
   },

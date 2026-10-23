@@ -1,45 +1,24 @@
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
-import { getCurrentPlan } from '@/lib/admin/plan-catalog'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
+import { FAMILY_LABELS, plansForFamily, type PlanFamily } from '@/lib/marketing/plans'
 import { canonical } from '@/lib/seo/canonical'
-
-function formatUsd(cents: number): string {
-  return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-}
 
 export const metadata = {
   ...canonical('/pricing'),
-  title: 'Pricing',
-  description: 'Real prices, published — candidate plans, membership, and outplacement list pricing.',
+  title: 'Plans',
+  description: 'The plans NextChapter offers for candidates, organizations and employers, and what each includes.',
 }
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: 'Pricing — NextChapter',
+  name: 'Plans — NextChapter',
 }
 
-// Partners Master Build Script §C3.4 — "publish candidate and membership
-// prices... publish outplacement list prices with 'volume pricing
-// available.'" Every number here reads live from PlanCatalogEntry via
-// getCurrentPlan(), never hardcoded — see the plan-catalog.ts comment
-// flagging this exact page as the intended caller.
-export default async function PricingPage() {
-  const [free, resume, coachingPlus, coachingPremium, executive, membershipMonthly, membershipAnnual, core, plus, premium] =
-    await Promise.all([
-      getCurrentPlan('dtc_free'),
-      getCurrentPlan('dtc_resume'),
-      getCurrentPlan('dtc_coaching_plus'),
-      getCurrentPlan('dtc_coaching_premium'),
-      getCurrentPlan('dtc_executive'),
-      getCurrentPlan('membership_monthly'),
-      getCurrentPlan('membership_annual'),
-      getCurrentPlan('outplacement_core'),
-      getCurrentPlan('outplacement_plus'),
-      getCurrentPlan('outplacement_premium'),
-    ])
+const FAMILIES: PlanFamily[] = ['individual', 'organization', 'corporate']
 
+export default function PlansPage() {
   return (
     <div className="flex flex-1 flex-col">
       <StructuredData data={jsonLd} />
@@ -47,122 +26,45 @@ export default async function PricingPage() {
 
       <main className="mx-auto w-full max-w-4xl px-6 py-16">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-            Every price, published.
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">Plans</h1>
           <p className="mx-auto mt-3 max-w-xl text-lg text-muted-foreground">
-            No negotiation on candidate or membership pricing. Volume pricing available on outplacement —
-            ask, we&apos;ll quote it in the walkthrough.
+            NextChapter is free for candidates. Here is what each plan includes.
           </p>
         </div>
 
-        <section className="mt-14">
-          <h2 className="text-xl font-bold tracking-tight text-navy">For candidates</h2>
-          <p className="mt-1 text-sm text-muted-foreground">NextChapter is free for candidates, always.</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            {[
-              { plan: free, name: 'Free', description: 'Market Reality Report, Resume Studio, your networking and job application CRM, a skills and personality assessment for better job matches, community, company pages.' },
-              { plan: resume, name: 'Resume', description: 'Everything free, plus one human resume review, unlimited versions, per-job tailoring, full ATS matrix.' },
-              { plan: coachingPlus, name: 'Coaching Plus', description: '1 session/month, resume review included, priority support.' },
-              { plan: coachingPremium, name: 'Coaching Premium', description: '4 sessions/month, mock interviews with recorded feedback, negotiation support, named coach.' },
-              { plan: executive, name: 'Executive', description: 'Everything in Coaching Premium, plus a named personal executive recruiter and weekly strategy sessions.' },
-            ].map((tier) => (
-              <div key={tier.name} className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
-                <p className="font-semibold text-navy">{tier.name}</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">
-                  {tier.plan
-                    ? tier.plan.priceCents === 0
-                      ? 'Free'
-                      : `${formatUsd(tier.plan.priceCents)}${tier.plan.billingPeriod === 'MONTHLY' ? '/mo' : ''}`
-                    : '—'}
-                </p>
-                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{tier.description}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Resume-only candidates still receive the Market Reality Assessment — Your Evidence and Your Effort
-            are visible but locked until you go further.
-          </p>
-        </section>
-
-        <section className="mt-14">
-          <h2 className="text-xl font-bold tracking-tight text-navy">Higher Education &amp; membership</h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
-              <p className="font-semibold text-navy">Higher Education</p>
-              <p className="mt-1 text-2xl font-bold text-foreground">Lifetime free</p>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                For anyone who has landed their next role. Dossier stays live, remain an insider, give references, refer others, quarterly market
-                pulse. You may also qualify for a $500 offer bonus.
-              </p>
+        {FAMILIES.map((family) => (
+          <section key={family} className="mt-14">
+            <h2 className="text-xl font-bold tracking-tight text-navy">{FAMILY_LABELS[family].title}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{FAMILY_LABELS[family].blurb}</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {plansForFamily(family).map((plan) => (
+                <div key={plan.planKey} className="flex flex-col rounded-xl border border-light-gray bg-white p-5 shadow-sm">
+                  <p className="font-semibold text-navy">{plan.name}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{plan.audience}</p>
+                  <ul className="mt-3 list-disc space-y-1 pl-4 text-sm leading-relaxed text-muted-foreground">
+                    {plan.includes.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  {plan.addOns.length > 0 && (
+                    <p className="mt-3 text-xs text-muted-foreground">Add-ons: {plan.addOns.join('; ')}.</p>
+                  )}
+                  <div className="mt-auto pt-4">
+                    <Link href={plan.cta.href} className="text-sm font-medium text-primary underline underline-offset-4">
+                      {plan.cta.label} →
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
-              <p className="font-semibold text-navy">Membership</p>
-              <p className="mt-1 text-2xl font-bold text-foreground">
-                {membershipMonthly ? formatUsd(membershipMonthly.priceCents) : '—'}/mo
-                {membershipAnnual && (
-                  <span className="ml-2 text-sm font-normal text-muted-foreground">
-                    or {formatUsd(membershipAnnual.priceCents)}/yr
-                  </span>
-                )}
-              </p>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Annual Dossier refresh, quarterly comp-benchmarked market check, Benefits Network, board and
-                advisory listings, priority coach booking, break-glass reactivation.
-              </p>
-            </div>
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Membership is offered at placement — free for 12 months to anyone placed through a Premium
-            outplacement seat.{' '}
-            <Link href="/membership" className="text-primary underline underline-offset-4">
-              Learn more →
-            </Link>
-          </p>
-        </section>
-
-        <section className="mt-14">
-          <h2 className="text-xl font-bold tracking-tight text-navy">Outplacement — employer pays</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            List prices below. Volume pricing available: 25+ seats −10% · 100+ seats −18% · 250+ seats −25%.
-          </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {[
-              { plan: core, name: 'Core' },
-              { plan: plus, name: 'Plus' },
-              { plan: premium, name: 'Premium' },
-            ].map((tier) => (
-              <div key={tier.name} className="rounded-xl border border-light-gray bg-white p-5 shadow-sm">
-                <p className="font-semibold text-navy">{tier.name}</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">
-                  {tier.plan ? formatUsd(tier.plan.priceCents) : '—'}
-                </p>
-                <p className="text-xs text-muted-foreground">per seat</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Running a large-scale reduction or multi-year contract? Enterprise engagements beyond our
-            standard volume tiers are custom-quoted —{' '}
-            <Link href="/outplacement#walkthrough" className="text-primary underline underline-offset-4">
-              contact us
-            </Link>
-            .
-          </p>
-          <p className="mt-4 text-sm">
-            <Link href="/outplacement" className="text-primary underline underline-offset-4">
-              See the full tier comparison and a sample compliance pack →
-            </Link>
-          </p>
-          <p className="mt-2 text-sm">
-            <Link href="/insights/outplacement-cost-per-employee" className="text-primary underline underline-offset-4">
-              Estimate your cost against a typical incumbent range →
-            </Link>
-          </p>
-        </section>
+          </section>
+        ))}
 
         <div className="mt-16 border-t border-border pt-6 text-sm text-muted-foreground">
+          <Link href="/outplacement" className="underline underline-offset-4">
+            Outplacement
+          </Link>
+          {' · '}
           <Link href="/vs" className="underline underline-offset-4">
             Compare providers
           </Link>

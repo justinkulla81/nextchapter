@@ -33,10 +33,6 @@ export interface CompetitorComparison {
   metaDescription: string
   /** One paragraph: what this vendor is genuinely best for. */
   bestForSummary: string
-  /** Pricing range as characterized by the spec's own table (§A2.1). */
-  pricingRangeLabel: string
-  /** Footnote making clear how precise (or not) that range actually is. */
-  pricingRangeCaveat: string
   /** The §D1.1 concession, adapted per vendor. Deliberately NOT verbatim
    * even for LHH — the spec's own sentence ("...land faster with proof
    * they keep...") is an unquantified but still real placement-speed
@@ -69,12 +65,6 @@ const WHERE_THEY_MAY_BE_STRONGER_DISCLAIMER =
 
 const FEATURE_COMPARISON: FeatureComparisonRow[] = [
   {
-    aspect: 'List pricing',
-    us: 'Published in full, updated live — see /pricing. No quote-only pricing on any tier.',
-    them: 'Typically not published; pricing is quoted per deal.',
-    substantiationRef: 4,
-  },
-  {
     aspect: 'Reporting latency',
     us: 'Live seat utilization and aggregate outcomes, visible as soon as a cohort is enrolled.',
     them: 'Commonly quarterly PDF reporting, per the Master Build Script’s assessment of the category.',
@@ -100,7 +90,7 @@ const FEATURE_COMPARISON: FeatureComparisonRow[] = [
   },
   {
     aspect: 'How you buy it',
-    us: 'Evaluated on its own — list price published, no bundling requirement.',
+    us: 'Evaluated on its own, with no bundling requirement.',
     them: 'Outplacement is frequently bundled into a broader staffing or RPO relationship rather than independently evaluated, per the Master Build Script’s assessment of the category.',
     substantiationRef: 9,
   },
@@ -118,12 +108,9 @@ export const COMPETITOR_COMPARISONS: CompetitorComparison[] = [
     shortName: 'LHH',
     metaTitle: 'NextChapter vs. LHH — outplacement comparison',
     metaDescription:
-      'An honest, two-sided comparison of NextChapter and LHH outplacement — pricing, reporting, what participants keep, and when LHH is genuinely the better call.',
+      'An honest, two-sided comparison of NextChapter and LHH outplacement — reporting, what participants keep, and when LHH is genuinely the better call.',
     bestForSummary:
-      'Per the Master Build Script’s own pricing table, LHH’s outplacement spans the mid-level tier (grouped there with Randstad RiseSmart, roughly $3,500–$7,000 per person) up through executive-tier programs (roughly $8,000–$15,000+ per person, 6–12 months). LHH is one of the largest, most established names in the category — the reflexive choice for a multi-country reduction or an executive-tier program where global reach and brand recognition matter most.',
-    pricingRangeLabel: 'Roughly $3,500–$7,000 (mid-level) to $8,000–$15,000+ (executive), per person',
-    pricingRangeCaveat:
-      'These are the Master Build Script’s own estimates (§A2.1), not a cited, current source — see the substantiation file before relying on this for a real deal.',
+      'LHH is one of the largest, most established names in the category — the reflexive choice for a multi-country reduction or an executive-tier program where global reach and brand recognition matter most.',
     concessionParagraph:
       'If you’re running a 12-country reduction, use LHH. If you’re running a US reduction and want your people to walk away with proof they keep, not just promises, that’s us.',
     isConcessionVerbatim: false,
@@ -151,12 +138,9 @@ export const COMPETITOR_COMPARISONS: CompetitorComparison[] = [
     shortName: 'RiseSmart',
     metaTitle: 'NextChapter vs. Randstad RiseSmart — outplacement comparison',
     metaDescription:
-      'An honest, two-sided comparison of NextChapter and Randstad RiseSmart outplacement — pricing, reporting, what participants keep, and when RiseSmart is genuinely the better call.',
+      'An honest, two-sided comparison of NextChapter and Randstad RiseSmart outplacement — reporting, what participants keep, and when RiseSmart is genuinely the better call.',
     bestForSummary:
-      'The Master Build Script’s pricing table groups Randstad RiseSmart with LHH at the mid-level tier — roughly $3,500–$7,000 per person. As part of Randstad, one of the largest global staffing organizations, RiseSmart is a common choice for buyers who already have or want a broader Randstad relationship, or who want a well-known staffing brand behind a mid-level program.',
-    pricingRangeLabel: 'Roughly $3,500–$7,000 per person (grouped with LHH at this tier in the source table)',
-    pricingRangeCaveat:
-      'The Master Build Script (§A2.1) groups LHH and Randstad RiseSmart together at this price tier and gives no RiseSmart-specific breakout. Treat this as directional, not a cited, RiseSmart-specific figure — see the substantiation file.',
+      'As part of Randstad, one of the largest global staffing organizations, RiseSmart is a common choice for buyers who already have or want a broader Randstad relationship, or who want a well-known staffing brand behind a mid-level program.',
     concessionParagraph:
       'If you’re running a multi-country reduction and want a global staffing brand behind the program, Randstad RiseSmart is a reasonable, defensible choice. If you’re running a US reduction and want your people to walk away with proof they keep, not just promises, that’s us.',
     isConcessionVerbatim: false,
@@ -184,14 +168,11 @@ export const COMPETITOR_COMPARISONS: CompetitorComparison[] = [
     shortName: 'Careerminds',
     metaTitle: 'NextChapter vs. Careerminds — outplacement comparison',
     metaDescription:
-      'An honest, two-sided comparison of NextChapter and Careerminds outplacement — pricing, reporting, what participants keep, and when a virtual-first provider is genuinely the better call.',
+      'An honest, two-sided comparison of NextChapter and Careerminds outplacement — reporting, what participants keep, and when a virtual-first provider is genuinely the better call.',
     bestForSummary:
-      'The Master Build Script’s pricing table groups Careerminds with INTOO as "virtual-first" providers, roughly $1,000–$3,000 per person — the lowest-cost tier in the category. Careerminds is a reasonable pick for a buyer whose primary constraint is the lowest possible sticker price and who doesn’t need a durable candidate artifact or a dedicated recruiter relationship.',
-    pricingRangeLabel: 'Roughly $1,000–$3,000 per person (grouped with INTOO in the source table)',
-    pricingRangeCaveat:
-      'The Master Build Script (§A2.1) groups Careerminds and INTOO together under "virtual-first" and gives no Careerminds-specific breakout. Treat this as directional, not a cited, Careerminds-specific figure — see the substantiation file.',
+      'Careerminds is a virtual-first provider. It is a reasonable pick for a buyer whose primary constraint is a fully virtual program and who doesn’t need a durable candidate artifact or a dedicated recruiter relationship.',
     concessionParagraph:
-      'If your primary constraint is the lowest possible sticker price and you don’t need coaching depth, a dedicated recruiter relationship, or a durable artifact the participant keeps, a virtual-first low-cost provider like Careerminds is worth a look. If you want your people to walk away with proof they keep, not just promises, at a price that still undercuts the mid-level tier, that’s us.',
+      'If your primary constraint is a fully virtual program and you don’t need coaching depth, a dedicated recruiter relationship, or a durable artifact the participant keeps, a virtual-first provider like Careerminds is worth a look. If you want your people to walk away with proof they keep, not just promises, that’s us.',
     isConcessionVerbatim: false,
     whereTheyMayBeStrongerBullets: WHERE_THEY_MAY_BE_STRONGER,
     featureComparison: FEATURE_COMPARISON,
@@ -206,8 +187,8 @@ export const COMPETITOR_COMPARISONS: CompetitorComparison[] = [
         'Varies by vendor. Ask about reporting latency directly — it’s question 2 on our RFP template.',
     },
     whenToChooseThemInstead: [
-      'Budget is the dominant constraint and the program can be entirely virtual.',
-      'You need the lowest possible per-seat list price and coaching depth is not a priority.',
+      'The program can be entirely virtual.',
+      'Coaching depth is not a priority.',
       'Your workforce doesn’t need in-person delivery at any point.',
     ],
   },
@@ -217,14 +198,11 @@ export const COMPETITOR_COMPARISONS: CompetitorComparison[] = [
     shortName: 'INTOO',
     metaTitle: 'NextChapter vs. INTOO — outplacement comparison',
     metaDescription:
-      'An honest, two-sided comparison of NextChapter and INTOO outplacement — pricing, reporting, what participants keep, and when a virtual-first provider is genuinely the better call.',
+      'An honest, two-sided comparison of NextChapter and INTOO outplacement — reporting, what participants keep, and when a virtual-first provider is genuinely the better call.',
     bestForSummary:
-      'The Master Build Script’s pricing table groups INTOO with Careerminds as "virtual-first" providers, roughly $1,000–$3,000 per person — the lowest-cost tier in the category. INTOO is a reasonable pick for a buyer whose primary constraint is the lowest possible sticker price and who doesn’t need a durable candidate artifact or a dedicated recruiter relationship.',
-    pricingRangeLabel: 'Roughly $1,000–$3,000 per person (grouped with Careerminds in the source table)',
-    pricingRangeCaveat:
-      'The Master Build Script (§A2.1) groups INTOO and Careerminds together under "virtual-first" and gives no INTOO-specific breakout. Treat this as directional, not a cited, INTOO-specific figure — see the substantiation file.',
+      'INTOO is a virtual-first provider. It is a reasonable pick for a buyer whose primary constraint is a fully virtual program and who doesn’t need a durable candidate artifact or a dedicated recruiter relationship.',
     concessionParagraph:
-      'If your primary constraint is the lowest possible sticker price and you don’t need coaching depth, a dedicated recruiter relationship, or a durable artifact the participant keeps, a virtual-first low-cost provider like INTOO is worth a look. If you want your people to walk away with proof they keep, not just promises, at a price that still undercuts the mid-level tier, that’s us.',
+      'If your primary constraint is a fully virtual program and you don’t need coaching depth, a dedicated recruiter relationship, or a durable artifact the participant keeps, a virtual-first provider like INTOO is worth a look. If you want your people to walk away with proof they keep, not just promises, that’s us.',
     isConcessionVerbatim: false,
     whereTheyMayBeStrongerBullets: WHERE_THEY_MAY_BE_STRONGER,
     featureComparison: FEATURE_COMPARISON,
@@ -239,8 +217,8 @@ export const COMPETITOR_COMPARISONS: CompetitorComparison[] = [
         'Varies by vendor. Ask about reporting latency directly — it’s question 2 on our RFP template.',
     },
     whenToChooseThemInstead: [
-      'Budget is the dominant constraint and the program can be entirely virtual.',
-      'You need the lowest possible per-seat list price and coaching depth is not a priority.',
+      'The program can be entirely virtual.',
+      'Coaching depth is not a priority.',
       'Your workforce doesn’t need in-person delivery at any point.',
     ],
   },
