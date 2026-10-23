@@ -65,6 +65,13 @@ export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
   // never saw a future meeting until it was nearly due.
   const forwardDays = Number(request.nextUrl.searchParams.get('forwardDays') ?? '30')
   const results: Record<string, unknown> = { intervalHours, windowDays: days, forwardDays }
+  // Read before the sweeps write their own rows: the alert fires only on the
+  // first failure after a healthy run, not on every hourly retry of an outage.
+  const prev = await prisma.crmSyncRun.findFirst({
+    where: { source: 'gmail', finishedAt: { not: null } },
+    orderBy: { startedAt: 'desc' }, select: { error: true },
+  })
+  const wasHealthy = !prev?.error
 
   try {
     results.gmail = await sweepGmail(days)
@@ -78,13 +85,11 @@ export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
     results.calendar = { error: e instanceof Error ? e.message : String(e) }
   }
 
-  // Sweeps only run when due (daily by default), so this emails at most once
-  // per failed sweep rather than every hour.
   const problems = (['gmail', 'calendar'] as const).flatMap((source) => {
     const r = results[source] as { error?: string } | undefined
     return r?.error ? [{ source, error: r.error }] : []
   })
-  if (problems.length) await sendCrmSyncProblemEmail(problems).catch(() => false)
+  if (problems.length && wasHealthy) await sendCrmSyncProblemEmail(problems).catch(() => false)
 
   return NextResponse.json(results)
 })
