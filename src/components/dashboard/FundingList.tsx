@@ -6,7 +6,6 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 
 // The ranked funding list: three sections (move, retrain, learn), best three of each shown, the rest one click away.
 const SHOWN = 3
-const GOALS: Goal[] = GOAL_ORDER
 
 function Row({ m, rank }: { m: Match; rank: number }) {
   const p = m.program
@@ -65,10 +64,10 @@ function Section({ goal, matches }: { goal: Goal; matches: Match[] }) {
 }
 
 
-export function FundingSections({ byGoal }: { byGoal: Record<Goal, Match[]> }) {
+export function FundingSections({ byGoal, order = GOAL_ORDER }: { byGoal: Record<Goal, Match[]>; order?: Goal[] }) {
   return (
     <>
-      {GOALS.map((g) => (byGoal[g].length > 0 ? <Section key={g} goal={g} matches={byGoal[g]} /> : null))}
+      {order.map((g) => (byGoal[g].length > 0 ? <Section key={g} goal={g} matches={byGoal[g]} /> : null))}
     </>
   )
 }

@@ -35,6 +35,7 @@ const FAQ = [
 export default function FundingPage() {
   const s = FUNDING_STATS
   const groups = [
+    { goal: 'support' as const, title: 'Help while you are out of work', body: 'Health-coverage help, final pay and severance you are owed, hardship loans, dues waivers and bill relief, by state.' },
     { goal: 'move' as const, title: 'Money to move', body: 'Relocation grants, down-payment help and incentives to move to a new city or state for work.' },
     { goal: 'retrain' as const, title: 'Tuition and training money', body: 'Tuition aid, state scholarships, federal dislocated-worker training and funds for specific professions.' },
     { goal: 'tax' as const, title: 'Tax credits and deductions', body: 'Money back at tax time that losing a job or changing careers can unlock.' },
@@ -68,7 +69,7 @@ export default function FundingPage() {
           <p className="mt-3 text-sm text-muted-foreground">Free for candidates, always. Takes about five minutes.</p>
         </section>
 
-        <section className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="What is in the list">
+        <section className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="What is in the list">
           {groups.map((g) => (
             <div key={g.goal} className="space-y-3 rounded-2xl border border-border p-6">
               <p className="font-display text-4xl font-semibold">{fmt(s.byGoal[g.goal])}</p>
