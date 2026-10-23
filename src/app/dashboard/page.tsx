@@ -30,6 +30,7 @@ import {
   getCandidateWeekNumber,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
+import { engagementFor } from '@/lib/journey/senior-overlay'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
@@ -256,6 +257,7 @@ async function HomeWeeklyPlan({
     <>
       <Suspense fallback={<WeeklyFocusSkeleton />}>
         <WeeklyFocusCard
+          hidePoints={!engagementFor(profile).points}
           candidateId={profile.id}
           locked={!bothConnectedUnlocked}
           hasEmailConnection={hasEmailConnection}
@@ -266,6 +268,7 @@ async function HomeWeeklyPlan({
         />
       </Suspense>
       <SuccessSprintCard
+        hidePoints={!engagementFor(profile).points}
         actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
         suggestedActions={blockerPlan ? blockerPlan.plan : suggestedActions}
         weeklyPoints={weeklyProgress.weeklyPoints}
@@ -513,9 +516,11 @@ export default async function DashboardPage() {
         </>
       )}
 
-      <Suspense fallback={null}>
-        <HomeApplyPrompts candidateId={profile.id} />
-      </Suspense>
+      {engagementFor(profile).dailyApplicationPrompts && (
+        <Suspense fallback={null}>
+          <HomeApplyPrompts candidateId={profile.id} />
+        </Suspense>
+      )}
 
       <Suspense fallback={null}>
         <FundingHomeCard profile={profile} />
