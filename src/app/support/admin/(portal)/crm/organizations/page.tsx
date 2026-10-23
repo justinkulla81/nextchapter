@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import type { Prisma, CrmOrgType, CrmGoal } from '@prisma/client'
 import { GOALS, GOAL_LABELS } from '@/lib/crm/goals'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -11,13 +10,13 @@ import { CrmSelectAll } from '@/components/admin/CrmSelectAll'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
 import { CrmOrganizationsViewTracker } from '@/components/admin/WorkforceBoardsViewTracker'
-import { hasLearningDevHead, missingLearningDevHead } from '@/lib/crm/learning-dev'
-import { hasChro, missingChro } from '@/lib/crm/chro'
+import { ExportOrganizationsButton } from '@/components/admin/ExportOrganizationsButton'
+import { organizationsWhere } from '@/lib/crm/organizations-filter'
 import { ORG_RELATIONSHIPS, ORG_RELATIONSHIP_LABELS, isOrgRelationshipFilter, relationshipWhere, type OrgRelationshipFilter } from '@/lib/crm/org-relationships'
 import { countOpenByOrg } from '@/lib/funding-opportunities/store'
-import { layoffsByOrg, orgIdsWithLayoffs } from '@/lib/crm/org-layoffs'
-import { communicationByOrg, orgIdsWithCommunication } from '@/lib/crm/org-communication'
-import { DEAL_STATUSES, DEAL_STATUS_LABELS, isDealStatus } from '@/lib/crm/deal-status'
+import { layoffsByOrg } from '@/lib/crm/org-layoffs'
+import { communicationByOrg } from '@/lib/crm/org-communication'
+import { DEAL_STATUSES, DEAL_STATUS_LABELS } from '@/lib/crm/deal-status'
 
 export const maxDuration = 30
 const PAGE_SIZES = [50, 100, 200, 1500] as const
@@ -49,19 +48,7 @@ export default async function CrmOrganizationsPage({
     : sort.sort === 'people' ? [{ affiliations: { _count: sort.dir } }]
     : [{ priorityScore: sort.dir }, { name: 'asc' as const }]
 
-  const layoffOrgIds = layoffs ? await orgIdsWithLayoffs() : null
-  const commOrgIds = comm ? await orgIdsWithCommunication(comm === 'waiting') : null
-  const where: Prisma.CrmOrganizationWhereInput = {
-    ...(commOrgIds ? { AND: [{ id: comm === 'none' ? { notIn: commOrgIds } : { in: commOrgIds } }] } : {}),
-    ...(layoffOrgIds ? { id: { in: layoffOrgIds } } : {}),
-    ...(rel ? { AND: [...(commOrgIds ? [{ id: comm === 'none' ? { notIn: commOrgIds } : { in: commOrgIds } }] : []), relationshipWhere(rel)] } : {}),
-    ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
-    ...(type ? { orgTypes: { has: type as CrmOrgType } } : {}),
-    ...(goal ? { goals: { has: goal as CrmGoal } } : {}),
-    ...(ldHead === 'missing' ? missingLearningDevHead : ldHead === 'has' ? hasLearningDevHead : {}),
-    ...(chro === 'missing' ? missingChro : chro === 'has' ? hasChro : {}),
-    ...(deal === 'any' ? { dealStatus: { not: null } } : deal && isDealStatus(deal) ? { dealStatus: deal } : {}),
-  }
+  const where = await organizationsWhere({ q, type, rel, goal, deal, layoffs, comm, ldhead: ldHead, chro })
 
   // Counts for the relationship buttons ignore the other filters, so the
   // numbers say how big each group is, not how many survived a search.
@@ -101,9 +88,12 @@ export default async function CrmOrganizationsPage({
             One record per organization, however many things it is to us.
           </p>
         </div>
-        <Link href="/support/admin/crm" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
-          People
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportOrganizationsButton query={qs({ page: '', per: '', sort: '', dir: '' })} />
+          <Link href="/support/admin/crm" className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">
+            People
+          </Link>
+        </div>
       </header>
 
       {rel && (

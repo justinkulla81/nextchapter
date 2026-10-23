@@ -10454,6 +10454,9 @@ model CrmOrganization {
   // one list without a join through opportunities. Opportunities carry their
   // own independent score.
   leadQuality        CrmLeadQuality @default(UNGRADED)
+  /// Who set the grade: 'AUTO' (the nightly grading job may raise it), 'ADMIN' (set by hand,
+  /// never touched). Null = not graded yet, or graded before this column and so treated as hand-set.
+  leadQualitySetBy   String?
   priorityScore      Float          @default(0)
   priorityOverride   Int? // 0-100; wins over the computed score when set
   priorityComputedAt DateTime?

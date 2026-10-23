@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { syncCompanyGraph } from '@/lib/companies/company-graph-sync'
 import { sweepCompanyIndustries } from '@/lib/companies/industry-sweep'
+import { gradeEmployerOrgs } from '@/lib/crm/grade-employers'
+import { tagNewChroTitles } from '@/lib/crm/chro-tagging'
 import { withCronRun } from '@/lib/cron/run'
 
 // Nightly company-graph upkeep: link postings, employers, firms and CRM organisations to
@@ -14,6 +16,7 @@ const INDUSTRY_SWEEP_DEADLINE_MS = 150_000
 const RUN_BUDGET_MS = 270_000
 const GRAPH_SYNC_MIN_LEFT_MS = 90_000
 const SWEEP_MIN_LEFT_MS = 40_000
+const CRM_UPKEEP_MIN_LEFT_MS = 30_000
 
 export const GET = withCronRun('company-graph', async () => {
   const runStart = Date.now()
@@ -32,6 +35,24 @@ export const GET = withCronRun('company-graph', async () => {
   } else {
     console.warn('company-graph: skipped company graph sync, out of time')
   }
+  // CRM upkeep: grade new employer organizations (and raise grades the job set earlier),
+  // and tag new CHRO titles. Cheap SQL, no paid services; runs before the slow industry sweep.
+  let grading = null
+  let chroTagged = null
+  if (msLeft() > CRM_UPKEEP_MIN_LEFT_MS) {
+    try {
+      grading = await gradeEmployerOrgs()
+    } catch (error) {
+      console.error('company-graph: employer grading failed', error)
+    }
+    try {
+      chroTagged = await tagNewChroTitles()
+    } catch (error) {
+      console.error('company-graph: CHRO tagging failed', error)
+    }
+  } else {
+    console.warn('company-graph: skipped CRM grading and CHRO tagging, out of time')
+  }
   if (msLeft() > SWEEP_MIN_LEFT_MS) {
     try {
       industries = await sweepCompanyIndustries({
@@ -45,5 +66,5 @@ export const GET = withCronRun('company-graph', async () => {
     console.warn('company-graph: skipped industry sweep, out of time')
   }
 
-  return NextResponse.json({ graph, industries })
+  return NextResponse.json({ graph, grading, chroTagged, industries })
 })
