@@ -42,7 +42,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
     take: 25,
     select: { id: true, employer: true, employees: true, noticeDate: true, effectiveDate: true, industry: true, sourceUrl: true },
   })
-  const recs = await recruiters({ state: a.state }, 25)
+  const recs = await recruiters({ state: a.state }, 400)
   const benefits = a.level === 'STATE' ? { local: [], statewide: (await programsForArea('-', a.state)).statewide } : await programsForArea(a.id, a.state)
   const colleges = (a.higherEd as College[] | null) ?? []
   const boards = localFirst((a.wioaBoards as Board[] | null) ?? [])
@@ -155,7 +155,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
       <section aria-labelledby="recruiters" className="space-y-2">
         <h2 id="recruiters" className="text-lg font-semibold">Recruiters covering {state?.name ?? a.name}</h2>
         <p className="text-xs text-muted-foreground">Recruiters tagged to {a.state}, local first, then national. These appear in the layoff alert for a notice here.</p>
-        <RecruiterTable rows={recs.rows} total={recs.total} empty={`No recruiters tagged to ${a.state} yet.`} />
+        <RecruiterTable rows={recs.rows} total={recs.total} localState={a.state} openFirst={2} empty={`No recruiters tagged to ${a.state} yet.`} />
         <Link href={`/support/admin/crm/recruiters?state=${a.state}`} className="text-sm text-brand hover:underline">Filter by industry and function</Link>
       </section>
 

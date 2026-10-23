@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { sweepGmail, sweepCalendar } from '@/lib/crm/sync'
+import { sweepGmail, sweepCalendar, calendarLookbackDays } from '@/lib/crm/sync'
 import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
@@ -72,7 +72,7 @@ export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
   }
 
   try {
-    results.calendar = await sweepCalendar(days, forwardDays)
+    results.calendar = await sweepCalendar(Math.max(days, await calendarLookbackDays()), forwardDays)
   } catch (e) {
     results.calendar = { error: e instanceof Error ? e.message : String(e) }
   }

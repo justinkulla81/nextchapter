@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { formatDate } from '@/lib/crm/labels'
+import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
 import { todoSource, type TodoSource } from '@/lib/crm/todo-source'
 import { addTodo, setTodoDone } from './actions'
 
@@ -75,6 +76,8 @@ export default async function CrmTodosPage({ searchParams }: { searchParams: Pro
           due date. Items the system created are kept in their own tab so they never crowd yours.
         </p>
       </header>
+
+      <CrmSyncHealthAlert />
 
       <form action={addTodo} className="flex flex-wrap items-end gap-2 rounded-lg border border-border p-3">
         <label className="min-w-64 flex-1 text-xs text-muted-foreground">

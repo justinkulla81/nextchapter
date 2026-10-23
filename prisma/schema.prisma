@@ -175,6 +175,7 @@ enum JourneyType {
   RETURNING // after caregiving, health, sabbatical, a move
   NEXT_ACT // 55+: board, fractional, consulting, nonprofit, part-time
   ENTREPRENEUR // employed and starting something of their own: we track and check in
+  BUY_BUSINESS // buying a small business, from deciding to closing to running it (journeyDetails.buy); also available alongside any other journey
   FRACTIONAL // happy doing fractional or interim work: a pipeline of clients, not a job search
   TIME_OFF // on family leave or taking time off, with a return in mind (not laid off)
 }
@@ -1556,6 +1557,7 @@ model CandidateProfile {
   claimedEmployerReferences      EmployerReferenceSubmission[]
   jobClickEvents                 JobClickEvent[]
   trackedJobs                    TrackedJob[]
+  jobTrackerNotes                JobTrackerNote[]
   workSamples                    WorkSample[]
   externalReviewStats            ExternalReviewStat[]
   clientReviews                  ClientReview[]
@@ -5332,6 +5334,11 @@ model ExclusiveJobPosting {
   // found. Board tag, "Open to career changers / AI-upskilled" filter, welcome lift.
   // prisma/manual/2026-10-20-posting-signals.sql.
   postingSignals    String[] @default([])
+  // The posting's own words that set postingSignals' no_experience_ok (crawler ncrawl/entry_signals.py, an
+  // allowlist of phrases such as "no experience required", "recent graduates", "we will train you"), at most
+  // ~160 characters, quoted on the open job and the public job page. Null = not flagged.
+  // prisma/manual/2026-10-23-entry-signals.sql.
+  noExperiencePhrase String?
   // The broader "AI-exposed" metric (crawler ai_profile, prisma/manual/2026-10-20-ai-exposure.sql):
   // a specific AI skill, an AI/ML title term, a data & AI role whose role text mentions AI, or an AI
   // tool named in the role text. aiExposureWhy lists which rules fired (skill | title | function |
@@ -5570,6 +5577,31 @@ model TrackedJob {
 
   @@unique([candidateId, source, sourceId])
   @@index([candidateId, updatedAt])
+}
+
+// The member's own notes on a job in My jobs (Teal parity, 2026-10-23): notes, excitement 1-5,
+// a follow-up date (shown in My jobs and in Job Search Daily), an application checklist and the
+// contacts who can help. itemKey is MyJobItem.key (src/lib/jobs/my-jobs-data.ts); title and
+// companyName are a snapshot for the email. prisma/manual/2026-10-23-job-tracker-notes.sql.
+model JobTrackerNote {
+  id             String           @id @default(cuid())
+  candidateId    String
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  itemKey        String
+  title          String
+  companyName    String?
+  notes          String?          @db.Text
+  excitement     Int?
+  followUpAt     DateTime?
+  followUpDoneAt DateTime?
+  checklist      Json             @default("{}")
+  contactIds     String[]         @default([])
+  // Pasted posting text for a job saved from another site, for the keyword match.
+  jobText        String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([candidateId, itemKey])
 }
 
 // Postgres mirror of every captureServerEvent() call, written from inside

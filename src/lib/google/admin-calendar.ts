@@ -31,48 +31,65 @@ export async function listCalendarEvents(
   to: Date,
   max = 250
 ): Promise<CalendarEventSummary[]> {
-  const url = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events')
-  url.searchParams.set('timeMin', from.toISOString())
-  url.searchParams.set('timeMax', to.toISOString())
-  url.searchParams.set('singleEvents', 'true')
-  url.searchParams.set('orderBy', 'startTime')
-  url.searchParams.set('maxResults', String(max))
-  url.searchParams.set('fields', 'items(id,summary,start,hangoutLink,conferenceData(entryPoints(entryPointType,uri)),attachments(fileId,fileUrl,title,mimeType),attendees(email,displayName,responseStatus),organizer(email))')
+  // Paged, because a long catch-up window after an outage can hold more
+  // events than one page — and the page is ordered oldest first, so a cut
+  // would drop the newest meetings, the ones about to happen.
+  const MAX_EVENTS = 1500
+  const out: CalendarEventSummary[] = []
+  let pageToken: string | undefined
+  do {
+    const url = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events')
+    url.searchParams.set('timeMin', from.toISOString())
+    url.searchParams.set('timeMax', to.toISOString())
+    url.searchParams.set('singleEvents', 'true')
+    url.searchParams.set('orderBy', 'startTime')
+    url.searchParams.set('maxResults', String(max))
+    if (pageToken) url.searchParams.set('pageToken', pageToken)
+    url.searchParams.set('fields', 'nextPageToken,items(id,summary,start,hangoutLink,conferenceData(entryPoints(entryPointType,uri)),attachments(fileId,fileUrl,title,mimeType),attendees(email,displayName,responseStatus),organizer(email))')
 
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  if (!res.ok) throw new Error(`Calendar list failed: ${res.status}${await googleErrorReason(res)}`)
-  const data = (await res.json()) as {
-    items?: {
-      id: string
-      summary?: string
-      start?: { dateTime?: string; date?: string }
-      attendees?: { email?: string; displayName?: string; responseStatus?: string }[]
-      organizer?: { email?: string }
-      hangoutLink?: string
-      conferenceData?: { entryPoints?: { entryPointType?: string; uri?: string }[] }
-      attachments?: CalendarAttachment[]
-    }[]
-  }
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+    if (!res.ok) throw new Error(`Calendar list failed: ${res.status}${await googleErrorReason(res)}`)
+    const data = (await res.json()) as {
+      nextPageToken?: string
+      items?: {
+        id: string
+        summary?: string
+        start?: { dateTime?: string; date?: string }
+        attendees?: { email?: string; displayName?: string; responseStatus?: string }[]
+        organizer?: { email?: string }
+        hangoutLink?: string
+        conferenceData?: { entryPoints?: { entryPointType?: string; uri?: string }[] }
+        attachments?: CalendarAttachment[]
+      }[]
+    }
 
-  return (data.items ?? [])
-    .filter((e) => e.start?.dateTime || e.start?.date)
-    .map((e) => ({
-      id: e.id,
-      summary: e.summary ?? null,
-      start: new Date(e.start!.dateTime ?? `${e.start!.date}T00:00:00Z`),
-      organizerEmail: e.organizer?.email?.toLowerCase() ?? null,
-      meetUrl: meetUrlOf(e),
-      notesDoc: geminiNotesDocOf(e.attachments),
-      attendees: (e.attendees ?? [])
-        // A declined attendee did not meet you.
-        .filter((a) => a.responseStatus !== 'declined')
-        .map((a) => ({ email: a.email?.toLowerCase() ?? null, displayName: a.displayName ?? null })),
-    }))
+    out.push(...(data.items ?? [])
+      .filter((e) => e.start?.dateTime || e.start?.date)
+      .map((e) => ({
+        id: e.id,
+        summary: e.summary ?? null,
+        start: new Date(e.start!.dateTime ?? `${e.start!.date}T00:00:00Z`),
+        organizerEmail: e.organizer?.email?.toLowerCase() ?? null,
+        meetUrl: meetUrlOf(e),
+        notesDoc: geminiNotesDocOf(e.attachments),
+        attendees: (e.attendees ?? [])
+          // A declined attendee did not meet you.
+          .filter((a) => a.responseStatus !== 'declined')
+          .map((a) => ({ email: a.email?.toLowerCase() ?? null, displayName: a.displayName ?? null })),
+      })))
+    pageToken = data.nextPageToken
+  } while (pageToken && out.length < MAX_EVENTS)
+  return out
 }
 
-/** Why a notes fetch produced nothing — `needs_reconnect` is the actionable one. */
+/**
+ * Why a notes fetch produced nothing. `needs_reconnect` is the actionable one
+ * (the grant lacks Docs access); `inaccessible` is one doc this account can't
+ * open (not shared with it) — the other connected account may still read it;
+ * `failed` is Google having a bad moment, worth retrying on the next sweep.
+ */
 export class NotesFetchError extends Error {
-  constructor(public readonly kind: 'needs_reconnect' | 'failed', message: string) {
+  constructor(public readonly kind: 'needs_reconnect' | 'inaccessible' | 'failed', message: string) {
     super(message)
   }
 }
@@ -88,10 +105,16 @@ export async function fetchGoogleDocText(accessToken: string, fileId: string): P
   const url = new URL(`https://docs.googleapis.com/v1/documents/${encodeURIComponent(fileId)}`)
   url.searchParams.set('includeTabsContent', 'true')
   const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
-  if (res.status === 401 || res.status === 403) {
-    throw new NotesFetchError('needs_reconnect', `Docs read refused: ${res.status}${await googleErrorReason(res)}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    // Only a token problem means "reconnect". A 403/404 on its own is just a
+    // document this account was never given, which no reconnect would fix.
+    if (res.status === 401 || /ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient authentication scopes|insufficientPermissions/i.test(body)) {
+      throw new NotesFetchError('needs_reconnect', `Docs read refused: ${res.status} ACCESS_TOKEN_SCOPE_INSUFFICIENT`)
+    }
+    if (res.status === 403 || res.status === 404) throw new NotesFetchError('inaccessible', `Docs read: ${res.status}`)
+    throw new NotesFetchError('failed', `Docs read failed: ${res.status}`)
   }
-  if (!res.ok) throw new NotesFetchError('failed', `Docs read failed: ${res.status}${await googleErrorReason(res)}`)
   return docToText((await res.json()) as GoogleDocJson)
 }
 

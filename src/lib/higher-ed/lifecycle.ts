@@ -450,6 +450,8 @@ export function journeyHelp(journey: JourneyType | null, base: string): StageHel
         { key: 'founders', title: 'Talk to alumni who built something', detail: 'Mentors and groups for founders, and projects that need your skills.', href: `${base}/mentors` },
         { key: 'projectsClients', title: 'Projects from alumni', detail: 'Short paid work while you build.', href: `${base}/jobs#projects-h` },
       ]
+    case 'BUY_BUSINESS':
+      return [{ key: 'ownersAlumni', title: 'Talk to alumni who own a business', detail: 'Ask what they would check first, and who they would call.', href: `${base}/mentors` }]
     case 'TIME_OFF':
       return [{ key: 'stayConnected', title: 'Stay connected, no pressure', detail: 'Your class and city groups, only when you want them.', href: `${base}/network` }]
     case 'STUDENT_NEW_GRAD':

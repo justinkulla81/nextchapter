@@ -377,6 +377,27 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
         f.title === 'Application' ? applied : [company, applied].filter(Boolean).join(', ')
       )
     })
+  // Follow-up dates the member set on a job in My jobs (JobTrackerNote, src/lib/jobs/tracker.ts): due today
+  // or overdue, not yet marked sent. They lead the applications list; an unanswered application for the same
+  // job is dropped so it is not asked twice. Best-effort: no table yet means none.
+  const endOfToday = new Date(now)
+  endOfToday.setUTCHours(23, 59, 59, 999)
+  const trackerDue = await prisma.jobTrackerNote
+    .findMany({
+      where: { candidateId: candidate.id, followUpDoneAt: null, followUpAt: { not: null, lte: endOfToday } },
+      orderBy: { followUpAt: 'asc' },
+      select: { id: true, title: true, companyName: true, followUpAt: true },
+      take: 5,
+    })
+    .catch(() => [])
+  const trackerFollowUps: DailyItem[] = trackerDue.map((n) => ({
+    key: `fu:tracker:${n.id}`,
+    title: n.title,
+    detail: [n.companyName, `you set ${n.followUpAt!.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`].filter(Boolean).join(', '),
+    href: `${appUrl}/dashboard/find-my-job?tab=my_jobs&src=job_search_daily`,
+  }))
+  const trackerCompanies = new Set(trackerDue.map((n) => (n.companyName ?? '').toLowerCase()).filter(Boolean))
+  applications.splice(0, applications.length, ...trackerFollowUps, ...applications.filter((a) => !trackerCompanies.has((a.detail ?? '').split(',')[0].trim().toLowerCase()) && !trackerCompanies.has(a.title.toLowerCase())))
   const repliesOwed = followUpRows.filter((f) => f.kind === 'needs-follow-up').map((f) => toItem(f, f.subtitle))
   const starred = followUpRows
     .filter((f) => f.kind === 'starred-contact')
@@ -482,7 +503,7 @@ export async function buildJobSearchDaily(candidate: Candidate, now = new Date()
   for (const a of applications) {
     candidatesForTop.push({
       key: a.key,
-      lead: 'Going cold:',
+      lead: a.key.startsWith('fu:tracker:') ? 'Follow-up due:' : 'Going cold:',
       text: `Follow up on ${a.title}${a.detail ? ` (${a.detail})` : ''}`,
       href: topHref(a.href ?? jobsUrl),
     })

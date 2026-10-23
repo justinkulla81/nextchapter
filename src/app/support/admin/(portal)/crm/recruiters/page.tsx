@@ -13,7 +13,7 @@ export default async function RecruitersPage({ searchParams }: { searchParams: P
   const state = sp.state && (STATE_NAMES[sp.state] || sp.state === 'NATIONAL') ? sp.state : ''
   const industry = sp.industry && INDUSTRY_KEYS.includes(sp.industry) ? sp.industry : ''
   const fn = sp.fn && FUNCTIONS[sp.fn] ? sp.fn : ''
-  const [counts, list] = await Promise.all([coverageCounts(), recruiters({ state, industry, fn }, 150)])
+  const [counts, list] = await Promise.all([coverageCounts(), recruiters({ state, industry, fn }, 500)])
   const href = (over: Record<string, string>) => {
     const p = new URLSearchParams(Object.entries({ state, industry, fn, ...over }).filter(([, v]) => v) as [string, string][])
     return `${BASE}${p.size ? `?${p}` : ''}`
@@ -54,7 +54,7 @@ export default async function RecruitersPage({ searchParams }: { searchParams: P
         </div>
       </section>
 
-      <RecruiterTable rows={list.rows} total={list.total} empty="No recruiters match. Widen a filter, or run the recruiter research for this state." />
+      <RecruiterTable rows={list.rows} total={list.total} localState={state && state !== 'NATIONAL' ? state : undefined} empty="No recruiters match. Widen a filter, or run the recruiter research for this state." />
     </div>
   )
 }
