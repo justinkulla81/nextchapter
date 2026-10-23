@@ -31,6 +31,7 @@ import { CoachSessionPrep, CoachSessionNotes } from './coach-session'
 import { CoachWhatCandidateSees } from './coach-candidate'
 import { CoachSchedulingConnected, CoachSchedulingEmpty, CoachSchedulingBroken } from './coach-scheduling'
 import { FundingLive } from './funding-live'
+import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
@@ -52,6 +53,11 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'jobs/live/compare-places', place: 'Jobs', title: 'Compare places: out of work, two places (sample data)', replaces: 'new page; adds one entry under Market and pay, removes nothing', Component: ComparePlacesJobless },
+  { path: 'jobs/live/compare-places-employed', place: 'Jobs', title: 'Compare places: employed, two places (sample data)', replaces: 'new page', Component: ComparePlacesEmployed },
+  { path: 'jobs/live/compare-places-life', place: 'Jobs', title: 'Compare places: just for life there (sample data)', replaces: 'new page', Component: ComparePlacesLife },
+  { path: 'jobs/live/compare-places-empty', place: 'Jobs', title: 'Compare places: nothing chosen yet (sample data)', replaces: 'new page', Component: ComparePlacesEmpty },
+  { path: 'jobs/live/compare-places-no-city', place: 'Jobs', title: 'Compare places: no city on the profile (sample data)', replaces: 'new page', Component: ComparePlacesNoCity },
   { path: 'coach/session-prep', place: 'Coach', title: 'Before you meet Dana: one prep page from what she shares', replaces: 'the pre-session brief and the Coaching Notes panel, read before a session', Component: CoachSessionPrep },
   { path: 'coach/session-notes', place: 'Coach', title: 'Notes during and after: capture, Meet import, reviewed summary, follow-ups, interests', replaces: 'LogSessionForm (free-text notes and directives) and the notes summary card', Component: CoachSessionNotes },
   { path: 'coach/candidate-view', place: 'Coach', title: 'What Dana sees after a session: steps, topics, summary, message', replaces: 'the directives list on /dashboard/my-coaching', Component: CoachWhatCandidateSees },
