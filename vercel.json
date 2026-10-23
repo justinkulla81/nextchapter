@@ -117,6 +117,10 @@
       "schedule": "0 17 * * *"
     },
     {
+      "path": "/api/cron/upgrade-offer",
+      "schedule": "0 17 * * 2"
+    },
+    {
       "path": "/api/cron/nudge-recruiter-network-unlock",
       "schedule": "0 18 * * 3"
     },
