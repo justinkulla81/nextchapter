@@ -77,6 +77,10 @@
       "schedule": "0 11 * * *"
     },
     {
+      "path": "/api/cron/job-feed-direct",
+      "schedule": "15 12 * * *"
+    },
+    {
       "path": "/api/cron/indexnow-jobs",
       "schedule": "30 11 * * *"
     },

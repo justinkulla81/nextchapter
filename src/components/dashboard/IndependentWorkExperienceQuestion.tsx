@@ -12,23 +12,37 @@ import {
   type IndependentWorkType,
 } from '@/lib/independent-work/experience'
 
+// Starting answers: the candidate's saved answer, else what email or logged
+// work suggested, else nothing. Lives here so the form that owns the answers
+// (it needs them to say which questions are still open) starts from the same
+// values this component shows.
+export function initialIndependentWorkAnswers(
+  initial: IndependentWorkExperience,
+  suggestions: IndependentWorkSuggestions
+): Record<IndependentWorkType, IndependentWorkStatus | null> {
+  const start = {} as Record<IndependentWorkType, IndependentWorkStatus | null>
+  for (const { key } of INDEPENDENT_WORK_TYPES) {
+    start[key] = initial[key] ?? suggestions[key]?.status ?? null
+  }
+  return start
+}
+
 // One row per kind of independent work, three adjacent buttons each. A row we
 // could read from email or logged work starts pre-selected with a plain note
-// saying what we saw — the candidate confirms or changes it.
+// saying what we saw — the candidate confirms or changes it. The answers are
+// owned by the parent form, which names any unanswered row when a save is
+// blocked; `showMissing` turns on the per-row message.
 export function IndependentWorkExperienceQuestion({
-  initial,
+  answers,
+  onChange,
   suggestions,
+  showMissing,
 }: {
-  initial: IndependentWorkExperience
+  answers: Record<IndependentWorkType, IndependentWorkStatus | null>
+  onChange: (type: IndependentWorkType, value: IndependentWorkStatus) => void
   suggestions: IndependentWorkSuggestions
+  showMissing: boolean
 }) {
-  const [answers, setAnswers] = useState<Record<IndependentWorkType, IndependentWorkStatus | null>>(() => {
-    const start = {} as Record<IndependentWorkType, IndependentWorkStatus | null>
-    for (const { key } of INDEPENDENT_WORK_TYPES) {
-      start[key] = initial[key] ?? suggestions[key]?.status ?? null
-    }
-    return start
-  })
   const [touched, setTouched] = useState<Set<IndependentWorkType>>(new Set())
 
   return (
@@ -44,14 +58,14 @@ export function IndependentWorkExperienceQuestion({
         const suggestion = suggestions[key]
         const showNote = suggestion && !touched.has(key) && answers[key] === suggestion.status
         return (
-          <fieldset key={key} className="space-y-2">
+          <fieldset key={key} id={`question-independent-${key}`} className="scroll-mt-24 space-y-2">
             <legend className="text-sm font-medium text-foreground">{label}</legend>
             <ChoiceButtons
               name={`independentWork_${key}`}
               options={INDEPENDENT_WORK_STATUS_OPTIONS}
               value={answers[key]}
               onChange={(value) => {
-                setAnswers((prev) => ({ ...prev, [key]: value }))
+                onChange(key, value)
                 setTouched((prev) => new Set(prev).add(key))
               }}
               columns={3}
@@ -62,6 +76,11 @@ export function IndependentWorkExperienceQuestion({
             {showNote && (
               <p className="text-xs text-muted-foreground">
                 We saw {suggestion.evidence.slice(0, 3).join(', ')}. Change this if it&apos;s not right.
+              </p>
+            )}
+            {showMissing && answers[key] === null && (
+              <p role="alert" className="text-sm text-destructive">
+                Pick one to save.
               </p>
             )}
           </fieldset>

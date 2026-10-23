@@ -93,7 +93,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     tabs: [
       tab('Learn new skills', '/dashboard/learning', { menuKeys: ['learning', 'growSkills'] }),
       tab('Videos and webinars', '/dashboard/webinars', { menuKeys: ['webinars'] }),
-      tab('Know yourself', '/dashboard/skills-assessments', { menuKeys: ['assessments'], alsoMatches: ['/dashboard/skills-assessment', '/dashboard/retake-assessment', '/dashboard/work-interests'] }),
+      tab('Know yourself', '/dashboard/skills-assessments', { menuKeys: ['assessments'], alsoMatches: ['/dashboard/skills-assessment', '/dashboard/retake-assessment'] }),
       tab('Career story', '/dashboard/my-career'),
       tab('Other roles you could do', '/dashboard/pivot-paths', { alsoMatches: ['/dashboard/pivot'] }),
       tab('Courses your company covers', '/dashboard/company-courses', { employedOnly: true }),
