@@ -6,10 +6,11 @@ import { getValidAccessToken, getActiveGoogleConnection } from '@/lib/google/con
 import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessageBody, getMessageContent, getProfileEmail, getSendAsAddresses } from '@/lib/google/gmail'
 import { listCalendarEvents, fetchGoogleDocText, NotesFetchError } from '@/lib/google/admin-calendar'
 import { capNotes } from '@/lib/google/meeting-notes'
+import { createTodosFromNotes } from '@/lib/crm/meeting-todos'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAllAdminCalendarAccess } from '@/lib/webinars/admin-calendar-oauth'
 import {
-  normalizeEmail, displayNameFrom, personNameFromDisplay, classifyParticipant, snippetOf, directionOf, mentionsNextChapter, appointmentBooker,
+  normalizeEmail, displayNameFrom, personNameFromDisplay, classifyParticipant, snippetOf, directionOf, mentionsNextChapter, appointmentBooker, isSelf,
   type SweepContext,
 } from './sync-matching'
 import type { CalendarAttendee } from '@/lib/google/admin-calendar'
@@ -360,6 +361,9 @@ export interface SweepResult {
   notesAttached?: number
   /** Calendar only: notes exist but the Google grant predates documents.readonly. */
   notesNeedReconnect?: boolean
+  /** Calendar only: to-dos made from "Next steps" in those notes, and how many got a Google reminder. */
+  todosCreated?: number
+  remindersCreated?: number
 }
 
 /**
@@ -721,6 +725,8 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
       return c
     }
     let notesAttached = 0
+    let todosCreated = 0
+    let remindersCreated = 0
     let notesNeedReconnect = false
 
     const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
@@ -803,6 +809,17 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
           select: { createdAt: true },
         })
         if (notes) notesAttached++
+        if (notes && ev.notesDoc) {
+          const person = await prisma.crmPerson.findUnique({ where: { id: personId }, select: { fullName: true } })
+          const made = await createTodosFromNotes({
+            notes, eventId: ev.id, eventTitle: ev.summary ?? 'Meeting', meetingAt: ev.start, notesUrl: ev.notesDoc.url,
+            personId, personName: person?.fullName ?? 'them', orgId: ctxRow.orgId, opportunityId: ctxRow.opportunityId,
+            selfNames: ev.attendees.filter((a) => a.email && isSelf(a.email, ctx)).map((a) => a.displayName ?? '').filter(Boolean),
+            accessToken: token,
+          })
+          todosCreated += made.created
+          remindersCreated += made.reminders
+        }
         if (Date.now() - created.createdAt.getTime() < 5_000) result.activitiesCreated++
         touched.add(personId)
         logged = true
@@ -815,11 +832,13 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     await refreshTouchFields([...touched])
     await setUpcomingMeetings(upcoming, new Date(Date.now() + daysForward * DAY))
     result.notesAttached = notesAttached
+    result.todosCreated = todosCreated
+    result.remindersCreated = remindersCreated
     if (accountErrors.length) result.reason = accountErrors.join('; ').slice(0, 300)
     if (notesNeedReconnect) result.notesNeedReconnect = true
     if (notesAttached > 0 || notesNeedReconnect) {
       captureServerEvent('system', 'crm_meeting_notes_synced', {
-        notesAttached, needsReconnect: notesNeedReconnect, eventsScanned: result.scanned, source: runSource,
+        notesAttached, todosCreated, remindersCreated, needsReconnect: notesNeedReconnect, eventsScanned: result.scanned, source: runSource,
       })
     }
     await prisma.crmSyncRun.update({

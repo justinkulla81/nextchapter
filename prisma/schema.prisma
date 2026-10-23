@@ -11015,6 +11015,12 @@ model CrmTask {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  /// Set on a task made from a meeting's Gemini notes: `<calendar event id>:<step number>`.
+  /// Unique, so re-reading the same notes never makes the task twice.
+  sourceRef     String? @unique
+  /// The Google Calendar reminder made for this task, when it has one.
+  googleEventId String?
+
   @@index([status, dueAt])
   @@index([personId])
   @@index([opportunityId])
