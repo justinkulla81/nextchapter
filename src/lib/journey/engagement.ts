@@ -20,6 +20,7 @@ import { careerPlanItems, type CareerDetails } from './career'
 import type { Relocation } from './relocation'
 import { situationPlanItems } from './situation'
 import { parallelPlanItems } from './paths'
+import { reaskPlanItems } from './stalled-reask'
 import { deriveLearningPaths, pathPlanItems, pathProgressOf } from './learning-paths'
 
 export type EngagementSignals = {
@@ -449,6 +450,8 @@ export function profileDrivenItems(s: EngagementSignals, now: Date = new Date())
     }
   }
   out.push(...situationPlanItems(s.journey, s.rawDetails, { fn: s.targets?.function ?? null, now, kinds: s.parallelKinds, senior: s.seniorLevel }))
+  // What they said they want to change when asked about a stalled search: one matching step for four weeks.
+  out.push(...reaskPlanItems(s.rawDetails, now))
   // What runs next to the main journey: at most one step per active path (researching or doing it; curious adds nothing).
   out.push(...parallelPlanItems({ main: s.journey, journeyDetails: s.rawDetails, kinds: s.parallelKinds, workingNow: s.workingNow, interimInterest: s.interimInterest }))
   if (s.journey === 'ENTREPRENEUR' && s.venture) out.push({ text: `Venture check-in: ${s.venture}. Name the one thing that must happen this month` })
