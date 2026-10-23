@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { unlockProgressText } from '@/lib/effort/unlock-text'
 import { getUnlockStatus, startNewCycle } from '@/lib/effort/load'
 import { getOrDraftSearchStrategyGuidance } from '@/lib/reports/search-strategy-guidance'
 import { generateMarketRealityReport } from '@/lib/reports/market-reality-report'
@@ -26,7 +27,10 @@ export async function unlockNextStrategy(_prev: UnlockState, _formData: FormData
   const profile = await getOrCreateCandidateProfile(user.id)
 
   const status = await getUnlockStatus(profile.id)
-  if (!status.unlocked) return { error: `Your next strategy is not unlocked yet: ${status.blockers.join(', ')}.` }
+  if (!status.unlocked) {
+    const text = unlockProgressText(status)
+    return { error: `${text.headline}. ${text.detail}` }
+  }
 
   const guidance = await getOrDraftSearchStrategyGuidance(profile.id, { force: true })
   if (!guidance) return { error: 'We could not write your strategy just now. Nothing was used up, so please try again in a moment.' }
