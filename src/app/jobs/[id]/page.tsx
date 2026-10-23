@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
+import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { StructuredData } from '@/components/StructuredData'
 import { PersonalizePanel } from '@/components/home/PersonalizePanel'
@@ -78,6 +79,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
               {[place, pay, `Posted ${dateFmt.format(datePostedOf(job))}`].filter(Boolean).join(' · ')}
             </p>
             <NoExperienceLine jobId={job.id} signals={job.postingSignals} phrase={job.noExperiencePhrase} surface="public_job" className="mt-3 text-base" />
+            <TrainingProvidedLine jobId={job.id} signals={job.postingSignals} phrase={job.trainingPhrase} surface="public_job" className="mt-3 text-base" />
 
             <TrackedLink
               href={job.url}

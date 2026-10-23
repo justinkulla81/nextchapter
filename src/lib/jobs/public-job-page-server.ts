@@ -45,6 +45,7 @@ export const PUBLIC_JOB_SELECT = {
   payPeriod: true,
   postingSignals: true,
   noExperiencePhrase: true,
+  trainingPhrase: true,
   externalJobId: true,
   requisitionId: true,
   company: { select: { website: true } },

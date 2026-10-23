@@ -15,6 +15,8 @@ import { jobCentersUrl, STATE_NAMES } from '@/lib/workforce/directory'
 import { boardCountyKeys, visibleBoards } from '@/lib/workforce/board-area'
 import { boardLabor } from '@/lib/workforce/labor'
 import { formatDate } from '@/lib/crm/labels'
+import { areaContext, type AreaContext } from '@/lib/workforce/county-context'
+import { collegesByCounty, laborBenchmarks, loadCountyContext, openJobsByCounty } from '@/lib/workforce/county-context-data'
 
 export const maxDuration = 60
 
@@ -65,7 +67,7 @@ const loadBoardData = ttlCached(
     prisma.workforceBoard.groupBy({ by: ['state'], orderBy: { state: 'asc' } }),
     prisma.countyLabor.findMany({
       where: state ? { state } : {},
-      select: { state: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
+      select: { state: true, fips: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
     }),
     // Internal fit score (scripts/geo/score-partners.ts, refreshed weekly).
     // Scores only here; the reasons JSON is fetched for the visible page below.
@@ -75,6 +77,46 @@ const loadBoardData = ttlCached(
   },
   (state, windowDays) => `${state}|${windowDays ?? 'all'}`,
 )
+
+const pct = (n: number, digits = 0) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(digits)}%`
+
+function EconomyCells({ eco }: { eco: AreaContext & { openJobs: number; colleges: number; communityColleges: number } }) {
+  const sector = (s: { label: string; changePct: number; change: number }) => (
+    <li key={s.label} title={`${s.change > 0 ? '+' : '−'}${Math.abs(s.change).toLocaleString()} private-sector jobs, 2022 to 2024`}>
+      {s.label} <span className="text-muted-foreground">{pct(s.changePct)}</span>
+    </li>
+  )
+  return (
+    <>
+      <td className="px-2 py-2 text-right text-xs tabular-nums">{eco.openJobs ? eco.openJobs.toLocaleString() : <span className="text-muted-foreground">—</span>}</td>
+      <td className="whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums">
+        {eco.population ? (
+          <>
+            {Math.round(eco.population.now).toLocaleString()}
+            <span className="block text-[11px] text-muted-foreground" title="Change since July 2020">{eco.population.changePct >= 0 ? '▲' : '▼'} {pct(eco.population.changePct, 1)}</span>
+          </>
+        ) : <span className="text-muted-foreground">—</span>}
+      </td>
+      <td className="px-2 py-2 text-right text-xs tabular-nums" title={`${eco.communityColleges} public 2-year`}>
+        {eco.colleges}
+        {eco.communityColleges > 0 && <span className="block text-[11px] text-muted-foreground">{eco.communityColleges} community</span>}
+      </td>
+      <td className="px-2 py-2 text-xs">
+        {eco.exposed && (
+          <p title={eco.exposed.top.map((t) => `${t.label} ${t.share.toFixed(0)}%`).join(', ')}>
+            <span className="font-medium tabular-nums">{eco.exposed.share.toFixed(0)}%</span> of jobs AI-exposed
+            <span className="block text-[11px] text-muted-foreground">{eco.exposed.top.map((t) => t.label).join(', ')}</span>
+          </p>
+        )}
+        {eco.shrinking.length > 0 && <ul className="mt-1 space-y-0.5"><li className="text-[11px] text-muted-foreground">Shrinking since 2022</li>{eco.shrinking.map(sector)}</ul>}
+        {!eco.exposed && eco.shrinking.length === 0 && <span className="text-muted-foreground">—</span>}
+      </td>
+      <td className="px-2 py-2 text-xs">
+        {eco.growing.length > 0 ? <ul className="space-y-0.5">{eco.growing.map(sector)}</ul> : <span className="text-muted-foreground">—</span>}
+      </td>
+    </>
+  )
+}
 
 export default async function WorkforceBoardsPage({
   searchParams,
@@ -94,7 +136,13 @@ export default async function WorkforceBoardsPage({
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
 
-  const { allBoards, notices, states, labor, fitRows } = await loadBoardData(state, windowDays)
+  const [{ allBoards, notices, states, labor, fitRows }, { context }, openJobs, benchmarks, collegeRows] = await Promise.all([
+    loadBoardData(state, windowDays),
+    loadCountyContext(),
+    openJobsByCounty().catch(() => new Map<string, number>()),
+    laborBenchmarks().catch(() => ({ byState: new Map<string, number>(), national: null as number | null })),
+    collegesByCounty().catch(() => []),
+  ])
   const fitById = new Map(fitRows.map((f) => [f.id, f]))
   // A state board shows only where the state has no local boards under it (Vermont, Delaware…).
   const boards = visibleBoards(allBoards)
@@ -104,6 +152,24 @@ export default async function WorkforceBoardsPage({
     const keys = boardCountyKeys(b)
     const rows = laborByState.get(b.state) ?? []
     return boardLabor(keys === 'all' ? rows : rows.filter((r) => keys.includes(r.nameKey)))
+  }
+
+  const countyRows = (b: (typeof boards)[number]) => {
+    const keys = boardCountyKeys(b)
+    const all = laborByState.get(b.state) ?? []
+    return keys === 'all' ? all : all.filter((r) => keys.includes(r.nameKey))
+  }
+  // A board's local economy: its counties' population, jobs by sector, open roles and colleges.
+  const economyFor = (b: (typeof boards)[number]) => {
+    const fips = countyRows(b).map((r) => r.fips)
+    const keys = boardCountyKeys(b)
+    const colleges = collegeRows.filter((c) => c.state === b.state && (keys === 'all' || (c.countyKey != null && keys.includes(c.countyKey))))
+    return {
+      ...areaContext(context, fips),
+      openJobs: fips.reduce((n, f) => n + (openJobs.get(f) ?? 0), 0),
+      colleges: colleges.reduce((n, c) => n + c._count._all, 0),
+      communityColleges: colleges.filter((c) => c.sector === 4).reduce((n, c) => n + c._count._all, 0),
+    }
   }
 
   const rows = buildBoardReport(boards, notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { q, sort: sort === 'fit' ? 'jobs' : sort, dir, includeEmpty })
@@ -220,6 +286,11 @@ export default async function WorkforceBoardsPage({
                 <th className="px-2 py-1.5 text-right font-medium">Companies</th>
                 <th className="px-2 py-1.5 text-right font-medium" title="Share of filed jobs in white-collar sectors (Information, Finance, Professional and technical, Management), where the state publishes a sector">White collar</th>
                 <th className="px-2 py-1.5 text-right font-medium" title="County unemployment from BLS, latest month, not seasonally adjusted; arrow compares the same month a year earlier">Unemployment</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Open roles on the NextChapter job board in the cities of this board's counties. Not the whole labor market.">Open jobs</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Census estimate, July 2024, and the change since July 2020">Population</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Degree-granting colleges in the board's counties (IPEDS); community colleges are public 2-year">Colleges</th>
+                <th className="min-w-44 px-2 py-1.5 font-medium" title="Share of private-sector jobs in sectors AI already does part of (Information, Finance, Professional and technical, Management, Admin and staffing), and the sectors that lost the most jobs 2022 to 2024. BLS QCEW.">At risk</th>
+                <th className="min-w-44 px-2 py-1.5 font-medium" title="Sectors that added the most private-sector jobs 2022 to 2024. BLS QCEW.">Growing</th>
                 <th className="px-2 py-1.5 font-medium">Latest filing</th>
                 <th className="px-2 py-1.5 font-medium" title="The soonest effective date still ahead">Next effective</th>
               </tr>
@@ -323,10 +394,18 @@ export default async function WorkforceBoardsPage({
                             {change != null && change !== 0 && (
                               <span className="ml-1 text-muted-foreground">{change > 0 ? '▲' : '▼'}{Math.abs(change).toFixed(1)}</span>
                             )}
+                            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                              {(() => {
+                                const st = benchmarks.byState.get(b.state)
+                                const part = (label: string, v: number | null | undefined) => v == null ? null : `${label} ${v.toFixed(1)}%`
+                                return [part(b.state, st), part('US', benchmarks.national)].filter(Boolean).join(' · ')
+                              })()}
+                            </span>
                           </span>
                         )
                       })()}
                     </td>
+                    <EconomyCells eco={economyFor(b)} />
                     <td className="whitespace-nowrap px-2 py-2 text-xs">{r.latestFiled ? formatDate(r.latestFiled) : '—'}</td>
                     <td className="whitespace-nowrap px-2 py-2 text-xs">{r.nextEffective ? formatDate(r.nextEffective) : '—'}</td>
                   </tr>

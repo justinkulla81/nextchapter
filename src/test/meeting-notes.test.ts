@@ -31,6 +31,13 @@ describe('geminiNotesDocOf', () => {
   it('handles no attachments', () => {
     expect(geminiNotesDocOf(undefined)).toBeNull()
   })
+  it('reads a real event attachment that has only a link and a title', () => {
+    expect(geminiNotesDocOf([{ fileUrl: 'https://docs.google.com/document/d/1AbC-d_E9/edit?usp=meet_tnfm_calendar', title: 'Notes by Gemini' }]))
+      .toEqual({ fileId: '1AbC-d_E9', url: 'https://docs.google.com/document/d/1AbC-d_E9/edit?usp=meet_tnfm_calendar', title: 'Notes by Gemini' })
+  })
+  it('skips a link-only attachment whose link is not a Google Doc', () => {
+    expect(geminiNotesDocOf([{ fileUrl: 'https://example.com/x', title: 'Notes by Gemini' }])).toBeNull()
+  })
 })
 
 describe('docToText', () => {

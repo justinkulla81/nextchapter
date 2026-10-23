@@ -107,3 +107,37 @@ export function parseUsd(v: unknown): number | null {
   const out = Math.round(n * mult)
   return out > 0 && out < 1e12 ? out : null
 }
+
+export const STATUSES = [
+  { key: 'ACTIVE', label: 'Operating' },
+  { key: 'ACQUIRED', label: 'Acquired' },
+  { key: 'PIVOTED', label: 'Left this market' },
+  { key: 'SHUT_DOWN', label: 'Shut down' },
+] as const
+export const statusLabel = (key: string) => STATUSES.find((x) => x.key === key)?.label ?? key
+export const cleanStatus = (v: unknown): string => (STATUSES.some((x) => x.key === String(v)) ? String(v) : 'ACTIVE')
+
+/** The market a company was found in. Mirrors scripts/vision/research-landscape.ts. */
+export const CATEGORIES = [
+  { key: 'job_transition', label: 'Job transition platforms' },
+  { key: 'outplacement', label: 'Outplacement' },
+  { key: 'coaching', label: 'Coaching' },
+  { key: 'career_exploration', label: 'Career exploration & pivots' },
+  { key: 'higher_ed', label: 'Higher-ed alumni, career & exec ed' },
+  { key: 'recruiter_crm', label: 'Recruiter CRMs & ATS' },
+  { key: 'retention', label: 'Retention & internal mobility' },
+  { key: 'job_boards', label: 'Job boards & hiring tools' },
+  { key: 'assessments', label: 'Assessments & references' },
+  { key: 'networking', label: 'Networking & mentoring' },
+  { key: 'job_search_tools', label: 'Resume, tracking & interview tools' },
+  { key: 'job_data', label: 'Employee & job data' },
+  { key: 'early_career', label: 'Early career & entry level' },
+  { key: 'retraining', label: 'Retraining & bootcamps' },
+  { key: 'older_workers', label: 'Older workers & returners' },
+  { key: 'fractional_gig', label: 'Fractional & gig' },
+  { key: 'community', label: 'Support communities' },
+  { key: 'workforce_gov', label: 'Vendors to workforce agencies' },
+  { key: 'nonprofit_providers', label: 'Nonprofit & faith-based providers' },
+  { key: 'failed', label: 'Failed or distressed' },
+] as const
+export const categoryLabel = (key: string | null | undefined) => CATEGORIES.find((c) => c.key === key)?.label ?? null

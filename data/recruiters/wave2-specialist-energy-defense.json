@@ -1,0 +1,983 @@
+[
+ {
+  "fullName": "David Preng",
+  "title": "Founder and President",
+  "firm": "Preng & Associates",
+  "firmWebsite": "https://www.preng.com",
+  "city": "Houston",
+  "state": "TX",
+  "sourceUrl": "https://www.preng.com/why-preng/our-consultants/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Gary Carlson",
+  "title": "Consultant",
+  "firm": "Preng & Associates",
+  "firmWebsite": "https://www.preng.com",
+  "city": "Houston",
+  "state": "TX",
+  "sourceUrl": "https://www.preng.com/why-preng/our-consultants/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Steve Raben",
+  "title": "Consultant",
+  "firm": "Preng & Associates",
+  "firmWebsite": "https://www.preng.com",
+  "city": "Houston",
+  "state": "TX",
+  "sourceUrl": "https://www.preng.com/why-preng/our-consultants/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Stephen Preng",
+  "title": "Consultant",
+  "firm": "Preng & Associates",
+  "firmWebsite": "https://www.preng.com",
+  "city": "Houston",
+  "state": "TX",
+  "sourceUrl": "https://www.preng.com/why-preng/our-consultants/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Laura Preng",
+  "title": "Consultant",
+  "firm": "Preng & Associates",
+  "firmWebsite": "https://www.preng.com",
+  "city": "Houston",
+  "state": "TX",
+  "sourceUrl": "https://www.preng.com/why-preng/our-consultants/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Mark Ciolek",
+  "title": "Consultant",
+  "firm": "Preng & Associates",
+  "firmWebsite": "https://www.preng.com",
+  "city": "Chicago",
+  "state": "IL",
+  "sourceUrl": "https://www.preng.com/why-preng/our-consultants/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Jonathan Hill",
+  "title": "Managing Partner",
+  "firm": "The Energists",
+  "firmWebsite": "https://www.energists.com",
+  "city": "Houston",
+  "state": "TX",
+  "sourceUrl": "https://www.energists.com/team/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive",
+   "engineering"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Sheharyar Khan",
+  "title": "Partner",
+  "firm": "The Energists",
+  "firmWebsite": "https://www.energists.com",
+  "city": "Houston",
+  "state": "TX",
+  "sourceUrl": "https://www.energists.com/team/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive",
+   "engineering"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Thomas Dowdy",
+  "title": "Principal",
+  "firm": "The Energists",
+  "firmWebsite": "https://www.energists.com",
+  "city": "Houston",
+  "state": "TX",
+  "sourceUrl": "https://www.energists.com/team/",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Richard Kim",
+  "title": "Director",
+  "firm": "Stanton Chase",
+  "firmWebsite": "https://www.stantonchase.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "r.kim@stantonchase.com",
+  "sourceUrl": "https://www.stantonchase.com/consultant/richard-kim",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Ward Garven",
+  "title": "Managing Director, Global Sector Leader, Energy, Resources, and Mining",
+  "firm": "Stanton Chase",
+  "firmWebsite": "https://www.stantonchase.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "w.garven@stantonchase.com",
+  "sourceUrl": "https://www.stantonchase.com/consultant/ward-garven",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "John McFarland",
+  "title": "Director",
+  "firm": "Stanton Chase",
+  "firmWebsite": "https://www.stantonchase.com",
+  "city": "Atlanta",
+  "state": "GA",
+  "email": "j.mcfarland@stantonchase.com",
+  "sourceUrl": "https://www.stantonchase.com/consultant/john-mcfarland",
+  "industries": [
+   "aerospace_defense",
+   "industrial",
+   "healthcare"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Richard Sarmiento",
+  "title": "Managing Director",
+  "firm": "Stanton Chase",
+  "firmWebsite": "https://www.stantonchase.com",
+  "city": "Washington",
+  "state": "DC",
+  "sourceUrl": "https://www.stantonchase.com/consultant/richard-sarmiento",
+  "industries": [
+   "aerospace_defense",
+   "government",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "DC"
+  ]
+ },
+ {
+  "fullName": "Charles Nailen",
+  "title": "Managing Director",
+  "firm": "Stanton Chase",
+  "firmWebsite": "https://www.stantonchase.com",
+  "city": "Washington",
+  "state": "DC",
+  "email": "c.nailen@stantonchase.com",
+  "sourceUrl": "https://www.stantonchase.com/consultant/charles-nailen",
+  "industries": [
+   "aerospace_defense",
+   "technology",
+   "media"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "DC"
+  ]
+ },
+ {
+  "fullName": "Bruce Peterson",
+  "title": "Senior Client Partner",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "bruce.peterson@kornferry.com",
+  "phone": "713-374-1353",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/brucepeterson",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "John R. Collett",
+  "title": "Senior Client Partner, Global Industrial, Energy, Investment Banking & Private Equity Practices",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "john.collett@kornferry.com",
+  "phone": "713-374-1381",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/johncollett",
+  "industries": [
+   "energy",
+   "industrial",
+   "financial_services"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Dave Bakkeby",
+  "title": "Senior Client Partner, Sector Leader, Aerospace & Defense, Government",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com",
+  "city": "Los Angeles",
+  "state": "CA",
+  "email": "david.bakkeby@kornferry.com",
+  "phone": "619-347-1318",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/davebakkeby",
+  "industries": [
+   "aerospace_defense",
+   "government"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Mark Sanborn",
+  "title": "Senior Client Partner, Aerospace, Defense & Space",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com",
+  "city": "Los Angeles",
+  "state": "CA",
+  "email": "mark.sanborn@kornferry.com",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/mark-sanborn",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Brendan Waters",
+  "title": "Senior Client Partner, Aerospace, Defense & Government Services",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com",
+  "city": "Washington",
+  "state": "DC",
+  "email": "brendan.waters@kornferry.com",
+  "phone": "202-955-0924",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/brendan-waters",
+  "industries": [
+   "aerospace_defense",
+   "government"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "DC",
+   "VA"
+  ]
+ },
+ {
+  "fullName": "Robert Craig",
+  "title": "Senior Client Partner & Leader, Renewables & Clean Tech Practice",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com",
+  "city": "Los Angeles",
+  "state": "CA",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/robertcraig",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Jeff Hyler",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "jhyler@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/jeffrey-e-hyler",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Leo Espinoza",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "lespinoza@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/leo-m-espinoza",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Mary Bass",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "mbass@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/mary-d-bass",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Chadwick Covey",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "ccovey@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/chadwick-d-covey",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Jon Barney",
+  "title": "Consultant, Aerospace, Defense & National Security sub-sector leader",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com",
+  "city": "Washington",
+  "state": "DC",
+  "email": "JBarney@SpencerStuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/jon-barney",
+  "industries": [
+   "aerospace_defense",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "DC"
+  ]
+ },
+ {
+  "fullName": "Thomas Rajan",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com",
+  "city": "Dallas",
+  "state": "TX",
+  "email": "TRajan@SpencerStuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/thomas-rajan",
+  "industries": [
+   "aerospace_defense",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Travis Radford",
+  "title": "Principal",
+  "firm": "Heidrick & Struggles",
+  "firmWebsite": "https://www.heidrick.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "tradford@heidrick.com",
+  "phone": "713-751-3012",
+  "sourceUrl": "https://www.heidrick.com/en/people/r/travis_radford",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Clayton Sears",
+  "title": "Partner, co-leader global Energy Sector",
+  "firm": "Heidrick & Struggles",
+  "firmWebsite": "https://www.heidrick.com",
+  "city": "Dallas",
+  "state": "TX",
+  "email": "csears@heidrick.com",
+  "sourceUrl": "https://www.heidrick.com/en/people/s/clayton_sears",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "John Goodrum",
+  "title": "Partner",
+  "firm": "Heidrick & Struggles",
+  "firmWebsite": "https://www.heidrick.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "jgoodrum@heidrick.com",
+  "phone": "713-751-3034",
+  "sourceUrl": "https://www.heidrick.com/en/people/g/john-goodrum",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Marc Baca",
+  "title": "Leadership advisor; leads Global Power & Utilities Practice and Houston office",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "marc.baca@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/marc-baca",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Mark Perkins",
+  "title": "Leadership advisor",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com",
+  "city": "Dallas",
+  "state": "TX",
+  "email": "mark.perkins@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/mark-perkins",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Curt Ross",
+  "title": "Leadership advisor",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com",
+  "city": "Dallas",
+  "state": "TX",
+  "email": "curt.ross@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/curt-ross",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Stephen Newton",
+  "title": "Leadership advisor",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com",
+  "city": "Houston",
+  "state": "TX",
+  "email": "steve.newton@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/stephen-newton",
+  "industries": [
+   "energy",
+   "education"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Ryan Ransford",
+  "title": "Leadership advisor",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "ryan.ransford@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/ryan-ransford",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Jennifer Rockwood",
+  "title": "Leadership advisor; leader, Global Power & Utilities Practice",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com",
+  "city": "Miami",
+  "state": "FL",
+  "email": "jennifer.rockwood@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/jennifer-rockwood",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "FL"
+  ]
+ },
+ {
+  "fullName": "Christoph Wollersheim",
+  "title": "Co-leader, Aerospace & Defense Practice",
+  "firm": "Egon Zehnder",
+  "firmWebsite": "https://www.egonzehnder.com",
+  "city": "Washington",
+  "state": "DC",
+  "sourceUrl": "https://www.egonzehnder.com/office/washington-d-c/consultant/christoph-wollersheim",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "DC"
+  ]
+ },
+ {
+  "fullName": "Mercedes LeGrand",
+  "title": "Partner & Head, Global Aerospace, Defense & Security Practice",
+  "firm": "Odgers Berndtson",
+  "firmWebsite": "https://www.odgers.com",
+  "city": "Washington",
+  "state": "DC",
+  "email": "mercedes.legrand@odgers.com",
+  "sourceUrl": "https://www.odgers.com/en-us/consultants/mercedes-legrand/",
+  "industries": [
+   "aerospace_defense",
+   "government"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "DC",
+   "VA",
+   "MD"
+  ]
+ },
+ {
+  "fullName": "Philip Lamb",
+  "title": "Managing Partner",
+  "firm": "PRL International",
+  "firmWebsite": "https://www.prlinternational.com",
+  "city": "Canonsburg",
+  "state": "PA",
+  "email": "plamb@prlinternational.com",
+  "sourceUrl": "https://www.prlinternational.com/about",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "PA"
+  ]
+ },
+ {
+  "fullName": "Barbara Miller",
+  "title": "Recruiter",
+  "firm": "PRL International",
+  "firmWebsite": "https://www.prlinternational.com",
+  "city": "Canonsburg",
+  "state": "PA",
+  "email": "bmiller@prlinternational.com",
+  "sourceUrl": "https://www.prlinternational.com/about",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "PA"
+  ]
+ },
+ {
+  "fullName": "Elizabeth Nay",
+  "title": "Recruiter",
+  "firm": "PRL International",
+  "firmWebsite": "https://www.prlinternational.com",
+  "city": "Canonsburg",
+  "state": "PA",
+  "email": "enay@prlinternational.com",
+  "sourceUrl": "https://www.prlinternational.com/about",
+  "industries": [
+   "energy"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "PA"
+  ]
+ },
+ {
+  "fullName": "Ryan Boyle",
+  "title": "President",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "ryan@bobsearch.com",
+  "phone": "949-253-3522",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Jeffrey Tyson",
+  "title": "Vice President",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "jeff@bobsearch.com",
+  "phone": "949-471-6208",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Michael Boyle",
+  "title": "Founder",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "mike@bobsearch.com",
+  "phone": "949-474-3354",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Andrew Day",
+  "title": "Managing Director",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "andrew@bobsearch.com",
+  "phone": "949-471-6202",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Patrick Lavey",
+  "title": "Managing Director",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "patrick@bobsearch.com",
+  "phone": "949-471-6210",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Jade Barrilleaux",
+  "title": "Recruiter",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "Jade@bobsearch.com",
+  "phone": "949-484-5815",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Alexandra Lewis",
+  "title": "Recruiter",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "alexandra@bobsearch.com",
+  "phone": "949-471-6209",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Luke Wilmot",
+  "title": "Recruiter",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "Luke@bobsearch.com",
+  "phone": "949-471-6206",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Ashlyn Varnell",
+  "title": "Recruiter",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "phone": "949-471-6207",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Kaitlyn Nash",
+  "title": "Vice President",
+  "firm": "BOB Search",
+  "firmWebsite": "https://www.bobsearch.com",
+  "city": "Irvine",
+  "state": "CA",
+  "email": "Kaitlyn@bobsearch.com",
+  "phone": "949-471-6200",
+  "sourceUrl": "https://www.bobsearch.com/about-us/our-team",
+  "industries": [
+   "aerospace_defense"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ }
+]

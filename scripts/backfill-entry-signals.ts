@@ -1,7 +1,7 @@
 /**
  * Fills the live board's entry-level signals from the crawler (ncrawl/entry_signals.py on the FULL posting text):
- * postingSignals' no_experience_ok / entry_ai / entry_ai_preferred and noExperiencePhrase. Input: JSONL from the
- * crawler's scripts/entry_signals_board_export.py, one {f, url, s, p} per line (every active entry / early-career job;
+ * postingSignals' no_experience_ok / training_provided / entry_ai / entry_ai_preferred, noExperiencePhrase and
+ * trainingPhrase. Input: JSONL from the crawler's scripts/entry_signals_board_export.py, one {f, url, s, p, t} per line (every active entry / early-career job;
  * s = [] when none).
  *
  * Matched by crawlerFingerprint first, then by url where that url is unique in the export. The other posting signals
@@ -14,7 +14,7 @@ import { readFileSync } from 'fs'
 import { PrismaClient } from '@prisma/client'
 import { ENTRY_ONLY_SIGNALS } from '../src/lib/jobs/posting-signals'
 
-const CHUNK = 5_000
+const CHUNK = 2_000
 const LOAD_BATCH = 5_000
 const ENTRY_IDS = ['no_experience_ok', ...ENTRY_ONLY_SIGNALS]
 const KEEP = (col: string) => `ARRAY(SELECT x FROM unnest(${col}) AS x WHERE x <> ALL('{${ENTRY_IDS.join(',')}}'::text[]))`
@@ -33,22 +33,24 @@ async function main() {
   const urls: string[] = []
   const sigs: string[] = []
   const phrases: (string | null)[] = []
+  const tphrases: (string | null)[] = []
   for (const line of readFileSync(file, 'utf8').split('\n')) {
     if (!line) continue
-    const r = JSON.parse(line) as { f?: string; url: string; s: string[]; p?: string | null }
+    const r = JSON.parse(line) as { f?: string; url: string; s: string[]; p?: string | null; t?: string | null }
     fp.push(r.f ?? null)
     urls.push(r.url)
     sigs.push(r.s.filter((x) => ENTRY_IDS.includes(x)).join(','))
     phrases.push(r.s.includes('no_experience_ok') && r.p ? r.p.slice(0, 240) : null)
+    tphrases.push(r.s.includes('training_provided') && r.t ? r.t.slice(0, 240) : null)
   }
   console.log(`read ${urls.length} crawler rows`)
 
-  await prisma.$executeRawUnsafe(`CREATE TEMP TABLE es_all (f text, url text, s text[], p text)`)
+  await prisma.$executeRawUnsafe(`CREATE TEMP TABLE es_all (f text, url text, s text[], p text, t text)`)
   for (let k = 0; k < urls.length; k += LOAD_BATCH) {
     await prisma.$executeRawUnsafe(
-      `INSERT INTO es_all SELECT f, u, CASE WHEN s = '' THEN ARRAY[]::text[] ELSE string_to_array(s, ',') END, p
-       FROM unnest($1::text[], $2::text[], $3::text[], $4::text[]) AS x(f, u, s, p)`,
-      fp.slice(k, k + LOAD_BATCH), urls.slice(k, k + LOAD_BATCH), sigs.slice(k, k + LOAD_BATCH), phrases.slice(k, k + LOAD_BATCH)
+      `INSERT INTO es_all SELECT f, u, CASE WHEN s = '' THEN ARRAY[]::text[] ELSE string_to_array(s, ',') END, p, t
+       FROM unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[]) AS x(f, u, s, p, t)`,
+      fp.slice(k, k + LOAD_BATCH), urls.slice(k, k + LOAD_BATCH), sigs.slice(k, k + LOAD_BATCH), phrases.slice(k, k + LOAD_BATCH), tphrases.slice(k, k + LOAD_BATCH)
     )
   }
   await prisma.$executeRawUnsafe(`CREATE TEMP TABLE es_fp AS SELECT DISTINCT ON (f) * FROM es_all WHERE f IS NOT NULL ORDER BY f`)
@@ -77,18 +79,18 @@ async function main() {
     const range = `e."archivedAt" IS NULL AND e."id" > $1 ${hi ? 'AND e."id" <= $2' : ''}`
     const args = hi ? [lo, hi] : [lo]
     const [a, b] = await prisma.$transaction(async (tx) => {
-      await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '30s'`)
+      await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '15s'`)
       await tx.$executeRawUnsafe(`SET LOCAL lock_timeout = '5s'`)
       const a = await tx.$executeRawUnsafe(
-        `UPDATE "ExclusiveJobPosting" e SET "postingSignals" = ${KEEP('e."postingSignals"')} || p.s, "noExperiencePhrase" = p.p FROM es_fp p
+        `UPDATE "ExclusiveJobPosting" e SET "postingSignals" = ${KEEP('e."postingSignals"')} || p.s, "noExperiencePhrase" = p.p, "trainingPhrase" = p.t FROM es_fp p
          WHERE p.f = e."crawlerFingerprint" AND ${range}
-           AND (e."postingSignals" IS DISTINCT FROM ${KEEP('e."postingSignals"')} || p.s OR e."noExperiencePhrase" IS DISTINCT FROM p.p)`,
+           AND (e."postingSignals" IS DISTINCT FROM ${KEEP('e."postingSignals"')} || p.s OR e."noExperiencePhrase" IS DISTINCT FROM p.p OR e."trainingPhrase" IS DISTINCT FROM p.t)`,
         ...args
       )
       const b = await tx.$executeRawUnsafe(
-        `UPDATE "ExclusiveJobPosting" e SET "postingSignals" = ${KEEP('e."postingSignals"')} || u.s, "noExperiencePhrase" = u.p FROM es_url u
+        `UPDATE "ExclusiveJobPosting" e SET "postingSignals" = ${KEEP('e."postingSignals"')} || u.s, "noExperiencePhrase" = u.p, "trainingPhrase" = u.t FROM es_url u
          WHERE u.url = e.url AND NOT EXISTS (SELECT 1 FROM es_fp p WHERE p.f = e."crawlerFingerprint")
-           AND ${range} AND (e."postingSignals" IS DISTINCT FROM ${KEEP('e."postingSignals"')} || u.s OR e."noExperiencePhrase" IS DISTINCT FROM u.p)`,
+           AND ${range} AND (e."postingSignals" IS DISTINCT FROM ${KEEP('e."postingSignals"')} || u.s OR e."noExperiencePhrase" IS DISTINCT FROM u.p OR e."trainingPhrase" IS DISTINCT FROM u.t)`,
         ...args
       )
       return [a, b]

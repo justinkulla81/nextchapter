@@ -32,6 +32,10 @@ export interface EnrichedCompetitor {
   userCountNote: string | null
   sourceUrl: string | null
   notes: string | null
+  status: string
+  statusNote: string | null
+  lessons: string[]
+  partnerIdea: string | null
 }
 
 const AREA_LIST = 'coaching, career_exploration, job_search, resume, interview_prep, networking, learning, ai_reskilling, fractional, community, recruiters, benefits, outplacement, workforce_system, labor_data, assessments, employer_hiring, higher_ed'
@@ -53,8 +57,8 @@ const str = (v: unknown, max = 600): string | null => { const s = String(v ?? ''
 const int = (v: unknown, lo: number, hi: number): number | null => { const n = typeof v === 'number' ? v : parseInt(String(v ?? '').replace(/[^\d]/g, ''), 10); return Number.isFinite(n) && n >= lo && n <= hi ? n : null }
 
 /** Reads a competitor's website (and a little public reporting) and returns a draft card. Never invents numbers. */
-export async function enrichCompetitor(homepage: string): Promise<{ data: EnrichedCompetitor; cost: number; searches: number }> {
-  const prompt = `Research the company at ${homepage} for a competitor card. NextChapter wants to know how this company compares with it.
+export async function enrichCompetitor(homepage: string, hint?: string): Promise<{ data: EnrichedCompetitor; cost: number; searches: number }> {
+  const prompt = `Research the company at ${homepage} for a competitor card. NextChapter wants to know how this company compares with it.${hint ? `\nContext on why it is on our list: ${hint}` : ''}
 
 ${OUR_PRODUCT}
 
@@ -65,7 +69,7 @@ Return ONE JSON object in a json code block with exactly these keys:
  "name": company name,
  "segment": short market label (e.g. "Outplacement", "Career navigation for governments", "Resume builder"),
  "positioning": one or two plain sentences: what they sell and to whom,
- "relationship": "DIRECT" if they sell what we sell to the same people, "ADJACENT" if they overlap in part or sell to a different buyer, "PARTNER" if more useful beside us, "SUPPLIER" if a data or tool supplier,
+ "relationship": "DIRECT" if they sell what we sell to the same people, "ADJACENT" if they overlap in part or sell to a different buyer, "PARTNER" if complementary and more useful beside us than against us (many tools are: say so rather than defaulting to competitor), "SUPPLIER" if a data or tool supplier we could buy from or build on,
  "areas": array chosen ONLY from: ${AREA_LIST}. Include an area only if the company really sells that capability to someone we could lose to; do not stretch (ai_reskilling means they sell training, not that they use AI),
  "keyFeatures": up to 10 short product features they list,
  "customers": up to 15 named customers or users they or the press name: [{"name","note","url"}],
@@ -81,7 +85,11 @@ Return ONE JSON object in a json code block with exactly these keys:
  "revenueNote": reported revenue or ARR with the year and "(reported)" or "(estimate)", or null,
  "userCountNote": users, customers or placements they claim, or null,
  "sourceUrl": the single best page for the numbers above, or null,
- "notes": anything a founder should know that does not fit above, or null
+ "notes": anything a founder should know that does not fit above, or null,
+ "status": "ACTIVE", "ACQUIRED" (bought or merged away), "SHUT_DOWN" (stopped operating, went bankrupt or wound down) or "PIVOTED" (left this market),
+ "statusNote": when status is not ACTIVE: what happened, when, and why, in one or two sentences with the year; otherwise null,
+ "lessons": when status is not ACTIVE or the company has visibly struggled (layoffs, down round, losing customers): 2 to 4 concrete lessons for NextChapter, each tied to a fact you found; otherwise an empty array,
+ "partnerIdea": if the company is more useful beside us than against us, one sentence on how we could work together (referral, integration, data, channel); otherwise null
 }
 Rules: use null for anything you could not find; never guess a number; separate what the company claims from what a third party reports in the note text; keep every list item under 140 characters.`
 
@@ -110,6 +118,8 @@ Rules: use null for anything you could not find; never guess a number; separate 
     lastRound: str(j.lastRound, 120), investors: str(j.investors, 200),
     fundingRaisedUsd: parseUsd(j.fundingRaisedUsd), headcount: int(j.headcount, 1, 2_000_000),
     revenueNote: str(j.revenueNote, 160), userCountNote: str(j.userCountNote, 160),
+    status: ['ACQUIRED', 'SHUT_DOWN', 'PIVOTED'].includes(String(j.status)) ? String(j.status) : 'ACTIVE',
+    statusNote: str(j.statusNote, 400), lessons: parseLines(j.lessons, 5).map((x) => x.slice(0, 220)), partnerIdea: str(j.partnerIdea, 240),
     sourceUrl: /^https?:\/\//.test(String(j.sourceUrl ?? '')) ? String(j.sourceUrl) : null, notes: str(j.notes, 800),
   }
   return { data, cost, searches }
