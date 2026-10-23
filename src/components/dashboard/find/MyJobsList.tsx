@@ -8,7 +8,10 @@ import { ActionLink } from '@/components/candidate/ActionLink'
 import { JobTrackControls } from '@/components/dashboard/one-board/JobTrackControls'
 import { ApplicationStatusButtons } from '@/components/dashboard/one-board/ApplicationStatusButtons'
 import { ClosedJobAlternatives } from '@/components/jobs/ClosedJobAlternatives'
-import type { TrackRef } from '@/lib/jobs/my-jobs-data'
+import type { TrackRef, TrackerFields } from '@/lib/jobs/my-jobs-merge'
+import type { KeywordMatch } from '@/lib/jobs/keyword-match'
+import { followUpLine, followUpState } from '@/lib/jobs/tracker'
+import { JobTrackerPanel } from '@/components/dashboard/find/JobTrackerPanel'
 import type { ApplicationStatus, JobStatus } from '@/lib/jobs/my-jobs'
 import { CHIP_LABEL, CHIP_TONE, STAGE_FILTERS, countByStatus, matchesFilter, type NextAction, type StageFilter } from '@/lib/jobs/my-jobs-list'
 import { posthog } from '@/lib/posthog/client'
@@ -39,9 +42,13 @@ export interface MyJobRow {
   closed: { sentence: string; jobId: string } | null
   /** The job's own page, shown in the closed note. */
   pageHref: string | null
+  /** The member's notes, excitement, follow-up date, checklist and contacts (null until set). */
+  tracker?: TrackerFields | null
+  /** Resume keyword match against the job, when it has text to match. */
+  keywordMatch?: KeywordMatch | null
 }
 
-export function MyJobsList({ rows, empty }: { rows: MyJobRow[]; empty: ReactNode }) {
+export function MyJobsList({ rows, empty, now = new Date() }: { rows: MyJobRow[]; empty: ReactNode; now?: Date }) {
   const [filter, setFilter] = useState<StageFilter>('all')
   const counts = useMemo(() => countByStatus(rows), [rows])
   const hasOpen = rows.some((r) => r.status !== 'closed')
@@ -91,6 +98,12 @@ export function MyJobsList({ rows, empty }: { rows: MyJobRow[]; empty: ReactNode
                     </p>
                     <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
                       {r.when}
+                      {r.tracker && followUpLine(r.tracker.followUpAt, r.tracker.followUpDoneAt, now) && (
+                        <span className={cn(followUpState(r.tracker.followUpAt, r.tracker.followUpDoneAt, now) === 'due' && 'font-semibold text-ink')}>
+                          · {followUpLine(r.tracker.followUpAt, r.tracker.followUpDoneAt, now)}
+                        </span>
+                      )}
+                      {r.tracker?.excitement && <span aria-label={`Excitement ${r.tracker.excitement} of 5`}>· {'★'.repeat(r.tracker.excitement)}</span>}
                       {r.fromEmail && (
                         <span className="inline-flex items-center gap-1" title="Found from an application confirmation in your connected Gmail">
                           <Mail className="size-3" aria-hidden /> Found in your email
@@ -122,8 +135,13 @@ export function MyJobsList({ rows, empty }: { rows: MyJobRow[]; empty: ReactNode
                   <ClosedJobAlternatives jobId={r.closed.jobId} companyName={r.companyName} title={r.title} surface="my_jobs" />
                 </div>
               )}
-              <details className="text-sm">
-                <summary className="cursor-pointer text-sm font-medium text-brand underline underline-offset-4">Change status</summary>
+              <details
+                className="text-sm"
+                onToggle={(e) => {
+                  if ((e.currentTarget as HTMLDetailsElement).open) posthog.capture('my_job_details_opened', { jobKey: r.key, status: r.status, hasNotes: !!r.tracker, keywordScore: r.keywordMatch?.score ?? null })
+                }}
+              >
+                <summary className="cursor-pointer text-sm font-medium text-brand underline underline-offset-4">Status, notes and checklist</summary>
                 <div className="pt-2">
                   {r.ref ? (
                     <JobTrackControls
@@ -132,12 +150,20 @@ export function MyJobsList({ rows, empty }: { rows: MyJobRow[]; empty: ReactNode
                       watched={r.watched}
                       surface="my_jobs"
                     />
-                  ) : r.jobPostingId && r.status !== 'saved' ? (
-                    <ApplicationStatusButtons jobPostingId={r.jobPostingId} title={r.title} initial={r.status as ApplicationStatus} />
+                  ) : r.jobPostingId ? (
+                    <ApplicationStatusButtons jobPostingId={r.jobPostingId} title={r.title} initial={r.status === 'saved' ? null : (r.status as ApplicationStatus)} />
                   ) : (
                     <p className="text-sm text-muted-foreground">Open the job to change its status.</p>
                   )}
                 </div>
+                <JobTrackerPanel
+                  row={{ itemKey: r.key, title: r.title, companyName: r.companyName }}
+                  status={r.status}
+                  statusDate={r.date}
+                  tracker={r.tracker ?? null}
+                  keywordMatch={r.keywordMatch ?? null}
+                  now={now}
+                />
               </details>
             </li>
           ))}

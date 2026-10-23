@@ -1432,7 +1432,7 @@
 [
 "Project Manager I",
 "Requirements: 7+ years of experience required.",
-"MANAGER"
+"EARLY_IC"
 ],
 [
 "Project Manager I",
@@ -1637,7 +1637,7 @@
 [
 "Assistant Project Manager",
 "Requirements: 8+ years of experience.",
-"MANAGER"
+"EARLY_IC"
 ],
 [
 "Account Manager I, Business Development",
@@ -1727,7 +1727,7 @@
 [
 "Asst. Project Manager",
 "Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
-"EARLY_IC"
+"MANAGER"
 ],
 [
 "Assistant Category Manager",
@@ -1788,5 +1788,45 @@
 "Spend Manager II",
 "Requirements: 2+ years of experience. You will supervise a team of 3 coordinators.",
 "MANAGER"
+],
+[
+"Assistant Project Manager",
+"Manage project schedules and budgets. 2-4 years of experience.",
+"EARLY_IC"
+],
+[
+"Assistant Project Manager",
+"You will supervise a team of 6 field staff. 3+ years of experience.",
+"MANAGER"
+],
+[
+"Assistant Program Manager",
+"Requires 0-1 years of experience.",
+"ENTRY_IC"
+],
+[
+"Project Manager I",
+"Direct reports: 4 coordinators. 2+ years of experience.",
+"MANAGER"
+],
+[
+"Corporate Tax Senior Associate",
+"3+ years of public accounting experience required.",
+"MID_IC"
+],
+[
+"Corporate Tax Senior Associate",
+"1-2 years of experience.",
+"MID_IC"
+],
+[
+"Experienced Assurance Associate",
+"Requires 5+ years of experience.",
+"EARLY_IC"
+],
+[
+"Wealth Management Associate",
+"0-2 years of experience.",
+"ENTRY_IC"
 ]
 ]

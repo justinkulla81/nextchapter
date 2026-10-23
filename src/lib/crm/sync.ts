@@ -643,6 +643,24 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
 }
 
 /**
+ * How many days back the calendar sweep must reach to cover everything since
+ * its last clean run. Meeting notes are written by Google whether or not this
+ * connection is working, so after an outage the sweep has to reach back to the
+ * last good run (not the last good Gmail run — the two break independently)
+ * for the notes made meanwhile to be copied across. Never less than `floor`,
+ * never more than 60 days.
+ */
+export async function calendarLookbackDays(floor = 2): Promise<number> {
+  const lastOk = await prisma.crmSyncRun.findFirst({
+    where: { source: { in: ['calendar', 'calendar-manual'] }, finishedAt: { not: null }, error: null },
+    orderBy: { startedAt: 'desc' },
+    select: { startedAt: true },
+  })
+  const sinceOk = lastOk ? Math.ceil((Date.now() - lastOk.startedAt.getTime()) / DAY) + 1 : 14
+  return Math.min(60, Math.max(floor, sinceOk))
+}
+
+/**
  * Where a meeting with this person belongs besides their own record: the
  * organization they're currently affiliated with, and the open opportunity
  * it relates to — theirs first, else the organization's most recent one.
@@ -687,8 +705,17 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
   // refreshes is skipped and reported, so the others still run.
   const accounts = await getAllAdminCalendarAccess()
   const usable = accounts.filter((a): a is typeof a & { token: string } => !!a.token)
-  if (usable.length === 0) return { ...base, reason: accounts.length ? 'no_valid_token' : 'no_connection' }
   const accountErrors = accounts.filter((a) => a.error).map((a) => `${a.googleEmail ?? 'unknown account'}: ${a.error}`)
+  if (usable.length === 0) {
+    // Connected but every token is dead: leave a failed run behind so the
+    // sync-health banner says so, instead of a quiet "nothing to sweep".
+    if (accounts.length) {
+      await prisma.crmSyncRun.create({
+        data: { source: runSource, windowFrom: new Date(), finishedAt: new Date(), error: accountErrors.join('; ').slice(0, 500) },
+      })
+    }
+    return { ...base, reason: accounts.length ? 'no_valid_token' : 'no_connection' }
+  }
 
   const rollingFrom = new Date(Date.now() - daysBack * DAY)
   const windowFrom = rollingFrom < CRM_ACTIVITY_CUTOFF ? CRM_ACTIVITY_CUTOFF : rollingFrom
@@ -727,7 +754,10 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     let notesAttached = 0
     let todosCreated = 0
     let remindersCreated = 0
-    let notesNeedReconnect = false
+    // Accounts whose grant can't read Docs, and notes reads that failed for a
+    // reason worth retrying: both are recorded on the run (see `problems`).
+    const needsDocsAccess = new Set<string>()
+    let notesFailed = 0
 
     const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
 
@@ -741,11 +771,12 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
       // and a call with a stranger is not something to copy notes onto.
       let notesRead: Promise<string | null> | undefined
       const notesFor = () => {
-        if (!ev.notesDoc || notesNeedReconnect) return Promise.resolve(null)
+        if (!ev.notesDoc || needsDocsAccess.has(token)) return Promise.resolve(null)
         notesRead ??= fetchGoogleDocText(token, ev.notesDoc.fileId)
           .then((t) => (t ? capNotes(t) : null))
           .catch((e) => {
-            if (e instanceof NotesFetchError && e.kind === 'needs_reconnect') notesNeedReconnect = true
+            if (e instanceof NotesFetchError && e.kind === 'needs_reconnect') needsDocsAccess.add(token)
+            else if (!(e instanceof NotesFetchError) || e.kind === 'failed') notesFailed++
             return null
           })
         return notesRead
@@ -835,18 +866,27 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     result.todosCreated = todosCreated
     result.remindersCreated = remindersCreated
     if (accountErrors.length) result.reason = accountErrors.join('; ').slice(0, 300)
+    const notesNeedReconnect = needsDocsAccess.size > 0
     if (notesNeedReconnect) result.notesNeedReconnect = true
-    if (notesAttached > 0 || notesNeedReconnect) {
+    if (notesAttached > 0 || notesFailed > 0 || notesNeedReconnect) {
       captureServerEvent('system', 'crm_meeting_notes_synced', {
-        notesAttached, todosCreated, remindersCreated, needsReconnect: notesNeedReconnect, eventsScanned: result.scanned, source: runSource,
+        notesAttached, notesFailed, todosCreated, remindersCreated, needsReconnect: notesNeedReconnect, eventsScanned: result.scanned, source: runSource,
       })
     }
+    // Anything reconnecting fixes is recorded on the run, so the sync-health
+    // banner shows it: an account whose access was revoked, or notes that
+    // can't be read because the grant lacks Docs access.
+    const problems = [
+      ...accountErrors,
+      ...(notesNeedReconnect ? ['Gemini notes unreadable — Docs read refused: 403 PERMISSION_DENIED'] : []),
+    ]
     await prisma.crmSyncRun.update({
       where: { id: run.id },
       data: {
         finishedAt: new Date(), scanned: result.scanned, matched: result.matched,
         activitiesCreated: result.activitiesCreated, suggested: result.suggested,
         skippedInternal: result.skippedInternal,
+        ...(problems.length ? { error: problems.join('; ').slice(0, 500) } : {}),
       },
     })
     return result

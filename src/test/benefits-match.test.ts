@@ -87,6 +87,26 @@ describe('matchPrograms against the real catalog', () => {
   })
   it('groups by goal', () => {
     const g = groupByGoal(matchPrograms(rows, { ...base, relocation: { scope: 'ANYWHERE', states: [] } }))
-    expect(Object.keys(g).sort()).toEqual(['learn', 'move', 'retrain'])
+    expect(Object.keys(g).sort()).toEqual(['learn', 'move', 'retrain', 'support', 'tax'])
+  })
+  it('lists real dollars before any free course', () => {
+    const m = matchPrograms(rows, { ...base, relocation: { scope: 'ANYWHERE', states: [] } })
+    const firstLearn = m.findIndex((x) => x.goal === 'learn')
+    expect(firstLearn).toBeGreaterThan(0)
+    expect(m.slice(firstLearn).every((x) => x.goal === 'learn')).toBe(true)
+  })
+  it('includes tax benefits and no freemium courses', () => {
+    const m = matchPrograms(rows, base)
+    expect(m.some((x) => x.goal === 'tax')).toBe(true)
+    for (const x of m.filter((y) => y.goal === 'learn')) expect(x.program.amount ?? '').not.toMatch(/\$\s?\d|paid|\bpro\b|tier|trial/i)
+  })
+  it('shows help-while-out-of-work money, local rows only in the member\'s city, and profession bodies only to that profession', () => {
+    const pa = matchPrograms(rows, { ...base, state: 'PA', city: 'Pittsburgh' })
+    const names = (m: typeof pa) => m.filter((y) => y.goal === 'support').map((y) => y.program.name)
+    expect(names(pa).some((n) => /HEMAP/i.test(n))).toBe(true)
+    expect(names(pa).some((n) => /ACEP|IEEE|ASME|CFA Institute/i.test(n))).toBe(false)
+    const eng = matchPrograms(rows, { ...base, state: 'PA', city: 'Pittsburgh', tags: ['engineer'] })
+    expect(names(eng).some((n) => /IEEE|ASME/i.test(n))).toBe(true)
+    expect(names(pa).some((n) => /Medicare/i.test(n))).toBe(false)
   })
 })

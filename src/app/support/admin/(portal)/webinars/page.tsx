@@ -254,9 +254,9 @@ export default async function AdminWebinarsPage({
           )}
           {params.calendarError && (
             <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              Connection failed ({params.calendarError}). If this is your first time connecting,
-              make sure this Google account is added as a test user on the OAuth consent screen in
-              Google Cloud Console — this app is still in Testing publishing status.
+              {params.calendarError === 'missing_scopes'
+                ? 'Not connected: Google didn’t grant every permission. Connect again and, on Google’s screen, allow calendar and Docs access — nothing was changed on your existing connection.'
+                : `Connection failed (${params.calendarError}). Try connecting again; if it keeps failing, check the Google OAuth app in Google Cloud Console.`}
             </p>
           )}
 

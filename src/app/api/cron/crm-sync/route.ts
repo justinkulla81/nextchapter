@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { sweepGmail, sweepCalendar } from '@/lib/crm/sync'
+import { sweepGmail, sweepCalendar, calendarLookbackDays } from '@/lib/crm/sync'
+import { isSweepHours } from '@/lib/crm/business-hours'
 import { withCronRun } from '@/lib/cron/run'
 
 export const maxDuration = 300
@@ -24,6 +25,12 @@ export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
 
   if (!enabled && !force) {
     return NextResponse.json({ skipped: 'sync_disabled' })
+  }
+  // Nobody is reading the CRM overnight or at weekends, so those hours are
+  // not swept. The first run of the next business day reaches back over the
+  // gap (the lookback below is measured from the last clean sweep).
+  if (!force && !isSweepHours()) {
+    return NextResponse.json({ skipped: 'outside_business_hours' })
   }
   if (!force) {
     const last = await prisma.crmSyncRun.findFirst({
@@ -72,7 +79,7 @@ export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
   }
 
   try {
-    results.calendar = await sweepCalendar(days, forwardDays)
+    results.calendar = await sweepCalendar(Math.max(days, await calendarLookbackDays()), forwardDays)
   } catch (e) {
     results.calendar = { error: e instanceof Error ? e.message : String(e) }
   }

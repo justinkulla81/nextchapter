@@ -14,6 +14,8 @@ import { PrismaClient } from '@prisma/client'
 import { importPostingSignalFields } from '../src/lib/jobs/posting-signals'
 
 const CHUNK = 5_000
+// The entry-level ids (scripts/backfill-entry-signals.ts sets them) are kept as they are.
+const ENTRY_KEEP = `ARRAY(SELECT x FROM unnest(e."postingSignals") AS x WHERE x = ANY('{no_experience_ok,entry_ai,entry_ai_preferred}'::text[]))`
 const LOAD_BATCH = 5_000
 
 const [file, ...flags] = process.argv.slice(2)
@@ -34,7 +36,7 @@ async function main() {
     const r = JSON.parse(line) as { f?: string; url: string; s: string[] }
     fp.push(r.f ?? null)
     urls.push(r.url)
-    sigs.push((importPostingSignalFields({ postingSignals: r.s }).postingSignals ?? []).join(','))
+    sigs.push((importPostingSignalFields({ postingSignals: r.s }).postingSignals ?? []).filter((x) => !['no_experience_ok', 'entry_ai', 'entry_ai_preferred'].includes(x)).join(','))
   }
   console.log(`read ${urls.length} crawler rows`)
 
@@ -72,14 +74,14 @@ async function main() {
     const range = `e."archivedAt" IS NULL AND e."id" > $1 ${hi ? 'AND e."id" <= $2' : ''}`
     const args = hi ? [lo, hi] : [lo]
     updated.fp += await prisma.$executeRawUnsafe(
-      `UPDATE "ExclusiveJobPosting" e SET "postingSignals" = p.s FROM ps_fp p
-       WHERE p.f = e."crawlerFingerprint" AND ${range} AND e."postingSignals" IS DISTINCT FROM p.s`,
+      `UPDATE "ExclusiveJobPosting" e SET "postingSignals" = p.s || ${ENTRY_KEEP} FROM ps_fp p
+       WHERE p.f = e."crawlerFingerprint" AND ${range} AND e."postingSignals" IS DISTINCT FROM p.s || ${ENTRY_KEEP}`,
       ...args
     )
     updated.url += await prisma.$executeRawUnsafe(
-      `UPDATE "ExclusiveJobPosting" e SET "postingSignals" = u.s FROM ps_url u
+      `UPDATE "ExclusiveJobPosting" e SET "postingSignals" = u.s || ${ENTRY_KEEP} FROM ps_url u
        WHERE u.url = e.url AND NOT EXISTS (SELECT 1 FROM ps_fp p WHERE p.f = e."crawlerFingerprint")
-         AND ${range} AND e."postingSignals" IS DISTINCT FROM u.s`,
+         AND ${range} AND e."postingSignals" IS DISTINCT FROM u.s || ${ENTRY_KEEP}`,
       ...args
     )
     chunks++

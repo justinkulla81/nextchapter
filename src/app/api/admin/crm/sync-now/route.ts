@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
-import { sweepGmail, sweepCalendar } from '@/lib/crm/sync'
+import { sweepGmail, sweepCalendar, calendarLookbackDays } from '@/lib/crm/sync'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { isMissingPermission, isRateLimited } from '@/lib/google/error-reason'
 
@@ -66,7 +66,7 @@ export async function POST() {
     // (and of a calendar that isn't connected), and same 30-day forward window.
     let meetings = 0
     try {
-      const cal = await sweepCalendar(windowHours / 24, 30, 'calendar-manual')
+      const cal = await sweepCalendar(Math.max(windowHours / 24, await calendarLookbackDays()), 30, 'calendar-manual')
       meetings = cal.activitiesCreated
     } catch {
       // Gmail already succeeded; a calendar hiccup shouldn't hide that.

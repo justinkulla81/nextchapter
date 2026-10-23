@@ -42,6 +42,7 @@ const ONE_THING: Partial<Record<JourneyType, string>> = {
   TIME_OFF: 'Check your return date. Your plan adjusts when it changes.',
   FRACTIONAL: 'Tell us how many open days you have. We match your plan to them.',
   ENTREPRENEUR: 'Write down one thing you learned this month. We will check in on it.',
+  BUY_BUSINESS: 'Write down what you want from owning a business: income, hours, and what you will not do.',
 }
 
 export type WinBackContent = { subject: string; heading: string; body: string[]; cta: string; closing: string | null }

@@ -1,5 +1,6 @@
 'use server'
 
+import { buyDetailsOf, journeyStageForBuyStage } from '@/lib/journey/buy-business'
 import { parseSituationValue, situationFieldsFor } from '@/lib/journey/situation'
 import { changeMessage } from '@/lib/journey/change-message'
 import { applyJourneyChange } from '@/lib/journey/apply'
@@ -397,7 +398,7 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
   if (!stage || !STAGES.some((s) => s.key === stage)) return { error: 'Please choose where you are.' }
 
   // A situation that isn't a job search can't be in an applying stage. Say what to do instead of guessing.
-  if (!getJourney(journey).searching && ACTIVE_SEARCH_STAGES.includes(stage)) {
+  if (journey !== 'BUY_BUSINESS' && !getJourney(journey).searching && ACTIVE_SEARCH_STAGES.includes(stage)) {
     return {
       error: `"${getJourney(journey).label}" isn't a job search, so it can't be at ${stage.toLowerCase()}. Choose "Thinking about a move" (or another search situation) to start applying, or pick "Managing your career".`,
     }
@@ -430,9 +431,17 @@ export async function updateJourney(_prevState: FormState, formData: FormData): 
     const v = parseSituationValue(f, text(f.key))
     if (v !== null) details[f.key] = v
   }
+  // Buying a business keeps its own stage in journeyDetails.buy; the shared stage follows it.
+  let toStage: JourneyStage = stage
+  if (journey === 'BUY_BUSINESS') {
+    const existing = buyDetailsOf(profile.journeyDetails)
+    const buyStage = existing.stage ?? 'decide'
+    details.buy = { ...existing, stage: buyStage, startedAt: existing.startedAt ?? new Date().toISOString() }
+    toStage = journeyStageForBuyStage(buyStage)
+  }
   const result = await applyJourneyChange(profile.id, {
     journey,
-    stage,
+    stage: toStage,
     details,
     source: 'SETTINGS',
     isCheckIn: true,
