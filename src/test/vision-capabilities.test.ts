@@ -15,7 +15,7 @@ describe('capability catalog', () => {
     expect(new Set(keys).size).toBe(keys.length)
   })
   it('uses only areas from the competitor vocabulary', () => {
-    for (const c of CAPABILITIES) expect(areaKeys.has(c.area), `${c.key}: ${c.area}`).toBe(true)
+    for (const c of CAPABILITIES) expect(areaKeys.has(c.area as string), `${c.key}: ${c.area}`).toBe(true)
   })
   it('has evidence on disk for every BUILT and PARTIAL capability', () => {
     for (const c of CAPABILITIES.filter((x) => x.ours !== 'PLANNED')) {
@@ -35,7 +35,7 @@ describe('capability catalog', () => {
   })
   it('has every area represented at least once', () => {
     const used = new Set(CAPABILITIES.map((c) => c.area))
-    for (const a of ['coaching', 'job_search', 'outplacement', 'higher_ed', 'workforce_system', 'platform', 'recruiters', 'employer_hiring']) expect(used.has(a)).toBe(true)
+    for (const a of ['coaching', 'job_search', 'outplacement', 'higher_ed', 'workforce_system', 'platform', 'recruiters', 'employer_hiring']) expect(used.has(a as never)).toBe(true)
   })
 })
 
