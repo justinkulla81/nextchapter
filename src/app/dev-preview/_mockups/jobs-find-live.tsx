@@ -8,6 +8,7 @@ import { FindTwoPane } from '@/components/dashboard/find/FindTwoPane'
 import { boardEntry, surfacedEntry, type FindEntry } from '@/components/dashboard/find/entries'
 import { MyJobsRedesign } from '@/components/dashboard/find/MyJobsRedesign'
 import { OpenToChangersFilter } from '@/components/dashboard/OpenToChangersFilter'
+import { EntryFilterChips } from '@/components/dashboard/EntryFilterChips'
 import type { JobMatch, MatchDimension, MatchDimensionKey, MatchStatus } from '@/lib/jobs/job-match-types'
 import type { MyJobItem, MyJobsView } from '@/lib/jobs/my-jobs-data'
 import type { JobStatus } from '@/lib/jobs/my-jobs'
@@ -95,6 +96,17 @@ const BOARD: Parameters<typeof boardEntry>[0][] = [
     watched: false,
     candidatePlus: false,
   },
+  {
+    // An entry-level job flagged "No experience needed" (entry-filters.ts): the card tag and the quoted phrase.
+    posting: posting({ id: 'ba-northwind', title: 'Business Analyst, New Grad', companyName: 'Northwind', location: 'Chicago, IL', description: DESCRIPTION, createdAt: daysAgo(2), postedAt: daysAgo(2), level: 'ENTRY_IC', postingSignals: ['no_experience_ok', 'entry_ai'], noExperiencePhrase: 'No prior experience required: recent graduates and career starters are encouraged to apply, and we will train you on our tools.' }),
+    fitBucket: 'stretch',
+    why: { fits: ['analysis'], gap: null },
+    competition: { level: 'medium', reasons: [] },
+    match: match({ skills: ['strong', ['Same kind of analysis work.']] }),
+    explainGapsEnabled: false,
+    watched: false,
+    candidatePlus: false,
+  },
 ]
 
 const SURFACED = {
@@ -126,6 +138,9 @@ export function FindJobsLive() {
         <summary className="cursor-pointer text-sm font-medium text-ink">Filters and views</summary>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <OpenToChangersFilter surface="dev_preview" on={false} />
+        </div>
+        <div className="mt-3">
+          <EntryFilterChips surface="dev_preview" on={['noexp']} count={1} />
         </div>
       </details>
       <FindTwoPane items={all.map((e) => e.item)} details={Object.fromEntries(all.map((e) => [e.item.id, e.detail]))} summary={`${all.length} jobs, best fit first`} />
