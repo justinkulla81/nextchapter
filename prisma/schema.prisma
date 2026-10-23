@@ -11881,6 +11881,7 @@ model ProductCompetitor {
   updatedAt DateTime @updatedAt
 
   cells ProductCompetitorFeature[]
+  capabilityCells CompetitorCapability[]
 
   @@index([lastReviewedAt])
 }
@@ -16578,4 +16579,56 @@ model BuyerCrawl {
 
   @@index([kind, state])
   @@index([recentCount])
+}
+
+/// How far along one of OUR capabilities is. Mirrors OurStatus in src/lib/vision/capabilities.ts.
+enum ProductCapabilityStatus {
+  BUILT
+  PARTIAL
+  PLANNED
+}
+
+/// What a competitor does for one capability. UNKNOWN is a valid answer and the default: it means nobody has checked.
+enum CompetitorCapabilityStatus {
+  YES
+  PARTIAL
+  NO
+  UNKNOWN
+}
+
+/// One row of the capability matrix: something NextChapter can do. Seeded from src/lib/vision/capabilities.ts.
+model ProductCapability {
+  id           String                  @id @default(cuid())
+  key          String                  @unique
+  /// From the fixed vocabulary in src/lib/vision/competitor-areas.ts.
+  area         String
+  name         String
+  description  String                  @db.Text
+  ours         ProductCapabilityStatus
+  evidencePath String
+  sortOrder    Int                     @default(0)
+  updatedAt    DateTime                @updatedAt
+
+  cells CompetitorCapability[]
+
+  @@index([area, sortOrder])
+}
+
+/// One cell of the capability matrix: does this competitor do this. Every YES, PARTIAL or NO carries an https
+/// evidenceUrl and a checkedAt date; a cell older than 90 days is shown as stale.
+model CompetitorCapability {
+  id           String                     @id @default(cuid())
+  competitorId String
+  competitor   ProductCompetitor          @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  capabilityId String
+  capability   ProductCapability          @relation(fields: [capabilityId], references: [id], onDelete: Cascade)
+  status       CompetitorCapabilityStatus @default(UNKNOWN)
+  note         String?                    @db.Text
+  evidenceUrl  String?
+  checkedAt    DateTime?
+  checkedBy    String?
+
+  @@unique([competitorId, capabilityId])
+  @@index([capabilityId])
+  @@index([competitorId, checkedAt])
 }
