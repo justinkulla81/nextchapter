@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { UnlockAnnouncementDialog, type UnlockItem } from '@/components/dashboard/UnlockAnnouncementDialog'
+import { posthog } from '@/lib/posthog/client'
 
 // One underlying, independently-completable question set (its own save
 // action, its own "just unlocked" moment) that now lives on a shared page
@@ -91,6 +92,10 @@ export function SearchStrategyWizard({
 
   const [openPage, setOpenPageState] = useState<number | null>(null)
   const restoredRef = useRef(false)
+  // Only a move the member makes (Next/Back, a form's save-advance) scrolls
+  // to the questions; restoring the remembered page on load does not.
+  const scrollOnPageChangeRef = useRef(false)
+  const pageContentRef = useRef<HTMLDivElement>(null)
 
   useIsomorphicLayoutEffect(() => {
     if (restoredRef.current) return
@@ -113,6 +118,7 @@ export function SearchStrategyWizard({
   }, [])
 
   const setOpenPage = (next: number | null) => {
+    scrollOnPageChangeRef.current = true
     setOpenPageState(next)
     try {
       if (next === null) window.localStorage.removeItem(storageKey)
@@ -154,11 +160,34 @@ export function SearchStrategyWizard({
   }, [])
 
   // Every pagination move — Next/Back, a list row, or a form's own
-  // save-triggered advance() — should land at the top of the new page, not
-  // wherever the previous page happened to be scrolled to.
+  // save-triggered advance() — lands on the step counter and questions. The
+  // wizard sits below other cards (e.g. the applications match), so jumping to
+  // the top of the whole page left the member above it with no sign of which
+  // step they were on.
   useEffect(() => {
-    if (openPage !== null) window.scrollTo(0, 0)
+    if (!scrollOnPageChangeRef.current) return
+    scrollOnPageChangeRef.current = false
+    const target = document.getElementById('answers')
+    if (target) target.scrollIntoView({ block: 'start' })
+    else window.scrollTo(0, 0)
   }, [openPage])
+
+  // "Save and finish" on the last page: submit each form on the page. Each
+  // form's own save-then-advance exits to the list once every item is
+  // complete; if a required answer is missing the form shows its error and the
+  // member stays put.
+  function saveAndFinish() {
+    posthog.capture('search_strategy_save_and_finish_clicked', {
+      candidateId,
+      pageKey: pages[pages.length - 1].key,
+    })
+    const forms = pageContentRef.current?.querySelectorAll('form')
+    if (!forms || forms.length === 0) {
+      setOpenPage(null)
+      return
+    }
+    forms.forEach((form) => form.requestSubmit())
+  }
 
   // A page with more than one form only advances once every item on it is
   // complete — see useAdvanceSearchStrategyPageOnSave's own comment.
@@ -247,7 +276,9 @@ export function SearchStrategyWizard({
         </span>
       </div>
 
-      <SearchStrategyPageContext.Provider value={{ advance }}>{children[openPage]}</SearchStrategyPageContext.Provider>
+      <div ref={pageContentRef}>
+        <SearchStrategyPageContext.Provider value={{ advance }}>{children[openPage]}</SearchStrategyPageContext.Provider>
+      </div>
 
       <div className="flex items-center justify-between border-t border-border pt-4">
         <button
@@ -276,10 +307,10 @@ export function SearchStrategyWizard({
         ) : (
           <button
             type="button"
-            onClick={() => setOpenPage(null)}
+            onClick={saveAndFinish}
             className="text-sm font-medium text-primary underline underline-offset-4"
           >
-            Done →
+            Save and finish →
           </button>
         )}
       </div>
