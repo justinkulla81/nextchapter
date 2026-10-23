@@ -194,7 +194,7 @@ export default async function CoachingPage() {
                 Executive Coach
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                Victoria isn&apos;t going anywhere. Executive Coach is a separate, paid option for
+                Victoria isn&apos;t going anywhere. Executive Coach is a separate option for
                 people who want a real human career coach too — someone who&apos;s done real
                 hiring and can give you a second opinion Victoria isn&apos;t built to give.
               </p>
@@ -209,7 +209,7 @@ export default async function CoachingPage() {
               </ul>
 
               <p className="mt-4 text-xs text-muted-foreground">
-                Cancel anytime. Pricing shared when spots open up.
+                Cancel anytime.
               </p>
             </div>
           </div>
