@@ -121,3 +121,22 @@ export async function publicJobRowsByIds(ids: string[]): Promise<PublicJobRow[]>
   const now = Date.now()
   return rows.filter((r) => isPublicJob(r, now))
 }
+
+/**
+ * Public jobs the employer or a recruiter gave us (source 'employer' | 'recruiter') — the
+ * employer-authorized subset, for the aggregator feed (src/app/feeds/jobs-employer.xml).
+ * Same allowlist as every public page; these sources are few, so no sharding.
+ */
+export async function publicEmployerJobs(): Promise<PublicJobRow[]> {
+  const [rows, ghosts] = await Promise.all([
+    prisma.exclusiveJobPosting.findMany({
+      where: { source: { in: ['employer', 'recruiter'] }, status: 'approved', archivedAt: null, closeReason: null },
+      select: PUBLIC_JOB_SELECT,
+      orderBy: { id: 'asc' },
+      take: 50_000,
+    }),
+    getConfirmedGhostIds(),
+  ])
+  const now = Date.now()
+  return rows.filter((r) => isPublicJob(r, now, ghosts.has(r.id)))
+}
