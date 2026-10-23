@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useFormStatus } from 'react-dom'
@@ -8,6 +8,9 @@ import { BookOpen, Briefcase, ChevronsLeft, ChevronsRight, Home, LifeBuoy, Lock,
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/Logo'
 import { signOut } from '@/app/dashboard/actions'
+import { setSeniorJobsRestored } from '@/app/dashboard/senior-actions'
+import { posthog } from '@/lib/posthog/client'
+import type { SeniorOverlay } from '@/lib/journey/menu'
 import { menuEntries, type NavLocks, type PaidAccess } from '@/lib/nav/places'
 import { redesignPlaceForPath, redesignPlacesFor, type RedesignKey } from '@/lib/nav/redesign-places'
 import { SignOutForm } from '@/components/auth/SignOutForm'
@@ -23,6 +26,19 @@ export interface RedesignNavProps {
   locks: NavLocks
   paidAccess: PaidAccess
   moneyHelp: boolean | null
+  /** Senior overlay (src/lib/journey/menu.ts): reorders and mutes, never removes. */
+  senior?: SeniorOverlay
+  seniorSource?: 'detected' | 'switch'
+}
+
+// The job board, muted for senior leaders: still a link, and one click puts it back to full strength.
+function RestoreJobs() {
+  const [pending, start] = useTransition()
+  return (
+    <button type="button" disabled={pending} aria-busy={pending} onClick={() => start(async () => { await setSeniorJobsRestored(true) })} className={cn('px-2 pb-1 text-xs font-medium text-brand underline underline-offset-4', pending && 'cursor-progress')}>
+      {pending ? 'Restoring…' : 'Show the job board normally'}
+    </button>
+  )
 }
 
 function SignOutButton() {
@@ -48,7 +64,16 @@ function PlaceList({ collapsed, onNavigate, ...props }: RedesignNavProps & { col
   const pathname = usePathname()
   const places = redesignPlacesFor({ moneyHelp: props.moneyHelp })
   const current = redesignPlaceForPath(pathname, places)
-  const entriesFor = (place: (typeof places)[number]) => menuEntries(place, pathname, { employed: props.employed, earlyCareer: props.earlyCareer, locks: props.locks, paidAccess: props.paidAccess })
+  const entriesFor = (place: (typeof places)[number]) => menuEntries(place, pathname, { employed: props.employed, earlyCareer: props.earlyCareer, locks: props.locks, paidAccess: props.paidAccess, senior: props.senior })
+  // Once per browser session: the overlay is on, and why.
+  useEffect(() => {
+    if (!props.senior?.on) return
+    try {
+      if (window.sessionStorage.getItem('nc-senior-overlay')) return
+      window.sessionStorage.setItem('nc-senior-overlay', '1')
+    } catch {}
+    posthog.capture('senior_overlay_applied', { source: props.seniorSource ?? 'detected', jobsRestored: props.senior.jobsRestored })
+  }, [props.senior?.on, props.senior?.jobsRestored, props.seniorSource])
   return (
     <nav aria-label="Main" className={cn('flex h-full flex-col gap-3 py-6', collapsed ? 'items-center px-2' : 'px-4')}>
       {!collapsed && <Logo className="px-2 text-xl text-ink" />}
@@ -95,14 +120,17 @@ function PlaceList({ collapsed, onNavigate, ...props }: RedesignNavProps & { col
                     {entries.map((e) => (
                       <li key={e.label}>
                         {e.href ? (
+                          <>
                           <Link
                             href={e.href}
                             onClick={onNavigate}
                             aria-current={e.active ? 'page' : undefined}
-                            className={cn('block rounded-md px-2 py-1.5 text-sm', e.active ? 'bg-muted font-semibold text-ink' : 'text-muted-foreground hover:text-ink')}
+                            className={cn('block rounded-md px-2 py-1.5 text-sm', e.active ? 'bg-muted font-semibold text-ink' : e.muted ? 'text-muted-foreground/60 hover:text-ink' : 'text-muted-foreground hover:text-ink')}
                           >
                             {e.label}
                           </Link>
+                          {e.muted && <RestoreJobs />}
+                          </>
                         ) : (
                           <span aria-disabled="true" title={e.lockReason ?? undefined} className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-muted-foreground/60">
                             {e.label}

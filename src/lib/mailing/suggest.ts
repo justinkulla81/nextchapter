@@ -9,18 +9,22 @@ import type { CrmPersonRole } from '@prisma/client'
 const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
   INVESTOR_VC: 'investors',
   INVESTOR_ANGEL: 'investors',
+  ADVISOR: 'advisors',
   JOB_SEEKER: 'candidates',
-  BD_PARTNER: 'leads',
-  ALUMNI_OFFICE: 'leads',
-  HIGHER_ED_DEVELOPMENT: 'leads',
-  HIGHER_ED_CAREER: 'leads',
-  HIGHER_ED_EXEC_ED: 'leads',
-  HIGHER_ED_ADMIN: 'leads',
-  OUTPLACEMENT_BUYER: 'leads',
-  CHRO: 'leads',
-  LEARNING_DEV_HEAD: 'leads',
-  COACH_PROSPECT: 'ecosystem',
-  RECRUITER_PROSPECT: 'ecosystem',
+  BD_PARTNER: 'bd_partners',
+  GTM_PARTNER: 'bd_partners',
+  STRATEGIC: 'bd_partners',
+  POLICY_ANALYST: 'research_partners',
+  ALUMNI_OFFICE: 'higher_ed',
+  HIGHER_ED_DEVELOPMENT: 'higher_ed',
+  HIGHER_ED_CAREER: 'higher_ed',
+  HIGHER_ED_EXEC_ED: 'higher_ed',
+  HIGHER_ED_ADMIN: 'higher_ed',
+  OUTPLACEMENT_BUYER: 'employers',
+  CHRO: 'employers',
+  LEARNING_DEV_HEAD: 'employers',
+  COACH_PROSPECT: 'coaches',
+  RECRUITER_PROSPECT: 'recruiters',
   FRIENDS_FAMILY: 'friends_family',
 }
 
@@ -29,25 +33,22 @@ const PIPELINE_LISTS: Record<string, string> = {
   grants: 'investors',
   job_seekers: 'candidates',
   candidate_membership: 'candidates',
-  outplacement: 'leads',
-  bd_partnerships: 'leads',
-  workforce_boards: 'leads',
-  coach_recruiting: 'ecosystem',
-  recruiter_recruiting: 'ecosystem',
+  outplacement: 'employers',
+  bd_partnerships: 'bd_partners',
+  workforce_boards: 'workforce',
+  coach_recruiting: 'coaches',
+  recruiter_recruiting: 'recruiters',
 }
 
 export function suggestListKeys(input: {
   roles: CrmPersonRole[]
   pipelineKeys: string[]
-  /** Works at an organization that's a paying customer. */
-  isCustomer: boolean
   /** Works at a workforce board (an org linked to one). */
   isWorkforceBoard?: boolean
 }): string[] {
   const keys = new Set<string>(['monthly_update'])
   for (const r of input.roles) if (ROLE_LISTS[r]) keys.add(ROLE_LISTS[r]!)
   for (const p of input.pipelineKeys) if (PIPELINE_LISTS[p]) keys.add(PIPELINE_LISTS[p])
-  if (input.isWorkforceBoard) keys.add('leads')
-  if (input.isCustomer) keys.add('customers')
+  if (input.isWorkforceBoard) keys.add('workforce')
   return [...keys]
 }

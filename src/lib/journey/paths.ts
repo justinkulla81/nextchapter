@@ -386,9 +386,60 @@ function stepFor(k: InterestKey, level: InterestLevel, s: LevelSignals): PathPla
   }
 }
 
-/** One step from each active path, never more: the main journey keeps the plan. Curious paths add nothing. */
+/** At this many hours a week or fewer, the main plan is all there is room for and active paths wait. */
+export const PATHS_WAIT_HOURS = 3
+
+/** The member's "hours a week" answer (situation field hoursAvailable), or null when they have not given one. */
+export function hoursAvailableOf(journeyDetails: unknown): number | null {
+  const v = (journeyDetails as { hoursAvailable?: unknown } | null)?.hoursAvailable
+  return typeof v === 'number' && Number.isFinite(v) && v >= 1 && v <= 60 ? v : null
+}
+
+/** True when the member has about three hours a week or fewer: active paths stay on Home's row but add no plan step. */
+export function pathsWait(journeyDetails: unknown): boolean {
+  const h = hoursAvailableOf(journeyDetails)
+  return h !== null && h <= PATHS_WAIT_HOURS
+}
+
+/** One step from each active path, never more: the main journey keeps the plan. Curious paths add nothing, and none are added at 3 hours a week or less. */
 export function parallelPlanItems(s: LevelSignals): PathPlanItem[] {
+  if (pathsWait(s.journeyDetails)) return []
   return activePaths(s).map((c) => stepFor(c.key, c.level, s))
+}
+
+// ── On Home: the paths row and the focus switch ──────────────────────────────
+
+const SHORT_LABEL: Record<InterestKey, string> = {
+  job: 'a new job',
+  buy: 'buying a business',
+  start: 'starting a business',
+  fractional: 'fractional work',
+  side: 'side income',
+  school: 'school',
+}
+
+export type HomePathsRow = { items: { key: InterestKey; label: string; level: string }[]; waiting: boolean; hours: number | null }
+
+/** The compact "Also: ..." row on Home. Null when there are no active paths: Home shows nothing. */
+export function homePathsRow(s: LevelSignals): HomePathsRow | null {
+  const cards = activePaths(s)
+  if (cards.length === 0) return null
+  return { items: cards.map((c) => ({ key: c.key, label: SHORT_LABEL[c.key], level: LEVEL_LABEL[c.level].toLowerCase() })), waiting: pathsWait(s.journeyDetails), hours: hoursAvailableOf(s.journeyDetails) }
+}
+
+export type FocusOption = { to: string; label: string; current: boolean }
+
+/** "Focus right now": the main journey, each active path that can become main, and the journey they came from. 2 to 4 buttons, or null. */
+export function focusOptions(s: LevelSignals): FocusOption[] | null {
+  if (!s.main) return null
+  const out: FocusOption[] = [{ to: s.main, label: getJourney(s.main).label, current: true }]
+  for (const c of activePaths(s)) {
+    const j: JourneyType | null = c.key === 'buy' ? 'BUY_BUSINESS' : c.key === 'fractional' ? 'FRACTIONAL' : null
+    if (j && j !== s.main && SWITCHABLE_MAIN.includes(j)) out.push({ to: j, label: c.key === 'buy' ? 'Buying a business' : 'Fractional work', current: false })
+  }
+  const prev = previousMainOf(s.journeyDetails)
+  if (prev && prev !== s.main && !out.some((o) => o.to === prev)) out.push({ to: 'BACK', label: getJourney(prev).label, current: false })
+  return out.length >= 2 ? out.slice(0, 4) : null
 }
 
 // ── Switching main focus ─────────────────────────────────────────────────────

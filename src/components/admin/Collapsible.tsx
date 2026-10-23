@@ -43,3 +43,13 @@ export function GroupHeading({ children, tone = 'reference' }: { children: React
     </h2>
   )
 }
+
+/** A section title (larger than GroupHeading) that carries the same colour-by-kind marker. */
+export function SectionTitle({ children, tone = 'reference' }: { children: ReactNode; tone?: GroupTone }) {
+  return (
+    <h2 className="flex items-center gap-2 text-lg font-semibold">
+      <span className={`h-2.5 w-2.5 rounded-full ${TONE[tone].dot}`} aria-hidden />
+      {children}
+    </h2>
+  )
+}
