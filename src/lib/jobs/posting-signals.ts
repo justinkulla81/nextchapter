@@ -15,13 +15,14 @@
 //
 // Entry-level signals (crawler ncrawl/entry_signals.py, 2026-10-23; rules and filters: entry-filters.ts) share
 // the column: no_experience_ok (an entry / early-career job whose posting says people without experience are
-// welcome; the phrase is in noExperiencePhrase) is the one that can show as a tag; entry_ai and
+// welcome; the phrase is in noExperiencePhrase) is the one that can show as a tag; training_provided (an entry /
+// early-career job describing structured training for the hire; the phrase is in trainingPhrase), entry_ai and
 // entry_ai_preferred (an entry / early-career job asking for AI skills, the ask only preferred) never do.
 
 export const POSTING_SIGNALS = ['career_changer_welcome', 'ai_upskilled_welcome', 'high_eq', 'no_experience_ok'] as const
 export type PostingSignal = (typeof POSTING_SIGNALS)[number]
 /** Stored with the others, never shown as a tag. */
-export const ENTRY_ONLY_SIGNALS = ['entry_ai', 'entry_ai_preferred'] as const
+export const ENTRY_ONLY_SIGNALS = ['training_provided', 'entry_ai', 'entry_ai_preferred'] as const
 const STORED = [...POSTING_SIGNALS, ...ENTRY_ONLY_SIGNALS] as const
 export type StoredSignal = (typeof STORED)[number]
 

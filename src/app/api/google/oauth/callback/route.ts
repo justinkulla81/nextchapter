@@ -63,7 +63,9 @@ export async function GET(request: NextRequest) {
     // Both are singletons — replaced on reconnect rather than accumulating
     // rows, same pattern the calendar-only flow already used.
     const [existingInbox, existingCalendar] = await Promise.all([
-      prisma.googleInboxConnection.findFirst(),
+      // One mailbox row per Google account: reconnecting replaces that
+      // account's row, connecting another account adds one.
+      prisma.googleInboxConnection.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } }),
       // This account's own calendar row; a pre-accounts row with no email is
       // adopted only when it is the sole one.
       prisma.adminGoogleCalendarConnection.findUnique({ where: { googleEmail: email.toLowerCase() } }).then(async (r) =>

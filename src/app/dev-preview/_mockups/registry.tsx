@@ -23,6 +23,10 @@ import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
 import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
 import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
+import { PortalHeaders } from './portal-headers'
+import { PartnerInvite, PartnerYourPeople, PartnerMoving, PartnerMovingAsk, PartnerMovingWorth } from './partner'
+import { FundingLive } from './funding-live'
+import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
 
@@ -40,6 +44,7 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'learn/funding-live', place: 'Learn', title: 'Funding you qualify for: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: FundingLive },
   { path: 'jobs/market/ai-exposure-report', place: 'Jobs', title: 'AI exposure: your market reality', replaces: 'the “AI is reshaping this work” line in the market report', Component: ExposureMarketReport },
   { path: 'home/tailored/ai-exposure-strategy', place: 'Home', title: 'AI exposure: search strategy', replaces: 'the “AI skills” line under open roles', Component: ExposureSearchStrategy },
   { path: 'learn/path/ai-exposure-pivots', place: 'Learn', title: 'AI exposure: career pivots', replaces: 'the “AI task exposure” line on each pivot role', Component: ExposurePivots },
@@ -98,6 +103,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/recruiters', place: 'Network', title: 'Recruiters', replaces: '/dashboard/recruiter-requests', Component: RecruitersCircle },
   { path: 'network/week', place: 'Network', title: 'This week', replaces: '/dashboard/network/this-week, /dashboard/network/follow-ups', Component: NetworkThisWeek },
   { path: 'network/messages', place: 'Network', title: 'Messages', replaces: '/dashboard/messages', Component: Messages },
+  { path: 'learn/other-paths/need', place: 'Learn', title: 'Your other paths: needs income soon (sample data)', replaces: 'new: parallel paths', Component: OtherPathsNeedLive },
+  { path: 'learn/other-paths/busy', place: 'Learn', title: 'Your other paths: side work, buying, way back (sample data)', replaces: 'new: parallel paths', Component: OtherPathsBusyLive },
   { path: 'learn/buy-a-business/plan', place: 'Learn', title: 'Buy a business: your plan (sample data)', replaces: 'new: the 12th journey', Component: BuyPlanLive },
   { path: 'learn/buy-a-business/start', place: 'Learn', title: 'Buy a business: before starting (sample data)', replaces: 'new: the 12th journey', Component: BuyPlanNewLive },
   { path: 'learn/buy-a-business/find', place: 'Learn', title: 'Buy a business: find businesses (sample data)', replaces: 'new: the 12th journey', Component: BuyFindLive },
@@ -166,6 +173,12 @@ export const MOCKUPS: Mockup[] = [
   { path: 'account/visibility-live', place: 'Account', title: 'Account and privacy: the built controls (sample data)', replaces: 'the code that ships, fed sample data', Component: PrivacyLive },
   { path: 'account/profile-live', place: 'Account', title: 'Profile: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: ProfileLive },
   { path: 'account/benefits-network-live', place: 'Account', title: 'Higher education benefits network: the built offers (sample data)', replaces: 'the code that ships, fed sample data', Component: BenefitsNetworkLive },
+  { path: 'network/circles/partner-invite', place: 'Network', title: 'Invite your partner: how they join and what they see', replaces: '"Invite someone" as the only way to add a person (supporters)', Component: PartnerInvite },
+  { path: 'network/circles/partner-people', place: 'Network', title: 'Your people: your partner at the top, supporters below', replaces: 'the single supporters list on Your people', Component: PartnerYourPeople },
+  { path: 'network/circles/partner-move-ask', place: 'Network', title: 'Your move plan: asking for your last salary, in context, with a skip', replaces: 'new', Component: PartnerMovingAsk },
+  { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
+  { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
+  { path: 'portals/headers', place: 'Portals', title: 'Portal top bars: employer, higher education, workforce, recruiter, coach', replaces: 'the one navy top bar on every non-candidate portal (PartnerTopBar)', Component: PortalHeaders },
   { path: 'account/money', place: 'Account', title: 'Money help (off state)', replaces: 'new', Component: AccountMoney },
 ]
 

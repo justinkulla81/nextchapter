@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useFormStatus } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/dashboard/actions'
-import { PartnerTopBar } from '@/components/partners/PartnerTopBar'
+import { PartnerTopBar, chromeFor } from '@/components/partners/PartnerTopBar'
 import type { PartnerBrand } from '@/lib/partners/brand'
 import type { OutplacementProgramType, OutplacementRole } from '@prisma/client'
 import { SignOutForm } from '@/components/auth/SignOutForm'
@@ -100,7 +100,7 @@ export function EmployerNav({ role, brand, programs = [] }: { role: Outplacement
 
   return (
     <>
-      <PartnerTopBar surface="employer" brand={brand}>
+      <PartnerTopBar surface="employer" use="Outplacement" brand={brand}>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -115,7 +115,7 @@ export function EmployerNav({ role, brand, programs = [] }: { role: Outplacement
         </button>
       </PartnerTopBar>
 
-      <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 bg-navy lg:block">
+      <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 lg:block" style={{ backgroundColor: chromeFor('employer') }}>
         <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
         <NavContent pathname={pathname} links={links} />
       </aside>
@@ -123,7 +123,7 @@ export function EmployerNav({ role, brand, programs = [] }: { role: Outplacement
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-64 bg-navy shadow-xl">
+          <div className="fixed inset-y-0 left-0 w-64 shadow-xl" style={{ backgroundColor: chromeFor('employer') }}>
             <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
             <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
           </div>

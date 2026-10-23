@@ -1,0 +1,891 @@
+[
+ {
+  "fullName": "Lauren Francis",
+  "title": "Chief Executive Officer and Talent Advisor",
+  "firm": "Mulberry Talent Partners",
+  "firmWebsite": "https://mulberrytalent.com",
+  "city": "Portland",
+  "state": "OR",
+  "email": "lauren@mulberrytalent.com",
+  "phone": "503.208.2749",
+  "sourceUrl": "https://www.mulberrytalent.com/about",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Kristen McConnell",
+  "title": "Chief Operating Officer and Talent Advisor",
+  "firm": "Mulberry Talent Partners",
+  "firmWebsite": "https://mulberrytalent.com",
+  "city": "Portland",
+  "state": "OR",
+  "email": "kristen@mulberrytalent.com",
+  "phone": "503.208.2749",
+  "sourceUrl": "https://www.mulberrytalent.com/about",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Jennifer Wright",
+  "title": "Director of Business Development and Executive Search",
+  "firm": "Mulberry Talent Partners",
+  "firmWebsite": "https://mulberrytalent.com",
+  "city": "Portland",
+  "state": "OR",
+  "email": "jenny@mulberrytalent.com",
+  "phone": "503.208.2749",
+  "sourceUrl": "https://www.mulberrytalent.com/about",
+  "industries": [
+   "professional_services",
+   "technology",
+   "consumer"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Suzanne Hanifin",
+  "title": "Founder and President",
+  "firm": "Acumen Executive Search",
+  "firmWebsite": "https://www.acumenexecutivesearch.com",
+  "city": "Tigard",
+  "state": "OR",
+  "sourceUrl": "https://www.acumenexecutivesearch.com/our-team-and-beliefs/",
+  "industries": [],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Molly Norton",
+  "title": "Senior Director of Talent",
+  "firm": "Acumen Executive Search",
+  "firmWebsite": "https://www.acumenexecutivesearch.com",
+  "city": "Tigard",
+  "state": "OR",
+  "sourceUrl": "https://www.acumenexecutivesearch.com/our-team-and-beliefs/",
+  "industries": [],
+  "functions": [
+   "hr",
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Michelle Satter",
+  "title": "Executive Recruiter",
+  "firm": "Acumen Executive Search",
+  "firmWebsite": "https://www.acumenexecutivesearch.com",
+  "city": "Tigard",
+  "state": "OR",
+  "sourceUrl": "https://www.acumenexecutivesearch.com/our-team-and-beliefs/",
+  "industries": [
+   "industrial",
+   "government",
+   "healthcare"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Debbie Zurow",
+  "title": "Director of Executive Search",
+  "firm": "Boly:Welch",
+  "firmWebsite": "https://bolywelch.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://bolywelch.com/executive-search/",
+  "industries": [],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Pat Welch",
+  "title": "Co-founder and CEO",
+  "firm": "Boly:Welch",
+  "firmWebsite": "https://bolywelch.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://bolywelch.com/executive-search/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Abby Engers",
+  "title": "Sourcing Specialist and HR Consultant",
+  "firm": "Boly:Welch",
+  "firmWebsite": "https://bolywelch.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://bolywelch.com/executive-search/",
+  "industries": [],
+  "functions": [
+   "hr"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Isaac Schild",
+  "title": "CEO & Founder",
+  "firm": "Scion Staffing",
+  "firmWebsite": "https://scionstaffing.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://scionstaffing.com/our-team/",
+  "industries": [],
+  "functions": [
+   "hr"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Susie Cummings",
+  "title": "Regional Vice President, Scion Staffing",
+  "firm": "Scion Staffing",
+  "firmWebsite": "https://scionstaffing.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://scionstaffing.com/our-team/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Shawn Cole",
+  "title": "President",
+  "firm": "Cowen Partners Executive Search",
+  "firmWebsite": "https://cowenpartners.com",
+  "city": "Lake Oswego",
+  "state": "OR",
+  "sourceUrl": "https://cowenpartners.com/team/",
+  "industries": [],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Jacob Gamble",
+  "title": "Principal, Head of Family Office Practice",
+  "firm": "Cowen Partners Executive Search",
+  "firmWebsite": "https://cowenpartners.com",
+  "city": "Lake Oswego",
+  "state": "OR",
+  "sourceUrl": "https://cowenpartners.com/team/",
+  "industries": [],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Greg Togni",
+  "title": "Managing Partner",
+  "firm": "180one",
+  "firmWebsite": "https://www.180one.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://www.180one.com/about",
+  "industries": [
+   "industrial"
+  ],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Christine Kennedy",
+  "title": "Partner",
+  "firm": "180one",
+  "firmWebsite": "https://www.180one.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://www.180one.com/about",
+  "industries": [
+   "industrial",
+   "technology"
+  ],
+  "functions": [
+   "executive",
+   "finance"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Lisa Heffernan",
+  "title": "Recruiter",
+  "firm": "180one",
+  "firmWebsite": "https://www.180one.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://www.180one.com/about",
+  "industries": [],
+  "functions": [
+   "finance",
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Matt Oltmann",
+  "title": "Recruiter",
+  "firm": "180one",
+  "firmWebsite": "https://www.180one.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://www.180one.com/about",
+  "industries": [
+   "energy"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Tom Haley",
+  "title": "Recruiter",
+  "firm": "180one",
+  "firmWebsite": "https://www.180one.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://www.180one.com/about",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Jennifer Silvester",
+  "title": "CEO & Senior Partner",
+  "firm": "Silvester & Company",
+  "firmWebsite": "https://silvesco.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://silvesco.com/our-team/",
+  "industries": [
+   "financial_services"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Marika Akers",
+  "title": "Senior Director & Partner",
+  "firm": "Silvester & Company",
+  "firmWebsite": "https://silvesco.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://silvesco.com/our-team/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Rosti Babjak",
+  "title": "Senior Executive Search Consultant",
+  "firm": "Silvester & Company",
+  "firmWebsite": "https://silvesco.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://silvesco.com/our-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "sales",
+   "executive"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Erin Harrington",
+  "title": "Executive Search Consultant",
+  "firm": "Silvester & Company",
+  "firmWebsite": "https://silvesco.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://silvesco.com/our-team/",
+  "industries": [
+   "technology",
+   "healthcare",
+   "financial_services"
+  ],
+  "functions": [
+   "legal",
+   "operations",
+   "hr"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Zoe Whisenhunt",
+  "title": "Senior Executive Search Consultant",
+  "firm": "Silvester & Company",
+  "firmWebsite": "https://silvesco.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://silvesco.com/our-team/",
+  "industries": [
+   "consumer",
+   "financial_services"
+  ],
+  "functions": [
+   "marketing",
+   "sales",
+   "hr",
+   "executive"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Carly Hazen",
+  "title": "Managing Director, Executive Recruiter",
+  "firm": "PrincePerelson & Associates",
+  "firmWebsite": "https://perelson.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://perelson.com/our-team/",
+  "industries": [],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Josh Love",
+  "title": "Principal, Executive Recruiter",
+  "firm": "PrincePerelson & Associates",
+  "firmWebsite": "https://perelson.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://perelson.com/our-team/",
+  "industries": [],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Jim Wright",
+  "title": "Director of Technical (IT) Recruiting",
+  "firm": "PrincePerelson & Associates",
+  "firmWebsite": "https://perelson.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://perelson.com/our-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Portia Blackhurst",
+  "title": "Lead Recruiter",
+  "firm": "PrincePerelson & Associates",
+  "firmWebsite": "https://perelson.com",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "sourceUrl": "https://perelson.com/our-team/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Mike Jamison",
+  "title": "President",
+  "firm": "Jamison Search International",
+  "firmWebsite": "https://jamisonsearch.com",
+  "city": "Orem",
+  "state": "UT",
+  "sourceUrl": "https://jamisonsearch.com/about-us/meet-our-team/",
+  "industries": [
+   "financial_services"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Scott Jamison",
+  "title": "Executive Recruiter",
+  "firm": "Jamison Search International",
+  "firmWebsite": "https://jamisonsearch.com",
+  "city": "Orem",
+  "state": "UT",
+  "sourceUrl": "https://jamisonsearch.com/about-us/meet-our-team/",
+  "industries": [
+   "consumer"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "John York",
+  "title": "Vice President",
+  "firm": "Jamison Search International",
+  "firmWebsite": "https://jamisonsearch.com",
+  "city": "Orem",
+  "state": "UT",
+  "sourceUrl": "https://jamisonsearch.com/about-us/meet-our-team/",
+  "industries": [
+   "industrial"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Mark Osmundson",
+  "title": "Vice President",
+  "firm": "Jamison Search International",
+  "firmWebsite": "https://jamisonsearch.com",
+  "city": "Orem",
+  "state": "UT",
+  "sourceUrl": "https://jamisonsearch.com/about-us/meet-our-team/",
+  "industries": [
+   "industrial"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Richard Herbert",
+  "title": "President",
+  "firm": "Helix Executive Search & Recruiting",
+  "firmWebsite": "https://helixrecruiting.com",
+  "city": "Draper",
+  "state": "UT",
+  "sourceUrl": "https://helixrecruiting.com/meet/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Charles Leach",
+  "title": "Principal",
+  "firm": "Helix Executive Search & Recruiting",
+  "firmWebsite": "https://helixrecruiting.com",
+  "city": "Draper",
+  "state": "UT",
+  "sourceUrl": "https://helixrecruiting.com/meet/",
+  "industries": [],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Mike Ford",
+  "title": "Principal & Executive Recruiter",
+  "firm": "STM Associates",
+  "firmWebsite": "https://stmassociates.com",
+  "city": "South Jordan",
+  "state": "UT",
+  "sourceUrl": "https://stmassociates.com/staff/",
+  "industries": [],
+  "functions": [
+   "finance",
+   "operations",
+   "sales",
+   "marketing",
+   "executive"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Jennifer Cairel",
+  "title": "Executive Recruiter",
+  "firm": "STM Associates",
+  "firmWebsite": "https://stmassociates.com",
+  "city": "South Jordan",
+  "state": "UT",
+  "sourceUrl": "https://stmassociates.com/staff/",
+  "industries": [
+   "energy",
+   "industrial"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Ignacia Errazuriz",
+  "title": "Executive Recruiter",
+  "firm": "STM Associates",
+  "firmWebsite": "https://stmassociates.com",
+  "city": "South Jordan",
+  "state": "UT",
+  "sourceUrl": "https://stmassociates.com/staff/",
+  "industries": [
+   "industrial"
+  ],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Marilyn Beck",
+  "title": "Founder & CEO",
+  "firm": "Recruiting Connection",
+  "firmWebsite": "https://recruitingconnection.org",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "email": "marilyn@recruitingconnection.org",
+  "sourceUrl": "https://recruitingconnection.org/our-people/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Cody Johnson",
+  "title": "Managing Director",
+  "firm": "Recruiting Connection",
+  "firmWebsite": "https://recruitingconnection.org",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "email": "cody@recruitingconnection.org",
+  "sourceUrl": "https://recruitingconnection.org/our-people/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Bethany Canner",
+  "title": "VP of Recruiting",
+  "firm": "Eleventh Hire",
+  "firmWebsite": "https://hire11.com",
+  "city": "Provo",
+  "state": "UT",
+  "sourceUrl": "https://hire11.com/executive-page/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Megan McMillan",
+  "title": "CEO",
+  "firm": "Eleventh Hire",
+  "firmWebsite": "https://hire11.com",
+  "city": "Provo",
+  "state": "UT",
+  "sourceUrl": "https://hire11.com/executive-page/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Abby Roberts",
+  "title": "Co-Owner",
+  "firm": "Prospex Recruiting",
+  "firmWebsite": "https://hireprospex.com",
+  "city": "Utah (city not published)",
+  "state": "UT",
+  "email": "abby@hireprospex.com",
+  "sourceUrl": "https://hireprospex.com/about-us/",
+  "industries": [],
+  "functions": [
+   "finance",
+   "sales",
+   "marketing",
+   "hr"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Josh Roberts",
+  "title": "Founder/Co-Owner",
+  "firm": "Prospex Recruiting",
+  "firmWebsite": "https://hireprospex.com",
+  "city": "Utah (city not published)",
+  "state": "UT",
+  "email": "Josh@hireprospex.com",
+  "sourceUrl": "https://hireprospex.com/about-us/",
+  "industries": [],
+  "functions": [
+   "sales"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Zach Truman",
+  "title": "Director of Recruiting",
+  "firm": "Prospex Recruiting",
+  "firmWebsite": "https://hireprospex.com",
+  "city": "Utah (city not published)",
+  "state": "UT",
+  "email": "zach@hireprospex.com",
+  "sourceUrl": "https://hireprospex.com/about-us/",
+  "industries": [
+   "technology",
+   "telecom",
+   "logistics"
+  ],
+  "functions": [
+   "sales"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Whitney Jaques",
+  "title": "Director of Recruiting",
+  "firm": "Prospex Recruiting",
+  "firmWebsite": "https://hireprospex.com",
+  "city": "Utah (city not published)",
+  "state": "UT",
+  "email": "whitney@hireprospex.com",
+  "sourceUrl": "https://hireprospex.com/about-us/",
+  "industries": [],
+  "functions": [
+   "finance"
+  ],
+  "coverageStates": [
+   "UT"
+  ]
+ },
+ {
+  "fullName": "Mike Micone",
+  "title": "Founder & CEO",
+  "firm": "Micone Staffing Resources",
+  "firmWebsite": "https://miconestaffing.com",
+  "city": "Las Vegas",
+  "state": "NV",
+  "phone": "(702) 339-1113",
+  "sourceUrl": "https://miconestaffing.com/our-team/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Stephany Rinaldi",
+  "title": "Co-President",
+  "firm": "Micone Staffing Resources",
+  "firmWebsite": "https://miconestaffing.com",
+  "city": "Reno",
+  "state": "NV",
+  "sourceUrl": "https://miconestaffing.com/our-team/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Vijay Yadav",
+  "title": "Account Manager / Executive Recruiter",
+  "firm": "Micone Staffing Resources",
+  "firmWebsite": "https://miconestaffing.com",
+  "city": "Reno",
+  "state": "NV",
+  "sourceUrl": "https://miconestaffing.com/our-team/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Shubham Singh",
+  "title": "Executive Recruiter",
+  "firm": "Micone Staffing Resources",
+  "firmWebsite": "https://miconestaffing.com",
+  "city": "Reno",
+  "state": "NV",
+  "sourceUrl": "https://miconestaffing.com/our-team/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Sue Colina",
+  "title": "Executive Recruiter & Executive Search Leader",
+  "firm": "Sierra Executive Solutions",
+  "firmWebsite": "https://ses-nev.com",
+  "city": "Sparks",
+  "state": "NV",
+  "sourceUrl": "https://ses-nev.com/about",
+  "industries": [],
+  "functions": [
+   "finance",
+   "operations"
+  ],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Zaid Shaikh",
+  "title": "Director of Executive Recruiting",
+  "firm": "Sierra Executive Solutions",
+  "firmWebsite": "https://ses-nev.com",
+  "city": "Sparks",
+  "state": "NV",
+  "sourceUrl": "https://ses-nev.com/about",
+  "industries": [],
+  "functions": [
+   "it_security",
+   "finance",
+   "operations"
+  ],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Joane Tillmann",
+  "title": "Executive Recruiting Manager",
+  "firm": "Sierra Executive Solutions",
+  "firmWebsite": "https://ses-nev.com",
+  "city": "Sparks",
+  "state": "NV",
+  "sourceUrl": "https://ses-nev.com/about",
+  "industries": [],
+  "functions": [
+   "executive"
+  ],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Farhat Shaikh",
+  "title": "Senior Sourcing Manager",
+  "firm": "Sierra Executive Solutions",
+  "firmWebsite": "https://ses-nev.com",
+  "city": "Sparks",
+  "state": "NV",
+  "sourceUrl": "https://ses-nev.com/about",
+  "industries": [],
+  "functions": [
+   "finance"
+  ],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Collin Davis",
+  "title": "Co-Founder & Director of Recruitment",
+  "firm": "Sierra Staffing Group",
+  "firmWebsite": "https://www.sierrastaffinggroup.com",
+  "city": "Reno",
+  "state": "NV",
+  "sourceUrl": "https://www.sierrastaffinggroup.com/meetthefounders",
+  "industries": [],
+  "functions": [
+   "finance",
+   "hr",
+   "executive"
+  ],
+  "coverageStates": [
+   "NV"
+  ]
+ },
+ {
+  "fullName": "Lauren Anderson",
+  "title": "CEO",
+  "firm": "All-In Recruiting & Talent Boutique",
+  "firmWebsite": "https://www.all-inrecruiting.com",
+  "city": "Las Vegas",
+  "state": "NV",
+  "sourceUrl": "https://www.all-inrecruiting.com/",
+  "industries": [],
+  "functions": [],
+  "coverageStates": [
+   "NV"
+  ]
+ }
+]

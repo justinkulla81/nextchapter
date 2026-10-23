@@ -20,7 +20,7 @@ export interface FundingExample {
   categoryLabel: string
 }
 
-const GOAL_COPY: Record<Goal, string> = { move: 'Money to move', retrain: 'Tuition and training money', tax: 'Tax credits and deductions', learn: 'Free courses' }
+const GOAL_COPY: Record<Goal, string> = { support: 'Help while you are out of work', move: 'Money to move', retrain: 'Tuition and training money', tax: 'Tax credits and deductions', learn: 'Free courses' }
 
 function firstClause(text: string): string {
   const t = text.replace(/\s+/g, ' ').trim()
@@ -75,7 +75,7 @@ export const FUNDING_STATS = {
   tracked: rows.length,
   verifiedLive: live.length,
   states: new Set(live.filter((r) => r.scope === 'STATE' && r.state).map((r) => r.state)).size,
-  byGoal: { move: count('move'), retrain: count('retrain'), tax: count('tax'), learn: count('learn') } as Record<Goal, number>,
-  examples: { move: examplesFor('move', 3), retrain: examplesFor('retrain', 3), tax: taxExamples(), learn: learnExamples() } as Record<Goal, FundingExample[]>,
+  byGoal: { support: count('support'), move: count('move'), retrain: count('retrain'), tax: count('tax'), learn: count('learn') } as Record<Goal, number>,
+  examples: { support: examplesFor('support', 3), move: examplesFor('move', 3), retrain: examplesFor('retrain', 3), tax: taxExamples(), learn: learnExamples() } as Record<Goal, FundingExample[]>,
   goalCopy: GOAL_COPY,
 }

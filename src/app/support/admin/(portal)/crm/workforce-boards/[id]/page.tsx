@@ -140,8 +140,19 @@ export default async function WorkforceBoardPage({
         <p className="flex flex-wrap gap-x-4 text-sm">
           {site && <a href={site} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website</a>}
           {board.detailsUrl && <a href={board.detailsUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">Directory listing</a>}
+          {board.procurementUrl && <a href={board.procurementUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">Bids and RFPs</a>}
           {board.address && <span className="text-muted-foreground">{board.address}</span>}
         </p>
+        {Array.isArray(board.procurementItems) && board.procurementItems.length > 0 && (
+          <div className="mt-2 text-sm">
+            <p className="text-xs font-medium text-muted-foreground">Open items seen on the procurement page (leads, check the page)</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5">
+              {(board.procurementItems as { title: string; date: string | null }[]).map((it, k) => (
+                <li key={k}>{it.title}{it.date ? <span className="text-muted-foreground"> · {it.date}</span> : null}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="space-y-0.5 text-sm">
           <BoardContact role={board.directorTitle ?? 'Director'} name={board.directorName} email={board.directorEmail} phone={board.directorPhone} />
           <BoardContact role="Board chair" name={board.chairName} email={board.chairEmail} phone={board.chairPhone} />

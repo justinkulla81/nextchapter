@@ -18,7 +18,7 @@ import { findEmailOwner } from '@/lib/crm/email-owner'
 import { logManualContact } from '@/lib/crm/log-contact'
 import { restorePeople, type RestoreResult } from '@/lib/crm/restore'
 import { completionUpdate } from '@/lib/crm/completion'
-import { getValidAccessToken } from '@/lib/google/connection'
+import { getValidAccessToken, getValidSendAccessToken } from '@/lib/google/connection'
 import { sendGmailMessage } from '@/lib/google/gmail'
 import { buildTrackedHtml, extractUrls } from '@/lib/crm/outreach'
 import { PERSON_ROLE_LABELS } from '@/lib/crm/labels'
@@ -2200,7 +2200,7 @@ export async function sendOutreachEmail(personId: string, subject: string, body:
   const stopped = await prisma.mailingSuppression.findUnique({ where: { email: person.email.toLowerCase() }, select: { reason: true } })
   if (stopped || person.emailVerifiedStatus === 'invalid') return { sent: false, message: `Not sent: ${person.email} is on the stop list (it bounced, was marked spam, or asked not to be emailed).` }
 
-  const token = await getValidAccessToken()
+  const token = await getValidSendAccessToken()
   if (!token) return { sent: false, message: 'Google isn’t connected — connect it from Activity sync first.' }
 
   const activity = await prisma.crmActivity.create({
