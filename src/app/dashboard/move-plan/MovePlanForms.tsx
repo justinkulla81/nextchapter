@@ -1,12 +1,10 @@
 'use client'
 
-import { useActionState, useMemo, useState, useTransition } from 'react'
-import { usePostHog } from '@/lib/posthog/client'
-import { acceptInviteAction, addPlaceAction, removePlaceAction, saveLastSalaryAction } from './actions'
+import { useMemo, useState, useTransition } from 'react'
+import { acceptInviteAction, addPlaceAction, removePlaceAction } from './actions'
 
 const field = 'h-11 w-full rounded-xl border border-border bg-white px-3.5 text-base text-ink'
 const action = 'inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95 disabled:cursor-wait disabled:opacity-70'
-const quiet = 'inline-flex h-11 items-center rounded-full border border-border px-6 text-base font-semibold text-ink hover:bg-muted disabled:cursor-wait disabled:opacity-70'
 
 // A searchable list: there are hundreds of areas, so a typed filter beats a long dropdown.
 export function AddPlaceForm({ options, disabledReason }: { options: Array<{ code: string; name: string }>; disabledReason?: string | null }) {
@@ -60,29 +58,6 @@ export function RemovePlaceButton({ id, name }: { id: string; name: string }) {
       <button type="button" onClick={() => setConfirming(false)} className="font-medium underline underline-offset-4">Keep it</button>
       <button type="button" disabled={pending} onClick={() => start(() => removePlaceAction(id))} className="font-medium text-destructive underline underline-offset-4 disabled:cursor-wait">{pending ? 'Removing…' : 'Yes, remove'}</button>
     </span>
-  )
-}
-
-export function LastSalaryAsk({ homeName }: { homeName: string }) {
-  const posthog = usePostHog()
-  const [skipped, setSkipped] = useState(false)
-  const [state, formAction, pending] = useActionState(saveLastSalaryAction, null)
-  if (skipped || state?.ok) return null
-  return (
-    <section className="space-y-3 rounded-2xl border border-border bg-muted/40 p-5" aria-labelledby="salary-ask">
-      <h2 id="salary-ask" className="font-display text-xl font-semibold text-ink">See what each salary is really worth</h2>
-      <p className="text-base text-ink">A salary goes further in some places than others. What did you earn in your last role? We’ll show each place’s pay in what it would buy you in {homeName}.</p>
-      <form action={formAction} className={pending ? 'cursor-wait space-y-3' : 'space-y-3'}>
-        <label htmlFor="salary" className="block text-base font-semibold text-ink">Last annual salary</label>
-        <input id="salary" name="salary" inputMode="numeric" autoComplete="off" placeholder="$ 120,000" className={`${field} max-w-60`} />
-        <p className="text-sm text-muted-foreground">Why we ask: so the comparison uses your pay, not a typical one. Only you see it. You can skip this and still see the costs below.</p>
-        <div className="flex flex-wrap items-center gap-4">
-          <button type="submit" disabled={pending} className={quiet}>{pending ? 'Saving…' : 'Show what it’s worth'}</button>
-          <button type="button" onClick={() => { setSkipped(true); posthog?.capture('last_salary_skipped', { source: 'move_plan' }) }} className="text-base font-medium underline underline-offset-4">Skip for now</button>
-        </div>
-        {state?.error && <p role="alert" className="text-base text-destructive">{state.error}</p>}
-      </form>
-    </section>
   )
 }
 
