@@ -66,6 +66,7 @@ import { pickHomeNote, simpleNote } from '@/lib/redesign/home-note'
 import { withBlockerStep } from '@/lib/personalization/blocker-step'
 import { HomeNote } from '@/components/candidate/HomeNote'
 import { JourneyCard } from '@/components/candidate/JourneyCard'
+import { FundingHomeCard } from '@/components/dashboard/FundingHomeCard'
 
 // Resolves the candidate's latest report, generating it on demand if the
 // registration-time background job hasn't produced one yet, and sending the
@@ -480,6 +481,10 @@ export default async function DashboardPage() {
 
       <Suspense fallback={null}>
         <HomeApplyPrompts candidateId={profile.id} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <FundingHomeCard profile={profile} />
       </Suspense>
 
       {newCheer && (
