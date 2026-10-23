@@ -165,6 +165,10 @@
       "schedule": "15 10 * * *"
     },
     {
+      "path": "/api/cron/catalog-seeds",
+      "schedule": "10 18 * * *"
+    },
+    {
       "path": "/api/cron/federal-contracts",
       "schedule": "30 11 * * *"
     },

@@ -3,10 +3,10 @@
 | Name | Employer | State | Locality | What it pays | Eligibility | Status | Official URL | Verified |
 |---|---|---|---|---|---|---|---|---|
 | Federal student loan unemployment deferment | | | | Payments paused; no interest on subsidized loans, accrues on unsubsidized. Up to 36 months cumulative per loan program | Receiving unemployment benefits, or diligently seeking full-time work and registered with an employment agency within 50 miles; each approval up to 6 months | Open | https://studentaid.gov/sites/default/files/UnemploymentDeferment-en-us.pdf | Yes |
-| Federal student loan economic hardship deferment | | | | Payments paused up to 36 months cumulative | Receiving federal or state public assistance, or income at or below 150% of poverty, or Peace Corps service. Ends for loans made on or after 2027-07-01 | Open | https://studentaid.gov/manage-loans/lower-your-payments/get-temporary-relief/economic-hardship | No |
-| Income-driven repayment recalculation after income drop (IBR and RAP) | | | | Monthly payment reset to current income; RAP is 1-10% of AGI divided by 12, minus $50 per dependent, $10 minimum, forgiveness after 30 years | Federal Direct loan borrowers; ask servicer to recalculate with alternative documentation of income when income falls. RAP and Tiered Standard became available 2026-07-01; SAVE ended by court order 2026-03-10 and enrollees must pick another plan; PAYE retired, ICR retired by 2028-07-01 | Open | https://studentaid.gov/announcements-events/rap | No |
-| Public Service Loan Forgiveness (PSLF) | | | | Forgiveness of remaining Direct Loan balance after 120 qualifying payments | Full-time employment with government or 501(c)(3) employer while making qualifying payments; months of unemployment deferment do not count | Open | https://studentaid.gov/manage-loans/forgiveness-cancellation/public-service | No |
-| Federal student loan forbearance (general) | | | | Temporary pause or reduced payments, interest accrues | Any federal loan borrower by servicer discretion; limited to 9 months in any 24 for loans made on or after 2027-07-01 | Open | https://studentaid.gov/manage-loans/lower-your-payments/get-temporary-relief/forbearance | No |
+| Federal student loan economic hardship deferment |  |  |  | Payments postponed up to three years of deferment for economic hardship or Peace Corps service | Federal loan borrowers who cannot afford payments; request through your servicer | Open | https://aidvantage.studentaid.gov/in-repayment/federal-options | Yes |
+| Repayment Assistance Plan (RAP) income-based payment |  |  |  | Payment is up to 10% of AGI divided by 12, minus $50 per dependent, $10 minimum; balance forgiven after 30 years | Direct Loan borrowers; apply online at StudentAid.gov from 2026-07-01 using IRS data or other income documents | Open | https://edfinancial.studentaid.gov/income-driven-repaymentinformation-center/rap | Yes |
+| Public Service Loan Forgiveness (PSLF) |  |  |  | Forgives remaining Direct Loan balance after 120 qualifying monthly payments | Full-time work for government or qualifying not-for-profit employer; Direct Loans on an eligible plan; payments need not be consecutive | Open | https://studentaid.gov/manage-loans/forgiveness-cancellation/public-service | Yes |
+| Federal student loan forbearance (general) |  |  |  | Monthly payments temporarily stopped or reduced; interest keeps accruing | Borrowers with economic difficulty or a change in employment may qualify; review deferment options first | Open | https://aidvantage.studentaid.gov/in-repayment/federal-options | Yes |
 
 ## Mortgage relief: federal rights and counseling
 
@@ -23,14 +23,13 @@
 |---|---|---|---|---|---|---|---|---|
 | Pennsylvania HEMAP (Homeowners' Emergency Mortgage Assistance Program) | | PA | | Loan up to $60,000 or 24/36 months, paid to lender; repay up to 35/40% of net income, minimum $25 per month | Owner-occupied 1-2 family PA home, 60+ days delinquent with Act 91 notice, hardship, prospect of resuming payments; FHA Title II excluded | Open | https://www.phfa.org/hemap/ | Yes |
 | Connecticut EMAP (Emergency Mortgage Assistance Program) | | CT | | CHFA initial payment to bring mortgage current, some get monthly aid; up to 60 months; repay on sale, transfer, move or cash-out refi | Owner-occupant with hardship beyond control (incl. unemployment); assets over $100,000 contributed; max four 30-day lates in prior 2 years | Open | https://www.chfa.org/homeowners/emergency-mortgage-assistance-program/ | Yes |
-| Massachusetts Right to Cure and mediation (foreclosure rights, 150-day cure) | | MA | | Right to cure default within 150 days (extendable to 90 more with mortgage counseling) before foreclosure can start | Massachusetts owner-occupied 1-4 family residential mortgages (M.G.L. ch. 244 sec. 35A) | Open | https://www.mass.gov/info-details/foreclosure-prevention-and-right-to-cure | No |
+| Massachusetts Right to Cure (90-day mortgage default) |  | MA |  | 90-day right to cure a missed payment before the lender can accelerate or enforce; once per 5 years | MA principal residence with up to 4 households; not investment or commercial-collateral property (M.G.L. ch. 244 sec. 35A) | Open | https://malegislature.gov/Laws/GeneralLaws/PartIII/TitleIII/Chapter244/Section35A | Yes |
 | New York foreclosure settlement conference (CPLR 3408) and Homeowner Protection Program | | NY | | Mandatory court settlement conference; HOPP free legal and housing counseling | Residential foreclosure defendants in New York | Open | https://hcr.ny.gov/homeowner-protection-program-hopp | No |
 
 ## Emergency rental and eviction prevention
 
 | Name | Employer | State | Locality | What it pays | Eligibility | Status | Official URL | Verified |
 |---|---|---|---|---|---|---|---|---|
-| LA County Emergency Rent Relief Program | | CA | Los Angeles County | Up to 6 months of rent, max $15,000 per unit | Round 2 ran 2026-02-09 to 2026-03-11 and is closed; watch LACountyRentRelief.com for relaunch | Closed | https://dcba.lacounty.gov/wp-content/uploads/2026/02/ERRP-Round-2-Flyer-ENGLISH.pdf | No |
 
 ## Utility, phone and internet bill relief
 
@@ -76,11 +75,10 @@
 | Name | Employer | State | Locality | What it pays | Eligibility | Status | Official URL | Verified |
 |---|---|---|---|---|---|---|---|---|
 | New York State Bar Association dues waiver program | | NY | | Dues reduction of 25%-100% | Unemployed or underemployed with adjusted gross income under $75,000; NYSBA member for 3 consecutive years | Open | https://nysba.org/?p=143738 | Yes |
-| Maine State Bar Association dues waiver | | ME | | Dues waiver | Unemployment or income constraints | Open | https://www.mainebar.org/page/dueswaiver | No |
+| Maine State Bar Association dues waiver |  | ME |  | Full or partial waiver of Maine bar membership dues for the current membership year | Members facing hardship: unemployment or income constraints, time out of practice, or practice losses; Board of Governors decides | Open | https://www.mainebar.org/page/dueswaiver | Yes |
 | Missouri Bar CLE financial hardship waiver | | MO | | Full waiver or reduced fee for MoBarCLE seminars; aid capped once 9 MCLE hours earned in a reporting period | Missouri Bar member with financial hardship; apply at least 3 weeks before the program; decided case by case | Open | https://mobar.org/site/content/MoBarCLE/Financial_Hardship.aspx | Yes |
 | Onondaga County Bar CLE fee waiver | | NY | Onondaga County | Unemployed (and spouse unemployed): full scholarship; income up to $15,000: 75% off; $15,000-$30,000: 50% off | Local legal community member with genuine financial hardship; apply in writing | Open | https://www.onbar.org/cle-programs/cle-waiver-policy/ | Yes |
 | Nevada MCLE hardship exemption | | NV | | Exemption from annual CLE credit hour or fee requirements | Nevada attorney unable to comply because of hardship; application must be received before the Board considers it | Open | https://nvbar.org/licensing-compliance/mcle/application-for-exemption-based-on-hardship/ | Yes |
-| New York CLE Board waiver for undue hardship | | NY | | Waiver or modification of CLE requirement | Undue hardship or extenuating circumstances, with documents | Open | https://www.nycourts.gov/attorneys/cle/ | No |
 
 ## Property tax relief
 

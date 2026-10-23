@@ -576,6 +576,9 @@ enum CandidateInterestStatus {
 
 model CandidateProfile {
   id        String   @id @default(cuid())
+  partnerLinksOwned  PartnerLink[] @relation("PartnerLinkOwner")
+  partnerLinksJoined PartnerLink[] @relation("PartnerLinkPartner")
+  movePlaces         MovePlace[]   @relation("MovePlaceOwner")
   userId    String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -15474,6 +15477,40 @@ model InstitutionSystemUser {
 // or coach with no NextChapter login. They get a weekly summary of effort only
 // (minutes, days active, counts; never names, jobs or messages) and can send a
 // short cheer. Never available in Confidential Search Mode.
+// A member's partner, invited to search together (mostly for a move). The partner joins with their own account, matched by the
+// email the invite went to. SQL: prisma/manual/2026-10-23-partner-search.sql.
+model PartnerLink {
+  id           String           @id @default(cuid())
+  ownerId      String
+  owner        CandidateProfile @relation("PartnerLinkOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  partnerName  String
+  partnerEmail String
+  partnerId    String?
+  partner      CandidateProfile? @relation("PartnerLinkPartner", fields: [partnerId], references: [id], onDelete: SetNull)
+  sharePlaces  Boolean          @default(true)
+  shareJobsPay Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  joinedAt     DateTime?
+  revokedAt    DateTime?
+
+  @@unique([ownerId, partnerEmail])
+  @@index([partnerId])
+  @@index([partnerEmail])
+}
+
+// The metro areas a pair of partners is comparing for a move. Owned by the member who invited; either partner can add.
+model MovePlace {
+  id        String           @id @default(cuid())
+  ownerId   String
+  owner     CandidateProfile @relation("MovePlaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  addedById String
+  metroCode String
+  name      String
+  createdAt DateTime         @default(now())
+
+  @@unique([ownerId, metroCode])
+}
+
 model SearchSupporter {
   id           String           @id @default(cuid())
   candidateId  String
