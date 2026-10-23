@@ -1,0 +1,1457 @@
+[
+ {
+  "id": "write-the-docs-portland",
+  "name": "Write the Docs Portland",
+  "organizer": "Write the Docs",
+  "url": "https://www.writethedocs.org/conf/portland/2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-04",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Product",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main US gathering of documentarians, docs engineers and developer-experience people, with an unconference and sponsor expo.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Tickets go on sale December 2026; prices not yet published.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.writethedocs.org/conf/portland/2027/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for proposals opens November 2026; no deadline posted yet.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Technical writing and documentation"
+  ],
+  "roles": [
+   "technical writer",
+   "documentation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "write-the-docs-australia",
+  "name": "Write the Docs Australia",
+  "organizer": "Write the Docs",
+  "url": "https://www.writethedocs.org/conf/australia/2026/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-03",
+  "endDate": "2026-12-04",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Melbourne",
+  "state": null,
+  "country": "AU",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Docs practitioners from across Asia-Pacific; worth it only if you are already traveling.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Tickets on sale; USD prices not shown on the page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.writethedocs.org/conf/australia/2026/cfp/",
+  "speakingDeadline": null,
+  "speakingNote": "The 2026 call closed Sept 11, 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Technical writing and documentation"
+  ],
+  "roles": [
+   "technical writer",
+   "documentation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "lavacon",
+  "name": "LavaCon Content Strategy Conference",
+  "organizer": "LavaCon",
+  "url": "https://www.lavacon.org/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Product",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Content strategy, structured content and docs-ops leaders from enterprise technical communication teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices are on the registration page, not captured. A virtual option has its own registration page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Technical writing and documentation"
+  ],
+  "roles": [
+   "technical writer",
+   "documentation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "stc-technical-communication-summit",
+  "name": "STC Technical Communication Summit",
+  "organizer": "Society for Technical Communication",
+  "url": "https://www.stc.org/summitt",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The Society for Technical Communication's annual meeting of working technical writers and managers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official STC site was down for an update when checked; 2027 dates and city not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "STC member rates are typical; not confirmed.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (partial)",
+  "segments": [
+   "Technical writing and documentation"
+  ],
+  "roles": [
+   "technical writer",
+   "documentation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "devrelcon-new-york",
+  "name": "DevRelCon New York",
+  "organizer": "DevRelCon",
+  "url": "https://nyc.devrelcon.dev/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Marketing",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Developer-relations and developer-experience people who own docs, community and API onboarding.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "A call for talks was reported for the series; confirm on the site.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (partial)",
+  "segments": [
+   "Technical writing and documentation"
+  ],
+  "roles": [
+   "documentation lead",
+   "technical writer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "open-source-summit-north-america",
+  "name": "Open Source Summit North America",
+  "organizer": "The Linux Foundation",
+  "url": "https://events.linuxfoundation.org/open-source-summit-north-america/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Vancouver",
+  "state": null,
+  "country": "CA",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Maintainers and engineers across open source, with embedded Linux and documentation tracks.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Save-the-date only; passes and CFP not yet published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Technical writing and documentation",
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "technical writer",
+   "embedded engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "robotics-summit-expo",
+  "name": "Robotics Summit & Expo",
+  "organizer": "Arrowfly LLC (The Robot Report, Design World)",
+  "url": "https://www.roboticssummit.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest US show for engineers building commercial robots, with design talks and an expo.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices are on the registration page, not captured.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.roboticssummit.com/call-for-presentations/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for presentations page exists; deadline not shown.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "robotics engineer",
+   "embedded engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "robobusiness",
+  "name": "RoboBusiness",
+  "organizer": "Arrowfly LLC (The Robot Report)",
+  "url": "https://www.robobusiness.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-20",
+  "endDate": "2026-10-21",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Santa Clara",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Robot makers, investors and enterprise buyers; the business side of commercial robotics.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices are on the registration page, not captured.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "robotics engineer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "automate-show",
+  "name": "Automate",
+  "organizer": "A3 (Association for Advancing Automation)",
+  "url": "https://www.automateshow.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-13",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "North America's biggest robotics, vision and motion-control show; thousands of integrators and engineers.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Show floor is free; conference badges are paid (early bird until March 29, 2027).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "robotics engineer",
+   "embedded engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "embedded-world-north-america",
+  "name": "embedded world North America",
+  "organizer": "N\u00fcrnbergMesse North America",
+  "url": "https://www.embedded-world-na.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-12",
+  "endDate": "2027-10-14",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Long Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The US edition of the main embedded-systems show: chips, RTOS, tools and conference tracks for firmware engineers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices are on the registration page, not captured.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "embedded engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "embedded-vision-summit",
+  "name": "Embedded Vision Summit",
+  "organizer": "Edge AI + Vision Alliance",
+  "url": "https://embeddedvisionsummit.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-02",
+  "endDate": "2027-02-04",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Engineers putting computer vision and edge AI into robots and devices.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pass prices at embeddedvisionsummit.com/passes/.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://embeddedvisionsummit.com/call-proposals/",
+  "speakingDeadline": null,
+  "speakingNote": "Call page exists; deadline not shown.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "robotics engineer",
+   "embedded engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sensors-converge",
+  "name": "Sensors Converge",
+  "organizer": "Questex",
+  "url": "https://www.sensorsconverge.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-08",
+  "endDate": "2027-06-10",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Santa Clara",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Sensor, MEMS and embedded designers meeting suppliers and standards groups.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "A free early-access pass is offered; full conference pricing not shown.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.sensorsconverge.com/",
+  "speakingDeadline": "2026-10-23",
+  "speakingNote": "2027 call for speakers deadline was extended to Oct 23 (year inferred from the banner).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "embedded engineer",
+   "robotics engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "designcon",
+  "name": "DesignCon",
+  "organizer": "Informa Markets",
+  "url": "https://www.designcon.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-02",
+  "endDate": "2027-02-04",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Santa Clara",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Chip, signal-integrity and high-speed hardware engineers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices are on the registration page, not captured.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "embedded engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "corl",
+  "name": "Conference on Robot Learning (CoRL)",
+  "organizer": "CoRL Foundation",
+  "url": "https://www.corl.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-09",
+  "endDate": "2026-11-12",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "Top research venue for learning-based robotics; heavy recruiting from AI-robotics labs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration open; fees not shown on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student rates likely; not confirmed.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "robotics engineer"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "icra",
+  "name": "IEEE International Conference on Robotics and Automation (ICRA)",
+  "organizer": "IEEE Robotics and Automation Society",
+  "url": "https://2027.ieee-icra.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-28",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Seoul",
+  "state": null,
+  "country": "KR",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The flagship academic-and-industry robotics conference; the biggest hiring floor for roboticists.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens early February 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "robotics engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "roscon-global",
+  "name": "ROSCon",
+  "organizer": "Open Source Robotics Foundation",
+  "url": "https://roscon.ros.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Toronto",
+  "state": null,
+  "country": "CA",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Developers of the Robot Operating System; the 2026 edition ran in Toronto in September, 2027 not announced.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (partial)",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "robotics engineer",
+   "embedded engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hackaday-supercon",
+  "name": "Hackaday Supercon",
+  "organizer": "Hackaday",
+  "url": "https://hackaday.com/tag/2026-hackaday-supercon/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-06",
+  "endDate": "2026-11-08",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Pasadena",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Hardware hackers and firmware engineers; small, high-signal, great for makers moving into embedded jobs.",
+  "access": "PAID",
+  "costLow": 150,
+  "costHigh": 296,
+  "costNote": "Early bird $150, regular $296 plus fees (per Hackaday ticket posts).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://hackaday.com/2026/07/13/2026-hackaday-supercon-call-for-proposals/",
+  "speakingDeadline": null,
+  "speakingNote": "2026 call closed; talks chosen.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "embedded engineer",
+   "robotics engineer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "xponential",
+  "name": "XPONENTIAL",
+  "organizer": "AUVSI",
+  "url": "https://www.xponential.org/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Autonomy and uncrewed-systems engineers, defense and commercial buyers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices are on the registration page, not captured.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.xponential.org/",
+  "speakingDeadline": null,
+  "speakingNote": "Speaker resources page exists; call terms not captured.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Robotics and embedded systems"
+  ],
+  "roles": [
+   "robotics engineer",
+   "embedded engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "unbound-hubspot",
+  "name": "UNBOUND (formerly INBOUND)",
+  "organizer": "HubSpot",
+  "url": "https://unbound.hubspot.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-08",
+  "endDate": "2027-09-10",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Sales",
+   "Marketing",
+   "Customer Success"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Go-to-market, sales and customer teams at SaaS companies and agencies.",
+  "access": "PAID",
+  "costLow": 1699,
+  "costHigh": null,
+  "costNote": "General admission $1,699; VIP price not yet posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "saas account executive",
+   "customer success manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ccw-las-vegas",
+  "name": "Customer Contact Week (CCW) Las Vegas",
+  "organizer": "Customer Management Practice",
+  "url": "https://www.customermanagementpractice.com/cmp-events/ccw/las-vegas/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-17",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Customer Success",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The biggest US event for customer experience, support and success leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices are on the registration page, not captured.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "zendesk-relate",
+  "name": "Zendesk Relate",
+  "organizer": "Zendesk",
+  "url": "https://www.zendeskrelate.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Customer service and CX leaders; 2,000+ attendees.",
+  "access": "PAID",
+  "costLow": 895,
+  "costHigh": 1495,
+  "costNote": "Early bird $895, advanced $1,195, standard $1,495, plus 10.55% WA sales tax.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager",
+   "solutions engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "customer-success-summit-washington",
+  "name": "Customer Success Summit Washington DC",
+  "organizer": "Customer Success Collective",
+  "url": "https://events.customersuccesscollective.com/location/washington",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-27",
+  "endDate": "2027-01-27",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Senior CS leaders from large software firms; about 80% senior management.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early bird saves $200; prices not shown.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://events.customersuccesscollective.com/location/washington",
+  "speakingDeadline": null,
+  "speakingNote": "Apply-to-speak link on the page.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "customer-success-festival-london",
+  "name": "Customer Success Festival London",
+  "organizer": "Customer Success Collective",
+  "url": "https://events.customersuccesscollective.com/location/londonjune/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-17",
+  "endDate": "2027-06-17",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "One-day festival for CS practitioners; a New York edition is listed for July 7, 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (partial)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sales-enablement-summit",
+  "name": "Sales Enablement Summit series",
+  "organizer": "Sales Enablement Collective",
+  "url": "https://world.salesenablementcollective.com/location/austin",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Enablement, RevOps and sales leaders; 2027 stops listed in Washington, Austin, New York, Atlanta and Amsterdam.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (partial)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "saas account executive",
+   "solutions engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "gong-celebrate",
+  "name": "Gong Celebrate",
+  "organizer": "Gong",
+  "url": "https://www.gong.io/celebrate/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "1,000+ revenue leaders, RevOps and AEs; 2026 edition ran Sept 29 to Oct 1.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not scheduled yet; registration interest list only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "saas account executive",
+   "customer success manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "outreach-unleash",
+  "name": "Outreach Unleash",
+  "organizer": "Outreach",
+  "url": "https://www.outreach.ai/unleash",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Scottsdale",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "CROs, sales ops leaders, AEs and SDRs.",
+  "access": "PAID",
+  "costLow": 395,
+  "costHigh": null,
+  "costNote": "2026 edition (June 1-3, Scottsdale) was $395; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "saas account executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "gartner-cso-sales-leader-conference",
+  "name": "Gartner CSO & Sales Leader Conference",
+  "organizer": "Gartner",
+  "url": "https://www.gartner.com/en/conferences/na/sales-us",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Sales"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Chief sales officers and sales leaders from large B2B firms.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not captured.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "saas account executive",
+   "solutions engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "gartner-customer-service-support-conference",
+  "name": "Gartner Customer Service & Support Conference",
+  "organizer": "Gartner",
+  "url": "https://www.gartner.com/en/conferences/calendar",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Customer Success"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Service and support leaders benchmarking tech and staffing.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not captured.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "customer success manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "presales-collective-solcon",
+  "name": "Sol/Con",
+  "organizer": "PreSales Collective",
+  "url": "https://www.presalescollective.com/solcon-2026-copy",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The main gathering for solutions engineers and presales leaders; 2026 ran Aug 26-27 in Chicago.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (partial)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "solutions engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "demofest",
+  "name": "DEMOFEST",
+  "organizer": "Consensus",
+  "url": "https://goconsensus.com/Demofest",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Sales engineers swapping demo craft; virtual, West Coast and East Coast 2027 editions listed.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (partial)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "solutions engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "saastock",
+  "name": "SaaStock",
+  "organizer": "SaaStock",
+  "url": "https://www.saastock.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "SaaS founders and go-to-market leaders; 2027 flagships planned for London and San Francisco.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says the brand is moving to 'Top Founders Summit'; dates not posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (partial)",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "roles": [
+   "saas account executive",
+   "customer success manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ }
+]

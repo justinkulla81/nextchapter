@@ -99,4 +99,19 @@ describe('job seniority', () => {
     expect(classifyTitleRung('Social Science Research Analyst (GS-5/7)').rung).toBe('ENTRY_IC')
     expect(classifyTitleRung('Program Support Assistant (GS-5/7)').rung).toBe('OTHER')
   })
+
+  it('level fix 3: Manager in Training, assistant city planners, federal Recent Graduates GS-4/5', () => {
+    expect(classifyTitleRung('Manager in Training').rung).toBe('EARLY_IC')
+    expect(classifyTitleRung('MIT (Manager in Training)').rung).toBe('EARLY_IC')
+    expect(classifyTitleRung('Manager in Training Program').rung).toBe('ENTRY_IC')
+    for (const title of ['Training Manager', 'District Manager in Training', 'Deli Manager In Training - Peoria']) expect(classifyTitleRung(title).rung, title).toBe('MANAGER')
+    expect(classifyTitleRung('Assistant City Planner').rung).toBe('EARLY_IC')
+    expect(classifyTitleRung('Assistant City Manager').rung).toBe('DIRECTOR')
+    expect(classifyTitleRung('City Planning Manager').rung).toBe('MANAGER')
+    const deg = "Bachelor's degree required. Requires 4+ years of experience."
+    expect(levelForPosting('CONTACT REPRESENTATIVE (RECENT GRADUATE) (GS-4/5)', deg).rung).toBe('ENTRY_IC')
+    expect(levelForPosting('Contact Representative (GS-4/5)', deg, { recentGraduate: true }).rung).toBe('ENTRY_IC')
+    expect(levelForPosting('Recent Graduate Program Manager (GS-12)', deg).rung).toBe('MID_IC')
+    expect(levelForPosting('Civil Engineer (Recent Graduate) (GS-9/11)', deg).rung).toBe('EARLY_IC')
+  })
 })

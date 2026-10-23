@@ -17,6 +17,9 @@ import {
   mergeInterestLevels,
   mergeSideDetails,
   parallelPlanItems,
+  focusOptions,
+  homePathsRow,
+  pathsWait,
   parseInterestInput,
   parseSideInput,
   previousMainOf,
@@ -218,5 +221,48 @@ describe('aggregate counts for partnership conversations', () => {
     const c = pathInterestCounts(Array.from({ length: 20 }, () => ({ buy: { stage: 'search' } })))
     expect(c.buy.doing).toBeNull()
     expect(JSON.stringify(c)).not.toMatch(/userId|email|name/)
+  })
+})
+
+describe('paths on Home: the row, the focus switch and the hours cap', () => {
+  const base = { main: 'LAID_OFF' as const, kinds: [] as string[], journeyDetails: { buy: { stage: 'prepare' }, paths: { side: { level: 'doing', hours: 6 }, school: { level: 'curious' } } } }
+
+  it('shows nothing when there are no active paths', () => {
+    expect(homePathsRow({ main: 'LAID_OFF', journeyDetails: {}, kinds: [] })).toBeNull()
+    expect(homePathsRow({ main: 'LAID_OFF', journeyDetails: { paths: { school: { level: 'curious' } } }, kinds: [] })).toBeNull()
+    expect(focusOptions({ main: 'LAID_OFF', journeyDetails: {}, kinds: [] })).toBeNull()
+  })
+  it('lists active paths with their level, and never curious ones', () => {
+    const row = homePathsRow(base)!
+    expect(row.items.map((i) => [i.key, i.label, i.level])).toEqual([
+      ['buy', 'buying a business', 'researching'],
+      ['side', 'side income', 'doing it'],
+    ])
+    expect(row.waiting).toBe(false)
+  })
+  it('offers the main journey plus each active path that can become main, as 2 to 4 buttons', () => {
+    const opts = focusOptions(base)!
+    expect(opts.map((o) => o.to)).toEqual(['LAID_OFF', 'BUY_BUSINESS'])
+    expect(opts[0].current).toBe(true)
+    const back = focusOptions({ main: 'BUY_BUSINESS', journeyDetails: { buy: { stage: 'search' }, paths: { side: { level: 'doing' }, previousMain: 'LAID_OFF' } }, kinds: [] })!
+    expect(back.map((o) => o.to)).toEqual(['BUY_BUSINESS', 'BACK'])
+    const all = focusOptions({ main: 'GROWING', journeyDetails: { paths: { buy: { level: 'doing' }, fractional: { level: 'doing' }, previousMain: 'LAID_OFF' } }, kinds: [] })!
+    expect(all.length).toBeLessThanOrEqual(4)
+  })
+  it('caps the plan: 3 hours a week or less means the main plan only, paths wait', () => {
+    expect(pathsWait({ hoursAvailable: 3 })).toBe(true)
+    expect(pathsWait({ hoursAvailable: 4 })).toBe(false)
+    expect(pathsWait({})).toBe(false)
+    expect(parallelPlanItems(base)).toHaveLength(2)
+    expect(parallelPlanItems({ ...base, journeyDetails: { ...base.journeyDetails, hoursAvailable: 3 } })).toEqual([])
+    expect(parallelPlanItems({ ...base, journeyDetails: { ...base.journeyDetails, hoursAvailable: 5 } })).toHaveLength(2)
+    const row = homePathsRow({ ...base, journeyDetails: { ...base.journeyDetails, hoursAvailable: 2 } })!
+    expect(row.waiting).toBe(true)
+    expect(row.hours).toBe(2)
+  })
+  it('adds at most one step per active path', () => {
+    const all = Object.fromEntries(INTEREST_KEYS.map((k) => [k, { level: 'doing' }]))
+    const s = { main: 'GROWING' as const, journeyDetails: { hoursAvailable: 10, paths: all }, kinds: [] }
+    expect(parallelPlanItems(s).length).toBe(activePaths(s).length)
   })
 })

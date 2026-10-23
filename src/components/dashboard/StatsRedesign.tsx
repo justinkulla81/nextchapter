@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/candidate/PageHeader'
 import { ActionLink } from '@/components/candidate/ActionLink'
 import { SeeAllLink } from '@/components/candidate/SeeAllLink'
 import { Section } from '@/components/candidate/ui'
+import { engagementFor } from '@/lib/journey/senior-overlay'
 import { UnlocksSection } from '@/components/dashboard/home/UnlocksSection'
 import { HomeModuleSkeleton } from '@/components/dashboard/home/HomeModuleSkeleton'
 
@@ -46,6 +47,8 @@ export async function StatsRedesign({ profile }: { profile: CandidateProfile }) 
   const heights = barHeights(weeks)
   const totalMinutes = weeks.reduce((sum, w) => sum + w.minutes, 0)
   const best = bestWeekSentence(weeks)
+  // Senior overlay: no weekly point target and no points explainer.
+  const showPoints = engagementFor(profile).points
   const empty = totalMinutes === 0 && applications === 0 && conversations === 0
 
   after(() => captureServerEvent(profile.id, 'effort_results_viewed', { minutes: totalMinutes, applications, interviews, offers, conversations, weeksShown: weeks.length }))
@@ -72,9 +75,11 @@ export async function StatsRedesign({ profile }: { profile: CandidateProfile }) 
           <section aria-labelledby="effort" className="space-y-3 rounded-2xl border border-border p-6">
             <h2 id="effort" className="font-display text-xl font-semibold text-ink">Your effort</h2>
             <Tiles label="Your effort" items={[[`${totalMinutes.toLocaleString()}`, `minutes in ${weeks.length} ${weeks.length === 1 ? 'week' : 'weeks'}`], [`${applications}`, 'applications'], [`${conversations}`, 'conversations']]} />
-            <p className="text-sm text-muted-foreground">
-              This week: {engines.weeklyPoints} of {engines.weeklyPointsTarget} minutes toward your goal.
-            </p>
+            {showPoints && (
+              <p className="text-sm text-muted-foreground">
+                This week: {engines.weeklyPoints} of {engines.weeklyPointsTarget} minutes toward your goal.
+              </p>
+            )}
           </section>
           <section aria-labelledby="results" className="space-y-3 rounded-2xl border border-border p-6">
             <h2 id="results" className="font-display text-xl font-semibold text-ink">What came back</h2>
@@ -100,7 +105,7 @@ export async function StatsRedesign({ profile }: { profile: CandidateProfile }) 
               </div>
             ))}
           </div>
-          <p className="text-sm text-muted-foreground">1 point = 1 minute. {best}</p>
+          <p className="text-sm text-muted-foreground">{showPoints ? '1 point = 1 minute. ' : ''}{best}</p>
         </Section>
       )}
 

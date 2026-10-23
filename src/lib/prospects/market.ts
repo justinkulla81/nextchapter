@@ -52,6 +52,14 @@ export async function getMarket(p: Prospect): Promise<Market> {
 
 /** Layoff notices (state WARN filings) in the place over the last six months, the biggest first. */
 export async function getNotices(p: Prospect, days = 180): Promise<NoticeSummary> {
+  return getNoticesFor({ state: p.state, counties: p.counties, cityWords: p.cityWords }, days)
+}
+
+/**
+ * The same summary for any place: a state, optionally narrowed to counties (lower case, no "County") and city words.
+ * No counties means the whole state. A place with no notices of its own shows the state, and says so (scope 'state').
+ */
+export async function getNoticesFor(p: { state: string; counties: string[]; cityWords?: string[] }, days = 180): Promise<NoticeSummary> {
   const since = new Date(Date.now() - days * 86_400_000)
   const rows = await prisma.warnNotice.findMany({
     // Some states (Pennsylvania) give no filing date, so the day we fetched the notice stands in for it.

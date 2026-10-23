@@ -1,0 +1,830 @@
+[
+ {
+  "id": "cdoiq-symposium",
+  "name": "MIT CDOIQ Symposium",
+  "organizer": "International Society of Chief Data Officers / MIT CDOIQ",
+  "url": "https://www.cdoiq.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "July",
+  "city": "Cambridge",
+  "state": "MA",
+  "access": "MIXED",
+  "costLow": 950,
+  "costHigh": 1950,
+  "costNote": "2026 (20th) edition in person $1,950, virtual $950 per a third-party listing; the 21st symposium is slated for July 2027. Site page returned no text.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "Annual meeting of chief data officers and information-quality leaders from industry, government and academia, with a limited number of complimentary passes for selected delegates.",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "industries": []
+ },
+ {
+  "id": "ivmf-v-wise",
+  "name": "IVMF V-WISE",
+  "organizer": "Syracuse University IVMF",
+  "url": "https://ivmf.syracuse.edu/programs/entrepreneurship/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Atlanta",
+  "state": "GA",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Capstone traditionally April; listing from IVMF's roundup.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Women veterans and military spouses start businesses; online course then a capstone conference.",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "industries": []
+ },
+ {
+  "id": "sdgc-service-design-global-conference",
+  "name": "Service Design Global Conference",
+  "organizer": "Service Design Network",
+  "url": "https://servicedesignglobalconference.com",
+  "startDate": "2026-10-28",
+  "endDate": "2026-10-30",
+  "typicalMonth": "October",
+  "city": "Wiesbaden",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not confirmed on the official site this session; workshops sold separately.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (search results only)",
+  "whyAttend": "The annual gathering of the global service design community, with practitioners, in-house leads and agency principals; moves city each year.",
+  "segments": [
+   "Design and user experience"
+  ],
+  "industries": []
+ },
+ {
+  "id": "wids-worldwide-conference",
+  "name": "Women in Data Science (WiDS) Worldwide Conference",
+  "organizer": "WiDS Worldwide / Stanford Data Science",
+  "url": "https://www.widsworldwide.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": "Stanford",
+  "state": "CA",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Flagship has historically been held in early March at Stanford with online access; 2027 date not found. Cost not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Flagship one-day conference on International Women's Day with 200+ regional events worldwide, strong for finding data science peers and mentors.",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "industries": []
+ },
+ {
+  "id": "ssow-orlando",
+  "name": "Shared Services & Outsourcing Week (SSOW)",
+  "organizer": "SSON",
+  "url": "https://www.ssonetwork.com/",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-11",
+  "typicalMonth": "March",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates only from a third-party listing.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Finance and back-office shared services leaders (P2P, O2C, record-to-report).",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "industries": [
+   "Accounting & Audit"
+  ]
+ },
+ {
+  "id": "iab-tech-lab-summit",
+  "name": "IAB Tech Lab Summit",
+  "organizer": "IAB Tech Lab",
+  "url": "https://www.iabtechlab.com/events/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Held late May to June in New York in 2024-2026; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Standards and identity work for RTB, CTV and privacy; engineers and product leads at adtech firms.",
+  "segments": [
+   "Advertising technology"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "smx-advanced",
+  "name": "SMX Advanced (San Diego and Boston)",
+  "organizer": "Search Engine Land (Third Door Media)",
+  "url": "https://searchengineland.com/smx-advanced-2027-san-diego-boston-483852",
+  "startDate": "2027-03-17",
+  "endDate": "2027-03-19",
+  "typicalMonth": "March",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read (page returned 403 to fetch; dates from Search Engine Land announcement via search).",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Experienced SEO and paid search practitioners swap advanced tactics; a second 2027 edition is in Boston Sept 20-22.",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "asian-pacific-aquaculture",
+  "name": "Asian-Pacific Aquaculture",
+  "organizer": "World Aquaculture Society",
+  "url": "https://was.org/meeting/code/APA2027",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Seen only as a listing; dates not read.",
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "International aquaculture meeting of the World Aquaculture Society; for those working Asia-Pacific supply chains.",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "apsg-conference",
+  "name": "APSG Conference",
+  "organizer": "Automotive Parts Services Group",
+  "url": "https://www.aftermarketnews.com/?p=251429",
+  "startDate": "2027-03-30",
+  "endDate": "2027-04-02",
+  "typicalMonth": "March",
+  "city": "Louisville",
+  "state": "KY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Reported by Aftermarket News; no booth show in 2027, more one-on-one meetings. Registration not yet open.",
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "Parts distributors, jobbers and suppliers meeting one-on-one; the aftermarket distribution group conference.",
+  "segments": [
+   "Dealerships and aftermarket"
+  ],
+  "industries": [
+   "Automotive & Mobility"
+  ]
+ },
+ {
+  "id": "greenbuild",
+  "name": "Greenbuild International Conference + Expo",
+  "organizer": "Informa Markets / USGBC",
+  "url": "https://be-exchange.org/greenbuild-2026/",
+  "startDate": "2026-10-20",
+  "endDate": "2026-10-23",
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / lead",
+  "whyAttend": "Sustainable building professionals: architects, engineers, owners.",
+  "segments": [
+   "Architecture, engineering and design"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "nhra-annual-meeting",
+  "name": "NH&RA Annual Meeting & Symposium",
+  "organizer": "National Housing & Rehabilitation Association",
+  "url": "https://www.housingonline.com/?p=76052",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 listed with date, venue and credit hours TBD.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Developers, syndicators and tax professionals in affordable housing and rehab.",
+  "segments": [
+   "Affordable housing and community development"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "educause-annual-conference",
+  "name": "EDUCAUSE Annual Conference",
+  "organizer": "EDUCAUSE",
+  "url": "https://events.educause.edu/annual-conference",
+  "startDate": "2027-10-18",
+  "endDate": "2027-10-21",
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official page blocked (403) for automated access; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Higher-ed CIOs, IT and data leaders and campus technology vendors.",
+  "segments": [],
+  "industries": [
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "dcd-connect-virginia",
+  "name": "DCD Connect Virginia",
+  "organizer": "DatacenterDynamics",
+  "url": "https://www.datacenterdynamics.com/en/dcdconnect-live/virginia/2026/",
+  "startDate": "2026-11-03",
+  "endDate": "2026-11-04",
+  "typicalMonth": "November",
+  "city": "Leesburg",
+  "state": "VA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Nov 3 per iMasons member summit; page returned 403.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Northern Virginia data center market meeting.",
+  "segments": [
+   "Data centers and power demand"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "wef-watereuse-industrial-water-solutions",
+  "name": "WEF/WateReuse Industrial Water Solutions",
+  "organizer": "WEF / WateReuse",
+  "url": "https://www.wef.org/collectionsstormwater",
+  "startDate": "2027-11-15",
+  "endDate": "2027-11-17",
+  "typicalMonth": "November",
+  "city": "Tucson",
+  "state": "AZ",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed on WEF events table; event page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Industrial water and wastewater reuse engineers and utility partners.",
+  "segments": [
+   "Water and wastewater utilities"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "mba-secondary-capital-markets-conference",
+  "name": "MBA Secondary & Capital Markets Conference",
+  "organizer": "Mortgage Bankers Association",
+  "url": "https://www.mba.org/conferences-and-education/conferences-meetings",
+  "startDate": "2027-05-16",
+  "endDate": "2027-05-19",
+  "typicalMonth": "May",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and Chicago venue from a third-party listing only; 2026 was May 17-20 in New York.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing; lead only",
+  "whyAttend": "Secondary marketing and capital markets staff at mortgage lenders.",
+  "segments": [
+   "Mortgage and consumer lending"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "cwa-meeting-of-the-minds",
+  "name": "California Workforce Association Meeting of the Minds",
+  "organizer": "California Workforce Association",
+  "url": "https://www.calworkforce.org",
+  "startDate": "2027-09-07",
+  "endDate": "2027-09-09",
+  "typicalMonth": "September",
+  "city": "Monterey",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates only from an aggregator; the CWA conference page returned 404.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Workforce board directors, career center managers and state partners (about 500); 2026 edition Sept 8-10 in Monterey.",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "psc-federal-acquisition-conference",
+  "name": "PSC Federal Acquisition Conference",
+  "organizer": "Professional Services Council",
+  "url": "https://acquisition.pscouncil.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Arlington",
+  "state": "VA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page timed out on fetch; edition details from a news listing. 2027 date not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Federal contracting officers and acquisition staff with industry; 10th edition was June 25, 2026 and open to virtual attendance.",
+  "segments": [
+   "Public procurement and contracting"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "astho-events",
+  "name": "ASTHO Annual Meeting and Policy Summit",
+  "organizer": "Association of State and Territorial Health Officials",
+  "url": "https://integration.astho.org/education/upcoming-events",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Member-oriented; ASTHO lists a Leading Change Workshop in Arlington VA in Oct 2026. Annual Meeting dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "State and territorial health officials and their senior staff.",
+  "segments": [
+   "Public health"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "public-health-law-conference",
+  "name": "Public Health Law Conference",
+  "organizer": "Network for Public Health Law",
+  "url": "https://events.networkforphl.org/2025-conference/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not published where seen.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Health department lawyers, officials and advocates; the organizer's site says a 2027 edition is planned.",
+  "segments": [
+   "Public health"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "ifma-presidents-conference",
+  "name": "IFMA Presidents Conference",
+  "organizer": "International Foodservice Manufacturers Association",
+  "url": "https://www.ifmaworld.com/events",
+  "startDate": "2027-11-07",
+  "endDate": "2027-11-09",
+  "typicalMonth": "November",
+  "city": "Scottsdale",
+  "state": "AZ",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "From a search snippet; also Gold & Silver Plate Awards May 22, 2027 Chicago.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Foodservice operator, manufacturer and distributor leaders.",
+  "segments": [
+   "Restaurants and food service"
+  ],
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ]
+ },
+ {
+  "id": "insurtech-insights-usa",
+  "name": "Insurtech Insights USA",
+  "organizer": "Insurtech Insights",
+  "url": "https://www.insurtechinsights.com",
+  "startDate": "2027-06-09",
+  "endDate": "2027-06-10",
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site blocked (403) for automated access; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Carriers, brokers, startups and investors working on insurance innovation.",
+  "segments": [],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "iapp-privacy-security-risk-ai-governance",
+  "name": "IAPP Privacy. Security. Risk. + AI Governance Global",
+  "organizer": "IAPP",
+  "url": "https://iapp.org/conference/iapp-psr",
+  "startDate": "2027-09-14",
+  "endDate": "2027-09-17",
+  "typicalMonth": "October",
+  "city": "Vancouver",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pricing not published; Vancouver 2027 dates seen only on an older page.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search lead",
+  "whyAttend": "Privacy, security and AI-governance leaders working the overlap of the three disciplines.",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "gartner-procurement-conference",
+  "name": "Gartner Procurement Conference",
+  "organizer": "Gartner",
+  "url": "https://www.gartner.com/en/conferences/na/procurement-us",
+  "startDate": "2027-09-13",
+  "endDate": "2027-09-14",
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Gartner pages show conflicting 2026/2027 dates; confirm.",
+  "speaking": "BY_INVITE",
+  "source": "official domain search (dates conflict or unconfirmed)",
+  "whyAttend": "700+ CPOs and sourcing leaders; paid for non-clients.",
+  "segments": [
+   "Supply chain and procurement"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "asja-annual-conference",
+  "name": "ASJA Annual Conference",
+  "organizer": "American Society of Journalists and Authors",
+  "url": "https://www.asja.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition April 20-22 virtual plus Client Connections April 23-24; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "Independent nonfiction writers and freelance authors, with a Client Connections day with editors.",
+  "segments": [
+   "Independent and fractional consultants"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "produced-by-conference",
+  "name": "Produced By Conference",
+  "organizer": "Producers Guild of America",
+  "url": "https://producersguild.org/2026-produced-by-conference-set-for-may-30th-on-the-universal-studios-lot/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Los Angeles",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 30; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Working producers.",
+  "segments": [
+   "Film, television and streaming"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "collective-impact-action-summit",
+  "name": "Collective Impact Action Summit",
+  "organizer": "Collective Impact Forum",
+  "url": "https://collectiveimpactforum.org/blog",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was April 14-16 online; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Backbone and cross-sector collaboration leaders.",
+  "segments": [
+   "Volunteer management and community engagement",
+   "Social enterprise and impact investing"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "bio-europe",
+  "name": "BIO-Europe",
+  "organizer": "EBD Group",
+  "url": "http://www.ebdgroup.com/bioeurope/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "November",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page not retrievable; Europe-based.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Biopharma partnering and business development.",
+  "segments": [],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "socra-annual-conference",
+  "name": "SOCRA Annual Conference",
+  "organizer": "Society of Clinical Research Associates",
+  "url": "https://www.socra.org/annual-conference/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Denver",
+  "state": "CO",
+  "access": "PAID",
+  "costLow": 900,
+  "costHigh": 975,
+  "costNote": "2026 edition standard member and non-member fees; 2027 dates and location not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Certified clinical research professionals, coordinators and monitors from academic centers and industry.",
+  "segments": [
+   "Clinical operations and trials"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "safe-summit",
+  "name": "SAFe Summit",
+  "organizer": "Scaled Agile, Inc.",
+  "url": "https://scaledagile.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Scaled Agile's flagship for enterprise program managers, release train engineers and PMO leaders running SAFe.",
+  "segments": [
+   "Project and program management"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ]
+ },
+ {
+  "id": "icmi-contact-center-expo",
+  "name": "ICMI Contact Center Expo",
+  "organizer": "ICMI",
+  "url": "https://resources.icmi.com/events",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates TBD.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "Contact-center workforce planners.",
+  "segments": [
+   "Payroll and workforce management"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "atlassian-team",
+  "name": "Atlassian Team",
+  "organizer": "Atlassian",
+  "url": "https://events.atlassian.com/team/call-for-speakers",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Anaheim",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Team '26 (May 5-7, Anaheim) tiers were $699 to $1,799; Team '27 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "Atlassian users running Jira, Confluence and service management: release managers, IT service teams and admins.",
+  "segments": [
+   "Quality and testing",
+   "IT leadership and operations"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "iia-isaca-grc-conference",
+  "name": "GRC Conference (The IIA with ISACA)",
+  "organizer": "The Institute of Internal Auditors / ISACA",
+  "url": "https://www.theiia.org/en/events/conference/hybrid-conferences/grc-conference/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Governance, risk and compliance conference co-hosted by IIA and ISACA; 2026 edition Aug 17-19.",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "sales-enablement-summit",
+  "name": "Sales Enablement Summit series",
+  "organizer": "Sales Enablement Collective",
+  "url": "https://world.salesenablementcollective.com/location/austin",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": "Austin",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "official site (partial)",
+  "whyAttend": "Enablement, RevOps and sales leaders; 2027 stops listed in Washington, Austin, New York, Atlanta and Amsterdam.",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "nate-unite",
+  "name": "NATE UNITE",
+  "organizer": "National Association of Tower Erectors",
+  "url": "https://www.natehome.com/",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-25",
+  "typicalMonth": "February",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Rosen Shingle Creek venue from two third-party listings; NATE site blocked reading.",
+  "speaking": "UNKNOWN",
+  "source": "official site (unverified lead)",
+  "whyAttend": "Tower, wireless and broadcast infrastructure contractors and carriers.",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "industries": [
+   "Telecommunications"
+  ]
+ },
+ {
+  "id": "nacto-designing-cities",
+  "name": "NACTO Designing Cities Conference",
+  "organizer": "National Association of City Transportation Officials",
+  "url": "https://nacto.org/events/past-events/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 12-15, Minneapolis; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "City transportation officials and street designers.",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ }
+]

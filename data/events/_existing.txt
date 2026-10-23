@@ -1,0 +1,186 @@
+aba-techshow | ABA TECHSHOW
+ache-congress-on-healthcare-leadership | ACHE Congress on Healthcare Leadership
+acquire-or-be-acquired | Acquire or Be Acquired
+advertising-week-new-york | Advertising Week New York
+afp-annual-conference | AFP Annual Conference
+afp-icon | AFP ICON
+afrotech-conference | AfroTech Conference
+agc-convention | AGC Convention
+aha-leadership-summit | AHA Leadership Summit
+ahip-conference | AHIP Conference
+ai-council | AI Council
+ai-engineer-code-summit | AI Engineer Code Summit
+ai-engineer-worlds-fair | AI Engineer World's Fair
+aiaa-scitech | AIAA SciTech Forum
+aicpa-cfo-conference | AICPA CFO Conference
+aicpa-engage | AICPA & CIMA ENGAGE
+ame-international-conference | AME International Conference
+ana-masters-of-marketing | ANA Masters of Marketing
+asa-staffing-world | Staffing World (American Staffing Association)
+aspen-ideas-festival | Aspen Ideas Festival
+asu-gsv-summit | ASU+GSV Summit
+atd-international-conference | ATD International Conference & EXPO
+ausa-annual-meeting | AUSA Annual Meeting & Exposition
+automate | Automate
+aws-reinvent | AWS re:Invent
+becker-s-annual-meeting | Becker's Healthcare Annual Meeting
+bio-europe | BIO-Europe
+bio-international-convention | BIO International Convention
+bio-it-world | Bio-IT World Conference & Expo
+biotech-showcase | Biotech Showcase
+black-hat-usa | Black Hat USA
+brainstorm-ai-sf | Fortune Brainstorm AI San Francisco
+cannes-lions | Cannes Lions
+cas-annual-meeting | CAS Annual Meeting
+ceraweek | CERAWeek
+ces | CES
+cfo-leadership-conference | CFO Leadership Conference (Spring)
+chief-summit | Chief annual summit
+chime-fall-forum | CHIME Fall Forum
+cisco-live-us | Cisco Live US
+cloc-global-institute | CLOC Global Institute
+cnbc-cfo-council-summit | CNBC CFO Council Summit
+code-for-america-summit | Code for America Summit
+commercenext-growth-show | CommerceNext Growth Show
+commodity-classic | Commodity Classic
+conexpo-con-agg | CONEXPO-CON/AGG
+config | Config
+cphi-americas | CPHI Americas
+cscmp-edge | CSCMP EDGE
+databricks-data-ai-summit | Data + AI Summit
+def-con | DEF CON
+dia-global-annual-meeting | DIA Global Annual Meeting
+distributech | DistribuTECH International
+dreamforce | Dreamforce
+educause-annual-conference | EDUCAUSE Annual Conference
+fiber-connect | Fiber Connect
+finovate-spring | FinovateSpring
+fintech-meetup | Fintech Meetup
+forbes-under-30-summit | Forbes Under 30 Summit
+fortune-500-innovation-forum | Fortune 500 Innovation Forum
+fortune-brainstorm-tech | Fortune Brainstorm Tech
+fortune-most-powerful-women-summit | Fortune Most Powerful Women Summit
+gainsight-pulse | Gainsight Pulse
+gartner-cybersecurity-risk-summit | Gartner Cybersecurity & Risk Management Summit
+gartner-data-analytics-summit | Gartner Data & Analytics Summit
+gartner-finance-symposium | Gartner Finance Symposium/Xpo
+gartner-hr-symposium-xpo | Gartner ReimagineHR / HR Symposium/Xpo (Orlando)
+gartner-supply-chain-symposium | Gartner Supply Chain Symposium/Xpo
+gfoa-annual-conference | GFOA Annual Conference
+github-universe | GitHub Universe
+google-cloud-next | Google Cloud Next
+grace-hopper-celebration | Grace Hopper Celebration
+groceryshop | Groceryshop
+hacu-annual-conference | HACU Annual Conference
+hcca-compliance-institute | HCCA Compliance Institute
+hfma-annual-conference | HFMA Annual Conference
+himss-global-health-conference | HIMSS Global Health Conference & Exhibition
+hiring-our-heroes-career-summit | Hiring Our Heroes Career Summits
+hlth-europe | HLTH Europe
+hlth-usa | HLTH USA
+hr-technology-conference | HR Technology Conference & Expo
+iaap-summit | IAAP Summit
+iab-annual-leadership-meeting | IAB Annual Leadership Meeting
+icma-annual-conference | ICMA Annual Conference
+icsc-las-vegas | ICSC Las Vegas (formerly RECon)
+iltacon | ILTACON
+imts | IMTS
+inc-5000-conference | Inc. 5000 Conference & Gala
+independent-sector-national-summit | Independent Sector National Summit
+insurtech-insights-usa | Insurtech Insights USA
+ism-world | ISM World
+isteLive | ISTELive
+itc-vegas | ITC Vegas
+jpm-healthcare-conference | J.P. Morgan Healthcare Conference
+kubecon-cloudnativecon-north-america | KubeCon + CloudNativeCon North America
+leaddev-new-york | LeadDev New York
+legalweek | Legalweek New York
+lwt-summit | Lesbians Who Tech & Allies Summit
+martech-conference-virtual | MarTech Conference (virtual)
+md-m-west | MD&M West
+mgma-annual-conference | MGMA Annual Conference
+microsoft-ignite | Microsoft Ignite
+milken-global-conference | Milken Institute Global Conference
+milken-institute-global-conference | Milken Institute Global Conference
+modex | MODEX
+money2020-usa | Money20/20 USA
+mwc-barcelona | MWC Barcelona
+nab-show | NAB Show
+nab-show-new-york | NAB Show New York
+nacd-directors-summit | NACD Directors Summit
+nace-annual-conference | NACE Annual Conference (NACE27)
+nada-show | NADA Show
+naiop-cre-converge | NAIOP CRE.Converge
+nalp-annual-education-conference | NALP Annual Education Conference
+nar-nxt | NAR NXT, The REALTOR Experience
+nascio-annual-conference | NASCIO Annual Conference
+naspa-annual-conference | NASPA Annual Conference
+national-restaurant-association-show | National Restaurant Association Show
+national-small-business-week | National Small Business Week
+natural-products-expo-west | Natural Products Expo West
+nawb-forum | NAWB The Forum
+neurips | NeurIPS
+newtopia-now | Newtopia Now
+nlc-city-summit | NLC City Summit
+nonprofit-technology-conference | Nonprofit Technology Conference (NTC)
+nrf-big-show | NRF Retail's Big Show
+nsbe-annual-convention | NSBE Annual Convention
+nvidia-gtc | NVIDIA GTC
+odsc-ai-west | ODSC AI West
+ofc | OFC Optical Networking and Communications Conference
+otc | Offshore Technology Conference
+out-and-equal-workplace-summit | Out & Equal Workplace Summit
+phocuswright-conference | The Phocuswright Conference
+productcon-new-york | ProductCon New York
+qcon-san-francisco | QCon San Francisco
+raps-convergence | RAPS Convergence
+re-plus | RE+
+realcomm-ibcon | Realcomm | IBcon
+reuters-supply-chain-usa | Reuters Events Supply Chain USA
+riskworld | RISKWORLD
+rock-health-summit | Rock Health Summit
+rsa-conference | RSA Conference (RSAC)
+saastr-annual | SaaStr Annual
+sae-wcx | SAE WCX World Congress Experience
+scaling-new-heights | Scaling New Heights
+sea-air-space | Sea-Air-Space
+shoptalk-europe | Shoptalk Europe
+shoptalk-fall | Shoptalk Fall
+shoptalk-spring | Shoptalk Spring
+shpe-national-convention | SHPE National Convention
+shrm-all-things-work | SHRM All Things Work (Skills Accelerator, Linkage Leadership Institute, Blueprint for I&D)
+shrm-hr-x-live | SHRM HR-X Live! (formerly SHRM Annual Conference)
+shrm-leap-employment-law | LEAP Employment Law Conference (with SHRM)
+shrm-talent | SHRM Talent 2027
+sia-executive-forum-north-america | SIA Executive Forum North America
+skift-global-forum | Skift Global Forum
+slush | Slush
+snowflake-summit | Snowflake Summit
+soa-impact-conference | SOA ImpACT Conference
+social-media-marketing-world | Social Media Marketing World
+space-symposium | Space Symposium
+stat-breakthrough-summit-east | STAT Breakthrough Summit East
+stat-breakthrough-summit-west | STAT Breakthrough Summit West
+summer-fancy-food-show | Summer Fancy Food Show
+superreturn-international | SuperReturn International
+superreturn-north-america | SuperReturn North America
+superreturn-private-credit-north-america | SuperReturn Private Credit North America
+sxsw | SXSW
+sxsw-edu | SXSW EDU
+talent-acquisition-week | Talent Acquisition Week
+techcrunch-disrupt | TechCrunch Disrupt
+the-medtech-conference | The MedTech Conference
+tia-capital-ideas | TIA Capital Ideas Conference
+transform-las-vegas | Transform
+uli-fall-meeting | ULI Fall Meeting
+unbound-hubspot | UNBOUND (formerly INBOUND)
+uxdx-usa | UXDX USA
+vive | ViVE
+web-summit | Web Summit
+web-summit-vancouver | Web Summit Vancouver
+wim-summit | Women in Manufacturing SUMMIT
+women-of-power-summit | Black Enterprise Women of Power Summit
+womens-venture-capital-summit | Women's Venture Capital Summit
+workhuman-live | Workhuman Live
+world-agri-tech-usa | World Agri-Tech Innovation Summit
+xponential | AUVSI XPONENTIAL

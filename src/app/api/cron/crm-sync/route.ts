@@ -36,7 +36,10 @@ export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
     const last = await prisma.crmSyncRun.findFirst({
       // Scheduled runs only. A manual "Sync now" sweeps a few hours, not the
       // full window, so counting it as the last sweep would skip real coverage.
-      where: { finishedAt: { not: null }, source: { in: ['gmail', 'calendar'] } },
+      // Measured from the Gmail run, which is when a sweep STARTS: the calendar
+      // run begins after Gmail ends (minutes later), and measuring from it
+      // made the next hourly tick look not-yet-due, so sweeps ran every two hours.
+      where: { finishedAt: { not: null }, source: 'gmail' },
       orderBy: { startedAt: 'desc' }, select: { startedAt: true },
     })
     if (last) {

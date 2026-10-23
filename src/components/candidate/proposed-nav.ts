@@ -36,6 +36,7 @@ export const PROPOSED_NAV: NavPlace[] = [
     entries: [
       { key: 'circles', label: 'Your network', parts: [{ key: 'overview', label: 'All circles' }, { key: 'close', label: 'Close circle' }, { key: 'know', label: 'People you know' }, { key: 'alumni', label: 'Alumni and groups' }, { key: 'industry', label: 'Industry and function' }, { key: 'recruiters', label: 'Recruiters' }] },
       { key: 'week', label: 'This week' },
+      { key: 'found', label: 'Be found' },
       { key: 'messages', label: 'Messages' },
     ],
   },

@@ -2,8 +2,9 @@
 
 Admin → Ecosystem → **Monthly Update** (`/support/admin/crm/mailing`).
 
-- **Lists** (`MailingList`, `MailingListMember`): six seeded (monthly_update,
-  investors, candidates, leads, customers, ecosystem); add, rename or archive
+- **Lists** (`MailingList`, `MailingListMember`): seeded by audience (monthly_update,
+  friends_family, investors, advisors, candidates, higher_ed, workforce, employers,
+  recruiters, coaches, bd_partners, research_partners); add, rename or archive
   them under *Lists and sender settings*. A person can be on several lists;
   unsubscribing is per list. A bounce or spam complaint suppresses the
   address on every list (`MailingSuppression`).

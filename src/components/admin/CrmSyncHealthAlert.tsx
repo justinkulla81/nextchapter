@@ -42,7 +42,9 @@ export async function CrmSyncHealthAlert() {
           {' '}— new emails, replies and meetings aren&apos;t reaching the CRM.
         </p>
         <p className="mt-0.5 text-muted-foreground">
-          {health.reason === 'permission'
+          {health.reason === 'setup'
+            ? 'Meeting notes can’t be read because the Google Docs API is switched off in your Google Cloud project. Turn it on at https://console.cloud.google.com/apis/library/docs.googleapis.com — reconnecting won’t fix it. Notes made meanwhile are copied once it’s on.'
+            : health.reason === 'permission'
             ? 'Google isn’t letting NextChapter read your mail and calendar. Reconnect, and on Google’s screen tick every permission box.'
             : health.reason === 'expired'
               ? 'Google access expired. Reconnect to resume syncing.'

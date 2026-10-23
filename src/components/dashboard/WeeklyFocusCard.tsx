@@ -42,6 +42,7 @@ export async function WeeklyFocusCard({
   locked,
   weeklyPoints,
   weeklyPointsTarget,
+  hidePoints = false,
   hasEmailConnection = false,
   hasCalendarConnection = false,
   linkedInConnected = false,
@@ -61,6 +62,8 @@ export async function WeeklyFocusCard({
   // the live count shown right next to it.
   weeklyPoints: number
   weeklyPointsTarget: number
+  /** Senior overlay: no point counts. */
+  hidePoints?: boolean
 }) {
   // Skip the (self-cached but still real) LLM draft entirely while locked —
   // there's nothing to show, and no reason to spend the call before the
@@ -115,8 +118,7 @@ export async function WeeklyFocusCard({
                 Victoria&apos;s Advice for Your Weekly Search Strategy
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Victoria&apos;s strategic read for this week · {weeklyPoints} of {weeklyPointsTarget} Sprint points so
-                far
+                Victoria&apos;s strategic read for this week{hidePoints ? '' : ` · ${weeklyPoints} of ${weeklyPointsTarget} Sprint points so far`}
               </p>
             </div>
           </div>

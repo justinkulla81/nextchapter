@@ -456,6 +456,8 @@ async function buildSkillsLayer({
           showLocalOpenings={false}
           exposure={exposureOf(option.socCode)}
           currentExposure={currentExposure}
+          lastSalary={profile.lastSalary}
+          askSalary
         />
       ),
     }
@@ -474,6 +476,7 @@ async function buildSkillsLayer({
       tasks={tasksBySoc.get(option.socCode) ?? []}
       exposure={exposureOf(option.socCode)}
       currentExposure={currentExposure}
+      lastSalary={profile.lastSalary}
     />
   )
 

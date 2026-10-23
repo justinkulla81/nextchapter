@@ -63,12 +63,13 @@ export default async function VisionHomePage() {
         </span>
       </header>
 
-      <nav className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <nav className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Tile href="/support/admin/vision/doc" label="Master vision" value={doc ? `v${doc.version}` : 'Not set'} hint={doc ? `Updated ${formatDate(doc.createdAt)}` : 'Import or write it'} />
         <Tile href="/support/admin/vision/brainstorm" label="Sparks" value={String(sparks)} hint="Unjudged, on purpose" />
         <Tile href="/support/admin/vision/items" label="On the roadmap" value={String((bucketCount.get('NOW') ?? 0) + (bucketCount.get('NEXT') ?? 0))} hint={`${bucketCount.get('NOW') ?? 0} now · ${bucketCount.get('NEXT') ?? 0} next`} />
         <Tile href="/support/admin/vision/feedback" label="Feedback" value={String(feedbackNew)} hint={unaddressed > 0 ? `${unaddressed} linked, nobody told yet` : 'Nothing untriaged'} />
         <Tile href="/support/admin/vision/competitors" label="Competitors" value={String(competitors)} hint="Matrix against our features" />
+        <Tile href="/support/admin/vision/capabilities" label="Capability matrix" value="Compare" hint="Our features against theirs, with sources" />
       </nav>
 
       {blockers.length > 0 && (

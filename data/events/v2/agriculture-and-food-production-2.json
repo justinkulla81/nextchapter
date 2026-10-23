@@ -1,0 +1,932 @@
+[
+ {
+  "id": "saf-national-convention",
+  "name": "SAF National Convention",
+  "organizer": "Society of American Foresters",
+  "url": "https://www.eforester.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest annual gathering of US professional foresters, researchers, agency and industry land managers.",
+  "access": "PAID",
+  "costLow": 585,
+  "costHigh": 795,
+  "costNote": "2026 Tacoma rates: member $585, non-member $795 regular; student $205-$255. 2027 edition not yet announced (SAF and CIF co-host Calgary in 2029).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2026 edition had a public call for proposals; 2027 call not yet posted.",
+  "cheaperWays": "Student rates ($205-$255 in 2026); SAF members get 20% off; one-day Wednesday pass.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester",
+   "land manager"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "international-mass-timber-conference",
+  "name": "International Mass Timber Conference",
+  "organizer": "Trifecta Collective",
+  "url": "https://masstimberconference.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-16",
+  "endDate": "2027-03-19",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Foresters, wood suppliers, architects, builders and policymakers meeting on mass timber supply chains.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on a separate Prices & Passes page; 30% early-bird discount advertised; registration opens Aug 25, 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site lists 90+ speakers; no public speaker call seen.",
+  "cheaperWays": "Early-bird discount; mass timber building tours sold separately without a full pass.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester",
+   "land manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tci-expo",
+  "name": "TCI EXPO",
+  "organizer": "Tree Care Industry Association",
+  "url": "https://expo.tcia.org/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-12",
+  "endDate": "2026-11-14",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Fort Lauderdale",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [
+   "Operations",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Commercial arborists, urban foresters and tree-care company owners and managers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on the registration page, not shown on the home page.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": "https://treecareindustryassociation.org/events/call-for-presentations/",
+  "speakingDeadline": null,
+  "speakingNote": "Site links a 'Become a TCIA Event Speaker' page; deadline not seen.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "asfmra-annual-conference",
+  "name": "ASFMRA Annual Conference",
+  "organizer": "American Society of Farm Managers and Rural Appraisers",
+  "url": "https://www.asfmra.org/annualconference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-02",
+  "endDate": "2026-11-04",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Litchfield Park",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [
+   "Operations",
+   "Finance"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Rural land managers, farm and timberland appraisers and ag lenders.",
+  "access": "PAID",
+  "costLow": 1199,
+  "costHigh": 1799,
+  "costNote": "Full conference: members $1,199-$1,599, non-members $1,399-$1,799 by registration date. Online registration closed; email the contact on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No speaker call on the page.",
+  "cheaperWays": "Member rates; one-day passes ($655-$1,055); guest pass $179-$359. Student membership and scholarships linked, not conference discounts.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "land manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "land-trust-alliance-rally",
+  "name": "Rally: The National Land Conservation Conference",
+  "organizer": "Land Trust Alliance",
+  "url": "https://landtrustalliance.org/resources/connect/rally-the-national-land-conservation-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-08",
+  "endDate": "2027-09-11",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 2,200 land trust, conservation easement and land-stewardship professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 fees not yet posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://landtrustalliance.org/resources/connect/rally-the-national-land-conservation-conference/rally-call-for-presentations-submission",
+  "speakingDeadline": null,
+  "speakingNote": "Annual call for presentations; the page seen covers 2026, 2027 call not confirmed.",
+  "cheaperWays": "Scholarships and stipends for underrepresented presenters and participants (cycle pages seen are past).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "land manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "wildlife-society-annual-conference",
+  "name": "The Wildlife Society Annual Conference",
+  "organizer": "The Wildlife Society",
+  "url": "https://wildlife.org/annual-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Des Moines",
+  "state": "IA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Wildlife biologists and natural-resource managers from agencies, universities and land-management firms.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early rates ended Aug 14; regular rates ran Aug 15 to Oct 15 (on-site after). Members save $200+. 2027 is listed for Sacramento, Oct 17-21.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Member discount of $200+.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester",
+   "land manager"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "penn-state-forest-landowners-conference",
+  "name": "Forest Landowners Conference",
+  "organizer": "Penn State James C. Finley Center for Private Forests",
+  "url": "https://ecosystems.psu.edu/research/centers/private-forests/outreach/conferences/2027-forest-landowners-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-05",
+  "endDate": "2027-03-06",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "State College",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Private forest owners, consulting foresters, loggers and extension staff in the Northeast.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Biennial; registration expected to open December 2026; price not posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester",
+   "land manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "society-for-range-management-annual-meeting",
+  "name": "SRM Annual Meeting",
+  "organizer": "Society for Range Management",
+  "url": "https://rangelands.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Rangeland and grazing-land managers, ranchers, agency staff and scientists.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found; 2026 meeting was Feb 7-11 in Monterey.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "land manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "swst-international-convention",
+  "name": "SWST International Convention",
+  "organizer": "Society of Wood Science and Technology",
+  "url": "https://www.swst.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Wood scientists and forest-products researchers and technologists.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 convention was June 7-12 in Seoul; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nasf-annual-meeting",
+  "name": "NASF Annual Meeting",
+  "organizer": "National Association of State Foresters",
+  "url": "https://www.stateforesters.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "State foresters and federal and industry partners setting forestry policy.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester",
+   "land manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "isa-annual-international-conference",
+  "name": "ISA Annual International Conference and Trade Show",
+  "organizer": "International Society of Arboriculture",
+  "url": "https://www.isa-arbor.com/conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Arborists, urban foresters and municipal tree managers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Aug 10-12 in Detroit; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "roles": [
+   "forester"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aquaculture-america",
+  "name": "Aquaculture America",
+  "organizer": "World Aquaculture Society (US Aquaculture Society chapter)",
+  "url": "https://www.was.org/Meeting/code/AA2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-21",
+  "endDate": "2027-02-24",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Honolulu",
+  "state": "HI",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main US aquaculture meeting: farm managers, researchers, feed and equipment suppliers.",
+  "access": "PAID",
+  "costLow": 275,
+  "costHigh": null,
+  "costNote": "Member registration $275 (student member $95, spouse $225); non-member price not seen. Includes trade show; trade-show-only pass $30.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.was.org/Meeting/abstract/Submit/AA2027",
+  "speakingDeadline": null,
+  "speakingNote": "Oral and ePoster abstracts; deadline not seen; presenters pay own registration and travel.",
+  "cheaperWays": "Student member rate $95 (proof required); $30 trade-show-only pass.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager",
+   "fisheries scientist"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "afs-annual-meeting",
+  "name": "AFS Annual Meeting",
+  "organizer": "American Fisheries Society",
+  "url": "https://afsannualmeeting.fisheries.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-26",
+  "endDate": "2027-09-30",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Thousands of fisheries scientists, state and federal agency staff and aquaculture researchers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early registration closes April 9, 2027; prices not seen.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://afsannualmeeting.fisheries.org/call-for-sessions-2/",
+  "speakingDeadline": "2027-01-29",
+  "speakingNote": "Session proposals due Jan 29, 2027; abstracts follow (talks, lightning talks, posters).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "fisheries scientist",
+   "aquaculture manager"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "seafood-expo-north-america",
+  "name": "Seafood Expo North America / Seafood Processing North America",
+  "organizer": "Diversified Communications",
+  "url": "https://www.seafoodexpo.com/north-america/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-07",
+  "endDate": "2027-03-09",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [
+   "Sales",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Seafood buyers, producers, processors and aquaculture companies from across the Americas.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Business-to-business only, ages 18+; price not shown on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Conference program is curated; speakers page exists.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "seafood-expo-global",
+  "name": "Seafood Expo Global / Seafood Processing Global",
+  "organizer": "Diversified Communications",
+  "url": "https://www.seafoodexpo.com/global/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-20",
+  "endDate": "2027-04-22",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Barcelona",
+  "state": null,
+  "country": "ES",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [
+   "Sales",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Largest global seafood trade show; US aquaculture and seafood firms routinely exhibit.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not seen.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Trade press reports the 2027 conference call for proposals is open; link not seen.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pacific-marine-expo",
+  "name": "Pacific Marine Expo",
+  "organizer": "Diversified Business Communications",
+  "url": "https://www.pacificmarineexpo.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-19",
+  "endDate": "2026-11-21",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "West Coast commercial fishing, processing and port operators and marine suppliers.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Trade press reports advance registration free and $55 on site; the official page only links to registration.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Education schedule and speaker FAQ pages exist.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "fisheries scientist",
+   "aquaculture manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "responsible-seafood-summit",
+  "name": "Responsible Seafood Summit",
+  "organizer": "Global Seafood Alliance",
+  "url": "https://www.globalseafood.org/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Ho Chi Minh City",
+  "state": null,
+  "country": "VN",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Seafood producers, retailers, NGOs and certification bodies; international flagship for responsible aquaculture.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition announced for Ho Chi Minh City; dates not seen. 2026 was Bangkok Sept 21-24.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager",
+   "fisheries scientist"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "asian-pacific-aquaculture",
+  "name": "Asian-Pacific Aquaculture",
+  "organizer": "World Aquaculture Society",
+  "url": "https://was.org/meeting/code/APA2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": null,
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "International aquaculture meeting of the World Aquaculture Society; for those working Asia-Pacific supply chains.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Seen only as a listing; dates not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager",
+   "fisheries scientist"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "conference-for-shellfish-growers",
+  "name": "Conference for Shellfish Growers",
+  "organizer": "Washington Sea Grant",
+  "url": "https://wsg.washington.edu/event/2026-conference-for-shellfish-growers",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Union",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Pacific Northwest shellfish producers, researchers and regulators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Feb 9-10; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "mariculture-conference-of-alaska",
+  "name": "Mariculture Conference of Alaska",
+  "organizer": "Alaska Sea Grant",
+  "url": "https://alaskaseagrant.org/events/2026-mariculture-conference-of-alaska/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Anchorage",
+  "state": "AK",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Alaska seaweed and shellfish farmers, regulators and researchers.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was March 10-12 at Hotel Captain Cook; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "roles": [
+   "aquaculture manager"
+  ],
+  "journeys": []
+ }
+]

@@ -1,0 +1,22 @@
+Advertising, Marketing & PR | Content and social media marketing | currently 4 published
+Agriculture & Food Production | Agtech and precision agriculture | currently 6 published
+Automotive & Mobility | Dealerships and aftermarket | currently 7 published
+Business Ownership & Entrepreneurship | Starting a business | currently 4 published
+Consumer Packaged Goods | Household and personal care | currently 7 published
+Energy & Utilities | Mining and minerals | currently 7 published
+Financial Services & Banking | Mortgage and consumer lending | currently 6 published
+Government & Public Sector | Public utilities and transportation agencies | currently 6 published
+Healthcare & Hospital Systems | Long-term care and senior living | currently 4 published
+Hospitality, Travel & Food Service | Hotels and lodging | currently 6 published
+Legal Services | Employment and immigration | currently 6 published
+Manufacturing & Industrial | Supply chain and procurement | currently 6 published
+Media & Entertainment | Sports business | currently 5 published
+Nonprofit & Social Impact | Environmental and conservation | currently 5 published
+Nonprofit & Social Impact | Volunteer management and community engagement | currently 5 published
+Pharmaceuticals & Biotech | Regulatory affairs and quality | currently 5 published
+Professional Services & Consulting | Project and program management | currently 4 published
+Staffing & Human Capital | HRIS and people analytics | currently 5 published
+Technology & Software | Data engineering and analytics | currently 7 published
+Technology & Software | Quality and testing | currently 3 published
+Transportation & Logistics | Air cargo and aviation logistics | currently 7 published
+Venture Capital & Private Equity | Startup founders and operators | currently 6 published

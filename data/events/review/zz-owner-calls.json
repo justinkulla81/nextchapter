@@ -1,0 +1,84 @@
+[
+ {
+  "id": "hiring-our-heroes-career-summit",
+  "action": "drop",
+  "reason": "Hiring fairs mixing hourly and professional roles for service members; the catalog is professional roles only."
+ },
+ {
+  "id": "fs-isac-americas-fall-summit",
+  "action": "publish",
+  "reason": "Member-gated: published as invitation-only with how to join.",
+  "patch": {
+   "access": "INVITE",
+   "verified": true,
+   "cheaperWays": "FS-ISAC membership (financial institutions and critical-infrastructure firms) is the way in; ask your security or risk lead whether your employer is a member.",
+   "adminNote": null
+  }
+ },
+ {
+  "id": "abota-national-meetings",
+  "action": "publish",
+  "reason": "Invitation-only trial lawyers association: published as invitation-only.",
+  "patch": {
+   "access": "INVITE",
+   "verified": true,
+   "cheaperWays": "Membership is by invitation after trial experience; ask a member to propose you.",
+   "adminNote": null
+  }
+ },
+ {
+  "id": "boardroom-summit-corporate-board-member",
+  "action": "publish",
+  "reason": "Public company directors only: published as apply/invitation for executives and sitting directors.",
+  "patch": {
+   "access": "APPLY",
+   "verified": true,
+   "seniorities": [
+    "EXECUTIVE"
+   ],
+   "journeys": [
+    "NEXT_ACT",
+    "PROMOTION"
+   ],
+   "functions": [
+    "Executive Leadership"
+   ],
+   "cheaperWays": "Attendance is limited to sitting public company directors; board-ready executives can use it to learn who to meet and how directors are chosen.",
+   "adminNote": null
+  }
+ },
+ {
+  "id": "wcd-global-institute",
+  "action": "publish",
+  "reason": "Real recurring board-readiness institute; published as membership event with a usual month.",
+  "patch": {
+   "access": "INVITE",
+   "verified": true,
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "journeys": [
+    "NEXT_ACT",
+    "PROMOTION"
+   ],
+   "cheaperWays": "Open to Women Corporate Directors members; membership is by application.",
+   "adminNote": null
+  }
+ },
+ {
+  "id": "vc-platform-global-summit",
+  "action": "publish",
+  "reason": "Members-only annual summit for VC platform and talent leaders: published as invitation-only.",
+  "patch": {
+   "access": "INVITE",
+   "verified": true,
+   "typicalMonth": "April",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "cheaperWays": "Join VC Platform (the community of platform and talent leaders at venture firms) to be invited; the 2026 summit sold out.",
+   "adminNote": null
+  }
+ }
+]

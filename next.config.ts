@@ -39,6 +39,12 @@ const nextConfig: NextConfig = {
   // this redirect exists only for already-external references.
   async redirects() {
     return [
+      // Retired 2026-10-23: the website shows plans, not prices.
+      {
+        source: '/insights/outplacement-cost-per-employee',
+        destination: '/outplacement',
+        permanent: true,
+      },
       {
         source: '/dashboard/hireability-report',
         destination: '/dashboard/market-reality',

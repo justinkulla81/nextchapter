@@ -11,12 +11,6 @@ export interface InsightArticle {
 
 export const INSIGHT_ARTICLES: InsightArticle[] = [
   {
-    slug: 'outplacement-cost-per-employee',
-    title: 'What outplacement actually costs, and what you get',
-    description: 'Cost per employee by tier, plus a live calculator against published NextChapter pricing.',
-    lastUpdated: '2026-08-15',
-  },
-  {
     slug: 'outplacement-vendor-questions',
     title: 'The questions to ask an outplacement vendor',
     description: 'Eight questions that separate a real evaluation from a sales pitch.',
