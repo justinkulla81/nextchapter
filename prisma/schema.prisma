@@ -175,6 +175,7 @@ enum JourneyType {
   RETURNING // after caregiving, health, sabbatical, a move
   NEXT_ACT // 55+: board, fractional, consulting, nonprofit, part-time
   ENTREPRENEUR // employed and starting something of their own: we track and check in
+  BUY_BUSINESS // buying a small business, from deciding to closing to running it (journeyDetails.buy); also available alongside any other journey
   FRACTIONAL // happy doing fractional or interim work: a pipeline of clients, not a job search
   TIME_OFF // on family leave or taking time off, with a return in mind (not laid off)
 }

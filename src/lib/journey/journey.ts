@@ -155,6 +155,17 @@ export const JOURNEYS: JourneyConfig[] = [
     employed: true,
     searching: false,
   },
+  {
+    key: 'BUY_BUSINESS',
+    label: 'Buying a business',
+    card: { label: 'I want to buy a business', description: 'Find the right small business, finance it, and run it well, with marketplaces, lenders and training in one plan.' },
+    goal: 'Own a business that fits your skills and your money.',
+    defaultStage: 'EXPLORING',
+    confidentialByDefault: true,
+    jobStatus: 'EMPLOYED_CONSIDERING_MOVE',
+    employed: true,
+    searching: false,
+  },
 ]
 
 // "Ready for a new job" was folded into "Thinking about a move": how soon
@@ -298,6 +309,7 @@ export const CHECK_IN_ANSWERS = [
   { key: 'career_change', label: "I'm changing careers" },
   { key: 'time_off', label: "I'm going on leave or taking time off" },
   { key: 'building', label: "I'm starting something of my own" },
+  { key: 'buying', label: 'I want to buy a business' },
 ] as const
 export type CheckInAnswer = (typeof CHECK_IN_ANSWERS)[number]['key']
 
@@ -344,6 +356,8 @@ export function changeForAnswer(answer: CheckInAnswer, current: { journey: Journ
       return { journey: 'TIME_OFF', stage: 'STAYING' }
     case 'building':
       return { journey: 'ENTREPRENEUR', stage: 'STAYING' }
+    case 'buying':
+      return { journey: 'BUY_BUSINESS', stage: 'EXPLORING' }
   }
 }
 
@@ -383,6 +397,7 @@ export const REPORT_FRAMING: Record<JourneyType, string> = {
   NEXT_ACT: 'Planning a next act after a long career: board, fractional, consulting or part-time work. Judge them against advisory and fractional roles, not full-time ladder jobs.',
   ENTREPRENEUR: 'Staying in the workforce while starting something of their own. Do not frame a job search or push applications. Note the strengths that carry between the venture and a career, and keep it short.',
   FRACTIONAL: 'Doing fractional or interim work and happy with it. Frame the read around positioning, rate, pipeline and renewals, judged against demand for fractional and advisory work, not a full-time search.',
+  BUY_BUSINESS: 'Looking to buy a small business, not a job. Do not frame a job search or push applications. Frame the read around which of their strengths a buyer or lender will value, how their experience fits the industries they chose, and what that means for the size of business they can run.',
   TIME_OFF: 'On leave or taking time off with a return in mind. Treat the break as context, not a flaw. Frame the read around keeping skills and relationships warm and planning a return; no urgency and no application pressure.',
 }
 
@@ -407,6 +422,8 @@ export function reportFraming(journey: JourneyType, stage: JourneyStage | null, 
 // landed. These members get no job-listing emails (Job Search Daily, fresh
 // job alerts); their plan and emails are about the job they have.
 export function notLookingNow(p: JourneyFields): boolean {
+  // Buying a business is not a job search, whatever stage of the purchase they are in.
+  if (effectiveJourney(p) === 'BUY_BUSINESS') return true
   const stage = effectiveStage(p)
   return stage === 'STAYING' || stage === 'LANDED'
 }
