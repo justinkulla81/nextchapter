@@ -64,6 +64,9 @@ describe('board news', () => {
 describe('board area', () => {
   it('uses listed counties plus the counties of a town-drawn board', () => {
     expect(boardCountyKeys({ counties: ['tarrant'], placeCounties: ['-'], statewide: false })).toEqual(['tarrant'])
+    // A city board's counties come from places with the space kept; one form for both.
+    expect(boardCountyKeys({ counties: [], placeCounties: ['los angeles'], statewide: false })).toEqual(['losangeles'])
+    expect(boardCountyKeys({ counties: ['losangeles'], placeCounties: ['los angeles'], statewide: false })).toEqual(['losangeles'])
     expect(boardCountyKeys({ counties: [], placeCounties: ['suffolk'], statewide: false })).toEqual(['suffolk'])
     expect(boardCountyKeys({ counties: ['vermont'], placeCounties: [], statewide: true })).toBe('all')
   })
