@@ -35,6 +35,7 @@ type JobRow = {
   places: number
   entry_no_exp: number
   entry_ai: number
+  entry_training: number
 }
 
 async function jobCounts(): Promise<JobRow> {
@@ -66,7 +67,8 @@ async function jobCounts(): Promise<JobRow> {
       count(DISTINCT lower("locationCity") || '|' || upper("locationState"))
         FILTER (WHERE "locationCity" IS NOT NULL AND upper("locationState") IN (${US_STATES}))::int AS places,
       count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'no_experience_ok' = ANY("postingSignals"))::int AS entry_no_exp,
-      count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'entry_ai' = ANY("postingSignals"))::int AS entry_ai
+      count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'entry_ai' = ANY("postingSignals"))::int AS entry_ai,
+      count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'training_provided' = ANY("postingSignals"))::int AS entry_training
     FROM roles`)
   if (!row) throw new Error('job counts returned no row')
   return row
@@ -98,7 +100,7 @@ async function taxonomyCounts(): Promise<TaxonomyRow> {
 }
 
 const DAY = 86_400
-const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v4'], { revalidate: DAY })
+const cachedJobs = unstable_cache(jobCounts, ['workforce-numbers-jobs-v5'], { revalidate: DAY })
 const cachedTaxonomy = unstable_cache(taxonomyCounts, ['workforce-numbers-taxonomy-v1'], { revalidate: DAY })
 
 async function safe<T>(label: string, run: () => Promise<T>): Promise<T | null> {
@@ -149,6 +151,7 @@ export async function loadWorkforceNumbers(): Promise<WorkforceTileGroup[]> {
       places: jobs.places,
       entryNoExp: jobs.entry_no_exp,
       entryAi: jobs.entry_ai,
+      entryTraining: jobs.entry_training,
     },
     taxonomy: taxonomy && {
       skills: taxonomy.skills,
@@ -167,11 +170,11 @@ export async function loadWorkforceNumbers(): Promise<WorkforceTileGroup[]> {
   return buildWorkforceTiles(raw)
 }
 
-/** "X entry-level jobs welcome people with no experience; Y entry-level jobs ask for AI skills." from the same
+/** "X entry-level jobs welcome people with no experience; Y include a training program; Z ask for AI skills." from the same
  * deduped, day-cached counts as the tiles; null when they fail or are zero. */
 export async function loadEntryLevelLine(): Promise<string | null> {
   const jobs = await safe('job counts', cachedJobs)
-  return jobs ? entryLevelLine({ ...emptyJobs, entryNoExp: jobs.entry_no_exp, entryAi: jobs.entry_ai }) : null
+  return jobs ? entryLevelLine({ ...emptyJobs, entryNoExp: jobs.entry_no_exp, entryTraining: jobs.entry_training, entryAi: jobs.entry_ai }) : null
 }
 
 const emptyJobs = {

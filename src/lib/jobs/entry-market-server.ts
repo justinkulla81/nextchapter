@@ -10,7 +10,7 @@ const LIVE = `"status" = 'approved' AND "archivedAt" IS NULL AND "institutionSco
   AND ("expiresAt" IS NULL OR "expiresAt" > now()) AND COALESCE("employmentType", '') NOT IN ('internship', 'co_op', 'coop')
   AND COALESCE(upper("locationCountry"), 'US') = 'US'`
 
-type Row = { g: string | null; dim: string; n: number; entry: number; no_exp: number; entry_ai: number; entry_ai_pref: number }
+type Row = { g: string | null; dim: string; n: number; entry: number; no_exp: number; training: number; training_no_exp: number; entry_ai: number; entry_ai_pref: number }
 
 export async function computeEntryMarket(): Promise<EntryMarket> {
   const rows = await prisma.$transaction(async (tx) => {
@@ -24,6 +24,7 @@ export async function computeEntryMarket(): Promise<EntryMarket> {
       ), t AS (
         SELECT fn, ind, sec, entry,
           entry AND 'no_experience_ok' = ANY(s) AS no_exp,
+          entry AND 'training_provided' = ANY(s) AS training,
           entry AND 'entry_ai' = ANY(s) AS entry_ai,
           entry AND 'entry_ai_preferred' = ANY(s) AS entry_ai_pref
         FROM roles
@@ -31,6 +32,7 @@ export async function computeEntryMarket(): Promise<EntryMarket> {
       SELECT CASE WHEN GROUPING(fn) = 0 THEN fn WHEN GROUPING(ind) = 0 THEN ind WHEN GROUPING(sec) = 0 THEN sec END AS g,
         CASE WHEN GROUPING(fn) = 0 THEN 'fn' WHEN GROUPING(ind) = 0 THEN 'ind' WHEN GROUPING(sec) = 0 THEN 'sec' ELSE 'all' END AS dim,
         count(*)::int AS n, count(*) FILTER (WHERE entry)::int AS entry, count(*) FILTER (WHERE no_exp)::int AS no_exp,
+        count(*) FILTER (WHERE training)::int AS training, count(*) FILTER (WHERE training AND no_exp)::int AS training_no_exp,
         count(*) FILTER (WHERE entry_ai)::int AS entry_ai, count(*) FILTER (WHERE entry_ai_pref)::int AS entry_ai_pref
       FROM t GROUP BY GROUPING SETS ((), (fn), (ind), (sec))`)
   }, { timeout: 150_000 })
@@ -41,11 +43,13 @@ export async function computeEntryMarket(): Promise<EntryMarket> {
       .filter((r) => r.dim === dim && r.entry > 0)
       .sort((a, b) => b.entry - a.entry)
       .slice(0, k)
-      .map((r) => ({ key: r.g ?? 'unknown', entry: r.entry, noExp: r.no_exp, entryAi: r.entry_ai }))
+      .map((r) => ({ key: r.g ?? 'unknown', entry: r.entry, noExp: r.no_exp, training: r.training, entryAi: r.entry_ai }))
   return {
     liveUs: all.n,
     entry: all.entry,
     noExp: all.no_exp,
+    training: all.training,
+    trainingAndNoExp: all.training_no_exp,
     entryAi: all.entry_ai,
     entryAiPreferred: all.entry_ai_pref,
     byFunction: top('fn', 10),

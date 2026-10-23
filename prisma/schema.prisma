@@ -1675,12 +1675,15 @@ model CandidateProfile {
 
   // Prompt 69 — optional EEOC self-ID. Every field defaults unanswered
   // (null); PREFER_NOT_TO_ANSWER is a distinct explicit answer, not the
-  // same as never having visited the section. HARD GUARDRAIL: these four
+  // same as never having visited the section. GUARDRAIL: these four
   // fields must never be read by any candidate-facing feature (job board,
   // Job Fit, Interim Work, Victoria, anything) — read only by the
   // admin-only bias-detection dashboard (src/lib/admin/bias-detection.ts),
   // which enforces a server-side minimum-cohort-size suppression before
-  // returning any aggregate built from these fields.
+  // returning any aggregate built from these fields. ONE EXCEPTION, decided
+  // by the owner 2026-10-23: the member's own funding page may read them to
+  // rank programs, only when the member turned on journeyDetails.funding.useSelfId
+  // (src/lib/benefits/member.ts). Computed on the fly, never copied or logged.
   eeocGenderIdentity   EeocGenderIdentity?
   eeocRaceEthnicity    EeocRaceEthnicity?
   eeocDisabilityStatus EeocYesNoDecline?
@@ -5340,6 +5343,12 @@ model ExclusiveJobPosting {
   // ~160 characters, quoted on the open job and the public job page. Null = not flagged.
   // prisma/manual/2026-10-23-entry-signals.sql.
   noExperiencePhrase String?
+  // The posting's own words that set postingSignals' training_provided (crawler ncrawl/entry_signals.py
+  // detect_training, an allowlist: "12-week paid training program", rotational / leadership development
+  // programs, apprenticeships, "comprehensive training provided" …), at most ~160 characters, quoted on the open
+  // job and the public job page. Its own column so a job with both entry flags quotes each cleanly.
+  // Null = not flagged. prisma/manual/2026-10-23-training-provided.sql.
+  trainingPhrase String?
   // The broader "AI-exposed" metric (crawler ai_profile, prisma/manual/2026-10-20-ai-exposure.sql):
   // a specific AI skill, an AI/ML title term, a data & AI role whose role text mentions AI, or an AI
   // tool named in the role text. aiExposureWhy lists which rules fired (skill | title | function |
@@ -10896,6 +10905,11 @@ model CrmOpportunity {
 
   title String
 
+  // The program's own page (the application or about page), so a lead can be opened
+  // without hunting for it. Distinct from the organization's website: one funder
+  // can hold several programs, each with its own page.
+  url String?
+
   orgId String?
   org   CrmOrganization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
@@ -11799,6 +11813,30 @@ model ProductCompetitor {
   /// When the competitor is also an organisation we track.
   crmOrgId String?
 
+  /// DIRECT | ADJACENT | PARTNER | SUPPLIER. A data supplier or a possible partner is not a rival, and the
+  /// page says so rather than leaving them out.
+  relationship String @default("DIRECT")
+  /// Where they compete, from the fixed vocabulary in src/lib/vision/competitor-areas.ts.
+  areas        String[] @default([])
+  keyFeatures  String[] @default([])
+  /// [{ name, note?, url? }] named buyers or users, from their site, press or public records.
+  customers    Json?
+  /// [{ what, buyer?, amount?, year?, url? }] grants, funding and RFPs or contracts they have won.
+  wins         Json?
+  weWin        String[] @default([])
+  theyWin      String[] @default([])
+  /// Features we would need to build to compete where they are ahead.
+  weNeed       String[] @default([])
+  pricingNote  String?
+  foundedYear  Int?
+  hq           String?
+  lastRound    String?
+  investors    String?
+  notes        String?  @db.Text
+  /// How the row was filled: hand | website | seed. A website or seed fill is a draft until reviewed.
+  filledBy     String?
+  needsReview  Boolean  @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -12091,6 +12129,13 @@ model WorkforceBoard {
   placeCounties     String[]  @default([])
   partnersCheckedAt DateTime?
   newsCheckedAt     DateTime?
+  /// The board's own bids / RFP / procurement page, found by scripts/boards/crawl-procurement.py.
+  procurementUrl       String?
+  /// solicitations (open items seen), procurement_page, or none
+  procurementKind      String?
+  /// Up to six open-solicitation lines seen on that page: [{ title, date }]. Leads, not a bid list.
+  procurementItems     Json?
+  procurementCheckedAt DateTime?
 
   fitScore     Float?
   fitBreakdown Json?
@@ -14510,6 +14555,8 @@ model BenefitProgram {
   employerKey String?
   /// County GeoArea this program belongs to, filled from locality/city.
   geoAreaId   String?
+  applyUrl    String?
+  affinity    String[]  @default([])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
 

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CRM_ACTIVITY_CUTOFF } from '@/lib/crm/cutoff'
-import { getActiveGoogleConnection, getValidAccessToken } from '@/lib/google/connection'
+import { getAllGoogleConnections, getValidAccessToken } from '@/lib/google/connection'
 import { getSendAsAddresses } from '@/lib/google/gmail'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
@@ -20,7 +20,7 @@ export default async function CrmSyncPage({
   await requireAdmin()
   const params = await searchParams
 
-  const [runs, addedAgg, autoLogged, withTouch, totalPeople, needsReview, setting, gmailConnection, calendarConnections] = await Promise.all([
+  const [runs, addedAgg, autoLogged, withTouch, totalPeople, needsReview, setting, gmailConnections, calendarConnections] = await Promise.all([
     prisma.crmSyncRun.findMany({ orderBy: { startedAt: 'desc' }, take: 8 }),
     prisma.crmSyncRun.aggregate({ _sum: { suggested: true } }),
     prisma.crmActivity.count({ where: { isAutoLogged: true, occurredAt: { gte: CRM_ACTIVITY_CUTOFF } } }),
@@ -28,9 +28,10 @@ export default async function CrmSyncPage({
     prisma.crmPerson.count(),
     prisma.crmPerson.count({ where: { needsCompletion: true, deletedAt: null } }),
     prisma.crmSyncSetting.findUnique({ where: { id: 'singleton' } }),
-    getActiveGoogleConnection(),
+    getAllGoogleConnections(),
     prisma.adminGoogleCalendarConnection.findMany({ orderBy: { createdAt: 'asc' } }),
   ])
+  const gmailConnection = gmailConnections[0] ?? null
   const calendarConnection = calendarConnections[0] ?? null
   const addedCount = addedAgg._sum.suggested ?? 0
   const token = gmailConnection ? await getValidAccessToken().catch(() => null) : null
@@ -92,7 +93,7 @@ export default async function CrmSyncPage({
         {gmailConnection && calendarConnection ? (
           <>
             <p className="text-sm text-muted-foreground">
-              Gmail connected as <span className="font-medium text-foreground">{gmailConnection.email}</span>
+              {gmailConnections.length > 1 ? 'Gmail connected: ' : 'Gmail connected as '}<span className="font-medium text-foreground">{gmailConnections.map((c) => c.email).join(', ')}</span>
               {gmailConnection.lastSweepAt && <> — last swept {sinceLabel(gmailConnection.lastSweepAt)}</>}
             </p>
             <p className="text-sm text-muted-foreground">
@@ -120,8 +121,11 @@ export default async function CrmSyncPage({
               </a>
               <CrmSyncButton />
               <form action={disconnectAdminGmailInbox}>
-                <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">Disconnect Gmail</button>
+                <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4">{gmailConnections.length > 1 ? 'Disconnect all Gmail' : 'Disconnect Gmail'}</button>
               </form>
+              <a href="/api/google/oauth/start?from=/support/admin/crm/sync" className="text-sm text-muted-foreground underline underline-offset-4">
+                Add another Google account (mail and calendar)
+              </a>
               <a href="/api/admin/google-calendar/connect" className="text-sm text-muted-foreground underline underline-offset-4">
                 Connect another Google account&rsquo;s calendar
               </a>

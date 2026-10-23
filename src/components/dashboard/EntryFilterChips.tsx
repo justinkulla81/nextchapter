@@ -8,8 +8,8 @@ import { boardHref } from '@/lib/jobs/board-url'
 import { ENTRY_FILTERS, toggleEntryParam, type EntryFilterKey } from '@/lib/jobs/entry-filters'
 
 /**
- * "No experience needed" and "Entry-level + AI" (off by default; entry-filters.ts). They live in the URL
- * (`entry=noexp,ai`, board-url.ts), so they work with the search and every other filter. Fires
+ * "No experience needed", "Entry-level + AI" and "Training provided" (off by default; entry-filters.ts). They live
+ * in the URL (`entry=noexp,ai,train`, board-url.ts), so they work with the search and every other filter. Fires
  * entry_filter_changed {filter, on, surface, count, active}.
  */
 export function EntryFilterChips({ surface, on, count }: { surface: string; on: readonly EntryFilterKey[]; count?: number | null }) {

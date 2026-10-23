@@ -12,7 +12,13 @@ import type { BenefitCategory, BenefitProgramRow } from './types'
 export type AudienceTag =
   | 'federal' | 'veteran' | 'military_spouse' | 'educator' | 'clinician' | 'lawyer' | 'tech' | 'finance'
   | 'journalist' | 'age40' | 'age50' | 'disabled' | 'immigrant' | 'reentry' | 'rural' | 'entrepreneur'
-  | 'returner' | 'student' | 'engineer' | 'hr' | 'pm'
+  | 'returner' | 'student' | 'engineer' | 'hr' | 'pm' | 'socialwork' | 'science' | 'music' | 'community'
+  // Community and heritage. Never asked as a new question and never inferred: these come only from the member's own voluntary
+  // self-ID answers, and only when they turn that on for funding (see tagsFromSelfId). Religion is never asked or used.
+  | 'women' | 'lgbtq' | 'hispanic' | 'black' | 'aapi' | 'native'
+  // A program that requires a faith. We never ask about religion, so this tag is never held and those programs are not shown.
+  | 'faith'
+  | 'parent' | 'firstgen'
 
 /** What a member can say about themselves. Optional, private, and only used to match. */
 export const SELF_TAGS: { tag: AudienceTag; label: string }[] = [
@@ -27,7 +33,41 @@ export const SELF_TAGS: { tag: AudienceTag; label: string }[] = [
   { tag: 'entrepreneur', label: 'I want to start a business' },
   { tag: 'returner', label: 'I am returning after a career break or caregiving' },
   { tag: 'student', label: 'I am a student or recent graduate' },
+  { tag: 'parent', label: 'I am raising children' },
+  { tag: 'firstgen', label: 'I am the first in my family to go to college' },
 ]
+/** Tags that describe a community, not a situation. Never sent to analytics. */
+// One rule for every group we do not ask about directly: a program written for a group is shown only to someone we positively know belongs to it.
+// Ethnicity and gender come from the member's own opt-in self-ID. Religion and sexual orientation are never asked, so those programs are not shown.
+export const COMMUNITY_TAGS = new Set<AudienceTag>(['women', 'lgbtq', 'hispanic', 'black', 'aapi', 'native', 'faith'])
+
+export interface SelfIdAnswers {
+  race?: string | null
+  gender?: string | null
+  veteran?: string | null
+  disability?: string | null
+}
+/**
+ * Tags from the member's own optional EEOC self-ID answers (race or ethnicity, gender, veteran, disability). Used only when the
+ * member turns it on for funding matches, computed on the fly for that member, and never stored or logged. "Prefer not to answer",
+ * "No", "Two or more races" and anything unanswered give no tag.
+ */
+export function tagsFromSelfId(a: SelfIdAnswers): AudienceTag[] {
+  const out: AudienceTag[] = []
+  if (a.race === 'HISPANIC_LATINO') out.push('hispanic')
+  else if (a.race === 'BLACK_AFRICAN_AMERICAN') out.push('black')
+  else if (a.race === 'ASIAN' || a.race === 'NATIVE_HAWAIIAN_PACIFIC_ISLANDER') out.push('aapi')
+  else if (a.race === 'AMERICAN_INDIAN_ALASKA_NATIVE') out.push('native')
+  if (a.gender === 'WOMAN') out.push('women')
+  if (a.veteran === 'YES') out.push('veteran')
+  if (a.disability === 'YES') out.push('disabled')
+  return out
+}
+/** What a held tag is called in a program's soft "affinity" list, which only ranks and never hides or shows. */
+const AFFINITY_OF: Partial<Record<AudienceTag, string>> = {
+  women: 'women', lgbtq: 'LGBTQ+', hispanic: 'Hispanic or Latino', black: 'Black or African American', aapi: 'AAPI', native: 'Native American',
+  parent: 'parents', firstgen: 'first-generation', student: 'student', age50: '50+', veteran: 'veteran', military_spouse: 'military spouse',
+}
 const SELF_TAG_SET = new Set<string>(SELF_TAGS.map((t) => t.tag))
 export const cleanSelfTags = (v: unknown): AudienceTag[] =>
   Array.isArray(v) ? [...new Set(v.filter((t): t is AudienceTag => typeof t === 'string' && SELF_TAG_SET.has(t)))] : []
@@ -49,6 +89,13 @@ function pieceTags(piece: string): Set<AudienceTag | 'employer'> | null {
   if (/\btech\b|\bai\b|ai-exposed|software/i.test(p)) t.add('tech')
   if (/financ|securities/i.test(p)) t.add('finance')
   if (/journalists?|\bnews\b|media/i.test(p)) t.add('journalist')
+  if (/\bwomen\b|\bwoman\b/i.test(p)) t.add('women')
+  if (/lgbtq/i.test(p)) t.add('lgbtq')
+  if (/hispanic|latino|latina|latinx/i.test(p)) t.add('hispanic')
+  if (/african american|\bblack\b/i.test(p)) t.add('black')
+  if (/\baapi\b|\basian\b|pacific islander/i.test(p)) t.add('aapi')
+  if (/native american|alaska native|american indian|indigenous|tribal/i.test(p)) t.add('native')
+  if (/jewish|catholic|muslim|islamic|christian|presbyterian|methodist|lutheran|latter-day|\bfaith\b|\bchurch\b/i.test(p)) t.add('faith')
   if (/\b(50|55)\+/.test(p)) t.add('age50')
   else if (/\b40\+/.test(p)) t.add('age40')
   if (/disab|ssdi|\bssi\b/i.test(p)) t.add('disabled')
@@ -89,7 +136,7 @@ export function deriveWorkTags(p: { primaryFunction?: string | null; industryCon
   const text = [p.primaryFunction, p.industryContext, p.industryBucket, p.targetFunction].filter(Boolean).join(' | ')
   const out: AudienceTag[] = []
   if (/teach|educat|school|universit|higher ed/i.test(text)) out.push('educator')
-  if (/health|clinic|nurs|physician|medical|hospital|pharma/i.test(text)) out.push('clinician')
+  if (/health|clinic|nurs|physician|medical|hospital|pharma|dental|therap|patient/i.test(text)) out.push('clinician')
   if (/\blegal\b|\blaw\b|attorney|counsel/i.test(text)) out.push('lawyer')
   if (/\btech|software|engineer|data|\bai\b|\bit\b|product/i.test(text)) out.push('tech')
   if (/financ|bank|account|invest|insurance/i.test(text)) out.push('finance')
@@ -97,8 +144,32 @@ export function deriveWorkTags(p: { primaryFunction?: string | null; industryCon
   if (/engineer|mechanical|civil|electrical|chemical/i.test(text)) out.push('engineer')
   if (/human resources|\bhr\b|talent|recruit/i.test(text)) out.push('hr')
   if (/project manag|program manag|\bpmo\b/i.test(text)) out.push('pm')
+  if (/social work|counsel|human services|nonprofit/i.test(text)) out.push('socialwork')
+  if (/scien|research|geolog|laborator|biolog|chemist|physic/i.test(text)) out.push('science')
+  if (/music|entertain|film|television/i.test(text)) out.push('music')
   return out
 }
+
+/** Whether we know the member's line of work at all. If not, profession-specific programs stay in. */
+export const workKnown = (p: { primaryFunction?: string | null; industryContext?: string | null; industryBucket?: string | null; targetFunction?: string | null }) =>
+  [p.primaryFunction, p.industryContext, p.industryBucket, p.targetFunction].some((v) => !!v && v.trim().length > 1)
+
+const WORK_TAGS = new Set<AudienceTag>(['educator', 'clinician', 'lawyer', 'tech', 'finance', 'journalist', 'engineer', 'hr', 'pm', 'socialwork', 'science', 'music'])
+
+/** Professions named in a program's own eligibility text. */
+const TEXT_PROF: [RegExp, AudienceTag][] = [
+  [/physicians?|nurses?|clinicians?|dentists?|pharmacists?|doctors?|health professionals|healthcare workers/i, 'clinician'],
+  [/attorneys?|lawyers?/i, 'lawyer'],
+  [/teachers?|educators?|professors?|faculty/i, 'educator'],
+  [/engineers?/i, 'engineer'],
+  [/social workers?/i, 'socialwork'],
+  [/journalists?/i, 'journalist'],
+  [/\bCPAs?\b|accountants?/i, 'finance'],
+  [/musicians?|music (industry|professionals)/i, 'music'],
+  [/scientists?|geoscien/i, 'science'],
+]
+const OPEN_TO_ALL = /anyone|any profession|all workers|open to all|any occupation/i
+const profTextTags = (el: string | null): AudienceTag[] => (!el || OPEN_TO_ALL.test(el) ? [] : TEXT_PROF.filter(([re]) => re.test(el)).map(([, t]) => t))
 
 export type Goal = 'support' | 'move' | 'retrain' | 'tax' | 'learn'
 /** Real money first, free learning last. */
@@ -134,6 +205,10 @@ export interface MemberFacts {
   pivoting: boolean
   /** Self-declared plus implied by work history. */
   tags: AudienceTag[]
+  /** False when we have no work history: profession-specific programs then stay in. Default true. */
+  workKnown?: boolean
+  /** False when the member never answered the 'which are true for you' questions: those programs then stay in. Default true. */
+  answered?: boolean
 }
 
 export interface Match {
@@ -153,7 +228,7 @@ const US_STATE = /^[A-Z]{2}$/
  * decided here by name, because the free-text segment column is blank for them.
  */
 const NOT_FOR_THIS_PAGE =
-  /medicare|rxpathways|patient assistance|rapid response|child tax credit|child and dependent|relocation incentive act|liheap|trump accounts|food bank|\b988\b|\bnami\b|open path|mental health|lawhelp|legal services|warn act|layoffs\.fyi|trueup|united way|catholic charities|emergency grants|self-sufficiency|rx kids|givedirectly|abundant birth|guaranteed income|f4gi|bonding program|work share|short-time|pslf employer|job accommodation|openai foundation|anthropic economic|^[a-z]\d{3,5}\b|executive order|wage-insurance|state pilot bill|entertainment community|motion picture|sag-aftra|authors league|aicpa|dress for success|appalachian regional|^\d+$/i
+  /lifeline|medicare|rxpathways|patient assistance|rapid response|child tax credit|child and dependent|relocation incentive act|liheap|trump accounts|food bank|\b988\b|\bnami\b|open path|mental health|lawhelp|legal services|warn act|layoffs\.fyi|trueup|united way|catholic charities|emergency grants|self-sufficiency|rx kids|givedirectly|abundant birth|guaranteed income|f4gi|bonding program|work share|short-time|pslf employer|job accommodation|openai foundation|anthropic economic|^[a-z]\d{3,5}\b|executive order|wage-insurance|state pilot bill|entertainment community|motion picture|sag-aftra|authors league|aicpa|dress for success|appalachian regional|^\d+$/i
 // A row filed as nationwide whose name is one state's program (the catalog has a few) is not nationwide.
 const STATE_NAMED = new RegExp(`\\b(${US_STATES.filter((x) => x.code !== 'DC').map((x) => x.name).join('|')})\\b`, 'i')
 /**
@@ -162,7 +237,7 @@ const STATE_NAMED = new RegExp(`\\b(${US_STATES.filter((x) => x.code !== 'DC').m
  * a scholarship, free classes, an individual training account) and does not say it pays a business.
  */
 const PAYS_THE_PERSON = /tuition|scholarship|\bfree\b|dislocated worker|individual training|\bita\b|training expenses|financial assistance|promise|last-dollar|paid training|per credential|certificate programs|reconnect|stipend|upskill|apprenticeship|career training|training for/i
-const PAYS_A_BUSINESS = /\bemployers? (relocating|hiring)|sponsors?\b|states, tribes|local boards|industry partnerships?|young adults|\byouth\b|techcred|on-the-job|\bojt\b|incumbent worker|reimburses? employers?|employer (training |reimbursement|grant)|customized (workforce )?training|skills development fund|self-sufficiency fund|small business|for new and expanding|sector partnership|training panel|eligible training provider|\bdirectory\b|policy framework|case management|\bresea\b|job-search platform|job search platform|grant opportunities page|financial aid page|\bunemployment insurance\b|work-search|free advising|lists? providers?|not a payment/i
+const PAYS_A_BUSINESS = /\bapprentices\b|\bemployers? (relocating|hiring)|sponsors?\b|states, tribes|local boards|industry partnerships?|young adults|\byouth\b|techcred|on-the-job|\bojt\b|incumbent worker|reimburses? employers?|employer (training |reimbursement|grant)|customized (workforce )?training|skills development fund|self-sufficiency fund|small business|for new and expanding|sector partnership|training panel|eligible training provider|\bdirectory\b|policy framework|case management|\bresea\b|job-search platform|job search platform|grant opportunities page|financial aid page|\bunemployment insurance\b|work-search|free advising|lists? providers?|not a payment/i
 function memberFacing(r: BenefitProgramRow): boolean {
   const text = `${r.name} | ${r.amount ?? ''} | ${r.eligibility ?? ''}`
   if (PAYS_A_BUSINESS.test(text)) return false
@@ -199,9 +274,12 @@ const PROFESSION_BODY: [RegExp, AudienceTag][] = [
   [/shrm|human resources|\bhr\b/i, 'hr'],
   [/\bpmi\b|project management/i, 'pm'],
   [/teacher|educator|professor/i, 'educator'],
+  [/\bnasw\b|social worker/i, 'socialwork'],
+  [/\bagu\b|geophysical|geoscien/i, 'science'],
+  [/\basha\b|speech-language|audiolog/i, 'clinician'],
 ]
 const professionNeeded = (r: BenefitProgramRow): AudienceTag | 'unknown' | null => {
-  if (r.source !== 'unemployed_professional.md') return null
+  if (!/^unemployed_(professional|ext_adds)\.md$/.test(r.source ?? '')) return null
   const hit = PROFESSION_BODY.find(([re]) => re.test(r.name))
   return hit ? hit[1] : 'unknown'
 }
@@ -260,21 +338,37 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
     place = `You live in ${r.locality ? r.locality : rowState}`
   }
 
+  // A person we know nothing about stays in. A person we know does not fit goes out. Work tags need their work
+  // history to match; self-declared traits need the member to have said yes, once they have answered at all.
+  // Community tags (from the member's own self-ID, opt-in) are strict: someone who has not turned that on never sees a program written for a community.
+  const ok = (t: AudienceTag) => t === 'community' || held.has(t) || (COMMUNITY_TAGS.has(t) ? false : WORK_TAGS.has(t) ? m.workKnown === false : m.answered === false)
   // A professional body's dues waiver or fund: only for that profession; an unlisted body is hidden.
   const prof = professionNeeded(r)
-  if (prof === 'unknown' || (prof && !held.has(prof))) return null
-  // Veteran-only by name and the like: every tag the name implies must be held.
+  if (prof === 'unknown') return null
+  if (prof && !ok(prof)) return null
+  // Veteran-only by name and the like: every tag the name implies must hold.
   const named = NAME_AUDIENCE.filter(([re]) => re.test(r.name)).map(([, t]) => t)
-  if (named.some((t) => !held.has(t))) return null
-  // A relocation row that says veterans in its eligibility needs the veteran tag, like a segment would.
-  if (goal === 'move' && /veterans?/i.test(r.eligibility ?? '') && !held.has('veteran')) return null
+  if (named.some((t) => !ok(t))) return null
+  // Professions named in the program's own eligibility: one of them must hold.
+  const textProf = profTextTags(r.eligibility)
+  if (textProf.length > 0 && !textProf.some(ok)) return null
+  // Eligibility that is written for veterans, military spouses, people with a record or a disability needs that tag,
+  // unless it says anyone can use it.
+  const el = r.eligibility ?? ''
+  if (!OPEN_TO_ALL.test(el) && !/including|and also|as well as/i.test(el)) {
+    const mil = /veterans?|service members?|military (community|members?|families|spouses?)/i.test(el)
+    if (mil && !ok('veteran') && !(/spouse/i.test(el) && ok('military_spouse'))) return null
+    if (/criminal record|incarcerat|reentry|formerly incarcerated/i.test(el) && !ok('reentry')) return null
+    if (/(people|persons|individuals|adults|workers|students|beneficiaries) with (a )?disabilit|\bdisabled (people|persons|individuals|adults|workers|students|veterans)|\bSSDI\b|\bSSI\b/i.test(el) && !ok('disabled')) return null
+  }
   const a = audienceOf(r.segments)
   if (a.kind === 'unreadable') return null
-  if (a.kind === 'general' && named.length > 0) return { place, specific: true }
+  if (a.kind === 'general' && (named.length > 0 || textProf.length > 0)) return { place, specific: true }
   if (a.kind === 'tags') {
-    const ok = a.options.some((opt) => opt.every((t) => held.has(t)))
-    if (!ok) return null
-    return { place, specific: true }
+    if (!a.options.some((opt) => opt.every(ok))) return null
+    // Specific only if the member really holds a tag; "maybe" rows (unknown group) do not get the boost.
+    const holds = a.options.some((opt) => opt.every((t) => t !== 'community' && held.has(t)))
+    return { place, specific: holds }
   }
   return { place, specific: false }
 }
@@ -282,6 +376,7 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
 export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[] {
   const held = new Set<AudienceTag>(m.tags)
   age40Implied(held)
+  const heldAffinity = new Set<string>([...held].map((t) => AFFINITY_OF[t]).filter((x): x is string => !!x))
   const out: Match[] = []
   for (const r of rows) {
     const f = fits(r, m, held)
@@ -295,6 +390,12 @@ export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[
     if (f.specific) {
       score += 25
       why = `Built for people like you. ${f.place}.`
+    }
+    // A softer signal than the gates: the program speaks to a community or life stage the member named.
+    const hit = (r.affinity ?? []).find((a) => heldAffinity.has(a))
+    if (hit) {
+      score += 15
+      why = `${why} Written with ${hit === 'parents' ? 'parents' : hit === 'student' ? 'students' : `the ${hit} community`} in mind.`
     }
     if (r.status === 'OPEN' || r.status === 'ROLLING') score += 12
     if (goal === 'retrain' && (m.pivoting || m.laidOff)) score += 8
@@ -310,9 +411,11 @@ export function matchPrograms(rows: BenefitProgramRow[], m: MemberFacts): Match[
   // The same program is filed under two categories in places (Google certificates, SCSEP): keep the best.
   const seen = new Set<string>()
   return out.filter((x) => {
-    const k = x.program.name.trim().toLowerCase()
-    if (seen.has(k)) return false
-    seen.add(k)
+    // Same name, or the same official page for the same state and kind of help, is one program shown once.
+    const url = (x.program.url ?? '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/[#?].*$/, '').replace(/\/$/, '')
+    const keys = [`n:${x.program.name.trim().toLowerCase()}`, ...(url ? [`u:${url}|${x.program.state ?? ''}|${x.goal}`] : [])]
+    if (keys.some((k) => seen.has(k))) return false
+    keys.forEach((k) => seen.add(k))
     return true
   })
 }
