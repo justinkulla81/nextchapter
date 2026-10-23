@@ -687,8 +687,17 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
   // refreshes is skipped and reported, so the others still run.
   const accounts = await getAllAdminCalendarAccess()
   const usable = accounts.filter((a): a is typeof a & { token: string } => !!a.token)
-  if (usable.length === 0) return { ...base, reason: accounts.length ? 'no_valid_token' : 'no_connection' }
   const accountErrors = accounts.filter((a) => a.error).map((a) => `${a.googleEmail ?? 'unknown account'}: ${a.error}`)
+  if (usable.length === 0) {
+    // Connected but every token is dead: leave a failed run behind so the
+    // sync-health banner says so, instead of a quiet "nothing to sweep".
+    if (accounts.length) {
+      await prisma.crmSyncRun.create({
+        data: { source: runSource, windowFrom: new Date(), finishedAt: new Date(), error: accountErrors.join('; ').slice(0, 500) },
+      })
+    }
+    return { ...base, reason: accounts.length ? 'no_valid_token' : 'no_connection' }
+  }
 
   const rollingFrom = new Date(Date.now() - daysBack * DAY)
   const windowFrom = rollingFrom < CRM_ACTIVITY_CUTOFF ? CRM_ACTIVITY_CUTOFF : rollingFrom
@@ -841,12 +850,20 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
         notesAttached, todosCreated, remindersCreated, needsReconnect: notesNeedReconnect, eventsScanned: result.scanned, source: runSource,
       })
     }
+    // Anything reconnecting fixes is recorded on the run, so the sync-health
+    // banner shows it: an account whose access was revoked, or notes that
+    // can't be read because the grant lacks Docs access.
+    const problems = [
+      ...accountErrors,
+      ...(notesNeedReconnect ? ['Gemini notes unreadable — Docs read refused: 403 PERMISSION_DENIED'] : []),
+    ]
     await prisma.crmSyncRun.update({
       where: { id: run.id },
       data: {
         finishedAt: new Date(), scanned: result.scanned, matched: result.matched,
         activitiesCreated: result.activitiesCreated, suggested: result.suggested,
         skippedInternal: result.skippedInternal,
+        ...(problems.length ? { error: problems.join('; ').slice(0, 500) } : {}),
       },
     })
     return result

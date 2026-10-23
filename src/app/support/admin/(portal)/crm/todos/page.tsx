@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { formatDate } from '@/lib/crm/labels'
+import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
 import { setTodoDone } from './actions'
 
 export const maxDuration = 30
@@ -45,6 +46,8 @@ export default async function CrmTodosPage() {
           at 9:00 ET on the due date; &ldquo;Waiting on&rdquo; items are what someone else owes you.
         </p>
       </header>
+
+      <CrmSyncHealthAlert />
 
       {overdue.length > 0 && (
         <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{overdue.length} overdue</p>
