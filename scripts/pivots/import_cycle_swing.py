@@ -5,9 +5,13 @@
       soc_2000_to_2010_crosswalk.xlsx soc_2010_to_2018_crosswalk.xlsx
 
 Arguments are the national estimate files (the 'national_M20XX_dl' or 'national_dl' sheet) for May 2007, May 2010,
-May 2019 and May 2020, in that order. An occupation is kept only when its 6-digit code appears in both files of a
-pair, so a code that changed meaning between SOC editions is dropped rather than guessed at. Episodes:
-2007 to 2010 (the Great Recession) and 2019 to 2020 (the pandemic).
+May 2019 and May 2020, in that order, then the BLS SOC crosswalks 2000 to 2010 and 2010 to 2018 (.xls converted to .xlsx).
+May 2007 is in SOC 2000, May 2010 in SOC 2010, and May 2019 and 2020 in SOC 2018 with BLS's own combined codes (for
+example 13-2098 for financial analysts, risk specialists and other financial specialists). The app uses 2018 codes.
+Codes are linked through the crosswalks and the combined codes into groups. A group is kept only when every code in it
+is in its year's file, it is small (at most 6 codes per edition, 5 in 2018) and its change is plausible. When a group
+holds more than one 2018 code, the history is for those jobs together and the file says which (field 'group').
+Episodes: 2007 to 2010 (the Great Recession) and 2019 to 2020 (the pandemic).
 """
 import json, sys, datetime, pathlib
 
@@ -56,6 +60,11 @@ COMBINED = {
     '15-2098': ['15-2051', '15-2099'],
 }
 
+TITLES = {}  # 2018 code to title, from the crosswalk
+
+# Codes BLS redefined between editions so that neither alone is comparable; their sum is.
+MERGE = [('43-6011', '43-6014')]  # executive secretaries and administrative assistants, and other secretaries
+
 def crosswalk(path):
     import openpyxl
     ws = openpyxl.load_workbook(path, read_only=True, data_only=True).worksheets[0]
@@ -64,6 +73,7 @@ def crosswalk(path):
         a, b = (str(r[0] or '').strip(), str(r[2] or '').strip())
         if len(a) == 7 and a[2] == '-' and len(b) == 7 and b[2] == '-':
             pairs.append((a, b))
+            TITLES[b] = str(r[3] or '').replace('(##)', '').strip()
     if not pairs:
         raise SystemExit(f'No code pairs found in {path}')
     return pairs
@@ -95,6 +105,8 @@ def main(paths):
         for m in members:
             union('18:' + c, '18:' + m)
         combined_in[c] = set(members)
+    for a, b in MERGE:
+        union('18:' + a, '18:' + b)
     groups = {}
     for n in list(parent):
         groups.setdefault(find(n), {'00': set(), '10': set(), '18': set()})[n[:2]].add(n[3:])
@@ -106,23 +118,26 @@ def main(paths):
     occ = {}
     for g in groups.values():
         real = {c for c in g['18'] if c in real18}
-        if not real or not g['00'] or not g['10'] or len(g['00']) > 4 or len(g['10']) > 4 or len(real) > 4:
+        if not real or not g['00'] or not g['10'] or len(g['00']) > 6 or len(g['10']) > 6 or len(real) > 5:
             continue
-        if not (all(c in a07 and c in a10 for c in g['00'])):
+        if not (all(c in a07 for c in g['00']) and all(c in a10 for c in g['10'])):
             continue
         present = [c for c in g['18'] if c in a19 and c in a20]
         covered = {c for c in present if c in real} | {m for c in present for m in combined_in.get(c, ())}
         if not present or real - covered or any(c in a19 and c not in a20 for c in g['18']):
             continue
-        s07, s10 = sum(a07[c] for c in g['00']), sum(a10[c] for c in g['00'])
+        s07, s10 = sum(a07[c] for c in g['00']), sum(a10[c] for c in g['10'])
         s19, s20 = sum(a19[c] for c in present), sum(a20[c] for c in present)
         if min(s07, s19) < 5000:
             continue  # too small for a stable change
         change = [pct(s07, s10), pct(s19, s20)]
         if max(abs(x) for x in change) > 35:
             continue  # a swing this large over a few years is a reclassification, not the economy
+        entry = {'pct': change}
+        if len(real) > 1:
+            entry['group'] = sorted(TITLES.get(c, c) for c in real)  # the history is for this set of jobs together
         for c in real:
-            occ[c] = {'pct': change}
+            occ[c] = entry
     doc = {
         'source': 'BLS Occupational Employment and Wage Statistics, national estimates, May 2007, 2010, 2019 and 2020, linked to 2018 SOC through the BLS crosswalks',
         'fetchedAt': datetime.date.today().isoformat(),
