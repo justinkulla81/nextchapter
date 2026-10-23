@@ -1,8 +1,9 @@
 /**
  * Adds the Sept 3 Master List (docs/funding/master-list-2026-09-03.csv) to the grants pipeline.
  *
- *   npm run crm:master-list              dry run, no writes
+ *   npm run crm:master-list                                   dry run, no writes
  *   npm run crm:master-list -- --commit
+ *   npm run crm:master-list -- --file docs/funding/company-sweep/company_a.csv   another file in the same layout
  *
  * The v7/v8 sheets were imported long ago; this later list (state and federal workforce money,
  * philanthropy, corporate programs) never was. A row is skipped when its funder already has a
@@ -19,7 +20,10 @@ import { toRows, parseCheckSize, parseDateish } from './parse'
 
 const prisma = new PrismaClient()
 const COMMIT = process.argv.includes('--commit')
-const FILE = join(process.cwd(), 'docs/funding/master-list-2026-09-03.csv')
+const FILE = (() => {
+  const i = process.argv.indexOf('--file')
+  return i >= 0 && process.argv[i + 1] ? join(process.cwd(), process.argv[i + 1]) : join(process.cwd(), 'docs/funding/master-list-2026-09-03.csv')
+})()
 
 const GENERIC_FUNDERS = /·|^(state workforce agencies|local workforce development boards|academic research partners|neo\.tax|new york city \/ state procurement|guild \+|aws \/ google|nyc \+ state partners)/i
 
@@ -46,6 +50,8 @@ function orgTypesFor(funder: string, kind: string): CrmOrgType[] {
   return t
 }
 
+const normUrl = (u: string | null | undefined) => (u ?? '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/[?#].*$/, '').replace(/\/+$/, '')
+
 async function main() {
   console.log(`FUNDING MASTER LIST — ${COMMIT ? 'COMMIT' : 'DRY RUN (no writes)'}`)
   const rows = toRows(readFileSync(FILE, 'utf8'))
@@ -59,6 +65,8 @@ async function main() {
     where: { pipelineId: { in: pipelines.map((p) => p.id) } }, select: { title: true, orgId: true },
   })
   const titles = new Set(existing.map((o) => o.title.toLowerCase()))
+  // Only a link with a path counts as the same program; a bare homepage is shared by a funder's programs.
+  const urls = new Set(existing.map((o) => normUrl(o.url)).filter((u) => u.includes('/')))
   const orgsWithLead = new Set(existing.map((o) => o.orgId).filter((x): x is string => !!x))
 
   const plan: { row: (typeof rows)[number]; funder: string; title: string; pipe: string; orgId: string | null }[] = []
@@ -72,18 +80,20 @@ async function main() {
     const title = `${funder} — ${prog}`.slice(0, 180)
     if (titles.has(title.toLowerCase())) { skipped.push(`already a lead: ${title}`); continue }
     const org = orgByKey.get(norm(funder))
-    if (org && orgsWithLead.has(org.id)) { skipped.push(`funder already has a lead: ${title}`); continue }
+    const rowUrl = normUrl(r.get('Link'))
+    if (rowUrl.includes('/') && urls.has(rowUrl)) { skipped.push(`link already on a lead: ${title}`); continue }
+    if (r.get('Sheet') === 'Master List' && org && orgsWithLead.has(org.id)) { skipped.push(`funder already has a lead: ${title}`); continue }
     if (plannedTitles.has(title.toLowerCase())) { skipped.push(`duplicate row: ${title}`); continue }
     // The "New Opportunities" sheet repeats funders the Master List already covers.
     if (r.get('Sheet') === 'New Opportunities' && plannedOrgs.has(norm(funder))) { skipped.push(`funder already in this list: ${title}`); continue }
     plannedTitles.add(title.toLowerCase()); plannedOrgs.add(norm(funder))
-    const equity = /equity|venture debt|financing|investment/i.test(r.get('Funding Type') ?? '') && !/grant/i.test(r.get('Funding Type') ?? '')
+    const equity = /equity|venture|financing|investment/i.test(r.get('Funding Type') ?? '') && !/grant/i.test(r.get('Funding Type') ?? '')
     plan.push({ row: r, funder, title, pipe: equity ? 'fundraising' : 'grants', orgId: org?.id ?? null })
   }
 
   console.log(`rows ${rows.length}  to add ${plan.length}  skipped ${skipped.length}`)
   console.log(`  new organizations: ${new Set(plan.filter((p) => !p.orgId).map((p) => norm(p.funder))).size}`)
-  console.log(`  with a link: ${plan.filter((p) => /^https?:/.test(p.row.get('Link') ?? '')).length}   with a dated deadline: ${plan.filter((p) => parseDateish(p.row.get('Deadline / Status'))).length}`)
+  console.log(`  with a link: ${plan.filter((p) => /^https?:/.test(p.row.get('Link') ?? '')).length}   with a date still ahead: ${plan.filter((p) => { const d = parseDateish(p.row.get('Deadline / Status')); return d && d.getTime() >= Date.now() - 86_400_000 && !/\b(closed|ended|expired|past|awarded)\b/i.test(p.row.get('Deadline / Status') ?? '') }).length}`)
   for (const s of skipped) console.log(`  skip  ${s}`)
   for (const p of plan) console.log(`  ADD   [${p.pipe}] ${p.title}${p.orgId ? '  (existing org)' : ''}`)
   if (!COMMIT) { console.log('\nDry run only. Re-run with --commit to write.'); return }
@@ -137,7 +147,10 @@ async function main() {
     opps++
     const status = r.get('Deadline / Status')
     if (status) {
-      const d = parseDateish(status)
+      // A date only counts while it is still ahead; a closed round keeps its wording instead, so a
+      // past date never reads as an open deadline and the "closed" text is not lost.
+      const found = parseDateish(status)
+      const d = found && found.getTime() >= Date.now() - 86_400_000 && !/\b(closed|ended|expired|past|awarded)\b/i.test(status) ? found : null
       await prisma.crmDeadline.create({
         data: {
           orgId: id, opportunityId: opp.id, label: `${r.get('Opportunity')} — deadline`.slice(0, 180), dueAt: d, rawText: d ? null : status,
