@@ -76,7 +76,7 @@ Synthetic only: no real company, client or employee data anywhere.
 
 Source is portable: text modules, datasets, quiz definitions as data, a facilitator guide for the cohort format, and a learner workbook. Hosting options, to decide with the first buyer:
 
-1. **On the platform** (the Learning page renders the course, completion and work samples land in the member's evidence). No cost to the buyer's IT.
+1. **On the platform** (the Learning page renders the course, completion and work samples land in the member's evidence). No cost to the buyer's IT. Needs the course player (section 15).
 2. **In the buyer's LMS.** Needs an export (for example SCORM or plain files). Not built in Wave 1 unless the buyer requires it; scope it as a change.
 
 The buyer owns and runs the course. Reuse of the template and the foundations core across buyers is a contract term to settle before signing (suite, risk 8).
@@ -110,6 +110,8 @@ Both samples use types that already exist on the platform (`src/lib/evidence/ai-
 | **Total** | **150 to 190** |
 
 This sits at the top of the suite's 140 to 180 hour estimate because the practice data and facilitator guide are included here. At one person's pace, that is roughly 4 to 5 working weeks.
+
+**Not in those hours: the course player.** The platform has no way to host a course today. The Learning page lists courses and links out to other providers (`Course`, `OrgCourse` and their progress tables hold a link and a status, nothing inside the course). Hosting this on the platform needs the player in section 15, about 80 to 100 more hours of engineering. Content and engineering can run in parallel. If the first buyer wants the course in their own system instead, the player is not needed for that buyer.
 
 ## 10. Pilot
 
@@ -148,3 +150,44 @@ This sits at the top of the suite's 140 to 180 hour estimate because the practic
 
 - Whether to build the foundations core first on spec (about 40 to 60 hours) so there is a sample to show. The suite recommends not doing this unless the first quote stalls on "show me a sample".
 - Which buyer to scope against first: a college's executive education or alumni arm (best fit), or an employer finance team.
+
+## 15. How it gets built
+
+### Principles
+
+- **Content is data in the repo.** Each module is a Markdown file; each exercise, quiz and rubric is a JSON file next to it. Everything is reviewed in a pull request like code, versioned, and exportable to a buyer's system later.
+- **Exercises are scored by code, never by a model.** A learner marks errors in a fixed AI draft; the code compares the marks with the answer key. A pasted result is checked by extracting its figures and tying them to the practice data. A fixed draft or key costs nothing per learner and gives the same result every time.
+- **AI drafts in the exercises are written once and frozen.** The "AI drafts with planted errors" are produced ahead of time with an assistant, then edited so the errors are exactly the ones in the answer key. No model call happens while a learner works.
+- **Practice data comes from a generator, not by hand.** A seeded script builds the fictional company's ledgers and plants each error with a record of where it is, so the answer key and the data cannot disagree. A second seed gives the second variant.
+- **A working finance professional signs off.** I can draft modules, exercises and rubrics. Someone who has closed a month signs off each finance exercise before the pilot; that person is not me.
+
+### The course player (engineering)
+
+Pages under the Learning area: a course home, a module view, a quiz and a seeded-error exercise component, a progress bar and a completion screen. Because these are candidate pages, they follow `docs/candidate-redesign.md`: build each screen in `src/app/dev-preview/` and look at it before wiring data. Parts, with estimated hours:
+
+| Part | What | Hours |
+|---|---|---:|
+| Data | Tables for a course run, module progress and exercise attempts; SQL file in `prisma/manual/`; applied before the code that reads it | 8 |
+| Content loader | Reads the Markdown and JSON for a course, validates them against a schema, fails the build on a broken exercise | 8 |
+| Screens | Course home, module reader, quiz, seeded-error exercise, completion; mobile and desktop | 24 to 32 |
+| Scoring | Seeded-error scoring, figure tie-out against the practice data, rubric checklists, retakes with the second variant | 12 to 16 |
+| Evidence handoff | Completion creates the member's work sample in the existing "AI automation with a before and after" type, pre-filled from the capstone | 6 to 8 |
+| Buyer reporting | Counts-only completion and error rates per team, minimum 10 people, on the employer Learning page and the college Outcomes tab | 8 to 10 |
+| Analytics | PostHog events for course started, module completed, exercise submitted, capstone submitted | 3 |
+| Tests | Loader, scoring and screen tests | 10 |
+| **Total** | | **80 to 100** |
+
+### Order of work
+
+1. **Week 1, foundations that everything depends on.** Design the spine and schemas. Build the practice-data generator and the error bank for module F1 first, because every later module reuses them. Write one module (C3, "Check what AI gives you") end to end as a Markdown file and an exercise JSON.
+2. **Week 1 to 2, the player skeleton.** The loader, the module reader and the seeded-error exercise, running on that one module in `src/app/dev-preview/`. This is the vertical slice: one module, real data, real scoring.
+3. **Week 2, the slice is read by a finance professional.** Fix what they find before writing the rest. Cheaper than fixing eleven modules.
+4. **Weeks 2 to 4, the remaining modules.** Foundations C1 to C5, then F1 to F6 in order, each with its exercise, answer key and rubric.
+5. **Week 4, evidence handoff and buyer reporting.**
+6. **Week 5, pilot** with 8 to 12 consenting members in finance roles, then revisions.
+
+Roughly 6 to 8 working weeks if one person does both content and player. Two people (one on content, one on the player) is closer to 4 weeks.
+
+### What I would do first
+
+Build the practice-data generator and module C3's exercise as the first pull request. It forces the three decisions that shape the rest (file format, scoring rule, how errors are planted), and it gives the finance reviewer something real to read within days.
