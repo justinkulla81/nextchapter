@@ -7842,6 +7842,8 @@ model CompanyJobOpening {
   @@index([companyId, closedAt])
   @@index([function, seniorityGroup])
   @@index([closedAt])
+  countyFips      String? // county of the posting's location (Census place-to-county crosswalk); see prisma/manual/2026-10-22-geo-county.sql
+  countyAmbiguous Boolean? // place spans several counties
 }
 
 // The company's rolled-up hiring profile, recomputed nightly from CompanyJobOpening,
