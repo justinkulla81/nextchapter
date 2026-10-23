@@ -191,3 +191,98 @@ Roughly 6 to 8 working weeks if one person does both content and player. Two peo
 ### What I would do first
 
 Build the practice-data generator and module C3's exercise as the first pull request. It forces the three decisions that shape the rest (file format, scoring rule, how errors are planted), and it gives the finance reviewer something real to read within days.
+
+## 16. What makes it a grade-A course
+
+The scope above defines what the course covers. This section defines how good it has to be, so the build is judged against a bar and not against taste. It adds about 130 to 190 hours (section 16.7).
+
+### 16.1 Teaching design
+
+- **Start from what the learner can do, then work backward.** Each outcome in section 3 gets an assessment first, then the activity that prepares for it. A module with no assessed outcome is cut.
+- **Show, then fade.** Every skill follows the same arc: a worked example with the reasoning narrated, a guided attempt with hints, then an independent attempt with none. The hints are removed on purpose.
+- **Practice retrieving, not rereading.** Each module opens with two or three questions from earlier modules, and the capstone draws on all of them. Spacing and mixing earlier skills into later exercises beats repeating the same one.
+- **Teach the skill that matters most: checking.** The scarce finance skill is catching a plausible wrong answer. So error detection is practiced in every module on a rising difficulty ladder: obvious (wrong period), subtle (a transposed figure), plausible (an invented cause that sounds right).
+- **Real work, not trivia.** Every exercise is a task a finance professional does: a variance note, a reconciliation, a month-end narrative. Quizzes check understanding of decisions, not definitions.
+- **Short units.** A screen asks for one thing. Modules run 30 to 60 minutes with a visible stopping point every 10 to 15.
+- **Say what AI is bad at, with evidence.** Learners see failures in context (an invented line item, a figure that does not tie), and learn the habit that catches each.
+
+### 16.2 Visual design
+
+- **One design system for the whole course**, built from the platform's own tokens, in light and dark. Two typefaces at most. Consistent colors for source data, AI output and learner input, so the learner always knows which they are reading.
+- **Diagrams over paragraphs** wherever a relationship is the point: the verify-before-trust loop, a variance bridge, a reconciliation flow, where data goes when pasted into a tool. Drawn in SVG, accessible, editable.
+- **No walls of text.** A rule of thumb: no screen has more than about 120 words without an interactive element, an image or a figure.
+- **Screenshots are the weak point** because tool screens change. Use annotated diagrams of the idea, and keep real tool screenshots in a small replaceable set with a review date.
+- **Short screencasts, optional.** Two to four minutes each, captioned, with transcripts, only where watching beats reading (the sequence of clicks in Copilot in Excel). Everything a video teaches is also in text.
+- **Accessible by default:** WCAG 2.2 AA, full keyboard use, captions and transcripts, no color-only meaning, works at phone width.
+
+### 16.3 Interactives to build
+
+Each one practices a skill the course assesses. They are components built once and reused by every later function course.
+
+| Interactive | What the learner does | Skill |
+|---|---|---|
+| Error hunt | Reads an AI-drafted commentary and marks the sentences that are wrong; sees an explanation for each miss and each false alarm | Checking AI output |
+| Tie-out | Clicks a number in the draft and the matching source cell highlights in the ledger, or nothing does | Verifying figures |
+| Prompt lab | Compares four frozen outputs from four prompts on the same input, then rewrites a weak prompt against a checklist | Prompts that hold up |
+| Paste or not | Sorts 12 data items into allowed and not allowed, with the rule shown after each | Confidentiality |
+| Variance bridge | Drags drivers into a waterfall until the bridge ties to the total, then writes the line that explains it | Variance commentary |
+| Reconciliation matcher | Accepts or rejects AI-proposed matches with a confidence shown; unmatched items remain | Reconciliation |
+| Formula audit | Opens a spreadsheet grid where one generated formula is wrong, finds it and fixes it | Spreadsheet workflows |
+| Review log builder | Fills a review log row for each use and assigns the sign-off | Controls and governance |
+| Automation canvas | Lays out a workflow from trigger to output with the human check placed on it; flags a missing one | Capstone |
+
+### 16.4 Assessment
+
+- **Pre-test, post-test.** A short diagnostic before module C1 and the same skills after F6, so we can show learner gain on the same items, and show a buyer what a cohort gained.
+- **Criterion-referenced.** Every score maps to a written outcome, and the learner sees which outcome they missed and why.
+- **Error detection is scored properly:** found, missed and false alarms, not just a total. A learner who flags everything does not pass.
+- **Calibration.** On exercises, the learner rates their confidence before the answer is shown. Learners who are confident and wrong get a pointed explanation. The calibration gap is the most useful number we can give a buyer.
+- **A capstone with a rubric of observable items**, each present or absent with the criterion written out (section 8). In a cohort, a peer or facilitator also reviews it against the same rubric.
+- **An item bank, not a fixed test.** Two or three variants per item, drawn at random, so a retake is a different test.
+- **Mastery gating where it matters:** F5 (controls) must be passed before the capstone unlocks.
+- **No trick questions.** Every item is answerable from what the course taught, with one defensible answer.
+
+### 16.5 Content quality
+
+- **Written by someone who has done the job, or reviewed line by line by someone who has.** A finance professional signs off every exercise and the practice data (section 15).
+- **Plain language and a stated reading level.** Short sentences, no jargon without a definition, terms defined once and used the same way after.
+- **Every factual claim has a source or is marked as judgment**, including any figure about postings. Nothing in the course claims a course raises pay or protects a job.
+- **A review date on every module,** 90 days out, and an owner. Tool-specific pages are the first to expire.
+
+### 16.6 The quality gates
+
+A module does not ship until it passes these. Numbers are starting values to calibrate in the pilot.
+
+| Gate | Check | Bar |
+|---|---|---|
+| Alignment | Each outcome has an assessment and an activity | 100% |
+| SME review | A finance professional has read and signed off the exercises and data | Every module |
+| Accessibility | Automated checks plus a keyboard and screen-reader pass | WCAG 2.2 AA, no blockers |
+| Time on task | Median learner time in the pilot against stated time | Within 25% |
+| Completion | Pilot learners who finish the course | At least 70% |
+| Learning gain | Post-test minus pre-test on the same items | Positive for at least 80% of learners |
+| Item quality | Each item's difficulty and how well it separates strong from weak learners | Revise any item answered right by under 20% or over 95% |
+| Confusion | Learners who miss the same item | Revise any item missed by over a third |
+| Mobile | Every interactive works at phone width | Pass |
+
+### 16.7 What this adds
+
+Estimates, on top of the 150 to 190 content hours and the 80 to 100 player hours in sections 9 and 15.
+
+| Work | Hours |
+|---|---:|
+| Instructional design: outcome map, worked examples, hint ladders, item bank | 30 to 40 |
+| Visual design: course design system, diagrams, layout of each screen | 25 to 35 |
+| Interactives: the nine components above, with scoring | 55 to 80 |
+| Accessibility, quality gates and item analysis | 20 to 30 |
+| Optional screencasts and captions, 6 to 8 short videos | 30 to 50 |
+| **Total with videos** | **160 to 235** |
+| **Total without videos** | **130 to 185** |
+
+All in, with content, player and the A-grade standard, the first course is roughly **360 to 475 hours** (about 8 to 12 weeks for one person, or about 5 to 7 with two). The shared template, player and interactives are reused, so the second function course costs closer to the 60 to 100 hours in the suite.
+
+### 16.8 What I would not do
+
+- Build every interactive before testing one. The error hunt and the tie-out come first because they carry the main skill; if learners get better at checking from those alone, the rest can be simpler.
+- Film long lectures. Retention is better from short worked examples and doing the task.
+- Promise outcomes. The pre-test and post-test show what learners gained. They do not show a job or a raise.
