@@ -684,3 +684,74 @@ Reading it: finance is a manager-heavy track (Financial Managers alone are 14,24
 - Prices and free flags carry a "checked on" date.
 
 **What not to market yet.** Purpose-built courses, a graded AI-skills credential, and "verify the AI's work" training. None exists. They are the eight builds in section 10.4.
+
+## 15. Keeping every course current: the monthly review
+
+**Requirement (2026-10-23).** Every month, find what changed in AI that touches a course: new tools and models (Claude, Gemini and others), new technology, new processes, new prompting techniques and best practices, new vendors, new industry standards and regulations, new and changed certifications, and new courses from other providers. Nothing changes in a live course until a person approves it, one proposal at a time or in bulk across many courses.
+
+**Why it is needed.** Of the 93 courses in the live catalog, 12 links are already dead, about 35 levels are wrong, and almost no page shows when it was last updated (section 11). The sources of change are fast: vendor tools change monthly, and the tool-specific parts of a course date first.
+
+### 15.1 What the system watches
+
+| Signal | Sources (reachable to a plain request on 2026-10-23 unless noted) | Method | Model call? |
+|---|---|---|---|
+| Our own job data | The nightly `AiMarketSnapshot`: a tool newly in a function's top eight, a skill item rising | Compare this month to last | No |
+| Link health of every catalog course | Every URL in the `Course` table | Status, redirect, title change, price and free-flag drift | No |
+| Vendor tools and models | Anthropic release notes (https://platform.claude.com/docs/en/release-notes/overview), Google Gemini API changelog (https://ai.google.dev/gemini-api/docs/changelog), Microsoft 365 Copilot release notes (https://learn.microsoft.com/en-us/copilot/microsoft-365/release-notes). OpenAI's help-center release notes returned 403 to a plain request, so OpenAI is a manual source until a feed is found | Hash the page, read only what changed | Yes, on changed pages |
+| Vendor news and best practice | https://www.anthropic.com/news, https://blog.google/technology/ai/, DeepLearning.AI The Batch (https://www.deeplearning.ai/the-batch/) | Same | Yes |
+| Standards and regulation | NIST AI RMF page (https://www.nist.gov/itl/ai-risk-management-framework), EU AI Act tracker (https://artificialintelligenceact.eu/), IAPP, state laws already tracked in the report (for example California SB 951, NYC Local Law 144, Colorado) | Same | Yes |
+| Certifications | IAPP AIGP (https://iapp.org/certify/aigp/), ISACA AAIA, ACCA, AICPA and CIMA, Google, Microsoft and Salesforce credential pages | Hash and read changes: new, retired, price, eligibility | Yes |
+| New courses from other providers | DeepLearning.AI, Anthropic Academy, Microsoft Learn, Google Skills, Coursera, OpenAI Academy (manual until fetchable) | New titles against the 14-track ladder in section 12 | Yes |
+| Prompts and practice | Vendor prompting guides (the three major labs), plus items flagged by reviewers | Same | Yes |
+
+Sources live in a table, so adding one is a row, not a code change. Each source has a class, a fetch method and a cadence.
+
+### 15.2 The pipeline
+
+1. **Weekly, no model:** link health for every catalog row. A failure becomes a proposal tagged "link", not an automatic change.
+2. **First of the month, early morning New York time:** fetch every monthly source; hash against last month; keep only pages that changed.
+3. **Relevance (model):** for each changed page, which of the 24 AI skills, tools and the 14 tracks does it touch, and therefore which courses (through `AI_COURSE_TAGS` and the authored courses' module lists).
+4. **Draft (model):** for each relevant change, a short summary in our own words, the evidence link, the proposal type, the affected courses, and the proposed edit as a diff or new text.
+5. **Queue and email:** proposals appear in the approval queue and one email goes to justin@launchyournextchapter.com with counts and the top items. This is the same draft-then-approve pattern as `src/app/api/cron/mailing-drafts/route.ts`, under the `withCronRun` ledger.
+6. **Urgent items skip the wait** and email the day they are found: a model or API retirement, a dead link on a course in an active cohort, or a regulation taking effect within 30 days.
+
+### 15.3 Proposal types
+
+New tool or model version; rename or retirement; new technique or prompt pattern; best-practice change; new process or workflow; new vendor or product; standard or regulation change; certification added, changed or retired; new outside course to add; outside course changed (level, price, free flag); link broken; page not updated in over 12 months.
+
+### 15.4 Approval, individual and in bulk
+
+The queue is at https://launchyournextchapter.com/support/admin/courses/updates (a new page beside the existing course admin).
+
+- **Grouped by theme.** One card per change, not per course: "Gemini renamed X; affects 14 courses."
+- **Per proposal:** what changed, why it matters, the evidence link, the proposed edit, and a checklist of every affected course.
+- **Individual:** approve, reject, edit then approve, or defer 30 days, on one proposal, or on one course inside a proposal.
+- **Bulk:** approve all courses in a proposal; approve all proposals in a theme; or approve everything matching a filter (proposal type, severity, track, AI level, provider, source class, confidence), with the matching count shown first and any course unchecked as an exception.
+- **Reject with a reason** (wrong, not relevant, not now). "Never propose this source or topic again" is an option, so the queue does not repeat itself.
+- **Undo for 30 days.** Every applied change keeps the prior version and a change log (who, when, what).
+- **Default guardrail, changeable:** proposals that state a legal or compliance fact, a certification's eligibility or price, or change a graded assessment cannot be bulk-approved; they open one at a time.
+
+### 15.5 What an approved change does
+
+- **Curated outside course:** updates the catalog row (title, level, free flag, notes, `lastVerifiedAt`), or adds or retires the row. Takes effect immediately.
+- **A course we authored:** creates a new draft version of the module or prompt library with a change log. It goes live when published. A course with a running cohort takes the new version at the next cohort start unless the proposal is urgent. Tool-specific lab screens are separate modules so a tool change touches one module.
+
+### 15.6 Data and instrumentation
+
+New tables, created by a SQL file in `prisma/manual/` and never `prisma db push`: `CourseUpdateSource`, `CourseUpdateProposal` (type, severity, status, summary, evidence URL and a short excerpt, proposed change, confidence, theme key, month key, decided by and at, reason), `CourseUpdateTarget` (one row per proposal and course, so a single course can be approved or rejected separately), `CourseVersion`. New columns on `Course`: `lastVerifiedAt`, `nextReviewAt`. PostHog events, named when the feature is built: `course_update_proposed`, `course_update_approved` (with scope: single, group or filter, and course count), `course_update_rejected` (reason), `course_update_deferred`, `course_update_applied`, `course_update_reverted`.
+
+### 15.7 Cost and build effort
+
+**Metered cost driver (needs your approval before build).** The model calls in steps 3 and 4. Link health and the job-data signals use no model. Estimate for a month: about 60 sources, roughly a quarter changed, so about 15 pages read at around 8,000 tokens each, plus about 40 drafted proposals at roughly 4,000 tokens in and 800 out. That is about 280,000 tokens in and 32,000 out. At the $2 and $10 per million tokens measured for the work-sample reviewer (`docs/AI_SKILLS.md`), about **$1 to $3 a month [Estimate]**. A **$25 monthly cap** stops the model steps and leaves link health and the data signals running, as the work-sample reviewer's cap does. Fetching is plain HTTP and costs nothing.
+
+**Build effort [Estimate]:** schema and SQL 4 hours; source registry, fetch and diff 8; link health 4; relevance and drafting 10; approval queue with bulk and filters 16 to 20; apply, versioning and undo 8; email and analytics 4; tests 6. Total about **55 to 75 hours**.
+
+### 15.8 Risks
+
+- **Fetched pages are untrusted.** A page can contain text that tries to instruct a model. The model steps get no tools and write only proposals into the queue; nothing a page says can change a course.
+- **Copyright.** Store the link and a short excerpt; write the summary in our own words.
+- **Alert fatigue.** Relevance threshold, a cap on proposals per month, and the "never again" rejection keep the queue short.
+- **Vendor balance.** The queue shows how many approved changes each vendor received in the last quarter, so the catalog stays vendor-neutral by design and not by accident.
+- **Blocked sources.** OpenAI's release notes and a few certification sites (CAP, CCEP, CPIM, PMP) block plain requests. They become manual sources with a monthly reminder in the email.
+- **Legal and certification claims** in courses need counsel or the credential body's own page before approval; the default guardrail in 15.4 enforces that.
+- **Single approver.** Today it is you. A reviewer role can be added later; the table records who decided.
