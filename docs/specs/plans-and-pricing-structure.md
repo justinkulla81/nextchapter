@@ -41,3 +41,5 @@ Different people can claim different sections (HR operations claims Grow and kee
 ## What this does not decide
 
 Prices for Organization size bands, the Grow and keep bands, the bundle discount, and whether recruiters and coaches ever pay (B2B2C: free for now). Payment collection (a card or invoice flow) is deferred; see IDEAS.md.
+
+Decided 2026-10-23: the website shows plans, not prices.

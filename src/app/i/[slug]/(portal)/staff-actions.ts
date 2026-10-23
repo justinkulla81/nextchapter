@@ -18,6 +18,7 @@ import { inviteInstitutionUser } from '@/lib/institution/invite'
 import { updateInstitutionBranding, uploadInstitutionImage } from '@/lib/institution/admin'
 import { importGifts, importRoster } from '@/lib/higher-ed/crm-import'
 import { sendJoinInvites } from '@/lib/higher-ed/invites'
+import { institutionEntitlements, lockedReason } from '@/lib/plans/entitlements'
 import { canAny, type InstitutionCapability } from '@/lib/institution/permissions'
 import { requireWorkspace, type WorkspaceContext } from '@/lib/higher-ed/access'
 import { recordInstitutionAudit } from '@/lib/higher-ed/partner-audit'
@@ -205,6 +206,11 @@ export async function inviteStaff(slug: string, _prev: FormState, formData: Form
   if (ctx.institution.isDemo) return { error: 'Invites are off on demo colleges: their staff are fictional.' }
   const role = String(formData.get('role') ?? '') as InstitutionUserRole
   if (!INVITABLE.includes(role)) return { error: 'Pick a role.' }
+  // The free plan has the administrator only; other staff roles are part of the paid plan.
+  if (role !== 'INSTITUTION_ADMIN' && !institutionEntitlements({ plan: ctx.institution.plan }).staffRoles) {
+    captureServerEvent(ctx.userId, 'entitlement_locked_attempted', { feature: 'staffRoles', plan: ctx.institution.plan, slug, role })
+    return { error: lockedReason('staffRoles') }
+  }
   const workspace = role === 'VIEWER' ? String(formData.get('workspace') ?? '') : null
   if (role === 'VIEWER' && !VIEWER_WORKSPACES.includes(workspace as WorkspaceKey)) return { error: 'Pick which workspace this viewer can see.' }
   const result = await inviteInstitutionUser({
@@ -305,6 +311,7 @@ async function runCrmImport(ctx: WorkspaceContext, kind: 'roster' | 'gifts', for
   if (file.size > MAX_CSV_BYTES) return { error: 'That file is over 10MB. Split it and upload the parts.' }
   const args = { institutionId: ctx.institution.id, csv: await file.text(), fileName: file.name, createdBy: ctx.email ?? ctx.userId }
   const r = kind === 'roster' ? await importRoster(args) : await importGifts(args)
+  if (r.capReached) return { error: `${r.capReached.message} Nothing was imported.` }
   captureServerEvent(ctx.userId, kind === 'roster' ? 'he_roster_imported' : 'he_gifts_imported', {
     institutionId: ctx.institution.id,
     runId: r.runId,
@@ -324,6 +331,10 @@ async function runCrmImport(ctx: WorkspaceContext, kind: 'roster' | 'gifts', for
 export async function sendInvitations(slug: string): Promise<{ error?: string; message?: string }> {
   const ctx = await requireWorkspace(slug, 'admin', { write: true })
   const r = await sendJoinInvites({ institutionId: ctx.institution.id, createdBy: ctx.email ?? ctx.userId })
+  if (r.capReached) {
+    revalidatePath(`/i/${slug}`, 'layout')
+    return { error: `${r.sent ? `${r.sent} invitations sent. ` : ''}${r.capReached.message}` }
+  }
   captureServerEvent(ctx.userId, 'he_join_invites_sent', { institutionId: ctx.institution.id, sent: r.sent, demo: r.demo })
   revalidatePath(`/i/${slug}`, 'layout')
   const where = r.demo ? 'recorded in the demo outbox (no email sent)' : 'sent'

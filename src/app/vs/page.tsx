@@ -8,7 +8,7 @@ import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
 export const metadata: Metadata = {
   title: 'Compare outplacement providers',
   description:
-    'Honest, two-sided comparisons of NextChapter against LHH, Randstad RiseSmart, Careerminds, and INTOO — pricing, reporting, what participants keep, and where each is genuinely stronger.',
+    'Honest, two-sided comparisons of NextChapter against LHH, Randstad RiseSmart, Careerminds, and INTOO — reporting, what participants keep, and where each is genuinely stronger.',
   alternates: { canonical: '/vs' },
 }
 

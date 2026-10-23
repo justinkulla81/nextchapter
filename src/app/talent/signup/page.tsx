@@ -13,8 +13,7 @@ export default function TalentSignupPage() {
         <p className="text-sm font-medium text-muted-foreground">NextChapter for Employers</p>
         <h1 className="text-2xl font-semibold tracking-tight">Create your free account</h1>
         <p className="text-muted-foreground">
-          Post a role and see verified candidates in about 5 minutes. No credit card, no
-          subscription.
+          Post a role and see verified candidates in about 5 minutes. No credit card.
         </p>
       </div>
       <TalentSignupForm />

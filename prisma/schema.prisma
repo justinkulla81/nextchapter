@@ -10540,11 +10540,35 @@ model CrmOrganization {
   companyLinkState String?
   institution      Institution?
   organization     Organization?
+  orgClaims        OrgClaim[]
 
   @@index([priorityScore(sort: Desc)])
   @@index([leadQuality])
   @@index([companyId])
   @@index([usState])
+}
+
+/// Someone at a CRM organization asking to claim its public page (/prepared/<slug>). The claim is VERIFIED only when the
+/// one-time link sent to their work email is used. Only a SHA-256 of the token is stored; ipHash is a salted hash, never the IP.
+model OrgClaim {
+  id                String          @id @default(cuid())
+  crmOrganizationId String
+  crmOrganization   CrmOrganization @relation(fields: [crmOrganizationId], references: [id], onDelete: Cascade)
+  name              String
+  title             String
+  email             String
+  emailDomain       String
+  tokenHash         String          @unique
+  expiresAt         DateTime
+  verifiedAt        DateTime?
+  /// The organization has no known email domain, so a person decides whether this claim is genuine.
+  needsReview       Boolean         @default(false)
+  ipHash            String?
+  createdAt         DateTime        @default(now())
+
+  @@index([crmOrganizationId])
+  @@index([email, createdAt])
+  @@index([ipHash, createdAt])
 }
 
 model CrmPerson {
@@ -11857,6 +11881,7 @@ model ProductCompetitor {
   updatedAt DateTime @updatedAt
 
   cells ProductCompetitorFeature[]
+  capabilityCells CompetitorCapability[]
 
   @@index([lastReviewedAt])
 }
@@ -12647,6 +12672,8 @@ model Institution {
   ssoProvider       String? // 'google' | 'microsoft' | 'saml'
   ssoConfig         Json?
   tier              InstitutionTier    @default(CAREER)
+  // FREE (a verified, claimed workspace) or PAID. Default PAID so every institution that existed before plans keeps everything. See src/lib/plans/entitlements.ts.
+  plan              String             @default("PAID")
   alumniCount       Int?
   includedSeats     Int                @default(0)
   licenseStartAt    DateTime?
@@ -16554,4 +16581,56 @@ model BuyerCrawl {
 
   @@index([kind, state])
   @@index([recentCount])
+}
+
+/// How far along one of OUR capabilities is. Mirrors OurStatus in src/lib/vision/capabilities.ts.
+enum ProductCapabilityStatus {
+  BUILT
+  PARTIAL
+  PLANNED
+}
+
+/// What a competitor does for one capability. UNKNOWN is a valid answer and the default: it means nobody has checked.
+enum CompetitorCapabilityStatus {
+  YES
+  PARTIAL
+  NO
+  UNKNOWN
+}
+
+/// One row of the capability matrix: something NextChapter can do. Seeded from src/lib/vision/capabilities.ts.
+model ProductCapability {
+  id           String                  @id @default(cuid())
+  key          String                  @unique
+  /// From the fixed vocabulary in src/lib/vision/competitor-areas.ts.
+  area         String
+  name         String
+  description  String                  @db.Text
+  ours         ProductCapabilityStatus
+  evidencePath String
+  sortOrder    Int                     @default(0)
+  updatedAt    DateTime                @updatedAt
+
+  cells CompetitorCapability[]
+
+  @@index([area, sortOrder])
+}
+
+/// One cell of the capability matrix: does this competitor do this. Every YES, PARTIAL or NO carries an https
+/// evidenceUrl and a checkedAt date; a cell older than 90 days is shown as stale.
+model CompetitorCapability {
+  id           String                     @id @default(cuid())
+  competitorId String
+  competitor   ProductCompetitor          @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  capabilityId String
+  capability   ProductCapability          @relation(fields: [capabilityId], references: [id], onDelete: Cascade)
+  status       CompetitorCapabilityStatus @default(UNKNOWN)
+  note         String?                    @db.Text
+  evidenceUrl  String?
+  checkedAt    DateTime?
+  checkedBy    String?
+
+  @@unique([competitorId, capabilityId])
+  @@index([capabilityId])
+  @@index([competitorId, checkedAt])
 }
