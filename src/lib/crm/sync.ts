@@ -661,7 +661,13 @@ export async function sweepGmail(days = 14, maxMessages = 1000, runSource = 'gma
     let ids = 0
     for (const { connection, token } of mailboxes) {
       try {
-        const one = await sweepMailbox(connection, token, windowFrom, maxMessages, connections.map((c) => c.email), base)
+        // A mailbox never swept before (just connected) starts from 14 days
+        // back, not from the rolling window: its older mail, including replies
+        // to outreach, would otherwise never reach the CRM.
+        const newMailboxFrom = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), Date.now() - 14 * DAY))
+        const from = !connection.lastSweepAt && newMailboxFrom < windowFrom ? newMailboxFrom : windowFrom
+        const one = await sweepMailbox(connection, token, from, maxMessages, connections.map((c) => c.email), base)
+        await prisma.googleInboxConnection.update({ where: { id: connection.id }, data: { lastSweepAt: new Date() } })
         result.scanned += one.result.scanned
         result.matched += one.result.matched
         result.activitiesCreated += one.result.activitiesCreated
