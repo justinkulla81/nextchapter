@@ -52,24 +52,40 @@
    "pct": [
     13.2,
     2.5
+   ],
+   "group": [
+    "Fundraising Managers",
+    "Public Relations Managers"
    ]
   },
   "11-2033": {
    "pct": [
     13.2,
     2.5
+   ],
+   "group": [
+    "Fundraising Managers",
+    "Public Relations Managers"
    ]
   },
   "11-3012": {
    "pct": [
     0.4,
     0.1
+   ],
+   "group": [
+    "Administrative Services Managers",
+    "Facilities Managers"
    ]
   },
   "11-3013": {
    "pct": [
     0.4,
     0.1
+   ],
+   "group": [
+    "Administrative Services Managers",
+    "Facilities Managers"
    ]
   },
   "11-3021": {
@@ -100,6 +116,24 @@
    "pct": [
     -2.7,
     0.1
+   ]
+  },
+  "11-3111": {
+   "pct": [
+    -28.6,
+    -3.3
+   ]
+  },
+  "11-3121": {
+   "pct": [
+    16.5,
+    1.2
+   ]
+  },
+  "11-3131": {
+   "pct": [
+    -0.4,
+    0.5
    ]
   },
   "11-9021": {
@@ -180,6 +214,12 @@
     -0.4
    ]
   },
+  "11-9161": {
+   "pct": [
+    1.6,
+    1.5
+   ]
+  },
   "13-1011": {
    "pct": [
     0.9,
@@ -190,18 +230,33 @@
    "pct": [
     -8.6,
     -0.3
+   ],
+   "group": [
+    "Buyers and Purchasing Agents, Farm Products",
+    "Purchasing Agents, Except Wholesale, Retail, and Farm Products",
+    "Wholesale and Retail Buyers, Except Farm Products"
    ]
   },
   "13-1022": {
    "pct": [
     -8.6,
     -0.3
+   ],
+   "group": [
+    "Buyers and Purchasing Agents, Farm Products",
+    "Purchasing Agents, Except Wholesale, Retail, and Farm Products",
+    "Wholesale and Retail Buyers, Except Farm Products"
    ]
   },
   "13-1023": {
    "pct": [
     -8.6,
     -0.3
+   ],
+   "group": [
+    "Buyers and Purchasing Agents, Farm Products",
+    "Purchasing Agents, Except Wholesale, Retail, and Farm Products",
+    "Wholesale and Retail Buyers, Except Farm Products"
    ]
   },
   "13-1031": {
@@ -234,6 +289,18 @@
     3.4
    ]
   },
+  "13-1141": {
+   "pct": [
+    -6.4,
+    -1.6
+   ]
+  },
+  "13-1151": {
+   "pct": [
+    0.5,
+    1.8
+   ]
+  },
   "13-2011": {
    "pct": [
     -3.8,
@@ -244,12 +311,20 @@
    "pct": [
     -5.5,
     -0.6
+   ],
+   "group": [
+    "Appraisers and Assessors of Real Estate",
+    "Appraisers of Personal and Business Property"
    ]
   },
   "13-2023": {
    "pct": [
     -5.5,
     -0.6
+   ],
+   "group": [
+    "Appraisers and Assessors of Real Estate",
+    "Appraisers of Personal and Business Property"
    ]
   },
   "13-2031": {
@@ -268,6 +343,11 @@
    "pct": [
     2.9,
     0.4
+   ],
+   "group": [
+    "Financial Risk Specialists",
+    "Financial Specialists, All Other",
+    "Financial and Investment Analysts"
    ]
   },
   "13-2052": {
@@ -286,6 +366,11 @@
    "pct": [
     2.9,
     0.4
+   ],
+   "group": [
+    "Financial Risk Specialists",
+    "Financial Specialists, All Other",
+    "Financial and Investment Analysts"
    ]
   },
   "13-2061": {
@@ -322,6 +407,23 @@
    "pct": [
     2.9,
     0.4
+   ],
+   "group": [
+    "Financial Risk Specialists",
+    "Financial Specialists, All Other",
+    "Financial and Investment Analysts"
+   ]
+  },
+  "15-1221": {
+   "pct": [
+    -13.3,
+    -1.8
+   ]
+  },
+  "15-1251": {
+   "pct": [
+    -15.5,
+    -10.7
    ]
   },
   "15-2011": {
@@ -682,12 +784,20 @@
    "pct": [
     -12.4,
     0.3
+   ],
+   "group": [
+    "Agricultural Technicians",
+    "Food Science Technicians"
    ]
   },
   "19-4013": {
    "pct": [
     -12.4,
     0.3
+   ],
+   "group": [
+    "Agricultural Technicians",
+    "Food Science Technicians"
    ]
   },
   "19-4021": {
@@ -810,6 +920,16 @@
     0.1
    ]
   },
+  "23-1012": {
+   "pct": [
+    0.2,
+    0.3
+   ],
+   "group": [
+    "Judicial Law Clerks",
+    "Paralegals and Legal Assistants"
+   ]
+  },
   "23-1021": {
    "pct": [
     1.5,
@@ -826,6 +946,16 @@
    "pct": [
     1.6,
     -0.4
+   ]
+  },
+  "23-2011": {
+   "pct": [
+    0.2,
+    0.3
+   ],
+   "group": [
+    "Judicial Law Clerks",
+    "Paralegals and Legal Assistants"
    ]
   },
   "23-2093": {
@@ -1068,6 +1198,18 @@
     -1.3
    ]
   },
+  "25-2057": {
+   "pct": [
+    0.3,
+    -6.7
+   ]
+  },
+  "25-2058": {
+   "pct": [
+    0.1,
+    -0.5
+   ]
+  },
   "25-3011": {
    "pct": [
     -5.2,
@@ -1252,12 +1394,20 @@
    "pct": [
     -26.6,
     -13.1
+   ],
+   "group": [
+    "Disc Jockeys, Except Radio",
+    "Entertainers and Performers, Sports and Related Workers, All Other"
    ]
   },
   "27-2099": {
    "pct": [
     -26.6,
     -13.1
+   ],
+   "group": [
+    "Disc Jockeys, Except Radio",
+    "Entertainers and Performers, Sports and Related Workers, All Other"
    ]
   },
   "27-3011": {
@@ -1434,28 +1584,10 @@
     -1.1
    ]
   },
-  "29-1141": {
+  "29-1181": {
    "pct": [
-    7.6,
-    0.4
-   ]
-  },
-  "29-1151": {
-   "pct": [
-    7.6,
-    0.4
-   ]
-  },
-  "29-1161": {
-   "pct": [
-    7.6,
-    0.4
-   ]
-  },
-  "29-1171": {
-   "pct": [
-    7.6,
-    0.4
+    13.2,
+    -2.1
    ]
   },
   "29-1211": {
@@ -1504,12 +1636,20 @@
    "pct": [
     3.8,
     0.1
+   ],
+   "group": [
+    "Medical and Clinical Laboratory Technicians",
+    "Medical and Clinical Laboratory Technologists"
    ]
   },
   "29-2012": {
    "pct": [
     3.8,
     0.1
+   ],
+   "group": [
+    "Medical and Clinical Laboratory Technicians",
+    "Medical and Clinical Laboratory Technologists"
    ]
   },
   "29-2031": {
@@ -1534,12 +1674,20 @@
    "pct": [
     10.2,
     -1.1
+   ],
+   "group": [
+    "Emergency Medical Technicians",
+    "Paramedics"
    ]
   },
   "29-2043": {
    "pct": [
     10.2,
     -1.1
+   ],
+   "group": [
+    "Emergency Medical Technicians",
+    "Paramedics"
    ]
   },
   "29-2051": {
@@ -1600,24 +1748,20 @@
    "pct": [
     16.7,
     1.6
+   ],
+   "group": [
+    "Home Health Aides",
+    "Personal Care Aides"
    ]
   },
   "31-1122": {
    "pct": [
     16.7,
     1.6
-   ]
-  },
-  "31-1131": {
-   "pct": [
-    4.4,
-    -3.6
-   ]
-  },
-  "31-1132": {
-   "pct": [
-    4.4,
-    -3.6
+   ],
+   "group": [
+    "Home Health Aides",
+    "Personal Care Aides"
    ]
   },
   "31-1133": {
@@ -1714,12 +1858,20 @@
    "pct": [
     20.6,
     -4.5
+   ],
+   "group": [
+    "First-Line Supervisors of Protective Service Workers, All Other",
+    "First-Line Supervisors of Security Workers"
    ]
   },
   "33-1099": {
    "pct": [
     20.6,
     -4.5
+   ],
+   "group": [
+    "First-Line Supervisors of Protective Service Workers, All Other",
+    "First-Line Supervisors of Security Workers"
    ]
   },
   "33-2011": {
@@ -2050,6 +2202,26 @@
    "pct": [
     -0.6,
     -11.7
+   ]
+  },
+  "39-7011": {
+   "pct": [
+    -5.2,
+    -21.9
+   ],
+   "group": [
+    "Tour Guides and Escorts",
+    "Travel Guides"
+   ]
+  },
+  "39-7012": {
+   "pct": [
+    -5.2,
+    -21.9
+   ],
+   "group": [
+    "Tour Guides and Escorts",
+    "Travel Guides"
    ]
   },
   "39-9011": {
@@ -2414,8 +2586,12 @@
   },
   "43-6011": {
    "pct": [
-    -25.4,
-    -7.2
+    -11.2,
+    -8.8
+   ],
+   "group": [
+    "Executive Secretaries and Executive Administrative Assistants",
+    "Secretaries and Administrative Assistants, Except Legal, Medical, and Executive"
    ]
   },
   "43-6012": {
@@ -2432,8 +2608,12 @@
   },
   "43-6014": {
    "pct": [
-    0.5,
-    -9.2
+    -11.2,
+    -8.8
+   ],
+   "group": [
+    "Executive Secretaries and Executive Administrative Assistants",
+    "Secretaries and Administrative Assistants, Except Legal, Medical, and Executive"
    ]
   },
   "43-9021": {
@@ -2722,6 +2902,10 @@
    "pct": [
     -31.0,
     -8.0
+   ],
+   "group": [
+    "Excavating and Loading Machine and Dragline Operators, Surface Mining",
+    "Material Moving Workers, All Other"
    ]
   },
   "47-5041": {
@@ -2958,6 +3142,12 @@
     -4.4
    ]
   },
+  "49-9071": {
+   "pct": [
+    -6.9,
+    -4.3
+   ]
+  },
   "49-9091": {
    "pct": [
     -14.0,
@@ -3022,12 +3212,20 @@
    "pct": [
     -21.5,
     -8.2
+   ],
+   "group": [
+    "Assemblers and Fabricators, All Other",
+    "Team Assemblers"
    ]
   },
   "51-2099": {
    "pct": [
     -21.5,
     -8.2
+   ],
+   "group": [
+    "Assemblers and Fabricators, All Other",
+    "Team Assemblers"
    ]
   },
   "51-3011": {
@@ -3190,6 +3388,32 @@
    "pct": [
     -30.8,
     -5.6
+   ]
+  },
+  "51-5111": {
+   "pct": [
+    -26.7,
+    -7.5
+   ]
+  },
+  "51-5112": {
+   "pct": [
+    -21.4,
+    -7.4
+   ],
+   "group": [
+    "Print Binding and Finishing Workers",
+    "Printing Press Operators"
+   ]
+  },
+  "51-5113": {
+   "pct": [
+    -21.4,
+    -7.4
+   ],
+   "group": [
+    "Print Binding and Finishing Workers",
+    "Printing Press Operators"
    ]
   },
   "51-6011": {
@@ -3420,6 +3644,12 @@
     -6.0
    ]
   },
+  "51-9151": {
+   "pct": [
+    -19.8,
+    -25.6
+   ]
+  },
   "51-9191": {
    "pct": [
     -30.5,
@@ -3490,6 +3720,12 @@
    "pct": [
     9.3,
     -0.8
+   ]
+  },
+  "53-2031": {
+   "pct": [
+    -9.3,
+    -3.8
    ]
   },
   "53-3011": {
@@ -3594,6 +3830,12 @@
     -8.9
    ]
   },
+  "53-6061": {
+   "pct": [
+    21.6,
+    -18.5
+   ]
+  },
   "53-7011": {
    "pct": [
     -19.2,
@@ -3670,6 +3912,10 @@
    "pct": [
     -31.0,
     -8.0
+   ],
+   "group": [
+    "Excavating and Loading Machine and Dragline Operators, Surface Mining",
+    "Material Moving Workers, All Other"
    ]
   }
  }

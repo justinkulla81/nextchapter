@@ -28,6 +28,11 @@ describe('occupation cycle', () => {
     expect(line).toContain('−15% against −6% for all jobs')
     expect(line).not.toMatch(/\b(safe|risk|recession-proof|will)\b/i)
   })
+  it('names the related jobs when the history can only be followed for a group', () => {
+    const line = cycleLineFor([-15, -20], EP, ['Executive Secretaries', 'Secretaries'])!
+    expect(line).toContain('closely related jobs (Executive Secretaries; Secretaries)')
+    expect(cycleLineFor([-15, -20], EP, ['Only one'])!).toContain('employment in this work fell')
+  })
   it('shows nothing for an occupation with no history', () => {
     expect(cycleLineForSoc('99-9999.00')).toBeNull()
     expect(cycleLineForSoc(undefined)).toBeNull()
