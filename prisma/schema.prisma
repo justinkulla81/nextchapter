@@ -10301,6 +10301,7 @@ enum CrmOrgType {
   ACCELERATOR
   VENDOR
   OTHER
+  WORKFORCE_PROVIDER // runs job training and career services, often on workforce grants (nonprofits, colleges, companies)
 }
 
 // How good a fit this is — your judgement, set by hand, rarely changes.
