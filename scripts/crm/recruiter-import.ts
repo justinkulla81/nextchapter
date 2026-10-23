@@ -11,6 +11,7 @@
 import { readFileSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
 import { addContactToCrm, ensureOrg } from '../../src/lib/crm/add-contact'
+import { classifyRecruiter } from '../../src/lib/crm/recruiter-kind'
 import { INDUSTRY_KEYS, FUNCTION_KEYS, STATE_NAMES } from '../../src/lib/crm/coverage'
 
 interface Row {
@@ -47,6 +48,7 @@ async function main() {
       data: {
         coverageStates: [...new Set([...p.coverageStates, ...states])], coverageIndustries: [...new Set([...p.coverageIndustries, ...industries])],
         coverageFunctions: [...new Set([...p.coverageFunctions, ...functions])], coverageSource: 'research',
+        recruiterKind: classifyRecruiter({ title: r.title, atSearchFirm: true }),
         ...(p.location || !r.city ? {} : { location: `${r.city}, ${r.state}` }),
       },
     })

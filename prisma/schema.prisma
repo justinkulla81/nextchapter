@@ -10593,6 +10593,10 @@ model CrmPerson {
   coverageIndustries String[] @default([])
   coverageFunctions  String[] @default([])
   coverageSource     String?
+  /// Who this recruiter is, read off title and firm (src/lib/crm/recruiter-kind.ts): 'recruiter' (search or agency, places candidates
+  /// at other companies), 'in_house' (talent acquisition at an employer), 'hr' (HR staff or leaders), 'support' (assistants,
+  /// researchers, admin at a firm), 'unclear'. Null = not classified yet. The CRM recruiter views and the layoff alert use 'recruiter'.
+  recruiterKind      String?
 
   roles    CrmPersonRole[] @default([])
   /// Derived from roles by goalsForRoles(), then editable by hand — a
