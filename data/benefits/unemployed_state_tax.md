@@ -18,8 +18,6 @@
 | IRS payment plan (installment agreement) | |  |  | Monthly payments; short-term plan has no user fee | Online long-term plan if you owe $50,000 or less and filed all returns; short-term plan if you owe under $100,000 | Open | https://www.irs.gov/payments/payment-plans-installment-agreements | Yes |
 | IRS Offer in Compromise | |  |  | Settle tax debt for less than owed based on ability to pay; Pre-Qualifier tool | File all returns, make estimated payments, not in open bankruptcy | Open | https://www.irs.gov/payments/offer-in-compromise | Yes |
 | Moving-expense deduction (lapsed for civilians) | |  |  | None for most people; only Armed Forces and, from 2026, intelligence community movers | N/A for civilian job-relocation moves | Closed | https://www.irs.gov/taxtopics/tc455 | Yes |
-| Job-search expense deduction (lapsed) | |  |  | None; miscellaneous itemized deductions for job-hunting costs are not allowed | N/A | Closed | https://www.irs.gov/publications/p529 | No |
-| Federal student loan unemployment deferment | |  |  | Pauses federal student loan payments while unemployed | Federal loans; page is script-rendered so terms not read this session | Unknown | https://studentaid.gov/manage-loans/lower-payments/get-temporary-relief/deferment | No |
 
 ## State income-tax treatment of unemployment benefits
 
@@ -36,7 +34,6 @@
 | Montana: unemployment compensation now taxable (deduction repealed) | | MT |  | Warning: Montana tax simplification repealed the UI deduction; budget for state tax or elect withholding | Residents, tax year 2024 onward | Open | https://revenue.mt.gov/montana-tax-simplification-resource-hub | Yes |
 | Oregon: unemployment benefits taxable; optional 6% state withholding | | OR |  | Oregon taxes UI (Oregon-source for nonresidents); you may have 6% state withholding taken | Oregon residents and Oregon-job claimants (search snippet; OR-17 confirms Oregon-source UI) | Open | https://www.oregon.gov/dor/forms/FormsPubs/publication-or-17_101-431_2025.pdf | No |
 | Alabama severance and unemployment exemption up to $50,000 (administrative downsizing) | | AL |  | Exempts up to $50,000 of severance pay (may include unemployment compensation, termination pay) from Alabama income tax | Employee who loses job through administrative downsizing; employer requests approval from Revenue Dept | Open | https://www.revenue.alabama.gov/individual-corporate/alabama-severance-pay-exemption/ | Yes |
-| States with no income tax on wages or UI (AK, FL, NV, SD, TX, WA, WY; NH, TN no wage tax) | |  |  | No state income tax on unemployment benefits in these states | Residents | Open | https://taxfoundation.org/data/all/state/state-taxation-unemployment-benefits/ | No |
 
 ## Dependents' allowances added to weekly unemployment benefits (US DOL, July 2026)
 
@@ -66,9 +63,8 @@
 | California Earned Income Tax Credit (CalEITC) | | CA |  | Up to $3,756 for tax year 2025 | Earned income up to $32,900 | Open | https://www.ftb.ca.gov/file/personal/credits/california-earned-income-tax-credit.html | Yes |
 | Washington Working Families Tax Credit | | WA |  | Up to $1,330 refund | Washington workers meeting income and family rules; processing over 90 days | Open | https://dor.wa.gov/wftc | Yes |
 | Pennsylvania Tax Forgiveness (poverty provisions) | | PA |  | Relief from PA personal income tax for low eligibility income, applied on Schedule SP | Claimant's yearly eligibility (poverty) income below the schedule | Open | https://www.pa.gov/agencies/revenue/forms-and-publications/pa-personal-income-tax-guide/tax-forgiveness | Yes |
-| New York State earned income credit | | NY |  | Refundable state EITC alongside the federal credit | Valid SSNs and earned income | Open | https://www.tax.ny.gov/pit/credits/earned_income_credit.htm | No |
-| Colorado Earned Income Tax Credit and Family Affordability Credit | | CO |  | State EITC based on federal EITC (cut to 25% for 2026); Family Affordability Credit paused for 2026 (search summary) | Colorado residents | Unknown | https://tax.colorado.gov/income-tax-topics-family-affordability-tax-credit | No |
-| New Mexico Working Families Tax Credit and Low-Income Comprehensive Tax Rebate | | NM |  | WFTC is a percent of the federal EITC; rebate for modified gross income of $36,000 or less (search summary) | New Mexico residents | Open | https://www.tax.newmexico.gov/individuals/personal-income-tax-information-overview/ | No |
+| New York State earned income credit |  | NY |  | Refundable credit, generally 30% of your federal EITC, less any household credit | Qualified for and claimed the federal EITC; valid SSNs; full-year residents get it refundable | Open | https://www.tax.ny.gov/pit/credits/earned_income_credit.htm | Yes |
+| New Mexico Working Families Tax Credit and Low-Income Comprehensive Tax Rebate |  | NM |  | Refundable WFTC equal to a percent of federal EITC (25% for 2023); rebate if modified gross income is $36,000 or less | New Mexico residents filing PIT-1; rebate also needs NM residency and presence for the year | Open | https://www.tax.newmexico.gov/individuals/personal-income-tax-information-overview/ | Yes |
 
 ## Property-tax relief that follows income
 
@@ -77,7 +73,7 @@
 | Florida homestead property tax deferral (income-based) | | FL |  | Defers the part of property tax and assessments above 5% of household income (3% if 65+); full deferral if prior-year income is under $10,000; early applicants may use estimated current-year income | Homestead-exempt owners; apply with the county tax collector | Open | https://www.flsenate.gov/Laws/Statutes/2025/197.252 | Yes |
 | Wisconsin Homestead Credit | | WI |  | Credit based on household income and rent or property tax | Earned income in the claim year, disability or age 62+; low household income | Open | https://www.revenue.wi.gov/Pages/Individuals/Homestead.aspx | Yes |
 | Michigan Homestead Property Tax Credit | | MI |  | Credit toward property taxes or rent; household resources under the annual limit; unemployment counts as resources | Michigan resident 6+ months, homestead, household resources under limit | Open | https://www.michigan.gov/taxes/iit/tax-guidance/credits-exemptions/hptc | Yes |
-| Minnesota Property Tax Refund | | MN |  | Income-based refund of property tax or rent | Minnesota homeowners and renters by household income | Open | https://www.revenue.state.mn.us/property-tax-refund | No |
+| Minnesota Property Tax Refund |  | MN |  | Property tax refund for homeowners based on income and property tax; renters now claim the Renter's Credit on the income tax return | Minnesota homeowners (refund) or renters (credit), by household income | Open | https://www.revenue.state.mn.us/property-tax-refund | Yes |
 | Utah hardship property tax deferral or abatement (59-2-1801/1802) | | UT | County | Relief for extreme financial hardship from county, interest accrues | County treasurer or auditor decides; job loss can qualify (county guidance) | Unknown | https://le.utah.gov/xcode/Title59/Chapter2/59-2-S1802.html | No |
 
 ## State tax payment plans and hardship relief
@@ -91,14 +87,14 @@
 | Pennsylvania personal income tax payment plan | | PA |  | Standard plan under 12 months for balances under $50,000; extended plan via REV-488 | All prior returns filed | Open | https://www.pa.gov/agencies/revenue/make-a-payment/payment-plans/personal-income-tax-payment-plans | Yes |
 | Georgia payment plan | | GA |  | Installment agreement up to 60 months, $25 minimum monthly | File last five years of returns; not in bankruptcy | Open | https://dor.georgia.gov/payment-plans | Yes |
 | Michigan installment agreement with hardship standards | | MI |  | Installment plan; hardship judged on Treasury collection financial standards | Must be billed first | Open | https://www.michigan.gov/taxes/collections/standards | Yes |
-| Massachusetts penalty waiver and payment agreement | | MA |  | Late-pay penalty may be waived if you enter an agreement (search summary) | Reasonable cause | Open | https://www.mass.gov/administrative-procedure/ap-633-guidelines-for-the-waiver-and-abatement-of-penalties | No |
+| Massachusetts penalty waiver and payment agreement |  | MA |  | Late-filing, late-payment and related penalties may be waived or abated in whole or in part | Taxpayer shows noncompliance was from reasonable cause, not willful neglect (DOR AP 633) | Open | https://www.mass.gov/administrative-procedure/ap-633-guidelines-for-the-waiver-and-abatement-of-penalties | Yes |
 
 ## Unclaimed property portals (forgotten refunds, final pay, old accounts)
 
 | Name | Employer | State | Locality | What it pays | Eligibility | Status | Official URL | Verified |
 |---|---|---|---|---|---|---|---|---|
 | NAUPA national unclaimed property directory | |  |  | Links to every state program and MissingMoney search to find money held for you | Any person | Open | https://unclaimed.org/ | Yes |
-| MissingMoney.com multi-state search | |  |  | Free search of participating state unclaimed property databases (page blocked to scripts this session) | Any person | Open | https://www.missingmoney.com/ | No |
+| MissingMoney.com multi-state search |  |  |  | Free search of participating state and Canadian province unclaimed property databases, then file a claim | Any person or heir; official site endorsed by NAUPA | Open | https://www.missingmoney.com/ | Yes |
 | AL unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | AL |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://treasury.alabama.gov/unclaimed-property/ | Yes |
 | AK unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | AK |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://treasury.dor.alaska.gov/unclaimed-property | Yes |
 | AZ unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | AZ |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://azdor.gov/unclaimed-property | Yes |
@@ -144,8 +140,8 @@
 | VA unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | VA |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://vamoneysearch.gov/ | Yes |
 | WA unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | WA |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://ucp.dor.wa.gov/ | Yes |
 | WY unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | WY |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://statetreasurer.wyo.gov/unclaimed-property/ | Yes |
-| IN unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | IN |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://indianaunclaimed.gov/ | No |
+| IN unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) |  | IN |  | Search by name, city or ZIP and file an original-owner or small-estate heir claim for money held by Indiana | Any owner or heir | Open | https://indianaunclaimed.gov/ | Yes |
 | MN unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | MN |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://mn.gov/commerce/unclaimed | No |
 | NH unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | NH |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://www.nh.gov/treasury | No |
-| RI unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) | | RI |  | Search and claim money the state is holding in your name | Any owner or heir; claim directly with the state | Open | https://treasury.ri.gov/ | No |
+| RI unclaimed property portal (forgotten paychecks, refunds, deposits, old accounts) |  | RI |  | Treasurer's Unclaimed Property Program: find and claim missing money held in your name | Any owner or heir; claim through the RI General Treasurer | Open | https://treasury.ri.gov/ | Yes |
 
