@@ -92,3 +92,83 @@ describe('turning tools on by updating your status', () => {
     expect(statusUnlock('ACTIVE')).toBeNull()
   })
 })
+
+import { NO_SENIOR_OVERLAY, SENIOR_DEMOTED, SENIOR_PROMOTED, readSeniorTrack, seniorDemoted, seniorEngagementDefaults, seniorItemVisibility, seniorOverlayOn, seniorPillarOrder } from '@/lib/journey/menu'
+import { menuEntries } from '@/lib/nav/places'
+import { REDESIGN_PLACES } from '@/lib/nav/redesign-places'
+
+const ON = { on: true, jobsRestored: false }
+const allModes: MenuMode[] = [...modes, 'BUYING']
+
+describe('senior overlay', () => {
+  it('the switch wins both ways; otherwise level and title decide', () => {
+    expect(seniorOverlayOn(true, null)).toBe(true)
+    expect(seniorOverlayOn(false, null)).toBe(false)
+    expect(seniorOverlayOn(true, false)).toBe(false)
+    expect(seniorOverlayOn(false, true)).toBe(true)
+  })
+  it('off changes nothing, in every mode', () => {
+    for (const m of allModes) {
+      expect(seniorPillarOrder(m, NO_SENIOR_OVERLAY)).toEqual(PILLAR_ORDER[m])
+      for (const k of keys) expect(seniorItemVisibility(k, m, NO_SENIOR_OVERLAY)).toBe(itemVisibility(k, m))
+    }
+  })
+  it('on reorders but never drops a pillar, in every mode', () => {
+    for (const m of allModes) {
+      const out = seniorPillarOrder(m, ON)
+      expect([...out].sort()).toEqual([...PILLAR_ORDER[m]].sort())
+      expect(out[out.length - 1]).toBe('support')
+      if (out.includes('search') && out.includes('network')) expect(out.indexOf('network')).toBeLessThan(out.indexOf('search'))
+    }
+  })
+  it('promoted tools are never hidden or locked for a senior leader, except Be found where it makes no sense', () => {
+    for (const m of allModes) {
+      for (const k of SENIOR_PROMOTED) {
+        const v = seniorItemVisibility(k, m, ON)
+        if (k === 'beFound') expect(v).toBe(itemVisibility(k, m))
+        else expect(v).toBe('show')
+      }
+    }
+    expect(itemVisibility('recruiter', 'STAYING')).toBe('hide')
+    expect(seniorItemVisibility('recruiter', 'STAYING', ON)).toBe('show')
+  })
+  it('the job board is demoted until restored, and other tools are not', () => {
+    expect(seniorDemoted('jobs', ON)).toBe(true)
+    expect(seniorDemoted('jobs', { on: true, jobsRestored: true })).toBe(false)
+    expect(seniorDemoted('jobs', NO_SENIOR_OVERLAY)).toBe(false)
+    expect(seniorDemoted('network', ON)).toBe(false)
+    expect(SENIOR_DEMOTED).toEqual(['jobs'])
+  })
+  it('points, streaks and daily application prompts start off, and only for the overlay', () => {
+    expect(seniorEngagementDefaults(ON)).toEqual({ points: false, streaks: false, dailyApplicationPrompts: false })
+    expect(seniorEngagementDefaults(NO_SENIOR_OVERLAY)).toEqual({ points: true, streaks: true, dailyApplicationPrompts: true })
+  })
+  it('reads the stored choice and ignores junk', () => {
+    expect(readSeniorTrack(null)).toEqual({ override: null, jobsRestored: false })
+    expect(readSeniorTrack({ seniorTrack: { override: false, jobsRestored: true } })).toEqual({ override: false, jobsRestored: true })
+    expect(readSeniorTrack({ seniorTrack: { override: 'yes' } })).toEqual({ override: null, jobsRestored: false })
+  })
+  it('Be found is hidden once landed, on a break or buying, and shown while searching or staying', () => {
+    for (const m of ['LANDED', 'LEAVE', 'BUYING', 'PORTFOLIO'] as MenuMode[]) expect(itemVisibility('beFound', m)).toBe('hide')
+    for (const m of ['EXPLORING', 'PREPARING', 'ACTIVE', 'STAYING'] as MenuMode[]) expect(itemVisibility('beFound', m)).toBe('show')
+  })
+  it('the menu keeps every entry, moves Network up and mutes the job board', () => {
+    const ctx = (mode: MenuMode) => ({ employed: true, locks: { hasEmailConnection: true, skillsAssessmentCompleted: true, mode }, paidAccess: { coaching: true, recruiters: true } })
+    for (const m of allModes) {
+      for (const place of REDESIGN_PLACES) {
+        const std = menuEntries(place, '/dashboard', ctx(m)).map((e) => e.label)
+        const sen = menuEntries(place, '/dashboard', { ...ctx(m), senior: ON }).map((e) => e.label)
+        // Senior may add entries that a mode hid (recruiters), never lose one.
+        for (const l of std) expect(sen).toContain(l)
+      }
+    }
+    const network = REDESIGN_PLACES.find((p) => p.key === 'network')!
+    const order = menuEntries(network, '/dashboard', { ...ctx('EXPLORING'), senior: ON }).map((e) => e.label)
+    expect(order.slice(0, 3)).toEqual(['This week', 'Recruiters', 'Be found'])
+    const jobs = REDESIGN_PLACES.find((p) => p.key === 'jobs')!
+    const j = menuEntries(jobs, '/dashboard', { ...ctx('ACTIVE'), senior: ON })
+    expect(j[j.length - 1]).toMatchObject({ label: 'Find a job', muted: true })
+    expect(j[j.length - 1].href).toBeTruthy() // muted, still a link
+    expect(menuEntries(jobs, '/dashboard', { ...ctx('ACTIVE'), senior: { on: true, jobsRestored: true } })[0].label).toBe('Find a job')
+  })
+})

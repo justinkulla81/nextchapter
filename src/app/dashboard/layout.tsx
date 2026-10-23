@@ -30,7 +30,8 @@ import { RedesignNav } from '@/components/dashboard/RedesignNav'
 import { RedesignParts } from '@/components/dashboard/RedesignParts'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
 import { checkInDue, effectiveJourney, effectiveStage, getStage } from '@/lib/journey/journey'
-import { menuMode } from '@/lib/journey/menu'
+import { menuMode, readSeniorTrack, seniorOverlayOn } from '@/lib/journey/menu'
+import { seniorMember } from '@/lib/coach/seniority'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -88,6 +89,8 @@ async function DashboardNavWithBadges({ profileId }: { profileId: string }) {
         locks={{ hasEmailConnection: true, skillsAssessmentCompleted: profile.skillsAssessmentCompletedAt !== null, mode: menuMode(effectiveStage(profile), effectiveJourney(profile)) }}
         paidAccess={{ coaching: access.coaching.on, recruiters: access.recruiters.on }}
         moneyHelp={profile.moneyHelp}
+        senior={{ on: seniorOverlayOn(seniorMember(profile), readSeniorTrack(profile.journeyDetails).override), jobsRestored: readSeniorTrack(profile.journeyDetails).jobsRestored }}
+        seniorSource={readSeniorTrack(profile.journeyDetails).override === null ? 'detected' : 'switch'}
       />
       {/* Help & feedback, in the corner of every portal page. */}
       <HelpFeedbackLauncher repliesWaiting={helpRepliesWaiting} />

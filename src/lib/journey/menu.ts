@@ -95,6 +95,7 @@ export const MOBILE_TAB: Record<MenuMode, MobileTab> = {
 export type Visibility = 'show' | 'locked' | 'hide'
 
 export type MenuItemKey =
+  | 'beFound'
   | 'strategy' | 'profile' | 'assessments' | 'marketReality' | 'worth' | 'local'
   | 'references' | 'portfolio' | 'marketing'
   | 'jobs' | 'companies' | 'interviewPrep' | 'offer' | 'marketIntel'
@@ -124,6 +125,7 @@ export const MENU_LABELS: Record<MenuItemKey, string> = {
   interviewPrep: "Interview Prep",
   offer: "Got An Offer 🎉",
   marketIntel: "Market Intelligence",
+  beFound: "Be found",
   network: "Network with Contacts",
   contacts: "My Contacts",
   community: "NextChapter Community",
@@ -182,6 +184,8 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   offer: { pillar: 'search', modes: { EXPLORING: L, PREPARING: L, STAYING: L, PORTFOLIO: L, LEAVE: L, BUYING: L }, pillarIn: { LANDED: 'career' } },
   marketIntel: { pillar: 'search', pillarIn: { LANDED: 'career' } },
   // Network
+  // Building public visibility before you need it: for anyone thinking about leaving or searching, not once landed or on a break.
+  beFound: { pillar: 'network', modes: { LANDED: H, LEAVE: H, BUYING: H, PORTFOLIO: H } },
   network: { pillar: 'network' },
   contacts: { pillar: 'network' },
   community: { pillar: 'network' },
@@ -285,4 +289,69 @@ export function statusUnlock(mode: MenuMode): StatusUnlock | null {
     default:
       return null
   }
+}
+
+// ── Senior overlay ──────────────────────────────────────────────────────────
+// For senior leaders (seniorMember() in ../coach/seniority.ts, or the "I'm a senior leader" switch in
+// Account and privacy) the menu changes order and emphasis on top of whatever mode the member is in, so
+// every journey keeps working. Nothing is removed: tools that matter more move up, the job board is muted
+// (still a link, one click to restore), and points, streaks and daily application prompts start off.
+
+export interface SeniorOverlay {
+  on: boolean
+  /** The member asked for the job board back at full strength. */
+  jobsRestored: boolean
+}
+
+export const NO_SENIOR_OVERLAY: SeniorOverlay = { on: false, jobsRestored: false }
+
+/** The switch wins in both directions; with no choice made the member's level and title decide. */
+export function seniorOverlayOn(senior: boolean, override: boolean | null | undefined): boolean {
+  return typeof override === 'boolean' ? override : senior
+}
+
+/** Tools a senior leader reaches for first. Recruiters, interim and fractional work are never hidden for them. */
+export const SENIOR_PROMOTED: readonly MenuItemKey[] = ['network', 'recruiter', 'beFound', 'interim', 'eqoveriq', 'learning']
+
+/** Muted, not removed. */
+export const SENIOR_DEMOTED: readonly MenuItemKey[] = ['jobs']
+
+/** The mode's visibility, except that promoted tools are never hidden or locked for a senior leader. */
+export function seniorItemVisibility(key: MenuItemKey, mode: MenuMode, overlay: SeniorOverlay): Visibility {
+  const base = itemVisibility(key, mode)
+  if (!overlay.on || base === 'show') return base
+  // "Be found" stays off where it makes no sense (landed, on a break, buying a business).
+  if (key === 'beFound') return base
+  return SENIOR_PROMOTED.includes(key) ? 'show' : base
+}
+
+export function seniorDemoted(key: MenuItemKey, overlay: SeniorOverlay): boolean {
+  return overlay.on && !overlay.jobsRestored && SENIOR_DEMOTED.includes(key)
+}
+
+/** Pillars in the mode's order, with network, work now and learn moved up and search and apply moved down. */
+export function seniorPillarOrder(mode: MenuMode, overlay: SeniorOverlay): Pillar[] {
+  const base = PILLAR_ORDER[mode]
+  if (!overlay.on) return base
+  const up: Pillar[] = ['network', 'work', 'learn']
+  const last: Pillar[] = ['support']
+  const down: Pillar[] = overlay.jobsRestored ? [] : ['search']
+  const rest = base.filter((p) => !up.includes(p) && !down.includes(p) && !last.includes(p))
+  // Orientation pillars (plan, grow, career) keep their place at the top; promoted ones follow.
+  const head: Pillar[] = rest.filter((p) => p === 'plan' || p === 'grow' || p === 'career')
+  const tail = rest.filter((p) => !head.includes(p))
+  const out = [...head, ...up.filter((p) => base.includes(p)), ...tail, ...down.filter((p) => base.includes(p)), ...last.filter((p) => base.includes(p))]
+  return out
+}
+
+/** What the overlay turns off by default; each stays something the member can turn back on. */
+export function seniorEngagementDefaults(overlay: SeniorOverlay): { points: boolean; streaks: boolean; dailyApplicationPrompts: boolean } {
+  const on = !overlay.on
+  return { points: on, streaks: on, dailyApplicationPrompts: on }
+}
+
+/** Reads the switch and the restore choice stored in journeyDetails.seniorTrack. */
+export function readSeniorTrack(journeyDetails: unknown): { override: boolean | null; jobsRestored: boolean } {
+  const t = (journeyDetails as { seniorTrack?: { override?: unknown; jobsRestored?: unknown } } | null | undefined)?.seniorTrack
+  return { override: typeof t?.override === 'boolean' ? t.override : null, jobsRestored: t?.jobsRestored === true }
 }
