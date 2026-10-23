@@ -286,3 +286,93 @@ All in, with content, player and the A-grade standard, the first course is rough
 - Build every interactive before testing one. The error hunt and the tie-out come first because they carry the main skill; if learners get better at checking from those alone, the rest can be simpler.
 - Film long lectures. Retention is better from short worked examples and doing the task.
 - Promise outcomes. The pre-test and post-test show what learners gained. They do not show a job or a raise.
+
+## 17. What other courses do (research, 2026-10-22)
+
+Six reviews of public pages: general-audience courses (Google, DeepLearning.AI, Wharton, Vanderbilt), vendor academies (Anthropic, Microsoft Learn, Trailhead, GitHub Skills, OpenAI, Google Skills, Runway), technical short courses and specializations, 11 finance and accounting courses, college and governance programs, and the learning-science literature. Pages were read through a summarizing fetch tool, so exact figures are "as reported". Anything behind a login (quiz content, autograders, retake rules) was not seen and is not claimed. Check any number before it goes into customer-facing copy.
+
+### 17.1 What the good ones share
+
+1. **Short units with the time shown.** Clips of 2 to 10 minutes, units of 5 to 50 minutes (DeepLearning.AI, Andrew Ng's courses, Trailhead). One study of 6.9 million edX video sessions found shorter and more informal videos hold attention best (Guo, Kim and Rubin, 2014); it measures watch time, not learning, and the "about 6 minutes" figure is secondhand.
+2. **Practice is first-class.** Trailhead weights its hands-on projects at 3,000 of 9,300 points. DeepLearning.AI alternates a short video with a code lab. Microsoft Learn marks its exercise optional and needs the learner's own licensed account, which is the pattern to avoid.
+3. **The learner's own work is checked and the reply is specific.** GitHub Skills makes the learner's repository the course: a bot detects the result and replies with the next step, or with exactly what to check. The finance version is a named artifact whose totals and flagged items are checked by code.
+4. **A named framework carries the course.** Anthropic's AI Fluency course is built on four named steps (Delegation, Description, Discernment, Diligence). A finance course needs its own short, memorable loop.
+5. **A way to skip.** Google Skills lets a confident learner jump to the challenge lab with progress kept. The evidence on experienced learners says extra guidance can hurt them (expertise reversal), so a pre-test and a skip path are part of the design.
+6. **A portable artifact.** Google Prompting Essentials ends with a reusable prompt library. Every course reviewed proves completion only; none gives a buyer dated, inspectable work.
+7. **Hours, pass rules and outcomes are not published** in most of them. Buyers (colleges, boards, employers) have to guess. CFI is the exception: it states an 80% pass mark and retakes.
+8. **A free front door and stackable units.** Purdue and IU Kelley use a free course to bring people in. Purdue sells 16 courses of about 15 hours each as stackable units.
+9. **Support for cohorts.** CMU's executive program adds facilitators, office hours and peer groups, with an accessibility contact published.
+
+### 17.2 What the evidence says to do
+
+Strongest support (Dunlosky et al. 2013; Cepeda et al. 2006; Rowland 2014): practice testing and spaced practice. Moderate: doing beats watching (Koedinger et al. 2015, correlational; Chi and Wylie 2014); explanatory feedback beats right or wrong (Shute 2008). Worked examples then fading help novices and can hurt experts (Kalyuga et al.).
+
+The finding that matters most for this course: **people over-rely on AI, and interface design that makes them decide before seeing the AI's answer reduces it more than explanations do** (Buçinca, Malaya and Gajos 2021). A large consulting study found AI helped on tasks inside its ability and hurt correctness on a task outside it, because people over-relied (Dell'Acqua et al. 2023). **No controlled study shows that training improves checking of AI output, in finance or anywhere.** That is the largest evidence gap, and it is also the opening: our pre-test and post-test on unseen planted-error items would be evidence nobody has published.
+
+Things the evidence does not support: matching teaching to learning styles; rereading, highlighting and summarizing; polished lecture video as better teaching; nudges and reminders raising completion at scale (they raised early engagement, not completion); AI explanations making people check more carefully.
+
+### 17.3 What the 11 finance courses cover, and what none cover
+
+Reviewed: Microsoft's five-course finance analysis specialization (about 38 hours), Edureka on Coursera (about 11 hours), CFI (three courses, 1 to 12 hours), AICPA and CIMA (a 2.5-credit self-study and a live 3-hour bootcamp), CPE Credit, Becker, ACCA, a Columbia and Wall Street Prep program, DataCamp, and Microsoft Learn's Copilot for finance.
+
+- **Common:** prompting, tool tours (ChatGPT, Copilot, others), ratio and variance analysis, forecasting, summaries, and a generic lecture on AI risks.
+- **Touched at framework level:** governance and controls (COSO, SOX), as a topic.
+- **Not seen in any public description:** verification of AI output using planted errors; reconciliations; writing and defending flux commentary; a month-end narrative; a review log with sign-off; a capstone that automates a real recurring task and ships with a control document.
+- **Price and length:** free to $29 to $95 for single CPE courses, $159 to $189 for Becker's certificate, about GBP 230 to 310 for ACCA, $295 to $395 for a 3-hour live AICPA workshop, $5,000 for the Columbia program. A 10-hour course sits in the middle of the length range.
+- **CPE:** credit comes from a NASBA-registered sponsor, typically 1 credit per 50 minutes of instruction plus a test. NextChapter cannot grant it unsponsored. CFI and AICPA and CIMA do.
+
+### 17.4 What buyers need that most vendors do not publish
+
+From the college and workforce review: learning outcomes, hours and weeks per program; assessment rubrics, answer keys and completion records; participant-level data exports so the college can compute completion and outcomes; an instructor or facilitator guide; an accessibility statement and a named contact; licensing and data-privacy terms; and a review date. A workforce board's training list approves a specific program at a specific college, not a vendor. Workforce Pell requires an accredited institution, a program of 150 to 599 clock hours, state approval and prior operating history, so this course is not a standalone Pell program. Counsel must confirm all of it.
+
+### 17.5 What this changes in the design
+
+1. **Commit before reveal.** In the error hunt and the tie-out, the learner writes their own figure or estimate before the AI draft is shown. This is the design that reduced over-reliance in the research.
+2. **Include a task AI gets wrong.** At least one exercise per module sits outside what an assistant does well, so learners find the boundary.
+3. **A checker that replies with a specific fix**, as GitHub Skills does, on every artifact: the totals that do not tie, the flagged item missed, the missing disclosure line.
+4. **Our own browser spreadsheet for Excel and Copilot exercises.** No paid Copilot or ChatGPT license required for any required task; a free assistant works for the practice tasks. This avoids the licensed-account barrier that excludes laid-off learners.
+5. **A pre-test with a skip path and a challenge.** A learner who passes the checking challenge can skip the guided modules and go to the capstone.
+6. **A framework with a name.** A short loop (for example Frame, Prompt, Verify, Document) that every module returns to and that the review log records.
+7. **Videos are short and optional.** Two to six minutes, informal, a face over a screen or drawing, with transcripts, only where seeing a sequence beats reading. Everything a video teaches is also in text.
+8. **Publish the hours, the rubric and the pass rule**, and pass at 80% with unlimited retakes on varied items, matching the standard CFI sets.
+9. **Cohort kit.** Facilitator guide, office-hours plan, peer-review rubric, accessibility statement and contact.
+10. **Measure the one thing nobody has.** Pre-test and post-test on unseen planted-error items, reported per cohort, with the claim limited to what was measured.
+
+## 18. Plan
+
+Hour figures are the estimates in sections 9, 15 and 16.7: about 360 to 475 hours in all, about 8 to 12 weeks for one person or 5 to 7 for two. The order is built to find out early whether the central idea works.
+
+### Phase 0: decide (about 2 days, no build)
+
+- Name the framework.
+- Choose the finance reviewer who signs off every exercise.
+- Choose the first buyer to scope against.
+- Decide the CPE path: partner with a NASBA-registered sponsor, or skip CPE for the first buyers (most colleges, boards and non-CPA finance staff care more about the certificate and the work sample).
+
+### Phase 1: prove the core in a vertical slice (weeks 1 to 2, about 70 hours)
+
+Build the practice-data generator and the error bank, one module (C3, "Check what AI gives you") with commit-before-reveal, the checker that replies with a specific fix, and the minimum player to run it. Put it in front of the finance reviewer and 5 target learners. **Go or change the design if** learners do not catch more planted errors after the module than before, or if the checker's replies do not tell them what to do.
+
+### Phase 2: foundations and the first finance modules (weeks 2 to 4, about 120 hours)
+
+C1 to C5 and F1 to F3, each with exercises, answer keys, hint ladders and item variants. The tie-out and variance bridge interactives. The pre-test, post-test and skip path.
+
+### Phase 3: the rest and the capstone (weeks 4 to 5, about 90 hours)
+
+F4 to F6, the formula audit in our browser spreadsheet, the review-log builder, the automation canvas, the capstone, the hand-off to the member's work samples, and counts-only reporting for buyers.
+
+### Phase 4: pilot and measure (week 6, about 50 hours)
+
+8 to 12 members in finance roles. Apply the quality gates in section 16.6. Revise any item answered right by under 20% or over 95%, or missed by over a third. Report completion, time on task, and gain on unseen planted-error items.
+
+### Phase 5: package for buyers (weeks 7 to 8, about 40 hours)
+
+Publish hours, rubric, pass rule and outcomes on a public page. Facilitator guide. Accessibility statement and contact. Data export for participant-level reporting. If a college partner is signed, the program dossier that college files for its state training list. If CPE is wanted, the sponsor application.
+
+### Decisions this plan needs from you
+
+1. The framework name, or approval of "Frame, Prompt, Verify, Document".
+2. Who the finance reviewer is.
+3. Which buyer to scope against first.
+4. CPE: pursue now, or defer.
+5. Whether to approve the first build once those are settled, since the course scope says no build starts without a signed scope.
