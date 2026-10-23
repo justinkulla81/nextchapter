@@ -256,7 +256,10 @@ function PivotPathCard({
               </span>
             )}
           </p>
-          <p className="text-xs text-muted-foreground">Outlook: BLS projections for {s.outlook.occupation}.</p>
+          {s.outlook.cycle && <p className="mt-1 text-foreground">{s.outlook.cycle}</p>}
+          <p className="text-xs text-muted-foreground">
+            Outlook: BLS projections for {s.outlook.occupation}.{s.outlook.cycle ? ' Downturns: BLS Occupational Employment and Wage Statistics.' : ''}
+          </p>
         </div>
       )}
 
