@@ -12,6 +12,20 @@ export async function getActiveGoogleConnection(): Promise<GoogleInboxConnection
   return prisma.googleInboxConnection.findFirst({ orderBy: { connectedAt: 'asc' } })
 }
 
+/** Mail you send from the CRM comes from the company address, when it is connected. */
+const SEND_FROM_DOMAIN = '@launchyournextchapter.com'
+
+/**
+ * A valid token for the mailbox CRM mail is sent from: the company-domain
+ * account if one is connected, otherwise the primary mailbox. Reading mail
+ * is unaffected — every connected mailbox is swept.
+ */
+export async function getValidSendAccessToken(): Promise<string | null> {
+  const all = await getAllGoogleConnections()
+  const sender = all.find((c) => c.email.toLowerCase().endsWith(SEND_FROM_DOMAIN)) ?? all[0]
+  return sender ? getValidAccessTokenFor(sender) : null
+}
+
 export async function getAllGoogleConnections(): Promise<GoogleInboxConnection[]> {
   return prisma.googleInboxConnection.findMany({ orderBy: { connectedAt: 'asc' } })
 }
