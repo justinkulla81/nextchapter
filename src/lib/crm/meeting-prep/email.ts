@@ -102,3 +102,15 @@ export function sendOfferProblemEmail(reason: string, detail?: string): Promise<
     <p style="margin:0;color:#666">Until you do, Prep for tomorrow will not be sent. You can still build one by hand from the person's CRM page.</p>
   `))
 }
+
+/** Tells Justin the hourly CRM Gmail/Calendar sweep failed, so replies do not silently stop being logged. */
+export function sendCrmSyncProblemEmail(problems: { source: string; error: string }[]): Promise<boolean> {
+  const connect = `${APP()}/api/admin/google-calendar/connect`
+  return send('CRM sync failed: Gmail/Calendar not syncing', wrap(`
+    <h1 style="font-size:18px;margin:0 0 6px">CRM sync failed</h1>
+    <p style="margin:0 0 8px">Replies and meetings are not being logged until this is fixed.</p>
+    ${ul(problems.map((p) => `<b>${esc(p.source)}:</b> ${esc(p.error)}`))}
+    <p style="margin:8px 0;color:#666">A 403 accessNotConfigured error means the Gmail or Calendar API is not enabled in the Google Cloud project of the OAuth client. Anything else usually needs a reconnect.</p>
+    <p style="margin:16px 0"><a href="${connect}" style="background:#1d4ed8;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block">Reconnect Google</a></p>
+  `))
+}

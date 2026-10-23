@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sweepGmail, sweepCalendar } from '@/lib/crm/sync'
 import { withCronRun } from '@/lib/cron/run'
+import { sendCrmSyncProblemEmail } from '@/lib/crm/meeting-prep/email'
 
 export const maxDuration = 300
 
@@ -76,6 +77,14 @@ export const GET = withCronRun('crm-sync', async (request: NextRequest) => {
   } catch (e) {
     results.calendar = { error: e instanceof Error ? e.message : String(e) }
   }
+
+  // Sweeps only run when due (daily by default), so this emails at most once
+  // per failed sweep rather than every hour.
+  const problems = (['gmail', 'calendar'] as const).flatMap((source) => {
+    const r = results[source] as { error?: string } | undefined
+    return r?.error ? [{ source, error: r.error }] : []
+  })
+  if (problems.length) await sendCrmSyncProblemEmail(problems).catch(() => false)
 
   return NextResponse.json(results)
 })
