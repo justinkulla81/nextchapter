@@ -6,6 +6,8 @@ import type { JobCriteria } from '@/lib/jobs/relevance'
 import type { MatchReason } from '@/lib/jobs/search-breadth'
 
 export interface WhyThisJob {
+  /** Why the fit is lower in an area the member widened to (search-scope.ts widenedFitNote); shown on its own line. */
+  lowerFit?: string | null
   fits: string[]
   gap: string | null
 }

@@ -23,6 +23,7 @@ import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
 import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
 import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
+import { ScopeBroaderFirst, ScopeEverythingQuestion, ScopeNarrow } from './search-scope'
 import { PortalHeaders } from './portal-headers'
 import { PartnerInvite, PartnerYourPeople, PartnerMoving, PartnerMovingAsk, PartnerMovingWorth } from './partner'
 import { FundingLive } from './funding-live'
@@ -45,6 +46,9 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'jobs/find/scope-broader', place: 'Jobs', title: 'Find a job: search scope Broader, with the once-only pivot message', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeBroaderFirst },
+  { path: 'jobs/find/scope-everything', place: 'Jobs', title: 'Find a job: search scope Everything, with the exploring question', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeEverythingQuestion },
+  { path: 'jobs/find/scope-narrow', place: 'Jobs', title: 'Find a job: search scope Narrow (home only)', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeNarrow },
   { path: 'learn/funding-live', place: 'Learn', title: 'Funding you qualify for: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: FundingLive },
   { path: 'jobs/market/ai-exposure-report', place: 'Jobs', title: 'AI exposure: your market reality', replaces: 'the “AI is reshaping this work” line in the market report', Component: ExposureMarketReport },
   { path: 'home/tailored/ai-exposure-strategy', place: 'Home', title: 'AI exposure: search strategy', replaces: 'the “AI skills” line under open roles', Component: ExposureSearchStrategy },

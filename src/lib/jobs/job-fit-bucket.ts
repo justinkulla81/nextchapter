@@ -119,6 +119,8 @@ type FitCandidate = Pick<
   skillLevels?: unknown
   // What they opted to add to their search (more states, pivot roles).
   searchExpansion?: unknown
+  // Functions the member explored and switched on (search-scope.ts): counted like a secondary function.
+  exploredFunctions?: string[]
 }
 
 // id/firstName/lastName/email are only needed by admin-side display and the
@@ -277,7 +279,7 @@ function titleFunctions(title: string): string[] {
   return out
 }
 
-function postingFunctions(posting: Pick<FitPostingLike, 'title' | 'targetFunction'>): string[] {
+export function postingFunctions(posting: Pick<FitPostingLike, 'title' | 'targetFunction'>): string[] {
   return posting.targetFunction ? [posting.targetFunction] : titleFunctions(posting.title)
 }
 
@@ -290,7 +292,7 @@ function hasSpecificTarget(c: Pick<FitCandidate, 'targetRoleType'>): boolean {
 function memberFunctions(c: FitCandidate): { own: string[]; secondary: string[] } {
   const own = [c.primaryFunction, c.targetFunction].filter((f): f is string => !!f?.trim())
   if (hasSpecificTarget(c)) own.push(...titleFunctions(expandExecAcronyms(c.targetRoleType!)))
-  const secondary = [c.secondaryFunction].filter((f): f is string => !!f?.trim())
+  const secondary = [c.secondaryFunction, ...(c.exploredFunctions ?? [])].filter((f): f is string => !!f?.trim())
   const norm = (list: string[]) => [...new Set(list.map((f) => f.trim().toLowerCase()))]
   return { own: norm(own), secondary: norm(secondary) }
 }
