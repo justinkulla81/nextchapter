@@ -18,6 +18,10 @@ import {
   rankFinancing,
   rankMarketplaces,
   trainingForStage,
+  BUY_MEDIA,
+  hardPartsToPlanFor,
+  mediaForStage,
+  whyNote,
 } from '@/lib/journey/buy-business'
 import { CHECK_IN_ANSWERS, JOURNEYS, changeForAnswer, getJourney, notLookingNow, reportFraming } from '@/lib/journey/journey'
 import { journeyPlanItems, shapePlan } from '@/lib/journey/plan'
@@ -86,7 +90,7 @@ describe('Buy a business: the plan and the menu', () => {
   })
   it('adds a profile nudge in the early stages, while questions are unanswered, and an SBA check when searching with an SBA loan', () => {
     expect(buyPlanItems('decide', 1, {})[0].text).toMatch(/Answer the next question/)
-    expect(buyPlanItems('decide', 1, { skills: ['sales'], industries: ['trades'], size: '300_500', cash: '100_250', financing: ['sba'], involvement: 'hands_on', where: 'Ohio', timeline: '6', partners: 'solo' })[0].text).not.toMatch(/Answer the next question/)
+    expect(buyPlanItems('decide', 1, { skills: ['sales'], industries: ['trades'], size: '300_500', cash: '100_250', financing: ['sba'], involvement: 'hands_on', where: 'Ohio', timeline: '6', partners: 'solo', why: 'boss', ready: ['hours'] })[0].text).not.toMatch(/Answer the next question/)
     expect(buyPlanItems('search', 2, { financing: ['sba'] }).map((i) => i.text).join(' ')).toMatch(/SBA lender will finance/)
   })
   it('has its own menu mode with job tools locked and an honest explanation', () => {
@@ -168,5 +172,34 @@ describe('Buy a business: marketplaces, financing and training', () => {
     expect(BUY_TRAINING.some((t) => t.free)).toBe(true)
     for (const t of [...BUY_TRAINING, ...RUN_TRAINING]) if (t.href) expect(t.href).toMatch(/^(https:\/\/|\/dashboard\/)/)
     expect(trainingForStage('prepare').length).toBeGreaterThan(0)
+  })
+})
+
+describe('Buy a business: why they want to own, hard parts, and media', () => {
+  it('asks why they want to own and which hard parts they are ready for, each with its reason, and never twice', () => {
+    const keys = BUY_FIELDS.map((f) => f.key)
+    expect(keys).toEqual(expect.arrayContaining(['why', 'ready']))
+    expect(missingBuyFields({ why: 'boss', ready: ['hours'] }).map((f) => f.key)).not.toEqual(expect.arrayContaining(['why', 'ready']))
+    expect(parseBuyValue(BUY_FIELDS.find((f) => f.key === 'why')!, 'boss')).toBe('boss')
+    expect(parseBuyValue(BUY_FIELDS.find((f) => f.key === 'why')!, 'because')).toBeNull()
+  })
+  it('says what each reason means for the plan; a reason that needs income points at parallel work', () => {
+    expect(whyNote({})).toBeNull()
+    expect(whyNote({ why: 'hiring' })!.links.map((l) => l.href)).toEqual(expect.arrayContaining(['/dashboard/interim-work', '/dashboard/find-my-job']))
+    expect(whyNote({ why: 'income' })!.because).toMatch(/income/)
+    expect(whyNote({ why: 'boss' })!.links).toEqual([])
+  })
+  it('lists the hard parts they did not tick, and nothing until they answer', () => {
+    expect(hardPartsToPlanFor({})).toEqual([])
+    const all = ['hours', 'guarantee', 'income', 'people', 'sell', 'paid_last']
+    expect(hardPartsToPlanFor({ ready: all })).toEqual([])
+    expect(hardPartsToPlanFor({ ready: ['hours', 'people'] }).map((h) => h.key)).toEqual(['guarantee', 'income', 'sell', 'paid_last'])
+    for (const h of hardPartsToPlanFor({ ready: ['hours'] })) expect(h.because.length).toBeGreaterThan(20)
+  })
+  it('links podcasts and YouTube with full https links, and puts the member’s stage first', () => {
+    expect(BUY_MEDIA.some((m) => m.kind === 'podcast')).toBe(true)
+    expect(BUY_MEDIA.some((m) => m.kind === 'video')).toBe(true)
+    for (const m of BUY_MEDIA) expect(m.href).toMatch(/^https:\/\//)
+    expect(mediaForStage('run')[0].stage).toBe('run')
   })
 })

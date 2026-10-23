@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: 'Funding you qualify for' }
 export default async function FundingPage() {
   const profile = await getDashboardData()
   const f = await fundingFor(profile)
-  const counts = { move: f.byGoal.move.length, retrain: f.byGoal.retrain.length, learn: f.byGoal.learn.length }
+  const counts = { move: f.byGoal.move.length, retrain: f.byGoal.retrain.length, tax: f.byGoal.tax.length, learn: f.byGoal.learn.length }
   after(() =>
     captureServerEvent(profile.id, 'funding_page_viewed', {
       matchCount: f.matches.length,
@@ -35,7 +35,7 @@ export default async function FundingPage() {
     <div className="space-y-10">
       <PageHeader
         title={`${f.matches.length} funding programs fit you`}
-        intro="Money to move, retrain and learn, ranked by how well each fits where you live, where you would go and your situation. Programs that do not apply to you are left out."
+        intro="Real dollars first: moving money, tuition and training money, and tax credits, then free courses. Ranked by how well each fits where you live, where you would go and your situation. Programs that do not apply to you are left out."
       />
 
       {(needsState || needsMove) && (

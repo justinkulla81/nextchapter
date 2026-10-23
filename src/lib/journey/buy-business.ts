@@ -162,7 +162,7 @@ export type BuyField = {
   options?: readonly BuyOption[]
 }
 
-export type BuyFieldKey = 'skills' | 'industries' | 'size' | 'cash' | 'financing' | 'involvement' | 'where' | 'timeline' | 'partners' | 'credit'
+export type BuyFieldKey = 'skills' | 'industries' | 'why' | 'size' | 'cash' | 'financing' | 'involvement' | 'where' | 'timeline' | 'partners' | 'ready' | 'credit'
 
 const opts = (...pairs: [string, string][]): BuyOption[] => pairs.map(([value, label]) => ({ value, label }))
 
@@ -223,6 +223,15 @@ export const FINANCING_OPTIONS_INTAKE = opts(
   ['unsure', 'I do not know yet'],
 )
 
+export const HARD_PART_OPTIONS = opts(
+  ['hours', 'Working long hours for the first year'],
+  ['guarantee', 'Personally guaranteeing a loan'],
+  ['income', 'Earning less than I do now for a year or more'],
+  ['people', 'Managing people, including hard conversations'],
+  ['sell', 'Selling and asking customers for money'],
+  ['paid_last', 'Being paid after employees, rent, taxes and the lender'],
+)
+
 export const BUY_FIELDS: readonly BuyField[] = [
   {
     key: 'skills',
@@ -237,6 +246,19 @@ export const BUY_FIELDS: readonly BuyField[] = [
     why: 'We point you to the marketplaces and brokers that list these, and to the right training.',
     kind: 'multi',
     options: INDUSTRY_OPTIONS,
+  },
+  {
+    key: 'why',
+    label: 'What is the main reason you want to own a business?',
+    why: 'It changes what we put first. Buying takes six months to a year, so some reasons call for income while you search. Private to you, and there is no wrong answer.',
+    kind: 'choice',
+    options: opts(
+      ['boss', 'I want to be my own boss'],
+      ['wealth', 'I want to build wealth and own something'],
+      ['hiring', 'Employers are not hiring someone like me'],
+      ['income', 'I need income soon and this looks like a way to get it'],
+      ['legacy', 'I want to keep a business I know going'],
+    ),
   },
   {
     key: 'size',
@@ -287,6 +309,13 @@ export const BUY_FIELDS: readonly BuyField[] = [
     options: opts(['solo', 'Alone'], ['partner', 'With a spouse or partner'], ['investors', 'With investors']),
   },
   {
+    key: 'ready',
+    label: 'Which of these hard parts are you ready for?',
+    why: 'Every owner faces them. Each one you are not sure about gets a plan and something to learn, so nothing surprises you after you sign.',
+    kind: 'multi',
+    options: HARD_PART_OPTIONS,
+  },
+  {
     key: 'credit',
     label: 'Roughly, what is your credit score?',
     why: 'Lenders look at it first. Optional.',
@@ -295,10 +324,11 @@ export const BUY_FIELDS: readonly BuyField[] = [
   },
 ]
 
-export type BuyIntake = Partial<Record<Exclude<BuyFieldKey, 'skills' | 'industries' | 'financing' | 'where'>, string>> & {
+export type BuyIntake = Partial<Record<Exclude<BuyFieldKey, 'skills' | 'industries' | 'financing' | 'where' | 'ready'>, string>> & {
   skills?: string[]
   industries?: string[]
   financing?: string[]
+  ready?: string[]
   where?: string
 }
 
@@ -736,4 +766,120 @@ export function buyHeadline(stage: BuyStageKey, d: BuyDetails): { title: string;
   }
   const s = getBuyStage(stage)
   return { title: s.next, because: s.goal }
+}
+
+// ── Why they want to own, and the hard parts ─────────────────────────────────
+
+export type BuyNote = { text: string; because: string; links: { label: string; href: string }[] }
+
+const EARN_LINKS = [
+  { label: 'Find interim or fractional work', href: '/dashboard/interim-work' },
+  { label: 'Keep your job search going', href: '/dashboard/find-my-job' },
+]
+
+const WHY_NOTES: Record<string, BuyNote> = {
+  boss: {
+    text: 'Owning gives you independence, not freedom from bosses: customers, lenders and employees all depend on you.',
+    because: 'You said you want to be your own boss. Ask two owners in your industry what they gave up, before you spend money.',
+    links: [],
+  },
+  wealth: {
+    text: 'In a small business, wealth comes from raising profit and, later, from selling it for more than you paid.',
+    because: 'You said you want to build wealth. The run-and-improve training shows how owners raise profit.',
+    links: [{ label: 'Learn how owners improve a business', href: '/dashboard/buy-a-business?tab=training' }],
+  },
+  hiring: {
+    text: 'You do not have to be hired to own a business. Buying takes six months to a year, so keep income coming while you search.',
+    because: 'You said employers are not hiring someone like you. A parallel path (fractional, interim or a job search) covers the months before you close.',
+    links: EARN_LINKS,
+  },
+  income: {
+    text: 'Buying is rarely the fast way to income: it takes six months to a year, and the first months of ownership are thin.',
+    because: 'You said you need income soon. Keep income coming while you search, and size your cash cushion for a slow start.',
+    links: EARN_LINKS,
+  },
+  legacy: {
+    text: 'Buying a business you already know is the lowest-risk kind. Lenders and sellers both trust a buyer who knows the work.',
+    because: 'You said you want to keep a business you know going. Ask the owner and the employees what happens after the sale.',
+    links: [],
+  },
+}
+
+/** One plain note on what the member's reason for buying means for their plan, or null when they have not said. */
+export function whyNote(d: BuyDetails): BuyNote | null {
+  return d.why ? (WHY_NOTES[d.why] ?? null) : null
+}
+
+export type HardPart = { key: string; title: string; because: string; learn: { label: string; href: string } }
+
+const HARD_PARTS: Record<string, HardPart> = {
+  hours: {
+    key: 'hours',
+    title: 'Long hours in the first year',
+    because: 'The owner’s job is a job. Most first-year owners work more than they did as an employee.',
+    learn: { label: 'Ask a SCORE mentor who has run a business like yours', href: 'https://www.score.org/' },
+  },
+  guarantee: {
+    key: 'guarantee',
+    title: 'Guaranteeing the loan yourself',
+    because: 'SBA lenders require every owner of 20% or more to personally guarantee the loan, so your own assets stand behind it.',
+    learn: { label: 'Read how SBA 7(a) loans work', href: 'https://www.sba.gov/loans/7a-loans/' },
+  },
+  income: {
+    key: 'income',
+    title: 'Lower pay for a year or more',
+    because: 'Owners are paid after the business covers its costs, and early profit often goes to the loan first.',
+    learn: { label: 'Look at interim or fractional work to cover the gap', href: '/dashboard/interim-work' },
+  },
+  people: {
+    key: 'people',
+    title: 'Managing people and hard conversations',
+    because: 'You inherit the old owner’s team. Keeping good people and letting go of the wrong ones is most of the job.',
+    learn: { label: 'SBA guides on hiring and managing', href: 'https://www.sba.gov/business-guide/manage-your-business' },
+  },
+  sell: {
+    key: 'sell',
+    title: 'Selling and asking for money',
+    because: 'Owners sell all day: to customers, to lenders and to landlords. Customers rarely come on their own.',
+    learn: { label: 'A free SBDC advisor can coach your pricing and sales', href: 'https://americassbdc.org/' },
+  },
+  paid_last: {
+    key: 'paid_last',
+    title: 'Being paid last',
+    because: 'Payroll, rent, taxes and the loan payment come before the owner. A thin month can mean no pay.',
+    learn: { label: 'Size your cash cushion', href: '/dashboard/buy-a-business?tab=financing' },
+  },
+}
+
+/** The hard parts the member did not tick, each with why it matters and where to learn. Empty until they have answered. */
+export function hardPartsToPlanFor(d: BuyDetails): HardPart[] {
+  if (!d.ready) return []
+  return HARD_PART_OPTIONS.filter((o) => !d.ready!.includes(o.value)).map((o) => HARD_PARTS[o.value])
+}
+
+// ── Podcasts and videos ──────────────────────────────────────────────────────
+
+export type MediaItem = {
+  id: string
+  title: string
+  kind: 'podcast' | 'video'
+  by: string
+  summary: string
+  href: string
+  stage: BuyStageKey
+}
+
+// Public shows, linked only; we are not affiliated with any of them. Links checked 2026-10-23.
+export const BUY_MEDIA: readonly MediaItem[] = [
+  { id: 'acquiring-minds', title: 'Acquiring Minds', kind: 'podcast', by: 'Will Smith', summary: 'Hundreds of interviews with people who bought a business: how they found it, paid for it and ran it.', href: 'https://acquiringminds.co/', stage: 'decide' },
+  { id: 'eta-insider', title: 'ETA Insider', kind: 'podcast', by: 'Brian O’Connor, Polsky Center, Chicago Booth', summary: 'Searchers and the investors who back them, on buying a company and what the first years are like.', href: 'https://polsky.uchicago.edu/podcasts/', stage: 'prepare' },
+  { id: 'found-funded', title: 'The Found & Funded Podcast', kind: 'podcast', by: 'Carl Lundberg', summary: 'For people who want to own a business but do not have a startup idea: searching, funding and buying.', href: 'https://podcasts.apple.com/us/podcast/the-found-funded-podcast/id1778471971', stage: 'search' },
+  { id: 'codie-sanchez', title: 'Codie Sanchez', kind: 'video', by: 'YouTube', summary: 'A buyer and owner of everyday Main Street businesses on how to find, price and run them.', href: 'https://www.youtube.com/@CodieSanchezCT', stage: 'search' },
+  { id: 'hormozi', title: 'Alex Hormozi', kind: 'video', by: 'YouTube', summary: 'Pricing, offers, hiring and sales for owners. Most useful once you own a business.', href: 'https://www.youtube.com/@AlexHormozi', stage: 'run' },
+  { id: 'podcast-roundup', title: 'More shows for buyers', kind: 'podcast', by: 'Searchfunder members', summary: 'A community list that adds Acquisitions Anonymous, Think Like an Owner and others.', href: 'https://www.searchfunder.com/post/best-podcasts-for-buying-and-operating-businesses', stage: 'decide' },
+]
+
+/** Shows that fit the member's stage first. */
+export function mediaForStage(stage: BuyStageKey): MediaItem[] {
+  return [...BUY_MEDIA].sort((a, b) => Number(b.stage === stage) - Number(a.stage === stage))
 }

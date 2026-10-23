@@ -36,8 +36,9 @@ export default function FundingPage() {
   const s = FUNDING_STATS
   const groups = [
     { goal: 'move' as const, title: 'Money to move', body: 'Relocation grants, down-payment help and incentives to move to a new city or state for work.' },
-    { goal: 'retrain' as const, title: 'Money to retrain', body: 'Tuition aid, state scholarships, federal dislocated-worker training and funds for specific professions.' },
-    { goal: 'learn' as const, title: 'Free courses and certificates', body: 'Free learning from the companies and universities that hiring managers recognize.' },
+    { goal: 'retrain' as const, title: 'Tuition and training money', body: 'Tuition aid, state scholarships, federal dislocated-worker training and funds for specific professions.' },
+    { goal: 'tax' as const, title: 'Tax credits and deductions', body: 'Money back at tax time that losing a job or changing careers can unlock.' },
+    { goal: 'learn' as const, title: 'Free courses', body: 'Free learning from names hiring managers recognize. Listed after the money, because it is not cash.' },
   ]
   return (
     <div className="flex flex-1 flex-col">
@@ -53,7 +54,7 @@ export default function FundingPage() {
       <main className="theme-redesign mx-auto w-full max-w-5xl px-6 py-14 text-ink">
         <section className="mx-auto max-w-3xl text-center" aria-labelledby="funding-h1">
           <h1 id="funding-h1" className="font-display text-4xl leading-tight font-semibold tracking-tight text-balance sm:text-6xl">
-            Money to relocate, retrain and reskill is out there. Members get the part that fits them.
+            Real money to relocate, retrain and reskill is out there. Members get the part that fits them.
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
             We track {fmt(s.tracked)} programs across the country and keep {fmt(s.verifiedLive)} that are checked, open and made for people, not employers. Join free and we rank
@@ -67,7 +68,7 @@ export default function FundingPage() {
           <p className="mt-3 text-sm text-muted-foreground">Free for candidates, always. Takes about five minutes.</p>
         </section>
 
-        <section className="mt-16 grid gap-4 sm:grid-cols-3" aria-label="What is in the list">
+        <section className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="What is in the list">
           {groups.map((g) => (
             <div key={g.goal} className="space-y-3 rounded-2xl border border-border p-6">
               <p className="font-display text-4xl font-semibold">{fmt(s.byGoal[g.goal])}</p>

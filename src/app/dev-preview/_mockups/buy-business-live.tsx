@@ -12,6 +12,8 @@ const SAMPLE: BuyDetails = {
   size: '300_500',
   cash: '100_250',
   financing: ['sba', 'seller'],
+  why: 'hiring',
+  ready: ['hours', 'people'],
 }
 
 function Shell({ title, intro, children }: { title: string; intro: string; children: React.ReactNode }) {
