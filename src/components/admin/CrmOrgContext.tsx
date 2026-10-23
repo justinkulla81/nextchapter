@@ -111,10 +111,13 @@ export async function CrmOrgContext({ orgId }: { orgId: string }) {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Tile label="Customer type" value={customerType} note={customerNote} />
-        {college || !company ? (
-          <Tile label="Alumni" value={alumni?.toLocaleString()} note={college ? (college.alumniReported ? 'Reported' : 'Estimate') : undefined} />
-        ) : (
+        {college ? (
+          <Tile label="Alumni" value={alumni?.toLocaleString()} note={college.alumniReported ? 'Reported' : 'Estimate'} />
+        ) : company ? (
           <Tile label="Open roles here" value={company.openNow.toLocaleString()} note={`${company.opened90d.toLocaleString()} opened in 90 days`} />
+        ) : (
+          <Tile label="Local groups" value={local ? (local.counts.boards + local.counts.centers + local.counts.edo + local.counts.chambers + local.counts.other).toLocaleString() : null}
+            note={local ? 'boards, job centers, economic development, chambers' : undefined} />
         )}
         <Tile label="Unemployment" value={area?.unemploymentRate != null ? `${area.unemploymentRate.toFixed(1)}%` : null}
           note={area ? `${areaLabel}${area.unemploymentRatePrior != null ? ` · ${area.unemploymentRatePrior.toFixed(1)}% a year ago` : ''}` : undefined} />
