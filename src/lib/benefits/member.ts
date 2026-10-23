@@ -2,7 +2,7 @@ import 'server-only'
 import type { CandidateProfile } from '@prisma/client'
 import { parseRelocation } from '@/lib/journey/relocation'
 import { listPrograms, seedCatalogIfEmpty } from './store'
-import { cleanSelfTags, deriveWorkTags, groupByGoal, matchPrograms, type AudienceTag, type Goal, type Match, type MemberFacts } from './match'
+import { cleanSelfTags, deriveWorkTags, groupByGoal, matchPrograms, workKnown, type AudienceTag, type Goal, type Match, type MemberFacts } from './match'
 import type { BenefitProgramRow } from './types'
 
 type FundingProfile = Pick<
@@ -32,6 +32,9 @@ export function factsFor(p: FundingProfile): { facts: MemberFacts; selfTags: Aud
       laidOff: p.currentJobStatus === 'LAID_OFF',
       pivoting: p.isPivoting || p.currentJobStatus === 'CAREER_PIVOT',
       tags: [...new Set([...selfTags, ...deriveWorkTags(p)])],
+      workKnown: workKnown(p),
+      // Until they save the 'which are true for you' answers we do not know, so group-specific programs stay in.
+      answered: !!(p.journeyDetails as { funding?: { savedAt?: string } } | null)?.funding?.savedAt,
     },
   }
 }
