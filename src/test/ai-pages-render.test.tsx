@@ -70,3 +70,16 @@ describe('public AI pages render', () => {
     expect(html).not.toMatch(/\$\d/) // no price on the public page
   }, 60_000)
 })
+
+describe('/ai-skills lede', () => {
+  it('states the real top and bottom of the table, not a fixed claim', async () => {
+    vi.resetModules()
+    const { default: Page } = await import('@/app/ai-skills/page')
+    const html = renderToStaticMarkup(await Page())
+    const { publicFunctionRows } = await import('@/lib/skills/ai-skills-public')
+    const rows = publicFunctionRows()
+    expect(html).toContain(`runs from`)
+    expect(html).toContain(rows[rows.length - 1].label)
+    expect(html).not.toContain('close to half')
+  }, 60_000)
+})
