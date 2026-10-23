@@ -12,13 +12,15 @@ import { WorkforceBoardsViewTracker } from '@/components/admin/WorkforceBoardsVi
 import { FitScoreBadge, type FitBreakdown } from '@/components/admin/FitScoreBadge'
 import { buildBoardReport, isCompanyWide, type ReportSort } from '@/lib/workforce/board-report'
 import { jobCentersUrl, STATE_NAMES } from '@/lib/workforce/directory'
+import { countyKey } from '@/lib/workforce/places'
+import { correctFutureDates } from '@/lib/warn/filed-date'
 import { boardCountyKeys, visibleBoards } from '@/lib/workforce/board-area'
 import { boardLabor } from '@/lib/workforce/labor'
 import { formatDate } from '@/lib/crm/labels'
 import { inStateScope } from '@/lib/funding-opportunities/eligibility'
 import { listOpenOpportunities } from '@/lib/funding-opportunities/store'
 import { areaContext, type AreaContext } from '@/lib/workforce/county-context'
-import { collegesByCounty, laborBenchmarks, loadCountyContext, openJobsByCounty } from '@/lib/workforce/county-context-data'
+import { collegesByCounty, laborBenchmarks, loadCountyContext, loadStateOpenings, openJobsByCounty } from '@/lib/workforce/county-context-data'
 
 export const maxDuration = 60
 
@@ -64,13 +66,13 @@ const loadBoardData = ttlCached(
       },
       select: {
         id: true, workforceBoardId: true, employer: true, normalizedEmployer: true, employees: true,
-        noticeDate: true, effectiveDate: true, companyId: true, sourceUrl: true, source: true, industry: true,
+        noticeDate: true, effectiveDate: true, companyId: true, sourceUrl: true, source: true, industry: true, fetchedAt: true,
       },
     }),
     prisma.workforceBoard.groupBy({ by: ['state'], orderBy: { state: 'asc' } }),
     prisma.countyLabor.findMany({
       where: state ? { state } : {},
-      select: { state: true, fips: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
+      select: { state: true, fips: true, name: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
     }),
     // Internal fit score (scripts/geo/score-partners.ts, refreshed weekly).
     // Scores only here; the reasons JSON is fetched for the visible page below.
@@ -91,37 +93,95 @@ const loadBoardFunding = ttlCached(10 * 60 * 1000, async () => {
   return all.filter((o) => o.applicantKinds.some((k) => k === 'LOCAL_GOV' || k === 'STATE_GOV') && WORKFORCE_MONEY.test(o.title))
 })
 
+// Open funding leads the CRM already holds (the grants pipeline: state agency programs, RFPs, workforce funds), by the
+// state of the organization that offers them. National leads and leads about something other than workforce or training
+// money are left out. The role is what the lead's own notes say: prime (we can apply), sub, or sell to the awardee.
+const STATE_LEAD_TITLE = /workforce|retrain|reskill|upskill|reemployment|dislocated|apprentic|rapid response|layoff|wioa|career|job (training|placement)|employment|labor|training/i
+export interface StateLeads { total: number; prime: number; sub: number; titles: string[] }
+const loadStateLeads = ttlCached(10 * 60 * 1000, async () => {
+  const rows = await prisma.$queryRaw<{ title: string; state: string; nextStep: string | null }[]>`
+    select o.title, g."usState" state, o."nextStep"
+      from "CrmOpportunity" o
+      join "CrmPipeline" p on p.id = o."pipelineId"
+      join "CrmOrganization" g on g.id = o."orgId"
+     where p.key = 'grants' and o.outcome = 'OPEN' and g."usState" is not null and g."usState" not in ('NATIONAL', 'GLOBAL')`
+  const out = new Map<string, StateLeads>()
+  for (const r of rows) {
+    if (!STATE_LEAD_TITLE.test(r.title)) continue
+    const role = r.nextStep?.match(/Role:\s*(PRIME|SUB)\b/)?.[1]
+    const e = out.get(r.state) ?? { total: 0, prime: 0, sub: 0, titles: [] }
+    e.total++
+    if (role === 'PRIME') e.prime++
+    else if (role === 'SUB') e.sub++
+    if (e.titles.length < 8) e.titles.push(r.title)
+    out.set(r.state, e)
+  }
+  return out
+})
+
 const pct = (n: number, digits = 0) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(digits)}%`
 
-function FundingCell({ bids, grants, procurementUrl }: { bids: { title: string }[]; grants: { id: string; title: string; url: string; closesAt: Date | null }[]; procurementUrl: string | null }) {
+function FundingCell({ bids, grants, leads, state, procurementUrl }: {
+  bids: { title: string }[]
+  grants: { id: string; title: string; url: string; closesAt: Date | null }[]
+  leads: StateLeads | null
+  state: string
+  procurementUrl: string | null
+}) {
   const next = grants.find((g) => g.closesAt)?.closesAt ?? null
+  const lines: React.ReactNode[] = []
+  if (bids.length > 0) {
+    lines.push(
+      <p key="bids" title={bids.map((b) => b.title).join('\n')}>
+        {procurementUrl ? <a href={procurementUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">{bids.length} open bid{bids.length === 1 ? '' : 's'}</a> : `${bids.length} open bid${bids.length === 1 ? '' : 's'}`}
+        <span className="block text-[11px] text-muted-foreground">on the board&apos;s own page</span>
+      </p>,
+    )
+  }
+  if (grants.length > 0) {
+    lines.push(
+      <p key="grants" title={grants.slice(0, 8).map((g) => g.title).join('\n')}>
+        <a href={grants[0].url} target="_blank" rel="noreferrer" className="text-primary hover:underline">{grants.length} open grant{grants.length === 1 ? '' : 's'} for {state}</a>
+        {next && <span className="block text-[11px] text-muted-foreground">next closes {formatDate(next)}</span>}
+      </p>,
+    )
+  }
+  if (leads) {
+    lines.push(
+      <p key="leads" title={leads.titles.join('\n')}>
+        <Link href={`/support/admin/crm/leads?pipeline=grants&state=${encodeURIComponent(state)}`} className="text-primary hover:underline">
+          {leads.total} {state} funding lead{leads.total === 1 ? '' : 's'}
+        </Link>
+        {(leads.prime > 0 || leads.sub > 0) && (
+          <span className="block text-[11px] text-muted-foreground">{leads.prime > 0 && `${leads.prime} we can prime`}{leads.prime > 0 && leads.sub > 0 && ' · '}{leads.sub > 0 && `${leads.sub} as sub`}</span>
+        )}
+      </p>,
+    )
+  }
   return (
-    <td className="px-2 py-2 text-xs">
-      {bids.length > 0 && (
-        <p title={bids.map((b) => b.title).join('\n')}>
-          {procurementUrl ? <a href={procurementUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">{bids.length} open bid{bids.length === 1 ? '' : 's'}</a> : `${bids.length} open bid${bids.length === 1 ? '' : 's'}`}
-        </p>
-      )}
-      {grants.length > 0 && (
-        <p className={bids.length > 0 ? 'mt-1' : undefined} title={grants.slice(0, 8).map((g) => g.title).join('\n')}>
-          <a href={grants[0].url} target="_blank" rel="noreferrer" className="text-primary hover:underline">{grants.length} open grant{grants.length === 1 ? '' : 's'}</a>
-          {next && <span className="block text-[11px] text-muted-foreground">next closes {formatDate(next)}</span>}
-        </p>
-      )}
-      {bids.length === 0 && grants.length === 0 && <span className="text-muted-foreground">—</span>}
+    <td className="space-y-1.5 px-2 py-2 text-xs">
+      {lines.length > 0 ? lines : <span className="text-muted-foreground">—</span>}
     </td>
   )
 }
 
-function EconomyCells({ eco }: { eco: AreaContext & { openJobs: number; colleges: number; communityColleges: number } }) {
+function EconomyCells({ eco }: { eco: AreaContext & { openJobs: number; colleges: number; communityColleges: number; market: { state: string; openings: number; perUnemployed: number | null } | null } }) {
   const sector = (s: { label: string; changePct: number; change: number }) => (
-    <li key={s.label} title={`${s.change > 0 ? '+' : '−'}${Math.abs(s.change).toLocaleString()} private-sector jobs, 2022 to 2024`}>
+    <li key={s.label} title={`${s.change > 0 ? '+' : '−'}${Math.abs(s.change).toLocaleString()} private-sector jobs, 2022 to 2025`}>
       {s.label} <span className="text-muted-foreground">{pct(s.changePct)}</span>
     </li>
   )
   return (
     <>
-      <td className="px-2 py-2 text-right text-xs tabular-nums">{eco.openJobs ? eco.openJobs.toLocaleString() : <span className="text-muted-foreground">—</span>}</td>
+      <td className="px-2 py-2 text-right text-xs tabular-nums">
+        {eco.openJobs ? eco.openJobs.toLocaleString() : <span className="text-muted-foreground">—</span>}
+        {eco.market && (
+          <span className="mt-0.5 block text-[11px] text-muted-foreground" title="Job openings in the whole state, all employers (BLS JOLTS, 12-month average), and openings per unemployed person. The count above is only roles on the NextChapter board.">
+            {eco.market.state} market {Math.round(eco.market.openings / 1000).toLocaleString()}k
+            {eco.market.perUnemployed != null && ` · ${eco.market.perUnemployed.toFixed(1)}/jobseeker`}
+          </span>
+        )}
+      </td>
       <td className="whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums">
         {eco.population ? (
           <>
@@ -169,13 +229,15 @@ export default async function WorkforceBoardsPage({
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
 
-  const [{ allBoards, notices, states, labor, fitRows }, { context }, openJobs, benchmarks, collegeRows, boardFunding] = await Promise.all([
+  const [{ allBoards, notices, states, labor, fitRows }, { context }, openJobs, benchmarks, collegeRows, boardFunding, stateLeads, stateOpenings] = await Promise.all([
     loadBoardData(state, windowDays),
     loadCountyContext(),
     openJobsByCounty().catch(() => new Map<string, number>()),
-    laborBenchmarks().catch(() => ({ byState: new Map<string, number>(), national: null as number | null })),
+    laborBenchmarks().catch(() => ({ byState: new Map<string, number>(), unemployedByState: new Map<string, number>(), national: null as number | null })),
     collegesByCounty().catch(() => []),
     loadBoardFunding(),
+    loadStateLeads().catch(() => new Map<string, StateLeads>()),
+    loadStateOpenings(),
   ])
   const fitById = new Map(fitRows.map((f) => [f.id, f]))
   // A state board shows only where the state has no local boards under it (Vermont, Delaware…).
@@ -185,22 +247,29 @@ export default async function WorkforceBoardsPage({
   const laborFor = (b: (typeof boards)[number]) => {
     const keys = boardCountyKeys(b)
     const rows = laborByState.get(b.state) ?? []
-    return boardLabor(keys === 'all' ? rows : rows.filter((r) => keys.includes(r.nameKey)))
+    // Stored nameKeys keep the space ("los angeles"); boards list "losangeles": join on the key of the name.
+    return boardLabor(keys === 'all' ? rows : rows.filter((r) => keys.includes(countyKey(r.name))))
   }
 
   const countyRows = (b: (typeof boards)[number]) => {
     const keys = boardCountyKeys(b)
     const all = laborByState.get(b.state) ?? []
-    return keys === 'all' ? all : all.filter((r) => keys.includes(r.nameKey))
+    return keys === 'all' ? all : all.filter((r) => keys.includes(countyKey(r.name)))
   }
   // A board's local economy: its counties' population, jobs by sector, open roles and colleges.
   const economyFor = (b: (typeof boards)[number]) => {
     const fips = countyRows(b).map((r) => r.fips)
     const keys = boardCountyKeys(b)
-    const colleges = collegeRows.filter((c) => c.state === b.state && (keys === 'all' || (c.countyKey != null && keys.includes(c.countyKey))))
+    const fipsSet = new Set(fips)
+    const colleges = collegeRows.filter((c) => c.state === b.state && (keys === 'all' || (c.countyFips != null && fipsSet.has(c.countyFips))))
     return {
       ...areaContext(context, fips),
       openJobs: fips.reduce((n, f) => n + (openJobs.get(f) ?? 0), 0),
+      market: (() => {
+        const openings = stateOpenings[b.state]
+        const unemployed = benchmarks.unemployedByState.get(b.state)
+        return openings ? { state: b.state, openings, perUnemployed: unemployed ? openings / unemployed : null } : null
+      })(),
       colleges: colleges.reduce((n, c) => n + c._count._all, 0),
       communityColleges: colleges.filter((c) => c.sector === 4).reduce((n, c) => n + c._count._all, 0),
     }
@@ -209,7 +278,8 @@ export default async function WorkforceBoardsPage({
   // Layoffs filed in the past month (state filings only, not company-wide counts), the flag for a board to call now.
   const monthAgo = daysAgo(30)
   const recentByBoard = new Map<string, { filings: number; jobs: number; companies: Set<string> }>()
-  for (const n of notices) {
+  for (const raw of notices) {
+    const n = correctFutureDates(raw)
     if (!n.workforceBoardId || !n.noticeDate || n.noticeDate < monthAgo || isCompanyWide(n)) continue
     const r = recentByBoard.get(n.workforceBoardId) ?? { filings: 0, jobs: 0, companies: new Set<string>() }
     r.filings++; r.jobs += n.employees ?? 0; r.companies.add(n.normalizedEmployer ?? n.employer)
@@ -218,11 +288,11 @@ export default async function WorkforceBoardsPage({
   // Money NextChapter or the board could go after: open bids on the board's own procurement page, and open grants it is eligible for.
   const fundingFor = (b: (typeof boards)[number]) => {
     const bids = b.procurementKind === 'solicitations' && Array.isArray(b.procurementItems) ? (b.procurementItems as { title: string }[]) : []
-    const grants = boardFunding.filter((o) => inStateScope(o.states, b.state))
-    return { bids, grants }
+    const grants = boardFunding.filter((o) => o.states.length > 0 && inStateScope(o.states, b.state))
+    return { bids, grants, leads: stateLeads.get(b.state) ?? null, state: b.state }
   }
 
-  const rows = buildBoardReport(boards, notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { q, sort: sort === 'fit' ? 'jobs' : sort, dir, includeEmpty })
+  const rows = buildBoardReport(boards, notices.map((n) => ({ ...correctFutureDates(n), companyWide: isCompanyWide(n) })), { q, sort: sort === 'fit' ? 'jobs' : sort, dir, includeEmpty })
   if (sort === 'fit') {
     const f = (id: string) => fitById.get(id)?.fitScore ?? -1
     rows.sort((a, b) => (dir === 'asc' ? f(a.board.id) - f(b.board.id) : f(b.board.id) - f(a.board.id)) || b.jobs - a.jobs)
@@ -278,6 +348,18 @@ export default async function WorkforceBoardsPage({
           <p className="mt-0.5 text-lg font-semibold tabular-nums">{totals.companies.toLocaleString()}</p>
         </div>
       </section>
+
+      {(() => {
+        const national = boardFunding.filter((o) => o.states.length === 0)
+        if (national.length === 0) return null
+        return (
+          <p className="rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground">
+            Open for every board: {national.slice(0, 3).map((g, i) => (
+              <span key={g.id}>{i > 0 && '; '}<a href={g.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">{g.title}</a>{g.closesAt ? ` (closes ${formatDate(g.closesAt)})` : ''}</span>
+            ))}
+          </p>
+        )
+      })()}
 
       <AdminFilterBar
         basePath={BASE}
@@ -336,11 +418,11 @@ export default async function WorkforceBoardsPage({
                 <th className="px-2 py-1.5 text-right font-medium">Companies</th>
                 <th className="px-2 py-1.5 text-right font-medium" title="Share of filed jobs in white-collar sectors (Information, Finance, Professional and technical, Management), where the state publishes a sector">White collar</th>
                 <th className="px-2 py-1.5 text-right font-medium" title="County unemployment from BLS, latest month, not seasonally adjusted; arrow compares the same month a year earlier">Unemployment</th>
-                <th className="px-2 py-1.5 text-right font-medium" title="Open roles on the NextChapter job board in the cities of this board's counties. Not the whole labor market.">Open jobs</th>
-                <th className="px-2 py-1.5 text-right font-medium" title="Census estimate, July 2024, and the change since July 2020">Population</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Open roles on the NextChapter job board in the cities of this board's counties: a slice of the market, not all of it. Under it, the whole state's job openings from BLS JOLTS for scale.">Open jobs</th>
+                <th className="px-2 py-1.5 text-right font-medium" title="Census estimate, July 2025, and the change since July 2020">Population</th>
                 <th className="px-2 py-1.5 text-right font-medium" title="Degree-granting colleges in the board's counties (IPEDS); community colleges are public 2-year">Colleges</th>
-                <th className="min-w-44 px-2 py-1.5 font-medium" title="Share of private-sector jobs in sectors AI already does part of (Information, Finance, Professional and technical, Management, Admin and staffing), and the sectors that lost the most jobs 2022 to 2024. BLS QCEW.">At risk</th>
-                <th className="min-w-44 px-2 py-1.5 font-medium" title="Sectors that added the most private-sector jobs 2022 to 2024. BLS QCEW.">Growing</th>
+                <th className="min-w-44 px-2 py-1.5 font-medium" title="Share of private-sector jobs in sectors AI already does part of (Information, Finance, Professional and technical, Management, Admin and staffing), and the sectors that lost the most jobs 2022 to 2025. BLS QCEW.">At risk</th>
+                <th className="min-w-44 px-2 py-1.5 font-medium" title="Sectors that added the most private-sector jobs 2022 to 2025. BLS QCEW.">Growing</th>
                 <th className="min-w-40 px-2 py-1.5 font-medium" title="Open bids on the board's own procurement page, and open government grants a workforce board here is eligible for. Candidate benefits are a separate catalog.">Funding to tap</th>
                 <th className="px-2 py-1.5 font-medium">Latest filing</th>
                 <th className="px-2 py-1.5 font-medium" title="The soonest effective date still ahead">Next effective</th>

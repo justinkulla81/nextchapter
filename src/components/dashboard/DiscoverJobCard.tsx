@@ -362,6 +362,7 @@ export function DiscoverJobCard({
               <JobWhyLine
                 fits={(why ?? fallbackWhy)!.fits}
                 gap={(why ?? fallbackWhy)!.gap}
+                lowerFit={why?.lowerFit}
                 title={matchReason ? matchReasonSentence(matchReason) : undefined}
               />
             )}

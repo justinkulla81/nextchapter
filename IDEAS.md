@@ -149,6 +149,24 @@ These involve real legal/compliance exposure (financial advice, legal-document i
 - Constraints already decided in the draft: an authority ladder per capability that defaults to draft; nothing that spends money, accepts legal terms or makes first contact with an employer happens without the member's tap; no mass-apply; memory the member can see, edit and delete; nothing runs for members in Confidential Search Mode.
 - Before any build: a half-page decision on what it does first, for whom, and what it must never do.
 
+## Organization billing and billing users (not built; decided 2026-10-23, not now)
+
+- No payment code exists today. Plans are set by NextChapter staff (Institution license fields, the outplacement contract, the admin plan catalog). When billing is built, assume each portal may be paid for differently: outplacement per seat per month on a 6, 12 or 24 month term, higher education and workforce per organization, and employer sections separately or as an enterprise package. Do not force one pricing model on all portals.
+- Billing users: a person who sees invoices and plan details and manages payment, who may or may not be an admin. Outplacement already has a FINANCE role (invoices only); the other portals have no equivalent. Design a per-organization billing role that works across portals, and let an admin hold it too.
+- Free tier first: verified claim, free workspace, 50 member cap (decided 2026-10-23). Paid unlocks reporting, exports, more members, staff roles, audit log, single sign-on, adopting NextChapter's coaching and courses, and workforce reporting. Existing institutions keep what they have.
+
+## Employer portal as separately claimable sections (decided 2026-10-23; spec: docs/specs/employer-sections.md)
+
+- One employer organization with sections: Outplacement, Retention, Learning and development, Job retraining, Hiring. Different people can claim different sections and pay for them separately, or the organization can buy an enterprise package. Today outplacement, retention (GROWTH) and learning sit inside one portal and hiring is a separate system with separate logins.
+
+## Coach portal upgrade (not built)
+
+- Google Meet and Calendar integration and scheduling, much better coaching notes (we hold rich data on each candidate that a coach should see at a glance), meeting notes turned into follow-ups and into interests for the candidate. Coaches stay individuals for now; a firm or team model comes later.
+
+## Competitor feature audit in the operations admin (not built)
+
+- A feature-by-feature comparison of NextChapter against competitors, kept in the admin portal. The admin already tracks competitors (ProductCompetitor, the Vision area); extend it with a features matrix, source links and dates, refreshed on a schedule. Do not publish any "only" or "first" claim from it without the dated survey in docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md.
+
 ## Employer pitch: CHRO, head of L&D and the four services (not built)
 
 The CRM now grades employers (A layoff notice, B more than 5 open jobs, C neither), tags CHRO and head of L&D contacts, and exports the Organizations list. What is left:

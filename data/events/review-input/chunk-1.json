@@ -1,0 +1,863 @@
+[
+ {
+  "id": "amaa-summer-conference",
+  "name": "AM&AA Summer Conference",
+  "organizer": "Alliance of M&A Advisors",
+  "url": "https://www.amaaconference.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was June 9-10 in Chicago; 2027 location not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + search",
+  "whyAttend": "Second yearly gathering of middle-market M&A advisors and investors.",
+  "segments": [
+   "Selling and succession planning"
+  ],
+  "industries": []
+ },
+ {
+  "id": "fortune-most-powerful-women-summit",
+  "name": "Fortune Most Powerful Women Summit",
+  "organizer": "Fortune",
+  "url": "https://fortune.com/conferences/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 Summit (Oct 12-14, Santa Barbara) has ended; invite-only, tied to a paid MPW membership. Next edition not listed on pages read.",
+  "speaking": "BY_INVITE",
+  "source": "official site",
+  "whyAttend": "Senior women executives and CEOs; access is through the Most Powerful Women community.",
+  "segments": [],
+  "industries": []
+ },
+ {
+  "id": "nglcc-international-business-leadership-conference",
+  "name": "NGLCC International Business & Leadership Conference",
+  "organizer": "National LGBT Chamber of Commerce",
+  "url": "https://www.nglcc.org/2026-conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official page says the 2027 conference is in Washington, DC; dates not posted (recent editions were July/August).",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "LGBTQ+ and allied founders, chamber leaders and corporate supplier-diversity buyers.",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "industries": []
+ },
+ {
+  "id": "texas-eta-summit-ut-austin",
+  "name": "Texas ETA Summit (UT Austin)",
+  "organizer": "University of Texas at Austin",
+  "url": "https://searcherinsights.com/resource/texas-eta-summit-by-the-university-of-texas/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": "Austin",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + search",
+  "whyAttend": "Searchers and investors at UT Austin; first edition Feb 2026.",
+  "segments": [
+   "Buying a business (acquisition entrepreneurship)"
+  ],
+  "industries": []
+ },
+ {
+  "id": "htcia-international-conference",
+  "name": "HTCIA International Conference & Training Expo",
+  "organizer": "High Technology Cyber Investigation Association",
+  "url": "https://www.htcia.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site lists an events calendar behind member login; 2027 dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official site (unverified lead)",
+  "whyAttend": "Cyber-crime investigators, digital forensic examiners and prosecutors who work fraud and intrusion cases.",
+  "segments": [
+   "Forensic and fraud examination"
+  ],
+  "industries": [
+   "Accounting & Audit"
+  ]
+ },
+ {
+  "id": "b2bmx",
+  "name": "B2B Marketing Exchange (B2BMX)",
+  "organizer": "Demand Gen Report",
+  "url": "https://b2bmarketing.exchange/",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-24",
+  "typicalMonth": "February",
+  "city": "Carlsbad",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from Demand Gen Report coverage; third-party listings disagree (Feb 22-24 vs March); site returned 403 to our fetch. Pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Senior B2B marketing and revenue leaders gather to swap demand generation, ABM and RevOps playbooks.",
+  "segments": [
+   "B2B and demand generation marketing"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR",
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "prebid-summit",
+  "name": "Prebid Summit",
+  "organizer": "Prebid.org",
+  "url": "https://prebid.org/event/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 13; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Open-source header bidding community.",
+  "segments": [
+   "Advertising technology"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "hiring-our-heroes-career-summit",
+  "name": "Hiring Our Heroes Career Summits",
+  "organizer": "Hiring Our Heroes (U.S. Chamber of Commerce Foundation)",
+  "url": "https://www.hiringourheroes.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "No cost for job seekers or employers to register for or attend; open to US service members, veterans and military spouses. 2027 summit dates not published; known 2026 summits run through Dec 10 (e.g. Camp Lejeune Oct 29, RAF Mildenhall Nov 2).",
+  "speaking": "NONE",
+  "source": "official site",
+  "whyAttend": "Service members, veterans and military spouses meeting hiring employers at base-hosted summits.",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "industries": [
+   "Aerospace & Defense"
+  ]
+ },
+ {
+  "id": "responsible-seafood-summit",
+  "name": "Responsible Seafood Summit",
+  "organizer": "Global Seafood Alliance",
+  "url": "https://www.globalseafood.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Ho Chi Minh City",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition announced for Ho Chi Minh City; dates not seen. 2026 was Bangkok Sept 21-24.",
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "Seafood producers, retailers, NGOs and certification bodies; international flagship for responsible aquaculture.",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "afe-forward",
+  "name": "AFE Forward",
+  "organizer": "Association for Facilities Engineering",
+  "url": "https://afe.clubexpress.com/AFEForward2026",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": "Sacramento",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / lead",
+  "whyAttend": "Facilities engineers and plant managers; 2026 edition was Feb 11-13.",
+  "segments": [
+   "Property and facilities management"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "ncrc-just-economy-conference",
+  "name": "NCRC Just Economy Conference",
+  "organizer": "National Community Reinvestment Coalition",
+  "url": "https://ncrc.org/?p=45994",
+  "startDate": "2027-05-05",
+  "endDate": "2027-05-07",
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a third-party listing only.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Community lenders, fair-lending advocates and bank CRA staff.",
+  "segments": [
+   "Affordable housing and community development"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "nosh-live",
+  "name": "NOSH Live",
+  "organizer": "NOSH",
+  "url": "https://www.nosh.com/events/noshlivewinter24/information",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "December",
+  "city": "Marina del Rey",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Winter 2024 was Dec 5-6; no 2026/2027 date found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Founders and execs of emerging food and beverage CPG.",
+  "segments": [
+   "Natural, organic and specialty foods",
+   "Food and beverage brands"
+  ],
+  "industries": [
+   "Consumer Packaged Goods"
+  ]
+ },
+ {
+  "id": "7x24-exchange-spring-conference",
+  "name": "7x24 Exchange Spring Conference",
+  "organizer": "7x24 Exchange International",
+  "url": "https://www.7x24exchange.org/",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-09",
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from Baxtel listing; not on official page I opened.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Spring mission-critical conference; 2027 theme Powering the AI Surge.",
+  "segments": [
+   "Data centers and power demand"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "super-dug",
+  "name": "SUPER DUG Conference & Expo",
+  "organizer": "Hart Energy",
+  "url": "https://events.hartenergy.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Houston",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Operators, midstream and capital providers; 2027 dates not yet announced.",
+  "segments": [
+   "Oil and gas"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "eta-transact",
+  "name": "ETA TRANSACT",
+  "organizer": "Electronic Transactions Association",
+  "url": "https://www.electran.org/events/",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-21",
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a third-party aggregator only.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing; lead only",
+  "whyAttend": "The merchant acquiring and payment-tech industry's main show, roughly 5,000 attendees.",
+  "segments": [
+   "Payments and fintech"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "wyoming-blockchain-symposium",
+  "name": "Wyoming Blockchain Symposium",
+  "organizer": "SALT / Kraken",
+  "url": "https://salt.org/events/wyoming-blockchain-symposium-2026",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": "Jackson",
+  "state": "WY",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Invitation-only gathering of investors, builders and policymakers in digital assets; 2026 edition drew about 500.",
+  "segments": [
+   "Crypto and digital assets"
+  ],
+  "industries": [
+   "Financial Services & Banking",
+   "Technology & Software",
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "national-brownfields-training-conference",
+  "name": "National Brownfields Training Conference",
+  "organizer": "U.S. EPA with ICMA",
+  "url": "https://www.gobrownfields.org",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-28",
+  "typicalMonth": "May",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site names Salt Lake City but shows no dates; dates from ICMA and a university listing. A third listing says New Orleans in June, so confirm.",
+  "speaking": "OPEN_CFP",
+  "source": "official site",
+  "whyAttend": "Local governments, environmental professionals and developers redeveloping contaminated sites; 2,000+ attendees, held every two years.",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "aging2-optimize",
+  "name": "Aging2.0 OPTIMIZE",
+  "organizer": "Aging2.0",
+  "url": "https://www.aging2.com/Optimize",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "Louisville",
+  "state": "KY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Last edition found was Oct 24-25, 2024 (Louisville); no later edition announced on the page.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Care providers, payers, startups and investors in aging innovation and the longevity market.",
+  "segments": [
+   "Digital health and virtual care"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "hinman-dental-meeting",
+  "name": "Thomas P. Hinman Dental Meeting",
+  "organizer": "Hinman Dental Society",
+  "url": "https://www.hinman.org/",
+  "startDate": "2027-03-16",
+  "endDate": "2027-03-20",
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Big Southeast dental meeting; dates from third-party listings only.",
+  "segments": [
+   "Dental and specialty practice management"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "americas-lodging-investment-summit-alis",
+  "name": "Americas Lodging Investment Summit (ALIS)",
+  "organizer": "ALIS",
+  "url": "https://www.alisconference.com/",
+  "startDate": "2027-01-25",
+  "endDate": "2027-01-27",
+  "typicalMonth": "January",
+  "city": "Los Angeles",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing only",
+  "whyAttend": "Hotel owners, brands, lenders and technology vendors dealmaking.",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ]
+ },
+ {
+  "id": "casualty-loss-reserve-seminar",
+  "name": "Casualty Loss Reserve Seminar (CLRS)",
+  "organizer": "Casualty Actuarial Society and American Academy of Actuaries",
+  "url": "https://clrs.casact.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pricing not found; the 2026 edition ran Sept 14-16 in Las Vegas.",
+  "speaking": "OPEN_CFP",
+  "source": "third-party listing",
+  "whyAttend": "Reserving actuaries and appointed actuaries from P&C carriers, consultancies and regulators, focused on loss reserving and opinions.",
+  "segments": [
+   "Actuarial and risk"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "aba-ma-committee-meeting",
+  "name": "ABA M&A Committee Annual Meeting",
+  "organizer": "American Bar Association Business Law Section",
+  "url": "https://www.americanbar.org/groups/business_law/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "January",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 meeting was Jan 29-31 in Laguna Beach; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "M&A practitioners and Delaware judges at the annual committee meeting.",
+  "segments": [
+   "Corporate, M&A and securities"
+  ],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "the-masters-conference",
+  "name": "The Masters Conference",
+  "organizer": "The Masters Conference",
+  "url": "https://www.mastersconference.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Boutique legal technology and e-discovery conference series held in several US cities.",
+  "segments": [
+   "Litigation and trial"
+  ],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "shingo-conference",
+  "name": "Shingo Operational Excellence Conference",
+  "organizer": "Shingo Institute (Utah State University)",
+  "url": "https://www.shingo.org/events",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not confirmed; Shingo Connect USA ran March 18, 2026.",
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "Operational excellence leaders and Shingo Prize recipients sharing culture-of-improvement practices.",
+  "segments": [
+   "Quality, lean and operational excellence"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "mla-annual-meeting-medical-library-association",
+  "name": "MLA Annual Meeting (Medical Library Association)",
+  "organizer": "Medical Library Association",
+  "url": "https://www.mlanet.org",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-28",
+  "typicalMonth": "May",
+  "city": "Denver",
+  "state": "CO",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the Denver convention center listing; mlanet.org not read.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Health sciences and hospital librarians and informationists; Colorado Convention Center.",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "industries": [
+   "Media & Entertainment",
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "americans-for-the-arts-convention",
+  "name": "Americans for the Arts National Convention",
+  "organizer": "Americans for the Arts",
+  "url": "https://americansforthearts.org/node/166321",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was June 2-4 in Albuquerque; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Local arts agency leaders and arts advocates.",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "ncer-national-conference-ecosystem-restoration",
+  "name": "National Conference on Ecosystem Restoration",
+  "organizer": "Society for Ecological Restoration and partners",
+  "url": "https://conference.ifas.ufl.edu/ncer/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was in Omaha in April; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Restoration practitioners from federal agencies, NGOs and consultancies.",
+  "segments": [
+   "Environmental and conservation"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "molecular-medicine-tri-conference",
+  "name": "Precision Med Tri-Conference",
+  "organizer": "Cambridge Healthtech Institute",
+  "url": "https://www.triconference.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "San Francisco",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran May 4-5; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Precision medicine, diagnostics and bioinformatics developers and vendors.",
+  "segments": [
+   "Genomics and bioinformatics"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "morrissey-goodale-symposiums",
+  "name": "Morrissey Goodale Symposiums",
+  "organizer": "Morrissey Goodale",
+  "url": "https://www.morrisseygoodale.com/future-events/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": "Miami",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site blocked our fetch; schedule from search snippet.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Principals and executives of engineering, architecture and environmental consulting firms on M&A and strategy; March Miami, May Houston, October Houston in 2027.",
+  "segments": [
+   "Management consulting"
+  ],
+  "industries": [
+   "Professional Services & Consulting",
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "dmec-annual-conference",
+  "name": "DMEC Annual Conference",
+  "organizer": "DMEC",
+  "url": "https://dmec.org/conferences-and-webinars/annual-conference/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": "Denver",
+  "state": "CO",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates Aug 16-19, 2027 from HR Dive.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "Leave and disability management professionals.",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "talent42",
+  "name": "Talent42",
+  "organizer": "ERE",
+  "url": "https://www.talent42.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "Tech recruiting conference for technical recruiters and sourcers.",
+  "segments": [
+   "Corporate talent acquisition"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "dpe-summit",
+  "name": "DPE Summit (Developer Productivity Engineering)",
+  "organizer": "Develocity",
+  "url": "https://dpe.org/dpe-summit/",
+  "startDate": "2027-02-02",
+  "endDate": "2027-02-03",
+  "typicalMonth": "February",
+  "city": "San Francisco",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not read.",
+  "speaking": "OPEN_CFP",
+  "source": "official site + press",
+  "whyAttend": "Platform, DevOps and engineering leaders focused on developer productivity.",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "powertofly-veterans-military-spouses-summit",
+  "name": "PowerToFly Supporting Veterans, Service Members & Military Spouses Summit",
+  "organizer": "PowerToFly",
+  "url": "https://powertofly.com/up/a-look-at-our-2024-supporting-veterans-active-service-members-military-spouses-summit",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "November",
+  "city": null,
+  "state": null,
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition not confirmed on the page; cost not stated.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Annual virtual Veterans Day summit with career-transition sessions and employer open roles for veterans and military spouses.",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "testmu-conference",
+  "name": "TestMu Conference",
+  "organizer": "LambdaTest",
+  "url": "https://www.lambdatest.com/testmuconf-2026",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Aug 19-21 is over; 2027 dates not announced.",
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "Free online testing and quality engineering talks (87 sessions in 2026).",
+  "segments": [
+   "Quality and testing"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "apta-transform-expo",
+  "name": "APTA TRANSform Conference & EXPO",
+  "organizer": "American Public Transportation Association",
+  "url": "https://www.apta.com/event/apta-2026-transform-expo/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Chicago, Oct 4-7) has ended; next dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "APTA's largest gathering of transit agencies, planners and suppliers; EXPO included with conference registration.",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ },
+ {
+  "id": "werc-annual-conference",
+  "name": "WERC Annual Conference",
+  "organizer": "Warehousing Education and Research Council",
+  "url": "https://www.werc.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and city not found; 2026 edition was May 17-20 in Jacksonville.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Warehouse and DC practitioners; 50th edition expected in 2027.",
+  "segments": [
+   "Warehousing and fulfillment"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ }
+]

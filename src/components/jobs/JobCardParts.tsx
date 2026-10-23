@@ -25,8 +25,8 @@ export function JobVerdict({ verdict, className }: { verdict: CardVerdict; class
 }
 
 /** "Fits you: your level · finance · near Louisville — Gap: asks for PE-backed experience". Nothing when we can't say anything specific. */
-export function JobWhyLine({ fits, gap, title }: { fits: string[]; gap: string | null; title?: string }) {
-  if (fits.length === 0 && !gap) return null
+export function JobWhyLine({ fits, gap, title, lowerFit }: { fits: string[]; gap: string | null; title?: string; lowerFit?: string | null }) {
+  if (fits.length === 0 && !gap && !lowerFit) return null
   return (
     <span className="mt-0.5 block text-xs text-muted-foreground" title={title}>
       {fits.length > 0 && (
@@ -40,6 +40,7 @@ export function JobWhyLine({ fits, gap, title }: { fits: string[]; gap: string |
           <span className="font-medium text-foreground">Gap:</span> {gap}
         </>
       )}
+      {lowerFit && <span className="mt-0.5 block">{lowerFit}</span>}
     </span>
   )
 }

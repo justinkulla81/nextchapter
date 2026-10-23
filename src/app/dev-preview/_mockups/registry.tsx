@@ -24,11 +24,19 @@ import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
 import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
 import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
+import { ScopeBroaderFirst, ScopeEverythingQuestion, ScopeNarrow } from './search-scope'
 import { PortalHeaders } from './portal-headers'
+import { PartnerInvite, PartnerYourPeople, PartnerMoving, PartnerMovingAsk, PartnerMovingWorth } from './partner'
+import { CoachSessionPrep, CoachSessionNotes } from './coach-session'
+import { CoachWhatCandidateSees } from './coach-candidate'
+import { CoachSchedulingConnected, CoachSchedulingEmpty, CoachSchedulingBroken } from './coach-scheduling'
 import { FundingLive } from './funding-live'
+import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
+
+import { BeFoundQuiet, BeFoundPublic, SeniorMenuCompare } from './be-found-live'
 
 const CoachMatchShortlistLive = () => <CoachMatchLive step="shortlist" />
 const ContactsEmptyLive = () => <ContactsLive empty />
@@ -44,12 +52,27 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'coach/session-prep', place: 'Coach', title: 'Before you meet Dana: one prep page from what she shares', replaces: 'the pre-session brief and the Coaching Notes panel, read before a session', Component: CoachSessionPrep },
+  { path: 'coach/session-notes', place: 'Coach', title: 'Notes during and after: capture, Meet import, reviewed summary, follow-ups, interests', replaces: 'LogSessionForm (free-text notes and directives) and the notes summary card', Component: CoachSessionNotes },
+  { path: 'coach/candidate-view', place: 'Coach', title: 'What Dana sees after a session: steps, topics, summary, message', replaces: 'the directives list on /dashboard/my-coaching', Component: CoachWhatCandidateSees },
+  { path: 'coach/scheduling', place: 'Coach', title: 'Calendar and booking: your own Google Calendar, connected', replaces: '/support/coach/booking (shared NextChapter calendar, availability form)', Component: CoachSchedulingConnected },
+  { path: 'coach/scheduling-not-connected', place: 'Coach', title: 'Calendar and booking: not connected yet', replaces: 'the first-run state of /support/coach/booking', Component: CoachSchedulingEmpty },
+  { path: 'coach/scheduling-disconnected', place: 'Coach', title: 'Calendar and booking: Google access lost', replaces: 'new (no error state today)', Component: CoachSchedulingBroken },
+  { path: 'network/found/quiet', place: 'Network', title: 'Be found: quiet version (Confidential Search Mode on)', replaces: 'new tab in Network', Component: BeFoundQuiet },
+  { path: 'network/found/public', place: 'Network', title: 'Be found: public version', replaces: 'new tab in Network', Component: BeFoundPublic },
+  { path: 'network/found/senior-menu', place: 'Network', title: 'Senior overlay: menu order, standard vs senior leader', replaces: 'the order and emphasis of existing menu entries', Component: SeniorMenuCompare },
+  { path: 'jobs/find/scope-broader', place: 'Jobs', title: 'Find a job: search scope Broader, with the once-only pivot message', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeBroaderFirst },
+  { path: 'jobs/find/scope-everything', place: 'Jobs', title: 'Find a job: search scope Everything, with the exploring question', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeEverythingQuestion },
+  { path: 'jobs/find/scope-narrow', place: 'Jobs', title: 'Find a job: search scope Narrow (home only)', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeNarrow },
   { path: 'learn/funding-live', place: 'Learn', title: 'Funding you qualify for: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: FundingLive },
   { path: 'jobs/market/ai-exposure-report', place: 'Jobs', title: 'AI exposure: your market reality', replaces: 'the “AI is reshaping this work” line in the market report', Component: ExposureMarketReport },
   { path: 'home/tailored/ai-exposure-strategy', place: 'Home', title: 'AI exposure: search strategy', replaces: 'the “AI skills” line under open roles', Component: ExposureSearchStrategy },
   { path: 'learn/path/ai-exposure-pivots', place: 'Learn', title: 'AI exposure: career pivots', replaces: 'the “AI task exposure” line on each pivot role', Component: ExposurePivots },
   { path: 'learn/learn/ai-exposure', place: 'Learn', title: 'AI exposure: what to learn next', replaces: 'the generic “AI Training” description line', Component: ExposureLearn },
   { path: 'home/today', place: 'Home', title: 'Your week', replaces: '/dashboard', Component: HomeToday },
+  { path: 'home/paths/open', place: 'Home', title: 'Your journey: paths and focus switch (sample data)', replaces: 'the “What this changes for you” list, for members with active paths', Component: HomePathsOpen },
+  { path: 'home/paths/waiting', place: 'Home', title: 'Your journey: paths wait at 3 hours a week (sample data)', replaces: 'the “What this changes for you” list, for members with active paths', Component: HomePathsWaiting },
+  { path: 'home/paths/none', place: 'Home', title: 'Your journey: no active paths (unchanged)', replaces: 'nothing', Component: HomePathsNone },
   { path: 'home/progress/built', place: 'Home', title: 'Effort and results: what you’ve built', replaces: '/dashboard/stats (badges and leaderboards removed)', Component: ProgressBuilt },
   { path: 'home/progress/timeline', place: 'Home', title: 'Effort and results: your search timeline', replaces: 'new', Component: ProgressTimeline },
   { path: 'network/circles/overview', place: 'Network', title: 'Your network: all circles', replaces: '/dashboard/network', Component: NetworkOverviewMock },
@@ -175,6 +198,11 @@ export const MOCKUPS: Mockup[] = [
   { path: 'account/visibility-live', place: 'Account', title: 'Account and privacy: the built controls (sample data)', replaces: 'the code that ships, fed sample data', Component: PrivacyLive },
   { path: 'account/profile-live', place: 'Account', title: 'Profile: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: ProfileLive },
   { path: 'account/benefits-network-live', place: 'Account', title: 'Higher education benefits network: the built offers (sample data)', replaces: 'the code that ships, fed sample data', Component: BenefitsNetworkLive },
+  { path: 'network/circles/partner-invite', place: 'Network', title: 'Invite your partner: how they join and what they see', replaces: '"Invite someone" as the only way to add a person (supporters)', Component: PartnerInvite },
+  { path: 'network/circles/partner-people', place: 'Network', title: 'Your people: your partner at the top, supporters below', replaces: 'the single supporters list on Your people', Component: PartnerYourPeople },
+  { path: 'network/circles/partner-move-ask', place: 'Network', title: 'Your move plan: asking for your last salary, in context, with a skip', replaces: 'new', Component: PartnerMovingAsk },
+  { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
+  { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
   { path: 'portals/headers', place: 'Portals', title: 'Portal top bars: employer, higher education, workforce, recruiter, coach', replaces: 'the one navy top bar on every non-candidate portal (PartnerTopBar)', Component: PortalHeaders },
   { path: 'account/money', place: 'Account', title: 'Money help (off state)', replaces: 'new', Component: AccountMoney },
 ]

@@ -1,0 +1,1286 @@
+[
+ {
+  "fullName": "Tom Dunn",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/tom-dunn/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Nick Goodman",
+  "title": "Managing Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/nick-goodman/",
+  "industries": [
+   "financial_services"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Sydeny Koehler",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "New York",
+  "state": "NY",
+  "sourceUrl": "https://www.rivierapartners.com/team/sydeny-koehler/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Amie Ernst",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/amie-ernst/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Harleigh Schneider",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/harleigh-schneider/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Meredith Gallo",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/meredith-gallo/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Adam Charlson",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/adam-charlson/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Kyra Hewes",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/kyra-hewes/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Kim Le",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Diego",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/kim-le/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Bobby Gormsen",
+  "title": "Client Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/bobby-gormsen/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Christopher Crowe",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/christopher-crowe/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Ryan Brogan",
+  "title": "Client Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/ryan-brogan/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Kevin Reetz",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/kevin-reetz/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Andrea Vahosky",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/andrea-vahosky/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Will Potter",
+  "title": "Managing Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/will-potter/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Sean Cleary",
+  "title": "Partner & Cybersecurity Practice Lead",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/sean-cleary/",
+  "industries": [],
+  "functions": [
+   "engineering",
+   "it_security"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Steve Kasmouski",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/steve-kasmouski/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Greg Sherman",
+  "title": "Partner & GEMS Practice Co-Lead",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "Los Angeles",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/greg-sherman/",
+  "industries": [
+   "media"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Eleni Karahalios",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/eleni-karahalios/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Hugh Curran",
+  "title": "Client Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/hugh-curran/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Gino Morell",
+  "title": "Client Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/gino-morell/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Iain Grant",
+  "title": "Senior Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/iain-grant/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "James Miller",
+  "title": "Senior Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/james-miller/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Jeff Campbell",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/jeff-campbell/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "John Twamley",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/john-twamley/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Justin Cottrell",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "New York",
+  "state": "NY",
+  "sourceUrl": "https://www.rivierapartners.com/team/justin-cottrell/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Kyle Langworthy",
+  "title": "Partner & AI/ML/Data Practice Co-Lead",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/kyle-langworthy/",
+  "industries": [],
+  "functions": [
+   "engineering",
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Matt Skiba",
+  "title": "Partner & GEMS Practice Co-Lead",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "Los Angeles",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/matt-skiba/",
+  "industries": [
+   "media"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Matt Stravitz",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/matt-stravitz/",
+  "industries": [],
+  "functions": [
+   "engineering",
+   "it_security"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Megan Sleeper",
+  "title": "Client Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/megan-sleeper/",
+  "industries": [
+   "media"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Ned Lanphier",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/ned-lanphier/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Rick Harris",
+  "title": "Partner & HCLS Practice Lead",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/rick-harris/",
+  "industries": [
+   "healthcare",
+   "life_sciences"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Robert Seiden",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/robert-seiden/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Eoin O'Toole",
+  "title": "Managing Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/eoin-otoole/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Andy Legg",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/andy-legg/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Austin Douglas",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/austin-douglas/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Chett Garcia",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/chett-garcia/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Chris Martin",
+  "title": "Client Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/chris-martin/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Chris Rice",
+  "title": "Managing Partner & GM of Paragon",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/chris-rice/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Eddie Lee",
+  "title": "Client Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/eddie-lee/",
+  "industries": [
+   "healthcare",
+   "life_sciences"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Eric Larson",
+  "title": "Managing Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/eric-larson/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "George Kaszacs",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/george-kaszacs/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Sam Wholley",
+  "title": "Managing Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/sam-wholley/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Josh Narva",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/joshua-narva/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Chad Rogers",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/chad-rogers/",
+  "industries": [],
+  "functions": [
+   "engineering",
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Joey Toney",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/joey-toney/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Sharon Staggers",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/sharon-staggers/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Cadeem Harris",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/cadeem-harris/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Peter Sully",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/peter-sully/",
+  "industries": [],
+  "functions": [
+   "engineering",
+   "it_security"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Cory Schroeder",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/cory-schroeder/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Doug Peterson",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/doug-peterson/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "James Wolfangel",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/james-wolfangel/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Michelle Stevens",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/michelle-stevens/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Mike Callagy",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/mike-callagy/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Archer McFall",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/archer-mcfall/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Erik Blumberg",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/erik-blumberg/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Joe Light",
+  "title": "Director",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/joe-light/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Ali Behnam",
+  "title": "Co-founder & Managing Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/ali-behnam/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Michael Morell",
+  "title": "Co-founder & Managing Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/michael-morell/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Sam Wilkins",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/sam-wilkins/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Jason Hann",
+  "title": "Partner",
+  "firm": "Riviera Partners",
+  "firmWebsite": "https://www.rivierapartners.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://www.rivierapartners.com/team/jason-hann/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Kevin Barry",
+  "title": "Managing Partner",
+  "firm": "SPMB Executive Search",
+  "firmWebsite": "https://spmb.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://spmb.com/executive-search-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Mike Doonan",
+  "title": "Managing Partner",
+  "firm": "SPMB Executive Search",
+  "firmWebsite": "https://spmb.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://spmb.com/executive-search-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Bianca Moreno",
+  "title": "Partner",
+  "firm": "SPMB Executive Search",
+  "firmWebsite": "https://spmb.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://spmb.com/executive-search-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Jon Landau",
+  "title": "Partner",
+  "firm": "SPMB Executive Search",
+  "firmWebsite": "https://spmb.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://spmb.com/executive-search-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Mike Dempsey",
+  "title": "Partner",
+  "firm": "SPMB Executive Search",
+  "firmWebsite": "https://spmb.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://spmb.com/executive-search-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Natalie Ryan",
+  "title": "Partner",
+  "firm": "SPMB Executive Search",
+  "firmWebsite": "https://spmb.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://spmb.com/executive-search-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Radley Meyers",
+  "title": "Partner",
+  "firm": "SPMB Executive Search",
+  "firmWebsite": "https://spmb.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://spmb.com/executive-search-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Sean Lucq",
+  "title": "Partner",
+  "firm": "SPMB Executive Search",
+  "firmWebsite": "https://spmb.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://spmb.com/executive-search-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Will Brewer",
+  "title": "Principal Recruiter",
+  "firm": "Redfish Technology",
+  "firmWebsite": "https://www.redfishtech.com",
+  "city": "Sun Valley",
+  "state": "ID",
+  "email": "willb@redfishtech.com",
+  "sourceUrl": "https://www.redfishtech.com/meet-the-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "ID"
+  ]
+ },
+ {
+  "fullName": "Sara Walker",
+  "title": "Sr. Recruiter",
+  "firm": "Redfish Technology",
+  "firmWebsite": "https://www.redfishtech.com",
+  "city": "Sun Valley",
+  "state": "ID",
+  "email": "sara@redfishtech.com",
+  "sourceUrl": "https://www.redfishtech.com/meet-the-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "ID"
+  ]
+ },
+ {
+  "fullName": "Monica Moich",
+  "title": "Senior Recruiter",
+  "firm": "Redfish Technology",
+  "firmWebsite": "https://www.redfishtech.com",
+  "city": "Sun Valley",
+  "state": "ID",
+  "email": "monica@redfishtech.com",
+  "sourceUrl": "https://www.redfishtech.com/meet-the-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "ID"
+  ]
+ },
+ {
+  "fullName": "Mario Steriti",
+  "title": "Senior Recruiter",
+  "firm": "Redfish Technology",
+  "firmWebsite": "https://www.redfishtech.com",
+  "city": "Sun Valley",
+  "state": "ID",
+  "email": "mario@redfishtech.com",
+  "sourceUrl": "https://www.redfishtech.com/meet-the-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "ID"
+  ]
+ },
+ {
+  "fullName": "Laura Bennett",
+  "title": "Senior Recruiter",
+  "firm": "Providence Partners",
+  "firmWebsite": "https://ppaac.com",
+  "city": "Austin",
+  "state": "TX",
+  "sourceUrl": "https://ppaac.com/our-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Joel Holst",
+  "title": "Vice President, Recruiting",
+  "firm": "Providence Partners",
+  "firmWebsite": "https://ppaac.com",
+  "city": "Austin",
+  "state": "TX",
+  "sourceUrl": "https://ppaac.com/our-team/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ },
+ {
+  "fullName": "Chris Specht",
+  "title": "Founder",
+  "firm": "Expect Technical Staffing",
+  "firmWebsite": "https://expectllc.com",
+  "city": "Denver",
+  "state": "CO",
+  "email": "chris@expectllc.com",
+  "sourceUrl": "https://expectllc.com/about/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CO"
+  ]
+ },
+ {
+  "fullName": "Lilia Everardo",
+  "title": "Technical Recruiter",
+  "firm": "Expect Technical Staffing",
+  "firmWebsite": "https://expectllc.com",
+  "city": "Denver",
+  "state": "CO",
+  "sourceUrl": "https://expectllc.com/about/",
+  "industries": [],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CO"
+  ]
+ }
+]

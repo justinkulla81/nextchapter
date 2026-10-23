@@ -11,6 +11,10 @@ import { Section } from '@/components/candidate/ui'
 import { ListRow, RowList } from '@/components/candidate/ListRow'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
 import { NetworkParts } from '@/components/network/NetworkParts'
+import { loadPartnership, pendingInviteFor } from '@/lib/partner-search/partner'
+import { getVerifiedSessionUser } from '@/lib/dashboard/get-dashboard-data'
+import { AcceptInviteCard } from '@/app/dashboard/move-plan/MovePlanForms'
+import { InvitePartnerForm, PartnerCard } from './PartnerForms'
 
 export const metadata: Metadata = { title: 'My supporters' }
 
@@ -18,6 +22,8 @@ export const metadata: Metadata = { title: 'My supporters' }
 // (never names, companies or messages) and can send you a cheer.
 export default async function SupportersPage() {
   const profile = await getDashboardProfile()
+  const user = await getVerifiedSessionUser()
+  const [partnership, partnerInvite] = await Promise.all([loadPartnership(profile.id), user?.email_confirmed_at ? pendingInviteFor(user.email) : Promise.resolve(null)])
   const [supporters, cheers] = await Promise.all([
     prisma.searchSupporter.findMany({ where: { candidateId: profile.id, revokedAt: null }, orderBy: { createdAt: 'asc' }, select: { id: true, name: true, email: true, lastDigestAt: true } }),
     prisma.supporterCheer.findMany({
@@ -55,6 +61,26 @@ export default async function SupportersPage() {
           when you want to invite someone.
         </p>
       )}
+      {partnerInvite && partnership?.role !== 'partner' && !partnership && <AcceptInviteCard linkId={partnerInvite.id} ownerName={partnerInvite.ownerFirstName ?? 'Your partner'} />}
+      <div id="partner" className="scroll-mt-4">
+        {partnership ? (
+          <Section id="partner-title" title="Your partner">
+            <PartnerCard
+              role={partnership.role}
+              linkId={partnership.link.id}
+              name={partnership.role === 'owner' ? partnership.link.partnerName : partnership.ownerFirstName ?? 'Your partner'}
+              joined={partnership.link.joined}
+              sharePlaces={partnership.link.sharePlaces}
+              shareJobsPay={partnership.link.shareJobsPay}
+            />
+          </Section>
+        ) : canInvite ? (
+          <Section id="partner-title" title="Invite your partner">
+            <p className="max-w-xl text-sm text-muted-foreground">Search together, especially if you may move. Your partner gets their own free account and their own search, and sees the places you are comparing. Your applications, contacts, notes and messages stay private.</p>
+            <InvitePartnerForm />
+          </Section>
+        ) : null}
+      </div>
       {cheers.length > 0 && (
         <Section id="cheers" title="Cheers for you">
           <RowList label="Cheers for you">

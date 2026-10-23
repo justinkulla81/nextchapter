@@ -1,0 +1,1036 @@
+[
+ {
+  "id": "sva-national-conference",
+  "name": "Student Veterans of America National Conference (NatCon)",
+  "organizer": "Student Veterans of America",
+  "url": "https://studentveterans.org/programs-events/national-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-04",
+  "endDate": "2027-01-06",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Grapevine",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "whyAttend": "Student veterans, school veteran-services staff and employers recruiting veterans in one hall.",
+  "access": "PAID",
+  "costLow": 250,
+  "costHigh": 650,
+  "costNote": "Early-bird (to Oct 15, 2026): student member $250, school employee $550, government/non-profit $600, general $650; rates rise later.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://studentveterans.org/programs-events/national-conference/",
+  "speakingDeadline": null,
+  "speakingNote": "Breakout session proposals closed July 31, 2026 for the 2027 edition.",
+  "cheaperWays": "Student-member rate is $250.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "transitioning service member",
+   "veteran hiring lead"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "military-influencer-conference",
+  "name": "Military Influencer Conference",
+  "organizer": "Military Influencer Conference",
+  "url": "https://militaryinfluencer.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-22",
+  "endDate": "2027-09-25",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Tampa",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Veteran and military-spouse creators, entrepreneurs, employers and brands connecting with the military community.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices not shown on the official page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "veteran hiring lead",
+   "transitioning service member"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "employing-us-vets-conference",
+  "name": "Employing U.S. Vets Conference",
+  "organizer": "VETS Indexes",
+  "url": "https://employingusvets.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-23",
+  "endDate": "2027-06-23",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Corporate veteran-hiring, DEI and military-affairs leaders sharing best practices; semi-annual.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not published; page directs questions to organizer.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "veteran hiring lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "service-academy-career-conference",
+  "name": "Service Academy Career Conference (SACC)",
+  "organizer": "Service academy alumni associations",
+  "url": "https://sacc-jobfair.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Service-academy graduates meet industry employers; multi-city series (Atlanta, Washington DC, San Diego, Denton/DFW).",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Candidate pricing not stated on page; candidates register for an account.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://sacc-jobfair.com",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "transitioning service member",
+   "veteran hiring lead"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "clearancejobs-career-fairs",
+  "name": "ClearanceJobs Career Fairs",
+  "organizer": "ClearanceJobs",
+  "url": "https://about.clearancejobs.com/candidates/career-fairs",
+  "kind": "TRADE_SHOW",
+  "format": "HYBRID",
+  "startDate": "2027-01-06",
+  "endDate": "2027-01-06",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Cleared-job recruiters from contractors and agencies; 20+ virtual and in-person fairs a year, incl. a cybersecurity fair Feb 24, 2027.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not stated on the schedule page; earlier ClearedJobs.Net virtual fairs were free to job seekers. Next listed: Jan 6, 2027 (virtual, all clearance levels).",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Military transition and veterans",
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "transitioning service member",
+   "cleared cybersecurity engineer"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "EXPLORING_MOVE",
+   "LAID_OFF"
+  ]
+ },
+ {
+  "id": "recruitmilitary-veterans-job-fairs",
+  "name": "RecruitMilitary Veterans Job Fairs",
+  "organizer": "RecruitMilitary",
+  "url": "https://shop.recruitmilitary.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-27",
+  "endDate": "2027-05-27",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Veterans, transitioning military and spouses meet local and national recruiters; city series (Phoenix May 27, Atlanta June 3, 2027).",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Search listings say free for veterans, spouses, transitioning military, Guard and Reserve; not read on the official page.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "transitioning service member"
+  ],
+  "journeys": [
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "hiring-our-heroes-career-summits",
+  "name": "Hiring Our Heroes Career Summits",
+  "organizer": "U.S. Chamber of Commerce Foundation",
+  "url": "https://events.hiringourheroes.org/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Installation-based career summits with employers for transitioning service members, veterans and spouses; schedule posted by region.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Event page lists no dates or prices; installation summits reported as free.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + press",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "transitioning service member",
+   "veteran hiring lead"
+  ],
+  "journeys": [
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "hiring-our-heroes-military-spouse-employment-summit",
+  "name": "Military Spouse Employment Summit",
+  "organizer": "U.S. Chamber of Commerce Foundation / Hiring Our Heroes",
+  "url": "https://events.uschamberfoundation.org/mses-2026",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Military-spouse employment advocates, employers and program leads; 10th annual edition was May 21, 2026.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cost not listed on 2026 page; 2027 not yet announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "transitioning service member",
+   "veteran hiring lead"
+  ],
+  "journeys": [
+   "RETURNING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "national-veterans-small-business-engagement",
+  "name": "National Veterans Small Business Engagement (NVSBE)",
+  "organizer": "VA Office of Small and Disadvantaged Business Utilization",
+  "url": "https://www.va.gov/osdbu/nvsbe/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-08",
+  "endDate": "2026-12-09",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Cleveland",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Veteran-owned small businesses meet federal procurement officials and prime contractors.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration details not read; save-the-date page was still coming.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "veteran hiring lead"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "ausa-annual-meeting",
+  "name": "AUSA Annual Meeting and Exposition",
+  "organizer": "Association of the United States Army",
+  "url": "https://www.ausa.org/meetings-and-events",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Army leaders, soldiers, veterans and defense industry; the Army's flagship annual gathering (2027 expected October, dates not confirmed).",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "transitioning service member",
+   "veteran hiring lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sof-week",
+  "name": "SOF Week",
+  "organizer": "Global SOF Foundation / USSOCOM",
+  "url": "https://sofweek.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-06",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Tampa",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Special operations community, industry and veterans; the field's flagship convention.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 prices not posted; site referenced 2026 early-bird rates.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": "https://sofweek.org",
+  "speakingDeadline": "2026-10-02",
+  "speakingNote": "Speaker/topic recommendations via a form on the site; the 2 Oct date shown has passed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Military transition and veterans",
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "transitioning service member",
+   "cleared cybersecurity engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sea-air-space",
+  "name": "Sea-Air-Space",
+  "organizer": "Navy League of the United States",
+  "url": "https://www.seaairspace.org",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-04",
+  "endDate": "2027-04-07",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Navy, Marine Corps and Coast Guard leaders with maritime defense industry; strong cleared-hiring crowd.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration not yet posted on the site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Military transition and veterans",
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "transitioning service member",
+   "cleared cybersecurity engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "afcea-technet-cyber",
+  "name": "AFCEA TechNet Cyber",
+  "organizer": "AFCEA International",
+  "url": "https://events.afcea.org/afceacyber27/public/Content.aspx?ID=125260&sortMenu=101001",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-11",
+  "endDate": "2027-05-13",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Baltimore",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Engineering",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "DoD cyber, DISA and Cyber Command leaders with contractors; the flagship defense cyber conference.",
+  "access": "PAID",
+  "costLow": 975,
+  "costHigh": 1150,
+  "costNote": "2026 rates (industry member $975, non-member $1,150) shown as reference; 2027 not yet posted. Active-duty/government registration was free in 2025.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Government and active-duty attendees register free (2025 fee page); academia and small-business tiers.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "cleared cybersecurity engineer",
+   "CMMC compliance lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "afcea-west",
+  "name": "WEST Conference and Exposition",
+  "organizer": "AFCEA International & U.S. Naval Institute",
+  "url": "http://www.westconference.org/West27/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-16",
+  "endDate": "2027-02-18",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Navy, Marine Corps and defense industry leaders on C4ISR, cyber and information warfare.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration free for military and government personnel; industry pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free for military and government personnel.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cybersecurity for defense",
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "cleared cybersecurity engineer",
+   "transitioning service member"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "technet-augusta",
+  "name": "TechNet Augusta",
+  "organizer": "AFCEA International",
+  "url": "https://events.afcea.org/Augusta27/Public/Content.aspx?ID=126477",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-17",
+  "endDate": "2027-08-19",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Augusta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "U.S. Army Cyber Command and Cyber Center of Excellence leaders with contractors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration and agenda due Spring 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "cleared cybersecurity engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "geoint-symposium",
+  "name": "GEOINT Symposium",
+  "organizer": "United States Geospatial Intelligence Foundation (USGIF)",
+  "url": "https://usgif.org/geoint-symposium/2027-symposium/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Kissimmee",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Intelligence community and contractors; large cleared-professional hiring crowd.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens Nov 12, 2026; prices not posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://usgif.org/geoint-symposium/2027-symposium/",
+  "speakingDeadline": null,
+  "speakingNote": "Calls for Sessions, Lightning Talks and Vignettes open; deadlines on each call page (vignettes Sept 14 to Nov 13, 2026).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity for defense",
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "cleared cybersecurity engineer",
+   "transitioning service member"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "intelligence-and-national-security-summit",
+  "name": "Intelligence & National Security Summit",
+  "organizer": "AFCEA International & INSA",
+  "url": "https://www.intelsummit.org",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Bethesda",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "2,000+ intelligence, defense and national security professionals; 2026 edition was Aug 26-27.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on a Registration Packages page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity for defense",
+   "Military transition and veterans"
+  ],
+  "roles": [
+   "cleared cybersecurity engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "national-cyber-summit",
+  "name": "National Cyber Summit",
+  "organizer": "NAC-ISSA & Cyber Huntsville",
+  "url": "https://www.nationalcybersummit.com/Summit-Info/About",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-23",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Huntsville",
+  "state": "AL",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Redstone Arsenal-area defense cyber practitioners, contractors and federal staff; includes workforce programs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration cost not on page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nationalcybersummit.com/Summit-Info/About",
+  "speakingDeadline": null,
+  "speakingNote": "Call for Presenters and Call for Training pages listed; deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "cleared cybersecurity engineer",
+   "CMMC compliance lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cs5-cmmc-conference",
+  "name": "CS5 (CMMC Ecosystem Summit & Implementation Conference)",
+  "organizer": "The Cyber AB",
+  "url": "https://cyberab.org/News-Events/CS5-Conference",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Oxon Hill",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "CMMC assessors, C3PAOs, defense contractors and DoD; East (Oct) and West (April) editions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices at cs5global.org, not opened. 2026 East was Oct 22-23.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "CMMC compliance lead",
+   "cleared cybersecurity engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cmmc-accelerate",
+  "name": "CMMC Accelerate",
+  "organizer": "Hypori / Carahsoft",
+  "url": "https://explore.hypori.com/cmmc-accelerate",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-13",
+  "endDate": "2027-04-13",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Reston",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "One-day CMMC session for defense industrial base subcontractors (2027 date tentative per listing).",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "CMMC compliance lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "def-con",
+  "name": "DEF CON",
+  "organizer": "DEF CON Communications",
+  "url": "https://defcon.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-05",
+  "endDate": "2027-08-08",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Largest hacker conference; security researchers and many defense and agency recruiters.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Badge price not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://defcon.org/",
+  "speakingDeadline": null,
+  "speakingNote": "CFP exists; deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "cleared cybersecurity engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "billington-cybersecurity-summit",
+  "name": "Billington CyberSecurity Summit",
+  "organizer": "Billington Cybersecurity",
+  "url": "https://www.billingtoncybersecurity.com",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Federal and defense cyber leaders; 17th annual was Sept 8-10, 2026.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not listed on page; Critical Infrastructure summit Nov 17-18, 2026, State & Local Mar 17-19, 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Cybersecurity for defense"
+  ],
+  "roles": [
+   "cleared cybersecurity engineer",
+   "CMMC compliance lead"
+  ],
+  "journeys": []
+ }
+]

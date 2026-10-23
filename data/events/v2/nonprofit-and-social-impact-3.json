@@ -1,0 +1,866 @@
+[
+ {
+  "organizer": "Points of Light",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-28",
+  "endDate": "2027-07-01",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Long Beach",
+  "state": "CA",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found; 2026 edition was June 22-25 in Washington.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "journeys": [],
+  "roles": [
+   "volunteer manager",
+   "community engagement lead"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "points-of-light-conference",
+  "name": "Points of Light Conference",
+  "url": "https://www.pointsoflight.org/conference",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "whyAttend": "Volunteer program leaders, corporate citizenship and social impact teams.",
+  "published": true
+ },
+ {
+  "organizer": "Association of Leaders in Volunteer Engagement (AL!VE)",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 Summit was in Sacramento in March; next Summit not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "volunteer manager"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "alive-national-summit-volunteer-engagement",
+  "name": "National Summit on Volunteer Engagement",
+  "url": "https://www.volunteeralive.org/summit.php",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "whyAttend": "Volunteer managers and directors of volunteer services.",
+  "published": true
+ },
+ {
+  "organizer": "Campus Compact",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "journeys": [],
+  "roles": [
+   "community engagement lead"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact",
+   "Education & EdTech"
+  ],
+  "id": "campus-compact-annual-conference",
+  "name": "Compact27 (Campus Compact National Conference)",
+  "url": "https://www.compact.org/current-programs/annual-conference",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "whyAttend": "Community engagement staff, engaged faculty and campus civic leaders.",
+  "published": true
+ },
+ {
+  "organizer": "International Association for Public Participation",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition Sept 28-30 in San Antonio; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Past editions gave scholarships.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "community engagement lead"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "iap2-north-american-conference",
+  "name": "IAP2 North American Conference",
+  "url": "https://www.iap2.org/news/707533/2025-IAP2-North-American-Conference.htm",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "whyAttend": "Public participation and stakeholder engagement practitioners.",
+  "published": false
+ },
+ {
+  "organizer": "Neighborhoods, USA",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 host and dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "community engagement lead"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "nusa-annual-conference",
+  "name": "NUSA Annual Conference",
+  "url": "https://www.nusa.org/about/",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "whyAttend": "Neighborhood association leaders and city neighborhood staff; 600-800 attend.",
+  "published": false
+ },
+ {
+  "organizer": "Michigan Nonprofit Association",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-17",
+  "endDate": "2026-11-17",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Detroit",
+  "state": "MI",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed; registration by Cvent.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "community engagement lead",
+   "volunteer manager"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "michigan-civic-community-engagement-summit",
+  "name": "Civic and Community Engagement Summit",
+  "url": "https://www.mnaonline.org/events/2026/11/17/3rd-annual-civic-community-engagement-summit",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "whyAttend": "Michigan nonprofit, foundation and grassroots leaders; with the Council of Michigan Foundations.",
+  "published": true
+ },
+ {
+  "organizer": "Utah State University Transforming Communities Institute",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-20",
+  "endDate": "2027-05-21",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Logan",
+  "state": "UT",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed; call for proposals promised this fall.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "community engagement lead"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "utah-conference-community-engagement",
+  "name": "Utah Conference on Community Engagement",
+  "url": "https://artsci.usu.edu/social-work/transforming-communities-institute/conference/",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "whyAttend": "Community engagement practitioners and university partners in Utah.",
+  "published": true
+ },
+ {
+  "organizer": "SOCAP Global",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": 999,
+  "costHigh": 1999,
+  "costNote": "SOCAP26 tiers: presale $999, early $1,199, spring $1,599, full $1,999; reduced $1,499 for qualified individuals. SOCAP27 dates not posted.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://socapglobal.com/socap-open-2026/",
+  "speakingDeadline": null,
+  "speakingNote": "SOCAP Open crowdsourced application (2026 link).",
+  "cheaperWays": "Reduced-price tickets; group discounts for five or more.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [
+   "ENTREPRENEUR"
+  ],
+  "roles": [
+   "impact investor",
+   "social entrepreneur"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "socap",
+  "name": "SOCAP",
+  "url": "https://socapglobal.com/event-socap-26/",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Impact investors, foundations and social entrepreneurs; SOCAP27 returns to Chicago.",
+  "published": true
+ },
+ {
+  "organizer": "Global Impact Investing Network",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-27",
+  "endDate": "2026-10-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Amsterdam",
+  "state": null,
+  "country": "NL",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price not listed; GIIN members get a large discount.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speakers complete a form; GIIN contacts those it selects.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "impact investor"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "giin-impact-forum",
+  "name": "GIIN Impact Forum",
+  "url": "https://events.thegiin.org/event/ImpactForum2026/faqs-general",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Asset owners, fund managers and development finance institutions in impact investing.",
+  "published": true
+ },
+ {
+  "organizer": "PEI Group",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-19",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a third-party listing; sign-up page only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "impact investor"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "impact-investor-global-summit",
+  "name": "Impact Investor Global Summit",
+  "url": "https://info.pei.group/impact-investor-global-summit-2027-ryi.html",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Private-markets impact fund investors.",
+  "published": false
+ },
+ {
+  "organizer": "Opportunity Finance Network",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "OFN42 was Oct 20-23, 2026 per a third-party calendar; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "impact investor",
+   "social entrepreneur"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "ofn-conference",
+  "name": "OFN Conference",
+  "url": "https://ofn.org/conference",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "CDFI leaders and community investors; 2,100+ attended in 2025.",
+  "published": false
+ },
+ {
+  "organizer": "Skoll Foundation",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Oxford",
+  "state": null,
+  "country": "GB",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was April 21-24; 2027 not found. URL has a trailing dot as seen in search.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [
+   "ENTREPRENEUR"
+  ],
+  "roles": [
+   "social entrepreneur",
+   "impact investor"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "skoll-world-forum",
+  "name": "Skoll World Forum",
+  "url": "https://skoll.org/skoll-world-forum/.",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Leading social entrepreneurs, funders and policy leaders.",
+  "published": false
+ },
+ {
+  "organizer": "Clinton Foundation",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was Sept 22-23; 2027 unknown. Access terms not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "social entrepreneur",
+   "impact investor"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "clinton-global-initiative-annual-meeting",
+  "name": "Clinton Global Initiative Annual Meeting",
+  "url": "https://www.clintonfoundation.org/events/",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Philanthropists, CEOs and nonprofit leaders making commitments.",
+  "published": false
+ },
+ {
+  "organizer": "Aspen Institute",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Aspen",
+  "state": "CO",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 festival June 25-July 1; pricing not listed; also Aspen Ideas Health, Climate, Economy.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "social entrepreneur"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "aspen-ideas-festival",
+  "name": "Aspen Ideas Festival",
+  "url": "https://www.aspenideas.org/register",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Leaders across philanthropy, policy and social impact.",
+  "published": true
+ },
+ {
+  "organizer": "World Affairs Council / GPF",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was March 18-20; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "impact investor"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "global-philanthropy-forum",
+  "name": "Global Philanthropy Forum",
+  "url": "https://philanthropyforum.org/Programs",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Global philanthropists and social investors.",
+  "published": false
+ },
+ {
+  "organizer": "Collective Impact Forum",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was April 14-16 online; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "community engagement lead",
+   "social entrepreneur"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "collective-impact-action-summit",
+  "name": "Collective Impact Action Summit",
+  "url": "https://collectiveimpactforum.org/blog",
+  "segments": [
+   "Volunteer management and community engagement",
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Backbone and cross-sector collaboration leaders.",
+  "published": false
+ },
+ {
+  "organizer": "Mission Investors Exchange / SRI Conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Current edition and dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "impact investor"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "sri-conference",
+  "name": "SRI Conference",
+  "url": "https://missioninvestors.org/events/sri-29-conference",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Sustainable and impact investors.",
+  "published": false
+ },
+ {
+  "organizer": "National Community Investment Fund",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-09-02",
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 (30th) convening already past; kept as lead only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "impact investor"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "ncif-convening",
+  "name": "NCIF Convening",
+  "url": "https://www.ncif.org/conference",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "whyAttend": "Community development banks and investors.",
+  "published": false
+ }
+]

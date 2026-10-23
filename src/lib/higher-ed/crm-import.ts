@@ -10,9 +10,11 @@ import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
+import { institutionEntitlements, capRoom } from '@/lib/plans/entitlements'
+import { heldMemberCount, recordCapReached } from '@/lib/plans/member-cap'
 import { parseGifts, parseRoster, type RosterRow, type RowError } from './crm-csv'
 
-export type ImportResult = { runId: string; imported: number; updated: number; skipped: number; errors: RowError[]; fileError?: string }
+export type ImportResult = { runId: string; imported: number; updated: number; skipped: number; errors: RowError[]; fileError?: string; capReached?: { cap: number; left: number; message: string } }
 
 async function startRun(institutionId: string, direction: 'IMPORT_ROSTER' | 'IMPORT_GIFTS', fileName: string, createdBy: string) {
   return prisma.crmExchangeRun.create({ data: { institutionId, direction, fileName, createdBy }, select: { id: true } })
@@ -42,6 +44,14 @@ export async function importRosterRows(args: { institutionId: string; rows: Rost
   const { rows, errors, fileError } = args
   let imported = 0
   let updated = 0
+  // The free plan holds up to its cap of members. An import that would take it
+  // over adds nobody (all or nothing, so a partly loaded roster never has to be
+  // untangled) and says how many places are left.
+  const capBlock = fileError ? null : await rosterCapBlock(args.institutionId, rows, args.createdBy)
+  if (capBlock) {
+    await finishRun(run.id, rows.length, errors, capBlock.message)
+    return { runId: run.id, imported: 0, updated: 0, skipped: rows.length, errors, fileError: capBlock.message, capReached: capBlock }
+  }
   if (!fileError) {
     for (const r of rows) {
       const existing = await prisma.institutionMember.findFirst({
@@ -79,6 +89,23 @@ export async function importRosterRows(args: { institutionId: string; rows: Rost
   }
   await finishRun(run.id, rows.length, errors, fileError)
   return { runId: run.id, imported, updated, skipped: errors.length, errors, fileError }
+}
+
+// For a FREE institution: would this roster add more new members than fit?
+// A row is new when neither its external id nor its email is on the roster.
+async function rosterCapBlock(institutionId: string, rows: RosterRow[], createdBy: string): Promise<{ cap: number; left: number; message: string } | null> {
+  const inst = await prisma.institution.findUnique({ where: { id: institutionId }, select: { slug: true, plan: true } })
+  const cap = institutionEntitlements({ plan: inst?.plan }).memberCap
+  if (cap === null || !inst) return null
+  const known = await prisma.institutionMember.findMany({ where: { institutionId }, select: { externalId: true, email: true } })
+  const ids = new Set(known.map((k) => k.externalId).filter((x): x is string => !!x))
+  const emails = new Set(known.map((k) => k.email))
+  const fresh = new Set<string>()
+  for (const r of rows) if (!ids.has(r.externalId) && !emails.has(r.email)) fresh.add(r.externalId)
+  const room = capRoom(cap, await heldMemberCount(institutionId), fresh.size)
+  if (room.allowed) return null
+  recordCapReached(createdBy, inst.slug, cap, 'import')
+  return { cap, left: room.left ?? 0, message: room.message ?? '' }
 }
 
 export async function importGifts(args: { institutionId: string; csv: string; fileName: string; createdBy: string }): Promise<ImportResult> {

@@ -1,0 +1,874 @@
+[
+ {
+  "id": "afp-fpa-forum",
+  "name": "AFP FP&A Forum",
+  "organizer": "Association for Financial Professionals",
+  "url": "https://www.financialprofessionals.org/afp-fp-a--forum",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-22",
+  "endDate": "2027-03-24",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "500+ corporate FP&A practitioners; the main US meeting for planning and analysis teams.",
+  "access": "PAID",
+  "costLow": 985,
+  "costHigh": 1785,
+  "costNote": "Early (by Dec 11, 2026) $985-$1,385; standard $1,185-$1,585; on-site $1,385-$1,785; day pass $695-$795.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.financialprofessionals.org/afp-fp-a--forum/speakers/submit-a-proposal",
+  "speakingDeadline": "2026-07-17",
+  "speakingNote": "Call closed July 17, 2026. Non-commercial, 60-minute sessions, no honorarium.",
+  "cheaperWays": "Insider pricing for 2025/2026 attendees; member rates; day passes.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "FP&A leader",
+   "controller"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "afp-treasury-executive-exchange",
+  "name": "AFP Treasury Executive Exchange",
+  "organizer": "Association for Financial Professionals",
+  "url": "https://www.financialprofessionals.org/events/meetings/treasury-executive-exchange",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Corporate treasurers only, in a deliberately small peer forum.",
+  "access": "APPLY",
+  "costLow": 1095,
+  "costHigh": 1395,
+  "costNote": "Early (to Apr 30) $1,095 member/$1,195 non-member; then $1,295/$1,395. Restricted to corporate practitioners titled Treasurer. One AFP page says three days.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.financialprofessionals.org/events/meetings/treasury-executive-exchange/registration",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "treasurer",
+   "cash manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "eurofinance-treasury-cash-management-miami",
+  "name": "EuroFinance International Treasury & Cash Management Summit Miami",
+  "organizer": "EuroFinance",
+  "url": "https://www.eurofinance.com/international-treasury-cash-management-summit-miami/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-02",
+  "endDate": "2027-06-04",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Global-treasury and cash-management leaders from multinationals, banks and fintechs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "InterContinental Miami; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "treasurer",
+   "cash manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "eurofinance-international-treasury-management",
+  "name": "EuroFinance International Treasury Management",
+  "organizer": "EuroFinance",
+  "url": "https://www.eurofinance.com/international-treasury-event/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Barcelona",
+  "state": null,
+  "country": "ES",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "The largest global treasury meeting; US treasurers attend.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Sept 16-18 Barcelona; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "treasurer",
+   "cash manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nacm-credit-congress",
+  "name": "NACM Credit Congress & Expo",
+  "organizer": "National Association of Credit Management",
+  "url": "https://creditcongress.nacm.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-13",
+  "endDate": "2027-06-16",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Credit and collections managers; certification exams are held on site.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Caesars Palace; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "controller",
+   "cash manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "gfoa-annual-conference",
+  "name": "GFOA Annual Conference",
+  "organizer": "Government Finance Officers Association",
+  "url": "https://www.gfoa.org/2027-overview",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "State and local government finance directors, treasurers and controllers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens Nov 2026; preconference seminars June 4-5 cost extra.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "treasurer",
+   "controller",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aga-pdt",
+  "name": "AGA Professional Development Training (PDT)",
+  "organizer": "Association of Government Accountants",
+  "url": "https://pdt.agacgfm.org",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-07-18",
+  "endDate": "2027-07-21",
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Government accountants and financial managers; up to 20 CPE hours.",
+  "access": "PAID",
+  "costLow": 875,
+  "costHigh": 1075,
+  "costNote": "Early-bird member rates shown as $875 and $1,075 in different results. One AGA page also says July 21-23 in Washington; confirm.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "controller",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nacubo-annual-meeting",
+  "name": "NACUBO Annual Meeting",
+  "organizer": "NACUBO",
+  "url": "https://www.nacubo.org/annualmeeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-10",
+  "endDate": "2027-07-13",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "College and university CFOs, controllers and treasurers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read; New Business Officers Program July 9-10.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nacubo.org/Professional-Development/Program-Support/Submit-Content/NACUBO-Annual-Meeting",
+  "speakingDeadline": "2026-10-19",
+  "speakingNote": "Proposals closed Oct 19, 2026; decisions by Feb 10, 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "controller",
+   "treasurer",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fei-financial-leaders-forum",
+  "name": "FEI Financial Leaders Forum",
+  "organizer": "Financial Executives International",
+  "url": "https://my.financialexecutives.org/Events/Calendar-Of-Events/Meeting-Home-Page?meetingid=%7BBE46E479-0265-F111-A826-6045BD0740BD%7D",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Senior finance executives in FEI's network.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration page lists May 17-19; another FEI page says May 17-20. Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "controller",
+   "treasurer",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fei-cfri",
+  "name": "FEI Current Financial Reporting Issues Conference (CFRI)",
+  "organizer": "Financial Executives International",
+  "url": "https://cfri.financialexecutives.org",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2026-11-10",
+  "endDate": "2026-11-12",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Controllers and reporting leaders on SEC and FASB developments.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition is a live online broadcast; held each late fall.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "controller",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "radiance",
+  "name": "Radiance (HighRadius)",
+  "organizer": "HighRadius",
+  "url": "https://radiance.highradius.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-15",
+  "endDate": "2027-02-17",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "1,500 finance professionals on order-to-cash and treasury automation.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Mercedes-Benz Stadium per official page (one snippet shows stale Las Vegas text); pricing not read; vendor event.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "cash manager",
+   "controller",
+   "treasurer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "finance-alliance-cfo-controller-summit-new-york",
+  "name": "Finance Alliance CFO Summit & Controller Summit (New York)",
+  "organizer": "Finance Alliance",
+  "url": "https://events.financealliance.io/location/newyork/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-06",
+  "endDate": "2027-05-06",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Finance leaders in a one-day peer summit.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page says attendance is free and by application. Date and Convene 360 Madison venue from trade press.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://events.financealliance.io/location/newyork/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "controller",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "finance-alliance-cfo-fpa-summit-san-jose",
+  "name": "Finance Alliance CFO Summit & FP&A Summit (San Jose)",
+  "organizer": "Finance Alliance",
+  "url": "https://events.financealliance.io/location/sanjose",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-25",
+  "endDate": "2027-02-25",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "San Jose",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Bay Area finance and FP&A leaders.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Senior executive passes are invite-only; other tickets paid. Date and San Jose Marriott venue from trade press.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "efcg-cfo-conference",
+  "name": "EFCG CFO Conference",
+  "organizer": "EFCG",
+  "url": "https://www.efcg.com/event-details/2027-cfo-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-28",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Irving",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "CFOs and finance chiefs of mid-sized and large companies.",
+  "access": "PAID",
+  "costLow": 3100,
+  "costHigh": 4000,
+  "costNote": "Early rate to Dec 25: $3,100 for firms with $50-250M revenue, $4,000 above $250M.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "treasurer",
+   "controller",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "kyribalive",
+  "name": "KyribaLive",
+  "organizer": "Kyriba",
+  "url": "https://www.kyriba.com/kyribalive/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Treasurers and CFOs using the Kyriba platform.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Apr 27-29; page says Prepare for KyribaLive 2027 but gives no date. Vendor event.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "treasurer",
+   "cash manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "north-american-finance-executive-summit",
+  "name": "North American Finance Executive Summit",
+  "organizer": "Executive Platforms",
+  "url": "https://www.executiveplatforms.com/event/north-american-finance-executive-summit-nafes/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-10",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Aventura",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Director-level and above finance leaders; 300+ in prior years.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Turnberry venue from trade press only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "treasurer",
+   "controller",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ima-annual-conference",
+  "name": "IMA Annual Conference",
+  "organizer": "Institute of Management Accountants",
+  "url": "https://www.imanet.org/continuing-education/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Management accountants and CMAs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Past editions June (2025 Scottsdale); 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "controller",
+   "FP&A leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "wsj-cfo-coo-council-summit",
+  "name": "WSJ CFO & COO Council Summit",
+  "organizer": "The Wall Street Journal",
+  "url": "https://www.wsj.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-18",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Middleburg",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Invite-based council of CFOs and COOs.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Details from trade press only; official page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listings",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "roles": [
+   "treasurer"
+  ],
+  "journeys": []
+ }
+]

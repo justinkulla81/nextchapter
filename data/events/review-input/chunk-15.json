@@ -1,0 +1,845 @@
+[
+ {
+  "id": "forbes-under-30-summit",
+  "name": "Forbes Under 30 Summit",
+  "organizer": "Forbes",
+  "url": "https://www.forbes.com/forbes-live/event/under-30-summit/",
+  "startDate": "2027-02-21",
+  "endDate": "2027-02-24",
+  "typicalMonth": "February",
+  "city": "Scottsdale",
+  "state": "AZ",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Forbes lists Feb 21-24, 2027, Scottsdale AZ plus virtual; early access registration opened Sept 22, 2026; ticket price not found; in-person attendees must be 21+. Questions to 30under30@forbes.com.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Young founders, creators and investors; Phoenix is the host city for 2026 to 2028.",
+  "segments": [],
+  "industries": []
+ },
+ {
+  "id": "nawbo-womens-business-conference",
+  "name": "NAWBO Women's Business Conference",
+  "organizer": "National Association of Women Business Owners",
+  "url": "https://nawbo.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site blocked; 2027 conference dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Women business owners from NAWBO chapters meet; an awards celebration is slated for early June 2027 in DC.",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "industries": []
+ },
+ {
+  "id": "texas-eta-conference-rice",
+  "name": "Texas ETA Conference (Rice)",
+  "organizer": "Rice Business",
+  "url": "https://business.rice.edu/texas-eta-conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Houston",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + search",
+  "whyAttend": "Texas searchers, funders and acquired-company CEOs.",
+  "segments": [
+   "Buying a business (acquisition entrepreneurship)"
+  ],
+  "industries": []
+ },
+ {
+  "id": "fei-cfri",
+  "name": "Corporate Financial Reporting Insights (CFRI)",
+  "organizer": "Financial Executives International",
+  "url": "https://cfri.financialexecutives.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says virtual, late fall; specific dates not seen.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Virtual late-fall program on financial reporting, 15 CPE hours.",
+  "segments": [
+   "Controllership and finance operations",
+   "Treasury and corporate finance"
+  ],
+  "industries": [
+   "Accounting & Audit",
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "arf-audiencexscience",
+  "name": "ARF AUDIENCExSCIENCE",
+  "organizer": "Advertising Research Foundation",
+  "url": "https://thearf.org/events/list",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Mar 18-19; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Audience measurement and advertising research leaders from brands, agencies and media.",
+  "segments": [
+   "Market research and insights"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "podcast-movement-new-york",
+  "name": "Podcast Movement (New York)",
+  "organizer": "Podcast Movement",
+  "url": "https://podcastmovement.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says returning to New York in 2027; no dates yet. 2026 edition was Sept 17-18.",
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "The largest podcasting community gathering: show makers, networks, ad sellers and brand content teams.",
+  "segments": [
+   "Content and social media marketing"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "commercial-uav-expo",
+  "name": "Commercial UAV Expo",
+  "organizer": "Diversified Communications",
+  "url": "https://www.expouav.com",
+  "startDate": "2027-09-07",
+  "endDate": "2027-09-09",
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Commercial drone operators and enterprise buyers. Lead: site returned 403.",
+  "segments": [
+   "Uncrewed systems and drones"
+  ],
+  "industries": [
+   "Aerospace & Defense",
+   "Construction & Real Estate",
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "pcsga-nsa-pcs-annual-shellfish-conference",
+  "name": "PCSGA Annual Shellfish Conference & Tradeshow",
+  "organizer": "Pacific Coast Shellfish Growers Association",
+  "url": "https://pcsga.org/events/annual-shellfish-conference-tradeshow",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 details not found.",
+  "speaking": "OPEN_CFP",
+  "source": "official site + press",
+  "whyAttend": "West Coast shellfish farmers, hatchery staff and scientists; the 80th edition was Sept 14-17, 2026 in Blaine, WA.",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "sustainable-fleet-technology-conference-expo",
+  "name": "Sustainable Fleet Technology Conference & Expo",
+  "organizer": "NC Clean Energy Technology Center",
+  "url": "https://vacleancities.org/?p=41148",
+  "startDate": "2027-08-17",
+  "endDate": "2027-08-19",
+  "typicalMonth": "August",
+  "city": "Durham",
+  "state": "NC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a clean-cities listing; not read on organizer site.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Public and private fleet managers comparing electric, hybrid and alternative-fuel vehicles and charging.",
+  "segments": [
+   "Fleet management"
+  ],
+  "industries": [
+   "Automotive & Mobility"
+  ]
+ },
+ {
+  "id": "ncda-national-conference",
+  "name": "NCDA National Conference",
+  "organizer": "National Community Development Association",
+  "url": "https://ncdaonline.org/app",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced on pages seen.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "City and county CDBG/HOME program staff (340 attended 2026 edition in Pittsburgh).",
+  "segments": [
+   "Affordable housing and community development"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "ecrm-sessions",
+  "name": "ECRM Sessions",
+  "organizer": "ECRM",
+  "url": "https://www.ecrm.marketgate.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Buyers attend free; brand fees not stated.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Pre-scheduled buyer meetings: brands meet retail and foodservice buyers, virtual and in person.",
+  "segments": [
+   "Retail sales and key accounts"
+  ],
+  "industries": [
+   "Consumer Packaged Goods"
+  ]
+ },
+ {
+  "id": "ncpn-connect",
+  "name": "NCPN CONNECT",
+  "organizer": "National Career Pathways Network",
+  "url": "https://www.ncpn.info/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": "New Orleans (2026 edition)",
+  "state": "LA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listings; 2026 held Feb 18-20 in New Orleans",
+  "whyAttend": "Career pathways practitioners from K-12, community colleges and workforce boards.",
+  "segments": [
+   "Career and technical education"
+  ],
+  "industries": [
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "responsible-business-usa",
+  "name": "Responsible Business USA",
+  "organizer": "Reuters Events",
+  "url": "https://events.reutersevents.com/sustainable-business/responsible-business-usa",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates conflict across Reuters pages (May 4-5 vs May 20-21, 2027); page returned 403.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "About 350 senior sustainability executives in Boston.",
+  "segments": [
+   "Sustainability, ESG and climate"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "dc-fintech-week",
+  "name": "DC Fintech Week",
+  "organizer": "The Fintech Foundation",
+  "url": "https://www.dcfintechweek.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing; lead only",
+  "whyAttend": "Fintech founders, regulators and bankers; 2026 edition ran Oct 13-16.",
+  "segments": [
+   "Payments and fintech"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "wsj-cfo-coo-council-summit",
+  "name": "WSJ CFO & COO Council Summit",
+  "organizer": "The Wall Street Journal",
+  "url": "https://www.wsj.com",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-18",
+  "typicalMonth": "May",
+  "city": "Middleburg",
+  "state": "VA",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Details from trade press only; official page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "Invite-based council of CFOs and COOs.",
+  "segments": [
+   "Treasury and corporate finance"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "naswa-winter-policy-forum",
+  "name": "NASWA Winter Policy Forum",
+  "organizer": "National Association of State Workforce Agencies",
+  "url": "https://www.naswa.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration banner for the 2027 Winter Policy Forum seen on naswa.org; dates and prices not shown.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "State workforce and unemployment insurance agency leaders meet on federal policy.",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "ada-scientific-session",
+  "name": "ADA Scientific Session (formerly SmileCon)",
+  "organizer": "American Dental Association",
+  "url": "https://ada.org/scisession",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition not seen; ADA earlier announced SmileCon would end, then listed the 2026 session.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "The ADA's national meeting for dentists and their teams; 2026 edition was Oct 8-10 in Indianapolis.",
+  "segments": [
+   "Dental and specialty practice management"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "healthcare-analytics-summit",
+  "name": "Health Catalyst Healthcare Analytics Summit (HAS)",
+  "organizer": "Health Catalyst",
+  "url": "https://www.healthcatalyst.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "HAS 25 was complimentary with acceptance after a request; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "Healthcare analytics and quality leaders from health systems; attendance is by request with limited space.",
+  "segments": [
+   "Health IT and informatics"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "state-hit-connect-summit",
+  "name": "State HIT Connect Summit",
+  "organizer": "State health IT organizers (organizer not confirmed)",
+  "url": "https://sessionize.com/2027-state-hit-connect-summit-copy/",
+  "startDate": "2027-03-29",
+  "endDate": "2027-04-01",
+  "typicalMonth": "March",
+  "city": "National Harbor",
+  "state": "MD",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Gaylord National venue from a search result; organizer and pricing not confirmed.",
+  "speaking": "OPEN_CFP",
+  "source": "official site (unverified lead)",
+  "whyAttend": "State and federal health IT leaders; in person only.",
+  "segments": [
+   "Digital health and virtual care"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "cas-seminar-on-reinsurance",
+  "name": "CAS Seminar on Reinsurance",
+  "organizer": "Casualty Actuarial Society",
+  "url": "https://reinsurance.casact.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Reinsurance actuaries and underwriters on pricing, treaties and cat risk.",
+  "segments": [
+   "Reinsurance and specialty"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "vertafore-accelerate-netvu",
+  "name": "Vertafore Accelerate (NetVU)",
+  "organizer": "Vertafore / NetVU",
+  "url": "https://vertafore.com/resources/press-releases/vertafore-and-netvu-set-welcome-thousands-insurance-professionals",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition April 13-16; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Agencies, carriers and MGAs on Vertafore tools; roughly 2,000 attend.",
+  "segments": [
+   "Brokerage and agency"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "securities-enforcement-forum-dc",
+  "name": "Securities Enforcement Forum DC",
+  "organizer": "Securities Enforcement Forum",
+  "url": "https://www.dwt.com/about/events/2026/11/securities-enforcement-forum-dc-2026",
+  "startDate": "2026-11-17",
+  "endDate": "2026-11-17",
+  "typicalMonth": "November",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Found only on a sponsor firm page; also streamed live.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Securities enforcement lawyers, regulators and compliance counsel.",
+  "segments": [
+   "Corporate, M&A and securities"
+  ],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "reliable-plant-conference",
+  "name": "Reliable Plant Conference & Exhibition",
+  "organizer": "Noria",
+  "url": "https://noria.com/",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-17",
+  "typicalMonth": "June",
+  "city": "Mobile",
+  "state": "AL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Date from Noria's resources page snippet; event page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "Lubrication, reliability and maintenance practitioners.",
+  "segments": [
+   "Maintenance, reliability and asset management"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "local-media-association-summit",
+  "name": "Local Media Association Summit",
+  "organizer": "Local Media Association",
+  "url": "https://localmedia.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "New York",
+  "state": "NY",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was invite-only.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Local news publishers' leaders.",
+  "segments": [
+   "Journalism and news"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "pda-miniverse-conference",
+  "name": "PDA Miniverse Conference",
+  "organizer": "Parenteral Drug Association",
+  "url": "https://pda.org/global-event-calendar/event-detail/pda-miniverse-conference-2027",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "typicalMonth": "March",
+  "city": "Raleigh",
+  "state": "NC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and city from a pda.org search result; page not opened; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site (unverified lead)",
+  "whyAttend": "Drug-device combination product, connected health and medical device quality and regulatory teams.",
+  "segments": [
+   "Regulatory and quality"
+  ],
+  "industries": [
+   "Medical Devices",
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "nasw-national-conference",
+  "name": "NASW National Conference",
+  "organizer": "National Association of Social Workers",
+  "url": "https://www.socialworkers.org/nationalconference",
+  "startDate": "2027-06-21",
+  "endDate": "2027-06-25",
+  "typicalMonth": "June",
+  "city": "Portland",
+  "state": "OR",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates come from a search snippet of the NASW page that was ambiguous; confirm. Pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Practicing social workers from every chapter; also state chapter conferences each spring.",
+  "segments": [
+   "Social work and human services"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact",
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "magi-clinical-research-conference",
+  "name": "WCG MAGI Clinical Research Conference",
+  "organizer": "WCG",
+  "url": "https://www.wcgclinical.com/magi/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Spring in-person event plus a virtual fall event (MAGI@home, Oct 19-23, 2026); 2027 in-person dates and fees not posted.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Site operations, regulatory and contracting leaders at research sites meet sponsors and CROs.",
+  "segments": [
+   "Clinical operations and trials",
+   "Regulatory affairs and quality"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "mind-the-product-chicago",
+  "name": "Mind the Product Chicago (formerly INDUSTRY)",
+  "organizer": "Mind the Product",
+  "url": "https://www.mindtheproduct.com/industry/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Product leaders and managers; 2026 edition Oct 7, 2027 not announced.",
+  "segments": [
+   "Business analysis and product consulting"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ]
+ },
+ {
+  "id": "business-group-on-health-annual-conference",
+  "name": "Business Group on Health Annual Conference",
+  "organizer": "Business Group on Health",
+  "url": "https://www.businessgrouphealth.org/annual-conference/agenda",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was Apr 22-24 in New Orleans; 2027 listing says Apr 28-30 Washington DC (unconfirmed).",
+  "speaking": "OPEN_CFP",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "Large employers' benefits and health leaders.",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "industries": [
+   "Staffing & Human Capital",
+   "Insurance"
+  ]
+ },
+ {
+  "id": "sourcecon",
+  "name": "SourceCon",
+  "organizer": "ERE",
+  "url": "https://www.sourcecon.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "The sourcing community's conference: sourcers and recruiters trading search and AI techniques.",
+  "segments": [
+   "Corporate talent acquisition",
+   "Staffing and recruiting firms"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "devrelcon-new-york",
+  "name": "DevRelCon New York",
+  "organizer": "DevRelCon",
+  "url": "https://nyc.devrelcon.dev",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "July",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition reported for July in Brooklyn; page opened showed only the title, so no 2027 facts confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "The developer relations community conference: devrel, developer experience and developer marketing practitioners.",
+  "segments": [
+   "Open source and developer relations",
+   "Technical writing and documentation"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "open-group-summit",
+  "name": "The Open Group Summit (US)",
+  "organizer": "The Open Group",
+  "url": "https://www.opengroup.org/events",
+  "startDate": "2027-10-18",
+  "endDate": "2027-10-21",
+  "typicalMonth": "October",
+  "city": "TBD",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "US summit dates Oct 18-21, 2027 per events calendar; venue TBD. London EA Practitioners Conference Feb 1-3, 2027.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "TOGAF and ArchiMate community; enterprise architects.",
+  "segments": [
+   "IT leadership and operations"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "support-driven-expo",
+  "name": "Support Driven Expo",
+  "organizer": "Support Driven",
+  "url": "https://www.supportdriven.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 Las Vegas Aug 10-12 (about 112 attendees); 2026 tentative last week of August; prices not read.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "Practitioner-led customer support conference with no sales pitches; talks, workshops and roundtables.",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "app-annual-conference",
+  "name": "Association of Pacific Ports Annual Conference",
+  "organizer": "Association of Pacific Ports",
+  "url": "https://pacificports.org/apps-113th-annual-conference-2027-stockton-california/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "Summer",
+  "city": "Stockton",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Exact dates and prices not seen.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Pacific-rim port executives; 113th edition hosted by the Port of Stockton in summer 2027. Winter conference Honolulu Jan 27-29, 2027.",
+  "segments": [
+   "Ports, maritime and rail"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ },
+ {
+  "id": "truckload-tca-annual-convention",
+  "name": "TCA Truckload Annual Convention",
+  "organizer": "Truckload Carriers Association",
+  "url": "https://truckload.org",
+  "startDate": "2027-02-27",
+  "endDate": "2027-03-02",
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from TCA partnership announcement; official convention page not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Truckload carrier executives, brokers and suppliers meet for the main US truckload convention.",
+  "segments": [
+   "Freight, trucking and brokerage"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ }
+]

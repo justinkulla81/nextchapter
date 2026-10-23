@@ -38,16 +38,16 @@ const TAB: AudienceTab = {
   ],
   contrastLabel: 'What this is, and what it isn’t yet:',
   contrastBody:
-    'Session scheduling (Calendar/Meet booking) and paid billing aren’t live yet — join the waitlist and we’ll follow up as those ship.',
+    'Session scheduling (Calendar/Meet booking) and billing aren’t live yet — join the waitlist and we’ll follow up as those ship.',
   formHeading: 'Get early access',
-  formSubtext: 'Tell us about your practice and we’ll reach out as the paid tier opens up.',
+  formSubtext: 'Tell us about your practice and we’ll reach out as new features open up.',
   fields: [
     { name: 'fullName', label: 'Full name', type: 'text', required: true },
     { name: 'workEmail', label: 'Work email', type: 'email', required: true },
     { name: 'practiceName', label: 'Practice name', type: 'text', required: false },
     { name: 'clientVolume', label: 'How many active clients do you coach?', type: 'text', required: false },
   ],
-  successMessage: 'Thanks — we’ll follow up as the paid tier opens up.',
+  successMessage: 'Thanks — we’ll follow up as new features open up.',
 }
 
 export default function CoachPlatformPage() {

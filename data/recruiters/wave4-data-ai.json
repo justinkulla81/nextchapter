@@ -1,0 +1,756 @@
+[
+ {
+  "fullName": "Rory Hauser",
+  "title": "Principal",
+  "firm": "Smith Hanley Associates",
+  "firmWebsite": "https://www.smithhanley.com/",
+  "city": "Westport",
+  "state": "CT",
+  "email": "rhauser@smithhanley.com",
+  "phone": "203-319-4305",
+  "sourceUrl": "https://www.smithhanley.com/",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Eda Zullo",
+  "title": "Principal",
+  "firm": "Smith Hanley Associates",
+  "firmWebsite": "https://www.smithhanley.com/",
+  "city": "Westport",
+  "state": "CT",
+  "email": "ezullo@smithhanley.com",
+  "phone": "203-319-4309",
+  "sourceUrl": "https://www.smithhanley.com/",
+  "industries": [
+   "life_sciences",
+   "healthcare"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Lindsey Bartlett",
+  "title": "Principal",
+  "firm": "Smith Hanley Associates",
+  "firmWebsite": "https://www.smithhanley.com/",
+  "city": "Westport",
+  "state": "CT",
+  "email": "lbartlett@smithhanley.com",
+  "phone": "312.273-9897",
+  "sourceUrl": "https://www.smithhanley.com/",
+  "industries": [
+   "life_sciences"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Daniel Wilberschied",
+  "title": "Executive Recruiter",
+  "firm": "Smith Hanley Associates",
+  "firmWebsite": "https://www.smithhanley.com/",
+  "city": "Westport",
+  "state": "CT",
+  "email": "dwilberschied@smithhanley.com",
+  "phone": "773.457-1222",
+  "sourceUrl": "https://www.smithhanley.com/",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Shane Meehan",
+  "title": "Executive Recruiter",
+  "firm": "Smith Hanley Associates",
+  "firmWebsite": "https://www.smithhanley.com/",
+  "city": "Westport",
+  "state": "CT",
+  "email": "smeehan@smithhanley.com",
+  "phone": "203-319-4310",
+  "sourceUrl": "https://www.smithhanley.com/",
+  "industries": [
+   "financial_services"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Andrew Scinto",
+  "title": "Executive Recruiter",
+  "firm": "Smith Hanley Associates",
+  "firmWebsite": "https://www.smithhanley.com/",
+  "city": "Westport",
+  "state": "CT",
+  "email": "ascinto@smithhanley.com",
+  "sourceUrl": "https://www.smithhanley.com/",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Jed Ackermann",
+  "title": "Recruiter",
+  "firm": "Smith Hanley Associates",
+  "firmWebsite": "https://www.smithhanley.com/",
+  "city": "Westport",
+  "state": "CT",
+  "email": "jackermann@smithhanley.com",
+  "sourceUrl": "https://www.smithhanley.com/",
+  "industries": [
+   "financial_services"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Peter Reilly",
+  "title": "Recruiter",
+  "firm": "Smith Hanley Associates",
+  "firmWebsite": "https://www.smithhanley.com/",
+  "city": "Westport",
+  "state": "CT",
+  "sourceUrl": "https://www.smithhanley.com/",
+  "industries": [
+   "life_sciences"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CT"
+  ]
+ },
+ {
+  "fullName": "Chanée Nelson",
+  "title": "Recruiter",
+  "firm": "Dataspace",
+  "firmWebsite": "https://dataspace.com/",
+  "city": "Ann Arbor",
+  "state": "MI",
+  "sourceUrl": "https://dataspace.com/meet-our-data-recruiters/",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "MI"
+  ]
+ },
+ {
+  "fullName": "Katie Magill",
+  "title": "Recruiter",
+  "firm": "Dataspace",
+  "firmWebsite": "https://dataspace.com/",
+  "city": "Ann Arbor",
+  "state": "MI",
+  "sourceUrl": "https://dataspace.com/meet-our-data-recruiters/",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "MI"
+  ]
+ },
+ {
+  "fullName": "Marianne Westphal",
+  "title": "Partner",
+  "firm": "DW Simpson",
+  "firmWebsite": "https://www.dwsimpson.com/",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "marianne.westphal@dwsimpson.com",
+  "phone": "(312) 867-2321",
+  "sourceUrl": "https://www.dwsimpson.com/our-team",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Patty Kennelly",
+  "title": "Partner, Chief Marketing Officer",
+  "firm": "DW Simpson",
+  "firmWebsite": "https://www.dwsimpson.com/",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "patty.kennelly@dwsimpson.com",
+  "phone": "(312) 867-2337",
+  "sourceUrl": "https://www.dwsimpson.com/our-team",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Derek Mulder",
+  "title": "Partner",
+  "firm": "DW Simpson",
+  "firmWebsite": "https://www.dwsimpson.com/",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "derek.mulder@dwsimpson.com",
+  "phone": "(312) 867-2364",
+  "sourceUrl": "https://www.dwsimpson.com/our-team",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Valorie Mulder",
+  "title": "Senior Director, Actuarial Recruiting & Consultant",
+  "firm": "DW Simpson",
+  "firmWebsite": "https://www.dwsimpson.com/",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "valorie.mulder@dwsimpson.com",
+  "phone": "312-867-2356",
+  "sourceUrl": "https://www.dwsimpson.com/our-team",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Jesus Perez",
+  "title": "Senior Actuarial Recruiter & Consultant",
+  "firm": "DW Simpson",
+  "firmWebsite": "https://www.dwsimpson.com/",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "jesus.perez@dwsimpson.com",
+  "phone": "(312) 867-2363",
+  "sourceUrl": "https://www.dwsimpson.com/our-team",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Derrick Nguyen",
+  "title": "Senior Actuarial Recruiter & Consultant",
+  "firm": "DW Simpson",
+  "firmWebsite": "https://www.dwsimpson.com/",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "Derrick.Nguyen@dwsimpson.com",
+  "phone": "312 867 2325",
+  "sourceUrl": "https://www.dwsimpson.com/our-team",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Ted O'Brien",
+  "title": "Founding Partner - Executive Search",
+  "firm": "Starbridge Partners",
+  "firmWebsite": "https://starbridgepartners.com/",
+  "city": "New York",
+  "state": "NY",
+  "email": "ted@starbridgepartners.com",
+  "phone": "(646) 535-9533",
+  "sourceUrl": "https://starbridgepartners.com/about",
+  "industries": [
+   "healthcare",
+   "life_sciences",
+   "financial_services",
+   "media",
+   "agriculture"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Charlie Lenz",
+  "title": "Partner - Executive Search",
+  "firm": "Starbridge Partners",
+  "firmWebsite": "https://starbridgepartners.com/",
+  "city": "New York",
+  "state": "NY",
+  "email": "charlie@starbridgepartners.com",
+  "phone": "(646) 535-9533",
+  "sourceUrl": "https://starbridgepartners.com/about",
+  "industries": [
+   "healthcare",
+   "life_sciences",
+   "financial_services",
+   "media",
+   "agriculture"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NATIONAL"
+  ]
+ },
+ {
+  "fullName": "Sam Jones",
+  "title": "Founder",
+  "firm": "People in AI",
+  "firmWebsite": "https://www.peopleinai.com/",
+  "city": "Brooklyn",
+  "state": "NY",
+  "sourceUrl": "https://www.peopleinai.com/who-we-are",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Sam Agre",
+  "title": "Co-Founder & Head of US Sales",
+  "firm": "People in AI",
+  "firmWebsite": "https://www.peopleinai.com/",
+  "city": "Brooklyn",
+  "state": "NY",
+  "sourceUrl": "https://www.peopleinai.com/who-we-are",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Greffen George",
+  "title": "Director",
+  "firm": "People in AI",
+  "firmWebsite": "https://www.peopleinai.com/",
+  "city": "Brooklyn",
+  "state": "NY",
+  "sourceUrl": "https://www.peopleinai.com/who-we-are",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Cassie Wandell",
+  "title": "Senior Consultant",
+  "firm": "People in AI",
+  "firmWebsite": "https://www.peopleinai.com/",
+  "city": "Brooklyn",
+  "state": "NY",
+  "sourceUrl": "https://www.peopleinai.com/who-we-are",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Jacob Bisson",
+  "title": "Principal Recruiter",
+  "firm": "People in AI",
+  "firmWebsite": "https://www.peopleinai.com/",
+  "city": "Brooklyn",
+  "state": "NY",
+  "sourceUrl": "https://www.peopleinai.com/who-we-are",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "LJ Grant",
+  "title": "Recruitment Consultant",
+  "firm": "People in AI",
+  "firmWebsite": "https://www.peopleinai.com/",
+  "city": "Brooklyn",
+  "state": "NY",
+  "sourceUrl": "https://www.peopleinai.com/who-we-are",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Charlie Stack",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com/",
+  "city": "New York",
+  "state": "NY",
+  "email": "cstack@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/charlie-h-stack",
+  "industries": [
+   "financial_services"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Edward M. Stadolnik",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com/",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "estadolnik@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/edward-m-stadolnik",
+  "industries": [
+   "consumer",
+   "technology",
+   "media",
+   "telecom"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Jason Baumgarten",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com/",
+  "city": "Seattle",
+  "state": "WA",
+  "email": "jbaumgarten@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/jason-baumgarten",
+  "industries": [
+   "technology",
+   "industrial",
+   "media",
+   "telecom"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "WA"
+  ]
+ },
+ {
+  "fullName": "Greg Welch",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com/",
+  "city": "Miami",
+  "state": "FL",
+  "email": "gwelch@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/greg-welch",
+  "industries": [
+   "consumer"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "FL"
+  ]
+ },
+ {
+  "fullName": "Eric T. Zakre",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com/",
+  "city": "New York",
+  "state": "NY",
+  "email": "ezakre@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/eric-t-zakre",
+  "industries": [
+   "financial_services",
+   "technology",
+   "real_estate"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Lisa J. Caswell",
+  "title": "Consultant",
+  "firm": "Spencer Stuart",
+  "firmWebsite": "https://www.spencerstuart.com/",
+  "city": "Palo Alto",
+  "state": "CA",
+  "email": "lcaswell@spencerstuart.com",
+  "sourceUrl": "https://www.spencerstuart.com/our-consultants/lisa-j-caswell",
+  "industries": [
+   "technology",
+   "industrial"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Ryan Bulkoski",
+  "title": "Partner",
+  "firm": "Heidrick & Struggles",
+  "firmWebsite": "https://www.heidrick.com/",
+  "city": "San Francisco",
+  "state": "CA",
+  "email": "rbulkoski@heidrick.com",
+  "phone": "+1 415 981 2854",
+  "sourceUrl": "https://www.heidrick.com/en/people/b/ryan_bulkoski",
+  "industries": [
+   "financial_services",
+   "technology"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Katherine Graham Shannon",
+  "title": "Partner",
+  "firm": "Heidrick & Struggles",
+  "firmWebsite": "https://www.heidrick.com/",
+  "city": "San Francisco",
+  "state": "CA",
+  "email": "kshannon@heidrick.com",
+  "phone": "+1 415 291 5273",
+  "sourceUrl": "https://www.heidrick.com/en/people/s/katherine_graham_shannon",
+  "industries": [
+   "consumer",
+   "media",
+   "technology"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Brittany Gregory",
+  "title": "Principal",
+  "firm": "Heidrick & Struggles",
+  "firmWebsite": "https://www.heidrick.com/",
+  "city": "New York",
+  "state": "NY",
+  "email": "bgregory@heidrick.com",
+  "phone": "+1 212 867 9876",
+  "sourceUrl": "https://www.heidrick.com/en/people/g/brittany_gregory",
+  "industries": [
+   "financial_services"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Art Hopkins",
+  "title": "Leadership Advisor",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com/",
+  "city": "Atlanta",
+  "state": "GA",
+  "email": "art.hopkins@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/art-hopkins",
+  "industries": [
+   "technology",
+   "professional_services"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Jesse Reich",
+  "title": "Leadership Advisor",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com/",
+  "city": "New York",
+  "state": "NY",
+  "email": "jesse.reich@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/jesse-reich",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Eric Sigurdson",
+  "title": "Leadership Advisor",
+  "firm": "Russell Reynolds Associates",
+  "firmWebsite": "https://www.russellreynolds.com/",
+  "city": "Chicago",
+  "state": "IL",
+  "email": "eric.sigurdson@russellreynolds.com",
+  "sourceUrl": "https://www.russellreynolds.com/en/people/consultant-directory/eric-sigurdson",
+  "industries": [
+   "technology",
+   "professional_services"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "IL"
+  ]
+ },
+ {
+  "fullName": "Matthew Renick",
+  "title": "Senior Client Partner, Global Technology Sector & Co-Head, Global AI Practice",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com/",
+  "city": "Atlanta",
+  "state": "GA",
+  "email": "matthew.renick@kornferry.com",
+  "phone": "+1 562-508-0870",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/matthew-renick",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "GA"
+  ]
+ },
+ {
+  "fullName": "Alyse Egol",
+  "title": "Senior Client Partner, Tech, Ops, Digital, Data/AI & InfoSec Practice",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com/",
+  "city": "New York",
+  "state": "NY",
+  "email": "alyse.egol@kornferry.com",
+  "phone": "+1 (212) 805-3110",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/alyse-egol",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Craig Stephenson",
+  "title": "Senior Client Partner, Tech, Ops, Data/AI, & InfoSec Officers Practice",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com/",
+  "city": "New York",
+  "state": "NY",
+  "email": "craig.stephenson@kornferry.com",
+  "phone": "212-984-9342",
+  "sourceUrl": "https://www.kornferry.com/about-us/consultants/craigstephenson",
+  "industries": [],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Kedist Tsadik",
+  "title": "Senior Client Partner",
+  "firm": "Korn Ferry",
+  "firmWebsite": "https://www.kornferry.com/",
+  "city": "Dallas",
+  "state": "TX",
+  "sourceUrl": "https://www.kornferry.com/about-us/press/kedist-tsadik-joins-korn-ferry-as-senior-client-partner-in-technology-practice",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "data_ai"
+  ],
+  "coverageStates": [
+   "TX"
+  ]
+ }
+]

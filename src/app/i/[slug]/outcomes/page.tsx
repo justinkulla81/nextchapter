@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { institutionEntitlements } from '@/lib/plans/entitlements'
 import { prisma } from '@/lib/prisma'
 import { readableTextOn } from '@/lib/higher-ed/branding'
 import { outcomesByMajor, outcomesReport } from '@/lib/higher-ed/outcomes-report'
@@ -8,7 +9,7 @@ import { InstitutionMark } from '@/components/higher-ed/InstitutionMark'
 import { PrintButton } from '@/components/higher-ed/PrintButton'
 
 async function load(slug: string) {
-  return prisma.institution.findUnique({ where: { slug }, select: { id: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true } })
+  return prisma.institution.findUnique({ where: { slug }, select: { id: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, plan: true } })
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -26,7 +27,8 @@ const money = (v: number | null) => (v === null ? '—' : v.toLocaleString('en-U
 export default async function OutcomesPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const inst = await load(slug)
-  if (!inst) notFound()
+  // The public outcomes report is part of reporting, which the free plan does not include.
+  if (!inst || !institutionEntitlements({ plan: inst.plan }).reporting) notFound()
   const [r, majors] = await Promise.all([outcomesReport(inst.id), outcomesByMajor(inst.id)])
   const accent = inst.accentColor ?? '#2e7d5b'
   const fmt = (d: Date) => d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })

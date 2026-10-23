@@ -8,6 +8,7 @@ import { listMessagesSince, listMessagesForAddress, getMessageHeaders, getMessag
 import { listCalendarEvents, fetchGoogleDocText, NotesFetchError } from '@/lib/google/admin-calendar'
 import { capNotes } from '@/lib/google/meeting-notes'
 import { createTodosFromNotes } from '@/lib/crm/meeting-todos'
+import { OWNER_NAMES } from '@/lib/crm/owner'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { getAllAdminCalendarAccess } from '@/lib/webinars/admin-calendar-oauth'
 import {
@@ -823,6 +824,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     // Accounts whose grant can't read Docs, and notes reads that failed for a
     // reason worth retrying: both are recorded on the run (see `problems`).
     const needsDocsAccess = new Set<string>()
+    let docsApiOff: string | null = null
     let notesFailed = 0
 
     const attendeeName = (a: CalendarAttendee) => a.displayName || displayNameFrom(a.email)
@@ -837,11 +839,12 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
       // and a call with a stranger is not something to copy notes onto.
       let notesRead: Promise<string | null> | undefined
       const notesFor = () => {
-        if (!ev.notesDoc || needsDocsAccess.has(token)) return Promise.resolve(null)
+        if (!ev.notesDoc || docsApiOff !== null || needsDocsAccess.has(token)) return Promise.resolve(null)
         notesRead ??= fetchGoogleDocText(token, ev.notesDoc.fileId)
           .then((t) => (t ? capNotes(t) : null))
           .catch((e) => {
             if (e instanceof NotesFetchError && e.kind === 'needs_reconnect') needsDocsAccess.add(token)
+            else if (e instanceof NotesFetchError && e.kind === 'api_disabled') docsApiOff = e.message
             else if (!(e instanceof NotesFetchError) || e.kind === 'failed') notesFailed++
             return null
           })
@@ -911,7 +914,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
           const made = await createTodosFromNotes({
             notes, eventId: ev.id, eventTitle: ev.summary ?? 'Meeting', meetingAt: ev.start, notesUrl: ev.notesDoc.url,
             personId, personName: person?.fullName ?? 'them', orgId: ctxRow.orgId, opportunityId: ctxRow.opportunityId,
-            selfNames: ev.attendees.filter((a) => a.email && isSelf(a.email, ctx)).map((a) => a.displayName ?? '').filter(Boolean),
+            selfNames: [...OWNER_NAMES, ...ev.attendees.filter((a) => a.email && isSelf(a.email, ctx)).map((a) => a.displayName ?? '').filter(Boolean)],
             accessToken: token,
           })
           todosCreated += made.created
@@ -945,6 +948,7 @@ export async function sweepCalendar(daysBack = 14, daysForward = 1, runSource = 
     const problems = [
       ...accountErrors,
       ...(notesNeedReconnect ? ['Gemini notes unreadable — Docs read refused: 403 PERMISSION_DENIED'] : []),
+      ...(docsApiOff !== null ? [`Gemini notes unreadable — the Google Docs API is switched off in the Google Cloud project${docsApiOff}`] : []),
     ]
     await prisma.crmSyncRun.update({
       where: { id: run.id },

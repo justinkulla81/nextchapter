@@ -7,6 +7,8 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { etplRows, wioaOn, wioaReport } from '@/lib/higher-ed/programs'
 import { memberExport } from '@/lib/higher-ed/data-requests'
 import { recordInstitutionAudit } from '@/lib/higher-ed/partner-audit'
+import { blockedExport, lockedReason } from '@/lib/plans/entitlements'
+import type { WorkspaceContext } from '@/lib/higher-ed/access'
 
 const UPDATES_COLUMNS = ['external_id', 'email', 'employer', 'title', 'start_date', 'in_transition', 'do_not_solicit', 'prospect_flag', 'engagement_tier', 'last_active', 'email_status'] as const
 const ETPL_COLUMNS = ['program', 'cip_code', 'credential_type', 'credential', 'hours', 'cost', 'modality', 'prerequisites', 'enrolled', 'completed', 'completion_rate', 'credential_rate', 'placement_rate_180d'] as const
@@ -21,6 +23,16 @@ function csv(columns: readonly string[], rows: Record<string, unknown>[]): strin
   const header = columns.join(',')
   if (!rows.length) return header
   return rowsToCsv(rows.map((r) => Object.fromEntries(columns.map((c) => [c, safe(day(r[c]))]))))
+}
+
+// The free plan has no exports or CRM exchange: a plain-language 402, not a
+// broken download. An alum's own data and a staff member-data request (privacy
+// rights) are never gated.
+function exportBlock(ctx: WorkspaceContext, kind: string): NextResponse | null {
+  const feature = blockedExport(kind, ctx.institution.plan)
+  if (!feature) return null
+  captureServerEvent(ctx.userId, 'entitlement_export_blocked', { slug: ctx.institution.slug, kind, feature, plan: ctx.institution.plan })
+  return NextResponse.json({ error: lockedReason(feature) }, { status: 402 })
 }
 
 // CRM exchange downloads (spec §9): the updates file Development imports
@@ -50,6 +62,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   if (kind === 'updates') {
     const ctx = await requireWorkspace(slug, 'development')
+    const blocked = exportBlock(ctx, 'updates')
+    if (blocked) return blocked
     const started = new Date()
     const rows = await updatesExportRows(ctx)
     // Approved signals in this file count as exported, and the run is logged
@@ -72,6 +86,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   if (kind === 'suppression') {
     const ctx = await requireWorkspace(slug, 'development')
+    const blocked = exportBlock(ctx, 'suppression')
+    if (blocked) return blocked
     const rows = await suppressionRows(ctx)
     captureServerEvent(ctx.userId, 'he_suppression_exported', { institutionId: ctx.institution.id, rows: rows.length })
     await recordInstitutionAudit(ctx, 'export.suppression', { type: 'export', detail: { rows: rows.length } })
@@ -80,6 +96,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   if (kind === 'etpl') {
     const ctx = await requireWorkspace(slug, 'workforce')
+    const blocked = exportBlock(ctx, 'etpl')
+    if (blocked) return blocked
     const rows = (await etplRows(ctx.institution.id)).map((r) => ({
       program: r.name, cip_code: r.cipCode, credential_type: r.credentialType, credential: r.credential, hours: r.hours, cost: r.costCents / 100, modality: r.modality,
       prerequisites: r.prerequisites, enrolled: r.enrolled, completed: r.completed, completion_rate: r.completionRate === null ? null : Math.round(r.completionRate * 1000) / 10,
@@ -92,6 +110,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   if (kind === 'wioa') {
     const ctx = await requireWorkspace(slug, 'workforce')
+    const blocked = exportBlock(ctx, 'wioa')
+    if (blocked) return blocked
     const inst = await prisma.institution.findUniqueOrThrow({ where: { id: ctx.institution.id }, select: { enabledFeatures: true } })
     if (!wioaOn(inst.enabledFeatures)) return NextResponse.json({ error: 'WIOA is off for this college' }, { status: 404 })
     const r = await wioaReport(ctx.institution.id)

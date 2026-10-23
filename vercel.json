@@ -45,6 +45,10 @@
       "schedule": "0 13 * * *"
     },
     {
+      "path": "/api/cron/senior-brief",
+      "schedule": "0 11 * * 1"
+    },
+    {
       "path": "/api/cron/auto-assign-sprint",
       "schedule": "0 9 * * 1"
     },
@@ -165,6 +169,10 @@
       "schedule": "15 10 * * *"
     },
     {
+      "path": "/api/cron/catalog-seeds",
+      "schedule": "10 18 * * *"
+    },
+    {
       "path": "/api/cron/federal-contracts",
       "schedule": "30 11 * * *"
     },
@@ -271,6 +279,14 @@
     {
       "path": "/api/cron/job-health",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/events-refresh",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/conference-heads-up",
+      "schedule": "30 14 * * *"
     },
     {
       "path": "/api/cron/monthly-user-report",

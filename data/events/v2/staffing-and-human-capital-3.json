@@ -1,0 +1,837 @@
+[
+ {
+  "id": "icf-converge",
+  "name": "ICF Converge",
+  "organizer": "International Coaching Federation",
+  "url": "https://coachingfederation.org/community-events/events/icf-converge",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-28",
+  "endDate": "2026-10-30",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The flagship annual gathering of professional coaches: 70+ sessions, credential-renewal CCE credits and the largest room of executive and career coaches in North America.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not on the event page: Full 3-Day Immersive, One-Day and On-Demand passes; ICF members save at every phase.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://coachingfederation.org/community-events/events/icf-converge",
+  "speakingDeadline": null,
+  "speakingNote": "2026 call for presentations closed March 6, 2026; speakers pay a $500 registration fee per ICF materials. Watch for the 2027 call.",
+  "cheaperWays": "One-day passes and on-demand access are cheaper than the full 3-day pass; ICF member rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach",
+   "outplacement consultant"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "icf-converge-summit",
+  "name": "ICF Converge Summit",
+  "organizer": "International Coaching Federation",
+  "url": "https://coachingfederation.org/community-events/events/icf-converge-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Berlin",
+  "state": null,
+  "country": "DE",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Smaller, more hands-on European edition of ICF's gathering (2026 was Paris, May 17-19); 2027 is listed for Berlin.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 Paris member price was reported at $890; 2027 pricing not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "On-demand version of past summit content sold separately.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + search snippet",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ioc-coaching-in-leadership-and-healthcare",
+  "name": "Coaching in Leadership & Healthcare Conference",
+  "organizer": "Institute of Coaching (McLean Hospital / Harvard Medical School)",
+  "url": "https://instituteofcoaching.org/conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Evidence-based coaching research and practice with physicians, psychologists, executive and leadership coaches; the 16th edition was May 1-2, 2026.",
+  "access": "PAID",
+  "costLow": 575,
+  "costHigh": 695,
+  "costNote": "2026 prices: $575 coaches and professionals, $695 physicians and psychologists; 2027 not yet announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No call for abstracts shown on the 2026 page.",
+  "cheaperWays": "None stated on the conference page.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "career-thought-leaders-symposium",
+  "name": "Career Thought Leaders Symposium",
+  "organizer": "Career Thought Leaders Consortium",
+  "url": "https://www.careerthoughtleaders.com/events-calendar",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-11",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "In-person symposium for career coaches, resume writers, leadership coaches and university career-services staff who set standards for the career industry.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration is open; price and venue not shown on the events page (a third-party listing says Baltimore).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach",
+   "outplacement consultant"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "parwcc-thrive",
+  "name": "Thrive! (PARWCC)",
+  "organizer": "Professional Association of Resume Writers & Career Coaches",
+  "url": "https://www.thrive.show/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Virtual two-day event for career coaches and resume writers with 20 CEUs; 2026 ran Oct 8-9.",
+  "access": "PAID",
+  "costLow": 449,
+  "costHigh": 449,
+  "costNote": "2026 member price $449; next edition not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speaker lineup is curated; no public call seen.",
+  "cheaperWays": "Virtual format removes travel cost.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach",
+   "outplacement consultant"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "nawdp-annual-conference",
+  "name": "NAWDP Annual Conference",
+  "organizer": "National Association of Workforce Development Professionals",
+  "url": "https://www.nawdp.org/events-training/nawdp-annual-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Workforce board, American Job Center and reemployment professionals: the people who run public career services and dislocated-worker (layoff) programs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early bird to Feb 10, 2027, standard to May 12, 2027; prices not shown on the page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nawdp.org/events-training/nawdp-annual-conference/",
+  "speakingDeadline": "2026-12-21",
+  "speakingNote": "Workshops chosen through an RFP.",
+  "cheaperWays": "Early bird pricing.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach",
+   "outplacement consultant"
+  ],
+  "journeys": [
+   "LAID_OFF",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "jff-horizons-summit",
+  "name": "Horizons Summit (JFF)",
+  "organizer": "Jobs for the Future",
+  "url": "https://horizons.jff.org",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "2,000+ employers, workforce providers, investors and policymakers on skills-based hiring and good jobs; 2027 edition announced, details pending.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Sign-up for updates only so far.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + search snippet",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aca-conference-and-expo",
+  "name": "ACA Conference & Expo",
+  "organizer": "American Counseling Association",
+  "url": "https://www.counseling.org/conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-11",
+  "endDate": "2027-03-13",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Licensed and career counselors, with a Career Central resource area; ACA's 75th anniversary meeting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration open; prices on the Cvent page, not the landing page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.counseling.org/conference",
+  "speakingDeadline": null,
+  "speakingNote": "2027 proposal window closed; notifications by Sept 1.",
+  "cheaperWays": "Check registration page for student and member rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "cael-annual-conference",
+  "name": "CAEL Annual Conference",
+  "organizer": "CAEL",
+  "url": "https://www.cael.org/conference",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-03",
+  "endDate": "2026-11-06",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "1,000+ educators, employers and workforce organizations on adult learner career pathways, credit for prior learning and upskilling.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not shown on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Virtual attendance option.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "CAREER_CHANGE",
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "nacada-annual-conference",
+  "name": "NACADA Annual Conference",
+  "organizer": "NACADA, the Global Community for Academic Advising",
+  "url": "https://nacada.ksu.edu/Events/Annual-Conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Academic and career advisors in higher education; the 2026 edition was Oct 4-7 in Oklahoma City.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not yet announced; prices not on page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "training-conference-expo",
+  "name": "Training Conference & Expo",
+  "organizer": "Training magazine (Lakewood Media Group)",
+  "url": "https://trainingmag.com/training-conference-expo/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-24",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Learning, leadership-development and coaching practitioners plus vendors; 50th annual edition.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not on the page; banner advertises $300 savings.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://trainingmag.com/training-conference-expo/",
+  "speakingDeadline": null,
+  "speakingNote": "Page links a Become a Conference Presenter form.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + search snippet",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "national-mentoring-summit",
+  "name": "National Mentoring Summit",
+  "organizer": "MENTOR",
+  "url": "https://mentoring.org/national-mentoring-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-28",
+  "endDate": "2027-01-29",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Mentoring and youth career-readiness program leaders and funders, with pre-conference certificate sessions.",
+  "access": "PAID",
+  "costLow": 525,
+  "costHigh": 700,
+  "costNote": "Early bird $525 to Oct 31, 2026; $575 to Jan 20; $700 after. Pre-conference sessions $300-350 extra.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://mentoring.org/summit-workshop-proposals/",
+  "speakingDeadline": "2026-05-31",
+  "speakingNote": "2027 call closed; presenters get one free and one discounted registration.",
+  "cheaperWays": "Group rate for 10 or more; early bird.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "aesc-global-summit-on-leadership",
+  "name": "AESC Global Summit on Leadership",
+  "organizer": "Association of Executive Search and Leadership Consultants",
+  "url": "https://www.aesc.org/events/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-17",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Executive search and leadership advisory community; the Americas summit is normally held in New York in April. Next listed edition is London.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing and eligibility not on events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "outplacement consultant"
+  ],
+  "journeys": [
+   "NEXT_ACT",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "career-leadership-collective-annual-conference",
+  "name": "Career Leadership Collective Annual Conference",
+  "organizer": "Career Leadership Collective",
+  "url": "https://www.careerleadershipcollective.com/annual-conference-2026",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "University career-center leaders and career coaches sharing outcomes, employer engagement and AI-in-careers practice; 2026 was Apr 20-22.",
+  "access": "PAID",
+  "costLow": 999,
+  "costHigh": 1199,
+  "costNote": "2026: member $999, plus-member $935, non-member $1,199; pre-conferences $199.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Groups of 4+ got 10% off in 2026.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "emcc-global-annual-conference",
+  "name": "EMCC Global Annual Conference",
+  "organizer": "European Mentoring and Coaching Council",
+  "url": "https://emccglobal.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "TBD",
+  "state": null,
+  "country": "KR",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "International coaching and mentoring council's annual meeting; 2026 was Zagreb, 2027 is reported for South Korea.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on a separate ticket page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + search snippet",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nrwa-virtual-summit",
+  "name": "NRWA Virtual Summits",
+  "organizer": "National Resume Writers' Association",
+  "url": "https://thenrwa.org/Conferences",
+  "kind": "SUMMIT",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Two-day virtual summits (Spring: Writing Excellence; Fall: Practice Growth) for resume writers and career coaches; 6 CEUs in 2026.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and price not yet listed.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://thenrwa.org/Conferences",
+  "speakingDeadline": null,
+  "speakingNote": "Site states a call for speakers is open for the Spring 2027 summit.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "association-for-coaching-global-conference",
+  "name": "AC Global Conference",
+  "organizer": "Association for Coaching",
+  "url": "https://www.associationforcoaching.com/event/coaching-as-leader-conference26",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Two-day virtual conference for coaches; 2026 theme Coaching as a Leader, May 14-15.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 price EUR 180 members, EUR 270 non-members, plus VAT.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Members pay less; recordings provided.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "international-columbia-coaching-conference",
+  "name": "International Columbia Coaching Conference",
+  "organizer": "Teachers College, Columbia University",
+  "url": "https://www.columbiacoachingconference.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Academic and practitioner coaching conference run since 2014; most recent edition found was October 2025.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site + search snippet",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "roles": [
+   "career coach"
+  ],
+  "journeys": []
+ }
+]

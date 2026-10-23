@@ -1,0 +1,1226 @@
+[
+ {
+  "organizer": "Council on Social Work Education",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-22",
+  "endDate": "2026-10-25",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": 175,
+  "costHigh": 1200,
+  "costNote": "Student member $175-225; practitioner nonmember $400-450; nonmember full $950-1,200; early bird ended Sept 4. Long Beach is listed for Oct 21-24, 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Proposals are assigned to tracks and reviewed by track chairs; no open call on this page.",
+  "cheaperWays": "Student volunteers work 4-hour shifts and pay $50 for full registration; student rates from $175; rate of $150 for people from economically less-developed countries.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ],
+  "roles": [
+   "social worker",
+   "human services director"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "cswe-annual-conference",
+  "name": "CSWE Annual Conference",
+  "url": "https://www.cswe.org/events-meetings/the-2026-cswe-annual-conference/",
+  "segments": [
+   "Social work and human services"
+  ],
+  "whyAttend": "The main annual gathering of social work educators, program directors and deans, plus practitioners.",
+  "published": true
+ },
+ {
+  "organizer": "Society for Social Work and Research",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-20",
+  "endDate": "2027-01-24",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": 150,
+  "costHigh": null,
+  "costNote": "Student member in-person $150 early bird; non-student rates not read. Early bird to Dec 1, 2026; CE fee $30.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://sswr.org/page/Call-for-Papers",
+  "speakingDeadline": "2026-04-15",
+  "speakingNote": "2027 abstract deadline has passed.",
+  "cheaperWays": "Student volunteer application due Nov 6, 2026 (2026 terms: six hours earns registration).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ],
+  "roles": [
+   "social worker"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "sswr-annual-conference",
+  "name": "SSWR Annual Conference",
+  "url": "https://sswr.org/2027-conference-home",
+  "segments": [
+   "Social work and human services"
+  ],
+  "whyAttend": "Social work researchers, doctoral students and agency research leads presenting 500+ sessions.",
+  "published": true
+ },
+ {
+  "organizer": "American Public Human Services Association",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-27",
+  "endDate": "2027-06-30",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Kansas City",
+  "state": "MO",
+  "country": "US",
+  "functions": [
+   "Executive Leadership",
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration not yet open (save the date); fees paid by card or purchase order.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ],
+  "roles": [
+   "human services director"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "aphsa-national-human-services-summit",
+  "name": "APHSA National Human Services Summit",
+  "url": "https://aphsa.org/conferences/",
+  "segments": [
+   "Social work and human services"
+  ],
+  "whyAttend": "State and local human services agency directors and deputies who run benefits, child welfare and workforce programs.",
+  "published": true
+ },
+ {
+  "organizer": "National Organization for Human Services",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-06",
+  "endDate": "2026-11-08",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Jacksonville",
+  "state": "FL",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not shown on the proposals page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nationalhumanservices.org/national-conference/conference-call-for-proposals/",
+  "speakingDeadline": "2026-04-30",
+  "speakingNote": "Includes a student poster track; deadline has passed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ],
+  "roles": [
+   "case manager",
+   "human services director"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "nohs-national-conference",
+  "name": "NOHS National Conference",
+  "url": "https://www.nationalhumanservices.org/national-conference/conference-call-for-proposals/",
+  "segments": [
+   "Social work and human services"
+  ],
+  "whyAttend": "Human services practitioners, educators and students; theme is workforce sustainability and practice.",
+  "published": true
+ },
+ {
+  "organizer": "National Association of Social Workers",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-21",
+  "endDate": "2027-06-25",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates come from a search snippet of the NASW page that was ambiguous; confirm. Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "social worker",
+   "case manager"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "nasw-national-conference",
+  "name": "NASW National Conference",
+  "url": "https://www.socialworkers.org/nationalconference",
+  "segments": [
+   "Social work and human services"
+  ],
+  "whyAttend": "Practicing social workers from every chapter; also state chapter conferences each spring.",
+  "published": false
+ },
+ {
+  "organizer": "Catholic Charities USA",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026/2027 dates and prices not found; recent gatherings were held Sept-Oct.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "human services director",
+   "faith-based nonprofit leader",
+   "case manager"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "catholic-charities-usa-annual-gathering",
+  "name": "Catholic Charities USA Annual Gathering",
+  "url": "https://www.catholiccharitiesusa.org/category/annual-gathering/",
+  "segments": [
+   "Social work and human services",
+   "Faith-based and religious organizations"
+  ],
+  "whyAttend": "Leaders and staff of local Catholic Charities agencies, the largest faith-based human services network.",
+  "published": false
+ },
+ {
+  "organizer": "U.S. Conference of Catholic Bishops",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-31",
+  "endDate": "2027-02-02",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee amounts not shown; early bird, regular and late pricing tiers.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Diversity Outreach Initiative scholarships; Young Leaders Initiative for ages 18-26.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ],
+  "roles": [
+   "faith-based nonprofit leader",
+   "church administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "catholic-social-ministry-gathering",
+  "name": "Catholic Social Ministry Gathering",
+  "url": "https://www.usccb.org/sjp/catholic-social-ministry-gathering",
+  "segments": [
+   "Faith-based and religious organizations",
+   "Social work and human services"
+  ],
+  "whyAttend": "Parish and diocesan social ministry staff, Catholic charities and advocates with policy briefings and Hill visits.",
+  "published": true
+ },
+ {
+  "organizer": "Exponential",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": 149,
+  "costHigh": null,
+  "costNote": "Third-party listing shows $149 and two identical options (Mar 15-17 and Mar 18-20); not confirmed on exponential.org.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "faith-based nonprofit leader",
+   "church administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "exponential-global-conference",
+  "name": "Exponential Global Conference",
+  "url": "https://exponential.org/cplf-march-2027/",
+  "segments": [
+   "Faith-based and religious organizations"
+  ],
+  "whyAttend": "Church planters, pastors and ministry teams focused on multiplying churches.",
+  "published": false
+ },
+ {
+  "organizer": "Willow Creek Association",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "South Barrington",
+  "state": "IL",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Aug 6-7; 2027 dates and pricing not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "journeys": [],
+  "roles": [
+   "faith-based nonprofit leader",
+   "church administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "global-leadership-summit",
+  "name": "Global Leadership Summit",
+  "url": "https://www.willowcreek.org/gls",
+  "segments": [
+   "Faith-based and religious organizations"
+  ],
+  "whyAttend": "Church and ministry leaders plus business leaders watching a live leadership teaching event, also hosted at local host sites.",
+  "published": true
+ },
+ {
+  "organizer": "The Wildlife Society",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Des Moines",
+  "state": "IA",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on the registration page, not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "TWS2026 travel grants listed.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "conservation director"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "tws-annual-conference",
+  "name": "The Wildlife Society Annual Conference",
+  "url": "https://wildlife.org/annual-conference/about-the-annual-conference/",
+  "segments": [
+   "Environmental and conservation"
+  ],
+  "whyAttend": "Wildlife biologists, agency managers and conservation program leads. Next: Sacramento Oct 17-21, 2027.",
+  "published": true
+ },
+ {
+  "organizer": "North American Association for Environmental Education",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2027-10-18",
+  "endDate": "2027-10-21",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read; the page says 2027 will be virtual.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "environmental nonprofit leader",
+   "conservation director"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "naaee-conference",
+  "name": "NAAEE Annual Conference and Research Symposium",
+  "url": "https://www.conference.naaee.org/",
+  "segments": [
+   "Environmental and conservation"
+  ],
+  "whyAttend": "Environmental educators and nature-center and nonprofit program leaders; 2027 symposium Oct 12-15.",
+  "published": true
+ },
+ {
+  "organizer": "Land Trust Alliance",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rally 2026 was Sept 16-19 in Denver; next edition not announced in what I could read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "journeys": [],
+  "roles": [
+   "conservation director",
+   "environmental nonprofit leader"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "land-trust-alliance-rally",
+  "name": "Rally: The National Land Conservation Conference",
+  "url": "https://landtrustalliance.org/resources/connect/rally-the-national-land-conservation-conference",
+  "segments": [
+   "Environmental and conservation"
+  ],
+  "whyAttend": "About 2,200 land trust and conservation professionals; the national land conservation gathering.",
+  "published": true
+ },
+ {
+  "organizer": "Environmental Grantmakers Association",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 retreat was Sept 27-30 in Virginia Beach. Eligibility and price are not stated on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [
+   "GROWING"
+  ],
+  "roles": [
+   "environmental nonprofit leader"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "ega-fall-retreat",
+  "name": "EGA Annual Fall Retreat",
+  "url": "https://ega.org/events",
+  "segments": [
+   "Environmental and conservation"
+  ],
+  "whyAttend": "Environmental foundation staff and funders; grantseekers should know who funds the field.",
+  "published": true
+ },
+ {
+  "organizer": "Ecological Society of America",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-25",
+  "endDate": "2027-07-30",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Toronto",
+  "state": null,
+  "country": "CA",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on the meeting FAQ, not read; dates from official-domain search.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "journeys": [],
+  "roles": [
+   "conservation director"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "esa-annual-meeting",
+  "name": "ESA Annual Meeting",
+  "url": "https://esa.org/meetings",
+  "segments": [
+   "Environmental and conservation"
+  ],
+  "whyAttend": "Ecologists and conservation scientists from agencies, NGOs and universities.",
+  "published": true
+ },
+ {
+  "organizer": "Society for Ecological Restoration and partners",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was in Omaha in April; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "conservation director"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "ncer-national-conference-ecosystem-restoration",
+  "name": "National Conference on Ecosystem Restoration",
+  "url": "https://conference.ifas.ufl.edu/ncer/",
+  "segments": [
+   "Environmental and conservation"
+  ],
+  "whyAttend": "Restoration practitioners from federal agencies, NGOs and consultancies.",
+  "published": false
+ },
+ {
+  "organizer": "American Alliance of Museums",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-05",
+  "endDate": "2027-05-08",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on registration page, not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://annualmeeting.aam-us.org/callforproposals",
+  "speakingDeadline": "2026-09-21",
+  "speakingNote": "2027 call closed Sept 21; notifications in December.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "museum director",
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "aam-annual-meeting-museumexpo",
+  "name": "AAM Annual Meeting & MuseumExpo",
+  "url": "https://annualmeeting.aam-us.org/",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Museum directors, curators, educators and vendors; the field's flagship meeting.",
+  "published": true
+ },
+ {
+  "organizer": "Association of Performing Arts Professionals",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-15",
+  "endDate": "2027-01-19",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 1,
+  "access": "PAID",
+  "costLow": 875,
+  "costHigh": 1125,
+  "costNote": "Early bird $875 to Nov 5; $1,075 to Jan 12; onsite $1,125; one-day $595. Requires APAP membership from $60.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Participation Assistance Fund: $300 toward registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "journeys": [],
+  "roles": [
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "apap-nyc",
+  "name": "APAP|NYC",
+  "url": "https://apap365.org/conference/attend/",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Presenters, agents, artists and venue managers booking the performing arts season.",
+  "published": true
+ },
+ {
+  "organizer": "League of American Orchestras",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-02",
+  "endDate": "2027-06-04",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees not listed; hotel $219 per night.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://americanorchestras.org/event/2027-national-conference-atlanta/",
+  "speakingDeadline": null,
+  "speakingNote": "Rolling competitive proposals per search listing; not seen on page fetch.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "league-of-american-orchestras-national-conference",
+  "name": "League of American Orchestras National Conference",
+  "url": "https://americanorchestras.org/event/2027-national-conference-atlanta/",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Orchestra executives, development and marketing staff, and board leaders.",
+  "published": true
+ },
+ {
+  "organizer": "OPERA America",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-12",
+  "endDate": "2027-05-14",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Milwaukee",
+  "state": "WI",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "opera-conference",
+  "name": "Opera Conference",
+  "url": "https://www.operaamerica.org/",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Opera administrators, artists and trustees.",
+  "published": true
+ },
+ {
+  "organizer": "College Art Association",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-03",
+  "endDate": "2027-02-06",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.collegeart.org/programs/conference/proposals",
+  "speakingDeadline": "2026-08-31",
+  "speakingNote": "Session proposals closed Aug 31, 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "arts administrator",
+   "museum director"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "caa-annual-conference",
+  "name": "CAA Annual Conference",
+  "url": "https://www.collegeart.org/programs/conference/proposals",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Artists, art historians, curators and museum staff with a 275-session program and book fair.",
+  "published": true
+ },
+ {
+  "organizer": "Museum Computer Network",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 21-23 in Seattle; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "museum director",
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "mcn-annual-conference",
+  "name": "MCN Annual Conference",
+  "url": "https://mcn.edu/annual-conference/",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Museum digital, collections and technology staff.",
+  "published": true
+ },
+ {
+  "organizer": "Association of Science and Technology Centers",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was Sept 16-19 in Phoenix; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "New Leaders Fellowship and Lee Kimche McGrath Worldwide Fellowship listed.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "museum director",
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "astc-annual-conference",
+  "name": "ASTC Annual Conference",
+  "url": "https://www.astc.org/astc-2026",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Science center and museum leaders; about 1,540 attended in 2026.",
+  "published": true
+ },
+ {
+  "organizer": "Americans for the Arts",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was June 2-4 in Albuquerque; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "americans-for-the-arts-convention",
+  "name": "Americans for the Arts National Convention",
+  "url": "https://americansforthearts.org/node/166321",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Local arts agency leaders and arts advocates.",
+  "published": false
+ },
+ {
+  "organizer": "Dance/USA",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Appears biennial (2025 in Chicago); 2027 not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "dance-usa-national-conference",
+  "name": "Dance/USA National Conference",
+  "url": "https://danceusa.org/conference",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Dance company managers and executives.",
+  "published": false
+ },
+ {
+  "organizer": "South Arts",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "functions": [],
+  "seniorities": [
+   "MID"
+  ],
+  "importance": 3,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "journeys": [],
+  "roles": [
+   "arts administrator"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "id": "south-arts-creative-placemaking-summit",
+  "name": "Creative Placemaking Summit",
+  "url": "https://www.southarts.org/conferences",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "whyAttend": "Artists, planners and arts administrators in the South.",
+  "published": false
+ }
+]

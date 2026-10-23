@@ -18,13 +18,13 @@ export function GET() {
 ## For job seekers
 
 - [Home](${u('/')}): overview of the Market Reality Assessment, the weekly Search Sprint system, and how the platform works end to end.
-- [FAQ](${u('/faq')}): pricing (free for candidates), privacy, how the Market Reality Assessment works, and how employer matching works.
-- [Executive Coach](${u('/coaching')}): an optional paid human career coach on top of Victoria, the free AI coach — mock interviews, resume review, negotiation support. Prices are on [Pricing](${u('/pricing')}).
+- [FAQ](${u('/faq')}): plans (free for candidates), privacy, how the Market Reality Assessment works, and how employer matching works.
+- [Executive Coach](${u('/coaching')}): an optional human career coach on top of Victoria, the free AI coach — mock interviews, resume review, negotiation support. Plans are on [Plans](${u('/pricing')}).
 
 ## For organizations
 
 - [For Organizations](${u('/for-organizations')}): overview of all five ways organizations partner with NextChapter.
-- [Employers](${u('/talent')}): verified candidate profiles and work-style fit signal, flat monthly price, no per-hire fees.
+- [Employers](${u('/talent')}): verified candidate profiles and work-style fit signal.
 - [Recruiters](${u('/recruiters')}): a searchable, opted-in candidate pool including strong candidates ATS filters bury.
 - [Outplacement](${u('/outplacement')}): a candid diagnostic, personalized plan, and direct employer matches for departing employees.
 - [Government & Workforce Agencies](${u('/government-workforce')}): a WIOA-aligned partnership, free to every jobseeker served, with exportable participant progress and self-reported placement counts.
@@ -52,7 +52,7 @@ ${GUIDE_LANDING_CONTENT.map((g) => `- [${g.title}](${u(`/resources/${g.slug}`)})
 - Who it is for: ${FACTS.audience}
 - ${FACTS.candidatePrice}
 - The Market Reality Assessment (A–F) is a day-one read on how the market sees a candidate's background. The Search Action Grade (A–F) is separate and measures how effectively they are running their own search. Neither is shown as a raw numeric score.
-- Victoria is NextChapter's free AI career coach, available to every candidate. Executive Coach is a separate, optional paid human coach.
+- Victoria is NextChapter's free AI career coach, available to every candidate. Executive Coach is a separate, optional human coach.
 - Candidates who land a job through NextChapter may qualify for a $500 offer bonus once their offer letter is verified.
 - Contact: ${FACTS.contactEmail}
 

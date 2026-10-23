@@ -153,7 +153,7 @@ export default async function CollegesPage({ searchParams }: { searchParams: Pro
     const local = inState.filter((b) => !b.statewide)
     return (local.length ? local : inState).find((b) => {
       const keys = boardCountyKeys(b)
-      return keys === 'all' || (!!c.countyKey && keys.includes(c.countyKey))
+      return keys === 'all' || (!!c.countyKey && keys.includes(c.countyKey.replace(/\s+/g, '')))
     })
   }
   const dealByOrg = new Map(orgs.map((o) => [o.id, o.dealStatus]))

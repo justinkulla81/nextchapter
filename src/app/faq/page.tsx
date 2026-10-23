@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: 'FAQ',
-  description: 'Answers to common questions about NextChapter — pricing, the Market Reality Assessment, privacy, and how matching with employers works.',
+  description: 'Answers to common questions about NextChapter — plans, the Market Reality Assessment, privacy, and how matching with employers works.',
   alternates: { canonical: '/faq' },
 }
 

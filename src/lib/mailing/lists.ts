@@ -151,7 +151,6 @@ export async function suggestionsFor(personIds: string[]): Promise<Map<string, s
   return new Map(people.map((p) => [p.id, suggestListKeys({
     roles: p.roles,
     pipelineKeys: p.opportunities.map((o) => o.pipeline.key),
-    isCustomer: p.affiliations.some((a) => a.org.dealStatus === 'CUSTOMER'),
     isWorkforceBoard: p.affiliations.some((a) => WORKFORCE_ORG.test(a.org.name)),
   })]))
 }

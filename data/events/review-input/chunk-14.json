@@ -1,0 +1,835 @@
+[
+ {
+  "id": "dmi-design-leadership-conference",
+  "name": "dmi:Design Leadership Conference",
+  "organizer": "Design Management Institute",
+  "url": "https://dmi.org/page/DLC26",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Boston",
+  "state": "MA",
+  "access": "PAID",
+  "costLow": 1100,
+  "costHigh": 1300,
+  "costNote": "2026 fees per search: members $1,100, non-members $1,300; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "Heads of design and design-management leaders; the 2026 edition (Sept 22-24, Boston) had proposals open.",
+  "segments": [
+   "Design and user experience"
+  ],
+  "industries": []
+ },
+ {
+  "id": "national-freelance-business-week",
+  "name": "National Freelance Business Week",
+  "organizer": "FreeCon Nation",
+  "url": "https://www.selfemployed.com/news/national-freelance-business-week-2026/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Multiple cities",
+  "state": null,
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Most sessions free or low-cost per press coverage; 2027 lineup not yet posted.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Freelancers meet at local meetups and a virtual program held each April.",
+  "segments": [
+   "Fractional and independent practice"
+  ],
+  "industries": []
+ },
+ {
+  "id": "tdwi-transform",
+  "name": "TDWI Transform",
+  "organizer": "TDWI",
+  "url": "https://tdwi.org/orlando",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "November",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition was Nov 16-21 at the Rosen Centre; 2026/2027 dates conflict across listings.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "BI, analytics, data management and governance practitioners and managers, with full-day courses.",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "industries": []
+ },
+ {
+  "id": "dynamics-community-summit-na",
+  "name": "Community Summit North America",
+  "organizer": "Dynamics Communities",
+  "url": "https://www.summitna.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Nashville",
+  "state": "TN",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 11-15 in Nashville (partner listings); 2027 not seen.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Dynamics 365 Finance and Business Central users and partners.",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "industries": [
+   "Accounting & Audit"
+  ]
+ },
+ {
+  "id": "aiga-design-conference",
+  "name": "AIGA Design Conference",
+  "organizer": "AIGA",
+  "url": "https://www.aiga.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition was Oct 9-11 in Los Angeles; 2026/2027 details not read (site returned 403); member and non-member tiers with early-bird deadlines.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "The US professional association for design's national conference: graphic, brand and product designers, studio leads and educators.",
+  "segments": [
+   "Brand and creative",
+   "Design and user experience"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "pac-spring-executive-conference",
+  "name": "Public Affairs Council Spring Executive Conference",
+  "organizer": "Public Affairs Council",
+  "url": "https://pac.org/signature-events",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates TBA; member discount.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Senior public affairs executives from companies and associations.",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "cmmc-accelerate",
+  "name": "CMMC Accelerate",
+  "organizer": "Hypori / Carahsoft",
+  "url": "https://explore.hypori.com/cmmc-accelerate",
+  "startDate": "2027-04-13",
+  "endDate": "2027-04-13",
+  "typicalMonth": "April",
+  "city": "Reston",
+  "state": "VA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "One-day CMMC session for defense industrial base subcontractors (2027 date tentative per listing).",
+  "segments": [
+   "Cybersecurity for defense"
+  ],
+  "industries": [
+   "Aerospace & Defense"
+  ]
+ },
+ {
+  "id": "northeast-aquaculture-conference-expo",
+  "name": "Northeast Aquaculture Conference & Exposition (with Milford Aquaculture Seminar)",
+  "organizer": "Maine Aquaculture Innovation Center / NOAA Fisheries Milford Lab",
+  "url": "https://www.fisheries.noaa.gov/feature-story/celebrating-25-years-northeast-aquaculture-conference-and-expo",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "January",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Held biennially (2024 Providence, 2026 Portland); 2027/28 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Growers, scientists and regulators in northeast aquaculture; 2026 edition drew about 700 in Portland, ME.",
+  "segments": [
+   "Aquaculture and fisheries"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "sae-wcx",
+  "name": "SAE WCX World Congress Experience",
+  "organizer": "SAE International",
+  "url": "https://wcx.sae.org",
+  "startDate": "2027-04-27",
+  "endDate": "2027-04-29",
+  "typicalMonth": "April",
+  "city": "Novi",
+  "state": "MI",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "WCX 2026 ran Apr 14-16 in Detroit; SAE site references WCX 2027 but no 2027 dates or prices were found on official pages.",
+  "speaking": "OPEN_CFP",
+  "source": "official site + press",
+  "whyAttend": "Automotive engineers and supply chain leaders with technical papers and OEM and supplier presence.",
+  "segments": [],
+  "industries": [
+   "Automotive & Mobility",
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "national-rural-housing-conference",
+  "name": "National Rural Housing Conference",
+  "organizer": "Housing Assistance Council",
+  "url": "https://ruralhome.org/events/national-rural-housing-conference/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "November",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and prices not published on pages read.",
+  "speaking": "OPEN_CFP",
+  "source": "official site + press",
+  "whyAttend": "700+ rural housing developers, nonprofits, USDA and HUD staff; biennial, 2025 edition Nov 4-7, 2027 expected.",
+  "segments": [
+   "Affordable housing and community development"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "zonda-builder-100-summit",
+  "name": "Zonda Builder 100 Summit",
+  "organizer": "Zonda",
+  "url": "https://zondahome.com/sponsorships/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / lead",
+  "whyAttend": "Top homebuilders, developers and financial leaders.",
+  "segments": [
+   "Homebuilding and development"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "naspa-annual-conference",
+  "name": "NASPA Annual Conference",
+  "organizer": "NASPA",
+  "url": "https://events.naspa.org/e/2027-naspa-annual-conference",
+  "startDate": "2027-03-06",
+  "endDate": "2027-03-10",
+  "typicalMonth": "March",
+  "city": "National Harbor",
+  "state": "MD",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration page would not render for automated reading.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Student-affairs professionals across higher education, entry level to vice president.",
+  "segments": [],
+  "industries": [
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "permian-power-conference",
+  "name": "Permian Power Conference",
+  "organizer": "The Power Connection",
+  "url": "https://business.midlandtxchamber.com/events/details/2nd-annual-permian-power-conference-12814",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-08",
+  "typicalMonth": "June",
+  "city": "Midland",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Chamber listing of earlier edition; 2027 from Baxtel.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "West Texas power generators and oil-gas producers meet data center developers.",
+  "segments": [
+   "Data centers and power demand"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "cues-symposium",
+  "name": "CUES Symposium",
+  "organizer": "CUES",
+  "url": "https://www.cues.org/professional-development-and-events",
+  "startDate": "2027-01-31",
+  "endDate": "2027-02-04",
+  "typicalMonth": "February",
+  "city": "Marco Island",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from third-party listings (CCUA, Luminik).",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing; lead only",
+  "whyAttend": "CEOs and board chairs of credit unions in a peer-learning format.",
+  "segments": [
+   "Credit unions"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "rmai-annual-conference",
+  "name": "RMAi Annual Conference",
+  "organizer": "Receivables Management Association International",
+  "url": "https://rmaintl.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing; lead only",
+  "whyAttend": "Debt buyers and collections compliance leaders; 2026 edition was Feb 9-12.",
+  "segments": [
+   "Mortgage and consumer lending"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "naswa-summit",
+  "name": "NASWA Summit",
+  "organizer": "National Association of State Workforce Agencies",
+  "url": "https://www.naswa.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 Summit materials posted on naswa.org; dates and prices not shown.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Annual gathering of state workforce agency leaders and partners; 2025 edition held in Dallas in September.",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "achca-annual-convention-expo",
+  "name": "ACHCA Annual Convention & Expo",
+  "organizer": "American College of Health Care Administrators",
+  "url": "https://www.achca.org/convention",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-06",
+  "typicalMonth": "May",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "Licensed nursing home and post-acute administrators and aging-services leaders in the one association built for LTC administrators.",
+  "segments": [
+   "Long-term care and senior living"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "hcca-compliance-institute",
+  "name": "HCCA Compliance Institute",
+  "organizer": "HCCA",
+  "url": "https://www.hcca-info.org/compliance-institute",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Nashville",
+  "state": "TN",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party listing gives Apr 11-14, 2027 Nashville; official site returned 403.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Healthcare compliance officers and counsel.",
+  "segments": [],
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Pharmaceuticals & Biotech",
+   "Medical Devices"
+  ]
+ },
+ {
+  "id": "snma-amec",
+  "name": "SNMA Annual Medical Education Conference (AMEC)",
+  "organizer": "Student National Medical Association",
+  "url": "https://snma.org/page/events",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "St. Louis",
+  "state": "MO",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and price not announced.",
+  "speaking": "UNKNOWN",
+  "source": "organizer site snippet",
+  "whyAttend": "About 2,200 underrepresented medical and premedical students with workshops, residency recruiters and mentoring.",
+  "segments": [
+   "Hospital and health system leadership"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "arias-us-spring-conference",
+  "name": "ARIAS-U.S. Spring Conference",
+  "organizer": "ARIAS-U.S.",
+  "url": "https://www.arias-us.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Nashville",
+  "state": "TN",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "OPEN_CFP",
+  "source": "third-party listing",
+  "whyAttend": "Reinsurance dispute resolution.",
+  "segments": [
+   "Reinsurance and specialty"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "reuters-future-of-insurance-usa",
+  "name": "Reuters Future of Insurance USA",
+  "organizer": "Reuters Events",
+  "url": "https://events.reutersevents.com/insurance/future-of-insurance-usa",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Carrier innovation and digital leaders.",
+  "segments": [
+   "Insurtech"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "pli-securities-regulation-institute",
+  "name": "PLI Annual Institute on Securities Regulation",
+  "organizer": "Practising Law Institute",
+  "url": "https://www.pli.edu/",
+  "startDate": "2026-11-02",
+  "endDate": "2026-11-04",
+  "typicalMonth": "November",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "58th edition, Nov 2-4, 2026 per law-firm listings; pli.edu page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Securities, governance, enforcement and capital markets lawyers; SEC staff speak; M&A developments covered.",
+  "segments": [
+   "Corporate, M&A and securities"
+  ],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "plastics-recycling-conference",
+  "name": "Plastics Recycling Conference",
+  "organizer": "Association of Plastic Recyclers",
+  "url": "https://plasticsrecycling.org/about-apr/upcoming-events/",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-03",
+  "typicalMonth": "March",
+  "city": "National Harbor",
+  "state": "MD",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "One APR page gives different dates (March 25-27); confirm.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (dates conflict or unconfirmed)",
+  "whyAttend": "Recyclers, resin producers and brand owners working on recycled plastics supply; co-located with APR Spring meeting.",
+  "segments": [
+   "Chemicals, plastics and materials"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "lion-summit",
+  "name": "LION Independent News Sustainability Summit",
+  "organizer": "LION Publishers",
+  "url": "https://lionpublishers.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Sept 9-11 San Diego; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Founders and operators of independent local news outlets.",
+  "segments": [
+   "Journalism and news"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "medical-device-manufacturing-excellence-summit-mdmes",
+  "name": "Medical Device Manufacturing Excellence Summit (MDMES)",
+  "organizer": "Executive Platforms / BCI Global",
+  "url": "https://www.bciglobal.com/medical-device-manufacturing-excellence-summit-mdmes",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Device manufacturing, quality and supply chain leaders; 2026 edition Feb 23-25.",
+  "segments": [
+   "Device manufacturing and supply chain"
+  ],
+  "industries": [
+   "Medical Devices"
+  ]
+ },
+ {
+  "id": "impact-investor-global-summit",
+  "name": "Impact Investor Global Summit",
+  "organizer": "PEI Group",
+  "url": "https://info.pei.group/impact-investor-global-summit-2027-ryi.html",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-19",
+  "typicalMonth": "May",
+  "city": "London",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a third-party listing; sign-up page only.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Private-markets impact fund investors.",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "lsx-congress-usa",
+  "name": "LSX Congress USA",
+  "organizer": "Informa Connect",
+  "url": "https://informaconnect.com/lsx-congress-usa/biotech-week-boston/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Boston",
+  "state": "MA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Sept 23-24; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "250+ qualified investors and pharma partners meeting biotech teams that are raising; part of Biotech Week Boston.",
+  "segments": [
+   "Biotech business and investing"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "million-dollar-consulting-convention",
+  "name": "Million Dollar Consulting Convention",
+  "organizer": "Alan Weiss / Summit Consulting Group",
+  "url": "https://alanweiss.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search lead",
+  "whyAttend": "Solo practitioners and boutique owners learning to price and win premium work.",
+  "segments": [
+   "Independent and fractional consultants",
+   "Management consulting"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ]
+ },
+ {
+  "id": "black-enterprise-chief-diversity-officers-summit",
+  "name": "Black Enterprise Chief Diversity Officers Summit",
+  "organizer": "Black Enterprise",
+  "url": "https://www.blackenterprise.com/black-enterprise-chief-diversity-officers-summit-honors/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "Chief diversity officers.",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "rethink-hr-tech-usa",
+  "name": "Rethink HR Tech USA",
+  "organizer": null,
+  "url": "https://www.we-conect.com/events/rethink-hr-tech-usa-2027/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Apr 27-28, 2027 per HR Dive.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "HR tech buyers.",
+  "segments": [
+   "HRIS and people analytics"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "demofest",
+  "name": "DEMOFEST",
+  "organizer": "Consensus",
+  "url": "https://goconsensus.com/Demofest",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "January",
+  "city": "San Francisco",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "official site (partial)",
+  "whyAttend": "Sales engineers swapping demo craft; virtual, West Coast and East Coast 2027 editions listed.",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "nsbe-annual-convention",
+  "name": "NSBE Annual Convention",
+  "organizer": "NSBE",
+  "url": "https://convention.nsbe.org",
+  "startDate": "2027-03-31",
+  "endDate": "2027-04-04",
+  "typicalMonth": "March",
+  "city": "Boston",
+  "state": "MA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "53rd Annual Convention, Boston (Menino Convention & Exhibition Center), Mar 31 to Apr 4, 2027. Registration opens Oct or Nov 2026; rates schedule on the convention site, not shown in text read. Members get the best rates.",
+  "speaking": "OPEN_CFP",
+  "source": "official site",
+  "whyAttend": "Black engineering students and professionals with a large career fair.",
+  "segments": [],
+  "industries": [
+   "Technology & Software",
+   "Manufacturing & Industrial",
+   "Aerospace & Defense"
+  ]
+ },
+ {
+  "id": "stc-technical-communication-summit",
+  "name": "STC Technical Communication Summit",
+  "organizer": "Society for Technical Communication",
+  "url": "https://www.stc.org/summitt",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official STC site was down for an update when checked; 2027 dates and city not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official site (partial)",
+  "whyAttend": "The Society for Technical Communication's annual meeting of working technical writers and managers.",
+  "segments": [
+   "Technical writing and documentation"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "ampo-annual-conference",
+  "name": "AMPO Annual Conference",
+  "organizer": "Association of Metropolitan Planning Organizations",
+  "url": "https://ampo.org/news-events/ampo-annual-conference/2026-ampo-annual-conference/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Sacramento, Sept 14-18) has ended; next dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "MPO directors and planners.",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ },
+ {
+  "id": "tpm-conference",
+  "name": "TPM Conference",
+  "organizer": "Journal of Commerce (S&P Global)",
+  "url": "https://tpm.joc.com/en/program/why-attend",
+  "startDate": "2027-02-28",
+  "endDate": "2027-03-03",
+  "typicalMonth": "March",
+  "city": "Long Beach",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site returned 403; dates from a search result describing the official TPM site.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Ocean carriers, ports, shippers and 3PLs in the main container trade conference.",
+  "segments": [
+   "Ports, maritime and rail"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ }
+]

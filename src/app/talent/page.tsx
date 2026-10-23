@@ -26,7 +26,7 @@ const jsonLd = {
   provider: { '@type': 'Organization', name: 'NextChapter', url: 'https://launchyournextchapter.com' },
   areaServed: 'US',
   audience: { '@type': 'BusinessAudience', audienceType: 'Employers hiring directly' },
-  description: 'Post a role free and see verified, motivated candidates — one flat price, no per-hire tax.',
+  description: 'Post a role free and see verified, motivated candidates — free to post.',
   url: 'https://launchyournextchapter.com/talent',
 }
 

@@ -1,0 +1,958 @@
+[
+ {
+  "id": "ift-first",
+  "name": "IFT FIRST",
+  "organizer": "Institute of Food Technologists",
+  "url": "https://www.ift.org/first",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-11",
+  "endDate": "2027-07-14",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [
+   "Engineering",
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Food scientists, product developers and ingredient suppliers at the field's flagship science expo.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not on the home page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.ift.org/career-development/call-for-proposals",
+  "speakingDeadline": null,
+  "speakingNote": "Call for Proposals and Call for Abstracts pages exist; deadline not read.",
+  "cheaperWays": "A 'For Students' section is linked.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "food scientist"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "newtopia-now",
+  "name": "Newtopia Now",
+  "organizer": "New Hope Network (Informa)",
+  "url": "https://www.newhope.com/newtopia-now/newtopia-now-brings-its-next-chapter-to-chicago",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-14",
+  "endDate": "2027-09-16",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Rosemont",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Natural CPG brands, buyers, retailers and investors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not stated; moves from Denver to Rosemont in 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Natural, organic and specialty foods"
+  ],
+  "roles": [
+   "natural products founder",
+   "specialty food buyer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "sweets-and-snacks-expo",
+  "name": "Sweets & Snacks Expo",
+  "organizer": "National Confectioners Association",
+  "url": "https://sweetsandsnacks.com/?p=1842",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Confectionery and snack manufacturers, brokers and approved retail buyers.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Trade-only; registration opens Dec 2026, fees not shown, rise closer to show.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "brand manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "bevnet-live-winter",
+  "name": "BevNET Live Winter",
+  "organizer": "BevNET",
+  "url": "https://www.bevnet.com/events/bevnetlivela2026/returning-attendees",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-06",
+  "endDate": "2026-12-08",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Beverage founders, investors and distributors; startup showcase and pitch sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices not read (site 403).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "beverage founder",
+   "brand manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "bevnet-live-nyc",
+  "name": "BevNET Live NYC",
+  "organizer": "BevNET",
+  "url": "https://www.bevnet.com/news/events/bevnetlivesummer26/bevnet-live-nyc-2026-early-registration-ends-next-week",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Beverage brand founders, retailers and distributors; summer edition.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition June 10-11 at Metropolitan Pavilion; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "beverage founder"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ],
+  "published": true
+ },
+ {
+  "id": "supplyside-global",
+  "name": "SupplySide Global",
+  "organizer": "Informa Markets",
+  "url": "https://www.supplysideglobal.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-26",
+  "endDate": "2026-10-30",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [
+   "Product",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Ingredient suppliers and brands in supplements, food and beverage, pet and personal care; 135+ hours of education.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Education Oct 26-30, expo Oct 28-30; pass pricing on a separate page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "'Interested in speaking' link, no details read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands",
+   "Household and personal care"
+  ],
+  "roles": [
+   "food scientist",
+   "personal care brand manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "plma-private-label-trade-show",
+  "name": "PLMA Private Label Trade Show",
+  "organizer": "Private Label Manufacturers Association",
+  "url": "https://www.plma.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-15",
+  "endDate": "2026-11-17",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Rosemont",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Store-brand manufacturers meet retailers' buyers and category teams.",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Visitors use a 'Request to Attend' form; no fee stated.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.plma.com/",
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Natural, organic and specialty foods",
+   "Household and personal care"
+  ],
+  "roles": [
+   "specialty food buyer",
+   "category analyst"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "winter-fancyfaire",
+  "name": "Winter FancyFaire",
+  "organizer": "Specialty Food Association",
+  "url": "https://www.specialtyfood.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-17",
+  "endDate": "2027-01-19",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Specialty food makers and buyers; successor to the Winter Fancy Food Show.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Natural, organic and specialty foods"
+  ],
+  "roles": [
+   "specialty food buyer",
+   "natural products founder"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ],
+  "published": true
+ },
+ {
+  "id": "rca-conference-culinology-expo",
+  "name": "RCA Annual Conference & Culinology Expo",
+  "organizer": "Research Chefs Association",
+  "url": "https://www.culinology.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-23",
+  "endDate": "2027-03-25",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [
+   "Product"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Research chefs and food scientists blending culinary arts and food science.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration on Cvent; prices not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "food scientist"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "craft-brewers-conference",
+  "name": "Craft Brewers Conference & BrewExpo America",
+  "organizer": "Brewers Association",
+  "url": "https://www.brewersassociation.org/events/2027-craft-brewers-conference-brewexpo-america/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-05",
+  "endDate": "2027-04-07",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Craft brewery owners, operators and suppliers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens Dec 2026; prices not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "beverage founder"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ],
+  "published": true
+ },
+ {
+  "id": "future-food-tech-san-francisco",
+  "name": "Future Food-Tech San Francisco",
+  "organizer": "rethink events",
+  "url": "https://www.futurefoodtechsf.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-11",
+  "endDate": "2027-03-12",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "CPG R&D teams from Cargill, Mondelez, Mars and General Mills meet startups and investors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "food scientist",
+   "beverage founder"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ],
+  "published": true
+ },
+ {
+  "id": "ana-brand-masters",
+  "name": "ANA Brand Masters Conference",
+  "organizer": "Association of National Advertisers",
+  "url": "https://www.ana.net/conference/show/id/BIC-MAY27",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Brand marketers at major advertisers.",
+  "access": "PAID",
+  "costLow": 1299,
+  "costHigh": 1999,
+  "costNote": "In person: Platinum $1,299, nonmember $1,999; client-side marketers $0; early bird to Dec 31, 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Virtual pass $1,099-$1,799; client-side member pricing $0.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands",
+   "Household and personal care"
+  ],
+  "roles": [
+   "brand manager",
+   "personal care brand manager"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "ana-masters-of-marketing",
+  "name": "ANA Masters of Marketing",
+  "organizer": "Association of National Advertisers",
+  "url": "https://www.ana.net/conference/show/id/ANC-OCT27",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-26",
+  "endDate": "2027-10-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The ANA's flagship gathering of CMOs and brand marketing leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not open yet.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands",
+   "Household and personal care"
+  ],
+  "roles": [
+   "brand manager",
+   "personal care brand manager"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "scc-annual-scientific-meeting",
+  "name": "SCC Annual Scientific Meeting and Showcase",
+  "organizer": "Society of Cosmetic Chemists",
+  "url": "https://www.scconline.org/Events/SCC80-Annual-Meeting/SCC80-Call-for-Papers",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-01",
+  "endDate": "2026-12-02",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [
+   "Product",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Cosmetic and personal care formulators and brand R&D leads.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not listed. Next after this: SCC81 Nov 12-13 2027 (per a search result).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.scconline.org/Events/SCC80-Annual-Meeting/SCC80-Call-for-Papers",
+  "speakingDeadline": "2026-04-24",
+  "speakingNote": "Call for papers closed for SCC80; accepted speakers get one free day.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Household and personal care"
+  ],
+  "roles": [
+   "personal care brand manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "convenience-retailing-university",
+  "name": "Convenience Retailing University",
+  "organizer": "Informa Connect / CSP",
+  "url": "https://informaconnect.com/convenience-retailing-university/call-for-proposals-details/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Convenience-store category managers from large and small chains.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees on a separate page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://informaconnect.com/convenience-retailing-university/call-for-proposals-details/",
+  "speakingDeadline": null,
+  "speakingNote": "Open to retailers and subject experts; supplier reps excluded; deadline not listed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Shopper marketing and category management"
+  ],
+  "roles": [
+   "category analyst"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "nacs-show",
+  "name": "NACS Show",
+  "organizer": "NACS",
+  "url": "https://nacsshow.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-05",
+  "endDate": "2027-10-08",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "25,000+ attendees in convenience and fuel retail; category managers and supplier sales teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird list only; prices not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Shopper marketing and category management"
+  ],
+  "roles": [
+   "category analyst",
+   "shopper marketer"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "snaxpo",
+  "name": "SNAXPO",
+  "organizer": "SNAC International",
+  "url": "https://www.snaxpo.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-04",
+  "endDate": "2027-04-06",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Snack brands and suppliers; 'industry leaders' hunting partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "No registration price on page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "brand manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "pack-expo-las-vegas",
+  "name": "PACK EXPO Las Vegas",
+  "organizer": "PMMI",
+  "url": "https://www.packexpolasvegas.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-27",
+  "endDate": "2027-09-29",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "30,000+ packaging and processing buyers; users include food, beverage, household and personal care makers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not stated; registration opens April 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Food and beverage brands",
+   "Household and personal care"
+  ],
+  "roles": [
+   "food scientist"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "nosh-live",
+  "name": "NOSH Live",
+  "organizer": "NOSH",
+  "url": "https://www.nosh.com/events/noshlivewinter24/information",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": "Marina del Rey",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Founders and execs of emerging food and beverage CPG.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Winter 2024 was Dec 5-6; no 2026/2027 date found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Natural, organic and specialty foods",
+   "Food and beverage brands"
+  ],
+  "roles": [
+   "natural products founder"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ],
+  "published": false
+ },
+ {
+  "id": "cosmoprof-north-america-las-vegas",
+  "name": "Cosmoprof North America Las Vegas",
+  "organizer": "Informa Markets / BolognaFiere",
+  "url": "https://www.cosmoprofnorthamerica.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-13",
+  "endDate": "2027-07-15",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Consumer Packaged Goods"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Beauty and personal care brands, buyers and private-label suppliers.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Household and personal care"
+  ],
+  "roles": [
+   "personal care brand manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ }
+]

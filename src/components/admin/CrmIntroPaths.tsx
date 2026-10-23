@@ -47,60 +47,73 @@ export function CrmIntroPaths({
 }) {
   const add = addIntroPath.bind(null, { personId: targetPersonId, orgId: targetOrgId })
 
+  // Someone you already know directly has no use for a mutual connection, so
+  // the card is not shown at all (unless one was recorded anyway).
+  if (paths.length === 0 && youKnowThemDirectly) return null
+
+  const list = paths.length === 0 ? (
+    compact ? null : <p className="text-sm text-muted-foreground">None recorded yet.</p>
+  ) : (
+    <ul className="space-y-2">
+      {paths.map((p) => <PathRow key={p.id} path={p} />)}
+    </ul>
+  )
+
+  const addForm = (
+    <form action={add} className={compact ? 'border-t border-border p-4' : 'mt-3'}>
+      <ConnectorPicker excludeId={targetPersonId ?? ''} />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <label className="text-xs">
+          <span className="mb-1 block font-medium">How they know each other</span>
+          <input
+            name="relationshipNote" type="text"
+            placeholder="Overlapping workforce-policy circles"
+            className="h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
+          />
+        </label>
+        <label className="text-xs">
+          <span className="mb-1 block font-medium">How strong is it</span>
+          <select name="strength" defaultValue="UNVERIFIED" className="h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm">
+            {Object.entries(STRENGTH_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </label>
+      </div>
+      <div className="mt-3"><SubmitButton size="sm" pendingLabel="Adding…">Add mutual connection</SubmitButton></div>
+    </form>
+  )
+
+  // Inside another panel that already has its own title: no heading, the form behind a toggle.
+  if (compact) {
+    return (
+      <section>
+        {list}
+        <details className="group mt-3 rounded-lg border border-border">
+          <summary className="cursor-pointer select-none p-3 text-sm font-medium hover:bg-muted/50">Add a mutual connection</summary>
+          {addForm}
+        </details>
+      </section>
+    )
+  }
+
+  // Rarely filled in, so it stays collapsed; the summary says whether anything is recorded.
   return (
-    <section>
-      {!compact && (
-        <>
-          <h2 className="mb-1 text-base font-semibold">
-            {targetPersonId ? `Who knows ${targetName.split(' ')[0]}` : `Who can reach ${targetName}`}
-          </h2>
-          <p className="mb-3 text-sm text-muted-foreground">
-            Routes in, strongest first. A connector can be someone already in the CRM, or just a name you&apos;ve heard.
-          </p>
-        </>
-      )}
-
-      {paths.length === 0 && youKnowThemDirectly ? (
-        <p className="rounded-lg border border-brand/40 bg-brand/5 p-4 text-sm">
-          You already know {targetName.split(' ')[0]} directly — a 1st-degree LinkedIn connection. Add a route below only
-          if someone else could <em>also</em> make an introduction.
+    <details className="group rounded-lg border border-border" open={false}>
+      <summary className="flex cursor-pointer select-none flex-wrap items-baseline gap-x-3 p-3 hover:bg-muted/50">
+        <span className="text-base font-semibold">
+          {targetPersonId ? `Mutual connections with ${targetName.split(' ')[0]}` : `Who can reach ${targetName}`}
+        </span>
+        <span className="text-sm text-muted-foreground">
+          {paths.length === 0 ? 'none recorded' : `${paths.length} on record`}
+        </span>
+      </summary>
+      <div className="space-y-3 border-t border-border p-4">
+        <p className="text-sm text-muted-foreground">
+          Someone who could introduce you, strongest first. A connector can be a person in the CRM, or just a name you&apos;ve heard.
         </p>
-      ) : paths.length === 0 ? (
-        compact ? null : (
-          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            No route recorded yet.
-          </p>
-        )
-      ) : (
-        <ul className="space-y-2">
-          {paths.map((p) => <PathRow key={p.id} path={p} />)}
-        </ul>
-      )}
-
-      <details className="group mt-3 rounded-lg border border-border">
-      <summary className="cursor-pointer select-none p-3 text-sm font-medium hover:bg-muted/50">Add a route</summary>
-      <form action={add} className="border-t border-border p-4">
-        <ConnectorPicker excludeId={targetPersonId ?? ''} />
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="text-xs">
-            <span className="mb-1 block font-medium">How they know each other</span>
-            <input
-              name="relationshipNote" type="text"
-              placeholder="Overlapping workforce-policy circles"
-              className="h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-brand"
-            />
-          </label>
-          <label className="text-xs">
-            <span className="mb-1 block font-medium">How strong is it</span>
-            <select name="strength" defaultValue="UNVERIFIED" className="h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm">
-              {Object.entries(STRENGTH_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-          </label>
-        </div>
-        <div className="mt-3"><SubmitButton size="sm" pendingLabel="Adding…">Add route</SubmitButton></div>
-      </form>
-      </details>
-    </section>
+        {list}
+        {addForm}
+      </div>
+    </details>
   )
 }
 
@@ -128,7 +141,7 @@ function PathRow({ path }: { path: IntroPathRow }) {
         <div className="flex shrink-0 items-center gap-2">
           {/* Four discrete states -> a dropdown, per design-principles.md. */}
           <select
-            aria-label={`Status of the route via ${label}`}
+            aria-label={`Status of the introduction via ${label}`}
             defaultValue={path.status}
             disabled={pending}
             onChange={(e) => {

@@ -1,0 +1,2822 @@
+[
+ {
+  "id": "nbaa-maintenance-conference",
+  "name": "NBAA Maintenance Conference",
+  "organizer": "National Business Aviation Association",
+  "url": "https://nbaa.org/events/2027-nbaa-maintenance-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-04",
+  "endDate": "2027-05-06",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Business aviation maintenance directors, technicians and shop leaders from operators and MROs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Badge pricing not published yet; registration opens by February 2027. Optional one-day PDP course May 3.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://nbaa.org/events/2027-nbaa-maintenance-conference/",
+  "speakingDeadline": "2026-11-18",
+  "speakingNote": "Education session ideas due Nov 18, 2026 through NBAA's Call for Ideas page.",
+  "cheaperWays": "NBAA room blocks give discounted hotel rooms.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Commercial aerospace and aviation"
+  ],
+  "roles": [
+   "aviation maintenance leader",
+   "aerospace engineer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "women-in-aviation-international-conference",
+  "name": "Women in Aviation International Conference",
+  "organizer": "Women in Aviation International",
+  "url": "https://www.wai.org/2027-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-25",
+  "endDate": "2027-02-27",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Airline, manufacturer and MRO recruiters and leaders meet thousands of aviation professionals and students; scholarships are awarded on site.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices are not shown on the conference page; WAI members get a discounted rate (membership must be active through Feb 28, 2027).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "WAI member rate; scholarship celebration held at the conference.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Commercial aerospace and aviation"
+  ],
+  "roles": [
+   "aerospace engineer",
+   "aviation maintenance leader"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "verticon",
+  "name": "VERTICON (formerly HAI HELI-EXPO)",
+  "organizer": "Helicopter Association International",
+  "url": "https://verticon.org/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "The largest vertical-flight show: helicopter operators, maintainers, OEM engineers and suppliers (12,850 attendees in 2026).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official page confirms VERTICON 2027 in Anaheim; March 15-18 comes only from third-party listings so dates are left unconfirmed. Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Commercial aerospace and aviation"
+  ],
+  "roles": [
+   "aviation maintenance leader",
+   "aerospace engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aea-international-convention",
+  "name": "AEA International Convention & Trade Show",
+  "organizer": "Aircraft Electronics Association",
+  "url": "https://www.aea.net/convention/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Avionics shops, installers and engineers who certify and maintain aircraft electronics.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party listings give March 23-26, 2027 in Savannah, GA; not confirmed on the AEA site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Commercial aerospace and aviation"
+  ],
+  "roles": [
+   "aerospace engineer",
+   "aviation maintenance leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "arsa-annual-conference",
+  "name": "ARSA Annual Conference",
+  "organizer": "Aeronautical Repair Station Association",
+  "url": "https://arsa.org/news-media/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Aerospace & Defense"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Repair-station owners and managers in Washington for executive-branch briefings and regulatory compliance sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "ARSA's events page describes four days in March in the nation's capital; exact 2027 dates and prices were not on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Commercial aerospace and aviation"
+  ],
+  "roles": [
+   "aviation maintenance leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "techno-security-digital-forensics-east",
+  "name": "Techno Security & Digital Forensics Conference East",
+  "organizer": "Comexposium",
+  "url": "https://www.technosecurity.us/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Myrtle Beach",
+  "state": "SC",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Digital forensics, incident response and eDiscovery practitioners, about half from law enforcement.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and venue from the official site; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Forensic and fraud examination"
+  ],
+  "roles": [
+   "forensic accountant",
+   "fraud examiner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "acfe-fraud-conference-europe",
+  "name": "ACFE Fraud Conference Europe",
+  "organizer": "Association of Certified Fraud Examiners",
+  "url": "https://www.acfe.com/speaker-proposal.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Dusseldorf",
+  "state": null,
+  "country": "DE",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "European fraud examiners, auditors and investigators; the ACFE's regional flagship outside North America.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read. Date from the ACFE call-for-speakers page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.acfe.com/speaker-proposal.aspx",
+  "speakingDeadline": "2026-09-18",
+  "speakingNote": "Proposal deadline (extended) was Sept 18, 2026 and has closed; regional events select speakers who live and work in the region.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Forensic and fraud examination"
+  ],
+  "roles": [
+   "fraud examiner",
+   "forensic accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "htcia-international-conference",
+  "name": "HTCIA International Conference & Training Expo",
+  "organizer": "High Technology Cyber Investigation Association",
+  "url": "https://www.htcia.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Cyber-crime investigators, digital forensic examiners and prosecutors who work fraud and intrusion cases.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site lists an events calendar behind member login; 2027 dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Forensic and fraud examination"
+  ],
+  "roles": [
+   "fraud examiner",
+   "forensic accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iafci-international-training-conference",
+  "name": "IAFCI International Training Conference",
+  "organizer": "International Association of Financial Crimes Investigators",
+  "url": "https://www.iafci.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Card, bank and payments fraud investigators from financial institutions and law enforcement.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was August 25-27 in Nashville per listings; 2027 host city and dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Forensic and fraud examination"
+  ],
+  "roles": [
+   "fraud examiner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nacva-analysts-edge-virtual-summit",
+  "name": "NACVA The Analyst's Edge Virtual Summit",
+  "organizer": "National Association of Certified Valuators and Analysts",
+  "url": "https://www.nacva.com/",
+  "kind": "SUMMIT",
+  "format": "VIRTUAL",
+  "startDate": "2026-12-03",
+  "endDate": "2026-12-04",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Valuation, litigation-support and forensic analysts on the future of financial litigation services.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from NACVA's home page; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Forensic and fraud examination"
+  ],
+  "roles": [
+   "forensic accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "future-of-protein-production-chicago",
+  "name": "FPP x CMS Chicago (Future of Protein Production / Cultured Meat Symposium)",
+  "organizer": "Future Proof Group Media",
+  "url": "https://www.futureofproteinproductionchicago.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-20",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Alternative protein, cultivated meat and fermentation founders, scientists, investors and food-company leads.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the official site; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Sustainable food systems and alt protein"
+  ],
+  "roles": [
+   "alt protein scientist",
+   "sustainability lead food"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "future-of-protein-production-amsterdam",
+  "name": "Future of Protein Production Amsterdam",
+  "organizer": "Future Proof Group Media",
+  "url": "https://www.futureofproteinproductionchicago.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Amsterdam",
+  "state": null,
+  "country": "NL",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Europe's alt protein commercialization meeting: 100+ speakers, startup zone and 60+ exhibitors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed on the Chicago event's site as a sister event; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Sustainable food systems and alt protein"
+  ],
+  "roles": [
+   "alt protein scientist",
+   "sustainability lead food"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "icamp-cultivated-meat-alt-protein-summit",
+  "name": "UC Davis iCAMP Cultivated Meat and Alternative Protein Summit",
+  "organizer": "UC Davis",
+  "url": "https://icamp.ucdavis.edu/annual-summit",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Davis",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Agriculture & Food Production"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Cultivated-meat and alt protein researchers, industry, investors and policy makers (about 300 per year).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site blocked automated reading; 2025 edition was Sept 8-9; next dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Sustainable food systems and alt protein"
+  ],
+  "roles": [
+   "alt protein scientist"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "inbia-international-conference-on-business-incubation",
+  "name": "InBIA International Conference on Business Incubation (ICBI41)",
+  "organizer": "International Business Innovation Association",
+  "url": "https://www.inbia.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Incubator and accelerator operators worldwide; co-located with the Angel Capital Association Summit in Dallas in 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Co-location with the ACA Summit (April 19-21, 2027, Hyatt Regency Dallas) is stated on the ACA site; InBIA's own page not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Founder communities and accelerators"
+  ],
+  "roles": [
+   "accelerator founder",
+   "startup mentor"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "imn-land-homebuilding-capital-markets-east",
+  "name": "Land & Homebuilding Capital Markets East",
+  "organizer": "IMN (Informa Connect)",
+  "url": "https://informaconnect.com/imn-land-homebuilding/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Charleston",
+  "state": "SC",
+  "country": "US",
+  "industries": [
+   "Construction & Real Estate"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Homebuilders, land developers, lenders and capital providers meeting on land and housing finance.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official page says June 2027, Charleston, venue TBA; dates and pricing not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Homebuilding and development"
+  ],
+  "roles": [
+   "homebuilder executive",
+   "land developer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "training-conference-and-expo",
+  "name": "Training Conference & Expo (Training 2027)",
+  "organizer": "Training Magazine (Lakewood Media)",
+  "url": "https://www.trainingconference.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-24",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 3,000 corporate trainers, instructional designers and L&D heads in Orlando.",
+  "access": "PAID",
+  "costLow": 1895,
+  "costHigh": 2195,
+  "costNote": "Super early bird $1,895 until Jan 8; early bird $2,045 until Jan 29; regular $2,195. Pre-conference certificate programs extra (Feb 19-21).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://lakewood.activehosted.com/f/7",
+  "speakingDeadline": null,
+  "speakingNote": "Submit via 'Become a Presenter'; no deadline listed.",
+  "cheaperWays": "Group and organizational discounts (amounts on the Registration Fees & Discounts page).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Corporate learning and development"
+  ],
+  "roles": [
+   "L&D leader",
+   "learning designer",
+   "training manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "training-industry-conference-and-expo",
+  "name": "Training Industry Conference & Expo (TICE)",
+  "organizer": "Training Industry, Inc.",
+  "url": "https://tice.trainingindustry.com/5evl4d",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Raleigh",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Small, learning-leader-focused event for corporate training and L&D executives.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official page: June 2027 in Raleigh; registration open, save $400 before Dec 31. Third-party listings give June 8-10, not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Corporate learning and development"
+  ],
+  "roles": [
+   "L&D leader",
+   "training manager",
+   "learning designer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "lten-annual-conference",
+  "name": "LTEN Annual Conference",
+  "organizer": "Life Sciences Trainers & Educators Network",
+  "url": "https://www.l-ten.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Education & EdTech",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "The largest community of life sciences L&D and sales-training professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Home page says registration is open for LTEN 2026; dates and 2027 edition not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Corporate learning and development"
+  ],
+  "roles": [
+   "L&D leader",
+   "training manager",
+   "learning designer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "awwa-water-quality-technology-conference",
+  "name": "AWWA Water Quality Technology Conference (WQTC)",
+  "organizer": "American Water Works Association",
+  "url": "https://www.awwa.org/event/water-quality-technology/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-15",
+  "endDate": "2026-11-19",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Memphis",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Treatment-plant managers, lab scientists and regulators on drinking water quality.",
+  "access": "PAID",
+  "costLow": 785,
+  "costHigh": 1135,
+  "costNote": "Full conference: member early $785, non-member early $1,030, member regular $990, non-member regular $1,135 (early rate ends Oct 23, 2026). City read from venue name (Renasant Convention Center) on the page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.awwa.org/event/water-quality-technology/",
+  "speakingDeadline": null,
+  "speakingNote": "2026 program is set; speaker portal closed. Speakers get a discounted full-conference rate.",
+  "cheaperWays": "Students $60-$85; exhibits-only $80-$100; student and young professional programming.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Water and wastewater utilities"
+  ],
+  "roles": [
+   "water utility manager",
+   "wastewater engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "amta-awwa-membrane-technology-conference",
+  "name": "AMTA/AWWA Membrane Technology Conference",
+  "organizer": "American Water Works Association / American Membrane Technology Association",
+  "url": "https://www.awwa.org/event/membrane-technology/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-22",
+  "endDate": "2027-03-25",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Advanced water treatment engineers on membranes, PFAS removal, desalination and reuse.",
+  "access": "PAID",
+  "costLow": 930,
+  "costHigh": 1240,
+  "costNote": "2026 rate card: member early $930, non-member regular $1,240; 2027 registration opens late October 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student $125-$130; operator/professor/regulator rates $475-$655; exhibits-only $180.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Water and wastewater utilities"
+  ],
+  "roles": [
+   "water utility manager",
+   "wastewater engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "florida-water-resources-conference",
+  "name": "Florida Water Resources Conference (FWRC)",
+  "organizer": "FSAWWA, FWEA and FWPCOA",
+  "url": "https://www.fwrc.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-18",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Florida's joint water, wastewater and operators' conference with technical sessions, exhibits and an operations challenge.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the official site; attendee registration opens Dec 8; ticket prices increase Mar 21.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.fwrc.org/",
+  "speakingDeadline": null,
+  "speakingNote": "Abstract submission opened July 20, 2026 for 2027.",
+  "cheaperWays": "Volunteer registration; students and young professionals program.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Water and wastewater utilities"
+  ],
+  "roles": [
+   "water utility manager",
+   "wastewater engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sedc-annual-conference",
+  "name": "SEDC Annual Conference",
+  "organizer": "Southern Economic Development Council",
+  "url": "https://www.sedc.org/events/2027-annual-conference---white-sulphur-springs-wv",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-26",
+  "endDate": "2027-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "White Sulphur Springs",
+  "state": "WV",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Southern state and local economic developers, utilities and site selectors at The Greenbrier.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the official site; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sedc-americansouth-site-selection-summit",
+  "name": "SEDC #AmericanSouth Site Selection Summit",
+  "organizer": "Southern Economic Development Council",
+  "url": "https://www.sedc.org/events/americansouth-site-selection-summit-presented-by-nc-carolina-core",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-30",
+  "endDate": "2027-04-01",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Site selectors, corporate real estate leaders and Southern economic developers; record attendance in 2025.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "InterContinental Atlanta-Buckhead; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tedc-annual-conference",
+  "name": "TEDC Annual Conference",
+  "organizer": "Texas Economic Development Council",
+  "url": "https://texasedc.org/programs/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-20",
+  "endDate": "2027-10-22",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Texas's flagship economic development gathering, rotating cities each October.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the official conferences page; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://texasedc.org/programs/conferences",
+  "speakingDeadline": null,
+  "speakingNote": "Site offers a 'Suggest a Speaker or Topic' form.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tedc-winter-conference",
+  "name": "TEDC Legislative/Winter Conference",
+  "organizer": "Texas Economic Development Council",
+  "url": "https://texasedc.org/programs/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-24",
+  "endDate": "2027-02-26",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Texas economic developers meet legislators during the session.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the official conferences page; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "area-development-workshop-forum-houston",
+  "name": "Area Development Workshop Forum (Houston)",
+  "organizer": "Area Development",
+  "url": "https://www.areadevelopment.com/consultantsforum/2027-Workshop-Houston-home.html",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Capped at 140 attendees: economic developers meet site consultants face to face.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from an official-domain search result (site blocked direct reading); attendance limited to 140; pricing and eligibility not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "area-development-spring-consultants-forum",
+  "name": "Area Development Spring Consultants Forum (Louisville)",
+  "organizer": "Area Development",
+  "url": "https://www.areadevelopment.com/consultantsforum/2027-Spring-Louisville-home.html",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Corporate location trends and economic development strategy with site selection consultants.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Omni Louisville; dates from an official-domain search result; pricing and eligibility not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nlc-city-summit",
+  "name": "NLC City Summit",
+  "organizer": "National League of Cities",
+  "url": "https://www.nlc.org/event-calendar",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-11-17",
+  "endDate": "2027-11-20",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Mayors, council members and city staff from across the country.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pre-conference Nov 16; 2027 prices not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "city planner",
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nlc-congressional-city-conference",
+  "name": "NLC Congressional City Conference",
+  "organizer": "National League of Cities",
+  "url": "https://www.nlc.org/event-calendar",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "City officials and staff meet Congress and federal agencies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Marriott Marquis; pre-conference Mar 13-14; prices not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "city planner",
+   "economic development director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "reuters-events-digital-health-usa",
+  "name": "Reuters Events Digital Health USA",
+  "organizer": "Reuters Events",
+  "url": "https://events.reutersevents.com/healthcare/digital-health-usa",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Senior digital, technology and clinical leaders across health systems and payers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page blocked automated reading; 2027 dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Digital health and virtual care"
+  ],
+  "roles": [
+   "digital health product lead",
+   "telehealth operations"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "state-hit-connect-summit",
+  "name": "State HIT Connect Summit",
+  "organizer": "State health IT organizers (organizer not confirmed)",
+  "url": "https://sessionize.com/2027-state-hit-connect-summit-copy/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-29",
+  "endDate": "2027-04-01",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "State and federal health IT leaders; in person only.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Gaylord National venue from a search result; organizer and pricing not confirmed.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://sessionize.com/2027-state-hit-connect-summit-copy/",
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Digital health and virtual care"
+  ],
+  "roles": [
+   "digital health product lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ashrm-annual-conference",
+  "name": "ASHRM Annual Conference",
+  "organizer": "American Society for Health Care Risk Management (AHA)",
+  "url": "https://www.ashrm.org/annual-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-12",
+  "endDate": "2027-09-15",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Columbus",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The flagship event for healthcare risk, patient safety and claims professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "AHA listing gives Sept 12-15, 2027 in Columbus; ASHRM's own page still shows the 2026 edition.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Quality, safety and compliance"
+  ],
+  "roles": [
+   "patient safety officer",
+   "healthcare compliance officer",
+   "quality improvement lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pacific-coast-patient-safety-conference",
+  "name": "Pacific Coast Patient Safety Conference (PCPSC)",
+  "organizer": "CSHP and partners",
+  "url": "https://www.cshp.org/PCPSC_CFS_2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Patient safety officers, pharmacists and quality staff on the West Coast.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and location not confirmed.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.cshp.org/PCPSC_CFS_2027",
+  "speakingDeadline": "2026-08-07",
+  "speakingNote": "Call for speakers deadline Aug 7, 2026 (closed).",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Quality, safety and compliance"
+  ],
+  "roles": [
+   "patient safety officer",
+   "quality improvement lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "amcp-nexus",
+  "name": "AMCP Nexus",
+  "organizer": "Academy of Managed Care Pharmacy",
+  "url": "https://amcpnexus.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-26",
+  "endDate": "2026-10-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Insurance",
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "About 3,000 managed care pharmacy, formulary and utilization management professionals from plans, PBMs and manufacturers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition at Gaylord Pacific Resort; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "AMCP members save up to $400; $100 off for the hotel block.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Health plans and payers"
+  ],
+  "roles": [
+   "health plan executive",
+   "utilization management lead",
+   "payer product lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naed-national-meeting",
+  "name": "NAED National Meeting",
+  "organizer": "National Association of Electrical Distributors",
+  "url": "https://www.naed.org/marketing-summit",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-11",
+  "endDate": "2027-05-13",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Electrical distributor owners and executives and their manufacturer partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from NAED's 2027 events list; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Industrial distribution"
+  ],
+  "roles": [
+   "distribution executive",
+   "industrial sales manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naed-lead-conference",
+  "name": "NAED LEAD Conference",
+  "organizer": "National Association of Electrical Distributors",
+  "url": "https://www.naed.org/marketing-summit",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-18",
+  "endDate": "2027-10-20",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Leadership development for electrical distribution managers and rising executives.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from NAED's 2027 events list; city and pricing not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Industrial distribution"
+  ],
+  "roles": [
+   "distribution executive",
+   "industrial sales manager"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ptda-industry-summit",
+  "name": "PTDA Industry Summit",
+  "organizer": "Power Transmission Distributors Association",
+  "url": "https://ptda.org/IndustrySummit",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-20",
+  "endDate": "2027-10-22",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Power transmission and motion-control distributors and manufacturers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rosen Shingle Creek; dates from the official summit page; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Industrial distribution"
+  ],
+  "roles": [
+   "distribution executive",
+   "industrial sales manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "asa-elevate",
+  "name": "ASA ELEVATE",
+  "organizer": "American Supply Association",
+  "url": "https://www.asa.net/Events/Industry-Calendar/elevate2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-30",
+  "endDate": "2027-04-01",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Plumbing, heating and PVF distributor and manufacturer leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from ASA's industry calendar; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Industrial distribution"
+  ],
+  "roles": [
+   "distribution executive",
+   "industrial sales manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "asa-lead-strategic-leadership-summit",
+  "name": "ASA LEAD Strategic Leadership Summit",
+  "organizer": "American Supply Association",
+  "url": "https://www.asa.net/Events/Industry-Calendar/lead2027-strategic-leadership-summit",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-09",
+  "endDate": "2027-02-12",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Paradise Island",
+  "state": null,
+  "country": "BS",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Executive strategy summit for supply-house owners and CEOs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from ASA's industry calendar; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Industrial distribution"
+  ],
+  "roles": [
+   "distribution executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "music-biz-conference",
+  "name": "Music Biz",
+  "organizer": "Music Business Association",
+  "url": "https://musicbiz.org/events/music-biz-annual-conference/music-biz-2027-call-for-presentations/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Labels, distributors, publishers and music-tech executives; the music industry's business-side annual meeting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Hilton San Diego Bayfront; registration is open and early badges save $100; non-members can attend, members pay less.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://musicbiz.org/events/music-biz-annual-conference/music-biz-2027-call-for-presentations/",
+  "speakingDeadline": "2026-12-07",
+  "speakingNote": "Proposals due Dec 7, 2026; chosen by Jan 29, 2027; members get priority; speakers get a complimentary full registration but no travel or honoraria.",
+  "cheaperWays": "Free virtual speaker training; members priority and lower rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Music and live entertainment"
+  ],
+  "roles": [
+   "music executive",
+   "live event producer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ilmc",
+  "name": "ILMC (International Live Music Conference)",
+  "organizer": "IQ / Hallam Media",
+  "url": "https://www.ilmc.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-23",
+  "endDate": "2027-02-26",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "London",
+  "state": null,
+  "country": "GB",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Promoters, agents, festival and venue operators, the live business's global annual meeting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "ILMC 39; registration open; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Music and live entertainment"
+  ],
+  "roles": [
+   "live event producer",
+   "music executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ieba-conference",
+  "name": "IEBA Conference (Independent Event & Booking Agents)",
+  "organizer": "IEBA",
+  "url": "https://www.ieba.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Talent buyers, agents and venue/festival professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site has a '2027 Conference Info' page; dates not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Music and live entertainment"
+  ],
+  "roles": [
+   "live event producer",
+   "music executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "pda-miniverse-conference",
+  "name": "PDA Miniverse Conference",
+  "organizer": "Parenteral Drug Association",
+  "url": "https://pda.org/global-event-calendar/event-detail/pda-miniverse-conference-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-15",
+  "endDate": "2027-03-17",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Raleigh",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Medical Devices",
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Drug-device combination product, connected health and medical device quality and regulatory teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and city from a pda.org search result; page not opened; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Regulatory and quality"
+  ],
+  "roles": [
+   "device regulatory specialist",
+   "quality systems manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nten-nonprofit-technology-conference",
+  "name": "NTEN Nonprofit Technology Conference (NTC)",
+  "organizer": "NTEN",
+  "url": "https://www.nten.org/gather/ntc",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-03-23",
+  "endDate": "2027-03-26",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "2,000+ nonprofit staff and leaders using technology for mission; in person and virtual.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nten.org/gather/ntc",
+  "speakingDeadline": null,
+  "speakingNote": "Page invites speakers; deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "executive director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "scrs-global-site-solutions-summit",
+  "name": "SCRS Global Site Solutions Summit",
+  "organizer": "Society for Clinical Research Sites",
+  "url": "https://sitesolutionssummit.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Research sites, sponsors and CROs; the site-side counterpart to sponsor-run trial meetings.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 15-18 in Orlando; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Clinical operations and trials"
+  ],
+  "roles": [
+   "clinical research associate",
+   "clinical trial manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "scrs-west-site-innovation-summit",
+  "name": "SCRS West: Site Innovation Summit",
+  "organizer": "Society for Clinical Research Sites",
+  "url": "https://sitesolutionssummit.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-15",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Scottsdale",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Regional site and sponsor summit.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from one listing only; not confirmed on the official site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Clinical operations and trials"
+  ],
+  "roles": [
+   "clinical research associate",
+   "clinical trial manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "gartner-it-symposium-xpo",
+  "name": "Gartner IT Symposium/Xpo",
+  "organizer": "Gartner",
+  "url": "https://www.gartner.com/en/conferences/na/symposium-us",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Professional Services & Consulting"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "The CIO event: IT executives, enterprise architects and the consultants who advise them.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition is Oct 19-22; a calendar lists October 2027; site blocked reading, so dates unconfirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "IT leadership and operations",
+   "IT and digital consulting"
+  ],
+  "roles": [
+   "CIO",
+   "IT director",
+   "enterprise architect",
+   "technology consultant",
+   "digital transformation lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "business-group-on-health-annual-conference",
+  "name": "Business Group on Health Annual Conference",
+  "organizer": "Business Group on Health",
+  "url": "https://www.businessgrouphealth.org/annual-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital",
+   "Insurance"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Large-employer benefits and health leaders with their carrier and vendor partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was April 22-24 in New Orleans; a third-party listing gives April 28-30, 2027 in Washington, DC (unconfirmed). Site blocked reading.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.businessgrouphealth.org/annual-conference/speaking-opportunities",
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "benefits manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iscebs-symposium",
+  "name": "ISCEBS Symposium",
+  "organizer": "International Society of Certified Employee Benefit Specialists",
+  "url": "https://www.iscebs.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-19",
+  "endDate": "2027-09-22",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "One of the largest gatherings of employee benefits professionals in North America.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from the society's home page; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "benefits manager",
+   "compensation analyst"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "techserve-alliance-executive-summit",
+  "name": "TechServe Alliance Executive Summit",
+  "organizer": "TechServe Alliance",
+  "url": "https://techservealliance.org/education-training/staffing-conferences/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-09",
+  "endDate": "2026-11-11",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Huntington Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Owners and executives of IT and engineering staffing firms.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official home page: 2026 Executive Summit at Hyatt Regency Huntington Beach, registration open; Nov 9-11 dates from a roundup.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "staffing firm owner",
+   "account manager staffing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "bullhorn-engage",
+  "name": "Bullhorn Engage",
+  "organizer": "Bullhorn",
+  "url": "https://engage.bullhorn.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "User conference for staffing and recruiting firms (North America, Europe, Australia).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Next North America edition dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "recruiter",
+   "staffing firm owner",
+   "account manager staffing"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ntca-telecom-executive-forum",
+  "name": "NTCA Telecom Executive Forum",
+  "organizer": "NTCA - The Rural Broadband Association",
+  "url": "https://www.ntca.org/learn/events",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-14",
+  "endDate": "2027-03-16",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Closed-door meeting for rural broadband executives and rising leaders.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Hyatt Regency Hill Country; prices not on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "roles": [
+   "broadband executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ntca-fall-conference",
+  "name": "NTCA Fall Conference",
+  "organizer": "NTCA - The Rural Broadband Association",
+  "url": "https://www.ntca.org/learn/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-12",
+  "endDate": "2027-09-15",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Rural telecom leaders; includes the Smart Rural Community Showcase award celebration.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "roles": [
+   "broadband executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ntca-cybershare-summit",
+  "name": "NTCA CyberShare Summit",
+  "organizer": "NTCA - The Rural Broadband Association",
+  "url": "https://www.ntca.org/learn/events",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-25",
+  "endDate": "2027-10-27",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Cybersecurity for small and rural broadband providers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "The DeSoto; prices not on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "roles": [
+   "fiber network engineer",
+   "broadband executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "scte-techexpo",
+  "name": "SCTE TechExpo",
+  "organizer": "SCTE",
+  "url": "https://scte.org/events",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-28",
+  "endDate": "2027-09-30",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Cable and broadband engineers and operators; 300+ exhibitors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Denver location from Lightwave and Light Reading reporting; site blocked reading.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "roles": [
+   "fiber network engineer",
+   "broadband executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nate-unite",
+  "name": "NATE UNITE",
+  "organizer": "National Association of Tower Erectors",
+  "url": "https://www.natehome.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-25",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Tower, wireless and broadcast infrastructure contractors and carriers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Rosen Shingle Creek venue from two third-party listings; NATE site blocked reading.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "roles": [
+   "fiber network engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "wispamerica",
+  "name": "WISPAmerica",
+  "organizer": "Wireless Internet Service Providers Association",
+  "url": "https://www.wispa.org/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Telecommunications"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Independent wireless and fiber ISP operators; about 1,500 attendees.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition was in Oklahoma City in March; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site (unverified lead)",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "roles": [
+   "broadband executive",
+   "fiber network engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aslrra-annual-conference",
+  "name": "ASLRRA Annual Conference & Exhibition",
+  "organizer": "American Short Line and Regional Railroad Association",
+  "url": "https://www.aslrra.org/events/aslrra-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-14",
+  "endDate": "2027-03-16",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "The only event dedicated to short line and regional railroads: 1,700+ attendees.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from ASLRRA's events page; pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Ports, maritime and rail"
+  ],
+  "roles": [
+   "rail operations lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "breakbulk-americas",
+  "name": "Breakbulk Americas",
+  "organizer": "Breakbulk Events (Informa)",
+  "url": "https://americas.breakbulk.com/home",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-19",
+  "endDate": "2027-10-20",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Project cargo, breakbulk shippers, terminal and port operators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "George R. Brown Convention Center; visitor pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Ports, maritime and rail"
+  ],
+  "roles": [
+   "port executive"
+  ],
+  "journeys": []
+ }
+]

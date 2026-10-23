@@ -1,7 +1,7 @@
 // What the candidate menu is made of (the places themselves are in redesign-places.ts): tabs, the
 // menu rules that show, lock or hide them by the member's situation, paid access, and menu entries.
 
-import { itemVisibility, statusUnlock, type MenuItemKey, type MenuMode } from '@/lib/journey/menu'
+import { itemVisibility, seniorDemoted, seniorItemVisibility, statusUnlock, NO_SENIOR_OVERLAY, type MenuItemKey, type MenuMode, type SeniorOverlay } from '@/lib/journey/menu'
 
 export interface PlaceTab {
   label: string
@@ -74,20 +74,20 @@ export function activeTab(place: PlaceShape, pathname: string): PlaceTab | null 
 // A tab by the member's situation: shown, locked until their status changes, or
 // hidden. A tab several menu rules decide is hidden only when all hide it, and
 // locked only when none shows it.
-export function tabSituation(tab: PlaceTab, mode: MenuMode | null | undefined): 'show' | 'locked' | 'hide' {
+export function tabSituation(tab: PlaceTab, mode: MenuMode | null | undefined, senior: SeniorOverlay = NO_SENIOR_OVERLAY): 'show' | 'locked' | 'hide' {
   if (!mode || !tab.menuKeys?.length) return 'show'
-  const states = tab.menuKeys.map((k) => itemVisibility(k, mode))
+  const states = tab.menuKeys.map((k) => seniorItemVisibility(k, mode, senior))
   if (states.includes('show')) return 'show'
   return states.includes('locked') ? 'locked' : 'hide'
 }
 
-export function visibleTabs(place: PlaceShape, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): PlaceTab[] {
-  return place.tabs.filter((t) => (!t.employedOnly || opts.employed) && (!t.earlyCareerOnly || !!opts.earlyCareer) && tabSituation(t, opts.mode) !== 'hide')
+export function visibleTabs(place: PlaceShape, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null; senior?: SeniorOverlay }): PlaceTab[] {
+  return place.tabs.filter((t) => (!t.employedOnly || opts.employed) && (!t.earlyCareerOnly || !!opts.earlyCareer) && tabSituation(t, opts.mode, opts.senior) !== 'hide')
 }
 
 // Tabs the member's situation turns off for now, to name in the "Turn on more tools" box.
-export function statusLockedTabs(place: PlaceShape, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null }): string[] {
-  return visibleTabs(place, opts).filter((t) => tabSituation(t, opts.mode) === 'locked').map((t) => t.label)
+export function statusLockedTabs(place: PlaceShape, opts: { employed: boolean; earlyCareer?: boolean; mode?: MenuMode | null; senior?: SeniorOverlay }): string[] {
+  return visibleTabs(place, opts).filter((t) => tabSituation(t, opts.mode, opts.senior) === 'locked').map((t) => t.label)
 }
 
 export interface NavLocks {
@@ -107,8 +107,8 @@ const GMAIL_LOCKED = ['/dashboard/find-my-job', '/dashboard/network', '/dashboar
 
 // Same gates the old sidebar applied, now per tab: a locked tab explains
 // itself and never blocks the rest of its place.
-export function lockReasonFor(href: string, locks: NavLocks, tab?: PlaceTab): string | null {
-  if (tab && tabSituation(tab, locks.mode) === 'locked') {
+export function lockReasonFor(href: string, locks: NavLocks, tab?: PlaceTab, senior: SeniorOverlay = NO_SENIOR_OVERLAY): string | null {
+  if (tab && tabSituation(tab, locks.mode, senior) === 'locked') {
     const unlock = locks.mode ? statusUnlock(locks.mode) : null
     return unlock ? `${unlock.why} Use "Turn on more tools" to update your status.` : 'Turns on when your situation changes.'
   }
@@ -129,6 +129,21 @@ export interface MenuEntry {
   active: boolean
   /** The tab the member is on, inside this entry. */
   activeTab: PlaceTab | null
+  /** Senior overlay: shown quieter, still a link. The menu offers a one-click restore. */
+  muted?: boolean
+}
+
+// Senior overlay: entries that move up in a place, by their label, in this order. The rest keep their
+// order after them; the demoted ones (SENIOR_DEMOTED) sink to the end of the place. Nothing is dropped.
+const SENIOR_ENTRY_ORDER: Record<string, string[]> = {
+  Network: ['This week', 'Recruiters', 'Be found', 'Contacts'],
+  Learn: ['Learn new skills'],
+}
+
+export function seniorEntryOrder(placeLabel: string, entries: MenuEntry[]): MenuEntry[] {
+  const first = SENIOR_ENTRY_ORDER[placeLabel] ?? []
+  const rank = (e: MenuEntry) => (e.muted ? 1000 : first.includes(e.label) ? first.indexOf(e.label) : 100)
+  return entries.map((e, i) => ({ e, i })).sort((a, b) => rank(a.e) - rank(b.e) || a.i - b.i).map((x) => x.e)
 }
 
 export function groupsOf(place: PlaceShape): PlaceGroup[] {
@@ -137,25 +152,27 @@ export function groupsOf(place: PlaceShape): PlaceGroup[] {
 
 /** The place's menu entries for this member and page: hidden tabs dropped, locks explained. */
 export function menuEntries(
-  place: PlaceShape,
+  place: PlaceShape & { label?: string },
   pathname: string,
-  opts: { employed: boolean; earlyCareer?: boolean; locks: NavLocks; paidAccess: PaidAccess },
+  opts: { employed: boolean; earlyCareer?: boolean; locks: NavLocks; paidAccess: PaidAccess; senior?: SeniorOverlay },
 ): MenuEntry[] {
-  const shown = new Set(visibleTabs(place, { employed: opts.employed, earlyCareer: opts.earlyCareer, mode: opts.locks.mode }).map((t) => t.href))
+  const senior = opts.senior ?? NO_SENIOR_OVERLAY
+  const shown = new Set(visibleTabs(place, { employed: opts.employed, earlyCareer: opts.earlyCareer, mode: opts.locks.mode, senior }).map((t) => t.href))
   const current = activeTab(place, pathname)
   const entries: MenuEntry[] = []
   for (const g of groupsOf(place)) {
     const tabs = g.hrefs.map((h) => place.tabs.find((t) => t.href === h)).filter((t): t is PlaceTab => !!t && shown.has(t.href))
     if (tabs.length === 0) continue
-    const open = tabs.find((t) => !lockReasonFor(t.href, opts.locks, t))
+    const open = tabs.find((t) => !lockReasonFor(t.href, opts.locks, t, senior))
     entries.push({
       label: g.label,
       href: open ? resolveTabHref(open, opts.paidAccess) : null,
       tabs,
-      lockReason: open ? null : lockReasonFor(tabs[0].href, opts.locks, tabs[0]),
+      lockReason: open ? null : lockReasonFor(tabs[0].href, opts.locks, tabs[0], senior),
       active: !!current && tabs.some((t) => t.href === current.href),
       activeTab: tabs.find((t) => t.href === current?.href) ?? null,
+      muted: !!open && tabs.some((t) => t.menuKeys?.some((k) => seniorDemoted(k, senior))) || undefined,
     })
   }
-  return entries
+  return senior.on ? seniorEntryOrder(place.label ?? '', entries) : entries
 }
