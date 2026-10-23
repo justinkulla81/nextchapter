@@ -5343,6 +5343,12 @@ model ExclusiveJobPosting {
   // ~160 characters, quoted on the open job and the public job page. Null = not flagged.
   // prisma/manual/2026-10-23-entry-signals.sql.
   noExperiencePhrase String?
+  // The posting's own words that set postingSignals' training_provided (crawler ncrawl/entry_signals.py
+  // detect_training, an allowlist: "12-week paid training program", rotational / leadership development
+  // programs, apprenticeships, "comprehensive training provided" …), at most ~160 characters, quoted on the open
+  // job and the public job page. Its own column so a job with both entry flags quotes each cleanly.
+  // Null = not flagged. prisma/manual/2026-10-23-training-provided.sql.
+  trainingPhrase String?
   // The broader "AI-exposed" metric (crawler ai_profile, prisma/manual/2026-10-20-ai-exposure.sql):
   // a specific AI skill, an AI/ML title term, a data & AI role whose role text mentions AI, or an AI
   // tool named in the role text. aiExposureWhy lists which rules fired (skill | title | function |

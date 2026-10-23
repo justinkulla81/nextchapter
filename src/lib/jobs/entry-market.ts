@@ -6,6 +6,8 @@ export interface EntryMarketRow {
   /** Entry and early-career jobs in this group. */
   entry: number
   noExp: number
+  /** training_provided (absent in snapshots stored before the flag). */
+  training?: number
   entryAi: number
 }
 
@@ -15,6 +17,10 @@ export interface EntryMarket {
   /** Of those, crawler level ENTRY_IC or EARLY_IC. */
   entry: number
   noExp: number
+  /** Entry and early-career jobs describing a training program for new hires; absent in older snapshots. */
+  training?: number
+  /** Of those, also no_experience_ok (the two flags are independent). */
+  trainingAndNoExp?: number
   entryAi: number
   /** entryAi where every AI ask says preferred / a plus (the rest ask for it as a requirement). */
   entryAiPreferred: number

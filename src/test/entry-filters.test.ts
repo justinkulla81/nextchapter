@@ -24,6 +24,25 @@ describe('entry filter URL parameter', () => {
   })
 })
 
+describe('Training provided filter', () => {
+  it('is the third entry key, independent of No experience needed', () => {
+    expect(parseEntryParam('train,noexp')).toEqual(['noexp', 'train'])
+    expect(toggleEntryParam(['noexp', 'ai'], 'train')).toBe('noexp,ai,train')
+    expect(toggleEntryParam(['train'], 'train')).toBeNull()
+    expect(passesEntryFilters(['training_provided'], ['train'])).toBe(true)
+    expect(passesEntryFilters(['no_experience_ok'], ['train'])).toBe(false)
+    expect(passesEntryFilters(['no_experience_ok', 'training_provided'], ['noexp', 'train'])).toBe(true)
+  })
+  it('is stored by the import but never shown as a card tag', () => {
+    expect(importPostingSignalFields({ postingSignals: ['training_provided', 'no_experience_ok', 'entry_ai'] })).toEqual({
+      postingSignals: ['no_experience_ok', 'training_provided', 'entry_ai'],
+    })
+    expect(postingSignalTag(['training_provided'])).toBeNull()
+    expect(postingSignalTag(['training_provided', 'no_experience_ok'])).toBe('no_experience_ok')
+    expect(isOpenToChangers(['training_provided'])).toBe(false)
+  })
+})
+
 describe('passesEntryFilters', () => {
   it('needs every filter that is on', () => {
     expect(passesEntryFilters(['no_experience_ok'], ['noexp'])).toBe(true)
@@ -64,9 +83,13 @@ describe('noExperienceQuote', () => {
 describe('workforce line and admin percentages', () => {
   it('floors both counts and drops a missing half', () => {
     const base = { live: 1, checked24h: 0, aiSkill: 0, government: 0, nonprofit: 0, academia: 0, flagged: 0, clearance: 0, employers: 0, occupations: 0, industries: 0, functions: 0, states: 0, places: 0 }
-    expect(entryLevelLine({ ...base, entryNoExp: 2953, entryAi: 9987 })).toBe(
-      `${floorCount(2953)} entry-level jobs welcome people with no experience; ${floorCount(9987)} entry-level jobs ask for AI skills.`
+    expect(entryLevelLine({ ...base, entryNoExp: 2953, entryTraining: 1640, entryAi: 9987 })).toBe(
+      `${floorCount(2953)} entry-level jobs welcome people with no experience; ${floorCount(1640)} include a training program; ${floorCount(9987)} ask for AI skills.`
     )
+    expect(entryLevelLine({ ...base, entryNoExp: 2953, entryAi: 9987 })).toBe(
+      `${floorCount(2953)} entry-level jobs welcome people with no experience; ${floorCount(9987)} ask for AI skills.`
+    )
+    expect(entryLevelLine({ ...base, entryNoExp: 0, entryTraining: 40, entryAi: 120 })).toBe('40 entry-level jobs include a training program; 120 ask for AI skills.')
     expect(entryLevelLine({ ...base, entryNoExp: 0, entryAi: 120 })).toBe('120 entry-level jobs ask for AI skills.')
     expect(entryLevelLine({ ...base })).toBeNull()
     expect(entryLevelLine(null)).toBeNull()
