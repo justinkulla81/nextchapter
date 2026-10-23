@@ -56,4 +56,11 @@ describe('personalization: nothing we know does not apply is shown', () => {
     const keys = m.map((x) => `${(x.program.url ?? '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/[#?].*$/, '').replace(/\/$/, '')}|${x.program.state}|${x.goal}`)
     expect(new Set(keys).size).toBe(keys.length)
   })
+
+  it('shows statewide programs to residents of that state, and not to residents of other states', () => {
+    const ga = matchPrograms(rows, { ...marketer, state: 'GA', city: 'Atlanta' }).map((x) => x.program.name)
+    expect(ga.some((n) => /Georgia partial earnings allowance/i.test(n))).toBe(true)
+    const tx = matchPrograms(rows, marketer).map((x) => x.program.name)
+    expect(tx.some((n) => /Georgia partial earnings allowance/i.test(n))).toBe(false)
+  })
 })

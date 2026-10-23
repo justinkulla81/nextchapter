@@ -334,8 +334,9 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
     // Money for residents: fits only the state they live in.
     if (!m.state || m.state !== rowState) return null
     // A city or county program fits only if they live there.
-    if (r.locality && !cityFits(r.locality, m.city)) return null
-    place = `You live in ${r.locality ? r.locality : rowState}`
+    const local = r.locality && !/^(statewide|state-wide|state|all|nationwide|national|various)\b/i.test(r.locality.trim()) ? r.locality : null
+    if (local && !cityFits(local, m.city)) return null
+    place = `You live in ${local ?? rowState}`
   }
 
   // A person we know nothing about stays in. A person we know does not fit goes out. Work tags need their work
