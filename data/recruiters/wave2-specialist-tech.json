@@ -1,0 +1,263 @@
+[
+ {
+  "fullName": "Maggie Fair",
+  "title": "Managing Director",
+  "firm": "Daversa",
+  "firmWebsite": "https://daversa.com",
+  "city": "New York",
+  "state": "NY",
+  "sourceUrl": "https://daversa.com/team",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "product_design",
+   "data_ai"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Katie Fischer",
+  "title": "Partner",
+  "firm": "Daversa",
+  "firmWebsite": "https://daversa.com",
+  "city": "New York",
+  "state": "NY",
+  "sourceUrl": "https://daversa.com/team",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "product_design"
+  ],
+  "coverageStates": [
+   "NY"
+  ]
+ },
+ {
+  "fullName": "Nicole Kaylor",
+  "title": "Managing Director",
+  "firm": "Daversa",
+  "firmWebsite": "https://daversa.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://daversa.com/team",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "product_design"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Jack Dunn",
+  "title": "Partner",
+  "firm": "Daversa",
+  "firmWebsite": "https://daversa.com",
+  "city": "San Francisco",
+  "state": "CA",
+  "sourceUrl": "https://daversa.com/team",
+  "industries": [
+   "technology",
+   "energy",
+   "aerospace_defense"
+  ],
+  "functions": [
+   "engineering",
+   "data_ai"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Alex Lebow",
+  "title": "Partner",
+  "firm": "Daversa",
+  "firmWebsite": "https://daversa.com",
+  "city": "Los Angeles",
+  "state": "CA",
+  "sourceUrl": "https://daversa.com/team",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "finance",
+   "operations"
+  ],
+  "coverageStates": [
+   "CA"
+  ]
+ },
+ {
+  "fullName": "Will Sheridan",
+  "title": "Director",
+  "firm": "Daversa",
+  "firmWebsite": "https://daversa.com",
+  "city": "Orlando",
+  "state": "FL",
+  "sourceUrl": "https://daversa.com/team",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "sales"
+  ],
+  "coverageStates": [
+   "FL"
+  ]
+ },
+ {
+  "fullName": "Jeremy King",
+  "title": "President",
+  "firm": "Benchmark Executive Search",
+  "firmWebsite": "https://www.benchmarkes.com",
+  "city": "Reston",
+  "state": "VA",
+  "email": "jeremy@benchmarkes.com",
+  "phone": "703.728.8506",
+  "sourceUrl": "https://www.benchmarkes.com/team/",
+  "industries": [
+   "technology",
+   "government",
+   "aerospace_defense"
+  ],
+  "functions": [
+   "it_security",
+   "executive"
+  ],
+  "coverageStates": [
+   "VA"
+  ]
+ },
+ {
+  "fullName": "Bryan Fishman",
+  "title": "Practice Manager",
+  "firm": "High Country Search Group",
+  "firmWebsite": "https://highcountrysearch.com",
+  "city": "Denver",
+  "state": "CO",
+  "email": "Bryan@highcountrysearch.com",
+  "phone": "(720) 279 9144",
+  "sourceUrl": "https://highcountrysearch.com/team/bryan-fishman/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "it_security",
+   "engineering"
+  ],
+  "coverageStates": [
+   "CO"
+  ]
+ },
+ {
+  "fullName": "Will Wegert",
+  "title": "Partner, Practice Manager",
+  "firm": "High Country Search Group",
+  "firmWebsite": "https://highcountrysearch.com",
+  "city": "Denver",
+  "state": "CO",
+  "email": "will@highcountrysearch.com",
+  "phone": "(720) 221-5392",
+  "sourceUrl": "https://highcountrysearch.com/team/will-wegert/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CO"
+  ]
+ },
+ {
+  "fullName": "Kassidy Farina",
+  "title": "Principal Tech Recruiter",
+  "firm": "High Country Search Group",
+  "firmWebsite": "https://highcountrysearch.com",
+  "city": "Denver",
+  "state": "CO",
+  "email": "kassidy@highcountrysearch.com",
+  "phone": "(720) 403-2985",
+  "sourceUrl": "https://highcountrysearch.com/team/kassidy-farina/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "CO"
+  ]
+ },
+ {
+  "fullName": "Liesl Coates",
+  "title": "Technical Recruiter",
+  "firm": "IT Motives",
+  "firmWebsite": "https://www.itmotives.com",
+  "city": "Portland",
+  "state": "OR",
+  "sourceUrl": "https://www.itmotives.com/meet-us/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Tony Seminary",
+  "title": "Founder & CEO",
+  "firm": "IT Motives",
+  "firmWebsite": "https://www.itmotives.com",
+  "city": "Portland",
+  "state": "OR",
+  "email": "tony@itmotives.com",
+  "sourceUrl": "https://www.itmotives.com/meet-us/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "executive"
+  ],
+  "coverageStates": [
+   "OR"
+  ]
+ },
+ {
+  "fullName": "Zack Armstrong",
+  "title": "Vice President, Technology Search",
+  "firm": "Quantum Search Partners",
+  "firmWebsite": "https://www.quantumsearchpartners.com",
+  "city": "Arlington",
+  "state": "VA",
+  "email": "zarmstrong@qtrg.com",
+  "sourceUrl": "https://www.quantumsearchpartners.com/who-we-are/",
+  "industries": [
+   "technology"
+  ],
+  "functions": [
+   "engineering",
+   "it_security",
+   "data_ai"
+  ],
+  "coverageStates": [
+   "VA"
+  ]
+ }
+]
