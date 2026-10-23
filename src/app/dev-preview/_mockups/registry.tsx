@@ -24,6 +24,7 @@ import { WorkHelpMock } from './work-help'
 import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
 import { PortalHeaders } from './portal-headers'
 import { FundingLive } from './funding-live'
+import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
@@ -42,6 +43,11 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'jobs/live/compare-places', place: 'Jobs', title: 'Compare places: out of work, two places (sample data)', replaces: 'new page; adds one entry under Market and pay, removes nothing', Component: ComparePlacesJobless },
+  { path: 'jobs/live/compare-places-employed', place: 'Jobs', title: 'Compare places: employed, two places (sample data)', replaces: 'new page', Component: ComparePlacesEmployed },
+  { path: 'jobs/live/compare-places-life', place: 'Jobs', title: 'Compare places: just for life there (sample data)', replaces: 'new page', Component: ComparePlacesLife },
+  { path: 'jobs/live/compare-places-empty', place: 'Jobs', title: 'Compare places: nothing chosen yet (sample data)', replaces: 'new page', Component: ComparePlacesEmpty },
+  { path: 'jobs/live/compare-places-no-city', place: 'Jobs', title: 'Compare places: no city on the profile (sample data)', replaces: 'new page', Component: ComparePlacesNoCity },
   { path: 'learn/funding-live', place: 'Learn', title: 'Funding you qualify for: the built page (sample data)', replaces: 'the code that ships, fed sample data', Component: FundingLive },
   { path: 'jobs/market/ai-exposure-report', place: 'Jobs', title: 'AI exposure: your market reality', replaces: 'the “AI is reshaping this work” line in the market report', Component: ExposureMarketReport },
   { path: 'home/tailored/ai-exposure-strategy', place: 'Home', title: 'AI exposure: search strategy', replaces: 'the “AI skills” line under open roles', Component: ExposureSearchStrategy },
