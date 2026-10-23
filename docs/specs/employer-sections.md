@@ -14,6 +14,12 @@ One employer organization with separate sections. Each section can be claimed by
 | Job retraining | Retraining for people whose jobs are changing. | Not built. Label declared only. |
 | Hiring | Roles, candidate inbox, scorecards, analytics. | Built, separately: `/talent`, `EmployerProfile`, `EmployerSeat`. Not linked to the above. |
 
+## Owner answers, 2026-10-23
+
+- Sign in once; the person sees only the sections they hold.
+- Organize the sections by the employee lifecycle instead of five equal parts: **Hiring** (future employees), **Grow and keep** (current employees: learning and development, retention, job retraining as services inside it) and **Outplacement** (departing employees). Three claimable and payable sections; the five names stay as the service names inside them. The top bar label keeps showing the specific service ("Employer · Learning and development").
+- Pricing: see docs/specs/plans-and-pricing-structure.md.
+
 ## What exists that this builds on
 
 - `Organization` and `OrgWorkspace` (one per organization and type: HIGHER_ED, OUTPLACEMENT, WORKFORCE, COACH, HIRING, RECRUITER; `refId` points at the portal's own record). Today the workspace only carries a shared brand and integration flags.
@@ -31,6 +37,5 @@ One employer organization with separate sections. Each section can be claimed by
 
 ## Open questions for the owner
 
-- Single sign-on across sections, or one login per section?
-- Does Retention need its own contract type, or stay as GROWTH inside the outplacement contract?
-- What does an enterprise package include, and is it priced per employee or flat?
+- Does Grow and keep keep GROWTH and LEARNING as two contract types underneath, or become one contract with services? (Suggest one contract with services, so a buyer chooses services and not contract types.)
+- Enterprise package contents and price: see the pricing structure; numbers are the owner's.
