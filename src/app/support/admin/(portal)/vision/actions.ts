@@ -7,7 +7,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { defaultAreaForKind } from '@/lib/vision/labels'
-import { cleanAreas, cleanRelationship, hostOf, homepageOf, parseCustomers, parseLines, parseWins, parseUsd, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
+import { cleanAreas, cleanRelationship, cleanStatus, hostOf, homepageOf, parseCustomers, parseLines, parseWins, parseUsd, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
 import { enrichCompetitor, type EnrichedCompetitor } from '@/lib/vision/competitor-enrich'
 import { notifyCandidateFeedbackAddressed } from '@/lib/help/notify'
 import type {
@@ -328,6 +328,11 @@ export async function upsertCompetitor(formData: FormData) {
     lastRound: text('lastRound', 120),
     investors: text('investors', 200),
     notes: text('notes', 1200),
+    status: cleanStatus(formData.get('status')),
+    statusNote: text('statusNote', 400),
+    lessons: parseLines(formData.get('lessons'), 8),
+    partnerIdea: text('partnerIdea', 300),
+    category: text('category', 40),
     revenueNote: text('revenueNote', 160),
     fundingRaisedUsd: funding && funding <= 2_147_483_647 ? funding : null,
     headcount: num('headcount'),
@@ -354,6 +359,7 @@ function cardData(e: EnrichedCompetitor) {
     pricingNote: e.pricingNote, foundedYear: e.foundedYear, hq: e.hq, lastRound: e.lastRound, investors: e.investors,
     fundingRaisedUsd: e.fundingRaisedUsd && e.fundingRaisedUsd <= 2_147_483_647 ? e.fundingRaisedUsd : null,
     headcount: e.headcount, revenueNote: e.revenueNote, userCountNote: e.userCountNote, sourceUrl: e.sourceUrl, notes: e.notes,
+    status: e.status, statusNote: e.statusNote, lessons: e.lessons, partnerIdea: e.partnerIdea,
   }
 }
 
@@ -423,6 +429,9 @@ export async function refreshCompetitorFromWebsite(competitorId: string) {
         fundingRaisedUsd: n.fundingRaisedUsd ?? c.fundingRaisedUsd, headcount: n.headcount ?? c.headcount,
         revenueNote: n.revenueNote ?? c.revenueNote, userCountNote: n.userCountNote ?? c.userCountNote,
         sourceUrl: n.sourceUrl ?? c.sourceUrl, notes: c.notes ?? n.notes,
+        relationship: c.filledBy === 'hand' ? c.relationship : n.relationship,
+        status: n.status !== 'ACTIVE' ? n.status : c.status, statusNote: n.statusNote ?? c.statusNote,
+        lessons: union(c.lessons, e.lessons, 8), partnerIdea: c.partnerIdea ?? n.partnerIdea,
         needsReview: true, lastReviewedAt: new Date(), filledBy: c.filledBy ?? 'website',
       },
     })

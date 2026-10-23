@@ -11832,6 +11832,15 @@ model ProductCompetitor {
   /// How the row was filled: hand | website | seed. A website or seed fill is a draft until reviewed.
   filledBy     String?
   needsReview  Boolean  @default(false)
+  /// ACTIVE | ACQUIRED | SHUT_DOWN | PIVOTED. A company that failed or was folded in is on the list on purpose:
+  /// what went wrong is the cheapest lesson there is.
+  status       String   @default("ACTIVE")
+  statusNote   String?
+  lessons      String[] @default([])
+  /// One sentence on how we could work with them, when they are more useful beside us than against us.
+  partnerIdea  String?
+  /// The market this company was found in (outplacement, coaching, recruiter CRM ...), for grouping.
+  category     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -16436,4 +16445,38 @@ model LinkedInAdminConnection {
   expiresAt      DateTime
   connectedAt    DateTime  @default(now())
   disconnectedAt DateTime?
+}
+
+/// What one buyer's own website says it buys and who to call: a workforce board, an EDA district, a local
+/// economic development group or a state workforce agency. Written by scripts/geo/crawl_procurement.py and
+/// loaded by scripts/geo/load-buyer-crawl.ts. One row per site, replaced on each crawl.
+model BuyerCrawl {
+  /// "<KIND>-<id>", e.g. BOARD-1234, EDD-edd-12, EDO-edo-ab12cd, STATE-state-KY.
+  id                String   @id
+  kind              String // BOARD | EDD | EDO | STATE
+  targetId          String
+  name              String
+  state             String
+  website           String?
+  crawledAt         DateTime
+  httpStatus        Int?
+  error             String?
+  pagesCrawled      Int      @default(0)
+  /// The page most likely to list open solicitations.
+  procurementUrl    String?
+  solicitations     Json? // [{ label, url, dates[], context, pdf }]
+  solicitationCount Int      @default(0)
+  /// Solicitations with a date inside the last 12 months or in the future.
+  recentCount       Int      @default(0)
+  people            Json? // [{ name, title, email, phone }] as published, unverified
+  emails            String[] @default([])
+  phones            String[] @default([])
+  systems           String[] @default([]) // vendors and platforms the site names
+  topics            String[] @default([]) // ai, reskilling, rapid_response, ...
+  policy            Json? // sentences about sole source, small purchase, competitive bids
+  rapidResponseNote String?  @db.Text
+  updatedAt         DateTime @default(now()) @updatedAt
+
+  @@index([kind, state])
+  @@index([recentCount])
 }
