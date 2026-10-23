@@ -1,18 +1,7 @@
-import { headers } from 'next/headers'
-import { NotFoundView } from '@/components/not-found/NotFoundView'
-import { getCurrentUser } from '@/lib/supabase/get-current-user'
-import { SUPPORT_HELP_PATH } from '@/lib/help/constants'
+import { AutoNotFound } from '@/components/not-found/AutoNotFound'
 
-// Every unknown address, on the main site and the portal hosts. Home depends on who is looking:
-// admins go back to the admin portal, signed-in candidates to their dashboard, everyone else to the front page.
-export default async function NotFound() {
-  const host = ((await headers()).get('host') ?? '').toLowerCase()
-  if (host.startsWith('admin.')) {
-    return <NotFoundView audience="admin" homeHref="/" homeLabel="Back to admin home" reportHref="https://launchyournextchapter.com/contact" />
-  }
-  const user = await getCurrentUser().catch(() => null)
-  if (user) {
-    return <NotFoundView audience="candidate" homeHref="/dashboard" homeLabel="Back to your dashboard" reportHref={SUPPORT_HELP_PATH} />
-  }
-  return <NotFoundView audience="public" homeHref="/" homeLabel="Go to the home page" reportHref="/contact" />
+// Every unknown address, on the main site and the portal hosts. Static on purpose (see AutoNotFound):
+// no headers() or cookies() here, or cached pages that call notFound() return 500s.
+export default function NotFound() {
+  return <AutoNotFound />
 }
