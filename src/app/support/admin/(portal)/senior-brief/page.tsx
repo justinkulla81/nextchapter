@@ -42,30 +42,37 @@ export default async function SeniorBriefAdminPage() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
+      <div className="space-y-3">
         <h1 className="text-2xl font-semibold">Senior Monday brief</h1>
-        <p className="text-sm" role="status">
-          {enabled ? 'On.' : 'Off.'} Set <code>SENIOR_BRIEF_ENABLED=true</code> to send it on Mondays. Weekly ceiling: {ceiling} drafts (<code>SENIOR_BRIEF_WEEKLY_CEILING</code>). One draft per member per 6 days, always.
+        <p className="max-w-2xl text-base">
+          Every Monday, senior members who connected their Gmail get one email: &ldquo;a message to someone you know is written and ready.&rdquo;
+          It is either a follow-up to a recruiter they spoke with a few weeks ago, or a note to their warmest contact at a company they are watching.
+          Opening it puts the message in their own Gmail, ready to send. We never send anything for them.
+        </p>
+        <p className="max-w-2xl text-base" role="status">
+          {enabled
+            ? `The Monday email is on. At most ${ceiling} messages are written per week, and no member gets more than one in six days.`
+            : `The Monday email is off, so no member will get it yet. Look at a sample first (below), then tell Claude to turn it on.`}
         </p>
       </div>
 
       {rows === null ? (
-        <p className="text-sm">The draft table could not be loaded. Apply <code>prisma/manual/senior-brief.sql</code> and reload.</p>
+        <p className="text-sm">This page could not load its numbers. Tell Claude and it will fix it.</p>
       ) : weeks.length === 0 ? (
-        <p className="text-sm">No drafts yet. Send yourself a test below.</p>
+        <p className="text-sm">No messages written for members yet. Send yourself a sample below to see one.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <caption className="sr-only">Drafts, members and estimated model cost by week</caption>
+            <caption className="sr-only">Messages written, members and estimated cost by week</caption>
             <thead>
               <tr>
-                <th scope="col" className="py-2 pr-4">Week of</th>
-                <th scope="col" className="py-2 pr-4">Drafts</th>
+                <th scope="col" className="py-2 pr-4">Week starting</th>
+                <th scope="col" className="py-2 pr-4">Messages written</th>
                 <th scope="col" className="py-2 pr-4">Members</th>
-                <th scope="col" className="py-2 pr-4">Emailed</th>
+                <th scope="col" className="py-2 pr-4">Emails sent</th>
                 <th scope="col" className="py-2 pr-4">Opened</th>
-                <th scope="col" className="py-2 pr-4">Tokens in / out</th>
-                <th scope="col" className="py-2 pr-4">Est. cost</th>
+                <th scope="col" className="py-2 pr-4">Words read / written (tokens)</th>
+                <th scope="col" className="py-2 pr-4">Cost</th>
                 <th scope="col" className="py-2 pr-4">Per member</th>
               </tr>
             </thead>
@@ -85,13 +92,13 @@ export default async function SeniorBriefAdminPage() {
             </tbody>
           </table>
           <p className="pt-2 text-sm">
-            Last {WEEKS} weeks: {totalMembers} members, ${total.toFixed(4)} estimated at Claude Haiku 4.5 list price. Test sends are not counted.
+            Last {WEEKS} weeks: {totalMembers} members, ${total.toFixed(4)} estimated cost. Samples sent to you are not counted.
           </p>
         </div>
       )}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Review the first one</h2>
+        <h2 className="text-lg font-semibold">See a sample</h2>
         <TestSendForm adminEmail={ADMIN_NOTIFICATION_EMAIL} />
       </section>
     </div>
