@@ -8,6 +8,7 @@ import {
   bestAreas,
   marketPrompt,
   relativeGrowth,
+  tooFewFor,
   sumCounts,
   type Counts,
   type MarketArea,
@@ -158,6 +159,6 @@ export async function loadMarketSize(m: MarketMember, relevant?: { count: number
       ? sliceBy(rows.map((r) => r.subFunction), (subFunction) => ({ ...base, subFunction }), (v) => subFunctionLabel(v) ?? v)
       : []
   // The member's own count is the strict relevant one (relevance.ts) when the caller has it.
-  const prompt = marketPrompt(relevant?.count ?? counts.openNow, growth)
+  const prompt = marketPrompt(relevant?.count ?? counts.openNow, growth, tooFewFor(target.stages))
   return { target, counts, growth, prompt, areas: bestAreas(areas, 3), allAreas: areas, slices, relevant: relevant ?? null }
 }

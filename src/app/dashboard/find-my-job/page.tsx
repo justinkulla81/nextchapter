@@ -39,6 +39,7 @@ import { GoodMatchesMore } from '@/components/dashboard/GoodMatchesMore'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import { PassedOnPanel } from '@/components/dashboard/PassedOnPanel'
 import { MarketSizeSection } from '@/components/dashboard/MarketSizeSection'
+import { MarketLine } from '@/components/dashboard/MarketLine'
 import { SEARCH_TOO_FEW, SEARCH_TOO_MANY } from '@/components/dashboard/MarketSizeBlock'
 import { becauseLine, DISMISS_REASONS, shouldAskToHide } from '@/lib/jobs/job-dismiss'
 import { breadthReasonsFor } from '@/lib/jobs/search-breadth-server'
@@ -838,6 +839,12 @@ async function JobRecommendationsSection({
       {search && search.active && (searchResultCount >= SEARCH_TOO_MANY || searchResultCount < SEARCH_TOO_FEW) && (
         <Suspense fallback={null}>
           <MarketSizeSection member={profile} surface="board_search" searchCount={searchResultCount} searchQuery={search.params.q} />
+        </Suspense>
+      )}
+      {/* Everyone sees their market in one line. The fuller block above already says it when a search is too wide or too narrow, so the line steps aside then. */}
+      {!(search && search.active && (searchResultCount >= SEARCH_TOO_MANY || searchResultCount < SEARCH_TOO_FEW)) && (
+        <Suspense fallback={null}>
+          <MarketLine member={profile} surface="board" />
         </Suspense>
       )}
       {search && search.active && searchResultCount > 0 && (

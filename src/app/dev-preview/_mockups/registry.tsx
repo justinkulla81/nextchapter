@@ -22,6 +22,7 @@ import { AdminSkillsMatch } from './admin-skills-match'
 import { MarketReportShort } from './report-short'
 import { WorkHelpMock } from './work-help'
 import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureLearn } from './ai-exposure'
+import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
 
@@ -124,6 +125,9 @@ export const MOCKUPS: Mockup[] = [
   { path: 'home/strategy/negotiation-empty', place: 'Home', title: 'Search strategy step 5, nothing answered yet (the built form)', replaces: 'the same form, empty', Component: StrategyNegotiationEmptyLive },
   { path: 'home/strategy', place: 'Home', title: 'Search strategy, simplified', replaces: '/dashboard/search-strategy (about twelve blocks down to three)', Component: SearchStrategySimple },
   { path: 'jobs/market/report', place: 'Jobs', title: 'Market reality report: the one-screen brief', replaces: '/dashboard/market-reality (12 pages down to one screen; the full report stays behind a button)', Component: MarketReportShort },
+  { path: 'home/coach-offer-senior', place: 'Home', title: 'Today: a senior member, few roles, a coach offered with the reason', replaces: 'new: coach offers (Home note) and the market line (journey card)', Component: HomeSeniorCoachOffer },
+  { path: 'home/coach-offer-networking', place: 'Home', title: 'Today: networking is where the search stalls, a coach offered', replaces: 'new: coach offers (Home note)', Component: HomeNetworkingCoachOffer },
+  { path: 'home/coach-offer-pivot', place: 'Home', title: 'Today: widening to a new field, a shrinking market, a coach offered', replaces: 'new: coach offers (Home note)', Component: HomePivotCoachOffer },
   { path: 'home/stalled', place: 'Home', title: 'Today: week 4, no interviews, widen the search', replaces: 'new: time-driven personalization', Component: HomeStalled },
   { path: 'home/checkin', place: 'Home', title: 'The check-in in three tones', replaces: 'mood pop-up and Still searching dialog, merged', Component: CheckIn },
   { path: 'home/journey/entrepreneur', place: 'Home', title: 'Today: building something of my own', replaces: '/dashboard for ENTREPRENEUR', Component: HomeEntrepreneur },
