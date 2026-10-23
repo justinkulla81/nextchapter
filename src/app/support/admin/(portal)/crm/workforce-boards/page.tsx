@@ -12,6 +12,8 @@ import { WorkforceBoardsViewTracker } from '@/components/admin/WorkforceBoardsVi
 import { FitScoreBadge, type FitBreakdown } from '@/components/admin/FitScoreBadge'
 import { buildBoardReport, isCompanyWide, type ReportSort } from '@/lib/workforce/board-report'
 import { jobCentersUrl, STATE_NAMES } from '@/lib/workforce/directory'
+import { countyKey } from '@/lib/workforce/places'
+import { correctFutureDates } from '@/lib/warn/filed-date'
 import { boardCountyKeys, visibleBoards } from '@/lib/workforce/board-area'
 import { boardLabor } from '@/lib/workforce/labor'
 import { formatDate } from '@/lib/crm/labels'
@@ -64,13 +66,13 @@ const loadBoardData = ttlCached(
       },
       select: {
         id: true, workforceBoardId: true, employer: true, normalizedEmployer: true, employees: true,
-        noticeDate: true, effectiveDate: true, companyId: true, sourceUrl: true, source: true, industry: true,
+        noticeDate: true, effectiveDate: true, companyId: true, sourceUrl: true, source: true, industry: true, fetchedAt: true,
       },
     }),
     prisma.workforceBoard.groupBy({ by: ['state'], orderBy: { state: 'asc' } }),
     prisma.countyLabor.findMany({
       where: state ? { state } : {},
-      select: { state: true, fips: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
+      select: { state: true, fips: true, name: true, nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true },
     }),
     // Internal fit score (scripts/geo/score-partners.ts, refreshed weekly).
     // Scores only here; the reasons JSON is fetched for the visible page below.
@@ -245,19 +247,21 @@ export default async function WorkforceBoardsPage({
   const laborFor = (b: (typeof boards)[number]) => {
     const keys = boardCountyKeys(b)
     const rows = laborByState.get(b.state) ?? []
-    return boardLabor(keys === 'all' ? rows : rows.filter((r) => keys.includes(r.nameKey)))
+    // Stored nameKeys keep the space ("los angeles"); boards list "losangeles": join on the key of the name.
+    return boardLabor(keys === 'all' ? rows : rows.filter((r) => keys.includes(countyKey(r.name))))
   }
 
   const countyRows = (b: (typeof boards)[number]) => {
     const keys = boardCountyKeys(b)
     const all = laborByState.get(b.state) ?? []
-    return keys === 'all' ? all : all.filter((r) => keys.includes(r.nameKey))
+    return keys === 'all' ? all : all.filter((r) => keys.includes(countyKey(r.name)))
   }
   // A board's local economy: its counties' population, jobs by sector, open roles and colleges.
   const economyFor = (b: (typeof boards)[number]) => {
     const fips = countyRows(b).map((r) => r.fips)
     const keys = boardCountyKeys(b)
-    const colleges = collegeRows.filter((c) => c.state === b.state && (keys === 'all' || (c.countyKey != null && keys.includes(c.countyKey))))
+    const fipsSet = new Set(fips)
+    const colleges = collegeRows.filter((c) => c.state === b.state && (keys === 'all' || (c.countyFips != null && fipsSet.has(c.countyFips))))
     return {
       ...areaContext(context, fips),
       openJobs: fips.reduce((n, f) => n + (openJobs.get(f) ?? 0), 0),
@@ -274,9 +278,9 @@ export default async function WorkforceBoardsPage({
   // Layoffs filed in the past month (state filings only, not company-wide counts), the flag for a board to call now.
   const monthAgo = daysAgo(30)
   const recentByBoard = new Map<string, { filings: number; jobs: number; companies: Set<string> }>()
-  for (const n of notices) {
-    // A few states publish a date ahead of today (an effective date keyed as the filing date): not "past month".
-    if (!n.workforceBoardId || !n.noticeDate || n.noticeDate < monthAgo || n.noticeDate > new Date() || isCompanyWide(n)) continue
+  for (const raw of notices) {
+    const n = correctFutureDates(raw)
+    if (!n.workforceBoardId || !n.noticeDate || n.noticeDate < monthAgo || isCompanyWide(n)) continue
     const r = recentByBoard.get(n.workforceBoardId) ?? { filings: 0, jobs: 0, companies: new Set<string>() }
     r.filings++; r.jobs += n.employees ?? 0; r.companies.add(n.normalizedEmployer ?? n.employer)
     recentByBoard.set(n.workforceBoardId, r)
@@ -288,7 +292,7 @@ export default async function WorkforceBoardsPage({
     return { bids, grants, leads: stateLeads.get(b.state) ?? null, state: b.state }
   }
 
-  const rows = buildBoardReport(boards, notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { q, sort: sort === 'fit' ? 'jobs' : sort, dir, includeEmpty })
+  const rows = buildBoardReport(boards, notices.map((n) => ({ ...correctFutureDates(n), companyWide: isCompanyWide(n) })), { q, sort: sort === 'fit' ? 'jobs' : sort, dir, includeEmpty })
   if (sort === 'fit') {
     const f = (id: string) => fitById.get(id)?.fitScore ?? -1
     rows.sort((a, b) => (dir === 'asc' ? f(a.board.id) - f(b.board.id) : f(b.board.id) - f(a.board.id)) || b.jobs - a.jobs)
