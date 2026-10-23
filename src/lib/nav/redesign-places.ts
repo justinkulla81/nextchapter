@@ -68,6 +68,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     tabs: [
       tab('This week', '/dashboard/network', { menuKeys: ['network', 'careerNetwork'], alsoMatches: ['/dashboard/email-activity', '/dashboard/calendar-activity'] }),
       tab('Contacts', '/dashboard/network/contacts', { menuKeys: ['contacts'] }),
+      tab('Events to attend', '/dashboard/network/events'),
       tab('References', '/dashboard/references', { menuKeys: ['references'], alsoMatches: ['/dashboard/work-samples'] }),
       tab('Community', '/dashboard/community', { menuKeys: ['community'], alsoMatches: ['/dashboard/circle'] }),
       tab('Inbox', '/dashboard/messages', { menuKeys: ['inbox'] }),
@@ -79,7 +80,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     ],
     groups: [
       { label: 'This week', hrefs: ['/dashboard/network'] },
-      { label: 'Contacts', hrefs: ['/dashboard/network/contacts'] },
+      { label: 'Contacts and events', hrefs: ['/dashboard/network/contacts', '/dashboard/network/events'] },
       { label: 'Community', hrefs: ['/dashboard/community', '/dashboard/messages', '/dashboard/groups'] },
       { label: 'References and supporters', hrefs: ['/dashboard/references', '/dashboard/supporters'] },
       { label: 'Coaching', hrefs: ['/dashboard/my-coaching'] },
