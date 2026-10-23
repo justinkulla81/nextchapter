@@ -10552,6 +10552,14 @@ model CrmPerson {
   // an org never collide with each other.
   normalizedKey String?
 
+  /// Recruiter coverage (see src/lib/crm/coverage.ts): two-letter states or NATIONAL,
+  /// job-board industry keys, and function keys. Empty = not tagged yet.
+  /// coverageSource says how: 'derived' (read off title, location, firm) or 'research' (found and tagged by hand).
+  coverageStates     String[] @default([])
+  coverageIndustries String[] @default([])
+  coverageFunctions  String[] @default([])
+  coverageSource     String?
+
   roles    CrmPersonRole[] @default([])
   /// Derived from roles by goalsForRoles(), then editable by hand — a
   /// manual choice must survive the next re-derivation.
