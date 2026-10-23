@@ -9,6 +9,8 @@ import { describePay, formatPay, OEWS_WAGE_CEILING } from '@/lib/careers/local-p
 import { aiMarketLineForOccupation } from '@/lib/skills/ai-skill-market'
 import { ExposureFact, ExposureTag } from '@/components/candidate/AiExposure'
 import type { OccupationExposure } from '@/lib/skills/ai-exposure'
+import { LastSalaryAsk } from '@/components/dashboard/LastSalaryAsk'
+import { ROLE_SALARY_NOTE, roleVsLastSalaryLine } from '@/lib/market/salary-compare'
 import { exposureComparisonLine, payChangeLine } from '@/lib/skills/pivot-exposure'
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -57,6 +59,8 @@ export function PivotRoleDetail({
   showLocalOpenings,
   exposure = null,
   currentExposure = null,
+  lastSalary = null,
+  askSalary = false,
 }: {
   option: PivotOption
   state: string | null
@@ -69,6 +73,10 @@ export function PivotRoleDetail({
   /** Observed AI exposure of this role and of the member's current occupation; null when not measured (those lines are then hidden). */
   exposure?: OccupationExposure | null
   currentExposure?: OccupationExposure | null
+  /** The member's last annual salary, loaded once for the page; null when not given. */
+  lastSalary?: number | null
+  /** Ask for it here when missing. Only the one open role asks; a long list of cards does not repeat the ask. */
+  askSalary?: boolean
 }) {
   const skillsToAdd = [...option.toolGaps.map((t) => t.name), ...option.ratedGaps.filter((g) => g.kind === 'KNOWLEDGE').map((g) => g.name)]
   const broad = option.ratedGaps.filter((g) => g.kind !== 'KNOWLEDGE')
@@ -76,6 +84,14 @@ export function PivotRoleDetail({
   const ai = aiMarketLineForOccupation(option.socCode, option.title)
   const pay = payChangeLine(option.wageDeltaPct, option.payAtLeast)
   const comparison = exposureComparisonLine(currentExposure, exposure)
+  // The role's typical pay where the member lives, as a yearly figure. When BLS withholds the exact figure it is a floor.
+  const rolePay = option.pay
+  const payFigure = rolePay?.median ?? (rolePay?.ceilingHit ? OEWS_WAGE_CEILING : null)
+  const payIsFloor = !!rolePay && rolePay.median === null && rolePay.ceilingHit
+  const salaryLine =
+    lastSalary && rolePay && payFigure
+      ? roleVsLastSalaryLine({ pay: payFigure, atLeast: payIsFloor || option.payAtLeast, lastSalary, areaName: rolePay.level === 'NATIONAL' ? 'nationwide' : rolePay.areaName })
+      : null
 
   return (
     <div className="space-y-4">
@@ -85,8 +101,18 @@ export function PivotRoleDetail({
             {pay && <span className="text-base font-semibold text-foreground">{pay}</span>}
             {exposure && <ExposureTag exposure={exposure} />}
           </div>
-          {pay && <p className="text-xs text-muted-foreground">Median pay for this role, {payBasisLabel(option)}, compared like for like with your field.</p>}
+          {pay && <p className="text-xs text-muted-foreground">Median pay for this role, {payBasisLabel(option)}, compared like for like with your field.{salaryLine ? ` ${ROLE_SALARY_NOTE}` : ''}</p>}
         </div>
+      )}
+
+      {salaryLine && <p className="text-sm font-semibold text-foreground">{salaryLine}</p>}
+      {!lastSalary && askSalary && payFigure && (
+        <LastSalaryAsk
+          heading="Compare this pay with your last salary"
+          body="Tell us what you earned in your last role and we will show how this role’s typical pay compares."
+          source="pivot"
+          contextId={option.socCode}
+        />
       )}
 
       <dl className="grid gap-3 sm:grid-cols-3">

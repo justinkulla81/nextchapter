@@ -7,7 +7,8 @@ import { PageHeader } from '@/components/candidate/PageHeader'
 import { Section } from '@/components/candidate/ui'
 import { TrackedAction } from '@/components/candidate/TrackedAction'
 import { NetworkParts } from '@/components/network/NetworkParts'
-import { AcceptInviteCard, AddPlaceForm, LastSalaryAsk, RemovePlaceButton } from './MovePlanForms'
+import { LastSalaryAsk } from '@/components/dashboard/LastSalaryAsk'
+import { AcceptInviteCard, AddPlaceForm, RemovePlaceButton } from './MovePlanForms'
 
 export const metadata: Metadata = { title: 'Your move plan' }
 
@@ -35,7 +36,12 @@ export default async function MovePlanPage() {
       />
       <NetworkParts current="close" />
       {invite && plan.role !== 'partner' && <AcceptInviteCard linkId={invite.id} ownerName={invite.ownerFirstName ?? 'Your partner'} />}
-      {plan.places.length > 0 && !plan.lastSalary && home?.rpp && <LastSalaryAsk homeName={homeName} />}
+      {plan.places.length > 0 && !plan.lastSalary && home?.rpp && <LastSalaryAsk
+          heading="See what each salary is really worth"
+          body={`A salary goes further in some places than others. What did you earn in your last role? We’ll show each place’s pay in what it would buy you in ${homeName}.`}
+          source="move_plan"
+          homeName={homeName}
+        />}
       {plan.placesHidden && <p className="text-base text-ink">{them ?? 'Your partner'} has not shared the places they are comparing with you.</p>}
       {plan.places.length > 0 && (
         <Section id="places" title={plan.role === 'solo' ? 'Places you are comparing' : 'Where you could both work'}>

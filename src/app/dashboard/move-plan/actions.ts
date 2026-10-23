@@ -27,7 +27,8 @@ export async function removePlaceAction(placeId: string) {
   refresh()
 }
 
-// Asked on the move plan, where it explains the comparison, and nowhere as a stand-alone form.
+// Asked only where it explains a comparison (the move plan, a job's pay, a pivot role's pay), never as a stand-alone form.
+const ASK_SOURCES = ['move_plan', 'job_detail', 'pivot'] as const
 export async function saveLastSalaryAction(_prev: State, formData: FormData): Promise<State> {
   const profile = await getDashboardProfile()
   const digits = String(formData.get('salary') ?? '').replace(/[^0-9]/g, '')
@@ -36,8 +37,14 @@ export async function saveLastSalaryAction(_prev: State, formData: FormData): Pr
   const lastSalary = n >= 1000 ? Math.round(n / 1000) * 1000 : n * 1000
   if (!digits || lastSalary < 10_000 || lastSalary > 5_000_000) return { error: 'Enter your yearly pay before taxes, like 120,000.' }
   await prisma.candidateProfile.update({ where: { id: profile.id }, data: { lastSalary, salaryConfirmedAt: new Date() } })
-  captureServerEvent(profile.id, 'last_salary_added', { source: 'move_plan' })
+  const sent = String(formData.get('source') ?? '')
+  const source = ASK_SOURCES.find((s) => s === sent) ?? 'move_plan'
+  const contextId = String(formData.get('contextId') ?? '').slice(0, 80) || null
+  captureServerEvent(profile.id, 'last_salary_added', { source, contextId })
   revalidatePath('/dashboard/move-plan')
+  revalidatePath('/dashboard/find-my-job')
+  revalidatePath('/dashboard/jobs/[id]', 'page')
+  revalidatePath('/dashboard/pivot-paths')
   revalidatePath('/dashboard/market-reality')
   return { ok: true }
 }
