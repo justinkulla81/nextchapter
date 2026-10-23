@@ -135,6 +135,13 @@ These involve real legal/compliance exposure (financial advice, legal-document i
 - **Gmail-derived funnel counts** — fill applications, interviews and offers in the last 30 days from connected Gmail so the onboarding fallback question is skipped.
 - **Report history** — keep dated report versions so members can see the read change over months, not just week to week.
 
+## Personal job assistant (not built)
+
+- A personal job assistant that acts for the member, remembers them and reaches them (email, push, share sheet), working on its own or alongside the online portal. The portal stays the deeper workspace and the source of truth. Owner decision 2026-10-23: park it here as a future idea; no spec sign-off and no build yet.
+- Where the thinking is: the draft spec `docs/specs/NextChapter_Personal_Job_Assistant.md` exists only on branch `claude/peaceful-ride-8ib5z2` (not in `main`; v0.3, section 14 lists ideas by journey), and the audit against the redesign is `docs/session-audit/personal-assistant.md`. No assistant code exists. The pieces already in `main` that it would build on: the coach (`src/lib/victoria.ts`, `src/lib/coach/`), the daily one thing, the apply kit, Gmail and Calendar, negotiation.
+- Constraints already decided in the draft: an authority ladder per capability that defaults to draft; nothing that spends money, accepts legal terms or makes first contact with an employer happens without the member's tap; no mass-apply; memory the member can see, edit and delete; nothing runs for members in Confidential Search Mode.
+- Before any build: a half-page decision on what it does first, for whom, and what it must never do.
+
 ## Employer pitch: CHRO, head of L&D and the four services (not built)
 
 The CRM now grades employers (A layoff notice, B more than 5 open jobs, C neither), tags CHRO and head of L&D contacts, and exports the Organizations list. What is left:
