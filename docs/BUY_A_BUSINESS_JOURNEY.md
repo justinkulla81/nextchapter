@@ -37,13 +37,14 @@ Buying is not a replacement for a job search, so it is not only a journey:
 
 ## Information we collect (the buying profile)
 
-Ten questions, asked two or three at a time with the reason first, all private (never shown to employers, recruiters,
+Twelve questions, asked two or three at a time with the reason first, all private (never shown to employers, recruiters,
 schools or coaches). A blank answer never clears an earlier one. Each answer is read by something:
 
 | Question | Used for |
 | --- | --- |
 | Skills (multi) | Fit to industries; coach and report framing |
 | Industries (multi) | Orders marketplaces; picks training |
+| Main reason to own (own boss, wealth, employers not hiring, need income, keep a business going) | One plain note on the Plan tab; "hiring" and "income" point at interim or fractional work and the job search as a parallel path, because buying takes six months to a year. Asked once: not the same as "What motivates you?" (coaching tone) or What I Need (independence at work) |
 | Owner earnings wanted (SDE band) | Orders marketplaces (Baton, Axial, online brokers by size) |
 | Cash to invest | Price range the cash supports (SBA 10% rule plus ~5% closing and cushion) |
 | How you expect to pay (multi) | Orders financing options; adds the SBA check to the Search plan |
@@ -51,6 +52,7 @@ schools or coaches). A blank answer never clears an earlier one. Each answer is 
 | Where | Local brokers and lenders; SBDC |
 | When | Weekly pace |
 | Alone, partner, investors | Who signs; what a lender looks at |
+| Hard parts you are ready for (multi: long hours, personal loan guarantee, lower pay, managing people, selling, paid last) | "Hard parts to plan for": each one not ticked gets a reason and a place to learn. Not scored, not a grit test; grit and conscientiousness already come from what members do (Dossier) |
 | Credit score (optional, never nagged) | Pre-qualification steps |
 
 ## Where to find businesses (links checked 2026-10-22)
@@ -78,7 +80,7 @@ the source of truth, and the page says to confirm every figure with a lender and
 Buy it well: SBDC advising, SCORE mentors, SBA Learning Platform, SBA local assistance, Boots to Business (veterans and
 military spouses), Stanford's search fund primer, SBA lender resources, a valuation professional (NACVA), the IRS page on
 how a sale price is divided. Run it and improve it: SBA manage-your-business guides, a SCORE mentor for year one, SBDC
-advising on cash and pricing, coaching. Books: Buy Then Build (Walker Deibel); HBS Guide to Buying a Small Business
+advising on cash and pricing, coaching. Podcasts and videos (linked, not affiliated; checked 2026-10-23): Acquiring Minds, ETA Insider (Polsky Center, Chicago Booth), The Found & Funded Podcast, Codie Sanchez and Alex Hormozi on YouTube, and Searchfunder's list of more shows. Books: Buy Then Build (Walker Deibel); HBS Guide to Buying a Small Business
 (Ruback and Yudkoff). The stage's items carry a "Good for now" mark.
 
 ## Seven checks before signing
@@ -95,6 +97,10 @@ plus button and "show more" opens. `journey_changed` fires as usual when buying 
 ## Cost
 
 Static content. No model calls and nothing metered.
+
+## Partnerships (as of 2026-10-23)
+
+Baton runs referral programs for brokers and M&A firms and a general owner-referral program, and invites other ideas through its contact form; it lists nothing for buyers, lenders, coaches or career platforms. BizBuySell has no public API or affiliate program; it syndicates listings to partner sites by agreement. Kumo has no public partner program. Nothing has been sent to any of them.
 
 ## Not built (decided, not forgotten)
 
