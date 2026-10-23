@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useId, useState } from 'react'
+import { useActionState, useId, useSyncExternalStore } from 'react'
 import { usePostHog } from '@/lib/posthog/client'
 import { saveLastSalaryAction } from '@/app/dashboard/move-plan/actions'
 
@@ -10,11 +10,25 @@ const SKIP_KEY = 'last_salary_ask_skipped'
 const field = 'h-11 w-full max-w-60 rounded-xl border border-border bg-white px-3.5 text-base text-ink'
 const quiet = 'inline-flex h-11 items-center rounded-full border border-border px-6 text-base font-semibold text-ink hover:bg-muted disabled:cursor-wait disabled:opacity-70'
 
+// Skip state lives in the browser (session storage, with an in-memory fallback for private windows).
+const skipListeners = new Set<() => void>()
+let skippedInMemory = false
+const subscribeSkip = (cb: () => void) => {
+  skipListeners.add(cb)
+  return () => {
+    skipListeners.delete(cb)
+  }
+}
+const markSkipped = () => {
+  skippedInMemory = true
+  skipListeners.forEach((l) => l())
+}
+
 function skippedThisSession(): boolean {
   try {
-    return window.sessionStorage.getItem(SKIP_KEY) === '1'
+    return skippedInMemory || window.sessionStorage.getItem(SKIP_KEY) === '1'
   } catch {
-    return false
+    return skippedInMemory
   }
 }
 
@@ -40,9 +54,8 @@ export function LastSalaryAsk({
   const posthog = usePostHog()
   const id = useId()
   // null until the browser has been checked, so a skipped ask never flashes.
-  const [skipped, setSkipped] = useState<boolean | null>(null)
+  const skipped = useSyncExternalStore(subscribeSkip, skippedThisSession, () => null)
   const [state, formAction, pending] = useActionState(saveLastSalaryAction, null)
-  useEffect(() => setSkipped(skippedThisSession()), [])
   if (skipped !== false || state?.ok) return null
   return (
     <section className="space-y-3 rounded-2xl border border-border bg-muted/40 p-4" aria-labelledby={`${id}-h`}>
@@ -62,7 +75,7 @@ export function LastSalaryAsk({
             type="button"
             onClick={() => {
               try { window.sessionStorage.setItem(SKIP_KEY, '1') } catch { /* private window: it only stays hidden until reload */ }
-              setSkipped(true)
+              markSkipped()
               posthog?.capture('last_salary_skipped', { source, contextId: contextId ?? null })
             }}
             className="text-base font-medium underline underline-offset-4"

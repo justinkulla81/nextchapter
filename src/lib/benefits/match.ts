@@ -228,7 +228,7 @@ const US_STATE = /^[A-Z]{2}$/
  * decided here by name, because the free-text segment column is blank for them.
  */
 const NOT_FOR_THIS_PAGE =
-  /lifeline|medicare|rxpathways|patient assistance|rapid response|child tax credit|child and dependent|relocation incentive act|liheap|trump accounts|food bank|\b988\b|\bnami\b|open path|mental health|lawhelp|legal services|warn act|layoffs\.fyi|trueup|united way|catholic charities|emergency grants|self-sufficiency|rx kids|givedirectly|abundant birth|guaranteed income|f4gi|bonding program|work share|short-time|pslf employer|job accommodation|openai foundation|anthropic economic|^[a-z]\d{3,5}\b|executive order|wage-insurance|state pilot bill|entertainment community|motion picture|sag-aftra|authors league|aicpa|dress for success|appalachian regional|^\d+$/i
+  /lifeline|medicare|rxpathways|patient assistance|rapid response|relocation incentive act|liheap|trump accounts|food bank|\b988\b|\bnami\b|open path|mental health|lawhelp|legal services|^warn act guidance|layoffs\.fyi|trueup|united way|catholic charities|emergency grants|self-sufficiency|rx kids|givedirectly|abundant birth|guaranteed income|f4gi|bonding program|work share|short-time|pslf employer|job accommodation|openai foundation|anthropic economic|^[a-z]\d{3,5}\b|executive order|wage-insurance|state pilot bill|entertainment community|motion picture|sag-aftra|authors league|aicpa|dress for success|appalachian regional|^\d+$/i
 // A row filed as nationwide whose name is one state's program (the catalog has a few) is not nationwide.
 const STATE_NAMED = new RegExp(`\\b(${US_STATES.filter((x) => x.code !== 'DC').map((x) => x.name).join('|')})\\b`, 'i')
 /**
@@ -271,7 +271,7 @@ const PROFESSION_BODY: [RegExp, AudienceTag][] = [
   [/ieee|asme|asce|nspe|\bisa\b|engineer/i, 'engineer'],
   [/acep|ahra|\bama\b|physician|nurs|medical|health information|radiolog|dental|pharm/i, 'clinician'],
   [/cfa institute|\bafp\b|aicpa|cpa|accounting|finance|actuar|ccaf/i, 'finance'],
-  [/\bbar\b|bar association|lawyer|attorney|legal/i, 'lawyer'],
+  [/\bbar\b|bar association|nysba|\baba\b|state bar|lawyer|attorney|legal/i, 'lawyer'],
   [/isc2|isaca|comptia|\bacm\b|cyber|\bit\b|software/i, 'tech'],
   [/shrm|human resources|\bhr\b/i, 'hr'],
   [/\bpmi\b|project management/i, 'pm'],
@@ -281,9 +281,13 @@ const PROFESSION_BODY: [RegExp, AudienceTag][] = [
   [/\basha\b|speech-language|audiolog/i, 'clinician'],
 ]
 const professionNeeded = (r: BenefitProgramRow): AudienceTag | 'unknown' | null => {
-  if (!/^unemployed_(professional|ext_adds)\.md$/.test(r.source ?? '')) return null
+  const file = r.source ?? ''
+  if (!/^unemployed_(professional|ext_adds)\.md$/.test(file)) return null
   const hit = PROFESSION_BODY.find(([re]) => re.test(r.name))
-  return hit ? hit[1] : 'unknown'
+  if (hit) return hit[1]
+  // A school's alumni fund or discount is about the school, not the profession; outside suggestions are judged by name only.
+  if (/alumni|universit|college|school|institute of technology/i.test(r.name) || file === 'unemployed_ext_adds.md') return null
+  return 'unknown'
 }
 
 const NAME_AUDIENCE: [RegExp, AudienceTag][] = [
@@ -347,8 +351,9 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
   const ok = (t: AudienceTag) => t === 'community' || held.has(t) || (COMMUNITY_TAGS.has(t) ? false : WORK_TAGS.has(t) ? m.workKnown === false : m.answered === false)
   // A professional body's dues waiver or fund: only for that profession; an unlisted body is hidden.
   const prof = professionNeeded(r)
-  if (prof === 'unknown') return null
-  if (prof && !ok(prof)) return null
+  // A professional body we cannot map to a work tag: hidden once we know the member's work, kept in while we do not.
+  if (prof === 'unknown' && m.workKnown !== false) return null
+  if (prof && prof !== 'unknown' && !ok(prof)) return null
   // Veteran-only by name and the like: every tag the name implies must hold.
   const named = NAME_AUDIENCE.filter(([re]) => re.test(r.name)).map(([, t]) => t)
   if (named.some((t) => !ok(t))) return null
@@ -361,6 +366,7 @@ function fits(r: BenefitProgramRow, m: MemberFacts, held: Set<AudienceTag>): { p
   if (!OPEN_TO_ALL.test(el) && !/including|and also|as well as/i.test(el)) {
     const mil = /veterans?|service members?|military (community|members?|families|spouses?)/i.test(el)
     if (mil && !ok('veteran') && !(/spouse/i.test(el) && ok('military_spouse'))) return null
+    if (/federal (employees?|workers?|government employees?)|displaced federal|furloughed federal/i.test(el) && !ok('federal')) return null
     if (/criminal record|incarcerat|reentry|formerly incarcerated/i.test(el) && !ok('reentry')) return null
     if (/(people|persons|individuals|adults|workers|students|beneficiaries) with (a )?disabilit|\bdisabled (people|persons|individuals|adults|workers|students|veterans)|\bSSDI\b|\bSSI\b/i.test(el) && !ok('disabled')) return null
   }

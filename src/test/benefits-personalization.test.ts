@@ -65,4 +65,11 @@ describe('personalization: nothing we know does not apply is shown', () => {
     const tx = matchPrograms(rows, marketer).map((x) => x.program.name)
     expect(tx.some((n) => /Georgia partial earnings allowance/i.test(n))).toBe(false)
   })
+
+  it('does not hide real rights and relief rows behind a profession gate or business wording', () => {
+    const ny = matchPrograms(rows, { ...marketer, state: 'NJ', city: 'Newark' }).map((m) => m.program.name)
+    for (const re of [/NJWARN Mandatory Severance/i, /Federal WARN Act: 60 days/i, /IRS Form 1127/i]) expect(ny.some((n) => re.test(n)), String(re)).toBe(true)
+    const ca = matchPrograms(rows, { ...marketer, state: 'CA', city: 'Los Angeles' }).map((m) => m.program.name)
+    expect(ca.some((n) => /Waiting Time Penalties/i.test(n))).toBe(true)
+  })
 })
