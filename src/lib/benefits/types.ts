@@ -29,4 +29,8 @@ export interface BenefitProgramRow {
   verified: boolean
   checkedAt: Date | null
   source: string | null
+  city: string | null
+  employer: string | null
+  employerKey: string | null
+  geoAreaId: string | null
 }

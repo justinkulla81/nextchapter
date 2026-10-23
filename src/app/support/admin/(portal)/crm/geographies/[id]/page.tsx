@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { KIND_LABELS, localFirst, money, pct, num } from '@/lib/geo/filters'
+import { BenefitsPanel } from '@/components/admin/BenefitsPanel'
+import { programsForArea } from '@/lib/benefits/store'
 import { FitScoreBadge, type FitBreakdown } from '@/components/admin/FitScoreBadge'
 
 type College = { name: string; control: string; level: string; size: string | null; web: string | null }
@@ -38,6 +40,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
     take: 25,
     select: { id: true, employer: true, employees: true, noticeDate: true, effectiveDate: true, industry: true, sourceUrl: true },
   })
+  const benefits = a.level === 'STATE' ? { local: [], statewide: (await programsForArea('-', a.state)).statewide } : await programsForArea(a.id, a.state)
   const colleges = (a.higherEd as College[] | null) ?? []
   const boards = localFirst((a.wioaBoards as Board[] | null) ?? [])
   const dcs = (a.dataCenters as DataCenter[] | null) ?? []
@@ -58,6 +61,12 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
           Population {num(a.population)}. Unemployment as of {a.unemploymentAsOf ?? 'unknown'}. This page is the appendix for a pitch to anyone in {title}.
         </p>
       </header>
+
+      <BenefitsPanel
+        title={`Money and help in ${title}`}
+        note="Relocation incentives, retraining funds and other programs tied to this place, then the ones that apply across the state. Unverified rows are leads."
+        groups={[{ label: `In ${a.name}`, rows: benefits.local }, { label: `Across ${a.state}`, rows: benefits.statewide }]}
+      />
 
       <section aria-labelledby="numbers" className="space-y-3">
         <h2 id="numbers" className="text-lg font-semibold">The numbers</h2>

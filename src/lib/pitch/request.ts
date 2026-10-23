@@ -6,7 +6,7 @@ import { kindsForCustomerType } from '@/lib/funding-opportunities/eligibility'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { resolveBrand, type ColorMode } from './brand'
 import { loadRuleSet } from './store'
-import { programsForDeck } from '@/lib/benefits/store'
+import { programsForDeck, programsForEmployer } from '@/lib/benefits/store'
 import { pitchApplicationGapLine } from '@/lib/applications/skill-snapshot-data'
 import { CUSTOMER_TYPES, type CustomerType, type Deck, type PersonCard } from './types'
 
@@ -110,7 +110,10 @@ export async function buildFromParams(sp: Params, headshotOrigin?: string): Prom
   // Members' application skill gaps, for {{appGapLine}} (src/lib/applications); only used once citable.
   const applicationGaps = await pitchApplicationGapLine(loaded?.area.state ?? null)
   // Catalog programs (CRM > Benefits): verified and not closed only; a missing table means no program slides.
-  const benefits = (await programsForDeck(loaded?.area.state ?? null, 12)).filter((x) => x.verified)
+  const benefits = (await programsForDeck(loaded?.area.state ?? null, 12, loaded?.area.id ?? null)).filter((x) => x.verified)
+  // Programs the prospect's own organization offers, when it is a CRM organization.
+  const leadOrg = lead?.crmOrganizationId ? await prisma.crmOrganization.findUnique({ where: { id: lead.crmOrganizationId }, select: { canonicalNameNormalized: true } }).catch(() => null) : null
+  if (leadOrg) benefits.push(...(await programsForEmployer(leadOrg.canonicalNameNormalized)).filter((x) => x.verified && x.status !== 'CLOSED'))
   const deck = buildDeck({ rules, brand, area: loaded?.area ?? null, warn: loaded?.warn, funding, people, applicationGaps, benefits })
   return { deck, edited, brandNote: note, options, lead: lead ? { id: lead.id, name: lead.name } : null }
 }

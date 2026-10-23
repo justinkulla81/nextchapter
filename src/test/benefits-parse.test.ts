@@ -22,4 +22,12 @@ describe('benefits catalog parser', () => {
     const md = `| Name | Provider | Benefit | Status | Official URL | Verified |\n|---|---|---|---|---|---|\n| Free course | Acme | learn | Open | n/a | Y |\n`
     expect(parseCatalog(md, 'COURSES', 'x.md', at)[0].verified).toBe(false)
   })
+  it('reads Employer and City columns and keys the employer like a CRM organization', () => {
+    const md = `## Kentucky\n| Name | Employer | State | Locality | What it pays | Eligibility | Status | Official URL | Verified |\n|---|---|---|---|---|---|---|---|---|\n| Teacher relocation grant | Jefferson County Public Schools, Inc. | KY | Jefferson County | $4,000 | New teachers | Open | https://www.jefferson.kyschools.us/x | Yes |\n`
+    const [r] = parseCatalog(md, 'RELOCATION', 'x.md', at)
+    expect(r.employer).toBe('Jefferson County Public Schools, Inc.')
+    expect(r.employerKey).toBe('jefferson county public schools')
+    expect(r.locality).toBe('Jefferson County')
+    expect(r.verified).toBe(true)
+  })
 })
