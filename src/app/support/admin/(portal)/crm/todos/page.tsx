@@ -3,28 +3,77 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { formatDate } from '@/lib/crm/labels'
 import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
-import { todoSource, type TodoSource } from '@/lib/crm/todo-source'
+import { captureServerEvent } from '@/lib/posthog/server'
+import { todoSource, todoTier, dueTimeLabel, TODO_TIERS, type TodoTier } from '@/lib/crm/todo-source'
 import { addTodo, setTodoDone } from './actions'
 
 export const maxDuration = 30
 
-type View = TodoSource | 'all'
+type Show = 'all' | 'overdue' | 'today' | 'week' | 'later' | 'nodate'
+type Sort = 'due' | 'due-desc' | 'added'
+type Group = 'tier' | 'date'
 
-const VIEWS: { key: View; label: string; hint: string }[] = [
-  { key: 'yours', label: 'Yours', hint: 'Things you added and your next steps from meetings.' },
-  { key: 'waiting', label: 'Waiting on others', hint: 'What someone else owes you, from meeting notes. Chase these.' },
-  { key: 'automated', label: 'Automated', hint: 'Created by the system from layoff and news leads. Work them or clear them; they are not commitments.' },
-  { key: 'all', label: 'All', hint: 'Everything open.' },
+const SHOW: { key: Show; label: string }[] = [
+  { key: 'all', label: 'Any date' },
+  { key: 'overdue', label: 'Overdue' },
+  { key: 'today', label: 'Due today' },
+  { key: 'week', label: 'Next 7 days' },
+  { key: 'later', label: 'Later' },
+  { key: 'nodate', label: 'No date' },
 ]
+const SORT: { key: Sort }[] = [{ key: 'due' }, { key: 'due-desc' }, { key: 'added' }]
+
+/** One colour per tier, used on the heading dot, the row border and the badge. */
+const TONE: Record<TodoTier, { dot: string; row: string; badge: string; heading: string }> = {
+  system: { dot: 'bg-error', row: 'border-error/40 bg-error/5', badge: 'bg-error text-white', heading: 'border-error/60' },
+  call: { dot: 'bg-light-blue', row: 'border-light-blue/40 bg-light-blue/5', badge: 'bg-light-blue text-white', heading: 'border-light-blue/50' },
+  todo: { dot: 'bg-orange', row: 'border-orange/40 bg-orange/5', badge: 'bg-orange text-navy', heading: 'border-orange/60' },
+  automated: { dot: 'bg-gray', row: 'border-border bg-muted/30', badge: 'bg-light-gray text-navy', heading: 'border-border' },
+}
+
+const DEFAULT_TIERS: TodoTier[] = ['system', 'call', 'todo']
+const BASE = '/support/admin/crm/todos'
+
+/** 2–4 choices as adjacent buttons (radio under the hood, so the GET form still works). */
+function Choice({ name, label, value, options }: { name: string; label: string; value: string; options: { key: string; label: string }[] }) {
+  return (
+    <fieldset className="text-xs text-muted-foreground">
+      <legend className="mb-1">{label}</legend>
+      <div className="flex overflow-hidden rounded-md border border-border">
+        {options.map((o) => (
+          <label key={o.key} className="cursor-pointer border-r border-border text-sm text-foreground last:border-r-0">
+            <input type="radio" name={name} value={o.key} defaultChecked={value === o.key} className="peer sr-only" />
+            <span className="block px-3 py-1.5 hover:bg-muted peer-checked:bg-navy peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-light-blue">{o.label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
+const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 
 /**
- * The CRM to-do list, split by where each item came from so your own
- * commitments are not buried under automated lead tasks.
+ * The CRM to-do list. Every open task has a tier (P000 system issue, P00 from
+ * a call, P0 your own, plus the automated lead tasks) shown as a colour, and
+ * the list filters, sorts and groups by it. The daily digest's "Do today"
+ * section reads the same tiers.
  */
-export default async function CrmTodosPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
-  await requireAdmin()
+export default async function CrmTodosPage({
+  searchParams,
+}: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const admin = await requireAdmin()
   const sp = await searchParams
-  const view: View = VIEWS.some((v) => v.key === sp.view) ? (sp.view as View) : 'yours'
+
+  const rawTiers = ([] as string[]).concat(sp.tier ?? [])
+  const picked = TODO_TIERS.map((t) => t.key).filter((k) => rawTiers.includes(k))
+  const tiers: TodoTier[] = picked.length ? picked : DEFAULT_TIERS
+  const show = (SHOW.find((s) => s.key === one(sp.show))?.key ?? 'all') as Show
+  const sort = (SORT.find((s) => s.key === one(sp.sort))?.key ?? 'due') as Sort
+  const group = (one(sp.group) === 'date' ? 'date' : 'tier') as Group
+  const waitingOnly = one(sp.waiting) === '1'
+  const q = (one(sp.q) ?? '').trim().slice(0, 100)
+  const filtered = picked.length > 0 || show !== 'all' || sort !== 'due' || group !== 'tier' || waitingOnly || q !== ''
 
   const [open, done] = await Promise.all([
     prisma.crmTask.findMany({
@@ -44,25 +93,54 @@ export default async function CrmTodosPage({ searchParams }: { searchParams: Pro
     }),
   ])
 
-  const tagged = open.map((t) => ({ ...t, source: todoSource(t) }))
   const startOfToday = new Date()
   startOfToday.setHours(0, 0, 0, 0)
+  const endOfToday = new Date(startOfToday)
+  endOfToday.setDate(endOfToday.getDate() + 1)
   const endOfWeek = new Date(startOfToday)
   endOfWeek.setDate(endOfWeek.getDate() + 7)
 
-  const countFor = (v: View) => (v === 'all' ? tagged.length : tagged.filter((t) => t.source === v).length)
-  const overdueCount = (v: View) =>
-    tagged.filter((t) => (v === 'all' || t.source === v) && t.dueAt && t.dueAt < startOfToday).length
-  const shown = tagged.filter((t) => view === 'all' || t.source === view)
+  const all = open.map((t) => ({ ...t, tier: todoTier(t), waiting: todoSource(t) === 'waiting' }))
+  const isLate = (t: { dueAt: Date | null }) => !!t.dueAt && t.dueAt < startOfToday
+  const countTier = (k: TodoTier) => all.filter((t) => t.tier === k).length
+  const lateTier = (k: TodoTier) => all.filter((t) => t.tier === k && isLate(t)).length
 
-  const buckets = [
-    { title: 'Overdue', tone: 'text-destructive', items: shown.filter((t) => t.dueAt && t.dueAt < startOfToday) },
-    { title: 'Next 7 days', tone: '', items: shown.filter((t) => t.dueAt && t.dueAt >= startOfToday && t.dueAt < endOfWeek) },
-    { title: 'Later', tone: '', items: shown.filter((t) => t.dueAt && t.dueAt >= endOfWeek) },
-    { title: 'No date', tone: '', items: shown.filter((t) => !t.dueAt) },
-  ].filter((b) => b.items.length > 0)
+  const needle = q.toLowerCase()
+  const dateOk = (t: { dueAt: Date | null }) =>
+    show === 'all' ? true
+    : show === 'nodate' ? !t.dueAt
+    : !t.dueAt ? false
+    : show === 'overdue' ? t.dueAt < startOfToday
+    : show === 'today' ? t.dueAt >= startOfToday && t.dueAt < endOfToday
+    : show === 'week' ? t.dueAt >= startOfToday && t.dueAt < endOfWeek
+    : t.dueAt >= endOfWeek
+  const shown = all
+    .filter((t) => tiers.includes(t.tier) && dateOk(t) && (!waitingOnly || t.waiting))
+    .filter((t) => !needle || [t.title, t.notes, t.person?.fullName, t.org?.name, t.opportunity?.title].some((s) => s?.toLowerCase().includes(needle)))
+  const dueKey = (t: { dueAt: Date | null }, none: number) => t.dueAt?.getTime() ?? none
+  shown.sort((a, b) =>
+    sort === 'added' ? b.createdAt.getTime() - a.createdAt.getTime()
+    : sort === 'due-desc' ? dueKey(b, -Infinity) - dueKey(a, -Infinity)
+    : dueKey(a, Infinity) - dueKey(b, Infinity))
 
-  const current = VIEWS.find((v) => v.key === view)!
+  if (filtered) {
+    captureServerEvent(admin.email ?? 'admin', 'crm_todos_filtered', {
+      tiers, show, sort, group, waitingOnly, hasSearch: q !== '', results: shown.length,
+    })
+  }
+
+  const sections: { key: string; title: string; sub?: string; tone: TodoTier | 'plain' | 'late'; items: typeof shown }[] =
+    group === 'tier'
+      ? TODO_TIERS.filter((t) => tiers.includes(t.key)).map((t) => ({
+          key: t.key, title: `${t.code} · ${t.label}`, sub: t.hint, tone: t.key, items: shown.filter((x) => x.tier === t.key),
+        }))
+      : [
+          { key: 'late', title: 'Overdue', tone: 'late' as const, items: shown.filter((t) => isLate(t)) },
+          { key: 'week', title: 'Next 7 days', tone: 'plain' as const, items: shown.filter((t) => t.dueAt && t.dueAt >= startOfToday && t.dueAt < endOfWeek) },
+          { key: 'later', title: 'Later', tone: 'plain' as const, items: shown.filter((t) => t.dueAt && t.dueAt >= endOfWeek) },
+          { key: 'none', title: 'No date', tone: 'plain' as const, items: shown.filter((t) => !t.dueAt) },
+        ]
+  const visible = sections.filter((s) => s.items.length > 0)
 
   return (
     <div className="space-y-6">
@@ -72,8 +150,9 @@ export default async function CrmTodosPage({ searchParams }: { searchParams: Pro
       <header>
         <h1 className="text-2xl font-semibold">To-dos</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Your own to-dos come first. Meeting next steps get a reminder on your Google Calendar at 9:00 ET on the
-          due date. Items the system created are kept in their own tab so they never crowd yours.
+          System issues first, then next steps from your calls, then your own to-dos. Meeting next steps get a
+          reminder on your Google Calendar at 9:00 ET on the due date. The morning brief lists the same items
+          under the same names.
         </p>
       </header>
 
@@ -84,73 +163,112 @@ export default async function CrmTodosPage({ searchParams }: { searchParams: Pro
           New to-do
           <input name="title" required maxLength={300} placeholder="What needs doing?" className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
         </label>
+        <Choice name="tier" label="Type" value="todo" options={[{ key: 'todo', label: 'P0 · To-do' }, { key: 'system', label: 'P000 · System issue' }]} />
         <label className="text-xs text-muted-foreground">
           Due
           <input name="dueDate" type="date" className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
+        </label>
+        <label className="text-xs text-muted-foreground">
+          Time (ET)
+          <input name="dueTime" type="time" className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
         </label>
         <label className="min-w-48 flex-1 text-xs text-muted-foreground">
           Note (optional)
           <input name="notes" className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
         </label>
-        <button type="submit" className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">Add</button>
+        <button type="submit" className="cursor-pointer rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">Add to-do</button>
       </form>
 
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="To-do source">
-        {VIEWS.map((v) => {
-          const n = countFor(v.key)
-          const late = overdueCount(v.key)
-          return (
-            <Link
-              key={v.key}
-              href={v.key === 'yours' ? '/support/admin/crm/todos' : `/support/admin/crm/todos?view=${v.key}`}
-              role="tab"
-              aria-selected={view === v.key}
-              className={`rounded-md border px-3 py-1.5 text-sm ${view === v.key ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted'}`}
-            >
-              {v.label} · {n}
-              {late > 0 && <span className={`ml-1.5 text-xs ${view === v.key ? '' : 'text-destructive'}`}>({late} overdue)</span>}
-            </Link>
-          )
-        })}
-      </div>
-      <p className="-mt-3 text-xs text-muted-foreground">{current.hint}</p>
+      <form method="get" className="space-y-3 rounded-lg border border-border p-3">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Show these types">
+          {TODO_TIERS.map((t) => {
+            const late = lateTier(t.key)
+            return (
+              <label key={t.key} className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${TONE[t.key].row}`}>
+                <input type="checkbox" name="tier" value={t.key} defaultChecked={tiers.includes(t.key)} className="h-3.5 w-3.5" />
+                <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${TONE[t.key].badge}`}>{t.code}</span>
+                <span>{t.label} · {countTier(t.key)}</span>
+                {late > 0 && <span className="text-xs text-destructive">({late} overdue)</span>}
+              </label>
+            )
+          })}
+          <label className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm">
+            <input type="checkbox" name="waiting" value="1" defaultChecked={waitingOnly} className="h-3.5 w-3.5" />
+            Only waiting on others
+          </label>
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="min-w-48 flex-1 text-xs text-muted-foreground">
+            Search
+            <input name="q" defaultValue={q} placeholder="Title, note, person or organization" className="mt-1 block w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground" />
+          </label>
+          <label className="text-xs text-muted-foreground">
+            Due
+            <select name="show" defaultValue={show} className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground">
+              {SHOW.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+            </select>
+          </label>
+          <Choice name="sort" label="Sort" value={sort} options={[{ key: 'due', label: 'Soonest' }, { key: 'due-desc', label: 'Latest' }, { key: 'added', label: 'Newest added' }]} />
+          <Choice name="group" label="Group by" value={group} options={[{ key: 'tier', label: 'Type' }, { key: 'date', label: 'Due date' }]} />
+          <button type="submit" className="cursor-pointer rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">Apply filters</button>
+          {filtered && <Link href={BASE} className="px-1 py-1.5 text-sm text-muted-foreground underline">Reset</Link>}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Showing {shown.length} of {all.length} open.
+          {!tiers.includes('automated') && countTier('automated') > 0 && <> {countTier('automated')} automated lead tasks are hidden; tick Automated to see them.</>}
+        </p>
+      </form>
 
-      {shown.length === 0 ? (
+      {visible.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           Nothing open here.
         </p>
       ) : (
-        buckets.map((b) => (
-          <section key={b.title}>
-            <h2 className={`mb-2 text-sm font-semibold ${b.tone}`}>{b.title} · {b.items.length}</h2>
-            <ul className="divide-y divide-border rounded-lg border border-border">
-              {b.items.map((t) => {
-                const late = t.dueAt && t.dueAt < startOfToday
-                return (
-                  <li key={t.id} className="flex flex-wrap items-start justify-between gap-3 p-3 text-sm">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">{t.title}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {t.person && <Link href={`/support/admin/crm/people/${t.person.id}`} className="underline">{t.person.fullName}</Link>}
-                        {t.org && <>{t.person ? ' · ' : ''}<Link href={`/support/admin/crm/organizations/${t.org.id}`} className="underline">{t.org.name}</Link></>}
-                        {t.opportunity && <> · {t.opportunity.title}</>}
-                      </p>
-                      {t.notes && <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{t.notes}</p>}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs ${late ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>
-                        {t.dueAt ? formatDate(t.dueAt) : 'No date'}
-                      </span>
-                      <form action={setTodoDone.bind(null, t.id, true)}>
-                        <button type="submit" className="rounded-md border border-border px-2.5 py-1 text-xs hover:bg-muted">Done</button>
-                      </form>
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          </section>
-        ))
+        visible.map((s) => {
+          const tone = s.tone === 'late' || s.tone === 'plain' ? null : TONE[s.tone]
+          return (
+            <section key={s.key} className="space-y-2">
+              <h2 className={`flex flex-wrap items-center gap-2 border-b pb-1 text-xs font-semibold uppercase tracking-wide ${tone?.heading ?? (s.tone === 'late' ? 'border-destructive/60 text-destructive' : 'border-border')}`}>
+                <span className={`h-2 w-2 rounded-full ${tone?.dot ?? (s.tone === 'late' ? 'bg-destructive' : 'bg-gray')}`} aria-hidden />
+                {s.title} · {s.items.length}
+                {s.sub && <span className="font-normal normal-case tracking-normal text-muted-foreground">{s.sub}</span>}
+              </h2>
+              <ul className="space-y-2">
+                {s.items.map((t) => {
+                  const late = isLate(t)
+                  const tm = TODO_TIERS.find((x) => x.key === t.tier)!
+                  const time = t.dueAt ? dueTimeLabel(t.dueAt) : null
+                  return (
+                    <li key={t.id} className={`flex flex-wrap items-start justify-between gap-3 rounded-lg border p-3 text-sm ${TONE[t.tier].row}`}>
+                      <div className="min-w-0 flex-1">
+                        <p className="flex flex-wrap items-center gap-2 font-medium">
+                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${TONE[t.tier].badge}`}>{tm.code}</span>
+                          {t.waiting && <span className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Waiting on them</span>}
+                          <span>{t.title}</span>
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {t.person && <Link href={`/support/admin/crm/people/${t.person.id}`} className="underline">{t.person.fullName}</Link>}
+                          {t.org && <>{t.person ? ' · ' : ''}<Link href={`/support/admin/crm/organizations/${t.org.id}`} className="underline">{t.org.name}</Link></>}
+                          {t.opportunity && <> · {t.opportunity.title}</>}
+                        </p>
+                        {t.notes && <p className="mt-1 line-clamp-3 whitespace-pre-line text-xs text-muted-foreground">{t.notes}</p>}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-right text-xs ${late ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>
+                          {t.dueAt ? `${late ? 'Overdue · ' : ''}${formatDate(t.dueAt)}` : 'No date'}
+                          {time && <span className="block">{time}</span>}
+                        </span>
+                        <form action={setTodoDone.bind(null, t.id, true)}>
+                          <button type="submit" className="rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-muted">Done</button>
+                        </form>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )
+        })
       )}
 
       {done.length > 0 && (
