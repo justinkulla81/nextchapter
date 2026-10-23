@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import catalog from '@/lib/benefits/catalog.json'
-import { audienceOf, deriveWorkTags, groupByGoal, matchPrograms, parseAmount, type MemberFacts } from '@/lib/benefits/match'
+import { audienceOf, cleanSelfTags, COMMUNITY_TAGS, deriveWorkTags, groupByGoal, matchPrograms, parseAmount, type AudienceTag, type MemberFacts } from '@/lib/benefits/match'
 import type { BenefitProgramRow } from '@/lib/benefits/types'
 
 const rows = (catalog as unknown as { rows: (Omit<BenefitProgramRow, 'checkedAt'> & { checkedAt: string | null })[] }).rows.map((r) => ({ ...r, checkedAt: r.checkedAt ? new Date(r.checkedAt) : null })) as BenefitProgramRow[]
@@ -88,5 +88,41 @@ describe('matchPrograms against the real catalog', () => {
   it('groups by goal', () => {
     const g = groupByGoal(matchPrograms(rows, { ...base, relocation: { scope: 'ANYWHERE', states: [] } }))
     expect(Object.keys(g).sort()).toEqual(['learn', 'move', 'retrain'])
+  })
+})
+
+describe('community audiences and affinity', () => {
+  const prog = (over: Partial<BenefitProgramRow>): BenefitProgramRow => ({
+    id: 'x', category: 'SEGMENT', name: 'Test program', provider: null, scope: 'NATIONAL', state: null, locality: null, amount: null,
+    eligibility: null, status: 'OPEN', statusNote: null, url: 'https://example.org/p', segments: [], verified: true, checkedAt: null, source: 'audience_a.md',
+    city: null, employer: null, employerKey: null, geoAreaId: null, ...over,
+  })
+  const facts = (tags: AudienceTag[]): MemberFacts => ({ state: 'KY', relocation: { scope: 'LOCAL', states: [] }, laidOff: false, pivoting: false, tags })
+
+  it('shows a Hispanic-community program only to a member who said so', () => {
+    const rows = [prog({ segments: ['Hispanic or Latino'], name: 'Latino fellowship' })]
+    expect(matchPrograms(rows, facts([])).length).toBe(0)
+    expect(matchPrograms(rows, facts(['hispanic'])).length).toBe(1)
+  })
+  it('requires both halves of "student with disability"', () => {
+    const rows = [prog({ segments: ['student with disability'], name: 'Internship for students with disabilities' })]
+    expect(matchPrograms(rows, facts(['student'])).length).toBe(0)
+    expect(matchPrograms(rows, facts(['disabled'])).length).toBe(0)
+    expect(matchPrograms(rows, facts(['student', 'disabled'])).length).toBe(1)
+  })
+  it('ranks a program with a matching affinity above an otherwise equal one, and says why', () => {
+    const rows = [prog({ id: 'a', name: 'Program A' }), prog({ id: 'b', name: 'Program B', affinity: ['Jewish'] })]
+    const out = matchPrograms(rows, facts(['jewish']))
+    expect(out[0].program.id).toBe('b')
+    expect(out[0].why).toMatch(/Jewish/)
+  })
+  it('never lets an affinity show or hide a row by itself', () => {
+    const rows = [prog({ segments: ['women'], affinity: ['Jewish'] })]
+    expect(matchPrograms(rows, facts(['jewish'])).length).toBe(0)
+  })
+  it('accepts the new self tags and keeps community tags out of the analytics set', () => {
+    expect(cleanSelfTags(['hispanic', 'jewish', 'bogus'])).toEqual(['hispanic', 'jewish'])
+    expect(COMMUNITY_TAGS.has('hispanic')).toBe(true)
+    expect(COMMUNITY_TAGS.has('veteran')).toBe(false)
   })
 })

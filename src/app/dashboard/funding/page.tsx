@@ -75,13 +75,26 @@ export default async function FundingPage() {
               </p>
             </div>
             <div className="space-y-2">
-              {SELF_TAGS.map((t) => (
+              {SELF_TAGS.filter((t) => t.group !== 'community').map((t) => (
                 <label key={t.tag} className="flex items-center gap-2 text-sm text-ink">
                   <input type="checkbox" name="tag" value={t.tag} defaultChecked={held.has(t.tag)} />
                   {t.label}
                 </label>
               ))}
             </div>
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-semibold text-ink">Optional: programs made for your community</legend>
+              <p className="text-sm text-muted-foreground">
+                Scholarships, fellowships and career programs are often written for a specific community. Leave these blank if you prefer: you will still see everything open to you.
+                We use your answers only to rank programs on this page. They are not read from any other form, and they are not sent to analytics.
+              </p>
+              {SELF_TAGS.filter((t) => t.group === 'community').map((t) => (
+                <label key={t.tag} className="flex items-center gap-2 text-sm text-ink">
+                  <input type="checkbox" name="tag" value={t.tag} defaultChecked={held.has(t.tag)} />
+                  {t.label}
+                </label>
+              ))}
+            </fieldset>
             <button type="submit" className="inline-flex h-11 items-center rounded-full bg-action px-7 text-base font-semibold text-action-foreground hover:brightness-95">
               Save and re-rank
             </button>

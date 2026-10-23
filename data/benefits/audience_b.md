@@ -1,4 +1,4 @@
-| Name | Employer | State | Locality | What it pays | Eligibility | Status | Official URL | Apply URL | Audience | Affinity | Verified |
+| Name | Provider | State | Locality | What it pays | Eligibility | Status | Official URL | Apply URL | Audience | Affinity | Verified |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Presidential Innovation Fellows | General Services Administration | | | Paid 12-month fellowship working on federal technology problems | Experienced technologists, designers and product leaders | Unknown | https://pif.gsa.gov | https://pif.gsa.gov/apply | tech | tech | No |
 | Code for America Fellowship and Brigade | Code for America | | | Fellowships and volunteer brigades building civic technology | Technologists, designers, researchers | Unknown | https://codeforamerica.org | https://codeforamerica.org/get-involved/ | tech | tech | No |
