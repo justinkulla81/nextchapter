@@ -112,6 +112,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
           Who we compete with, where, what they have won, who they sell to, and what we would need to beat them.
           {competitors.length > 0 && <> {competitors.length} tracked.</>}
         </p>
+        <p className="mt-2 text-sm"><Link href="/support/admin/vision/capabilities" className="underline">Compare capabilities, area by area, with sources</Link></p>
       </header>
 
       {sp.error && <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm">{sp.error}</p>}
