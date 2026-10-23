@@ -15,6 +15,8 @@ import { jobCentersUrl, STATE_NAMES } from '@/lib/workforce/directory'
 import { boardCountyKeys, visibleBoards } from '@/lib/workforce/board-area'
 import { boardLabor } from '@/lib/workforce/labor'
 import { formatDate } from '@/lib/crm/labels'
+import { inStateScope } from '@/lib/funding-opportunities/eligibility'
+import { listOpenOpportunities } from '@/lib/funding-opportunities/store'
 import { areaContext, type AreaContext } from '@/lib/workforce/county-context'
 import { collegesByCounty, laborBenchmarks, loadCountyContext, openJobsByCounty } from '@/lib/workforce/county-context-data'
 
@@ -28,6 +30,7 @@ const SORTS: { key: ReportSort | 'fit'; label: string; defaultDir: 'asc' | 'desc
   { key: 'name', label: 'Name', defaultDir: 'asc' },
 ]
 const WINDOWS = [
+  { key: '30d', label: 'Last 30 days', days: 30 },
   { key: '90d', label: 'Last 90 days', days: 90 },
   { key: '12m', label: 'Last 12 months', days: 365 },
   { key: 'all', label: 'Everything on file', days: null },
@@ -78,7 +81,37 @@ const loadBoardData = ttlCached(
   (state, windowDays) => `${state}|${windowDays ?? 'all'}`,
 )
 
+// Open grants and solicitations a workforce board (a local government) is eligible for, the whole list
+// read once per 10 minutes; a missing table reads as none. Candidate benefits are a separate catalog.
+const loadBoardFunding = ttlCached(10 * 60 * 1000, async () => {
+  const all = await listOpenOpportunities({ audience: 'CUSTOMERS', limit: 500 }).catch(() => [])
+  // Named for local or state government, not the unrestricted catch-all notices that every organization could read.
+  // and on workforce, retraining or dislocated-worker money by title, so an unrelated research grant never flags a board.
+  const WORKFORCE_MONEY = /workforce|dislocated worker|retrain|wioa|rapid response|apprenticeship|reemployment|upskill|reskill/i
+  return all.filter((o) => o.applicantKinds.some((k) => k === 'LOCAL_GOV' || k === 'STATE_GOV') && WORKFORCE_MONEY.test(o.title))
+})
+
 const pct = (n: number, digits = 0) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(digits)}%`
+
+function FundingCell({ bids, grants, procurementUrl }: { bids: { title: string }[]; grants: { id: string; title: string; url: string; closesAt: Date | null }[]; procurementUrl: string | null }) {
+  const next = grants.find((g) => g.closesAt)?.closesAt ?? null
+  return (
+    <td className="px-2 py-2 text-xs">
+      {bids.length > 0 && (
+        <p title={bids.map((b) => b.title).join('\n')}>
+          {procurementUrl ? <a href={procurementUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">{bids.length} open bid{bids.length === 1 ? '' : 's'}</a> : `${bids.length} open bid${bids.length === 1 ? '' : 's'}`}
+        </p>
+      )}
+      {grants.length > 0 && (
+        <p className={bids.length > 0 ? 'mt-1' : undefined} title={grants.slice(0, 8).map((g) => g.title).join('\n')}>
+          <a href={grants[0].url} target="_blank" rel="noreferrer" className="text-primary hover:underline">{grants.length} open grant{grants.length === 1 ? '' : 's'}</a>
+          {next && <span className="block text-[11px] text-muted-foreground">next closes {formatDate(next)}</span>}
+        </p>
+      )}
+      {bids.length === 0 && grants.length === 0 && <span className="text-muted-foreground">—</span>}
+    </td>
+  )
+}
 
 function EconomyCells({ eco }: { eco: AreaContext & { openJobs: number; colleges: number; communityColleges: number } }) {
   const sector = (s: { label: string; changePct: number; change: number }) => (
@@ -136,12 +169,13 @@ export default async function WorkforceBoardsPage({
   const page = Math.max(1, parseInt(sp.page ?? '1', 10) || 1)
   const perPage = readPageSize(sp.per)
 
-  const [{ allBoards, notices, states, labor, fitRows }, { context }, openJobs, benchmarks, collegeRows] = await Promise.all([
+  const [{ allBoards, notices, states, labor, fitRows }, { context }, openJobs, benchmarks, collegeRows, boardFunding] = await Promise.all([
     loadBoardData(state, windowDays),
     loadCountyContext(),
     openJobsByCounty().catch(() => new Map<string, number>()),
     laborBenchmarks().catch(() => ({ byState: new Map<string, number>(), national: null as number | null })),
     collegesByCounty().catch(() => []),
+    loadBoardFunding(),
   ])
   const fitById = new Map(fitRows.map((f) => [f.id, f]))
   // A state board shows only where the state has no local boards under it (Vermont, Delaware…).
@@ -170,6 +204,22 @@ export default async function WorkforceBoardsPage({
       colleges: colleges.reduce((n, c) => n + c._count._all, 0),
       communityColleges: colleges.filter((c) => c.sector === 4).reduce((n, c) => n + c._count._all, 0),
     }
+  }
+
+  // Layoffs filed in the past month (state filings only, not company-wide counts), the flag for a board to call now.
+  const monthAgo = daysAgo(30)
+  const recentByBoard = new Map<string, { filings: number; jobs: number; companies: Set<string> }>()
+  for (const n of notices) {
+    if (!n.workforceBoardId || !n.noticeDate || n.noticeDate < monthAgo || isCompanyWide(n)) continue
+    const r = recentByBoard.get(n.workforceBoardId) ?? { filings: 0, jobs: 0, companies: new Set<string>() }
+    r.filings++; r.jobs += n.employees ?? 0; r.companies.add(n.normalizedEmployer ?? n.employer)
+    recentByBoard.set(n.workforceBoardId, r)
+  }
+  // Money NextChapter or the board could go after: open bids on the board's own procurement page, and open grants it is eligible for.
+  const fundingFor = (b: (typeof boards)[number]) => {
+    const bids = b.procurementKind === 'solicitations' && Array.isArray(b.procurementItems) ? (b.procurementItems as { title: string }[]) : []
+    const grants = boardFunding.filter((o) => inStateScope(o.states, b.state))
+    return { bids, grants }
   }
 
   const rows = buildBoardReport(boards, notices.map((n) => ({ ...n, companyWide: isCompanyWide(n) })), { q, sort: sort === 'fit' ? 'jobs' : sort, dir, includeEmpty })
@@ -291,6 +341,7 @@ export default async function WorkforceBoardsPage({
                 <th className="px-2 py-1.5 text-right font-medium" title="Degree-granting colleges in the board's counties (IPEDS); community colleges are public 2-year">Colleges</th>
                 <th className="min-w-44 px-2 py-1.5 font-medium" title="Share of private-sector jobs in sectors AI already does part of (Information, Finance, Professional and technical, Management, Admin and staffing), and the sectors that lost the most jobs 2022 to 2024. BLS QCEW.">At risk</th>
                 <th className="min-w-44 px-2 py-1.5 font-medium" title="Sectors that added the most private-sector jobs 2022 to 2024. BLS QCEW.">Growing</th>
+                <th className="min-w-40 px-2 py-1.5 font-medium" title="Open bids on the board's own procurement page, and open government grants a workforce board here is eligible for. Candidate benefits are a separate catalog.">Funding to tap</th>
                 <th className="px-2 py-1.5 font-medium">Latest filing</th>
                 <th className="px-2 py-1.5 font-medium" title="The soonest effective date still ahead">Next effective</th>
               </tr>
@@ -312,7 +363,6 @@ export default async function WorkforceBoardsPage({
                         {b.procurementUrl && <a href={b.procurementUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline" title={b.procurementKind === 'solicitations' ? 'Page lists solicitations' : 'Procurement page'}>Bids and RFPs</a>}
                         <a href={jobCentersUrl(b.zip, b.state)} target="_blank" rel="noreferrer" className="text-primary hover:underline">Job centers (partners)</a>
                         {b.detailsUrl && <a href={b.detailsUrl} target="_blank" rel="noreferrer" className="text-muted-foreground hover:underline">Directory listing</a>}
-                        {b.address && <span className="text-muted-foreground">{b.address}</span>}
                       </p>
                       {r.companies.length > 0 && (
                         <details className="mt-2" open={r.matchedCompany}>
@@ -406,7 +456,22 @@ export default async function WorkforceBoardsPage({
                       })()}
                     </td>
                     <EconomyCells eco={economyFor(b)} />
-                    <td className="whitespace-nowrap px-2 py-2 text-xs">{r.latestFiled ? formatDate(r.latestFiled) : '—'}</td>
+                    <FundingCell {...fundingFor(b)} procurementUrl={b.procurementUrl} />
+                    <td className="whitespace-nowrap px-2 py-2 text-xs">
+                      {r.latestFiled ? formatDate(r.latestFiled) : '—'}
+                      {(() => {
+                        const recent = recentByBoard.get(b.id)
+                        if (!recent) return null
+                        return (
+                          <span
+                            className="mt-1 block w-fit rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800"
+                            title={`${recent.filings} filing${recent.filings === 1 ? '' : 's'} in the past 30 days: ${recent.companies.size} compan${recent.companies.size === 1 ? 'y' : 'ies'}, ${recent.jobs.toLocaleString()} jobs`}
+                          >
+                            Past month · {recent.jobs ? `${recent.jobs.toLocaleString()} jobs` : `${recent.filings} filing${recent.filings === 1 ? '' : 's'}`}
+                          </span>
+                        )
+                      })()}
+                    </td>
                     <td className="whitespace-nowrap px-2 py-2 text-xs">{r.nextEffective ? formatDate(r.nextEffective) : '—'}</td>
                   </tr>
                 )
