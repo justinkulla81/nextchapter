@@ -5,6 +5,7 @@ import { goalsForRoles } from '@/lib/crm/goals'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { sendOrgClaimAdminEmail, sendOrgClaimLinkEmail } from '@/lib/email/send-org-claim-email'
 import { orgSlug } from '@/lib/crm/org-slug'
+import { provisionFreeWorkspace } from '@/lib/plans/provision'
 import { resolveClaimableOrg } from './org'
 import { checkClaimEmail } from './rules'
 import { CLAIM_TOKEN_DAYS, hashClaimToken, hashIp, newClaimToken, tokenState } from './token'
@@ -85,10 +86,11 @@ export interface VerifiedClaim {
 /**
  * ── HOOK: runs once, right after a claim is verified. ──
  * Today it only records the claimant in the CRM (a P0 lead due today) and emails the team.
- * Free-workspace provisioning is meant to be connected HERE later. Nothing is created for the organization yet:
- * no institution, no organization account. It must stay safe to fail: the claim is already verified when this runs.
+ * Then, when the claimant's email matched the organization's known domain, it sets up the organization's free workspace
+ * with the claimant as its administrator (owner decision 2026-10-24). It must stay safe to fail: the claim is already
+ * verified when this runs.
  */
-export async function onClaimVerified(claim: VerifiedClaim): Promise<void> {
+export async function onClaimVerified(claim: VerifiedClaim): Promise<{ provisioned: boolean }> {
   const roles = claim.orgTypes.includes('EMPLOYER') ? (['HIRING_MANAGER', 'OUTPLACEMENT_BUYER'] as const) : (['BD_PARTNER'] as const)
   const pageUrl = claim.slug ? `${SITE_URL}/prepared/${claim.slug}` : SITE_URL
   const r = await addContactToCrm({
@@ -100,10 +102,34 @@ export async function onClaimVerified(claim: VerifiedClaim): Promise<void> {
     await prisma.crmPerson.update({ where: { id: r.personId }, data: { nextFollowUpAt: new Date(), nextFollowUpNote: `Claimed the ${claim.orgName} page. Reply today.` } })
   }
   await sendOrgClaimAdminEmail({ orgName: claim.orgName, name: claim.name, title: claim.title, email: claim.email, needsReview: claim.needsReview, pageUrl })
+  return { provisioned: await provisionIfEligible(claim) }
+}
+
+// Organization types that get a free higher education or workforce workspace (src/lib/plans/provision.ts maps them to an
+// Institution). Employers, coaches and recruiter firms have no free workspace yet, so their claims stay a CRM lead.
+export const FREE_WORKSPACE_TYPES = ['UNIVERSITY', 'GOVERNMENT', 'WORKFORCE_PROVIDER', 'NONPROFIT', 'FOUNDATION']
+
+/**
+ * A claim whose email domain matched the organization's known domain gets a free workspace straight away. A claim with no
+ * known domain (needsReview) waits for a person to confirm it. Never throws.
+ */
+export async function provisionIfEligible(claim: VerifiedClaim): Promise<boolean> {
+  if (claim.needsReview) return false
+  const type = FREE_WORKSPACE_TYPES.find((t) => claim.orgTypes.includes(t))
+  if (!type) return false
+  try {
+    const r = await provisionFreeWorkspace({ crmOrganizationId: claim.crmOrganizationId, name: claim.orgName, orgType: type, claimantEmail: claim.email })
+    if (!r.ok) console.error('Free workspace not created for claim', claim.id, r.error)
+    return r.ok
+  } catch (e) {
+    console.error('provisionFreeWorkspace failed for claim', claim.id, e)
+    return false
+  }
 }
 
 export type ConfirmResult =
-  | { status: 'verified' | 'already'; orgName: string; slug: string | null }
+  | { status: 'verified'; orgName: string; slug: string | null; provisioned: boolean }
+  | { status: 'already'; orgName: string; slug: string | null }
   | { status: 'expired' | 'invalid' }
 
 /**
@@ -131,13 +157,15 @@ export async function confirmOrgClaim(token: string): Promise<ConfirmResult> {
   if (won.count !== 1) return { status: 'already', orgName: found.crmOrganization.name, slug }
 
   captureServerEvent(`org-claim:${found.crmOrganizationId}`, 'org_claim_verified', { orgId: found.crmOrganizationId, slug, claimId: found.id, emailDomain: found.emailDomain, needsReview: found.needsReview })
+  let provisioned = false
   try {
-    await onClaimVerified({
+    const hook = await onClaimVerified({
       id: found.id, crmOrganizationId: found.crmOrganizationId, orgName: found.crmOrganization.name, orgTypes: found.crmOrganization.orgTypes.map(String), slug,
       name: found.name, title: found.title, email: found.email, emailDomain: found.emailDomain, needsReview: found.needsReview, verifiedAt: now,
     })
+    provisioned = hook.provisioned
   } catch (e) {
     console.error('onClaimVerified failed', found.id, e)
   }
-  return { status: 'verified', orgName: found.crmOrganization.name, slug }
+  return { status: 'verified', orgName: found.crmOrganization.name, slug, provisioned }
 }
