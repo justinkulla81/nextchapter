@@ -9,8 +9,8 @@
 import { formatCompliancePackText, type CompliancePack } from '@/lib/employer/format-compliance-pack'
 
 export const SAMPLE_COMPLIANCE_PACK: CompliancePack = {
-  orgName: 'Meridian Health',
-  programBrandName: 'Meridian Career Transition',
+  orgName: 'Sample Employer',
+  programBrandName: 'Sample Career Transition',
   cohortLabel: 'Q3 2026 RIF — Corporate',
   tier: 'PLUS',
   invitedEmail: 'sample.individual@example.com',
@@ -26,7 +26,7 @@ export const SAMPLE_COMPLIANCE_PACK: CompliancePack = {
   poReference: 'PO-48213',
   invoiceReference: 'INV-2026-0311',
   generatedAt: new Date('2026-08-14'),
-  generatedByEmail: 'legal@meridianhealth.example',
+  generatedByEmail: 'legal@example.com',
 }
 
 export const SAMPLE_COMPLIANCE_PACK_TEXT = formatCompliancePackText(SAMPLE_COMPLIANCE_PACK)
