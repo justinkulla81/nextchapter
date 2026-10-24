@@ -15,6 +15,7 @@ const PUBLIC_FILES = [
   'src/lib/marketing/portal-pages/hiring.ts',
   'src/app/employees/page.tsx',
   'src/lib/marketing/portal-pages/employees.ts',
+  'src/lib/marketing/portal-pages/outplacement.ts',
   'src/lib/marketing/portal-pages/higher-education.ts',
   'src/components/marketing/PortalMarketingPage.tsx',
   'src/app/outplacement/page.tsx',
