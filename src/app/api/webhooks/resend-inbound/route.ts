@@ -4,8 +4,11 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { INTAKE_FORWARD_DOMAIN, INTAKE_MAX_FILE_BYTES } from '@/lib/recruiter/intake/constants'
 import { resolveForwardLocalPart, splitAddress } from '@/lib/recruiter/intake/slug'
+import { helpRequestIdFromLocal } from '@/lib/help/inbound-address'
+import { addEmailedHelpReply } from '@/lib/help/inbound'
 import { ingestIntake, intakeFileType, processIntakeResume } from '@/lib/recruiter/intake/pipeline'
 
+// Also receives replies to Help & feedback emails (help-<id>@): see lib/help/inbound.
 // NextChapter Talent forwarding addresses (spec F3): Resend inbound on
 // INTAKE_FORWARD_DOMAIN posts `email.received` here. One forwarded email can
 // carry several resumes; each becomes its own intake. Webhook retries are
@@ -78,6 +81,23 @@ export async function POST(request: Request) {
         data: { status, firmId: extra.firmId ?? null, recruiterId: extra.recruiterId ?? null },
       })
       .catch(() => {})
+
+  // A person answered one of our Help & feedback emails: file it in their conversation.
+  const helpRequestId = target ? helpRequestIdFromLocal(target.local) : null
+  if (helpRequestId) {
+    after(async () => {
+      try {
+        const received = await resend.emails.receiving.get(data.email_id)
+        const from = splitAddress(data.from)
+        const result = await addEmailedHelpReply(helpRequestId, from ? `${from.local}@${from.domain}` : null, received.data?.text ?? '')
+        await log(`help_reply_${result}`)
+      } catch (error) {
+        console.error('Help reply by email failed:', error)
+        await log('error')
+      }
+    })
+    return NextResponse.json({ ok: true })
+  }
 
   if (!target) {
     await log('unknown_address')

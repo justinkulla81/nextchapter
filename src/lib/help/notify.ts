@@ -3,6 +3,8 @@ import { createResend } from '@/lib/email/resend-client'
 import type { EmailAudience } from '@/lib/email/audience-tag'
 import { prisma } from '@/lib/prisma'
 import { PORTAL_LABEL } from '@/lib/help/constants'
+import { HELP_REPLY_PREFIX } from '@/lib/help/inbound-address'
+import { INTAKE_FORWARD_DOMAIN } from '@/lib/recruiter/intake/constants'
 import {
   buttonHtml, callout, conversationHistoryHtml, conversationHistoryText, emailDocument, escapeHtml, factsHtml, stamp, textToHtml,
   type ThreadMessage,
@@ -15,8 +17,13 @@ const FROM = `NextChapter Support <${SUPPORT}>`
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const ADMIN_URL = 'https://admin.launchyournextchapter.com'
 
+/** Replies to our emails come back here and are filed in the same conversation (see lib/help/inbound). */
+// Off until the inbound domain's DNS and webhook are live; until then a reply goes to the support@ inbox.
+const replyAddress = (requestId: string) =>
+  process.env.HELP_INBOUND_ENABLED === '1' ? `${HELP_REPLY_PREFIX}${requestId}@${INTAKE_FORWARD_DOMAIN}` : SUPPORT
+
 const PORTAL_AUDIENCE: Record<string, EmailAudience> = {
-  CANDIDATE: 'candidate', EMPLOYER: 'employer', RECRUITER: 'recruiter', COACH: 'coach', INSTITUTION: 'organization',
+  CANDIDATE: 'candidate', PUBLIC: 'general', EMPLOYER: 'employer', RECRUITER: 'recruiter', COACH: 'coach', INSTITUTION: 'organization',
 }
 
 async function send(args: { to: string; subject: string; html: string; text: string; replyTo?: string; audience: EmailAudience; ref?: string }): Promise<boolean> {
@@ -93,6 +100,26 @@ export async function notifyAdminOfPortalHelp(requestId: string, body: string): 
   await alertAdmin(r, { name: r.requesterName || PORTAL_LABEL[r.portal] || 'Partner user', email: r.requesterEmail, org: r.requesterOrg }, body, false)
 }
 
+/** Someone answered our email: tell the admin, or flag a reply from an address that is not theirs. */
+export async function notifyAdminOfHelpReply(requestId: string, body: string, fromEmail: string, mismatch: boolean): Promise<void> {
+  const r = await prisma.helpRequest.findUnique({ where: { id: requestId } })
+  if (!r) return
+  const c = r.candidateId ? await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, lastName: true, email: true } }) : null
+  const who = r.candidateId ? { name: candidateName(c), email: c?.email ?? null, org: null } : { name: r.requesterName || PORTAL_LABEL[r.portal] || 'Customer', email: r.requesterEmail, org: r.requesterOrg }
+  if (!mismatch) return alertAdmin(r, who, body, true)
+  const link = `${ADMIN_URL}/support/admin/help/${r.id}`
+  const html = emailDocument({
+    preheader: `A reply from ${fromEmail} was not filed.`,
+    label: 'Help inbox',
+    bodyHtml: `
+      ${callout(`<strong>Not added to the conversation.</strong> This reply came from <strong>${escapeHtml(fromEmail)}</strong>, not from ${escapeHtml(who.email ?? 'the person who wrote in')}. Read it, then reply in the Help inbox if it is theirs.`, 'alert')}
+      <p style="margin:0 0 16px;font-size:18px;font-weight:700">${escapeHtml(r.subject)}</p>
+      <div style="margin:0 0 20px;padding:14px 16px;background:#f7f9fb;border-left:3px solid #f4a259;border-radius:4px">${textToHtml(body)}</div>
+      ${buttonHtml('Open the conversation', link)}`,
+  })
+  await send({ to: ADMIN_TO, subject: `Reply not filed: ${r.subject}`, html, text: `Reply from ${fromEmail} was not added (expected ${who.email ?? 'unknown'}).\n\n${body}\n\n${link}`, audience: 'admin', ref: r.id })
+}
+
 /** The admin replied: email the person with the reply, the conversation so far, and a way back. */
 export async function notifyCandidateOfReply(requestId: string, body: string): Promise<boolean> {
   const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, portal: true, subject: true, requesterName: true, requesterEmail: true } })
@@ -125,7 +152,7 @@ export async function notifyCandidateOfReply(requestId: string, body: string): P
     history: conversationHistoryHtml(history, 'You'),
   })
   const text = `${first ? `Hi ${first},` : 'Hello,'}\n\n${body}\n\nThanks,\nThe NextChapter team\n\n${inApp ? `Reply on NextChapter: ${link}` : 'To reply, just answer this email. It comes straight to us.'}${conversationHistoryText(history, 'You')}`
-  return send({ to, subject: `Re: ${r.subject}`, replyTo: SUPPORT, html, text, audience: PORTAL_AUDIENCE[r.portal] ?? 'candidate', ref: requestId })
+  return send({ to, subject: `Re: ${r.subject}`, replyTo: replyAddress(requestId), html, text, audience: PORTAL_AUDIENCE[r.portal] ?? 'candidate', ref: requestId })
 }
 
 /** An in-app idea or feedback was marked Addressed with a note: tell the candidate. */
