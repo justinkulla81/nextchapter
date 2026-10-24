@@ -228,7 +228,7 @@ export const PLANS: Plan[] = [
     includes: [
       'Retention: promotion and raise preparation, internal roles and paths into new functions',
       'Learning and development: a skills plan for each person, with the courses you cover first',
-      'Job retraining for people whose jobs are changing, set up with you',
+      'Job retraining for people whose jobs are changing: not available yet',
       'Counts by team, never by person',
     ],
     addOns: ['NextChapter courses and AI skills training for your people'],
