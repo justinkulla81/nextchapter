@@ -13,6 +13,8 @@ const mail = vi.hoisted(() => ({ link: vi.fn(async (_p: { to: string; verifyUrl:
 vi.mock('@/lib/email/send-org-claim-email', () => ({ sendOrgClaimLinkEmail: mail.link, sendOrgClaimAdminEmail: mail.admin }))
 const crm = vi.hoisted(() => ({ addContactToCrm: vi.fn(async (_c: Record<string, unknown>) => ({ outcome: 'added', personId: 'p1' })) }))
 vi.mock('@/lib/crm/add-contact', () => crm)
+const provision = vi.hoisted(() => ({ provisionFreeWorkspace: vi.fn(async (_i: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> => ({ ok: true })) }))
+vi.mock('@/lib/plans/provision', () => provision)
 
 import { checkClaimEmail, domainMatches } from '@/lib/org-claims/rules'
 import { hashClaimToken, newClaimToken, tokenState, hashIp, CLAIM_TOKEN_DAYS } from '@/lib/org-claims/token'
@@ -206,7 +208,7 @@ describe('confirmOrgClaim', () => {
 
   it('verifies once: looks up by hash, records the claimant, notifies the team', async () => {
     db.orgClaim.findUnique.mockResolvedValue(row())
-    expect(await confirmOrgClaim(token)).toEqual({ status: 'verified', orgName: 'Example College', slug: 'example-college' })
+    expect(await confirmOrgClaim(token)).toEqual({ status: 'verified', orgName: 'Example College', slug: 'example-college', provisioned: true })
     expect(db.orgClaim.findUnique.mock.calls[0][0].where).toEqual({ tokenHash: hashClaimToken(token) })
     expect(db.orgClaim.updateMany.mock.calls[0][0].where).toMatchObject({ id: 'c1', verifiedAt: null })
     expect(crm.addContactToCrm).toHaveBeenCalledOnce()
@@ -252,6 +254,24 @@ describe('onClaimVerified hook', () => {
     expect(crm.addContactToCrm.mock.calls[0][0].note).toContain('needs a person')
     expect(db.crmPerson.update).toHaveBeenCalledOnce()
     expect(mail.admin).toHaveBeenCalledWith(expect.objectContaining({ needsReview: true, pageUrl: 'https://launchyournextchapter.com/prepared/example-college' }))
-    expect(Object.keys(db)).not.toContain('institution')
+    expect(provision.provisionFreeWorkspace).not.toHaveBeenCalled()
+  })
+
+  it('sets up the free workspace when the domain matched and the type has one', async () => {
+    const r = await onClaimVerified({ ...claim, orgTypes: ['UNIVERSITY'], needsReview: false })
+    expect(r).toEqual({ provisioned: true })
+    expect(provision.provisionFreeWorkspace).toHaveBeenCalledWith({ crmOrganizationId: 'o1', name: 'Example College', orgType: 'UNIVERSITY', claimantEmail: 'pat@college.edu' })
+  })
+  it('waits for a person when the domain was not known, and skips types with no free workspace', async () => {
+    expect((await onClaimVerified({ ...claim, orgTypes: ['UNIVERSITY'], needsReview: true })).provisioned).toBe(false)
+    expect((await onClaimVerified({ ...claim, orgTypes: ['EMPLOYER'], needsReview: false })).provisioned).toBe(false)
+    expect(provision.provisionFreeWorkspace).not.toHaveBeenCalled()
+  })
+  it('never fails the claim if setting up the workspace fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    provision.provisionFreeWorkspace.mockRejectedValueOnce(new Error('db down'))
+    expect((await onClaimVerified({ ...claim, orgTypes: ['NONPROFIT'], needsReview: false })).provisioned).toBe(false)
+    provision.provisionFreeWorkspace.mockResolvedValueOnce({ ok: false, error: 'no' })
+    expect((await onClaimVerified({ ...claim, orgTypes: ['NONPROFIT'], needsReview: false })).provisioned).toBe(false)
   })
 })
