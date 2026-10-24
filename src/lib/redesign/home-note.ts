@@ -13,6 +13,7 @@ export type HomeNoteKind =
   | 'upload_resume'
   | 'setup_strategy'
   | 'report_ready'
+  | 'coach_update'
   | 'connect_accounts'
   | 'coach_offer'
   | 'stalled_reask'
@@ -29,6 +30,8 @@ export interface HomeNoteInputs {
   needsResume?: boolean
   searchStrategyIncomplete: boolean
   reportReady: boolean
+  /** The coach sent a session summary the member has not opened yet (src/lib/coach/session-notes-service.ts). */
+  coachUpdate?: boolean
   accountsNotConnected: boolean
   /** A reason to offer a coach today (src/lib/coach/offer.ts); not snoozed, and no coach yet. */
   coachOffer?: boolean
@@ -47,6 +50,7 @@ export function pickHomeNote(i: HomeNoteInputs): HomeNoteKind {
   if (i.needsResume) return 'upload_resume'
   if (i.searchStrategyIncomplete) return 'setup_strategy'
   if (i.reportReady) return 'report_ready'
+  if (i.coachUpdate) return 'coach_update'
   if (i.accountsNotConnected) return 'connect_accounts'
   if (i.coachOffer) return 'coach_offer'
   // The wider question comes before the narrower stalled-search card: both are about a stall, and only one is the note.
@@ -68,7 +72,7 @@ export interface HomeNoteContent {
 }
 
 /** The note's words, for the kinds that are a plain "do this, because". Null: that kind keeps its own card. */
-export function simpleNote(kind: HomeNoteKind, ctx: { firstName: string; firstWeek: FirstWeekStep | null; motivations: readonly string[] }): HomeNoteContent | null {
+export function simpleNote(kind: HomeNoteKind, ctx: { firstName: string; firstWeek: FirstWeekStep | null; motivations: readonly string[]; coachFirstName?: string | null }): HomeNoteContent | null {
   switch (kind) {
     case 'coaching_form':
       return {
@@ -102,6 +106,16 @@ export function simpleNote(kind: HomeNoteKind, ctx: { firstName: string; firstWe
         startHref: '/dashboard/market-reality',
         whyDetail: 'We built it from your profile and the market for your kind of role. You see it once, as your starting point.',
       }
+    case 'coach_update': {
+      const coach = ctx.coachFirstName || 'Your coach'
+      return {
+        title: `${coach} sent you notes from your session`,
+        why: 'It has the steps you agreed, already in your week, and a few topics you can accept or dismiss. About 2 minutes.',
+        startLabel: 'Read the update',
+        startHref: '/dashboard/my-coaching',
+        whyDetail: `${coach} chose to send this after your call. You see this note until you open the update. Nothing in it changes your search until you accept a topic.`,
+      }
+    }
     case 'first_week': {
       const s = ctx.firstWeek
       if (!s) return null

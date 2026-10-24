@@ -57,3 +57,22 @@ describe('simpleNote', () => {
     expect(simpleNote('first_week', { ...ctx, firstWeek: null })).toBeNull()
   })
 })
+
+describe('the coach update note', () => {
+  const none = { needsCoachingForm: false, searchStrategyIncomplete: false, reportReady: false, accountsNotConnected: false, stalledSearch: false, passiveToActive: false, firstWeek: null, gotHired: false, searchPlaybook: false }
+  it('is the note when the coach sent an update the member has not opened', () => {
+    expect(pickHomeNote({ ...none, coachUpdate: true })).toBe('coach_update')
+  })
+  it('waits behind setup and the report, and ahead of nudges and prompts', () => {
+    expect(pickHomeNote({ ...none, coachUpdate: true, searchStrategyIncomplete: true })).toBe('setup_strategy')
+    expect(pickHomeNote({ ...none, coachUpdate: true, reportReady: true })).toBe('report_ready')
+    expect(pickHomeNote({ ...none, coachUpdate: true, accountsNotConnected: true, stalledSearch: true })).toBe('coach_update')
+  })
+  it('says who sent it, why, and where to read it', () => {
+    const n = simpleNote('coach_update', { firstName: 'Dana', firstWeek: null, motivations: [], coachFirstName: 'Maya' })!
+    expect(n.title).toBe('Maya sent you notes from your session')
+    expect(n.startHref).toBe('/dashboard/my-coaching')
+    expect(n.why.length).toBeGreaterThan(0)
+    expect(simpleNote('coach_update', { firstName: 'Dana', firstWeek: null, motivations: [] })!.title).toContain('Your coach')
+  })
+})

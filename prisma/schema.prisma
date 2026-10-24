@@ -5880,6 +5880,13 @@ model CoachSession {
   institutionId String?
   institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
 
+  // Coach notes upgrade (2026-10-24, prisma/manual/2026-10-24-coach-notes.sql): structured captures, the
+  // summary draft, agreed follow-ups and confirmed topics for this session. See src/lib/coach/session-notes.ts.
+  captures  CoachSessionCapture[]
+  summary   CoachSessionSummary?
+  followUps CoachFollowUp[]
+  topics    CoachSessionTopic[]
+
   @@index([candidateId, occurredAt])
   @@index([institutionId])
 }
@@ -16800,4 +16807,82 @@ model CompetitorCapability {
   @@unique([competitorId, capabilityId])
   @@index([capabilityId])
   @@index([competitorId, checkedAt])
+}
+
+
+// ── COACH SESSION NOTES (2026-10-24) ─────────────────────────────────────────
+// What a coach captures in a session and what reaches the member. The coach's private free text stays on
+// CoachSession.notes and is never read by anything that builds the summary or the member's view. Strings with
+// CHECK constraints (see the SQL file) rather than enums, so a new kind needs no type migration.
+
+// One structured capture. kind: win | blocker | decision | next_step. Coach-only; never sent.
+model CoachSessionCapture {
+  id        String       @id @default(cuid())
+  sessionId String
+  session   CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  kind      String
+  text      String       @db.Text
+  createdAt DateTime     @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+// The summary for the member. state: DRAFT (written, maybe by the model) -> REVIEWED (the coach edited or
+// confirmed it) -> SENT (the coach pressed send; only then does the member see `text`). meetNotes is the
+// imported Gemini notes or pasted notes: coach-only, never sent. viewedAt is when the member opened it.
+model CoachSessionSummary {
+  id         String       @id @default(cuid())
+  sessionId  String       @unique
+  session    CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  state      String       @default("DRAFT")
+  text       String       @default("") @db.Text
+  meetNotes  String?      @db.Text
+  aiDrafted  Boolean      @default(false)
+  reviewedAt DateTime?
+  sentAt     DateTime?
+  viewedAt   DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+// One agreed follow-up with one owner. ownerKind: coach | member. status: open | done. The member sees it only
+// after the summary is SENT (visibleToMemberAt is set at that moment). A member-owned one is also added to the
+// member's weekly plan as a to-do; a coach-owned one is shown to the member labeled with the coach's name.
+model CoachFollowUp {
+  id                String       @id @default(cuid())
+  sessionId         String
+  session           CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  candidateId       String
+  coachId           String
+  ownerKind         String
+  text              String       @db.Text
+  dueOn             DateTime?    @db.Date
+  status            String       @default("open")
+  completedAt       DateTime?
+  visibleToMemberAt DateTime?
+  createdAt         DateTime     @default(now())
+
+  @@index([sessionId])
+  @@index([candidateId, visibleToMemberAt])
+}
+
+// A topic the member wants help with, from the controlled vocabulary in src/lib/coach/topics.ts.
+// status: suggested (found in the notes, coach-only) -> confirmed (the coach confirmed it; goes to the member
+// when the summary is sent) -> accepted | dismissed (the member's choice). Accepted topics feed the member's
+// recommendations (src/lib/coach/accepted-topics.ts).
+model CoachSessionTopic {
+  id          String       @id @default(cuid())
+  sessionId   String
+  session     CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  candidateId String
+  topic       String
+  quote       String?      @db.Text
+  status      String       @default("suggested")
+  suggestedAt DateTime     @default(now())
+  confirmedAt DateTime?
+  acceptedAt  DateTime?
+  dismissedAt DateTime?
+
+  @@unique([sessionId, topic])
+  @@index([candidateId, status])
 }
