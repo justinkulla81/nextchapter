@@ -4,21 +4,23 @@ import { useActionState, useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { usePostHog } from '@/lib/posthog/client'
 import { submitHelpForm, type HelpFormState } from '@/app/dashboard/help/actions'
-import { HELP_FORM_KINDS, isConversationKind, mentionsCrisis, type HelpFormKind } from '@/lib/help/constants'
+import { HELP_AUDIENCES, HELP_FORM_KINDS, isConversationKind, mentionsCrisis, type HelpAudience, type HelpFormKind } from '@/lib/help/constants'
 
 /**
  * The Help & feedback form, used in the corner panel on every portal page
- * and on /dashboard/help. Four choices as buttons (design principles: 2–4
- * options). The page the candidate is on travels with the message.
+ * and on each portal's Help & feedback page. Four choices as buttons (design
+ * principles: 2–4 options). The page the sender is on travels with the message.
  */
 export function HelpFeedbackForm({
-  contextPath, contextTitle, initialKind = 'help', onDone,
+  contextPath, contextTitle, initialKind = 'help', onDone, audience = 'CANDIDATE',
 }: {
   contextPath: string
   contextTitle: string
   initialKind?: HelpFormKind
   onDone?: () => void
+  audience?: HelpAudience
 }) {
+  const helpPath = HELP_AUDIENCES[audience].helpPath
   const posthog = usePostHog()
   const [kind, setKind] = useState<HelpFormKind>(initialKind)
   const [text, setText] = useState('')
@@ -26,11 +28,11 @@ export function HelpFeedbackForm({
   const [state, action, pending] = useActionState<HelpFormState, FormData>(submitHelpForm, undefined)
   const router = useRouter()
   const pathname = usePathname()
-  // On /dashboard/help the lists below the form should show what was just
+  // On the Help & feedback page the lists below the form should show what was just
   // sent; elsewhere (the corner panel) nothing on the page depends on it.
   useEffect(() => {
-    if (state?.sent && pathname?.startsWith('/dashboard/help')) router.refresh()
-  }, [state, pathname, router])
+    if (state?.sent && pathname?.startsWith(helpPath)) router.refresh()
+  }, [state, pathname, router, helpPath])
   const current = HELP_FORM_KINDS.find((k) => k.value === kind)!
   const crisis = mentionsCrisis(text)
 
@@ -51,7 +53,7 @@ export function HelpFeedbackForm({
           )}
         </div>
         <div className="flex flex-wrap gap-3 text-sm">
-          <a href={state.requestId ? `/dashboard/help?request=${state.requestId}` : '/dashboard/help'} className="font-medium text-brand underline underline-offset-4">
+          <a href={state.requestId ? `${helpPath}?request=${state.requestId}` : helpPath} className="font-medium text-brand underline underline-offset-4">
             Open Help &amp; feedback
           </a>
           <button
@@ -69,6 +71,7 @@ export function HelpFeedbackForm({
   return (
     <form key={formKey} action={action} className={pending ? 'cursor-wait' : undefined} noValidate>
       <input type="hidden" name="kind" value={kind} />
+      <input type="hidden" name="audience" value={audience} />
       <input type="hidden" name="contextPath" value={contextPath} />
       <input type="hidden" name="contextTitle" value={contextTitle} />
 
@@ -78,7 +81,7 @@ export function HelpFeedbackForm({
             key={k.value}
             type="button"
             aria-pressed={kind === k.value}
-            onClick={() => { setKind(k.value); posthog?.capture('help_kind_selected', { kind: k.value, page: contextPath }) }}
+            onClick={() => { setKind(k.value); posthog?.capture('help_kind_selected', { kind: k.value, audience, page: contextPath }) }}
             className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
               kind === k.value ? 'border-brand bg-brand/5 text-navy ring-1 ring-brand' : 'border-border bg-white text-foreground hover:bg-muted'
             }`}
@@ -112,7 +115,7 @@ export function HelpFeedbackForm({
       {crisis && (
         <p role="note" className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-foreground">
           If you’re going through something really hard right now, you can call or text <span className="font-semibold">988</span> any time,
-          free and confidential. <a href="/dashboard/support" className="text-brand underline underline-offset-4">More support options</a>. Your message will still be sent.
+          free and confidential. {audience === 'CANDIDATE' && <><a href="/dashboard/support" className="text-brand underline underline-offset-4">More support options</a>. </>}Your message will still be sent.
         </p>
       )}
 
@@ -127,7 +130,7 @@ export function HelpFeedbackForm({
       <button
         type="submit"
         disabled={pending}
-        onClick={() => posthog?.capture('help_form_send_clicked', { kind, page: contextPath })}
+        onClick={() => posthog?.capture('help_form_send_clicked', { kind, audience, page: contextPath })}
         className="mt-4 inline-flex items-center justify-center rounded-lg bg-action px-5 py-2.5 text-sm font-semibold text-action-foreground hover:brightness-95 disabled:cursor-wait disabled:opacity-70"
       >
         {pending ? 'Sending…' : 'Send'}

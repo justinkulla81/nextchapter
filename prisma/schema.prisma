@@ -11765,6 +11765,10 @@ model ProductFeedback {
   candidateId String?
   candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
 
+  /// The employer-portal or coach-portal user who said it in-app (OutplacementOrgUser
+  /// or Coach id, by `source`). Lets them see what happened to it.
+  portalUserId String?
+
   rawText     String  @db.Text
   channel     String? // 'call' | 'email' | 'in person' | 'survey' | 'in-app idea' | 'in-app feedback' | ...
   /// The portal page a candidate was on when they sent it in-app.
@@ -11785,6 +11789,7 @@ model ProductFeedback {
   @@index([status, receivedAt(sort: Desc)])
   @@index([personId])
   @@index([candidateId])
+  @@index([portalUserId])
 }
 
 /// Many feedback to one item. Eight testers complaining about onboarding
@@ -13259,6 +13264,32 @@ model InstitutionPurchase {
   @@index([memberId])
 }
 
+/// Which portal a person is in. Help & feedback and the NPS prompt run in all three.
+enum PortalAudience {
+  CANDIDATE
+  EMPLOYER
+  COACH
+}
+
+/// One answer to "How likely are you to recommend NextChapter?", or a dismissal
+/// (score null). A row of either kind starts the cooldown before the next ask.
+model NpsResponse {
+  id              String         @id @default(cuid())
+  audience        PortalAudience
+  /// CandidateProfile id, OutplacementOrgUser id or Coach id, by audience.
+  respondentId    String
+  /// Name and organization at the time, so the admin page needs no join.
+  respondentLabel String?
+  /// 0-10. Null when the person dismissed the prompt without answering.
+  score           Int?
+  comment         String?        @db.Text
+  contextPath     String?
+  createdAt       DateTime       @default(now())
+
+  @@index([audience, respondentId, createdAt])
+  @@index([createdAt])
+}
+
 /// What a candidate asked for through Help & feedback in the portal.
 enum HelpRequestKind {
   HELP // a question or a request for help
@@ -13276,8 +13307,14 @@ enum HelpRequestStatus {
 model HelpRequest {
   id             String            @id @default(cuid())
   /// Plain id, like CoachClientInvite.candidateId: no relation, so the
-  /// candidate model needn't change.
+  /// candidate model needn't change. For an EMPLOYER request this is the
+  /// OutplacementOrgUser id, for a COACH request the Coach id (see `audience`).
   candidateId    String
+  audience       PortalAudience    @default(CANDIDATE)
+  /// Who asked, copied at send time for the non-candidate portals, which have
+  /// no CandidateProfile to look up. Null for candidates.
+  requesterName  String?
+  requesterEmail String?
   kind           HelpRequestKind
   status         HelpRequestStatus @default(OPEN)
   /// The first line of the first message, for lists.
@@ -13303,6 +13340,7 @@ model HelpRequest {
 
   @@index([candidateId, lastMessageAt])
   @@index([status, lastMessageAt])
+  @@index([audience, candidateId])
 }
 
 model HelpMessage {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { usePostHog } from '@/lib/posthog/client'
 import { markHelpRequestRead, replyToHelpRequest, type HelpFormState } from '@/app/dashboard/help/actions'
 import { conversationState } from '@/lib/redesign/network-account'
+import type { HelpAudience } from '@/lib/help/constants'
 
 interface ConversationView {
   id: string
@@ -16,8 +17,8 @@ interface ConversationView {
   messages: { id: string; body: string; fromAdmin: boolean; when: string }[]
 }
 
-/** One help conversation on /dashboard/help: collapsed to its subject, opens to the thread and a reply box. */
-export function HelpConversation({ request, defaultOpen }: { request: ConversationView; defaultOpen: boolean }) {
+/** One help conversation on a portal's Help & feedback page: collapsed to its subject, opens to the thread and a reply box. */
+export function HelpConversation({ request, defaultOpen, audience = 'CANDIDATE' }: { request: ConversationView; defaultOpen: boolean; audience?: HelpAudience }) {
   const posthog = usePostHog()
   const [open, setOpen] = useState(defaultOpen)
   const [state, action, pending] = useActionState<HelpFormState, FormData>(replyToHelpRequest.bind(null, request.id), undefined)
@@ -28,8 +29,8 @@ export function HelpConversation({ request, defaultOpen }: { request: Conversati
 
   // Opening a conversation with a reply in it clears the badge.
   useEffect(() => {
-    if (open && request.replyWaiting) void markHelpRequestRead(request.id)
-  }, [open, request.id, request.replyWaiting])
+    if (open && request.replyWaiting) void markHelpRequestRead(request.id, audience)
+  }, [open, request.id, request.replyWaiting, audience])
   const stateText = conversationState(request.replyWaiting, request.resolved)
 
   return (
@@ -63,6 +64,7 @@ export function HelpConversation({ request, defaultOpen }: { request: Conversati
             <p role="status" className="text-sm font-medium text-success">Sent. We’ll reply here and by email.</p>
           ) : (
             <form action={action} className={pending ? 'cursor-wait' : undefined}>
+              <input type="hidden" name="audience" value={audience} />
               <label htmlFor={`reply-${request.id}`} className="text-sm font-semibold text-navy">
                 {request.resolved ? 'Still need help? Reply to reopen this' : 'Reply'}
               </label>

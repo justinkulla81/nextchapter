@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import type { RoleGrantRole } from '@prisma/client'
 import { EmployerNav } from '@/components/employer/EmployerNav'
@@ -7,6 +8,8 @@ import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { brandStyle } from '@/lib/partners/brand'
 import { outplacementBrand } from '@/lib/partners/resolve-brand'
 import { orgProgramTypes } from '@/lib/employer/staff-programs'
+import { PortalHelpLauncher } from '@/components/help/PortalHelpLauncher'
+import { NpsPromptLoader } from '@/components/nps/NpsPromptLoader'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -30,6 +33,13 @@ export default async function EmployerAppLayout({ children }: { children: React.
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
       <PortalActivityTracker portal="EMPLOYER" />
       <EmployerNav role={orgUser.role} brand={brand} programs={[...programs]} />
+      {/* Help & feedback in the corner of every page, and the NPS question when it is due. */}
+      <Suspense fallback={null}>
+        <PortalHelpLauncher audience="EMPLOYER" requesterId={orgUser.id} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NpsPromptLoader audience="EMPLOYER" />
+      </Suspense>
       {/* pt-14 clears the fixed top bar — see RecruiterAppLayout's identical comment. */}
       <div className="pt-14">
         <RoleContextBanner

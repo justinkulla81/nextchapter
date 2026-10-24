@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { HELP_SCREENSHOT_BUCKET } from '@/lib/help/constants'
+import { HELP_AUDIENCES, HELP_SCREENSHOT_BUCKET } from '@/lib/help/constants'
 import { AdminHelpReplyForm, AdminHelpActions } from '@/components/admin/AdminHelpThread'
 
 const stamp = (d: Date) => d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })
@@ -13,18 +13,25 @@ export default async function HelpThreadPage({ params }: { params: Promise<{ id:
   const { id } = await params
   const r = await prisma.helpRequest.findUnique({ where: { id }, include: { messages: { orderBy: { createdAt: 'asc' } } } })
   if (!r) notFound()
-  const c = await prisma.candidateProfile.findUnique({
-    where: { id: r.candidateId },
-    select: { id: true, firstName: true, lastName: true, email: true },
-  })
-  const name = [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.email || 'Candidate'
+  const isCandidate = r.audience === 'CANDIDATE'
+  const c = isCandidate
+    ? await prisma.candidateProfile.findUnique({
+        where: { id: r.candidateId },
+        select: { id: true, firstName: true, lastName: true, email: true },
+      })
+    : null
+  const name = isCandidate
+    ? [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.email || 'Candidate'
+    : r.requesterName || HELP_AUDIENCES[r.audience].label
+  const email = isCandidate ? c?.email : r.requesterEmail
+  const profileHref = isCandidate ? `/support/admin/candidates/${r.candidateId}` : r.audience === 'COACH' ? `/support/admin/coaches/${r.candidateId}` : null
   let screenshotUrl: string | null = null
   if (r.screenshotPath) {
     const { data } = await createAdminClient().storage.from(HELP_SCREENSHOT_BUCKET).createSignedUrl(r.screenshotPath, 60 * 30)
     screenshotUrl = data?.signedUrl ?? null
   }
   const inVision = r.kind === 'PROBLEM'
-    ? await prisma.productFeedback.findFirst({ where: { candidateId: r.candidateId, channel: 'in-app problem', rawText: r.messages[0]?.body ?? '' }, select: { id: true } })
+    ? await prisma.productFeedback.findFirst({ where: { ...(isCandidate ? { candidateId: r.candidateId } : { portalUserId: r.candidateId }), channel: 'in-app problem', rawText: r.messages[0]?.body ?? '' }, select: { id: true } })
     : null
 
   return (
@@ -38,8 +45,11 @@ export default async function HelpThreadPage({ params }: { params: Promise<{ id:
         </p>
         <h1 className="text-2xl font-semibold">{r.subject}</h1>
         <p className="text-sm text-muted-foreground">
-          <Link href={`/support/admin/candidates/${r.candidateId}`} className="font-medium text-foreground underline">{name}</Link>
-          {c?.email ? <> · <span className="select-all">{c.email}</span></> : null}
+          {profileHref
+            ? <Link href={profileHref} className="font-medium text-foreground underline">{name}</Link>
+            : <span className="font-medium text-foreground">{name}</span>}
+          {!isCandidate && <> · {HELP_AUDIENCES[r.audience].label}</>}
+          {email ? <> · <span className="select-all">{email}</span></> : null}
           {' · '}{r.contextTitle || r.contextPath || 'Help & feedback page'}
           {r.contextPath ? <> (<span className="font-mono text-xs">{r.contextPath}</span>)</> : null}
         </p>
@@ -72,7 +82,7 @@ export default async function HelpThreadPage({ params }: { params: Promise<{ id:
         </figure>
       )}
 
-      <AdminHelpReplyForm requestId={r.id} firstName={c?.firstName ?? null} resolved={r.status === 'RESOLVED'} />
+      <AdminHelpReplyForm requestId={r.id} firstName={isCandidate ? c?.firstName ?? null : name.split(' ')[0] || null} resolved={r.status === 'RESOLVED'} />
       <AdminHelpActions requestId={r.id} resolved={r.status === 'RESOLVED'} isProblem={r.kind === 'PROBLEM'} inVision={!!inVision} />
     </div>
   )

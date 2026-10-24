@@ -1,6 +1,8 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
 import { prisma } from '@/lib/prisma'
+import { HELP_AUDIENCES, type HelpAudience } from '@/lib/help/constants'
+import { lookupRequester } from '@/lib/help/requester'
 
 /** Where new help requests are emailed. Override with HELP_FORWARD_TO. */
 const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO || 'justin@launchyournextchapter.com'
@@ -37,18 +39,24 @@ async function send(args: { to: string; subject: string; html: string; text: str
 const candidateName = (c: { firstName: string | null; lastName: string | null } | null) =>
   [c?.firstName, c?.lastName].filter(Boolean).join(' ') || 'A candidate'
 
+/** Who sent a help request: the candidate's profile name, or the name saved on an employer or coach request. */
+async function requestSender(r: { audience: HelpAudience; candidateId: string; requesterName: string | null }): Promise<string> {
+  if (r.audience !== 'CANDIDATE') return r.requesterName || `A ${HELP_AUDIENCES[r.audience].label.toLowerCase()} user`
+  const c = await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, lastName: true } })
+  return candidateName(c)
+}
+
 /** A new help request or problem, or a candidate's follow-up on one: email the admin. */
 export async function notifyAdminOfHelp(requestId: string, body: string, isFollowUp: boolean): Promise<void> {
   const r = await prisma.helpRequest.findUnique({ where: { id: requestId } })
   if (!r) return
-  const c = await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, lastName: true, email: true } })
-  const name = candidateName(c)
+  const name = await requestSender(r)
   const kind = r.kind === 'PROBLEM' ? 'Problem' : 'Help'
   const link = `${ADMIN_URL}/support/admin/help/${r.id}`
   const flag = r.flaggedCrisis ? '[Check in] ' : ''
   await send({
     to: ADMIN_TO,
-    subject: `${flag}${isFollowUp ? 'Reply' : kind}: ${name} · ${r.subject}`,
+    subject: `${flag}${isFollowUp ? 'Reply' : kind}${r.audience === 'CANDIDATE' ? '' : ` (${HELP_AUDIENCES[r.audience].label.toLowerCase()})`}: ${name} · ${r.subject}`,
     html: wrap(`
       ${r.flaggedCrisis ? '<p style="margin:0 0 12px;color:#9b3b2f;font-weight:600">This message uses crisis language. The candidate was shown the 988 line.</p>' : ''}
       <p style="margin:0 0 12px;font-size:17px;font-weight:600">${isFollowUp ? `${escapeHtml(name)} replied` : `${kind} request from ${escapeHtml(name)}`}</p>
@@ -59,21 +67,22 @@ export async function notifyAdminOfHelp(requestId: string, body: string, isFollo
   })
 }
 
-/** The admin replied: email the candidate with the reply and a link back. */
+/** The admin replied: email the requester with the reply and a link back. */
 export async function notifyCandidateOfReply(requestId: string, body: string): Promise<boolean> {
-  const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, subject: true } })
+  const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, audience: true, subject: true, requesterEmail: true } })
   if (!r) return false
-  const c = await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, email: true } })
-  if (!c?.email) return false
-  const link = `${APP_URL}/dashboard/help?request=${requestId}`
+  const who = await lookupRequester(r.audience, r.candidateId)
+  const to = who?.email ?? r.requesterEmail
+  if (!to) return false
+  const link = `${APP_URL}${HELP_AUDIENCES[r.audience].helpPath}?request=${requestId}`
   return send({
-    to: c.email,
+    to,
     subject: `Re: ${r.subject}`,
     html: wrap(`
-      <p style="margin:0 0 12px">Hi${c.firstName ? ` ${escapeHtml(c.firstName)}` : ''},</p>
+      <p style="margin:0 0 12px">Hi${who?.firstName ? ` ${escapeHtml(who.firstName)}` : ''},</p>
       ${quote(body)}
       <p style="margin:0;font-size:14px"><a href="${link}">Reply on NextChapter</a></p>`),
-    text: `Hi${c.firstName ? ` ${c.firstName}` : ''},\n\n${body}\n\nReply on NextChapter: ${link}`,
+    text: `Hi${who?.firstName ? ` ${who.firstName}` : ''},\n\n${body}\n\nReply on NextChapter: ${link}`,
   })
 }
 
@@ -81,15 +90,17 @@ export async function notifyCandidateOfReply(requestId: string, body: string): P
 export async function notifyCandidateFeedbackAddressed(feedbackId: string): Promise<boolean> {
   const fb = await prisma.productFeedback.findUnique({
     where: { id: feedbackId },
-    select: { candidateId: true, channel: true, rawText: true, responseNote: true },
+    select: { candidateId: true, portalUserId: true, source: true, channel: true, rawText: true, responseNote: true },
   })
-  if (!fb?.candidateId || !fb.responseNote || !fb.channel?.startsWith('in-app')) return false
+  const audience: HelpAudience = fb?.source === 'EMPLOYER' ? 'EMPLOYER' : fb?.source === 'COACH' ? 'COACH' : 'CANDIDATE'
+  const senderId = audience === 'CANDIDATE' ? fb?.candidateId : fb?.portalUserId
+  if (!fb || !senderId || !fb.responseNote || !fb.channel?.startsWith('in-app')) return false
   // A problem report sent to Vision was already answered in its conversation.
   if (fb.channel === 'in-app problem') return false
-  const c = await prisma.candidateProfile.findUnique({ where: { id: fb.candidateId }, select: { firstName: true, email: true } })
+  const c = await lookupRequester(audience, senderId)
   if (!c?.email) return false
   const what = fb.channel === 'in-app idea' ? 'idea' : 'feedback'
-  const link = `${APP_URL}/dashboard/help`
+  const link = `${APP_URL}${HELP_AUDIENCES[audience].helpPath}`
   const excerpt = fb.rawText.length > 240 ? `${fb.rawText.slice(0, 239)}…` : fb.rawText
   return send({
     to: c.email,
@@ -110,19 +121,19 @@ export async function sendDailyFeedbackDigest(since: Date): Promise<number> {
   const items = await prisma.productFeedback.findMany({
     where: { channel: { in: ['in-app idea', 'in-app feedback'] }, createdAt: { gte: since } },
     orderBy: { createdAt: 'asc' },
-    select: { id: true, rawText: true, channel: true, contextPath: true, candidate: { select: { firstName: true, lastName: true } } },
+    select: { id: true, rawText: true, channel: true, contextPath: true, source: true, personLabel: true, candidate: { select: { firstName: true, lastName: true } } },
   })
   if (items.length === 0) return 0
   const link = `${ADMIN_URL}/support/admin/vision/feedback`
   const rows = items.map((i) => {
-    const who = candidateName(i.candidate)
+    const who = i.candidate ? candidateName(i.candidate) : i.personLabel ? `${i.personLabel} (${i.source.toLowerCase()})` : candidateName(null)
     const what = i.channel === 'in-app idea' ? 'Idea' : 'Feedback'
     return { html: `<p style="margin:0 0 4px;font-size:13px;color:#55606e">${what} · ${escapeHtml(who)}${i.contextPath ? ` · ${escapeHtml(i.contextPath)}` : ''}</p>${quote(i.rawText)}`, text: `${what} · ${who}\n${i.rawText}` }
   })
   await send({
     to: ADMIN_TO,
-    subject: `${items.length} new ${items.length === 1 ? 'idea or piece of feedback' : 'ideas and feedback'} from candidates`,
-    html: wrap(`<p style="margin:0 0 14px;font-size:17px;font-weight:600">From candidates in the last day</p>${rows.map((r) => r.html).join('')}<p style="margin:0;font-size:14px"><a href="${link}">Triage in Vision → Feedback</a></p>`),
+    subject: `${items.length} new ${items.length === 1 ? 'idea or piece of feedback' : 'ideas and feedback'} from the portals`,
+    html: wrap(`<p style="margin:0 0 14px;font-size:17px;font-weight:600">From candidates, employers and coaches in the last day</p>${rows.map((r) => r.html).join('')}<p style="margin:0;font-size:14px"><a href="${link}">Triage in Vision → Feedback</a></p>`),
     text: `${rows.map((r) => r.text).join('\n\n')}\n\nTriage: ${link}`,
   })
   return items.length

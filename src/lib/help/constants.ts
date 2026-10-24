@@ -30,3 +30,15 @@ export const FEEDBACK_STATUS_LABEL: Record<'NEW' | 'TRIAGED' | 'ADDRESSED' | 'AR
 export const HELP_SCREENSHOT_BUCKET = 'help-screenshots'
 export const HELP_SCREENSHOT_MAX_BYTES = 5 * 1024 * 1024
 export const HELP_MESSAGE_MAX = 5000
+
+export type HelpAudience = 'CANDIDATE' | 'EMPLOYER' | 'COACH'
+
+/** Where each portal's Help & feedback page lives, and how the admin names its people. */
+export const HELP_AUDIENCES: Record<HelpAudience, { helpPath: string; label: string; sourceLabel: string }> = {
+  CANDIDATE: { helpPath: '/dashboard/help', label: 'Candidate', sourceLabel: 'candidates' },
+  EMPLOYER: { helpPath: '/employer/help', label: 'Employer', sourceLabel: 'employers' },
+  COACH: { helpPath: '/support/coach/help', label: 'Coach', sourceLabel: 'coaches' },
+}
+
+export const parseHelpAudience = (raw: unknown): HelpAudience =>
+  raw === 'EMPLOYER' || raw === 'COACH' ? raw : 'CANDIDATE'

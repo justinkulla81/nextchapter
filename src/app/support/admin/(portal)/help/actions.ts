@@ -54,13 +54,17 @@ export async function sendHelpToVision(requestId: string): Promise<void> {
   const admin = await requireAdmin()
   const r = await prisma.helpRequest.findUnique({
     where: { id: requestId },
-    select: { candidateId: true, contextPath: true, createdAt: true, messages: { where: { fromAdmin: false }, orderBy: { createdAt: 'asc' }, take: 1, select: { body: true } } },
+    select: { candidateId: true, audience: true, requesterName: true, contextPath: true, createdAt: true, messages: { where: { fromAdmin: false }, orderBy: { createdAt: 'asc' }, take: 1, select: { body: true } } },
   })
   if (!r || !r.messages[0]) return
-  const existing = await prisma.productFeedback.findFirst({ where: { candidateId: r.candidateId, rawText: r.messages[0].body, channel: 'in-app problem' }, select: { id: true } })
+  const who = r.audience === 'CANDIDATE' ? { candidateId: r.candidateId } : { portalUserId: r.candidateId }
+  const existing = await prisma.productFeedback.findFirst({ where: { ...who, rawText: r.messages[0].body, channel: 'in-app problem' }, select: { id: true } })
   if (!existing) {
     await prisma.productFeedback.create({
-      data: { source: 'CANDIDATE', candidateId: r.candidateId, rawText: r.messages[0].body, channel: 'in-app problem', contextPath: r.contextPath, receivedAt: r.createdAt },
+      data: {
+        source: r.audience, ...who, ...(r.audience === 'CANDIDATE' ? {} : { personLabel: r.requesterName }),
+        rawText: r.messages[0].body, channel: 'in-app problem', contextPath: r.contextPath, receivedAt: r.createdAt,
+      },
     })
   }
   captureServerEvent(admin.email ?? 'admin', 'help_sent_to_vision', { requestId, alreadyThere: !!existing })

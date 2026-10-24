@@ -62,6 +62,7 @@ function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[])
   } else if (role === 'FINANCE') {
     links.push({ href: '/employer/invoices', label: 'Invoices' })
   }
+  links.push({ href: '/employer/help', label: 'Help and feedback' })
   return links
 }
 

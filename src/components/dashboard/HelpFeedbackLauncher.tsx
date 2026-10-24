@@ -5,13 +5,15 @@ import { usePathname } from 'next/navigation'
 import { MessageSquare, X } from 'lucide-react'
 import { usePostHog } from '@/lib/posthog/client'
 import { HelpFeedbackForm } from '@/components/dashboard/HelpFeedbackForm'
+import { HELP_AUDIENCES, type HelpAudience } from '@/lib/help/constants'
 
 /**
  * The "Help & feedback" button in the corner of every portal page. Opens the
  * form in a panel (full screen on phones) so a problem can be reported on the
- * page where it happened. Not shown on /dashboard/help, which has the form.
+ * page where it happened. Not shown on the portal's own Help & feedback page, which has the form.
  */
-export function HelpFeedbackLauncher({ repliesWaiting = 0 }: { repliesWaiting?: number }) {
+export function HelpFeedbackLauncher({ repliesWaiting = 0, audience = 'CANDIDATE' }: { repliesWaiting?: number; audience?: HelpAudience }) {
+  const helpPath = HELP_AUDIENCES[audience].helpPath
   const pathname = usePathname() ?? '/dashboard'
   const posthog = usePostHog()
   const [open, setOpen] = useState(false)
@@ -27,7 +29,7 @@ export function HelpFeedbackLauncher({ repliesWaiting = 0 }: { repliesWaiting?: 
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  if (pathname.startsWith('/dashboard/help')) return null
+  if (pathname.startsWith(helpPath)) return null
 
   function openPanel() {
     // The page's own heading ("Success Dashboard", "Find a Full-time Job")
@@ -35,7 +37,7 @@ export function HelpFeedbackLauncher({ repliesWaiting = 0 }: { repliesWaiting?: 
     const heading = document.querySelector('main h1')?.textContent?.trim()
     setTitle(heading || document.title.replace(/^\s*NextChapter\s*[|–—-]\s*/i, '').replace(/\s*[|–—-]\s*NextChapter\s*$/i, '').trim())
     setOpen(true)
-    posthog?.capture('help_launcher_opened', { page: pathname })
+    posthog?.capture('help_launcher_opened', { audience, page: pathname })
   }
   function close() {
     setOpen(false)
@@ -78,11 +80,11 @@ export function HelpFeedbackLauncher({ repliesWaiting = 0 }: { repliesWaiting?: 
               </button>
             </div>
             {repliesWaiting > 0 && (
-              <a href="/dashboard/help" className="mb-4 block rounded-lg border border-orange/40 bg-orange/10 px-3 py-2 text-sm font-medium text-navy hover:bg-orange/20">
+              <a href={helpPath} className="mb-4 block rounded-lg border border-orange/40 bg-orange/10 px-3 py-2 text-sm font-medium text-navy hover:bg-orange/20">
                 You have {repliesWaiting === 1 ? 'a reply' : `${repliesWaiting} replies`} from the NextChapter team. Read {repliesWaiting === 1 ? 'it' : 'them'} →
               </a>
             )}
-            <HelpFeedbackForm contextPath={pathname} contextTitle={title} onDone={close} />
+            <HelpFeedbackForm contextPath={pathname} contextTitle={title} onDone={close} audience={audience} />
           </div>
         </div>
       )}

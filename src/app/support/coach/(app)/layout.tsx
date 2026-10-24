@@ -9,6 +9,8 @@ import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { prisma } from '@/lib/prisma'
 import { brandStyle, type PartnerBrand } from '@/lib/partners/brand'
 import { coachBrand } from '@/lib/partners/resolve-brand'
+import { PortalHelpLauncher } from '@/components/help/PortalHelpLauncher'
+import { NpsPromptLoader } from '@/components/nps/NpsPromptLoader'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -45,6 +47,13 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
       <PortalActivityTracker portal="COACH" />
       <Suspense fallback={<CoachNav accessToken={coach.accessToken} brand={brand} />}>
         <CoachNavWithBadges coachId={coach.id} accessToken={coach.accessToken} brand={brand} />
+      </Suspense>
+      {/* Help & feedback in the corner of every page, and the NPS question when it is due. */}
+      <Suspense fallback={null}>
+        <PortalHelpLauncher audience="COACH" requesterId={coach.id} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NpsPromptLoader audience="COACH" />
       </Suspense>
       {/* pt-14 clears the fixed top bar exactly once, whether or not the
           banner below renders — see RoleContextBanner's comment for why an

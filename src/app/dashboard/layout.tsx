@@ -21,6 +21,7 @@ import { CheckInPromptDialog } from '@/components/dashboard/CheckInPromptDialog'
 import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
+import { NpsPromptLoader } from '@/components/nps/NpsPromptLoader'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
@@ -111,7 +112,8 @@ async function getSupportNetworkUnreadCountForBadge(profileId: string) {
   return getSupportNetworkUnreadCount(profileId, profile.communityLastViewedAt)
 }
 // The check-in pop-up that opens with the app (a few times a week). Its own
-// Suspense boundary, so the schedule check never holds up the page.
+// Suspense boundary, so the schedule check never holds up the page. The NPS
+// question takes the slot only when no check-in is due: never two at once.
 async function CheckInPromptLoader({ profileId }: { profileId: string }) {
   const prompt = await getCheckInPrompt(profileId).catch(() => null)
   if (prompt) return <CheckInPromptDialog {...prompt} />
@@ -119,8 +121,9 @@ async function CheckInPromptLoader({ profileId }: { profileId: string }) {
   // two pop-ups at once.
   const profile = await getDashboardProfile()
   const stage = effectiveStage(profile)
-  if (!stage || stage === 'PAUSED' || !checkInDue(profile)) return null
-  return <JourneyCheckInDialog stageLabel={getStage(stage).label} />
+  if (stage && stage !== 'PAUSED' && checkInDue(profile)) return <JourneyCheckInDialog stageLabel={getStage(stage).label} />
+  // Nothing to check in on: the NPS question, if this member is due for it.
+  return <NpsPromptLoader audience="CANDIDATE" />
 }
 
 // The part switches (Jobs, Not posted yet, ...) at the top of a page, with the same locks as the menu.

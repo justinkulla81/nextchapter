@@ -204,6 +204,7 @@ function visionSections(): NavSection[] {
         { href: '/support/admin/vision/items', label: 'Roadmap' },
         { href: '/support/admin/vision/brainstorm', label: 'Brainstorm' },
         { href: '/support/admin/vision/feedback', label: 'Feedback' },
+        { href: '/support/admin/vision/nps', label: 'Net Promoter Score' },
         { href: '/support/admin/vision/competitors', label: 'Competitors' },
       ],
     },

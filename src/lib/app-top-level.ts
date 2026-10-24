@@ -6,5 +6,5 @@ export const APP_TOP_LEVEL = new Set<string>(['about','account-deactivated','ai-
 
 export const PORTAL_ROOT_PAGES: Record<string, Set<string>> = {
   '/recruiters': new Set<string>(['activity','calibrate','candidates','dashboard','export','forgot-password','job-board','login','messages','pool','search','settings','signup','start','talent']),
-  '/support/coach': new Set<string>(['access','activity','booking','caseload','clients','export','forgot-password','invite','invite-client','login','messages','settings','signup']),
+  '/support/coach': new Set<string>(['access','activity','booking','caseload','clients','export','forgot-password','help','invite','invite-client','login','messages','settings','signup']),
 }
