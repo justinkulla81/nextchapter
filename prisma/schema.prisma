@@ -11898,6 +11898,11 @@ model ProductCompetitor {
 
   cells ProductCompetitorFeature[]
   capabilityCells CompetitorCapability[]
+  events          CompetitorEvent[]
+  cellProposals   CompetitorCellProposal[]
+  /// Last time the monthly refresh / weekly news watch read this card.
+  watchRefreshedAt DateTime?
+  watchNewsAt      DateTime?
 
   @@index([lastReviewedAt])
 }
@@ -14597,6 +14602,64 @@ model FundingOpportunity {
   @@index([audience, eligibility])
 }
 
+/// A federal award a competitor won (USAspending.gov, free). Applied by hand: prisma/manual/bid-finder.sql.
+model CompetitorAward {
+  id             String    @id
+  competitorName String
+  competitorId   String?
+  recipientName  String
+  kind           String
+  confidence     String    @default("EXACT")
+  awardKey       String
+  awardId        String?
+  description    String?
+  agency         String?
+  subAgency      String?
+  amount         Float     @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  url            String
+  firstSeenAt    DateTime  @default(now())
+  lastSeenAt     DateTime  @default(now())
+
+  @@unique([awardKey, competitorName])
+  @@index([competitorName])
+  @@index([firstSeenAt])
+}
+
+model CompetitorAwardCheck {
+  competitorName String   @id
+  checkedAt      DateTime @default(now())
+  awardsFound    Int      @default(0)
+  error          String?
+}
+
+model BoardBidCheck {
+  boardId   String   @id
+  checkedAt DateTime @default(now())
+  outcome   String
+  bidsFound Int      @default(0)
+  note      String?
+}
+
+/// A bid or RFP read from a workforce board's own procurement page (src/lib/bids).
+model BoardBid {
+  id           String    @id
+  boardId      String
+  title        String
+  url          String
+  pageUrl      String
+  deadline     DateTime?
+  deadlineText String?
+  status       String    @default("OPEN")
+  firstSeenAt  DateTime  @default(now())
+  lastSeenAt   DateTime  @default(now())
+
+  @@index([boardId])
+  @@index([status, deadline])
+  @@index([firstSeenAt])
+}
+
 // Relocation incentives, retraining funds, grants, dividends and free courses for
 // laid-off professionals. Applied by hand: prisma/manual/benefit-programs.sql.
 model BenefitProgram {
@@ -14699,12 +14762,21 @@ model ConferenceEvent {
   linkFailures     Int                  @default(0)
   adminNote        String?
   source           String?
+  /// Canonical home URL (lowercased host, no www, no tracking params, no trailing slash): the dedupe key for Quick Add.
+  urlKey           String?
+  /// Hash of the page text at the last weekly re-check; a change triggers extraction of new dates and opportunities.
+  contentHash      String?
+  recheckedAt      DateTime?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @default(now()) @updatedAt
   interests        ConferenceInterest[]
+  editions         ConferenceEdition[]
+  opportunities    ConferenceOpportunity[]
+  changes          ConferenceChange[]
 
   @@index([published, startDate])
   @@index([importance])
+  @@index([urlKey])
 }
 
 model ConferenceInterest {
@@ -16840,6 +16912,230 @@ model CompetitorCapability {
   @@index([competitorId, checkedAt])
 }
 
+// ---- Conferences v2: editions, opportunities, member tracking, change review (prisma/manual/conferences-v2.sql) ----
+// ConferenceEvent above IS the series (one row per recurring event); these tables hang off it.
+
+/// One year's event. Created as TBA when the previous edition ends; dates fill in from the event's own site.
+model ConferenceEdition {
+  id            String                  @id @default(cuid())
+  seriesId      String
+  series        ConferenceEvent         @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  year          Int
+  startDate     DateTime?
+  endDate       DateTime?
+  /// IN_PERSON | VIRTUAL | HYBRID
+  format        String?
+  city          String?
+  state         String?
+  country       String?
+  url           String?
+  /// TBA | CONFIRMED | CANCELLED
+  status        String                  @default("TBA")
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @default(now()) @updatedAt
+  opportunities ConferenceOpportunity[]
+
+  @@unique([seriesId, year])
+}
+
+/// A thing to do at a conference: speak, submit, nominate, compete, demo. Typed, one row per edition.
+/// type: CALL_FOR_SPEAKERS | CALL_FOR_SUBMISSIONS | REPORT | CONTEST | PRESENTATION | AWARD | DEMO
+model ConferenceOpportunity {
+  id          String                       @id @default(cuid())
+  seriesId    String
+  series      ConferenceEvent              @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  editionId   String?
+  edition     ConferenceEdition?           @relation(fields: [editionId], references: [id], onDelete: SetNull)
+  type        String
+  title       String
+  url         String?
+  opensAt     DateTime?
+  deadline    DateTime?
+  eligibility String?
+  notes       String?
+  /// Shown to members only when true (Quick Add and the weekly re-check create unpublished rows).
+  published   Boolean                      @default(false)
+  /// ADMIN | QUICK_ADD | RECHECK
+  source      String                       @default("ADMIN")
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @default(now()) @updatedAt
+  tracks      ConferenceOpportunityTrack[]
+
+  @@index([deadline])
+  @@index([seriesId, type])
+}
+
+/// A member's stage on one opportunity. Private to the member.
+/// status: WATCHING | DRAFTING | SUBMITTED | ACCEPTED | REJECTED | DELIVERED
+model ConferenceOpportunityTrack {
+  id            String                @id @default(cuid())
+  candidateId   String
+  opportunityId String
+  opportunity   ConferenceOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  status        String
+  notes         String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @default(now()) @updatedAt
+
+  @@unique([candidateId, opportunityId])
+  @@index([candidateId, status])
+}
+
+/// A member's tracking of a series, kept across years. Private: never shared with the catalog.
+/// status: INTERESTED | TRACKING | REGISTERED | ATTENDING | ATTENDED | SPEAKING | SKIPPED
+model UserConference {
+  id          String                 @id @default(cuid())
+  candidateId String
+  seriesId    String
+  /// The edition the member is currently planning around; moved forward when a new edition is created.
+  editionId   String?
+  status      String
+  notes       String?
+  goals       String?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @default(now()) @updatedAt
+  contactsMet ConferenceContactMet[]
+
+  @@unique([candidateId, seriesId])
+  @@index([candidateId, status])
+  @@index([seriesId])
+}
+
+/// Someone the member met at a conference, linked to their Contact Book entry.
+model ConferenceContactMet {
+  id               String         @id @default(cuid())
+  userConferenceId String
+  userConference   UserConference @relation(fields: [userConferenceId], references: [id], onDelete: Cascade)
+  contactId        String
+  note             String?
+  createdAt        DateTime       @default(now())
+
+  @@unique([userConferenceId, contactId])
+}
+
+/// A talk, award or demo the member delivered or had accepted: Dossier evidence and a simple speaking history.
+/// kind: TALK | AWARD | SUBMISSION_ACCEPTED | DEMO
+model ConferenceTalk {
+  id            String    @id @default(cuid())
+  candidateId   String
+  seriesId      String?
+  opportunityId String?
+  kind          String    @default("TALK")
+  title         String
+  eventName     String?
+  topic         String?
+  deliveredOn   DateTime?
+  slidesUrl     String?
+  videoUrl      String?
+  createdAt     DateTime  @default(now())
+
+  @@index([candidateId, deliveredOn])
+}
+
+/// A change the weekly re-check found. Held for review, never applied silently.
+/// kind: DATES | NEW_OPPORTUNITY | OPPORTUNITY_DEADLINE; status: PENDING | APPLIED | DISMISSED
+model ConferenceChange {
+  id         String          @id @default(cuid())
+  seriesId   String
+  series     ConferenceEvent @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  kind       String
+  payload    Json
+  status     String          @default("PENDING")
+  createdAt  DateTime        @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([seriesId, status])
+}
+
+/// Quick Add bookkeeping: the per-member daily cap on model calls and a cache of extractions by canonical URL.
+model ConferenceExtraction {
+  urlKey      String   @id
+  result      Json
+  contentHash String?
+  createdAt   DateTime @default(now())
+}
+
+model ConferenceQuickAddLog {
+  id          String   @id @default(cuid())
+  candidateId String
+  urlKey      String
+  usedModel   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
+/// Competitor watch switches and the hard monthly spend cap. One row, "singleton". Everything is OFF until
+/// someone turns it on from the Competitors page; the cron routes do nothing while `enabled` is false.
+model CompetitorWatchSetting {
+  id             String   @id @default("singleton")
+  enabled        Boolean  @default(false)
+  refreshEnabled Boolean  @default(true)
+  newsEnabled    Boolean  @default(true)
+  monthlyCapUsd  Float    @default(50)
+  updatedAt      DateTime @updatedAt
+  updatedByEmail String?
+}
+
+/// One model or search call made by the watch, with what it cost. The month's total of these is checked
+/// against monthlyCapUsd before every call.
+model CompetitorWatchRun {
+  id           String   @id @default(cuid())
+  competitorId String?
+  kind         String // refresh | news
+  costUsd      Float    @default(0)
+  searches     Int      @default(0)
+  ok           Boolean  @default(true)
+  error        String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([competitorId, kind, createdAt])
+}
+
+/// Something that happened at a competitor: news, a win, a new customer logo, a funding round, an acquisition,
+/// layoffs, a shutdown. Unique on (competitorId, dedupeKey) so a weekly re-read never adds a story twice.
+/// digestedAt is set when the daily digest has reported it.
+model CompetitorEvent {
+  id           String            @id @default(cuid())
+  competitorId String
+  competitor   ProductCompetitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  kind         String // NEWS | WIN | LOGO | FUNDING | ACQUISITION | LAYOFF | CLOSURE
+  title        String
+  summary      String?           @db.Text
+  url          String?
+  amountUsd    Float?
+  occurredAt   DateTime?
+  /// news | site | database (a row already in our own awards data)
+  source       String            @default("news")
+  dedupeKey    String
+  digestedAt   DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([competitorId, dedupeKey])
+  @@index([digestedAt, createdAt])
+}
+
+/// A matrix cell the model suggests. Never written to the matrix until a person accepts it (which sets the
+/// cell with its evidence link and today's date). A pending proposal is replaced by a newer one for the same cell.
+model CompetitorCellProposal {
+  id           String            @id @default(cuid())
+  competitorId String
+  competitor   ProductCompetitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  capabilityId String
+  status       CompetitorCapabilityStatus
+  note         String?           @db.Text
+  evidenceUrl  String
+  /// PENDING | ACCEPTED | REJECTED
+  state        String            @default("PENDING")
+  decidedBy    String?
+  decidedAt    DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([competitorId, capabilityId, state])
+  @@index([state, createdAt])
+}
 
 // ── COACH SESSION NOTES (2026-10-24) ─────────────────────────────────────────
 // What a coach captures in a session and what reaches the member. The coach's private free text stays on

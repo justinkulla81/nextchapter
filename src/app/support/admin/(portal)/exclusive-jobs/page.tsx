@@ -567,7 +567,7 @@ export default async function ExclusiveJobsAdminPage() {
                     >
                       View posting
                     </a>
-                    {posting.description && <p className="mt-1 text-sm text-muted-foreground">{posting.description}</p>}
+                    {posting.description && <p className="mt-1 line-clamp-4 text-sm text-muted-foreground">{posting.description}</p>}
                     <p className="mt-1 text-xs text-muted-foreground">
                       {SOURCE_LABEL[posting.source]} · added by {posting.addedBy} · {posting.createdAt.toLocaleDateString()}
                       {posting.expiresAt && ` · expires ${posting.expiresAt.toLocaleDateString()}`}

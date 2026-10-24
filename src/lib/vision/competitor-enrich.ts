@@ -36,6 +36,8 @@ export interface EnrichedCompetitor {
   statusNote: string | null
   lessons: string[]
   partnerIdea: string | null
+  /** Raw model suggestions for matrix cells; only present when the caller passed `capabilities`. Validate with cleanProposals. */
+  capabilityProposals?: unknown
 }
 
 const AREA_LIST = 'coaching, career_exploration, job_search, resume, interview_prep, networking, learning, ai_reskilling, fractional, community, recruiters, benefits, outplacement, workforce_system, labor_data, assessments, employer_hiring, higher_ed'
@@ -57,7 +59,7 @@ const str = (v: unknown, max = 600): string | null => { const s = String(v ?? ''
 const int = (v: unknown, lo: number, hi: number): number | null => { const n = typeof v === 'number' ? v : parseInt(String(v ?? '').replace(/[^\d]/g, ''), 10); return Number.isFinite(n) && n >= lo && n <= hi ? n : null }
 
 /** Reads a competitor's website (and a little public reporting) and returns a draft card. Never invents numbers. */
-export async function enrichCompetitor(homepage: string, hint?: string): Promise<{ data: EnrichedCompetitor; cost: number; searches: number }> {
+export async function enrichCompetitor(homepage: string, hint?: string, opts?: { capabilities?: { key: string; name: string; description: string }[] }): Promise<{ data: EnrichedCompetitor; cost: number; searches: number }> {
   const prompt = `Research the company at ${homepage} for a competitor card. NextChapter wants to know how this company compares with it.${hint ? `\nContext on why it is on our list: ${hint}` : ''}
 
 ${OUR_PRODUCT}
@@ -91,6 +93,7 @@ Return ONE JSON object in a json code block with exactly these keys:
  "lessons": when status is not ACTIVE or the company has visibly struggled (layoffs, down round, losing customers): 2 to 4 concrete lessons for NextChapter, each tied to a fact you found; otherwise an empty array,
  "partnerIdea": if the company is more useful beside us than against us, one sentence on how we could work together (referral, integration, data, channel); otherwise null
 }
+${opts?.capabilities?.length ? `\nAlso include one more key, "capabilityProposals": for each capability in the list below that this company clearly does or clearly does not offer, based on a page you actually read: [{"key","status":"YES"|"PARTIAL"|"NO","evidenceUrl":"https page that shows it","note":"under 140 characters"}]. Skip any you cannot support with a page; propose at most 25. Capabilities:\n${opts.capabilities.map((c) => `- ${c.key}: ${c.name}. ${c.description.slice(0, 110)}`).join('\n')}` : ''}
 Rules: use null for anything you could not find; never guess a number; separate what the company claims from what a third party reports in the note text; keep every list item under 140 characters.`
 
   const client = getAnthropicClient()
@@ -122,5 +125,6 @@ Rules: use null for anything you could not find; never guess a number; separate 
     statusNote: str(j.statusNote, 400), lessons: parseLines(j.lessons, 5).map((x) => x.slice(0, 220)), partnerIdea: str(j.partnerIdea, 240),
     sourceUrl: /^https?:\/\//.test(String(j.sourceUrl ?? '')) ? String(j.sourceUrl) : null, notes: str(j.notes, 800),
   }
+  if (opts?.capabilities?.length) data.capabilityProposals = j.capabilityProposals
   return { data, cost, searches }
 }

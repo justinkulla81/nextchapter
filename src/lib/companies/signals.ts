@@ -46,14 +46,13 @@ interface PostingRow {
 // semantics documented on that model. Grouped by normalizeOrgName(companyName)
 // since there's no DB-level normalized column to filter on (see header note).
 async function openPostingsAsOfGrouped(asOf: Date): Promise<Map<string, PostingRow[]>> {
-  const rows = await prisma.exclusiveJobPosting.findMany({
-    where: {
-      institutionScopeId: null,
-      createdAt: { lte: asOf },
-      OR: [{ archivedAt: null }, { archivedAt: { gt: asOf } }],
-    },
-    select: { companyName: true, title: true, level: true, description: true, createdAt: true },
-  })
+  // Descriptions are stored whole now; only the first 1,000 characters (what this was
+  // tuned on) are read, clipped in SQL, so the three full-board reads stay small.
+  const rows = await prisma.$queryRaw<PostingRow[]>`
+    SELECT "companyName", "title", "level", left("description", 1000) AS "description", "createdAt"
+    FROM public."ExclusiveJobPosting"
+    WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${asOf}
+      AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})`
 
   const grouped = new Map<string, PostingRow[]>()
   for (const row of rows) {

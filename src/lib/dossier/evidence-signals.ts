@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma'
 import { getLifetimeEffortMinutes } from '@/lib/scoring/effort-minutes'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
 import type { TraitSignals } from './evidence-traits'
+import { speakingEvidenceCounts } from '@/lib/conferences/queries'
 
 // Reads the counts behind each trait. Cheap counts only; cached per request.
 export const loadTraitSignals = cache(async (candidateId: string): Promise<TraitSignals> => {
-  const [effortMinutes, profile, tailored, workSamples, streak, helpfulPosts, outreach, refs, operating, personality] = await Promise.all([
+  const [effortMinutes, profile, tailored, workSamples, streak, helpfulPosts, outreach, refs, operating, personality, speaking] = await Promise.all([
     getLifetimeEffortMinutes(candidateId),
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
@@ -25,6 +26,8 @@ export const loadTraitSignals = cache(async (candidateId: string): Promise<Trait
     prisma.reference.count({ where: { candidateId, status: 'COMPLETED' } }),
     prisma.candidateAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
     prisma.performanceAssessmentResponse.findFirst({ where: { candidateId }, select: { id: true } }),
+    // Fail-soft until the conference tables are applied.
+    speakingEvidenceCounts(candidateId).catch(() => ({ talks: 0, accepted: 0 })),
   ])
   const sections = [profile.profileConfirmedAt, profile.industryConfirmedAt, profile.functionConfirmedAt, profile.salaryConfirmedAt, profile.workAuthConfirmedAt, profile.linkedInConfirmedAt].filter((v) => v !== null).length
   return {
@@ -38,5 +41,6 @@ export const loadTraitSignals = cache(async (candidateId: string): Promise<Trait
     completedReferences: refs,
     behavioralAssessments: (operating ? 1 : 0) + (personality ? 1 : 0),
     skillsAssessmentDone: profile.skillsAssessmentCompletedAt !== null,
+    speakingActivities: Math.max(speaking.talks, speaking.accepted),
   }
 })

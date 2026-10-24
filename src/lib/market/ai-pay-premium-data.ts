@@ -10,21 +10,17 @@ let cache: { at: number; rows: FunctionPremium[] } | null = null
 
 export async function loadAiPayPremium(): Promise<FunctionPremium[]> {
   if (cache && Date.now() - cache.at < TTL_MS) return cache.rows
-  const postings = await prisma.exclusiveJobPosting.findMany({
-    where: {
-      status: 'approved',
-      archivedAt: null,
-      institutionScopeId: null,
-      distribution: { not: 'EXCLUDED' },
-      disclosure: 'OPEN',
-      salaryMin: { not: null },
-      salaryMax: { not: null },
-    },
-    select: {
-      title: true, description: true, skills: true, salaryMin: true, salaryMax: true, salaryCurrency: true,
-    },
-    take: 60_000,
-  })
+  // Descriptions are stored whole now; the AI-skill check reads the first 1,000 characters
+  // (the excerpt it was tuned on), clipped in SQL so 60k rows stay a small read.
+  const postings = await prisma.$queryRaw<
+    { title: string; description: string | null; skills: string[]; salaryMin: number | null; salaryMax: number | null; salaryCurrency: string | null }[]
+  >`
+    SELECT "title", left("description", 1000) AS "description", "skills", "salaryMin", "salaryMax", "salaryCurrency"
+    FROM public."ExclusiveJobPosting"
+    WHERE "status" = 'approved' AND "archivedAt" IS NULL AND "institutionScopeId" IS NULL
+      AND "distribution" <> 'EXCLUDED' AND "disclosure" = 'OPEN'
+      AND "salaryMin" IS NOT NULL AND "salaryMax" IS NOT NULL
+    LIMIT 60000`
   const rows = computeAiPayPremium(postings)
   cache = { at: Date.now(), rows }
   return rows

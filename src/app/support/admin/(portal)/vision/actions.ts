@@ -7,8 +7,9 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { defaultAreaForKind } from '@/lib/vision/labels'
-import { cleanAreas, cleanRelationship, cleanStatus, hostOf, homepageOf, parseCustomers, parseLines, parseWins, parseUsd, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
+import { cleanAreas, cleanRelationship, cleanStatus, hostOf, homepageOf, parseCustomers, parseLines, parseWins, parseUsd } from '@/lib/vision/competitor-areas'
 import { enrichCompetitor, type EnrichedCompetitor } from '@/lib/vision/competitor-enrich'
+import { mergeRefresh } from '@/lib/vision/competitor-watch'
 import { notifyCandidateFeedbackAddressed } from '@/lib/help/notify'
 import type {
   ProductItemKind, ProductItemArea, ProductItemStatus, ProductRoadmapBucket, ProductEffort,
@@ -399,12 +400,6 @@ export async function quickAddCompetitor(formData: FormData) {
   return back(`error=${encodeURIComponent(`Could not read ${host}: ${failure}. Try again, or add it by hand below.`)}`)
 }
 
-const keyOf = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
-function unionNamed<T extends { name?: string; what?: string }>(current: T[], incoming: T[], max: number): T[] {
-  const seen = new Set(current.map((x) => keyOf(x.name ?? x.what ?? '')))
-  return [...current, ...incoming.filter((x) => !seen.has(keyOf(x.name ?? x.what ?? '')))].slice(0, max)
-}
-
 /** Reads the site again. Fills blanks, adds new customers and wins, refreshes the public numbers; never deletes what is there. */
 export async function refreshCompetitorFromWebsite(competitorId: string) {
   const admin = await requireAdmin()
@@ -413,28 +408,7 @@ export async function refreshCompetitorFromWebsite(competitorId: string) {
   let failure: string | null = null
   try {
     const { data: e, cost } = await enrichCompetitor(c.url)
-    const n = cardData(e)
-    const customers = unionNamed((c.customers as NamedEntry[] | null) ?? [], e.customers, 60)
-    const wins = unionNamed((c.wins as WinEntry[] | null) ?? [], e.wins, 60)
-    const union = (a: string[], b: string[], max: number) => [...new Set([...a, ...b])].slice(0, max)
-    await prisma.productCompetitor.update({
-      where: { id: c.id },
-      data: {
-        positioning: c.positioning ?? n.positioning, segment: c.segment ?? n.segment,
-        areas: union(c.areas, e.areas, 18), keyFeatures: union(c.keyFeatures, e.keyFeatures, 20),
-        customers: customers as unknown as object, wins: wins as unknown as object,
-        weWin: union(c.weWin, e.weWin, 8), theyWin: union(c.theyWin, e.theyWin, 8), weNeed: union(c.weNeed, e.weNeed, 8),
-        pricingNote: n.pricingNote ?? c.pricingNote, foundedYear: c.foundedYear ?? n.foundedYear, hq: c.hq ?? n.hq,
-        lastRound: n.lastRound ?? c.lastRound, investors: n.investors ?? c.investors,
-        fundingRaisedUsd: n.fundingRaisedUsd ?? c.fundingRaisedUsd, headcount: n.headcount ?? c.headcount,
-        revenueNote: n.revenueNote ?? c.revenueNote, userCountNote: n.userCountNote ?? c.userCountNote,
-        sourceUrl: n.sourceUrl ?? c.sourceUrl, notes: c.notes ?? n.notes,
-        relationship: c.filledBy === 'hand' ? c.relationship : n.relationship,
-        status: n.status !== 'ACTIVE' ? n.status : c.status, statusNote: n.statusNote ?? c.statusNote,
-        lessons: union(c.lessons, e.lessons, 8), partnerIdea: c.partnerIdea ?? n.partnerIdea,
-        needsReview: true, lastReviewedAt: new Date(), filledBy: c.filledBy ?? 'website',
-      },
-    })
+    await prisma.productCompetitor.update({ where: { id: c.id }, data: mergeRefresh(c, e) })
     captureServerEvent(admin.email ?? 'admin', 'vision_competitor_refreshed', { name: c.name, costUsd: Math.round(cost * 1000) / 1000 })
   } catch (err) { failure = err instanceof Error ? err.message : 'unknown error' }
   revalidatePath(`${V}/competitors`)
@@ -503,4 +477,45 @@ export async function setHoldingOverlap(holdingId: string, overlap: CrmPortfolio
     where: { id: holdingId }, data: { overlap }, select: { investorOrgId: true },
   })
   revalidatePath(`/support/admin/crm/organizations/${h.investorOrgId}`)
+}
+
+// ── Competitor watch ─────────────────────────────────────────────────────────
+
+/** Master switch, per-job switches and the hard monthly cap for the competitor watch. */
+export async function saveWatchSettings(formData: FormData) {
+  const admin = await requireAdmin()
+  const cap = Number(formData.get('monthlyCapUsd'))
+  await prisma.competitorWatchSetting.upsert({
+    where: { id: 'singleton' },
+    create: { id: 'singleton' },
+    update: {
+      enabled: formData.get('enabled') === 'on',
+      refreshEnabled: formData.get('refreshEnabled') === 'on',
+      newsEnabled: formData.get('newsEnabled') === 'on',
+      monthlyCapUsd: Number.isFinite(cap) && cap >= 0 && cap <= 500 ? cap : 50,
+      updatedByEmail: admin.email ?? null,
+    },
+  })
+  captureServerEvent(admin.email ?? 'admin', 'vision_competitor_watch_settings_saved', { enabled: formData.get('enabled') === 'on', cap })
+  revalidatePath(`${V}/competitors`)
+}
+
+/** Accepting a proposal is what writes the matrix cell: with its evidence link, today's date and the person who confirmed it. */
+export async function decideCellProposal(proposalId: string, accept: boolean) {
+  const admin = await requireAdmin()
+  const p = await prisma.competitorCellProposal.findUnique({ where: { id: proposalId } })
+  if (!p || p.state !== 'PENDING') return
+  const who = admin.email ?? 'admin'
+  if (accept) {
+    await prisma.competitorCapability.upsert({
+      where: { competitorId_capabilityId: { competitorId: p.competitorId, capabilityId: p.capabilityId } },
+      create: { competitorId: p.competitorId, capabilityId: p.capabilityId, status: p.status, note: p.note, evidenceUrl: p.evidenceUrl, checkedAt: new Date(), checkedBy: who },
+      update: { status: p.status, note: p.note, evidenceUrl: p.evidenceUrl, checkedAt: new Date(), checkedBy: who },
+    })
+  }
+  // Delete any earlier decision for the same cell so the (competitor, capability, state) key stays free.
+  await prisma.competitorCellProposal.deleteMany({ where: { competitorId: p.competitorId, capabilityId: p.capabilityId, state: accept ? 'ACCEPTED' : 'REJECTED' } })
+  await prisma.competitorCellProposal.update({ where: { id: p.id }, data: { state: accept ? 'ACCEPTED' : 'REJECTED', decidedBy: who, decidedAt: new Date() } })
+  captureServerEvent(who, 'vision_cell_proposal_decided', { accept, status: p.status })
+  revalidatePath(`${V}/competitors`)
 }

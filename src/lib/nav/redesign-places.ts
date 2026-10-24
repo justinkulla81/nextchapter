@@ -37,6 +37,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Find a job', '/dashboard/find-my-job', { menuKeys: ['jobs'], alsoMatches: ['/dashboard/job-board', '/dashboard/job-discovery', '/dashboard/job-fit', '/dashboard/interim-work'] }),
       tab('Early career plan', '/dashboard/early-career', { earlyCareerOnly: true }),
       tab('Résumé', '/dashboard/resume', { alsoMatches: ['/dashboard/linkedin', '/dashboard/portfolio'] }),
+      tab('Apply helper', '/dashboard/apply-helper'),
       tab('Why hire me', '/dashboard/strengths', { alsoMatches: ['/dashboard/track-record', '/dashboard/how-i-perform'] }),
       tab('Companies', '/dashboard/companies', { menuKeys: ['companies'], alsoMatches: ['/dashboard/company-tracker'] }),
       // The one market report (owner, 2026-10-18). The job-market widening page and Market Intelligence stay reachable from it.
@@ -55,7 +56,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     groups: [
       { label: 'Find a job', hrefs: ['/dashboard/find-my-job', '/dashboard/alumni-jobs', '/dashboard/internal-roles'] },
       { label: 'Early career plan', hrefs: ['/dashboard/early-career'] },
-      { label: 'Get ready to apply', hrefs: ['/dashboard/resume', '/dashboard/strengths'] },
+      { label: 'Get ready to apply', hrefs: ['/dashboard/resume', '/dashboard/strengths', '/dashboard/apply-helper'] },
       { label: 'Companies', hrefs: ['/dashboard/companies'] },
       { label: 'Market and pay', hrefs: ['/dashboard/market-reality', '/dashboard/pay', '/dashboard/local-market', '/dashboard/compare-places'] },
       { label: 'Interviews and reviews', hrefs: ['/dashboard/interview-prep', '/dashboard/review-prep'] },
@@ -69,7 +70,6 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     tabs: [
       tab('This week', '/dashboard/network', { menuKeys: ['network', 'careerNetwork'], alsoMatches: ['/dashboard/email-activity', '/dashboard/calendar-activity'] }),
       tab('Contacts', '/dashboard/network/contacts', { menuKeys: ['contacts'] }),
-      tab('Events to attend', '/dashboard/network/events'),
       tab('References', '/dashboard/references', { menuKeys: ['references'], alsoMatches: ['/dashboard/work-samples'] }),
       tab('Community', '/dashboard/community', { menuKeys: ['community'], alsoMatches: ['/dashboard/circle'] }),
       tab('Inbox', '/dashboard/messages', { menuKeys: ['inbox'] }),
@@ -82,7 +82,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     ],
     groups: [
       { label: 'This week', hrefs: ['/dashboard/network'] },
-      { label: 'Contacts and events', hrefs: ['/dashboard/network/contacts', '/dashboard/network/events'] },
+      { label: 'Contacts', hrefs: ['/dashboard/network/contacts'] },
       { label: 'Community', hrefs: ['/dashboard/community', '/dashboard/messages', '/dashboard/groups'] },
       { label: 'References and supporters', hrefs: ['/dashboard/references', '/dashboard/supporters'] },
       { label: 'Coaching', hrefs: ['/dashboard/my-coaching'] },
@@ -97,6 +97,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     tabs: [
       tab('Learn new skills', '/dashboard/learning', { menuKeys: ['learning', 'growSkills'] }),
       tab('Videos and webinars', '/dashboard/webinars', { menuKeys: ['webinars'] }),
+      tab('Conferences', '/dashboard/conferences', { alsoMatches: ['/dashboard/network/events'] }),
       tab('Know yourself', '/dashboard/skills-assessments', { menuKeys: ['assessments'], alsoMatches: ['/dashboard/skills-assessment', '/dashboard/retake-assessment'] }),
       tab('Career story', '/dashboard/my-career'),
       tab('Other roles you could do', '/dashboard/pivot-paths', { alsoMatches: ['/dashboard/pivot'] }),
@@ -107,7 +108,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Courses your company covers', '/dashboard/company-courses', { employedOnly: true }),
     ],
     groups: [
-      { label: 'Learn new skills', hrefs: ['/dashboard/learning', '/dashboard/webinars', '/dashboard/company-courses'] },
+      { label: 'Learn new skills', hrefs: ['/dashboard/learning', '/dashboard/webinars', '/dashboard/conferences', '/dashboard/company-courses'] },
       { label: 'Know yourself', hrefs: ['/dashboard/skills-assessments'] },
       { label: 'Your path', hrefs: ['/dashboard/my-career', '/dashboard/pivot-paths'] },
       { label: 'Funding you qualify for', hrefs: ['/dashboard/funding'] },
