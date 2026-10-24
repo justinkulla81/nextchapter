@@ -70,6 +70,7 @@ import {
   UNDER_DIRECTOR,
   YEARS_ZERO_RANGE,
   APM_EARLY,
+  CLINICAL_PRACTITIONER,
   APPRENTICE_GLOBAL,
   APPRENTICE_PRO,
   ASSISTANT_ENGINEER,
@@ -88,6 +89,24 @@ import {
   TECH_LEVEL_TWO,
   TRAINEE_PRO,
   TRAINEE_VETO,
+  MANAGER_IN_TRAINING,
+  MUNICIPAL_PLANNER_EARLY,
+  ACCOUNTING_FIRMS,
+  ACCOUNTING_PRINCIPAL,
+  BANK_AVP,
+  BANK_DIRECTOR,
+  BANK_KEEP,
+  BANK_LADDER_EMPLOYERS,
+  BANK_MD,
+  BANK_RUNGS,
+  BANK_VP,
+  CONSULTING_EMPLOYERS,
+  IC_STYLE_MANAGER,
+  SALES_DIRECTOR_IC,
+  SENIOR_CONSULTANT,
+  SENIOR_MID_IC,
+  SENIOR_MID_YEARS_KEEP,
+  TEAM_DESC,
   type RungName,
 } from './job-seniority-rules.generated'
 import { parseYearsRequired } from './years-required'
@@ -133,6 +152,8 @@ function fedVetoed(bare: string): boolean {
 }
 
 export type ClassifyOptions = {
+  /** The employer's name (ncrawl company): the industry title ladders key on it (calibrateLevel). */
+  companyName?: string | null
   /** Posted on a school or district board: bare "Superintendent" is the district head. */
   schoolContext?: boolean
   /** A USAJOBS Pathways Recent Graduates posting (the hiring path, not the title). ncrawl recent_graduate. */
@@ -144,6 +165,9 @@ export function classifyTitleRung(rawTitle: string | null | undefined, opts: Cla
   if (!m || !rawTitle) return classifyTitleOnly(rawTitle, opts)
   const bare = rawTitle.slice(0, m.index).trim()
   let base = classifyTitleOnly(bare, opts)
+  // Level skew audit (2026-10-23): a practising clinician is never lifted by grade
+  // ("Physician (Primary Care) (VM-15)", "Staff Psychologist (GS-13)"). Mirrors ncrawl.
+  if (CLINICAL_PRACTITIONER.test(bare)) return OTHER
   if (m[3]) return 90 > base.rank ? { rung: 'EVP_SVP', rank: 90 } : base
   // A ladder topping out at GS-12 or below is levelled by its LOWEST grade (where a hire
   // starts); one reaching GS-13+ by its highest, as before.
@@ -211,6 +235,10 @@ function classifyTitleOnly(rawTitle: string | null | undefined, opts: ClassifyOp
   // Assistant project / program managers and "Project Manager I" (owner, 2026-10-23): EARLY_IC,
   // never above (a people-manager posting goes back up in refineLevelByYears).
   if ((base.rung === 'MANAGER' || base.rung === 'MID_IC') && APM_EARLY.test(title)) return EARLY
+  // Level fix 3 (owner, 2026-10-23): a bare "Manager in Training" is a trainee seat, EARLY_IC
+  // ("... Program" ENTRY_IC). Mirrors ncrawl MANAGER_IN_TRAINING.
+  const mit = base.rung === 'MANAGER' ? MANAGER_IN_TRAINING.exec(title) : null
+  if (mit) return /\bprogram\b/i.test(mit[0]) ? ENTRY : EARLY
   if (fixed && fixed.mode === 'set') return base
   return earlyBroaden(title, base)
 }
@@ -343,6 +371,7 @@ function gradeRule(rawTitle: string): { rung: RungName; rank: number } | null {
   if (GRADE_RULE_MANAGEMENT.test(t)) return null
   if (CUSTOMER_SUCCESS_ASSOCIATE.test(t) && !ALLOW_UPPER.test(t)) return ENTRY
   if (ASSISTANT_ENGINEER.test(t) && !ALLOW_UPPER.test(t)) return ENTRY
+  if (MUNICIPAL_PLANNER_EARLY.test(t)) return EARLY
   if (PLANNER_ENTRY.test(t)) return ENTRY
   const soc = SOC_ANALYST.exec(t)
   if (soc && !ALLOW_UPPER.test(t)) return /\b(ii|2)\s*$/i.test(soc[0]) ? EARLY : ENTRY
@@ -454,7 +483,81 @@ export function degreeLift(title: string, description: string | null | undefined
 export function levelForPosting(title: string, description: string | null | undefined, opts: ClassifyOptions = {}): { rung: RungName; rank: number } {
   let level = classifyTitleRung(title, opts)
   if (level.rank === 0) level = degreeLift(title, description) ?? level
-  return refineLevelByYears(title, level, description)
+  level = refineLevelByYears(title, level, description)
+  // Level fix 3 (owner, 2026-10-23): the bachelor's lift and the years refinement don't know the
+  // federal grade. A Recent Graduates posting on a ladder starting at grade 7 or below and topping
+  // out by grade 9 that they put between ENTRY_IC and MID_IC comes down to ENTRY_IC.
+  if (level.rank > ENTRY_IC_RANK && level.rank <= MID_IC_RANK && fedRecentGradEntry(title, !!opts.recentGraduate)) return ENTRY
+  // Employer-aware calibration (owner, 2026-10-23): calibrateLevel, below. Mirrors ncrawl.
+  const cal = calibrateLevel(title, level, description, opts.companyName)
+  return { rung: cal.rung, rank: cal.rank }
+}
+
+/**
+ * Lower-case employer name with punctuation and legal suffixes stripped — the key the
+ * employer allowlists match. Mirrors ncrawl taxonomy.normalize_company exactly.
+ */
+export function normalizeCompanyForLevel(name: string | null | undefined): string {
+  let s = (name ?? '').toLowerCase().replace(/&/g, ' and ')
+  s = s.replace(/[.,'’()]/g, ' ').replace(/\s+/g, ' ').trim()
+  s = s.replace(/(\s+(inc|incorporated|llc|l l c|llp|lp|plc|ltd|limited|corp|corporation|co|company|na|n a|national association|sa|ag|se|nv|adr|de|ri|holdings?|group|the))+$/, '')
+  return s.replace(/^the\s+/, '').trim()
+}
+
+export type CalibrationRule = 'bank_ladder' | 'accounting_principal' | 'ic_style_manager' | 'senior_mid_ic' | 'sales_director_ic'
+
+/**
+ * Employer-aware level corrections (ncrawl taxonomy.calibrate_level; design note there and in
+ * docs/level-calibration.md), applied after the title rung and the years refinement:
+ *  - the bank grade ladder at an allowlisted bank / asset manager / fund (AVP MID_IC, VP
+ *    SENIOR_IC, Director / ED / SVP SR_MANAGER, MD DIRECTOR), never a Chief / Head / President title;
+ *  - Principal at an allowlisted accounting firm is PARTNER;
+ *  - IC-style "Manager" titles are SENIOR_IC unless the posting talks about a team;
+ *  - mid-level "Senior" titles are MID_IC unless the posting asks 7+ years;
+ *  - quota-carrying sales "Director" titles are SENIOR_IC unless the posting shows a team.
+ * Company size never changes a stored level (level-flex.ts widens matching instead).
+ */
+export function calibrateLevel(
+  title: string,
+  level: { rung: RungName; rank: number },
+  description: string | null | undefined,
+  companyName: string | null | undefined
+): { rung: RungName; rank: number; rule: CalibrationRule | null } {
+  const t = title ?? ''
+  const desc = description ?? ''
+  const co = normalizeCompanyForLevel(companyName)
+  const { rung, rank } = level
+  if (co && BANK_RUNGS.includes(rung) && BANK_LADDER_EMPLOYERS.test(co) && !BANK_KEEP.test(t)) {
+    if (BANK_AVP.test(t)) return { rung: 'MID_IC', rank: MID_IC_RANK, rule: 'bank_ladder' }
+    if (BANK_MD.test(t)) {
+      return rank > 65 || rung === 'C_SUITE' || rung === 'EVP_SVP' || rung === 'VP'
+        ? { rung: 'DIRECTOR', rank: 65, rule: 'bank_ladder' }
+        : { rung, rank, rule: null }
+    }
+    if (BANK_VP.test(t)) return { rung: 'SENIOR_IC', rank: 45, rule: 'bank_ladder' }
+    if (BANK_DIRECTOR.test(t)) return { rung: 'SR_MANAGER', rank: 52, rule: 'bank_ladder' }
+  }
+  if (co && rung === 'PRINCIPAL' && ACCOUNTING_FIRMS.test(co) && ACCOUNTING_PRINCIPAL.test(t)) {
+    return { rung: 'PARTNER', rank: 78, rule: 'accounting_principal' }
+  }
+  if (rung === 'MANAGER' && IC_STYLE_MANAGER.test(t) && !TEAM_DESC.test(desc)) return { rung: 'SENIOR_IC', rank: 45, rule: 'ic_style_manager' }
+  if (rung === 'SENIOR_IC' && (SENIOR_MID_IC.test(t) || (!!co && CONSULTING_EMPLOYERS.test(co) && SENIOR_CONSULTANT.test(t)))) {
+    const m = desc ? yearsMin(desc) : null
+    if (m === null || m < SENIOR_MID_YEARS_KEEP) return { rung: 'MID_IC', rank: MID_IC_RANK, rule: 'senior_mid_ic' }
+  }
+  if ((rung === 'DIRECTOR' || rung === 'HEAD') && SALES_DIRECTOR_IC.test(t) && !TEAM_DESC.test(desc)) {
+    return { rung: 'SENIOR_IC', rank: 45, rule: 'sales_director_ic' }
+  }
+  return { rung, rank, rule: null }
+}
+
+/** ncrawl fed_recent_grad_entry: a Pathways Recent Graduates GS/GG/GM posting (title or hiring path), ladder from grade <= 7 to <= 9. */
+export function fedRecentGradEntry(title: string, recentGraduate = false): boolean {
+  const m = title ? GRADE.exec(title) : null
+  if (!m || !m[1] || !['gs', 'gg', 'gm'].includes(m[1].toLowerCase())) return false
+  if (!recentGraduate && !RECENT_GRAD.test(title)) return false
+  const nums = (m[0].match(/\d{1,2}/g) ?? []).map(Number)
+  return nums.length > 0 && Math.min(...nums) <= 7 && Math.max(...nums) <= 9
 }
 
 /** The seniority groups shown to people, most senior first. */

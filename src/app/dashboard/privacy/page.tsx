@@ -10,6 +10,9 @@ import { CommunitySettingsToggles } from '@/components/dashboard/CommunitySettin
 import { WhatTheySeeSection } from '@/components/dashboard/WhatTheySeeSection'
 import { RecruiterDatabaseOptIn } from '@/components/dashboard/RecruiterDatabaseOptIn'
 import { ResumeBookOptIn } from '@/components/dashboard/ResumeBookOptIn'
+import { SeniorLeaderSwitch } from '@/components/dashboard/SeniorLeaderSwitch'
+import { seniorMember } from '@/lib/coach/seniority'
+import { readSeniorTrack, seniorOverlayOn } from '@/lib/journey/menu'
 import { ConfidentialModeToggle } from '@/components/dashboard/ConfidentialModeToggle'
 import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptInSettings'
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
@@ -116,6 +119,13 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
           </div>
         </div>
       </Section>
+
+      {block(
+        'senior-leader',
+        "I'm a senior leader",
+        'For VP and above, or anyone who has run a function or a company. It changes the order of your menu and what we ask of you each day. Nothing is removed.',
+        <SeniorLeaderSwitch on={seniorOverlayOn(seniorMember(profile), readSeniorTrack(profile.journeyDetails).override)} detected={seniorMember(profile)} />,
+      )}
 
       <section id="connected-accounts" aria-labelledby="connected-accounts-h" className="scroll-mt-4 space-y-3">
         <h2 id="connected-accounts-h" className="font-display text-xl font-semibold text-ink">What we can read</h2>

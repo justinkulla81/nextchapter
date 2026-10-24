@@ -24,7 +24,7 @@ export default async function InstitutionsAdminPage() {
     orderBy: { createdAt: 'desc' },
     select: {
       id: true, slug: true, name: true, programBrandName: true, accentColor: true, logoUrl: true, profile: true,
-      isDemo: true, isSampleData: true, orgType: true, crmOrganizationId: true, tier: true, includedSeats: true, enabledFeatures: true, alumniCount: true, licenseStartAt: true, licenseEndAt: true,
+      isDemo: true, isSampleData: true, orgType: true, crmOrganizationId: true, tier: true, plan: true, includedSeats: true, enabledFeatures: true, alumniCount: true, licenseStartAt: true, licenseEndAt: true,
       users: { where: { revokedAt: null }, select: { id: true, invitedEmail: true, fullName: true, role: true, workspace: true, acceptedAt: true } },
       _count: { select: { targetCompanies: true, scopedJobPostings: true, members: true } },
     },
@@ -112,10 +112,10 @@ export default async function InstitutionsAdminPage() {
               </div>
 
               <details className="space-y-2" open={c.tier === 'CAREER' && !c.isDemo && c.includedSeats === 0}>
-                <summary className="cursor-pointer text-sm font-medium">License: {TIER_LABELS[c.tier]}, {c.includedSeats.toLocaleString()} seats{c.licenseEndAt ? `, through ${c.licenseEndAt.toISOString().slice(0, 10)}` : ''}</summary>
+                <summary className="cursor-pointer text-sm font-medium">License: {c.plan === 'FREE' ? 'Free plan' : 'Paid plan'}, {TIER_LABELS[c.tier]}, {c.includedSeats.toLocaleString()} seats{c.licenseEndAt ? `, through ${c.licenseEndAt.toISOString().slice(0, 10)}` : ''}</summary>
                 <LicenseForm
                   institutionId={c.id}
-                  defaults={{ tier: c.tier, includedSeats: c.includedSeats, alumniCount: c.alumniCount, licenseStartAt: c.licenseStartAt?.toISOString().slice(0, 10) ?? '', licenseEndAt: c.licenseEndAt?.toISOString().slice(0, 10) ?? '' }}
+                  defaults={{ tier: c.tier, plan: c.plan, includedSeats: c.includedSeats, alumniCount: c.alumniCount, licenseStartAt: c.licenseStartAt?.toISOString().slice(0, 10) ?? '', licenseEndAt: c.licenseEndAt?.toISOString().slice(0, 10) ?? '' }}
                 />
               </details>
 

@@ -1162,12 +1162,12 @@
 [
 "Senior Living Accountant",
 "Qualifications: 3+ years of experience in a related role.",
-"SENIOR_IC"
+"MID_IC"
 ],
 [
 "Senior Living Accountant",
 "Requirements: minimum of 5 years of experience.",
-"SENIOR_IC"
+"MID_IC"
 ],
 [
 "Senior Living Accountant",
@@ -1177,7 +1177,7 @@
 [
 "Senior Living Accountant",
 "Requirements: 3+ years of experience. You will manage a team of 4 coordinators who are your direct reports.",
-"SENIOR_IC"
+"MID_IC"
 ],
 [
 "Senior Engineer Manager",
@@ -1352,7 +1352,7 @@
 [
 "Relationship Manager- Wealth Management",
 "Requirements: 7+ years of experience required.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Relationship Manager- Wealth Management",
@@ -1372,7 +1372,7 @@
 [
 "Grants Manager A/B (Department of Neurology)",
 "Requirements: 7+ years of experience required.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Grants Manager A/B (Department of Neurology)",
@@ -1392,7 +1392,7 @@
 [
 "Spend Manager",
 "Requirements: 7+ years of experience required.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Spend Manager",
@@ -1527,7 +1527,7 @@
 [
 "Category Manager",
 "Requirements: 7+ years of experience required.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Category Manager",
@@ -1542,7 +1542,7 @@
 [
 "Strategic Accounts Manager",
 "Requirements: 7+ years of experience required.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Strategic Accounts Manager",
@@ -1557,7 +1557,7 @@
 [
 "Global CPQ Project Manager",
 "Requirements: 7+ years of experience required.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Global CPQ Project Manager",
@@ -1622,7 +1622,7 @@
 [
 "Operating Engineer 3",
 "Requirements: 3+ years of experience.",
-"SENIOR_IC"
+"MID_IC"
 ],
 [
 "Operating Engineer 3",
@@ -1647,7 +1647,7 @@
 [
 "Account Manager I, Business Development",
 "Requirements: 8+ years of experience.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Assistant Project Manager",
@@ -1662,7 +1662,7 @@
 [
 "Account Manager I",
 "Requirements: 8+ years of experience.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Account Manager I",
@@ -1707,7 +1707,7 @@
 [
 "Project Manager I/II",
 "Requirements: 8+ years of experience.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Project Manager I/II",
@@ -1767,7 +1767,7 @@
 [
 "Grants Manager I",
 "Requirements: 8+ years of experience.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Grants Manager I",
@@ -1782,7 +1782,7 @@
 [
 "Spend Manager II",
 "Requirements: 8+ years of experience.",
-"MANAGER"
+"SENIOR_IC"
 ],
 [
 "Spend Manager II",
@@ -1828,5 +1828,55 @@
 "Wealth Management Associate",
 "0-2 years of experience.",
 "ENTRY_IC"
+],
+[
+"CONTACT REPRESENTATIVE (RECENT GRADUATE) (GS-4/5)",
+"Bachelor's degree required. 1-3 years of experience preferred.",
+"ENTRY_IC"
+],
+[
+"CONTACT REPRESENTATIVE (RECENT GRADUATE) (GS-4/5)",
+"Requires 4+ years of experience and a bachelor's degree.",
+"ENTRY_IC"
+],
+[
+"IT Project Manager (Plcypln) - CES Recent Graduate (GG-7/9)",
+"Requires 4+ years of experience and a bachelor's degree.",
+"ENTRY_IC"
+],
+[
+"Contact Representative (GS-4/5)",
+"Bachelor's degree required. 1-3 years of experience preferred.",
+"MID_IC"
+],
+[
+"Civil Engineer (Recent Graduate) (GS-9/11)",
+"Requires 4+ years of experience and a bachelor's degree.",
+"EARLY_IC"
+],
+[
+"Recent Graduate Program Manager (GS-12)",
+"Requires 4+ years of experience and a bachelor's degree.",
+"MID_IC"
+],
+[
+"Manager in Training",
+"Bachelor's degree required. 1-3 years of experience preferred.",
+"ENTRY_IC"
+],
+[
+"Manager in Training",
+"Requires 5+ years of restaurant management experience.",
+"MID_IC"
+],
+[
+"Assistant City Planner",
+"Requires 4+ years of experience and a bachelor's degree.",
+"EARLY_IC"
+],
+[
+"Assistant City Planner",
+"Two years of planning experience.",
+"EARLY_IC"
 ]
 ]

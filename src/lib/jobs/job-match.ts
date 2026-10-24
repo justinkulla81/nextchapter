@@ -7,7 +7,8 @@ import { skillTerms } from '@/lib/profile/skill-matrix'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
 import { inferFunctionFromTitle, inferLevelFromTitle } from '@/lib/jobs/infer-job-function'
 import { candidateScaleLevel } from '@/lib/jobs/job-seniority'
-import { calibratedLevelRank, calibratedLevelDistance } from '@/lib/scoring/level-rank'
+import { calibratedLevelRank, calibratedLevelDistanceToRange } from '@/lib/scoring/level-rank'
+import { flexRungRange, jobLevelFlex } from '@/lib/jobs/level-flex'
 import { detectRequiredCredential, candidateMeetsCredentialGate } from '@/lib/jobs/credential-gate'
 import { assessYearsFit, formatYearsRange, quickYearsRange } from '@/lib/jobs/years-fit'
 import { titlesShareRoleFamily } from '@/lib/constants/role-family-keywords'
@@ -619,6 +620,12 @@ export function scoreGoals(c: MatchCandidate, job: MatchJob): MatchDimension & {
   const candidateLevel = c.levelRankScore ?? calibratedLevelRank(c.highestLevelReached, null)
   const jobLevelName = job.targetLevel ?? candidateScaleLevel(job.level) ?? inferLevelFromTitle(job.title)
   const jobLevel = calibratedLevelRank(jobLevelName, job.companySizeBand ?? null)
+  // The job's level flex (level-flex.ts): IC-style titles also fit a level up, small
+  // employers' titles a level or two down. A recruiter-set target level has none.
+  const flexRange = job.targetLevel ? null : flexRungRange(job.level, jobLevelFlex({ title: job.title, level: job.level, companySizeBand: job.companySizeBand ?? null }))
+  const atRung = (rung: string | undefined) => (rung ? calibratedLevelRank(candidateScaleLevel(rung), job.companySizeBand ?? null) : null) ?? jobLevel
+  const jobLevelLo = flexRange ? atRung(flexRange.low) : jobLevel
+  const jobLevelHi = flexRange ? atRung(flexRange.high) : jobLevel
   const titleHit = titleMatchesTarget(c.targetRoleType, job.title)
   const industryHit = industryMatches(job, [...c.targetIndustries, ...(c.industryContext ? [c.industryContext] : [])])
 
@@ -663,8 +670,8 @@ export function scoreGoals(c: MatchCandidate, job: MatchJob): MatchDimension & {
 
   // Level: a step up, the same, or a step down. Never shows the underlying rank.
   if (candidateLevel !== null && jobLevel !== null) {
-    const steps = calibratedLevelDistance(candidateLevel, jobLevel)
-    const up = jobLevel > candidateLevel
+    const steps = calibratedLevelDistanceToRange(candidateLevel, jobLevelLo, jobLevelHi)
+    const up = (jobLevelLo ?? jobLevel) > candidateLevel
     if (steps === 0) {
       score += 10
       evidence.push('At your level')

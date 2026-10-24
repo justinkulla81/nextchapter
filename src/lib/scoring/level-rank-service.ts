@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { selectDisplayedWorkHistory } from '@/lib/work-history/sanitize'
 import { inferLevelFromTitle, isAmbiguousPartnerTitle } from '@/lib/jobs/infer-job-function'
 import { resolveCompanySizeBand } from '@/lib/market/company-size'
+import { refreshDerivedCareerHighPoint } from '@/lib/profile/career-high-point-server'
 import { calibratedLevelRank, scoreToLevelRankLabel } from '@/lib/scoring/level-rank'
 import { resolveContextualLevel, type ConcurrentRoleCandidate } from '@/lib/scoring/seniority/resolve-contextual-level'
 
@@ -219,4 +220,7 @@ export async function recomputeCandidateLevelRank(candidateId: string): Promise<
     where: { id: candidateId },
     data: { levelRankScore: result.score, levelRankLabel: result.label, levelRankUpdatedAt: new Date() },
   })
+  // The same trigger events re-derive the career high point (career-high-point.ts): the
+  // peak level and the size of the employer where it was reached. No LLM call.
+  await refreshDerivedCareerHighPoint(candidateId)
 }

@@ -125,7 +125,7 @@ export async function sendSeniorBriefTest(candidateId?: string, now = new Date()
     const item = await itemFor(m, now)
     if (!item) continue
     const draft = await createDraft(m, item, now, { test: true })
-    if (!draft.ok) return { ok: false, message: `Draft failed (${draft.reason}).` }
+    if (!draft.ok) return { ok: false, message: 'We could not write the sample message just now. Try again in a minute.' }
     const r = await sendSeniorBrief({
       draftId: draft.draftId, memberId: m.id, to: ADMIN_NOTIFICATION_EMAIL, firstName: m.firstName, confidentialSearchMode: m.confidentialSearchMode,
       itemKind: item.kind, contactName: item.contact.name, companyName: item.companyName,
@@ -133,8 +133,8 @@ export async function sendSeniorBriefTest(candidateId?: string, now = new Date()
       test: { subject: draft.subject, body: draft.body, toEmail: item.toEmail },
     })
     return r.sent
-      ? { ok: true, message: `Sent to ${ADMIN_NOTIFICATION_EMAIL}: ${item.kind} for member ${m.id}, ${draft.inputTokens} in / ${draft.outputTokens} out, about $${draft.estCostUsd.toFixed(4)}.` }
-      : { ok: false, message: 'Draft was made but the email could not be sent. Check RESEND_API_KEY.' }
+      ? { ok: true, message: `Sent to ${ADMIN_NOTIFICATION_EMAIL}.` }
+      : { ok: false, message: 'The message was written but the email could not be sent. Tell Claude.' }
   }
-  return { ok: false, message: candidateId ? 'That member is not senior, or has nothing to draft this week.' : 'No senior member with a connected Gmail has an item to draft right now.' }
+  return { ok: false, message: candidateId ? 'That member is not senior, or has nobody to write to this week.' : 'No senior member with a connected Gmail has anyone to write to right now, so there is nothing to sample yet.' }
 }

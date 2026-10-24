@@ -19,6 +19,7 @@
 import type { JourneyType } from '@prisma/client'
 import { buyDetailsOf, getBuyStage, hasBuyDetails, type BuyStageKey } from './buy-business'
 import { getJourney } from './journey'
+import { currentStartStage, getStartStage, hasStartDetails, startDetailsOf } from './start-business'
 
 export type PathPlanItem = { text: string; actionType?: string }
 
@@ -88,6 +89,10 @@ export function derivedLevelsOf(s: LevelSignals): InterestLevels {
     out.buy = stage === 'decide' || stage === 'prepare' ? 'researching' : 'doing'
   }
   if (s.main === 'ENTREPRENEUR' || has(s.kinds, 'OWN_BUSINESS')) out.start = 'doing'
+  else if (hasStartDetails(s.journeyDetails)) {
+    const stage = currentStartStage(startDetailsOf(s.journeyDetails))
+    out.start = stage === 'idea' || stage === 'validate' ? 'researching' : 'doing'
+  }
   if (s.main === 'FRACTIONAL' || has(s.kinds, 'FRACTIONAL', 'CONSULTING')) out.fractional = 'doing'
   else if (s.interimInterest) out.fractional = 'researching'
   if (has(s.kinds, 'PART_TIME', 'CONTRACT_1099') || s.workingNow || hasSideDetails(s.journeyDetails)) out.side = 'doing'
@@ -324,7 +329,7 @@ const LEVEL_LABEL: Record<InterestLevel, string> = { curious: 'Curious', researc
 const PATH_HREF: Record<InterestKey, string> = {
   job: '/dashboard/find-my-job',
   buy: '/dashboard/buy-a-business',
-  start: '/dashboard/other-paths',
+  start: '/dashboard/start-a-business',
   fractional: '/dashboard/interim-work',
   side: '/dashboard/other-paths',
   school: '/dashboard/learning',
@@ -353,6 +358,7 @@ export function activePaths(s: LevelSignals): ParallelPathCard[] {
       const bits = [d.hours ? `${d.hours} hours a week` : null, d.income ? `$${d.income.toLocaleString('en-US')} a month` : null].filter(Boolean)
       if (bits.length) line = `${LEVEL_LABEL[level]}: ${bits.join(', ')}`
     }
+    if (k === 'start' && hasStartDetails(s.journeyDetails)) line = `${LEVEL_LABEL[level]}: ${getStartStage(currentStartStage(startDetailsOf(s.journeyDetails))).label}`
     out.push({ key: k, label: INTEREST_LABELS[k], line, because: `You said you are ${level === 'doing' ? 'doing this' : 'researching this'} next to your main focus.`, href: PATH_HREF[k], level })
   }
   return out
@@ -378,6 +384,7 @@ function stepFor(k: InterestKey, level: InterestLevel, s: LevelSignals): PathPla
     case 'job':
       return T('Look through this week’s strongest-fit roles and save one worth a second look')
     case 'start':
+      if (hasStartDetails(s.journeyDetails)) return T(`Starting a business: ${getStartStage(currentStartStage(startDetailsOf(s.journeyDetails))).next}`)
       return level === 'doing' ? T('Write down the one thing that must happen in your business this month') : T('Talk to one person who started a business in your field and ask what the first year cost', 'OUTREACH_CALL')
     case 'fractional':
       return level === 'doing' ? T('Ask one past client or colleague for an introduction to someone who could use your help', 'OUTREACH_CALL') : T('Write your one-line offer for fractional work: who you help and the result')
@@ -386,9 +393,60 @@ function stepFor(k: InterestKey, level: InterestLevel, s: LevelSignals): PathPla
   }
 }
 
-/** One step from each active path, never more: the main journey keeps the plan. Curious paths add nothing. */
+/** At this many hours a week or fewer, the main plan is all there is room for and active paths wait. */
+export const PATHS_WAIT_HOURS = 3
+
+/** The member's "hours a week" answer (situation field hoursAvailable), or null when they have not given one. */
+export function hoursAvailableOf(journeyDetails: unknown): number | null {
+  const v = (journeyDetails as { hoursAvailable?: unknown } | null)?.hoursAvailable
+  return typeof v === 'number' && Number.isFinite(v) && v >= 1 && v <= 60 ? v : null
+}
+
+/** True when the member has about three hours a week or fewer: active paths stay on Home's row but add no plan step. */
+export function pathsWait(journeyDetails: unknown): boolean {
+  const h = hoursAvailableOf(journeyDetails)
+  return h !== null && h <= PATHS_WAIT_HOURS
+}
+
+/** One step from each active path, never more: the main journey keeps the plan. Curious paths add nothing, and none are added at 3 hours a week or less. */
 export function parallelPlanItems(s: LevelSignals): PathPlanItem[] {
+  if (pathsWait(s.journeyDetails)) return []
   return activePaths(s).map((c) => stepFor(c.key, c.level, s))
+}
+
+// ── On Home: the paths row and the focus switch ──────────────────────────────
+
+const SHORT_LABEL: Record<InterestKey, string> = {
+  job: 'a new job',
+  buy: 'buying a business',
+  start: 'starting a business',
+  fractional: 'fractional work',
+  side: 'side income',
+  school: 'school',
+}
+
+export type HomePathsRow = { items: { key: InterestKey; label: string; level: string }[]; waiting: boolean; hours: number | null }
+
+/** The compact "Also: ..." row on Home. Null when there are no active paths: Home shows nothing. */
+export function homePathsRow(s: LevelSignals): HomePathsRow | null {
+  const cards = activePaths(s)
+  if (cards.length === 0) return null
+  return { items: cards.map((c) => ({ key: c.key, label: SHORT_LABEL[c.key], level: LEVEL_LABEL[c.level].toLowerCase() })), waiting: pathsWait(s.journeyDetails), hours: hoursAvailableOf(s.journeyDetails) }
+}
+
+export type FocusOption = { to: string; label: string; current: boolean }
+
+/** "Focus right now": the main journey, each active path that can become main, and the journey they came from. 2 to 4 buttons, or null. */
+export function focusOptions(s: LevelSignals): FocusOption[] | null {
+  if (!s.main) return null
+  const out: FocusOption[] = [{ to: s.main, label: getJourney(s.main).label, current: true }]
+  for (const c of activePaths(s)) {
+    const j: JourneyType | null = c.key === 'buy' ? 'BUY_BUSINESS' : c.key === 'fractional' ? 'FRACTIONAL' : null
+    if (j && j !== s.main && SWITCHABLE_MAIN.includes(j)) out.push({ to: j, label: c.key === 'buy' ? 'Buying a business' : 'Fractional work', current: false })
+  }
+  const prev = previousMainOf(s.journeyDetails)
+  if (prev && prev !== s.main && !out.some((o) => o.to === prev)) out.push({ to: 'BACK', label: getJourney(prev).label, current: false })
+  return out.length >= 2 ? out.slice(0, 4) : null
 }
 
 // ── Switching main focus ─────────────────────────────────────────────────────

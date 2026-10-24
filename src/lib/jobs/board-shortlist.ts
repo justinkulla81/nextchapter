@@ -11,7 +11,10 @@ import { COMPETITION_SORT_RANK, isFresh, scoreCompetition } from '@/lib/jobs/com
 import { classifyLocation } from '@/lib/jobs/us-location'
 import { ghostRisk, repostKey, stillListedDirect } from '@/lib/jobs/ghost-risk'
 import { getClosedPostingCounts, getStillListedDirect } from '@/lib/jobs/ghost-risk-data'
-import { calibratedLevelDistance, calibratedLevelRank } from '@/lib/scoring/level-rank'
+import { calibratedLevelDistanceToRange, calibratedLevelRank } from '@/lib/scoring/level-rank'
+import { flexRungRange, jobLevelFlex } from '@/lib/jobs/level-flex'
+import { boardCompanySizeBand, setBoardCompanySizes } from '@/lib/jobs/company-size-map'
+import { loadBoardCompanySizes } from '@/lib/market/company-size'
 import { ALL_STAGES_WINDOW, CAREER_STAGES, EARLY_CAREER_RUNGS, MID_LEVEL_RUNGS, memberStageWindow, stageOfRung, stageWindowWhere, type StageWindow } from '@/lib/jobs/career-stage'
 import { isInternshipJob, memberWorkType, type WorkType } from '@/lib/jobs/work-type'
 import { notInternshipWhere } from '@/lib/internships/exclude'
@@ -568,6 +571,9 @@ interface RowFacts {
   titleFunction: string
   // The job's level on the calibrated scale (null when unknown).
   levelRank: number | null
+  // The same, widened by the job's level flex (level-flex.ts); equal to levelRank with none.
+  levelRankLo: number | null
+  levelRankHi: number | null
   workType?: WorkType
 }
 const factsByRow = new WeakMap<BoardRankRow, RowFacts>()
@@ -587,11 +593,19 @@ function companyKey(name: string | null): string {
 function rowFacts(p: BoardRankRow): RowFacts {
   let f = factsByRow.get(p)
   if (!f) {
+    const levelRank = calibratedLevelRank(p.targetLevel ?? candidateScaleLevel(p.level) ?? inferLevelFromTitle(p.title), null)
+    // Level flex (level-flex.ts) on the calibrated scale; a recruiter-set target level has none.
+    const range = p.targetLevel
+      ? null
+      : flexRungRange(p.level, jobLevelFlex({ ...p, companySizeBand: boardCompanySizeBand(p.companyName) }))
+    const at = (rung: string | undefined) => (rung ? calibratedLevelRank(candidateScaleLevel(rung), null) : null) ?? levelRank
     f = {
       company: companyKey(p.companyName),
       titleKey: p.title.trim().toLowerCase(),
       titleFunction: (inferFunctionFromTitle(p.title) ?? '').toLowerCase(),
-      levelRank: calibratedLevelRank(p.targetLevel ?? candidateScaleLevel(p.level) ?? inferLevelFromTitle(p.title), null),
+      levelRank,
+      levelRankLo: range ? at(range.low) : levelRank,
+      levelRankHi: range ? at(range.high) : levelRank,
     }
     factsByRow.set(p, f)
   }
@@ -793,6 +807,11 @@ export async function loadBoardShortlist(opts: {
       console.error('Dismiss preferences unavailable:', error)
       return null
     }),
+    // Employer sizes for the level flex (level-flex.ts), registered before ranking.
+    // Fail-soft: an unknown size never moves a level.
+    loadBoardCompanySizes()
+      .then(setBoardCompanySizes)
+      .catch((error) => console.error('Company sizes unavailable, no level flex by size:', error)),
   ])
   // An email's date window sees only part of the member's market: the market tier is set
   // from their whole window instead, so big markets get fewer, better jobs everywhere.
@@ -1061,7 +1080,7 @@ export function rankBoardRows(
       rank: fitRank,
       crowd: COMPETITION_SORT_RANK[competition],
       offFunction: functions.has(facts.titleFunction) ? 0 : 1,
-      gap: calibratedLevelDistance(candidateLevel, facts.levelRank),
+      gap: calibratedLevelDistanceToRange(candidateLevel, facts.levelRankLo, facts.levelRankHi),
       at: p.createdAt.getTime(),
       rel,
       posted: (p.postedAt ?? p.createdAt).getTime(),

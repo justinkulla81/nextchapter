@@ -14,6 +14,7 @@ import { ActionLink } from '@/components/candidate/ActionLink'
 import { EmptyNote, SectionBlock, SourceLine } from '@/components/candidate/Blocks'
 import { EarlyCareerChecklist } from '@/components/dashboard/early-career/EarlyCareerChecklist'
 import { EducationForm } from '@/components/dashboard/early-career/EducationForm'
+import { GraduationPlan } from '@/components/dashboard/early-career/GraduationPlan'
 import { MajorRolePicker } from '@/components/dashboard/early-career/MajorRolePicker'
 
 export const metadata: Metadata = { title: 'Early career plan' }
@@ -113,10 +114,13 @@ export default async function EarlyCareerPage({ searchParams }: { searchParams: 
         }
       />
       {firstSteps}
+      {newGrad && <GraduationPlan graduation={view.education?.graduationYear ? new Date(Date.UTC(view.education.graduationYear, 4, 15)) : null} schoolName={view.education?.schoolName ?? null} />}
       {/* Once the school is saved it is a settled fact, so the form moves behind Show more. */}
       {!view.education && school}
-      {payBlock}
+      {/* New grads see the graduation plan first, so the starting pay moves behind Show more. */}
+      {!newGrad && payBlock}
       <ShowMore page="early_career" label="Show every step, roles, promotion and grad school">
+        {newGrad && payBlock}
         {sec('checklist-all', 'Every step', <EarlyCareerChecklist rows={view.checklist} redesign />)}
         {view.education && school}
         {featureVisible('major_role_picker', audience) &&

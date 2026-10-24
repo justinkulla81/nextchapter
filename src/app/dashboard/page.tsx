@@ -30,6 +30,7 @@ import {
   getCandidateWeekNumber,
   type CommittedAction,
 } from '@/lib/weekly/sprint'
+import { engagementFor } from '@/lib/journey/senior-overlay'
 import { SuccessSprintCard } from '@/components/dashboard/SuccessSprintCard'
 import { WeeklyFocusCard, WeeklyFocusSkeleton } from '@/components/dashboard/WeeklyFocusCard'
 import { getProfileChecklistItems } from '@/lib/weekly/profile-checklist'
@@ -68,6 +69,10 @@ import { pickHomeNote, simpleNote } from '@/lib/redesign/home-note'
 import { withBlockerStep } from '@/lib/personalization/blocker-step'
 import { HomeNote } from '@/components/candidate/HomeNote'
 import { JourneyCard } from '@/components/candidate/JourneyCard'
+import { JourneyPaths } from '@/components/candidate/JourneyPaths'
+import { focusOptions, homePathsRow } from '@/lib/journey/paths'
+import { workingNowOf } from '@/lib/journey/intensity'
+import { getParallelPaths } from '@/lib/job-reviews/data'
 import { FundingHomeCard } from '@/components/dashboard/FundingHomeCard'
 import { MarketLine } from '@/components/dashboard/MarketLine'
 import { CoachOfferNote } from '@/components/candidate/CoachOfferNote'
@@ -252,6 +257,7 @@ async function HomeWeeklyPlan({
     <>
       <Suspense fallback={<WeeklyFocusSkeleton />}>
         <WeeklyFocusCard
+          hidePoints={!engagementFor(profile).points}
           candidateId={profile.id}
           locked={!bothConnectedUnlocked}
           hasEmailConnection={hasEmailConnection}
@@ -262,6 +268,7 @@ async function HomeWeeklyPlan({
         />
       </Suspense>
       <SuccessSprintCard
+        hidePoints={!engagementFor(profile).points}
         actions={currentSprint ? (currentSprint.committedActions as unknown as CommittedAction[]) : null}
         suggestedActions={blockerPlan ? blockerPlan.plan : suggestedActions}
         weeklyPoints={weeklyProgress.weeklyPoints}
@@ -426,6 +433,10 @@ export default async function DashboardPage() {
   // the modules you act from. Replaces the stage chip, the daily message box, the first-week card, the
   // engagement card and the recruiter goal card, which are now the one note or live on other pages.
   const jobCounts = await timed('home', 'jobCounts', profile.id, getHomeJobCounts(profile.id))
+  // Paths next to the main focus: one row and the focus switch in the journey card. Fail-soft: no row if the lookup fails.
+  const pathKinds = await getParallelPaths(profile.id).catch(() => null)
+  const pathSignals = { main: journeyNow, journeyDetails: profile.journeyDetails, kinds: pathKinds, workingNow: workingNowOf(profile.journeyDetails), interimInterest: profile.interimConsultingInterest }
+  const pathsRow = homePathsRow(pathSignals)
   const searching = !journeyNow || getJourney(journeyNow).searching
   const firstName = profile.firstName ?? 'there'
   const note = pickHomeNote({
@@ -476,6 +487,7 @@ export default async function DashboardPage() {
           ...(toneSet ? ['Notes come in the tone you chose'] : []),
         ]}
         changeHref="/dashboard/privacy"
+        paths={pathsRow ? <JourneyPaths row={pathsRow} options={focusOptions(pathSignals)} main={journeyNow ?? ''} /> : undefined}
         market={
           <Suspense fallback={null}>
             <MarketLine member={profile} surface="home" />
@@ -504,9 +516,11 @@ export default async function DashboardPage() {
         </>
       )}
 
-      <Suspense fallback={null}>
-        <HomeApplyPrompts candidateId={profile.id} />
-      </Suspense>
+      {engagementFor(profile).dailyApplicationPrompts && (
+        <Suspense fallback={null}>
+          <HomeApplyPrompts candidateId={profile.id} />
+        </Suspense>
+      )}
 
       <Suspense fallback={null}>
         <FundingHomeCard profile={profile} />

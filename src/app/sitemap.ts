@@ -10,6 +10,7 @@ import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
+import { isNetworkCompany } from '@/lib/network/eligibility'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
 export const revalidate = 3600
@@ -97,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // The White Collar Employment Report: hub, the evergreen index, and every edition.
     // The index is refreshed with each edition.
     ...(newestReport
-      ? [entry('/reports', newestReport, 'monthly', 0.7), entry('/reports/white-collar-index', newestReport, 'monthly', 0.7)]
+      ? [entry('/reports', newestReport, 'monthly', 0.7), entry('/reports/white-collar-index', newestReport, 'monthly', 0.7), entry('/reports/early-warning', newestReport, 'monthly', 0.7)]
       : []),
     ...REPORT_EDITIONS.map((e) => entry(`/reports/${e.slug}`, e.updatedAt ?? e.publishedAt, 'monthly', 0.7)),
     entry('/reports/replication', REPLICATION_UPDATED, 'monthly', 0.5),
@@ -129,6 +130,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...[...companies.values()]
       .filter((c) => Date.now() - c.latest.getTime() <= TWENTY_FOUR_MONTHS_MS)
       .map((c) => entry(`/layoffs/company/${c.slug}`, c.latest.toISOString(), 'weekly', 0.4)),
+
+    // Employer network pages: the same employers, kept only where the page qualifies (recent notice, enough workers).
+    ...[...companies.values()]
+      .filter((c) => isNetworkCompany(c))
+      .map((c) => entry(`/network/company/${c.slug}`, c.latest.toISOString(), 'weekly', 0.5)),
 
     // Unemployment benefits: dated by the last verification against sources.
     entry('/unemployment-benefits', UI_LAST_VERIFIED, 'monthly', 0.7),

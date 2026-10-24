@@ -166,6 +166,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       collapsible: true,
       links: [
         { href: '/support/admin/crm/benefits', label: 'Benefits' },
+        { href: '/support/admin/crm/events', label: 'Events and conferences' },
         { href: '/support/admin/crm/research', label: 'Research' },
         { href: '/support/admin/crm/geographies', label: 'Geographies' },
         { href: '/support/admin/crm/industries', label: 'Industries' },
@@ -358,7 +359,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/digest`, label: 'Market Pulse' },
         { href: `${A}/tracking-testers`, label: 'Gmail/Calendar Testers' },
         { href: `${A}/job-health`, label: 'Background job health' },
-        { href: `${A}/senior-brief`, label: 'Senior Monday brief' },
+        { href: `${A}/senior-brief`, label: 'Monday message (senior members)' },
       ],
     },
   ]

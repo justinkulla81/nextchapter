@@ -134,3 +134,11 @@ export function coachMatchesSeniority(seniorityFit: string[], candidateScore: nu
   if (scores.length === 0) return false
   return candidateScore >= Math.min(...scores) - tolerance && candidateScore <= Math.max(...scores) + tolerance
 }
+
+// calibratedLevelDistance against a job's level RANGE (its level widened by its level
+// flex, level-flex.ts): 0 inside the range, otherwise the distance to its nearer end.
+export function calibratedLevelDistanceToRange(score: number | null, lo: number | null, hi: number | null): number {
+  if (score === null || lo === null || hi === null) return 2
+  if (score >= Math.min(lo, hi) && score <= Math.max(lo, hi)) return 0
+  return calibratedLevelDistance(score, score < lo ? lo : hi)
+}

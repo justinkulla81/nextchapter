@@ -190,7 +190,7 @@ function screen(jobs: unknown[]) {
       skipped.push({ url: job.url, reason: 'internship (use /api/admin/internships/import)' })
       continue
     }
-    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, recentGraduate: job.pathwaysRecentGraduates === true, description: job.description })
+    const verdict = screenImportedJob(job.title, job.location, { schoolContext: job.schoolContext === true, recentGraduate: job.pathwaysRecentGraduates === true, description: job.description, companyName: job.companyName })
     if (!verdict.keep) {
       skipped.push({ url: job.url, reason: verdict.reason })
       continue

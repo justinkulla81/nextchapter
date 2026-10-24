@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { orgSlug, canonicalFromSlug } from '@/lib/crm/org-slug'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
+import { SectionTitle } from '@/components/admin/Collapsible'
+import { setTodoDone } from '../../todos/actions'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
 import { CrmCollegeProfile } from '@/components/admin/CrmCollegeProfile'
@@ -18,7 +20,7 @@ import { CrmFundingMatches } from '@/components/admin/CrmFundingMatches'
 import { kindsForOrg } from '@/lib/funding-opportunities/eligibility'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
-import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, qualityClass, formatDate } from '@/lib/crm/labels'
+import { ORG_TYPE_LABELS, ELIGIBILITY_LABELS, qualityClass, formatDate, meetingLabel } from '@/lib/crm/labels'
 import { loadOrgDemandData } from '@/lib/crm/org-page-data'
 import { schoolsWithCoreRecruiter } from '@/lib/higher-ed/recruiting'
 import { loadWarmDoors } from '@/lib/crm/warm-doors'
@@ -39,10 +41,11 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     where: { OR: [{ id: param }, { canonicalNameNormalized: canonicalFromSlug(param) }] },
     include: {
       organization: { select: { id: true, name: true } },
-      affiliations: { include: { person: { select: { id: true, fullName: true, roles: true, lastTouchedAt: true } } } },
+      affiliations: { include: { person: { select: { id: true, fullName: true, roles: true, lastTouchedAt: true, nextMeetingAt: true, nextMeetingUrl: true } } } },
       mandates: { include: { recruiter: { select: { id: true, fullName: true } } }, orderBy: { createdAt: 'desc' } },
       opportunities: { include: { pipeline: true, stage: true, deadlines: { where: { dueAt: { not: null } }, orderBy: { dueAt: 'asc' }, take: 1 } } },
       deadlines: { orderBy: [{ dueAt: 'asc' }] },
+      tasks: { where: { status: 'OPEN' }, orderBy: [{ dueAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }], include: { person: { select: { id: true, fullName: true } } } },
       researchItems: true,
       introPathsAsTarget: {
         include: { connectorPerson: { select: { id: true, fullName: true } } },
@@ -163,6 +166,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const JOB_LIMIT = 25
 
   const nav = [
+    { id: 'next', label: 'Next up', n: org.tasks.length + org.opportunities.length },
     { id: 'contacts', label: 'Contacts', n: org.affiliations.length },
     { id: 'candidates', label: 'Candidates', n: demand.wantToWork.length + alumniList.length },
     { id: 'jobs', label: 'Open jobs', n: demand.openJobs.length },
@@ -236,34 +240,128 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
         ))}
       </nav>
 
-      <section aria-label="Company snapshot" className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4 sm:grid-cols-3 lg:grid-cols-6">
-        <div>
-          <p className="text-2xl font-semibold">{demand.layoffYear.events === 0 ? '0' : demand.layoffYear.employees > 0 ? `${demand.layoffYear.employees.toLocaleString()}${demand.layoffYear.unstated > 0 ? '+' : ''}` : 'Not stated'}</p>
-          <p className="text-xs text-muted-foreground">
-            People laid off, past 12 months
-            {demand.layoffYear.events > 0 && ` (${demand.layoffYear.events} ${demand.layoffYear.events === 1 ? 'layoff' : 'layoffs'})`}
-          </p>
+      {/* ── Next up: what you can act on ───────────────────────────────── */}
+      <section id="next" className="scroll-mt-16 space-y-6">
+        <SectionTitle tone="action">Next up</SectionTitle>
+
+        {(org.tasks.length > 0 || org.affiliations.some((a) => a.person.nextMeetingAt)) && (
+          <div className="space-y-3">
+            {org.affiliations.filter((a) => a.person.nextMeetingAt).map((a) => (
+              <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-orange/50 bg-orange/10 p-3 text-sm">
+                <span>
+                  <span className="font-medium">Meeting {meetingLabel(a.person.nextMeetingAt)}</span>
+                  {' with '}<Link href={`/support/admin/crm/people/${a.person.id}`} className="underline">{a.person.fullName}</Link>
+                </span>
+                {a.person.nextMeetingUrl && <CrmMeetLink href={a.person.nextMeetingUrl} label="Join on Google Meet" kind="join" orgId={org.id} />}
+              </div>
+            ))}
+            {org.tasks.length > 0 && (
+              <ul className="divide-y divide-orange/20 rounded-lg border border-orange/30 bg-orange/5">
+                {org.tasks.map((t) => {
+                  const late = t.dueAt && t.dueAt < new Date(new Date().setHours(0, 0, 0, 0))
+                  return (
+                    <li key={t.id} className="flex flex-wrap items-start justify-between gap-3 p-3 text-sm">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium">{t.title}</p>
+                        {t.person && <p className="mt-0.5 text-xs text-muted-foreground">{t.person.fullName}</p>}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs ${late ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>
+                          {t.dueAt ? `${late ? 'Overdue · ' : 'Due '}${formatDate(t.dueAt)}` : 'No date'}
+                        </span>
+                        <form action={setTodoDone.bind(null, t.id, true)}>
+                          <button type="submit" className="rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-muted">Done</button>
+                        </form>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+
+        <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-border p-4 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-xs text-muted-foreground">Grade (your call)</dt>
+            <dd className="mt-1"><CrmOrgQualitySelect orgId={org.id} value={org.leadQuality} /></dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Deal status{org.dealStatusAt ? ` · since ${formatDate(org.dealStatusAt)}` : ''}</dt>
+            <dd className="mt-1"><CrmDealStatusSelect orgId={org.id} value={org.dealStatus} /></dd>
+          </div>
+        </dl>
+
+      <div>
+        <h3 className="mb-2 text-sm font-semibold">Opportunities ({org.opportunities.length})</h3>
+        <div className="divide-y divide-border rounded-lg border border-border">
+          {OPPORTUNITY_KINDS.map((kind) => {
+            const opps = org.opportunities.filter((o) => kindForPipeline(o.pipeline.key)?.key === kind.key)
+            if (opps.length === 0 && !kind.alwaysShown) return null
+            const choices = kind.pipelineKeys
+              .map((k) => pipelines.find((p) => p.key === k))
+              .filter((p): p is { key: string; label: string } => Boolean(p))
+            return (
+              <div key={kind.key} className="p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-sm font-medium">
+                    {kind.label}
+                    <span className="ml-2 font-normal text-muted-foreground">{opps.length === 0 ? 'None' : opps.length}</span>
+                  </h4>
+                  {choices.length > 0 && <CrmAddOrgOpportunity orgId={org.id} pipelines={choices} />}
+                </div>
+                {opps.length > 0 && (
+                  <ul className="mt-2 space-y-2">
+                    {opps.map((o) => {
+                      const due = o.committedFollowUpAt ?? o.nextStepDueAt ?? o.deadlines[0]?.dueAt ?? null
+                      const dueLabel = o.committedFollowUpAt ? 'Promised' : o.nextStepDueAt ? 'Next step' : o.deadlines[0]?.dueAt ? 'Deadline' : null
+                      return (
+                        <li key={o.id} className="text-sm">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                            <Link href={`/support/admin/crm/pipelines/${o.pipeline.key}`} className="font-medium hover:underline">{o.title}</Link>
+                            <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                              <span className={`rounded px-1.5 py-0.5 font-semibold ${qualityClass(o.leadQuality)}`} title="Rating">
+                                {o.leadQuality === 'UNGRADED' ? 'Ungraded' : o.leadQuality}
+                              </span>
+                              <span title="Priority score">Score {o.priorityOverride ?? Math.round(o.priorityScore)}</span>
+                              <span title="Stage">{o.stage.label}</span>
+                              <span title="Date">
+                                {due && dueLabel ? `${dueLabel} ${formatDate(due)}` : `Added ${formatDate(o.createdAt)}`}
+                              </span>
+                              {o.amountUsdMax ? (
+                                <span>{o.amountUsdMin && o.amountUsdMin !== o.amountUsdMax ? `$${o.amountUsdMin.toLocaleString()}–` : 'up to '}${o.amountUsdMax.toLocaleString()}</span>
+                              ) : null}
+                            </span>
+                          </div>
+                          {o.nextStep && <p className="mt-0.5 text-xs text-muted-foreground">{o.nextStep}</p>}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </div>
+            )
+          })}
         </div>
+      </div>
+
+
+      {org.deadlines.length > 0 && (
         <div>
-          <p className="text-2xl font-semibold">{demand.openJobs.length}</p>
-          <p className="text-xs text-muted-foreground">Open jobs · {demand.newPostings90d} new in 90 days</p>
+          <h3 className="mb-2 text-sm font-semibold">Dates</h3>
+          <ul className="divide-y divide-border rounded-lg border border-border">
+            {org.deadlines.map((d) => (
+              <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                <span className="font-medium">{d.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {d.dueAt ? formatDate(d.dueAt) : `${d.rawText ?? 'No date'} — no date to track`}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
-        <div>
-          <p className="text-2xl font-semibold">{alumniList.length}</p>
-          <p className="text-xs text-muted-foreground">Candidates who worked here</p>
-        </div>
-        <div>
-          <p className="text-2xl font-semibold">{demand.wantToWork.length}</p>
-          <p className="text-xs text-muted-foreground">Candidates who applied</p>
-        </div>
-        <div>
-          <p className="text-2xl font-semibold">{demand.mandates.length}</p>
-          <p className="text-xs text-muted-foreground">Open recruiter mandates</p>
-        </div>
-        <div>
-          <p className="text-2xl font-semibold">{coreSchools.length}</p>
-          <p className="text-xs text-muted-foreground">Colleges with it as a core recruiter</p>
-        </div>
+      )}
+
       </section>
 
       {warmDoors.length > 0 && (
@@ -300,9 +398,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
       {/* ── Contacts ─────────────────────────────────────────────────────── */}
       <section id="contacts" className="scroll-mt-16 space-y-6">
-        <h2 className="text-lg font-semibold">Contacts</h2>
+        <SectionTitle tone="history">Contacts</SectionTitle>
 
-        <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-border p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-border p-4 text-sm sm:grid-cols-2">
           <Field label="Website" value={org.website ? <a href={org.website} target="_blank" rel="noreferrer" className="underline">{org.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} ↗</a> : null} />
           <Field label="Location" value={org.hqRegion ?? org.hqCity} />
           <Field label="Email domain" value={org.emailDomain ? `@${org.emailDomain}` : null} />
@@ -426,7 +524,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
       {/* ── Candidates ───────────────────────────────────────────────────── */}
       <section id="candidates" className="scroll-mt-16 space-y-6">
-        <h2 className="text-lg font-semibold">Candidates</h2>
+        <SectionTitle tone="action">Candidates</SectionTitle>
 
         <div>
           <h3 className="mb-2 text-sm font-semibold">Applied here ({demand.wantToWork.length})</h3>
@@ -475,7 +573,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
       {/* ── Open jobs ────────────────────────────────────────────────────── */}
       <section id="jobs" className="scroll-mt-16 space-y-3">
-        <h2 className="text-lg font-semibold">Open jobs ({demand.openJobs.length})</h2>
+        <SectionTitle>Open jobs ({demand.openJobs.length})</SectionTitle>
         {demand.openJobs.length === 0 ? (
           <p className="text-sm text-muted-foreground">No live postings on the job board for this organization.</p>
         ) : (
@@ -506,7 +604,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
       {/* ── Recruiter mandates ───────────────────────────────────────────── */}
       <section id="mandates" className="scroll-mt-16 space-y-3">
-        <h2 className="text-lg font-semibold">Recruiter mandates ({demand.mandates.length})</h2>
+        <SectionTitle>Recruiter mandates ({demand.mandates.length})</SectionTitle>
         {demand.mandates.length === 0 ? (
           <p className="text-sm text-muted-foreground">No recruiter has an open search naming this organization as the client.</p>
         ) : (
@@ -526,16 +624,49 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
       {coreSchools.length > 0 && (
         <section id="schools" className="scroll-mt-16 space-y-3">
-          <h2 className="text-lg font-semibold">Colleges that list it as a core recruiter ({coreSchools.length})</h2>
+          <SectionTitle>Colleges that list it as a core recruiter ({coreSchools.length})</SectionTitle>
           <ul className="flex flex-wrap gap-2 text-sm">
             {coreSchools.map((c) => <li key={c.institutionId} className="rounded-full bg-muted px-3 py-1">{c.name}</li>)}
           </ul>
         </section>
       )}
 
+      <div className="space-y-2">
+        <SectionTitle>At a glance</SectionTitle>
+      <section aria-label="Company snapshot" className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div>
+          <p className="text-2xl font-semibold">{demand.layoffYear.events === 0 ? '0' : demand.layoffYear.employees > 0 ? `${demand.layoffYear.employees.toLocaleString()}${demand.layoffYear.unstated > 0 ? '+' : ''}` : 'Not stated'}</p>
+          <p className="text-xs text-muted-foreground">
+            People laid off, past 12 months
+            {demand.layoffYear.events > 0 && ` (${demand.layoffYear.events} ${demand.layoffYear.events === 1 ? 'layoff' : 'layoffs'})`}
+          </p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.openJobs.length}</p>
+          <p className="text-xs text-muted-foreground">Open jobs · {demand.newPostings90d} new in 90 days</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{alumniList.length}</p>
+          <p className="text-xs text-muted-foreground">Candidates who worked here</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.wantToWork.length}</p>
+          <p className="text-xs text-muted-foreground">Candidates who applied</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{demand.mandates.length}</p>
+          <p className="text-xs text-muted-foreground">Open recruiter mandates</p>
+        </div>
+        <div>
+          <p className="text-2xl font-semibold">{coreSchools.length}</p>
+          <p className="text-xs text-muted-foreground">Colleges with it as a core recruiter</p>
+        </div>
+      </section>
+      </div>
+
       {/* ── Layoffs ──────────────────────────────────────────────────────── */}
       <section id="layoffs" className="scroll-mt-16 space-y-3">
-        <h2 className="text-lg font-semibold">Layoffs</h2>
+        <SectionTitle>Layoffs</SectionTitle>
         {demand.notices.length === 0 && demand.layoffNews.length === 0 ? (
           <p className="text-sm text-muted-foreground">No layoff notices or layoff news found for this organization.</p>
         ) : (
@@ -595,7 +726,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
       {/* ── News & research ──────────────────────────────────────────────── */}
       <section id="research" className="scroll-mt-16 space-y-6">
-        <h2 className="text-lg font-semibold">News & research</h2>
+        <SectionTitle>News & research</SectionTitle>
 
         <div>
           <h3 className="mb-2 text-sm font-semibold">In the research library ({demand.researchNews.length})</h3>
@@ -639,17 +770,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
       {/* ── Data ─────────────────────────────────────────────────────────── */}
       <section id="data" className="scroll-mt-16 space-y-6">
-        <h2 className="text-lg font-semibold">Data</h2>
+        <SectionTitle>Data</SectionTitle>
 
         <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-border p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <dt className="text-xs text-muted-foreground">Grade (your call)</dt>
-            <dd className="mt-1"><CrmOrgQualitySelect orgId={org.id} value={org.leadQuality} /></dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Deal status{org.dealStatusAt ? ` · since ${formatDate(org.dealStatusAt)}` : ''}</dt>
-            <dd className="mt-1"><CrmDealStatusSelect orgId={org.id} value={org.dealStatus} /></dd>
-          </div>
           <Field label="Industry" value={org.industry} />
           <Field
             label="Company intel"
@@ -687,77 +810,8 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           </section>
         )}
 
-        <div>
-          <h3 className="mb-2 text-sm font-semibold">Opportunities ({org.opportunities.length})</h3>
-          <div className="divide-y divide-border rounded-lg border border-border">
-            {OPPORTUNITY_KINDS.map((kind) => {
-              const opps = org.opportunities.filter((o) => kindForPipeline(o.pipeline.key)?.key === kind.key)
-              if (opps.length === 0 && !kind.alwaysShown) return null
-              const choices = kind.pipelineKeys
-                .map((k) => pipelines.find((p) => p.key === k))
-                .filter((p): p is { key: string; label: string } => Boolean(p))
-              return (
-                <div key={kind.key} className="p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="text-sm font-medium">
-                      {kind.label}
-                      <span className="ml-2 font-normal text-muted-foreground">{opps.length === 0 ? 'None' : opps.length}</span>
-                    </h4>
-                    {choices.length > 0 && <CrmAddOrgOpportunity orgId={org.id} pipelines={choices} />}
-                  </div>
-                  {opps.length > 0 && (
-                    <ul className="mt-2 space-y-2">
-                      {opps.map((o) => {
-                        const due = o.committedFollowUpAt ?? o.nextStepDueAt ?? o.deadlines[0]?.dueAt ?? null
-                        const dueLabel = o.committedFollowUpAt ? 'Promised' : o.nextStepDueAt ? 'Next step' : o.deadlines[0]?.dueAt ? 'Deadline' : null
-                        return (
-                          <li key={o.id} className="text-sm">
-                            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                              <Link href={`/support/admin/crm/pipelines/${o.pipeline.key}`} className="font-medium hover:underline">{o.title}</Link>
-                              <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                                <span className={`rounded px-1.5 py-0.5 font-semibold ${qualityClass(o.leadQuality)}`} title="Rating">
-                                  {o.leadQuality === 'UNGRADED' ? 'Ungraded' : o.leadQuality}
-                                </span>
-                                <span title="Priority score">Score {o.priorityOverride ?? Math.round(o.priorityScore)}</span>
-                                <span title="Stage">{o.stage.label}</span>
-                                <span title="Date">
-                                  {due && dueLabel ? `${dueLabel} ${formatDate(due)}` : `Added ${formatDate(o.createdAt)}`}
-                                </span>
-                                {o.amountUsdMax ? (
-                                  <span>{o.amountUsdMin && o.amountUsdMin !== o.amountUsdMax ? `$${o.amountUsdMin.toLocaleString()}–` : 'up to '}${o.amountUsdMax.toLocaleString()}</span>
-                                ) : null}
-                              </span>
-                            </div>
-                            {o.nextStep && <p className="mt-0.5 text-xs text-muted-foreground">{o.nextStep}</p>}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
         <BenefitsPanel title="Benefits this company offers" note="Relocation packages and incentives this employer itself offers, from the Benefits catalog." groups={[{ label: org.name, rows: employerBenefits }]} />
         <CrmFundingMatches opportunities={funding} />
-
-        {org.deadlines.length > 0 && (
-          <div>
-            <h3 className="mb-2 text-sm font-semibold">Dates</h3>
-            <ul className="divide-y divide-border rounded-lg border border-border">
-              {org.deadlines.map((d) => (
-                <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
-                  <span className="font-medium">{d.label}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {d.dueAt ? formatDate(d.dueAt) : `${d.rawText ?? 'No date'} — no date to track`}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {org.orgTypes.includes('OUTPLACEMENT_LEAD') && (
           <div>

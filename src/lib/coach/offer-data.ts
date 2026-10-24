@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { ACTIVE_SEARCH_STAGES, effectiveStage } from '@/lib/journey/journey'
 import { isPivotingProfile } from '@/lib/journey/pivot-target'
 import { readSearchExpansion } from '@/lib/profile/search-expansion'
+import { behaviorPointsOutside, homeOf } from '@/lib/jobs/search-scope'
+import { loadBehaviorSignals } from '@/lib/jobs/search-scope-server'
 import { loadMarketSize, type MarketMember } from '@/lib/market/market-size-server'
 import { coachOfferQuiet, pickCoachOffer, type CoachOfferFacts, type CoachOfferReason, type CoachOfferState } from './offer'
 import { seniorMember } from './seniority'
@@ -54,12 +56,15 @@ export async function loadCoachOfferFacts(p: OfferProfile): Promise<CoachOfferFa
     loadMarketSize(p).catch(() => null),
   ])
   const expansion = readSearchExpansion(p.searchExpansion)
+  // Saves that point outside home, before the member has said they are exploring it (search-scope.ts): this
+  // reaches only the coach offer, never their search.
+  const behaviorOutside = behaviorPointsOutside(await loadBehaviorSignals(p.id).catch(() => []), homeOf(p, expansion))
   return {
     hasCoach: !!p.coachId,
     stage,
     senior: seniorMember(p),
     // Looking outside home: a target function that differs from theirs, or a search they widened to other roles, industries or states.
-    pivoting: isPivotingProfile(p) || expansion.roles.length > 0 || expansion.industries.length > 0 || expansion.states.length > 0,
+    pivoting: isPivotingProfile(p) || expansion.roles.length > 0 || expansion.industries.length > 0 || expansion.states.length > 0 || behaviorOutside,
     smallPool: market?.prompt === 'too_few',
     networkingBlocker: p.blockers.includes('networking_discomfort'),
     daysSearching: started ? Math.floor((now - started.getTime()) / DAY) : null,

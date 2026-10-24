@@ -1,0 +1,837 @@
+[
+ {
+  "id": "dgiq-edw",
+  "name": "DGIQ + Enterprise Data World",
+  "organizer": "DATAVERSITY",
+  "url": "https://www.dataversity.net",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 4-8 in San Diego; 2027 dates and venue are TBD per listings. Official site pages could not be opened.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "Data management, governance and architecture practitioners; the longest-running enterprise data management conference.",
+  "segments": [
+   "Data engineering and analytics"
+  ],
+  "industries": []
+ },
+ {
+  "id": "nacd-new-england-aspiring-public-company-director-program",
+  "name": "NACD New England Aspiring Public Company Director Program",
+  "organizer": "NACD New England",
+  "url": "https://www.nacdonline.org/new-england/new-england-events/aspiring-public-company-director-program/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Boston",
+  "state": "MA",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page is an archive of the April 16, 2025 edition at KPMG; price not listed; repeat not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Nonprofit and private-company board members and C-suite leaders preparing for a public company board seat.",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "industries": []
+ },
+ {
+  "id": "state-of-latino-entrepreneurship-summit",
+  "name": "State of Latino Entrepreneurship Summit",
+  "organizer": "Stanford Latino Entrepreneurship Initiative",
+  "url": "https://www.gsb.stanford.edu/faculty-research/centers-initiatives/slei",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": "Stanford",
+  "state": "CA",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition was free with separate gala tickets; 2027 date not posted.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Latino business owners, researchers and funders review the annual SOLE report; a gala follows.",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "industries": []
+ },
+ {
+  "id": "calcpa-elevate-womens-leadership-forum",
+  "name": "Elevate: Women's Leadership Forum",
+  "organizer": "CalCPA",
+  "url": "https://store.calcpa.org/catalog/activity/elevate--women-s-leadership-forum-2027---1000005075",
+  "startDate": "2027-05-06",
+  "endDate": "2027-05-07",
+  "typicalMonth": "May",
+  "city": "Sunnyvale",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": 405,
+  "costHigh": 545,
+  "costNote": "$405 member / $545 non-member after early access closed July 8, 2026.",
+  "speaking": "UNKNOWN",
+  "source": "official site search result",
+  "whyAttend": "Women CPAs at every career stage; early-access pricing has closed.",
+  "segments": [
+   "Public accounting"
+  ],
+  "industries": [
+   "Accounting & Audit"
+  ]
+ },
+ {
+  "id": "agency-rainmaker-forum",
+  "name": "Agency Rainmaker Forum",
+  "organizer": "RSW/US",
+  "url": "https://rainmakerforum.com/agency-rainmaker-forum/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "February",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Late winter estimate from third-party calendar; not opened.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "Agency new-business leaders and owners.",
+  "segments": [
+   "Brand and creative"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "nra-public-affairs-conference",
+  "name": "National Restaurant Association Public Affairs Conference",
+  "organizer": "National Restaurant Association",
+  "url": "https://www.restaurant.org/advocacy/get-involved/Public-Affairs-Conference",
+  "startDate": "2027-06-21",
+  "endDate": "2027-06-23",
+  "typicalMonth": "June",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a search result; not read on the page.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Restaurant industry advocates meeting lawmakers on Capitol Hill.",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "ausa-annual-meeting",
+  "name": "AUSA Annual Meeting & Exposition",
+  "organizer": "Association of the United States Army",
+  "url": "https://www.ausa.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 Annual Meeting (Oct 12-14, Washington DC, already past) had free registration with paid add-on dinners/lunches ($65 to $190). 2027 dates not posted.",
+  "speaking": "BY_INVITE",
+  "source": "official site + press",
+  "whyAttend": "The main US land-power defense expo, with military leaders, prime contractors and suppliers.",
+  "segments": [
+   "Military transition and veterans"
+  ],
+  "industries": [
+   "Aerospace & Defense",
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "nasf-annual-meeting",
+  "name": "NASF Annual Meeting",
+  "organizer": "National Association of State Foresters",
+  "url": "https://www.stateforesters.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "State foresters and federal and industry partners setting forestry policy.",
+  "segments": [
+   "Forestry, timber and land"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "mema-annual-conference",
+  "name": "MEMA Annual Conference & Expo",
+  "organizer": "MEMA",
+  "url": "https://www.mema.org/annualconference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "Detroit area",
+  "state": "MI",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Vehicle supplier and manufacturer leaders in metro Detroit. Lead only: page returned 403 and dates were not found.",
+  "segments": [
+   "Automakers and suppliers"
+  ],
+  "industries": [
+   "Automotive & Mobility"
+  ]
+ },
+ {
+  "id": "naiop-cre-converge",
+  "name": "NAIOP CRE.Converge",
+  "organizer": "NAIOP / CREDA",
+  "url": "https://www.naiop.org/events-and-sponsorship/corporate-events-list/conferences/2027-cre-converge",
+  "startDate": "2027-09-27",
+  "endDate": "2027-09-29",
+  "typicalMonth": "September",
+  "city": "Austin",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "JW Marriott Austin. 2027 registration fees not found; the 2025 edition charged members $1,435 and non-members $1,870 (past event, not 2027 pricing).",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Commercial real estate developers, owners and investors at the flagship NAIOP gathering.",
+  "segments": [],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "worktech-new-york",
+  "name": "WorkTech New York",
+  "organizer": "WorkTech Academy",
+  "url": "https://worktechevents.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition not announced; domain from search text, confirm.",
+  "speaking": "UNKNOWN",
+  "source": "event listing",
+  "whyAttend": "Corporate real estate, workplace and facility technology leaders; 2026 edition was Oct 8-9.",
+  "segments": [],
+  "industries": [
+   "Construction & Real Estate",
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "naesp-pre-k-8-principals-conference",
+  "name": "NAESP Pre-K-8 Principals Conference",
+  "organizer": "NAESP",
+  "url": "https://www.naesp.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "July",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party/unconfirmed",
+  "whyAttend": "Annual summer conference for elementary and middle school principals.",
+  "segments": [
+   "K-12 school leadership"
+  ],
+  "industries": [
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "nei-nuclear-energy-assembly",
+  "name": "NEI Nuclear Energy Assembly",
+  "organizer": "Nuclear Energy Institute",
+  "url": "https://nei.org/conferences/evolution",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Philadelphia",
+  "state": "PA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "NEI site returned 403; details from search snippet.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Nuclear industry executives, utilities and policymakers; 2027 date unconfirmed.",
+  "segments": [
+   "Energy storage, hydrogen and nuclear"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "acu-strategic-growth-conference",
+  "name": "Strategic Growth Conference (America's Credit Unions)",
+  "organizer": "America's Credit Unions",
+  "url": "https://www.americascreditunions.org/events-training/conference/strategic-growth-conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition page exists; dates and price not read.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Growth, member acquisition and strategy sessions for credit union executives and business-development leaders.",
+  "segments": [
+   "Credit unions"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "orion-ascent",
+  "name": "Orion Ascent",
+  "organizer": "Orion",
+  "url": "https://orion.com",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-25",
+  "typicalMonth": "February",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Orlando venue come from press coverage of a June 2026 Orion announcement; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "Advisors, asset managers and fintech providers on the Orion platform; 2,200+ expected.",
+  "segments": [
+   "Wealth and asset management"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "narc-annual-conference",
+  "name": "NARC Annual Conference",
+  "organizer": "National Association of Regional Councils",
+  "url": "https://narc.org/events-calendar-2/2027-annual-conference-exhibition/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Tulsa",
+  "state": "OK",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 page is a placeholder repeating 2026. A third-party listing shows a Feb 7-10, 2027 Washington event, unconfirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Regional council directors, planners and policy staff; 2026 was the 60th, June 7-9 in Tulsa.",
+  "segments": [
+   "Economic development and planning",
+   "Public utilities and transportation agencies"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "aappr-annual-conference",
+  "name": "AAPPR Advancing Connections (physician recruiters)",
+  "organizer": "AAPPR",
+  "url": "https://s2.goeshow.com/aappr/annual/2026/exhibitors_sponsors.cfm",
+  "startDate": "2027-03-23",
+  "endDate": "2027-03-25",
+  "typicalMonth": "April",
+  "city": "Louisville",
+  "state": "KY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates from a third-party listing only.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Physician and provider recruiters; AAPPR calls it the largest event for that field.",
+  "segments": [
+   "Healthcare HR and workforce"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "gsa-annual-scientific-meeting",
+  "name": "GSA Annual Scientific Meeting",
+  "organizer": "Gerontological Society of America",
+  "url": "https://www.vumedi.com/event/gsa-2026-annual-scientific-meeting/",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-07",
+  "typicalMonth": "November",
+  "city": "National Harbor",
+  "state": "MD",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from GSA-linked sources; the link here is a third-party listing and GSA's own site was not opened.",
+  "speaking": "OPEN_CFP",
+  "source": "third-party listing",
+  "whyAttend": "Researchers and practitioners in aging and longevity, a feeder for second-career work in the aging economy.",
+  "segments": [
+   "Long-term care and senior living",
+   "Public health"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "sia-healthcare-staffing-summit",
+  "name": "SIA Healthcare Staffing Summit",
+  "organizer": "Staffing Industry Analysts",
+  "url": "https://www.staffingindustry.com/conferences/staffing-conferences",
+  "startDate": "2026-11-09",
+  "endDate": "2026-11-11",
+  "typicalMonth": "November",
+  "city": "Arlington",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Healthcare staffing firm leaders, travel-nurse and locum executives.",
+  "segments": [
+   "Healthcare HR and workforce"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "arias-us-fall-conference",
+  "name": "ARIAS-U.S. Fall Conference",
+  "organizer": "ARIAS-U.S.",
+  "url": "https://www.arias-us.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "November",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Reinsurance arbitrators, counsel and claims executives.",
+  "segments": [
+   "Reinsurance and specialty"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "rendez-vous-de-septembre-monte-carlo",
+  "name": "Monte Carlo Rendez-Vous de Septembre",
+  "organizer": "Rendez-Vous de Septembre",
+  "url": "https://www.rvs-monte-carlo.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Monte Carlo",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Global reinsurance renewals meeting.",
+  "segments": [
+   "Reinsurance and specialty"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "napd-leadership-institute",
+  "name": "NAPD Leadership Institute",
+  "organizer": "National Association for Public Defense",
+  "url": "https://publicdefenders.us/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition May 19-22 in Detroit, sold out.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "Public defense leaders.",
+  "segments": [
+   "Courts and public interest law"
+  ],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "manufacturing-live-new-york",
+  "name": "Manufacturing LIVE: The New York Summit",
+  "organizer": "BizClik Media",
+  "url": "https://supplychaindigital.com/events/procurement-supply-chain-live/the-new-york-summit-manufacturing-live-2027",
+  "startDate": "2027-04-20",
+  "endDate": "2027-04-21",
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "Senior manufacturing operations leaders; listing only, organizer page not read.",
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "ieba-conference",
+  "name": "IEBA Conference (Independent Event & Booking Agents)",
+  "organizer": "IEBA",
+  "url": "https://www.ieba.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site has a '2027 Conference Info' page; dates not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site (unverified lead)",
+  "whyAttend": "Talent buyers, agents and venue/festival professionals.",
+  "segments": [
+   "Music and live entertainment"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "streaming-media-connect",
+  "name": "Streaming Media Connect",
+  "organizer": "Streaming Media",
+  "url": "https://www.streamingmedia.com/Conferences/Connect2026-May/Register.aspx",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 had Feb, May and Aug editions; May described as free; next not found.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Online streaming-tech sessions.",
+  "segments": [
+   "Film, television and streaming"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "iap2-north-american-conference",
+  "name": "IAP2 North American Conference",
+  "organizer": "International Association for Public Participation",
+  "url": "https://www.iap2.org/news/707533/2025-IAP2-North-American-Conference.htm",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition Sept 28-30 in San Antonio; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Public participation and stakeholder engagement practitioners.",
+  "segments": [
+   "Volunteer management and community engagement"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "jpm-healthcare-conference",
+  "name": "J.P. Morgan Healthcare Conference",
+  "organizer": "J.P. Morgan",
+  "url": "https://www.jpmorgan.com/solutions/cib/investment-banking/healthcare-conference",
+  "startDate": "2027-01-11",
+  "endDate": "2027-01-14",
+  "typicalMonth": "January",
+  "city": "San Francisco",
+  "state": "CA",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Search results list Jan 11-14, 2027 at the Westin St. Francis, unconfirmed; main conference reported invitation-only. Official page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "The week where biotech, pharma and medtech CEOs, bankers and investors set the year's deals.",
+  "segments": [],
+  "industries": [
+   "Pharmaceuticals & Biotech",
+   "Medical Devices",
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "global-scrum-gathering",
+  "name": "Global Scrum Gathering",
+  "organizer": "Scrum Alliance",
+  "url": "https://scrumalliance.org/events/global",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Scrum Alliance's global gathering for Scrum Masters, agile coaches and delivery leaders; 2027 location to be announced.",
+  "segments": [
+   "Project and program management"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ]
+ },
+ {
+  "id": "asa-staffing-world",
+  "name": "Staffing World (American Staffing Association)",
+  "organizer": "American Staffing Association",
+  "url": "https://americanstaffing.net/sw26",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Denver",
+  "state": "CO",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Oct 12-14, Denver) has passed; next edition not yet published. 2026 rates were member $2,095-$2,905, non-member $4,995.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "The staffing industry's largest learning and networking event, with ASA Hosted Buyers program.",
+  "segments": [],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "plansponsor-national-conference",
+  "name": "PLANSPONSOR National Conference",
+  "organizer": "PLANSPONSOR",
+  "url": "https://www.plansponsor.com/events/psnc2027/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Exact dates unconfirmed; official pages show June 4 and June 7 awards.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "Retirement and benefit plan sponsors and benefits managers.",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "customer-success-festival-london",
+  "name": "Customer Success Festival London",
+  "organizer": "Customer Success Collective",
+  "url": "https://events.customersuccesscollective.com/location/londonjune/",
+  "startDate": "2027-06-17",
+  "endDate": "2027-06-17",
+  "typicalMonth": "June",
+  "city": "London",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "official site (partial)",
+  "whyAttend": "One-day festival for CS practitioners; a New York edition is listed for July 7, 2027.",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "nice-conference-and-expo",
+  "name": "NICE Conference and Expo",
+  "organizer": "NIST NICE (National Initiative for Cybersecurity Education)",
+  "url": "https://www.nist.gov/news-events/events/18th-annual-nice-conference-and-expo",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Location to be announced; price not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site search result",
+  "whyAttend": "Cybersecurity workforce developers, educators and employers working on career-changer and reskilling pathways into cyber.",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "industries": [
+   "Technology & Software",
+   "Government & Public Sector",
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "smashingconf-new-york",
+  "name": "SmashingConf New York",
+  "organizer": "Smashing Magazine",
+  "url": "https://smashingconf.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found; 2025 was Oct 6-9.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Front-end and UX designers and developers; two single-track days plus workshops, usually in October.",
+  "segments": [
+   "Design and user experience"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "american-supply-chain-summit",
+  "name": "American Supply Chain Summit",
+  "organizer": "Generis Group",
+  "url": "https://www.supplychainus.com",
+  "startDate": "2027-04-27",
+  "endDate": "2027-04-28",
+  "typicalMonth": "April",
+  "city": "Dallas",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and Dallas from aggregator/vendor listings; organizer site not opened.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Supply chain, logistics and procurement executives, now in its 10th year.",
+  "segments": [
+   "Supply chain planning and visibility"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ },
+ {
+  "id": "tmsa-elevate",
+  "name": "TMSA ELEVATE",
+  "organizer": "Transportation Marketing & Sales Association",
+  "url": "https://www.sdcexec.com/events/event/22946794/2026-tmsa-elevate-conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Denver",
+  "state": "CO",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced on pages seen; link is a trade-press listing, not TMSA's site.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Sales and marketing professionals across trucking, brokerage and 3PL; 2026 edition June 7-9 in Denver.",
+  "segments": [
+   "Freight, trucking and brokerage"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ }
+]

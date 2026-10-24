@@ -139,3 +139,34 @@ export async function resolveCompanySizeBands(companyNames: string[]): Promise<R
     return { band: null, source: 'unknown' as const }
   })
 }
+
+// Every employer size band known without an LLM call, by normalized name: the curated
+// static list, the permanent CompanySizeLookup cache and Company.sizeBand (the cache
+// wins over Company, the static list over both). For the board's level flex
+// (level-flex.ts); held for 30 minutes.
+const SIZE_MAP_TTL_MS = 30 * 60_000
+const globalForSizes = globalThis as unknown as { boardCompanySizes?: { at: number; map: Promise<Map<string, CompanySizeBand>> } }
+
+export function loadBoardCompanySizes(now = Date.now()): Promise<Map<string, CompanySizeBand>> {
+  const held = globalForSizes.boardCompanySizes
+  if (held && now - held.at < SIZE_MAP_TTL_MS) return held.map
+  const map = (async () => {
+    const out = new Map<string, CompanySizeBand>()
+    const [companies, cached] = await Promise.all([
+      prisma.company.findMany({ where: { sizeBand: { not: null } }, select: { canonicalNameNormalized: true, sizeBand: true } }),
+      prisma.companySizeLookup.findMany({ select: { companyNameNormalized: true, sizeBand: true } }),
+    ])
+    for (const c of companies) if (c.sizeBand) out.set(c.canonicalNameNormalized, c.sizeBand)
+    for (const c of cached) out.set(c.companyNameNormalized, c.sizeBand)
+    for (const t of COMPANY_SIZE_TIERS) {
+      const norm = normalizeOrgName(t.name)
+      if (norm) out.set(norm, t.sizeBand)
+    }
+    return out
+  })()
+  globalForSizes.boardCompanySizes = { at: now, map }
+  map.catch(() => {
+    if (globalForSizes.boardCompanySizes?.map === map) globalForSizes.boardCompanySizes = undefined
+  })
+  return map
+}

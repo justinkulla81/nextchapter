@@ -6,6 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { canonical } from '@/lib/seo/canonical'
+import { isNetworkCompany } from '@/lib/network/eligibility'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay } from '@/lib/warn/layoff-pages'
@@ -107,6 +108,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           <section aria-labelledby="affected" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="affected" className="text-xl font-semibold tracking-tight text-navy">What to do if you’re affected</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
+              {isNetworkCompany(c) && (
+                <li><Link href={`/network/company/${slug}`} className={LINK}>Jobs, benefits and retraining for {c.name} employees and alumni</Link></li>
+              )}
               <li><Link href="/start/laid-off" className={LINK}>Start here: a plan for the weeks after a layoff</Link></li>
               {c.states.map((s) => (
                 <li key={s}>

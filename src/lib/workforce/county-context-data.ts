@@ -57,6 +57,6 @@ export const laborBenchmarks = ttlCached(10 * 60 * 1000, async () => {
 
 /** Degree-granting colleges by state and county, with how many are public 2-year (community colleges). */
 export const collegesByCounty = ttlCached(10 * 60 * 1000, async () => {
-  const rows = await prisma.localCollege.groupBy({ by: ['state', 'countyKey', 'sector'], _count: { _all: true } })
+  const rows = await prisma.localCollege.groupBy({ by: ['state', 'countyFips', 'sector'], _count: { _all: true } })
   return rows
 })

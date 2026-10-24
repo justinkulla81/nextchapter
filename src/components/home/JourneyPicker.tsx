@@ -19,13 +19,16 @@ const FOLLOWUPS = [
   { value: 'long', label: 'Six months or more' },
 ]
 
-export function JourneyPicker() {
+// `source` says which page the form sits on ('home', or 'network:<type>:<slug>'); `compact` skips the
+// how-long question for pages that already know the person's context; `situations` limits the choices.
+export function JourneyPicker({ source = 'home', compact = false, situations }: { source?: string; compact?: boolean; situations?: string[] }) {
   const [situation, setSituation] = useState<string | null>(null)
   const [followup, setFollowup] = useState<string | null>(null)
   const [state, action, pending] = useActionState<JourneyState, FormData>(submitJourneyLead, undefined)
 
   const persona = PERSONAS.find((p) => p.slug === situation)
-  const step = state?.done ? 4 : !situation ? 1 : !followup ? 2 : 3
+  const step = state?.done ? 4 : !situation ? 1 : compact ? 3 : !followup ? 2 : 3
+  const choices = situations ? PERSONAS.filter((p) => situations.includes(p.slug)) : PERSONAS
 
   if (state?.done) {
     const slug = state.slug ?? situation ?? ''
@@ -52,7 +55,7 @@ export function JourneyPicker() {
 
   return (
     <div className={cn('mx-auto w-full max-w-3xl', pending && 'cursor-wait')}>
-      <p className="text-center text-sm font-semibold tracking-widest text-muted-foreground uppercase">Question {step} of 3</p>
+      <p className="text-center text-sm font-semibold tracking-widest text-muted-foreground uppercase">Question {compact && step === 3 ? 2 : step} of {compact ? 2 : 3}</p>
 
       {step === 1 && (
         <>
@@ -61,13 +64,13 @@ export function JourneyPicker() {
             Why we ask: a laid-off week and a thinking-about-a-move week look nothing alike. No résumé, no account.
           </p>
           <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-            {PERSONAS.map((p) => (
+            {choices.map((p) => (
               <li key={p.slug}>
                 <button
                   type="button"
                   onClick={() => {
                     setSituation(p.slug)
-                    posthog.capture('journey_picker_situation_selected', { situation: p.slug })
+                    posthog.capture('journey_picker_situation_selected', { situation: p.slug, source })
                   }}
                   className="w-full rounded-xl border border-border bg-white px-4 py-3 text-left text-base font-semibold text-ink hover:bg-muted"
                 >
@@ -120,10 +123,11 @@ export function JourneyPicker() {
             action={action}
             noValidate
             className="mx-auto mt-5 flex max-w-md flex-col gap-3 sm:flex-row"
-            onSubmit={() => posthog.capture('journey_picker_submitted', { situation, followup })}
+            onSubmit={() => posthog.capture('journey_picker_submitted', { situation, followup, source })}
           >
             <input type="hidden" name="situation" value={situation ?? ''} />
             <input type="hidden" name="followup" value={followup ?? ''} />
+            <input type="hidden" name="source" value={source} />
             <div className="hidden" aria-hidden>
               <label htmlFor="journey-website">Website</label>
               <input id="journey-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
@@ -150,7 +154,7 @@ export function JourneyPicker() {
             </p>
           )}
           <p className="mt-3 text-center">
-            <button type="button" onClick={() => setFollowup(null)} className="text-sm text-muted-foreground underline underline-offset-4">
+            <button type="button" onClick={() => (compact ? setSituation(null) : setFollowup(null))} className="text-sm text-muted-foreground underline underline-offset-4">
               Back
             </button>
           </p>

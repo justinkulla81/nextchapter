@@ -1,0 +1,1803 @@
+[
+ {
+  "id": "afp-annual-conference",
+  "name": "AFP Annual Conference",
+  "organizer": "Association for Financial Professionals",
+  "url": "https://conference.financialprofessionals.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-08",
+  "endDate": "2026-11-11",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Corporate treasury, finance and accounting leaders from thousands of companies, with seven tracks and a large vendor floor.",
+  "access": "PAID",
+  "costLow": 1874,
+  "costHigh": 2469,
+  "costNote": "On-site pricing after Oct 2: insider member $1,874, member $2,074, non-member $2,469; 3+ from one company $1,750 each; day passes $1,245 and $1,950.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Pricing page shows no speaker call.",
+  "cheaperWays": "Team rate for 3+ from one company, one- and two-day passes, and an AFP Grant Program (details not published on the pricing page).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search + official site",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "finance systems lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "afp-fpa-forum",
+  "name": "AFP FP&A Forum",
+  "organizer": "Association for Financial Professionals",
+  "url": "https://www.financialprofessionals.org/afp-fp-a--forum",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-22",
+  "endDate": "2027-03-24",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 2,
+  "whyAttend": "Planning, analysis and controllership practitioners comparing close, forecasting and AI-in-finance practices.",
+  "access": "PAID",
+  "costLow": 750,
+  "costHigh": null,
+  "costNote": "A $750 full pass was offered to the first 50 registrants (deadline Apr 29); standard price not seen. AFP 2026 attendees get $300 off.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.financialprofessionals.org/afp-fp-a--forum/speakers/submit-a-proposal",
+  "speakingDeadline": null,
+  "speakingNote": "Public proposal form and session guidelines; deadline not read.",
+  "cheaperWays": "Early-registration offer; $300 discount for AFP Annual Conference attendees.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "accounting manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ima-annual-conference",
+  "name": "IMA Annual Conference (Accounting & Finance Conference)",
+  "organizer": "Institute of Management Accountants",
+  "url": "https://www.imanet.org/continuing-education/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "EARLY",
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 1,
+  "whyAttend": "Management accountants, controllers and CMAs from industry gather for CPE, certification networking and peer chapters.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not seen; 2026 edition was in Tampa in June and early-bird discounts ran through Dec 31.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Early-bird discount; IMA student membership and a Student Leadership Conference exist.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "accounting manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sage-future",
+  "name": "Sage Future",
+  "organizer": "Sage",
+  "url": "https://www.sage.com/en-us/sage-future/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-27",
+  "endDate": "2027-04-29",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Sage Intacct and Sage 300 finance teams and partners, with product training and peer sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open ('register your interest'); price unpublished.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "finance systems lead",
+   "controller"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "onestream-splash",
+  "name": "OneStream Splash",
+  "organizer": "OneStream",
+  "url": "https://www.onestream.com/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Corporate finance and consolidation, close and planning teams running OneStream.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page says early registration secures the lowest rate; no dollar amount published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "finance systems lead",
+   "controller"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "blackline-beyondtheblack",
+  "name": "BlackLine BeyondTheBlack",
+  "organizer": "BlackLine",
+  "url": "https://www.blackline.com/modern-finance-tour",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-18",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Controllers and accounting leaders using financial close, reconciliation and intercompany automation.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates read from a search snippet of blackline.com (Nov 18 or Nov 16-18); pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "accounting manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "workiva-amplify",
+  "name": "Workiva Amplify",
+  "organizer": "Workiva",
+  "url": "https://www.workiva.com/amplify",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Reporting, controllership, SEC and sustainability reporting teams, about 2,600 attendees in 2026.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Sep 14-16, Las Vegas) has ended; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "accounting manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "oracle-ai-world",
+  "name": "Oracle AI World",
+  "organizer": "Oracle",
+  "url": "https://www.oracle.com/ai-world/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Oracle Fusion ERP and finance application users, with hands-on training and customer sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not seen; pre-event training Oct 25.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "finance systems lead",
+   "controller"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "workday-rising",
+  "name": "Workday Rising",
+  "organizer": "Workday",
+  "url": "https://rising.workday.com/us.html",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-09-27",
+  "endDate": "2027-09-30",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Workday Financials and HR teams, with certification and customer sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not seen; 2026 edition (Oct 12-15) has ended.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "On-demand content with in-person registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "finance systems lead",
+   "controller"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sap-sapphire-orlando",
+  "name": "SAP Sapphire & ASUG Annual Conference",
+  "organizer": "SAP / ASUG",
+  "url": "https://www.sap.com/events/sapphire/orlando.html",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "SAP S/4HANA finance and ERP leads from large enterprises, plus ASUG user community.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open; virtual edition May 25-26.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Virtual edition.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "finance systems lead",
+   "controller"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "radiance",
+  "name": "Radiance",
+  "organizer": "HighRadius",
+  "url": "https://radiance.highradius.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-15",
+  "endDate": "2027-02-17",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Order-to-cash, accounts receivable and treasury finance teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird registration open, price not seen; site is inconsistent on venue (Atlanta vs Las Vegas).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Early-bird pricing.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "accounting manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "acumatica-summit",
+  "name": "Acumatica Summit",
+  "organizer": "Acumatica",
+  "url": "https://summit.acumatica.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-24",
+  "endDate": "2027-01-27",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Mid-market finance and ERP teams on Acumatica Cloud ERP.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opened Oct 1, 2026; price not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "finance systems lead",
+   "controller"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ssow-orlando",
+  "name": "Shared Services & Outsourcing Week (SSOW)",
+  "organizer": "SSON",
+  "url": "https://www.ssonetwork.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-11",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Finance and back-office shared services leaders (P2P, O2C, record-to-report).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates only from a third-party listing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "accounting manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "dynamics-community-summit-na",
+  "name": "Community Summit North America",
+  "organizer": "Dynamics Communities",
+  "url": "https://www.summitna.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Dynamics 365 Finance and Business Central users and partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 11-15 in Nashville (partner listings); 2027 not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "finance systems lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fei-usc-sec-financial-reporting",
+  "name": "SEC and Financial Reporting Conference (FEI/USC)",
+  "organizer": "Financial Executives International and USC Leventhal",
+  "url": "https://www.financialexecutives.org/Events/Conferences/FEI-USC-FinRep-2026.aspx",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Controllers, CAOs, SEC reporting leads and standard-setters.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (44th) was June 4-5; replay sessions followed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "accounting manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fei-cfri",
+  "name": "Corporate Financial Reporting Insights (CFRI)",
+  "organizer": "Financial Executives International",
+  "url": "https://cfri.financialexecutives.org/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Virtual late-fall program on financial reporting, 15 CPE hours.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says virtual, late fall; specific dates not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Controllership and finance operations"
+  ],
+  "roles": [
+   "controller",
+   "accounting manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aicpa-governmental-nfp-conference",
+  "name": "AICPA Governmental & Not-for-Profit Conference",
+  "organizer": "AICPA & CIMA",
+  "url": "https://www.aicpa-cima.com/cpe-learning/conference/aicpa-cima-governmental-and-not-for-profit-conference",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-10-18",
+  "endDate": "2027-10-20",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Government and nonprofit accountants and auditors on GASB/FASB updates, single audits and financial reporting.",
+  "access": "PAID",
+  "costLow": 1345,
+  "costHigh": 1945,
+  "costNote": "Onsite/online: nonmember $1,945, AICPA/CIMA $1,495, NFP section or CGMA $1,345; online select-8 from $925. Early bird saves $150.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Early bird $150 off; GAQC members $150 off; online select-8 option; group rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant",
+   "nonprofit finance director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aicpa-nfp-industry-conference",
+  "name": "AICPA Not-for-Profit Industry Conference",
+  "organizer": "AICPA & CIMA",
+  "url": "https://events.aicpa-cima.com/nfp",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-16",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Nonprofit CFOs, controllers and their auditors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Base price not shown; AICPA members $350 off, NFP section members an extra $150; early bird to Apr 30, 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Member and NFP-section discounts; live-online option.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "nonprofit finance director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aga-pdt",
+  "name": "AGA Professional Development Training (PDT)",
+  "organizer": "Association of Government Accountants",
+  "url": "https://pdt.agacgfm.org/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-07-18",
+  "endDate": "2027-07-21",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Over 2,000 federal, state and local government financial managers, auditors and accountants.",
+  "access": "PAID",
+  "costLow": 875,
+  "costHigh": 1225,
+  "costNote": "Member $875 early to $1,025 late; nonmember $1,075 to $1,225. Site has stale Washington DC text; Chicago dates used.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No call seen.",
+  "cheaperWays": "Virtual option; early-bird rate; AGA scholarships program.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aga-technology-transformation-summit",
+  "name": "AGA Technology & Transformation Summit",
+  "organizer": "Association of Government Accountants",
+  "url": "https://www.agacgfm.org/event/technology-transformation-summit/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-30",
+  "endDate": "2027-03-30",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Government financial managers focused on technology and modernization.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nasact-annual-conference",
+  "name": "NASACT Annual Conference",
+  "organizer": "NASACT",
+  "url": "https://www.nasact.org/nasact_annual",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "State auditors, comptrollers and treasurers from all states.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Aug 25-28 in Atlanta; site shows '2027' without dates.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nsaa-annual-conference",
+  "name": "NSAA Annual Conference",
+  "organizer": "National State Auditors Association (NASACT)",
+  "url": "https://www.nasact.org/nsaa",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Greenville",
+  "state": "SC",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State auditors and their staffs; 2027 host is South Carolina.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates not announced; held each June.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nasc-annual-conference",
+  "name": "NASC Annual Conference",
+  "organizer": "National Association of State Comptrollers (NASACT)",
+  "url": "https://www.nasact.org/nasc_annual",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-17",
+  "endDate": "2027-03-19",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Orange Beach",
+  "state": "AL",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State comptrollers and their finance staff, with CPE on new accounting standards.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nasact-government-internal-audit-summit",
+  "name": "NASACT Government Internal Audit Summit",
+  "organizer": "NASACT",
+  "url": "https://www.nasact.org/calendar_list.asp",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "State and local government internal auditors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Location and price not listed on the calendar.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ficpa-slgac",
+  "name": "State and Local Government Accounting Conference (FICPA)",
+  "organizer": "Florida Institute of CPAs",
+  "url": "https://www.ficpa.org/slgac",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Florida public-sector accountants, designed by government accountants.",
+  "access": "PAID",
+  "costLow": 825,
+  "costHigh": 1075,
+  "costNote": "2026 rates: member $825, non-member $1,075; GFOA/FAC/FACC members get member rate; groups of 5+ save up to 15%.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site links a general presenter page.",
+  "cheaperWays": "Group discount; GFOA member rate.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nacubo-annual-meeting",
+  "name": "NACUBO Annual Meeting",
+  "organizer": "NACUBO",
+  "url": "https://www.nacubo.org/Professional-Development/Program-Support/Submit-Content/NACUBO-Annual-Meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-10",
+  "endDate": "2027-07-13",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "College and university CFOs, controllers and business officers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates not seen.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nacubo.org/Professional-Development/Program-Support/Submit-Content",
+  "speakingDeadline": null,
+  "speakingNote": "Site has a Submit Content page; deadline not read.",
+  "cheaperWays": "New Business Officers Program Jul 9-10.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant",
+   "nonprofit finance director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nacubo-higher-ed-accounting-forum",
+  "name": "NACUBO Higher Education Accounting Forum",
+  "organizer": "NACUBO",
+  "url": "https://www.nacubo.org/Events/2027/2027-Higher-Education-Accounting-Forum",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Advanced accounting and finance staff at colleges and universities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates not published on page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "nonprofit finance director",
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nasbo-annual-meeting",
+  "name": "NASBO Annual Meeting",
+  "organizer": "National Association of State Budget Officers",
+  "url": "https://www.nasbo.org/annual-meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-25",
+  "endDate": "2027-07-28",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "State budget officers and government finance staff.",
+  "access": "PAID",
+  "costLow": 495,
+  "costHigh": 1500,
+  "costNote": "NASBO members $495; other federal/state/local staff $1,500; private sector on request. Registration opens spring 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Contact listed, no call.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fgfoa-annual-conference",
+  "name": "FGFOA Annual Conference",
+  "organizer": "Florida Government Finance Officers Association",
+  "url": "https://www.fgfoa.org/annual-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-19",
+  "endDate": "2027-06-23",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Kissimmee",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Florida local-government finance officers and accountants.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not listed; member discount.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.fgfoa.org/annual-conference/",
+  "speakingDeadline": null,
+  "speakingNote": "Session ideas by online form.",
+  "cheaperWays": "Member discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "asbo-annual-conference",
+  "name": "ASBO International Annual Conference & Expo",
+  "organizer": "ASBO International",
+  "url": "https://www.asbointl.org/web/Web/Conferences/Annual_Conference_Expo.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-20",
+  "endDate": "2027-10-23",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "School district business officials, controllers and finance directors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "ASBO pages disagree on end date (Oct 22 or 23).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "rutgers-governmental-accounting-conference",
+  "name": "Annual Governmental Accounting & Auditing Update Conference",
+  "organizer": "Rutgers Business School",
+  "url": "https://www.business.rutgers.edu/events/annual-governmental-accounting-auditing-conference",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": "2026-12-03",
+  "endDate": "2026-12-03",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": null,
+  "state": "NJ",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Governmental accountants and auditors, largest such conference in New Jersey.",
+  "access": "PAID",
+  "costLow": 150,
+  "costHigh": 150,
+  "costNote": "$150 per person.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "icma-annual-conference",
+  "name": "ICMA Annual Conference",
+  "organizer": "ICMA",
+  "url": "https://conference.icma.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-25",
+  "endDate": "2027-09-29",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Philadelphia",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "City and county managers and department heads including finance directors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not seen.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://conference.icma.org/call-for-presentations/",
+  "speakingDeadline": "2026-11-13",
+  "speakingNote": "Call for presentations runs Oct 1 to Nov 13, 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tyler-connect",
+  "name": "Tyler Connect",
+  "organizer": "Tyler Technologies",
+  "url": "https://www.tylertech.com/connect",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Public-sector ERP and finance users on Tyler software.",
+  "access": "PAID",
+  "costLow": 1249,
+  "costHigh": 1499,
+  "costNote": "Early bird $1,249 through Mar 8, 2027, then $1,499; intended for Tyler clients.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Early-bird.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant",
+   "finance systems lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naco-annual-conference",
+  "name": "NACo Annual Conference & Exposition",
+  "organizer": "National Association of Counties",
+  "url": "https://www.naco.org/page/naco-annual-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-23",
+  "endDate": "2027-07-26",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "County officials and staff including auditors and finance officers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nplfg-conference",
+  "name": "Nonprofit Legal, Finance & Grants Conference",
+  "organizer": "Nonprofit Legal, Finance and Grants Conference",
+  "url": "https://www.nplfgconference.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Nonprofit CFOs, comptrollers, counsel and grants staff; includes Nonprofit CFO Awards.",
+  "access": "PAID",
+  "costLow": 1295,
+  "costHigh": 1399,
+  "costNote": "2026 rates: nonprofit/government $1,295, corporate $1,399; reduced rate for revenue under $10M; groups of 3+.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nplfgconference.com/call-for-proposals/",
+  "speakingDeadline": null,
+  "speakingNote": "2026 proposal deadline was Mar 19; 2027 not open.",
+  "cheaperWays": "Reduced rate for small nonprofits; group discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "nonprofit finance director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "grantsummit",
+  "name": "GrantSummit",
+  "organizer": "Grant Professionals Association",
+  "url": "https://grantprofessionals.org/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-07",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Grant managers and nonprofit development and finance staff.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not seen.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://grantprofessionals.org/page/callforpresenters",
+  "speakingDeadline": null,
+  "speakingNote": "Call for Presenters page exists.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "nonprofit finance director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "bbcon",
+  "name": "Blackbaud bbcon",
+  "organizer": "Blackbaud",
+  "url": "https://www.blackbaud.com/events/all-events",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Columbus",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Nonprofit and education finance, fundraising and operations staff on Blackbaud systems.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Sep 29-Oct 1 in Columbus; 2027 timeframe similar, dates to come.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.blackbaud.com/newsroom/article/blackbaud-opens-call-for-speakers-for-bbcon-2026",
+  "speakingDeadline": null,
+  "speakingNote": "A 2026 call for speakers was opened; 2027 not seen.",
+  "cheaperWays": "Virtual option; early-bird pricing.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "nonprofit finance director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "picpa-nfp-government-accounting-conference",
+  "name": "PICPA Not-for-Profit & Government Accounting Conference",
+  "organizer": "Pennsylvania Institute of CPAs",
+  "url": "https://www.picpa.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Pennsylvania nonprofit and government accountants.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Only seen on a third-party firm page (June 24-25, 2026).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Governmental and nonprofit accounting"
+  ],
+  "roles": [
+   "government accountant",
+   "nonprofit finance director"
+  ],
+  "journeys": []
+ }
+]

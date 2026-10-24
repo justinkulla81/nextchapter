@@ -1,0 +1,859 @@
+[
+ {
+  "id": "dmi-design-leadership-conference",
+  "action": "publish",
+  "reason": "dmi.org DLC26 page (via official-domain search) shows the annual Design Leadership Conference (2025 Sept 16-17, 2026 Sept 22-24 Cambridge/Boston area); 2027 not yet announced so usual month used.",
+  "patch": {
+   "url": "https://dmi.org/page/DLC26",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "Cambridge",
+   "state": "MA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2026 fees per dmi.org: members $1,100, non-members $1,300; 2027 not announced.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "DMI members pay less ($1,100 vs $1,300 in 2026).",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "tdwi-transform",
+  "action": "publish",
+  "reason": "tdwi.org event page (opened) shows TDWI Transform 2026 Sept 20-25 in Anaheim; the old Orlando URL now redirects there, so the event recurs annually but city and 2027 dates are not announced (earlier editions were Orlando in November).",
+  "patch": {
+   "url": "https://tdwi.org/orlando",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing on tdwi.org pricing page not read; location rotates (Anaheim 2026, Orlando 2025).",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "dynamics-community-summit-na",
+  "action": "publish",
+  "reason": "summitna.com (opened) shows Community Summit North America 2026 Oct 11-15 Nashville Gaylord Opryland with a 'Register for 2027' link; 2027 dates not on the home page.",
+  "patch": {
+   "url": "https://www.summitna.com/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Nashville",
+   "state": "TN",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Attendee pricing page not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "aiga-design-conference",
+  "action": "publish",
+  "reason": "AIGA official domain search shows the 2026 AIGA Design Educators Conference (July 27-28, Dayton OH, students $150 / members $250 / non-members $300) but no national AIGA Design Conference since 2025 (Oct, LA); site blocked, so only a usual-month publish is defensible. Pitched as the national design conference.",
+  "patch": {
+   "url": "https://www.aiga.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 details not published; member and non-member tiers.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "AIGA members and students pay lower rates.",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "pac-spring-executive-conference",
+  "action": "publish",
+  "reason": "pac.org signature-events page (opened) lists Spring Executive Conference 2027 'Dates TBA' in Washington DC, held every spring; 2026 edition Apr 21-22 at the Mayflower was members-only and sold out.",
+  "patch": {
+   "url": "https://pac.org/signature-events",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "INVITE",
+   "speaking": "BY_INVITE",
+   "costNote": "Discounted for members; 2027 price not published.",
+   "cheaperWays": "Public Affairs Council membership is required; join at pac.org (Join Today).",
+   "applyUrl": "https://pac.org/signature-events",
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "cmmc-accelerate",
+  "action": "publish",
+  "reason": "explore.hypori.com (opened): annual event, 2026 edition Mar 31 Reston, FAQ says no fee to attend, virtual option, 2027 tentatively April 13, 2027; speaker call closed Jan 30, 2026.",
+  "patch": {
+   "url": "https://explore.hypori.com/cmmc-accelerate",
+   "startDate": "2027-04-13",
+   "endDate": "2027-04-13",
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "city": "Reston",
+   "state": "VA",
+   "country": "US",
+   "format": "HYBRID",
+   "access": "FREE",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "No fee to attend per the event FAQ; 2027 date tentative.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://explore.hypori.com/cmmc-accelerate",
+   "speakingNote": "Public call for speakers ran to Jan 30 for the 2026 edition; expect an annual repeat.",
+   "cheaperWays": "Free to attend, with a virtual option.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "sae-wcx",
+  "action": "publish",
+  "reason": "SAE official domain search: WCX 2027 is April 27-29, 2027 at the Vibe Credit Union Showplace, Novi MI, with a call for papers deadline Sept 19, 2026 (wcx.sae.org blocked to curl); 2026 was Apr 14-16 Detroit.",
+  "patch": {
+   "url": "https://wcx.sae.org",
+   "startDate": "2027-04-27",
+   "endDate": "2027-04-29",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Novi",
+   "state": "MI",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 prices not seen.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://wcx.sae.org",
+   "speakingDeadline": "2026-09-19",
+   "speakingNote": "Technical paper call; deadline listed Sept 19, 2026.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "national-rural-housing-conference",
+  "action": "publish",
+  "reason": "HAC (ruralhome.org) pages via official-domain search show the conference is held every two years (Nov 4-7, 2025, Washington DC, with workshop proposal calls), so next edition expected fall 2027; dates not announced.",
+  "patch": {
+   "url": "https://ruralhome.org/events/national-rural-housing-conference/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "November",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Biennial; 2027 dates and prices not published.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://ruralhome.org/call-for-workshop-proposals-for-the-2025-national-rural-housing-conference/",
+   "speakingNote": "HAC issues a public call for workshop proposals before each edition.",
+   "programFormats": [
+    "WORKSHOP",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "zonda-builder-100-summit",
+  "action": "publish",
+  "reason": "zondahome.com press pages show Zonda's annual Builder 100 Leadership Summit (37th edition May 5-7, 2025, Dana Point CA) tied to the Builder of the Year award; 2026/27 dates not found, so usual month only. Access terms not published.",
+  "patch": {
+   "url": "https://zondahome.com/events/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing and eligibility not published on pages read.",
+   "speaking": "BY_INVITE",
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "naspa-annual-conference",
+  "action": "publish",
+  "reason": "NASPA's own events site (events.naspa.org 2027 page found by official-domain search) shows the 109th Annual Conference March 6-10, 2027 at National Harbor MD; 2027 fee table not shown, 2026 member $535-655, non-member $735-855.",
+  "patch": {
+   "url": "https://events.naspa.org/e/2027-naspa-annual-conference",
+   "startDate": "2027-03-06",
+   "endDate": "2027-03-10",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "National Harbor",
+   "state": "MD",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 rates not read; 2026 was $535-$655 members, $735-$855 non-members, lower for grad students.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Graduate student, emeritus and undergraduate rates were lower in 2026; member rates need active NASPA membership.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "permian-power-conference",
+  "action": "drop",
+  "reason": "Only a local chamber calendar entry and Baxtel/news listings support it; no organizer (The Power Connection) site found with 2027 dates."
+ },
+ {
+  "id": "cues-symposium",
+  "action": "publish",
+  "reason": "content.cues.org/symp (opened) shows CUES Symposium is an annual in-person event for credit union CEO and board chair pairs (Maui 2026, Kauai 2025), priced for CUES members only ($6,410-$7,210 per pair US); 2027 dates only on third-party sites.",
+  "patch": {
+   "url": "https://content.cues.org/symp",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "February",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "INVITE",
+   "costLow": 6410,
+   "costHigh": 7210,
+   "costNote": "Price for the CEO + board chair pair (US, CUES members); each additional attendee $3,205-$3,605.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "CUES membership is required to register (Unlimited level pair $6,410 vs Individual $7,210).",
+   "applyUrl": "https://content.cues.org/symp",
+   "seniorities": [
+    "EXECUTIVE"
+   ],
+   "programFormats": [
+    "NETWORKING",
+    "WORKSHOP"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "rmai-annual-conference",
+  "action": "publish",
+  "reason": "rmaintl.org (official-domain search result) shows the 2027 Annual Conference Feb 8-11, 2027 at Aria, Las Vegas, registration open since Oct 1, 2026, early member $1,135 / non-member $1,535 / government $568.",
+  "patch": {
+   "url": "https://rmaintl.org/events/2027-annual-conference/",
+   "startDate": "2027-02-08",
+   "endDate": "2027-02-11",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 568,
+   "costHigh": 1535,
+   "costNote": "Early-bird through Dec 11, 2026: member $1,135, non-member $1,535, government $568; rates rise later.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Government rate $568; member discount.",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "naswa-summit",
+  "action": "publish",
+  "reason": "naswa.org (opened) lists the 2026 SUMMIT materials and NASWA's annual Summit (Sept 16-17, 2026 Milwaukee per official page; Cvent fees member $525-700, non-member $625-800); 2027 Summit not yet announced.",
+  "patch": {
+   "url": "https://www.naswa.org/conferences/2026-naswa-summit",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costLow": 525,
+   "costHigh": 800,
+   "costNote": "2026 Summit: member $525 regular to $700 onsite; non-member $625 to $800.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "State workforce agency staff pay the lower member rate.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "achca-annual-convention-expo",
+  "action": "publish",
+  "reason": "achca.org/convention (official-domain search result titled 2027 Annual Convention & Expo) shows May 3-6, 2027 in Las Vegas; the 2026 edition was Apr 20-23 Orlando.",
+  "patch": {
+   "url": "https://www.achca.org/convention",
+   "startDate": "2027-05-03",
+   "endDate": "2027-05-06",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "Las Vegas",
+   "state": "NV",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Prices not shown in results; ACHCA members get registration discounts.",
+   "speaking": "UNKNOWN",
+   "speakingUrl": "https://www.achca.org/speaking-opportunities",
+   "cheaperWays": "Member discount on registration (achca.org/join-achca).",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "hcca-compliance-institute",
+  "action": "publish",
+  "reason": "hcca-info.org (official-domain search) shows the annual Compliance Institute recurring (28th in 2024 Nashville, 29th Las Vegas); 2027 dates only on third-party pages so usual month used.",
+  "patch": {
+   "url": "https://www.hcca-info.org/compliance-institute",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 pricing not read; site blocked to automated reading.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "snma-amec",
+  "action": "publish",
+  "reason": "snma.org / goeshow official pages show the Annual Medical Education Conference held each spring in a different city (New Orleans 2024, St. Louis Apr 16-20, 2025, 2,500+ attendees); 2027 not announced.",
+  "patch": {
+   "url": "https://snma.org/page/events",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 price not announced.",
+   "speaking": "UNKNOWN",
+   "seniorities": [
+    "EARLY"
+   ],
+   "programFormats": [
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "arias-us-spring-conference",
+  "action": "publish",
+  "reason": "ARIAS-U.S. official request-for-proposals survey (2026 Spring Conference, JW Marriott Nashville, Apr 29-May 1, 2026) shows an annual spring conference with a public call for proposals; 2027 city and dates not found.",
+  "patch": {
+   "url": "https://www.arias-us.org",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not read; site blocked.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.surveymonkey.com/r/CP2RGBQ",
+   "speakingNote": "Annual conference request for proposals run by ARIAS-U.S. (2026 link shown).",
+   "programFormats": [
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "reuters-future-of-insurance-usa",
+  "action": "publish",
+  "reason": "Reuters Events resource page ('Future of Insurance 2026 is a wrap') invites interest registration for the 2027 USA edition in Chicago; ran June 2025 and 2026 in Chicago, 2027 dates not confirmed on the organizer page.",
+  "patch": {
+   "url": "https://events.reutersevents.com/insurance/future-of-insurance-usa",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": "Chicago",
+   "state": "IL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not published on pages read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "pli-securities-regulation-institute",
+  "action": "publish",
+  "reason": "pli.edu program page 441823 (official-domain search) lists the 58th Annual Institute on Securities Regulation Nov 2-4, 2026, New York, $2,895; law-firm pages agree.",
+  "patch": {
+   "url": "https://www.pli.edu/programs/institute-on-securities-regulation/441823",
+   "startDate": "2026-11-02",
+   "endDate": "2026-11-04",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 2895,
+   "costHigh": 3495,
+   "costNote": "Live program $2,895; PLI individual membership $3,495; Privileged Members attend free.",
+   "speaking": "BY_INVITE",
+   "cheaperWays": "PLI Privileged Members attend at no cost.",
+   "programFormats": [
+    "PANEL",
+    "KEYNOTE"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "plastics-recycling-conference",
+  "action": "publish",
+  "reason": "plasticsrecycling.org upcoming-events page (opened) states the Plastics Recycling Conference is March 1-3, 2027 at National Harbor MD, co-located with the APR Spring Member Meeting Mar 3-4; the March 25-27 date was wrong.",
+  "patch": {
+   "url": "https://plasticsrecycling.org/about-apr/upcoming-events/",
+   "startDate": "2027-03-01",
+   "endDate": "2027-03-03",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "National Harbor",
+   "state": "MD",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Prices not shown on events page; member meeting can be added to the PRC registration.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "lion-summit",
+  "action": "publish",
+  "reason": "lionpublishers.com (official-domain search): annual Independent News Sustainability Summit, 2026 edition Sept 9-11 San Diego; sponsorship for next year open, 2027 dates not announced.",
+  "patch": {
+   "url": "https://lionpublishers.com/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "medical-device-manufacturing-excellence-summit-mdmes",
+  "action": "publish",
+  "reason": "Organizer Executive Platforms / BCI Global pages (official-domain search) show MDMES recurring annually (2025 two-day San Diego summit, 2026 Feb 23-25); director-level and above audience; 2027 dates not on organizer pages read.",
+  "patch": {
+   "url": "https://www.bciglobal.com/medical-device-manufacturing-excellence-summit-mdmes",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "February",
+   "city": "San Diego",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not published.",
+   "speaking": "UNKNOWN",
+   "seniorities": [
+    "SENIOR",
+    "EXECUTIVE"
+   ],
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "impact-investor-global-summit",
+  "action": "drop",
+  "reason": "Held in London (PEI, The Brewery, May 2027); outside North America and not the undisputed global flagship of its field; dates also only on a third-party listing."
+ },
+ {
+  "id": "lsx-congress-usa",
+  "action": "publish",
+  "reason": "Informa Connect's own LSX Congress USA page (official-domain search) shows the 2026 edition Sept 23-24 at Biotech Week Boston (forums Sept 22) merged with BioPharm America; annual Boston event, 2027 dates not announced.",
+  "patch": {
+   "url": "https://informaconnect.com/lsx-congress-usa/biotech-week-boston/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": "Boston",
+   "state": "MA",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "NETWORKING",
+    "KEYNOTE"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "million-dollar-consulting-convention",
+  "action": "drop",
+  "reason": "Latest evidence on alanweiss.com is a 2015 convention product and a 2026 virtual session; no current or upcoming convention found, so treated as defunct or a lead."
+ },
+ {
+  "id": "black-enterprise-chief-diversity-officers-summit",
+  "action": "drop",
+  "reason": "blackenterprise.com shows only 2023 and 2024 editions; no 2025, 2026 or 2027 edition found, so treated as paused."
+ },
+ {
+  "id": "rethink-hr-tech-usa",
+  "action": "publish",
+  "reason": "we.CONECT's own domain hosted the 2026 edition page (we-conect.com/events/rethink-hr-tech-usa-2026) in Chicago in April; annual, 2027 dates only on a third-party listing (Apr 26-27) so usual month used.",
+  "patch": {
+   "url": "https://www.we-conect.com/events/rethink-hr-tech-usa-2027/",
+   "organizer": "we.CONECT",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "city": "Chicago",
+   "state": "IL",
+   "country": "US",
+   "access": "PAID",
+   "costNote": "Pricing not read.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "demofest",
+  "action": "publish",
+  "reason": "goconsensus.com (official-domain search) shows DEMOFEST Virtual 2027 (Q1) interest page, a Feb 10-11 2026 virtual edition and DEMOFEST West on Apr 22, 2026 in San Francisco; annual presales conference.",
+  "patch": {
+   "url": "https://goconsensus.com/Demofest",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "February",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "format": "HYBRID",
+   "access": "PAID",
+   "costNote": "Pricing and registration for 2027 not yet posted; sign-up form for updates.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "nsbe-annual-convention",
+  "action": "publish",
+  "reason": "convention.nsbe.org (opened): NSBE 2027 Annual Convention March 31-April 4, 2027, Menino Convention Center Boston, 16,000+ attendees, registration opens October; 2026 professional rates $480-$760.",
+  "patch": {
+   "url": "https://convention.nsbe.org",
+   "startDate": "2027-03-31",
+   "endDate": "2027-04-04",
+   "datesConfirmed": true,
+   "typicalMonth": "March",
+   "city": "Boston",
+   "state": "MA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 480,
+   "costHigh": 760,
+   "costNote": "2027 rates not yet shown; 2026 professionals paid $480 early to $760 onsite; collegiate $345-$625.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://convention.nsbe.org",
+   "speakingNote": "Site nav has a 'Share Expertise' call.",
+   "cheaperWays": "Collegiate rate $345-$625 (2026); lifetime members $310; early-bird window opens in the fall.",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "source": "official site",
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "published": true
+  }
+ },
+ {
+  "id": "stc-technical-communication-summit",
+  "action": "drop",
+  "reason": "stc.org/summitt shows only an 'under update' placeholder and the summit page still lists 2023; no evidence of a 2027 edition."
+ },
+ {
+  "id": "ampo-annual-conference",
+  "action": "publish",
+  "reason": "ampo.org (official domain) hosts annual conference pages every September (2023 Cleveland, 2024 Salt Lake City, 2025 Providence, 2026 Sacramento Sept 14-18); 2027 host and dates not yet posted.",
+  "patch": {
+   "url": "https://ampo.org/news-events/ampo-annual-conference/2026-ampo-annual-conference/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "September",
+   "city": null,
+   "state": null,
+   "country": "US",
+   "access": "PAID",
+   "costNote": "2027 pricing not posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "tpm-conference",
+  "action": "publish",
+  "reason": "JOC's TPM site (events.joc.com/tpm and tpm.joc.com; blocked to curl but shown in official-domain search) lists TPM in Long Beach each early March; 2027 dates Feb 28-Mar 3 per the search description; 2025 pricing $2,295-$3,595.",
+  "patch": {
+   "url": "https://tpm.joc.com/en/program/why-attend",
+   "startDate": "2027-02-28",
+   "endDate": "2027-03-03",
+   "datesConfirmed": false,
+   "typicalMonth": "March",
+   "city": "Long Beach",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 2295,
+   "costHigh": 3595,
+   "costNote": "2025 edition: shipper $2,295-$2,620, non-shipper $2,960-$3,595 depending on registration date; 2027 not seen.",
+   "speaking": "UNKNOWN",
+   "cheaperWays": "Shipper passes are cheaper than non-shipper.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official domain search",
+   "published": true
+  }
+ },
+ {
+  "id": "national-freelance-business-week",
+  "action": "drop",
+  "reason": "An April observance with local meetups run via a news site (selfemployed.com) and no organizer event site with schedule or registration found; not a conference."
+ },
+ {
+  "id": "northeast-aquaculture-conference-expo",
+  "action": "drop",
+  "reason": "Biennial joint event last held Jan 2026 in Portland ME; next joint edition not before 2028 and no 2027 edition announced (only a standalone NOAA Milford seminar in Jan 2027)."
+ }
+]

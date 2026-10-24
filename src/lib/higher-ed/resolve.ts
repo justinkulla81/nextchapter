@@ -7,7 +7,7 @@ import type { InstitutionOrgType, InstitutionTier, InstitutionUserRole, Prisma, 
 import { prisma } from '@/lib/prisma'
 import { isAdminEmail } from '@/lib/admin/is-admin-email'
 import { adminMfaSatisfied, type Aal } from '@/lib/admin/mfa'
-import { ALL_TOKENS, demoPersonaTokens, orgKindOf, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
+import { ALL_TOKENS, demoPersonaTokens, orgKindOf, workspaceFeaturesOf, workspacesFor, type AccessToken, type WorkspaceKey } from './workspaces'
 
 type Db = PrismaClient | Prisma.TransactionClient
 
@@ -25,6 +25,8 @@ export type InstitutionBranding = {
   accentColor: string | null
   isDemo: boolean
   tier: InstitutionTier
+  // 'FREE' or 'PAID' (src/lib/plans/entitlements.ts).
+  plan: string
   orgType: InstitutionOrgType
 }
 
@@ -90,13 +92,13 @@ export async function resolveInstitutionAccess(
 ): Promise<InstitutionAccess | null> {
   const row = await db.institution.findUnique({
     where: { slug: args.slug },
-    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, orgType: true, enabledFeatures: true },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, plan: true, orgType: true, enabledFeatures: true },
   })
   if (!row) return null
   // enabledFeatures decides which feature-gated workspaces exist here; it
   // isn't part of the branding handed to pages.
   const { enabledFeatures, ...institution } = row
-  const features = { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
+  const features = workspaceFeaturesOf(enabledFeatures)
 
   const memberOnly = !!args.memberOnly
   const [staffUsers, member, employerLinks, ncAdmin] = await Promise.all([
@@ -188,11 +190,11 @@ export function holds(ctx: Pick<InstitutionAccess, 'tokens'>, roles: AccessToken
 export async function resolveDemoGuestAccess(args: { slug: string; demoPersona?: string | null }, db: Db = prisma): Promise<InstitutionAccess | null> {
   const row = await db.institution.findUnique({
     where: { slug: args.slug },
-    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, orgType: true, enabledFeatures: true, isSampleData: true },
+    select: { id: true, slug: true, name: true, programBrandName: true, logoUrl: true, accentColor: true, isDemo: true, tier: true, plan: true, orgType: true, enabledFeatures: true, isSampleData: true },
   })
   if (!row || !row.isDemo || !row.isSampleData) return null
   const { enabledFeatures, isSampleData: _s, ...institution } = row
-  const features = { wioa: (enabledFeatures as { wioa?: boolean } | null)?.wioa === true }
+  const features = workspaceFeaturesOf(enabledFeatures)
   const demoPersona = args.demoPersona ?? 'all'
   const tokens = demoPersonaTokens(demoPersona)
   return {

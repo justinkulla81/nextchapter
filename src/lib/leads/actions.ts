@@ -43,6 +43,9 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
   const persona = PERSONAS.find((p) => p.slug === text(formData, 'situation', 60))
   const followupRaw = text(formData, 'followup', 20)
   const followup = FOLLOWUPS.has(followupRaw) ? followupRaw : ''
+  // Which page the form was on. Only the homepage or a /network page may be named; anything else is 'home'.
+  const sourceRaw = text(formData, 'source', 100)
+  const source = /^network:[a-z0-9:-]{1,90}$/.test(sourceRaw) ? sourceRaw : 'home'
   if (!persona) return { error: 'Pick the one that sounds most like you.', email }
   if (!EMAIL.test(email)) return { error: 'Enter a valid email address.', email }
 
@@ -64,7 +67,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
           select: { id: true, unsubscribeToken: true, planSentAt: true },
         })
       : await prisma.homepageLead.create({
-          data: { ...key, source: 'home', followup, ip },
+          data: { ...key, source, followup, ip },
           select: { id: true, unsubscribeToken: true, planSentAt: true },
         })
 
@@ -111,7 +114,7 @@ export async function submitJourneyLead(_prev: JourneyState, formData: FormData)
       }
     }
 
-    captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, emailed, capped, returning: !!existing })
+    captureServerEvent(email, 'journey_lead_submitted', { situation: persona.slug, followup, source, emailed, capped, returning: !!existing })
     return { done: true, email, slug: persona.slug, capped }
   } catch (error) {
     console.error('journey lead failed:', error instanceof Error ? error.message : error)

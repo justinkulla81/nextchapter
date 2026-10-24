@@ -20,7 +20,10 @@ import { Collapsible, GroupHeading } from '@/components/admin/Collapsible'
 import { CrmOutreachCompose } from '@/components/admin/CrmOutreachCompose'
 import { CrmActivityReviewInline } from '@/components/admin/CrmActivityReviewInline'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
+import { CrmClaimInvite } from '@/components/admin/CrmClaimInvite'
+import { claimUrl, claimDrafts, firstNameOf } from '@/lib/crm/claim'
 import { parseNextSteps } from '@/lib/google/meeting-notes'
+import { OWNER_NAMES } from '@/lib/crm/owner'
 import { setTodoDone } from '../../todos/actions'
 import { MeetingPrepGenerateButton } from '@/components/admin/MeetingPrepControls'
 import { CrmOrgContext } from '@/components/admin/CrmOrgContext'
@@ -36,8 +39,6 @@ import {
 
 export const maxDuration = 30
 
-/** The names Gemini writes for you in meeting notes. */
-const OWNER_NAMES = ['Justin Kulla']
 
 export default async function CrmPersonPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -82,6 +83,11 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
   })
   if (!person) notFound()
   const primaryAff = person.affiliations[0] ?? null
+  const claim = claimDrafts({
+    firstName: firstNameOf(person.fullName, person.firstName),
+    orgName: primaryAff?.org.name ?? null,
+    url: claimUrl(process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com', person.id),
+  })
   // List emails on the history: what each person did with them lives on the recipient row.
   const mailingIds = person.activities.flatMap((a) => (a.sourceRef?.startsWith(MAILING_REF_PREFIX) ? [a.sourceRef.slice(MAILING_REF_PREFIX.length)] : []))
   // Three independent lookups, run together instead of one after another.
@@ -371,6 +377,18 @@ export default async function CrmPersonPage({ params }: { params: Promise<{ id: 
         <Collapsible title="Send outreach" hint={person.email ? `to ${person.email}` : 'no email on file'}>
           <CrmOutreachCompose personId={person.id} personEmail={person.email} personName={person.fullName} />
         </Collapsible>
+        {!person.candidateId && (
+          <Collapsible title="Invite to claim a profile" hint={person.candidateInvitedAt ? `invited ${formatDate(person.candidateInvitedAt)}` : 'no resume needed'}>
+            <CrmClaimInvite
+              personId={person.id}
+              email={person.email}
+              subject={claim.subject}
+              emailBody={claim.emailBody}
+              linkedinText={claim.linkedinText}
+              invitedAt={person.candidateInvitedAt ? formatDate(person.candidateInvitedAt) : null}
+            />
+          </Collapsible>
+        )}
       {needsReview.length > 0 && (
         <section>
           <h2 className="mb-2 text-base font-semibold">

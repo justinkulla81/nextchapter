@@ -31,9 +31,9 @@ const WHO = [
 ]
 
 const MODELS = [
-  { t: 'Course development', d: 'You commission a course or certificate. We design and build it to your standards, and you own the program and run it. Fixed scope, quoted per program.' },
+  { t: 'Course development', d: 'You commission a course or certificate. We design and build it to your standards, and you own the program and run it.' },
   { t: 'Grant partner', d: 'You apply for a grant or contract that names AI reskilling for white-collar workers. We are the named training and reemployment provider inside your application, as a subrecipient or vendor.' },
-  { t: 'Cohort license', d: 'We run the platform and the courses for a cohort of your people, priced per participant for the length of the program.' },
+  { t: 'Cohort license', d: 'We run the platform and the courses for a cohort of your people, for the length of the program.' },
 ]
 
 export default function AiTrainingPage() {

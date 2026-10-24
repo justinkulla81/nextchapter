@@ -74,7 +74,7 @@ export async function POST(req: Request) {
   const parsed = parseRosterRecords(body.people as Record<string, unknown>[])
   const r = await importRosterRows({ institutionId: key.orgId, rows: parsed.rows, errors: parsed.errors, fileName: 'census-api', createdBy: `apikey:${key.keyId}` })
   captureServerEvent(`apikey:${key.keyId}`, 'he_census_roster_pushed', { institutionId: key.orgId, imported: r.imported, updated: r.updated, skipped: r.skipped })
-  return NextResponse.json(r)
+  return NextResponse.json(r, r.capReached ? { status: 402 } : undefined)
 }
 
 export async function GET(req: Request) {

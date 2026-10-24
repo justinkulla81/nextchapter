@@ -4,17 +4,30 @@
 // CandidateProfile.searchExpansion; the job fit score reads it so Find My Job
 // and the daily jobs email include these jobs. Pure and client-safe.
 
-export type SearchExpansion = { remote: boolean; states: string[]; roles: string[]; industries: string[]; at: string | null }
+import { readCareerHighPointStore, type CareerHighPointStore } from '@/lib/profile/career-high-point'
+
+export type SearchExpansion = {
+  remote: boolean
+  states: string[]
+  roles: string[]
+  industries: string[]
+  at: string | null
+  // The member's career high point (career-high-point.ts) rides along in the same JSON
+  // so every reader and writer of this column keeps it. Absent when never derived or set.
+  careerHighPoint?: CareerHighPointStore
+}
 
 export function readSearchExpansion(json: unknown): SearchExpansion {
   const o = (json ?? {}) as Partial<Record<keyof SearchExpansion, unknown>>
   const list = (x: unknown, re?: RegExp) => (Array.isArray(x) ? [...new Set(x.filter((v): v is string => typeof v === 'string' && (!re || re.test(v))))].slice(0, 12) : [])
+  const careerHighPoint = readCareerHighPointStore(o.careerHighPoint)
   return {
     remote: o.remote === true,
     states: list(o.states, /^[A-Z]{2}$/),
     roles: list(o.roles, /^[a-z_]+$/),
     industries: list(o.industries),
     at: typeof o.at === 'string' ? o.at : null,
+    ...(careerHighPoint.derived || careerHighPoint.member ? { careerHighPoint } : {}),
   }
 }
 

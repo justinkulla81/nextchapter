@@ -1,0 +1,1332 @@
+[
+ {
+  "id": "nacs-show",
+  "name": "NACS Show",
+  "organizer": "NACS",
+  "url": "https://www.convenience.org/connect-learn/calendarofevents",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-05",
+  "endDate": "2027-10-08",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The convenience industry's biggest show: retailer executives, operators and suppliers (attendance topped 25,000 in 2026).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open; notify list only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "convenience store operator",
+   "grocery executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nacs-state-of-the-industry-summit",
+  "name": "NACS State of the Industry Summit",
+  "organizer": "NACS",
+  "url": "https://www.convenience.org/connect-learn/soi",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-21",
+  "endDate": "2027-04-23",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Fort Worth",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Convenience retail executives review industry data and strategy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Notification sign-up open; pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "convenience store operator",
+   "grocery executive"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nacs-leadership-forum",
+  "name": "NACS Leadership Forum",
+  "organizer": "NACS",
+  "url": "https://www.convenience.org/events/Leadership/forum",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-16",
+  "endDate": "2027-02-18",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Amelia Island",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Capped at 130 retail participants: small-room access to c-store chain leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Capacity limited to 130 retail participants; pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "convenience store operator"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nacs-loss-prevention-safety-symposium",
+  "name": "NACS Loss Prevention and Safety Symposium",
+  "organizer": "NACS",
+  "url": "https://www.convenience.org/connect-learn/nacs-loss-prevention-and-safety-symposium",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-24",
+  "endDate": "2027-08-25",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Asset protection and safety leaders at convenience chains.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Notification sign-up open; pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "convenience store operator",
+   "store operations executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nga-show",
+  "name": "The NGA Show",
+  "organizer": "National Grocers Association (produced by Clarion Events)",
+  "url": "https://www.thengashow.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-31",
+  "endDate": "2027-02-02",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest gathering of independent grocers and wholesalers, with a call for education content.",
+  "access": "PAID",
+  "costLow": 575,
+  "costHigh": 1095,
+  "costNote": "Full conference pass: NGA-member retailers $575 early bird (to Oct 28, 2026), $745 standard, $845 onsite; non-members $845 to $1,095.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.thengashow.com/education-program/call-pages",
+  "speakingDeadline": null,
+  "speakingNote": "Call for Content page exists; deadline not read.",
+  "cheaperWays": "Early-bird rate until Oct 28, 2026; separate government and nonprofit categories.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "grocery executive"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "fmi-midwinter-executive-conference",
+  "name": "FMI Midwinter Executive Conference",
+  "organizer": "FMI - The Food Industry Association",
+  "url": "https://www.fmi.org/midwinter-conference",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-20",
+  "endDate": "2027-01-23",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Chula Vista",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Grocery CEOs and senior leaders of retail and wholesale; FMI members only.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Only FMI members are eligible to register.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.fmi.org/midwinter-conference",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "grocery executive"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "fmi-annual-business-conference",
+  "name": "FMI Annual Business Conference",
+  "organizer": "FMI - The Food Industry Association",
+  "url": "https://www.fmi.org/annual-business-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-13",
+  "endDate": "2027-09-16",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Grocery retail and supplier executives.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "grocery executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fmi-supply-chain-forum",
+  "name": "FMI Supply Chain Forum",
+  "organizer": "FMI - The Food Industry Association",
+  "url": "https://www.fmi.org/supply-chain-forum",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-14",
+  "endDate": "2027-09-16",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Grocery logistics and supply chain leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "grocery executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fmi-asset-protection-grocery-resilience",
+  "name": "FMI Asset Protection and Grocery Resilience Conference",
+  "organizer": "FMI - The Food Industry Association",
+  "url": "https://www.fmi.org/asset-protection-and-grocery-resilience-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-15",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Grocery loss prevention and store safety teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "grocery executive",
+   "store operations executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fmi-energy-store-development",
+  "name": "FMI Energy and Store Development Conference",
+  "organizer": "FMI - The Food Industry Association",
+  "url": "https://www.fmi.org/energy-and-store-development-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-04",
+  "endDate": "2027-10-06",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Store design, construction and energy leaders at grocers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "grocery executive",
+   "store operations executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fmi-financial-executive-internal-audit",
+  "name": "FMI Financial Executive and Internal Audit Conference",
+  "organizer": "FMI - The Food Industry Association",
+  "url": "https://www.fmi.org/financial-executive-and-internal-audit-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-16",
+  "endDate": "2027-05-18",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Providence",
+  "state": "RI",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Finance and audit leaders at grocery retailers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "grocery executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "fmi-fresh-forward",
+  "name": "FMI Fresh Forward",
+  "organizer": "FMI - The Food Industry Association",
+  "url": "https://www.fmi.org/fresh-forward",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-02",
+  "endDate": "2027-08-04",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "St. Louis",
+  "state": "MO",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Fresh category leaders in grocery retail (save-the-date).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "grocery executive",
+   "category manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iddba-show",
+  "name": "IDDBA Show",
+  "organizer": "International Dairy Deli Bakery Association",
+  "url": "https://www.iddba.org/iddba-show/iddba-show",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-08",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Grocery deli, dairy and bakery buyers and category managers; trade only.",
+  "access": "MIXED",
+  "costLow": 0,
+  "costHigh": 100,
+  "costNote": "Retail registration: IDDBA members $0, non-members $100 (rates change after May 5); registration opens January 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Cooperative education internship program for students (Jun 5-8).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "category manager",
+   "grocery executive"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "natural-products-expo-west",
+  "name": "Natural Products Expo West",
+  "organizer": "New Hope Network",
+  "url": "https://www.expowest.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-05",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Natural and specialty grocery buyers and category managers meet thousands of brands.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens in fall 2026; fees not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Grocery and convenience",
+   "Retail leadership and merchandising"
+  ],
+  "roles": [
+   "category manager",
+   "merchant",
+   "grocery executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "icsc-las-vegas",
+  "name": "ICSC Las Vegas",
+  "organizer": "ICSC",
+  "url": "https://www.icsc.com/attend-and-learn/events/details/las-vegas-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Retail real estate and store expansion deal-making: retailer real estate, store development and operations leaders.",
+  "access": "PAID",
+  "costLow": 900,
+  "costHigh": 2600,
+  "costNote": "Advance: members $900, non-members $2,250; on-site non-members $2,600. Retailer members attend free before on-site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Retailer members free before onsite registration; Student Members $50.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Retail leadership and merchandising"
+  ],
+  "roles": [
+   "store operations executive",
+   "merchant"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nrf-protect",
+  "name": "NRF Protect",
+  "organizer": "National Retail Federation",
+  "url": "https://nrfprotect.nrf.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-16",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Tampa",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Retail loss prevention and asset protection: 2,000+ security professionals and 255 solution providers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open; sign up for updates.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Retail leadership and merchandising",
+   "Grocery and convenience"
+  ],
+  "roles": [
+   "store operations executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "rila-link",
+  "name": "RILA LINK: The Retail Supply Chain Conference",
+  "organizer": "Retail Industry Leaders Association",
+  "url": "https://www.rila.org/retail-supply-chain-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-21",
+  "endDate": "2027-02-24",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 2,000 retail supply chain executives; fulfilment, logistics and omnichannel operations.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Retail technology and omnichannel",
+   "Retail leadership and merchandising"
+  ],
+  "roles": [
+   "omnichannel manager",
+   "store operations executive",
+   "retail technology lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "rila-retail-ceo-forum",
+  "name": "RILA Retail CEO Forum",
+  "organizer": "Retail Industry Leaders Association",
+  "url": "https://www.rila.org/retail-ceo-forum",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-30",
+  "endDate": "2027-02-02",
+  "datesConfirmed": true,
+  "typicalMonth": "January/February",
+  "city": "Palm Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Invitation-only forum for chief executives of major retailers.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not listed on the page read.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.rila.org/retail-ceo-forum",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Retail leadership and merchandising"
+  ],
+  "roles": [
+   "store operations executive",
+   "merchant"
+  ],
+  "journeys": [
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "women-in-retail-leadership-summit",
+  "name": "Women in Retail Leadership Summit",
+  "organizer": "Women in Retail Leadership Circle (NAPCO Media)",
+  "url": "https://www.womeninretailsummit.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-28",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Women leaders at top retailers and brands: networking and skill-building.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing on a separate register page not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.womeninretailsummit.com/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Retail leadership and merchandising"
+  ],
+  "roles": [
+   "merchant",
+   "store operations executive",
+   "category manager"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "storepoint-retail",
+  "name": "StorePoint Retail",
+  "organizer": "Connecting Point Marketing Group",
+  "url": "https://storepointretail.cpmgevents.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-24",
+  "endDate": "2027-01-27",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Invite-only meeting of retailers involved in the in-store experience; retailer travel and meals are covered.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Retailers reportedly attend at no cost (air, hotel, meals covered); suppliers buy packages.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://storepointretail.cpmgevents.com/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Retail leadership and merchandising",
+   "Retail technology and omnichannel"
+  ],
+  "roles": [
+   "store operations executive",
+   "omnichannel manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "etail-palm-springs",
+  "name": "eTail Palm Springs",
+  "organizer": "Worldwide Business Research",
+  "url": "https://etailwest.wbresearch.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-25",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Palm Springs",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "E-commerce and omnichannel retail leaders and brands; attendees mostly marketing and ecommerce VPs and directors.",
+  "access": "PAID",
+  "costLow": 499,
+  "costHigh": null,
+  "costNote": "Pricing from $499; promo code discounts exist.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Speakers get an additional discount code.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "E-commerce and digital commerce",
+   "Retail technology and omnichannel"
+  ],
+  "roles": [
+   "e-commerce manager",
+   "conversion optimization lead",
+   "omnichannel manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "etail-boston",
+  "name": "eTail Boston",
+  "organizer": "Worldwide Business Research",
+  "url": "https://etaileast.wbresearch.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-09",
+  "endDate": "2027-08-11",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Ecommerce and omnichannel retail conference: 40% marketing, 31% ecommerce attendees; 45% VP/director level.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not listed on the page read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "E-commerce and digital commerce",
+   "Retail technology and omnichannel"
+  ],
+  "roles": [
+   "e-commerce manager",
+   "conversion optimization lead",
+   "omnichannel manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "prosper-show",
+  "name": "Prosper Show",
+  "organizer": "Prosper",
+  "url": "https://prospershow.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-03",
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Established Amazon and Walmart marketplace sellers, brand owners, aggregators and senior operators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Site pages disagree on length (March 2-3 vs 2-4, 2027).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "E-commerce and digital commerce"
+  ],
+  "roles": [
+   "marketplace seller",
+   "e-commerce manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "amazon-accelerate",
+  "name": "Amazon Accelerate",
+  "organizer": "Amazon",
+  "url": "https://sell.amazon.com/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-23",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Amazon's own seller conference with expert one-on-ones, product launches and seller networking.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pricing not seen; 2026 had a $100 early-bird saving.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Early-bird savings; sessions available on demand free.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "E-commerce and digital commerce"
+  ],
+  "roles": [
+   "marketplace seller",
+   "e-commerce manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "adobe-summit",
+  "name": "Adobe Summit",
+  "organizer": "Adobe",
+  "url": "https://summit.adobe.com/na/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-03-22",
+  "endDate": "2027-03-25",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Digital experience, commerce and personalization practitioners; online attendance is free.",
+  "access": "PAID",
+  "costLow": 1895,
+  "costHigh": 2295,
+  "costNote": "In-person early bird $1,895 through Dec 31, 2026; regular $2,295; online registration free.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free online attendance (Mar 23-24).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "E-commerce and digital commerce",
+   "Retail technology and omnichannel"
+  ],
+  "roles": [
+   "e-commerce manager",
+   "conversion optimization lead",
+   "omnichannel manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "salesforce-connections",
+  "name": "Salesforce Connections",
+  "organizer": "Salesforce",
+  "url": "https://www.salesforce.com/connections/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-05-19",
+  "endDate": "2027-05-20",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Marketers and commerce teams using Salesforce; streamed on Salesforce+.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Streamed on Salesforce+.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "E-commerce and digital commerce",
+   "Retail technology and omnichannel"
+  ],
+  "roles": [
+   "e-commerce manager",
+   "omnichannel manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "world-retail-congress",
+  "name": "World Retail Congress",
+  "organizer": "World Retail Congress",
+  "url": "https://www.worldretailcongress.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-12",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Milan",
+  "state": null,
+  "country": "IT",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Global retail CEOs and executives; store tours and brand partnership forum (international flagship).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration interest list only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Retail leadership and merchandising",
+   "Retail technology and omnichannel"
+  ],
+  "roles": [
+   "merchant",
+   "store operations executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "asd-market-week",
+  "name": "ASD Market Week",
+  "organizer": "ASD",
+  "url": "https://asdonline.com/about/dates-hours/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "General merchandise buyers and independent retailers sourcing product; a second session Aug 3-5 is listed as coming soon.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pre-registration free for qualifying buyers; onsite $55 per the FAQ.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free when pre-registered with a business license or sales tax ID.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Retail leadership and merchandising"
+  ],
+  "roles": [
+   "merchant",
+   "category manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ }
+]

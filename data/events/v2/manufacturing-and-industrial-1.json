@@ -1,0 +1,1151 @@
+[
+ {
+  "id": "fabtech",
+  "name": "FABTECH",
+  "organizer": "Fabricators & Manufacturers Association / AWS / SME",
+  "url": "https://cdn.fabtechexpo.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-21",
+  "endDate": "2026-10-23",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Engineering",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Metal forming, fabricating, welding and finishing engineers and plant leaders.",
+  "access": "PAID",
+  "costLow": 50,
+  "costHigh": null,
+  "costNote": "Listings give about $50 admission; official page snapshot said pricing coming soon.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "manufacturing engineer",
+   "plant manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "promat",
+  "name": "ProMat",
+  "organizer": "MHI",
+  "url": "https://www.promatshow.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Material handling, warehouse automation and supply chain operators; about 200 education sessions.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration is free per the site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student Day; free registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "automation engineer",
+   "plant manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "rapid-tct",
+  "name": "RAPID + TCT",
+  "organizer": "SME",
+  "url": "https://rapid3devent.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-15",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Detroit",
+  "state": "MI",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "North America's main additive manufacturing event for engineers and production leads.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Conference April 12-15, exhibits April 13-15; pricing not on the home page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://rapid3devent.com/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for speakers is open via 'Submit to Speak'; deadline not seen.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "manufacturing engineer",
+   "automation engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "automation-fair",
+  "name": "Automation Fair",
+  "organizer": "Rockwell Automation",
+  "url": "https://www.rockwellautomation.com/en-us/events/automation-fair/attend/faq.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-19",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Engineering",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 14,000 controls, automation and plant leaders using Rockwell and partner technology.",
+  "access": "PAID",
+  "costLow": 495,
+  "costHigh": 895,
+  "costNote": "General access $495 early, $795 advance (to Nov 13), $895 on site; with Advanced Training $1,595-$2,295.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Complimentary general access for students and educators with proof.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "automation engineer",
+   "manufacturing engineer",
+   "plant manager"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "isa-automation-summit-expo",
+  "name": "ISA Automation Summit & Expo",
+  "organizer": "International Society of Automation",
+  "url": "https://members.isa.org/isa-announces-2026-events-schedule",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Lake Buena Vista",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Control-systems and industrial automation engineers from process and discrete plants.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran Sept 27-29; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "automation engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "mlc-rethink",
+  "name": "Manufacturing Leadership Council Rethink",
+  "organizer": "Manufacturing Leadership Council (NAM)",
+  "url": "https://manufacturingleadershipcouncil.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-27",
+  "endDate": "2027-06-30",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Senior manufacturing executives on digital transformation; dates from a search snippet, event page not opened.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "plant manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hannover-messe",
+  "name": "Hannover Messe",
+  "organizer": "Deutsche Messe",
+  "url": "https://www.hannovermesse.de/en/for-visitors/opening-hours/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-05",
+  "endDate": "2027-04-08",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Hannover",
+  "state": null,
+  "country": "DE",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The world's largest industrial automation and Industry 4.0 show; US engineers attend routinely.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "automation engineer",
+   "manufacturing engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "manufacturing-live-new-york",
+  "name": "Manufacturing LIVE: The New York Summit",
+  "organizer": "BizClik Media",
+  "url": "https://supplychaindigital.com/events/procurement-supply-chain-live/the-new-york-summit-manufacturing-live-2027",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-20",
+  "endDate": "2027-04-21",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Senior manufacturing operations leaders; listing only, organizer page not read.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "plant manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "the-quality-show",
+  "name": "The Quality Show",
+  "organizer": "Quality Magazine (BNP Media)",
+  "url": "https://www.qualitymag.com/quality-show/attendee-information",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-27",
+  "endDate": "2026-10-29",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Rosemont",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Quality, metrology and inspection professionals; co-located with The ASSEMBLY Show.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Reported as held every other year; next after 2026 likely 2028 (unconfirmed).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Quality, lean and operational excellence",
+   "Advanced manufacturing and automation"
+  ],
+  "roles": [
+   "quality manager",
+   "manufacturing engineer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ame-international-conference",
+  "name": "AME International Conference",
+  "organizer": "Association for Manufacturing Excellence",
+  "url": "https://www.ame.org/conference/milwaukee/interactive-schedule",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Milwaukee",
+  "state": "WI",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Lean and continuous-improvement practitioners with plant tours at local manufacturers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration & pricing page exists; figures not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "A 'Call for Submissions' link exists; details not seen.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Quality, lean and operational excellence"
+  ],
+  "roles": [
+   "continuous improvement lead",
+   "lean six sigma practitioner",
+   "plant manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "lean-summit",
+  "name": "Lean Summit",
+  "organizer": "Lean Enterprise Institute",
+  "url": "https://www.lean.org/events-training/lean-summit-on-demand/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-16",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Lean leaders and practitioners across manufacturing, healthcare, technology and services.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early pricing available; amounts not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Quality, lean and operational excellence"
+  ],
+  "roles": [
+   "continuous improvement lead",
+   "lean six sigma practitioner",
+   "quality manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "shingo-conference",
+  "name": "Shingo Operational Excellence Conference",
+  "organizer": "Shingo Institute (Utah State University)",
+  "url": "https://www.shingo.org/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Operational excellence leaders and Shingo Prize recipients sharing culture-of-improvement practices.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not confirmed; Shingo Connect USA ran March 18, 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Quality, lean and operational excellence"
+  ],
+  "roles": [
+   "continuous improvement lead",
+   "quality manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "asq-wcqi",
+  "name": "ASQ World Conference on Quality and Improvement",
+  "organizer": "American Society for Quality",
+  "url": "https://asq.org/conferences/wcqi",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main US gathering of quality professionals across manufacturing and services.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 17-20 in Orlando; 2027 dates TBD.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Quality, lean and operational excellence"
+  ],
+  "roles": [
+   "quality manager",
+   "continuous improvement lead",
+   "lean six sigma practitioner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "smrp-annual-conference",
+  "name": "SMRP Annual Conference",
+  "organizer": "Society for Maintenance & Reliability Professionals",
+  "url": "https://smrp.org/Conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main US conference for maintenance and reliability managers and engineers; CMRP holders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Sept 28 to Oct 1 in Raleigh; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Maintenance, reliability and asset management"
+  ],
+  "roles": [
+   "reliability engineer",
+   "maintenance manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "international-maintenance-conference",
+  "name": "International Maintenance Conference (IMC)",
+  "organizer": "Reliabilityweb",
+  "url": "https://reliabilityweb.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-07",
+  "endDate": "2026-12-10",
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": "Marco Island",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Reliability leaders and asset managers; 40th edition.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from search snippets; event page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Maintenance, reliability and asset management"
+  ],
+  "roles": [
+   "reliability engineer",
+   "maintenance manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "the-reliability-conference",
+  "name": "The RELIABILITY Conference",
+  "organizer": "Reliabilityweb",
+  "url": "https://reliabilityweb.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Two-day reliability and asset-management conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 19-20 in South San Francisco; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Maintenance, reliability and asset management"
+  ],
+  "roles": [
+   "reliability engineer",
+   "maintenance manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "reliable-plant-conference",
+  "name": "Reliable Plant Conference & Exhibition",
+  "organizer": "Noria",
+  "url": "https://noria.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-17",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Mobile",
+  "state": "AL",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Lubrication, reliability and maintenance practitioners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Date from Noria's resources page snippet; event page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Maintenance, reliability and asset management"
+  ],
+  "roles": [
+   "reliability engineer",
+   "maintenance manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "assp-safety-conference",
+  "name": "ASSP Safety Conference + Expo",
+  "organizer": "American Society of Safety Professionals",
+  "url": "https://www.assp.org/education/conferences/annual-professional-development-conference-and-exposition/call-for-presenters",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest US conference for safety professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration info not on the page read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.assp.org/education/conferences/annual-professional-development-conference-and-exposition/call-for-presenters",
+  "speakingDeadline": "2026-09-08",
+  "speakingNote": "Call closed Sept 8, 2026; decisions by Jan 31, 2027; lecture or roundtable; two proposals each.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "EHS manager",
+   "safety director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nsc-safety-congress-expo",
+  "name": "NSC Safety Congress & Expo",
+  "organizer": "National Safety Council",
+  "url": "https://2026congress.nsc.org/home",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "EHS leaders from US employers; the 2026 edition ended in Indianapolis.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "A listing site gives Sept 24-30, 2027 in Anaheim; not confirmed by NSC.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "EHS manager",
+   "safety director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aiha-connect",
+  "name": "AIHA Connect",
+  "organizer": "AIHA",
+  "url": "https://www.aihaconnect.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Industrial hygienists and occupational health and safety scientists.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a third-party listing; aihaconnect.org not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "EHS manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naem-forum",
+  "name": "NAEM EHS & Sustainability Management Forum",
+  "organizer": "NAEM",
+  "url": "https://www.naem.org/events/read/2027/10/18/conferences/forum-27-ehs-and-sustainability-management-forum",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-18",
+  "endDate": "2027-10-21",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Corporate EHS and sustainability decision-makers at large companies.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing, speaker call and discounts not on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "EHS manager",
+   "safety director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "awma-ace",
+  "name": "A&WMA Annual Conference & Exhibition (ACE)",
+  "organizer": "Air & Waste Management Association",
+  "url": "https://awma.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-28",
+  "endDate": "2027-07-01",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Long Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations",
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Environmental compliance, air quality and waste professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "EHS manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ehs-today-safety-leadership-conference",
+  "name": "EHS Today Safety Leadership Conference",
+  "organizer": "EHS Today",
+  "url": "https://www.ehstoday.com/safety-leadership-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Safety directors and EHS leaders; 2025 edition drew about 300.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition was Oct 20-22 in Glendale, AZ; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "safety director",
+   "EHS manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "vpppa-safety-symposium",
+  "name": "VPPPA Safety+ Symposium",
+  "organizer": "Voluntary Protection Programs Participants' Association",
+  "url": "https://www.vpppa.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Safety leaders at OSHA VPP sites; 2026 edition was Aug 30 - Sept 2 in Nashville.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "safety director",
+   "EHS manager"
+  ],
+  "journeys": []
+ }
+]

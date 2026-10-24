@@ -1,0 +1,943 @@
+[
+ {
+  "id": "ccw-nashville",
+  "action": "publish",
+  "reason": "CCW organizer page (customermanagementpractice.com) lists CCW Nashville Oct 20-22, 2027 at Music City Center; 2026 edition Oct 7-9 at Omni Nashville just ended, so it recurs annually; registration page does not publish Nashville prices.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.customermanagementpractice.com/cmp-events/ccw/nashville/",
+   "startDate": "2027-10-20",
+   "endDate": "2027-10-22",
+   "datesConfirmed": true,
+   "typicalMonth": "October",
+   "city": "Nashville",
+   "state": "TN",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Nashville pass prices not published on the registration page; practitioner (end-user) rates are discounted versus solution-provider rates.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "cheaperWays": "Promotional discounts apply to practitioners/end users only."
+  }
+ },
+ {
+  "id": "inbia-icbi",
+  "action": "publish",
+  "reason": "inbia.org/inbia-events states the next ICBI will be April 18-21, 2027 in Dallas, Texas.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.inbia.org/inbia-events",
+   "startDate": "2027-04-18",
+   "endDate": "2027-04-21",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Dallas",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not published on the events page.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "rocky-mountain-eta-conference",
+  "action": "publish",
+  "reason": "Event ticketing page (Blackthorn, CU Boulder-linked) shows the 2026 conference Sat Nov 7, 2026 at Limelight Boulder, $149 general / $69 student; CU Boulder Leeds news confirms the inaugural 2025 edition so it recurs.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://calendar.colorado.edu/event/rocky-mountain-eta-entrepreneurship-through-acquisition-conference-3685",
+   "startDate": "2026-11-07",
+   "endDate": "2026-11-07",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "Boulder",
+   "state": "CO",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 149,
+   "costHigh": 149,
+   "costNote": "General admission $149; one-day event with breakfast, lunch and evening reception.",
+   "cheaperWays": "Student admission $69.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "organizer": "CU Boulder Leeds School of Business"
+  }
+ },
+ {
+  "id": "wcd-global-institute",
+  "action": "jumpball",
+  "reason": "Women Corporate Directors (wcdglobal.org) is a real recurring flagship but the programming page says 'stay tuned for 2027 dates' and it is a membership organization for women on boards; owner should decide whether to show a members-oriented, gender-specific event to all candidates."
+ },
+ {
+  "id": "nyu-institute-on-federal-taxation",
+  "action": "publish",
+  "reason": "NYU SPS official page lists the 85th Institute on Federal Taxation (New York) Nov 15-20, 2026 at the New York Marriott Marquis, $2,340; a third-party listing with different dates was ignored.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": "2026-11-15",
+   "endDate": "2026-11-20",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 2340,
+   "costHigh": 2340,
+   "costNote": "Fee per the NYU page; CPE-oriented week-long program.",
+   "speaking": "BY_INVITE",
+   "speakingNote": "Faculty-led program; no public call seen.",
+   "programFormats": [
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT"
+   ],
+   "organizer": "NYU School of Professional Studies"
+  }
+ },
+ {
+  "id": "how-design-live",
+  "action": "drop",
+  "reason": "howdesign.com page returns 404; Wikipedia and search show the last edition was Sept 2024 after F+W Media's bankruptcy and no 2025-2027 edition or organizer page exists, so treated as defunct."
+ },
+ {
+  "id": "ragan-employee-communications-culture-conference",
+  "action": "publish",
+  "reason": "Ragan's own conference listings and calendar show the Employee Communications & Culture Conference April 7-9, 2027 at the Grand Hyatt Nashville; ragan.com store page (2026 edition) shows prices of roughly $3,095-$3,895 and no open CFP.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": "2027-04-07",
+   "endDate": "2027-04-09",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Nashville",
+   "state": "TN",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not yet posted; the 2026 edition ran about $3,095 (conference only) to $3,895 (all-access).",
+   "cheaperWays": "Reduced rates for nonprofit/government/education and Ragan Insider members; group pricing for 3+.",
+   "speaking": "BY_INVITE",
+   "speakingNote": "No public call; the site directs would-be speakers to the Ragan programming director.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "organizer": "Ragan Communications"
+  }
+ },
+ {
+  "id": "uas-summit-expo",
+  "action": "publish",
+  "reason": "uas.bbiconferences.com and UAS Magazine/AUVSI releases show the 20th annual UAS Summit & Expo ran Oct 13-14, 2026 at the Alerus Center, Grand Forks ND; annual with call for abstracts, next edition not yet announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Grand Forks",
+   "state": "ND",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not published.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://uas.bbiconferences.com",
+   "speakingNote": "UAS Magazine announces a call for abstracts each cycle.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "BBI International / UAS Magazine"
+  }
+ },
+ {
+  "id": "women-in-agribusiness-summit",
+  "action": "publish",
+  "reason": "Organizer (womeninag.com) and World Grain report the 2026 summit Sept 22-24 New Orleans and the 2027 summit Sept 8-10, 2027 at the Minneapolis Hilton.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.womeninag.com/",
+   "startDate": "2027-09-08",
+   "endDate": "2027-09-10",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Minneapolis",
+   "state": "MN",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Early-bird pricing exists; amounts not captured.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ]
+  }
+ },
+ {
+  "id": "enr-futuretech",
+  "action": "publish",
+  "reason": "enr.com FutureTech attendee page shows 2027 agenda, Call For Speakers link and dates May 4-5, 2027; 2026 edition photo gallery confirms recurrence.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": "2027-05-04",
+   "endDate": "2027-05-05",
+   "datesConfirmed": true,
+   "typicalMonth": "May",
+   "city": "San Francisco",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not shown on attendee page.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.enr.com/future-tech/attendees",
+   "speakingNote": "Page carries a 'Call For Speakers' link.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "ENR (BNP Media)"
+  }
+ },
+ {
+  "id": "nfha-national-conference",
+  "action": "publish",
+  "reason": "NFHA's own pages show the 2026 National Conference (June 27-30, 2026, Capital Hilton, hybrid, $450-$1,100) already held; it is an annual flagship, next edition not yet announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://nationalfairhousing.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "PAID",
+   "costLow": 450,
+   "costHigh": 1100,
+   "costNote": "2026 rates: $450 member at hotel to $1,100 general admission; 2027 not posted.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "organizer": "National Fair Housing Alliance"
+  }
+ },
+ {
+  "id": "chief-learning-officer-symposium",
+  "action": "publish",
+  "reason": "chieflearningofficer.com shows the 2026 CLO Symposium Sprint Oct 21-22, 2026 (virtual) and prior-year symposia each October, with an 'Apply To Speak' form on the events page.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.chieflearningofficer.com/cloevents/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "format": "VIRTUAL",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Recent editions virtual; pricing not published for next edition.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://forms.clickup.com/8415720/f/80uf8-110811/KL7MZW2IRQEA70WPZ9",
+   "speakingDeadline": null,
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "organizer": "Chief Learning Officer / Human Capital Media"
+  }
+ },
+ {
+  "id": "bisnow-west-coast-data-center-conference-expo",
+  "action": "publish",
+  "reason": "Bisnow's event listing shows the West Coast Data Center Conference & Expo (DICE West) Thursday Dec 3, 2026 in San Jose, part of the recurring DICE series.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.bisnow.com/events/san-jose/data-center/dice-west-san-jose-10029",
+   "startDate": "2026-12-03",
+   "endDate": "2026-12-03",
+   "datesConfirmed": true,
+   "typicalMonth": "December",
+   "city": "San Jose",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Ticket price not captured.",
+   "speaking": "BY_INVITE",
+   "speakingNote": "Speakers curated by Bisnow editorial team.",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "Bisnow"
+  }
+ },
+ {
+  "id": "water-week-and-national-water-fly-in",
+  "action": "publish",
+  "reason": "waterweek.us lists Water Week April 11-17, 2027 in Washington DC with the National Water Policy Fly-In April 13-14, 2027, hosted by AMWA, NACWA, WRF, WEF and WateReuse.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.waterweek.us/",
+   "startDate": "2027-04-13",
+   "endDate": "2027-04-14",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration prices not captured.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "organizer": "WEF, NACWA, AMWA, WRF, WateReuse"
+  }
+ },
+ {
+  "id": "hw-annual",
+  "action": "drop",
+  "reason": "HousingWire's annual conference was folded into 'The Gathering by HousingWire' (merged with RealTrends Gathering of Eagles); no HW Annual exists. Successor (Apr 12-15, 2027, Frisco TX per search) should be added separately if wanted; events.housingwire.com page showed only 2026."
+ },
+ {
+  "id": "atarc-public-sector-cio-summit",
+  "action": "publish",
+  "reason": "ATARC events page lists the Public Sector CIO & Executive Leadership Summit Dec 10, 2026 at Carahsoft, Reston VA: free for government/military/academia, $295 industry.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://atarc.org/event/public-sector-cio-executive-leadership-summit/",
+   "name": "ATARC CIO & Executive Leadership Summit",
+   "startDate": "2026-12-10",
+   "endDate": "2026-12-10",
+   "datesConfirmed": true,
+   "typicalMonth": "December",
+   "city": "Reston",
+   "state": "VA",
+   "country": "US",
+   "access": "MIXED",
+   "costLow": 295,
+   "costHigh": 295,
+   "costNote": "Free for government, military, academia, media and ATARC members; $295 individual industry.",
+   "cheaperWays": "Free for government, military and academia.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "organizer": "ATARC"
+  }
+ },
+ {
+  "id": "poc-homeland-security-summit",
+  "action": "publish",
+  "reason": "POC event page shows the 2026 Homeland Security Summit Tuesday Nov 10, 2026 at the Ritz-Carlton Tysons Corner, McLean VA with DHS, CISA and Secret Service keynotes; price is behind the registration link.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.potomacofficersclub.com/events/2026-homeland-security-summit/",
+   "startDate": "2026-11-10",
+   "endDate": "2026-11-10",
+   "datesConfirmed": true,
+   "typicalMonth": "November",
+   "city": "McLean",
+   "state": "VA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Price not shown on event page.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "organizer": "Potomac Officers Club"
+  }
+ },
+ {
+  "id": "asam-annual-conference",
+  "action": "publish",
+  "reason": "ASAM site lists the 58th Annual Conference for 2027 and its agenda pages show regional meetings April 6 and sessions from April 7, 2027; full dates and city not stated.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://annualconference.asam.org/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "April",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not captured.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "American Society of Addiction Medicine"
+  }
+ },
+ {
+  "id": "pacific-coast-patient-safety-conference",
+  "action": "publish",
+  "reason": "Chapman University and CSHP pages show the 6th annual PCPSC Feb 26-27, 2026 at the Monterey Plaza Hotel and a 2027 call for speakers (deadline Aug 7, 2026), so the 2027 edition is in planning.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "February",
+   "city": "Monterey",
+   "state": "CA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not captured.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.cshp.org/page/PCPSC_CFS_2027",
+   "speakingDeadline": "2026-08-07",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "organizer": "Chapman University School of Pharmacy / CSHP"
+  }
+ },
+ {
+  "id": "east-coast-gaming-congress",
+  "action": "publish",
+  "reason": "eastcoastgamingcongress.com homepage lists ECGC April 27-28, 2027 at the Hard Rock Hotel & Casino Atlantic City; registration page shows 2026 pricing only, including a $400 government/tribal/educator rate.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://eastcoastgamingcongress.com/",
+   "startDate": "2027-04-27",
+   "endDate": "2027-04-28",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Atlantic City",
+   "state": "NJ",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not posted; 2026 had a $400 government/tribal/educator rate.",
+   "cheaperWays": "Reduced government/tribal/educator rate and group rates (2026 terms).",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "organizer": "Cooper Levenson"
+  }
+ },
+ {
+  "id": "global-insurance-symposium",
+  "action": "publish",
+  "reason": "Organizer posts list the 2027 Global Insurance Symposium April 13-14, 2027 in Des Moines (Iowa Events Center); globalinsurancesymposium.com carries 2026 registration and a case-study competition for students.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": "2027-04-13",
+   "endDate": "2027-04-14",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Des Moines",
+   "state": "IA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "2027 pricing not posted; 2026 two-day pass was about $550.",
+   "cheaperWays": "Student Case Study Competition on the site.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "organizer": "Global Insurance Symposium"
+  }
+ },
+ {
+  "id": "fordham-ip-conference",
+  "action": "publish",
+  "reason": "Fordham IP Institute official page lists the 34th Annual IP Law & Policy Conference March 31-April 2, 2027 at Fordham Law School, New York.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://fordhamipinstitute.com/program/2027-34th-annual-ip-conference/",
+   "startDate": "2027-03-31",
+   "endDate": "2027-04-02",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "New York",
+   "state": "NY",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not posted yet.",
+   "speaking": "BY_INVITE",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "NETWORKING"
+   ],
+   "organizer": "Fordham IP Institute"
+  }
+ },
+ {
+  "id": "ehs-today-safety-leadership-conference",
+  "action": "drop",
+  "reason": "ehstoday.com page covers only the 2025 edition (recap Dec 2025) and safetyleadershipconference.com could not be loaded; no evidence of a 2026 or 2027 edition."
+ },
+ {
+  "id": "wim-summit",
+  "action": "publish",
+  "reason": "womeninmanufacturing.org homepage invites visitors to WiM SUMMIT 2027 in Charlotte; the 2026 SUMMIT ran Oct 7-9 in Las Vegas, so it recurs annually; 2027 dates not yet posted.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.womeninmanufacturing.org/summit/",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Charlotte",
+   "state": "NC",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not captured.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "organizer": "Women in Manufacturing (Association for Manufacturing Excellence)"
+  }
+ },
+ {
+  "id": "ona-conference",
+  "action": "publish",
+  "reason": "ONA's own pages show ONA26 held March 30-April 1, 2026 in Chicago (moved to spring); no ONA27 date announced yet but the event is annual.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.journalists.org/conference",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": null,
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not captured; 2027 timing not announced (2026 moved from fall to spring).",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "Online News Association"
+  }
+ },
+ {
+  "id": "catholic-health-assembly",
+  "action": "publish",
+  "reason": "chausa.org shows Catholic Health Assembly June 2-4, 2026 in St. Louis; CHA describes it as biennial so the next edition would be around June 2028 (not announced).",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.chausa.org/events/assembly",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "June",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Biennial; next edition not announced.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "organizer": "Catholic Health Association of the United States"
+  }
+ },
+ {
+  "id": "tennessee-conference-on-volunteerism-service-learning",
+  "action": "publish",
+  "reason": "Volunteer Tennessee official page lists the conference Feb 8, 2027 at Franklin Marriott Cool Springs (theme 'Spark the Change'); call for proposals open Sept 1-Oct 30, 2026, selected presenters get free registration.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": "2027-02-08",
+   "endDate": "2027-02-08",
+   "datesConfirmed": true,
+   "typicalMonth": "February",
+   "city": "Franklin",
+   "state": "TN",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Price not captured.",
+   "cheaperWays": "Presenters of selected workshops receive complimentary registration.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://www.tn.gov/volunteer-tennessee/our-initiatives/vt-tcvsl.html",
+   "speakingDeadline": "2026-10-30",
+   "programFormats": [
+    "KEYNOTE",
+    "BREAKOUT",
+    "WORKSHOP",
+    "NETWORKING"
+   ],
+   "organizer": "Volunteer Tennessee"
+  }
+ },
+ {
+  "id": "scrs-global-site-solutions-summit",
+  "action": "publish",
+  "reason": "sitesolutionssummit.com showed the 2026 Global Site Solutions Summit Oct 15-18, 2026 (Orlando); annual SCRS event, 2027 dates not yet posted.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Orlando",
+   "state": "FL",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not captured.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "Society for Clinical Research Sites (SCRS)"
+  }
+ },
+ {
+  "id": "project-controls-expo-usa",
+  "action": "publish",
+  "reason": "projectcontrolexpo.com/usa shows the 2026 expo Oct 5-7, 2026 at Nationals Park, DC, says 'stay tuned for PCE USA 2027', and has a speak-at-expo page.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "October",
+   "city": "Washington",
+   "state": "DC",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not captured.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://projectcontrolexpo.com/usa/speak-at-expo",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "Project Controls Expo"
+  }
+ },
+ {
+  "id": "hro-today-hr-data-analytics-ai-summit",
+  "action": "publish",
+  "reason": "hrotoday.com page and listings show editions in 2024 (Atlanta), 2025 and May 12-13, 2026 (Philadelphia); HR Dive's 2027 list includes it without dates.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "Philadelphia",
+   "state": "PA",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Early-bird tiers exist; amounts not captured. City varies by year.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "organizer": "HRO Today"
+  }
+ },
+ {
+  "id": "agile-conference",
+  "action": "publish",
+  "reason": "Agile Alliance (now part of PMI) runs PMI Agile 2026, July 26-28, 2026 at Gaylord National, National Harbor MD; no 2027 dates announced.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://agilealliance.org/events-calendar/",
+   "name": "PMI Agile (Agile Alliance / PMI)",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "July",
+   "city": "National Harbor",
+   "state": "MD",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not captured.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "PMI / Agile Alliance"
+  }
+ },
+ {
+  "id": "hfes-aspire",
+  "action": "publish",
+  "reason": "HFES announcement and DeVos Place page: ASPIRE 2027 Sept 27-Oct 1, 2027 at DeVos Place, Grand Rapids MI.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://www.hfes.org/About/Latest-News/aspire-2027-the-hfes-annual-meeting-and-exhibition",
+   "startDate": "2027-09-27",
+   "endDate": "2027-10-01",
+   "datesConfirmed": true,
+   "typicalMonth": "September",
+   "city": "Grand Rapids",
+   "state": "MI",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Not captured.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "Human Factors and Ergonomics Society"
+  }
+ },
+ {
+  "id": "roscon-global",
+  "action": "drop",
+  "reason": "ROSCon Global 2026 was Sept 22-24, 2026 in Toronto and the venue rotates internationally (Open Robotics); no 2027 location/date and no US event, so no verifiable US-relevant next edition."
+ },
+ {
+  "id": "ieee-ims",
+  "action": "publish",
+  "reason": "ims-ieee.org/ims2027-sanantonio confirms IMS2027 at the Henry B. Gonzalez Convention Center, San Antonio, with call for papers/MicroApps and workshops plus the world's largest RF exhibition; exact dates not stated on the page.",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "startDate": null,
+   "endDate": null,
+   "datesConfirmed": false,
+   "typicalMonth": "May",
+   "city": "San Antonio",
+   "state": "TX",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Registration prices not on the page.",
+   "cheaperWays": "Student programs: PhD sponsorship, Student Ambassadors.",
+   "speaking": "OPEN_CFP",
+   "speakingUrl": "https://ims-ieee.org/ims2027-sanantonio",
+   "programFormats": [
+    "KEYNOTE",
+    "WORKSHOP",
+    "BREAKOUT",
+    "EXPO",
+    "NETWORKING"
+   ],
+   "organizer": "IEEE MTT-S"
+  }
+ },
+ {
+  "id": "ibf-supply-chain-forecasting-conferences",
+  "action": "publish",
+  "reason": "IBF's events pages list AI EDGE: Supply Chain Planning & Forecasting Conference April 14-16, 2027 at The McCormick Scottsdale (one IBF page says May, the others April).",
+  "patch": {
+   "verified": true,
+   "checkedAt": "2026-10-23",
+   "source": "official site",
+   "url": "https://ibf.org/events/scottsdale2026",
+   "startDate": "2027-04-14",
+   "endDate": "2027-04-16",
+   "datesConfirmed": true,
+   "typicalMonth": "April",
+   "city": "Scottsdale",
+   "state": "AZ",
+   "country": "US",
+   "access": "PAID",
+   "costLow": null,
+   "costHigh": null,
+   "costNote": "Pricing not captured.",
+   "speaking": "UNKNOWN",
+   "programFormats": [
+    "KEYNOTE",
+    "PANEL",
+    "WORKSHOP",
+    "BREAKOUT",
+    "NETWORKING"
+   ],
+   "organizer": "Institute of Business Forecasting & Planning"
+  }
+ },
+ {
+  "id": "vc-platform-global-summit",
+  "action": "jumpball",
+  "reason": "Real annual event (10th summit Apr 13-15, 2026, San Diego) but vcplatformsummit.com says it is produced exclusively for VC Platform members and registration closed at capacity; owner should decide whether a members-only event belongs in candidate listings (would be access INVITE)."
+ }
+]

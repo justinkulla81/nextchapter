@@ -1,0 +1,787 @@
+[
+ {
+  "id": "nawb-forum",
+  "name": "NAWB Forum",
+  "organizer": "National Association of Workforce Boards",
+  "url": "https://www.nawb.org/the-forum-2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-05",
+  "endDate": "2027-04-08",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Workforce board directors, board members and staff, employers and policymakers from across the country in one room.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration open; prices not shown on the event page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nawb.org/the-forum-2027/",
+  "speakingDeadline": "2026-08-14",
+  "speakingNote": "Search snippet on the Forum 2027 page listed an August 14 proposal deadline; the page text itself did not show it.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director",
+   "career center manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nawb-workforce-impact-summit",
+  "name": "NAWB Workforce Impact Summit",
+  "organizer": "National Association of Workforce Boards",
+  "url": "https://www.nawb.org/2026-workforce-impact-summit/events/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Advocacy-focused gathering of workforce board leaders preparing for Capitol Hill meetings with federal officials.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Sept 28-30, Washington Hilton) has already passed or is ending; verify the next one.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nawdp-annual-conference",
+  "name": "NAWDP Annual Conference",
+  "organizer": "National Association of Workforce Development Professionals",
+  "url": "https://www.nawdp.org/events-training/nawdp-annual-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Front-line workforce professionals, career center managers and board staff trade practices and earn credentials.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early bird through Feb 10, 2027; standard through May 12, 2027; prices not on the page. Pre-conference day May 23.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nawdp.org/events-training/nawdp-annual-conference/",
+  "speakingDeadline": "2026-12-21",
+  "speakingNote": "Workshop RFP submissions due Dec 21, 2026.",
+  "cheaperWays": "Early-bird registration rate.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "career center manager",
+   "workforce board director"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "naswa-winter-policy-forum",
+  "name": "NASWA Winter Policy Forum",
+  "organizer": "National Association of State Workforce Agencies",
+  "url": "https://www.naswa.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State workforce and unemployment insurance agency leaders meet on federal policy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration banner for the 2027 Winter Policy Forum seen on naswa.org; dates and prices not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naswa-summit",
+  "name": "NASWA Summit",
+  "organizer": "National Association of State Workforce Agencies",
+  "url": "https://www.naswa.org",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Annual gathering of state workforce agency leaders and partners; 2025 edition held in Dallas in September.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 Summit materials posted on naswa.org; dates and prices not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "national-skills-summit",
+  "name": "National Skills Summit",
+  "organizer": "National Skills Coalition",
+  "url": "https://www.nationalskillssummit.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-04",
+  "endDate": "2027-03-05",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Business, labor, community college and public-sector workforce leaders meet policymakers on Capitol Hill.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration is open; prices not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "jff-horizons",
+  "name": "JFF Horizons",
+  "organizer": "Jobs for the Future",
+  "url": "https://horizons.jff.org/event/annualsummit/home",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Employers, investors, government leaders and workforce providers; 2026 drew 2,000+ attendees.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Horizons 2027 page says registration, speaker and agenda details are coming; sign-up for updates only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director",
+   "career center manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "california-workforce-association-meeting-of-the-minds",
+  "name": "Meeting of the Minds (California Workforce Association)",
+  "organizer": "California Workforce Association",
+  "url": "https://www.calworkforce.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Monterey",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "California local workforce board directors and staff; 2026 edition was Sept 8-10 in Monterey.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "A third-party listing shows Sept 7-9, 2027, Monterey; not confirmed on the official site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director",
+   "career center manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "texas-workforce-conference",
+  "name": "Annual Texas Workforce Conference",
+  "organizer": "Texas Workforce Commission",
+  "url": "https://www.twc.texas.gov/agency/annual-texas-workforce-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-09",
+  "endDate": "2026-12-11",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Texas workforce board and career center staff, employers and TWC leaders gather for the state's main workforce meeting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cost and presenter call not shown on the page; links to registration and a draft agenda.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Workforce development boards"
+  ],
+  "roles": [
+   "workforce board director",
+   "career center manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nass-winter-conference",
+  "name": "NASS Winter Conference",
+  "organizer": "National Association of Secretaries of State",
+  "url": "https://www.nass.org/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-10",
+  "endDate": "2027-02-13",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Secretaries of state and their election and business-services staff meet on election administration and records.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration cost and eligibility not shown on the events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "election official",
+   "records manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nased-conference",
+  "name": "NASED Winter and Summer Conferences",
+  "organizer": "National Association of State Election Directors",
+  "url": "https://nased.org/-conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-14",
+  "endDate": "2027-02-16",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "State election directors and staff; the public may attend at the non-member rate. Summer 2027 meeting July 27-29 in New Mexico.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not published on the conferences page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Public attendance at non-member rate (amount not published).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "election official"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "election-center-annual-conference",
+  "name": "Election Center National Annual Conference",
+  "organizer": "The Election Center (National Association of Election Officials)",
+  "url": "https://www.electioncenter.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Election administrators train and earn CERA/CERV certification alongside peers; open to nonmembers.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Held each August; 2026 edition was Kansas City per a third-party listing; 2027 date and price not shown on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "election official"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "iimc-annual-conference",
+  "name": "IIMC Annual Conference",
+  "organizer": "International Institute of Municipal Clerks",
+  "url": "https://www.iimc.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Municipal clerks and records officers, many of whom run local elections and records; 2026 edition May 17-21 in Reno.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and fees not published on the home page I opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "election official",
+   "records manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nagara-annual-conference",
+  "name": "NAGARA Annual Conference",
+  "organizer": "National Association of Government Archives and Records Administrators",
+  "url": "https://www.nagara.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Federal, state, tribal and local government archivists and records managers; 2027 edition in Denver.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Members get steep discounts; amounts not shown. Dates not on the home page.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nagara.org/call-for-session-proposals",
+  "speakingDeadline": "2026-12-18",
+  "speakingNote": "One call covers the conference, pre-conference workshops, online forums and webinars.",
+  "cheaperWays": "Member discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "records manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "arma-infocon",
+  "name": "ARMA InfoCon",
+  "organizer": "ARMA International",
+  "url": "https://infocon.arma.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Records and information governance professionals in one hall; the 2026 edition starts days after today.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee amounts not shown on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "records manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "naco-annual-conference",
+  "name": "NACo Annual Conference & Expo",
+  "organizer": "National Association of Counties",
+  "url": "https://www.naco.org/page/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-23",
+  "endDate": "2027-07-26",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "County officials including clerks, recorders and election administrators; NACo Legislative Conference follows Feb 19-23, 2027 in Washington.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not shown on the conferences page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Election administration and public records",
+   "Workforce development boards"
+  ],
+  "roles": [
+   "election official",
+   "records manager",
+   "workforce board director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tyler-connect",
+  "name": "Tyler Connect",
+  "organizer": "Tyler Technologies",
+  "url": "https://www.tylertech.com/connect",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-05",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "User conference for public-sector staff, including court, clerk and records system users.",
+  "access": "PAID",
+  "costLow": 1249,
+  "costHigh": 1499,
+  "costNote": "Search result showed early bird $1,249 through Mar 8, 2027, then $1,499; not opened this session.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Election administration and public records"
+  ],
+  "roles": [
+   "records manager",
+   "election official"
+  ],
+  "journeys": []
+ }
+]
