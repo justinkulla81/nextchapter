@@ -1,0 +1,23 @@
+[
+ {
+  "id": "greenbiz",
+  "patch": {
+   "costLow": 3995,
+   "costNote": "Cheapest tier open now is $3,995; the $2,995 launch tier ended Aug 28."
+  }
+ },
+ {
+  "id": "tci-expo",
+  "patch": {
+   "costLow": 330,
+   "cheaperWays": "Trade-show-only pass $35; full-conference passes start at $330."
+  }
+ },
+ {
+  "id": "neair-annual-conference",
+  "patch": {
+   "costLow": 625,
+   "costNote": "Regular rate $625; the $550 early bird ended Oct 9."
+  }
+ }
+]

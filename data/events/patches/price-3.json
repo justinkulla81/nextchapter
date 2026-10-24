@@ -1,0 +1,264 @@
+[
+ {
+  "id": "greenbiz-27",
+  "patch": {
+   "costLow": 2995,
+   "costHigh": 4895,
+   "costNote": "All-Access Pass: Launch $2,995 (ended Aug 28); Best Rate $3,995 until Nov 13; Advance $4,295 until Jan 22; Standard $4,695 until Feb 19; Final $4,895 until Feb 25. Trellis member 30% off; team of 3+ 20% off.",
+   "cheaperWays": "20% off for government, academia, students, startups and nonprofits (.edu/.gov/.org email, approval required); limited free press passes."
+  }
+ },
+ {
+  "id": "iedc-annual-conference",
+  "patch": {
+   "costLow": 1200,
+   "costHigh": 1975,
+   "costNote": "Member $1,200 early bird (to Sept 4), $1,300 regular, $1,550 onsite; non-member $1,575 / $1,675 / $1,975. Online registration closed; onsite rates apply. Group of 4+ 10% off.",
+   "cheaperWays": "Members in Transition $800; student member $199; honorary lifetime member $600; spouse/family guest $400."
+  }
+ },
+ {
+  "id": "joint-statistical-meetings",
+  "patch": {
+   "costLow": 595,
+   "costHigh": 1110,
+   "costNote": "Member $595 early (Apr 29-Jun 1), $667 regular, $735 late; nonmember $900 / $1,005 / $1,110. One-day late rate $510.",
+   "cheaperWays": "Student member $160 flat; one-day registration."
+  }
+ },
+ {
+  "id": "ptc",
+  "patch": {
+   "costLow": 575,
+   "costHigh": 1525,
+   "costNote": "Full conference: PTC individual member $575 (to Nov 2) rising to $725 onsite; member company/government $825-$1,000; non-member $1,275 / $1,375 / $1,525. Networker registration $625-$875.",
+   "cheaperWays": "Faculty $375-$450; full-time student $345-$395; free young professional spots (ages 21-35, up to 2 per paying company, 75 total)."
+  }
+ },
+ {
+  "id": "lsc-innovations-in-technology-conference",
+  "patch": {
+   "costLow": 800,
+   "costHigh": 900,
+   "costNote": "ITC27 attendee $800 before Oct 30, $900 after; group of 5+ $750/$850.",
+   "cheaperWays": "Group (5+) rate $750 before Oct 30."
+  }
+ },
+ {
+  "id": "energy-trading-week-americas",
+  "patch": {
+   "costNote": "General admission listed as 1395 and industry partner 2595 (currency not stated on the page, so no costLow/High). Page also says some passes are free; VIP by application."
+  }
+ },
+ {
+  "id": "aaai",
+  "patch": {
+   "costLow": 750,
+   "costHigh": 1370,
+   "costNote": "Technical registration: member $750 early (to Dec 15), $995 standard (to Jan 10), $1,250 late; Silver (includes 1-yr membership) $870 / $1,120 / $1,370. No separate non-member rate listed.",
+   "cheaperWays": "Student technical $350 early; virtual registration $80 (student $40)."
+  }
+ },
+ {
+  "id": "cgs-annual-meeting",
+  "patch": {
+   "costLow": 1020,
+   "costHigh": 1900,
+   "costNote": "Member $1,020 early bird (by Oct 1), $1,225 regular; non-member $1,640 early, $1,900 regular.",
+   "cheaperWays": "Graduate student rate $350 (member) / $450 (non-member)."
+  }
+ },
+ {
+  "id": "intuit-connect",
+  "patch": {
+   "costLow": 1395,
+   "costHigh": 1395,
+   "costNote": "In-person pass $1,395 each for 1-4 passes (group tiers lower). All in-person tiers were marked sold out when read.",
+   "cheaperWays": "Free livestream open to everyone."
+  }
+ },
+ {
+  "id": "nsba-annual-conference",
+  "patch": {
+   "costLow": 715,
+   "costHigh": 1500,
+   "costNote": "Individual member $845 advanced early bird (to Dec 4, 2026), $945 early bird (to Jan 8), $1,045 standard (to Apr 1); state association staff/CUBE $715-$935; unaffiliated board member/general public $1,020-$1,375; corporate $1,500; onsite $1,500 for all.",
+   "cheaperWays": "Guest pass $200 (general session and exhibit hall); one-day onsite pass $475-$575; virtual-only $250."
+  }
+ },
+ {
+  "id": "re-plus-northeast",
+  "patch": {
+   "costLow": 760,
+   "costHigh": 900,
+   "costNote": "Full conference pass $760 for SEIA Premium/SEPA members, $900 non-members; early bird through Dec 10. Receptions $100 extra.",
+   "cheaperWays": "Expo hall pass $105 member / $120 non-member; discounted student and nonprofit registration by request; elected officials at state level or higher may attend free."
+  }
+ },
+ {
+  "id": "league-for-innovation-innovations",
+  "patch": {
+   "costLow": 1150,
+   "costHigh": 1550,
+   "costNote": "Board/Alliance member $1,150 through Jan 15, 2027, $1,350 after; nonmember $1,350 early, $1,550 regular.",
+   "cheaperWays": "Member colleges registering 5+ in one transaction get an extra 20% group discount."
+  }
+ },
+ {
+  "id": "lma-annual-conference",
+  "patch": {
+   "costLow": 1785,
+   "costHigh": 2925,
+   "costNote": "Full conference: LMA member $1,785 super early bird (first 100), $1,985 early (to Feb 8), $2,185 regular; prospective member $2,525 / $2,725 / $2,925. One-day $729 member, $1,449 prospective.",
+   "cheaperWays": "One-day registration; buy 3 get 1 free group deal; speakers 50% off early rate."
+  }
+ },
+ {
+  "id": "hpa-tech-retreat",
+  "patch": {
+   "costLow": 1495,
+   "costHigh": 3395,
+   "costNote": "All-Access Pass (Sun-Thu): member $2,495, non-member $3,395. One-Day Pass: member $1,495, non-member $1,695. Hotel not included (discounted rooms $359/night plus taxes and resort fee).",
+   "cheaperWays": "One-day pass; member rates save about $900 on All-Access."
+  }
+ },
+ {
+  "id": "cas-ratemaking-product-modeling-seminar",
+  "patch": {
+   "costLow": 1475,
+   "costHigh": 2075,
+   "costNote": "In-person seminar: CAS/iCAS/IAA member $1,475 early (by Jan 9), $1,675 regular, $1,875 late; non-member $1,675 / $1,875 / $2,075. Workshops extra ($450-$1,100). Virtual $725-$925.",
+   "cheaperWays": "Government employees about half price ($738-$1,038); virtual attendance $725 member / $825 non-member; speakers and CAS academic members free."
+  }
+ },
+ {
+  "id": "digiday-programmatic-marketing-summit-dec",
+  "patch": {
+   "costLow": 4095,
+   "costHigh": 5795,
+   "costNote": "Connect Pass $4,095 (three one-on-one meetings); Premium Connect Pass $5,795 (five meetings). Early-bird not posted.",
+   "cheaperWays": "Discounted pass may be available to agency and brand executives; VIP pass by eligibility form."
+  }
+ },
+ {
+  "id": "acumatica-summit",
+  "patch": {
+   "costLow": 1695,
+   "costHigh": 1995,
+   "costNote": "Summit pass $1,695; $1,995 after December 4 (page labels are ambiguous, confirm at registration)."
+  }
+ },
+ {
+  "id": "acu-strategic-growth-conference",
+  "patch": {
+   "costLow": 1556,
+   "costHigh": 4390,
+   "costNote": "Early bird (to Mar 12, 2027) vs regular: ACU member $1,995 / $2,195; councils $1,775.50 / $1,975.50; small CU or league staff $1,556 / $1,756; non-member $4,390 regular. Fifth attendee free when four register together.",
+   "cheaperWays": "Small credit union and league staff rate $1,556 early; register 4 get the 5th free."
+  }
+ },
+ {
+  "id": "aicpa-pfp-symposium",
+  "patch": {
+   "costLow": 1625,
+   "costHigh": 2200,
+   "costNote": "Standard onsite pricing: non-members $2,200; members $1,775; PFP/Tax Section members and PFS credential holders $1,625. Early bird (before Dec 11, 2026) saves $150.",
+   "cheaperWays": "Section member and PFS credential rates; early bird saves $150."
+  }
+ },
+ {
+  "id": "open-developers-summit-dallas",
+  "patch": {
+   "access": "FREE",
+   "costNote": "openSUSE announcement describes the summits as free community events supported by sponsors."
+  }
+ },
+ {
+  "id": "identiverse",
+  "patch": {
+   "costLow": 1695,
+   "costHigh": 1695,
+   "costNote": "General registration $1,695. Early bird and expo pricing not posted.",
+   "cheaperWays": "Government, non-profit or education rate $1,395; student passes by request to customerservice@identiverse.com."
+  }
+ },
+ {
+  "id": "california-bankers-association-annual-conference",
+  "patch": {
+   "costLow": 1750,
+   "costHigh": 2295,
+   "costNote": "Bank member $1,750 early bird (to Dec 31), $1,895 regular; bank non-member $2,150 early, $2,295 regular (page also shows $2,795 for regular non-member in its pricing section).",
+   "cheaperWays": "Guest pass $795."
+  }
+ },
+ {
+  "id": "fsba-fadss-annual-joint-conference",
+  "patch": {
+   "costLow": 375,
+   "costHigh": 829,
+   "costNote": "Conference Dec 2-4: member $375 (daily $195), non-member $799; onsite adds a $30 late fee. Academies Dec 1 are extra ($195-$450).",
+   "cheaperWays": "Member daily rate $195."
+  }
+ },
+ {
+  "id": "east-coast-gaming-congress",
+  "patch": {
+   "costLow": 695,
+   "costHigh": 895,
+   "costNote": "Individual $695 through Mar 22, $795 Mar 23-Apr 26, $895 onsite. Groups of 10-19 from $595, 20+ from $550.",
+   "cheaperWays": "Government, tribal or educator rate $400 flat; group rates."
+  }
+ },
+ {
+  "id": "tci-expo",
+  "patch": {
+   "costLow": 35,
+   "costHigh": 805,
+   "costNote": "Trade Show Only $35-$60 member / $50-$75 non-member (rising by tier, onsite $60/$75). Onsite Education $275-$554 member / $350-$706 non-member. All-Access $330-$632 member / $420-$805 non-member; current Pre-Show tier (Oct 12-Nov 10) All-Access $527 / $671.",
+   "cheaperWays": "Trade Show Only pass; TCIA member rates average 27% off."
+  }
+ },
+ {
+  "id": "scc-annual-scientific-meeting-showcase",
+  "patch": {
+   "costLow": 1100,
+   "costHigh": 1345,
+   "costNote": "Full access (Tue-Wed): SCC member $1,100, nonmember $1,345. Daily access $875 member / $1,080 nonmember.",
+   "cheaperWays": "Student/junior member full access $400; emeritus $500; Showcase-only access $205 member / $335 nonmember (student $175)."
+  }
+ },
+ {
+  "id": "fmi-legal-regulatory-compliance-conference",
+  "patch": {
+   "costLow": 1025,
+   "costHigh": 1795,
+   "costNote": "FMI retail/wholesale/supplier member $1,025; non-member retailer/wholesaler $1,250; associate member $1,495; outside counsel or non-member (sponsored) $1,795.",
+   "cheaperWays": "Companion/spouse $250 (social activities only)."
+  }
+ },
+ {
+  "id": "aaae-acc-airport-planning-design-construction-symposium",
+  "patch": {
+   "costLow": 695,
+   "costHigh": 1195,
+   "costNote": "Full conference: member $865 early (to Jan 22, 2027), $920 regular; non-member $1,135 / $1,195. One-day $600.",
+   "cheaperWays": "Federal government $695; full-time student $415; one-day pass $600."
+  }
+ },
+ {
+  "id": "american-supply-chain-summit",
+  "patch": {
+   "access": "INVITE",
+   "applyUrl": "https://supplychainus.com/register/delegate-registration/"
+  }
+ },
+ {
+  "id": "asfpm-annual-national-conference",
+  "patch": {
+   "costLow": 655,
+   "costHigh": 1225,
+   "costNote": "Full in-person: ASFPM/PAFPM member $825 early (to Apr 15), $925 to May 15, $1,025 late; non-member $1,025 / $1,125 / $1,225. Virtual & basic in-person $720-$1,120. Registration opens Feb 2027.",
+   "cheaperWays": "Pennsylvania local/state government employee $655-$855; virtual and basic in-person options cost less."
+  }
+ }
+]

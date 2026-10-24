@@ -1,0 +1,100 @@
+[
+ {
+  "id": "write-the-docs-portland",
+  "patch": {
+   "costLow": 350,
+   "costHigh": 650,
+   "costNote": "In-person: Independent $350, Corporate $650, Corporate Concierge $750 per ticket (min 3). Virtual $100-$175. Tickets go on sale December 2026.",
+   "cheaperWays": "Student/Unemployed in-person $100; virtual tickets from $50; Opportunity Grants (applications open later)."
+  }
+ },
+ {
+  "id": "ncsea-structural-engineering-summit",
+  "patch": {
+   "costLow": 1445,
+   "costHigh": 1895,
+   "costNote": "Regular (Sept 12-Oct 30): Member $1,445, Non-member $1,895. Early rates were $200-250 lower. Members pay $400 less than non-members.",
+   "cheaperWays": "Student $695; Young Professional $1,345 (early $1,145)."
+  }
+ },
+ {
+  "id": "annual-meat-conference",
+  "patch": {
+   "costLow": 295,
+   "costHigh": 3000,
+   "costNote": "Early bird to Nov 17, standard from Nov 18, late from Feb 11. FMI Retail Member $425/$495/$575; Non-Member Retailer $1,900-$2,000; Non-Exhibiting Member $2,100-$2,200; Non-Member $2,900-$3,000. Member retailer rates cut 50% for 2027.",
+   "cheaperWays": "First-time FMI retail member attendee $295 early; buy 2 get 1 free for FMI member retailers."
+  }
+ },
+ {
+  "id": "computers-in-libraries",
+  "patch": {
+   "costLow": 299,
+   "costHigh": 999,
+   "costNote": "By Feb 12 / after: All-Access $899/$999; Full 3-Day $599/$699; Single Day $299/$399.",
+   "cheaperWays": "Exhibition-only pass free by Feb 12 ($25 after); group discount (2+) on full passes; K-12 librarian discounted 3-day pass."
+  }
+ },
+ {
+  "id": "trellis-impact",
+  "patch": {
+   "costLow": 1999,
+   "costHigh": 3199,
+   "costNote": "All-Access: Launch $1,999 (to Oct 30), Early $2,499 (Jan 8), Advance $2,799 (Apr 2), Standard $2,999 (May 7), Final $3,199.",
+   "cheaperWays": "Startups/NGOs/academia/government $700 off; practitioners/buyers/investors $500 off; Trellis Network members 30% off; teams of 3+ 20% off; complimentary press passes."
+  }
+ },
+ {
+  "id": "nagc-convention",
+  "patch": {
+   "costLow": 649,
+   "costHigh": 819,
+   "costNote": "Full Conference: Member $649 (pay now)/$669 (pay later); Non-member $799/$819 (column mapping on page slightly unclear). One-day $499 member/$649 non-member.",
+   "cheaperWays": "Student full conference $519; preconvention sessions $150; group discounts $10-$50 per person; student and retired member discounts."
+  }
+ },
+ {
+  "id": "bisnow-west-coast-data-center-conference-expo",
+  "patch": {
+   "costLow": 439,
+   "costHigh": 439,
+   "costNote": "General ticket $439 (limited number at this price; rises once tier sells out).",
+   "cheaperWays": "Data Center AEC/GC/utility contractor director-level pass $249; owners/operators/developers/investors/hyperscalers director-level pass free."
+  }
+ },
+ {
+  "id": "uf-law-e-discovery-conference",
+  "patch": {
+   "access": "MIXED",
+   "costNote": "Virtual attendance is free; in-person price is on a separate registration page.",
+   "cheaperWays": "Free virtual registration."
+  }
+ },
+ {
+  "id": "calie-spring-forward",
+  "patch": {
+   "costLow": 399,
+   "costHigh": 693,
+   "costNote": "Early bird to Nov 1, 2026: Member $399, Non-member $570. Standard: Member $485, Non-member $693.",
+   "cheaperWays": "CALIE members can get free registration by volunteering."
+  }
+ },
+ {
+  "id": "texas-library-association-conference",
+  "patch": {
+   "costLow": 409,
+   "costHigh": 910,
+   "costNote": "Full conference: Member $409 early (to Jan 31)/$489/$599 onsite; Non-member $789/$850/$910.",
+   "cheaperWays": "Student/retired/associate full conference $179-$249; exhibits-only $125-$175 (single day $75); youth $175; 10% off groups of 25+."
+  }
+ },
+ {
+  "id": "naep-epic",
+  "patch": {
+   "costLow": 850,
+   "costHigh": 1900,
+   "costNote": "Full conference: Early bird (to 1/30) Member $850, Non-member $1,500; Regular Member $1,000, Non-member $1,650; Late/onsite Member $1,200, Non-member $1,900. One-day $375-$750. Non-members can credit the difference toward NAEP dues.",
+   "cheaperWays": "Member institutions registering 3+ get $50 off per person."
+  }
+ }
+]

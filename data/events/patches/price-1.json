@@ -1,0 +1,63 @@
+[
+ {
+  "id": "aiaa-scitech",
+  "patch": {
+   "costLow": 1099,
+   "costHigh": 1599,
+   "costNote": "Full conference: early member $1,099, standard member $1,299, early non-member $1,399, standard non-member $1,599. Early rates run through Dec 14, 2026. One-day pass $499. Onsite rate not posted.",
+   "cheaperWays": "Student pass $249 early / $299 standard."
+  }
+ },
+ {
+  "id": "agile-testing-days",
+  "patch": {
+   "costNote": "Prices in EUR, excluding 19% VAT: 3 conference days EUR 2,500; 1 day EUR 990; Masterclass day + 3 conference days EUR 3,450; online pass EUR 499. Early bird by Sept 20, 2026.",
+   "cheaperWays": "Online pass EUR 499; alumni up to EUR 525 off onsite; ambassador 15% off; accessibility program on request. No standard student discount."
+  }
+ },
+ {
+  "id": "naifa-national-leadership-conference-protectors",
+  "patch": {
+   "costLow": 285,
+   "costHigh": 285,
+   "costNote": "Attendee rate $285 (includes Belong Awards Luncheon). Luncheon only $125. Protector access is a separate application.",
+   "cheaperWays": "Belong Awards Luncheon only $125."
+  }
+ },
+ {
+  "id": "acte-careertech-vision",
+  "patch": {
+   "costLow": 690,
+   "costHigh": 880,
+   "costNote": "Regular registration: ACTE member $690, non-member $880. One-day: member $370, non-member $495. Awards gala add-on $110. Early/onsite tiers not posted.",
+   "cheaperWays": "One-day pass $370 member / $495 non-member."
+  }
+ },
+ {
+  "id": "ashe-annual-conference",
+  "patch": {
+   "costLow": 375,
+   "costHigh": 900,
+   "costNote": "General member: early $375 (to Jul 31), regular $430, late $500 (to Oct 26), onsite $575. Non-member: $675 early, $760 regular, $850 late, $900 onsite. Includes free Virtual Conference Day.",
+   "cheaperWays": "Graduate student member $175-$250; retired/emeritus, part-time faculty and post-doc members $230-$325; Puerto Rico local non-member $130."
+  }
+ },
+ {
+  "id": "intuit-connect",
+  "patch": {
+   "costLow": 1095,
+   "costHigh": 1395,
+   "costNote": "In-person pass $1,395 each for 1-4 passes; group tiers down to $1,095 each for 16+. All in-person tiers were marked sold out when read.",
+   "cheaperWays": "Free livestream open to everyone."
+  }
+ },
+ {
+  "id": "boma-conference-expo",
+  "patch": {
+   "costLow": 975,
+   "costHigh": 1595,
+   "costNote": "Full Conference: member $975 early bird (to Jan 31), $1,075 advance, $1,175 standard, $1,295 onsite; non-member $1,195 / $1,345 / $1,470 / $1,595. Excludes gala and add-ons.",
+   "cheaperWays": "Young Professional (under 35, under 5 yrs in CRE) $675-$975; government 20% off; Expo-only free for qualified buyers; Student Day free for eligible students; BOMA Life Member $295; team discounts."
+  }
+ }
+]

@@ -15,7 +15,7 @@ const files: string[] = []
 const walk = (d: string) => {
   for (const f of readdirSync(d).sort()) {
     const p = join(d, f)
-    if (statSync(p).isDirectory()) { if (f !== 'review' && f !== 'review-input') walk(p) }
+    if (statSync(p).isDirectory()) { if (!['review', 'review-input', 'price-input', 'patches'].includes(f)) walk(p) }
     else if (f.endsWith('.json') && f !== 'slices.json' && !f.startsWith('_')) files.push(p)
   }
 }
@@ -61,7 +61,24 @@ if (existsSync(reviewDir)) {
     }
   }
 }
-console.log(`review: ${published2} published, ${dropped2} dropped, ${jump} jump balls`)
+// Field patches (data/events/patches/*.json): [{ id, patch }] merged into the current row, publish state untouched.
+let patched = 0
+const patchDir = join(DIR, 'patches')
+if (existsSync(patchDir)) {
+  for (const f of readdirSync(patchDir).filter((x) => x.endsWith('.json')).sort()) {
+    for (const d of JSON.parse(readFileSync(join(patchDir, f), 'utf8')) as { id: string; patch: Record<string, unknown> }[]) {
+      const cur = out.get(d.id)
+      if (!cur || !d.patch) continue
+      // Only price and access fields can be patched this way; a patch never changes what is published.
+      const allowed = ['costLow', 'costHigh', 'costNote', 'cheaperWays', 'access', 'applyUrl', 'applyDeadline'] as const
+      const merged: Record<string, unknown> = { ...cur }
+      for (const k of allowed) if (k in d.patch) merged[k] = d.patch[k]
+      const { row } = normalizeRow({ ...merged, verified: cur.verified })
+      if (row) { out.set(d.id, { ...row, published: cur.published }); patched++ }
+    }
+  }
+}
+console.log(`review: ${published2} published, ${dropped2} dropped, ${jump} jump balls; price patches applied: ${patched}`)
 const rows = [...out.values()].sort((a, b) => (a.importance as number) - (b.importance as number) || String(a.name).localeCompare(String(b.name)))
 writeFileSync(join(__dirname, '../../src/lib/events/catalog.json'), JSON.stringify({ builtAt: new Date().toISOString(), rows }, null, 1))
 console.log(`${rows.length} events (${rows.filter((r) => r.verified).length} verified, ${rows.filter((r) => r.published).length} published), ${dropped} skipped`)
