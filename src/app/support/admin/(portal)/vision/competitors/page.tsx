@@ -4,7 +4,9 @@ import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { VisionMatrixCell } from '@/components/admin/VisionMatrixCell'
 import { CompetitorForm } from '@/components/admin/CompetitorForm'
-import { quickAddCompetitor, refreshCompetitorFromWebsite, deleteCompetitor } from '../actions'
+import { quickAddCompetitor, refreshCompetitorFromWebsite, deleteCompetitor, saveWatchSettings, decideCellProposal } from '../actions'
+import { getWatchSettings, spentThisMonth } from '@/lib/vision/competitor-watch'
+import { EVENT_LABEL, type EventKind } from '@/lib/vision/competitor-watch-core'
 import { formatDate } from '@/lib/vision/labels'
 import { COMPETITOR_AREAS, RELATIONSHIPS, CATEGORIES, areaLabel, relationshipLabel, statusLabel, categoryLabel, type NamedEntry, type WinEntry } from '@/lib/vision/competitor-areas'
 
@@ -56,6 +58,15 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
   const catFilter = sp.cat ?? ''
   const gone = sp.gone === '1'
 
+  const [watch, spent, proposals, recentEvents] = await Promise.all([
+    getWatchSettings(),
+    spentThisMonth(),
+    prisma.competitorCellProposal.findMany({ where: { state: 'PENDING' }, orderBy: { createdAt: 'desc' }, take: 60, include: { competitor: { select: { name: true } } } }),
+    prisma.competitorEvent.findMany({ orderBy: { createdAt: 'desc' }, take: 300 }),
+  ])
+  const capNames = new Map((await prisma.productCapability.findMany({ where: { id: { in: [...new Set(proposals.map((p) => p.capabilityId))] } }, select: { id: true, name: true } })).map((k) => [k.id, k.name]))
+  const eventsBy = new Map<string, typeof recentEvents>()
+  for (const e of recentEvents) eventsBy.set(e.competitorId, [...(eventsBy.get(e.competitorId) ?? []), e])
   const [allCompetitors, features] = await Promise.all([
     prisma.productCompetitor.findMany({ orderBy: { name: 'asc' }, include: { cells: true } }),
     // The matrix columns are the SAME items we plan against — one vocabulary,
@@ -122,6 +133,44 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
           <a href={`#c-${sp.added}`} className="underline">Jump to the card</a> and check it: a draft read from a website can be wrong, and the numbers are only filled when they are public.
         </p>
       )}
+
+
+      <section className="rounded-xl border border-border p-5" id="watch">
+        <h2 className="text-lg font-semibold">Competitor watch</h2>
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+          Re-reads every active card monthly (adds, never deletes), checks news weekly on direct and adjacent competitors, and records grants won, new customers, funding, acquisitions, layoffs and shutdowns. Model-suggested matrix answers wait here for you. Costs model and search money, so it is off until you switch it on, and it stops at the monthly limit.
+        </p>
+        <form action={saveWatchSettings} className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+          <label className="flex items-center gap-1.5"><input type="checkbox" name="enabled" defaultChecked={watch.enabled} /> Watch on</label>
+          <label className="flex items-center gap-1.5"><input type="checkbox" name="refreshEnabled" defaultChecked={watch.refreshEnabled} /> Monthly refresh</label>
+          <label className="flex items-center gap-1.5"><input type="checkbox" name="newsEnabled" defaultChecked={watch.newsEnabled} /> Weekly news</label>
+          <label className="flex items-center gap-1.5">Monthly limit $<input name="monthlyCapUsd" type="number" min={0} max={500} step={1} defaultValue={watch.monthlyCapUsd} className="h-9 w-20 rounded-md border border-input bg-background px-2" /></label>
+          <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
+          <span className="text-muted-foreground">Spent this month: ${spent.toFixed(2)} of ${watch.monthlyCapUsd.toFixed(0)} · {watch.enabled ? 'on' : 'off'}</span>
+        </form>
+        {proposals.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold">Suggested matrix answers to confirm ({proposals.length})</h3>
+            <ul className="mt-2 space-y-2 text-sm">
+              {proposals.map((p) => (
+                <li key={p.id} className="flex flex-wrap items-center gap-2 rounded-md border border-border p-2">
+                  <span className="min-w-0 flex-1"><strong>{p.competitor.name}</strong>: {capNames.get(p.capabilityId) ?? 'capability'} → <strong>{p.status}</strong>{p.note ? ` — ${p.note}` : ''} <a href={p.evidenceUrl} target="_blank" rel="noreferrer" className="underline">source</a></span>
+                  <form action={decideCellProposal.bind(null, p.id, true)}><SubmitButton pendingLabel="…">Confirm</SubmitButton></form>
+                  <form action={decideCellProposal.bind(null, p.id, false)}><SubmitButton pendingLabel="…">Reject</SubmitButton></form>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {recentEvents.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold">Latest activity</h3>
+            <ul className="mt-1 space-y-0.5 text-sm">
+              {recentEvents.slice(0, 12).map((e) => <li key={e.id}><span className="text-xs text-muted-foreground">{EVENT_LABEL[e.kind as EventKind] ?? e.kind}</span> {e.url ? <a href={e.url} target="_blank" rel="noreferrer" className="hover:underline">{e.title}</a> : e.title}</li>)}
+            </ul>
+          </div>
+        )}
+      </section>
 
       <section className="rounded-xl border-2 border-primary/40 bg-primary/5 p-5">
         <h2 className="text-lg font-semibold">Add a competitor from its website</h2>
@@ -281,6 +330,12 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
                       {customers.map((x, i) => <li key={i} className="py-0.5">{x.url ? <a href={x.url} target="_blank" rel="noreferrer" className="hover:underline">{x.name}</a> : x.name}{x.note && <span className="text-xs text-muted-foreground"> — {x.note}</span>}</li>)}
                     </ul>
                   </details>
+                )}
+                {(eventsBy.get(c.id) ?? []).length > 0 && (
+                  <div className="mt-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</h4>
+                    <ul className="mt-1 space-y-0.5 text-sm">{(eventsBy.get(c.id) ?? []).slice(0, 5).map((e) => <li key={e.id}><span className="text-xs text-muted-foreground">{EVENT_LABEL[e.kind as EventKind] ?? e.kind}</span> {e.url ? <a href={e.url} target="_blank" rel="noreferrer" className="hover:underline">{e.title}</a> : e.title}</li>)}</ul>
+                  </div>
                 )}
                 {c.lessons.length > 0 && <div className="mt-3"><List title="What we can learn from them" items={c.lessons} tone="text-sky-700 dark:text-sky-300" /></div>}
                 {c.notes && <p className="mt-2 text-xs text-muted-foreground">{c.notes}</p>}

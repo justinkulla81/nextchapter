@@ -11890,6 +11890,11 @@ model ProductCompetitor {
 
   cells ProductCompetitorFeature[]
   capabilityCells CompetitorCapability[]
+  events          CompetitorEvent[]
+  cellProposals   CompetitorCellProposal[]
+  /// Last time the monthly refresh / weekly news watch read this card.
+  watchRefreshedAt DateTime?
+  watchNewsAt      DateTime?
 
   @@index([lastReviewedAt])
 }
@@ -16760,4 +16765,75 @@ model CompetitorCapability {
   @@unique([competitorId, capabilityId])
   @@index([capabilityId])
   @@index([competitorId, checkedAt])
+}
+
+/// Competitor watch switches and the hard monthly spend cap. One row, "singleton". Everything is OFF until
+/// someone turns it on from the Competitors page; the cron routes do nothing while `enabled` is false.
+model CompetitorWatchSetting {
+  id             String   @id @default("singleton")
+  enabled        Boolean  @default(false)
+  refreshEnabled Boolean  @default(true)
+  newsEnabled    Boolean  @default(true)
+  monthlyCapUsd  Float    @default(50)
+  updatedAt      DateTime @updatedAt
+  updatedByEmail String?
+}
+
+/// One model or search call made by the watch, with what it cost. The month's total of these is checked
+/// against monthlyCapUsd before every call.
+model CompetitorWatchRun {
+  id           String   @id @default(cuid())
+  competitorId String?
+  kind         String // refresh | news
+  costUsd      Float    @default(0)
+  searches     Int      @default(0)
+  ok           Boolean  @default(true)
+  error        String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([competitorId, kind, createdAt])
+}
+
+/// Something that happened at a competitor: news, a win, a new customer logo, a funding round, an acquisition,
+/// layoffs, a shutdown. Unique on (competitorId, dedupeKey) so a weekly re-read never adds a story twice.
+/// digestedAt is set when the daily digest has reported it.
+model CompetitorEvent {
+  id           String            @id @default(cuid())
+  competitorId String
+  competitor   ProductCompetitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  kind         String // NEWS | WIN | LOGO | FUNDING | ACQUISITION | LAYOFF | CLOSURE
+  title        String
+  summary      String?           @db.Text
+  url          String?
+  amountUsd    Float?
+  occurredAt   DateTime?
+  /// news | site | database (a row already in our own awards data)
+  source       String            @default("news")
+  dedupeKey    String
+  digestedAt   DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([competitorId, dedupeKey])
+  @@index([digestedAt, createdAt])
+}
+
+/// A matrix cell the model suggests. Never written to the matrix until a person accepts it (which sets the
+/// cell with its evidence link and today's date). A pending proposal is replaced by a newer one for the same cell.
+model CompetitorCellProposal {
+  id           String            @id @default(cuid())
+  competitorId String
+  competitor   ProductCompetitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  capabilityId String
+  status       CompetitorCapabilityStatus
+  note         String?           @db.Text
+  evidenceUrl  String
+  /// PENDING | ACCEPTED | REJECTED
+  state        String            @default("PENDING")
+  decidedBy    String?
+  decidedAt    DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([competitorId, capabilityId, state])
+  @@index([state, createdAt])
 }
