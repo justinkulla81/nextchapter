@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { seedCatalogIfStale } from './store'
 import { classifyHttp, extractDateRanges, HIDE_AFTER_FAILURES, pickNewDates, visibleText, type LinkStatus } from './refresh'
 
 // Daily and free: no paid API, no model. Fetches a rotating slice of published event pages (oldest check first).
@@ -22,6 +23,8 @@ async function fetchPage(url: string): Promise<{ status: number | null; html: st
 }
 
 export async function runEventsRefresh(now = new Date(), opts: { limit?: number } = {}) {
+  // Load or update the bundled catalog without waiting for someone to open the CRM tab (locked rows are never overwritten).
+  const seeded = await seedCatalogIfStale().catch((e) => { console.error('Events catalog seed failed', e); return -1 })
   // 1. Finished editions: keep the usual month, clear the dates, so nothing finished shows as upcoming.
   const rolled = await prisma.$executeRaw`
     UPDATE "ConferenceEvent"
@@ -72,5 +75,5 @@ export async function runEventsRefresh(now = new Date(), opts: { limit?: number 
     }
   }
   await Promise.all(Array.from({ length: HOST_WORKERS }, async () => { for (let l = hostQueue.shift(); l; l = hostQueue.shift()) await checkHost(l) }))
-  return { rolled, checked: rows.length, ...tally, newDates, hidden }
+  return { seeded, rolled, checked: rows.length, ...tally, newDates, hidden }
 }
