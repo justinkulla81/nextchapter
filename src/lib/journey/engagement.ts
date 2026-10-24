@@ -455,7 +455,7 @@ export function profileDrivenItems(s: EngagementSignals, now: Date = new Date())
   // What they said they want to change when asked about a stalled search: one matching step for four weeks.
   out.push(...reaskPlanItems(s.rawDetails, now))
   // What runs next to the main journey: at most one step per active path (researching or doing it; curious adds nothing).
-  out.push(...parallelPlanItems({ main: s.journey, journeyDetails: s.rawDetails, kinds: s.parallelKinds, workingNow: s.workingNow, interimInterest: s.interimInterest }))
+  out.push(...parallelPlanItems({ main: s.journey, journeyDetails: s.rawDetails, kinds: s.parallelKinds, workingNow: s.workingNow, interimInterest: s.interimInterest, now, weekNumber: s.weeksInStage + 1 }))
   // Building something of their own: the steps for the stage they are on (idea, validate, build, launch, grow).
   if (s.journey === 'ENTREPRENEUR') out.push(...startPlanItems(s.rawDetails, s.weeksInStage + 1))
   if (s.journey === 'ENTREPRENEUR' && s.venture) out.push({ text: `Venture check-in: ${s.venture}. Name the one thing that must happen this month` })
