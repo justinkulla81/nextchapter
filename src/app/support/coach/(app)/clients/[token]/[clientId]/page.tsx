@@ -66,6 +66,14 @@ export default async function PreSessionBriefPage({
       </div>
 
       <div className="space-y-5">
+        <div className="rounded-lg border border-brand/30 bg-brand/5 p-4">
+          <p className="text-sm font-medium text-foreground">Session prep</p>
+          <p className="mt-1 text-sm text-muted-foreground">This week, what you agreed last time, and three questions to start with, built from what {brief.candidateName} shares.</p>
+          <Link href={`/support/coach/clients/${token}/${clientId}/prep`} className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4">
+            Before you meet {brief.candidateName.split(' ')[0]}
+          </Link>
+        </div>
+
         <Suspense fallback={null}>
           <CoachProfileContextCard candidateId={candidate.id} />
         </Suspense>
@@ -220,7 +228,7 @@ export default async function PreSessionBriefPage({
           </div>
         )}
 
-        <div className="rounded-lg border border-border p-4">
+        <div id="log-session" className="rounded-lg border border-border p-4">
           <p className="text-sm font-medium text-muted-foreground">Log this session</p>
           <div className="mt-3">
             <LogSessionForm token={token} clientId={clientId} />

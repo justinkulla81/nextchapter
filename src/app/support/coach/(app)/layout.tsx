@@ -9,6 +9,7 @@ import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { prisma } from '@/lib/prisma'
 import { brandStyle, type PartnerBrand } from '@/lib/partners/brand'
 import { coachBrand } from '@/lib/partners/resolve-brand'
+import { CoachGoogleBanner } from '@/components/coach/google/CoachGoogleBanner'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -60,6 +61,9 @@ export default async function CoachAppLayout({ children }: { children: React.Rea
           />
         )}
         <main className="px-6 py-12 lg:pl-[calc(16rem+1.5rem)]">
+          <Suspense fallback={null}>
+            <CoachGoogleBanner coachId={coach.id} />
+          </Suspense>
           {college && (
             <p className="mx-auto mb-6 max-w-4xl rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
               You coach for {college.programBrandName ?? college.name}. Its members see you first when they choose a coach, and your sessions
