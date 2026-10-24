@@ -1,8 +1,32 @@
 import Link from 'next/link'
 import { formatDate } from '@/lib/crm/labels'
+import { awardIsWorkforce, bidFitsUs } from '@/lib/bids/relevance'
 import type { listCompetitorAwards, listOpenBoardBids } from '@/lib/bids/queries'
 
 const NEW_HOURS = 24 * 8
+
+
+function BidList({ rows, cutoff }: { rows: Awaited<ReturnType<typeof listOpenBoardBids>>; cutoff: number }) {
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">None.</p>
+  return (
+    <ul className="divide-y divide-border rounded-lg border border-border">
+      {rows.map((b) => (
+            <li key={b.id} className="space-y-1 p-3 text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <a href={b.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{b.title}</a>
+                {b.firstSeenAt.getTime() >= cutoff && <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">New</span>}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                <Link href={`/support/admin/crm/workforce-boards/${b.boardId}`} className="hover:underline">{b.boardName} ({b.state})</Link>
+                {b.deadline ? <span>Due {formatDate(b.deadline)}</span> : <span>No deadline on the page</span>}
+                <span>First seen {formatDate(b.firstSeenAt)}</span>
+                <a href={b.pageUrl} target="_blank" rel="noreferrer" className="hover:underline">Board&apos;s procurement page</a>
+              </div>
+            </li>
+          ))}
+    </ul>
+  )
+}
 
 export function BoardBidsView({ rows, missing }: { rows: Awaited<ReturnType<typeof listOpenBoardBids>>; missing: boolean }) {
   const cutoff = rows.length ? Math.max(...rows.map((r) => r.lastSeenAt.getTime())) - NEW_HOURS * 3_600_000 : 0
@@ -23,22 +47,15 @@ export function BoardBidsView({ rows, missing }: { rows: Awaited<ReturnType<type
       ) : rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">No open board bids yet. The first weekly pass fills this in.</p>
       ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border">
-          {rows.map((b) => (
-            <li key={b.id} className="space-y-1 p-3 text-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                <a href={b.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{b.title}</a>
-                {b.firstSeenAt.getTime() >= cutoff && <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">New</span>}
-              </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <Link href={`/support/admin/crm/workforce-boards/${b.boardId}`} className="hover:underline">{b.boardName} ({b.state})</Link>
-                {b.deadline ? <span>Due {formatDate(b.deadline)}</span> : <span>No deadline on the page</span>}
-                <span>First seen {formatDate(b.firstSeenAt)}</span>
-                <a href={b.pageUrl} target="_blank" rel="noreferrer" className="hover:underline">Board&apos;s procurement page</a>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <>
+          <BidList rows={rows.filter((b) => bidFitsUs(b.title))} cutoff={cutoff} />
+          {rows.some((b) => !bidFitsUs(b.title)) && (
+            <details className="rounded-lg border border-border p-3">
+              <summary className="cursor-pointer text-sm font-medium">Other bids that do not look like our work ({rows.filter((b) => !bidFitsUs(b.title)).length})</summary>
+              <div className="mt-3"><BidList rows={rows.filter((b) => !bidFitsUs(b.title))} cutoff={cutoff} /></div>
+            </details>
+          )}
+        </>
       )}
     </div>
   )
@@ -56,10 +73,11 @@ function Block({ entries }: { entries: [string, Awaited<ReturnType<typeof listCo
             <span className="text-xs font-normal text-muted-foreground">{awards.length} award{awards.length === 1 ? '' : 's'} · {money(awards.reduce((s, a) => s + a.amount, 0))}</span>
           </h3>
           <ul className="divide-y divide-border">
-            {awards.slice(0, 15).map((a) => (
+            {[...awards].sort((x, y) => Number(awardIsWorkforce(y)) - Number(awardIsWorkforce(x)) || y.amount - x.amount).slice(0, 15).map((a) => (
               <li key={a.id} className="space-y-0.5 p-3 text-sm">
                 <a href={a.url} target="_blank" rel="noreferrer" className="font-medium hover:underline">{(a.description ?? a.awardId ?? 'Award').slice(0, 140)}</a>
                 <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                  {awardIsWorkforce(a) && <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-700 dark:text-emerald-300">Workforce</span>}
                   <span>{a.kind === 'GRANT' ? 'Grant' : 'Contract'}</span>
                   <span>From {[a.agency, a.subAgency].filter(Boolean).join(' / ') || 'unknown'}</span>
                   <span>{money(a.amount)}</span>
@@ -81,7 +99,8 @@ export function CompetitorWinsView({ rows, missing }: { rows: Awaited<ReturnType
   const group = (conf: string) => {
     const m = new Map<string, typeof rows>()
     for (const r of rows.filter((x) => x.confidence === conf)) m.set(r.competitorName, [...(m.get(r.competitorName) ?? []), r])
-    return [...m.entries()].sort((a, b) => b[1].reduce((s, x) => s + x.amount, 0) - a[1].reduce((s, x) => s + x.amount, 0))
+    const wf = (l: typeof rows) => l.filter(awardIsWorkforce).reduce((t, x) => t + x.amount, 0)
+    return [...m.entries()].sort((a, b) => wf(b[1]) - wf(a[1]) || b[1].reduce((t, x) => t + x.amount, 0) - a[1].reduce((t, x) => t + x.amount, 0))
   }
   const exact = group('EXACT')
   const review = group('REVIEW')
