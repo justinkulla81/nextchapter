@@ -5,9 +5,10 @@ import { FEED_BUCKET, getObject, gzip, publicObjectUrl, putObject } from '@/lib/
 import { chunk, FEED_TAIL, feedHead, feedJobXml, isFreshForJooble, JOOBLE_HEAD, JOOBLE_TAIL, joobleJobXml } from '@/lib/syndication/syndication'
 
 // The aggregator feed: every public job as Indeed-style XML, gzipped, in the public
-// 'job-feeds' bucket. ~320k jobs is ~80 MB gzipped, over Storage's 50 MB object limit
-// and far over a function response, so it is kept as 16 parts (one per sitemap shard,
-// ~5 MB each) holding only <job> elements, plus a manifest. The feed URL
+// 'job-feeds' bucket. With full descriptions (since 2026-10-24) ~320k jobs is ~0.5 GB
+// gzipped, far over Storage's 50 MB object limit and a function response, so each of the
+// 16 sitemap shards is written as one or more parts of at most JOBS_PER_PART jobs
+// (~2 KB gzipped a job, so ~12 MB a part) holding only <job> elements, plus a manifest. The feed URL
 // (https://launchyournextchapter.com/feeds/jobs.xml.gz, src/app/feeds/jobs.xml.gz/route.ts)
 // streams a gzipped header, the parts in order and a gzipped footer — gzip members
 // concatenated are one valid .gz file — so aggregators get a single file.
@@ -28,11 +29,16 @@ const VARIANTS: Record<FeedVariant, { manifest: string; prefix: string; filename
 }
 export const FEED_MANIFEST_PATH = VARIANTS.all.manifest
 const ROW_CHUNK = 5_000
+// Jobs per stored part. ~2 KB gzipped a job with a full description (6 KB average text),
+// so a part is ~12 MB, well under Storage's 50 MB object limit even for long postings.
+export const JOBS_PER_PART = 6_000
 
 const httpUrl = (u: string | null | undefined) => (u && /^https?:\/\//i.test(u) ? u : null)
 
 export interface FeedPart {
   shard: number
+  /** Which part of the shard (0 when a shard fits in one). Older manifests leave it out. */
+  sub?: number
   path: string
   jobs: number
   bytes: number
@@ -54,20 +60,28 @@ export async function readFeedManifest(variant: FeedVariant = 'all'): Promise<Fe
 
 export const feedPartUrl = (p: FeedPart) => publicObjectUrl(FEED_BUCKET, p.path)
 
-/** One part's XML (the <job> elements of one shard), and how many jobs it holds. */
-export async function buildShardXml(shard: number, variant: FeedVariant = 'all'): Promise<{ xml: string; jobs: number }> {
+/** One shard's XML (its <job> elements) in pieces of at most JOBS_PER_PART jobs each. */
+export async function buildShardXml(shard: number, variant: FeedVariant = 'all'): Promise<{ parts: { xml: string; jobs: number }[]; jobs: number }> {
   const direct = variant !== 'all'
   const now = Date.now()
   const ids = (await publicJobIdsInShard(shard, direct)).map((r) => r.id)
-  const pieces: string[] = []
+  const parts: { xml: string; jobs: number }[] = []
+  let pieces: string[] = []
   let jobs = 0
+  const push = (xml: string) => {
+    pieces.push(xml)
+    jobs++
+    if (pieces.length >= JOBS_PER_PART) {
+      parts.push({ xml: pieces.join(''), jobs: pieces.length })
+      pieces = []
+    }
+  }
   for (const part of chunk(ids, ROW_CHUNK)) {
     const rows = await publicJobRowsByIds(part)
     rows.sort((a, b) => (a.id < b.id ? -1 : 1))
     for (const r of rows) {
       if (!direct) {
-        pieces.push(feedJobXml(r))
-        jobs++
+        push(feedJobXml(r))
         continue
       }
       // Direct feed: the employer's apply link; a job without a usable one is left out.
@@ -75,12 +89,12 @@ export async function buildShardXml(shard: number, variant: FeedVariant = 'all')
       if (!url) continue
       if (variant === 'jooble') {
         if (!isFreshForJooble(r, now)) continue
-        pieces.push(joobleJobXml(r, url))
-      } else pieces.push(feedJobXml(r, url))
-      jobs++
+        push(joobleJobXml(r, url))
+      } else push(feedJobXml(r, url))
     }
   }
-  return { xml: pieces.join(''), jobs }
+  if (pieces.length > 0 || parts.length === 0) parts.push({ xml: pieces.join(''), jobs: pieces.length })
+  return { parts, jobs }
 }
 
 export interface JobFeedResult {
@@ -116,26 +130,33 @@ export async function runJobFeed(opts: { dryRun?: boolean; budgetMs?: number; sh
       break
     }
     const t = Date.now()
-    const { xml, jobs } = await buildShardXml(shard, variant)
-    const raw = Buffer.from(xml, 'utf8')
-    const gz = await gzip(raw, { level: 9 })
-    if (!result.sampleXml && xml) result.sampleXml = xml.slice(0, xml.indexOf('</job>') + 7)
-    if (!dryRun) {
-      const path = `${v.prefix}${String(shard).padStart(2, '0')}.xml.gz`
+    const { parts, jobs } = await buildShardXml(shard, variant)
+    const written: FeedPart[] = []
+    let rawBytes = 0
+    let gzBytes = 0
+    for (const [sub, part] of parts.entries()) {
+      const raw = Buffer.from(part.xml, 'utf8')
+      const gz = await gzip(raw, { level: 6 })
+      rawBytes += raw.length
+      gzBytes += gz.length
+      if (!result.sampleXml && part.xml) result.sampleXml = part.xml.slice(0, part.xml.indexOf('</job>') + 7)
+      const path = `${v.prefix}${String(shard).padStart(2, '0')}-${sub}.xml.gz`
       // Part names are stable, so they're read past the CDN cache by the feed route (?v=).
-      await putObject(FEED_BUCKET, path, gz, 'application/gzip')
-      manifest.parts = [...manifest.parts.filter((p) => p.shard !== shard), { shard, path, jobs, bytes: gz.length, builtAt: new Date().toISOString() }].sort(
-        (a, b) => a.shard - b.shard,
-      )
+      if (!dryRun) await putObject(FEED_BUCKET, path, gz, 'application/gzip')
+      written.push({ shard, sub, path, jobs: part.jobs, bytes: gz.length, builtAt: new Date().toISOString() })
+    }
+    if (!dryRun) {
+      manifest.parts = [...manifest.parts.filter((p) => p.shard !== shard), ...written].sort((a, b) => a.shard - b.shard || (a.sub ?? 0) - (b.sub ?? 0))
       manifest.updatedAt = new Date().toISOString()
       await putObject(FEED_BUCKET, v.manifest, Buffer.from(JSON.stringify(manifest)), 'application/json')
     }
     const ms = Date.now() - t
     slowest = Math.max(slowest, ms)
-    result.built.push({ shard, jobs, rawBytes: raw.length, gzBytes: gz.length, ms })
+    result.built.push({ shard, jobs, rawBytes, gzBytes, ms })
   }
-  const parts = dryRun ? result.built.map((b) => ({ jobs: b.jobs, bytes: b.gzBytes, builtAt: new Date().toISOString() })) : manifest.parts
-  result.partsFresh = parts.filter((p) => Date.now() - Date.parse(p.builtAt) < 36 * 3600_000).length
+  const parts = dryRun ? result.built.map((b) => ({ shard: b.shard, jobs: b.jobs, bytes: b.gzBytes, builtAt: new Date().toISOString() })) : manifest.parts
+  // Counted per shard (a shard may be several parts).
+  result.partsFresh = new Set(parts.filter((p) => Date.now() - Date.parse(p.builtAt) < 36 * 3600_000).map((p) => p.shard)).size
   result.totalJobs = parts.reduce((n, p) => n + p.jobs, 0)
   result.totalGzBytes = parts.reduce((n, p) => n + p.bytes, 0)
   console.log('Job feed run', { variant, ...result, sampleXml: undefined })

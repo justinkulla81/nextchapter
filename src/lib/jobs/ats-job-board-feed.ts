@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { fullDescriptionOf } from '@/lib/jobs/posting-text'
 import type { AtsCompany } from '@/lib/market/ats-companies'
 import { getAtsCompanies } from '@/lib/market/ats-discovery'
 import { isUsLocation } from '@/lib/jobs/us-location'
@@ -73,7 +74,8 @@ async function fetchGreenhouseListings(company: AtsCompany): Promise<FeedListing
     companyName: company.name,
     location: j.location?.name ?? null,
     url: j.absolute_url,
-    description: j.content ? j.content.replace(/<[^>]+>/g, ' ').trim().slice(0, 2000) : null,
+    // Greenhouse sends entity-encoded HTML: decode, then turn the tags into text.
+    description: fullDescriptionOf(fullDescriptionOf(j.content)),
     // Greenhouse only exposes salary via a separate per-job
     // ?pay_transparency=true fetch — skipped here to keep this one request
     // per company; these rows land in the review queue flagged as missing
@@ -100,7 +102,7 @@ async function fetchLeverListings(company: AtsCompany): Promise<FeedListing[]> {
     companyName: company.name,
     location: j.categories?.location ?? null,
     url: j.hostedUrl,
-    description: j.descriptionPlain?.slice(0, 2000) ?? null,
+    description: fullDescriptionOf(j.descriptionPlain),
     salaryMin: j.salaryRange?.min ?? null,
     salaryMax: j.salaryRange?.max ?? null,
     salaryCurrency: j.salaryRange?.currency ?? null,
@@ -130,7 +132,7 @@ async function fetchAshbyListings(company: AtsCompany): Promise<FeedListing[]> {
       companyName: company.name,
       location: j.location ?? null,
       url: j.jobUrl,
-      description: j.descriptionPlain?.slice(0, 2000) ?? null,
+      description: fullDescriptionOf(j.descriptionPlain),
       salaryMin: min,
       salaryMax: max,
       salaryCurrency: min !== null ? 'USD' : null,
@@ -165,7 +167,7 @@ async function fetchJobAdderListings(company: AtsCompany): Promise<FeedListing[]
     companyName: company.name,
     location: j.location?.area ?? j.location?.name ?? null,
     url: j.jobAdUrl,
-    description: j.summary?.replace(/<[^>]+>/g, ' ').trim().slice(0, 2000) ?? null,
+    description: fullDescriptionOf(j.summary),
     salaryMin: j.salary?.rateLow ?? null,
     salaryMax: j.salary?.rateHigh ?? null,
     salaryCurrency: j.salary?.currency ?? null,

@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { excerptOf } from '@/lib/jobs/posting-text'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { parseBreadth } from '@/lib/jobs/search-breadth'
@@ -46,7 +47,10 @@ export async function loadMoreGoodMatches(ids: string[]): Promise<{ postings: Ex
   if (!user) return null
   const profile = await getOrCreateCandidateProfile(user.id)
   const [rows, unlock] = await Promise.all([
-    prisma.exclusiveJobPosting.findMany({ where: { AND: [liveBoardWhere(), { id: { in: wanted } }] } }),
+    prisma.exclusiveJobPosting
+      .findMany({ where: { AND: [liveBoardWhere(), { id: { in: wanted } }] } })
+      // Cards get the excerpt (descriptions are stored whole), keeping the response small.
+      .then((found) => found.map((p) => ({ ...p, description: excerptOf(p.description) }))),
     isDossierUnlocked(profile.id),
   ])
   const byId = new Map(rows.map((p) => [p.id, p]))

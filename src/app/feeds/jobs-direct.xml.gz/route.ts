@@ -4,6 +4,7 @@ import { feedResponse } from '@/lib/syndication/job-feed-server'
 // aggregators: only jobs listed on the employer's own career system, each <url> the
 // employer's apply link. Built daily by /api/cron/job-feed-direct.
 export const dynamic = 'force-dynamic'
-export const maxDuration = 300
+// Full descriptions make the feed ~0.3-0.5 GB; a slow downloader needs the time.
+export const maxDuration = 800
 
 export const GET = () => feedResponse('direct')
