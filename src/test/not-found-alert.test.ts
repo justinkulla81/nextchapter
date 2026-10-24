@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 const send = vi.fn(async () => ({ error: null }))
 vi.mock('@/lib/email/resend-client', () => ({ createResend: () => ({ emails: { send } }) }))
-const allow = vi.fn(async () => true)
+const allow = vi.fn(async (_opts: unknown) => true)
 vi.mock('@/lib/security/rate-limit', () => ({ allowRequest: (a: unknown) => allow(a), DAY_MS: 86400000 }))
 
 import { alertNotFound, cleanPath, PROBE } from '@/lib/not-found/alert'
