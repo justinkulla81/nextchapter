@@ -16,6 +16,7 @@ import { WarnWorkforceBoard } from '@/components/admin/WarnWorkforceBoard'
 import { SortHeader, readSort } from '@/components/admin/SortHeader'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { formatDate } from '@/lib/crm/labels'
+import { correctFutureDates } from '@/lib/warn/filed-date'
 
 export const maxDuration = 60
 
@@ -347,7 +348,7 @@ export default async function WarnReviewPage({
                         <td className="px-2 py-1.5 text-xs text-muted-foreground">
                           {n.industry ?? <span title="This state does not publish a sector">not published</span>}
                         </td>
-                        <td className="px-2 py-1.5 text-xs whitespace-nowrap">{formatDate(n.noticeDate)}</td>
+                        <td className="px-2 py-1.5 text-xs whitespace-nowrap" title={correctFutureDates(n, now).noticeDate !== n.noticeDate ? `The state lists ${formatDate(n.noticeDate)}, which is ahead of today; shown as the day we fetched it.` : undefined}>{formatDate(correctFutureDates(n, now).noticeDate)}</td>
                         <td className="px-2 py-1.5 text-xs whitespace-nowrap">
                           {n.sourceUrl ? (
                             <a href={n.sourceUrl} target="_blank" rel="noreferrer" className="hover:underline">{formatDate(n.effectiveDate)}</a>

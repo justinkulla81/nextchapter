@@ -11,6 +11,7 @@ export interface FirmPerson {
   states: string[]
   industries: string[]
   functions: string[]
+  models?: string[]
 }
 
 export interface FirmGroup<T extends FirmPerson = FirmPerson> {

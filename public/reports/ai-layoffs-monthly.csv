@@ -1,2 +1,5 @@
-month,companies_all,companies_ai_attributed,ai_share_pct,jobs_all,jobs_ai_attributed
-2026-10,302,50,16.6,416864,165715
+month,country_iso3,companies_ai_cited,companies_ai_denied,jobs_ai_cited
+2026-10,AUS,1,1,2500
+2026-10,FRA,0,1,0
+2026-10,GBR,2,0,5100
+2026-10,USA,7,0,9151

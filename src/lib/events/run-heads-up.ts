@@ -2,10 +2,11 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { NOT_CASUAL_WHERE } from '@/lib/journey/intensity'
 import { listEvents } from './store'
-import { checkInDue, dueStages, editionKey, nextEditionDue, STAGE_PRIORITY, URGENT_STAGES, type InterestStatus, type Stage } from './headsup'
+import { checkInDue, dueStages, sendCap, editionKey, nextEditionDue, STAGE_PRIORITY, URGENT_STAGES, type InterestStatus, type Stage } from './headsup'
 import { factsFor } from './member'
 import { matchEvents } from './match'
 import { sendConferenceHeadsUp, type FollowUp } from './send-heads-up'
+import type { ConferenceRow } from './types'
 
 // Daily, at most one email a week per member (urgent stages excepted). Two audiences: members who saved, are going to, or are speaking at an event get every stage; the
 // rest get at most one EXPLORE note about their single best-fit flagship, no more than one every 14 days.
@@ -13,10 +14,20 @@ import { sendConferenceHeadsUp, type FollowUp } from './send-heads-up'
 const MATCH_MIN_SCORE = 8
 const MATCH_GAP_DAYS = 14
 const WEEKLY_GAP_DAYS = 6
+/** A ramp, not a blast: at most CONFERENCE_HEADSUP_MAX_PER_RUN emails per daily run (default 25; 0 pauses). Urgent stages go first. */
+
+export interface PlannedSend {
+  member: { id: string; userId: string; firstName: string | null }
+  event: ConferenceRow
+  stage: Stage
+  source: 'interest' | 'match'
+  edition: string
+  followUp?: FollowUp
+}
 
 export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: boolean } = {}) {
   const enabled = process.env.CONFERENCE_HEADSUP_ENABLED === '1'
-  if (!enabled && !opts.dryRun) return { enabled: false as const, sent: 0, due: 0 }
+  if (!enabled && !opts.dryRun) return { enabled: false as const, sent: 0, due: 0, members: 0, planned: 0, cap: 0, byStage: {} as Record<string, number>, plan: undefined as PlannedSend[] | undefined }
   const events = (await listEvents({ publishedOnly: true })).filter((e) => e.url)
   const byId = new Map(events.map((e) => [e.id, e]))
   const members = await prisma.candidateProfile.findMany({
@@ -42,7 +53,7 @@ export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: bo
   for (const n of sentBefore) if (n.sentAt > (lastAny.get(n.candidateId) ?? new Date(0))) lastAny.set(n.candidateId, n.sentAt)
 
   let due = 0
-  let sent = 0
+  const plan: PlannedSend[] = []
   for (const m of members) {
     try {
       const interests = new Map(m.conferenceInterests.map((i) => [i.eventId, i.status as InterestStatus]))
@@ -71,15 +82,30 @@ export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: bo
       const capped = recent && now.getTime() - recent.getTime() < WEEKLY_GAP_DAYS * 86_400_000
       // One email a week: send the most urgent due item; the rest stay due until their windows close.
       const pick = todo.find((t) => !capped || URGENT_STAGES.includes(t.stage))
-      if (pick && !opts.dryRun && (await sendConferenceHeadsUp(m, pick.event, pick.stage, pick.source, { edition: pick.edition, followUp: pick.followUp }))) {
-        sent++
-        // A new edition starts a new cycle: forget last year's answer and count down to the new end date.
-        if (pick.stage === 'NEXT_EDITION' && pick.followUp)
-          await prisma.conferenceInterest.update({ where: { id: pick.followUp.interestId }, data: { outcome: null, outcomeAt: null, editionEnd: pick.event.endDate ?? pick.event.startDate } })
-      }
+      if (pick) plan.push({ member: { id: m.id, userId: m.userId, firstName: m.firstName }, event: pick.event, stage: pick.stage, source: pick.source, edition: pick.edition, followUp: pick.followUp })
     } catch (error) {
       console.error('Conference heads-up failed for member', m.id, error)
     }
   }
-  return { enabled, sent, due, members: members.length }
+  // Most urgent first, so the daily cap never starves a speaker deadline or a final check.
+  plan.sort((a, b) => STAGE_PRIORITY.indexOf(a.stage) - STAGE_PRIORITY.indexOf(b.stage))
+  const max = sendCap(process.env.CONFERENCE_HEADSUP_MAX_PER_RUN)
+  const byStage: Record<string, number> = {}
+  for (const p of plan) byStage[p.stage] = (byStage[p.stage] ?? 0) + 1
+  let sent = 0
+  if (!opts.dryRun) {
+    for (const p of plan.slice(0, max)) {
+      try {
+        if (await sendConferenceHeadsUp(p.member, p.event, p.stage, p.source, { edition: p.edition, followUp: p.followUp })) {
+          sent++
+          // A new edition starts a new cycle: forget last year's answer and count down to the new end date.
+          if (p.stage === 'NEXT_EDITION' && p.followUp)
+            await prisma.conferenceInterest.update({ where: { id: p.followUp.interestId }, data: { outcome: null, outcomeAt: null, editionEnd: p.event.endDate ?? p.event.startDate } })
+        }
+      } catch (error) {
+        console.error('Conference heads-up send failed for member', p.member.id, error)
+      }
+    }
+  }
+  return { enabled, sent, due, members: members.length, planned: plan.length, cap: max, byStage, plan: opts.dryRun ? plan : undefined }
 }

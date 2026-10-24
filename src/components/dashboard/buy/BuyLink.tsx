@@ -14,7 +14,7 @@ export function BuyLink({
   children,
 }: {
   href: string
-  kind: 'marketplace' | 'financing' | 'training'
+  kind: string
   id: string
   stage: string
   className?: string
@@ -26,7 +26,7 @@ export function BuyLink({
       target="_blank"
       rel="noopener noreferrer"
       className={className}
-      onClick={() => posthog.capture('buy_business_resource_clicked', { kind, id, stage, href })}
+      onClick={() => posthog.capture(kind.startsWith('start_') ? 'start_business_resource_clicked' : 'buy_business_resource_clicked', { kind, id, stage, href })}
     >
       {children}
     </a>
