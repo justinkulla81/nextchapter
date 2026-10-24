@@ -1,0 +1,117 @@
+[
+ {
+  "id": "leadingage-annual-meeting",
+  "patch": {
+   "costLow": 655,
+   "costHigh": 2950,
+   "costNote": "2026 meeting regular rates: full provider member $1,275, non-member $1,725; daily provider $655 member / $925 non-member; full business/non-exhibitor $1,975 member / $2,950 non-member. On-site registration Oct 24-28.",
+   "cheaperWays": "Student $295 (full-time proof required); elder/resident $295; EXPO-only daily provider pass $0; press $0."
+  }
+ },
+ {
+  "id": "pdac-convention",
+  "patch": {
+   "costNote": "Prices in Canadian dollars (tax included). All Access 4-day: member early (by Feb 12) CAD $349, regular $539; non-member early $649, regular $849. One-day pass $229 member / $449 non-member. Exhibits Day pass $25/day (member).",
+   "cheaperWays": "Student All Access CAD $85 early (full-time proof); Senior 65+ All Access CAD $85 member / $140 non-member early; students 16 and under free; Exhibits Day pass CAD $25."
+  }
+ },
+ {
+  "id": "americas-credit-unions-lending-council-conference",
+  "patch": {
+   "costLow": 1680,
+   "costHigh": 4480,
+   "costNote": "2026 in-person conference: Councils rate $1,680; ACU member $2,240; small credit union / league staff $1,792; non-member $4,480. Pre-conference workshop $275-$700 extra.",
+   "cheaperWays": "Register four attendees and the fifth is free (same order)."
+  }
+ },
+ {
+  "id": "techserve-alliance-executive-summit",
+  "patch": {
+   "costLow": 2695,
+   "costHigh": 3995,
+   "costNote": "IT & engineering services firm rates: early bird (to Jul 31) member $2,695 / non-member $3,095; advance (to Oct 15) $2,995 / $3,395; regular (to Oct 31) $3,295 / $3,695; onsite (Nov 1-11) $3,595 / $3,995. Workshops Nov 9 are free with registration.",
+   "cheaperWays": null
+  }
+ },
+ {
+  "id": "csba-annual-education-conference",
+  "patch": {
+   "costLow": 799,
+   "costHigh": 999,
+   "costNote": "2026 AEC: early (Jun 9-Aug 11) $799; regular (Aug 12-Nov 9) $899; late/onsite (from Nov 10) $999. Page says the member rate requires CSBA membership; no separate non-member rate listed.",
+   "cheaperWays": null
+  }
+ },
+ {
+  "id": "fetc",
+  "patch": {
+   "costLow": 409,
+   "costHigh": 1245,
+   "costNote": "2027 passes (fetc.org search result): All-Access $1,130 summer special / $1,245 standard; Session+ $680 / $775; Session $455 / $555; Expo-Only $409 for for-profit vendors/consultants. Group discounts 20% for 3-9, 25% for 10+.",
+   "cheaperWays": "Free Expo-Only pass for qualified education professionals, nonprofit and government organizations."
+  }
+ },
+ {
+  "id": "acui-annual-conference",
+  "patch": {
+   "costLow": 825,
+   "costHigh": 1195,
+   "costNote": "Professional member: $825 early (through Dec 10), $925 regular, $995 late (after Jan 14). Professional nonmember: $995 / $1,095 / $1,195. One-day member $325-$450, nonmember $425-$550.",
+   "cheaperWays": "Student member $425-$525, student nonmember $525-$625; retiree $475; one-day passes $325-$550."
+  }
+ },
+ {
+  "id": "aspa-annual-conference",
+  "patch": {
+   "costLow": 249,
+   "costHigh": 769,
+   "costNote": "5-day member: $429 members-only launch (Oct 5-19), $449 early (to Dec 18), $579 regular (to Mar 9), $669 late. Nonmember 5-day $559 / $689 / $769. 2-day member $329, nonmember $439.",
+   "cheaperWays": "Student and new professional member $249 for 5-day or 2-day; most symposia free; member + student bundles ($698 for member plus one student)."
+  }
+ },
+ {
+  "id": "sama-annual-conference",
+  "patch": {
+   "costLow": 2695,
+   "costHigh": 3495,
+   "costNote": "Early bird (Sep 5, 2026-Feb 3, 2027): corporate member $2,695, individual member $2,895, non-member $3,195. Full price after Feb 3: $2,995 / $3,295 / $3,495.",
+   "cheaperWays": null
+  }
+ },
+ {
+  "id": "acuho-i-campus-home-live",
+  "patch": {
+   "costLow": 855,
+   "costHigh": 1385,
+   "costNote": "Campus-based professional, US: member $855 priority (to Aug 31, 2026), $935 early (to Mar 18, 2027), $995 regular, $1,135 late; non-member $1,105 / $1,185 / $1,245 / $1,385. Non-US member rates $100 less. Non-exhibiting corporate $1,375-$2,135.",
+   "cheaperWays": "Graduate student $99; emeritus $495-$695; teams of five or more get 20% off each registrant after the fourth."
+  }
+ },
+ {
+  "id": "ttra-marketing-outlook-forum",
+  "patch": {
+   "costLow": 699,
+   "costHigh": 2399,
+   "costNote": "Full conference: member $1,399 early (to Nov 13, 2026), $1,799 regular (to Jan 8), $1,999 on-site; non-member $1,799 / $2,199 / $2,399. One-day pass member $699-$759, non-member $749-$799.",
+   "cheaperWays": "One-day passes from $699."
+  }
+ },
+ {
+  "id": "lavacon",
+  "patch": {
+   "costLow": 2550,
+   "costHigh": 2550,
+   "costNote": "In-person full conference tuition $2,550 (rate after Sept 30). Half-day workshops $200 each, full-day $400 each (optional).",
+   "cheaperWays": null
+  }
+ },
+ {
+  "id": "nasp-annual-convention",
+  "patch": {
+   "costLow": 279,
+   "costHigh": 569,
+   "costNote": "Full convention: member $279 early (Oct 1-Nov 18, 2026), $299 preconvention (to Jan 6), $329 full/on-site; nonmember $529 / $549 / $569. Daily registration after Jan 6: $199 member, $310 nonmember. Workshop add-ons extra.",
+   "cheaperWays": "Graduate student $114-$134; principals $140; group registration for five or more from one district."
+  }
+ }
+]

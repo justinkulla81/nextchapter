@@ -1,0 +1,129 @@
+[
+ {
+  "id": "formnext",
+  "patch": {
+   "costNote": "Prices in EUR incl. VAT: 4-day Expo-Pass EUR 129 early bird with info service (EUR 168 without), EUR 169/219 from 23 Oct 2026; 1-day pass EUR 69-142.",
+   "cheaperWays": "Student Expo Pass EUR 9 with info service (EUR 12 without), proof required; registering for the info service lowers every ticket."
+  }
+ },
+ {
+  "id": "aasa-national-conference-on-education",
+  "patch": {
+   "costLow": 795,
+   "costHigh": 1240,
+   "costNote": "Member $795 early (by Oct 31), $900 regular, $1,005 late; nonmember $1,025 early, $1,130 regular, $1,240 late. Comprehensive registration (includes a year of membership) $1,240-$1,450.",
+   "cheaperWays": "Professor or retired member $480-$690; team rate (3+ from one district) $710-$995 each; guest registration $90 (no educational sessions)."
+  }
+ },
+ {
+  "id": "fabcon-sqlcon",
+  "patch": {
+   "costLow": 1725,
+   "costHigh": 2045,
+   "costNote": "Gold pass (3 conference days) $1,725 now, $2,045 full price; pre-agenda pricing ends Nov 13. Platinum and Diamond add workshop days ($2,345-$3,395).",
+   "cheaperWays": "Group codes 10-20% off for 3+ people; free MVP Day and Partner Day for eligible Microsoft MVPs and partners."
+  }
+ },
+ {
+  "id": "awp-conference",
+  "patch": {
+   "costLow": 240,
+   "costHigh": 620,
+   "costNote": "In-person: member $240 early-bird (to Nov 19), $299 prereg, $500 onsite; nonmember $380, $440, $620. Virtual-only $115-$215.",
+   "cheaperWays": "College student $70 early/$85 prereg/$200 onsite; senior (65+) $105-$230; Saturday-only pass $30; virtual student $65; community scholarship and work-exchange programs."
+  }
+ },
+ {
+  "id": "connect-x",
+  "patch": {
+   "costLow": 575,
+   "costHigh": 650,
+   "costNote": "Full Access $575 member / $650 non-member at early rates ending Dec 4, 2026 (later rates not shown); Exhibit Hall Only $300/$375.",
+   "cheaperWays": "Government/Education pass $175 (.gov/.edu email); Exhibit Hall Only $300; group codes 15-20% off; free Power Pass and Media Pass for eligible applicants."
+  }
+ },
+ {
+  "id": "amp-annual-meeting",
+  "patch": {
+   "costLow": 415,
+   "costHigh": 935,
+   "costNote": "In-person: regular member $545 advance, $685 standard, $745 on-site (from Oct 21); regular nonmember $825/$875/$935. Technologist member $415-$615.",
+   "cheaperWays": "Trainee member $285-$370 (students, residents, fellows; Program Director letter; free associate membership); trainee nonmember $375-$425; emeritus $325."
+  }
+ },
+ {
+  "id": "sacscoc-annual-meeting",
+  "patch": {
+   "costLow": 725,
+   "costHigh": 1225,
+   "costNote": "Member $725 early (before Oct 7), $825 Oct 8-31, $925 late; non-member $1,025/$1,125/$1,225. Saturday workshops extra.",
+   "cheaperWays": "Graduate student and retiree rate $325 early, $375 general, $425 late (proof by email)."
+  }
+ },
+ {
+  "id": "nacs-leadership-forum",
+  "patch": {
+   "costLow": 599,
+   "costHigh": 599,
+   "costNote": "Paid retailer attendee $599; supplier (Hunter Club) registration $6,199-$7,999. Many retailers attend by invitation at $0.",
+   "cheaperWays": "Invited retailer attendees and NACS leaders register free."
+  }
+ },
+ {
+  "id": "inman-connect-new-york",
+  "patch": {
+   "costLow": 799,
+   "costNote": "Early bird pass $799; other tiers not shown on the event page."
+  }
+ },
+ {
+  "id": "hedna-global-distribution-conference",
+  "patch": {
+   "costLow": 1076,
+   "costHigh": 2695,
+   "costNote": "Early bird (10% off, through Oct 31, 2026) $1,075.50 member hotelier, $1,975.50 non-member; standard $1,195 member hotelier, $2,195 non-member hotelier, $1,695 member technologist, $2,695 non-member technologist."
+  }
+ },
+ {
+  "id": "experiential-marketing-summit",
+  "patch": {
+   "costLow": 1700,
+   "costHigh": 2300,
+   "costNote": "Brand/agency 3-day pass $1,700 ultra-early (by 12/31/26), $1,925 early, $2,075 advance, $2,300 full price (4/29/27). 1-day $1,250-$1,700.",
+   "cheaperWays": "Accelerator Pass (2-day) $499-$575; 20% off groups of 3+; junior marketer (21-26) and Event Marketer Elite discounts. No nonprofit discount."
+  }
+ },
+ {
+  "id": "hsmai-mike-leven-leadership-conference",
+  "patch": {
+   "costLow": 695,
+   "costHigh": 1210,
+   "costNote": "Member $695 early (before 2/3/27), $895 regular; non-member $1,010 early, $1,210 regular.",
+   "cheaperWays": "Student/faculty $175; chapter board leaders and Americas/Advisory/Rising Leader board members $350; organizational members may get complimentary tickets."
+  }
+ },
+ {
+  "id": "data-summit-dbta",
+  "patch": {
+   "costLow": 995,
+   "costHigh": 1595,
+   "costNote": "Conference Pass (May 12-13) $995 early bird through Apr 9, $1,095 after; All Access Pass $1,495 early, $1,595 after.",
+   "cheaperWays": "Solutions Showcase-only pass $25 early/$50 regular (industry professionals); 30% team discount for 2+ from one company."
+  }
+ },
+ {
+  "id": "d2l-fusion",
+  "patch": {
+   "costLow": 550,
+   "costHigh": 975,
+   "costNote": "Main conference only $550 priority (ended Sept 30, 2026), $650 advanced, $750 early bird, $850 standard (from May 1, 2027); full conference with pre-con $675 to $975.",
+   "cheaperWays": "Groups of 5+ save $150 each; presenters 50% off standard rate; 50% off Fusion 2028 for early registrants."
+  }
+ },
+ {
+  "id": "aesc-global-summit-on-leadership",
+  "patch": {
+   "costNote": "Prices in GBP for the London summit, 16-17 Nov 2026: 1,395 pounds AESC member/partner/associate, 1,795 pounds non-member."
+  }
+ }
+]

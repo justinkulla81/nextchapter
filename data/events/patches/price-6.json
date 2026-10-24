@@ -1,0 +1,167 @@
+[
+ {
+  "id": "natcon",
+  "patch": {
+   "costLow": 975,
+   "costHigh": 1475,
+   "costNote": "Three-day: early $975 (100% member) / $1,025 (member) / $1,275 (non-member) until Jan 13, 2027; advance $1,075-$1,375 until Feb 27; standard $1,175 / $1,225 / $1,475. One-day $575-$1,125. Preconference extra.",
+   "cheaperWays": "One-day passes from $575; NatCon scholarships for National Council members (apps due Dec 3); 11th registration free per 10 bought."
+  }
+ },
+ {
+  "id": "food-safety-summit",
+  "patch": {
+   "costLow": 575,
+   "costHigh": 1275,
+   "costNote": "3-day: for-profit $1,175 early bird (to Apr 2, 2027) / $1,275 regular; non-profit/academia/government $1,025 / $1,125. 2-day $825-$1,175; 1-day $575-$950.",
+   "cheaperWays": "Student rates (verified): 3-day $325, 2-day $225, 1-day $125; exhibit-hall-only pass from $395; non-profit/academia/government rate; groups get 50% off from the third attendee."
+  }
+ },
+ {
+  "id": "md-and-m-midwest",
+  "patch": {
+   "costLow": 319,
+   "costHigh": 879,
+   "costNote": "2-day conference pass: super early bird $529, early $629, advanced $749, onsite (Oct 22-29) $879. 1-day pass $319 to $579. Non-exhibiting manufacturers $499.",
+   "cheaperWays": "Expo pass free for qualified attendees who registered by Sep 16 ($50 advanced, $199 onsite); group discounts 10-25% on conference passes."
+  }
+ },
+ {
+  "id": "world-of-concrete",
+  "patch": {
+   "costLow": 115,
+   "costHigh": 165,
+   "costNote": "Exhibits-only badge $115 through Dec 11, 2026; $145 after; $165 onsite. Education seminars extra: $110-$295 each early, $130-$325 after Dec 11. Super Pass packages exist (amounts on separate page).",
+   "cheaperWays": "Each education purchase includes a free exhibits-only badge; discounted education for military groups and college/university student groups (students and faculty get complimentary exhibits-only registration)."
+  }
+ },
+ {
+  "id": "sigcse-technical-symposium",
+  "patch": {
+   "costLow": 325,
+   "costHigh": 975,
+   "costNote": "Regular: ACM/SIGCSE member $735 early (to Jan 4, 2027) / $810 regular / $885 late; non-member $825 / $900 / $975. Tutorials extra $95-$135. Registration opens mid-November 2026.",
+   "cheaperWays": "Student $325-$350 (members) or $337-$362 (non-members, includes SIGCSE membership); K-12 teacher from $400; community college faculty from $550; retiree from $500; exhibits only from $325."
+  }
+ },
+ {
+  "id": "tmc-annual-meeting",
+  "patch": {
+   "costLow": 925,
+   "costHigh": 1550,
+   "costNote": "Full meeting: TMC/ATA member $925 early-bird (through Feb 5, 2027), $1,025 after; non-member $1,550. Spouse/family $400 member, $700 non-member.",
+   "cheaperWays": "First-time fleet, educator or service provider rate $625 early-bird member / $725 / $1,125 non-member (eligibility verified)."
+  }
+ },
+ {
+  "id": "indian-gaming-tradeshow-convention",
+  "patch": {
+   "costLow": 199,
+   "costHigh": 1749,
+   "costNote": "Conference packages: Platinum Plus $1,199 early bird (to Jan 29, 2027) / $1,299 advanced / $1,399 onsite; Super Platinum Plus $1,599 / $1,699 / $1,749. Tradeshow-only Silver: 2 days $449-$599, Wednesday only $299-$399, Thursday only $199-$299.",
+   "cheaperWays": "Tradeshow-only Silver passes from $199; groups of four or more get 15% off select packages."
+  }
+ },
+ {
+  "id": "ifma-facility-fusion",
+  "patch": {
+   "cheaperWays": "Expo-only pass $99 (opens Jan 1, 2027, qualified facility management professionals only); student $50 year-round discount; non-member full-event buyers get a one-year Discovery membership.",
+   "costNote": "Full-event member, regular and student amounts are only in a price grid image; early bird ends Feb 5, 2027."
+  }
+ },
+ {
+  "id": "sales-enablement-summit",
+  "patch": {
+   "costLow": 995,
+   "costHigh": 995,
+   "costNote": "Individual pass $995 (shown against $1,295); Pro+ membership $1,999 includes the summit. Austin edition.",
+   "cheaperWays": "Existing Sales Enablement Collective members $750 via membership dashboard; groups of 10+ get discounts."
+  }
+ },
+ {
+  "id": "customer-success-summit-denver",
+  "patch": {
+   "costLow": 995,
+   "costHigh": 995,
+   "costNote": "Individual pass $995 (listed against a crossed-out $1,295); Pro+ membership $1,999 includes the summit.",
+   "cheaperWays": "Existing CSC members $750 via membership dashboard; groups of 10+ get discounts."
+  }
+ },
+ {
+  "id": "product-marketing-summit-boston",
+  "patch": {
+   "costLow": 1295,
+   "costHigh": 1295,
+   "costNote": "Individual pass $1,295; Pro+ membership $1,999 includes the summit.",
+   "cheaperWays": "Existing PMA members $750 via membership dashboard; $300 off per ticket for teams of 3+; groups of 10+ get more."
+  }
+ },
+ {
+  "id": "aicpa-womens-leadership-summit",
+  "patch": {
+   "costLow": 995,
+   "costHigh": 1445,
+   "costNote": "In-person: AICPA member $995, non-member $1,445.",
+   "cheaperWays": "PCPS members save $50 with coupon; group discounts for 5+."
+  }
+ },
+ {
+  "id": "brandon-hall-hcm-excellence",
+  "patch": {
+   "costLow": 1649,
+   "costHigh": 3199,
+   "costNote": "General: super early $2,599 (before Aug 9), early $2,899 (to Nov 8), standard $3,199; clients $2,399-$2,799; members from $1,649 (corporate) / $1,849 (solution providers) super early to $2,099/$2,299 standard. 3% card fee. Standard tier listed as unavailable on page.",
+   "cheaperWays": "Member and client rates well below general; award participant rates."
+  }
+ },
+ {
+  "id": "investments-and-wealth-experience",
+  "patch": {
+   "costLow": 897,
+   "costHigh": 1990,
+   "costNote": "Member $1,495; Signature Member $1,121.25 (25% off); Elite Member $897 (40% off); non-member $1,990 (includes 2-year basic membership). Registration FAQ shows different discounted figures, so confirm the current rate.",
+   "cheaperWays": "Team rate $995 for each attendee after the first (promo code from conference@i-w.org); Signature and Elite member discounts."
+  }
+ },
+ {
+  "id": "pei-private-funds-cfo-new-york-forum",
+  "patch": {
+   "costLow": 4045,
+   "costHigh": 4495,
+   "costNote": "New York Forum Access from US$4,045 (US$4,495 also shown); includes an annual PEI Network membership. Tickets only for fund managers; service providers contact the organizer. Single-day passes not available."
+  }
+ },
+ {
+  "id": "affiliate-summit-west",
+  "patch": {
+   "costLow": 949,
+   "costHigh": 1309,
+   "costNote": "Networking pass $949 (discounted until Nov 20, 2026), full price $1,309. VIP $1,249 / $1,609; Partnership Week $1,549 / $2,209."
+  }
+ },
+ {
+  "id": "naesp-pre-k-8-principals-conference",
+  "patch": {
+   "costLow": 699,
+   "costHigh": 1399,
+   "costNote": "Standard registration: early bird $699 (before Oct 1, 2026); regular $949 (Oct 1, 2026 to Feb 5, 2027); onsite $1,399. Pre-conference sessions $200 each; luncheons $125 each.",
+   "cheaperWays": "Student registration $475 any time (proof of enrollment required)."
+  }
+ },
+ {
+  "id": "fia-boca",
+  "patch": {
+   "costLow": 985,
+   "costHigh": 3040,
+   "costNote": "2027 registration: member $2,285; non-member $3,040; government $985.",
+   "cheaperWays": "Government rate $985."
+  }
+ },
+ {
+  "id": "hlth-europe",
+  "patch": {
+   "costNote": "Prices in EUR excluding VAT: early rate EUR 600 for clinicians, providers, payers, investors, government, non-profit and academia (regular EUR 1,295); startups EUR 600 early / EUR 995 regular; solution providers EUR 850 early / EUR 1,595 regular.",
+   "cheaperWays": "Free tickets for approved senior healthcare buyers in the Market Connect programme (six or more meetings), accredited media and influencers; early-rate EUR 600 tickets with verification."
+  }
+ }
+]
