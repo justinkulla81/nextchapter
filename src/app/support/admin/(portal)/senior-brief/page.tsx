@@ -43,7 +43,7 @@ export default async function SeniorBriefAdminPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-3">
-        <h1 className="text-2xl font-semibold">Senior Monday brief</h1>
+        <h1 className="text-2xl font-semibold">Monday message for senior members</h1>
         <p className="max-w-2xl text-base">
           Every Monday, senior members who connected their Gmail get one email: &ldquo;a message to someone you know is written and ready.&rdquo;
           It is either a follow-up to a recruiter they spoke with a few weeks ago, or a note to their warmest contact at a company they are watching.
