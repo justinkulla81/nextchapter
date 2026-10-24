@@ -69,3 +69,20 @@ The IndexNow key is served at `public/<key>.txt`; keep `INDEXNOW_KEY` in
 Small wrapper that runs a Python script with `.env.local` already loaded into
 the environment. Not called directly — the `report:index` / `report:companions`
 npm scripts use it.
+
+## Early-warning panel (`/reports/early-warning`)
+
+Monthly refresh: `npm run report:early-warning` (U.S. CPS series from 2010 plus the peer-country
+file) and `npm run report:ai-layoffs` (needs the database). Outputs land in `public/reports/`
+(`us-early-warning.csv`, `early-warning-peers.json`, `ai-layoffs-monthly.csv`) and the page reads
+them at build time.
+
+- `nc_early_warning_us.py` — CPS monthly: unemployment, employment rate, long-term share and median
+  weeks for all workers, white-collar, graduates 22–27 (bachelor's+), white-collar under 35 and 50+.
+- `nc_peer_countries.py` — OECD monthly youth/total unemployment, OECD graduate and duration data,
+  IMF GDP growth, Eurostat enterprise AI use (EU) and Census BTOS AI use (U.S.). Python's default
+  User-Agent is rejected by OECD and a custom one by the IMF, so the header is set per host. BTOS
+  needs `openpyxl`; without it the U.S. AI-use series is left empty.
+- The canary test (lead-lag on 12-month changes, 2020-03 to 2022-02 excluded) lives in
+  `src/lib/reports/early-warning-analysis.ts`.
+- The AI-layoffs series starts October 2026, when the news check began collecting.
