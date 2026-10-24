@@ -45,7 +45,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/higher-education', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/employees', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/outplacement', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
-  { path: '/recruiters', updated: '2026-08-15', freq: 'monthly', priority: 0.5 },
+  { path: '/recruiters', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/talent', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/government-workforce', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/nonprofits', updated: '2026-07-14', freq: 'monthly', priority: 0.5 },
