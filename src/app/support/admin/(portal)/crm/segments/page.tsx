@@ -24,7 +24,7 @@ export default async function CrmSegmentsPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Segments and updates</h1>
+          <h1 className="text-2xl font-semibold">One-off emails</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             Saved audiences for one-off updates. Nothing is sent without a preview and a typed confirmation.
           </p>

@@ -45,7 +45,7 @@ export default async function CompanyLinksPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Company links</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Company name matches</h1>
         <p className="text-muted-foreground">
           Organisations in the CRM that look like a company in the directory but don&apos;t match exactly. Link the
           ones that are the same business; keep the rest separate and they won&apos;t be suggested again.

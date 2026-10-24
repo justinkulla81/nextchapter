@@ -27,7 +27,7 @@ export default async function RecruitersPage({ searchParams }: { searchParams: P
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold">Recruiters</h1>
+        <h1 className="text-2xl font-semibold">Recruiters by state and industry</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           {counts.total} {KIND_LABEL[kind].toLowerCase()}, {counts.total - counts.untagged} tagged with the states, industries and functions they cover. Pick any combination; national recruiters appear under every state. These are the people the layoff alert lists for a notice in that state and industry.
         </p>
