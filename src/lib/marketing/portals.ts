@@ -72,7 +72,7 @@ export const PORTALS: Record<PortalKey, PortalInfo> = {
     who: 'Employers developing and keeping current employees.',
     gets: [
       'Retention: promotion and raise preparation, internal roles and paths into new functions.',
-      'Learning and development: a skills plan for each person, with your courses first.',
+      'Learning and development: a skills plan for each person, starting with your courses.',
       'You see counts by team, never who.',
     ],
     start: 'Set up with you',

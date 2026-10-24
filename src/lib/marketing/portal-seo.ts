@@ -79,3 +79,44 @@ export function portalJsonLd(i: PortalJsonLdInput): Record<string, unknown> {
     ],
   }
 }
+
+export interface HubJsonLdInput {
+  path: string
+  name: string
+  description: string
+  /** The pages the hub links to, in the order shown. */
+  items: { name: string; path: string }[]
+  trail: { name: string; path: string }[]
+}
+
+/** The hub page: a CollectionPage listing its portal pages, and a BreadcrumbList. No plan, price or Offer. */
+export function hubJsonLd(i: HubJsonLdInput): Record<string, unknown> {
+  const url = `${SITE_URL}${i.path}`
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': `${url}#page`,
+        name: i.name,
+        description: i.description,
+        url,
+        isPartOf: { '@type': 'WebSite', name: 'NextChapter', url: SITE_URL },
+        mainEntity: {
+          '@type': 'ItemList',
+          itemListElement: i.items.map((it, n) => ({ '@type': 'ListItem', position: n + 1, name: it.name, url: `${SITE_URL}${it.path}` })),
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${url}#breadcrumb`,
+        itemListElement: [{ name: 'Home', path: '/' }, ...i.trail].map((c, n) => ({
+          '@type': 'ListItem',
+          position: n + 1,
+          name: c.name,
+          item: c.path === '/' ? SITE_URL : `${SITE_URL}${c.path}`,
+        })),
+      },
+    ],
+  }
+}

@@ -4,7 +4,10 @@ import { describe, expect, it } from 'vitest'
 import { APP_TOP_LEVEL } from '@/lib/app-top-level'
 import { PORTAL_PAGES } from '@/lib/marketing/portal-pages'
 import { plansForPortal } from '@/lib/marketing/plans'
-import { portalJsonLd, portalMetadata } from '@/lib/marketing/portal-seo'
+import { HUB_COPY, HUB_PATH, HUB_SEO } from '@/lib/marketing/portal-pages/hub'
+import { PORTAL_LIST, PORTALS } from '@/lib/marketing/portals'
+import { PORTAL_ORDER } from '@/lib/marketing/plans'
+import { hubJsonLd, portalJsonLd, portalMetadata } from '@/lib/marketing/portal-seo'
 
 // Every public partner page is built from one definition (src/lib/marketing/portal-pages). These checks keep each page
 // to the owner's brief of 2026-10-24: one headline and one primary action, three screenshots, three steps, plans without
@@ -79,5 +82,35 @@ describe('portal pages', () => {
       expect(APP_TOP_LEVEL.has(seo.path.split('/')[1])).toBe(true)
       expect(sitemap).toContain(`path: '${seo.path}'`)
     })
+  })
+})
+
+describe('for-organizations hub', () => {
+  const copy = strings([HUB_SEO, HUB_COPY, PORTALS]).filter((s) => !s.startsWith('/'))
+
+  it('has one card per portal, each with a page and a log in, including higher education and workforce', () => {
+    expect(PORTAL_LIST.map((p) => p.key)).toEqual(PORTAL_ORDER)
+    for (const key of ['higher_education', 'workforce'] as const) expect(PORTALS[key].loginHref).toBeTruthy()
+    for (const p of PORTAL_LIST) {
+      expect(p.route.startsWith('/')).toBe(true)
+      expect(p.loginHref).toBeTruthy()
+      expect(PORTAL_PAGES.some((page) => page.seo.path === p.route), p.route).toBe(true)
+    }
+  })
+
+  it('makes no unverifiable comparison, shows no amount and does not call every portal free', () => {
+    for (const s of copy) {
+      expect(s, s).not.toMatch(/\b(only|first|unlike)\b|no other/i)
+      expect(s, s).not.toMatch(/\$\s*\d/)
+      expect(s, s).not.toMatch(/\b(price|prices|pricing|cost|costs|discount|discounts|savings)\b/i)
+      expect(s, s).not.toMatch(/free for the people you serve/i)
+    }
+  })
+
+  it('has metadata, a CollectionPage and BreadcrumbList graph, and a sitemap entry', () => {
+    expect(portalMetadata(HUB_SEO).alternates?.canonical).toBe(HUB_PATH)
+    const graph = hubJsonLd({ path: HUB_PATH, name: HUB_SEO.title, description: HUB_COPY.jsonLdDescription, items: PORTAL_LIST.map((p) => ({ name: p.name, path: p.route })), trail: HUB_COPY.trail }) as { '@graph': { '@type': string }[] }
+    expect(graph['@graph'].map((n) => n['@type'])).toEqual(['CollectionPage', 'BreadcrumbList'])
+    expect(sitemap).toContain(`path: '${HUB_PATH}'`)
   })
 })

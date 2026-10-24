@@ -227,7 +227,7 @@ export const PLANS: Plan[] = [
     audience: 'Employers developing and keeping current employees',
     includes: [
       'Retention: promotion and raise preparation, internal roles and paths into new functions',
-      'Learning and development: a skills plan for each person, with the courses you cover first',
+      'Learning and development: a skills plan for each person, starting with the courses you cover',
       'Job retraining for people whose jobs are changing: not available yet',
       'Counts by team, never by person',
     ],

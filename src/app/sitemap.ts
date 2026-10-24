@@ -41,7 +41,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/submit-resume', updated: '2026-10-02', freq: 'monthly', priority: 0.4 },
   { path: '/submit-search', updated: '2026-10-09', freq: 'monthly', priority: 0.4 },
   { path: '/refer', updated: '2026-10-02', freq: 'monthly', priority: 0.3 },
-  { path: '/for-organizations', updated: '2026-10-06', freq: 'monthly', priority: 0.5 },
+  { path: '/for-organizations', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/higher-education', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/employers', updated: '2026-10-24', freq: 'monthly', priority: 0.7 },
   { path: '/employees', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
