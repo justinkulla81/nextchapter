@@ -138,15 +138,19 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
       <section className="rounded-xl border border-border p-5" id="watch">
         <h2 className="text-lg font-semibold">Competitor watch</h2>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Re-reads every active card monthly (adds, never deletes), checks news monthly on direct and adjacent competitors, and records grants won, new customers, funding, acquisitions, layoffs and shutdowns. Model-suggested matrix answers wait here for you. Costs model and search money, so it is off until you switch it on, and it stops at the monthly limit.
-        </p>
+          {watch.mode === 'PAID'
+            ? 'Paid mode: a model re-reads every active card monthly and searches the web for news, and suggests matrix answers for you to confirm. It costs money, so it stops at the monthly limit.'
+            : 'Free mode (no model, no search bill): each month we re-read every active site and flag the ones that changed, compare customer logos, sort news headlines by keyword, and list grants and contracts the award finder has found. Changed cards are marked "check this"; nothing is rewritten for you.'}
+          {' '}Either way it only adds, never deletes, and it is off until you switch it on.</p>
         <form action={saveWatchSettings} className="mt-3 flex flex-wrap items-center gap-4 text-sm">
           <label className="flex items-center gap-1.5"><input type="checkbox" name="enabled" defaultChecked={watch.enabled} /> Watch on</label>
+          <label className="flex items-center gap-1.5"><input type="radio" name="mode" value="FREE" defaultChecked={watch.mode !== 'PAID'} /> Free mode</label>
+          <label className="flex items-center gap-1.5"><input type="radio" name="mode" value="PAID" defaultChecked={watch.mode === 'PAID'} /> Paid mode (about $40 a month)</label>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="refreshEnabled" defaultChecked={watch.refreshEnabled} /> Monthly refresh</label>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="newsEnabled" defaultChecked={watch.newsEnabled} /> Weekly news</label>
           <label className="flex items-center gap-1.5">Monthly limit $<input name="monthlyCapUsd" type="number" min={0} max={500} step={1} defaultValue={watch.monthlyCapUsd} className="h-9 w-20 rounded-md border border-input bg-background px-2" /></label>
           <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
-          <span className="text-muted-foreground">Spent this month: ${spent.toFixed(2)} of ${watch.monthlyCapUsd.toFixed(0)} · {watch.enabled ? 'on' : 'off'}</span>
+          <span className="text-muted-foreground">{watch.mode === 'PAID' ? `Spent this month: $${spent.toFixed(2)} of $${watch.monthlyCapUsd.toFixed(0)}` : 'Free mode: $0 spent'} · {watch.enabled ? 'on' : 'off'}</span>
         </form>
         {proposals.length > 0 && (
           <div className="mt-4">

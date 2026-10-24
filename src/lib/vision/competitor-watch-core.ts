@@ -5,10 +5,10 @@
  */
 import { cleanUrl, type NamedEntry, type WinEntry } from './competitor-areas'
 
-export const EVENT_KINDS = ['NEWS', 'WIN', 'LOGO', 'FUNDING', 'ACQUISITION', 'LAYOFF', 'CLOSURE'] as const
+export const EVENT_KINDS = ['NEWS', 'WIN', 'LOGO', 'FUNDING', 'ACQUISITION', 'LAYOFF', 'CLOSURE', 'SITE_CHANGE'] as const
 export type EventKind = (typeof EVENT_KINDS)[number]
 export const EVENT_LABEL: Record<EventKind, string> = {
-  NEWS: 'News', WIN: 'Grant or contract won', LOGO: 'New customer', FUNDING: 'Funding', ACQUISITION: 'Acquisition', LAYOFF: 'Layoffs', CLOSURE: 'Shut down',
+  NEWS: 'News', WIN: 'Grant or contract won', LOGO: 'New customer', FUNDING: 'Funding', ACQUISITION: 'Acquisition', LAYOFF: 'Layoffs', CLOSURE: 'Shut down', SITE_CHANGE: 'Website changed',
 }
 
 export const REFRESH_EVERY_DAYS = 30
@@ -135,5 +135,5 @@ export const unionStrings = (a: string[], b: string[], max: number) => [...new S
 
 /** Groups events for the digest: layoffs, closures, acquisitions and funding first, then wins, logos and general news. */
 export function digestOrder(kind: string): number {
-  return ['CLOSURE', 'ACQUISITION', 'LAYOFF', 'FUNDING', 'WIN', 'LOGO', 'NEWS'].indexOf(kind)
+  return ['CLOSURE', 'ACQUISITION', 'LAYOFF', 'FUNDING', 'WIN', 'LOGO', 'SITE_CHANGE', 'NEWS'].indexOf(kind)
 }

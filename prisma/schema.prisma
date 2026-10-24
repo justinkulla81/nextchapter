@@ -11903,6 +11903,11 @@ model ProductCompetitor {
   /// Last time the monthly refresh / weekly news watch read this card.
   watchRefreshedAt DateTime?
   watchNewsAt      DateTime?
+  /// Free-mode website snapshot: visible text lines (capped), customer-logo names, hash, and when it was read.
+  siteText         String?  @db.Text
+  siteHash         String?
+  siteLogos        String[] @default([])
+  siteReadAt       DateTime?
 
   @@index([lastReviewedAt])
 }
@@ -16911,6 +16916,8 @@ model CompetitorWatchSetting {
   refreshEnabled Boolean  @default(true)
   newsEnabled    Boolean  @default(true)
   monthlyCapUsd  Float    @default(50)
+  /// FREE (default): news feed + website comparison with plain code, no model or search cost. PAID: Haiku + web search, counted against monthlyCapUsd.
+  mode           String   @default("FREE")
   updatedAt      DateTime @updatedAt
   updatedByEmail String?
 }

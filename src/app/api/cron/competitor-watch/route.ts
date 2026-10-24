@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { withCronRun } from '@/lib/cron/run'
-import { runWatch } from '@/lib/vision/competitor-watch'
+import { runWatchByMode } from '@/lib/vision/competitor-free'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export const maxDuration = 300
@@ -12,7 +12,7 @@ export const maxDuration = 300
  */
 export const GET = withCronRun('competitor-watch', async (request: NextRequest) => {
   const job = request.nextUrl.searchParams.get('job') === 'news' ? 'news' : 'refresh'
-  const r = await runWatch(job, { batch: job === 'news' ? 25 : 20 })
+  const r = await runWatchByMode(job)
   captureServerEvent('cron', 'competitor_watch_run', { ...r })
   return NextResponse.json(r)
 })
