@@ -130,6 +130,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/pitch/request.ts': 'admin-only: imported by the CRM pitch builder pages',
     'src/lib/mailing/editions.ts': 'admin mailing',
     'src/lib/mailing/lists.ts': 'admin mailing',
+    'src/lib/mailing/autoassign.ts': 'admin mailing: daily cron and backfill that subscribe CRM people to lists by type',
     'src/lib/mailing/prompt-cards.ts': 'admin mailing',
     'src/lib/mailing/tracking.ts': 'admin mailing',
     'src/lib/warn/layoff-contacts-run.ts': 'admin WARN tooling',
