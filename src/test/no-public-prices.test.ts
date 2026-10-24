@@ -9,6 +9,9 @@ import { describe, expect, it } from 'vitest'
 
 const PUBLIC_FILES = [
   'src/app/pricing/page.tsx',
+  'src/app/higher-education/page.tsx',
+  'src/lib/marketing/portal-pages/higher-education.ts',
+  'src/components/marketing/PortalMarketingPage.tsx',
   'src/app/outplacement/page.tsx',
   'src/app/membership/page.tsx',
   'src/app/vs/page.tsx',

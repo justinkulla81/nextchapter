@@ -38,6 +38,12 @@ export type PortalProof =
   /** The first visual, shown large and labeled as sample data. */
   | { kind: 'sample'; heading: string; intro: string }
 
+export interface PortalClaim {
+  title: string
+  /** Plain paragraphs: how a staff member claims the organization's page. Full URLs are written out in the text. */
+  paragraphs: string[]
+}
+
 export interface PortalFinalCta {
   title: string
   intro?: string
@@ -61,6 +67,8 @@ export interface PortalPageContent {
   proof: PortalProof
   visuals: PortalVisual[]
   steps: PortalStep[]
+  /** Pages whose primary action is "Claim your page": where and how the claim works. Anchor: #claim. */
+  claim?: PortalClaim
   /** Whose plans the packages section shows, in order. */
   plansFor: PortalKey[]
   plansIntro: string
@@ -185,6 +193,16 @@ export function PortalMarketingPage({ content: c }: { content: PortalPageContent
             ))}
           </ol>
         </AudienceSection>
+
+        {c.claim && (
+          <AudienceSection id="claim" title={c.claim.title}>
+            <div className="max-w-2xl space-y-3 text-base leading-relaxed text-ink">
+              {c.claim.paragraphs.map((p) => (
+                <p key={p}>{p}</p>
+              ))}
+            </div>
+          </AudienceSection>
+        )}
 
         <AudienceSection id="plans" title="Plans">
           <p className="mb-6 max-w-2xl text-base leading-relaxed text-muted-foreground">{c.plansIntro}</p>
