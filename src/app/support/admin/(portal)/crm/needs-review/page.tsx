@@ -42,7 +42,7 @@ export default async function CrmNeedsReviewPage() {
       </nav>
 
       <header>
-        <h1 className="text-2xl font-semibold">Needs review</h1>
+        <h1 className="text-2xl font-semibold">Emails to confirm</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Outbound emails the sync found but couldn&apos;t confirm are about NextChapter — real mail you sent,
           not yet counted toward touch counts or &quot;waiting on a reply&quot; until you say it belongs.

@@ -35,7 +35,7 @@ const [y, m] = edition.split('-').map(Number)
 // so the U.S. series runs through the edition month and stops where data stops.
 run('python3', ['scripts/employment-report/nc_early_warning_us.py', '--start', '2010-01', '--end', `${y}-${String(m).padStart(2, '0')}`, '--out', path.join(snap, 'us-early-warning.csv')])
 run('python3', ['scripts/employment-report/nc_peer_countries.py', '--out', path.join(snap, 'early-warning-peers.json')])
-run('npx', ['tsx', '--env-file=.env.local', 'scripts/employment-report/ai-layoffs-monthly.ts', '--edition', edition])
+run('npx', ['tsx', '--env-file=.env.local', 'scripts/employment-report/ai-layoffs-monthly.ts', '--edition', edition, ...(process.env.AI_LAYOFFS_JSON ? ['--from-json', process.env.AI_LAYOFFS_JSON] : [])])
 
 for (const f of ['us-early-warning.csv', 'early-warning-peers.json', 'ai-layoffs-monthly.csv', 'ai-layoffs-events.csv']) {
   const src = path.join(snap, f)

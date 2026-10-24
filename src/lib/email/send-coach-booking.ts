@@ -11,7 +11,7 @@ export async function sendBookingEmail(params: {
   to: string
   /** Who is receiving it: the client (default) or the coach. */
   audience?: 'candidate' | 'coach'
-  kind: 'booked' | 'cancelled'
+  kind: 'booked' | 'cancelled' | 'rescheduled'
   otherPartyName: string
   startsAt: Date
   /** The coach's zone, so the time is stated unambiguously. */
@@ -24,9 +24,13 @@ export async function sendBookingEmail(params: {
   }
   const when = params.startsAt.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short', timeZone: params.timezone, timeZoneName: 'short' })
   const who = escapeHtml(params.otherPartyName)
-  const subject = params.kind === 'booked' ? `Coaching session booked for ${when}` : `Coaching session cancelled: ${when}`
+  const subject = params.kind === 'booked' ? `Coaching session booked for ${when}` : params.kind === 'rescheduled' ? `Coaching session moved to ${when}` : `Coaching session cancelled: ${when}`
   const body =
-    params.kind === 'booked'
+    params.kind === 'rescheduled'
+      ? `<p>Your coaching session with ${who} moved to <strong>${escapeHtml(when)}</strong>.</p>${
+          params.meetUrl ? `<p>Join here: <a href="${escapeHtml(params.meetUrl)}">${escapeHtml(params.meetUrl)}</a></p>` : ''
+        }<p>To change or cancel it, use your NextChapter dashboard.</p>`
+      : params.kind === 'booked'
       ? `<p>A coaching session with ${who} is booked for <strong>${escapeHtml(when)}</strong>.</p>${
           params.meetUrl ? `<p>Join here: <a href="${escapeHtml(params.meetUrl)}">${escapeHtml(params.meetUrl)}</a></p>` : '<p>Your coach will share the meeting link.</p>'
         }<p>To change or cancel it, use your NextChapter dashboard.</p>`

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { EXCERPT_CHARS, excerptOf, skillsFrom } from '@/lib/jobs/posting-text'
+import { EXCERPT_CHARS, MAX_DESCRIPTION_CHARS, excerptOf, fullDescriptionOf, isExcerpt, skillsFrom } from '@/lib/jobs/posting-text'
 import { jobSkillGap } from '@/lib/jobs/job-skill-gap'
 
 describe('excerptOf', () => {
@@ -17,6 +17,37 @@ describe('excerptOf', () => {
     expect(out.slice(0, -1).endsWith(' ')).toBe(false)
     // never ends in a half word: the last token is a whole "wordN"
     expect(out.slice(0, -1).split(' ').pop()).toMatch(/^word\d+$/)
+  })
+})
+
+describe('fullDescriptionOf', () => {
+  it('keeps a long plain-text posting whole, paragraphs and all', () => {
+    const text = `About the role\n\n${'We build things. '.repeat(400).trim()}\n\nRequirements: Snowflake.`
+    expect(fullDescriptionOf(text)).toBe(text.trim())
+    expect(isExcerpt(fullDescriptionOf(text))).toBe(false)
+  })
+
+  it('turns the odd HTML posting into text and decodes entities', () => {
+    expect(fullDescriptionOf('<p>Lead R&amp;D.</p><ul><li>Python</li><li>SQL</li></ul>')).toBe('Lead R&D.\n\n• Python\n\n• SQL')
+    // Greenhouse sends entity-encoded HTML: two passes give text
+    expect(fullDescriptionOf(fullDescriptionOf('&lt;p&gt;Hello&lt;/p&gt;'))).toBe('Hello')
+  })
+
+  it('is stable on its own output, so a re-import is not a change', () => {
+    const once = fullDescriptionOf('<p>One</p>\r\n\r\n\r\n<p>Two &nbsp;</p>')
+    expect(fullDescriptionOf(once)).toBe(once)
+  })
+
+  it('caps junk at the sanity bound', () => {
+    const out = fullDescriptionOf('word '.repeat(20_000))!
+    expect(out.length).toBeLessThanOrEqual(MAX_DESCRIPTION_CHARS + 1)
+    expect(out.endsWith('…')).toBe(true)
+  })
+
+  it('tells an old excerpt from full text', () => {
+    expect(isExcerpt(excerptOf('word '.repeat(400)))).toBe(true)
+    expect(isExcerpt('A short posting.')).toBe(false)
+    expect(fullDescriptionOf('  ')).toBeNull()
   })
 })
 

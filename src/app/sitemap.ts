@@ -24,7 +24,7 @@ type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
  * everything changed on every deploy, so they learn to ignore the field.
  *
  * Only public, indexable pages belong here. Never list sign-in pages,
- * redirects (/employers, /for-coaches) or anything robots.ts disallows.
+ * redirects (/for-coaches, /coach-platform) or anything robots.ts disallows.
  */
 const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: number }[] = [
   { path: '/jobs', updated: '2026-10-22', freq: 'daily', priority: 0.8 },
@@ -32,7 +32,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/how-it-works', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/why-stuck', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
-  { path: '/pricing', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
+  { path: '/pricing', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
   { path: '/ai-training', updated: '2026-10-20', freq: 'monthly', priority: 0.6 },
   { path: '/dossier', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
@@ -41,15 +41,17 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/submit-resume', updated: '2026-10-02', freq: 'monthly', priority: 0.4 },
   { path: '/submit-search', updated: '2026-10-09', freq: 'monthly', priority: 0.4 },
   { path: '/refer', updated: '2026-10-02', freq: 'monthly', priority: 0.3 },
-  { path: '/for-organizations', updated: '2026-10-06', freq: 'monthly', priority: 0.5 },
-  { path: '/outplacement', updated: '2026-10-06', freq: 'monthly', priority: 0.5 },
-  { path: '/recruiters', updated: '2026-08-15', freq: 'monthly', priority: 0.5 },
-  { path: '/talent', updated: '2026-08-26', freq: 'monthly', priority: 0.5 },
-  { path: '/government-workforce', updated: '2026-07-14', freq: 'monthly', priority: 0.5 },
-  { path: '/nonprofits', updated: '2026-07-14', freq: 'monthly', priority: 0.5 },
+  { path: '/for-organizations', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
+  { path: '/higher-education', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
+  { path: '/employers', updated: '2026-10-24', freq: 'monthly', priority: 0.7 },
+  { path: '/employees', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
+  { path: '/outplacement', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
+  { path: '/recruiters', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
+  { path: '/talent', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
+  { path: '/government-workforce', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
+  { path: '/nonprofits', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/coaching', updated: '2026-08-07', freq: 'monthly', priority: 0.5 },
-  { path: '/coaches', updated: '2026-08-15', freq: 'monthly', priority: 0.5 },
-  { path: '/coach-platform', updated: '2026-08-15', freq: 'monthly', priority: 0.4 },
+  { path: '/coaches', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/membership', updated: '2026-08-22', freq: 'monthly', priority: 0.5 },
   { path: '/rfp-template', updated: '2026-08-25', freq: 'yearly', priority: 0.4 },
   { path: '/for-managers/give-a-reference', updated: '2026-08-12', freq: 'yearly', priority: 0.3 },

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
+import { PersonalizationQuestion } from '@/components/ui/personalization-question'
 import { cn } from '@/lib/utils'
 import { CONFIDENCE_SLIDER_STOPS as STOPS } from '@/lib/constants/onboarding'
 
@@ -12,6 +13,8 @@ export function ConfidenceSlider({
   labels,
   suggestedValue,
   onChange,
+  payoff,
+  optional,
 }: {
   name: string
   label: string
@@ -22,6 +25,9 @@ export function ConfidenceSlider({
   // already implied elsewhere on the page (e.g. picking a matching Superpower).
   suggestedValue?: number | null
   onChange?: (value: number) => void
+  // When given, the slider renders as a PersonalizationQuestion stating this payoff.
+  payoff?: string
+  optional?: boolean
 }) {
   const [value, setValue] = useState<number | null>(defaultValue ?? null)
   const [touched, setTouched] = useState(defaultValue !== null)
@@ -46,9 +52,8 @@ export function ConfidenceSlider({
     onChange?.(stop)
   }
 
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
+  const control = (
+    <>
       <input type="hidden" name={name} value={value ?? ''} />
       <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
         {STOPS.map((stop, i) => (
@@ -68,6 +73,21 @@ export function ConfidenceSlider({
           </button>
         ))}
       </div>
+    </>
+  )
+
+  if (payoff) {
+    return (
+      <PersonalizationQuestion id={`slider-${name}`} question={label} payoff={payoff} optional={optional}>
+        {control}
+      </PersonalizationQuestion>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      {control}
     </div>
   )
 }

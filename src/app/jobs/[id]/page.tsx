@@ -10,6 +10,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { PersonalizePanel } from '@/components/home/PersonalizePanel'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
 import { buttonVariants } from '@/components/ui/button'
+import { isExcerpt } from '@/lib/jobs/posting-text'
 import { datePostedOf, descriptionParagraphs, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
 import { getPublicJob } from '@/lib/jobs/public-job-page-server'
 import { cn } from '@/lib/utils'
@@ -55,7 +56,9 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   const place = placeLabel(job)
   const pay = payLabel(job.salaryMin, job.salaryMax, job.payPeriod)
   const paragraphs = descriptionParagraphs(job.description)
-  const excerpt = (job.description ?? '').trimEnd().endsWith('…')
+  // Rows imported before full text was kept still hold a ~1,000-character excerpt until
+  // their next import; only those point to the employer's page for the rest.
+  const excerpt = isExcerpt(job.description)
   const remote = isRemoteJob(job)
 
   return (

@@ -1,0 +1,7 @@
+body{font:14px/1.45 system-ui,sans-serif;width:320px;margin:0;padding:16px;color:#16213a}
+h1{font-size:16px;margin:0 0 6px}.lead{margin:0 0 12px;color:#4a5568}
+label{display:block;font-weight:600;margin-bottom:4px}.row{display:flex;gap:8px;align-items:center;font-weight:500;margin:10px 0}
+input[type=password]{width:100%;box-sizing:border-box;padding:8px;border:1px solid #c5cbd6;border-radius:8px;margin-bottom:8px}
+button{font:inherit;background:#c2410c;color:#fff;border:0;border-radius:8px;padding:9px 12px;width:100%;cursor:pointer}
+button.secondary{background:#fff;color:#16213a;border:1px solid #c5cbd6}
+.hint{color:#4a5568;font-size:12px;margin:8px 0 0}.ok{color:#166534;font-weight:600;margin:0}a{color:#c2410c}

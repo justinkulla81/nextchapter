@@ -173,6 +173,14 @@
       "schedule": "10 18 * * *"
     },
     {
+      "path": "/api/cron/board-bids",
+      "schedule": "20 9 * * *"
+    },
+    {
+      "path": "/api/cron/competitor-awards",
+      "schedule": "40 9 * * *"
+    },
+    {
       "path": "/api/cron/federal-contracts",
       "schedule": "30 11 * * *"
     },

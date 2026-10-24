@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="popup.css"></head>
+<body>
+<h1>NextChapter Apply Helper</h1>
+<p class="lead">Fills your name, contact details, current job and resume on Greenhouse, Ashby and Lever applications. You review everything and press Submit yourself.</p>
+<section id="connect">
+  <label for="code">Connect code</label>
+  <input id="code" type="password" autocomplete="off" placeholder="Paste the code from NextChapter">
+  <button id="save">Connect</button>
+  <p class="hint">Get a code at <a id="getcode" href="#" target="_blank">your Apply Helper page</a> (sign in first).</p>
+</section>
+<section id="connected" hidden>
+  <p class="ok">Connected to NextChapter.</p>
+  <label class="row"><input id="enabled" type="checkbox"> Helper is on</label>
+  <button id="disconnect" class="secondary">Disconnect this browser</button>
+</section>
+<p id="msg" class="hint"></p>
+<script src="popup.js"></script>
+</body></html>

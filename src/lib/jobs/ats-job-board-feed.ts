@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { fullDescriptionOf } from '@/lib/jobs/posting-text'
 import type { AtsCompany } from '@/lib/market/ats-companies'
 import { getAtsCompanies } from '@/lib/market/ats-discovery'
 import { isUsLocation } from '@/lib/jobs/us-location'
@@ -10,6 +11,7 @@ import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { screenJobTitle } from '@/lib/jobs/job-seniority'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
+import { fetchUsajobsListings } from '@/lib/jobs/usajobs-feed'
 
 const FETCH_TIMEOUT_MS = 6000
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -72,7 +74,8 @@ async function fetchGreenhouseListings(company: AtsCompany): Promise<FeedListing
     companyName: company.name,
     location: j.location?.name ?? null,
     url: j.absolute_url,
-    description: j.content ? j.content.replace(/<[^>]+>/g, ' ').trim().slice(0, 2000) : null,
+    // Greenhouse sends entity-encoded HTML: decode, then turn the tags into text.
+    description: fullDescriptionOf(fullDescriptionOf(j.content)),
     // Greenhouse only exposes salary via a separate per-job
     // ?pay_transparency=true fetch — skipped here to keep this one request
     // per company; these rows land in the review queue flagged as missing
@@ -99,7 +102,7 @@ async function fetchLeverListings(company: AtsCompany): Promise<FeedListing[]> {
     companyName: company.name,
     location: j.categories?.location ?? null,
     url: j.hostedUrl,
-    description: j.descriptionPlain?.slice(0, 2000) ?? null,
+    description: fullDescriptionOf(j.descriptionPlain),
     salaryMin: j.salaryRange?.min ?? null,
     salaryMax: j.salaryRange?.max ?? null,
     salaryCurrency: j.salaryRange?.currency ?? null,
@@ -129,7 +132,7 @@ async function fetchAshbyListings(company: AtsCompany): Promise<FeedListing[]> {
       companyName: company.name,
       location: j.location ?? null,
       url: j.jobUrl,
-      description: j.descriptionPlain?.slice(0, 2000) ?? null,
+      description: fullDescriptionOf(j.descriptionPlain),
       salaryMin: min,
       salaryMax: max,
       salaryCurrency: min !== null ? 'USD' : null,
@@ -164,7 +167,7 @@ async function fetchJobAdderListings(company: AtsCompany): Promise<FeedListing[]
     companyName: company.name,
     location: j.location?.area ?? j.location?.name ?? null,
     url: j.jobAdUrl,
-    description: j.summary?.replace(/<[^>]+>/g, ' ').trim().slice(0, 2000) ?? null,
+    description: fullDescriptionOf(j.summary),
     salaryMin: j.salary?.rateLow ?? null,
     salaryMax: j.salary?.rateHigh ?? null,
     salaryCurrency: j.salary?.currency ?? null,
@@ -186,6 +189,7 @@ async function fetchCompanyListings(company: AtsCompany): Promise<FeedListing[]>
 
 export interface AtsFeedResult {
   fetched: number
+  usajobsFetched: number
   created: number
   reconfirmed: number
   skippedNoFit: number
@@ -244,8 +248,13 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   // apiece) could exceed this route's maxDuration well before reaching the
   // later companies in ATS_COMPANIES, silently truncating the run to
   // whichever handful happened to be first in the array.
-  const perCompanyListings = await Promise.all(atsCompanies.map((company) => fetchCompanyListings(company)))
-  const allListings = perCompanyListings.flat()
+  const [perCompanyListings, usajobsListings] = await Promise.all([
+    Promise.all(atsCompanies.map((company) => fetchCompanyListings(company))),
+    // Federal postings run through the same US, seniority and candidate-fit
+    // gates as the company boards below.
+    fetchUsajobsListings(),
+  ])
+  const allListings = [...perCompanyListings.flat(), ...usajobsListings]
 
   // One existence check for every URL fetched this run, instead of a
   // per-listing findFirst — the same N+1 pattern that made the DB side of
@@ -355,6 +364,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
 
   return {
     fetched: allListings.length,
+    usajobsFetched: usajobsListings.length,
     created: toCreate.length,
     reconfirmed: toReconfirmIds.length,
     skippedNoFit,
