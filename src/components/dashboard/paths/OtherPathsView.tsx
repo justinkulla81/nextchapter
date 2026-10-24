@@ -151,7 +151,7 @@ export function OtherPathsView({
         )}
         <p className="text-sm text-muted-foreground">Your plan stays built around {mainLabel.toLowerCase()}.</p>
 
-        <ShowMore label="Side or part-time work: hours, income and what it is for" event="side_work_opened" properties={{ main, level: levels.side ?? null }}>
+        <ShowMore label="Side work details" event="side_work_opened" properties={{ main, level: levels.side ?? null }}>
           <form action={saveSideWork} id="side" className="space-y-5 rounded-2xl border border-border p-5">
             <fieldset className="space-y-2">
               <legend className="text-sm font-semibold text-ink">What do you do?</legend>
@@ -192,7 +192,7 @@ export function OtherPathsView({
             </ActionSubmit>
           </form>
         </ShowMore>
-        <ShowMore label="Going back to school: program, full or part time, when it ends and how you pay" event="school_details_opened" properties={{ main, level: levels.school ?? null }}>
+        <ShowMore label="School details" event="school_details_opened" properties={{ main, level: levels.school ?? null }}>
           <form action={saveSchoolDetails} id="school" className="space-y-5 rounded-2xl border border-border p-5">
             <label className="space-y-1.5 text-sm font-semibold text-ink">
               Program or degree

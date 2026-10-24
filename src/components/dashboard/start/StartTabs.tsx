@@ -63,7 +63,6 @@ export function StartPlanTab({
             <H2 id="start-week">Start here</H2>
             <Chip tone="ink">{s.label}</Chip>
           </div>
-          <p className="text-sm text-muted-foreground">{s.goal}</p>
           <ol className="space-y-2">
             {s.firstWeek.map((i) => (
               <li key={i.text} className="flex gap-3 rounded-2xl border border-border p-4 text-sm text-ink">
@@ -86,12 +85,12 @@ export function StartPlanTab({
           <ul className="space-y-1 text-sm text-ink">
             {venture && (
               <li>
-                <span className="font-semibold">Your venture:</span> {venture} <span className="text-muted-foreground">We already have this.</span>
+                <span className="font-semibold">Your venture:</span> {venture} <span className="text-muted-foreground">(we already have this)</span>
               </li>
             )}
             {runwayMonths !== null && (
               <li>
-                <span className="font-semibold">Runway:</span> about {runwayMonths} months <span className="text-muted-foreground">We already have this.</span>
+                <span className="font-semibold">Runway:</span> about {runwayMonths} months <span className="text-muted-foreground">(we already have this)</span>
               </li>
             )}
           </ul>
@@ -186,7 +185,8 @@ function HelpRow({ h, stage }: { h: HelpItem; stage: StartStageKey }) {
       <div className="max-w-xl space-y-1">
         <p className="flex flex-wrap items-center gap-2 text-base font-semibold text-ink">
           {h.name}
-          {h.stages.includes(stage) && <Chip tone="warm">Good for now</Chip>}
+          {/* Only help that is for particular steps is marked: a mark on everything marks nothing. */}
+          {h.stages.length < 5 && h.stages.includes(stage) && <Chip tone="warm">Good for now</Chip>}
         </p>
         <p className="text-sm text-muted-foreground">{h.summary}</p>
       </div>
