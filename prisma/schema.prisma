@@ -14589,6 +14589,64 @@ model FundingOpportunity {
   @@index([audience, eligibility])
 }
 
+/// A federal award a competitor won (USAspending.gov, free). Applied by hand: prisma/manual/bid-finder.sql.
+model CompetitorAward {
+  id             String    @id
+  competitorName String
+  competitorId   String?
+  recipientName  String
+  kind           String
+  confidence     String    @default("EXACT")
+  awardKey       String
+  awardId        String?
+  description    String?
+  agency         String?
+  subAgency      String?
+  amount         Float     @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  url            String
+  firstSeenAt    DateTime  @default(now())
+  lastSeenAt     DateTime  @default(now())
+
+  @@unique([awardKey, competitorName])
+  @@index([competitorName])
+  @@index([firstSeenAt])
+}
+
+model CompetitorAwardCheck {
+  competitorName String   @id
+  checkedAt      DateTime @default(now())
+  awardsFound    Int      @default(0)
+  error          String?
+}
+
+model BoardBidCheck {
+  boardId   String   @id
+  checkedAt DateTime @default(now())
+  outcome   String
+  bidsFound Int      @default(0)
+  note      String?
+}
+
+/// A bid or RFP read from a workforce board's own procurement page (src/lib/bids).
+model BoardBid {
+  id           String    @id
+  boardId      String
+  title        String
+  url          String
+  pageUrl      String
+  deadline     DateTime?
+  deadlineText String?
+  status       String    @default("OPEN")
+  firstSeenAt  DateTime  @default(now())
+  lastSeenAt   DateTime  @default(now())
+
+  @@index([boardId])
+  @@index([status, deadline])
+  @@index([firstSeenAt])
+}
+
 // Relocation incentives, retraining funds, grants, dividends and free courses for
 // laid-off professionals. Applied by hand: prisma/manual/benefit-programs.sql.
 model BenefitProgram {
