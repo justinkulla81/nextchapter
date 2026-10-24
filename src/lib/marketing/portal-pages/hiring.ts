@@ -81,7 +81,7 @@ export const HIRING: PortalPageDef = {
       },
       {
         q: 'Can my colleagues review candidates with me?',
-        a: 'Yes, with seats on the Hiring team plan. Each person sees only what the candidate shared. Talk to us to set it up.',
+        a: 'Yes, with seats on the Hiring team plan. Each person sees what the candidate chose to share. Talk to us to set it up.',
       },
     ],
     finalCta: {
