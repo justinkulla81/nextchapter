@@ -251,17 +251,17 @@
     {
       "id": "college",
       "who": "College: continuing education, career services or alumni lead in a county with several layoffs",
-      "why": "Demand pilot. Community colleges and four-year colleges get the same email; compare who responds. Not free: a partnership to support local retraining and affected alumni.",
+      "why": "Demand pilot, free for alumni. Community colleges and four-year colleges get the same email; compare who responds. The ask is to send NextChapter to alumni for free and take a demo; the data and reports are the paid part, only if the college wants them.",
       "subjects": [
-        "Supporting {{county}} workers affected by layoffs",
-        "{{employers_in_county}} layoffs in {{county}}: a role for {{college}}"
+        "A free resource for your alumni",
+        "{{employers_in_county}} layoffs in {{county}}: free for alumni"
       ],
-      "preview": "Retraining and affected alumni, with counts of who engaged and landed.",
-      "body": "{{first_name}},\n\n{{employers_in_county}} employers have filed layoff notices in {{county}} in the last 90 days, covering {{college_county_jobs}} jobs. Many of those workers live in {{college}}'s community, and some are likely its alumni. Their searches run long: 28% of unemployed professionals are still looking after 27 weeks, up from 23% a year ago (our monthly report: https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026?utm_source=cold&utm_medium=email&utm_content=college).\n\n{{market_context}}\n\nI founded NextChapter, the leading job transition platform. We work with colleges to support the local workforce through retraining and to keep affected alumni engaged. Each person gets a pivot plan from their work history, retraining matched to their skill gaps (including your own programs), networking outreach drafted, coaching, and exclusive jobs and recruiters. Open AI-titled roles in our database advertise about a third more than others at the same level. You see counts of who engaged and landed, never names.\n\nIs {{college}} looking at how to serve these workers? I can send a one-page overview, or set up 20 minutes with whoever leads continuing education or career services.",
-      "fu1": "{{first_name}}, the one-page overview covers what the partnership includes, how affected alumni are reached, and the counts you would see. Want it?\n\nIf a call is easier, pick a time: {{book_link_1}}",
-      "fu2": "{{first_name}}, last note. If {{college}} is not looking at this, reply \"no\" and I won't write again. If it is, I'll send the overview today.\n\nOr, to talk it through, pick a time: {{book_link_2}}",
+      "preview": "Free for alumni. A 20-minute demo if you want to see it.",
+      "body": "{{first_name}},\n\nI'm Justin Kulla, founder of NextChapter, the leading job transition platform. I'm writing to ask whether {{college}} would send NextChapter to its alumni, for free, and whether you'd take a short demo first.\n\nWhy now: {{employers_in_county}} employers have filed layoff notices in {{county}} in the last 90 days, covering {{college_county_jobs}} jobs, and many of those workers are likely {{college}} alumni. {{market_context}} Their searches run long: 28% of unemployed professionals are still looking after 27 weeks, up from 23% a year ago (our monthly report: https://launchyournextchapter.com/reports/white-collar-employment-report-september-2026?utm_source=cold&utm_medium=email&utm_content=college). The sooner someone starts, the better their chances.\n\nWhat your alumni get, free: a pivot plan built from their work history, search across our database of open jobs, networking practice with outreach drafted for them, retraining for their skill gaps and for AI (including your own programs), and part-time or fractional work while they search.\n\nWhat it costs {{college}}: nothing to send it to alumni. I'm looking for colleges to distribute to, and I want to help your alumni get hired, so alumni access is free. If you later want the data and reports on how your alumni are doing, as counts of who engaged, interviewed and landed and never names, that part is paid, and only if you want it.\n\nWould you be open to a 20-minute demo? A one-line reply is enough, and I'll send times.",
+      "fu1": "{{first_name}}, the demo is 20 minutes: what an alumnus sees, and what {{college}} sees. Alumni access is free. Want times?\n\nIf a call is easier, pick a time: {{book_link_1}}",
+      "fu2": "{{first_name}}, last note. If {{college}} is not looking at this, reply \"no\" and I won't write again. If it is, tell me who leads career services or alumni relations and I'll send them the demo.\n\nOr, to talk it through, pick a time: {{book_link_2}}",
       "ps": "",
-      "subject_fallback": "Supporting {{county}} workers affected by layoffs"
+      "subject_fallback": "A free resource for your alumni"
     }
   ]
 }
