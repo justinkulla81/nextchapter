@@ -12,12 +12,15 @@
  *
  *   npx tsx --env-file=.env.local scripts/workforce/build-county-context.ts \
  *     --qcew25 <dir with 2025.annual.singlefile.csv> --qcew22 <dir with 2022.annual.singlefile.csv> \
- *     --census <co-est2025-alldata.csv> --places <national_place_by_county2020.txt> --gaz <2020_Gaz_counties_national.txt>
+ *     --census <co-est2025-alldata.csv> --places <national_place_by_county2020.txt> --gaz <2020_Gaz_counties_national.txt> \
+ *     --ct <ct_cou_to_cousub_crosswalk.txt>
  *
  * Sources: https://data.bls.gov/cew/data/files/{year}/csv/{year}_annual_singlefile.zip (2022 and 2025),
  * https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/counties/totals/co-est2025-alldata.csv,
  * https://www2.census.gov/geo/docs/reference/codes2020/national_place_by_county2020.txt,
- * https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2020_Gazetteer/2020_Gaz_counties_national.zip
+ * https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2020_Gazetteer/2020_Gaz_counties_national.zip,
+ * https://www2.census.gov/geo/docs/reference/ct_change/ct_cou_to_cousub_crosswalk.txt (Connecticut's towns in its nine planning regions,
+ * which replaced its counties in Census and BLS data; the labor rows use the regions)
  */
 import fs from 'node:fs'
 import readline from 'node:readline'
@@ -139,6 +142,19 @@ async function main() {
     byPlace.set(k, (byPlace.get(k) ?? new Set()).add(f[1] + f[2]))
   }
 
+  // Connecticut: BLS and the Census now use planning regions; the place-by-county file still has the old counties.
+  const ctTowns = new Map<string, string>()
+  const ctIdx = process.argv.indexOf('--ct')
+  if (ctIdx > 0 && process.argv[ctIdx + 1]) {
+    // The header cells contain line breaks, so read the data rows by position:
+    // STATEFP | OLD_COUNTYFP | OLD_COUNTY_NAME | NEW_COUNTYFP | NEW_COUNTY_NAME | COUSUBFP | OLD_GEOID | NEW_GEOID | COUSUB_NAMELSAD
+    for (const line of fs.readFileSync(process.argv[ctIdx + 1], 'utf8').split('\n')) {
+      const f = line.split('|')
+      if (f[0] === '09' && /^\d{3}$/.test(f[3] ?? '') && f[8]) ctTowns.set(placeKey(f[8]), `09${f[3]}`)
+    }
+    console.log(`ct crosswalk: ${ctTowns.size} towns`)
+  }
+
   const prisma = new PrismaClient()
   try {
     const cities = await prisma.$queryRaw<{ st: string; city: string }[]>`
@@ -156,6 +172,10 @@ async function main() {
     let missed = 0
     for (const { st, city } of cities) {
       const keys = placeKeys(city)
+      if (st === 'CT') {
+        const town = keys.map((k) => ctTowns.get(k)).find(Boolean)
+        if (town) { for (const k of keys) map[`CT|${k}`] ??= town; continue }
+      }
       const hit = keys.map((k) => ({ k, set: byPlace.get(`${st}|${k}`) })).find((x) => x.set)
       if (!hit?.set) { missed++; continue }
       let fips = [...hit.set][0]
