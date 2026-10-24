@@ -19,3 +19,18 @@ events we do not hold yet.
 6. The daily refresh cron loads the new catalog into the database (locked rows are never overwritten). Report the counts back.
 
 Cost: runs on the owner's Claude plan, no API billing. About 3 to 4 subagent runs a month.
+
+## Commands the scheduled task runs (one per Bash call, never chained)
+
+1. `git -C /Users/salitkulla/nextchapter fetch origin`
+2. `git -C /Users/salitkulla/nextchapter worktree add /Users/salitkulla/nc-events-discovery -b events-discovery-YYYY-MM origin/main`
+3. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh setup`
+4. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh batch`
+5. (subagents write data/events/v5/YYYY-MM-<n>.json with the Write tool)
+6. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh build`
+7. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh test`
+8. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh commit YYYY-MM`
+9. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh pr YYYY-MM "<counts>"`
+10. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh cleanup`
+
+Plus: Agent (Sonnet subagents), WebSearch, WebFetch, Read and Write (data/events/v5 only), and the Gmail connector's send_message for the summary email.
