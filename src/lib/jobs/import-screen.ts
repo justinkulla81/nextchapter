@@ -5,7 +5,8 @@ import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
 // The screen every automated job source passes (the ncrawl import and the crawler
 // history backfill): US (or remote) only, early-career professional roles and up,
 // with the level taken from our own reading of the title (and, for early and
-// mid-level professional titles, the posting's years-of-experience requirement).
+// mid-level professional titles and allowlisted IC-style managers, the posting's
+// years-of-experience requirement).
 // Internships, students, temporary, hourly, clerical and frontline work stay out.
 
 /** Lowest rank an imported job may have: entry-level professional roles (ENTRY_IC, 0-2 years) and up. */
@@ -46,8 +47,14 @@ export function screenImportedJob(
   const rung = verdict.keep ? verdict.level : lifted!.rung
   // The posting's years requirement settles the stage of an early or mid-level
   // professional title with no level marker of its own (never above MID_IC),
-  // and brings a second-grade "Senior" title asking 3 years or fewer to MID_IC.
-  const level = rung === 'ENTRY_IC' || rung === 'EARLY_IC' || rung === 'MID_IC' || rung === 'SENIOR_IC'
+  // brings a second-grade "Senior" title asking 5 years or fewer to MID_IC, and
+  // brings an allowlisted IC-style MANAGER title ("Relationship Manager", "Project
+  // Manager", R2-R4) asking 5 years or fewer to MID_IC (EARLY_IC for an assistant /
+  // associate / level-I one) unless the posting has people-management language
+  // (PEOPLE_MANAGER_DESC: direct reports, "manage a team of"). Same rungs, thresholds,
+  // allowlists and vetoes as ncrawl refine_level_by_years, which the crawler runs on
+  // every rung; refineLevelByYears leaves every other rung untouched.
+  const level = rung === 'ENTRY_IC' || rung === 'EARLY_IC' || rung === 'MID_IC' || rung === 'SENIOR_IC' || rung === 'MANAGER'
     ? refineLevelByYears(title, { rung: rung as RungName, rank: 0 }, opts.description).rung
     : rung
   // Employer-aware calibration (owner, 2026-10-23; job-seniority.ts calibrateLevel): the bank

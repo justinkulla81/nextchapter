@@ -28,6 +28,41 @@ describe('employer-aware level calibration — parity with ncrawl', () => {
     expect(mismatches).toEqual([])
   })
 
+  // The import screen (every automated source, nightly) must store the same level as the
+  // crawler: before 2026-10-24 it skipped the years step on MANAGER titles, so an IC-style
+  // "Treasury Relationship Manager" asking 3-5 years stayed MANAGER / SENIOR_IC on the board.
+  it('the import screen stores the Python verdict on every calibration parity case', () => {
+    const mismatches = (parity as [string, string | null, string, string][])
+      .map(([title, text, company, expected]) => ({ title, text, expected, v: screenImportedJob(title, 'Remote', { description: text, companyName: company }) }))
+      .filter((m) => m.v.keep && m.v.level !== m.expected)
+      .map(({ title, text, expected, v }) => ({ title, text, expected, got: v.keep ? v.level : null }))
+    expect(mismatches).toEqual([])
+  })
+
+  it('import screen: IC-style managers asking 5 years or fewer are mid-level; people managers stay MANAGER', () => {
+    const imp = (title: string, description: string, companyName?: string) => {
+      const v = screenImportedJob(title, 'Charlotte, NC', { description, companyName })
+      return v.keep ? v.level : v.reason
+    }
+    // The years step now runs on MANAGER titles (R2-R4 allowlists, minimum 5 years or fewer).
+    expect(imp('Treasury Relationship Manager', 'Requires 3-5 years of experience in treasury management sales.', 'Regions Bank')).toBe('MID_IC')
+    expect(imp('Relationship Manager', '3+ years of commercial lending experience.', 'PNC')).toBe('MID_IC')
+    expect(imp('Grants Manager', 'Minimum 3 years of grants administration experience.')).toBe('MID_IC')
+    expect(imp('Clinical Trial Manager', "Bachelor's degree and 4 years of clinical research experience.")).toBe('MID_IC')
+    expect(imp('Senior Relationship Manager', '5+ years of wealth management experience.', 'Fifth Third Bank')).toBe('MID_IC')
+    // Near misses: a real people manager asking 5 years or fewer keeps MANAGER (PEOPLE_MANAGER_DESC veto).
+    expect(imp('Senior Relationship Manager', '5+ years of experience; supervise 4 relationship associates (direct reports).', 'Fifth Third Bank')).toBe('MANAGER')
+    expect(imp('Clinical Trial Manager', "Bachelor's degree and 5 years of clinical research experience. Supervise 3 direct reports (CRAs).")).toBe('MANAGER')
+    expect(imp('Relationship Manager', '3+ years of experience. You will manage a team of 5 analysts and lead hiring.', 'PNC')).toBe('MANAGER')
+    expect(imp('Treasury Relationship Manager', '4+ years of treasury sales experience. You will lead a team of 4 treasury officers as their people manager.', 'Regions Bank')).toBe('MANAGER')
+    expect(imp('Clinical Trial Manager', "Bachelor's degree and 3 years of experience. Oversee a team of CRAs.")).toBe('MANAGER')
+    // More than 5 years, or a title the allowlist vetoes ("Manager, ..."), skips the years step.
+    expect(imp('Treasury Relationship Manager', 'Requires 8+ years of experience in treasury management sales.', 'Regions Bank')).toBe('SENIOR_IC')
+    expect(imp('Relationship Manager, Business Banking', '3+ years of business banking experience.', 'Truist')).toBe('SENIOR_IC')
+    // No description: nothing to read, the title's own rung stands.
+    expect(imp('Treasury Relationship Manager', '', 'Regions Bank')).toBe(lvl('Treasury Relationship Manager', 'Regions Bank'))
+  })
+
   it('normalizes employer names the way ncrawl does', () => {
     expect(normalizeCompanyForLevel('The Bank of New York Mellon')).toBe('bank of new york mellon')
     expect(normalizeCompanyForLevel('JPMorgan Chase & Co.')).toBe('jpmorgan chase and')
