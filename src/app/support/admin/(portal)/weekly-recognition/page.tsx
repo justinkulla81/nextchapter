@@ -10,7 +10,7 @@ export default async function WeeklyRecognitionAdminPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Weekly Recognition Archive</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Weekly recognition archive</h1>
         <p className="mt-1 text-muted-foreground">
           Who hit the Weekly Sprint Target and earned badges, week by week — sourced from
           WeeklyBadgeEarned, the currently-written record.
