@@ -7,6 +7,7 @@ import { getClientIp } from '@/lib/http/client-ip'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { fileContactInCrm, emailContactSubmission } from '@/lib/contact/process-submission'
 import { CONTACT_EMAIL } from '@/lib/contact/constants'
+import { mentionsCrisis } from '@/lib/help/constants'
 
 export interface ContactFormValues { fullName: string; email: string; organization: string; role: string; linkedinUrl: string; message: string }
 export type ContactFormState =
@@ -66,6 +67,23 @@ export async function submitContactForm(_prev: ContactFormState, formData: FormD
   const sub = await prisma.contactSubmission.create({
     data: { audience, fullName, email, organization, role, linkedinUrl, message, source, ip, userAgent },
   })
+
+  // Also open a Help inbox conversation, so people who cannot sign in (an
+  // employer locked out, a candidate who lost access) get a real thread with
+  // replies by email. The contact email below still goes to the admin as before.
+  // Job applicants are not customers and stay in Contact messages only.
+  if (audience !== 'JOB_APPLICANT') {
+    const subject = message.split('\n')[0].slice(0, 90) + (message.split('\n')[0].length > 90 ? '…' : '')
+    const help = await prisma.helpRequest.create({
+      data: {
+        portal: 'PUBLIC', requesterName: fullName, requesterEmail: email, requesterOrg: organization,
+        kind: 'HELP', subject, contextPath: source ? `/contact (from ${source})` : '/contact', contextTitle: 'Website contact form',
+        userAgent, flaggedCrisis: mentionsCrisis(message), messages: { create: { body: message } },
+      },
+      select: { id: true },
+    }).catch((e) => { console.error('Could not open a Help conversation for the contact form:', e); return null })
+    if (help) captureServerEvent(email.toLowerCase(), 'help_request_submitted', { requestId: help.id, type: 'help', portal: 'PUBLIC', page: '/contact', audience, source })
+  }
 
   const crmPersonId = await fileContactInCrm(sub)
   const emailed = await emailContactSubmission(sub, crmPersonId)

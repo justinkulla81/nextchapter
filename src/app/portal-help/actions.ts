@@ -11,6 +11,7 @@ import { getInstitutionAccess } from '@/lib/higher-ed/access'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { HELP_MESSAGE_MAX, isConversationKind, mentionsCrisis, type HelpFormKind } from '@/lib/help/constants'
 import { notifyAdminOfPortalHelp } from '@/lib/help/notify'
+import { storeHelpScreenshot } from '@/lib/help/screenshot'
 import type { PortalHelpPortal } from '@/lib/help/constants'
 
 export type PortalHelpState = { error?: string; sent?: boolean; kind?: HelpFormKind; email?: string | null; message?: string } | undefined
@@ -75,16 +76,25 @@ export async function submitPortalHelp(portal: PortalHelpPortal, slug: string | 
     return { sent: true, kind, email: who.email }
   }
 
+  let screenshotPath: string | null = null
+  const file = formData.get('screenshot')
+  if (kind === 'problem' && file instanceof File && file.size > 0) {
+    const stored = await storeHelpScreenshot(`portal-${portal.toLowerCase()}`, file)
+    if (stored === 'too_big') return { error: 'That screenshot is over 5 MB. Try a smaller one, or send without it.', message }
+    if (stored === 'bad_type') return { error: 'Screenshots need to be PNG, JPG or WebP.', message }
+    screenshotPath = stored
+  }
+
   const subject = message.split('\n')[0].slice(0, 90) + (message.split('\n')[0].length > 90 ? '…' : '')
   const userAgent = (await headers()).get('user-agent')?.slice(0, 300) ?? null
   const request = await prisma.helpRequest.create({
     data: {
       portal, requesterName: who.name, requesterEmail: who.email, requesterOrg: who.org,
-      kind: kind === 'problem' ? 'PROBLEM' : 'HELP', subject, contextPath, contextTitle, userAgent,
+      kind: kind === 'problem' ? 'PROBLEM' : 'HELP', subject, contextPath, contextTitle, userAgent, screenshotPath,
       flaggedCrisis: crisis, messages: { create: { body: message } },
     },
   })
   after(() => notifyAdminOfPortalHelp(request.id, message))
-  captureServerEvent(who.id, 'help_request_submitted', { requestId: request.id, type: kind, page: contextPath, portal, crisis })
+  captureServerEvent(who.id, 'help_request_submitted', { requestId: request.id, type: kind, page: contextPath, portal, crisis, hasScreenshot: !!screenshotPath })
   return { sent: true, kind, email: who.email }
 }

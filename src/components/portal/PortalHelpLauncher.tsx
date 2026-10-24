@@ -134,6 +134,13 @@ export function PortalHelpLauncher({ portal, slug = null }: { portal: PortalHelp
                   className="mt-1 w-full resize-y rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus-visible:border-brand focus-visible:ring-3 focus-visible:ring-brand/20"
                 />
 
+                {kind === 'problem' && (
+                  <div className="mt-2">
+                    <label htmlFor="portal-help-screenshot" className="text-sm font-medium text-navy">Screenshot <span className="font-normal text-muted-foreground">(optional, PNG or JPG, up to 5 MB)</span></label>
+                    <input id="portal-help-screenshot" name="screenshot" type="file" accept="image/png,image/jpeg,image/webp" className="mt-1 block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium" />
+                  </div>
+                )}
+
                 {crisis && (
                   <p role="note" className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-foreground">
                     If you’re going through something really hard right now, you can call or text <span className="font-semibold">988</span> any time,

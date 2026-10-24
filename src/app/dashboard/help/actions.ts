@@ -3,14 +3,14 @@
 import { headers } from 'next/headers'
 import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import {
-  HELP_MESSAGE_MAX, HELP_SCREENSHOT_BUCKET, HELP_SCREENSHOT_MAX_BYTES, isConversationKind, mentionsCrisis, type HelpFormKind,
+  HELP_MESSAGE_MAX, isConversationKind, mentionsCrisis, type HelpFormKind,
 } from '@/lib/help/constants'
 import { notifyAdminOfHelp } from '@/lib/help/notify'
+import { storeHelpScreenshot } from '@/lib/help/screenshot'
 import { logHelpOnCrm } from '@/lib/help/crm-note'
 
 export type HelpFormState =
@@ -24,25 +24,6 @@ async function currentCandidate() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   return getOrCreateCandidateProfile(user.id)
-}
-
-/** Stores a problem screenshot in a private bucket, creating the bucket the first time. */
-async function storeScreenshot(candidateId: string, file: File): Promise<string | 'too_big' | 'bad_type' | null> {
-  if (file.size > HELP_SCREENSHOT_MAX_BYTES) return 'too_big'
-  const ext = ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' } as Record<string, string>)[file.type]
-  if (!ext) return 'bad_type'
-  const admin = createAdminClient()
-  const path = `${candidateId}/${crypto.randomUUID()}.${ext}`
-  let { error } = await admin.storage.from(HELP_SCREENSHOT_BUCKET).upload(path, file, { contentType: file.type })
-  if (error && /not found/i.test(error.message)) {
-    await admin.storage.createBucket(HELP_SCREENSHOT_BUCKET, { public: false, fileSizeLimit: HELP_SCREENSHOT_MAX_BYTES })
-    ;({ error } = await admin.storage.from(HELP_SCREENSHOT_BUCKET).upload(path, file, { contentType: file.type }))
-  }
-  if (error) {
-    console.error('Help screenshot upload failed:', error)
-    return null
-  }
-  return path
 }
 
 // No revalidatePath in these actions: revalidating re-renders the page the
@@ -84,7 +65,7 @@ export async function submitHelpForm(_prev: HelpFormState, formData: FormData): 
   let screenshotPath: string | null = null
   const file = formData.get('screenshot')
   if (kind === 'problem' && file instanceof File && file.size > 0) {
-    const stored = await storeScreenshot(profile.id, file)
+    const stored = await storeHelpScreenshot(profile.id, file)
     if (stored === 'too_big') return { error: 'That screenshot is over 5 MB. Try a smaller one, or send without it.', message }
     if (stored === 'bad_type') return { error: 'Screenshots need to be PNG, JPG or WebP.', message }
     screenshotPath = stored
