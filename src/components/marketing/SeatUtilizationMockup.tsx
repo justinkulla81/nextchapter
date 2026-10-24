@@ -1,9 +1,9 @@
-// A live-data-shaped mockup of the employer reporting screen (see the real
-// page at src/app/employer/(app)/reporting/page.tsx, whose card layout and
-// copy this deliberately mirrors) with synthetic numbers — Partners Master
-// Build Script §C3.3: "a real reporting screenshot or live-data mockup."
-// Not a screenshot (so it never goes stale against the real UI's styling)
-// and not live data (never real employer/candidate rows on a public page).
+// A mockup of the employer reporting screen (see the real page at
+// src/app/employer/(app)/reporting/page.tsx, whose card layout and copy this
+// mirrors) with invented numbers, labeled "Sample data" on the screen itself.
+// No company name is used: the numbers are not any customer's. The outplacement
+// page now shows a rendered screenshot instead (public/marketing/); this stays
+// for /insights/outplacement-reporting.
 function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div>
@@ -19,10 +19,10 @@ export function SeatUtilizationMockup() {
     <div className="mx-auto max-w-xl">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          Sample reporting view — Meridian Health, Plus tier
+          Sample reporting view, Plus plan
         </p>
         <span className="rounded-full bg-muted px-2 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
-          Synthetic data, real layout
+          Sample data
         </span>
       </div>
       <div className="overflow-hidden rounded-xl border border-light-gray bg-navy shadow-lg">
@@ -34,7 +34,7 @@ export function SeatUtilizationMockup() {
         </div>
         <div className="space-y-6 p-6">
           <div>
-            <p className="text-sm font-semibold text-white">Q3 2026 RIF — Corporate</p>
+            <p className="text-sm font-semibold text-white">Sample cohort</p>
             <p className="mt-0.5 text-xs text-white/50">Plus · 64 seats · updated live</p>
           </div>
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">

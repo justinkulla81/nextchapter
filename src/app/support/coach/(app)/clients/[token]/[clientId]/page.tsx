@@ -9,6 +9,8 @@ import { getCoachByToken, getCoachClient } from '@/lib/coach/access'
 import { getPreSessionBrief } from '@/lib/coach/pre-session-brief'
 import { GRADE_LABEL } from '@/lib/scoring/grade'
 import { LogSessionForm } from '@/components/coach/LogSessionForm'
+import { SessionNotesStartCard } from '@/components/coach/session-notes/SessionNotesStartCard'
+import { listSessionsForMember } from '@/lib/coach/session-notes-service'
 import { NoteSummaryCard } from '@/components/coach/NoteSummaryCard'
 import { DAILY_SUMMARIES_PER_COACH, getNoteSummaryView } from '@/lib/coach/note-summary-service'
 import { CoachBrandHeader } from '@/components/coach/CoachBrandHeader'
@@ -40,7 +42,7 @@ export default async function PreSessionBriefPage({
   const candidate = await getCoachClient(coach.id, clientId)
   if (!candidate) notFound()
 
-  const [brief, platformActivity, noteSummary, parallelPaths, thinking] = await Promise.all([
+  const [brief, platformActivity, noteSummary, parallelPaths, thinking, sessionsForNotes] = await Promise.all([
     getPreSessionBrief(candidate.id),
     // Same consent as the rest of this brief (getCoachClient above).
     getPlatformActivity(candidate.id).then((rows) => rows.filter((r) => !r.dismissed)),
@@ -48,6 +50,8 @@ export default async function PreSessionBriefPage({
     getParallelPaths(candidate.id),
     // Same consent as the rest of this brief: what else they are thinking about, and how seriously.
     getPathLevelsForCoach(candidate.id),
+    // Fail-soft: the card still starts a session if the list cannot load.
+    listSessionsForMember(coach.id, candidate.id).catch(() => []),
   ])
 
   return (
@@ -66,6 +70,14 @@ export default async function PreSessionBriefPage({
       </div>
 
       <div className="space-y-5">
+        <div className="rounded-lg border border-brand/30 bg-brand/5 p-4">
+          <p className="text-sm font-medium text-foreground">Session prep</p>
+          <p className="mt-1 text-sm text-muted-foreground">This week, what you agreed last time, and three questions to start with, built from what {brief.candidateName} shares.</p>
+          <Link href={`/support/coach/clients/${token}/${clientId}/prep`} className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4">
+            Before you meet {brief.candidateName.split(' ')[0]}
+          </Link>
+        </div>
+
         <Suspense fallback={null}>
           <CoachProfileContextCard candidateId={candidate.id} />
         </Suspense>
@@ -220,12 +232,20 @@ export default async function PreSessionBriefPage({
           </div>
         )}
 
-        <div className="rounded-lg border border-border p-4">
-          <p className="text-sm font-medium text-muted-foreground">Log this session</p>
+        <SessionNotesStartCard
+          token={token}
+          clientId={clientId}
+          firstName={brief.candidateName.split(' ')[0] || 'your client'}
+          sessions={sessionsForNotes.map((x) => ({ id: x.id, dateLabel: x.occurredAt.toLocaleDateString('en-US', { dateStyle: 'medium' }), state: x.state, captures: x.captures }))}
+        />
+
+        <details id="log-session" className="rounded-lg border border-border p-4">
+          <summary className="cursor-pointer text-sm font-medium text-muted-foreground">Log a session with the seven tracked dimensions</summary>
+          <p className="mt-2 text-xs text-muted-foreground">The structured tracking that feeds the trend line and your next brief. For notes, captures and the summary to your client, use Session notes above.</p>
           <div className="mt-3">
             <LogSessionForm token={token} clientId={clientId} />
           </div>
-        </div>
+        </details>
 
         <Link
           href={`/support/coach/clients/${token}/${clientId}/full`}

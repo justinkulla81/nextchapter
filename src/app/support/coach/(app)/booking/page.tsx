@@ -3,23 +3,35 @@ import { getCurrentCoach } from '@/lib/coach/current-coach'
 import { getBookingConfig, listUpcomingForCoach } from '@/lib/coach/booking/service'
 import { BookingSettingsForm } from '@/components/coach/BookingSettingsForm'
 import { CancelCoachSessionForm } from '@/components/coach/CancelCoachSessionForm'
+import { CoachGoogleSection } from '@/components/coach/google/CoachGoogleSection'
+import { getCoachGoogleStatus } from '@/lib/coach/google/connection'
+import { coachGoogleErrorMessage } from '@/lib/coach/google/config'
 
 export const metadata: Metadata = { title: 'Booking' }
 
-export default async function CoachBookingPage() {
+export default async function CoachBookingPage({ searchParams }: { searchParams: Promise<{ googleError?: string; googleConnected?: string }> }) {
   const coach = await getCurrentCoach()
-  const [{ config, windows }, upcoming] = await Promise.all([getBookingConfig(coach.id), listUpcomingForCoach(coach.id)])
+  const [{ config, windows }, upcoming, google, query] = await Promise.all([getBookingConfig(coach.id), listUpcomingForCoach(coach.id), getCoachGoogleStatus(coach.id), searchParams])
+  const googleMessage = query.googleConnected
+    ? { kind: 'ok' as const, text: 'Connected. Clients are now only offered times you are free.' }
+    : query.googleError && coachGoogleErrorMessage(query.googleError)
+      ? { kind: 'error' as const, text: coachGoogleErrorMessage(query.googleError) as string }
+      : null
+  const ownCalendar = google.feature === 'on' && google.state === 'connected'
   const timeZones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [config.timezone]
 
   return (
     <div className="space-y-10">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Booking</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Calendar and booking</h1>
         <p className="text-muted-foreground">
-          Set your weekly hours and your clients can book sessions with you. We add each session to a shared Google Calendar with a Meet link and invite you both. We do not read your own calendar, so
-          keep your hours current and cancel a session here if something comes up.
+          {ownCalendar
+            ? 'Clients pick a time you are free. Each booking lands on your Google Calendar with a Meet link.'
+            : 'Set your weekly hours and your clients can book sessions with you. We add each session to a shared Google Calendar with a Meet link and invite you both. We do not read your own calendar, so keep your hours current and cancel a session here if something comes up.'}
         </p>
       </div>
+
+      <CoachGoogleSection status={google} message={googleMessage} />
 
       <section className="space-y-3" aria-labelledby="upcoming-heading">
         <h2 id="upcoming-heading" className="text-lg font-semibold tracking-tight">
