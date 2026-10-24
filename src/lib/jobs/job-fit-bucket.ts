@@ -7,6 +7,9 @@ import { prisma } from '@/lib/prisma'
 import { priorityMultiplier } from '@/lib/matching/compute-match-score'
 import { inferFunctionFromTitle } from '@/lib/jobs/infer-job-function'
 import { classifyTitleRung, type RungName } from '@/lib/jobs/job-seniority'
+import { flexRungRange, jobLevelFlex, rangeGap, type EmployerScale, type LevelFlex } from '@/lib/jobs/level-flex'
+import { memberPeakWindow, peakForMatching, peakScale } from '@/lib/profile/career-high-point'
+import { boardCompanySizeBand } from '@/lib/jobs/company-size-map'
 import { calibratedLevelRank } from '@/lib/scoring/level-rank'
 import { statesFromLocation } from '@/lib/pay/market-pay'
 import { SHARED_METRO_STATES } from '@/lib/jobs/metro-states'
@@ -147,6 +150,12 @@ interface FitPostingLike {
   // Pre-resolved by the caller (resolveCompanySizeBand is async; this scorer
   // is not) — omitted or null both read as unknown, never a penalty.
   companySizeBand?: CompanySizeBand | null
+  // The job's level flex (level-flex.ts), when the caller worked it out with the
+  // employer's size (the board does, from its size map). Absent: worked out here from
+  // the title, companyName, sourceCategory and companySizeBand.
+  levelFlex?: LevelFlex | null
+  companyName?: string | null
+  sourceCategory?: string | null
 }
 
 // ── Level ────────────────────────────────────────────────────────────────────
@@ -223,27 +232,62 @@ function generalManagerPoints(title: string): number | null {
   return BUSINESS_GM_QUALIFIER.test(title) ? RUNG_LEVEL_POINTS.VP! : RUNG_LEVEL_POINTS.MANAGER!
 }
 
-function postingLevelPoints(posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level'>, fallbackLevel?: string | null): number | null {
-  if (posting.targetLevel && MEMBER_LEVEL_POINTS[posting.targetLevel] !== undefined) return MEMBER_LEVEL_POINTS[posting.targetLevel]
+type LevelPosting = Pick<FitPostingLike, 'title' | 'targetLevel' | 'level'> &
+  Partial<Pick<FitPostingLike, 'levelFlex' | 'companyName' | 'sourceCategory' | 'companySizeBand'>>
+
+// The job's level as a points range: its own level, widened by its level flex
+// (level-flex.ts: IC-style titles up, small employers down). A recruiter-set target
+// level and a GM title read as one point, as before.
+function postingLevelRange(posting: LevelPosting, fallbackLevel?: string | null): { lo: number; hi: number; scale: EmployerScale | null } | null {
+  const flex =
+    posting.levelFlex ??
+    jobLevelFlex({ ...posting, companySizeBand: posting.companySizeBand ?? boardCompanySizeBand(posting.companyName) })
+  const point = (n: number) => ({ lo: n, hi: n, scale: flex.scale })
+  if (posting.targetLevel && MEMBER_LEVEL_POINTS[posting.targetLevel] !== undefined) return point(MEMBER_LEVEL_POINTS[posting.targetLevel])
   const gm = generalManagerPoints(posting.title)
-  if (gm !== null) return gm
+  if (gm !== null) return point(gm)
   const rung = (posting.level as RungName | null | undefined) ?? (fallbackLevel ? null : classifyTitleRung(posting.title).rung)
-  if (rung && RUNG_LEVEL_POINTS[rung] !== undefined) return RUNG_LEVEL_POINTS[rung]!
-  if (fallbackLevel && MEMBER_LEVEL_POINTS[fallbackLevel] !== undefined) return MEMBER_LEVEL_POINTS[fallbackLevel]
+  if (rung && RUNG_LEVEL_POINTS[rung] !== undefined) {
+    const own = RUNG_LEVEL_POINTS[rung]!
+    const range = flexRungRange(rung, flex)
+    const lo = range && range.low !== rung ? RUNG_LEVEL_POINTS[range.low] ?? own : own
+    const hi = range && range.high !== rung ? RUNG_LEVEL_POINTS[range.high] ?? own : own
+    return { lo: Math.min(lo, own), hi: Math.max(hi, own), scale: flex.scale }
+  }
+  if (fallbackLevel && MEMBER_LEVEL_POINTS[fallbackLevel] !== undefined) return point(MEMBER_LEVEL_POINTS[fallbackLevel])
   return null
 }
 
-export function levelStep(
-  c: Pick<FitCandidate, 'highestLevelReached' | 'levelRankScore'> & { yearsExperience?: number | null },
-  posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level'>,
-  fallbackLevel?: string | null
-): LevelStep {
-  return levelStepFromPoints(memberLevelWindow(c), postingLevelPoints(posting, fallbackLevel))
+// The member's career high point (career-high-point.ts) as it applies to matching:
+// the peak's employer scale, and the level to match at when they corrected it.
+function memberPeak(c: { highestLevelReached?: string | null; searchExpansion?: unknown }): { scale: EmployerScale | null; level: string | null } {
+  const p = peakForMatching(readSearchExpansion(c.searchExpansion).careerHighPoint, c.highestLevelReached)
+  return { scale: peakScale(p), level: p?.source === 'member' ? p.level : null }
 }
 
-function levelStepFromPoints(window: { lo: number; hi: number } | null, job: number | null): LevelStep {
+export function levelStep(
+  c: Pick<FitCandidate, 'highestLevelReached' | 'levelRankScore'> & { yearsExperience?: number | null; searchExpansion?: unknown },
+  posting: LevelPosting,
+  fallbackLevel?: string | null
+): LevelStep {
+  const peak = memberPeak(c)
+  const level = peak.level ?? c.highestLevelReached
+  const window = memberLevelWindow(peak.level ? { ...c, highestLevelReached: peak.level } : c)
+  return levelStepFromRange(window, peakBase(level, peak.scale), postingLevelRange(posting, fallbackLevel))
+}
+
+// The career-high-point adjustment's inputs: the peak's scale and the stated level's points.
+function peakBase(level: string | null | undefined, scale: EmployerScale | null): { scale: EmployerScale | null; base: number | null } {
+  return { scale, base: level ? (MEMBER_LEVEL_POINTS[level] ?? null) : null }
+}
+
+function levelStepFromRange(
+  window: { lo: number; hi: number } | null,
+  peak: { scale: EmployerScale | null; base: number | null },
+  job: { lo: number; hi: number; scale: EmployerScale | null } | null
+): LevelStep {
   if (!window || job === null) return 'unknown'
-  const gap = job < window.lo ? (job - window.lo) / STEP_POINTS : job > window.hi ? (job - window.hi) / STEP_POINTS : 0
+  const gap = rangeGap(memberPeakWindow(window, peak.base, peak.scale, job.scale, STEP_POINTS), job) / STEP_POINTS
   if (gap >= 1.6) return 'big_up'
   if (gap >= 0.5) return 'up'
   if (gap <= -1.6) return 'big_down'
@@ -482,6 +526,8 @@ export interface FitAssessment {
 interface FitCandidateContext {
   c: FitCandidate
   window: { lo: number; hi: number } | null
+  // Where their career high point was reached (career-high-point.ts), and the stated level's points.
+  peak: { scale: EmployerScale | null; base: number | null }
   own: string[]
   secondary: string[]
   specificTarget: boolean
@@ -509,9 +555,11 @@ function candidateContext(c: FitCandidate): FitCandidateContext {
   const city = c.currentCity?.trim()
   const homeStates = statesFromLocation([c.currentCity, c.currentState].filter(Boolean).join(', ')).states
   const expansion = readSearchExpansion(c.searchExpansion)
+  const peak = memberPeak(c)
   return {
     c,
-    window: memberLevelWindow(c),
+    window: memberLevelWindow(peak.level ? { ...c, highestLevelReached: peak.level } : c),
+    peak: peakBase(peak.level ?? c.highestLevelReached, peak.scale),
     own,
     secondary,
     specificTarget,
@@ -541,8 +589,8 @@ interface FitPostingContext {
   // Title, description and location, lowercased — what industries are matched against.
   industryTextLower: string
   jobFns: string[]
-  // The job's level points with no fallback level (the board's case).
-  levelPoints: number | null
+  // The job's level range (its level widened by its flex) with no fallback level (the board's case).
+  levelRange: { lo: number; hi: number; scale: EmployerScale | null } | null
   remote: boolean
   placeLocation: string
   jobStates: string[]
@@ -587,7 +635,7 @@ function postingContext(posting: FitPostingInput): FitPostingContext {
     postingTextLower: postingText.toLowerCase(),
     industryTextLower: `${postingText} ${posting.location ?? ''}`.toLowerCase(),
     jobFns: postingFunctions(posting).map((f) => f.toLowerCase()),
-    levelPoints: postingLevelPoints(posting),
+    levelRange: postingLevelRange(posting),
     remote: postingIsRemote({ ...posting, description: posting.description ?? null }),
     placeLocation,
     jobStates: jobStatesOf(placeLocation),
@@ -607,13 +655,13 @@ export function computeFitAssessment(
 function assessFit(
   m: FitCandidateContext,
   j: FitPostingContext,
-  posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level' | 'targetFunction' | 'salaryMax'> & { companySizeBand?: CompanySizeBand | null },
+  posting: Pick<FitPostingLike, 'title' | 'targetLevel' | 'level' | 'targetFunction' | 'salaryMax'> & LevelPosting,
   fallbackLevel?: string | null
 ): FitAssessment {
   const c = m.c
   const fn = functionFit(m, j)
-  // No fallback level reads the same as none (postingLevelPoints), so the prepared points stand.
-  const level = levelStepFromPoints(m.window, fallbackLevel ? postingLevelPoints(posting, fallbackLevel) : j.levelPoints)
+  // No fallback level reads the same as none (postingLevelRange), so the prepared range stands.
+  const level = levelStepFromRange(m.window, m.peak, fallbackLevel ? postingLevelRange(posting, fallbackLevel) : j.levelRange)
   const place = placeFit(m, j)
   // A role they opted into from pivot paths counts as on-target.
   const expansionHit = m.expansionRoles.length > 0 && m.expansionRoles.some((re) => re.test(posting.title.toLowerCase()))

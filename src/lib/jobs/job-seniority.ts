@@ -91,6 +91,22 @@ import {
   TRAINEE_VETO,
   MANAGER_IN_TRAINING,
   MUNICIPAL_PLANNER_EARLY,
+  ACCOUNTING_FIRMS,
+  ACCOUNTING_PRINCIPAL,
+  BANK_AVP,
+  BANK_DIRECTOR,
+  BANK_KEEP,
+  BANK_LADDER_EMPLOYERS,
+  BANK_MD,
+  BANK_RUNGS,
+  BANK_VP,
+  CONSULTING_EMPLOYERS,
+  IC_STYLE_MANAGER,
+  SALES_DIRECTOR_IC,
+  SENIOR_CONSULTANT,
+  SENIOR_MID_IC,
+  SENIOR_MID_YEARS_KEEP,
+  TEAM_DESC,
   type RungName,
 } from './job-seniority-rules.generated'
 import { parseYearsRequired } from './years-required'
@@ -136,6 +152,8 @@ function fedVetoed(bare: string): boolean {
 }
 
 export type ClassifyOptions = {
+  /** The employer's name (ncrawl company): the industry title ladders key on it (calibrateLevel). */
+  companyName?: string | null
   /** Posted on a school or district board: bare "Superintendent" is the district head. */
   schoolContext?: boolean
   /** A USAJOBS Pathways Recent Graduates posting (the hiring path, not the title). ncrawl recent_graduate. */
@@ -470,7 +488,67 @@ export function levelForPosting(title: string, description: string | null | unde
   // federal grade. A Recent Graduates posting on a ladder starting at grade 7 or below and topping
   // out by grade 9 that they put between ENTRY_IC and MID_IC comes down to ENTRY_IC.
   if (level.rank > ENTRY_IC_RANK && level.rank <= MID_IC_RANK && fedRecentGradEntry(title, !!opts.recentGraduate)) return ENTRY
-  return level
+  // Employer-aware calibration (owner, 2026-10-23): calibrateLevel, below. Mirrors ncrawl.
+  const cal = calibrateLevel(title, level, description, opts.companyName)
+  return { rung: cal.rung, rank: cal.rank }
+}
+
+/**
+ * Lower-case employer name with punctuation and legal suffixes stripped — the key the
+ * employer allowlists match. Mirrors ncrawl taxonomy.normalize_company exactly.
+ */
+export function normalizeCompanyForLevel(name: string | null | undefined): string {
+  let s = (name ?? '').toLowerCase().replace(/&/g, ' and ')
+  s = s.replace(/[.,'’()]/g, ' ').replace(/\s+/g, ' ').trim()
+  s = s.replace(/(\s+(inc|incorporated|llc|l l c|llp|lp|plc|ltd|limited|corp|corporation|co|company|na|n a|national association|sa|ag|se|nv|adr|de|ri|holdings?|group|the))+$/, '')
+  return s.replace(/^the\s+/, '').trim()
+}
+
+export type CalibrationRule = 'bank_ladder' | 'accounting_principal' | 'ic_style_manager' | 'senior_mid_ic' | 'sales_director_ic'
+
+/**
+ * Employer-aware level corrections (ncrawl taxonomy.calibrate_level; design note there and in
+ * docs/level-calibration.md), applied after the title rung and the years refinement:
+ *  - the bank grade ladder at an allowlisted bank / asset manager / fund (AVP MID_IC, VP
+ *    SENIOR_IC, Director / ED / SVP SR_MANAGER, MD DIRECTOR), never a Chief / Head / President title;
+ *  - Principal at an allowlisted accounting firm is PARTNER;
+ *  - IC-style "Manager" titles are SENIOR_IC unless the posting talks about a team;
+ *  - mid-level "Senior" titles are MID_IC unless the posting asks 7+ years;
+ *  - quota-carrying sales "Director" titles are SENIOR_IC unless the posting shows a team.
+ * Company size never changes a stored level (level-flex.ts widens matching instead).
+ */
+export function calibrateLevel(
+  title: string,
+  level: { rung: RungName; rank: number },
+  description: string | null | undefined,
+  companyName: string | null | undefined
+): { rung: RungName; rank: number; rule: CalibrationRule | null } {
+  const t = title ?? ''
+  const desc = description ?? ''
+  const co = normalizeCompanyForLevel(companyName)
+  const { rung, rank } = level
+  if (co && BANK_RUNGS.includes(rung) && BANK_LADDER_EMPLOYERS.test(co) && !BANK_KEEP.test(t)) {
+    if (BANK_AVP.test(t)) return { rung: 'MID_IC', rank: MID_IC_RANK, rule: 'bank_ladder' }
+    if (BANK_MD.test(t)) {
+      return rank > 65 || rung === 'C_SUITE' || rung === 'EVP_SVP' || rung === 'VP'
+        ? { rung: 'DIRECTOR', rank: 65, rule: 'bank_ladder' }
+        : { rung, rank, rule: null }
+    }
+    if (BANK_VP.test(t)) return { rung: 'SENIOR_IC', rank: 45, rule: 'bank_ladder' }
+    if (BANK_DIRECTOR.test(t)) return { rung: 'SR_MANAGER', rank: 52, rule: 'bank_ladder' }
+  }
+  if (co && rung === 'PRINCIPAL' && ACCOUNTING_FIRMS.test(co) && ACCOUNTING_PRINCIPAL.test(t)) {
+    return { rung: 'PARTNER', rank: 78, rule: 'accounting_principal' }
+  }
+  if (rung === 'MANAGER' && IC_STYLE_MANAGER.test(t) && !TEAM_DESC.test(desc)) return { rung: 'SENIOR_IC', rank: 45, rule: 'ic_style_manager' }
+  if (rung === 'SENIOR_IC' && (SENIOR_MID_IC.test(t) || (!!co && CONSULTING_EMPLOYERS.test(co) && SENIOR_CONSULTANT.test(t)))) {
+    const m = desc ? yearsMin(desc) : null
+    if (m === null || m < SENIOR_MID_YEARS_KEEP) return { rung: 'MID_IC', rank: MID_IC_RANK, rule: 'senior_mid_ic' }
+  }
+  if ((rung === 'DIRECTOR' || rung === 'HEAD') && SALES_DIRECTOR_IC.test(t) && !TEAM_DESC.test(desc)) {
+    return { rung: 'SENIOR_IC', rank: 45, rule: 'sales_director_ic' }
+  }
+  return { rung, rank, rule: null }
 }
 
 /** ncrawl fed_recent_grad_entry: a Pathways Recent Graduates GS/GG/GM posting (title or hiring path), ladder from grade <= 7 to <= 9. */

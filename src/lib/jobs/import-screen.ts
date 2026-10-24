@@ -1,4 +1,4 @@
-import { degreeLift, ENTRY_IC_FLOOR, refineLevelByYears, screenJobTitle, type ClassifyOptions, type RungName } from '@/lib/jobs/job-seniority'
+import { calibrateLevel, classifyTitleRung, degreeLift, ENTRY_IC_FLOOR, refineLevelByYears, screenJobTitle, type ClassifyOptions, type RungName } from '@/lib/jobs/job-seniority'
 import { NON_US } from '@/lib/jobs/job-seniority-rules.generated'
 import { isUsLocation, namesNonUsPlace } from '@/lib/jobs/us-location'
 
@@ -50,5 +50,10 @@ export function screenImportedJob(
   const level = rung === 'ENTRY_IC' || rung === 'EARLY_IC' || rung === 'MID_IC' || rung === 'SENIOR_IC'
     ? refineLevelByYears(title, { rung: rung as RungName, rank: 0 }, opts.description).rung
     : rung
-  return { keep: true, level, location }
+  // Employer-aware calibration (owner, 2026-10-23; job-seniority.ts calibrateLevel): the bank
+  // grade ladder and accounting-firm Principal for an allowlisted employer, IC-style managers,
+  // mid-level "Senior" titles and quota sales directors. Mirrors ncrawl level_for_posting.
+  const own = classifyTitleRung(title, opts)
+  const calibrated = calibrateLevel(title, { rung: level as RungName, rank: own.rung === level ? own.rank : 0 }, opts.description, opts.companyName).rung
+  return { keep: true, level: calibrated, location }
 }

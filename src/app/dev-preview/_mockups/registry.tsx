@@ -16,6 +16,7 @@ import { CandidatePlusUnlock, WeeklyEmail, OnboardingSituation, FirstWeek, Empty
 import { MoneyRunway, MoneyDeadlines, MoneyEntrepreneur } from './money'
 import { CareerStoryReal } from './career-story'
 import { SearchStrategySimple } from './strategy'
+import { CareerHighPointPreview } from './career-high-point'
 import { StrategyNegotiationLive, StrategyNegotiationEmptyLive } from './strategy-negotiation-live'
 import { SearchStrategyApplicationMatch, ApplicationMatchFew } from './application-match'
 import { NotFoundCandidate, NotFoundAdmin } from './not-found'
@@ -162,6 +163,7 @@ export const MOCKUPS: Mockup[] = [
   { path: 'home/strategy/negotiation', place: 'Home', title: 'Search strategy step 5: interviews, offers and pay (the built form, sample answers)', replaces: 'the step 5 form with nine benefits questions; they moved to Know your worth', Component: StrategyNegotiationLive },
   { path: 'home/strategy/negotiation-empty', place: 'Home', title: 'Search strategy step 5, nothing answered yet (the built form)', replaces: 'the same form, empty', Component: StrategyNegotiationEmptyLive },
   { path: 'home/strategy', place: 'Home', title: 'Search strategy, simplified', replaces: '/dashboard/search-strategy (about twelve blocks down to three)', Component: SearchStrategySimple },
+  { path: 'home/career-high-point', place: 'Home', title: 'Career high point line', replaces: 'nothing — one line inside the seniority field', Component: CareerHighPointPreview },
   { path: 'jobs/market/report', place: 'Jobs', title: 'Market reality report: the one-screen brief', replaces: '/dashboard/market-reality (12 pages down to one screen; the full report stays behind a button)', Component: MarketReportShort },
   { path: 'home/coach-offer-senior', place: 'Home', title: 'Today: a senior member, few roles, a coach offered with the reason', replaces: 'new: coach offers (Home note) and the market line (journey card)', Component: HomeSeniorCoachOffer },
   { path: 'home/coach-offer-networking', place: 'Home', title: 'Today: networking is where the search stalls, a coach offered', replaces: 'new: coach offers (Home note)', Component: HomeNetworkingCoachOffer },

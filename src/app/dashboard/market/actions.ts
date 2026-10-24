@@ -1,5 +1,6 @@
 'use server'
 
+import type { Prisma } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
@@ -39,7 +40,7 @@ export async function setSearchExpansion(kind: Kind, value: string, on: boolean)
   } else if (kind === 'relocate') data.openToRelocation = on
   else return { error: 'Unknown option.' }
   exp.at = new Date().toISOString()
-  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { ...data, searchExpansion: exp } })
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { ...data, searchExpansion: exp as unknown as Prisma.InputJsonValue } })
   captureServerEvent(profile.id, on ? 'search_expansion_added' : 'search_expansion_removed', { kind, value })
   revalidatePath('/dashboard', 'layout')
   return { ok: true }

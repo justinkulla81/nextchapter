@@ -39,6 +39,8 @@ import { ChoiceField } from '@/components/candidate/ChoiceField'
 const MAX_TRAVEL_CHOICES = MAX_TRAVEL_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))
 import type { CandidateProfile } from '@prisma/client'
 import { useRetuneAfterSave } from '@/components/dashboard/RetuneMoment'
+import { CareerHighPointLine } from '@/components/dashboard/CareerHighPointLine'
+import { readSearchExpansion } from '@/lib/profile/search-expansion'
 
 // A quiet visual flag next to a Label — not answered yet, in-context, no
 // separate legend needed. Only used on the fields search-strategy-checklist.ts
@@ -185,6 +187,7 @@ export function SearchStrategyForm({
               ))}
             </SelectContent>
           </Select>
+          <CareerHighPointLine store={readSearchExpansion(profile.searchExpansion).careerHighPoint} fallbackLevel={profile.highestLevelReached} />
         </div>
 
         <div className="space-y-2">
