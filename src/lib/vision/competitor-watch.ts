@@ -90,7 +90,7 @@ export async function refreshCard(c: ProductCompetitor): Promise<{ events: numbe
     })
     // Skip the very first read of a card that had no customers or wins: those are the card being filled, not news.
     const fresh = before.customers.length + before.wins.length === 0 ? events.filter((e) => e.kind !== 'LOGO' && e.kind !== 'WIN') : events
-    let nEvents = await saveEvents(c.id, [...fresh, ...(await winsFromOurData(c))], 'site')
+    const nEvents = await saveEvents(c.id, [...fresh, ...(await winsFromOurData(c))], 'site')
 
     const byKey = new Map(caps.map((k) => [k.key, k.id]))
     const props = cleanProposals(r.data.capabilityProposals, new Set(byKey.keys()))
@@ -170,7 +170,7 @@ export async function runWatch(kind: 'refresh' | 'news', opts: { batch?: number;
     try {
       const r = kind === 'refresh' ? await refreshCard(byId.get(d.id)!) : await newsForCard(byId.get(d.id)!, now)
       res.processed++; res.events += r.events; res.costUsd += r.cost; spent += r.cost
-      if ('proposals' in r) res.proposals += r.proposals
+      res.proposals += 'proposals' in r ? Number(r.proposals) : 0
     } catch { res.failed++; spent += EST_COST[kind] / 2 }
   }
   res.spentMonth = spent
