@@ -70,6 +70,14 @@ export default async function PreSessionBriefPage({
       </div>
 
       <div className="space-y-5">
+        <div className="rounded-lg border border-brand/30 bg-brand/5 p-4">
+          <p className="text-sm font-medium text-foreground">Session prep</p>
+          <p className="mt-1 text-sm text-muted-foreground">This week, what you agreed last time, and three questions to start with, built from what {brief.candidateName} shares.</p>
+          <Link href={`/support/coach/clients/${token}/${clientId}/prep`} className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-4">
+            Before you meet {brief.candidateName.split(' ')[0]}
+          </Link>
+        </div>
+
         <Suspense fallback={null}>
           <CoachProfileContextCard candidateId={candidate.id} />
         </Suspense>
@@ -231,7 +239,7 @@ export default async function PreSessionBriefPage({
           sessions={sessionsForNotes.map((x) => ({ id: x.id, dateLabel: x.occurredAt.toLocaleDateString('en-US', { dateStyle: 'medium' }), state: x.state, captures: x.captures }))}
         />
 
-        <details className="rounded-lg border border-border p-4">
+        <details id="log-session" className="rounded-lg border border-border p-4">
           <summary className="cursor-pointer text-sm font-medium text-muted-foreground">Log a session with the seven tracked dimensions</summary>
           <p className="mt-2 text-xs text-muted-foreground">The structured tracking that feeds the trend line and your next brief. For notes, captures and the summary to your client, use Session notes above.</p>
           <div className="mt-3">
