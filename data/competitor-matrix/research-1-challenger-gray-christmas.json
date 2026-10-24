@@ -1,0 +1,40 @@
+{
+ "competitor": "Challenger, Gray & Christmas",
+ "cells": [
+  {
+   "capabilityKey": "coach_matching",
+   "status": "YES",
+   "note": "The For Companies page says every employee is matched with a certified job search coach.",
+   "evidenceUrl": "https://www.challengergray.com/outplacement-services/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "op_reporting",
+   "status": "YES",
+   "note": "The For Companies page lists reporting with detailed analytics and success metrics.",
+   "evidenceUrl": "https://www.challengergray.com/outplacement-services/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "negotiation_advice",
+   "status": "PARTIAL",
+   "note": "The For Companies page lists interview and salary prep delivered by coaches.",
+   "evidenceUrl": "https://www.challengergray.com/outplacement-services/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "interview_prep_pack",
+   "status": "YES",
+   "note": "The blog describes an AI module that predicts interview questions for specific roles and drafts potential answers.",
+   "evidenceUrl": "https://www.challengergray.com/blog/the-future-of-outplacement-how-ai-is-empowering-those-in-transition/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "interview_practice_feedback",
+   "status": "PARTIAL",
+   "note": "The CareerSuite page describes recorded mock interview responses with feedback from a coach.",
+   "evidenceUrl": "https://www.challengergray.com/outplacement-services/challenger-essentials/",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

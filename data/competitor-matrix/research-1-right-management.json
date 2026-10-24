@@ -1,0 +1,19 @@
+{
+ "competitor": "Right Management",
+ "cells": [
+  {
+   "capabilityKey": "negotiation_advice",
+   "status": "YES",
+   "note": "The Your Outplacement page lists an Interview and Negotiate component covering negotiation with employers.",
+   "evidenceUrl": "https://www.right.com/en/your-outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "interview_prep_pack",
+   "status": "PARTIAL",
+   "note": "The PowerSuite Next article says employees can prepare for interviews in the platform; it does not say prep is generated per job.",
+   "evidenceUrl": "https://www.right.com/en/insights/blogs/outplacement-technology-provides-layoff-support",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

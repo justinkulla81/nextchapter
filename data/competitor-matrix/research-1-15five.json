@@ -1,0 +1,40 @@
+{
+ "competitor": "15Five",
+ "cells": [
+  {
+   "capabilityKey": "ai_coach",
+   "status": "YES",
+   "note": "The manager products page describes Kona, an AI coach that uses 15Five data to give guidance after check-ins and 1-on-1s.",
+   "evidenceUrl": "https://www.15five.com/products/manager-products",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_notes",
+   "status": "PARTIAL",
+   "note": "The Kona page describes AI-generated notes and action items for manager 1-on-1s; it does not describe coaching session notes.",
+   "evidenceUrl": "https://www.15five.com/products/kona",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_pre_session_brief",
+   "status": "PARTIAL",
+   "note": "The 15Five AI page describes a Meeting Assistant that prepares managers before a 1-on-1; it does not describe a coaching session.",
+   "evidenceUrl": "https://www.15five.com/products/15five-ai",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_matching",
+   "status": "PARTIAL",
+   "note": "The manager products page says leaders are paired with certified coaches; it does not describe how.",
+   "evidenceUrl": "https://www.15five.com/products/manager-products",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_career_growth",
+   "status": "PARTIAL",
+   "note": "The Growth Studio page describes individual development plans and succession nominations for current employees with talent readiness views for HR.",
+   "evidenceUrl": "https://www.15five.com/products/perform/growth-studio",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

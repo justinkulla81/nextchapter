@@ -1,0 +1,33 @@
+{
+ "competitor": "Bravely",
+ "cells": [
+  {
+   "capabilityKey": "ai_coach",
+   "status": "YES",
+   "note": "The Bea page describes an AI coach that joins meetings with permission, sends reflections and chats on request.",
+   "evidenceUrl": "https://workbravely.com/bea-ai-coaching/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_pre_session_brief",
+   "status": "PARTIAL",
+   "note": "The Bea page says users can prepare for a hard decision or conversation with Bea; it does not describe a brief before human coach sessions.",
+   "evidenceUrl": "https://workbravely.com/bea-ai-coaching/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_matching",
+   "status": "PARTIAL",
+   "note": "The how it works page describes identity-based pairing, so employees can be paired with a coach of the same race, gender identity or sexual orientation.",
+   "evidenceUrl": "https://workbravely.com/how-it-works/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_booking",
+   "status": "PARTIAL",
+   "note": "The how it works page refers to employees booking a session; it does not describe calendar or video links.",
+   "evidenceUrl": "https://workbravely.com/how-it-works/",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

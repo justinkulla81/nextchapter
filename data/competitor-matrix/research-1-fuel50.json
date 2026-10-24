@@ -1,0 +1,54 @@
+{
+ "competitor": "Fuel50",
+ "cells": [
+  {
+   "capabilityKey": "ret_internal_roles",
+   "status": "YES",
+   "note": "The talent marketplace page says the mobility module shows employees which internal roles their skills unlock.",
+   "evidenceUrl": "https://fuel50.com/products/talent-marketplace",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "learning_plan",
+   "status": "YES",
+   "note": "The Career Advisor Agent page describes learning content mapped to the skills between a current role and the next role.",
+   "evidenceUrl": "https://fuel50.com/agentic-hub/career-advisor-agent",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "skill_gap_suggestions",
+   "status": "YES",
+   "note": "The talent marketplace page describes growth plans that map an employee's skills to target roles and close priority gaps.",
+   "evidenceUrl": "https://fuel50.com/products/talent-marketplace",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "course_catalog",
+   "status": "PARTIAL",
+   "note": "The development page lists curated role-relevant content; it does not describe a course catalog.",
+   "evidenceUrl": "https://fuel50.com/products/development",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ai_coach",
+   "status": "PARTIAL",
+   "note": "The Career Advisor Agent page describes AI career guidance in Microsoft Teams and the marketplace.",
+   "evidenceUrl": "https://fuel50.com/agentic-hub/career-advisor-agent",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ai_at_work",
+   "status": "PARTIAL",
+   "note": "The Task Intelligence page describes identifying tasks within roles that are ready for automation or AI assistance.",
+   "evidenceUrl": "https://fuel50.com/task-intelligence",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_career_growth",
+   "status": "PARTIAL",
+   "note": "The retention and engagement page describes employee career aspirations and development paths for an employer's staff.",
+   "evidenceUrl": "https://fuel50.com/solutions/retention-and-engagement",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "competitor": "365talents",
+ "cells": [
+  {
+   "capabilityKey": "ret_internal_roles",
+   "status": "YES",
+   "note": "The talent marketplace page describes internal mobility with suggestions to the best-fit profiles.",
+   "evidenceUrl": "https://365talents.com/en/product/talent-marketplace/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "skill_gap_suggestions",
+   "status": "YES",
+   "note": "The talent marketplace page lists individual skill gap analysis and growth suggestions.",
+   "evidenceUrl": "https://365talents.com/en/product/talent-marketplace/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "learning_plan",
+   "status": "YES",
+   "note": "The career developer page describes career conversations that turn an aspiration into a concrete learning plan.",
+   "evidenceUrl": "https://365talents.com/en/product/career-developer/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_career_growth",
+   "status": "PARTIAL",
+   "note": "The career developer page describes career pathing and learning for current employees.",
+   "evidenceUrl": "https://365talents.com/en/product/career-developer/",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

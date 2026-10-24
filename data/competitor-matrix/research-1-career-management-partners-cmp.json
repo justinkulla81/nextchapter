@@ -1,0 +1,40 @@
+{
+ "competitor": "Career Management Partners (CMP)",
+ "cells": [
+  {
+   "capabilityKey": "op_reporting",
+   "status": "YES",
+   "note": "The outplacement page lists real-time access to activity and outcome metrics for organizations.",
+   "evidenceUrl": "https://www.careermp.com/organizations/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "interview_prep_pack",
+   "status": "PARTIAL",
+   "note": "The outplacement page lists interview preparation in the Career Victory Portal; it does not say prep is generated per job.",
+   "evidenceUrl": "https://www.careermp.com/organizations/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "interview_practice_feedback",
+   "status": "PARTIAL",
+   "note": "The career mobility page lists an interview simulator in the Career Victory Portal; it does not describe the feedback given.",
+   "evidenceUrl": "https://www.careermp.com/leadership-development/career-mobility",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "course_catalog",
+   "status": "PARTIAL",
+   "note": "The outplacement page lists on-demand training in more than 50 languages; it does not describe a course catalog.",
+   "evidenceUrl": "https://www.careermp.com/organizations/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_career_growth",
+   "status": "PARTIAL",
+   "note": "The career mobility page describes career development coaching and workshops for current employees.",
+   "evidenceUrl": "https://www.careermp.com/leadership-development/career-mobility",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

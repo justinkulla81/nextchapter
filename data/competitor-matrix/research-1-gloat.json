@@ -1,0 +1,33 @@
+{
+ "competitor": "Gloat",
+ "cells": [
+  {
+   "capabilityKey": "ret_internal_roles",
+   "status": "YES",
+   "note": "The talent marketplace page describes positions that expose employees to internal opportunities matching their skills.",
+   "evidenceUrl": "https://gloat.com/platform/the-talent-marketplace/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "learning_plan",
+   "status": "PARTIAL",
+   "note": "The talent marketplace page describes AI recommendations of courses based on skills and career goals; it does not describe a plan.",
+   "evidenceUrl": "https://gloat.com/platform/the-talent-marketplace/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "course_catalog",
+   "status": "PARTIAL",
+   "note": "The talent marketplace page says it connects an organization's own LXP and LMS content.",
+   "evidenceUrl": "https://gloat.com/platform/the-talent-marketplace/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_matching",
+   "status": "PARTIAL",
+   "note": "The talent marketplace page describes mentorship matching; the service is mentoring.",
+   "evidenceUrl": "https://gloat.com/platform/the-talent-marketplace/",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}
