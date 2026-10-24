@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
+import { PORTAL_LABEL } from '@/lib/help/constants'
 
 const ago = (d: Date) => {
   const m = Math.round((Date.now() - d.getTime()) / 60000)
@@ -12,7 +13,7 @@ const ago = (d: Date) => {
 
 const TABS = [
   { key: 'needs', label: 'Needs a reply' },
-  { key: 'waiting', label: 'Waiting on candidate' },
+  { key: 'waiting', label: 'Waiting on them' },
   { key: 'resolved', label: 'Resolved' },
   { key: 'all', label: 'All' },
 ] as const
@@ -37,7 +38,7 @@ export default async function HelpInboxPage({ searchParams }: { searchParams: Pr
     prisma.helpRequest.count({ where: { status: 'OPEN', lastMessageFromAdmin: false } }),
   ])
   const candidates = await prisma.candidateProfile.findMany({
-    where: { id: { in: [...new Set(rows.map((r) => r.candidateId))] } },
+    where: { id: { in: [...new Set(rows.flatMap((r) => (r.candidateId ? [r.candidateId] : [])))] } },
     select: { id: true, firstName: true, lastName: true, email: true },
   })
   const byId = new Map(candidates.map((c) => [c.id, c]))
@@ -47,7 +48,7 @@ export default async function HelpInboxPage({ searchParams }: { searchParams: Pr
       <header>
         <h1 className="text-2xl font-semibold">Help inbox</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Questions and problem reports from candidates, sent from Help &amp; feedback in the portal. Ideas and feedback go
+          Questions and problem reports from candidates and from the employer, recruiter, coach and institution portals, sent from Help &amp; feedback. Partner replies go out by email. Ideas and feedback go
           to <Link href="/support/admin/vision/feedback" className="underline">Vision → Feedback</Link>.
         </p>
       </header>
@@ -72,8 +73,11 @@ export default async function HelpInboxPage({ searchParams }: { searchParams: Pr
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
           {rows.map((r) => {
-            const c = byId.get(r.candidateId)
-            const name = [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.email || 'Candidate'
+            const c = r.candidateId ? byId.get(r.candidateId) : undefined
+            const isPartner = r.portal !== 'CANDIDATE'
+            const name = isPartner
+              ? [r.requesterName, r.requesterOrg].filter(Boolean).join(' · ') || r.requesterEmail || PORTAL_LABEL[r.portal]
+              : [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.email || 'Candidate'
             return (
               <li key={r.id}>
                 <Link href={`/support/admin/help/${r.id}`} className="flex flex-col gap-1 p-4 hover:bg-muted/50 sm:flex-row sm:items-start sm:justify-between">
@@ -83,6 +87,7 @@ export default async function HelpInboxPage({ searchParams }: { searchParams: Pr
                       <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${r.kind === 'PROBLEM' ? 'bg-orange/15 text-navy' : 'bg-brand/10 text-brand'}`}>
                         {r.kind === 'PROBLEM' ? 'Problem' : 'Help'}
                       </span>
+                      {isPartner && <span className="rounded bg-navy/10 px-1.5 py-0.5 text-xs font-medium text-navy">{PORTAL_LABEL[r.portal] ?? r.portal}</span>}
                       <span className="font-semibold">{name}</span>
                     </span>
                     <span className="mt-1 block truncate text-sm text-foreground">{r.subject}</span>

@@ -56,7 +56,7 @@ export async function sendHelpToVision(requestId: string): Promise<void> {
     where: { id: requestId },
     select: { candidateId: true, contextPath: true, createdAt: true, messages: { where: { fromAdmin: false }, orderBy: { createdAt: 'asc' }, take: 1, select: { body: true } } },
   })
-  if (!r || !r.messages[0]) return
+  if (!r?.candidateId || !r.messages[0]) return
   const existing = await prisma.productFeedback.findFirst({ where: { candidateId: r.candidateId, rawText: r.messages[0].body, channel: 'in-app problem' }, select: { id: true } })
   if (!existing) {
     await prisma.productFeedback.create({
