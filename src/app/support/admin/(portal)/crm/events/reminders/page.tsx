@@ -37,7 +37,7 @@ export default async function ReminderPreviewPage({ searchParams }: { searchPara
       </header>
       <form action={sendTestReminders} className="flex flex-wrap items-center gap-3">
         <button className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background">Send me a test</button>
-        <span className="text-xs text-muted-foreground">Sends two sample reminders (a made-up event) to your own address: the early speaking ask and the "how was it" check-in.</span>
+        <span className="text-xs text-muted-foreground">Sends two sample reminders (a made-up event) to your own address: the early speaking ask and the how-was-it check-in.</span>
         {test === 'sent' && <span className="text-sm text-emerald-700">Sent. Check your inbox.</span>}
         {test === 'failed' && <span className="text-sm text-destructive">The test could not be sent. Check that the email key is set.</span>}
         {test === 'noemail' && <span className="text-sm text-destructive">Your admin account has no email address.</span>}
