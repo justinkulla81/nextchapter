@@ -253,6 +253,11 @@ describe('rendering', () => {
 })
 
 describe('list suggestions', () => {
+  it('falls back to the organization type only when no role names a list', () => {
+    expect(suggestListKeys({ roles: ['OTHER'], pipelineKeys: [], orgTypes: ['UNIVERSITY', 'EMPLOYER'] }).sort()).toEqual(['higher_ed', 'monthly_update'])
+    expect(suggestListKeys({ roles: ['COACH_PROSPECT'], pipelineKeys: [], orgTypes: ['UNIVERSITY'] }).sort()).toEqual(['coaches', 'monthly_update'])
+    expect(suggestListKeys({ roles: ['OTHER'], pipelineKeys: [], orgTypes: ['EMPLOYER', 'GOVERNMENT'] })).toEqual(['monthly_update'])
+  })
   it('maps roles, pipelines and customers; always suggests the Monthly Update', () => {
     expect(suggestListKeys({ roles: [], pipelineKeys: [] })).toEqual(['monthly_update'])
     expect(suggestListKeys({ roles: ['INVESTOR_ANGEL', 'COACH_PROSPECT'], pipelineKeys: ['outplacement'] }).sort())
