@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { NOT_CASUAL_WHERE } from '@/lib/journey/intensity'
 import { listEvents } from './store'
-import { checkInDue, dueStages, editionKey, nextEditionDue, STAGE_PRIORITY, URGENT_STAGES, type InterestStatus, type Stage } from './headsup'
+import { checkInDue, dueStages, sendCap, editionKey, nextEditionDue, STAGE_PRIORITY, URGENT_STAGES, type InterestStatus, type Stage } from './headsup'
 import { factsFor } from './member'
 import { matchEvents } from './match'
 import { sendConferenceHeadsUp, type FollowUp } from './send-heads-up'
@@ -14,8 +14,7 @@ import type { ConferenceRow } from './types'
 const MATCH_MIN_SCORE = 8
 const MATCH_GAP_DAYS = 14
 const WEEKLY_GAP_DAYS = 6
-/** A ramp, not a blast: at most this many emails per daily run (CONFERENCE_HEADSUP_MAX_PER_RUN overrides). Urgent stages go first. */
-const DEFAULT_MAX_PER_RUN = 25
+/** A ramp, not a blast: at most CONFERENCE_HEADSUP_MAX_PER_RUN emails per daily run (default 25; 0 pauses). Urgent stages go first. */
 
 export interface PlannedSend {
   member: { id: string; userId: string; firstName: string | null }
@@ -90,7 +89,7 @@ export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: bo
   }
   // Most urgent first, so the daily cap never starves a speaker deadline or a final check.
   plan.sort((a, b) => STAGE_PRIORITY.indexOf(a.stage) - STAGE_PRIORITY.indexOf(b.stage))
-  const max = Math.max(0, Number(process.env.CONFERENCE_HEADSUP_MAX_PER_RUN ?? DEFAULT_MAX_PER_RUN) || DEFAULT_MAX_PER_RUN)
+  const max = sendCap(process.env.CONFERENCE_HEADSUP_MAX_PER_RUN)
   const byStage: Record<string, number> = {}
   for (const p of plan) byStage[p.stage] = (byStage[p.stage] ?? 0) + 1
   let sent = 0

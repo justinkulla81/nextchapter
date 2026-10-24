@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { checkInDue, dueStages, editionKey, nextEditionDue, nextStep, organizerDraft, networkingDraft } from '@/lib/events/headsup'
+import { sendCap, checkInDue, dueStages, editionKey, nextEditionDue, nextStep, organizerDraft, networkingDraft } from '@/lib/events/headsup'
 import type { ConferenceRow } from '@/lib/events/types'
 
 const NOW = new Date('2026-10-23T12:00:00Z')
@@ -75,5 +75,16 @@ describe('follow-through', () => {
   })
   it('keys an edition by the year it starts so stages can repeat next year', () => {
     expect(editionKey(ev({ startDate: at(300), endDate: at(302) }), NOW)).toBe('2027')
+  })
+})
+
+describe('daily send cap', () => {
+  it('treats 0 as paused and only a missing or unreadable value as the default', () => {
+    expect(sendCap('0')).toBe(0)
+    expect(sendCap('10')).toBe(10)
+    expect(sendCap(undefined)).toBe(25)
+    expect(sendCap('')).toBe(25)
+    expect(sendCap('abc')).toBe(25)
+    expect(sendCap('-3')).toBe(0)
   })
 })
