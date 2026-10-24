@@ -23,6 +23,8 @@ export interface TraitSignals {
   /** Behavioral assessments finished, 0 to 2. */
   behavioralAssessments: number
   skillsAssessmentDone: boolean
+  /** Talks given, awards, accepted submissions and demos at conferences (src/lib/conferences). */
+  speakingActivities?: number
 }
 
 export interface EvidenceTrait {
@@ -44,7 +46,7 @@ export function buildEvidenceTraits(s: TraitSignals): EvidenceTrait[] {
     { key: 'detail', label: 'Attention to detail', level: at(s.tailoredApplications + s.workSamples, 1, 3, 6), shownBy: 'Tailored applications and work samples.' },
     { key: 'conscientiousness', label: 'Conscientiousness', level: at(s.goalStreakWeeks, 1, 2, 4), shownBy: 'A little most days, week after week.' },
     { key: 'helpfulness', label: 'Helpfulness', level: at(s.helpfulPosts, 1, 3, 8), shownBy: 'Helping others in your communities.' },
-    { key: 'communication', label: 'Communication', level: at(s.outreachCount, 1, 5, 15), shownBy: 'The messages you send to real people.' },
+    { key: 'communication', label: 'Communication', level: at(s.outreachCount + (s.speakingActivities ?? 0) * 5, 1, 5, 15), shownBy: 'The messages you send to real people, and talks you give.' },
     { key: 'references', label: 'References', level: at(s.completedReferences, 1, 2, 3), shownBy: 'People who vouch for you.' },
     { key: 'selfAware', label: 'Self-awareness', level: selfAware, shownBy: 'Your own view lining up with what your references and assessments show.' },
     { key: 'peaks', label: 'Peak strengths', level: at(assessments, 1, 2, 3), shownBy: 'What you are clearly best at, once your assessments are in.' },

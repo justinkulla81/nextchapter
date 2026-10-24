@@ -6,7 +6,9 @@ import { ACCESS, ACCESS_LABEL, FORMATS, JOURNEYS, JOURNEY_LABEL, PROGRAM_FORMATS
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { INDUSTRIES, TAXONOMY } from '@/lib/events/taxonomy'
-import { deleteEvent, saveEvent } from '../actions'
+import { prisma } from '@/lib/prisma'
+import { OPPORTUNITY_LABEL, OPPORTUNITY_TYPES } from '@/lib/conferences/constants'
+import { deleteEvent, deleteOpportunity, saveEvent, saveOpportunity } from '../actions'
 
 const field = 'w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-brand'
 const iso = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : '')
@@ -38,6 +40,7 @@ export default async function EventEditor({ params, searchParams }: { params: Pr
   const { id } = await params
   const { saved, error } = await searchParams
   const e = id === 'new' ? null : await getEvent(id)
+  const opps = e ? await prisma.conferenceOpportunity.findMany({ where: { seriesId: e.id }, orderBy: [{ deadline: { sort: 'asc', nulls: 'last' } }] }).catch(() => []) : []
   if (id !== 'new' && !e) notFound()
 
   return (
@@ -127,6 +130,33 @@ export default async function EventEditor({ params, searchParams }: { params: Pr
 
         <button className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background">Save event</button>
       </form>
+
+      {e && (
+        <section className="space-y-3 rounded-lg border border-border p-4">
+          <h2 className="text-sm font-semibold">Opportunities (speaker calls, papers, awards, contests, demos, reports)</h2>
+          {(opps ?? []).map((o) => (
+            <div key={o.id} className="flex flex-wrap items-center gap-2 border-b border-border pb-2 text-sm">
+              <span className="min-w-0 flex-1">{OPPORTUNITY_LABEL[o.type as keyof typeof OPPORTUNITY_LABEL]}: {o.title}{o.deadline ? ` · closes ${iso(o.deadline)}` : ''}{o.published ? '' : ' · hidden'} · {o.source}</span>
+              <form action={deleteOpportunity} className="flex items-center gap-2 text-xs">
+                <input type="hidden" name="id" value={o.id} /><input type="hidden" name="seriesId" value={e.id} />
+                <label className="flex items-center gap-1"><input type="checkbox" name="confirm" />Delete</label><button className="rounded-md border border-destructive px-2 py-1 text-destructive">Remove</button>
+              </form>
+            </div>
+          ))}
+          <form action={saveOpportunity} className="grid gap-2 sm:grid-cols-4">
+            <input type="hidden" name="seriesId" value={e.id} />
+            <label><Label>Type</Label><select name="type" className={field}>{OPPORTUNITY_TYPES.map((t) => <option key={t} value={t}>{OPPORTUNITY_LABEL[t]}</option>)}</select></label>
+            <label className="sm:col-span-3"><Label>Title</Label><input name="title" required className={field} /></label>
+            <label className="sm:col-span-2"><Label>Link</Label><input name="url" placeholder="https://" className={field} /></label>
+            <label><Label>Opens</Label><input name="opensAt" type="date" className={field} /></label>
+            <label><Label>Deadline</Label><input name="deadline" type="date" className={field} /></label>
+            <label className="sm:col-span-2"><Label>Who can apply</Label><input name="eligibility" className={field} /></label>
+            <label className="sm:col-span-2"><Label>Note</Label><input name="notes" className={field} /></label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="published" defaultChecked />Show to candidates</label>
+            <button className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background">Add opportunity</button>
+          </form>
+        </section>
+      )}
 
       {e && (
         <form action={deleteEvent} className="flex items-center gap-3 border-t border-border pt-4 text-sm">
