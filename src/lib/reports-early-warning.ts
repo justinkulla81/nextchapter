@@ -18,7 +18,23 @@ export const GROUP_LABEL: Record<UsGroup, string> = {
   wc_senior: 'White-collar 50+ (senior)',
 }
 
-const DIR = path.join(process.cwd(), 'public', 'reports')
+const REPORTS = path.join(process.cwd(), 'public', 'reports')
+const SNAPSHOTS = path.join(REPORTS, 'early-warning')
+
+/** Edition months that have a data snapshot, oldest first ("2026-09", "2026-10", ...). */
+export function earlyWarningEditions(): string[] {
+  if (!fs.existsSync(SNAPSHOTS)) return []
+  return fs.readdirSync(SNAPSHOTS).filter((d) => /^\d{4}-\d{2}$/.test(d)).sort()
+}
+
+/** The newest snapshot month, or null before the first one exists. */
+export const latestEarlyWarningEdition = () => earlyWarningEditions().at(-1) ?? null
+
+/** Folder holding an edition's data files; the newest snapshot when no edition is given. */
+function dirFor(edition?: string | null): string {
+  const e = edition ?? latestEarlyWarningEdition()
+  return e ? path.join(SNAPSHOTS, e) : REPORTS
+}
 
 export interface UsPoint { ur: number; epop: number; ltuShare: number; medianWeeks: number; nUnemployed: number }
 export type UsMonthly = Record<UsGroup, Map<string, UsPoint>>
@@ -28,8 +44,8 @@ function num(v: string | undefined): number {
   return v !== undefined && v !== '' && Number.isFinite(n) ? n : NaN
 }
 
-export function readUsEarlyWarning(): UsMonthly {
-  const [header, ...body] = parseCsv(fs.readFileSync(path.join(DIR, 'us-early-warning.csv'), 'utf8'))
+export function readUsEarlyWarning(edition?: string | null): UsMonthly {
+  const [header, ...body] = parseCsv(fs.readFileSync(path.join(dirFor(edition), 'us-early-warning.csv'), 'utf8'))
   const col = (n: string) => header.indexOf(n)
   const out = Object.fromEntries(US_GROUPS.map((g) => [g, new Map<string, UsPoint>()])) as UsMonthly
   for (const r of body) {
@@ -57,8 +73,8 @@ export interface PeersFile {
   us_ai_use: { period_end: string; pct: number }[]
 }
 
-export function readPeers(): PeersFile {
-  return JSON.parse(fs.readFileSync(path.join(DIR, 'early-warning-peers.json'), 'utf8')) as PeersFile
+export function readPeers(edition?: string | null): PeersFile {
+  return JSON.parse(fs.readFileSync(path.join(dirFor(edition), 'early-warning-peers.json'), 'utf8')) as PeersFile
 }
 
 const urSeries = (m: Map<string, UsPoint>): Series => new Map([...m].map(([k, v]) => [k, v.ur]))
@@ -136,15 +152,35 @@ function usAi(p: PeersFile) {
   return last ? { year: last.period_end.slice(0, 7), value: last.pct } : null
 }
 
-export interface AiLayoffMonth { month: string; companiesAll: number; companiesAi: number; aiSharePct: number }
+export interface AiLayoffRow { month: string; country: string; cited: number; denied: number; jobs: number }
+export interface AiLayoffEvent { month: string; employer: string; country: string; jobs: number; claim: 'cited' | 'denied'; url: string }
 
-/** Announced layoffs whose coverage ties them to AI, by month. Starts October 2026 (when collection began). */
-export function readAiLayoffs(): AiLayoffMonth[] {
-  const file = path.join(DIR, 'ai-layoffs-monthly.csv')
-  if (!fs.existsSync(file)) return []
+function readCsvRows(file: string): { header: string[]; body: string[][] } | null {
+  if (!fs.existsSync(file)) return null
   const [header, ...body] = parseCsv(fs.readFileSync(file, 'utf8'))
-  const col = (n: string) => header.indexOf(n)
-  return body
+  return { header, body }
+}
+
+/**
+ * Announced layoffs whose coverage ties them to AI, by month and by the
+ * announcing company's home country. Starts October 2026, when collection
+ * began. With no edition this is the running latest; with one, that edition's
+ * snapshot (empty for editions before collection began).
+ */
+export function readAiLayoffs(edition?: string | null): AiLayoffRow[] {
+  const t = readCsvRows(path.join(edition ? dirFor(edition) : REPORTS, 'ai-layoffs-monthly.csv'))
+  if (!t) return []
+  const c = (n: string) => t.header.indexOf(n)
+  return t.body
     .filter((r) => /^\d{4}-\d{2}$/.test(r[0] ?? ''))
-    .map((r) => ({ month: r[col('month')], companiesAll: num(r[col('companies_all')]), companiesAi: num(r[col('companies_ai_attributed')]), aiSharePct: num(r[col('ai_share_pct')]) }))
+    .map((r) => ({ month: r[c('month')], country: r[c('country_iso3')], cited: num(r[c('companies_ai_cited')]), denied: num(r[c('companies_ai_denied')]), jobs: num(r[c('jobs_ai_cited')]) }))
+}
+
+export function readAiLayoffEvents(edition?: string | null): AiLayoffEvent[] {
+  const t = readCsvRows(path.join(edition ? dirFor(edition) : REPORTS, 'ai-layoffs-events.csv'))
+  if (!t) return []
+  const c = (n: string) => t.header.indexOf(n)
+  return t.body
+    .filter((r) => /^\d{4}-\d{2}$/.test(r[0] ?? ''))
+    .map((r) => ({ month: r[c('month')], employer: r[c('employer')], country: r[c('country_iso3')], jobs: num(r[c('jobs')]), claim: r[c('ai_claim')] as 'cited' | 'denied', url: r[c('source_url')] }))
 }
