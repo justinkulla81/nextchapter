@@ -10613,6 +10613,11 @@ model CrmPerson {
   /// at other companies), 'in_house' (talent acquisition at an employer), 'hr' (HR staff or leaders), 'support' (assistants,
   /// researchers, admin at a firm), 'unclear'. Null = not classified yet. The CRM recruiter views and the layoff alert use 'recruiter'.
   recruiterKind      String?
+  /// How this recruiter works, from src/lib/crm/recruiter-model.ts: 'retained_search', 'contingent', 'candidate_rep' (represents candidates to
+  /// employers: reverse recruiting, candidate marketing; the prime target for the candidate CRM), 'in_house'. Empty = not known.
+  recruiterModels    String[] @default([])
+  /// Where the model came from: the text or email that showed it.
+  modelEvidence      String?
 
   roles    CrmPersonRole[] @default([])
   /// Derived from roles by goalsForRoles(), then editable by hand — a
