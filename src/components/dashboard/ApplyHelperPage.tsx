@@ -61,6 +61,7 @@ export function ApplyHelperPage({ connect }: { connect: ReactNode }) {
           <ul className="list-disc space-y-1 pl-5 text-base text-muted-foreground">
             <li>It works on Greenhouse, Ashby and Lever pages only. Workday, iCIMS, Taleo, LinkedIn Easy Apply and company-built forms are not supported.</li>
             <li>It never presses Submit and never writes answers for you. Essay questions, salary, work authorization and diversity questions are left blank on purpose.</li>
+            <li>Dropdown fields where you pick from a list (country, and location on some forms) are left for you to pick.</li>
             <li>It fills only what your profile has. If a field is empty on NextChapter, it stays empty on the form.</li>
             <li>Forms change. If a field is missed, type it yourself; the rest still works.</li>
             <li>Chrome only for now (Edge and Brave also load it the same way).</li>

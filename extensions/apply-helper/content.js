@@ -49,6 +49,12 @@
     return { label: labelOf(el), name: el.name, id: el.id, placeholder: el.placeholder, ariaLabel: el.getAttribute('aria-label'), autocomplete: el.getAttribute('autocomplete'), type: el.tagName === 'TEXTAREA' ? 'textarea' : el.type }
   }
 
+  // Dropdown-with-suggestions fields (Greenhouse selects, Lever's location) only accept a value picked from their
+  // list; typing text into them looks filled but does not count. The member picks those themselves.
+  function isPicker(el) {
+    return el.getAttribute('role') === 'combobox' || !!el.getAttribute('aria-autocomplete') || !!el.getAttribute('aria-haspopup') || (site === 'lever' && el.name === 'location')
+  }
+
   function setValue(el, value) {
     const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
     Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, value)
@@ -89,6 +95,7 @@
       if (!el.offsetParent && el.type !== 'file') continue
       const key = M.classifyField(describe(el))
       if (!key) continue
+      if (isPicker(el)) continue
       if (key === 'resume' && el.type === 'file') {
         if (p.data.hasResume && (await attachResume(el))) { resume = true; el.style.outline = '2px solid #c2410c' }
         continue
