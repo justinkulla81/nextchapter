@@ -14686,12 +14686,21 @@ model ConferenceEvent {
   linkFailures     Int                  @default(0)
   adminNote        String?
   source           String?
+  /// Canonical home URL (lowercased host, no www, no tracking params, no trailing slash): the dedupe key for Quick Add.
+  urlKey           String?
+  /// Hash of the page text at the last weekly re-check; a change triggers extraction of new dates and opportunities.
+  contentHash      String?
+  recheckedAt      DateTime?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @default(now()) @updatedAt
   interests        ConferenceInterest[]
+  editions         ConferenceEdition[]
+  opportunities    ConferenceOpportunity[]
+  changes          ConferenceChange[]
 
   @@index([published, startDate])
   @@index([importance])
+  @@index([urlKey])
 }
 
 model ConferenceInterest {
@@ -16755,4 +16764,158 @@ model CompetitorCapability {
   @@unique([competitorId, capabilityId])
   @@index([capabilityId])
   @@index([competitorId, checkedAt])
+}
+
+// ---- Conferences v2: editions, opportunities, member tracking, change review (prisma/manual/conferences-v2.sql) ----
+// ConferenceEvent above IS the series (one row per recurring event); these tables hang off it.
+
+/// One year's event. Created as TBA when the previous edition ends; dates fill in from the event's own site.
+model ConferenceEdition {
+  id            String                  @id @default(cuid())
+  seriesId      String
+  series        ConferenceEvent         @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  year          Int
+  startDate     DateTime?
+  endDate       DateTime?
+  /// IN_PERSON | VIRTUAL | HYBRID
+  format        String?
+  city          String?
+  state         String?
+  country       String?
+  url           String?
+  /// TBA | CONFIRMED | CANCELLED
+  status        String                  @default("TBA")
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @default(now()) @updatedAt
+  opportunities ConferenceOpportunity[]
+
+  @@unique([seriesId, year])
+}
+
+/// A thing to do at a conference: speak, submit, nominate, compete, demo. Typed, one row per edition.
+/// type: CALL_FOR_SPEAKERS | CALL_FOR_SUBMISSIONS | REPORT | CONTEST | PRESENTATION | AWARD | DEMO
+model ConferenceOpportunity {
+  id          String                       @id @default(cuid())
+  seriesId    String
+  series      ConferenceEvent              @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  editionId   String?
+  edition     ConferenceEdition?           @relation(fields: [editionId], references: [id], onDelete: SetNull)
+  type        String
+  title       String
+  url         String?
+  opensAt     DateTime?
+  deadline    DateTime?
+  eligibility String?
+  notes       String?
+  /// Shown to members only when true (Quick Add and the weekly re-check create unpublished rows).
+  published   Boolean                      @default(false)
+  /// ADMIN | QUICK_ADD | RECHECK
+  source      String                       @default("ADMIN")
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @default(now()) @updatedAt
+  tracks      ConferenceOpportunityTrack[]
+
+  @@index([deadline])
+  @@index([seriesId, type])
+}
+
+/// A member's stage on one opportunity. Private to the member.
+/// status: WATCHING | DRAFTING | SUBMITTED | ACCEPTED | REJECTED | DELIVERED
+model ConferenceOpportunityTrack {
+  id            String                @id @default(cuid())
+  candidateId   String
+  opportunityId String
+  opportunity   ConferenceOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  status        String
+  notes         String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @default(now()) @updatedAt
+
+  @@unique([candidateId, opportunityId])
+  @@index([candidateId, status])
+}
+
+/// A member's tracking of a series, kept across years. Private: never shared with the catalog.
+/// status: INTERESTED | TRACKING | REGISTERED | ATTENDING | ATTENDED | SPEAKING | SKIPPED
+model UserConference {
+  id          String                 @id @default(cuid())
+  candidateId String
+  seriesId    String
+  /// The edition the member is currently planning around; moved forward when a new edition is created.
+  editionId   String?
+  status      String
+  notes       String?
+  goals       String?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @default(now()) @updatedAt
+  contactsMet ConferenceContactMet[]
+
+  @@unique([candidateId, seriesId])
+  @@index([candidateId, status])
+  @@index([seriesId])
+}
+
+/// Someone the member met at a conference, linked to their Contact Book entry.
+model ConferenceContactMet {
+  id               String         @id @default(cuid())
+  userConferenceId String
+  userConference   UserConference @relation(fields: [userConferenceId], references: [id], onDelete: Cascade)
+  contactId        String
+  note             String?
+  createdAt        DateTime       @default(now())
+
+  @@unique([userConferenceId, contactId])
+}
+
+/// A talk, award or demo the member delivered or had accepted: Dossier evidence and a simple speaking history.
+/// kind: TALK | AWARD | SUBMISSION_ACCEPTED | DEMO
+model ConferenceTalk {
+  id            String    @id @default(cuid())
+  candidateId   String
+  seriesId      String?
+  opportunityId String?
+  kind          String    @default("TALK")
+  title         String
+  eventName     String?
+  topic         String?
+  deliveredOn   DateTime?
+  slidesUrl     String?
+  videoUrl      String?
+  createdAt     DateTime  @default(now())
+
+  @@index([candidateId, deliveredOn])
+}
+
+/// A change the weekly re-check found. Held for review, never applied silently.
+/// kind: DATES | NEW_OPPORTUNITY | OPPORTUNITY_DEADLINE; status: PENDING | APPLIED | DISMISSED
+model ConferenceChange {
+  id         String          @id @default(cuid())
+  seriesId   String
+  series     ConferenceEvent @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  kind       String
+  payload    Json
+  status     String          @default("PENDING")
+  createdAt  DateTime        @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([seriesId, status])
+}
+
+/// Quick Add bookkeeping: the per-member daily cap on model calls and a cache of extractions by canonical URL.
+model ConferenceExtraction {
+  urlKey      String   @id
+  result      Json
+  contentHash String?
+  createdAt   DateTime @default(now())
+}
+
+model ConferenceQuickAddLog {
+  id          String   @id @default(cuid())
+  candidateId String
+  urlKey      String
+  usedModel   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId, createdAt])
 }

@@ -8,6 +8,8 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { redirect } from 'next/navigation'
 import { applyOutcome } from '@/lib/events/outcome'
 import { OUTCOMES, type Outcome } from '@/lib/events/headsup'
+import { INTEREST_TO_STATUS } from '@/lib/conferences/constants'
+import { clearUserStatus, setUserStatus } from '@/lib/conferences/tracking'
 
 const STATUSES = ['SAVED', 'GOING', 'SPEAKING'] as const // SPEAKING also means going
 
@@ -30,12 +32,15 @@ export async function setEventInterest(formData: FormData): Promise<void> {
   if (current?.status === status) {
     await prisma.conferenceInterest.delete({ where: { id: current.id } })
     captureServerEvent(profile.id, 'conference_event_interest_cleared', { eventId, status })
+    await clearUserStatus(profile.id, eventId).catch(() => {})
   } else {
     await prisma.conferenceInterest.upsert({
       where: { candidateId_eventId: { candidateId: profile.id, eventId } },
       create: { candidateId: profile.id, eventId, status, editionEnd },
       update: { status, editionEnd },
     })
+    // Keep the Conferences tracking in step with the older interest states (fail-soft until its tables are applied).
+    await setUserStatus(profile.id, eventId, INTEREST_TO_STATUS[status]).catch(() => {})
     captureServerEvent(profile.id, 'conference_event_interest_set', { eventId, status, previous: current?.status ?? null, access: event.access, speaking: event.speaking, importance: event.importance })
   }
   revalidatePath('/dashboard/network/events')

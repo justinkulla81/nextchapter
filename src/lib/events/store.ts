@@ -70,6 +70,25 @@ export async function upsertCatalogRows(rows: Record<string, unknown>[]): Promis
       JSON.stringify(chunk),
     )
   }
+  // Quick Add dedupes on urlKey (src/lib/conferences/canonical.ts); catalog rows get theirs here. Fail-soft before the column exists.
+  await prisma.$executeRawUnsafe(
+    `UPDATE "ConferenceEvent" SET "urlKey" = regexp_replace(regexp_replace(lower(split_part(split_part("url", '#', 1), '?', 1)), '^https?://(www\\.)?', ''), '/+$', '')
+      WHERE "url" IS NOT NULL AND "urlKey" IS NULL`,
+  ).catch(() => {})
+  // One edition per dated series (so next year's can be created when it ends) and the open speaker calls as typed opportunities.
+  // Both fail-soft before the Conferences v2 tables exist, and neither overwrites anything.
+  await prisma.$executeRawUnsafe(
+    `INSERT INTO "ConferenceEdition" ("id","seriesId","year","startDate","endDate","format","city","state","country","url","status")
+     SELECT 'ed_' || e."id" || '_' || EXTRACT(YEAR FROM e."startDate")::int, e."id", EXTRACT(YEAR FROM e."startDate")::int, e."startDate", e."endDate", e."format", e."city", e."state", e."country", e."url",
+            CASE WHEN e."datesConfirmed" THEN 'CONFIRMED' ELSE 'TBA' END
+       FROM "ConferenceEvent" e WHERE e."startDate" IS NOT NULL ON CONFLICT DO NOTHING`,
+  ).catch(() => {})
+  await prisma.$executeRawUnsafe(
+    `INSERT INTO "ConferenceOpportunity" ("id","seriesId","type","title","url","deadline","notes","published","source")
+     SELECT 'op_' || e."id", e."id", 'CALL_FOR_SPEAKERS', 'Call for speakers', e."speakingUrl", e."speakingDeadline", e."speakingNote", e."published", 'ADMIN'
+       FROM "ConferenceEvent" e WHERE e."speaking" = 'OPEN_CFP'
+        AND NOT EXISTS (SELECT 1 FROM "ConferenceOpportunity" o WHERE o."seriesId" = e."id" AND o."type" = 'CALL_FOR_SPEAKERS') ON CONFLICT DO NOTHING`,
+  ).catch(() => {})
   return written
 }
 
