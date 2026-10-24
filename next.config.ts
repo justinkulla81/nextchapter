@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
         destination: '/outplacement',
         permanent: true,
       },
+      // 2026-10-24: the coach platform page moved into the coaches page, which now carries its content.
+      {
+        source: '/coach-platform',
+        destination: '/coaches',
+        permanent: true,
+      },
       {
         source: '/dashboard/hireability-report',
         destination: '/dashboard/market-reality',

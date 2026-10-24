@@ -4,7 +4,7 @@ import { ContactForm } from '@/components/marketing/ContactForm'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ActionBand, AudienceSection, AudienceShell, Disclosure, actionButton } from '@/components/organizations/AudienceShell'
 import { StructuredData } from '@/components/StructuredData'
-import { PORTAL_PLAN_LABELS, plansForPortal, type Plan, type PortalKey } from '@/lib/marketing/plans'
+import { PORTAL_PLAN_LABELS, plansAcrossPortals, plansForPortal, type Plan, type PortalKey } from '@/lib/marketing/plans'
 import { portalJsonLd, type PortalJsonLdInput } from '@/lib/marketing/portal-seo'
 
 // The one template for every partner page: higher education, workforce, hiring, employees, outplacement,
@@ -38,6 +38,12 @@ export type PortalProof =
   /** The first visual, shown large and labeled as sample data. */
   | { kind: 'sample'; heading: string; intro: string }
 
+export interface PortalClaim {
+  title: string
+  /** Plain paragraphs: how a staff member claims the organization's page. Full URLs are written out in the text. */
+  paragraphs: string[]
+}
+
 export interface PortalFinalCta {
   title: string
   intro?: string
@@ -61,8 +67,12 @@ export interface PortalPageContent {
   proof: PortalProof
   visuals: PortalVisual[]
   steps: PortalStep[]
+  /** Pages whose primary action is "Claim your page": where and how the claim works. Anchor: #claim. */
+  claim?: PortalClaim
   /** Whose plans the packages section shows, in order. */
   plansFor: PortalKey[]
+  /** The employer overview also shows the plan that spans every employer section (the enterprise bundle). */
+  includeBundle?: boolean
   plansIntro: string
   faq: { q: string; a: string }[]
   finalCta: PortalFinalCta
@@ -100,7 +110,7 @@ function Visual({ v, wide, priority }: { v: PortalVisual; wide?: boolean; priori
   )
 }
 
-function PlanCard({ plan, page, portal }: { plan: Plan; page: string; portal: PortalKey }) {
+export function PlanCard({ plan, page, portal }: { plan: Plan; page: string; portal?: PortalKey }) {
   return (
     <li className={`${CARD} flex flex-col`}>
       <div className="flex flex-wrap items-center gap-2">
@@ -118,7 +128,7 @@ function PlanCard({ plan, page, portal }: { plan: Plan; page: string; portal: Po
         <TrackedLink
           href={plan.cta.href}
           event="portal_plan_cta_clicked"
-          properties={{ page, portal, planKey: plan.planKey, cta: plan.cta.label, free: !!plan.free }}
+          properties={{ page, portal: portal ?? 'all_sections', planKey: plan.planKey, cta: plan.cta.label, free: !!plan.free }}
           className={plan.free ? 'inline-flex h-11 items-center rounded-full bg-action px-6 text-sm font-semibold text-action-foreground hover:brightness-95' : 'inline-flex h-11 items-center rounded-full border border-ink px-6 text-sm font-semibold text-ink hover:bg-muted'}
         >
           {plan.cta.label}
@@ -133,7 +143,8 @@ export function PortalMarketingPage({ content: c }: { content: PortalPageContent
   const [lead, ...rest] = c.visuals
   const gallery = sampleProof ? rest : c.visuals
   const plans = c.plansFor.flatMap((portal) => plansForPortal(portal).map((plan) => ({ plan, portal })))
-  const planNames = plans.map(({ plan }) => plan.name)
+  const bundle = c.includeBundle ? plansAcrossPortals() : []
+  const planNames = [...plans.map(({ plan }) => plan.name), ...bundle.map((plan) => plan.name)]
 
   return (
     <>
@@ -186,6 +197,16 @@ export function PortalMarketingPage({ content: c }: { content: PortalPageContent
           </ol>
         </AudienceSection>
 
+        {c.claim && (
+          <AudienceSection id="claim" title={c.claim.title}>
+            <div className="max-w-2xl space-y-3 text-base leading-relaxed text-ink">
+              {c.claim.paragraphs.map((p) => (
+                <p key={p}>{p}</p>
+              ))}
+            </div>
+          </AudienceSection>
+        )}
+
         <AudienceSection id="plans" title="Plans">
           <p className="mb-6 max-w-2xl text-base leading-relaxed text-muted-foreground">{c.plansIntro}</p>
           <div className="space-y-8">
@@ -202,6 +223,16 @@ export function PortalMarketingPage({ content: c }: { content: PortalPageContent
                 </div>
               )
             })}
+            {bundle.length > 0 && (
+              <div>
+                <h3 className="mb-3 text-lg font-semibold text-ink">All sections together</h3>
+                <ul className="grid gap-4 md:grid-cols-2">
+                  {bundle.map((plan) => (
+                    <PlanCard key={plan.planKey} plan={plan} page={c.analyticsKey} />
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           <p className="mt-6 text-sm text-muted-foreground">
             Every plan for every portal is on{' '}
