@@ -16249,6 +16249,10 @@ enum OrgWorkspaceType {
   COACH
   HIRING
   RECRUITER
+  // Employer sections by employee lifecycle (docs/specs/employer-sections-build-plan.md):
+  // HIRING (future), EMPLOYEES (current: learning and development, retention, job
+  // retraining) and OUTPLACEMENT (departing). Added 2026-10-24, nothing writes it yet.
+  EMPLOYEES
 }
 
 model Organization {
@@ -16279,6 +16283,11 @@ model Organization {
   crmOrganizationId String?          @unique
   crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
 
+  // Enterprise package: one contract covering every employer section (Hiring,
+  // Employees, Outplacement). Staff-set today; nothing reads it yet.
+  enterprise      Boolean   @default(false)
+  enterpriseSince DateTime?
+
   createdBy  String?
   workspaces OrgWorkspace[]
 
@@ -16301,8 +16310,44 @@ model OrgWorkspace {
   inviteToken String?          @unique
   createdAt   DateTime         @default(now())
 
+  // Plan for this workspace on its own: FREE | PAID | CONTRACT (outplacement,
+  // sales-led) | ENTERPRISE (covered by Organization.enterprise). Set by staff
+  // today; no payment code reads it. Existing rows start FREE.
+  plan          String    @default("FREE")
+  planSource    String? // STAFF | CONTRACT | STRIPE (later)
+  planUpdatedAt DateTime?
+  planNote      String?
+  // Services switched on inside the section, e.g. an EMPLOYEES workspace:
+  // { "learning": true, "retention": true, "retraining": false }. Empty = the defaults in src/lib/employer/sections.ts.
+  services      Json      @default("{}")
+
+  admins OrgWorkspaceAdmin[]
+
   @@unique([orgId, type])
   @@index([type, refId])
+}
+
+// Who runs one employer section. A person can hold different roles in different
+// sections. userId is the Supabase auth user id (null until the invite is
+// accepted). Additive: nothing reads this table yet; today's access still comes
+// from OutplacementOrgUser and EmployerSeat.
+// Applied by hand: prisma/manual/2026-10-24-employer-sections.sql.
+model OrgWorkspaceAdmin {
+  id          String       @id @default(cuid())
+  workspaceId String
+  workspace   OrgWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // ADMIN | VIEWER | BILLING (more per section later, see the build plan)
+  role        String       @default("ADMIN")
+  email       String
+  userId      String?
+  invitedBy   String?
+  // How they got in: INVITE | DOMAIN_CLAIM | MIGRATED
+  source      String       @default("INVITE")
+  createdAt   DateTime     @default(now())
+  acceptedAt  DateTime?
+
+  @@unique([workspaceId, email])
+  @@index([userId])
 }
 
 // Internships (owner rule: internships only appear in Higher Ed portals). Their
