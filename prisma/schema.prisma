@@ -5725,6 +5725,7 @@ model Coach {
   availability       CoachAvailabilityWindow[]
   bookings           CoachBooking[]
   noteSummaries      CoachNoteSummary[]
+  googleConnection   CoachGoogleConnection?
 
   // Surge-capacity bench, Master Build Script §A5.4 — admin flags a coach as
   // on-call/retainer for a sudden volume spike (e.g. a 200-person RIF).
@@ -5879,6 +5880,13 @@ model CoachSession {
   // institution. Null for every ordinary coaching session.
   institutionId String?
   institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+
+  // Coach notes upgrade (2026-10-24, prisma/manual/2026-10-24-coach-notes.sql): structured captures, the
+  // summary draft, agreed follow-ups and confirmed topics for this session. See src/lib/coach/session-notes.ts.
+  captures  CoachSessionCapture[]
+  summary   CoachSessionSummary?
+  followUps CoachFollowUp[]
+  topics    CoachSessionTopic[]
 
   @@index([candidateId, occurredAt])
   @@index([institutionId])
@@ -16005,10 +16013,35 @@ model CoachBooking {
   cancelledBy   String? // COACH | CANDIDATE
   meetUrl       String?
   googleEventId String?
+  // Which calendar googleEventId lives on: null = NextChapter's shared calendar (the original flow),
+  // otherwise the id of one of the coach's own calendars ("primary" or an address). prisma/manual/2026-10-24-coach-google.sql.
+  googleCalendarId String?
   createdAt     DateTime         @default(now())
 
   @@index([coachId, startsAt])
   @@index([candidateId, startsAt])
+}
+
+// A coach's own Google Calendar, connected through the separate coach OAuth client (COACH_GOOGLE_CLIENT_ID).
+// Scopes are calendar.events and calendar.freebusy only, so Google itself limits what we read to busy or free.
+// accessToken and refreshToken are encrypted by the token-crypto extension (CoachGoogleConnection is listed there).
+// status: connected | disconnected. A disconnected row keeps the email so the page can say which account to reconnect.
+// conflictCalendarIds: calendars checked for busy time; the first one is where sessions are written.
+// prisma/manual/2026-10-24-coach-google.sql.
+model CoachGoogleConnection {
+  coachId             String    @id
+  coach               Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  googleEmail         String
+  accessToken         String    @default("") @db.Text
+  refreshToken        String    @default("") @db.Text
+  expiresAt           DateTime
+  status              String    @default("connected")
+  disconnectReason    String?
+  connectedAt         DateTime  @default(now())
+  lastCheckedAt       DateTime?
+  disconnectedAt      DateTime?
+  conflictCalendarIds String[]  @default(["primary"])
+  updatedAt           DateTime  @updatedAt
 }
 
 // ── COACH NOTE SUMMARIES ─────────────────────────────────────────────────────
@@ -16254,6 +16287,10 @@ enum OrgWorkspaceType {
   COACH
   HIRING
   RECRUITER
+  // Employer sections by employee lifecycle (docs/specs/employer-sections-build-plan.md):
+  // HIRING (future), EMPLOYEES (current: learning and development, retention, job
+  // retraining) and OUTPLACEMENT (departing). Added 2026-10-24, nothing writes it yet.
+  EMPLOYEES
 }
 
 model Organization {
@@ -16284,6 +16321,11 @@ model Organization {
   crmOrganizationId String?          @unique
   crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
 
+  // Enterprise package: one contract covering every employer section (Hiring,
+  // Employees, Outplacement). Staff-set today; nothing reads it yet.
+  enterprise      Boolean   @default(false)
+  enterpriseSince DateTime?
+
   createdBy  String?
   workspaces OrgWorkspace[]
 
@@ -16306,8 +16348,44 @@ model OrgWorkspace {
   inviteToken String?          @unique
   createdAt   DateTime         @default(now())
 
+  // Plan for this workspace on its own: FREE | PAID | CONTRACT (outplacement,
+  // sales-led) | ENTERPRISE (covered by Organization.enterprise). Set by staff
+  // today; no payment code reads it. Existing rows start FREE.
+  plan          String    @default("FREE")
+  planSource    String? // STAFF | CONTRACT | STRIPE (later)
+  planUpdatedAt DateTime?
+  planNote      String?
+  // Services switched on inside the section, e.g. an EMPLOYEES workspace:
+  // { "learning": true, "retention": true, "retraining": false }. Empty = the defaults in src/lib/employer/sections.ts.
+  services      Json      @default("{}")
+
+  admins OrgWorkspaceAdmin[]
+
   @@unique([orgId, type])
   @@index([type, refId])
+}
+
+// Who runs one employer section. A person can hold different roles in different
+// sections. userId is the Supabase auth user id (null until the invite is
+// accepted). Additive: nothing reads this table yet; today's access still comes
+// from OutplacementOrgUser and EmployerSeat.
+// Applied by hand: prisma/manual/2026-10-24-employer-sections.sql.
+model OrgWorkspaceAdmin {
+  id          String       @id @default(cuid())
+  workspaceId String
+  workspace   OrgWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // ADMIN | VIEWER | BILLING (more per section later, see the build plan)
+  role        String       @default("ADMIN")
+  email       String
+  userId      String?
+  invitedBy   String?
+  // How they got in: INVITE | DOMAIN_CLAIM | MIGRATED
+  source      String       @default("INVITE")
+  createdAt   DateTime     @default(now())
+  acceptedAt  DateTime?
+
+  @@unique([workspaceId, email])
+  @@index([userId])
 }
 
 // Internships (owner rule: internships only appear in Higher Ed portals). Their
@@ -16760,4 +16838,82 @@ model CompetitorCapability {
   @@unique([competitorId, capabilityId])
   @@index([capabilityId])
   @@index([competitorId, checkedAt])
+}
+
+
+// ── COACH SESSION NOTES (2026-10-24) ─────────────────────────────────────────
+// What a coach captures in a session and what reaches the member. The coach's private free text stays on
+// CoachSession.notes and is never read by anything that builds the summary or the member's view. Strings with
+// CHECK constraints (see the SQL file) rather than enums, so a new kind needs no type migration.
+
+// One structured capture. kind: win | blocker | decision | next_step. Coach-only; never sent.
+model CoachSessionCapture {
+  id        String       @id @default(cuid())
+  sessionId String
+  session   CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  kind      String
+  text      String       @db.Text
+  createdAt DateTime     @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+// The summary for the member. state: DRAFT (written, maybe by the model) -> REVIEWED (the coach edited or
+// confirmed it) -> SENT (the coach pressed send; only then does the member see `text`). meetNotes is the
+// imported Gemini notes or pasted notes: coach-only, never sent. viewedAt is when the member opened it.
+model CoachSessionSummary {
+  id         String       @id @default(cuid())
+  sessionId  String       @unique
+  session    CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  state      String       @default("DRAFT")
+  text       String       @default("") @db.Text
+  meetNotes  String?      @db.Text
+  aiDrafted  Boolean      @default(false)
+  reviewedAt DateTime?
+  sentAt     DateTime?
+  viewedAt   DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+// One agreed follow-up with one owner. ownerKind: coach | member. status: open | done. The member sees it only
+// after the summary is SENT (visibleToMemberAt is set at that moment). A member-owned one is also added to the
+// member's weekly plan as a to-do; a coach-owned one is shown to the member labeled with the coach's name.
+model CoachFollowUp {
+  id                String       @id @default(cuid())
+  sessionId         String
+  session           CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  candidateId       String
+  coachId           String
+  ownerKind         String
+  text              String       @db.Text
+  dueOn             DateTime?    @db.Date
+  status            String       @default("open")
+  completedAt       DateTime?
+  visibleToMemberAt DateTime?
+  createdAt         DateTime     @default(now())
+
+  @@index([sessionId])
+  @@index([candidateId, visibleToMemberAt])
+}
+
+// A topic the member wants help with, from the controlled vocabulary in src/lib/coach/topics.ts.
+// status: suggested (found in the notes, coach-only) -> confirmed (the coach confirmed it; goes to the member
+// when the summary is sent) -> accepted | dismissed (the member's choice). Accepted topics feed the member's
+// recommendations (src/lib/coach/accepted-topics.ts).
+model CoachSessionTopic {
+  id          String       @id @default(cuid())
+  sessionId   String
+  session     CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  candidateId String
+  topic       String
+  quote       String?      @db.Text
+  status      String       @default("suggested")
+  suggestedAt DateTime     @default(now())
+  confirmedAt DateTime?
+  acceptedAt  DateTime?
+  dismissedAt DateTime?
+
+  @@unique([sessionId, topic])
+  @@index([candidateId, status])
 }
