@@ -1,0 +1,33 @@
+{
+  "competitor": "Eightfold AI",
+  "cells": [
+    {
+      "capabilityKey": "plat_sso",
+      "status": "YES",
+      "note": "Security page states support for SSO/SAML.",
+      "evidenceUrl": "https://eightfold.ai/trust/security/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_roles",
+      "status": "YES",
+      "note": "Security page states role- and attribute-based access control.",
+      "evidenceUrl": "https://eightfold.ai/trust/security/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_api",
+      "status": "PARTIAL",
+      "note": "Page states a REST API covering core objects.",
+      "evidenceUrl": "https://eightfold.ai/learn/talentforge-app-builder/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "hire_analytics",
+      "status": "PARTIAL",
+      "note": "Datasheet page describes reporting in the Talent Tracking product.",
+      "evidenceUrl": "https://eightfold.ai/learn/eightfold_ai_talent_tracking_datasheet/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

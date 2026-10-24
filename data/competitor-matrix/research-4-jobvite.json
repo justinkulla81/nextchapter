@@ -1,0 +1,12 @@
+{
+  "competitor": "Jobvite",
+  "cells": [
+    {
+      "capabilityKey": "plat_sso",
+      "status": "YES",
+      "note": "Solutions page states support for single sign-on.",
+      "evidenceUrl": "https://www.jobvite.com/solutions/role/it/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

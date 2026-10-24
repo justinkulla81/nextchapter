@@ -1,0 +1,33 @@
+{
+  "competitor": "LinkedIn",
+  "cells": [
+    {
+      "capabilityKey": "plat_sso",
+      "status": "YES",
+      "note": "Help article describes SSO setup for Recruiter and Talent Insights.",
+      "evidenceUrl": "https://www.linkedin.com/help/recruiter/answer/a415551",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_roles",
+      "status": "YES",
+      "note": "Help topic describes admin roles and permissions for Recruiter accounts.",
+      "evidenceUrl": "https://www.linkedin.com/help/recruiter/topic/a151002",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_ats_export",
+      "status": "YES",
+      "note": "Help article describes exporting candidates from Recruiter to an ATS through Recruiter System Connect.",
+      "evidenceUrl": "https://www.linkedin.com/help/recruiter/answer/a414395",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "hire_analytics",
+      "status": "PARTIAL",
+      "note": "Help article describes Talent Insights workforce reports; reports on an employer's own hiring funnel are not described there.",
+      "evidenceUrl": "https://www.linkedin.com/help/talent-insights/answer/a193030",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

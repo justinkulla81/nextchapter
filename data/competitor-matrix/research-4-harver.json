@@ -1,0 +1,19 @@
+{
+  "competitor": "Harver",
+  "cells": [
+    {
+      "capabilityKey": "plat_api",
+      "status": "YES",
+      "note": "API documentation describes creating candidates and applications and reading matching scores.",
+      "evidenceUrl": "https://api.harver.com/docs",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_webhooks",
+      "status": "PARTIAL",
+      "note": "API documentation describes webhooks to an ATS; signing is not confirmed on the page read.",
+      "evidenceUrl": "https://api.harver.com/docs",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

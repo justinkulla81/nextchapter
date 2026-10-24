@@ -1,0 +1,82 @@
+{
+  "competitor": "Greenhouse",
+  "cells": [
+    {
+      "capabilityKey": "hire_roles",
+      "status": "YES",
+      "note": "Help article describes creating a new job and viewing job insights for it.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/10280036917275-Job-insights-overview",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "hire_scorecards",
+      "status": "YES",
+      "note": "Help article describes interviewer scorecards per interview stage and visibility of other interviewers' scorecards.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/15756249510427-Scorecards-FAQ",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "hire_analytics",
+      "status": "YES",
+      "note": "Product page describes reporting and insights on hiring data.",
+      "evidenceUrl": "https://www.greenhouse.com/reporting-insights",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_roles",
+      "status": "YES",
+      "note": "Help article describes Basic, Job Admin and Site Admin permission levels, with job-based access.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/360039614171-Permission-levels-overview",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_audit_log",
+      "status": "YES",
+      "note": "Help article describes an audit log of events from the previous 30 days, on the Pro subscription tier.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/15076048557723",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_sso",
+      "status": "YES",
+      "note": "Help article describes SAML single sign-on setup for Greenhouse Recruiting.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/360040753811-Configure-single-sign-on-SSO-for-Greenhouse-Recruiting",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_api",
+      "status": "YES",
+      "note": "Help article describes the Harvest API.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/360029266032-Harvest-API-overview",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_webhooks",
+      "status": "YES",
+      "note": "Developer documentation describes webhooks with a secret key signature.",
+      "evidenceUrl": "https://developers.greenhouse.io/webhooks.html",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_firm",
+      "status": "YES",
+      "note": "Help article describes adding an agency and inviting its recruiters.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/201078255-Add-a-new-agency",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_submissions",
+      "status": "PARTIAL",
+      "note": "Help article describes agency recruiters submitting candidates to jobs; placement tracking is not described there.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/200241999-How-do-agency-recruiters-submit-candidates-to-Greenhouse",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_csv_exports",
+      "status": "PARTIAL",
+      "note": "Help article shows CSV export on the feedback report.",
+      "evidenceUrl": "https://support.greenhouse.io/hc/en-us/articles/115003862472-Feedback-report",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

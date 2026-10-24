@@ -1,0 +1,54 @@
+{
+  "competitor": "Ashby",
+  "cells": [
+    {
+      "capabilityKey": "plat_roles",
+      "status": "YES",
+      "note": "Help article describes global roles plus job, team and location access roles.",
+      "evidenceUrl": "https://docs.ashbyhq.com/user-permissions",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_sso",
+      "status": "YES",
+      "note": "Help article describes SSO and SCIM setup.",
+      "evidenceUrl": "https://docs.ashbyhq.com/sso-and-scim",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_audit_log",
+      "status": "YES",
+      "note": "Product update describes audit logs of what changed, when and by whom.",
+      "evidenceUrl": "https://www.ashbyhq.com/product-updates/audit-logs",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_firm",
+      "status": "YES",
+      "note": "Help article describes setting up agencies and their recruiters.",
+      "evidenceUrl": "https://docs.ashbyhq.com/agencies-setup",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_csv_exports",
+      "status": "PARTIAL",
+      "note": "Help article describes exporting candidate data; format limits are stated on the page.",
+      "evidenceUrl": "https://docs.ashbyhq.com/how-do-i-export-candidate-data",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_api",
+      "status": "YES",
+      "note": "Developer documentation describes API authentication.",
+      "evidenceUrl": "https://developers.ashbyhq.com/docs/authentication",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "hire_scorecards",
+      "status": "YES",
+      "note": "API reference lists scorecards and feedback submissions for an application.",
+      "evidenceUrl": "https://developers.ashbyhq.com/reference/applicationfeedbacklist",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

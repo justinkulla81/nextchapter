@@ -1,0 +1,40 @@
+{
+  "competitor": "Bullhorn",
+  "cells": [
+    {
+      "capabilityKey": "rec_candidate_search",
+      "status": "PARTIAL",
+      "note": "Product page describes AI Search and Match over the agency's own candidate database.",
+      "evidenceUrl": "https://www.bullhorn.com/products/applicant-tracking-crm/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_api",
+      "status": "YES",
+      "note": "Developer documentation describes the REST API.",
+      "evidenceUrl": "https://bullhorn.github.io/rest-api-docs/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_webhooks",
+      "status": "PARTIAL",
+      "note": "API documentation describes event subscriptions; signing is not described on the page read.",
+      "evidenceUrl": "https://bullhorn.github.io/rest-api-docs/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_csv_exports",
+      "status": "YES",
+      "note": "Help article describes exporting data from Bullhorn.",
+      "evidenceUrl": "https://kb.bullhorn.com/ats/Content/BHATS/Topics/exportingDataFromBullhorn.htm",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_roles",
+      "status": "YES",
+      "note": "Help article describes user action entitlements.",
+      "evidenceUrl": "https://kb.bullhorn.com/ats/Content/BHATS/Topics/understandingBHUserActionEntitlements.htm",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}
