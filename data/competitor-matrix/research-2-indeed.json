@@ -1,0 +1,33 @@
+{
+  "competitor": "Indeed",
+  "cells": [
+    {
+      "capabilityKey": "job_board",
+      "status": "YES",
+      "note": "Indeed's guide describes searching for jobs on Indeed.com; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.indeed.com/career-advice/finding-a-job/guide-using-indeed.com-job-search",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_alerts",
+      "status": "YES",
+      "note": "Indeed's guide describes email job alerts for new jobs matching a title, company, salary or location; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.indeed.com/career-advice/finding-a-job/guide-using-indeed.com-job-search",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "ld_jobs_report",
+      "status": "PARTIAL",
+      "note": "Indeed Hiring Lab publishes a monthly US labor market snapshot covering postings, wages, unemployment and openings; it covers all occupations.",
+      "evidenceUrl": "https://www.hiringlab.org",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "local_market_view",
+      "status": "PARTIAL",
+      "note": "Hiring Lab published an index of labor market tightness across 800+ local areas.",
+      "evidenceUrl": "https://www.hiringlab.org",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "competitor": "LoopCV",
+  "cells": [
+    {
+      "capabilityKey": "job_board",
+      "status": "PARTIAL",
+      "note": "Aggregates listings from 30+ job boards into one feed with filters.",
+      "evidenceUrl": "https://www.loopcv.pro/ai-job-search-tool",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_fit_score",
+      "status": "PARTIAL",
+      "note": "Each listing is scored against the member's CV and preferences.",
+      "evidenceUrl": "https://www.loopcv.pro/ai-job-search-tool",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_alerts",
+      "status": "YES",
+      "note": "Page says members are notified when new high-relevance jobs matching their profile are found.",
+      "evidenceUrl": "https://www.loopcv.pro/ai-job-search-tool",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_who_to_contact",
+      "status": "PARTIAL",
+      "note": "Finds a recruiter's email at a company to send outreach.",
+      "evidenceUrl": "https://www.loopcv.pro/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_analysis",
+      "status": "YES",
+      "note": "Resume checker gives an instant ATS score with AI recommendations.",
+      "evidenceUrl": "https://www.loopcv.pro/ai-resume-checker",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

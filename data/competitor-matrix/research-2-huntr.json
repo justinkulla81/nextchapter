@@ -1,0 +1,33 @@
+{
+  "competitor": "Huntr",
+  "cells": [
+    {
+      "capabilityKey": "job_tracker",
+      "status": "YES",
+      "note": "Tracks job applications with saved job descriptions, contacts, salaries, documents and notes.",
+      "evidenceUrl": "https://huntr.co/product/job-tracker",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "contacts",
+      "status": "PARTIAL",
+      "note": "Stores contact details such as title, company, email, phone and linked job; page does not describe a strength score or due dates.",
+      "evidenceUrl": "https://huntr.co/product/contact-tracker",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_analysis",
+      "status": "YES",
+      "note": "AI resume review covers experience, skills, education and formatting for a target role and seniority.",
+      "evidenceUrl": "https://huntr.co/product/ai-resume-review",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_studio",
+      "status": "PARTIAL",
+      "note": "Keyword scanner gives a match score against a job and can add keywords to resume sections; page does not describe drafts per role.",
+      "evidenceUrl": "https://huntr.co/product/resume-keyword-scanner",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

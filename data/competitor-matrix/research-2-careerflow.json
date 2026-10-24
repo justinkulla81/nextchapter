@@ -1,0 +1,61 @@
+{
+  "competitor": "Careerflow",
+  "cells": [
+    {
+      "capabilityKey": "job_tracker",
+      "status": "YES",
+      "note": "Job tracker links contacts, notes and documents to each application.",
+      "evidenceUrl": "https://www.careerflow.ai/job-tracker",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "contacts",
+      "status": "YES",
+      "note": "Networking tracker keeps contacts in one dashboard, categorized by company, industry or role, with import from LinkedIn, email or CSV.",
+      "evidenceUrl": "https://www.careerflow.ai/networking-tracker",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "follow_up_reminders",
+      "status": "YES",
+      "note": "Members set reminders for each connection to follow up.",
+      "evidenceUrl": "https://www.careerflow.ai/networking-tracker",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "weekly_outreach_plan",
+      "status": "PARTIAL",
+      "note": "Page says it recommends who to connect with and when to follow up; no weekly list is described.",
+      "evidenceUrl": "https://www.careerflow.ai/networking-tracker",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "linkedin_review",
+      "status": "YES",
+      "note": "Chrome extension scans a LinkedIn profile and returns section-by-section guidance with a score.",
+      "evidenceUrl": "https://www.careerflow.ai/linkedin-optimizer",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_analysis",
+      "status": "YES",
+      "note": "Features page lists an ATS score for a resume against a job description and a score against best practices.",
+      "evidenceUrl": "https://www.careerflow.ai/features",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_studio",
+      "status": "PARTIAL",
+      "note": "Resume optimizer flags missing keywords and mismatched skills against a job description and offers edits tailored to that job.",
+      "evidenceUrl": "https://www.careerflow.ai/resume-optimizer",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_skill_gap",
+      "status": "PARTIAL",
+      "note": "Job tracker page lists a Skill Gap Analyzer marked limited.",
+      "evidenceUrl": "https://www.careerflow.ai/job-tracker",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "competitor": "Career.io",
+  "cells": [
+    {
+      "capabilityKey": "job_board",
+      "status": "YES",
+      "note": "Page says members can search and apply for jobs on the site and receive job recommendations.",
+      "evidenceUrl": "https://career.io/total-job-search",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "pivot_paths",
+      "status": "PARTIAL",
+      "note": "Career Pathways shows career paths, skill gaps, job demand and salaries for over 12K job titles; no local openings are described.",
+      "evidenceUrl": "https://career.io/career-pathways",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_pay_vs_market",
+      "status": "PARTIAL",
+      "note": "Salary analyzer compares a member's offer to market data for their sector; it is not shown on job listings.",
+      "evidenceUrl": "https://career.io/salary-analyzer",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "skills_assessment",
+      "status": "PARTIAL",
+      "note": "Page mentions an AI career assessment.",
+      "evidenceUrl": "https://career.io/total-job-search",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

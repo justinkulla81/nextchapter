@@ -1,0 +1,19 @@
+{
+  "competitor": "Jobscan",
+  "cells": [
+    {
+      "capabilityKey": "resume_analysis",
+      "status": "PARTIAL",
+      "note": "Resume scanner page titled 'Find the Keywords You're Missing'; search result describes a match rate against a job description; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.jobscan.co/resume-scanner",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_tracker",
+      "status": "PARTIAL",
+      "note": "Page titled 'Free Job Application Tracker'; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.jobscan.co/job-tracker",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}
