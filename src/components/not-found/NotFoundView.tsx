@@ -31,7 +31,16 @@ export function NotFoundView({
 
   useEffect(() => {
     posthog.capture('not_found_viewed', { path, audience })
-  }, [path, audience])
+    // Emails the owner (once per address per day). Skipped in the dev preview, where the address is a sample.
+    if (!pathOverride) {
+      fetch('/api/not-found-report', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ path, referrer: document.referrer }),
+        keepalive: true,
+      }).catch(() => {})
+    }
+  }, [path, audience, pathOverride])
 
   const href = `${reportHref}${reportHref.includes('?') ? '&' : '?'}from=${encodeURIComponent(path)}`
 
