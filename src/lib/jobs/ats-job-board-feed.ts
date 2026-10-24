@@ -10,6 +10,7 @@ import { resolveCompanySizeBand } from '@/lib/market/company-size'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { screenJobTitle } from '@/lib/jobs/job-seniority'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
+import { fetchUsajobsListings } from '@/lib/jobs/usajobs-feed'
 
 const FETCH_TIMEOUT_MS = 6000
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -186,6 +187,7 @@ async function fetchCompanyListings(company: AtsCompany): Promise<FeedListing[]>
 
 export interface AtsFeedResult {
   fetched: number
+  usajobsFetched: number
   created: number
   reconfirmed: number
   skippedNoFit: number
@@ -244,8 +246,13 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
   // apiece) could exceed this route's maxDuration well before reaching the
   // later companies in ATS_COMPANIES, silently truncating the run to
   // whichever handful happened to be first in the array.
-  const perCompanyListings = await Promise.all(atsCompanies.map((company) => fetchCompanyListings(company)))
-  const allListings = perCompanyListings.flat()
+  const [perCompanyListings, usajobsListings] = await Promise.all([
+    Promise.all(atsCompanies.map((company) => fetchCompanyListings(company))),
+    // Federal postings run through the same US, seniority and candidate-fit
+    // gates as the company boards below.
+    fetchUsajobsListings(),
+  ])
+  const allListings = [...perCompanyListings.flat(), ...usajobsListings]
 
   // One existence check for every URL fetched this run, instead of a
   // per-listing findFirst — the same N+1 pattern that made the DB side of
@@ -355,6 +362,7 @@ export async function runAtsJobBoardFeed(): Promise<AtsFeedResult> {
 
   return {
     fetched: allListings.length,
+    usajobsFetched: usajobsListings.length,
     created: toCreate.length,
     reconfirmed: toReconfirmIds.length,
     skippedNoFit,
