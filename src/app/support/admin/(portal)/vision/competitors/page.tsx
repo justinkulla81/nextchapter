@@ -138,7 +138,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
       <section className="rounded-xl border border-border p-5" id="watch">
         <h2 className="text-lg font-semibold">Competitor watch</h2>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Re-reads every active card monthly (adds, never deletes), checks news weekly on direct and adjacent competitors, and records grants won, new customers, funding, acquisitions, layoffs and shutdowns. Model-suggested matrix answers wait here for you. Costs model and search money, so it is off until you switch it on, and it stops at the monthly limit.
+          Re-reads every active card monthly (adds, never deletes), checks news monthly on direct and adjacent competitors, and records grants won, new customers, funding, acquisitions, layoffs and shutdowns. Model-suggested matrix answers wait here for you. Costs model and search money, so it is off until you switch it on, and it stops at the monthly limit.
         </p>
         <form action={saveWatchSettings} className="mt-3 flex flex-wrap items-center gap-4 text-sm">
           <label className="flex items-center gap-1.5"><input type="checkbox" name="enabled" defaultChecked={watch.enabled} /> Watch on</label>

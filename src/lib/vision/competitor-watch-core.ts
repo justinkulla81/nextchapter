@@ -12,7 +12,7 @@ export const EVENT_LABEL: Record<EventKind, string> = {
 }
 
 export const REFRESH_EVERY_DAYS = 30
-export const NEWS_EVERY_DAYS = 7
+export const NEWS_EVERY_DAYS = 30
 /** Estimated cost of one call, used to refuse a call that would cross the cap. Real cost is recorded after. */
 export const EST_COST = { refresh: 0.06, news: 0.04 }
 
