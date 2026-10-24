@@ -26,5 +26,8 @@ jobs:
       # (CASA 6.1.1). Dev-only tooling (eslint, shadcn CLI) is not deployed.
       - run: npm audit --omit=dev --audit-level=high
       - run: npx tsc --noEmit -p .
+        env:
+          # The type-check ran out of memory (exit 134) as the codebase grew; the runner has 7 GB.
+          NODE_OPTIONS: --max-old-space-size=6144
       - run: npx vitest run
       - run: npx eslint src --ignore-pattern src/test/token-crypto-extension.test.ts
