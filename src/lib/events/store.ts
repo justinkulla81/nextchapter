@@ -62,7 +62,8 @@ export async function upsertCatalogRows(rows: Record<string, unknown>[]): Promis
   const now = new Date().toISOString()
   let written = 0
   for (let i = 0; i < rows.length; i += 250) {
-    const chunk = rows.slice(i, i + 250).map((r) => ({ ...r, locked: false, createdAt: now, updatedAt: now }))
+    // Every NOT NULL column is given here: jsonb_populate_recordset fills missing keys with NULL, not the column default.
+    const chunk = rows.slice(i, i + 250).map((r) => ({ segments: [], roles: [], journeys: [], programFormats: [], industries: [], functions: [], seniorities: [], linkFailures: 0, ...r, locked: false, createdAt: now, updatedAt: now }))
     written += await prisma.$executeRawUnsafe(
       `INSERT INTO "ConferenceEvent" SELECT * FROM jsonb_populate_recordset(null::"ConferenceEvent", $1::jsonb)
        ON CONFLICT ("id") DO UPDATE SET ${set}, "updatedAt" = EXCLUDED."updatedAt"
