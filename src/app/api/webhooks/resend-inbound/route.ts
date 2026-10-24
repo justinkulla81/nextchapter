@@ -6,6 +6,7 @@ import { INTAKE_FORWARD_DOMAIN, INTAKE_MAX_FILE_BYTES } from '@/lib/recruiter/in
 import { resolveForwardLocalPart, splitAddress } from '@/lib/recruiter/intake/slug'
 import { helpRequestIdFromLocal } from '@/lib/help/inbound-address'
 import { addEmailedHelpReply } from '@/lib/help/inbound'
+import { notifyHelpReplyUnreadable } from '@/lib/help/notify'
 import { ingestIntake, intakeFileType, processIntakeResume } from '@/lib/recruiter/intake/pipeline'
 
 // Also receives replies to Help & feedback emails (help-<id>@): see lib/help/inbound.
@@ -87,9 +88,19 @@ export async function POST(request: Request) {
   if (helpRequestId) {
     after(async () => {
       try {
-        const received = await resend.emails.receiving.get(data.email_id)
+        // Reading a received email's body needs a key with receiving access; the
+        // everyday RESEND_API_KEY is send-only. Fall back to it for older setups.
+        const reader = process.env.RESEND_RECEIVING_API_KEY ? new Resend(process.env.RESEND_RECEIVING_API_KEY) : resend
+        const received = await reader.emails.receiving.get(data.email_id)
         const from = splitAddress(data.from)
-        const result = await addEmailedHelpReply(helpRequestId, from ? `${from.local}@${from.domain}` : null, received.data?.text ?? '')
+        if (received.error || !received.data) {
+          // Never lose a customer's reply silently: say so, and tell the admin to read it in Resend.
+          console.error('Help reply: could not read the received email:', received.error)
+          await notifyHelpReplyUnreadable(helpRequestId, from ? `${from.local}@${from.domain}` : data.from, data.subject ?? null)
+          await log('help_reply_fetch_failed')
+          return
+        }
+        const result = await addEmailedHelpReply(helpRequestId, from ? `${from.local}@${from.domain}` : null, received.data.text ?? '')
         await log(`help_reply_${result}`)
       } catch (error) {
         console.error('Help reply by email failed:', error)
