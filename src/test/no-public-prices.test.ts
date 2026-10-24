@@ -21,6 +21,8 @@ const PUBLIC_FILES = [
   'src/app/coaches/page.tsx',
   'src/lib/marketing/portal-pages/coaches.ts',
   'src/lib/marketing/portal-pages/nonprofits.ts',
+  'src/app/employers/page.tsx',
+  'src/lib/marketing/portal-pages/employers.ts',
   'src/lib/marketing/portal-pages/higher-education.ts',
   'src/components/marketing/PortalMarketingPage.tsx',
   'src/app/outplacement/page.tsx',

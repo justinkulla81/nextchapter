@@ -24,7 +24,7 @@ type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
  * everything changed on every deploy, so they learn to ignore the field.
  *
  * Only public, indexable pages belong here. Never list sign-in pages,
- * redirects (/employers, /for-coaches) or anything robots.ts disallows.
+ * redirects (/for-coaches, /coach-platform) or anything robots.ts disallows.
  */
 const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: number }[] = [
   { path: '/jobs', updated: '2026-10-22', freq: 'daily', priority: 0.8 },
@@ -43,6 +43,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/refer', updated: '2026-10-02', freq: 'monthly', priority: 0.3 },
   { path: '/for-organizations', updated: '2026-10-06', freq: 'monthly', priority: 0.5 },
   { path: '/higher-education', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
+  { path: '/employers', updated: '2026-10-24', freq: 'monthly', priority: 0.7 },
   { path: '/employees', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/outplacement', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/recruiters', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
