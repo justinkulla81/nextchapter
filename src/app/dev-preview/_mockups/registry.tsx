@@ -27,6 +27,7 @@ import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureL
 import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
 import { ScopeBroaderFirst, ScopeEverythingQuestion, ScopeNarrow } from './search-scope'
 import { PortalHeaders } from './portal-headers'
+import { BoardBidsLive, CompetitorWinsLive } from './bids-live'
 import { PartnerInvite, PartnerYourPeople, PartnerMoving, PartnerMovingAsk, PartnerMovingWorth } from './partner'
 import { CoachSessionPrep, CoachSessionNotes } from './coach-session'
 import { CoachWhatCandidateSees } from './coach-candidate'
@@ -239,6 +240,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
   { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
   { path: 'portals/headers', place: 'Portals', title: 'Portal top bars: employer, higher education, workforce, recruiter, coach', replaces: 'the one navy top bar on every non-candidate portal (PartnerTopBar)', Component: PortalHeaders },
+  { path: 'admin/board-bids-live', place: 'Admin', title: 'CRM funding: workforce board bids (live rows)', replaces: 'new', Component: BoardBidsLive as unknown as ComponentType },
+  { path: 'admin/competitor-wins-live', place: 'Admin', title: 'CRM funding: competitor federal wins (live rows)', replaces: 'new', Component: CompetitorWinsLive as unknown as ComponentType },
   { path: 'account/money', place: 'Account', title: 'Money help (off state)', replaces: 'new', Component: AccountMoney },
 ]
 

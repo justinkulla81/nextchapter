@@ -42,6 +42,10 @@ export default async function CrmFundingPage({ searchParams }: { searchParams: P
           Federal grants (Grants.gov) and solicitations (SAM.gov) in our subject area, refreshed daily. Anything neither we
           nor a customer can pursue is left out.
         </p>
+        <p className="mt-2 flex gap-4 text-sm">
+          <Link href="/support/admin/crm/funding/bids" className="underline">Workforce board bids →</Link>
+          <Link href="/support/admin/crm/funding/competitor-wins" className="underline">Competitor federal wins →</Link>
+        </p>
       </header>
 
       {missing ? (
