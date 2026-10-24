@@ -110,7 +110,7 @@ function Visual({ v, wide, priority }: { v: PortalVisual; wide?: boolean; priori
   )
 }
 
-function PlanCard({ plan, page, portal }: { plan: Plan; page: string; portal?: PortalKey }) {
+export function PlanCard({ plan, page, portal }: { plan: Plan; page: string; portal?: PortalKey }) {
   return (
     <li className={`${CARD} flex flex-col`}>
       <div className="flex flex-wrap items-center gap-2">
