@@ -1,0 +1,40 @@
+{
+  "competitor": "Aluminati (Aluminate)",
+  "cells": [
+    {
+      "capabilityKey": "he_alumni_network",
+      "status": "YES",
+      "note": "Aluminate for Education page describes member profiles and a directory for finding connections.",
+      "evidenceUrl": "https://www.aluminati.net/aluminate-for-education-alumni-engagement-software/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_mentoring",
+      "status": "YES",
+      "note": "Aluminate for Education page describes matching mentors to mentees.",
+      "evidenceUrl": "https://www.aluminati.net/aluminate-for-education-alumni-engagement-software/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_events",
+      "status": "PARTIAL",
+      "note": "Aluminate for Education page refers to event marketing; registration is not described.",
+      "evidenceUrl": "https://www.aluminati.net/aluminate-for-education-alumni-engagement-software/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_giving",
+      "status": "PARTIAL",
+      "note": "Aluminate for Education page describes community-powered fundraising; links to outcomes are not described.",
+      "evidenceUrl": "https://www.aluminati.net/aluminate-for-education-alumni-engagement-software/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "community_feed",
+      "status": "PARTIAL",
+      "note": "Aluminate for Education page describes unlimited groups for regions or interests as a space to exchange ideas; posts and replies are not described.",
+      "evidenceUrl": "https://www.aluminati.net/aluminate-for-education-alumni-engagement-software/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

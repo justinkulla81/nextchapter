@@ -1,0 +1,19 @@
+{
+  "competitor": "CareerOS",
+  "cells": [
+    {
+      "capabilityKey": "he_career_caseload",
+      "status": "YES",
+      "note": "Homepage describes a university board showing which students are active, stuck or thriving.",
+      "evidenceUrl": "https://www.careeros.com/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_events",
+      "status": "PARTIAL",
+      "note": "Homepage says employers can host events at universities; registration is not described.",
+      "evidenceUrl": "https://www.careeros.com/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

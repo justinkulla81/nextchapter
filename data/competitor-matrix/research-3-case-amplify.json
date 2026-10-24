@@ -1,0 +1,19 @@
+{
+  "competitor": "Case Amplify",
+  "cells": [
+    {
+      "capabilityKey": "wf_participants",
+      "status": "YES",
+      "note": "Workforce Development page describes tracking enrollment, participation and completion in workforce programs.",
+      "evidenceUrl": "https://www.caseamplify.com/workforce-development",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_career_caseload",
+      "status": "PARTIAL",
+      "note": "Workforce Development page describes caseload views for program managers across coaches; the page is about workforce programs, not colleges.",
+      "evidenceUrl": "https://www.caseamplify.com/workforce-development",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

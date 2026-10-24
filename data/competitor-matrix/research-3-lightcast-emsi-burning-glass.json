@@ -1,0 +1,12 @@
+{
+  "competitor": "Lightcast (Emsi Burning Glass)",
+  "cells": [
+    {
+      "capabilityKey": "he_outcomes_report",
+      "status": "PARTIAL",
+      "note": "Alumni Pathways page describes alumni outcomes by program and an embeddable alumni widget; small-count suppression is not described.",
+      "evidenceUrl": "https://lightcast.io/solutions/education/alumni-pathways",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}
