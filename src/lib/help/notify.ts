@@ -120,6 +120,19 @@ export async function notifyAdminOfHelpReply(requestId: string, body: string, fr
   await send({ to: ADMIN_TO, subject: `Reply not filed: ${r.subject}`, html, text: `Reply from ${fromEmail} was not added (expected ${who.email ?? 'unknown'}).\n\n${body}\n\n${link}`, audience: 'admin', ref: r.id })
 }
 
+/** A reply arrived but its body could not be read (receiving key missing): tell the admin so it is not lost. */
+export async function notifyHelpReplyUnreadable(requestId: string, fromEmail: string, subject: string | null): Promise<void> {
+  const link = `${ADMIN_URL}/support/admin/help/${requestId}`
+  const html = emailDocument({
+    preheader: `A reply from ${fromEmail} could not be read.`,
+    label: 'Help inbox',
+    bodyHtml: `
+      ${callout(`<strong>A reply arrived but could not be read.</strong> It is from <strong>${escapeHtml(fromEmail)}</strong>${subject ? ` (“${escapeHtml(subject)}”)` : ''}. Open it in Resend → Emails → Received, and set <code>RESEND_RECEIVING_API_KEY</code> so replies file automatically.`, 'alert')}
+      ${buttonHtml('Open the conversation', link)}`,
+  })
+  await send({ to: ADMIN_TO, subject: 'Help reply could not be read', html, text: `A reply from ${fromEmail} could not be read. Open it in Resend (Emails → Received) and set RESEND_RECEIVING_API_KEY.\n\n${link}`, audience: 'admin' })
+}
+
 /** The admin replied: email the person with the reply, the conversation so far, and a way back. */
 export async function notifyCandidateOfReply(requestId: string, body: string): Promise<boolean> {
   const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, portal: true, subject: true, requesterName: true, requesterEmail: true } })
