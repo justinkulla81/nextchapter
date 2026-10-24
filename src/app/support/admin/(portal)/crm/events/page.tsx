@@ -25,11 +25,13 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
   let rows: Awaited<ReturnType<typeof listEvents>> = []
   let counts: Awaited<ReturnType<typeof interestCounts>> = {}
   let missing = false
+  let loadError = ''
   try {
     await seedCatalogIfStale()
     ;[rows, counts] = await Promise.all([listEvents(), interestCounts()])
-  } catch {
+  } catch (e) {
     missing = true
+    loadError = e instanceof Error ? e.message.slice(0, 600) : String(e)
   }
   const total = rows.length
   const rows0 = rows
@@ -71,7 +73,8 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
 
       {missing ? (
         <p className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
-          The ConferenceEvent tables are not applied yet. Run <code>prisma/manual/conference-events.sql</code>, then open this tab again; it fills itself from the bundled catalog.
+          The events could not be loaded. If the ConferenceEvent tables are missing, run <code>prisma/manual/conference-events.sql</code>; otherwise this is the error:
+          <code className="mt-2 block whitespace-pre-wrap break-words text-xs">{loadError}</code>
         </p>
       ) : (
         <>
