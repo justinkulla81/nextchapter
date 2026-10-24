@@ -1,0 +1,8801 @@
+{
+ "generated": "2026-10-24",
+ "names": {
+  "USA": "United States",
+  "GBR": "United Kingdom",
+  "CAN": "Canada",
+  "AUS": "Australia",
+  "JPN": "Japan",
+  "DEU": "Germany",
+  "FRA": "France",
+  "ITA": "Italy",
+  "ESP": "Spain",
+  "NLD": "Netherlands",
+  "SWE": "Sweden"
+ },
+ "sources": {
+  "unemployment": "OECD Short-Term Labour Market Statistics (monthly, seasonally adjusted)",
+  "education": "OECD Education at a Glance, unemployment by attainment, ages 25-34",
+  "duration": "OECD unemployment by duration (12+ months)",
+  "gdp": "IMF World Economic Outlook, real GDP growth (latest-year values are IMF estimates)",
+  "ai_us": "US Census Bureau Business Trends and Outlook Survey, share of businesses using AI in the last two weeks",
+  "ai": "Eurostat isoc_eb_ai, enterprises with 10+ staff using any AI technology (EU only)"
+ },
+ "unemployment": {
+  "JPN": [
+   {
+    "month": "2015-01",
+    "total": 3.6,
+    "youth": 6.9
+   },
+   {
+    "month": "2015-02",
+    "total": 3.5,
+    "youth": 6.2
+   },
+   {
+    "month": "2015-03",
+    "total": 3.4,
+    "youth": 5.3
+   },
+   {
+    "month": "2015-04",
+    "total": 3.4,
+    "youth": 5.3
+   },
+   {
+    "month": "2015-05",
+    "total": 3.3,
+    "youth": 5.4
+   },
+   {
+    "month": "2015-06",
+    "total": 3.4,
+    "youth": 5.5
+   },
+   {
+    "month": "2015-07",
+    "total": 3.3,
+    "youth": 5.6
+   },
+   {
+    "month": "2015-08",
+    "total": 3.4,
+    "youth": 5.5
+   },
+   {
+    "month": "2015-09",
+    "total": 3.4,
+    "youth": 5.5
+   },
+   {
+    "month": "2015-10",
+    "total": 3.2,
+    "youth": 5.5
+   },
+   {
+    "month": "2015-11",
+    "total": 3.3,
+    "youth": 5.3
+   },
+   {
+    "month": "2015-12",
+    "total": 3.3,
+    "youth": 5.2
+   },
+   {
+    "month": "2016-01",
+    "total": 3.2,
+    "youth": 5.3
+   },
+   {
+    "month": "2016-02",
+    "total": 3.3,
+    "youth": 5.8
+   },
+   {
+    "month": "2016-03",
+    "total": 3.2,
+    "youth": 5.9
+   },
+   {
+    "month": "2016-04",
+    "total": 3.2,
+    "youth": 5.1
+   },
+   {
+    "month": "2016-05",
+    "total": 3.2,
+    "youth": 5.2
+   },
+   {
+    "month": "2016-06",
+    "total": 3.1,
+    "youth": 5.1
+   },
+   {
+    "month": "2016-07",
+    "total": 3.0,
+    "youth": 4.8
+   },
+   {
+    "month": "2016-08",
+    "total": 3.1,
+    "youth": 5.1
+   },
+   {
+    "month": "2016-09",
+    "total": 3.0,
+    "youth": 4.9
+   },
+   {
+    "month": "2016-10",
+    "total": 3.0,
+    "youth": 5.0
+   },
+   {
+    "month": "2016-11",
+    "total": 3.0,
+    "youth": 4.6
+   },
+   {
+    "month": "2016-12",
+    "total": 3.0,
+    "youth": 4.8
+   },
+   {
+    "month": "2017-01",
+    "total": 3.0,
+    "youth": 4.8
+   },
+   {
+    "month": "2017-02",
+    "total": 2.9,
+    "youth": 4.3
+   },
+   {
+    "month": "2017-03",
+    "total": 2.8,
+    "youth": 4.6
+   },
+   {
+    "month": "2017-04",
+    "total": 2.8,
+    "youth": 5.0
+   },
+   {
+    "month": "2017-05",
+    "total": 3.0,
+    "youth": 5.1
+   },
+   {
+    "month": "2017-06",
+    "total": 2.8,
+    "youth": 4.6
+   },
+   {
+    "month": "2017-07",
+    "total": 2.8,
+    "youth": 4.8
+   },
+   {
+    "month": "2017-08",
+    "total": 2.8,
+    "youth": 4.5
+   },
+   {
+    "month": "2017-09",
+    "total": 2.8,
+    "youth": 4.7
+   },
+   {
+    "month": "2017-10",
+    "total": 2.7,
+    "youth": 4.3
+   },
+   {
+    "month": "2017-11",
+    "total": 2.7,
+    "youth": 4.3
+   },
+   {
+    "month": "2017-12",
+    "total": 2.7,
+    "youth": 4.7
+   },
+   {
+    "month": "2018-01",
+    "total": 2.4,
+    "youth": 3.7
+   },
+   {
+    "month": "2018-02",
+    "total": 2.5,
+    "youth": 4.2
+   },
+   {
+    "month": "2018-03",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2018-04",
+    "total": 2.5,
+    "youth": 3.6
+   },
+   {
+    "month": "2018-05",
+    "total": 2.2,
+    "youth": 3.4
+   },
+   {
+    "month": "2018-06",
+    "total": 2.4,
+    "youth": 3.9
+   },
+   {
+    "month": "2018-07",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2018-08",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2018-09",
+    "total": 2.3,
+    "youth": 3.2
+   },
+   {
+    "month": "2018-10",
+    "total": 2.4,
+    "youth": 3.1
+   },
+   {
+    "month": "2018-11",
+    "total": 2.5,
+    "youth": 3.5
+   },
+   {
+    "month": "2018-12",
+    "total": 2.5,
+    "youth": 3.4
+   },
+   {
+    "month": "2019-01",
+    "total": 2.5,
+    "youth": 3.4
+   },
+   {
+    "month": "2019-02",
+    "total": 2.4,
+    "youth": 3.5
+   },
+   {
+    "month": "2019-03",
+    "total": 2.5,
+    "youth": 3.7
+   },
+   {
+    "month": "2019-04",
+    "total": 2.4,
+    "youth": 3.7
+   },
+   {
+    "month": "2019-05",
+    "total": 2.3,
+    "youth": 3.7
+   },
+   {
+    "month": "2019-06",
+    "total": 2.3,
+    "youth": 3.8
+   },
+   {
+    "month": "2019-07",
+    "total": 2.3,
+    "youth": 3.5
+   },
+   {
+    "month": "2019-08",
+    "total": 2.3,
+    "youth": 3.8
+   },
+   {
+    "month": "2019-09",
+    "total": 2.4,
+    "youth": 4.7
+   },
+   {
+    "month": "2019-10",
+    "total": 2.4,
+    "youth": 4.6
+   },
+   {
+    "month": "2019-11",
+    "total": 2.3,
+    "youth": 3.8
+   },
+   {
+    "month": "2019-12",
+    "total": 2.2,
+    "youth": 3.2
+   },
+   {
+    "month": "2020-01",
+    "total": 2.4,
+    "youth": 3.5
+   },
+   {
+    "month": "2020-02",
+    "total": 2.4,
+    "youth": 4.2
+   },
+   {
+    "month": "2020-03",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2020-04",
+    "total": 2.6,
+    "youth": 4.8
+   },
+   {
+    "month": "2020-05",
+    "total": 2.8,
+    "youth": 5.1
+   },
+   {
+    "month": "2020-06",
+    "total": 2.8,
+    "youth": 4.1
+   },
+   {
+    "month": "2020-07",
+    "total": 2.9,
+    "youth": 5.1
+   },
+   {
+    "month": "2020-08",
+    "total": 3.0,
+    "youth": 4.9
+   },
+   {
+    "month": "2020-09",
+    "total": 3.0,
+    "youth": 4.4
+   },
+   {
+    "month": "2020-10",
+    "total": 3.1,
+    "youth": 4.8
+   },
+   {
+    "month": "2020-11",
+    "total": 3.0,
+    "youth": 4.5
+   },
+   {
+    "month": "2020-12",
+    "total": 3.1,
+    "youth": 5.1
+   },
+   {
+    "month": "2021-01",
+    "total": 3.0,
+    "youth": 5.3
+   },
+   {
+    "month": "2021-02",
+    "total": 2.9,
+    "youth": 4.8
+   },
+   {
+    "month": "2021-03",
+    "total": 2.7,
+    "youth": 4.7
+   },
+   {
+    "month": "2021-04",
+    "total": 2.9,
+    "youth": 4.4
+   },
+   {
+    "month": "2021-05",
+    "total": 2.9,
+    "youth": 4.5
+   },
+   {
+    "month": "2021-06",
+    "total": 2.9,
+    "youth": 4.5
+   },
+   {
+    "month": "2021-07",
+    "total": 2.8,
+    "youth": 4.4
+   },
+   {
+    "month": "2021-08",
+    "total": 2.8,
+    "youth": 4.5
+   },
+   {
+    "month": "2021-09",
+    "total": 2.7,
+    "youth": 4.3
+   },
+   {
+    "month": "2021-10",
+    "total": 2.7,
+    "youth": 4.1
+   },
+   {
+    "month": "2021-11",
+    "total": 2.8,
+    "youth": 4.7
+   },
+   {
+    "month": "2021-12",
+    "total": 2.7,
+    "youth": 5.0
+   },
+   {
+    "month": "2022-01",
+    "total": 2.8,
+    "youth": 4.5
+   },
+   {
+    "month": "2022-02",
+    "total": 2.7,
+    "youth": 3.7
+   },
+   {
+    "month": "2022-03",
+    "total": 2.6,
+    "youth": 3.9
+   },
+   {
+    "month": "2022-04",
+    "total": 2.6,
+    "youth": 4.2
+   },
+   {
+    "month": "2022-05",
+    "total": 2.6,
+    "youth": 4.0
+   },
+   {
+    "month": "2022-06",
+    "total": 2.6,
+    "youth": 4.5
+   },
+   {
+    "month": "2022-07",
+    "total": 2.5,
+    "youth": 4.1
+   },
+   {
+    "month": "2022-08",
+    "total": 2.5,
+    "youth": 4.2
+   },
+   {
+    "month": "2022-09",
+    "total": 2.6,
+    "youth": 4.5
+   },
+   {
+    "month": "2022-10",
+    "total": 2.6,
+    "youth": 4.8
+   },
+   {
+    "month": "2022-11",
+    "total": 2.5,
+    "youth": 4.9
+   },
+   {
+    "month": "2022-12",
+    "total": 2.5,
+    "youth": 4.4
+   },
+   {
+    "month": "2023-01",
+    "total": 2.5,
+    "youth": 4.4
+   },
+   {
+    "month": "2023-02",
+    "total": 2.6,
+    "youth": 4.8
+   },
+   {
+    "month": "2023-03",
+    "total": 2.7,
+    "youth": 4.4
+   },
+   {
+    "month": "2023-04",
+    "total": 2.6,
+    "youth": 4.0
+   },
+   {
+    "month": "2023-05",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2023-06",
+    "total": 2.5,
+    "youth": 4.2
+   },
+   {
+    "month": "2023-07",
+    "total": 2.6,
+    "youth": 3.8
+   },
+   {
+    "month": "2023-08",
+    "total": 2.6,
+    "youth": 3.7
+   },
+   {
+    "month": "2023-09",
+    "total": 2.6,
+    "youth": 3.8
+   },
+   {
+    "month": "2023-10",
+    "total": 2.5,
+    "youth": 4.0
+   },
+   {
+    "month": "2023-11",
+    "total": 2.6,
+    "youth": 4.3
+   },
+   {
+    "month": "2023-12",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2024-01",
+    "total": 2.5,
+    "youth": 3.7
+   },
+   {
+    "month": "2024-02",
+    "total": 2.6,
+    "youth": 4.0
+   },
+   {
+    "month": "2024-03",
+    "total": 2.6,
+    "youth": 4.3
+   },
+   {
+    "month": "2024-04",
+    "total": 2.6,
+    "youth": 4.1
+   },
+   {
+    "month": "2024-05",
+    "total": 2.6,
+    "youth": 4.2
+   },
+   {
+    "month": "2024-06",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2024-07",
+    "total": 2.7,
+    "youth": 4.2
+   },
+   {
+    "month": "2024-08",
+    "total": 2.5,
+    "youth": 4.2
+   },
+   {
+    "month": "2024-09",
+    "total": 2.4,
+    "youth": 3.9
+   },
+   {
+    "month": "2024-10",
+    "total": 2.5,
+    "youth": 3.7
+   },
+   {
+    "month": "2024-11",
+    "total": 2.5,
+    "youth": 3.4
+   },
+   {
+    "month": "2024-12",
+    "total": 2.5,
+    "youth": 4.0
+   },
+   {
+    "month": "2025-01",
+    "total": 2.5,
+    "youth": 4.1
+   },
+   {
+    "month": "2025-02",
+    "total": 2.4,
+    "youth": 4.0
+   },
+   {
+    "month": "2025-03",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2025-04",
+    "total": 2.5,
+    "youth": 4.0
+   },
+   {
+    "month": "2025-05",
+    "total": 2.5,
+    "youth": 4.2
+   },
+   {
+    "month": "2025-06",
+    "total": 2.5,
+    "youth": 3.9
+   },
+   {
+    "month": "2025-07",
+    "total": 2.4,
+    "youth": 4.2
+   },
+   {
+    "month": "2025-08",
+    "total": 2.6,
+    "youth": 4.2
+   },
+   {
+    "month": "2025-09",
+    "total": 2.6,
+    "youth": 3.9
+   },
+   {
+    "month": "2025-10",
+    "total": 2.6,
+    "youth": 3.5
+   },
+   {
+    "month": "2025-11",
+    "total": 2.6,
+    "youth": 3.1
+   },
+   {
+    "month": "2025-12",
+    "total": 2.6,
+    "youth": 2.7
+   },
+   {
+    "month": "2026-01",
+    "total": 2.7,
+    "youth": 4.3
+   },
+   {
+    "month": "2026-02",
+    "total": 2.6,
+    "youth": 3.8
+   },
+   {
+    "month": "2026-03",
+    "total": 2.7,
+    "youth": 3.8
+   },
+   {
+    "month": "2026-04",
+    "total": 2.5,
+    "youth": 3.6
+   },
+   {
+    "month": "2026-05",
+    "total": 2.5,
+    "youth": 4.3
+   },
+   {
+    "month": "2026-06",
+    "youth": 4.2,
+    "total": 2.5
+   },
+   {
+    "month": "2026-07",
+    "total": 2.4,
+    "youth": 3.4
+   },
+   {
+    "month": "2026-08",
+    "total": 2.5,
+    "youth": 3.5
+   }
+  ],
+  "CAN": [
+   {
+    "month": "2015-01",
+    "total": 6.8,
+    "youth": 12.7
+   },
+   {
+    "month": "2015-02",
+    "total": 6.9,
+    "youth": 13.0
+   },
+   {
+    "month": "2015-03",
+    "total": 6.9,
+    "youth": 12.6
+   },
+   {
+    "month": "2015-04",
+    "total": 7.0,
+    "youth": 13.4
+   },
+   {
+    "month": "2015-05",
+    "total": 6.9,
+    "youth": 12.7
+   },
+   {
+    "month": "2015-06",
+    "total": 6.9,
+    "youth": 12.5
+   },
+   {
+    "month": "2015-07",
+    "total": 7.0,
+    "youth": 12.9
+   },
+   {
+    "month": "2015-08",
+    "total": 7.1,
+    "youth": 12.7
+   },
+   {
+    "month": "2015-09",
+    "total": 7.1,
+    "youth": 12.8
+   },
+   {
+    "month": "2015-10",
+    "total": 7.0,
+    "youth": 12.7
+   },
+   {
+    "month": "2015-11",
+    "total": 7.1,
+    "youth": 12.2
+   },
+   {
+    "month": "2015-12",
+    "total": 7.3,
+    "youth": 12.9
+   },
+   {
+    "month": "2016-01",
+    "total": 7.2,
+    "youth": 12.7
+   },
+   {
+    "month": "2016-02",
+    "total": 7.3,
+    "youth": 12.9
+   },
+   {
+    "month": "2016-03",
+    "total": 7.2,
+    "youth": 13.0
+   },
+   {
+    "month": "2016-04",
+    "total": 7.3,
+    "youth": 13.0
+   },
+   {
+    "month": "2016-05",
+    "total": 7.1,
+    "youth": 12.8
+   },
+   {
+    "month": "2016-06",
+    "total": 7.0,
+    "youth": 12.6
+   },
+   {
+    "month": "2016-07",
+    "total": 7.0,
+    "youth": 13.0
+   },
+   {
+    "month": "2016-08",
+    "total": 6.9,
+    "youth": 12.1
+   },
+   {
+    "month": "2016-09",
+    "total": 7.0,
+    "youth": 12.5
+   },
+   {
+    "month": "2016-10",
+    "total": 6.9,
+    "youth": 12.2
+   },
+   {
+    "month": "2016-11",
+    "total": 6.8,
+    "youth": 12.1
+   },
+   {
+    "month": "2016-12",
+    "total": 6.9,
+    "youth": 11.8
+   },
+   {
+    "month": "2017-01",
+    "total": 6.9,
+    "youth": 12.6
+   },
+   {
+    "month": "2017-02",
+    "total": 6.6,
+    "youth": 11.9
+   },
+   {
+    "month": "2017-03",
+    "total": 6.7,
+    "youth": 11.9
+   },
+   {
+    "month": "2017-04",
+    "total": 6.5,
+    "youth": 11.4
+   },
+   {
+    "month": "2017-05",
+    "total": 6.6,
+    "youth": 11.4
+   },
+   {
+    "month": "2017-06",
+    "total": 6.5,
+    "youth": 11.1
+   },
+   {
+    "month": "2017-07",
+    "total": 6.3,
+    "youth": 10.6
+   },
+   {
+    "month": "2017-08",
+    "total": 6.2,
+    "youth": 10.9
+   },
+   {
+    "month": "2017-09",
+    "total": 6.2,
+    "youth": 10.1
+   },
+   {
+    "month": "2017-10",
+    "total": 6.3,
+    "youth": 10.6
+   },
+   {
+    "month": "2017-11",
+    "total": 6.2,
+    "youth": 10.5
+   },
+   {
+    "month": "2017-12",
+    "total": 6.0,
+    "youth": 10.4
+   },
+   {
+    "month": "2018-01",
+    "total": 5.9,
+    "youth": 10.4
+   },
+   {
+    "month": "2018-02",
+    "total": 6.0,
+    "youth": 11.0
+   },
+   {
+    "month": "2018-03",
+    "total": 5.8,
+    "youth": 10.5
+   },
+   {
+    "month": "2018-04",
+    "total": 5.8,
+    "youth": 10.8
+   },
+   {
+    "month": "2018-05",
+    "total": 5.9,
+    "youth": 10.8
+   },
+   {
+    "month": "2018-06",
+    "total": 6.0,
+    "youth": 11.2
+   },
+   {
+    "month": "2018-07",
+    "total": 5.9,
+    "youth": 10.5
+   },
+   {
+    "month": "2018-08",
+    "total": 6.0,
+    "youth": 10.4
+   },
+   {
+    "month": "2018-09",
+    "total": 5.8,
+    "youth": 10.1
+   },
+   {
+    "month": "2018-10",
+    "total": 5.6,
+    "youth": 10.2
+   },
+   {
+    "month": "2018-11",
+    "total": 5.7,
+    "youth": 10.4
+   },
+   {
+    "month": "2018-12",
+    "total": 5.6,
+    "youth": 10.4
+   },
+   {
+    "month": "2019-01",
+    "total": 5.7,
+    "youth": 10.3
+   },
+   {
+    "month": "2019-02",
+    "total": 5.8,
+    "youth": 10.4
+   },
+   {
+    "month": "2019-03",
+    "total": 5.8,
+    "youth": 10.7
+   },
+   {
+    "month": "2019-04",
+    "total": 5.7,
+    "youth": 9.8
+   },
+   {
+    "month": "2019-05",
+    "total": 5.5,
+    "youth": 10.1
+   },
+   {
+    "month": "2019-06",
+    "total": 5.6,
+    "youth": 10.4
+   },
+   {
+    "month": "2019-07",
+    "total": 5.7,
+    "youth": 11.3
+   },
+   {
+    "month": "2019-08",
+    "total": 5.7,
+    "youth": 11.2
+   },
+   {
+    "month": "2019-09",
+    "total": 5.6,
+    "youth": 11.9
+   },
+   {
+    "month": "2019-10",
+    "total": 5.6,
+    "youth": 11.3
+   },
+   {
+    "month": "2019-11",
+    "total": 5.9,
+    "youth": 11.4
+   },
+   {
+    "month": "2019-12",
+    "total": 5.6,
+    "youth": 10.8
+   },
+   {
+    "month": "2020-01",
+    "total": 5.5,
+    "youth": 9.8
+   },
+   {
+    "month": "2020-02",
+    "total": 5.8,
+    "youth": 10.7
+   },
+   {
+    "month": "2020-03",
+    "total": 8.5,
+    "youth": 17.9
+   },
+   {
+    "month": "2020-04",
+    "total": 13.7,
+    "youth": 27.2
+   },
+   {
+    "month": "2020-05",
+    "total": 14.2,
+    "youth": 30.3
+   },
+   {
+    "month": "2020-06",
+    "total": 12.6,
+    "youth": 28.0
+   },
+   {
+    "month": "2020-07",
+    "total": 10.9,
+    "youth": 24.1
+   },
+   {
+    "month": "2020-08",
+    "total": 10.1,
+    "youth": 22.0
+   },
+   {
+    "month": "2020-09",
+    "total": 9.1,
+    "youth": 18.1
+   },
+   {
+    "month": "2020-10",
+    "total": 9.0,
+    "youth": 18.2
+   },
+   {
+    "month": "2020-11",
+    "total": 8.6,
+    "youth": 17.1
+   },
+   {
+    "month": "2020-12",
+    "total": 8.9,
+    "youth": 18.2
+   },
+   {
+    "month": "2021-01",
+    "total": 9.2,
+    "youth": 19.2
+   },
+   {
+    "month": "2021-02",
+    "total": 8.5,
+    "youth": 17.4
+   },
+   {
+    "month": "2021-03",
+    "total": 7.7,
+    "youth": 14.2
+   },
+   {
+    "month": "2021-04",
+    "total": 8.2,
+    "youth": 16.0
+   },
+   {
+    "month": "2021-05",
+    "total": 8.3,
+    "youth": 16.1
+   },
+   {
+    "month": "2021-06",
+    "total": 7.9,
+    "youth": 14.0
+   },
+   {
+    "month": "2021-07",
+    "total": 7.4,
+    "youth": 12.0
+   },
+   {
+    "month": "2021-08",
+    "total": 7.1,
+    "youth": 11.6
+   },
+   {
+    "month": "2021-09",
+    "total": 7.0,
+    "youth": 11.2
+   },
+   {
+    "month": "2021-10",
+    "total": 6.5,
+    "youth": 9.7
+   },
+   {
+    "month": "2021-11",
+    "total": 6.1,
+    "youth": 10.1
+   },
+   {
+    "month": "2021-12",
+    "total": 5.9,
+    "youth": 10.7
+   },
+   {
+    "month": "2022-01",
+    "total": 6.4,
+    "youth": 12.5
+   },
+   {
+    "month": "2022-02",
+    "total": 5.5,
+    "youth": 10.3
+   },
+   {
+    "month": "2022-03",
+    "total": 5.4,
+    "youth": 9.3
+   },
+   {
+    "month": "2022-04",
+    "total": 5.4,
+    "youth": 10.3
+   },
+   {
+    "month": "2022-05",
+    "total": 5.2,
+    "youth": 9.5
+   },
+   {
+    "month": "2022-06",
+    "total": 4.9,
+    "youth": 9.3
+   },
+   {
+    "month": "2022-07",
+    "total": 4.8,
+    "youth": 9.0
+   },
+   {
+    "month": "2022-08",
+    "total": 5.2,
+    "youth": 9.2
+   },
+   {
+    "month": "2022-09",
+    "total": 5.1,
+    "youth": 10.3
+   },
+   {
+    "month": "2022-10",
+    "total": 5.1,
+    "youth": 10.8
+   },
+   {
+    "month": "2022-11",
+    "total": 5.0,
+    "youth": 10.2
+   },
+   {
+    "month": "2022-12",
+    "total": 5.0,
+    "youth": 9.8
+   },
+   {
+    "month": "2023-01",
+    "total": 5.1,
+    "youth": 10.1
+   },
+   {
+    "month": "2023-02",
+    "total": 5.2,
+    "youth": 10.3
+   },
+   {
+    "month": "2023-03",
+    "total": 5.1,
+    "youth": 9.4
+   },
+   {
+    "month": "2023-04",
+    "total": 5.1,
+    "youth": 9.8
+   },
+   {
+    "month": "2023-05",
+    "total": 5.2,
+    "youth": 10.8
+   },
+   {
+    "month": "2023-06",
+    "total": 5.4,
+    "youth": 11.1
+   },
+   {
+    "month": "2023-07",
+    "total": 5.4,
+    "youth": 10.2
+   },
+   {
+    "month": "2023-08",
+    "total": 5.4,
+    "youth": 10.9
+   },
+   {
+    "month": "2023-09",
+    "total": 5.5,
+    "youth": 10.5
+   },
+   {
+    "month": "2023-10",
+    "total": 5.7,
+    "youth": 11.4
+   },
+   {
+    "month": "2023-11",
+    "total": 5.8,
+    "youth": 11.6
+   },
+   {
+    "month": "2023-12",
+    "total": 5.8,
+    "youth": 11.5
+   },
+   {
+    "month": "2024-01",
+    "total": 5.7,
+    "youth": 11.0
+   },
+   {
+    "month": "2024-02",
+    "total": 5.9,
+    "youth": 12.1
+   },
+   {
+    "month": "2024-03",
+    "total": 6.1,
+    "youth": 13.0
+   },
+   {
+    "month": "2024-04",
+    "total": 6.2,
+    "youth": 12.9
+   },
+   {
+    "month": "2024-05",
+    "total": 6.3,
+    "youth": 12.7
+   },
+   {
+    "month": "2024-06",
+    "total": 6.4,
+    "youth": 13.4
+   },
+   {
+    "month": "2024-07",
+    "total": 6.4,
+    "youth": 13.9
+   },
+   {
+    "month": "2024-08",
+    "total": 6.6,
+    "youth": 14.1
+   },
+   {
+    "month": "2024-09",
+    "total": 6.5,
+    "youth": 13.3
+   },
+   {
+    "month": "2024-10",
+    "total": 6.6,
+    "youth": 12.9
+   },
+   {
+    "month": "2024-11",
+    "total": 7.0,
+    "youth": 14.2
+   },
+   {
+    "month": "2024-12",
+    "total": 6.7,
+    "youth": 14.2
+   },
+   {
+    "month": "2025-01",
+    "total": 6.7,
+    "youth": 13.7
+   },
+   {
+    "month": "2025-02",
+    "total": 6.6,
+    "youth": 13.1
+   },
+   {
+    "month": "2025-03",
+    "total": 6.8,
+    "youth": 13.9
+   },
+   {
+    "month": "2025-04",
+    "total": 6.9,
+    "youth": 14.2
+   },
+   {
+    "month": "2025-05",
+    "total": 7.0,
+    "youth": 14.2
+   },
+   {
+    "month": "2025-06",
+    "total": 6.9,
+    "youth": 14.2
+   },
+   {
+    "month": "2025-07",
+    "total": 6.9,
+    "youth": 14.5
+   },
+   {
+    "month": "2025-08",
+    "total": 7.1,
+    "youth": 14.3
+   },
+   {
+    "month": "2025-09",
+    "total": 7.1,
+    "youth": 14.6
+   },
+   {
+    "month": "2025-10",
+    "total": 6.9,
+    "youth": 14.0
+   },
+   {
+    "month": "2025-11",
+    "total": 6.6,
+    "youth": 12.8
+   },
+   {
+    "month": "2025-12",
+    "total": 6.8,
+    "youth": 13.3
+   },
+   {
+    "month": "2026-01",
+    "total": 6.5,
+    "youth": 12.8
+   },
+   {
+    "month": "2026-02",
+    "total": 6.7,
+    "youth": 14.1
+   },
+   {
+    "month": "2026-03",
+    "total": 6.7,
+    "youth": 13.8
+   },
+   {
+    "month": "2026-04",
+    "total": 6.9,
+    "youth": 14.3
+   },
+   {
+    "month": "2026-05",
+    "total": 6.6,
+    "youth": 13.4
+   },
+   {
+    "month": "2026-06",
+    "youth": 12.7,
+    "total": 6.5
+   },
+   {
+    "month": "2026-07",
+    "total": 6.4,
+    "youth": 12.6
+   },
+   {
+    "month": "2026-08",
+    "youth": 12.9,
+    "total": 6.4
+   },
+   {
+    "month": "2026-09",
+    "total": 6.5,
+    "youth": 13.0
+   }
+  ],
+  "USA": [
+   {
+    "month": "2015-01",
+    "total": 5.7,
+    "youth": 12.0
+   },
+   {
+    "month": "2015-02",
+    "total": 5.5,
+    "youth": 11.8
+   },
+   {
+    "month": "2015-03",
+    "total": 5.4,
+    "youth": 12.5
+   },
+   {
+    "month": "2015-04",
+    "total": 5.4,
+    "youth": 11.8
+   },
+   {
+    "month": "2015-05",
+    "total": 5.6,
+    "youth": 12.3
+   },
+   {
+    "month": "2015-06",
+    "total": 5.3,
+    "youth": 11.9
+   },
+   {
+    "month": "2015-07",
+    "total": 5.2,
+    "youth": 11.5
+   },
+   {
+    "month": "2015-08",
+    "total": 5.1,
+    "youth": 11.1
+   },
+   {
+    "month": "2015-09",
+    "total": 5.0,
+    "youth": 11.2
+   },
+   {
+    "month": "2015-10",
+    "total": 5.0,
+    "youth": 11.0
+   },
+   {
+    "month": "2015-11",
+    "total": 5.1,
+    "youth": 11.2
+   },
+   {
+    "month": "2015-12",
+    "total": 5.0,
+    "youth": 11.1
+   },
+   {
+    "month": "2016-01",
+    "total": 4.8,
+    "youth": 10.0
+   },
+   {
+    "month": "2016-02",
+    "total": 4.9,
+    "youth": 10.5
+   },
+   {
+    "month": "2016-03",
+    "total": 5.0,
+    "youth": 10.7
+   },
+   {
+    "month": "2016-04",
+    "total": 5.1,
+    "youth": 11.0
+   },
+   {
+    "month": "2016-05",
+    "total": 4.8,
+    "youth": 10.4
+   },
+   {
+    "month": "2016-06",
+    "total": 4.9,
+    "youth": 10.5
+   },
+   {
+    "month": "2016-07",
+    "total": 4.8,
+    "youth": 10.6
+   },
+   {
+    "month": "2016-08",
+    "total": 4.9,
+    "youth": 10.2
+   },
+   {
+    "month": "2016-09",
+    "total": 5.0,
+    "youth": 10.4
+   },
+   {
+    "month": "2016-10",
+    "total": 4.9,
+    "youth": 10.6
+   },
+   {
+    "month": "2016-11",
+    "total": 4.7,
+    "youth": 10.3
+   },
+   {
+    "month": "2016-12",
+    "total": 4.7,
+    "youth": 10.0
+   },
+   {
+    "month": "2017-01",
+    "total": 4.7,
+    "youth": 10.0
+   },
+   {
+    "month": "2017-02",
+    "total": 4.6,
+    "youth": 9.8
+   },
+   {
+    "month": "2017-03",
+    "total": 4.4,
+    "youth": 9.0
+   },
+   {
+    "month": "2017-04",
+    "total": 4.4,
+    "youth": 9.3
+   },
+   {
+    "month": "2017-05",
+    "total": 4.4,
+    "youth": 8.7
+   },
+   {
+    "month": "2017-06",
+    "total": 4.3,
+    "youth": 9.1
+   },
+   {
+    "month": "2017-07",
+    "total": 4.3,
+    "youth": 8.9
+   },
+   {
+    "month": "2017-08",
+    "total": 4.4,
+    "youth": 8.9
+   },
+   {
+    "month": "2017-09",
+    "total": 4.3,
+    "youth": 9.1
+   },
+   {
+    "month": "2017-10",
+    "total": 4.2,
+    "youth": 9.2
+   },
+   {
+    "month": "2017-11",
+    "total": 4.2,
+    "youth": 9.8
+   },
+   {
+    "month": "2017-12",
+    "total": 4.1,
+    "youth": 9.1
+   },
+   {
+    "month": "2018-01",
+    "total": 4.0,
+    "youth": 9.2
+   },
+   {
+    "month": "2018-02",
+    "total": 4.1,
+    "youth": 9.0
+   },
+   {
+    "month": "2018-03",
+    "total": 4.0,
+    "youth": 8.3
+   },
+   {
+    "month": "2018-04",
+    "total": 4.0,
+    "youth": 8.4
+   },
+   {
+    "month": "2018-05",
+    "total": 3.8,
+    "youth": 8.6
+   },
+   {
+    "month": "2018-06",
+    "total": 4.0,
+    "youth": 8.8
+   },
+   {
+    "month": "2018-07",
+    "total": 3.8,
+    "youth": 8.6
+   },
+   {
+    "month": "2018-08",
+    "total": 3.8,
+    "youth": 8.2
+   },
+   {
+    "month": "2018-09",
+    "total": 3.7,
+    "youth": 8.4
+   },
+   {
+    "month": "2018-10",
+    "total": 3.8,
+    "youth": 8.5
+   },
+   {
+    "month": "2018-11",
+    "total": 3.8,
+    "youth": 8.3
+   },
+   {
+    "month": "2018-12",
+    "total": 3.9,
+    "youth": 8.9
+   },
+   {
+    "month": "2019-01",
+    "total": 4.0,
+    "youth": 9.3
+   },
+   {
+    "month": "2019-02",
+    "total": 3.8,
+    "youth": 9.1
+   },
+   {
+    "month": "2019-03",
+    "total": 3.8,
+    "youth": 8.6
+   },
+   {
+    "month": "2019-04",
+    "total": 3.7,
+    "youth": 8.3
+   },
+   {
+    "month": "2019-05",
+    "total": 3.6,
+    "youth": 8.5
+   },
+   {
+    "month": "2019-06",
+    "total": 3.6,
+    "youth": 7.9
+   },
+   {
+    "month": "2019-07",
+    "total": 3.7,
+    "youth": 8.4
+   },
+   {
+    "month": "2019-08",
+    "total": 3.6,
+    "youth": 8.3
+   },
+   {
+    "month": "2019-09",
+    "total": 3.5,
+    "youth": 7.9
+   },
+   {
+    "month": "2019-10",
+    "total": 3.6,
+    "youth": 7.9
+   },
+   {
+    "month": "2019-11",
+    "total": 3.6,
+    "youth": 8.1
+   },
+   {
+    "month": "2019-12",
+    "total": 3.6,
+    "youth": 8.4
+   },
+   {
+    "month": "2020-01",
+    "total": 3.6,
+    "youth": 8.6
+   },
+   {
+    "month": "2020-02",
+    "total": 3.5,
+    "youth": 7.8
+   },
+   {
+    "month": "2020-03",
+    "total": 4.4,
+    "youth": 10.1
+   },
+   {
+    "month": "2020-04",
+    "total": 14.8,
+    "youth": 27.5
+   },
+   {
+    "month": "2020-05",
+    "total": 13.2,
+    "youth": 25.1
+   },
+   {
+    "month": "2020-06",
+    "total": 11.0,
+    "youth": 20.4
+   },
+   {
+    "month": "2020-07",
+    "total": 10.2,
+    "youth": 18.3
+   },
+   {
+    "month": "2020-08",
+    "total": 8.4,
+    "youth": 14.7
+   },
+   {
+    "month": "2020-09",
+    "total": 7.8,
+    "youth": 13.5
+   },
+   {
+    "month": "2020-10",
+    "total": 6.9,
+    "youth": 11.8
+   },
+   {
+    "month": "2020-11",
+    "total": 6.7,
+    "youth": 11.6
+   },
+   {
+    "month": "2020-12",
+    "total": 6.7,
+    "youth": 12.6
+   },
+   {
+    "month": "2021-01",
+    "total": 6.4,
+    "youth": 11.4
+   },
+   {
+    "month": "2021-02",
+    "total": 6.2,
+    "youth": 10.8
+   },
+   {
+    "month": "2021-03",
+    "total": 6.1,
+    "youth": 11.1
+   },
+   {
+    "month": "2021-04",
+    "total": 6.1,
+    "youth": 11.1
+   },
+   {
+    "month": "2021-05",
+    "total": 5.8,
+    "youth": 10.0
+   },
+   {
+    "month": "2021-06",
+    "total": 5.9,
+    "youth": 9.7
+   },
+   {
+    "month": "2021-07",
+    "total": 5.4,
+    "youth": 9.5
+   },
+   {
+    "month": "2021-08",
+    "total": 5.1,
+    "youth": 9.6
+   },
+   {
+    "month": "2021-09",
+    "total": 4.7,
+    "youth": 8.7
+   },
+   {
+    "month": "2021-10",
+    "total": 4.5,
+    "youth": 8.3
+   },
+   {
+    "month": "2021-11",
+    "total": 4.1,
+    "youth": 8.3
+   },
+   {
+    "month": "2021-12",
+    "total": 3.9,
+    "youth": 8.2
+   },
+   {
+    "month": "2022-01",
+    "total": 4.0,
+    "youth": 8.5
+   },
+   {
+    "month": "2022-02",
+    "total": 3.9,
+    "youth": 8.2
+   },
+   {
+    "month": "2022-03",
+    "total": 3.7,
+    "youth": 8.4
+   },
+   {
+    "month": "2022-04",
+    "total": 3.7,
+    "youth": 8.2
+   },
+   {
+    "month": "2022-05",
+    "total": 3.6,
+    "youth": 7.8
+   },
+   {
+    "month": "2022-06",
+    "total": 3.6,
+    "youth": 8.1
+   },
+   {
+    "month": "2022-07",
+    "total": 3.5,
+    "youth": 7.8
+   },
+   {
+    "month": "2022-08",
+    "total": 3.6,
+    "youth": 7.8
+   },
+   {
+    "month": "2022-09",
+    "total": 3.5,
+    "youth": 8.2
+   },
+   {
+    "month": "2022-10",
+    "total": 3.6,
+    "youth": 7.9
+   },
+   {
+    "month": "2022-11",
+    "total": 3.6,
+    "youth": 8.1
+   },
+   {
+    "month": "2022-12",
+    "total": 3.5,
+    "youth": 8.3
+   },
+   {
+    "month": "2023-01",
+    "total": 3.5,
+    "youth": 8.1
+   },
+   {
+    "month": "2023-02",
+    "total": 3.6,
+    "youth": 8.1
+   },
+   {
+    "month": "2023-03",
+    "total": 3.5,
+    "youth": 7.5
+   },
+   {
+    "month": "2023-04",
+    "total": 3.4,
+    "youth": 6.6
+   },
+   {
+    "month": "2023-05",
+    "total": 3.6,
+    "youth": 7.4
+   },
+   {
+    "month": "2023-06",
+    "total": 3.6,
+    "youth": 7.6
+   },
+   {
+    "month": "2023-07",
+    "total": 3.5,
+    "youth": 8.1
+   },
+   {
+    "month": "2023-08",
+    "total": 3.7,
+    "youth": 8.6
+   },
+   {
+    "month": "2023-09",
+    "total": 3.7,
+    "youth": 8.4
+   },
+   {
+    "month": "2023-10",
+    "total": 3.9,
+    "youth": 8.8
+   },
+   {
+    "month": "2023-11",
+    "total": 3.7,
+    "youth": 8.0
+   },
+   {
+    "month": "2023-12",
+    "total": 3.8,
+    "youth": 8.0
+   },
+   {
+    "month": "2024-01",
+    "total": 3.7,
+    "youth": 7.4
+   },
+   {
+    "month": "2024-02",
+    "total": 3.9,
+    "youth": 8.8
+   },
+   {
+    "month": "2024-03",
+    "total": 3.9,
+    "youth": 8.8
+   },
+   {
+    "month": "2024-04",
+    "total": 3.9,
+    "youth": 8.2
+   },
+   {
+    "month": "2024-05",
+    "total": 3.9,
+    "youth": 9.3
+   },
+   {
+    "month": "2024-06",
+    "total": 4.1,
+    "youth": 8.9
+   },
+   {
+    "month": "2024-07",
+    "total": 4.2,
+    "youth": 9.1
+   },
+   {
+    "month": "2024-08",
+    "total": 4.2,
+    "youth": 9.7
+   },
+   {
+    "month": "2024-09",
+    "total": 4.1,
+    "youth": 9.2
+   },
+   {
+    "month": "2024-10",
+    "total": 4.1,
+    "youth": 9.5
+   },
+   {
+    "month": "2024-11",
+    "total": 4.2,
+    "youth": 9.4
+   },
+   {
+    "month": "2024-12",
+    "total": 4.1,
+    "youth": 9.0
+   },
+   {
+    "month": "2025-01",
+    "total": 4.0,
+    "youth": 9.1
+   },
+   {
+    "month": "2025-02",
+    "total": 4.2,
+    "youth": 9.7
+   },
+   {
+    "month": "2025-03",
+    "total": 4.2,
+    "youth": 9.4
+   },
+   {
+    "month": "2025-04",
+    "total": 4.2,
+    "youth": 9.6
+   },
+   {
+    "month": "2025-05",
+    "total": 4.3,
+    "youth": 9.7
+   },
+   {
+    "month": "2025-06",
+    "total": 4.1,
+    "youth": 10.0
+   },
+   {
+    "month": "2025-07",
+    "total": 4.3,
+    "youth": 10.0
+   },
+   {
+    "month": "2025-08",
+    "total": 4.3,
+    "youth": 10.6
+   },
+   {
+    "month": "2025-09",
+    "total": 4.4,
+    "youth": 10.4
+   },
+   {
+    "month": "2025-11",
+    "total": 4.5,
+    "youth": 10.6
+   },
+   {
+    "month": "2025-12",
+    "total": 4.4,
+    "youth": 10.4
+   },
+   {
+    "month": "2026-01",
+    "total": 4.3,
+    "youth": 8.9
+   },
+   {
+    "month": "2026-02",
+    "total": 4.4,
+    "youth": 9.5
+   },
+   {
+    "month": "2026-03",
+    "total": 4.3,
+    "youth": 8.5
+   },
+   {
+    "month": "2026-04",
+    "total": 4.3,
+    "youth": 9.5
+   },
+   {
+    "month": "2026-05",
+    "total": 4.3,
+    "youth": 9.4
+   },
+   {
+    "month": "2026-06",
+    "total": 4.2,
+    "youth": 9.2
+   },
+   {
+    "month": "2026-07",
+    "youth": 8.5,
+    "total": 4.1
+   },
+   {
+    "month": "2026-08",
+    "total": 4.1,
+    "youth": 9.1
+   },
+   {
+    "month": "2026-09",
+    "youth": 9.9,
+    "total": 4.2
+   }
+  ],
+  "NLD": [
+   {
+    "month": "2015-01",
+    "total": 8.3,
+    "youth": 13.1
+   },
+   {
+    "month": "2015-02",
+    "total": 8.1,
+    "youth": 12.5
+   },
+   {
+    "month": "2015-03",
+    "total": 8.1,
+    "youth": 12.4
+   },
+   {
+    "month": "2015-04",
+    "total": 8.1,
+    "youth": 12.4
+   },
+   {
+    "month": "2015-05",
+    "total": 8.0,
+    "youth": 12.5
+   },
+   {
+    "month": "2015-06",
+    "total": 7.9,
+    "youth": 12.5
+   },
+   {
+    "month": "2015-07",
+    "total": 7.7,
+    "youth": 12.6
+   },
+   {
+    "month": "2015-08",
+    "total": 7.7,
+    "youth": 12.5
+   },
+   {
+    "month": "2015-09",
+    "total": 7.8,
+    "youth": 12.7
+   },
+   {
+    "month": "2015-10",
+    "total": 7.9,
+    "youth": 12.8
+   },
+   {
+    "month": "2015-11",
+    "total": 7.7,
+    "youth": 12.5
+   },
+   {
+    "month": "2015-12",
+    "total": 7.6,
+    "youth": 12.4
+   },
+   {
+    "month": "2016-01",
+    "total": 7.4,
+    "youth": 12.4
+   },
+   {
+    "month": "2016-02",
+    "total": 7.5,
+    "youth": 12.5
+   },
+   {
+    "month": "2016-03",
+    "total": 7.4,
+    "youth": 12.6
+   },
+   {
+    "month": "2016-04",
+    "total": 7.4,
+    "youth": 12.5
+   },
+   {
+    "month": "2016-05",
+    "total": 7.2,
+    "youth": 12.4
+   },
+   {
+    "month": "2016-06",
+    "total": 7.1,
+    "youth": 12.1
+   },
+   {
+    "month": "2016-07",
+    "total": 7.0,
+    "youth": 12.1
+   },
+   {
+    "month": "2016-08",
+    "total": 6.8,
+    "youth": 11.9
+   },
+   {
+    "month": "2016-09",
+    "total": 6.7,
+    "youth": 11.8
+   },
+   {
+    "month": "2016-10",
+    "total": 6.6,
+    "youth": 11.8
+   },
+   {
+    "month": "2016-11",
+    "total": 6.6,
+    "youth": 11.6
+   },
+   {
+    "month": "2016-12",
+    "total": 6.4,
+    "youth": 11.5
+   },
+   {
+    "month": "2017-01",
+    "total": 6.4,
+    "youth": 11.2
+   },
+   {
+    "month": "2017-02",
+    "total": 6.3,
+    "youth": 11.1
+   },
+   {
+    "month": "2017-03",
+    "total": 6.2,
+    "youth": 11.0
+   },
+   {
+    "month": "2017-04",
+    "total": 6.1,
+    "youth": 11.0
+   },
+   {
+    "month": "2017-05",
+    "total": 6.1,
+    "youth": 10.5
+   },
+   {
+    "month": "2017-06",
+    "total": 6.0,
+    "youth": 10.4
+   },
+   {
+    "month": "2017-07",
+    "total": 5.9,
+    "youth": 10.3
+   },
+   {
+    "month": "2017-08",
+    "total": 5.7,
+    "youth": 10.3
+   },
+   {
+    "month": "2017-09",
+    "total": 5.7,
+    "youth": 10.0
+   },
+   {
+    "month": "2017-10",
+    "total": 5.5,
+    "youth": 9.5
+   },
+   {
+    "month": "2017-11",
+    "total": 5.4,
+    "youth": 9.4
+   },
+   {
+    "month": "2017-12",
+    "total": 5.4,
+    "youth": 9.6
+   },
+   {
+    "month": "2018-01",
+    "total": 5.2,
+    "youth": 9.1
+   },
+   {
+    "month": "2018-02",
+    "total": 5.1,
+    "youth": 8.9
+   },
+   {
+    "month": "2018-03",
+    "total": 5.0,
+    "youth": 8.7
+   },
+   {
+    "month": "2018-04",
+    "total": 4.9,
+    "youth": 8.6
+   },
+   {
+    "month": "2018-05",
+    "total": 4.9,
+    "youth": 8.7
+   },
+   {
+    "month": "2018-06",
+    "total": 4.9,
+    "youth": 9.0
+   },
+   {
+    "month": "2018-07",
+    "total": 4.9,
+    "youth": 9.1
+   },
+   {
+    "month": "2018-08",
+    "total": 4.9,
+    "youth": 9.5
+   },
+   {
+    "month": "2018-09",
+    "total": 4.8,
+    "youth": 9.2
+   },
+   {
+    "month": "2018-10",
+    "total": 4.7,
+    "youth": 8.9
+   },
+   {
+    "month": "2018-11",
+    "total": 4.6,
+    "youth": 8.6
+   },
+   {
+    "month": "2018-12",
+    "total": 4.6,
+    "youth": 8.4
+   },
+   {
+    "month": "2019-01",
+    "total": 4.6,
+    "youth": 8.3
+   },
+   {
+    "month": "2019-02",
+    "total": 4.4,
+    "youth": 8.2
+   },
+   {
+    "month": "2019-03",
+    "total": 4.4,
+    "youth": 8.2
+   },
+   {
+    "month": "2019-04",
+    "total": 4.3,
+    "youth": 7.9
+   },
+   {
+    "month": "2019-05",
+    "total": 4.3,
+    "youth": 8.1
+   },
+   {
+    "month": "2019-06",
+    "total": 4.4,
+    "youth": 8.4
+   },
+   {
+    "month": "2019-07",
+    "total": 4.4,
+    "youth": 8.5
+   },
+   {
+    "month": "2019-08",
+    "total": 4.5,
+    "youth": 8.7
+   },
+   {
+    "month": "2019-09",
+    "total": 4.5,
+    "youth": 8.9
+   },
+   {
+    "month": "2019-10",
+    "total": 4.5,
+    "youth": 9.0
+   },
+   {
+    "month": "2019-11",
+    "total": 4.5,
+    "youth": 9.0
+   },
+   {
+    "month": "2019-12",
+    "total": 4.3,
+    "youth": 8.4
+   },
+   {
+    "month": "2020-01",
+    "total": 4.1,
+    "youth": 8.1
+   },
+   {
+    "month": "2020-02",
+    "total": 4.0,
+    "youth": 8.0
+   },
+   {
+    "month": "2020-03",
+    "total": 4.1,
+    "youth": 8.2
+   },
+   {
+    "month": "2020-04",
+    "total": 4.5,
+    "youth": 10.3
+   },
+   {
+    "month": "2020-05",
+    "total": 4.6,
+    "youth": 11.0
+   },
+   {
+    "month": "2020-06",
+    "total": 5.4,
+    "youth": 12.2
+   },
+   {
+    "month": "2020-07",
+    "total": 5.5,
+    "youth": 12.2
+   },
+   {
+    "month": "2020-08",
+    "total": 5.5,
+    "youth": 12.3
+   },
+   {
+    "month": "2020-09",
+    "total": 5.4,
+    "youth": 12.0
+   },
+   {
+    "month": "2020-10",
+    "total": 5.3,
+    "youth": 11.4
+   },
+   {
+    "month": "2020-11",
+    "total": 5.0,
+    "youth": 10.8
+   },
+   {
+    "month": "2020-12",
+    "total": 4.9,
+    "youth": 10.9
+   },
+   {
+    "month": "2021-01",
+    "total": 4.7,
+    "youth": 10.6
+   },
+   {
+    "month": "2021-02",
+    "total": 4.7,
+    "youth": 10.8
+   },
+   {
+    "month": "2021-03",
+    "total": 4.6,
+    "youth": 10.4
+   },
+   {
+    "month": "2021-04",
+    "total": 4.5,
+    "youth": 10.3
+   },
+   {
+    "month": "2021-05",
+    "total": 4.4,
+    "youth": 10.1
+   },
+   {
+    "month": "2021-06",
+    "total": 4.2,
+    "youth": 9.3
+   },
+   {
+    "month": "2021-07",
+    "total": 4.1,
+    "youth": 8.8
+   },
+   {
+    "month": "2021-08",
+    "total": 4.2,
+    "youth": 9.0
+   },
+   {
+    "month": "2021-09",
+    "total": 4.1,
+    "youth": 9.0
+   },
+   {
+    "month": "2021-10",
+    "total": 3.9,
+    "youth": 8.5
+   },
+   {
+    "month": "2021-11",
+    "total": 3.7,
+    "youth": 7.8
+   },
+   {
+    "month": "2021-12",
+    "total": 3.8,
+    "youth": 7.8
+   },
+   {
+    "month": "2022-01",
+    "total": 3.6,
+    "youth": 7.6
+   },
+   {
+    "month": "2022-02",
+    "total": 3.4,
+    "youth": 7.3
+   },
+   {
+    "month": "2022-03",
+    "total": 3.3,
+    "youth": 7.1
+   },
+   {
+    "month": "2022-04",
+    "total": 3.2,
+    "youth": 6.9
+   },
+   {
+    "month": "2022-05",
+    "total": 3.3,
+    "youth": 7.2
+   },
+   {
+    "month": "2022-06",
+    "total": 3.4,
+    "youth": 7.5
+   },
+   {
+    "month": "2022-07",
+    "total": 3.6,
+    "youth": 7.8
+   },
+   {
+    "month": "2022-08",
+    "total": 3.8,
+    "youth": 8.6
+   },
+   {
+    "month": "2022-09",
+    "total": 3.8,
+    "youth": 8.4
+   },
+   {
+    "month": "2022-10",
+    "total": 3.7,
+    "youth": 7.8
+   },
+   {
+    "month": "2022-11",
+    "total": 3.6,
+    "youth": 7.8
+   },
+   {
+    "month": "2022-12",
+    "total": 3.5,
+    "youth": 7.5
+   },
+   {
+    "month": "2023-01",
+    "total": 3.6,
+    "youth": 7.8
+   },
+   {
+    "month": "2023-02",
+    "total": 3.5,
+    "youth": 7.8
+   },
+   {
+    "month": "2023-03",
+    "total": 3.5,
+    "youth": 8.0
+   },
+   {
+    "month": "2023-04",
+    "total": 3.4,
+    "youth": 7.9
+   },
+   {
+    "month": "2023-05",
+    "total": 3.5,
+    "youth": 8.2
+   },
+   {
+    "month": "2023-06",
+    "total": 3.5,
+    "youth": 8.3
+   },
+   {
+    "month": "2023-07",
+    "total": 3.6,
+    "youth": 8.6
+   },
+   {
+    "month": "2023-08",
+    "total": 3.6,
+    "youth": 8.7
+   },
+   {
+    "month": "2023-09",
+    "total": 3.7,
+    "youth": 8.8
+   },
+   {
+    "month": "2023-10",
+    "total": 3.6,
+    "youth": 8.4
+   },
+   {
+    "month": "2023-11",
+    "total": 3.5,
+    "youth": 8.2
+   },
+   {
+    "month": "2023-12",
+    "total": 3.6,
+    "youth": 8.1
+   },
+   {
+    "month": "2024-01",
+    "total": 3.6,
+    "youth": 8.2
+   },
+   {
+    "month": "2024-02",
+    "total": 3.7,
+    "youth": 8.7
+   },
+   {
+    "month": "2024-03",
+    "total": 3.6,
+    "youth": 8.7
+   },
+   {
+    "month": "2024-04",
+    "total": 3.7,
+    "youth": 8.7
+   },
+   {
+    "month": "2024-05",
+    "total": 3.6,
+    "youth": 8.4
+   },
+   {
+    "month": "2024-06",
+    "total": 3.6,
+    "youth": 8.6
+   },
+   {
+    "month": "2024-07",
+    "total": 3.6,
+    "youth": 8.6
+   },
+   {
+    "month": "2024-08",
+    "total": 3.7,
+    "youth": 8.9
+   },
+   {
+    "month": "2024-09",
+    "total": 3.7,
+    "youth": 9.0
+   },
+   {
+    "month": "2024-10",
+    "total": 3.7,
+    "youth": 8.9
+   },
+   {
+    "month": "2024-11",
+    "total": 3.7,
+    "youth": 8.7
+   },
+   {
+    "month": "2024-12",
+    "total": 3.7,
+    "youth": 8.7
+   },
+   {
+    "month": "2025-01",
+    "total": 3.8,
+    "youth": 8.9
+   },
+   {
+    "month": "2025-02",
+    "total": 3.8,
+    "youth": 8.8
+   },
+   {
+    "month": "2025-03",
+    "total": 3.9,
+    "youth": 8.9
+   },
+   {
+    "month": "2025-04",
+    "total": 3.8,
+    "youth": 8.8
+   },
+   {
+    "month": "2025-05",
+    "total": 3.8,
+    "youth": 8.8
+   },
+   {
+    "month": "2025-06",
+    "total": 3.8,
+    "youth": 8.7
+   },
+   {
+    "month": "2025-07",
+    "total": 3.8,
+    "youth": 8.4
+   },
+   {
+    "month": "2025-08",
+    "total": 3.9,
+    "youth": 8.6
+   },
+   {
+    "month": "2025-09",
+    "total": 4.0,
+    "youth": 8.8
+   },
+   {
+    "month": "2025-10",
+    "total": 4.0,
+    "youth": 9.0
+   },
+   {
+    "month": "2025-11",
+    "total": 4.0,
+    "youth": 9.1
+   },
+   {
+    "month": "2025-12",
+    "total": 4.0,
+    "youth": 9.2
+   },
+   {
+    "month": "2026-01",
+    "total": 4.0,
+    "youth": 9.3
+   },
+   {
+    "month": "2026-02",
+    "total": 4.1,
+    "youth": 9.2
+   },
+   {
+    "month": "2026-03",
+    "total": 4.0,
+    "youth": 8.9
+   },
+   {
+    "month": "2026-04",
+    "total": 3.9,
+    "youth": 8.7
+   },
+   {
+    "month": "2026-05",
+    "total": 3.9,
+    "youth": 8.7
+   },
+   {
+    "month": "2026-06",
+    "total": 3.8,
+    "youth": 8.5
+   },
+   {
+    "month": "2026-07",
+    "total": 4.0,
+    "youth": 8.6
+   },
+   {
+    "month": "2026-08",
+    "total": 4.0,
+    "youth": 8.8
+   }
+  ],
+  "SWE": [
+   {
+    "month": "2015-01",
+    "total": 7.9,
+    "youth": 20.6
+   },
+   {
+    "month": "2015-02",
+    "total": 8.0,
+    "youth": 21.4
+   },
+   {
+    "month": "2015-03",
+    "total": 7.7,
+    "youth": 20.0
+   },
+   {
+    "month": "2015-04",
+    "total": 7.9,
+    "youth": 20.4
+   },
+   {
+    "month": "2015-05",
+    "total": 7.7,
+    "youth": 19.8
+   },
+   {
+    "month": "2015-06",
+    "total": 7.6,
+    "youth": 20.9
+   },
+   {
+    "month": "2015-07",
+    "total": 7.2,
+    "youth": 19.3
+   },
+   {
+    "month": "2015-08",
+    "total": 7.0,
+    "youth": 18.2
+   },
+   {
+    "month": "2015-09",
+    "total": 7.5,
+    "youth": 19.6
+   },
+   {
+    "month": "2015-10",
+    "total": 7.3,
+    "youth": 19.2
+   },
+   {
+    "month": "2015-11",
+    "total": 7.0,
+    "youth": 16.9
+   },
+   {
+    "month": "2015-12",
+    "total": 7.3,
+    "youth": 18.4
+   },
+   {
+    "month": "2016-01",
+    "total": 7.1,
+    "youth": 18.9
+   },
+   {
+    "month": "2016-02",
+    "total": 7.2,
+    "youth": 18.8
+   },
+   {
+    "month": "2016-03",
+    "total": 7.4,
+    "youth": 18.9
+   },
+   {
+    "month": "2016-04",
+    "total": 6.9,
+    "youth": 18.3
+   },
+   {
+    "month": "2016-05",
+    "total": 7.3,
+    "youth": 19.8
+   },
+   {
+    "month": "2016-06",
+    "total": 6.8,
+    "youth": 16.5
+   },
+   {
+    "month": "2016-07",
+    "total": 6.9,
+    "youth": 18.3
+   },
+   {
+    "month": "2016-08",
+    "total": 7.2,
+    "youth": 18.6
+   },
+   {
+    "month": "2016-09",
+    "total": 6.8,
+    "youth": 16.5
+   },
+   {
+    "month": "2016-10",
+    "total": 7.0,
+    "youth": 17.8
+   },
+   {
+    "month": "2016-11",
+    "total": 7.0,
+    "youth": 17.0
+   },
+   {
+    "month": "2016-12",
+    "total": 7.1,
+    "youth": 18.7
+   },
+   {
+    "month": "2017-01",
+    "total": 7.0,
+    "youth": 17.2
+   },
+   {
+    "month": "2017-02",
+    "total": 7.0,
+    "youth": 18.3
+   },
+   {
+    "month": "2017-03",
+    "total": 6.5,
+    "youth": 16.5
+   },
+   {
+    "month": "2017-04",
+    "total": 6.9,
+    "youth": 16.6
+   },
+   {
+    "month": "2017-05",
+    "total": 6.9,
+    "youth": 17.5
+   },
+   {
+    "month": "2017-06",
+    "total": 6.7,
+    "youth": 16.5
+   },
+   {
+    "month": "2017-07",
+    "total": 7.0,
+    "youth": 17.8
+   },
+   {
+    "month": "2017-08",
+    "total": 6.5,
+    "youth": 16.3
+   },
+   {
+    "month": "2017-09",
+    "total": 6.9,
+    "youth": 18.0
+   },
+   {
+    "month": "2017-10",
+    "total": 7.0,
+    "youth": 15.8
+   },
+   {
+    "month": "2017-11",
+    "total": 6.5,
+    "youth": 16.5
+   },
+   {
+    "month": "2017-12",
+    "total": 6.7,
+    "youth": 17.8
+   },
+   {
+    "month": "2018-01",
+    "total": 6.8,
+    "youth": 16.0
+   },
+   {
+    "month": "2018-02",
+    "total": 5.9,
+    "youth": 13.3
+   },
+   {
+    "month": "2018-03",
+    "total": 6.2,
+    "youth": 16.3
+   },
+   {
+    "month": "2018-04",
+    "total": 6.5,
+    "youth": 14.6
+   },
+   {
+    "month": "2018-05",
+    "total": 6.0,
+    "youth": 13.7
+   },
+   {
+    "month": "2018-06",
+    "total": 6.6,
+    "youth": 17.4
+   },
+   {
+    "month": "2018-07",
+    "total": 6.5,
+    "youth": 17.7
+   },
+   {
+    "month": "2018-08",
+    "total": 6.5,
+    "youth": 18.2
+   },
+   {
+    "month": "2018-09",
+    "total": 6.6,
+    "youth": 17.0
+   },
+   {
+    "month": "2018-10",
+    "total": 6.5,
+    "youth": 19.8
+   },
+   {
+    "month": "2018-11",
+    "total": 6.6,
+    "youth": 19.4
+   },
+   {
+    "month": "2018-12",
+    "total": 6.8,
+    "youth": 17.0
+   },
+   {
+    "month": "2019-01",
+    "total": 6.3,
+    "youth": 19.6
+   },
+   {
+    "month": "2019-02",
+    "total": 6.9,
+    "youth": 20.7
+   },
+   {
+    "month": "2019-03",
+    "total": 7.4,
+    "youth": 19.9
+   },
+   {
+    "month": "2019-04",
+    "total": 6.6,
+    "youth": 18.4
+   },
+   {
+    "month": "2019-05",
+    "total": 6.6,
+    "youth": 18.6
+   },
+   {
+    "month": "2019-06",
+    "total": 6.4,
+    "youth": 17.4
+   },
+   {
+    "month": "2019-07",
+    "total": 7.3,
+    "youth": 19.5
+   },
+   {
+    "month": "2019-08",
+    "total": 7.3,
+    "youth": 19.0
+   },
+   {
+    "month": "2019-09",
+    "total": 6.8,
+    "youth": 19.4
+   },
+   {
+    "month": "2019-10",
+    "total": 6.9,
+    "youth": 19.5
+   },
+   {
+    "month": "2019-11",
+    "total": 7.7,
+    "youth": 20.3
+   },
+   {
+    "month": "2019-12",
+    "total": 6.8,
+    "youth": 19.4
+   },
+   {
+    "month": "2020-01",
+    "total": 7.4,
+    "youth": 20.6
+   },
+   {
+    "month": "2020-02",
+    "total": 7.8,
+    "youth": 19.7
+   },
+   {
+    "month": "2020-03",
+    "total": 6.8,
+    "youth": 18.5
+   },
+   {
+    "month": "2020-04",
+    "total": 8.2,
+    "youth": 23.4
+   },
+   {
+    "month": "2020-05",
+    "total": 8.5,
+    "youth": 24.5
+   },
+   {
+    "month": "2020-06",
+    "total": 9.1,
+    "youth": 27.6
+   },
+   {
+    "month": "2020-07",
+    "total": 9.6,
+    "youth": 29.9
+   },
+   {
+    "month": "2020-08",
+    "total": 9.3,
+    "youth": 26.3
+   },
+   {
+    "month": "2020-09",
+    "total": 9.0,
+    "youth": 22.9
+   },
+   {
+    "month": "2020-10",
+    "total": 8.8,
+    "youth": 22.7
+   },
+   {
+    "month": "2020-11",
+    "total": 8.6,
+    "youth": 22.9
+   },
+   {
+    "month": "2020-12",
+    "total": 9.2,
+    "youth": 23.7
+   },
+   {
+    "month": "2021-01",
+    "total": 9.0,
+    "youth": 24.5
+   },
+   {
+    "month": "2021-02",
+    "total": 9.1,
+    "youth": 23.5
+   },
+   {
+    "month": "2021-03",
+    "total": 9.6,
+    "youth": 24.8
+   },
+   {
+    "month": "2021-04",
+    "total": 9.1,
+    "youth": 27.4
+   },
+   {
+    "month": "2021-05",
+    "total": 9.1,
+    "youth": 25.8
+   },
+   {
+    "month": "2021-06",
+    "total": 9.4,
+    "youth": 24.2
+   },
+   {
+    "month": "2021-07",
+    "total": 8.7,
+    "youth": 24.2
+   },
+   {
+    "month": "2021-08",
+    "total": 8.9,
+    "youth": 25.5
+   },
+   {
+    "month": "2021-09",
+    "total": 8.9,
+    "youth": 25.2
+   },
+   {
+    "month": "2021-10",
+    "total": 8.4,
+    "youth": 24.1
+   },
+   {
+    "month": "2021-11",
+    "total": 8.4,
+    "youth": 24.9
+   },
+   {
+    "month": "2021-12",
+    "total": 8.0,
+    "youth": 22.2
+   },
+   {
+    "month": "2022-01",
+    "total": 8.0,
+    "youth": 21.9
+   },
+   {
+    "month": "2022-02",
+    "total": 7.3,
+    "youth": 21.2
+   },
+   {
+    "month": "2022-03",
+    "total": 7.7,
+    "youth": 22.2
+   },
+   {
+    "month": "2022-04",
+    "total": 7.8,
+    "youth": 22.5
+   },
+   {
+    "month": "2022-05",
+    "total": 7.8,
+    "youth": 21.9
+   },
+   {
+    "month": "2022-06",
+    "total": 7.5,
+    "youth": 19.6
+   },
+   {
+    "month": "2022-07",
+    "total": 7.3,
+    "youth": 19.9
+   },
+   {
+    "month": "2022-08",
+    "total": 6.9,
+    "youth": 21.1
+   },
+   {
+    "month": "2022-09",
+    "total": 7.0,
+    "youth": 21.5
+   },
+   {
+    "month": "2022-10",
+    "total": 7.7,
+    "youth": 23.4
+   },
+   {
+    "month": "2022-11",
+    "total": 7.3,
+    "youth": 20.6
+   },
+   {
+    "month": "2022-12",
+    "total": 7.5,
+    "youth": 23.1
+   },
+   {
+    "month": "2023-01",
+    "total": 7.1,
+    "youth": 19.5
+   },
+   {
+    "month": "2023-02",
+    "total": 7.7,
+    "youth": 23.8
+   },
+   {
+    "month": "2023-03",
+    "total": 7.2,
+    "youth": 21.3
+   },
+   {
+    "month": "2023-04",
+    "total": 7.2,
+    "youth": 19.3
+   },
+   {
+    "month": "2023-05",
+    "total": 7.2,
+    "youth": 20.3
+   },
+   {
+    "month": "2023-06",
+    "total": 8.1,
+    "youth": 24.8
+   },
+   {
+    "month": "2023-07",
+    "total": 7.1,
+    "youth": 17.8
+   },
+   {
+    "month": "2023-08",
+    "total": 8.1,
+    "youth": 22.8
+   },
+   {
+    "month": "2023-09",
+    "total": 8.1,
+    "youth": 22.9
+   },
+   {
+    "month": "2023-10",
+    "total": 7.9,
+    "youth": 22.0
+   },
+   {
+    "month": "2023-11",
+    "total": 8.0,
+    "youth": 22.0
+   },
+   {
+    "month": "2023-12",
+    "total": 8.2,
+    "youth": 24.5
+   },
+   {
+    "month": "2024-01",
+    "total": 8.0,
+    "youth": 23.9
+   },
+   {
+    "month": "2024-02",
+    "total": 8.1,
+    "youth": 22.5
+   },
+   {
+    "month": "2024-03",
+    "total": 8.7,
+    "youth": 26.1
+   },
+   {
+    "month": "2024-04",
+    "total": 8.6,
+    "youth": 24.6
+   },
+   {
+    "month": "2024-05",
+    "total": 8.1,
+    "youth": 22.9
+   },
+   {
+    "month": "2024-06",
+    "total": 8.3,
+    "youth": 23.4
+   },
+   {
+    "month": "2024-07",
+    "total": 8.6,
+    "youth": 26.0
+   },
+   {
+    "month": "2024-08",
+    "total": 8.3,
+    "youth": 22.4
+   },
+   {
+    "month": "2024-09",
+    "total": 8.6,
+    "youth": 25.9
+   },
+   {
+    "month": "2024-10",
+    "total": 8.2,
+    "youth": 23.5
+   },
+   {
+    "month": "2024-11",
+    "total": 8.3,
+    "youth": 23.4
+   },
+   {
+    "month": "2024-12",
+    "total": 8.5,
+    "youth": 23.5
+   },
+   {
+    "month": "2025-01",
+    "total": 9.8,
+    "youth": 27.2
+   },
+   {
+    "month": "2025-02",
+    "total": 9.0,
+    "youth": 25.6
+   },
+   {
+    "month": "2025-03",
+    "total": 8.0,
+    "youth": 19.9
+   },
+   {
+    "month": "2025-04",
+    "total": 8.6,
+    "youth": 22.0
+   },
+   {
+    "month": "2025-05",
+    "total": 9.1,
+    "youth": 24.9
+   },
+   {
+    "month": "2025-06",
+    "total": 8.3,
+    "youth": 23.3
+   },
+   {
+    "month": "2025-07",
+    "total": 8.9,
+    "youth": 25.2
+   },
+   {
+    "month": "2025-08",
+    "total": 8.7,
+    "youth": 24.9
+   },
+   {
+    "month": "2025-09",
+    "total": 8.8,
+    "youth": 23.7
+   },
+   {
+    "month": "2025-10",
+    "total": 9.3,
+    "youth": 24.7
+   },
+   {
+    "month": "2025-11",
+    "total": 9.0,
+    "youth": 26.2
+   },
+   {
+    "month": "2025-12",
+    "total": 8.8,
+    "youth": 23.5
+   },
+   {
+    "month": "2026-01",
+    "total": 8.1,
+    "youth": 22.2
+   },
+   {
+    "month": "2026-02",
+    "total": 8.4,
+    "youth": 22.4
+   },
+   {
+    "month": "2026-03",
+    "total": 9.3,
+    "youth": 26.6
+   },
+   {
+    "month": "2026-04",
+    "total": 8.5,
+    "youth": 24.5
+   },
+   {
+    "month": "2026-05",
+    "total": 8.8,
+    "youth": 24.3
+   },
+   {
+    "month": "2026-06",
+    "total": 8.9,
+    "youth": 25.7
+   },
+   {
+    "month": "2026-07",
+    "total": 8.6,
+    "youth": 23.1
+   },
+   {
+    "month": "2026-08",
+    "total": 8.9,
+    "youth": 23.0
+   }
+  ],
+  "GBR": [
+   {
+    "month": "2015-01",
+    "total": 5.6,
+    "youth": 16.1
+   },
+   {
+    "month": "2015-02",
+    "total": 5.5,
+    "youth": 15.9
+   },
+   {
+    "month": "2015-03",
+    "total": 5.5,
+    "youth": 15.9
+   },
+   {
+    "month": "2015-04",
+    "total": 5.6,
+    "youth": 15.7
+   },
+   {
+    "month": "2015-05",
+    "total": 5.6,
+    "youth": 15.7
+   },
+   {
+    "month": "2015-06",
+    "total": 5.5,
+    "youth": 15.5
+   },
+   {
+    "month": "2015-07",
+    "total": 5.4,
+    "youth": 14.7
+   },
+   {
+    "month": "2015-08",
+    "total": 5.3,
+    "youth": 14.2
+   },
+   {
+    "month": "2015-09",
+    "total": 5.2,
+    "youth": 13.6
+   },
+   {
+    "month": "2015-10",
+    "total": 5.1,
+    "youth": 13.8
+   },
+   {
+    "month": "2015-11",
+    "total": 5.1,
+    "youth": 13.6
+   },
+   {
+    "month": "2015-12",
+    "total": 5.1,
+    "youth": 13.8
+   },
+   {
+    "month": "2016-01",
+    "total": 5.1,
+    "youth": 13.8
+   },
+   {
+    "month": "2016-02",
+    "total": 5.1,
+    "youth": 13.7
+   },
+   {
+    "month": "2016-03",
+    "total": 5.0,
+    "youth": 13.5
+   },
+   {
+    "month": "2016-04",
+    "total": 4.9,
+    "youth": 13.4
+   },
+   {
+    "month": "2016-05",
+    "total": 4.9,
+    "youth": 13.6
+   },
+   {
+    "month": "2016-06",
+    "total": 4.9,
+    "youth": 13.7
+   },
+   {
+    "month": "2016-07",
+    "total": 5.0,
+    "youth": 13.8
+   },
+   {
+    "month": "2016-08",
+    "total": 4.8,
+    "youth": 13.3
+   },
+   {
+    "month": "2016-09",
+    "total": 4.8,
+    "youth": 13.0
+   },
+   {
+    "month": "2016-10",
+    "total": 4.8,
+    "youth": 12.7
+   },
+   {
+    "month": "2016-11",
+    "total": 4.7,
+    "youth": 12.5
+   },
+   {
+    "month": "2016-12",
+    "total": 4.7,
+    "youth": 12.3
+   },
+   {
+    "month": "2017-01",
+    "total": 4.6,
+    "youth": 12.5
+   },
+   {
+    "month": "2017-02",
+    "total": 4.6,
+    "youth": 12.4
+   },
+   {
+    "month": "2017-03",
+    "total": 4.5,
+    "youth": 12.5
+   },
+   {
+    "month": "2017-04",
+    "total": 4.4,
+    "youth": 12.5
+   },
+   {
+    "month": "2017-05",
+    "total": 4.4,
+    "youth": 12.3
+   },
+   {
+    "month": "2017-06",
+    "total": 4.3,
+    "youth": 12.1
+   },
+   {
+    "month": "2017-07",
+    "total": 4.3,
+    "youth": 12.2
+   },
+   {
+    "month": "2017-08",
+    "total": 4.3,
+    "youth": 12.0
+   },
+   {
+    "month": "2017-09",
+    "total": 4.2,
+    "youth": 12.0
+   },
+   {
+    "month": "2017-10",
+    "total": 4.3,
+    "youth": 12.2
+   },
+   {
+    "month": "2017-11",
+    "total": 4.4,
+    "youth": 12.4
+   },
+   {
+    "month": "2017-12",
+    "total": 4.3,
+    "youth": 12.3
+   },
+   {
+    "month": "2018-01",
+    "total": 4.2,
+    "youth": 12.1
+   },
+   {
+    "month": "2018-02",
+    "total": 4.2,
+    "youth": 12.0
+   },
+   {
+    "month": "2018-03",
+    "total": 4.2,
+    "youth": 11.8
+   },
+   {
+    "month": "2018-04",
+    "total": 4.2,
+    "youth": 12.0
+   },
+   {
+    "month": "2018-05",
+    "total": 4.0,
+    "youth": 11.3
+   },
+   {
+    "month": "2018-06",
+    "total": 4.0,
+    "youth": 11.3
+   },
+   {
+    "month": "2018-07",
+    "total": 4.0,
+    "youth": 10.9
+   },
+   {
+    "month": "2018-08",
+    "total": 4.1,
+    "youth": 11.2
+   },
+   {
+    "month": "2018-09",
+    "total": 4.1,
+    "youth": 11.4
+   },
+   {
+    "month": "2018-10",
+    "total": 4.0,
+    "youth": 11.7
+   },
+   {
+    "month": "2018-11",
+    "total": 4.0,
+    "youth": 11.8
+   },
+   {
+    "month": "2018-12",
+    "total": 3.9,
+    "youth": 11.5
+   },
+   {
+    "month": "2019-01",
+    "total": 4.0,
+    "youth": 11.3
+   },
+   {
+    "month": "2019-02",
+    "total": 3.8,
+    "youth": 11.0
+   },
+   {
+    "month": "2019-03",
+    "total": 3.8,
+    "youth": 11.2
+   },
+   {
+    "month": "2019-04",
+    "total": 3.8,
+    "youth": 11.5
+   },
+   {
+    "month": "2019-05",
+    "total": 3.9,
+    "youth": 11.6
+   },
+   {
+    "month": "2019-06",
+    "total": 3.9,
+    "youth": 11.6
+   },
+   {
+    "month": "2019-07",
+    "total": 3.9,
+    "youth": 11.8
+   },
+   {
+    "month": "2019-08",
+    "total": 3.9,
+    "youth": 11.9
+   },
+   {
+    "month": "2019-09",
+    "total": 3.8,
+    "youth": 11.4
+   },
+   {
+    "month": "2019-10",
+    "total": 3.8,
+    "youth": 11.4
+   },
+   {
+    "month": "2019-11",
+    "total": 3.7,
+    "youth": 11.2
+   },
+   {
+    "month": "2019-12",
+    "total": 3.9,
+    "youth": 11.7
+   },
+   {
+    "month": "2020-01",
+    "total": 3.9,
+    "youth": 11.8
+   },
+   {
+    "month": "2020-02",
+    "total": 4.1,
+    "youth": 12.4
+   },
+   {
+    "month": "2020-03",
+    "total": 4.1,
+    "youth": 12.8
+   },
+   {
+    "month": "2020-04",
+    "total": 4.1,
+    "youth": 13.0
+   },
+   {
+    "month": "2020-05",
+    "total": 4.1,
+    "youth": 13.0
+   },
+   {
+    "month": "2020-06",
+    "total": 4.4,
+    "youth": 13.9
+   },
+   {
+    "month": "2020-07",
+    "total": 4.6,
+    "youth": 14.7
+   },
+   {
+    "month": "2020-08",
+    "total": 5.0,
+    "youth": 15.2
+   },
+   {
+    "month": "2020-09",
+    "total": 5.2,
+    "youth": 15.2
+   },
+   {
+    "month": "2020-10",
+    "total": 5.2,
+    "youth": 14.8
+   },
+   {
+    "month": "2020-11",
+    "total": 5.3,
+    "youth": 14.8
+   },
+   {
+    "month": "2020-12",
+    "total": 5.2,
+    "youth": 14.7
+   },
+   {
+    "month": "2021-01",
+    "total": 5.0,
+    "youth": 14.6
+   },
+   {
+    "month": "2021-02",
+    "total": 4.9,
+    "youth": 13.7
+   },
+   {
+    "month": "2021-03",
+    "total": 4.8,
+    "youth": 13.6
+   },
+   {
+    "month": "2021-04",
+    "total": 4.8,
+    "youth": 13.3
+   },
+   {
+    "month": "2021-05",
+    "total": 4.7,
+    "youth": 12.9
+   },
+   {
+    "month": "2021-06",
+    "total": 4.6,
+    "youth": 12.9
+   },
+   {
+    "month": "2021-07",
+    "total": 4.5,
+    "youth": 12.4
+   },
+   {
+    "month": "2021-08",
+    "total": 4.4,
+    "youth": 11.9
+   },
+   {
+    "month": "2021-09",
+    "total": 4.3,
+    "youth": 11.4
+   },
+   {
+    "month": "2021-10",
+    "total": 4.2,
+    "youth": 11.2
+   },
+   {
+    "month": "2021-11",
+    "total": 4.2,
+    "youth": 11.3
+   },
+   {
+    "month": "2021-12",
+    "total": 4.1,
+    "youth": 11.4
+   },
+   {
+    "month": "2022-01",
+    "total": 3.9,
+    "youth": 11.4
+   },
+   {
+    "month": "2022-02",
+    "total": 3.8,
+    "youth": 10.7
+   },
+   {
+    "month": "2022-03",
+    "total": 3.8,
+    "youth": 10.9
+   },
+   {
+    "month": "2022-04",
+    "total": 3.7,
+    "youth": 10.3
+   },
+   {
+    "month": "2022-05",
+    "total": 3.8,
+    "youth": 10.3
+   },
+   {
+    "month": "2022-06",
+    "total": 3.6,
+    "youth": 9.3
+   },
+   {
+    "month": "2022-07",
+    "total": 3.6,
+    "youth": 9.4
+   },
+   {
+    "month": "2022-08",
+    "total": 3.7,
+    "youth": 10.0
+   },
+   {
+    "month": "2022-09",
+    "total": 3.8,
+    "youth": 10.7
+   },
+   {
+    "month": "2022-10",
+    "total": 3.9,
+    "youth": 11.4
+   },
+   {
+    "month": "2022-11",
+    "total": 3.9,
+    "youth": 11.8
+   },
+   {
+    "month": "2022-12",
+    "total": 3.9,
+    "youth": 11.2
+   },
+   {
+    "month": "2023-01",
+    "total": 4.0,
+    "youth": 11.5
+   },
+   {
+    "month": "2023-02",
+    "total": 4.0,
+    "youth": 11.7
+   },
+   {
+    "month": "2023-03",
+    "total": 3.9,
+    "youth": 11.3
+   },
+   {
+    "month": "2023-04",
+    "total": 4.0,
+    "youth": 11.4
+   },
+   {
+    "month": "2023-05",
+    "total": 4.2,
+    "youth": 12.3
+   },
+   {
+    "month": "2023-06",
+    "total": 4.4,
+    "youth": 13.1
+   },
+   {
+    "month": "2023-07",
+    "total": 4.3,
+    "youth": 13.0
+   },
+   {
+    "month": "2023-08",
+    "total": 4.1,
+    "youth": 11.9
+   },
+   {
+    "month": "2023-09",
+    "total": 4.0,
+    "youth": 12.0
+   },
+   {
+    "month": "2023-10",
+    "total": 4.0,
+    "youth": 12.4
+   },
+   {
+    "month": "2023-11",
+    "total": 3.9,
+    "youth": 11.9
+   },
+   {
+    "month": "2023-12",
+    "total": 4.1,
+    "youth": 12.3
+   },
+   {
+    "month": "2024-01",
+    "total": 4.2,
+    "youth": 12.8
+   },
+   {
+    "month": "2024-02",
+    "total": 4.3,
+    "youth": 13.2
+   },
+   {
+    "month": "2024-03",
+    "total": 4.4,
+    "youth": 13.6
+   },
+   {
+    "month": "2024-04",
+    "total": 4.4,
+    "youth": 13.9
+   },
+   {
+    "month": "2024-05",
+    "total": 4.2,
+    "youth": 13.5
+   },
+   {
+    "month": "2024-06",
+    "total": 4.2,
+    "youth": 14.5
+   },
+   {
+    "month": "2024-07",
+    "total": 4.1,
+    "youth": 13.8
+   },
+   {
+    "month": "2024-08",
+    "total": 4.3,
+    "youth": 14.6
+   },
+   {
+    "month": "2024-09",
+    "youth": 13.6,
+    "total": 4.2
+   },
+   {
+    "month": "2024-10",
+    "total": 4.4,
+    "youth": 14.4
+   },
+   {
+    "month": "2024-11",
+    "total": 4.4,
+    "youth": 14.7
+   },
+   {
+    "month": "2024-12",
+    "total": 4.4,
+    "youth": 14.6
+   },
+   {
+    "month": "2025-01",
+    "youth": 14.6,
+    "total": 4.5
+   },
+   {
+    "month": "2025-02",
+    "youth": 14.2,
+    "total": 4.6
+   },
+   {
+    "month": "2025-03",
+    "total": 4.6,
+    "youth": 14.4
+   },
+   {
+    "month": "2025-04",
+    "total": 4.7,
+    "youth": 14.2
+   },
+   {
+    "month": "2025-05",
+    "total": 4.7,
+    "youth": 14.3
+   },
+   {
+    "month": "2025-06",
+    "total": 4.7,
+    "youth": 14.3
+   },
+   {
+    "month": "2025-07",
+    "total": 4.8,
+    "youth": 14.6
+   },
+   {
+    "month": "2025-08",
+    "total": 5.0,
+    "youth": 15.3
+   },
+   {
+    "month": "2025-09",
+    "total": 5.1,
+    "youth": 15.9
+   },
+   {
+    "month": "2025-10",
+    "total": 5.1,
+    "youth": 15.9
+   },
+   {
+    "month": "2025-11",
+    "total": 5.2,
+    "youth": 16.1
+   },
+   {
+    "month": "2025-12",
+    "total": 5.2,
+    "youth": 16.1
+   },
+   {
+    "month": "2026-01",
+    "total": 4.9,
+    "youth": 15.9
+   },
+   {
+    "month": "2026-02",
+    "total": 5.0,
+    "youth": 16.2
+   },
+   {
+    "month": "2026-03",
+    "youth": 16.2,
+    "total": 4.9
+   },
+   {
+    "month": "2026-04",
+    "total": 4.9,
+    "youth": 16.4
+   },
+   {
+    "month": "2026-05",
+    "youth": 16.2,
+    "total": 4.9
+   },
+   {
+    "month": "2026-06",
+    "total": 4.9,
+    "youth": 16.4
+   },
+   {
+    "month": "2026-07",
+    "youth": 15.6,
+    "total": 4.7
+   }
+  ],
+  "FRA": [
+   {
+    "month": "2015-01",
+    "total": 10.4,
+    "youth": 26.5
+   },
+   {
+    "month": "2015-02",
+    "youth": 26.4,
+    "total": 10.4
+   },
+   {
+    "month": "2015-03",
+    "total": 10.4,
+    "youth": 26.2
+   },
+   {
+    "month": "2015-04",
+    "total": 10.4,
+    "youth": 25.9
+   },
+   {
+    "month": "2015-05",
+    "total": 10.5,
+    "youth": 25.9
+   },
+   {
+    "month": "2015-06",
+    "total": 10.4,
+    "youth": 25.8
+   },
+   {
+    "month": "2015-07",
+    "total": 10.3,
+    "youth": 25.9
+   },
+   {
+    "month": "2015-08",
+    "total": 10.3,
+    "youth": 26.1
+   },
+   {
+    "month": "2015-09",
+    "total": 10.3,
+    "youth": 26.3
+   },
+   {
+    "month": "2015-10",
+    "total": 10.3,
+    "youth": 26.3
+   },
+   {
+    "month": "2015-11",
+    "total": 10.3,
+    "youth": 26.3
+   },
+   {
+    "month": "2015-12",
+    "youth": 26.2,
+    "total": 10.3
+   },
+   {
+    "month": "2016-01",
+    "total": 10.3,
+    "youth": 26.3
+   },
+   {
+    "month": "2016-02",
+    "total": 10.4,
+    "youth": 26.4
+   },
+   {
+    "month": "2016-03",
+    "total": 10.2,
+    "youth": 26.1
+   },
+   {
+    "month": "2016-04",
+    "total": 10.1,
+    "youth": 25.7
+   },
+   {
+    "month": "2016-05",
+    "total": 10.0,
+    "youth": 25.8
+   },
+   {
+    "month": "2016-06",
+    "youth": 26.0,
+    "total": 10.0
+   },
+   {
+    "month": "2016-07",
+    "total": 9.8,
+    "youth": 26.2
+   },
+   {
+    "month": "2016-08",
+    "total": 9.9,
+    "youth": 26.8
+   },
+   {
+    "month": "2016-09",
+    "total": 9.9,
+    "youth": 26.4
+   },
+   {
+    "month": "2016-10",
+    "total": 10.1,
+    "youth": 26.1
+   },
+   {
+    "month": "2016-11",
+    "total": 10.1,
+    "youth": 25.6
+   },
+   {
+    "month": "2016-12",
+    "total": 10.0,
+    "youth": 24.8
+   },
+   {
+    "month": "2017-01",
+    "youth": 24.0,
+    "total": 9.8
+   },
+   {
+    "month": "2017-02",
+    "total": 9.6,
+    "youth": 23.8
+   },
+   {
+    "month": "2017-03",
+    "total": 9.6,
+    "youth": 24.1
+   },
+   {
+    "month": "2017-04",
+    "youth": 24.5,
+    "total": 9.6
+   },
+   {
+    "month": "2017-05",
+    "youth": 24.6,
+    "total": 9.6
+   },
+   {
+    "month": "2017-06",
+    "total": 9.5,
+    "youth": 24.3
+   },
+   {
+    "month": "2017-07",
+    "total": 9.6,
+    "youth": 23.6
+   },
+   {
+    "month": "2017-08",
+    "youth": 23.0,
+    "total": 9.6
+   },
+   {
+    "month": "2017-09",
+    "total": 9.3,
+    "youth": 22.4
+   },
+   {
+    "month": "2017-10",
+    "total": 9.1,
+    "youth": 22.7
+   },
+   {
+    "month": "2017-11",
+    "total": 9.0,
+    "youth": 22.7
+   },
+   {
+    "month": "2017-12",
+    "youth": 22.9,
+    "total": 9.1
+   },
+   {
+    "month": "2018-01",
+    "youth": 23.3,
+    "total": 9.3
+   },
+   {
+    "month": "2018-02",
+    "total": 9.3,
+    "youth": 23.2
+   },
+   {
+    "month": "2018-03",
+    "total": 9.3,
+    "youth": 22.8
+   },
+   {
+    "month": "2018-04",
+    "total": 9.2,
+    "youth": 22.2
+   },
+   {
+    "month": "2018-05",
+    "total": 9.1,
+    "youth": 21.9
+   },
+   {
+    "month": "2018-06",
+    "youth": 21.9,
+    "total": 9.1
+   },
+   {
+    "month": "2018-07",
+    "total": 9.0,
+    "youth": 22.2
+   },
+   {
+    "month": "2018-08",
+    "total": 8.9,
+    "youth": 22.3
+   },
+   {
+    "month": "2018-09",
+    "total": 8.9,
+    "youth": 22.0
+   },
+   {
+    "month": "2018-10",
+    "total": 8.8,
+    "youth": 21.4
+   },
+   {
+    "month": "2018-11",
+    "youth": 21.0,
+    "total": 8.8
+   },
+   {
+    "month": "2018-12",
+    "total": 8.8,
+    "youth": 21.1
+   },
+   {
+    "month": "2019-01",
+    "total": 8.8,
+    "youth": 21.2
+   },
+   {
+    "month": "2019-02",
+    "youth": 21.2,
+    "total": 8.8
+   },
+   {
+    "month": "2019-03",
+    "total": 8.7,
+    "youth": 21.2
+   },
+   {
+    "month": "2019-04",
+    "youth": 20.8,
+    "total": 8.6
+   },
+   {
+    "month": "2019-05",
+    "total": 8.5,
+    "youth": 20.5
+   },
+   {
+    "month": "2019-06",
+    "total": 8.5,
+    "youth": 20.2
+   },
+   {
+    "month": "2019-07",
+    "total": 8.4,
+    "youth": 19.6
+   },
+   {
+    "month": "2019-08",
+    "total": 8.3,
+    "youth": 19.3
+   },
+   {
+    "month": "2019-09",
+    "total": 8.2,
+    "youth": 19.9
+   },
+   {
+    "month": "2019-10",
+    "total": 8.2,
+    "youth": 21.6
+   },
+   {
+    "month": "2019-11",
+    "total": 8.2,
+    "youth": 22.2
+   },
+   {
+    "month": "2019-12",
+    "youth": 22.2,
+    "total": 8.3
+   },
+   {
+    "month": "2020-01",
+    "youth": 21.4,
+    "total": 8.3
+   },
+   {
+    "month": "2020-02",
+    "youth": 20.5,
+    "total": 7.9
+   },
+   {
+    "month": "2020-03",
+    "total": 7.6,
+    "youth": 20.6
+   },
+   {
+    "month": "2020-04",
+    "total": 7.6,
+    "youth": 22.6
+   },
+   {
+    "month": "2020-05",
+    "youth": 22.2,
+    "total": 7.0
+   },
+   {
+    "month": "2020-06",
+    "total": 7.4,
+    "youth": 22.4
+   },
+   {
+    "month": "2020-07",
+    "total": 8.6,
+    "youth": 22.8
+   },
+   {
+    "month": "2020-08",
+    "total": 9.1,
+    "youth": 22.4
+   },
+   {
+    "month": "2020-09",
+    "total": 9.0,
+    "youth": 22.0
+   },
+   {
+    "month": "2020-10",
+    "total": 8.3,
+    "youth": 20.8
+   },
+   {
+    "month": "2020-11",
+    "total": 8.1,
+    "youth": 20.7
+   },
+   {
+    "month": "2020-12",
+    "youth": 20.8,
+    "total": 8.0
+   },
+   {
+    "month": "2021-01",
+    "youth": 21.2,
+    "total": 8.1
+   },
+   {
+    "month": "2021-02",
+    "total": 8.2,
+    "youth": 21.4
+   },
+   {
+    "month": "2021-03",
+    "total": 8.2,
+    "youth": 20.9
+   },
+   {
+    "month": "2021-04",
+    "total": 8.2,
+    "youth": 20.2
+   },
+   {
+    "month": "2021-05",
+    "total": 8.0,
+    "youth": 19.2
+   },
+   {
+    "month": "2021-06",
+    "total": 7.9,
+    "youth": 19.0
+   },
+   {
+    "month": "2021-07",
+    "youth": 19.0,
+    "total": 8.0
+   },
+   {
+    "month": "2021-08",
+    "total": 7.9,
+    "youth": 18.8
+   },
+   {
+    "month": "2021-09",
+    "youth": 17.9,
+    "total": 7.8
+   },
+   {
+    "month": "2021-10",
+    "youth": 16.8,
+    "total": 7.6
+   },
+   {
+    "month": "2021-11",
+    "youth": 16.5,
+    "total": 7.5
+   },
+   {
+    "month": "2021-12",
+    "total": 7.4,
+    "youth": 16.8
+   },
+   {
+    "month": "2022-01",
+    "total": 7.3,
+    "youth": 16.4
+   },
+   {
+    "month": "2022-02",
+    "youth": 16.9,
+    "total": 7.4
+   },
+   {
+    "month": "2022-03",
+    "youth": 17.4,
+    "total": 7.5
+   },
+   {
+    "month": "2022-04",
+    "youth": 17.9,
+    "total": 7.6
+   },
+   {
+    "month": "2022-05",
+    "total": 7.5,
+    "youth": 18.1
+   },
+   {
+    "month": "2022-06",
+    "total": 7.5,
+    "youth": 18.2
+   },
+   {
+    "month": "2022-07",
+    "youth": 17.8,
+    "total": 7.4
+   },
+   {
+    "month": "2022-08",
+    "youth": 17.7,
+    "total": 7.3
+   },
+   {
+    "month": "2022-09",
+    "total": 7.1,
+    "youth": 17.1
+   },
+   {
+    "month": "2022-10",
+    "total": 7.2,
+    "youth": 17.0
+   },
+   {
+    "month": "2022-11",
+    "youth": 16.9,
+    "total": 7.2
+   },
+   {
+    "month": "2022-12",
+    "total": 7.2,
+    "youth": 17.0
+   },
+   {
+    "month": "2023-01",
+    "total": 7.1,
+    "youth": 16.8
+   },
+   {
+    "month": "2023-02",
+    "total": 7.1,
+    "youth": 16.7
+   },
+   {
+    "month": "2023-03",
+    "total": 7.1,
+    "youth": 16.8
+   },
+   {
+    "month": "2023-04",
+    "total": 7.3,
+    "youth": 17.0
+   },
+   {
+    "month": "2023-05",
+    "total": 7.3,
+    "youth": 17.1
+   },
+   {
+    "month": "2023-06",
+    "total": 7.3,
+    "youth": 17.3
+   },
+   {
+    "month": "2023-07",
+    "total": 7.4,
+    "youth": 17.7
+   },
+   {
+    "month": "2023-08",
+    "youth": 17.8,
+    "total": 7.5
+   },
+   {
+    "month": "2023-09",
+    "youth": 17.4,
+    "total": 7.5
+   },
+   {
+    "month": "2023-10",
+    "total": 7.5,
+    "youth": 17.4
+   },
+   {
+    "month": "2023-11",
+    "total": 7.6,
+    "youth": 17.5
+   },
+   {
+    "month": "2023-12",
+    "youth": 17.8,
+    "total": 7.7
+   },
+   {
+    "month": "2024-01",
+    "total": 7.6,
+    "youth": 18.3
+   },
+   {
+    "month": "2024-02",
+    "total": 7.5,
+    "youth": 18.3
+   },
+   {
+    "month": "2024-03",
+    "total": 7.4,
+    "youth": 18.0
+   },
+   {
+    "month": "2024-04",
+    "total": 7.3,
+    "youth": 17.4
+   },
+   {
+    "month": "2024-05",
+    "total": 7.4,
+    "youth": 17.7
+   },
+   {
+    "month": "2024-06",
+    "total": 7.5,
+    "youth": 18.7
+   },
+   {
+    "month": "2024-07",
+    "total": 7.5,
+    "youth": 19.9
+   },
+   {
+    "month": "2024-08",
+    "total": 7.5,
+    "youth": 20.5
+   },
+   {
+    "month": "2024-09",
+    "total": 7.5,
+    "youth": 20.3
+   },
+   {
+    "month": "2024-10",
+    "total": 7.4,
+    "youth": 19.2
+   },
+   {
+    "month": "2024-11",
+    "total": 7.4,
+    "youth": 18.5
+   },
+   {
+    "month": "2024-12",
+    "total": 7.3,
+    "youth": 18.3
+   },
+   {
+    "month": "2025-01",
+    "total": 7.3,
+    "youth": 18.6
+   },
+   {
+    "month": "2025-02",
+    "total": 7.5,
+    "youth": 20.1
+   },
+   {
+    "month": "2025-03",
+    "total": 7.6,
+    "youth": 18.9
+   },
+   {
+    "month": "2025-04",
+    "total": 7.5,
+    "youth": 18.8
+   },
+   {
+    "month": "2025-05",
+    "total": 7.6,
+    "youth": 19.2
+   },
+   {
+    "month": "2025-06",
+    "total": 7.7,
+    "youth": 19.0
+   },
+   {
+    "month": "2025-07",
+    "total": 7.7,
+    "youth": 18.9
+   },
+   {
+    "month": "2025-08",
+    "total": 7.8,
+    "youth": 19.4
+   },
+   {
+    "month": "2025-09",
+    "total": 7.9,
+    "youth": 20.4
+   },
+   {
+    "month": "2025-10",
+    "total": 8.0,
+    "youth": 21.5
+   },
+   {
+    "month": "2025-11",
+    "total": 8.0,
+    "youth": 21.5
+   },
+   {
+    "month": "2025-12",
+    "total": 8.0,
+    "youth": 21.3
+   },
+   {
+    "month": "2026-01",
+    "total": 8.1,
+    "youth": 21.1
+   },
+   {
+    "month": "2026-02",
+    "total": 8.2,
+    "youth": 21.1
+   },
+   {
+    "month": "2026-03",
+    "total": 8.2,
+    "youth": 21.3
+   },
+   {
+    "month": "2026-04",
+    "total": 8.3,
+    "youth": 21.7
+   },
+   {
+    "month": "2026-05",
+    "total": 8.4,
+    "youth": 21.6
+   },
+   {
+    "month": "2026-06",
+    "total": 8.3,
+    "youth": 21.2
+   },
+   {
+    "month": "2026-07",
+    "total": 8.3,
+    "youth": 20.8
+   },
+   {
+    "month": "2026-08",
+    "youth": 20.6,
+    "total": 8.2
+   }
+  ],
+  "ESP": [
+   {
+    "month": "2015-01",
+    "total": 23.4,
+    "youth": 50.5
+   },
+   {
+    "month": "2015-02",
+    "total": 23.1,
+    "youth": 49.9
+   },
+   {
+    "month": "2015-03",
+    "total": 22.9,
+    "youth": 49.6
+   },
+   {
+    "month": "2015-04",
+    "total": 22.7,
+    "youth": 49.1
+   },
+   {
+    "month": "2015-05",
+    "total": 22.5,
+    "youth": 48.9
+   },
+   {
+    "month": "2015-06",
+    "total": 22.3,
+    "youth": 48.6
+   },
+   {
+    "month": "2015-07",
+    "total": 21.9,
+    "youth": 48.5
+   },
+   {
+    "month": "2015-08",
+    "total": 21.6,
+    "youth": 48.3
+   },
+   {
+    "month": "2015-09",
+    "total": 21.4,
+    "youth": 47.7
+   },
+   {
+    "month": "2015-10",
+    "total": 21.3,
+    "youth": 46.8
+   },
+   {
+    "month": "2015-11",
+    "total": 20.9,
+    "youth": 45.9
+   },
+   {
+    "month": "2015-12",
+    "total": 20.8,
+    "youth": 45.7
+   },
+   {
+    "month": "2016-01",
+    "total": 20.5,
+    "youth": 45.1
+   },
+   {
+    "month": "2016-02",
+    "total": 20.4,
+    "youth": 45.4
+   },
+   {
+    "month": "2016-03",
+    "total": 20.3,
+    "youth": 45.4
+   },
+   {
+    "month": "2016-04",
+    "total": 20.3,
+    "youth": 46.4
+   },
+   {
+    "month": "2016-05",
+    "total": 20.2,
+    "youth": 46.3
+   },
+   {
+    "month": "2016-06",
+    "total": 19.9,
+    "youth": 45.5
+   },
+   {
+    "month": "2016-07",
+    "total": 19.5,
+    "youth": 44.1
+   },
+   {
+    "month": "2016-08",
+    "total": 19.3,
+    "youth": 43.3
+   },
+   {
+    "month": "2016-09",
+    "total": 19.1,
+    "youth": 43.0
+   },
+   {
+    "month": "2016-10",
+    "total": 18.9,
+    "youth": 42.9
+   },
+   {
+    "month": "2016-11",
+    "total": 18.8,
+    "youth": 43.3
+   },
+   {
+    "month": "2016-12",
+    "total": 18.5,
+    "youth": 42.2
+   },
+   {
+    "month": "2017-01",
+    "total": 18.3,
+    "youth": 41.2
+   },
+   {
+    "month": "2017-02",
+    "total": 18.2,
+    "youth": 40.5
+   },
+   {
+    "month": "2017-03",
+    "total": 18.0,
+    "youth": 40.2
+   },
+   {
+    "month": "2017-04",
+    "total": 17.6,
+    "youth": 39.8
+   },
+   {
+    "month": "2017-05",
+    "total": 17.4,
+    "youth": 39.4
+   },
+   {
+    "month": "2017-06",
+    "total": 17.1,
+    "youth": 38.4
+   },
+   {
+    "month": "2017-07",
+    "total": 16.9,
+    "youth": 37.4
+   },
+   {
+    "month": "2017-08",
+    "total": 16.7,
+    "youth": 36.7
+   },
+   {
+    "month": "2017-09",
+    "total": 16.7,
+    "youth": 37.1
+   },
+   {
+    "month": "2017-10",
+    "total": 16.7,
+    "youth": 37.5
+   },
+   {
+    "month": "2017-11",
+    "total": 16.7,
+    "youth": 37.5
+   },
+   {
+    "month": "2017-12",
+    "total": 16.6,
+    "youth": 37.2
+   },
+   {
+    "month": "2018-01",
+    "total": 16.4,
+    "youth": 36.2
+   },
+   {
+    "month": "2018-02",
+    "total": 16.2,
+    "youth": 35.6
+   },
+   {
+    "month": "2018-03",
+    "total": 15.9,
+    "youth": 34.8
+   },
+   {
+    "month": "2018-04",
+    "total": 15.7,
+    "youth": 34.7
+   },
+   {
+    "month": "2018-05",
+    "total": 15.5,
+    "youth": 34.6
+   },
+   {
+    "month": "2018-06",
+    "total": 15.2,
+    "youth": 34.1
+   },
+   {
+    "month": "2018-07",
+    "total": 15.0,
+    "youth": 33.9
+   },
+   {
+    "month": "2018-08",
+    "total": 14.8,
+    "youth": 33.7
+   },
+   {
+    "month": "2018-09",
+    "total": 14.7,
+    "youth": 33.7
+   },
+   {
+    "month": "2018-10",
+    "total": 14.7,
+    "youth": 33.8
+   },
+   {
+    "month": "2018-11",
+    "total": 14.6,
+    "youth": 33.4
+   },
+   {
+    "month": "2018-12",
+    "total": 14.4,
+    "youth": 33.8
+   },
+   {
+    "month": "2019-01",
+    "total": 14.3,
+    "youth": 34.3
+   },
+   {
+    "month": "2019-02",
+    "total": 14.2,
+    "youth": 34.4
+   },
+   {
+    "month": "2019-03",
+    "total": 14.2,
+    "youth": 34.0
+   },
+   {
+    "month": "2019-04",
+    "total": 14.2,
+    "youth": 33.2
+   },
+   {
+    "month": "2019-05",
+    "total": 14.3,
+    "youth": 33.1
+   },
+   {
+    "month": "2019-06",
+    "total": 14.2,
+    "youth": 32.5
+   },
+   {
+    "month": "2019-07",
+    "total": 14.2,
+    "youth": 32.4
+   },
+   {
+    "month": "2019-08",
+    "total": 14.1,
+    "youth": 32.3
+   },
+   {
+    "month": "2019-09",
+    "total": 14.0,
+    "youth": 31.7
+   },
+   {
+    "month": "2019-10",
+    "total": 14.0,
+    "youth": 31.1
+   },
+   {
+    "month": "2019-11",
+    "total": 13.9,
+    "youth": 30.7
+   },
+   {
+    "month": "2019-12",
+    "total": 13.8,
+    "youth": 30.7
+   },
+   {
+    "month": "2020-01",
+    "total": 13.8,
+    "youth": 31.6
+   },
+   {
+    "month": "2020-02",
+    "total": 13.6,
+    "youth": 31.9
+   },
+   {
+    "month": "2020-03",
+    "total": 14.5,
+    "youth": 33.9
+   },
+   {
+    "month": "2020-04",
+    "total": 15.3,
+    "youth": 37.1
+   },
+   {
+    "month": "2020-05",
+    "total": 15.5,
+    "youth": 39.3
+   },
+   {
+    "month": "2020-06",
+    "total": 16.0,
+    "youth": 41.9
+   },
+   {
+    "month": "2020-07",
+    "total": 16.2,
+    "youth": 41.6
+   },
+   {
+    "month": "2020-08",
+    "total": 16.5,
+    "youth": 41.9
+   },
+   {
+    "month": "2020-09",
+    "total": 16.4,
+    "youth": 41.0
+   },
+   {
+    "month": "2020-10",
+    "total": 16.3,
+    "youth": 40.4
+   },
+   {
+    "month": "2020-11",
+    "total": 16.2,
+    "youth": 40.0
+   },
+   {
+    "month": "2020-12",
+    "total": 16.2,
+    "youth": 40.2
+   },
+   {
+    "month": "2021-01",
+    "total": 15.9,
+    "youth": 39.0
+   },
+   {
+    "month": "2021-02",
+    "total": 15.7,
+    "youth": 38.6
+   },
+   {
+    "month": "2021-03",
+    "total": 15.5,
+    "youth": 38.1
+   },
+   {
+    "month": "2021-04",
+    "total": 15.7,
+    "youth": 39.4
+   },
+   {
+    "month": "2021-05",
+    "total": 15.7,
+    "youth": 38.4
+   },
+   {
+    "month": "2021-06",
+    "total": 15.6,
+    "youth": 36.9
+   },
+   {
+    "month": "2021-07",
+    "total": 15.2,
+    "youth": 33.8
+   },
+   {
+    "month": "2021-08",
+    "total": 14.8,
+    "youth": 31.5
+   },
+   {
+    "month": "2021-09",
+    "total": 14.4,
+    "youth": 30.6
+   },
+   {
+    "month": "2021-10",
+    "total": 13.9,
+    "youth": 31.5
+   },
+   {
+    "month": "2021-11",
+    "total": 13.5,
+    "youth": 31.6
+   },
+   {
+    "month": "2021-12",
+    "total": 13.3,
+    "youth": 31.1
+   },
+   {
+    "month": "2022-01",
+    "total": 13.3,
+    "youth": 30.1
+   },
+   {
+    "month": "2022-02",
+    "total": 13.2,
+    "youth": 29.4
+   },
+   {
+    "month": "2022-03",
+    "total": 13.3,
+    "youth": 29.5
+   },
+   {
+    "month": "2022-04",
+    "total": 13.2,
+    "youth": 29.3
+   },
+   {
+    "month": "2022-05",
+    "total": 12.9,
+    "youth": 28.5
+   },
+   {
+    "month": "2022-06",
+    "total": 12.9,
+    "youth": 29.6
+   },
+   {
+    "month": "2022-07",
+    "total": 12.7,
+    "youth": 29.8
+   },
+   {
+    "month": "2022-08",
+    "total": 12.8,
+    "youth": 30.9
+   },
+   {
+    "month": "2022-09",
+    "youth": 30.6,
+    "total": 12.9
+   },
+   {
+    "month": "2022-10",
+    "total": 13.1,
+    "youth": 29.7
+   },
+   {
+    "month": "2022-11",
+    "total": 13.2,
+    "youth": 29.4
+   },
+   {
+    "month": "2022-12",
+    "total": 13.2,
+    "youth": 29.3
+   },
+   {
+    "month": "2023-01",
+    "total": 13.1,
+    "youth": 29.5
+   },
+   {
+    "month": "2023-02",
+    "total": 12.9,
+    "youth": 29.6
+   },
+   {
+    "month": "2023-03",
+    "total": 12.5,
+    "youth": 29.2
+   },
+   {
+    "month": "2023-04",
+    "total": 12.1,
+    "youth": 28.3
+   },
+   {
+    "month": "2023-05",
+    "total": 12.0,
+    "youth": 28.3
+   },
+   {
+    "month": "2023-06",
+    "total": 11.9,
+    "youth": 28.0
+   },
+   {
+    "month": "2023-07",
+    "total": 12.0,
+    "youth": 28.0
+   },
+   {
+    "month": "2023-08",
+    "total": 12.0,
+    "youth": 27.9
+   },
+   {
+    "month": "2023-09",
+    "total": 12.0,
+    "youth": 28.4
+   },
+   {
+    "month": "2023-10",
+    "total": 12.0,
+    "youth": 29.1
+   },
+   {
+    "month": "2023-11",
+    "total": 12.0,
+    "youth": 29.2
+   },
+   {
+    "month": "2023-12",
+    "total": 11.9,
+    "youth": 28.7
+   },
+   {
+    "month": "2024-01",
+    "total": 11.9,
+    "youth": 28.0
+   },
+   {
+    "month": "2024-02",
+    "youth": 27.3,
+    "total": 11.8
+   },
+   {
+    "month": "2024-03",
+    "youth": 26.7,
+    "total": 11.6
+   },
+   {
+    "month": "2024-04",
+    "total": 11.6,
+    "youth": 26.6
+   },
+   {
+    "month": "2024-05",
+    "total": 11.6,
+    "youth": 26.7
+   },
+   {
+    "month": "2024-06",
+    "total": 11.5,
+    "youth": 26.7
+   },
+   {
+    "month": "2024-07",
+    "total": 11.4,
+    "youth": 27.0
+   },
+   {
+    "month": "2024-08",
+    "total": 11.3,
+    "youth": 26.5
+   },
+   {
+    "month": "2024-09",
+    "total": 11.1,
+    "youth": 26.1
+   },
+   {
+    "month": "2024-10",
+    "total": 10.9,
+    "youth": 25.6
+   },
+   {
+    "month": "2024-11",
+    "total": 10.8,
+    "youth": 25.5
+   },
+   {
+    "month": "2024-12",
+    "total": 10.8,
+    "youth": 25.8
+   },
+   {
+    "month": "2025-01",
+    "youth": 26.2,
+    "total": 10.8
+   },
+   {
+    "month": "2025-02",
+    "total": 10.8,
+    "youth": 26.2
+   },
+   {
+    "month": "2025-03",
+    "total": 10.8,
+    "youth": 26.0
+   },
+   {
+    "month": "2025-04",
+    "total": 10.6,
+    "youth": 24.7
+   },
+   {
+    "month": "2025-05",
+    "total": 10.6,
+    "youth": 24.6
+   },
+   {
+    "month": "2025-06",
+    "total": 10.5,
+    "youth": 24.6
+   },
+   {
+    "month": "2025-07",
+    "total": 10.6,
+    "youth": 25.0
+   },
+   {
+    "month": "2025-08",
+    "total": 10.5,
+    "youth": 25.0
+   },
+   {
+    "month": "2025-09",
+    "total": 10.4,
+    "youth": 24.7
+   },
+   {
+    "month": "2025-10",
+    "total": 10.2,
+    "youth": 24.2
+   },
+   {
+    "month": "2025-11",
+    "youth": 23.7,
+    "total": 10.1
+   },
+   {
+    "month": "2025-12",
+    "total": 10.2,
+    "youth": 23.8
+   },
+   {
+    "month": "2026-01",
+    "total": 10.3,
+    "youth": 24.0
+   },
+   {
+    "month": "2026-02",
+    "total": 10.3,
+    "youth": 24.3
+   },
+   {
+    "month": "2026-03",
+    "total": 10.3,
+    "youth": 24.3
+   },
+   {
+    "month": "2026-04",
+    "total": 10.2,
+    "youth": 24.1
+   },
+   {
+    "month": "2026-05",
+    "total": 10.2,
+    "youth": 24.0
+   },
+   {
+    "month": "2026-06",
+    "total": 10.1,
+    "youth": 23.3
+   },
+   {
+    "month": "2026-07",
+    "total": 10.0,
+    "youth": 22.8
+   },
+   {
+    "month": "2026-08",
+    "total": 10.0,
+    "youth": 22.7
+   }
+  ],
+  "DEU": [
+   {
+    "month": "2015-01",
+    "total": 4.5,
+    "youth": 7.7
+   },
+   {
+    "month": "2015-02",
+    "total": 4.5,
+    "youth": 7.6
+   },
+   {
+    "month": "2015-03",
+    "total": 4.5,
+    "youth": 7.6
+   },
+   {
+    "month": "2015-04",
+    "total": 4.4,
+    "youth": 7.5
+   },
+   {
+    "month": "2015-05",
+    "total": 4.4,
+    "youth": 7.5
+   },
+   {
+    "month": "2015-06",
+    "total": 4.4,
+    "youth": 7.5
+   },
+   {
+    "month": "2015-07",
+    "total": 4.3,
+    "youth": 7.5
+   },
+   {
+    "month": "2015-08",
+    "total": 4.3,
+    "youth": 7.5
+   },
+   {
+    "month": "2015-09",
+    "total": 4.3,
+    "youth": 7.5
+   },
+   {
+    "month": "2015-10",
+    "total": 4.2,
+    "youth": 7.5
+   },
+   {
+    "month": "2015-11",
+    "total": 4.2,
+    "youth": 7.5
+   },
+   {
+    "month": "2015-12",
+    "total": 4.2,
+    "youth": 7.6
+   },
+   {
+    "month": "2016-01",
+    "total": 4.1,
+    "youth": 7.6
+   },
+   {
+    "month": "2016-02",
+    "total": 4.1,
+    "youth": 7.6
+   },
+   {
+    "month": "2016-03",
+    "total": 4.0,
+    "youth": 7.6
+   },
+   {
+    "month": "2016-04",
+    "total": 4.0,
+    "youth": 7.6
+   },
+   {
+    "month": "2016-05",
+    "total": 4.0,
+    "youth": 7.6
+   },
+   {
+    "month": "2016-06",
+    "total": 4.0,
+    "youth": 7.5
+   },
+   {
+    "month": "2016-07",
+    "total": 3.9,
+    "youth": 7.5
+   },
+   {
+    "month": "2016-08",
+    "total": 3.9,
+    "youth": 7.4
+   },
+   {
+    "month": "2016-09",
+    "total": 3.8,
+    "youth": 7.3
+   },
+   {
+    "month": "2016-10",
+    "total": 3.7,
+    "youth": 7.2
+   },
+   {
+    "month": "2016-11",
+    "total": 3.7,
+    "youth": 7.2
+   },
+   {
+    "month": "2016-12",
+    "total": 3.7,
+    "youth": 7.2
+   },
+   {
+    "month": "2017-01",
+    "total": 3.7,
+    "youth": 7.1
+   },
+   {
+    "month": "2017-02",
+    "total": 3.6,
+    "youth": 7.1
+   },
+   {
+    "month": "2017-03",
+    "total": 3.6,
+    "youth": 7.1
+   },
+   {
+    "month": "2017-04",
+    "total": 3.6,
+    "youth": 7.0
+   },
+   {
+    "month": "2017-05",
+    "total": 3.6,
+    "youth": 6.9
+   },
+   {
+    "month": "2017-06",
+    "total": 3.5,
+    "youth": 6.9
+   },
+   {
+    "month": "2017-07",
+    "total": 3.5,
+    "youth": 6.8
+   },
+   {
+    "month": "2017-08",
+    "total": 3.5,
+    "youth": 6.8
+   },
+   {
+    "month": "2017-09",
+    "total": 3.4,
+    "youth": 6.8
+   },
+   {
+    "month": "2017-10",
+    "total": 3.4,
+    "youth": 6.8
+   },
+   {
+    "month": "2017-11",
+    "total": 3.4,
+    "youth": 6.8
+   },
+   {
+    "month": "2017-12",
+    "total": 3.4,
+    "youth": 6.9
+   },
+   {
+    "month": "2018-01",
+    "total": 3.3,
+    "youth": 6.9
+   },
+   {
+    "month": "2018-02",
+    "total": 3.3,
+    "youth": 6.9
+   },
+   {
+    "month": "2018-03",
+    "total": 3.3,
+    "youth": 6.8
+   },
+   {
+    "month": "2018-04",
+    "total": 3.2,
+    "youth": 6.8
+   },
+   {
+    "month": "2018-05",
+    "total": 3.2,
+    "youth": 6.7
+   },
+   {
+    "month": "2018-06",
+    "total": 3.2,
+    "youth": 6.6
+   },
+   {
+    "month": "2018-07",
+    "total": 3.2,
+    "youth": 6.5
+   },
+   {
+    "month": "2018-08",
+    "total": 3.2,
+    "youth": 6.5
+   },
+   {
+    "month": "2018-09",
+    "total": 3.1,
+    "youth": 6.4
+   },
+   {
+    "month": "2018-10",
+    "total": 3.1,
+    "youth": 6.3
+   },
+   {
+    "month": "2018-11",
+    "total": 3.1,
+    "youth": 6.2
+   },
+   {
+    "month": "2018-12",
+    "total": 3.1,
+    "youth": 6.2
+   },
+   {
+    "month": "2019-01",
+    "total": 3.0,
+    "youth": 6.1
+   },
+   {
+    "month": "2019-02",
+    "total": 3.0,
+    "youth": 6.0
+   },
+   {
+    "month": "2019-03",
+    "total": 3.0,
+    "youth": 6.0
+   },
+   {
+    "month": "2019-04",
+    "total": 2.9,
+    "youth": 6.0
+   },
+   {
+    "month": "2019-05",
+    "total": 2.9,
+    "youth": 6.0
+   },
+   {
+    "month": "2019-06",
+    "total": 2.9,
+    "youth": 6.0
+   },
+   {
+    "month": "2019-07",
+    "total": 2.9,
+    "youth": 6.1
+   },
+   {
+    "month": "2019-08",
+    "total": 2.9,
+    "youth": 6.2
+   },
+   {
+    "month": "2019-09",
+    "total": 2.9,
+    "youth": 6.3
+   },
+   {
+    "month": "2019-10",
+    "total": 2.9,
+    "youth": 6.4
+   },
+   {
+    "month": "2019-11",
+    "total": 3.0,
+    "youth": 6.5
+   },
+   {
+    "month": "2019-12",
+    "total": 3.1,
+    "youth": 6.7
+   },
+   {
+    "month": "2020-01",
+    "total": 3.2,
+    "youth": 6.9
+   },
+   {
+    "month": "2020-02",
+    "total": 3.3,
+    "youth": 7.1
+   },
+   {
+    "month": "2020-03",
+    "total": 3.4,
+    "youth": 7.4
+   },
+   {
+    "month": "2020-04",
+    "total": 3.5,
+    "youth": 7.6
+   },
+   {
+    "month": "2020-05",
+    "total": 3.7,
+    "youth": 7.9
+   },
+   {
+    "month": "2020-06",
+    "total": 3.8,
+    "youth": 8.1
+   },
+   {
+    "month": "2020-07",
+    "total": 3.8,
+    "youth": 8.3
+   },
+   {
+    "month": "2020-08",
+    "total": 3.9,
+    "youth": 8.4
+   },
+   {
+    "month": "2020-09",
+    "total": 3.8,
+    "youth": 8.4
+   },
+   {
+    "month": "2020-10",
+    "total": 3.8,
+    "youth": 8.4
+   },
+   {
+    "month": "2020-11",
+    "total": 3.8,
+    "youth": 8.4
+   },
+   {
+    "month": "2020-12",
+    "total": 3.8,
+    "youth": 8.3
+   },
+   {
+    "month": "2021-01",
+    "total": 3.9,
+    "youth": 8.2
+   },
+   {
+    "month": "2021-02",
+    "total": 3.9,
+    "youth": 8.0
+   },
+   {
+    "month": "2021-03",
+    "total": 3.9,
+    "youth": 7.8
+   },
+   {
+    "month": "2021-04",
+    "total": 3.8,
+    "youth": 7.5
+   },
+   {
+    "month": "2021-05",
+    "total": 3.7,
+    "youth": 7.3
+   },
+   {
+    "month": "2021-06",
+    "total": 3.6,
+    "youth": 7.0
+   },
+   {
+    "month": "2021-07",
+    "total": 3.5,
+    "youth": 6.7
+   },
+   {
+    "month": "2021-08",
+    "total": 3.4,
+    "youth": 6.5
+   },
+   {
+    "month": "2021-09",
+    "total": 3.4,
+    "youth": 6.3
+   },
+   {
+    "month": "2021-10",
+    "total": 3.4,
+    "youth": 6.2
+   },
+   {
+    "month": "2021-11",
+    "total": 3.4,
+    "youth": 6.1
+   },
+   {
+    "month": "2021-12",
+    "total": 3.3,
+    "youth": 6.0
+   },
+   {
+    "month": "2022-01",
+    "total": 3.3,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-02",
+    "total": 3.2,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-03",
+    "total": 3.2,
+    "youth": 5.8
+   },
+   {
+    "month": "2022-04",
+    "total": 3.1,
+    "youth": 5.8
+   },
+   {
+    "month": "2022-05",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-06",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-07",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-08",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-09",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-10",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-11",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2022-12",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2023-01",
+    "total": 3.1,
+    "youth": 5.8
+   },
+   {
+    "month": "2023-02",
+    "total": 3.0,
+    "youth": 5.8
+   },
+   {
+    "month": "2023-03",
+    "total": 3.0,
+    "youth": 5.8
+   },
+   {
+    "month": "2023-04",
+    "total": 3.0,
+    "youth": 5.8
+   },
+   {
+    "month": "2023-05",
+    "total": 3.0,
+    "youth": 5.8
+   },
+   {
+    "month": "2023-06",
+    "total": 3.0,
+    "youth": 5.8
+   },
+   {
+    "month": "2023-07",
+    "youth": 5.8,
+    "total": 3.0
+   },
+   {
+    "month": "2023-08",
+    "total": 3.1,
+    "youth": 5.8
+   },
+   {
+    "month": "2023-09",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2023-10",
+    "total": 3.1,
+    "youth": 5.9
+   },
+   {
+    "month": "2023-11",
+    "total": 3.2,
+    "youth": 6.0
+   },
+   {
+    "month": "2023-12",
+    "total": 3.2,
+    "youth": 6.1
+   },
+   {
+    "month": "2024-01",
+    "total": 3.2,
+    "youth": 6.1
+   },
+   {
+    "month": "2024-02",
+    "youth": 6.2,
+    "total": 3.3
+   },
+   {
+    "month": "2024-03",
+    "total": 3.3,
+    "youth": 6.4
+   },
+   {
+    "month": "2024-04",
+    "total": 3.4,
+    "youth": 6.5
+   },
+   {
+    "month": "2024-05",
+    "total": 3.4,
+    "youth": 6.6
+   },
+   {
+    "month": "2024-06",
+    "total": 3.4,
+    "youth": 6.7
+   },
+   {
+    "month": "2024-07",
+    "total": 3.4,
+    "youth": 6.7
+   },
+   {
+    "month": "2024-08",
+    "total": 3.4,
+    "youth": 6.8
+   },
+   {
+    "month": "2024-09",
+    "total": 3.4,
+    "youth": 6.8
+   },
+   {
+    "month": "2024-10",
+    "total": 3.4,
+    "youth": 6.8
+   },
+   {
+    "month": "2024-11",
+    "total": 3.4,
+    "youth": 6.8
+   },
+   {
+    "month": "2024-12",
+    "total": 3.5,
+    "youth": 6.8
+   },
+   {
+    "month": "2025-01",
+    "total": 3.5,
+    "youth": 6.8
+   },
+   {
+    "month": "2025-02",
+    "total": 3.6,
+    "youth": 6.8
+   },
+   {
+    "month": "2025-03",
+    "total": 3.6,
+    "youth": 6.8
+   },
+   {
+    "month": "2025-04",
+    "total": 3.7,
+    "youth": 6.8
+   },
+   {
+    "month": "2025-05",
+    "total": 3.7,
+    "youth": 6.8
+   },
+   {
+    "month": "2025-06",
+    "total": 3.7,
+    "youth": 6.8
+   },
+   {
+    "month": "2025-07",
+    "youth": 6.9,
+    "total": 3.7
+   },
+   {
+    "month": "2025-08",
+    "total": 3.8,
+    "youth": 7.0
+   },
+   {
+    "month": "2025-09",
+    "total": 3.8,
+    "youth": 7.0
+   },
+   {
+    "month": "2025-10",
+    "total": 3.8,
+    "youth": 7.1
+   },
+   {
+    "month": "2025-11",
+    "total": 3.9,
+    "youth": 7.2
+   },
+   {
+    "month": "2025-12",
+    "total": 3.9,
+    "youth": 7.3
+   },
+   {
+    "month": "2026-01",
+    "total": 3.9,
+    "youth": 7.4
+   },
+   {
+    "month": "2026-02",
+    "total": 3.9,
+    "youth": 7.5
+   },
+   {
+    "month": "2026-03",
+    "total": 3.9,
+    "youth": 7.5
+   },
+   {
+    "month": "2026-04",
+    "total": 3.9,
+    "youth": 7.5
+   },
+   {
+    "month": "2026-05",
+    "total": 3.9,
+    "youth": 7.5
+   },
+   {
+    "month": "2026-06",
+    "total": 4.0,
+    "youth": 7.5
+   },
+   {
+    "month": "2026-07",
+    "total": 4.0,
+    "youth": 7.4
+   },
+   {
+    "month": "2026-08",
+    "total": 4.0,
+    "youth": 7.4
+   }
+  ],
+  "ITA": [
+   {
+    "month": "2015-01",
+    "total": 12.4,
+    "youth": 41.3
+   },
+   {
+    "month": "2015-02",
+    "youth": 42.7,
+    "total": 12.4
+   },
+   {
+    "month": "2015-03",
+    "total": 12.5,
+    "youth": 42.6
+   },
+   {
+    "month": "2015-04",
+    "total": 12.2,
+    "youth": 41.3
+   },
+   {
+    "month": "2015-05",
+    "total": 12.3,
+    "youth": 41.2
+   },
+   {
+    "month": "2015-06",
+    "youth": 42.4,
+    "total": 12.3
+   },
+   {
+    "month": "2015-07",
+    "total": 11.8,
+    "youth": 38.3
+   },
+   {
+    "month": "2015-08",
+    "total": 11.8,
+    "youth": 39.2
+   },
+   {
+    "month": "2015-09",
+    "total": 11.6,
+    "youth": 39.1
+   },
+   {
+    "month": "2015-10",
+    "total": 11.7,
+    "youth": 39.1
+   },
+   {
+    "month": "2015-11",
+    "total": 11.4,
+    "youth": 36.7
+   },
+   {
+    "month": "2015-12",
+    "total": 11.7,
+    "youth": 37.9
+   },
+   {
+    "month": "2016-01",
+    "total": 11.6,
+    "youth": 39.2
+   },
+   {
+    "month": "2016-02",
+    "total": 11.7,
+    "youth": 38.3
+   },
+   {
+    "month": "2016-03",
+    "total": 11.6,
+    "youth": 37.8
+   },
+   {
+    "month": "2016-04",
+    "total": 11.8,
+    "youth": 37.6
+   },
+   {
+    "month": "2016-05",
+    "total": 11.5,
+    "youth": 37.0
+   },
+   {
+    "month": "2016-06",
+    "total": 11.7,
+    "youth": 36.7
+   },
+   {
+    "month": "2016-07",
+    "total": 11.7,
+    "youth": 38.1
+   },
+   {
+    "month": "2016-08",
+    "total": 11.7,
+    "youth": 36.9
+   },
+   {
+    "month": "2016-09",
+    "total": 11.9,
+    "youth": 36.5
+   },
+   {
+    "month": "2016-10",
+    "total": 11.7,
+    "youth": 36.7
+   },
+   {
+    "month": "2016-11",
+    "total": 11.9,
+    "youth": 38.7
+   },
+   {
+    "month": "2016-12",
+    "total": 11.8,
+    "youth": 38.2
+   },
+   {
+    "month": "2017-01",
+    "total": 11.7,
+    "youth": 36.9
+   },
+   {
+    "month": "2017-02",
+    "total": 11.5,
+    "youth": 35.5
+   },
+   {
+    "month": "2017-03",
+    "total": 11.5,
+    "youth": 35.9
+   },
+   {
+    "month": "2017-04",
+    "total": 11.2,
+    "youth": 35.6
+   },
+   {
+    "month": "2017-05",
+    "total": 11.5,
+    "youth": 36.4
+   },
+   {
+    "month": "2017-06",
+    "total": 11.2,
+    "youth": 34.9
+   },
+   {
+    "month": "2017-07",
+    "youth": 34.8,
+    "total": 11.5
+   },
+   {
+    "month": "2017-08",
+    "total": 11.5,
+    "youth": 34.6
+   },
+   {
+    "month": "2017-09",
+    "total": 11.2,
+    "youth": 34.8
+   },
+   {
+    "month": "2017-10",
+    "total": 11.0,
+    "youth": 34.0
+   },
+   {
+    "month": "2017-11",
+    "total": 10.9,
+    "youth": 32.6
+   },
+   {
+    "month": "2017-12",
+    "total": 10.9,
+    "youth": 32.1
+   },
+   {
+    "month": "2018-01",
+    "total": 11.0,
+    "youth": 32.3
+   },
+   {
+    "month": "2018-02",
+    "total": 10.8,
+    "youth": 33.2
+   },
+   {
+    "month": "2018-03",
+    "total": 10.9,
+    "youth": 32.6
+   },
+   {
+    "month": "2018-04",
+    "total": 10.9,
+    "youth": 32.7
+   },
+   {
+    "month": "2018-05",
+    "total": 10.7,
+    "youth": 32.2
+   },
+   {
+    "month": "2018-06",
+    "youth": 32.7,
+    "total": 10.8
+   },
+   {
+    "month": "2018-07",
+    "total": 10.4,
+    "youth": 31.9
+   },
+   {
+    "month": "2018-08",
+    "total": 10.3,
+    "youth": 32.2
+   },
+   {
+    "month": "2018-09",
+    "total": 10.3,
+    "youth": 32.1
+   },
+   {
+    "month": "2018-10",
+    "total": 10.6,
+    "youth": 32.6
+   },
+   {
+    "month": "2018-11",
+    "total": 10.5,
+    "youth": 32.0
+   },
+   {
+    "month": "2018-12",
+    "total": 10.3,
+    "youth": 32.1
+   },
+   {
+    "month": "2019-01",
+    "total": 10.3,
+    "youth": 31.8
+   },
+   {
+    "month": "2019-02",
+    "total": 10.4,
+    "youth": 31.4
+   },
+   {
+    "month": "2019-03",
+    "total": 10.2,
+    "youth": 29.9
+   },
+   {
+    "month": "2019-04",
+    "total": 10.4,
+    "youth": 31.2
+   },
+   {
+    "month": "2019-05",
+    "total": 10.0,
+    "youth": 29.8
+   },
+   {
+    "month": "2019-06",
+    "total": 9.6,
+    "youth": 27.8
+   },
+   {
+    "month": "2019-07",
+    "total": 9.6,
+    "youth": 27.9
+   },
+   {
+    "month": "2019-08",
+    "total": 9.5,
+    "youth": 26.9
+   },
+   {
+    "month": "2019-09",
+    "total": 9.8,
+    "youth": 28.4
+   },
+   {
+    "month": "2019-10",
+    "total": 9.5,
+    "youth": 27.8
+   },
+   {
+    "month": "2019-11",
+    "total": 9.8,
+    "youth": 28.2
+   },
+   {
+    "month": "2019-12",
+    "total": 9.8,
+    "youth": 28.6
+   },
+   {
+    "month": "2020-01",
+    "total": 9.6,
+    "youth": 28.6
+   },
+   {
+    "month": "2020-02",
+    "total": 9.5,
+    "youth": 28.4
+   },
+   {
+    "month": "2020-03",
+    "total": 7.6,
+    "youth": 27.4
+   },
+   {
+    "month": "2020-04",
+    "total": 7.6,
+    "youth": 25.8
+   },
+   {
+    "month": "2020-05",
+    "total": 8.8,
+    "youth": 29.6
+   },
+   {
+    "month": "2020-06",
+    "total": 9.5,
+    "youth": 30.9
+   },
+   {
+    "month": "2020-07",
+    "total": 10.2,
+    "youth": 32.6
+   },
+   {
+    "month": "2020-08",
+    "total": 10.1,
+    "youth": 33.1
+   },
+   {
+    "month": "2020-09",
+    "total": 10.0,
+    "youth": 29.8
+   },
+   {
+    "month": "2020-10",
+    "total": 10.0,
+    "youth": 30.5
+   },
+   {
+    "month": "2020-11",
+    "total": 9.5,
+    "youth": 30.2
+   },
+   {
+    "month": "2020-12",
+    "total": 9.8,
+    "youth": 31.0
+   },
+   {
+    "month": "2021-01",
+    "total": 10.1,
+    "youth": 32.3
+   },
+   {
+    "month": "2021-02",
+    "youth": 32.4,
+    "total": 10.1
+   },
+   {
+    "month": "2021-03",
+    "total": 10.1,
+    "youth": 32.5
+   },
+   {
+    "month": "2021-04",
+    "total": 10.3,
+    "youth": 32.9
+   },
+   {
+    "month": "2021-05",
+    "total": 9.9,
+    "youth": 31.0
+   },
+   {
+    "month": "2021-06",
+    "total": 9.5,
+    "youth": 29.6
+   },
+   {
+    "month": "2021-07",
+    "total": 9.1,
+    "youth": 27.4
+   },
+   {
+    "month": "2021-08",
+    "total": 9.1,
+    "youth": 27.5
+   },
+   {
+    "month": "2021-09",
+    "total": 9.1,
+    "youth": 28.6
+   },
+   {
+    "month": "2021-10",
+    "total": 9.1,
+    "youth": 27.3
+   },
+   {
+    "month": "2021-11",
+    "total": 9.1,
+    "youth": 27.2
+   },
+   {
+    "month": "2021-12",
+    "total": 8.9,
+    "youth": 26.6
+   },
+   {
+    "month": "2022-01",
+    "total": 8.5,
+    "youth": 25.5
+   },
+   {
+    "month": "2022-02",
+    "youth": 24.5,
+    "total": 8.4
+   },
+   {
+    "month": "2022-03",
+    "total": 8.3,
+    "youth": 25.1
+   },
+   {
+    "month": "2022-04",
+    "total": 8.1,
+    "youth": 24.7
+   },
+   {
+    "month": "2022-05",
+    "total": 8.1,
+    "youth": 22.2
+   },
+   {
+    "month": "2022-06",
+    "total": 8.2,
+    "youth": 23.4
+   },
+   {
+    "month": "2022-07",
+    "total": 8.0,
+    "youth": 23.6
+   },
+   {
+    "month": "2022-08",
+    "youth": 22.6,
+    "total": 8.2
+   },
+   {
+    "month": "2022-09",
+    "total": 8.0,
+    "youth": 23.5
+   },
+   {
+    "month": "2022-10",
+    "total": 7.8,
+    "youth": 22.6
+   },
+   {
+    "month": "2022-11",
+    "total": 7.8,
+    "youth": 23.1
+   },
+   {
+    "month": "2022-12",
+    "total": 7.9,
+    "youth": 22.9
+   },
+   {
+    "month": "2023-01",
+    "total": 7.9,
+    "youth": 22.6
+   },
+   {
+    "month": "2023-02",
+    "total": 7.8,
+    "youth": 22.2
+   },
+   {
+    "month": "2023-03",
+    "total": 7.9,
+    "youth": 23.0
+   },
+   {
+    "month": "2023-04",
+    "total": 7.9,
+    "youth": 22.4
+   },
+   {
+    "month": "2023-05",
+    "total": 7.8,
+    "youth": 23.7
+   },
+   {
+    "month": "2023-06",
+    "total": 7.5,
+    "youth": 22.4
+   },
+   {
+    "month": "2023-07",
+    "total": 7.8,
+    "youth": 22.5
+   },
+   {
+    "month": "2023-08",
+    "total": 7.6,
+    "youth": 23.5
+   },
+   {
+    "month": "2023-09",
+    "total": 7.7,
+    "youth": 22.7
+   },
+   {
+    "month": "2023-10",
+    "total": 7.7,
+    "youth": 24.5
+   },
+   {
+    "month": "2023-11",
+    "total": 7.5,
+    "youth": 22.1
+   },
+   {
+    "month": "2023-12",
+    "total": 7.1,
+    "youth": 21.6
+   },
+   {
+    "month": "2024-01",
+    "total": 7.1,
+    "youth": 21.7
+   },
+   {
+    "month": "2024-02",
+    "total": 7.3,
+    "youth": 23.1
+   },
+   {
+    "month": "2024-03",
+    "total": 6.9,
+    "youth": 20.1
+   },
+   {
+    "month": "2024-04",
+    "total": 6.8,
+    "youth": 20.8
+   },
+   {
+    "month": "2024-05",
+    "total": 6.5,
+    "youth": 20.6
+   },
+   {
+    "month": "2024-06",
+    "total": 6.7,
+    "youth": 20.4
+   },
+   {
+    "month": "2024-07",
+    "total": 6.4,
+    "youth": 20.9
+   },
+   {
+    "month": "2024-08",
+    "total": 6.4,
+    "youth": 19.3
+   },
+   {
+    "month": "2024-09",
+    "total": 6.1,
+    "youth": 18.6
+   },
+   {
+    "month": "2024-10",
+    "total": 6.1,
+    "youth": 18.8
+   },
+   {
+    "month": "2024-11",
+    "total": 6.2,
+    "youth": 20.8
+   },
+   {
+    "month": "2024-12",
+    "total": 6.4,
+    "youth": 19.1
+   },
+   {
+    "month": "2025-01",
+    "total": 6.5,
+    "youth": 20.6
+   },
+   {
+    "month": "2025-02",
+    "total": 6.1,
+    "youth": 19.7
+   },
+   {
+    "month": "2025-03",
+    "total": 6.3,
+    "youth": 20.8
+   },
+   {
+    "month": "2025-04",
+    "total": 6.2,
+    "youth": 21.1
+   },
+   {
+    "month": "2025-05",
+    "total": 6.5,
+    "youth": 21.6
+   },
+   {
+    "month": "2025-06",
+    "total": 5.9,
+    "youth": 20.0
+   },
+   {
+    "month": "2025-07",
+    "total": 5.9,
+    "youth": 19.4
+   },
+   {
+    "month": "2025-08",
+    "total": 5.7,
+    "youth": 19.8
+   },
+   {
+    "month": "2025-09",
+    "total": 6.0,
+    "youth": 21.0
+   },
+   {
+    "month": "2025-10",
+    "total": 5.8,
+    "youth": 19.8
+   },
+   {
+    "month": "2025-11",
+    "total": 5.7,
+    "youth": 19.0
+   },
+   {
+    "month": "2025-12",
+    "total": 5.7,
+    "youth": 19.9
+   },
+   {
+    "month": "2026-01",
+    "total": 5.5,
+    "youth": 18.7
+   },
+   {
+    "month": "2026-02",
+    "total": 5.6,
+    "youth": 18.1
+   },
+   {
+    "month": "2026-03",
+    "total": 5.6,
+    "youth": 18.9
+   },
+   {
+    "month": "2026-04",
+    "total": 5.6,
+    "youth": 18.1
+   },
+   {
+    "month": "2026-05",
+    "total": 5.6,
+    "youth": 17.7
+   },
+   {
+    "month": "2026-06",
+    "total": 6.0,
+    "youth": 19.4
+   },
+   {
+    "month": "2026-07",
+    "total": 6.0,
+    "youth": 19.7
+   },
+   {
+    "month": "2026-08",
+    "total": 6.2,
+    "youth": 20.3
+   }
+  ],
+  "AUS": [
+   {
+    "month": "2015-01",
+    "youth": 14.19,
+    "total": 6.35
+   },
+   {
+    "month": "2015-02",
+    "youth": 13.42,
+    "total": 6.16
+   },
+   {
+    "month": "2015-03",
+    "youth": 13.53,
+    "total": 6.11
+   },
+   {
+    "month": "2015-04",
+    "youth": 13.32,
+    "total": 6.12
+   },
+   {
+    "month": "2015-05",
+    "youth": 13.41,
+    "total": 5.93
+   },
+   {
+    "month": "2015-06",
+    "youth": 13.09,
+    "total": 6.01
+   },
+   {
+    "month": "2015-07",
+    "youth": 13.64,
+    "total": 6.28
+   },
+   {
+    "month": "2015-08",
+    "youth": 13.03,
+    "total": 6.11
+   },
+   {
+    "month": "2015-09",
+    "youth": 12.83,
+    "total": 6.18
+   },
+   {
+    "month": "2015-10",
+    "youth": 12.6,
+    "total": 5.92
+   },
+   {
+    "month": "2015-11",
+    "youth": 12.21,
+    "total": 5.85
+   },
+   {
+    "month": "2015-12",
+    "youth": 12.16,
+    "total": 5.74
+   },
+   {
+    "month": "2016-01",
+    "youth": 12.7,
+    "total": 6.04
+   },
+   {
+    "month": "2016-02",
+    "youth": 11.73,
+    "total": 5.7
+   },
+   {
+    "month": "2016-03",
+    "youth": 11.85,
+    "total": 5.66
+   },
+   {
+    "month": "2016-04",
+    "youth": 12.09,
+    "total": 5.65
+   },
+   {
+    "month": "2016-05",
+    "youth": 12.47,
+    "total": 5.72
+   },
+   {
+    "month": "2016-06",
+    "youth": 13.02,
+    "total": 5.7
+   },
+   {
+    "month": "2016-07",
+    "youth": 13.23,
+    "total": 5.7
+   },
+   {
+    "month": "2016-08",
+    "youth": 12.82,
+    "total": 5.63
+   },
+   {
+    "month": "2016-09",
+    "youth": 12.74,
+    "total": 5.67
+   },
+   {
+    "month": "2016-10",
+    "youth": 12.75,
+    "total": 5.6
+   },
+   {
+    "month": "2016-11",
+    "youth": 13.74,
+    "total": 5.77
+   },
+   {
+    "month": "2016-12",
+    "youth": 13.38,
+    "total": 5.84
+   },
+   {
+    "month": "2017-01",
+    "youth": 12.37,
+    "total": 5.69
+   },
+   {
+    "month": "2017-02",
+    "youth": 13.03,
+    "total": 5.9
+   },
+   {
+    "month": "2017-03",
+    "youth": 13.12,
+    "total": 5.85
+   },
+   {
+    "month": "2017-04",
+    "youth": 12.63,
+    "total": 5.61
+   },
+   {
+    "month": "2017-05",
+    "youth": 12.59,
+    "total": 5.55
+   },
+   {
+    "month": "2017-06",
+    "youth": 13.19,
+    "total": 5.63
+   },
+   {
+    "month": "2017-07",
+    "youth": 12.89,
+    "total": 5.61
+   },
+   {
+    "month": "2017-08",
+    "youth": 12.74,
+    "total": 5.54
+   },
+   {
+    "month": "2017-09",
+    "youth": 12.55,
+    "total": 5.46
+   },
+   {
+    "month": "2017-10",
+    "youth": 12.27,
+    "total": 5.41
+   },
+   {
+    "month": "2017-11",
+    "youth": 12.48,
+    "total": 5.46
+   },
+   {
+    "month": "2017-12",
+    "youth": 12.55,
+    "total": 5.62
+   },
+   {
+    "month": "2018-01",
+    "youth": 12.36,
+    "total": 5.53
+   },
+   {
+    "month": "2018-02",
+    "youth": 13.14,
+    "total": 5.58
+   },
+   {
+    "month": "2018-03",
+    "youth": 12.35,
+    "total": 5.53
+   },
+   {
+    "month": "2018-04",
+    "youth": 12.48,
+    "total": 5.55
+   },
+   {
+    "month": "2018-05",
+    "youth": 11.61,
+    "total": 5.44
+   },
+   {
+    "month": "2018-06",
+    "youth": 11.33,
+    "total": 5.35
+   },
+   {
+    "month": "2018-07",
+    "youth": 11.14,
+    "total": 5.3
+   },
+   {
+    "month": "2018-08",
+    "youth": 11.73,
+    "total": 5.25
+   },
+   {
+    "month": "2018-09",
+    "youth": 11.5,
+    "total": 5.02
+   },
+   {
+    "month": "2018-10",
+    "youth": 11.51,
+    "total": 5.0
+   },
+   {
+    "month": "2018-11",
+    "youth": 11.79,
+    "total": 5.11
+   },
+   {
+    "month": "2018-12",
+    "youth": 11.41,
+    "total": 5.02
+   },
+   {
+    "month": "2019-01",
+    "youth": 11.6,
+    "total": 5.05
+   },
+   {
+    "month": "2019-02",
+    "youth": 11.22,
+    "total": 5.0
+   },
+   {
+    "month": "2019-03",
+    "youth": 11.88,
+    "total": 5.09
+   },
+   {
+    "month": "2019-04",
+    "youth": 11.88,
+    "total": 5.22
+   },
+   {
+    "month": "2019-05",
+    "youth": 11.96,
+    "total": 5.2
+   },
+   {
+    "month": "2019-06",
+    "youth": 12.19,
+    "total": 5.27
+   },
+   {
+    "month": "2019-07",
+    "youth": 12.07,
+    "total": 5.28
+   },
+   {
+    "month": "2019-08",
+    "youth": 11.87,
+    "total": 5.26
+   },
+   {
+    "month": "2019-09",
+    "youth": 11.84,
+    "total": 5.23
+   },
+   {
+    "month": "2019-10",
+    "youth": 12.57,
+    "total": 5.3
+   },
+   {
+    "month": "2019-11",
+    "youth": 11.74,
+    "total": 5.17
+   },
+   {
+    "month": "2019-12",
+    "youth": 11.76,
+    "total": 5.04
+   },
+   {
+    "month": "2020-01",
+    "youth": 12.36,
+    "total": 5.25
+   },
+   {
+    "month": "2020-02",
+    "youth": 12.37,
+    "total": 5.12
+   },
+   {
+    "month": "2020-03",
+    "youth": 11.81,
+    "total": 5.2
+   },
+   {
+    "month": "2020-04",
+    "youth": 14.05,
+    "total": 6.31
+   },
+   {
+    "month": "2020-05",
+    "youth": 15.73,
+    "total": 7.0
+   },
+   {
+    "month": "2020-06",
+    "youth": 16.59,
+    "total": 7.44
+   },
+   {
+    "month": "2020-07",
+    "youth": 16.4,
+    "total": 7.45
+   },
+   {
+    "month": "2020-08",
+    "youth": 14.03,
+    "total": 6.79
+   },
+   {
+    "month": "2020-09",
+    "youth": 14.58,
+    "total": 6.92
+   },
+   {
+    "month": "2020-10",
+    "youth": 15.57,
+    "total": 6.95
+   },
+   {
+    "month": "2020-11",
+    "youth": 15.62,
+    "total": 6.81
+   },
+   {
+    "month": "2020-12",
+    "youth": 13.95,
+    "total": 6.56
+   },
+   {
+    "month": "2021-01",
+    "youth": 14.09,
+    "total": 6.28
+   },
+   {
+    "month": "2021-02",
+    "youth": 12.96,
+    "total": 5.85
+   },
+   {
+    "month": "2021-03",
+    "youth": 11.98,
+    "total": 5.68
+   },
+   {
+    "month": "2021-04",
+    "youth": 10.63,
+    "total": 5.47
+   },
+   {
+    "month": "2021-05",
+    "youth": 10.76,
+    "total": 5.12
+   },
+   {
+    "month": "2021-06",
+    "youth": 10.56,
+    "total": 5.04
+   },
+   {
+    "month": "2021-07",
+    "youth": 10.43,
+    "total": 4.73
+   },
+   {
+    "month": "2021-08",
+    "youth": 10.5,
+    "total": 4.57
+   },
+   {
+    "month": "2021-09",
+    "youth": 10.93,
+    "total": 4.7
+   },
+   {
+    "month": "2021-10",
+    "youth": 13.09,
+    "total": 5.23
+   },
+   {
+    "month": "2021-11",
+    "youth": 10.91,
+    "total": 4.63
+   },
+   {
+    "month": "2021-12",
+    "youth": 9.52,
+    "total": 4.21
+   },
+   {
+    "month": "2022-01",
+    "youth": 9.11,
+    "total": 4.17
+   },
+   {
+    "month": "2022-02",
+    "youth": 9.12,
+    "total": 4.03
+   },
+   {
+    "month": "2022-03",
+    "youth": 8.37,
+    "total": 3.99
+   },
+   {
+    "month": "2022-04",
+    "youth": 8.44,
+    "total": 3.86
+   },
+   {
+    "month": "2022-05",
+    "youth": 8.82,
+    "total": 3.95
+   },
+   {
+    "month": "2022-06",
+    "youth": 8.0,
+    "total": 3.62
+   },
+   {
+    "month": "2022-07",
+    "youth": 7.09,
+    "total": 3.46
+   },
+   {
+    "month": "2022-08",
+    "youth": 8.49,
+    "total": 3.52
+   },
+   {
+    "month": "2022-09",
+    "youth": 7.79,
+    "total": 3.6
+   },
+   {
+    "month": "2022-10",
+    "youth": 7.42,
+    "total": 3.43
+   },
+   {
+    "month": "2022-11",
+    "youth": 7.77,
+    "total": 3.52
+   },
+   {
+    "month": "2022-12",
+    "youth": 7.68,
+    "total": 3.53
+   },
+   {
+    "month": "2023-01",
+    "youth": 8.06,
+    "total": 3.66
+   },
+   {
+    "month": "2023-02",
+    "youth": 8.12,
+    "total": 3.61
+   },
+   {
+    "month": "2023-03",
+    "youth": 7.91,
+    "total": 3.6
+   },
+   {
+    "month": "2023-04",
+    "youth": 8.44,
+    "total": 3.71
+   },
+   {
+    "month": "2023-05",
+    "youth": 7.78,
+    "total": 3.6
+   },
+   {
+    "month": "2023-06",
+    "youth": 7.96,
+    "total": 3.53
+   },
+   {
+    "month": "2023-07",
+    "youth": 8.55,
+    "total": 3.73
+   },
+   {
+    "month": "2023-08",
+    "youth": 8.3,
+    "total": 3.66
+   },
+   {
+    "month": "2023-09",
+    "youth": 7.89,
+    "total": 3.55
+   },
+   {
+    "month": "2023-10",
+    "youth": 9.36,
+    "total": 3.77
+   },
+   {
+    "month": "2023-11",
+    "youth": 9.7,
+    "total": 3.93
+   },
+   {
+    "month": "2023-12",
+    "youth": 9.66,
+    "total": 3.99
+   },
+   {
+    "month": "2024-01",
+    "youth": 9.59,
+    "total": 4.09
+   },
+   {
+    "month": "2024-02",
+    "youth": 9.2,
+    "total": 3.74
+   },
+   {
+    "month": "2024-03",
+    "youth": 9.8,
+    "total": 3.91
+   },
+   {
+    "month": "2024-04",
+    "youth": 9.58,
+    "total": 4.09
+   },
+   {
+    "month": "2024-05",
+    "youth": 9.79,
+    "total": 4.02
+   },
+   {
+    "month": "2024-06",
+    "youth": 9.46,
+    "total": 4.05
+   },
+   {
+    "month": "2024-07",
+    "youth": 9.76,
+    "total": 4.21
+   },
+   {
+    "month": "2024-08",
+    "youth": 9.92,
+    "total": 4.11
+   },
+   {
+    "month": "2024-09",
+    "youth": 8.93,
+    "total": 4.01
+   },
+   {
+    "month": "2024-10",
+    "youth": 9.22,
+    "total": 4.08
+   },
+   {
+    "month": "2024-11",
+    "youth": 8.64,
+    "total": 3.93
+   },
+   {
+    "month": "2024-12",
+    "youth": 9.19,
+    "total": 4.0
+   },
+   {
+    "month": "2025-01",
+    "youth": 9.19,
+    "total": 4.13
+   },
+   {
+    "month": "2025-02",
+    "youth": 9.06,
+    "total": 4.08
+   },
+   {
+    "month": "2025-03",
+    "youth": 8.97,
+    "total": 4.08
+   },
+   {
+    "month": "2025-04",
+    "youth": 8.65,
+    "total": 4.06
+   },
+   {
+    "month": "2025-05",
+    "youth": 9.58,
+    "total": 4.11
+   },
+   {
+    "month": "2025-06",
+    "youth": 10.35,
+    "total": 4.34
+   },
+   {
+    "month": "2025-07",
+    "youth": 9.81,
+    "total": 4.26
+   },
+   {
+    "month": "2025-08",
+    "youth": 9.72,
+    "total": 4.22
+   },
+   {
+    "month": "2025-09",
+    "youth": 10.47,
+    "total": 4.43
+   },
+   {
+    "month": "2025-10",
+    "youth": 9.69,
+    "total": 4.32
+   },
+   {
+    "month": "2025-11",
+    "youth": 10.16,
+    "total": 4.31
+   },
+   {
+    "month": "2025-12",
+    "youth": 9.12,
+    "total": 4.12
+   },
+   {
+    "month": "2026-01",
+    "youth": 9.65,
+    "total": 4.08
+   },
+   {
+    "month": "2026-02",
+    "youth": 10.3,
+    "total": 4.31
+   },
+   {
+    "month": "2026-03",
+    "youth": 10.24,
+    "total": 4.29
+   },
+   {
+    "month": "2026-04",
+    "youth": 11.03,
+    "total": 4.5
+   },
+   {
+    "month": "2026-05",
+    "youth": 10.43,
+    "total": 4.39
+   },
+   {
+    "month": "2026-06",
+    "youth": 10.71,
+    "total": 4.45
+   },
+   {
+    "month": "2026-07",
+    "youth": 10.42,
+    "total": 4.49
+   },
+   {
+    "month": "2026-08",
+    "youth": 10.85,
+    "total": 4.65
+   },
+   {
+    "month": "2026-09",
+    "youth": 11.12,
+    "total": 4.72
+   }
+  ]
+ },
+ "education": {
+  "JPN": [
+   {
+    "year": "2025",
+    "tertiary": 2.48,
+    "upper_secondary": 4.9
+   }
+  ],
+  "FRA": [
+   {
+    "year": "2019",
+    "upper_secondary": 11.5,
+    "tertiary": 5.83
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 11.17,
+    "tertiary": 6.86
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 10.41,
+    "tertiary": 6.25
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 9.77,
+    "tertiary": 5.36
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 9.7,
+    "tertiary": 6.09
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 9.86,
+    "tertiary": 6.3
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 10.14,
+    "tertiary": 6.96
+   }
+  ],
+  "AUS": [
+   {
+    "year": "2019",
+    "upper_secondary": 4.52,
+    "tertiary": 2.28
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 7.41,
+    "tertiary": 5.96
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 4.42,
+    "tertiary": 2.74
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 4.36,
+    "tertiary": 2.27
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 4.04,
+    "tertiary": 1.68
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 3.32,
+    "tertiary": 1.51
+   }
+  ],
+  "CAN": [
+   {
+    "year": "2019",
+    "upper_secondary": 7.13,
+    "tertiary": 4.64
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 12.33,
+    "tertiary": 8.08
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 9.44,
+    "tertiary": 5.74
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 6.44,
+    "tertiary": 4.25
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 7.32,
+    "tertiary": 4.73
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 8.07,
+    "tertiary": 5.97
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 8.54,
+    "tertiary": 6.23
+   }
+  ],
+  "DEU": [
+   {
+    "year": "2019",
+    "upper_secondary": 3.15,
+    "tertiary": 2.64
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 4.05,
+    "tertiary": 3.73
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 3.83,
+    "tertiary": 2.92
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 3.27,
+    "tertiary": 2.47
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 2.9,
+    "tertiary": 2.86
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 3.26,
+    "tertiary": 3.47
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 3.91,
+    "tertiary": 3.98
+   }
+  ],
+  "ITA": [
+   {
+    "year": "2019",
+    "upper_secondary": 13.69,
+    "tertiary": 11.8
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 13.47,
+    "tertiary": 11.36
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 13.59,
+    "tertiary": 10.14
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 11.26,
+    "tertiary": 7.84
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 10.09,
+    "tertiary": 7.34
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 8.87,
+    "tertiary": 6.53
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 8.62,
+    "tertiary": 6.15
+   }
+  ],
+  "NLD": [
+   {
+    "year": "2019",
+    "upper_secondary": 4.05,
+    "tertiary": 3.05
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 4.61,
+    "tertiary": 3.32
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 3.69,
+    "tertiary": 3.29
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 3.29,
+    "tertiary": 2.98
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 3.25,
+    "tertiary": 3.02
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 3.29,
+    "tertiary": 3.12
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 3.53,
+    "tertiary": 3.3
+   }
+  ],
+  "ESP": [
+   {
+    "year": "2019",
+    "upper_secondary": 16.54,
+    "tertiary": 11.78
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 20.16,
+    "tertiary": 15.06
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 18.42,
+    "tertiary": 13.24
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 16.12,
+    "tertiary": 10.2
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 15.93,
+    "tertiary": 9.16
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 13.75,
+    "tertiary": 9.34
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 12.53,
+    "tertiary": 7.89
+   }
+  ],
+  "SWE": [
+   {
+    "year": "2019",
+    "upper_secondary": 4.71,
+    "tertiary": 4.26
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 6.19,
+    "tertiary": 6.23
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 6.43,
+    "tertiary": 5.65
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 5.55,
+    "tertiary": 4.01
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 6.14,
+    "tertiary": 4.27
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 6.75,
+    "tertiary": 5.37
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 6.41,
+    "tertiary": 6.97
+   }
+  ],
+  "GBR": [
+   {
+    "year": "2019",
+    "upper_secondary": 3.25,
+    "tertiary": 2.42
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 3.7,
+    "tertiary": 3.21
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 4.34,
+    "tertiary": 2.61
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 3.64,
+    "tertiary": 2.44
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 4.08,
+    "tertiary": 2.89
+   },
+   {
+    "year": "2024",
+    "upper_secondary": 4.06,
+    "tertiary": 2.93
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 4.62,
+    "tertiary": 3.52
+   }
+  ],
+  "USA": [
+   {
+    "year": "2019",
+    "upper_secondary": 5.59,
+    "tertiary": 2.36
+   },
+   {
+    "year": "2020",
+    "upper_secondary": 7.92,
+    "tertiary": 3.42
+   },
+   {
+    "year": "2021",
+    "upper_secondary": 10.08,
+    "tertiary": 4.36
+   },
+   {
+    "year": "2022",
+    "upper_secondary": 6.2,
+    "tertiary": 2.52
+   },
+   {
+    "year": "2023",
+    "upper_secondary": 5.67,
+    "tertiary": 2.93
+   },
+   {
+    "year": "2025",
+    "upper_secondary": 5.45,
+    "tertiary": 3.06
+   }
+  ]
+ },
+ "long_term": {
+  "JPN": [
+   {
+    "year": "2019",
+    "share_12m_plus": 32.3
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 28.0
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 35.8
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 35.6
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 33.5
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 30.5
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 30.8
+   }
+  ],
+  "USA": [
+   {
+    "year": "2019",
+    "share_12m_plus": 12.7
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 5.6
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 23.1
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 15.1
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 11.6
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 12.2
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 13.8
+   }
+  ],
+  "AUS": [
+   {
+    "year": "2019",
+    "share_12m_plus": 23.3
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 19.7
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 28.3
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 24.7
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 19.4
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 20.3
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 21.5
+   }
+  ],
+  "CAN": [
+   {
+    "year": "2019",
+    "share_12m_plus": 8.5
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 5.2
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 16.1
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 10.7
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 8.3
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 10.2
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 13.5
+   }
+  ],
+  "FRA": [
+   {
+    "year": "2019",
+    "share_12m_plus": 38.8
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 36.8
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 29.6
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 27.5
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 24.5
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 23.1
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 22.8
+   }
+  ],
+  "DEU": [
+   {
+    "year": "2019",
+    "share_12m_plus": 38.2
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 28.7
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 32.9
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 33.6
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 31.1
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 27.8
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 27.9
+   }
+  ],
+  "ITA": [
+   {
+    "year": "2019",
+    "share_12m_plus": 57.6
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 53.5
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 58.0
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 58.4
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 56.0
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 52.0
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 52.8
+   }
+  ],
+  "NLD": [
+   {
+    "year": "2019",
+    "share_12m_plus": 31.4
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 24.0
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 20.3
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 19.3
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 14.4
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 14.2
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 14.0
+   }
+  ],
+  "ESP": [
+   {
+    "year": "2019",
+    "share_12m_plus": 37.8
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 32.1
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 41.7
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 39.1
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 35.0
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 33.5
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 32.1
+   }
+  ],
+  "SWE": [
+   {
+    "year": "2019",
+    "share_12m_plus": 12.1
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 11.7
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 17.6
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 22.5
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 18.5
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 17.4
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 18.2
+   }
+  ],
+  "GBR": [
+   {
+    "year": "2019",
+    "share_12m_plus": 24.1
+   },
+   {
+    "year": "2020",
+    "share_12m_plus": 20.1
+   },
+   {
+    "year": "2021",
+    "share_12m_plus": 28.5
+   },
+   {
+    "year": "2022",
+    "share_12m_plus": 24.4
+   },
+   {
+    "year": "2023",
+    "share_12m_plus": 21.4
+   },
+   {
+    "year": "2024",
+    "share_12m_plus": 22.4
+   },
+   {
+    "year": "2025",
+    "share_12m_plus": 23.3
+   }
+  ]
+ },
+ "gdp": {
+  "USA": {
+   "2015": 2.9,
+   "2016": 1.8,
+   "2017": 2.5,
+   "2018": 3,
+   "2019": 2.6,
+   "2020": -2.1,
+   "2021": 6.3,
+   "2022": 2.4,
+   "2023": 2.9,
+   "2024": 3,
+   "2025": 2.3,
+   "2026": 2.3,
+   "2027": 2.3,
+   "2028": 2.1,
+   "2029": 1.9,
+   "2030": 1.8,
+   "2031": 1.8
+  },
+  "GBR": {
+   "2015": 2.2,
+   "2016": 2.2,
+   "2017": 3.3,
+   "2018": 1.6,
+   "2019": 1.4,
+   "2020": -10,
+   "2021": 8.5,
+   "2022": 5,
+   "2023": 0.4,
+   "2024": 1.1,
+   "2025": 1.2,
+   "2026": 1.3,
+   "2027": 1.2,
+   "2028": 1.6,
+   "2029": 1.5,
+   "2030": 1.4,
+   "2031": 1.4
+  },
+  "CAN": {
+   "2015": 0.6,
+   "2016": 1,
+   "2017": 3,
+   "2018": 2.7,
+   "2019": 1.9,
+   "2020": -5,
+   "2021": 6,
+   "2022": 4.7,
+   "2023": 2,
+   "2024": 2,
+   "2025": 1.9,
+   "2026": 1.1,
+   "2027": 1.7,
+   "2028": 1.7,
+   "2029": 1.7,
+   "2030": 1.7,
+   "2031": 1.8
+  },
+  "AUS": {
+   "2015": 2.3,
+   "2016": 2.7,
+   "2017": 2.4,
+   "2018": 2.8,
+   "2019": 2,
+   "2020": -2,
+   "2021": 5.4,
+   "2022": 4.2,
+   "2023": 2.1,
+   "2024": 1,
+   "2025": 2,
+   "2026": 1.9,
+   "2027": 1.6,
+   "2028": 1.8,
+   "2029": 2,
+   "2030": 2.1,
+   "2031": 2.2
+  },
+  "JPN": {
+   "2015": 1.8,
+   "2016": 0.7,
+   "2017": 1.6,
+   "2018": 0.8,
+   "2019": -0.3,
+   "2020": -4.3,
+   "2021": 3.6,
+   "2022": 1.2,
+   "2023": 0.9,
+   "2024": 0.1,
+   "2025": 1.2,
+   "2026": 0.7,
+   "2027": 0.7,
+   "2028": 0.6,
+   "2029": 0.6,
+   "2030": 0.6,
+   "2031": 0.6
+  },
+  "DEU": {
+   "2015": 1.8,
+   "2016": 2.3,
+   "2017": 2.9,
+   "2018": 1.2,
+   "2019": 1.1,
+   "2020": -4,
+   "2021": 4,
+   "2022": 1.9,
+   "2023": -1,
+   "2024": 0,
+   "2025": 0.2,
+   "2026": 1.3,
+   "2027": 1.1,
+   "2028": 1.1,
+   "2029": 0.9,
+   "2030": 0.7,
+   "2031": 0.6
+  },
+  "FRA": {
+   "2015": 1,
+   "2016": 0.7,
+   "2017": 2.3,
+   "2018": 1.6,
+   "2019": 2.1,
+   "2020": -7.6,
+   "2021": 6.8,
+   "2022": 2.8,
+   "2023": 1.8,
+   "2024": 1.4,
+   "2025": 0.9,
+   "2026": 0.4,
+   "2027": 0.7,
+   "2028": 1.2,
+   "2029": 1.1,
+   "2030": 1.1,
+   "2031": 1.1
+  },
+  "ITA": {
+   "2015": 0.9,
+   "2016": 1.2,
+   "2017": 1.6,
+   "2018": 0.8,
+   "2019": 0.4,
+   "2020": -8.9,
+   "2021": 8.9,
+   "2022": 4.8,
+   "2023": 0.9,
+   "2024": 0.8,
+   "2025": 0.5,
+   "2026": 0.8,
+   "2027": 0.6,
+   "2028": 0.7,
+   "2029": 0.6,
+   "2030": 0.6,
+   "2031": 0.6
+  },
+  "ESP": {
+   "2015": 4.1,
+   "2016": 2.9,
+   "2017": 2.9,
+   "2018": 2.4,
+   "2019": 2,
+   "2020": -10.9,
+   "2021": 6.7,
+   "2022": 6.4,
+   "2023": 2.4,
+   "2024": 3.7,
+   "2025": 2.6,
+   "2026": 2.5,
+   "2027": 1.8,
+   "2028": 1.8,
+   "2029": 1.7,
+   "2030": 1.7,
+   "2031": 1.7
+  },
+  "NLD": {
+   "2015": 2.1,
+   "2016": 2.4,
+   "2017": 2.8,
+   "2018": 2.3,
+   "2019": 2.3,
+   "2020": -3.9,
+   "2021": 6.3,
+   "2022": 5,
+   "2023": -0.6,
+   "2024": 1.1,
+   "2025": 1.6,
+   "2026": 1.5,
+   "2027": 1.3,
+   "2028": 1.4,
+   "2029": 1.3,
+   "2030": 1.2,
+   "2031": 1.2
+  },
+  "SWE": {
+   "2015": 4.4,
+   "2016": 2.1,
+   "2017": 1.9,
+   "2018": 1.8,
+   "2019": 2.6,
+   "2020": -1.9,
+   "2021": 5.2,
+   "2022": 1.3,
+   "2023": -0.2,
+   "2024": 2,
+   "2025": 1.4,
+   "2026": 2.5,
+   "2027": 2.2,
+   "2028": 2.1,
+   "2029": 1.9,
+   "2030": 1.8,
+   "2031": 1.8
+  }
+ },
+ "ai_adoption": {
+  "DEU": {
+   "2021": 10.6,
+   "2023": 11.6,
+   "2024": 19.8,
+   "2025": 26.0
+  },
+  "ESP": {
+   "2021": 7.7,
+   "2023": 9.2,
+   "2024": 11.3,
+   "2025": 20.3
+  },
+  "FRA": {
+   "2021": 6.7,
+   "2023": 5.9,
+   "2024": 9.9,
+   "2025": 18.2
+  },
+  "ITA": {
+   "2021": 6.2,
+   "2023": 5.0,
+   "2024": 8.2,
+   "2025": 16.4
+  },
+  "NLD": {
+   "2021": 13.1,
+   "2023": 14.1,
+   "2024": 23.1,
+   "2025": 33.2
+  },
+  "SWE": {
+   "2021": 9.9,
+   "2023": 10.4,
+   "2024": 25.1,
+   "2025": 35.0
+  }
+ },
+ "us_ai_use": [
+  {
+   "period_end": "2025-11-30",
+   "pct": 17.3
+  },
+  {
+   "period_end": "2025-12-14",
+   "pct": 17.2
+  },
+  {
+   "period_end": "2025-12-28",
+   "pct": 17.8
+  },
+  {
+   "period_end": "2026-01-11",
+   "pct": 17.7
+  },
+  {
+   "period_end": "2026-01-25",
+   "pct": 18.2
+  },
+  {
+   "period_end": "2026-02-08",
+   "pct": 18.9
+  },
+  {
+   "period_end": "2026-02-22",
+   "pct": 17.5
+  },
+  {
+   "period_end": "2026-03-08",
+   "pct": 18.2
+  },
+  {
+   "period_end": "2026-03-22",
+   "pct": 18.9
+  },
+  {
+   "period_end": "2026-04-05",
+   "pct": 19.1
+  },
+  {
+   "period_end": "2026-04-19",
+   "pct": 19.8
+  },
+  {
+   "period_end": "2026-05-03",
+   "pct": 19.8
+  },
+  {
+   "period_end": "2026-05-17",
+   "pct": 19.5
+  },
+  {
+   "period_end": "2026-05-31",
+   "pct": 20.6
+  },
+  {
+   "period_end": "2026-06-14",
+   "pct": 20.6
+  },
+  {
+   "period_end": "2026-06-28",
+   "pct": 20.6
+  },
+  {
+   "period_end": "2026-07-12",
+   "pct": 21.7
+  },
+  {
+   "period_end": "2026-07-26",
+   "pct": 21.5
+  },
+  {
+   "period_end": "2026-08-09",
+   "pct": 21.8
+  },
+  {
+   "period_end": "2026-08-23",
+   "pct": 22.4
+  },
+  {
+   "period_end": "2026-09-06",
+   "pct": 23.2
+  },
+  {
+   "period_end": "2026-09-20",
+   "pct": 23.8
+  },
+  {
+   "period_end": "2026-10-04",
+   "pct": 23.8
+  },
+  {
+   "period_end": "2026-10-18",
+   "pct": 24.6
+  }
+ ]
+}

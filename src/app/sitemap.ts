@@ -98,7 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // The White Collar Employment Report: hub, the evergreen index, and every edition.
     // The index is refreshed with each edition.
     ...(newestReport
-      ? [entry('/reports', newestReport, 'monthly', 0.7), entry('/reports/white-collar-index', newestReport, 'monthly', 0.7)]
+      ? [entry('/reports', newestReport, 'monthly', 0.7), entry('/reports/white-collar-index', newestReport, 'monthly', 0.7), entry('/reports/early-warning', newestReport, 'monthly', 0.7)]
       : []),
     ...REPORT_EDITIONS.map((e) => entry(`/reports/${e.slug}`, e.updatedAt ?? e.publishedAt, 'monthly', 0.7)),
     entry('/reports/replication', REPLICATION_UPDATED, 'monthly', 0.5),
