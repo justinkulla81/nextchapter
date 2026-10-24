@@ -1,0 +1,20 @@
+[
+  {
+    "name": "wd-ochsner-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "Ochsner Health",
+    "tenant": "ochsner",
+    "wd": "wd1",
+    "site": "Ochsner"
+  },
+  {
+    "name": "wd-lcmc-health",
+    "adapter": "workday",
+    "type": "direct_ats",
+    "employer": "LCMC Health",
+    "tenant": "lcmchealth",
+    "wd": "wd1",
+    "site": "LCMCHealth"
+  }
+]
