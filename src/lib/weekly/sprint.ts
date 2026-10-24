@@ -21,6 +21,7 @@ import { getVisibilityCalibration } from '@/lib/coach/visibility-calibration'
 import { reconcileVerifiedActions } from '@/lib/weekly/action-verification'
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { syncFollowUpFromPlan } from '@/lib/coach/follow-up-sync'
 
 export interface CommittedAction {
   text: string
@@ -57,6 +58,9 @@ export interface CommittedAction {
   // created it; fromCoach is what SuccessSprintCard actually renders on.
   fromCoach?: boolean
   coachSessionId?: string
+  // Set on a row made from an agreed coach follow-up (src/lib/coach/session-notes-service.ts). Ticking the row
+  // closes the follow-up, so the coach sees it done.
+  coachFollowUpId?: string
   // Pushed in from an In-work feedback action item (src/lib/in-work/
   // sprint-link.ts). Text-only, 0 points, no actionType.
   fromInWork?: boolean
@@ -690,6 +694,8 @@ export async function toggleSprintActionCompletion(candidateId: string, actionIn
     where: { id: sprint.id },
     data: { committedActions: actions as unknown as Prisma.InputJsonValue },
   })
+
+  if (target.coachFollowUpId) await syncFollowUpFromPlan(target.coachFollowUpId, target.completed)
 }
 
 // Logs an action picked from "More Actions Available" — the broader catalog

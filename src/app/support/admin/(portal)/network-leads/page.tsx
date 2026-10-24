@@ -198,7 +198,7 @@ export default async function NetworkLeadsAdminPage({
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Network Leads</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Candidate-surfaced leads</h1>
         <p className="mt-1 text-muted-foreground">
           Recruiters, coaches, and hiring managers candidates have flagged in their own networks — a
           business-development lead list, not a place candidates see. Use the outreach status to track who

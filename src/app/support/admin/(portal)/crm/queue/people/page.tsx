@@ -127,7 +127,7 @@ export default async function CrmPeopleQueuePage({
       <CrmPeekPanel />
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">People queue</h1>
+          <h1 className="text-2xl font-semibold">People follow-ups</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })} · {totalItems} items ·
             every P0/P1{includeP2 ? '/P2' : ''} contact, grouped by category, plus who you owe a follow-up.

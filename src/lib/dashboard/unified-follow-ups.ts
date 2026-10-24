@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getEmailReminders, getStaleContacts } from '@/lib/network/reminders'
 import { getNeedsFollowUpList, type NeedsFollowUpItem } from '@/lib/network/needs-follow-up'
 import { formatDisplayName } from '@/lib/format-name'
+import { upcomingConferenceItems } from '@/lib/conferences/queries'
 
 // Prompt 87 point 3 — ONE view over the four "this needs your attention"
 // signals that used to each live in their own place: starred contacts
@@ -16,7 +17,7 @@ const UNANSWERED_APPLICATION_MIN_DAYS = 14
 const DEFAULT_MAX_ITEMS = 20
 
 export interface UnifiedFollowUpItem {
-  kind: 'starred-contact' | 'needs-follow-up' | 'unanswered-application' | 'stale-contact'
+  kind: 'starred-contact' | 'needs-follow-up' | 'unanswered-application' | 'stale-contact' | 'conference'
   id: string
   title: string
   subtitle: string
@@ -53,7 +54,7 @@ export async function getUnifiedFollowUps(
     ? new Date(Date.now() - options.applicationMaxAgeDays * DAY_MS)
     : null
 
-  const [starred, needsFollowUp, unansweredApplications, staleContacts] = await Promise.all([
+  const [starred, needsFollowUp, unansweredApplications, staleContacts, conferenceItems] = await Promise.all([
     getEmailReminders(candidateId),
     getNeedsFollowUpList(candidateId),
     prisma.jobPosting.findMany({
@@ -73,6 +74,8 @@ export async function getUnifiedFollowUps(
       take: 5,
     }),
     getStaleContacts(candidateId),
+    // Deadlines, conference dates and who-you-met prompts. Fail-soft until the conference tables are applied.
+    upcomingConferenceItems(candidateId).catch(() => []),
   ])
 
   const starredIds = new Set(starred.map((r) => r.contactId))
@@ -96,6 +99,14 @@ export async function getUnifiedFollowUps(
       needsKind: f.kind,
       scheduledTime: f.scheduledTime,
       meetingEventType: f.eventType,
+    })),
+    ...conferenceItems.slice(0, 3).map((c) => ({
+      kind: 'conference' as const,
+      id: c.id,
+      title: c.title,
+      subtitle: c.subtitle,
+      href: c.href,
+      date: c.date,
     })),
     ...starred.map((r) => ({
       kind: 'starred-contact' as const,

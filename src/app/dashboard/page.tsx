@@ -66,6 +66,7 @@ import { getResumeFixes } from '@/lib/reports/market-reality-sections'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { EarlyCareerHomeModule } from '@/components/dashboard/early-career/EarlyCareerHomeModule'
 import { pickHomeNote, simpleNote } from '@/lib/redesign/home-note'
+import { getUnviewedCoachUpdate } from '@/lib/coach/session-notes-service'
 import { withBlockerStep } from '@/lib/personalization/blocker-step'
 import { HomeNote } from '@/components/candidate/HomeNote'
 import { JourneyCard } from '@/components/candidate/JourneyCard'
@@ -439,11 +440,14 @@ export default async function DashboardPage() {
   const pathsRow = homePathsRow(pathSignals)
   const searching = !journeyNow || getJourney(journeyNow).searching
   const firstName = profile.firstName ?? 'there'
+  // The coach sent a session summary the member has not opened: the in-app notice (fail-soft; null if nothing or no table).
+  const coachUpdate = await getUnviewedCoachUpdate(profile.id)
   const note = pickHomeNote({
     needsCoachingForm,
     needsResume: profile.resumes.length === 0,
     searchStrategyIncomplete: !isSearchStrategyGateComplete(profile),
     reportReady: showReportReadyMessage,
+    coachUpdate: !!coachUpdate,
     accountsNotConnected: !bothConnectedUnlocked,
     coachOffer: !!coachOffer,
     stalledReask: !!stalledReask,
@@ -458,7 +462,7 @@ export default async function DashboardPage() {
     after(() => captureServerEvent(profile.id, 'coach_offer_shown', { reason: offer.reason, senior: offer.facts.senior, daysSearching: offer.facts.daysSearching, journey: journeyNow, stage: stageNow }))
   }
   after(() => captureServerEvent(profile.id, 'home_note_shown', { kind: note, journey: journeyNow, stage: stageNow, weekNumber, audience, redesign: true }))
-  const plain = simpleNote(note, { firstName, firstWeek, motivations: profile.motivations })
+  const plain = simpleNote(note, { firstName, firstWeek, motivations: profile.motivations, coachFirstName: coachUpdate?.coachFirstName })
   const toneSet = profile.coachingStylePreference !== null
   return (
     <div className="space-y-8">

@@ -5725,6 +5725,7 @@ model Coach {
   availability       CoachAvailabilityWindow[]
   bookings           CoachBooking[]
   noteSummaries      CoachNoteSummary[]
+  googleConnection   CoachGoogleConnection?
 
   // Surge-capacity bench, Master Build Script §A5.4 — admin flags a coach as
   // on-call/retainer for a sudden volume spike (e.g. a 200-person RIF).
@@ -5879,6 +5880,13 @@ model CoachSession {
   // institution. Null for every ordinary coaching session.
   institutionId String?
   institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+
+  // Coach notes upgrade (2026-10-24, prisma/manual/2026-10-24-coach-notes.sql): structured captures, the
+  // summary draft, agreed follow-ups and confirmed topics for this session. See src/lib/coach/session-notes.ts.
+  captures  CoachSessionCapture[]
+  summary   CoachSessionSummary?
+  followUps CoachFollowUp[]
+  topics    CoachSessionTopic[]
 
   @@index([candidateId, occurredAt])
   @@index([institutionId])
@@ -11890,6 +11898,11 @@ model ProductCompetitor {
 
   cells ProductCompetitorFeature[]
   capabilityCells CompetitorCapability[]
+  events          CompetitorEvent[]
+  cellProposals   CompetitorCellProposal[]
+  /// Last time the monthly refresh / weekly news watch read this card.
+  watchRefreshedAt DateTime?
+  watchNewsAt      DateTime?
 
   @@index([lastReviewedAt])
 }
@@ -14589,6 +14602,64 @@ model FundingOpportunity {
   @@index([audience, eligibility])
 }
 
+/// A federal award a competitor won (USAspending.gov, free). Applied by hand: prisma/manual/bid-finder.sql.
+model CompetitorAward {
+  id             String    @id
+  competitorName String
+  competitorId   String?
+  recipientName  String
+  kind           String
+  confidence     String    @default("EXACT")
+  awardKey       String
+  awardId        String?
+  description    String?
+  agency         String?
+  subAgency      String?
+  amount         Float     @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  url            String
+  firstSeenAt    DateTime  @default(now())
+  lastSeenAt     DateTime  @default(now())
+
+  @@unique([awardKey, competitorName])
+  @@index([competitorName])
+  @@index([firstSeenAt])
+}
+
+model CompetitorAwardCheck {
+  competitorName String   @id
+  checkedAt      DateTime @default(now())
+  awardsFound    Int      @default(0)
+  error          String?
+}
+
+model BoardBidCheck {
+  boardId   String   @id
+  checkedAt DateTime @default(now())
+  outcome   String
+  bidsFound Int      @default(0)
+  note      String?
+}
+
+/// A bid or RFP read from a workforce board's own procurement page (src/lib/bids).
+model BoardBid {
+  id           String    @id
+  boardId      String
+  title        String
+  url          String
+  pageUrl      String
+  deadline     DateTime?
+  deadlineText String?
+  status       String    @default("OPEN")
+  firstSeenAt  DateTime  @default(now())
+  lastSeenAt   DateTime  @default(now())
+
+  @@index([boardId])
+  @@index([status, deadline])
+  @@index([firstSeenAt])
+}
+
 // Relocation incentives, retraining funds, grants, dividends and free courses for
 // laid-off professionals. Applied by hand: prisma/manual/benefit-programs.sql.
 model BenefitProgram {
@@ -14691,12 +14762,21 @@ model ConferenceEvent {
   linkFailures     Int                  @default(0)
   adminNote        String?
   source           String?
+  /// Canonical home URL (lowercased host, no www, no tracking params, no trailing slash): the dedupe key for Quick Add.
+  urlKey           String?
+  /// Hash of the page text at the last weekly re-check; a change triggers extraction of new dates and opportunities.
+  contentHash      String?
+  recheckedAt      DateTime?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @default(now()) @updatedAt
   interests        ConferenceInterest[]
+  editions         ConferenceEdition[]
+  opportunities    ConferenceOpportunity[]
+  changes          ConferenceChange[]
 
   @@index([published, startDate])
   @@index([importance])
+  @@index([urlKey])
 }
 
 model ConferenceInterest {
@@ -16005,10 +16085,35 @@ model CoachBooking {
   cancelledBy   String? // COACH | CANDIDATE
   meetUrl       String?
   googleEventId String?
+  // Which calendar googleEventId lives on: null = NextChapter's shared calendar (the original flow),
+  // otherwise the id of one of the coach's own calendars ("primary" or an address). prisma/manual/2026-10-24-coach-google.sql.
+  googleCalendarId String?
   createdAt     DateTime         @default(now())
 
   @@index([coachId, startsAt])
   @@index([candidateId, startsAt])
+}
+
+// A coach's own Google Calendar, connected through the separate coach OAuth client (COACH_GOOGLE_CLIENT_ID).
+// Scopes are calendar.events and calendar.freebusy only, so Google itself limits what we read to busy or free.
+// accessToken and refreshToken are encrypted by the token-crypto extension (CoachGoogleConnection is listed there).
+// status: connected | disconnected. A disconnected row keeps the email so the page can say which account to reconnect.
+// conflictCalendarIds: calendars checked for busy time; the first one is where sessions are written.
+// prisma/manual/2026-10-24-coach-google.sql.
+model CoachGoogleConnection {
+  coachId             String    @id
+  coach               Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  googleEmail         String
+  accessToken         String    @default("") @db.Text
+  refreshToken        String    @default("") @db.Text
+  expiresAt           DateTime
+  status              String    @default("connected")
+  disconnectReason    String?
+  connectedAt         DateTime  @default(now())
+  lastCheckedAt       DateTime?
+  disconnectedAt      DateTime?
+  conflictCalendarIds String[]  @default(["primary"])
+  updatedAt           DateTime  @updatedAt
 }
 
 // ── COACH NOTE SUMMARIES ─────────────────────────────────────────────────────
@@ -16254,6 +16359,10 @@ enum OrgWorkspaceType {
   COACH
   HIRING
   RECRUITER
+  // Employer sections by employee lifecycle (docs/specs/employer-sections-build-plan.md):
+  // HIRING (future), EMPLOYEES (current: learning and development, retention, job
+  // retraining) and OUTPLACEMENT (departing). Added 2026-10-24, nothing writes it yet.
+  EMPLOYEES
 }
 
 model Organization {
@@ -16284,6 +16393,11 @@ model Organization {
   crmOrganizationId String?          @unique
   crmOrganization   CrmOrganization? @relation(fields: [crmOrganizationId], references: [id], onDelete: SetNull)
 
+  // Enterprise package: one contract covering every employer section (Hiring,
+  // Employees, Outplacement). Staff-set today; nothing reads it yet.
+  enterprise      Boolean   @default(false)
+  enterpriseSince DateTime?
+
   createdBy  String?
   workspaces OrgWorkspace[]
 
@@ -16306,8 +16420,44 @@ model OrgWorkspace {
   inviteToken String?          @unique
   createdAt   DateTime         @default(now())
 
+  // Plan for this workspace on its own: FREE | PAID | CONTRACT (outplacement,
+  // sales-led) | ENTERPRISE (covered by Organization.enterprise). Set by staff
+  // today; no payment code reads it. Existing rows start FREE.
+  plan          String    @default("FREE")
+  planSource    String? // STAFF | CONTRACT | STRIPE (later)
+  planUpdatedAt DateTime?
+  planNote      String?
+  // Services switched on inside the section, e.g. an EMPLOYEES workspace:
+  // { "learning": true, "retention": true, "retraining": false }. Empty = the defaults in src/lib/employer/sections.ts.
+  services      Json      @default("{}")
+
+  admins OrgWorkspaceAdmin[]
+
   @@unique([orgId, type])
   @@index([type, refId])
+}
+
+// Who runs one employer section. A person can hold different roles in different
+// sections. userId is the Supabase auth user id (null until the invite is
+// accepted). Additive: nothing reads this table yet; today's access still comes
+// from OutplacementOrgUser and EmployerSeat.
+// Applied by hand: prisma/manual/2026-10-24-employer-sections.sql.
+model OrgWorkspaceAdmin {
+  id          String       @id @default(cuid())
+  workspaceId String
+  workspace   OrgWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  // ADMIN | VIEWER | BILLING (more per section later, see the build plan)
+  role        String       @default("ADMIN")
+  email       String
+  userId      String?
+  invitedBy   String?
+  // How they got in: INVITE | DOMAIN_CLAIM | MIGRATED
+  source      String       @default("INVITE")
+  createdAt   DateTime     @default(now())
+  acceptedAt  DateTime?
+
+  @@unique([workspaceId, email])
+  @@index([userId])
 }
 
 // Internships (owner rule: internships only appear in Higher Ed portals). Their
@@ -16760,4 +16910,306 @@ model CompetitorCapability {
   @@unique([competitorId, capabilityId])
   @@index([capabilityId])
   @@index([competitorId, checkedAt])
+}
+
+// ---- Conferences v2: editions, opportunities, member tracking, change review (prisma/manual/conferences-v2.sql) ----
+// ConferenceEvent above IS the series (one row per recurring event); these tables hang off it.
+
+/// One year's event. Created as TBA when the previous edition ends; dates fill in from the event's own site.
+model ConferenceEdition {
+  id            String                  @id @default(cuid())
+  seriesId      String
+  series        ConferenceEvent         @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  year          Int
+  startDate     DateTime?
+  endDate       DateTime?
+  /// IN_PERSON | VIRTUAL | HYBRID
+  format        String?
+  city          String?
+  state         String?
+  country       String?
+  url           String?
+  /// TBA | CONFIRMED | CANCELLED
+  status        String                  @default("TBA")
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @default(now()) @updatedAt
+  opportunities ConferenceOpportunity[]
+
+  @@unique([seriesId, year])
+}
+
+/// A thing to do at a conference: speak, submit, nominate, compete, demo. Typed, one row per edition.
+/// type: CALL_FOR_SPEAKERS | CALL_FOR_SUBMISSIONS | REPORT | CONTEST | PRESENTATION | AWARD | DEMO
+model ConferenceOpportunity {
+  id          String                       @id @default(cuid())
+  seriesId    String
+  series      ConferenceEvent              @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  editionId   String?
+  edition     ConferenceEdition?           @relation(fields: [editionId], references: [id], onDelete: SetNull)
+  type        String
+  title       String
+  url         String?
+  opensAt     DateTime?
+  deadline    DateTime?
+  eligibility String?
+  notes       String?
+  /// Shown to members only when true (Quick Add and the weekly re-check create unpublished rows).
+  published   Boolean                      @default(false)
+  /// ADMIN | QUICK_ADD | RECHECK
+  source      String                       @default("ADMIN")
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @default(now()) @updatedAt
+  tracks      ConferenceOpportunityTrack[]
+
+  @@index([deadline])
+  @@index([seriesId, type])
+}
+
+/// A member's stage on one opportunity. Private to the member.
+/// status: WATCHING | DRAFTING | SUBMITTED | ACCEPTED | REJECTED | DELIVERED
+model ConferenceOpportunityTrack {
+  id            String                @id @default(cuid())
+  candidateId   String
+  opportunityId String
+  opportunity   ConferenceOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  status        String
+  notes         String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @default(now()) @updatedAt
+
+  @@unique([candidateId, opportunityId])
+  @@index([candidateId, status])
+}
+
+/// A member's tracking of a series, kept across years. Private: never shared with the catalog.
+/// status: INTERESTED | TRACKING | REGISTERED | ATTENDING | ATTENDED | SPEAKING | SKIPPED
+model UserConference {
+  id          String                 @id @default(cuid())
+  candidateId String
+  seriesId    String
+  /// The edition the member is currently planning around; moved forward when a new edition is created.
+  editionId   String?
+  status      String
+  notes       String?
+  goals       String?
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @default(now()) @updatedAt
+  contactsMet ConferenceContactMet[]
+
+  @@unique([candidateId, seriesId])
+  @@index([candidateId, status])
+  @@index([seriesId])
+}
+
+/// Someone the member met at a conference, linked to their Contact Book entry.
+model ConferenceContactMet {
+  id               String         @id @default(cuid())
+  userConferenceId String
+  userConference   UserConference @relation(fields: [userConferenceId], references: [id], onDelete: Cascade)
+  contactId        String
+  note             String?
+  createdAt        DateTime       @default(now())
+
+  @@unique([userConferenceId, contactId])
+}
+
+/// A talk, award or demo the member delivered or had accepted: Dossier evidence and a simple speaking history.
+/// kind: TALK | AWARD | SUBMISSION_ACCEPTED | DEMO
+model ConferenceTalk {
+  id            String    @id @default(cuid())
+  candidateId   String
+  seriesId      String?
+  opportunityId String?
+  kind          String    @default("TALK")
+  title         String
+  eventName     String?
+  topic         String?
+  deliveredOn   DateTime?
+  slidesUrl     String?
+  videoUrl      String?
+  createdAt     DateTime  @default(now())
+
+  @@index([candidateId, deliveredOn])
+}
+
+/// A change the weekly re-check found. Held for review, never applied silently.
+/// kind: DATES | NEW_OPPORTUNITY | OPPORTUNITY_DEADLINE; status: PENDING | APPLIED | DISMISSED
+model ConferenceChange {
+  id         String          @id @default(cuid())
+  seriesId   String
+  series     ConferenceEvent @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  kind       String
+  payload    Json
+  status     String          @default("PENDING")
+  createdAt  DateTime        @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([seriesId, status])
+}
+
+/// Quick Add bookkeeping: the per-member daily cap on model calls and a cache of extractions by canonical URL.
+model ConferenceExtraction {
+  urlKey      String   @id
+  result      Json
+  contentHash String?
+  createdAt   DateTime @default(now())
+}
+
+model ConferenceQuickAddLog {
+  id          String   @id @default(cuid())
+  candidateId String
+  urlKey      String
+  usedModel   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId, createdAt])
+}
+
+/// Competitor watch switches and the hard monthly spend cap. One row, "singleton". Everything is OFF until
+/// someone turns it on from the Competitors page; the cron routes do nothing while `enabled` is false.
+model CompetitorWatchSetting {
+  id             String   @id @default("singleton")
+  enabled        Boolean  @default(false)
+  refreshEnabled Boolean  @default(true)
+  newsEnabled    Boolean  @default(true)
+  monthlyCapUsd  Float    @default(50)
+  updatedAt      DateTime @updatedAt
+  updatedByEmail String?
+}
+
+/// One model or search call made by the watch, with what it cost. The month's total of these is checked
+/// against monthlyCapUsd before every call.
+model CompetitorWatchRun {
+  id           String   @id @default(cuid())
+  competitorId String?
+  kind         String // refresh | news
+  costUsd      Float    @default(0)
+  searches     Int      @default(0)
+  ok           Boolean  @default(true)
+  error        String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([competitorId, kind, createdAt])
+}
+
+/// Something that happened at a competitor: news, a win, a new customer logo, a funding round, an acquisition,
+/// layoffs, a shutdown. Unique on (competitorId, dedupeKey) so a weekly re-read never adds a story twice.
+/// digestedAt is set when the daily digest has reported it.
+model CompetitorEvent {
+  id           String            @id @default(cuid())
+  competitorId String
+  competitor   ProductCompetitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  kind         String // NEWS | WIN | LOGO | FUNDING | ACQUISITION | LAYOFF | CLOSURE
+  title        String
+  summary      String?           @db.Text
+  url          String?
+  amountUsd    Float?
+  occurredAt   DateTime?
+  /// news | site | database (a row already in our own awards data)
+  source       String            @default("news")
+  dedupeKey    String
+  digestedAt   DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([competitorId, dedupeKey])
+  @@index([digestedAt, createdAt])
+}
+
+/// A matrix cell the model suggests. Never written to the matrix until a person accepts it (which sets the
+/// cell with its evidence link and today's date). A pending proposal is replaced by a newer one for the same cell.
+model CompetitorCellProposal {
+  id           String            @id @default(cuid())
+  competitorId String
+  competitor   ProductCompetitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  capabilityId String
+  status       CompetitorCapabilityStatus
+  note         String?           @db.Text
+  evidenceUrl  String
+  /// PENDING | ACCEPTED | REJECTED
+  state        String            @default("PENDING")
+  decidedBy    String?
+  decidedAt    DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([competitorId, capabilityId, state])
+  @@index([state, createdAt])
+}
+
+// ── COACH SESSION NOTES (2026-10-24) ─────────────────────────────────────────
+// What a coach captures in a session and what reaches the member. The coach's private free text stays on
+// CoachSession.notes and is never read by anything that builds the summary or the member's view. Strings with
+// CHECK constraints (see the SQL file) rather than enums, so a new kind needs no type migration.
+
+// One structured capture. kind: win | blocker | decision | next_step. Coach-only; never sent.
+model CoachSessionCapture {
+  id        String       @id @default(cuid())
+  sessionId String
+  session   CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  kind      String
+  text      String       @db.Text
+  createdAt DateTime     @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+// The summary for the member. state: DRAFT (written, maybe by the model) -> REVIEWED (the coach edited or
+// confirmed it) -> SENT (the coach pressed send; only then does the member see `text`). meetNotes is the
+// imported Gemini notes or pasted notes: coach-only, never sent. viewedAt is when the member opened it.
+model CoachSessionSummary {
+  id         String       @id @default(cuid())
+  sessionId  String       @unique
+  session    CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  state      String       @default("DRAFT")
+  text       String       @default("") @db.Text
+  meetNotes  String?      @db.Text
+  aiDrafted  Boolean      @default(false)
+  reviewedAt DateTime?
+  sentAt     DateTime?
+  viewedAt   DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+// One agreed follow-up with one owner. ownerKind: coach | member. status: open | done. The member sees it only
+// after the summary is SENT (visibleToMemberAt is set at that moment). A member-owned one is also added to the
+// member's weekly plan as a to-do; a coach-owned one is shown to the member labeled with the coach's name.
+model CoachFollowUp {
+  id                String       @id @default(cuid())
+  sessionId         String
+  session           CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  candidateId       String
+  coachId           String
+  ownerKind         String
+  text              String       @db.Text
+  dueOn             DateTime?    @db.Date
+  status            String       @default("open")
+  completedAt       DateTime?
+  visibleToMemberAt DateTime?
+  createdAt         DateTime     @default(now())
+
+  @@index([sessionId])
+  @@index([candidateId, visibleToMemberAt])
+}
+
+// A topic the member wants help with, from the controlled vocabulary in src/lib/coach/topics.ts.
+// status: suggested (found in the notes, coach-only) -> confirmed (the coach confirmed it; goes to the member
+// when the summary is sent) -> accepted | dismissed (the member's choice). Accepted topics feed the member's
+// recommendations (src/lib/coach/accepted-topics.ts).
+model CoachSessionTopic {
+  id          String       @id @default(cuid())
+  sessionId   String
+  session     CoachSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  candidateId String
+  topic       String
+  quote       String?      @db.Text
+  status      String       @default("suggested")
+  suggestedAt DateTime     @default(now())
+  confirmedAt DateTime?
+  acceptedAt  DateTime?
+  dismissedAt DateTime?
+
+  @@unique([sessionId, topic])
+  @@index([candidateId, status])
 }

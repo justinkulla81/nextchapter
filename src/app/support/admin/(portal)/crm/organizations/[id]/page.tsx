@@ -179,7 +179,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   return (
     <div className="space-y-6">
       <nav className="text-sm">
-        <Link href="/support/admin/crm/organizations" className="text-muted-foreground hover:underline">← All organizations</Link>
+        <Link href="/support/admin/crm/organizations" className="text-muted-foreground hover:underline">← Organizations</Link>
       </nav>
 
       <header className="flex flex-wrap items-start justify-between gap-6">

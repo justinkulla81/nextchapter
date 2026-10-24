@@ -23,12 +23,16 @@ export function GET() {
 
 ## For organizations
 
-- [For Organizations](${u('/for-organizations')}): overview of all five ways organizations partner with NextChapter.
-- [Employers](${u('/talent')}): verified candidate profiles and work-style fit signal.
-- [Recruiters](${u('/recruiters')}): a searchable, opted-in candidate pool including strong candidates ATS filters bury.
-- [Outplacement](${u('/outplacement')}): a candid diagnostic, personalized plan, and direct employer matches for departing employees.
-- [Government & Workforce Agencies](${u('/government-workforce')}): a WIOA-aligned partnership, free to every jobseeker served, with exportable participant progress and self-reported placement counts.
-- [Nonprofits & Academia](${u('/nonprofits')}): free community service plus consent-based research partnerships.
+- [For Organizations](${u('/for-organizations')}): one card for each portal: higher education, workforce, hiring, employees, outplacement, recruiters and coaches, each with its page and log in.
+- [Employers](${u('/employers')}): the three employer sections by employee lifecycle: Hiring for future employees, Employees for current ones, Outplacement for departing ones.
+- [Hiring](${u('/talent')}): post a role and see candidates who chose to be seen, with an evidence brief for each.
+- [Employees](${u('/employees')}): retention, and learning and development, reported as counts by team, never by person.
+- [Outplacement](${u('/outplacement')}): seats for departing employees, reporting in counts for HR and a compliance record for each seat. Set up by contract.
+- [Higher education](${u('/higher-education')}): a workspace for career services and alumni relations; a free workspace is created when staff claim the institution's page with a work email at its domain.
+- [Government & Workforce](${u('/government-workforce')}): a workspace for workforce boards, economic development organizations and chambers, with live counts from our own data.
+- [Nonprofits & community organizations](${u('/nonprofits')}): the same free workspace after a verified claim; research partnerships are set up one at a time.
+- [Recruiters](${u('/recruiters')}): search candidates who chose to be found and submit them in your firm's logo.
+- [Coaches](${u('/coaches')}): invite clients with a code, a pre-session brief and session notes.
 
 ## Research and data
 

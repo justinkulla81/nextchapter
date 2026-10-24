@@ -167,7 +167,7 @@ export default async function CrmQueuePage({
       <CrmPeekPanel />
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Outreach queue</h1>
+          <h1 className="text-2xl font-semibold">Company follow-ups</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })} · {totalItems} items
           </p>

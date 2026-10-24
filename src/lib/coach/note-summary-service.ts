@@ -58,6 +58,23 @@ export async function getNoteSummaryView(coachId: string, candidateId: string): 
   }
 }
 
+/**
+ * Reserve one model run BEFORE calling the model, under a per-coach lock, so two clicks at once cannot both slip
+ * under the daily cap. A reserved run counts against the cap even if the call then fails. Null: the cap is used.
+ * Shared by the cross-session note summary and the per-session draft (src/lib/coach/session-draft-service.ts),
+ * which draw on the same daily allowance.
+ */
+export async function reserveModelRun(coachId: string, candidateId: string, inputChars: number): Promise<{ id: string } | null> {
+  const startOfDay = new Date()
+  startOfDay.setUTCHours(0, 0, 0, 0)
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${`note-summary:${coachId}`}))`)
+    const usedToday = await tx.coachNoteSummaryRun.count({ where: { coachId, createdAt: { gte: startOfDay } } })
+    if (usedToday >= DAILY_SUMMARIES_PER_COACH) return null
+    return tx.coachNoteSummaryRun.create({ data: { coachId, candidateId, inputChars, ok: false }, select: { id: true } })
+  })
+}
+
 type Generated = { ok: true; summary: NoteSummary } | { ok: false; error: string }
 
 export async function generateNoteSummary(coachId: string, candidateId: string): Promise<Generated> {
@@ -70,16 +87,7 @@ export async function generateNoteSummary(coachId: string, candidateId: string):
   const existingSummary = existing ? parseStoredSummary(existing.summary) : null
   if (existing && existingSummary && existing.fingerprint === fingerprint) return { ok: true, summary: existingSummary }
 
-  // Reserve the run BEFORE calling the model, under a per-coach lock, so two clicks at once cannot both
-  // slip under the daily cap. A reserved run counts against the cap even if the call then fails.
-  const startOfDay = new Date()
-  startOfDay.setUTCHours(0, 0, 0, 0)
-  const run = await prisma.$transaction(async (tx) => {
-    await tx.$executeRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${`note-summary:${coachId}`}))`)
-    const usedToday = await tx.coachNoteSummaryRun.count({ where: { coachId, createdAt: { gte: startOfDay } } })
-    if (usedToday >= DAILY_SUMMARIES_PER_COACH) return null
-    return tx.coachNoteSummaryRun.create({ data: { coachId, candidateId, inputChars: input.text.length, ok: false }, select: { id: true } })
-  })
+  const run = await reserveModelRun(coachId, candidateId, input.text.length)
   if (!run) {
     return { ok: false, error: `You have used today’s ${DAILY_SUMMARIES_PER_COACH} summaries. You can make more tomorrow, and your notes are still all here to read.` }
   }

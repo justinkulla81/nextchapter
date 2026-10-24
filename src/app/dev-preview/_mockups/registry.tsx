@@ -27,6 +27,7 @@ import { ExposureMarketReport, ExposureSearchStrategy, ExposurePivots, ExposureL
 import { HomeSeniorCoachOffer, HomeNetworkingCoachOffer, HomePivotCoachOffer } from './coach-offer'
 import { ScopeBroaderFirst, ScopeEverythingQuestion, ScopeNarrow } from './search-scope'
 import { PortalHeaders } from './portal-headers'
+import { BoardBidsLive, CompetitorWinsLive } from './bids-live'
 import { PartnerInvite, PartnerYourPeople, PartnerMoving, PartnerMovingAsk, PartnerMovingWorth } from './partner'
 import { CoachSessionPrep, CoachSessionNotes } from './coach-session'
 import { CoachWhatCandidateSees } from './coach-candidate'
@@ -38,6 +39,10 @@ import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
+import { OrgAdminCollege, OrgAdminWorkforce, HigherEdAlumni, HigherEdCareer, WorkforceHubDashboard, WorkforceHubLayoffs } from './marketing-org'
+import { HiringDashboard, HiringEvidenceBrief, HiringRoles, EmployeesLearning, EmployeesRetention, EmployeesEnroll, OutplacementReporting, OutplacementRoster, OutplacementCompliance } from './marketing-employer'
+import { CoachClients, CoachBrief, CoachSessionLog } from './marketing-coach'
+import { RecruiterPacket, RecruiterSearch, RecruiterPipeline } from './marketing-recruiter'
 
 import { BeFoundQuiet, BeFoundPublic, SeniorMenuCompare } from './be-found-live'
 
@@ -55,6 +60,27 @@ export interface Mockup {
 }
 
 export const MOCKUPS: Mockup[] = [
+  { path: 'marketing/coach-clients', place: 'Partner pages', title: 'Coach: client list (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: CoachClients },
+  { path: 'marketing/coach-pre-session-brief', place: 'Partner pages', title: 'Coach: pre-session brief (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: CoachBrief },
+  { path: 'marketing/coach-session-log', place: 'Partner pages', title: 'Coach: full client view and session log (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: CoachSessionLog },
+  { path: 'marketing/higher-education-admin-overview', place: 'Partner pages', title: 'Higher education: admin overview of the free workspace (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: OrgAdminCollege },
+  { path: 'marketing/higher-education-alumni-workspace', place: 'Partner pages', title: 'Higher education: alumni relations workspace (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: HigherEdAlumni },
+  { path: 'marketing/higher-education-career-caseload', place: 'Partner pages', title: 'Higher education: career services caseload (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: HigherEdCareer },
+  { path: 'marketing/workforce-admin-overview', place: 'Partner pages', title: 'Workforce: admin overview of the free workspace (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: OrgAdminWorkforce },
+  { path: 'marketing/workforce-hub-dashboard', place: 'Partner pages', title: 'Workforce: program dashboard (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: WorkforceHubDashboard },
+  { path: 'marketing/workforce-hub-layoffs', place: 'Partner pages', title: 'Workforce: layoffs with seats (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: WorkforceHubLayoffs },
+  { path: 'marketing/hiring-dashboard', place: 'Partner pages', title: 'Hiring: dashboard (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: HiringDashboard },
+  { path: 'marketing/hiring-evidence-brief', place: 'Partner pages', title: 'Hiring: candidate evidence brief (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: HiringEvidenceBrief },
+  { path: 'marketing/hiring-roles', place: 'Partner pages', title: 'Hiring: roles and team (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: HiringRoles },
+  { path: 'marketing/employees-learning', place: 'Partner pages', title: 'Employees: learning and development reporting (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: EmployeesLearning },
+  { path: 'marketing/employees-retention', place: 'Partner pages', title: 'Employees: retention view (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: EmployeesRetention },
+  { path: 'marketing/employees-enroll', place: 'Partner pages', title: 'Employees: enroll people (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: EmployeesEnroll },
+  { path: 'marketing/outplacement-reporting', place: 'Partner pages', title: 'Outplacement: reporting (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: OutplacementReporting },
+  { path: 'marketing/outplacement-roster', place: 'Partner pages', title: 'Outplacement: roster (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: OutplacementRoster },
+  { path: 'marketing/outplacement-compliance', place: 'Partner pages', title: 'Outplacement: compliance record (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: OutplacementCompliance },
+  { path: 'marketing/recruiter-submission-packet', place: 'Partner pages', title: 'Recruiter: submission packet and export (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterPacket },
+  { path: 'marketing/recruiter-search', place: 'Partner pages', title: 'Recruiter: candidate search (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterSearch },
+  { path: 'marketing/recruiter-pipeline', place: 'Partner pages', title: 'Recruiter: feedback and placement (sample data)', replaces: 'screenshot for the public partner pages; nothing live', Component: RecruiterPipeline },
   { path: 'jobs/live/compare-places', place: 'Jobs', title: 'Compare places: out of work, two places (sample data)', replaces: 'new page; adds one entry under Market and pay, removes nothing', Component: ComparePlacesJobless },
   { path: 'jobs/live/compare-places-employed', place: 'Jobs', title: 'Compare places: employed, two places (sample data)', replaces: 'new page', Component: ComparePlacesEmployed },
   { path: 'jobs/live/compare-places-life', place: 'Jobs', title: 'Compare places: just for life there (sample data)', replaces: 'new page', Component: ComparePlacesLife },
@@ -214,6 +240,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/partner-move-worth', place: 'Network', title: 'Your move plan: each salary in what it buys at home', replaces: 'new', Component: PartnerMovingWorth },
   { path: 'network/circles/partner-move', place: 'Network', title: 'Your move plan: places side by side, with what it costs to live there', replaces: 'new', Component: PartnerMoving },
   { path: 'portals/headers', place: 'Portals', title: 'Portal top bars: employer, higher education, workforce, recruiter, coach', replaces: 'the one navy top bar on every non-candidate portal (PartnerTopBar)', Component: PortalHeaders },
+  { path: 'admin/board-bids-live', place: 'Admin', title: 'CRM funding: workforce board bids (live rows)', replaces: 'new', Component: BoardBidsLive as unknown as ComponentType },
+  { path: 'admin/competitor-wins-live', place: 'Admin', title: 'CRM funding: competitor federal wins (live rows)', replaces: 'new', Component: CompetitorWinsLive as unknown as ComponentType },
   { path: 'account/money', place: 'Account', title: 'Money help (off state)', replaces: 'new', Component: AccountMoney },
 ]
 

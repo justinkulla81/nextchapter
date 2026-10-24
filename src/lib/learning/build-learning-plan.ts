@@ -8,6 +8,8 @@ import { getExecEdProgram } from '@/lib/constants/exec-ed-by-school'
 import { getAiToolsForFunction, type AiToolRecommendation } from '@/lib/constants/ai-tools-by-function'
 import { getDefaultNarrative } from '@/lib/narrative/get-default-narrative'
 import { rationaleForItem, truncate, type GapLike } from '@/lib/learning/rationale'
+import { getAcceptedTopics } from '@/lib/coach/accepted-topics'
+import { coachTopicReason, coursesForTopics } from '@/lib/coach/accepted-topics-match'
 import type { LearningResource } from '@/lib/constants/learning-partners'
 
 export interface LearningPlanItem extends LearningResource {
@@ -85,7 +87,7 @@ function withRationale(
 }
 
 export async function buildLearningPlan(candidateId: string): Promise<LearningPlan> {
-  const [candidate, latestReport, primaryEducation, narrative, completionRows, toolFamiliarityRows, allCourses] = await Promise.all([
+  const [candidate, latestReport, primaryEducation, narrative, completionRows, toolFamiliarityRows, allCourses, acceptedTopics] = await Promise.all([
     prisma.candidateProfile.findUniqueOrThrow({
       where: { id: candidateId },
       select: {
@@ -117,6 +119,8 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
     prisma.learningBadge.groupBy({ by: ['title'], where: { badgeType: 'course_completed' }, _count: { _all: true } }),
     prisma.candidateAiToolFamiliarity.findMany({ where: { candidateId } }),
     getActiveCourses(),
+    // Topics the member accepted from their coach's session notes (src/lib/coach/accepted-topics.ts). Never throws.
+    getAcceptedTopics(candidateId),
   ])
 
   const completionCounts = new Map(completionRows.map((r) => [r.title, r._count._all]))
@@ -241,6 +245,18 @@ export async function buildLearningPlan(candidateId: string): Promise<LearningPl
   ]
 
   const sections: LearningPlanSection[] = []
+
+  // Topics the member accepted from their coach: first, because the member chose them after talking with a person.
+  // Accepting or dismissing one changes this section on the next load (nothing is cached).
+  const coachTopicCourses = coursesForTopics(allCourses, acceptedTopics)
+  if (coachTopicCourses.length > 0) {
+    sections.push({
+      id: 'from-your-coach',
+      title: 'From your coach',
+      // gaps and skillsToBuild are left empty on purpose: the one reason shown is where the topic came from.
+      items: withRationale(coachTopicCourses.map(toLearningResource), '', [], [], coachTopicReason(acceptedTopics), completionCounts, candidate.certifications),
+    })
+  }
 
   // "Skills You're Building" — the one section actually driven by
   // skillsToBuild as a filter, not just rationale text (every other

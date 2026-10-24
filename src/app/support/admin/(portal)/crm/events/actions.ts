@@ -8,6 +8,9 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { INDUSTRY_BUCKET_NAMES } from '@/lib/constants/industry-buckets'
 import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
 import { SEGMENTS } from '@/lib/events/taxonomy'
+import { canonicalUrlKey } from '@/lib/conferences/canonical'
+import { OPPORTUNITY_TYPES } from '@/lib/conferences/constants'
+import { ensureEdition } from '@/lib/conferences/editions'
 import { ACCESS, FORMATS, JOURNEYS, PROGRAM_FORMATS, KINDS, SENIORITIES, SPEAKING } from '@/lib/events/types'
 
 const text = (v: FormDataEntryValue | null) => String(v ?? '').trim() || null
@@ -33,6 +36,7 @@ export async function saveEvent(formData: FormData) {
     name,
     organizer: text(formData.get('organizer')),
     url: eventUrl,
+    urlKey: eventUrl ? canonicalUrlKey(eventUrl) : null,
     kind: pick(formData.get('kind'), KINDS, 'CONFERENCE'),
     format: pick(formData.get('format'), FORMATS, 'IN_PERSON'),
     startDate: date(formData.get('startDate')),
@@ -98,4 +102,40 @@ export async function deleteEvent(formData: FormData) {
   revalidatePath('/support/admin/crm/events')
   revalidatePath('/dashboard/network/events')
   redirect('/support/admin/crm/events')
+}
+
+/** Add or update one typed opportunity (call for speakers, award, contest...) on an event's current edition. */
+export async function saveOpportunity(formData: FormData) {
+  const admin = await requireAdmin()
+  const seriesId = text(formData.get('seriesId')) ?? ''
+  const title = text(formData.get('title'))
+  if (!seriesId || !title) redirect(`/support/admin/crm/events/${seriesId}?error=opportunity`)
+  const series = await prisma.conferenceEvent.findUnique({ where: { id: seriesId }, select: { startDate: true } })
+  if (!series) redirect('/support/admin/crm/events')
+  const year = (date(formData.get('deadline')) ?? series.startDate ?? new Date()).getUTCFullYear()
+  const edition = await ensureEdition(seriesId, series.startDate?.getUTCFullYear() ?? year)
+  const id = text(formData.get('id'))
+  const data = {
+    seriesId, editionId: edition.id, title,
+    type: pick(formData.get('type'), OPPORTUNITY_TYPES, 'CALL_FOR_SPEAKERS'),
+    url: url(formData.get('url')), opensAt: date(formData.get('opensAt')), deadline: date(formData.get('deadline')),
+    eligibility: text(formData.get('eligibility')), notes: text(formData.get('notes')), published: formData.get('published') === 'on',
+  }
+  if (id) await prisma.conferenceOpportunity.update({ where: { id }, data })
+  else await prisma.conferenceOpportunity.create({ data: { ...data, source: 'ADMIN' } })
+  captureServerEvent(admin.id, 'conference_opportunity_saved', { seriesId, type: data.type, created: !id, published: data.published })
+  revalidatePath(`/support/admin/crm/events/${seriesId}`)
+  revalidatePath('/dashboard/conferences', 'layout')
+  redirect(`/support/admin/crm/events/${seriesId}?saved=1`)
+}
+
+export async function deleteOpportunity(formData: FormData) {
+  const admin = await requireAdmin()
+  const id = text(formData.get('id')) ?? ''
+  const seriesId = text(formData.get('seriesId')) ?? ''
+  if (formData.get('confirm') !== 'on') redirect(`/support/admin/crm/events/${seriesId}?error=confirm`)
+  await prisma.conferenceOpportunity.delete({ where: { id } }).catch(() => {})
+  captureServerEvent(admin.id, 'conference_opportunity_deleted', { seriesId })
+  revalidatePath(`/support/admin/crm/events/${seriesId}`)
+  redirect(`/support/admin/crm/events/${seriesId}?saved=1`)
 }

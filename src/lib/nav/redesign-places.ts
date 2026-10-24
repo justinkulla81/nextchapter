@@ -70,7 +70,6 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     tabs: [
       tab('This week', '/dashboard/network', { menuKeys: ['network', 'careerNetwork'], alsoMatches: ['/dashboard/email-activity', '/dashboard/calendar-activity'] }),
       tab('Contacts', '/dashboard/network/contacts', { menuKeys: ['contacts'] }),
-      tab('Events to attend', '/dashboard/network/events'),
       tab('References', '/dashboard/references', { menuKeys: ['references'], alsoMatches: ['/dashboard/work-samples'] }),
       tab('Community', '/dashboard/community', { menuKeys: ['community'], alsoMatches: ['/dashboard/circle'] }),
       tab('Inbox', '/dashboard/messages', { menuKeys: ['inbox'] }),
@@ -83,7 +82,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     ],
     groups: [
       { label: 'This week', hrefs: ['/dashboard/network'] },
-      { label: 'Contacts and events', hrefs: ['/dashboard/network/contacts', '/dashboard/network/events'] },
+      { label: 'Contacts', hrefs: ['/dashboard/network/contacts'] },
       { label: 'Community', hrefs: ['/dashboard/community', '/dashboard/messages', '/dashboard/groups'] },
       { label: 'References and supporters', hrefs: ['/dashboard/references', '/dashboard/supporters'] },
       { label: 'Coaching', hrefs: ['/dashboard/my-coaching'] },
@@ -98,6 +97,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     tabs: [
       tab('Learn new skills', '/dashboard/learning', { menuKeys: ['learning', 'growSkills'] }),
       tab('Videos and webinars', '/dashboard/webinars', { menuKeys: ['webinars'] }),
+      tab('Conferences', '/dashboard/conferences', { alsoMatches: ['/dashboard/network/events'] }),
       tab('Know yourself', '/dashboard/skills-assessments', { menuKeys: ['assessments'], alsoMatches: ['/dashboard/skills-assessment', '/dashboard/retake-assessment'] }),
       tab('Career story', '/dashboard/my-career'),
       tab('Other roles you could do', '/dashboard/pivot-paths', { alsoMatches: ['/dashboard/pivot'] }),
@@ -108,7 +108,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Courses your company covers', '/dashboard/company-courses', { employedOnly: true }),
     ],
     groups: [
-      { label: 'Learn new skills', hrefs: ['/dashboard/learning', '/dashboard/webinars', '/dashboard/company-courses'] },
+      { label: 'Learn new skills', hrefs: ['/dashboard/learning', '/dashboard/webinars', '/dashboard/conferences', '/dashboard/company-courses'] },
       { label: 'Know yourself', hrefs: ['/dashboard/skills-assessments'] },
       { label: 'Your path', hrefs: ['/dashboard/my-career', '/dashboard/pivot-paths'] },
       { label: 'Funding you qualify for', hrefs: ['/dashboard/funding'] },
