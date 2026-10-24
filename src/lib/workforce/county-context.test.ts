@@ -31,6 +31,13 @@ describe('areaContext', () => {
     expect(c.shrinking.map((s) => s.code)).toEqual(['31-33']) // -1,200 jobs, -13%
     expect(c.growing.map((s) => s.code)).toEqual(['62', '54']) // +1,300 jobs (+14%), then +300 (+4%)
   })
+  it('reads shares from the latest year for a county that did not exist in the base year', () => {
+    const ct: CountyContextData = { sectors: ['54', '62'], counties: { '09110': { p: [100, 110], t: [-1, 1000], e: [-1, 300, -1, 200] } } }
+    const c = areaContext(ct, ['09110'])
+    expect(c.exposed?.share).toBeCloseTo(30, 5)
+    expect(c.growing).toEqual([])
+    expect(c.shrinking).toEqual([])
+  })
   it('returns empty for unknown counties', () => {
     const c = areaContext(data, ['9'])
     expect(c.population).toBeNull()

@@ -98,8 +98,12 @@ export async function generateWorkforceDemo(input: WorkforceDemoInput, now = new
   const boards = await prisma.workforceBoard.findMany({ where: { state: anchorState }, select: { name: true, website: true, counties: true, placeCounties: true } })
   const board = anchorCounty ? boards.find((b) => [...b.counties, ...b.placeCounties].includes(countyKey(anchorCounty))) : null
   const counties = board ? [...new Set([...board.counties, ...board.placeCounties])].slice(0, 12) : anchorCounty ? [countyKey(anchorCounty)] : []
+  // Stored nameKeys keep the space ("los angeles"), board counties do not: join on the key of the name.
+  const wanted = new Set(counties.map((k) => k.replace(/\s+/g, '')))
   const labor = counties.length
-    ? await prisma.countyLabor.findMany({ where: { state: anchorState, nameKey: { in: counties } }, orderBy: { laborForce: 'desc' }, take: 4, select: { name: true, rate: true, period: true, laborForce: true } })
+    ? (await prisma.countyLabor.findMany({ where: { state: anchorState }, orderBy: { laborForce: 'desc' }, select: { name: true, rate: true, period: true, laborForce: true } }))
+        .filter((r) => wanted.has(countyKey(r.name)))
+        .slice(0, 4)
     : []
 
   const salt = createHash('sha256').update(`${name}|${now.toISOString()}|${Math.random()}`).digest('hex').slice(0, 5)

@@ -113,7 +113,8 @@ async function main() {
     const a = q22.get(fips), b = q25.get(fips)
     counties[fips] = {
       ...(pop.has(fips) ? { p: pop.get(fips) } : {}),
-      ...(a?.has('total') && b?.has('total') ? { t: [a.get('total')!, b.get('total')!] as [number, number] } : {}),
+      // -1 for the base year where the county did not exist then (Connecticut's planning regions): the share still reads from the latest year.
+      ...(b?.has('total') ? { t: [a?.get('total') ?? -1, b.get('total')!] as [number, number] } : {}),
       e: SECTOR_CODES.flatMap((s) => [a?.get(s) ?? -1, b?.get(s) ?? -1]),
     }
   }

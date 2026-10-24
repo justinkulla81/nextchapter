@@ -49,8 +49,7 @@ export function areaContext(data: CountyContextData, fips: string[]): AreaContex
   const p24 = withPop.reduce((s, r) => s + r.p![1], 0)
   const population = p20 > 0 ? { now: p24, changePct: ((p24 - p20) / p20) * 100 } : null
 
-  const withTotal = rows.filter((r) => r.t)
-  const total24 = withTotal.reduce((s, r) => s + r.t![1], 0)
+  const total24 = rows.reduce((s, r) => s + (r.t && r.t[1] >= 0 ? r.t[1] : 0), 0)
   const per = data.sectors.map((code, i) => {
     let now = 0, then = 0, nowAll = 0
     for (const r of rows) {
