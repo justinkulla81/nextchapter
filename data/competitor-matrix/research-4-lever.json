@@ -1,0 +1,33 @@
+{
+  "competitor": "Lever",
+  "cells": [
+    {
+      "capabilityKey": "plat_api",
+      "status": "YES",
+      "note": "Developer documentation describes the Lever API.",
+      "evidenceUrl": "https://hire.lever.co/developer/documentation",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_audit_log",
+      "status": "PARTIAL",
+      "note": "Developer documentation lists audit events available through the API.",
+      "evidenceUrl": "https://hire.lever.co/developer/documentation",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_webhooks",
+      "status": "YES",
+      "note": "Developer documentation states Lever signs webhook requests and includes the signature in the request body.",
+      "evidenceUrl": "https://hire.lever.co/developer/documentation",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "hire_scorecards",
+      "status": "YES",
+      "note": "Developer documentation describes feedback forms with scorecard fields.",
+      "evidenceUrl": "https://hire.lever.co/developer/documentation",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

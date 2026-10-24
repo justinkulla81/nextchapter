@@ -1,0 +1,26 @@
+{
+  "competitor": "iCIMS",
+  "cells": [
+    {
+      "capabilityKey": "hire_analytics",
+      "status": "YES",
+      "note": "Help article describes analytics dashboards for iCIMS applicant tracking.",
+      "evidenceUrl": "https://community.icims.com/articles/HowTo/Getting-Started-with-iCIMS-Analytics",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_roles",
+      "status": "YES",
+      "note": "Help article describes full and limited access licenses and login groups.",
+      "evidenceUrl": "https://community.icims.com/articles/Knowledge/Common-Definitions-of-User-Licenses-and-User-Groups",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_api",
+      "status": "YES",
+      "note": "Developer documentation describes the Profiles API.",
+      "evidenceUrl": "https://developer-community.icims.com/applications/applicant-tracking/profiles-api",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

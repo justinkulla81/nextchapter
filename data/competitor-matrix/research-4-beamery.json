@@ -1,0 +1,40 @@
+{
+  "competitor": "Beamery",
+  "cells": [
+    {
+      "capabilityKey": "plat_roles",
+      "status": "YES",
+      "note": "Help article describes Beamery user roles.",
+      "evidenceUrl": "https://support.beamery.com/hc/en-us/articles/4408173441297-Understanding-Beamery-User-Roles",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_sso",
+      "status": "YES",
+      "note": "Security page states support for SAML 2.0 single sign-on.",
+      "evidenceUrl": "https://beamery.com/security/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_api",
+      "status": "PARTIAL",
+      "note": "Help article describes an API user role for integrations.",
+      "evidenceUrl": "https://support.beamery.com/hc/en-us/articles/4408165662993-Managing-Beamery-Users-and-Permissions",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "hire_analytics",
+      "status": "PARTIAL",
+      "note": "Help article describes campaign, contact and user insight reports for Sourcing Admins.",
+      "evidenceUrl": "https://support.beamery.com/hc/en-us/articles/4408173497873-Understanding-User-Roles-Sourcing-Admin",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_csv_exports",
+      "status": "PARTIAL",
+      "note": "Help center lists a Bulk Data Export integration.",
+      "evidenceUrl": "https://support.beamery.com/hc/en-us/categories/22052797855889-Integrations",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

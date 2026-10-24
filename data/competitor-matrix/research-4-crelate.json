@@ -1,0 +1,26 @@
+{
+  "competitor": "Crelate",
+  "cells": [
+    {
+      "capabilityKey": "plat_api",
+      "status": "YES",
+      "note": "Help article describes API updates including webhook management.",
+      "evidenceUrl": "https://help.crelate.com/en/articles/16498805-september-2026-api-updates",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_webhooks",
+      "status": "PARTIAL",
+      "note": "Help article describes webhooks managed through the API; signing is not described there.",
+      "evidenceUrl": "https://help.crelate.com/en/articles/16498805-september-2026-api-updates",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_submissions",
+      "status": "PARTIAL",
+      "note": "Product page describes moving candidates from first touch to placement; submissions are not described there.",
+      "evidenceUrl": "https://www.crelate.com/recruit",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

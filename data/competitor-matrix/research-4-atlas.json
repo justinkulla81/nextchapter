@@ -1,0 +1,26 @@
+{
+  "competitor": "Atlas (Recruit with Atlas)",
+  "cells": [
+    {
+      "capabilityKey": "rec_candidate_search",
+      "status": "PARTIAL",
+      "note": "Product page lists a People Search feature over the agency's own database.",
+      "evidenceUrl": "https://recruitwithatlas.com/ai-powered-ats/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "rec_submissions",
+      "status": "PARTIAL",
+      "note": "Product page describes placement management; submissions are not described there.",
+      "evidenceUrl": "https://recruitwithatlas.com/ai-powered-ats/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_api",
+      "status": "PARTIAL",
+      "note": "Integrations page mentions an open API.",
+      "evidenceUrl": "https://recruitwithatlas.com/integrations/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

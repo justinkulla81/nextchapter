@@ -1,0 +1,19 @@
+{
+  "competitor": "Workday",
+  "cells": [
+    {
+      "capabilityKey": "hire_roles",
+      "status": "YES",
+      "note": "Documentation describes job requisition setup in Workday Recruiting.",
+      "evidenceUrl": "https://doc.workday.com/admin-guide/en-us/human-capital-management/recruiting/job-requisitions-for-recruiting/fsn1558961997264.html",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "plat_roles",
+      "status": "YES",
+      "note": "Documentation describes security groups and domain policies for candidate data.",
+      "evidenceUrl": "https://doc.workday.com/admin-guide/en-us/human-capital-management/recruiting/candidates/candidate-personal-information/qae1605872030805.html",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}
