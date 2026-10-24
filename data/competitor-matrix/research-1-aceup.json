@@ -1,0 +1,19 @@
+{
+ "competitor": "AceUp",
+ "cells": [
+  {
+   "capabilityKey": "ai_coach",
+   "status": "YES",
+   "note": "The home page describes Ally, an AI coaching companion in Slack and Microsoft Teams grounded in organizational context.",
+   "evidenceUrl": "https://aceup.com/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_impact_report",
+   "status": "PARTIAL",
+   "note": "The home page describes TalentOS turning coaching activity into business insight; it does not describe client search measures.",
+   "evidenceUrl": "https://aceup.com/",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

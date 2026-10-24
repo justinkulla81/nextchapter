@@ -1,0 +1,47 @@
+{
+ "competitor": "CoachHub",
+ "cells": [
+  {
+   "capabilityKey": "coach_matching",
+   "status": "YES",
+   "note": "The CoachHub Individual page says AI is used to match employees with a coach.",
+   "evidenceUrl": "https://www.coachhub.com/coaching-experience",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_booking",
+   "status": "YES",
+   "note": "The coaching platform page says coachees manage their own schedule of digital coaching sessions.",
+   "evidenceUrl": "https://www.coachhub.com/coaching-platform",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ai_coach",
+   "status": "YES",
+   "note": "The AIMY page describes an AI coach that gives coaching conversations and progress tracking.",
+   "evidenceUrl": "https://www.coachhub.com/aimy",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_impact_report",
+   "status": "PARTIAL",
+   "note": "The coaching platform page describes CoachHub Insights tracking growth in focus areas; it does not describe client search measures.",
+   "evidenceUrl": "https://www.coachhub.com/coaching-platform",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "course_catalog",
+   "status": "YES",
+   "note": "The employee retention page lists an on-demand library of 8000+ micro-learning activities.",
+   "evidenceUrl": "https://www.coachhub.com/employee-retention-program",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_career_growth",
+   "status": "PARTIAL",
+   "note": "The employee retention page describes coaching programs for current employees; it does not describe employer growth metrics.",
+   "evidenceUrl": "https://www.coachhub.com/employee-retention-program",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

@@ -1,0 +1,82 @@
+{
+ "competitor": "CareerMinds",
+ "cells": [
+  {
+   "capabilityKey": "interview_prep_pack",
+   "status": "PARTIAL",
+   "note": "The outplacement page lists interview training and coach support for interview preparation; it does not say prep is generated per job.",
+   "evidenceUrl": "https://careerminds.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "interview_practice_feedback",
+   "status": "PARTIAL",
+   "note": "The outplacement page lists an AI interview simulator; it does not describe the feedback given.",
+   "evidenceUrl": "https://careerminds.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "negotiation_advice",
+   "status": "YES",
+   "note": "The outplacement page lists offer negotiation support and coach support through offer negotiation.",
+   "evidenceUrl": "https://careerminds.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "course_catalog",
+   "status": "YES",
+   "note": "The outplacement page lists an e-learning library with 500+ courses.",
+   "evidenceUrl": "https://careerminds.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_matching",
+   "status": "PARTIAL",
+   "note": "The outplacement page says participants are paired with a dedicated coach; it does not describe how the pairing is made.",
+   "evidenceUrl": "https://careerminds.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "op_reporting",
+   "status": "YES",
+   "note": "The outplacement page says dashboards give HR teams insights on engagement, delivery activity and placement.",
+   "evidenceUrl": "https://careerminds.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "op_seat_continuity",
+   "status": "PARTIAL",
+   "note": "The outplacement page lists lifetime access to an alumni network; it does not state access to the participant's own account.",
+   "evidenceUrl": "https://careerminds.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "learning_plan",
+   "status": "YES",
+   "note": "The career development page describes skill gap identification and curated skill paths with progress reviews.",
+   "evidenceUrl": "https://careerminds.com/career-development",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "skill_gap_suggestions",
+   "status": "PARTIAL",
+   "note": "The career development page describes identifying skill gaps and priorities; it does not describe comparison with job postings.",
+   "evidenceUrl": "https://careerminds.com/career-development",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_career_growth",
+   "status": "PARTIAL",
+   "note": "The career development page describes coaching and reporting for current employees aimed at retention.",
+   "evidenceUrl": "https://careerminds.com/career-development",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_internal_roles",
+   "status": "PARTIAL",
+   "note": "The redeployment page describes skill-based matching and guided mobility across open internal roles, delivered with coaches.",
+   "evidenceUrl": "https://careerminds.com/redeployment",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

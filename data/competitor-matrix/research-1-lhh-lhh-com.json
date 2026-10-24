@@ -1,0 +1,47 @@
+{
+ "competitor": "LHH (lhh.com)",
+ "cells": [
+  {
+   "capabilityKey": "ai_coach",
+   "status": "PARTIAL",
+   "note": "The Professional Outplacement Program page describes Ella, an AI chatbot that gives job leads from search criteria and recommends content.",
+   "evidenceUrl": "https://shop.lhh.com/products/professional-outplacement-program",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "interview_prep_pack",
+   "status": "PARTIAL",
+   "note": "The Career Studio page lists an Interview Center; the page does not say prep is generated per job.",
+   "evidenceUrl": "https://www.lhh.com/en-us/organizations/outplacement/career-studio",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "course_catalog",
+   "status": "YES",
+   "note": "The Professional Outplacement Program page lists LinkedIn Learning courses and upskilling through General Assembly and LinkedIn Learning.",
+   "evidenceUrl": "https://shop.lhh.com/products/professional-outplacement-program",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "op_seat_continuity",
+   "status": "PARTIAL",
+   "note": "The program page describes alumni support with continuous professional development after placement; the page does not state account access after the seat ends.",
+   "evidenceUrl": "https://shop.lhh.com/products/professional-outplacement-program",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "op_enrollment",
+   "status": "PARTIAL",
+   "note": "The shop page lets an employer enter contact details for up to five individuals per purchase.",
+   "evidenceUrl": "https://shop.lhh.com/products/professional-outplacement-program",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_career_growth",
+   "status": "PARTIAL",
+   "note": "The career mobility page describes coach assignment and progress tracking in a learning portal for an employer's employees.",
+   "evidenceUrl": "https://www.lhh.com/en-us/organizations/career-mobility",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

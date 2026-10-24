@@ -1,0 +1,40 @@
+{
+ "competitor": "ADPList",
+ "cells": [
+  {
+   "capabilityKey": "interview_practice_feedback",
+   "status": "YES",
+   "note": "The AI interview coach page says users practice interviews out loud with AI and receive a scorecard.",
+   "evidenceUrl": "https://adplist.org/interview-practice",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "interview_prep_pack",
+   "status": "PARTIAL",
+   "note": "The interview practice page lists practice interviews by role and company; it does not describe generated talking points.",
+   "evidenceUrl": "https://adplist.org/interview-practice",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "negotiation_advice",
+   "status": "PARTIAL",
+   "note": "The interview practice page lists salary negotiation practice.",
+   "evidenceUrl": "https://adplist.org/interview-practice",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_booking",
+   "status": "PARTIAL",
+   "note": "The FAQ says mentees book an open slot on a mentor's calendar for a 1:1 video call; the sessions are with mentors.",
+   "evidenceUrl": "https://adplist.org/faqs",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_matching",
+   "status": "PARTIAL",
+   "note": "The home page says users are matched with a mentor; the service is mentoring.",
+   "evidenceUrl": "https://adplist.org/",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

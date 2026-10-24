@@ -1,0 +1,33 @@
+{
+ "competitor": "Randstad RiseSmart (risesmart.com)",
+ "cells": [
+  {
+   "capabilityKey": "op_reporting",
+   "status": "YES",
+   "note": "The outplacement page lists on-demand access to HR dashboards.",
+   "evidenceUrl": "https://www.randstadenterprise.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "course_catalog",
+   "status": "PARTIAL",
+   "note": "The outplacement page lists skilling resources; it does not describe a course catalog.",
+   "evidenceUrl": "https://www.randstadenterprise.com/outplacement",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_internal_roles",
+   "status": "YES",
+   "note": "The redeployment page describes semantic matching of current employees to relevant internal opportunities.",
+   "evidenceUrl": "https://www.randstadenterprise.com/solutions/talent-transition/redeployment/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "ret_career_growth",
+   "status": "PARTIAL",
+   "note": "The career coaching page describes coaching for current employees as a retention and development tool; it does not describe employer growth metrics.",
+   "evidenceUrl": "https://www.randstadenterprise.com/solutions/talent-development/career-coaching/",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

@@ -1,0 +1,26 @@
+{
+ "competitor": "BetterUp",
+ "cells": [
+  {
+   "capabilityKey": "ai_coach",
+   "status": "YES",
+   "note": "The BetterUp Grow page describes an AI coach configured to an organization's strategy and values.",
+   "evidenceUrl": "https://www.betterup.com/products/betterup-ai-coaching",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_matching",
+   "status": "YES",
+   "note": "The BetterUp Ready page lists a coach match so employees get a coach from the first session.",
+   "evidenceUrl": "https://www.betterup.com/products/betterup-ready",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_impact_report",
+   "status": "PARTIAL",
+   "note": "The BetterUp Ready page says coaching is linked to outcomes such as productivity, retention and engagement; it does not describe client search measures.",
+   "evidenceUrl": "https://www.betterup.com/products/betterup-ready",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}

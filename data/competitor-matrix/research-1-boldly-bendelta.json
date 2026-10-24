@@ -1,0 +1,19 @@
+{
+ "competitor": "BOLDLY (Bendelta)",
+ "cells": [
+  {
+   "capabilityKey": "coach_matching",
+   "status": "YES",
+   "note": "The BOLDLY page describes matching within a vetted marketplace of over 4,800 coaches.",
+   "evidenceUrl": "https://www.bendelta.com/boldly-2/",
+   "checkedAt": "2026-10-24"
+  },
+  {
+   "capabilityKey": "coach_impact_report",
+   "status": "PARTIAL",
+   "note": "The BOLDLY page describes engagement tracking and measurable outcomes; it does not describe client search measures.",
+   "evidenceUrl": "https://www.bendelta.com/boldly-2/",
+   "checkedAt": "2026-10-24"
+  }
+ ]
+}
