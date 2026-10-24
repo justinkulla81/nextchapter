@@ -23,7 +23,7 @@ export default async function ReminderPreviewPage({ searchParams }: { searchPara
   const enabled = process.env.CONFERENCE_HEADSUP_ENABLED === '1'
   const plan = result?.plan ?? []
   const byStage = result?.byStage ?? {}
-  const cap = result?.cap || 25
+  const cap = result?.cap ?? 25
 
   return (
     <div className="space-y-5">

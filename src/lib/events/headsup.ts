@@ -141,3 +141,12 @@ export const STAGE_SUBJECT: Record<Stage, (name: string) => string> = {
   NETWORK_PREP: (n) => `${n} is a month away: write the people you want to meet`,
   FINAL: (n) => `${n} is next week: plan your days`,
 }
+
+const DEFAULT_SEND_CAP = 25
+/** 0 means paused. Only a missing or unreadable value falls back to the default (a plain `|| default` would turn 0 into 25). */
+export function sendCap(raw: string | undefined): number {
+  if (raw === undefined || raw.trim() === '') return DEFAULT_SEND_CAP
+  const n = Number(raw)
+  return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : DEFAULT_SEND_CAP
+}
+
