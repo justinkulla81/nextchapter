@@ -7,12 +7,14 @@ export interface RecruiterRow {
   id: string; name: string; title: string | null; org: string | null; orgId: string | null
   email: string | null; guessed: boolean; phone: string | null; location: string | null
   states: string[]; industries: string[]; functions: string[]; source: string | null
+  models: string[]
 }
 
 /** Recruiters matching any combination of state, industry and function. National recruiters match every state. */
-export async function recruiters(f: { state?: string; industry?: string; fn?: string; kind?: string }, take = 200): Promise<{ rows: RecruiterRow[]; total: number }> {
+export async function recruiters(f: { state?: string; industry?: string; fn?: string; kind?: string; model?: string }, take = 200): Promise<{ rows: RecruiterRow[]; total: number }> {
   const where = {
     deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' as const }, recruiterKind: f.kind ?? 'recruiter',
+    ...(f.model ? { recruiterModels: { has: f.model } } : {}),
     ...(f.state ? { coverageStates: { hasSome: [f.state, 'NATIONAL'] } } : {}),
     ...(f.industry ? { coverageIndustries: { has: f.industry } } : {}),
     ...(f.fn ? { coverageFunctions: { has: f.fn } } : {}),
@@ -21,7 +23,7 @@ export async function recruiters(f: { state?: string; industry?: string; fn?: st
     prisma.crmPerson.findMany({
       where, take, orderBy: [{ coverageSource: 'desc' }, { priorityScore: 'desc' }, { fullName: 'asc' }],
       select: {
-        id: true, fullName: true, email: true, emails: true, guessedEmail: true, phone: true, location: true, coverageStates: true, coverageIndustries: true, coverageFunctions: true, coverageSource: true,
+        id: true, fullName: true, email: true, emails: true, guessedEmail: true, phone: true, location: true, coverageStates: true, coverageIndustries: true, coverageFunctions: true, coverageSource: true, recruiterModels: true,
         affiliations: { where: { isCurrent: true }, take: 1, select: { title: true, org: { select: { id: true, name: true } } } },
       },
     }),
@@ -33,7 +35,7 @@ export async function recruiters(f: { state?: string; industry?: string; fn?: st
     return {
       id: p.id, name: p.fullName, title: p.affiliations[0]?.title ?? null, org: p.affiliations[0]?.org.name ?? null, orgId: p.affiliations[0]?.org.id ?? null,
       email: email ?? p.guessedEmail, guessed: !email && !!p.guessedEmail, phone: p.phone, location: p.location,
-      states: p.coverageStates, industries: p.coverageIndustries, functions: p.coverageFunctions, source: p.coverageSource,
+      states: p.coverageStates, industries: p.coverageIndustries, functions: p.coverageFunctions, source: p.coverageSource, models: p.recruiterModels,
     }
   })
   if (f.state) rows.sort((a, b) => Number(b.states.includes(f.state!)) - Number(a.states.includes(f.state!)))
@@ -95,4 +97,12 @@ export const ALL_FUNCTION_KEYS = FUNCTION_KEYS
 export async function kindCounts(): Promise<Record<string, number>> {
   const g = await prisma.crmPerson.groupBy({ by: ['recruiterKind'], where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' } }, _count: true })
   return Object.fromEntries(g.map((x) => [x.recruiterKind ?? 'unclassified', x._count]))
+}
+
+/** How many search and agency recruiters work each way (a person can work more than one way). */
+export async function modelCounts(): Promise<Record<string, number>> {
+  const rows = await prisma.crmPerson.findMany({ where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' }, recruiterKind: 'recruiter' }, select: { recruiterModels: true } })
+  const out: Record<string, number> = {}
+  for (const r of rows) for (const m of r.recruiterModels) out[m] = (out[m] ?? 0) + 1
+  return out
 }

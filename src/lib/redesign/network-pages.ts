@@ -29,7 +29,7 @@ export function followUpsIntro(count: number): string {
   return `${count} ${count === 1 ? 'item is' : 'items are'} waiting for a word from you. A quick reply keeps the conversation going.`
 }
 
-export type FollowUpKind = 'starred-contact' | 'needs-follow-up' | 'unanswered-application' | 'stale-contact'
+export type FollowUpKind = 'starred-contact' | 'needs-follow-up' | 'unanswered-application' | 'stale-contact' | 'conference'
 
 /** The one reason to act on a follow-up, in plain words. */
 export function followUpWhy(kind: FollowUpKind): string {
@@ -42,6 +42,8 @@ export function followUpWhy(kind: FollowUpKind): string {
       return 'It has been a couple of weeks since you applied. A short note can move it along.'
     case 'stale-contact':
       return 'It has been a while since you spoke. A hello keeps the relationship warm.'
+    case 'conference':
+      return 'A conference you track has a deadline, date or follow-up coming up.'
   }
 }
 
@@ -54,6 +56,8 @@ export function followUpActionLabel(kind: FollowUpKind): string {
       return 'Reply'
     case 'unanswered-application':
       return 'Follow up'
+    case 'conference':
+      return 'Open it'
   }
 }
 

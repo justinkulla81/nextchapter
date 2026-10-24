@@ -73,7 +73,7 @@
     "report:refresh-trends": "tsx scripts/reports/refresh-trends-data.ts",
     "report:check-facts": "tsx scripts/reports/check-report-facts.ts",
     "report:ai-layoffs": "tsx --env-file=.env.local scripts/employment-report/ai-layoffs-monthly.ts",
-    "report:early-warning": "node --env-file=.env.local scripts/employment-report/run-python.mjs scripts/employment-report/nc_early_warning_us.py --start 2010-01 --out public/reports/us-early-warning.csv && node scripts/employment-report/run-python.mjs scripts/employment-report/nc_peer_countries.py --out public/reports/early-warning-peers.json",
+    "report:early-warning": "node --env-file=.env.local scripts/employment-report/refresh-early-warning.mjs",
     "report:news": "tsx --env-file=.env.local scripts/employment-report/add-news-item.ts",
     "report:indexnow": "tsx --env-file=.env.local scripts/employment-report/indexnow.ts",
     "seed:he-demo": "node --env-file=.env.local --conditions=react-server --import tsx scripts/higher-ed/seed-demo.ts",

@@ -13,6 +13,11 @@ import { withCronRun } from '@/lib/cron/run'
 // expiresAt moves forward is a genuine reconfirmJobBoardPosting call (see
 // src/lib/jobs/job-board-submission.ts) or the ATS feed re-finding the same
 // URL still live — never a bare "bump."
+export const maxDuration = 300
+
+const TRIM_BATCH = 2_000
+const TRIM_MAX_BATCHES = 25
+
 export const GET = withCronRun('expire-job-postings', async () => {
   const result = await prisma.exclusiveJobPosting.updateMany({
     where: { archivedAt: null, expiresAt: { lt: new Date() } },
@@ -20,5 +25,26 @@ export const GET = withCronRun('expire-job-postings', async () => {
     data: { archivedAt: new Date(), closeReason: 'expired' },
   })
 
-  return NextResponse.json({ expired: result.count })
+  // Full descriptions are stored for open jobs (aggregator feeds need them). A posting closed
+  // over 30 days ago goes back to the ~1,000-character excerpt, so closed rows don't grow the
+  // database without bound; if it is listed again the next import stores the full text.
+  // Bounded batches with a short statement timeout, so the cron never holds long locks.
+  let trimmed = 0
+  for (let i = 0; i < TRIM_MAX_BATCHES; i++) {
+    const n = await prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = '20s'`)
+      await tx.$executeRawUnsafe(`SET LOCAL lock_timeout = '5s'`)
+      return tx.$executeRaw`
+        UPDATE public."ExclusiveJobPosting" SET "description" = left("description", 1000) || '…'
+        WHERE id IN (
+          SELECT id FROM public."ExclusiveJobPosting"
+          WHERE "archivedAt" < now() - interval '30 days' AND octet_length("description") > 4000
+          LIMIT ${TRIM_BATCH}
+        )`
+    }, { timeout: 30_000 })
+    trimmed += n
+    if (n < TRIM_BATCH) break
+  }
+
+  return NextResponse.json({ expired: result.count, trimmedClosedDescriptions: trimmed })
 })

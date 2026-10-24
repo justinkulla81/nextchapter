@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
-import { coverageCounts, kindCounts, recruiters } from '@/lib/crm/ecosystem'
+import { coverageCounts, kindCounts, modelCounts, recruiters } from '@/lib/crm/ecosystem'
 import { FUNCTIONS, INDUSTRY_KEYS, STATE_NAMES, functionName, industryName } from '@/lib/crm/coverage'
+import { MODELS, MODEL_LABEL } from '@/lib/crm/recruiter-model'
 import { KIND_LABEL, RECRUITER_KINDS, type RecruiterKind } from '@/lib/crm/recruiter-kind'
 import { RecruiterTable } from '@/components/admin/RecruiterTable'
 
@@ -15,9 +16,10 @@ export default async function RecruitersPage({ searchParams }: { searchParams: P
   const industry = sp.industry && INDUSTRY_KEYS.includes(sp.industry) ? sp.industry : ''
   const fn = sp.fn && FUNCTIONS[sp.fn] ? sp.fn : ''
   const kind: RecruiterKind = RECRUITER_KINDS.includes(sp.kind as RecruiterKind) ? (sp.kind as RecruiterKind) : 'recruiter'
-  const [counts, list, kinds] = await Promise.all([coverageCounts(kind), recruiters({ state, industry, fn, kind }, 500), kindCounts()])
+  const model = (MODELS as string[]).includes(sp.model ?? '') ? (sp.model as string) : ''
+  const [counts, list, kinds, models] = await Promise.all([coverageCounts(kind), recruiters({ state, industry, fn, kind, model }, 500), kindCounts(), modelCounts()])
   const href = (over: Record<string, string>) => {
-    const p = new URLSearchParams(Object.entries({ state, industry, fn, kind: kind === 'recruiter' ? '' : kind, ...over }).filter(([, v]) => v) as [string, string][])
+    const p = new URLSearchParams(Object.entries({ state, industry, fn, model, kind: kind === 'recruiter' ? '' : kind, ...over }).filter(([, v]) => v) as [string, string][])
     return `${BASE}${p.size ? `?${p}` : ''}`
   }
   const chip = (active: boolean) => `rounded-md border px-2.5 py-1 text-sm ${active ? 'border-brand bg-brand text-white' : 'border-border hover:bg-muted'}`
@@ -25,7 +27,7 @@ export default async function RecruitersPage({ searchParams }: { searchParams: P
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold">Recruiters</h1>
+        <h1 className="text-2xl font-semibold">Recruiters by state and industry</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           {counts.total} {KIND_LABEL[kind].toLowerCase()}, {counts.total - counts.untagged} tagged with the states, industries and functions they cover. Pick any combination; national recruiters appear under every state. These are the people the layoff alert lists for a notice in that state and industry.
         </p>
@@ -35,6 +37,13 @@ export default async function RecruitersPage({ searchParams }: { searchParams: P
         <h2 id="f-kind" className="text-sm font-medium">Who</h2>
         <div className="flex flex-wrap gap-1.5">
           {RECRUITER_KINDS.map((k) => <Link key={k} href={href({ kind: k === 'recruiter' ? '' : k })} className={chip(kind === k)}>{KIND_LABEL[k]} ({kinds[k] ?? 0})</Link>)}
+        </div>
+      </section>
+      <section aria-labelledby="f-model" className="space-y-2">
+        <h2 id="f-model" className="text-sm font-medium">How they work</h2>
+        <div className="flex flex-wrap gap-1.5">
+          <Link href={href({ model: '' })} className={chip(!model)}>Any</Link>
+          {MODELS.map((m) => <Link key={m} href={href({ model: m })} className={chip(model === m)}>{MODEL_LABEL[m]}{m === 'candidate_rep' ? ' (prime targets)' : ''} ({models[m] ?? 0})</Link>)}
         </div>
       </section>
       <section aria-labelledby="f-state" className="space-y-2">

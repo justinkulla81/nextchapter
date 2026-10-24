@@ -1,0 +1,122 @@
+{
+  "coach-clients": {
+    "src": "/marketing/coach-clients.webp",
+    "width": 1440,
+    "height": 843
+  },
+  "coach-pre-session-brief": {
+    "src": "/marketing/coach-pre-session-brief.webp",
+    "width": 1440,
+    "height": 1007
+  },
+  "coach-session-log": {
+    "src": "/marketing/coach-session-log.webp",
+    "width": 1440,
+    "height": 990
+  },
+  "coach-session-notes": {
+    "src": "/marketing/coach-session-notes.webp",
+    "width": 1440,
+    "height": 1500
+  },
+  "coach-session-prep": {
+    "src": "/marketing/coach-session-prep.webp",
+    "width": 1440,
+    "height": 1500
+  },
+  "coach-what-client-sees": {
+    "src": "/marketing/coach-what-client-sees.webp",
+    "width": 1440,
+    "height": 1500
+  },
+  "employees-enroll": {
+    "src": "/marketing/employees-enroll.webp",
+    "width": 1440,
+    "height": 843
+  },
+  "employees-learning": {
+    "src": "/marketing/employees-learning.webp",
+    "width": 1440,
+    "height": 1228
+  },
+  "employees-retention": {
+    "src": "/marketing/employees-retention.webp",
+    "width": 1440,
+    "height": 886
+  },
+  "higher-education-admin-overview": {
+    "src": "/marketing/higher-education-admin-overview.webp",
+    "width": 1440,
+    "height": 891
+  },
+  "higher-education-alumni-workspace": {
+    "src": "/marketing/higher-education-alumni-workspace.webp",
+    "width": 1440,
+    "height": 843
+  },
+  "higher-education-career-caseload": {
+    "src": "/marketing/higher-education-career-caseload.webp",
+    "width": 1440,
+    "height": 843
+  },
+  "hiring-dashboard": {
+    "src": "/marketing/hiring-dashboard.webp",
+    "width": 1440,
+    "height": 843
+  },
+  "hiring-evidence-brief": {
+    "src": "/marketing/hiring-evidence-brief.webp",
+    "width": 1440,
+    "height": 1190
+  },
+  "hiring-roles": {
+    "src": "/marketing/hiring-roles.webp",
+    "width": 1440,
+    "height": 875
+  },
+  "outplacement-compliance": {
+    "src": "/marketing/outplacement-compliance.webp",
+    "width": 1440,
+    "height": 977
+  },
+  "outplacement-reporting": {
+    "src": "/marketing/outplacement-reporting.webp",
+    "width": 1440,
+    "height": 843
+  },
+  "outplacement-roster": {
+    "src": "/marketing/outplacement-roster.webp",
+    "width": 1440,
+    "height": 843
+  },
+  "recruiter-pipeline": {
+    "src": "/marketing/recruiter-pipeline.webp",
+    "width": 1440,
+    "height": 843
+  },
+  "recruiter-search": {
+    "src": "/marketing/recruiter-search.webp",
+    "width": 1440,
+    "height": 861
+  },
+  "recruiter-submission-packet": {
+    "src": "/marketing/recruiter-submission-packet.webp",
+    "width": 1440,
+    "height": 958
+  },
+  "workforce-admin-overview": {
+    "src": "/marketing/workforce-admin-overview.webp",
+    "width": 1440,
+    "height": 891
+  },
+  "workforce-hub-dashboard": {
+    "src": "/marketing/workforce-hub-dashboard.webp",
+    "width": 1440,
+    "height": 856
+  },
+  "workforce-hub-layoffs": {
+    "src": "/marketing/workforce-hub-layoffs.webp",
+    "width": 1440,
+    "height": 936
+  }
+}

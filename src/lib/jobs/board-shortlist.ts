@@ -1,6 +1,7 @@
 import 'server-only'
 import type { ExclusiveJobPosting, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { excerptOf } from '@/lib/jobs/posting-text'
 import { computeBoardListingFitBucket } from '@/lib/jobs/job-fit-bucket'
 import { boardListingFitBucketScorerFor, type FitScoringVersion } from '@/lib/jobs/email-fit-scoring'
 import { FIT_BUCKET_SORT_RANK } from '@/lib/jobs/fit-bucket-types'
@@ -847,7 +848,9 @@ export async function loadBoardShortlist(opts: {
   }
   if (opts.views) lap.viewCounts = Date.now() - t0
   const full = new Map(
-    (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, p])
+    // Descriptions are stored whole; the board's cards and fit checks get the ~1,000-character
+    // excerpt they were built on, so the page payload stays the size it was.
+    (await prisma.exclusiveJobPosting.findMany({ where: { id: { in: [...ranked.openIds, ...ranked.lockedIds] } } })).map((p) => [p.id, { ...p, description: excerptOf(p.description) }])
   )
   const inOrder = (ids: string[]) => ids.map((id) => full.get(id)).filter((p): p is ExclusiveJobPosting => !!p)
   lap.total = Date.now() - t0

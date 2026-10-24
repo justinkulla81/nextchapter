@@ -76,7 +76,12 @@ async function AdminNavWithBadges() {
     prisma.warnNotice.count({ where: { promotedAt: null, dismissedAt: null } }),
     prisma.crmActivity.count({ where: { needsReview: true, person: { deletedAt: null } } }),
     prisma.contactSubmission.count({ where: { handledAt: null } }),
-    prisma.helpRequest.count({ where: { status: 'OPEN', lastMessageFromAdmin: false } }),
+    // The Help inbox badge: conversations waiting on a reply plus new ideas and
+    // feedback (its Ideas & feedback tab), so a new idea is not invisible.
+    Promise.all([
+      prisma.helpRequest.count({ where: { status: 'OPEN', lastMessageFromAdmin: false } }),
+      prisma.productFeedback.count({ where: { status: 'NEW', channel: { in: ['in-app idea', 'in-app feedback', 'portal idea', 'portal feedback'] } } }),
+    ]).then(([a, b]) => a + b),
     // Mailing lists: drafts waiting for approval, "Add to a mailing list?"
     // cards, and unsubscribe replies still to apply. Never allowed to break
     // the admin shell.

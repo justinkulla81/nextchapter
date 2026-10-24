@@ -15,7 +15,7 @@ async function main() {
   const people = await prisma.crmPerson.findMany({
     where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' }, OR: [{ coverageSource: null }, { coverageSource: { not: 'research' } }] },
     select: {
-      id: true, location: true,
+      id: true, location: true, recruiterKind: true,
       affiliations: { where: { isCurrent: true }, take: 1, orderBy: { isPrimary: 'desc' }, select: { title: true, org: { select: { id: true, name: true, industry: true, usState: true, orgTypes: true, searchFirms: { take: 1, select: { sampleTitles: true } } } } } },
     },
   })
@@ -26,7 +26,7 @@ async function main() {
     const firm = a?.org.searchFirms[0]
     const c = deriveCoverage({
       title: a?.title ?? null, location: p.location, orgName: a?.org.name ?? null, orgIndustry: a?.org.industry ?? null, orgState: a?.org.usState ?? null,
-      isSearchFirm: !!firm || /\b(search|staffing|recruit\w*|executive|headhunt\w*|talent|associates|partners)\b/i.test(a?.org.name ?? ''), firmTitles: firm?.sampleTitles ?? [],
+      isSearchFirm: p.recruiterKind === 'recruiter' || !!firm || /\b(search|staffing|recruit\w*|executive|headhunt\w*|talent|associates|partners)\b/i.test(a?.org.name ?? ''), firmTitles: firm?.sampleTitles ?? [],
     })
     if (c.states.length) tally.states++
     if (c.industries.length) tally.industries++

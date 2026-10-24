@@ -4,7 +4,7 @@ import { useActionState, useEffect, useMemo, useState, useSyncExternalStore } fr
 import { SubmitButton } from '@/components/ui/submit-button'
 import { Label } from '@/components/ui/label'
 import { posthog } from '@/lib/posthog/client'
-import { bookSession } from '@/app/dashboard/book-session/actions'
+import { bookSession, rescheduleMySession } from '@/app/dashboard/book-session/actions'
 
 const noopSubscribe = () => () => {}
 // False while rendering on the server and during hydration, true in the browser after: the viewer's
@@ -19,8 +19,9 @@ const selectClass =
 // Day and time are two dropdowns (there are more than four of each), shown in the viewer's own
 // time zone. Slots arrive as UTC instants and are grouped here, in the browser, because only the
 // browser knows the viewer's zone.
-export function SlotPicker({ slots, coachId, coachName }: { slots: string[]; coachId: string; coachName: string }) {
-  const [state, action] = useActionState(bookSession, undefined)
+export function SlotPicker({ slots, coachId, coachName, rescheduleBookingId }: { slots: string[]; coachId: string; coachName: string; rescheduleBookingId?: string }) {
+  const moving = rescheduleBookingId !== undefined
+  const [state, action] = useActionState(moving ? rescheduleMySession : bookSession, undefined)
   const mounted = useIsClient()
   const [day, setDay] = useState('')
   const [startsAt, setStartsAt] = useState('')
@@ -39,8 +40,8 @@ export function SlotPicker({ slots, coachId, coachName }: { slots: string[]; coa
   }, [mounted, slots])
 
   useEffect(() => {
-    if (mounted) posthog.capture('coach_slots_viewed', { coachId, slotCount: slots.length })
-  }, [mounted, coachId, slots.length])
+    if (mounted) posthog.capture('coach_slots_viewed', { coachId, slotCount: slots.length, rescheduling: moving })
+  }, [mounted, coachId, slots.length, moving])
 
   const times = days.find((d) => d.key === day)?.times ?? []
   // After a booking the slot list refreshes and the time just taken disappears; a stale choice must not stay selected.
@@ -52,6 +53,7 @@ export function SlotPicker({ slots, coachId, coachName }: { slots: string[]; coa
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="startsAt" value={chosen} />
+      {moving && <input type="hidden" name="bookingId" value={rescheduleBookingId} />}
       <div>
         <Label>
           <span className="text-sm font-medium text-foreground">Day</span>
@@ -87,10 +89,10 @@ export function SlotPicker({ slots, coachId, coachName }: { slots: string[]; coa
         {times.length === 0 && <p className="mt-1 text-xs text-muted-foreground">Times appear once you pick a day.</p>}
       </div>
       {zone && <p className="text-xs text-muted-foreground">Times are shown in your time zone: {zone}.</p>}
-      <SubmitButton pendingLabel="Booking…" savedLabel={`Book with ${coachName.split(' ')[0]}`} disabled={!chosen}>
-        {`Book with ${coachName.split(' ')[0]}`}
+      <SubmitButton pendingLabel={moving ? 'Moving…' : 'Booking…'} savedLabel={moving ? 'Move session' : `Book with ${coachName.split(' ')[0]}`} disabled={!chosen}>
+        {moving ? 'Move session' : `Book with ${coachName.split(' ')[0]}`}
       </SubmitButton>
-      {!chosen && <p className="text-xs text-muted-foreground">Choose a day and a time to turn on the Book button.</p>}
+      {!chosen && <p className="text-xs text-muted-foreground">Choose a day and a time to turn on the {moving ? 'Move session' : 'Book'} button.</p>}
       {state?.message && (
         <p role="status" className="text-sm text-foreground">
           {state.message}

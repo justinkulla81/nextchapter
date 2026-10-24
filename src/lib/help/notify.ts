@@ -1,32 +1,37 @@
 import 'server-only'
 import { createResend } from '@/lib/email/resend-client'
+import type { EmailAudience } from '@/lib/email/audience-tag'
 import { prisma } from '@/lib/prisma'
 import { PORTAL_LABEL } from '@/lib/help/constants'
+import {
+  buttonHtml, callout, conversationHistoryHtml, conversationHistoryText, emailDocument, escapeHtml, factsHtml, stamp, textToHtml,
+  type ThreadMessage,
+} from '@/lib/help/email-layout'
 
 /** Where new help requests are emailed. Override with HELP_FORWARD_TO. */
 const ADMIN_TO = process.env.HELP_FORWARD_TO || process.env.CONTACT_FORWARD_TO || 'justin@launchyournextchapter.com'
-const FROM = 'NextChapter <support@launchyournextchapter.com>'
+const SUPPORT = 'support@launchyournextchapter.com'
+const FROM = `NextChapter Support <${SUPPORT}>`
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com'
 const ADMIN_URL = 'https://admin.launchyournextchapter.com'
 
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+const PORTAL_AUDIENCE: Record<string, EmailAudience> = {
+  CANDIDATE: 'candidate', EMPLOYER: 'employer', RECRUITER: 'recruiter', COACH: 'coach', INSTITUTION: 'organization',
 }
 
-function wrap(inner: string): string {
-  return `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;color:#0f1b2b;line-height:1.5">${inner}</div>`
-}
-
-const quote = (text: string) =>
-  `<div style="white-space:pre-wrap;border-left:3px solid #f4a259;padding:4px 0 4px 12px;margin:0 0 16px">${escapeHtml(text)}</div>`
-
-async function send(args: { to: string; subject: string; html: string; text: string; replyTo?: string }): Promise<boolean> {
+async function send(args: { to: string; subject: string; html: string; text: string; replyTo?: string; audience: EmailAudience; ref?: string }): Promise<boolean> {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY is not set — skipping help email.')
     return false
   }
+  const { audience, ref, ...mail } = args
   try {
-    const { error } = await createResend(process.env.RESEND_API_KEY, args.to === ADMIN_TO ? 'admin' : 'candidate').emails.send({ from: FROM, ...args })
+    const { error } = await createResend(process.env.RESEND_API_KEY, audience).emails.send({
+      from: FROM,
+      // One conversation, one thread: mail clients group on these.
+      ...(ref ? { headers: { References: `<help-${ref}@launchyournextchapter.com>`, 'X-Entity-Ref-ID': ref } } : {}),
+      ...mail,
+    })
     if (error) { console.error('Help email failed:', error); return false }
     return true
   } catch (e) {
@@ -38,81 +43,89 @@ async function send(args: { to: string; subject: string; html: string; text: str
 const candidateName = (c: { firstName: string | null; lastName: string | null } | null) =>
   [c?.firstName, c?.lastName].filter(Boolean).join(' ') || 'A candidate'
 
+const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
+
+/** Every message in a conversation, oldest first, for quoting under the newest. */
+async function thread(requestId: string): Promise<ThreadMessage[]> {
+  const rows = await prisma.helpMessage.findMany({ where: { requestId }, orderBy: { createdAt: 'asc' }, select: { fromAdmin: true, body: true, createdAt: true } })
+  return rows.map((m) => ({ fromTeam: m.fromAdmin, body: m.body, at: m.createdAt }))
+}
+
+/** The internal alert: who, where, the message, and one button into the Help inbox. */
+async function alertAdmin(r: {
+  id: string; subject: string; kind: 'HELP' | 'PROBLEM'; portal: string; flaggedCrisis: boolean; contextTitle: string | null; contextPath: string | null; createdAt: Date
+}, who: { name: string; email: string | null; org: string | null }, body: string, isFollowUp: boolean): Promise<void> {
+  const kind = r.kind === 'PROBLEM' ? 'Problem' : 'Help request'
+  const where = PORTAL_LABEL[r.portal] ?? r.portal
+  const link = `${ADMIN_URL}/support/admin/help/${r.id}`
+  const history = (await thread(r.id)).slice(0, -1)
+  const page = [r.contextTitle, r.contextPath].filter(Boolean).join(' · ')
+  const flag = r.flaggedCrisis ? '[Check in] ' : ''
+  const title = isFollowUp ? `${who.name} replied` : `New ${kind.toLowerCase()} from ${who.name}`
+  const html = emailDocument({
+    preheader: clip(body, 110),
+    label: 'Help inbox',
+    footer: `You are getting this because you run support. <a href="${link}" style="color:#1d4e89">Open the conversation</a>.`,
+    bodyHtml: `
+      ${r.flaggedCrisis ? callout('<strong>Check in first.</strong> This message uses crisis language. They were shown the 988 Suicide &amp; Crisis Lifeline when sending.', 'alert') : ''}
+      <p style="margin:0 0 16px;font-size:20px;font-weight:700;line-height:1.3">${escapeHtml(title)}</p>
+      ${factsHtml([['From', who.name], ['Email', who.email], ['Portal', where + (who.org ? ` · ${who.org}` : '')], ['Type', isFollowUp ? 'Follow-up' : kind], ['Page', page || null], ['Sent', stamp(new Date())]])}
+      <div style="margin:0 0 20px;padding:14px 16px;background:#f7f9fb;border-left:3px solid #f4a259;border-radius:4px">${textToHtml(body, 'margin:0 0 10px;font-size:15px;line-height:1.6;color:#0f1b2b')}</div>
+      ${buttonHtml('Reply in the Help inbox', link)}`,
+    history: conversationHistoryHtml(history, who.name),
+  })
+  const text = `${title}\n\n${[['From', who.name], ['Email', who.email], ['Portal', where + (who.org ? ` · ${who.org}` : '')], ['Page', page || null]].filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join('\n')}\n\n${body}\n\nReply: ${link}${conversationHistoryText(history, who.name)}`
+  await send({ to: ADMIN_TO, subject: `${flag}${where}: ${who.name} · ${r.subject}`, html, text, audience: 'admin', ref: r.id })
+}
+
 /** A new help request or problem, or a candidate's follow-up on one: email the admin. */
 export async function notifyAdminOfHelp(requestId: string, body: string, isFollowUp: boolean): Promise<void> {
   const r = await prisma.helpRequest.findUnique({ where: { id: requestId } })
   if (!r?.candidateId) return
   const c = await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, lastName: true, email: true } })
-  const name = candidateName(c)
-  const kind = r.kind === 'PROBLEM' ? 'Problem' : 'Help'
-  const link = `${ADMIN_URL}/support/admin/help/${r.id}`
-  const flag = r.flaggedCrisis ? '[Check in] ' : ''
-  await send({
-    to: ADMIN_TO,
-    subject: `${flag}${isFollowUp ? 'Reply' : kind}: ${name} · ${r.subject}`,
-    html: wrap(`
-      ${r.flaggedCrisis ? '<p style="margin:0 0 12px;color:#9b3b2f;font-weight:600">This message uses crisis language. The candidate was shown the 988 line.</p>' : ''}
-      <p style="margin:0 0 12px;font-size:17px;font-weight:600">${isFollowUp ? `${escapeHtml(name)} replied` : `${kind} request from ${escapeHtml(name)}`}</p>
-      ${quote(body)}
-      <p style="margin:0 0 4px;color:#55606e;font-size:13px">${r.contextTitle || r.contextPath ? `Page: ${escapeHtml(r.contextTitle || r.contextPath || '')}` : ''}</p>
-      <p style="margin:0;font-size:14px"><a href="${link}">Reply in the Help inbox</a></p>`),
-    text: `${isFollowUp ? `${name} replied` : `${kind} request from ${name}`}\n\n${body}\n\nReply: ${link}`,
-  })
+  await alertAdmin(r, { name: candidateName(c), email: c?.email ?? null, org: null }, body, isFollowUp)
 }
 
 /** A new help request or problem from a partner portal (employer, recruiter, coach, institution): email the admin. */
 export async function notifyAdminOfPortalHelp(requestId: string, body: string): Promise<void> {
   const r = await prisma.helpRequest.findUnique({ where: { id: requestId } })
   if (!r) return
-  const kind = r.kind === 'PROBLEM' ? 'Problem' : 'Help'
-  const where = PORTAL_LABEL[r.portal] ?? r.portal
-  const who = [r.requesterName, r.requesterOrg].filter(Boolean).join(' · ') || where
-  const link = `${ADMIN_URL}/support/admin/help/${r.id}`
-  const flag = r.flaggedCrisis ? '[Check in] ' : ''
-  await send({
-    to: ADMIN_TO,
-    subject: `${flag}${where} ${kind.toLowerCase()}: ${who} · ${r.subject}`,
-    html: wrap(`
-      <p style="margin:0 0 12px;font-size:17px;font-weight:600">${kind} request from ${escapeHtml(who)} (${where} portal)</p>
-      ${quote(body)}
-      <p style="margin:0 0 4px;color:#55606e;font-size:13px">${r.contextTitle || r.contextPath ? `Page: ${escapeHtml(r.contextTitle || r.contextPath || '')}` : ''}</p>
-      <p style="margin:0;font-size:14px"><a href="${link}">Reply in the Help inbox</a></p>`),
-    text: `${kind} request from ${who} (${where} portal)\n\n${body}\n\nReply: ${link}`,
-  })
+  await alertAdmin(r, { name: r.requesterName || PORTAL_LABEL[r.portal] || 'Partner user', email: r.requesterEmail, org: r.requesterOrg }, body, false)
 }
 
-/** The admin replied: email the candidate with the reply and a link back. */
+/** The admin replied: email the person with the reply, the conversation so far, and a way back. */
 export async function notifyCandidateOfReply(requestId: string, body: string): Promise<boolean> {
-  const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, subject: true, requesterName: true, requesterEmail: true } })
+  const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, portal: true, subject: true, requesterName: true, requesterEmail: true } })
   if (!r) return false
-  // Partner-portal requesters have no in-app inbox: the reply goes by email and
-  // they answer by replying to it, which lands in support@.
-  if (!r.candidateId) {
-    if (!r.requesterEmail) return false
-    const first = r.requesterName?.split(' ')[0]
-    return send({
-      to: r.requesterEmail,
-      subject: `Re: ${r.subject}`,
-      replyTo: 'support@launchyournextchapter.com',
-      html: wrap(`
-        <p style="margin:0 0 12px">Hi${first ? ` ${escapeHtml(first)}` : ''},</p>
-        ${quote(body)}
-        <p style="margin:0;font-size:14px;color:#55606e">Reply to this email and it comes straight to us.</p>`),
-      text: `Hi${first ? ` ${first}` : ''},\n\n${body}\n\nReply to this email and it comes straight to us.`,
-    })
+  let to: string | null
+  let first: string | null
+  let inApp: boolean
+  if (r.candidateId) {
+    const c = await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, email: true } })
+    to = c?.email ?? null
+    first = c?.firstName ?? null
+    inApp = true
+  } else {
+    // Partner-portal people have no in-app inbox: they answer by replying to the email, which lands in support@.
+    to = r.requesterEmail
+    first = r.requesterName?.split(' ')[0] ?? null
+    inApp = false
   }
-  const c = await prisma.candidateProfile.findUnique({ where: { id: r.candidateId }, select: { firstName: true, email: true } })
-  if (!c?.email) return false
+  if (!to) return false
+  const history = (await thread(requestId)).slice(0, -1)
   const link = `${APP_URL}/dashboard/help?request=${requestId}`
-  return send({
-    to: c.email,
-    subject: `Re: ${r.subject}`,
-    html: wrap(`
-      <p style="margin:0 0 12px">Hi${c.firstName ? ` ${escapeHtml(c.firstName)}` : ''},</p>
-      ${quote(body)}
-      <p style="margin:0;font-size:14px"><a href="${link}">Reply on NextChapter</a></p>`),
-    text: `Hi${c.firstName ? ` ${c.firstName}` : ''},\n\n${body}\n\nReply on NextChapter: ${link}`,
+  const html = emailDocument({
+    preheader: clip(body, 110),
+    label: 'Support',
+    bodyHtml: `
+      <p style="margin:0 0 16px;font-size:16px;line-height:1.65">${first ? `Hi ${escapeHtml(first)},` : 'Hello,'}</p>
+      ${textToHtml(body)}
+      <p style="margin:18px 0 20px;font-size:16px;line-height:1.65">Thanks,<br><strong>The NextChapter team</strong></p>
+      ${inApp ? buttonHtml('Reply on NextChapter', link) : `<p style="margin:0 0 6px;font-size:14px;color:#55606e">To reply, just answer this email. It comes straight to us.</p>`}`,
+    history: conversationHistoryHtml(history, 'You'),
   })
+  const text = `${first ? `Hi ${first},` : 'Hello,'}\n\n${body}\n\nThanks,\nThe NextChapter team\n\n${inApp ? `Reply on NextChapter: ${link}` : 'To reply, just answer this email. It comes straight to us.'}${conversationHistoryText(history, 'You')}`
+  return send({ to, subject: `Re: ${r.subject}`, replyTo: SUPPORT, html, text, audience: PORTAL_AUDIENCE[r.portal] ?? 'candidate', ref: requestId })
 }
 
 /** An in-app idea or feedback was marked Addressed with a note: tell the candidate. */
@@ -128,19 +141,22 @@ export async function notifyCandidateFeedbackAddressed(feedbackId: string): Prom
   if (!c?.email) return false
   const what = fb.channel === 'in-app idea' ? 'idea' : 'feedback'
   const link = `${APP_URL}/dashboard/help`
-  const excerpt = fb.rawText.length > 240 ? `${fb.rawText.slice(0, 239)}…` : fb.rawText
-  return send({
-    to: c.email,
-    subject: `An update on your ${what}`,
-    html: wrap(`
-      <p style="margin:0 0 12px">Hi${c.firstName ? ` ${escapeHtml(c.firstName)}` : ''},</p>
-      <p style="margin:0 0 8px">You told us:</p>
-      ${quote(excerpt)}
-      <p style="margin:0 0 8px">Here’s what happened:</p>
-      ${quote(fb.responseNote)}
-      <p style="margin:0;font-size:14px">Thank you. <a href="${link}">See all your ideas and feedback</a></p>`),
-    text: `Hi${c.firstName ? ` ${c.firstName}` : ''},\n\nYou told us:\n${excerpt}\n\nHere's what happened:\n${fb.responseNote}\n\n${link}`,
+  const excerpt = clip(fb.rawText, 240)
+  const html = emailDocument({
+    preheader: `An update on the ${what} you sent us.`,
+    label: 'Support',
+    bodyHtml: `
+      <p style="margin:0 0 16px;font-size:16px;line-height:1.65">${c.firstName ? `Hi ${escapeHtml(c.firstName)},` : 'Hello,'}</p>
+      <p style="margin:0 0 14px;font-size:16px;line-height:1.65">Thank you for your ${what}. Here is what happened with it.</p>
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#55606e">What you told us</p>
+      <div style="margin:0 0 18px;border-left:3px solid #e3e8ef;padding:2px 0 2px 12px;font-size:14px;line-height:1.55;color:#55606e;white-space:pre-wrap">${escapeHtml(excerpt)}</div>
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#1d4e89">Our response</p>
+      ${textToHtml(fb.responseNote)}
+      <p style="margin:18px 0 20px;font-size:16px;line-height:1.65">Thanks,<br><strong>The NextChapter team</strong></p>
+      ${buttonHtml('See your ideas and feedback', link)}`,
   })
+  const text = `${c.firstName ? `Hi ${c.firstName},` : 'Hello,'}\n\nThank you for your ${what}. Here is what happened with it.\n\nWhat you told us:\n${excerpt}\n\nOur response:\n${fb.responseNote}\n\nThanks,\nThe NextChapter team\n\n${link}`
+  return send({ to: c.email, subject: `An update on your ${what}`, replyTo: SUPPORT, html, text, audience: 'candidate' })
 }
 
 /** Yesterday's in-app ideas and feedback, in one email. Nothing sent when there are none. */
@@ -148,20 +164,36 @@ export async function sendDailyFeedbackDigest(since: Date): Promise<number> {
   const items = await prisma.productFeedback.findMany({
     where: { channel: { in: ['in-app idea', 'in-app feedback', 'portal idea', 'portal feedback'] }, createdAt: { gte: since } },
     orderBy: { createdAt: 'asc' },
-    select: { id: true, rawText: true, channel: true, contextPath: true, personLabel: true, candidate: { select: { firstName: true, lastName: true } } },
+    select: { id: true, rawText: true, channel: true, contextPath: true, personLabel: true, createdAt: true, candidate: { select: { firstName: true, lastName: true } } },
   })
   if (items.length === 0) return 0
-  const link = `${ADMIN_URL}/support/admin/vision/feedback`
-  const rows = items.map((i) => {
+  const link = `${ADMIN_URL}/support/admin/help?tab=ideas`
+  const cards = items.map((i) => {
     const who = i.personLabel ?? candidateName(i.candidate)
     const what = i.channel?.endsWith('idea') ? 'Idea' : 'Feedback'
-    return { html: `<p style="margin:0 0 4px;font-size:13px;color:#55606e">${what} · ${escapeHtml(who)}${i.contextPath ? ` · ${escapeHtml(i.contextPath)}` : ''}</p>${quote(i.rawText)}`, text: `${what} · ${who}\n${i.rawText}` }
+    const partner = i.channel?.startsWith('portal')
+    return {
+      what, who, partner, text: i.rawText, path: i.contextPath, at: i.createdAt,
+      html: `
+        <div style="margin:0 0 14px;padding:14px 16px;border:1px solid #e3e8ef;border-radius:8px">
+          <p style="margin:0 0 8px;font-size:12px;color:#55606e"><strong style="color:#0f1b2b">${what}</strong> · ${escapeHtml(who)}${partner ? ' · partner portal' : ''} · ${stamp(i.createdAt)}</p>
+          ${textToHtml(i.rawText, 'margin:0 0 8px;font-size:15px;line-height:1.6;color:#0f1b2b')}
+          ${i.contextPath ? `<p style="margin:0;font-size:12px;color:#55606e">From ${escapeHtml(i.contextPath)}</p>` : ''}
+        </div>`,
+    }
   })
-  await send({
-    to: ADMIN_TO,
-    subject: `${items.length} new ${items.length === 1 ? 'idea or piece of feedback' : 'ideas and feedback'} from customers`,
-    html: wrap(`<p style="margin:0 0 14px;font-size:17px;font-weight:600">From candidates and partners in the last day</p>${rows.map((r) => r.html).join('')}<p style="margin:0;font-size:14px"><a href="${link}">Triage in Vision → Feedback</a></p>`),
-    text: `${rows.map((r) => r.text).join('\n\n')}\n\nTriage: ${link}`,
+  const n = items.length
+  const html = emailDocument({
+    preheader: `${n} new ${n === 1 ? 'idea or piece of feedback' : 'ideas and feedback'} in the last day.`,
+    label: 'Ideas & feedback',
+    footer: `Daily summary. <a href="${link}" style="color:#1d4e89">Open Ideas &amp; feedback</a> in the Help inbox, or triage in Vision → Feedback.`,
+    bodyHtml: `
+      <p style="margin:0 0 16px;font-size:20px;font-weight:700;line-height:1.3">${n} new ${n === 1 ? 'idea or piece of feedback' : 'ideas and feedback'}</p>
+      <p style="margin:0 0 18px;font-size:14px;color:#55606e">From candidates and partners in the last day.</p>
+      ${cards.map((c) => c.html).join('')}
+      ${buttonHtml('Open Ideas & feedback', link)}`,
   })
-  return items.length
+  const text = `${n} new ${n === 1 ? 'idea or piece of feedback' : 'ideas and feedback'} from candidates and partners in the last day\n\n${cards.map((c) => `${c.what} · ${c.who} · ${stamp(c.at)}\n${c.text}`).join('\n\n')}\n\nOpen: ${link}`
+  await send({ to: ADMIN_TO, subject: `${n} new ${n === 1 ? 'idea or piece of feedback' : 'ideas and feedback'} from customers`, html, text, audience: 'admin' })
+  return n
 }

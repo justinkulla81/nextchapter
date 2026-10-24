@@ -12,12 +12,15 @@ import { readFileSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
 import { addContactToCrm, ensureOrg } from '../../src/lib/crm/add-contact'
 import { classifyRecruiter } from '../../src/lib/crm/recruiter-kind'
+import { MODELS } from '../../src/lib/crm/recruiter-model'
 import { INDUSTRY_KEYS, FUNCTION_KEYS, STATE_NAMES } from '../../src/lib/crm/coverage'
 
 interface Row {
   fullName: string; title: string; firm: string; firmWebsite?: string; city?: string; state: string
   email?: string; phone?: string; sourceUrl: string
   industries: string[]; functions: string[]; coverageStates?: string[]
+  /** Recruiter models the page shows (candidate_rep, retained_search, contingent, in_house) and the short phrase that showed candidate representation. */
+  models?: string[]; evidence?: string
 }
 
 async function main() {
@@ -42,13 +45,15 @@ async function main() {
     })
     if (res.outcome === 'removed') { tally.removed++; continue }
     tally[res.outcome]++
-    const p = await prisma.crmPerson.findUniqueOrThrow({ where: { id: res.personId }, select: { coverageStates: true, coverageIndustries: true, coverageFunctions: true, location: true } })
+    const p = await prisma.crmPerson.findUniqueOrThrow({ where: { id: res.personId }, select: { coverageStates: true, coverageIndustries: true, coverageFunctions: true, location: true, recruiterModels: true, modelEvidence: true } })
     await prisma.crmPerson.update({
       where: { id: res.personId },
       data: {
         coverageStates: [...new Set([...p.coverageStates, ...states])], coverageIndustries: [...new Set([...p.coverageIndustries, ...industries])],
         coverageFunctions: [...new Set([...p.coverageFunctions, ...functions])], coverageSource: 'research',
         recruiterKind: classifyRecruiter({ title: r.title, atSearchFirm: true }),
+        recruiterModels: [...new Set([...p.recruiterModels, ...(r.models ?? []).filter((m) => (MODELS as string[]).includes(m))])],
+        ...(r.evidence && !p.modelEvidence ? { modelEvidence: r.evidence.slice(0, 200) } : {}),
         ...(p.location || !r.city ? {} : { location: `${r.city}, ${r.state}` }),
       },
     })

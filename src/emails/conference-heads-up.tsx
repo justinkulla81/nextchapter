@@ -31,7 +31,7 @@ export default function ConferenceHeadsUpEmail({ firstName, headline, eventName,
       <p style={{ fontWeight: 600, fontSize: '18px', marginTop: '24px' }}>{headline}</p>
       <p>
         {firstName ? `Hi ${firstName}, ` : ''}
-        <a href={eventUrl} style={{ color: '#0b2545' }}>{eventName}</a> is {when}{where ? ` in ${where}` : ''}. {cost}
+        <a href={eventUrl} style={{ color: '#0b2545' }}>{eventName}</a> is {when}{where ? ` in ${where}` : ''}. {/[.!?]$/.test(cost) ? cost : `${cost}.`}
       </p>
       <ol style={{ paddingLeft: '20px' }}>
         {steps.map((s) => (

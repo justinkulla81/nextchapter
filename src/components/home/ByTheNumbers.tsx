@@ -1,21 +1,21 @@
 const STATS = [
   {
     value: '27.1%',
-    label: 'Of unemployed people had been jobless 27+ weeks in September 2026, up from 23.6% a year earlier.',
+    label: 'Of all unemployed people had been looking for work 27 weeks or more in September 2026, up from 23.6% a year earlier.',
     href: '/reports/white-collar-employment-report-september-2026',
-    source: 'NextChapter, September 2026 report (BLS)',
+    source: 'NextChapter White Collar Employment Report, Sept 2026 (BLS Employment Situation)',
   },
   {
-    value: '6.5 months',
-    label: 'Average job search for people who were laid off, in a 2026 survey.',
-    href: 'https://unitedwaynca.org/blog/how-long-does-it-take-to-find-a-job-2026-survey/',
-    source: 'United Way NCA survey',
+    value: '0.75%',
+    label: 'Of the white-collar labor force was unemployed 27 weeks or more, January to August 2026, up from 0.56% a year earlier. The rise is larger than its margin of error.',
+    href: '/reports/white-collar-employment-report-september-2026',
+    source: 'NextChapter White Collar Employment Report, Sept 2026 (Census CPS microdata)',
   },
   {
     value: '24.2%',
-    label: 'Of mid-career professionals went 5+ years without a meaningful raise or promotion, as of June 2026.',
+    label: 'Of mid-career professionals, 10 to 15 years in, went 5+ years without a meaningful raise or promotion, as of June 2026.',
     href: '/reports/white-collar-employment-report-september-2026',
-    source: 'NextChapter, September 2026 report',
+    source: 'Burning Glass Institute and NYU SPS, as cited in our Sept 2026 report',
   },
 ]
 

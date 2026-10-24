@@ -7,8 +7,8 @@ import { updateSkillsAssessment } from '@/app/dashboard/skills-assessment/action
 import { SkillsHaveAndNeedForm } from '@/components/dashboard/SkillsHaveAndNeedForm'
 import { UnlockAnnouncementDialog } from '@/components/dashboard/UnlockAnnouncementDialog'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { PersonalizationQuestion } from '@/components/ui/personalization-question'
 import { ConfidenceSlider } from '@/components/onboarding/ConfidenceSlider'
 import { MultiChoiceButtons } from '@/components/onboarding/MultiChoiceButtons'
 import {
@@ -160,11 +160,11 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
       action={handleContinue}
       className={cn('space-y-6', pending && 'cursor-progress [&_*]:cursor-progress')}
     >
-      <div className="space-y-2">
-        <Label>
-          Every great candidate is exceptional at a few things rather than good at everything.
-          Select up to {TOP_STRENGTHS_MAX} strengths that best describe where you truly stand out.
-        </Label>
+      <PersonalizationQuestion
+        id="top-strengths"
+        question="Where do you truly stand out?"
+        payoff={`Your Dossier leads with your real strengths, and job and skills recommendations build on them. Select up to ${TOP_STRENGTHS_MAX}.`}
+      >
         <MultiChoiceButtons
           name="topStrengths"
           options={TOP_STRENGTH_OPTIONS}
@@ -173,27 +173,30 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
           columns={2}
           max={TOP_STRENGTHS_MAX}
         />
-      </div>
+      </PersonalizationQuestion>
 
-      <div id="growth-areas" className="scroll-mt-4 space-y-2">
-        <Label>
-          Everyone has room to grow, too. Select up to {GROWTH_AREAS_MAX} areas you&apos;re actively working on.
-        </Label>
-        <MultiChoiceButtons
-          name="growthAreas"
-          options={GROWTH_AREA_OPTIONS}
-          value={growthAreas}
-          onChange={setGrowthAreas}
-          columns={2}
-          max={GROWTH_AREAS_MAX}
-        />
-        <Textarea
-          name="growthAreasElaboration"
-          value={growthAreasElaboration}
-          onChange={(e) => setGrowthAreasElaboration(e.target.value)}
-          placeholder="In your own words (optional) — this helps your Dossier's Self-Awareness section sound like you, not a checklist."
-          rows={3}
-        />
+      <div id="growth-areas" className="scroll-mt-4">
+        <PersonalizationQuestion
+          id="growth-areas-question"
+          question="Which areas are you actively working on?"
+          payoff={`Skills recommendations point at what you want to build, and your Dossier's Self-Awareness section stays honest. Select up to ${GROWTH_AREAS_MAX}.`}
+        >
+          <MultiChoiceButtons
+            name="growthAreas"
+            options={GROWTH_AREA_OPTIONS}
+            value={growthAreas}
+            onChange={setGrowthAreas}
+            columns={2}
+            max={GROWTH_AREAS_MAX}
+          />
+          <Textarea
+            name="growthAreasElaboration"
+            value={growthAreasElaboration}
+            onChange={(e) => setGrowthAreasElaboration(e.target.value)}
+            placeholder="In your own words (optional) — this helps your Dossier's Self-Awareness section sound like you, not a checklist."
+            rows={3}
+          />
+        </PersonalizationQuestion>
       </div>
 
       <ConfidenceSlider
@@ -203,6 +206,7 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
             ? `How confident are you in your core job function (as a ${functionLabel})?`
             : 'How confident are you in your core job function skills?'
         }
+        payoff="Your Market Reality Report and skills recommendations reflect where you really stand."
         defaultValue={profile.functionSkillConfidence}
         labels={CORE_SKILL_LABELS}
         onChange={setFunctionSkillConfidence}
@@ -211,6 +215,7 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
       <ConfidenceSlider
         name="aiFlexibilityLevel"
         label="How confident are you in your AI skills?"
+        payoff="Your skills recommendations and Market Reality Report adjust to your AI skill level."
         defaultValue={profile.aiFlexibilityLevel}
         labels={CORE_SKILL_LABELS}
         onChange={setAiFlexibilityLevel}
@@ -220,6 +225,7 @@ export function SkillsAssessmentForm({ profile }: { profile: CandidateProfile })
         <ConfidenceSlider
           name="managementSkillConfidence"
           label="How confident are you in your management skills?"
+          payoff="Leadership roles and recommendations match how strong your management skills are."
           defaultValue={profile.managementSkillConfidence}
           labels={MANAGEMENT_LABELS}
           onChange={setManagementSkillConfidence}
