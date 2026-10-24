@@ -193,7 +193,6 @@ function visionSections(): NavSection[] {
   // The URL stays /vision (bookmarks, links in emails); the area is labelled
   // Operations. Only Product has pages today — the rest are placeholders so
   // the shape is visible while they get built.
-  const soon = (key: string): NavLink => ({ href: `#${key}-soon`, label: 'Coming soon', disabled: true })
   return [
     {
       title: 'Product',
@@ -208,12 +207,18 @@ function visionSections(): NavSection[] {
         { href: '/support/admin/vision/competitors', label: 'Competitors' },
       ],
     },
-    { title: 'Marketing', collapsible: true, links: [soon('marketing')] },
-    { title: 'Operations', collapsible: true, links: [soon('operations')] },
-    { title: 'Revenue', collapsible: true, links: [soon('revenue')] },
-    { title: 'Customer service', collapsible: true, links: [soon('customer-service')] },
-    // Eventually fed by webhooks from the accounting system.
-    { title: 'Financials', collapsible: true, links: [soon('financials')] },
+    {
+      title: 'Planned',
+      collapsible: true,
+      links: [
+        { href: '#marketing-soon', label: 'Marketing (coming soon)', disabled: true },
+        { href: '#operations-soon', label: 'Operations (coming soon)', disabled: true },
+        { href: '#revenue-soon', label: 'Revenue (coming soon)', disabled: true },
+        { href: '#customer-service-soon', label: 'Customer service (coming soon)', disabled: true },
+        // Eventually fed by webhooks from the accounting system.
+        { href: '#financials-soon', label: 'Financials (coming soon)', disabled: true },
+      ],
+    },
   ]
 }
 
@@ -262,7 +267,6 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/platform-engagement`, label: 'Work & learning' },
         { href: `${A}/performance`, label: 'Performance' },
         { href: `${A}/pacing`, label: 'Pacing' },
-        { href: `${A}/weekly-recognition`, label: 'Weekly recognition' },
       ],
     },
     {
@@ -342,6 +346,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/population`, label: 'Population report' },
         { href: `${A}/monthly-report`, label: 'Monthly member report' },
         { href: `${A}/education-outcomes`, label: 'Outcomes by college' },
+        { href: `${A}/weekly-recognition`, label: 'Weekly recognition archive' },
         { href: `${A}/margin-dashboard`, label: 'Margin dashboard' },
         { href: `${A}/issues`, label: 'Resume issue analytics' },
         { href: `${A}/pedigree-signals`, label: 'Pedigree signals' },
