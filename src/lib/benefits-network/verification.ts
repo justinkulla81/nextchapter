@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { sendBenefitsNetworkVerifyEmail } from '@/lib/email/send-benefits-network-verify'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { CONSUMER_EMAIL_DOMAINS } from '@/lib/email/consumer-domains'
 
 const VERIFICATION_EXPIRY_DAYS = 14
 
@@ -9,24 +10,9 @@ function appUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 }
 
-// Same "obviously not a real institution" domain blocklist used nowhere else
-// in this codebase yet — a cheap first check before even sending the
-// confirmation email. The REAL verification is the confirmation-link click
-// from that inbox (see confirmBenefitsNetworkVerification below); this list
-// only stops the most obvious "I typed my own gmail as the institutional
-// email" mistake/abuse up front.
-const CONSUMER_EMAIL_DOMAINS = new Set([
-  'gmail.com',
-  'yahoo.com',
-  'outlook.com',
-  'hotmail.com',
-  'icloud.com',
-  'aol.com',
-  'proton.me',
-  'protonmail.com',
-  'live.com',
-  'msn.com',
-])
+// The "obviously not a real institution" domain blocklist (see consumer-domains.ts). The REAL verification is the
+// confirmation-link click from that inbox (confirmBenefitsNetworkVerification below); this only stops the most
+// obvious "I typed my own gmail as the institutional email" mistake up front.
 
 export interface ProposeListingInput {
   alumId: string

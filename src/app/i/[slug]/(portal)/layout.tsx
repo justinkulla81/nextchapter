@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { getInstitutionAccess } from '@/lib/higher-ed/access'
-import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS, WORKSPACES } from '@/lib/higher-ed/workspaces'
+import { demoPersonasFor, labelFor, lockedWorkspacesFor, orgBasePath, orgKindOf, TIER_LABELS, workspaceFeaturesOf, WORKSPACES } from '@/lib/higher-ed/workspaces'
 import { signOutOrg } from './session-actions'
 import { CanonicalOrgUrl } from '@/components/higher-ed/CanonicalOrgUrl'
 import { orgKindForHost } from '@/lib/org-hosts'
@@ -20,9 +20,9 @@ import { PortalHelpLauncher } from '@/components/portal/PortalHelpLauncher'
 import { SignOutForm } from '@/components/auth/SignOutForm'
 import { PortalTypeBar } from '@/components/partners/PortalTypeBar'
 
-async function getTagline(institutionId: string): Promise<string | null> {
-  const row = await prisma.institution.findUnique({ where: { id: institutionId }, select: { profile: true } })
-  return readProfile(row?.profile).tagline ?? null
+async function getTaglineAndFeatures(institutionId: string) {
+  const row = await prisma.institution.findUnique({ where: { id: institutionId }, select: { profile: true, enabledFeatures: true } })
+  return { tagline: readProfile(row?.profile).tagline ?? null, features: workspaceFeaturesOf(row?.enabledFeatures) }
 }
 
 export const metadata: Metadata = {
@@ -53,8 +53,8 @@ export default async function InstitutionPortalLayout({
 
   const { institution } = access
   // An organization that owns this college sets one brand for all its portals; it wins over the college's own.
-  const [tagline, orgBrand] = await Promise.all([
-    getTagline(institution.id),
+  const [{ tagline, features }, orgBrand] = await Promise.all([
+    getTaglineAndFeatures(institution.id),
     organizationBrandFor('HIGHER_ED', institution.id).catch(() => null),
   ])
   const accent = orgBrand?.accent ?? institution.accentColor ?? '#2e7d5b'
@@ -71,7 +71,7 @@ export default async function InstitutionPortalLayout({
   // Admins also see what a higher tier adds (the upgrade path, product
   // design Packaging); everyone else sees only what they can open.
   const showLocked = access.tokens.has('INSTITUTION_ADMIN')
-  const locked = new Set(showLocked ? lockedWorkspacesFor(access.tokens, institution.tier, {}, orgKindOf(institution.orgType)).map((w) => w.key) : [])
+  const locked = new Set(showLocked ? lockedWorkspacesFor(access.tokens, institution.tier, features, orgKindOf(institution.orgType)).map((w) => w.key) : [])
   const rail: RailItem[] = WORKSPACES.filter(
     (w) => access.workspaces.includes(w.key) || locked.has(w.key) || (w.release === 'V2' && institution.isDemo),
   ).map((w) => ({

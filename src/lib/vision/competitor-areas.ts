@@ -22,6 +22,8 @@ export const COMPETITOR_AREAS = [
   { key: 'assessments', label: 'Assessments' },
   { key: 'employer_hiring', label: 'Employer hiring tools' },
   { key: 'higher_ed', label: 'Higher-ed career services' },
+  { key: 'retention', label: 'Retention & internal mobility' },
+  { key: 'platform', label: 'Admin & platform' },
 ] as const
 export type CompetitorAreaKey = (typeof COMPETITOR_AREAS)[number]['key']
 const AREA_KEYS = new Set<string>(COMPETITOR_AREAS.map((a) => a.key))

@@ -7,6 +7,7 @@ import { useFormStatus } from 'react-dom'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar, chromeFor } from '@/components/partners/PartnerTopBar'
+import { employerUseForPath } from '@/lib/partners/portal-types'
 import type { PartnerBrand } from '@/lib/partners/brand'
 import type { OutplacementProgramType, OutplacementRole } from '@prisma/client'
 import { SignOutForm } from '@/components/auth/SignOutForm'
@@ -100,7 +101,7 @@ export function EmployerNav({ role, brand, programs = [] }: { role: Outplacement
 
   return (
     <>
-      <PartnerTopBar surface="employer" use="Outplacement" brand={brand}>
+      <PartnerTopBar surface="employer" use={employerUseForPath(pathname)} brand={brand}>
         <button
           type="button"
           onClick={() => setOpen(true)}

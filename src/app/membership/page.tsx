@@ -1,11 +1,6 @@
 import { AudienceSection, AudienceShell, Disclosure } from '@/components/organizations/AudienceShell'
 import { StructuredData } from '@/components/StructuredData'
-import { getCurrentPlan } from '@/lib/admin/plan-catalog'
 import { canonical } from '@/lib/seo/canonical'
-
-function formatUsd(cents: number): string {
-  return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-}
 
 export const metadata = {
   ...canonical('/membership'),
@@ -32,12 +27,7 @@ const BEATS = [
 // real signup/subscription flow at /dashboard/membership; this page is
 // informational and links there rather than building a second, parallel
 // form.
-export default async function MembershipPage() {
-  const [monthly, annual] = await Promise.all([
-    getCurrentPlan('membership_monthly'),
-    getCurrentPlan('membership_annual'),
-  ])
-
+export default function MembershipPage() {
   return (
     <>
       <StructuredData data={jsonLd} />
@@ -48,9 +38,9 @@ export default async function MembershipPage() {
         headline="Never start from zero again."
         subhead="You just did the hardest professional thing there is. Keep the evidence current so the next time takes weeks, not months."
         primary={{ label: 'Join', href: '/dashboard/membership' }}
-        primaryNote="Free for life once you land. Paid membership adds the extras below."
+        primaryNote="Free for life once you land. Membership adds the extras below."
         footerLinks={[
-          { href: '/pricing', label: 'Full pricing' },
+          { href: '/pricing', label: 'Plans' },
           { href: '/dossier', label: 'About the Dossier' },
         ]}
       >
@@ -69,14 +59,13 @@ export default async function MembershipPage() {
           <Disclosure title="A real example from the catalog">
             <p className="text-sm text-muted-foreground">Your target roles ask for FP&amp;A depth.</p>
             <p className="mt-1 text-base font-medium">
-              Kellogg exec-ed is offering members 40% off the Corporate Finance certificate through November, sourced by Priya R.
+              Kellogg exec-ed is offering members the Corporate Finance certificate through November, sourced by Priya R.
             </p>
           </Disclosure>
-          <Disclosure title="What membership costs">
+          <Disclosure title="What is included">
             <p className="text-sm text-muted-foreground">
               NextChapter Higher Education is free for life once you land. Landed candidates also qualify for a $500 offer bonus.
-              Membership adds the market check, benefits network and board listings for {monthly ? formatUsd(monthly.priceCents) : '—'}/mo
-              {annual && <> or {formatUsd(annual.priceCents)}/yr</>}. Free for 12 months to anyone placed through a Premium outplacement seat.
+              Membership adds the market check, benefits network and board listings. Free for 12 months to anyone placed through a Premium outplacement seat.
             </p>
           </Disclosure>
         </AudienceSection>

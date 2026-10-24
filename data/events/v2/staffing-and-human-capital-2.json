@@ -1,0 +1,1027 @@
+[
+ {
+  "id": "workday-rising",
+  "name": "Workday Rising",
+  "organizer": "Workday",
+  "url": "https://rising.workday.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-27",
+  "endDate": "2027-09-30",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Workday HR and payroll admins, HRIS analysts and people analytics teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not on page. 2026 edition was Oct 12-15 in Las Vegas.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HRIS and people analytics"
+  ],
+  "roles": [
+   "HRIS analyst",
+   "people analytics lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "adp-meeting-of-the-minds",
+  "name": "ADP Meeting of the Minds",
+  "organizer": "ADP",
+  "url": "https://motm.adp.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-09",
+  "endDate": "2027-03-11",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Enterprise HR, payroll and workforce management leaders on ADP.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens early October; price on separate page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HRIS and people analytics",
+   "Payroll and workforce management"
+  ],
+  "roles": [
+   "payroll manager",
+   "HRIS analyst",
+   "workforce planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "dayforce-discover",
+  "name": "Dayforce Discover",
+  "organizer": "Dayforce",
+  "url": "https://www.dayforce.com/blog/dayforce-discover-2026-redesigning-work",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-26",
+  "endDate": "2026-10-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "HCM, payroll and workforce management users.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "HRIS and people analytics",
+   "Payroll and workforce management"
+  ],
+  "roles": [
+   "payroll manager",
+   "HRIS analyst",
+   "workforce planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "oracle-ai-world",
+  "name": "Oracle AI World",
+  "organizer": "Oracle",
+  "url": "https://www.oracle.com/ai-world",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Oracle HCM users among a broad Oracle audience.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "HRIS and people analytics"
+  ],
+  "roles": [
+   "HRIS analyst"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "visier-outsmart",
+  "name": "Visier Outsmart",
+  "organizer": "Visier",
+  "url": "https://www.visier.com/lp/outsmart-2026-on-demand-sessions/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "People analytics leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Spring pattern inferred; 2026 held in Palm Springs.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "HRIS and people analytics"
+  ],
+  "roles": [
+   "people analytics lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "siop-annual-conference",
+  "name": "SIOP Annual Conference",
+  "organizer": "SIOP",
+  "url": "https://www.siop.org/Annual-Conference/Conference-Schedule",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "I-O psychologists and people scientists.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 at Gaylord National; exact days not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "HRIS and people analytics"
+  ],
+  "roles": [
+   "people analytics lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "payroll-congress",
+  "name": "PayrollOrg Payroll Congress",
+  "organizer": "PayrollOrg",
+  "url": "https://www.payroll.org/conferences/congress",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-13",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The payroll profession's annual meeting.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party sites list May 11-14.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Payroll and workforce management"
+  ],
+  "roles": [
+   "payroll manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "icmi-contact-center-expo",
+  "name": "ICMI Contact Center Expo",
+  "organizer": "ICMI",
+  "url": "https://resources.icmi.com/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Contact-center workforce planners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates TBD.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Payroll and workforce management"
+  ],
+  "roles": [
+   "workforce planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "atd-international-conference",
+  "name": "ATD International Conference & Exposition",
+  "organizer": "ATD",
+  "url": "https://www.td.org/pre-checkout/atd27",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-16",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Talent development and learning professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "training-conference-expo",
+  "name": "Training Conference & Expo",
+  "organizer": "Training magazine",
+  "url": "https://trainingmagnetwork.com/events/4484",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-24",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Learning leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from third-party listings.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "devlearn",
+  "name": "DevLearn Conference & Expo",
+  "organizer": "The Learning Guild",
+  "url": "https://www.learningguild.com/about-our-conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-04",
+  "endDate": "2026-11-06",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Learning technology.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "workhuman-live",
+  "name": "Workhuman Live",
+  "organizer": "Workhuman",
+  "url": "https://www.workhumanlive.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-29",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "3,000 HR professionals on recognition and culture.",
+  "access": "PAID",
+  "costLow": 1195,
+  "costHigh": 2295,
+  "costNote": "Early bird $1,195 to Nov 1; full $2,295.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://www.workhumanlive.com/become-a-speaker/",
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead",
+   "DEI leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "out-and-equal-workplace-summit",
+  "name": "Out & Equal Workplace Summit",
+  "organizer": "Out & Equal",
+  "url": "https://outandequal.org/workplace-summit/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "LGBTQ+ workplace equality.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 5-8 in Las Vegas.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "DEI leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "black-enterprise-chief-diversity-officers-summit",
+  "name": "Black Enterprise Chief Diversity Officers Summit",
+  "organizer": "Black Enterprise",
+  "url": "https://www.blackenterprise.com/black-enterprise-chief-diversity-officers-summit-honors/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Chief diversity officers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "DEI leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "conference-board-organizational-transformation",
+  "name": "The Conference Board Organizational Transformation",
+  "organizer": "The Conference Board",
+  "url": "https://www.conference-board.org/north-america/conferences/culture-engagement-experience",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-06",
+  "endDate": "2027-05-07",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Brooklyn",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Culture and employee experience leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee experience lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "native-american-human-resources-conference",
+  "name": "Native American Human Resources Conference",
+  "organizer": "Native Nation Events",
+  "url": "https://nativenationevents.org/events-conferences/17th-annual-native-american-human-resources-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "Chandler",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "HR for tribal employers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Jan 28-29, 2027 per HR Dive.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Learning, culture and DEI"
+  ],
+  "roles": [
+   "employee relations lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nela-annual-convention",
+  "name": "NELA Annual Convention",
+  "organizer": "National Employment Lawyers Association",
+  "url": "https://www.nela.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-23",
+  "endDate": "2027-06-26",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "St. Louis",
+  "state": "MO",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Plaintiff-side employment lawyers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Employment law and labor relations"
+  ],
+  "roles": [
+   "employee relations lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "lera-annual-meeting",
+  "name": "LERA Annual Meeting",
+  "organizer": "Labor and Employment Relations Association",
+  "url": "https://www.leraweb.org/lera-79th-am",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-10",
+  "endDate": "2027-06-13",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Baltimore",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Labor relations practitioners and scholars.",
+  "access": "PAID",
+  "costLow": 385,
+  "costHigh": 870,
+  "costNote": "Member early bird $385; non-member $605-870; student $231-390.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Member student rate $231 early bird.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Employment law and labor relations"
+  ],
+  "roles": [
+   "labor relations specialist",
+   "employee relations lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "neli-employment-law-briefing",
+  "name": "NELI Employment Law Briefing",
+  "organizer": "NELI",
+  "url": "https://neli.org/programs/employment-law-briefing/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-14",
+  "endDate": "2027-03-17",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Fort Lauderdale",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "HR directors and in-house counsel.",
+  "access": "PAID",
+  "costLow": 1495,
+  "costHigh": 1595,
+  "costNote": "$1,495 by Feb 19.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Employment law and labor relations"
+  ],
+  "roles": [
+   "employee relations lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "npelra-annual-training-conference",
+  "name": "NPELRA Annual Training Conference",
+  "organizer": "NPELRA",
+  "url": "https://npelra.org/1184/Annual-Conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Fort Worth",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Public-sector labor relations.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 in Fort Worth, routinely April.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://npelra.org/1184/Annual-Conference",
+  "speakingDeadline": null,
+  "speakingNote": "Open call May-June.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Employment law and labor relations"
+  ],
+  "roles": [
+   "labor relations specialist",
+   "employee relations lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hro-today-hr-data-analytics-ai-summit",
+  "name": "HRO Today HR Data Analytics and AI Summit",
+  "organizer": "HRO Today",
+  "url": "https://www.hrotoday.com/hr-data-analytics-ai-summit/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "People analytics.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "HRIS and people analytics"
+  ],
+  "roles": [
+   "people analytics lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "rethink-hr-tech-usa",
+  "name": "Rethink HR Tech USA",
+  "organizer": null,
+  "url": "https://www.we-conect.com/events/rethink-hr-tech-usa-2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "HR tech buyers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Apr 27-28, 2027 per HR Dive.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "HRIS and people analytics"
+  ],
+  "roles": [
+   "HRIS analyst"
+  ],
+  "journeys": []
+ }
+]

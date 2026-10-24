@@ -166,6 +166,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       collapsible: true,
       links: [
         { href: '/support/admin/crm/benefits', label: 'Benefits' },
+        { href: '/support/admin/crm/events', label: 'Events and conferences' },
         { href: '/support/admin/crm/research', label: 'Research' },
         { href: '/support/admin/crm/geographies', label: 'Geographies' },
         { href: '/support/admin/crm/industries', label: 'Industries' },

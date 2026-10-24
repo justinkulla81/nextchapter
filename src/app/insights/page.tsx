@@ -8,7 +8,7 @@ import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 export const metadata: Metadata = {
   title: 'Outplacement insights',
   description:
-    'What outplacement actually costs, the questions to ask a vendor, why utilization reporting misses the point, and what happens to your account when the contract ends.',
+    'The questions to ask a vendor, why utilization reporting misses the point, and what happens to your account when the contract ends.',
   alternates: { canonical: '/insights' },
 }
 

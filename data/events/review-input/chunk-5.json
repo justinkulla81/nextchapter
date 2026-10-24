@@ -1,0 +1,862 @@
+[
+ {
+  "id": "boardroom-summit-corporate-board-member",
+  "name": "Boardroom Summit (Corporate Board Member)",
+  "organizer": "Corporate Board Member",
+  "url": "https://boardmember.com/boardroomsummit/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": 1995,
+  "costHigh": 2995,
+  "costNote": "Page shows conflicting tiers ($1,995-$2,995, standard $2,495); page's own 2026/2027 dates conflict, so confirm; 2025 edition was Sept 18-19 in Washington DC.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Exclusively sitting public company directors, in committee-based peer exchange groups.",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "industries": []
+ },
+ {
+  "id": "hbs-eta-conference",
+  "name": "Harvard Business School ETA Conference",
+  "organizer": "HBS Entrepreneurship Through Acquisition Club",
+  "url": "https://hbsetaclub.com/conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "November",
+  "city": "Boston",
+  "state": "MA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + search",
+  "whyAttend": "The largest student-run gathering of searchers and search fund investors.",
+  "segments": [
+   "Buying a business (acquisition entrepreneurship)"
+  ],
+  "industries": []
+ },
+ {
+  "id": "rice-business-plan-competition",
+  "name": "Rice Business Plan Competition",
+  "organizer": "Rice University Business School",
+  "url": "https://business.rice.edu/event/rice-business-plan-competition",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Houston",
+  "state": "TX",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was April 9-11; 2027 dates not yet posted.",
+  "speaking": "NONE",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Student-founded startups pitch to angel and VC judges and mentors.",
+  "segments": [
+   "Founder communities and accelerators"
+  ],
+  "industries": []
+ },
+ {
+  "id": "wbenc-summit-salute",
+  "name": "WBENC Summit & Salute",
+  "organizer": "Women's Business Enterprise National Council",
+  "url": "https://www.wbenc.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 details not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Women-owned business owners meet corporate procurement leaders and WBENC members.",
+  "segments": [
+   "Underrepresented and veteran founders"
+  ],
+  "industries": []
+ },
+ {
+  "id": "naea-tax-summit",
+  "name": "NAEA Tax Summit",
+  "organizer": "National Association of Enrolled Agents",
+  "url": "https://www.naea.org/events",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "July",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was July in New Orleans; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party search snippet",
+  "whyAttend": "Enrolled agents, who represent clients before the IRS, with up to 24 hours of CE.",
+  "segments": [
+   "Tax"
+  ],
+  "industries": [
+   "Accounting & Audit"
+  ]
+ },
+ {
+  "id": "esomar-congress",
+  "name": "ESOMAR Congress",
+  "organizer": "ESOMAR",
+  "url": "https://www.esomar.org/congress",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Sept 1-4 in Valencia has ended; next not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "The global flagship for market research and insights leaders.",
+  "segments": [
+   "Market research and insights"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "pubcon",
+  "name": "Pubcon",
+  "organizer": "Pubcon",
+  "url": "https://www.pubcon.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing in checkout; not shown.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Search, social and digital marketers; site currently lists only Pubcon Pro Virtual (Jan 14, 2026).",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "surface-navy-national-symposium",
+  "name": "Surface Navy Association National Symposium",
+  "organizer": "Surface Navy Association",
+  "url": "https://www.surfacewarfare.org/",
+  "startDate": "2027-01-12",
+  "endDate": "2027-01-14",
+  "typicalMonth": "January",
+  "city": "Arlington",
+  "state": "VA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Surface warfare community and industry. Lead: dates from third-party listings; site returned 403.",
+  "segments": [
+   "Defense and government contracting"
+  ],
+  "industries": [
+   "Aerospace & Defense"
+  ]
+ },
+ {
+  "id": "usda-agricultural-outlook-forum",
+  "name": "USDA Agricultural Outlook Forum",
+  "organizer": "USDA Office of the Chief Economist",
+  "url": "https://www.usda.gov/about-usda/general-information/staff-offices/office-chief-economist/agricultural-outlook-forum",
+  "startDate": "2027-02-18",
+  "endDate": "2027-02-19",
+  "typicalMonth": "February",
+  "city": "Arlington",
+  "state": "VA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates come from a NASS data users' deck, not the Forum page itself; 2026 forum was livestreamed.",
+  "speaking": "UNKNOWN",
+  "source": "official domain (not on forum page)",
+  "whyAttend": "USDA's annual commodity and farm-income outlook; analysts, lenders and traders hear the department's forecasts.",
+  "segments": [
+   "Farm management and commodities"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "cfma-annual-conference",
+  "name": "CFMA Annual Conference & Exhibition",
+  "organizer": "Construction Financial Management Association",
+  "url": "https://cfma.org/annual",
+  "startDate": "2027-05-22",
+  "endDate": "2027-05-26",
+  "typicalMonth": "May",
+  "city": "Nashville",
+  "state": "TN",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / lead",
+  "whyAttend": "Contractor CFOs, controllers and estimators/finance staff.",
+  "segments": [
+   "General contracting and construction management"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "neocon",
+  "name": "NeoCon",
+  "organizer": "Merchandise Mart Properties",
+  "url": "https://www.neocon.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Chicago",
+  "state": "IL",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listings suggest June 14-16, 2027 but not read from the official site.",
+  "speaking": "UNKNOWN",
+  "source": "event listing",
+  "whyAttend": "Workplace designers, facility and real-estate leaders and furniture makers at The Mart.",
+  "segments": [
+   "Architecture, engineering and design"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "carnegie-chief-of-staff-summit",
+  "name": "Chief of Staff Summit (Carnegie, higher education)",
+  "organizer": "Carnegie Higher Ed",
+  "url": "https://www.carnegiehighered.com/events/coss-chief-of-staff-summit-2026/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "July",
+  "city": "Colorado Springs",
+  "state": "CO",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition not announced; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Peer-led session for presidential and chancellor-level chiefs of staff; 2026 edition was July 16-17 at Colorado College.",
+  "segments": [],
+  "industries": [
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "bisnow-central-region-data-center-construction-design-development-conference",
+  "name": "Bisnow Central Region Data Center Construction, Design & Development Conference",
+  "organizer": "Bisnow",
+  "url": "https://www.bisnow.com/events/data-center",
+  "startDate": "2027-03-23",
+  "endDate": "2027-03-23",
+  "typicalMonth": "March",
+  "city": "Dallas-Fort Worth",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Calendar listing; details page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Dallas-Fort Worth builders and designers.",
+  "segments": [
+   "Data centers and power demand"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "us-power-data-center-development-forum",
+  "name": "US Power & Data Center Development Forum",
+  "organizer": "New Project Media",
+  "url": "https://newprojectmedia.com/npm-events-us-power-and-data-center-development-forum-2026-register-to-join-us-in-new-york-city/",
+  "startDate": "2027-05-12",
+  "endDate": "2027-05-13",
+  "typicalMonth": "May",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition page; 2027 dates from Baxtel only.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Developers, IPPs, lenders and utilities negotiating power for data centers.",
+  "segments": [
+   "Data centers and power demand"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "future-proof-festival",
+  "name": "Future Proof Festival",
+  "organizer": "Advisor Circle",
+  "url": "https://futureproof.advisorcircle.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Huntington Beach",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Sept 14-17, 2026 edition in Huntington Beach has just passed; one official page lists March 14-17, 2027 in Miami Beach but it looks stale. Confirm on the site. Kitces lists passes from about $550.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listings",
+  "whyAttend": "A large, informal gathering of advisors, asset managers, fintech founders and media in one beachfront festival.",
+  "segments": [
+   "Wealth and asset management"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "appa-engineering-operations-conference",
+  "name": "APPA Engineering & Operations Conference",
+  "organizer": "American Public Power Association",
+  "url": "https://www.publicpower.org/engineering-operations-conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not read.",
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "Utility engineers and operations leaders at public power systems.",
+  "segments": [
+   "Public utilities and transportation agencies"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "poc-healthcare-summit",
+  "name": "POC Healthcare Summit",
+  "organizer": "Potomac Officers Club",
+  "url": "https://www.potomacofficersclub.com/govcon-events/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "December",
+  "city": null,
+  "state": null,
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Potomac Officers Club membership tiers set the price: Professional $795/yr (40% off), Elite $1,495/yr ($100 per event), Government $50/yr (fees waived). Ticket price not shown on the event page.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "HHS, VA and other federal health officials and the companies that serve them.",
+  "segments": [
+   "Federal civilian agencies"
+  ],
+  "industries": [
+   "Government & Public Sector",
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "ahrmm-spring-summit",
+  "name": "AHRMM Spring Summit",
+  "organizer": "AHRMM (AHA)",
+  "url": "https://www.ahrmm.org/spring-summit",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 date not announced. On-demand replay of 2026 Summit: members $79, non-members $199.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "One-day virtual program of supply chain trends and innovation; 2026 edition was April 15.",
+  "segments": [
+   "Healthcare supply chain"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "nnphi-annual-conference",
+  "name": "NNPHI Annual Conference",
+  "organizer": "National Network of Public Health Institutes",
+  "url": "https://nnphi.org/events/2027-nnphi-annual-conference/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page found in search; dates not read.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Leaders of public health institutes and partners working on workforce, data and systems.",
+  "segments": [
+   "Public health"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "destinations-international-marketing-communications-summit",
+  "name": "Marketing & Communications Summit",
+  "organizer": "Destinations International",
+  "url": "https://destinationsinternational.org/events/marketing-communications-summit",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Destination marketing and communications staff.",
+  "segments": [
+   "Travel and tourism"
+  ],
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ]
+ },
+ {
+  "id": "duck-creek-formation",
+  "name": "Duck Creek Formation",
+  "organizer": "Duck Creek Technologies",
+  "url": "https://www.duckcreek.com/formation/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing",
+  "whyAttend": "P&C carrier product and IT leaders on Duck Creek platforms.",
+  "segments": [
+   "Insurtech",
+   "Property and casualty"
+  ],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "diligent-elevate",
+  "name": "Diligent Elevate",
+  "organizer": "Diligent",
+  "url": "https://www.diligent.com/elevate",
+  "startDate": "2027-04-07",
+  "endDate": "2027-04-09",
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": 895,
+  "costHigh": 1295,
+  "costNote": "Early bird Corporate $1,295; Education, Government and Nonprofit $895; the FAQ also names Atlanta, so confirm the city.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "General counsel, corporate secretaries, audit and risk leaders and board members focused on governance; 700+ attendees.",
+  "segments": [
+   "Privacy, compliance and ethics"
+  ],
+  "industries": [
+   "Legal Services",
+   "Accounting & Audit",
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "astm-icam",
+  "name": "ASTM ICAM",
+  "organizer": "ASTM International",
+  "url": "https://www.astm.org/news/press-releases/icam-2026-call-for-abstracts",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 edition not yet announced on pages seen.",
+  "speaking": "OPEN_CFP",
+  "source": "official domain search (dates conflict or unconfirmed)",
+  "whyAttend": "Standards and technical conference on advanced and additive manufacturing; 2026 edition ended Oct 2.",
+  "segments": [
+   "Additive manufacturing and Industry 4.0"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "vpppa-safety-symposium",
+  "name": "VPPPA Safety+ Symposium",
+  "organizer": "Voluntary Protection Programs Participants' Association",
+  "url": "https://www.vpppa.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "research",
+  "whyAttend": "Safety leaders at OSHA VPP sites; 2026 edition was Aug 30 - Sept 2 in Nashville.",
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "nrl-business-of-sport-conference",
+  "name": "NRL Business of Sport Conference (Las Vegas)",
+  "organizer": "National Rugby League",
+  "url": "https://www.nrl.com/rugby-league-in-las-vegas-2027/business-of-sport-conference/",
+  "startDate": "2027-02-26",
+  "endDate": "2027-02-26",
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Speakers and registration not yet announced.",
+  "speaking": "UNKNOWN",
+  "source": "search listing (lead)",
+  "whyAttend": "C-suite and senior sport executives from 11 countries; 2026 edition drew 300+ VIPs.",
+  "segments": [
+   "Sports business"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "catholic-charities-usa-annual-gathering",
+  "name": "Catholic Charities USA Annual Gathering",
+  "organizer": "Catholic Charities USA",
+  "url": "https://www.catholiccharitiesusa.org/category/annual-gathering/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026/2027 dates and prices not found; recent gatherings were held Sept-Oct.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Leaders and staff of local Catholic Charities agencies, the largest faith-based human services network.",
+  "segments": [
+   "Social work and human services",
+   "Faith-based and religious organizations"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "sri-conference",
+  "name": "SRI Conference",
+  "organizer": "Mission Investors Exchange / SRI Conference",
+  "url": "https://missioninvestors.org/events/sri-29-conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Current edition and dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Sustainable and impact investors.",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "scdm-annual-conference",
+  "name": "SCDM Annual Conference",
+  "organizer": "Society for Clinical Data Management",
+  "url": "https://scdm.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Atlanta",
+  "state": "GA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 Atlanta dates (Sept 26-29) appear only on third-party listings.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "The home meeting for clinical data managers and data-science leads from sponsors and CROs.",
+  "segments": [
+   "Clinical operations and trials"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "project-control-summit",
+  "name": "Project Control Summit",
+  "organizer": "Project Control Summit",
+  "url": "https://projectcontrolsummit.com/",
+  "startDate": "2027-04-23",
+  "endDate": "2027-04-25",
+  "typicalMonth": "April",
+  "city": "Irving",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Project controls, scheduling and cost professionals on large capital programs.",
+  "segments": [
+   "Project and program management"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ]
+ },
+ {
+  "id": "hro-today-forum-north-america",
+  "name": "HRO Today Forum North America",
+  "organizer": "HRO Today",
+  "url": "https://www.hrotoday.com/hro-today-north-america-forum/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates May 12-14, 2027 from HR Dive; site returned 403.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "Talent acquisition and workforce solutions leaders and providers (RPO, MSP).",
+  "segments": [
+   "HR leadership",
+   "Corporate talent acquisition"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "agentforce-world-tour-new-york",
+  "name": "Agentforce World Tour New York",
+  "organizer": "Salesforce",
+  "url": "https://www.salesforce.com/events/",
+  "startDate": "2026-12-03",
+  "endDate": "2026-12-03",
+  "typicalMonth": "December",
+  "city": "New York",
+  "state": "NY",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from a roundup; price assumed from past World Tours, confirm.",
+  "speaking": "UNKNOWN",
+  "source": "event listing",
+  "whyAttend": "Salesforce admins, sales ops and sales leaders in a one-day city show.",
+  "segments": [
+   "Enterprise software and ERP users",
+   "Software sales and customer success"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "genesys-xperience",
+  "name": "Genesys Xperience",
+  "organizer": "Genesys",
+  "url": "https://www.genesys.com/events/xperience",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Sept 1-3; 2027 'announced soon'; pricing not read.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "Vendor user conference for contact center and CX operations leaders.",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "revenue-operations-festival-new-york",
+  "name": "Revenue Operations Festival New York",
+  "organizer": "Revenue Operations Alliance",
+  "url": "https://events.revenueoperationsalliance.com",
+  "startDate": "2027-07-08",
+  "endDate": "2027-07-08",
+  "typicalMonth": "July",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": 350,
+  "costHigh": 350,
+  "costNote": "Price from a third-party listing; confirm.",
+  "speaking": "UNKNOWN",
+  "source": "event listing",
+  "whyAttend": "RevOps practitioners at Convene 30 Hudson Yards.",
+  "segments": [
+   "Software sales and customer success"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "women-in-tech-global-conference",
+  "name": "Women in Tech Global Conference",
+  "organizer": "WomenTech Network",
+  "url": "https://www.womentech.net",
+  "startDate": "2027-05-18",
+  "endDate": "2027-05-21",
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates seen via search of the organizer's pages (conflicting 2026-era dates also appear); prices not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site search result",
+  "whyAttend": "A virtual-first global gathering of women in technology, including a Career Growth Summit day and returner and career-pivot programming.",
+  "segments": [
+   "Software engineering leadership"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "ctaa-expo",
+  "name": "CTAA EXPO",
+  "organizer": "Community Transportation Association of America",
+  "url": "https://ctaa.org/about_expo",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-09",
+  "typicalMonth": "June",
+  "city": "Atlantic City",
+  "state": "NJ",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "CTAA page lists 2027 in Atlantic City; the June 6-9 dates come from third-party listings.",
+  "speaking": "UNKNOWN",
+  "source": "official page (location) + third-party dates",
+  "whyAttend": "Rural, small-urban and specialized transit managers.",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ },
+ {
+  "id": "superreturn-private-credit-north-america",
+  "name": "SuperReturn Private Credit North America",
+  "organizer": "Informa Connect",
+  "url": "https://informaconnect.com/superreturn/",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-18",
+  "typicalMonth": "November",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Nov 16, 2026, New York. Pricing not on the event page; 20% off if booked with SuperReturn North America 2027.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Private credit managers and allocators.",
+  "segments": [],
+  "industries": [
+   "Venture Capital & Private Equity",
+   "Financial Services & Banking"
+  ]
+ }
+]

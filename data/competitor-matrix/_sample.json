@@ -1,0 +1,7 @@
+{
+  "competitor": "Example Competitor",
+  "cells": [
+    { "capabilityKey": "job_board", "status": "YES", "note": "Public job search on the careers page.", "evidenceUrl": "https://example.com/jobs", "checkedAt": "2026-10-23" },
+    { "capabilityKey": "job_ghost_risk", "status": "UNKNOWN" }
+  ]
+}

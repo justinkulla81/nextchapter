@@ -23,11 +23,12 @@ const VIEWER_WORKSPACES = [
 // portal with the role picked here. Inputs are controlled so a failed invite
 // keeps what was typed. `lockedRoles` = roles whose workspace the license
 // tier doesn't include (role → the tier that adds it), warned before sending.
-export function StaffInviteForm({ inviteAction, lockedRoles = {} }: { inviteAction: (prev: State, formData: FormData) => Promise<State>; lockedRoles?: Partial<Record<string, string>> }) {
+// `adminOnly` (the free plan) offers the administrator role alone.
+export function StaffInviteForm({ inviteAction, lockedRoles = {}, adminOnly = false }: { inviteAction: (prev: State, formData: FormData) => Promise<State>; lockedRoles?: Partial<Record<string, string>>; adminOnly?: boolean }) {
   const [state, action] = useActionState(inviteAction, undefined)
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<string>('CAREER_SERVICES')
+  const [role, setRole] = useState<string>(adminOnly ? 'INSTITUTION_ADMIN' : 'CAREER_SERVICES')
   const [workspace, setWorkspace] = useState<string>('alumni')
 
   return (
@@ -50,7 +51,7 @@ export function StaffInviteForm({ inviteAction, lockedRoles = {} }: { inviteActi
           onChange={(e) => setRole(e.target.value)}
           className="h-9 rounded-md border border-input bg-background px-2 text-sm"
         >
-          {ROLES.map((r) => (
+          {ROLES.filter((r) => !adminOnly || r === 'INSTITUTION_ADMIN').map((r) => (
             <option key={r} value={r}>
               {ROLE_LABEL[r]}
             </option>

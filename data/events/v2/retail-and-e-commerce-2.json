@@ -1,0 +1,1131 @@
+[
+ {
+  "id": "rila-link-retail-supply-chain-conference",
+  "name": "RILA LINK: Retail Supply Chain Conference",
+  "organizer": "Retail Industry Leaders Association",
+  "url": "https://www.rila.org/retail-supply-chain-conference/about",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-21",
+  "endDate": "2027-02-24",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Supply chain leaders from major retailers, grocers and manufacturers plus logistics partners in one retailer-built room.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on RILA's rate page, not shown on the main page; a 'LINK Connect' free ticket is offered but terms not stated.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [
+   "retail supply chain planner"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "nrf-protect",
+  "name": "NRF Protect",
+  "organizer": "National Retail Federation",
+  "url": "https://nrfprotect.nrf.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-14",
+  "endDate": "2027-06-16",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Tampa",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Asset protection, fraud and enterprise security leaders from retailers meeting law enforcement and solution providers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pass types listed on NRF's registration pages; prices not on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site links a Call for Speakers page; details not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [
+   "loss prevention leader"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "lprc-impact",
+  "name": "LPRC IMPACT Conference",
+  "organizer": "Loss Prevention Research Council",
+  "url": "https://lpresearch.org/IMPACT",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-09",
+  "endDate": "2027-03-11",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Gainesville",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Research-driven loss prevention sessions and live labs where retail LP executives test crime-reduction technology.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early bird closes 10/30; amounts not shown. Retailers register by one route, non-retailers by emailing the organizer.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [
+   "loss prevention leader"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "rila-retail-asset-protection-conference",
+  "name": "RILA Retail Asset Protection Conference",
+  "organizer": "Retail Industry Leaders Association",
+  "url": "https://www.rila.org/conferences/retail-asset-protection-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-04",
+  "endDate": "2027-05-07",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Retail asset protection executives from Target, Walmart, Kroger and Home Depot-scale chains, with attorneys general and police on organized retail crime.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration and team rates on RILA's rate page; amounts not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [
+   "loss prevention leader"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "gsx-global-security-exchange",
+  "name": "GSX (Global Security Exchange)",
+  "organizer": "ASIS International",
+  "url": "https://www.gsx.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-20",
+  "endDate": "2027-09-22",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Broad security conference where corporate and retail asset-protection managers earn credits and meet vendors.",
+  "access": "PAID",
+  "costLow": 1130,
+  "costHigh": 1420,
+  "costNote": "2026 edition prices: ASIS member $1,130 early, $1,420 after Jun 27 (non-member higher); 2027 pricing not yet posted. Digital pass from $380 (2026).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.gsx.org/call-for-presentations/",
+  "speakingDeadline": null,
+  "speakingNote": "Call for Presentations & Speakers page exists; 2027 deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [
+   "loss prevention leader"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "cscmp-edge",
+  "name": "CSCMP EDGE",
+  "organizer": "Council of Supply Chain Management Professionals",
+  "url": "https://cscmp.org/CSCMP/CSCMP/CSCMP-EDGE-2026.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The main US supply chain management professionals' conference: planners, logistics and retail supply chain managers, with member-rate networking.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Member rates need a registration code; Premier members save over $500. 2027 dates not yet posted (2026 edition was Nashville in early October).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [
+   "retail supply chain planner"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "rila-retail-ceo-forum",
+  "name": "RILA Retail CEO Forum",
+  "organizer": "Retail Industry Leaders Association",
+  "url": "https://www.rila.org/retail-ceo-forum",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-30",
+  "endDate": "2027-02-02",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Palm Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Invitation-only gathering of retail CEOs and senior leaders.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speakers are CEOs and public figures; no public call.",
+  "cheaperWays": null,
+  "applyUrl": "https://www.rila.org/retail-ceo-forum",
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty",
+   "Direct-to-consumer brands",
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [],
+  "journeys": [
+   "NEXT_ACT"
+  ],
+  "published": true
+ },
+ {
+  "id": "etail-palm-springs",
+  "name": "eTail Palm Springs",
+  "organizer": "WBR Insights",
+  "url": "https://etailwest.wbresearch.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-22",
+  "endDate": "2027-02-25",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Palm Springs",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Marketing",
+   "Sales"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Marketing and e-commerce VPs and directors from brands like Nike, Sephora, Target and Nordstrom.",
+  "access": "PAID",
+  "costLow": 499,
+  "costHigh": 499,
+  "costNote": "Page shows a single $499 register price.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty",
+   "Direct-to-consumer brands"
+  ],
+  "roles": [
+   "growth marketer",
+   "fashion brand manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "etail-boston",
+  "name": "eTail Boston",
+  "organizer": "WBR Insights",
+  "url": "https://etaileast.wbresearch.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-09",
+  "endDate": "2027-08-11",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Marketing",
+   "Sales"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "E-commerce, marketing and digital leaders from retail and consumer brands, 45% VP/Director level.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty",
+   "Direct-to-consumer brands"
+  ],
+  "roles": [
+   "growth marketer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "women-in-retail-leadership-summit",
+  "name": "Women in Retail Leadership Summit",
+  "organizer": "NAPCO Media / PRINTING United Alliance",
+  "url": "https://www.womeninretailsummit.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-28",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Women in leadership roles at top retailers and brands, with CEO-level speakers.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing page not shown; site says invitation-only.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2026 lineup included retail CEOs; no call for speakers found.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty",
+   "Direct-to-consumer brands"
+  ],
+  "roles": [
+   "buyer",
+   "fashion brand manager"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "world-retail-congress",
+  "name": "World Retail Congress",
+  "organizer": "World Retail Congress Ltd",
+  "url": "https://www.worldretailcongress.com/register-interest-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-12",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Milan",
+  "state": null,
+  "country": "IT",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Global retail CEOs and executives; the international flagship for retail leadership.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not open yet; register-interest form only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty",
+   "Direct-to-consumer brands",
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [],
+  "journeys": [
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "cosmoprof-north-america-las-vegas",
+  "name": "Cosmoprof North America Las Vegas",
+  "organizer": "Informa Markets / BolognaFiere",
+  "url": "https://www.cosmoprofnorthamerica.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-13",
+  "endDate": "2027-07-15",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Beauty brand owners, buyers and suppliers; has a Buyer Program and CosmoTalks conference.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "B2B beauty show; registration fee not shown on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "CosmoTalks program listed; no speaker application seen.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty"
+  ],
+  "roles": [
+   "beauty brand lead",
+   "buyer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "cosmoprof-north-america-miami",
+  "name": "Cosmoprof North America Miami",
+  "organizer": "Informa Markets / BolognaFiere",
+  "url": "https://www.cosmoprofnorthamerica.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-26",
+  "endDate": "2027-01-28",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Beauty buyers and brands, with a Latin America and Caribbean lean.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee not shown on page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty"
+  ],
+  "roles": [
+   "beauty brand lead",
+   "buyer"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "coterie-new-york",
+  "name": "COTERIE New York",
+  "organizer": "Informa Markets Fashion",
+  "url": "https://www.coteriefashionevents.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-07",
+  "endDate": "2027-02-09",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Womenswear brands and the department and specialty buyers who place orders.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Register to attend form; eligibility and fee not stated on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty"
+  ],
+  "roles": [
+   "buyer",
+   "fashion brand manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "magic-las-vegas",
+  "name": "MAGIC Las Vegas",
+  "organizer": "Informa Markets Fashion",
+  "url": "https://prod65.magicfashionevents.com/en/events/magic-las-vegas/event-information.html",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-16",
+  "endDate": "2027-02-18",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Largest US apparel, footwear and accessories market, buyers and brands.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site returned 403; dates from third-party listings (Feb and Aug editions).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Fashion, apparel and beauty"
+  ],
+  "roles": [
+   "buyer",
+   "fashion brand manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ],
+  "published": false
+ },
+ {
+  "id": "beautymatter-future50-summit",
+  "name": "BeautyMatter FUTURE50 Summit",
+  "organizer": "BeautyMatter",
+  "url": "https://events.beautymatter.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-08",
+  "endDate": "2027-04-08",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Beauty founders, investors and retail executives; a Brand MBA and dinner run the day before.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed on events page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty"
+  ],
+  "roles": [
+   "beauty brand lead"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "bite-beauty-independent",
+  "name": "BITE (Beauty Independent)",
+  "organizer": "Beauty Independent",
+  "url": "https://orbit.beautyindependent.com/events/bite-nyc-2026",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Emerging beauty brands meeting retail buyers from Target, Sephora Canada, CVS and others; retailer-only summit on the day.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Sep 24) just ended; 2027 not announced. Tickets were sold with early-bird pricing.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty"
+  ],
+  "roles": [
+   "beauty brand lead",
+   "buyer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ],
+  "published": true
+ },
+ {
+  "id": "prosper-show",
+  "name": "Prosper Show",
+  "organizer": "Prosper Show",
+  "url": "https://prospershow.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Sales",
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Amazon and marketplace sellers and brand operators.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site banners show Mar 2-3 and Mar 2-4; 2026 passes reported $625-$925.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Direct-to-consumer brands"
+  ],
+  "roles": [
+   "dtc founder",
+   "growth marketer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "affiliate-summit-west",
+  "name": "Affiliate Summit West",
+  "organizer": "Clarion Events",
+  "url": "https://www.affiliatesummit.com/west",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-26",
+  "endDate": "2027-01-28",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "7,000+ advertisers, publishers, affiliates and e-commerce sellers; performance marketers.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says attendees do not pay to attend.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Direct-to-consumer brands"
+  ],
+  "roles": [
+   "growth marketer"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ],
+  "published": true
+ },
+ {
+  "id": "amazon-accelerate",
+  "name": "Amazon Accelerate",
+  "organizer": "Amazon",
+  "url": "https://www.accelerate.amazon/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-23",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Seattle",
+  "state": "WA",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [
+   "Sales",
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Amazon sellers and brand owners hear directly from Amazon leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed; subscribe for updates.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Direct-to-consumer brands"
+  ],
+  "roles": [
+   "dtc founder",
+   "growth marketer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ],
+  "published": true
+ },
+ {
+  "id": "the-lead-summit",
+  "name": "The Lead Summit and DTC Symposium",
+  "organizer": "Future Commerce",
+  "url": "https://summit.the-lead.co/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "3,000+ senior retail and DTC executives; DTC Symposium day for founders and VPs ecommerce.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition May 20-21 at Pier 36; 2027 not announced. Official summit site returned 403.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Direct-to-consumer brands"
+  ],
+  "roles": [
+   "dtc founder",
+   "growth marketer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ],
+  "published": false
+ },
+ {
+  "id": "wwd-apparel-retail-ceo-summit",
+  "name": "WWD Apparel & Retail CEO Summit",
+  "organizer": "Fairchild Fashion Media (WWD)",
+  "url": "https://www.events.wwd.com/apparelandretailceosummit2025",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Founders and C-suite of apparel brands and retailers (about 80% C-suite).",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Brand/retailer tickets sold via site; price not listed. 2026 date not found; 2025 edition Oct 28-29.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Fashion, apparel and beauty"
+  ],
+  "roles": [
+   "fashion brand manager",
+   "buyer"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ],
+  "published": true
+ },
+ {
+  "id": "storepoint-retail",
+  "name": "StorePoint Retail",
+  "organizer": "CPMG Events",
+  "url": "https://storepointretail.cpmgevents.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-24",
+  "endDate": "2027-01-27",
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Retail & E-commerce"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Retail store operations and leaders (per Retail Dive 2027 list).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site returned 403; dates from Retail Dive article.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Loss prevention and retail supply chain"
+  ],
+  "roles": [],
+  "journeys": [],
+  "published": false
+ }
+]

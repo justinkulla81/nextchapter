@@ -43,6 +43,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       tab('Your market report', '/dashboard/market-reality', { alsoMatches: ['/dashboard/market', '/dashboard/market-intelligence'] }),
       tab('Know your worth', '/dashboard/pay'),
       tab('Local market', '/dashboard/local-market', { menuKeys: ['local'] }),
+      tab('Compare places', '/dashboard/compare-places'),
       tab('Interview prep', '/dashboard/interview-prep', { menuKeys: ['interviewPrep', 'growConversation'] }),
       tab('Build your case', '/dashboard/review-prep', { menuKeys: ['growCase'] }),
       tab('From my groups', '/dashboard/alumni-jobs'),
@@ -56,7 +57,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
       { label: 'Early career plan', hrefs: ['/dashboard/early-career'] },
       { label: 'Get ready to apply', hrefs: ['/dashboard/resume', '/dashboard/strengths'] },
       { label: 'Companies', hrefs: ['/dashboard/companies'] },
-      { label: 'Market and pay', hrefs: ['/dashboard/market-reality', '/dashboard/pay', '/dashboard/local-market'] },
+      { label: 'Market and pay', hrefs: ['/dashboard/market-reality', '/dashboard/pay', '/dashboard/local-market', '/dashboard/compare-places'] },
       { label: 'Interviews and reviews', hrefs: ['/dashboard/interview-prep', '/dashboard/review-prep'] },
       { label: 'Offers and raises', hrefs: ['/dashboard/got-hired', '/dashboard/in-work'] },
     ],
@@ -68,6 +69,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     tabs: [
       tab('This week', '/dashboard/network', { menuKeys: ['network', 'careerNetwork'], alsoMatches: ['/dashboard/email-activity', '/dashboard/calendar-activity'] }),
       tab('Contacts', '/dashboard/network/contacts', { menuKeys: ['contacts'] }),
+      tab('Events to attend', '/dashboard/network/events'),
       tab('References', '/dashboard/references', { menuKeys: ['references'], alsoMatches: ['/dashboard/work-samples'] }),
       tab('Community', '/dashboard/community', { menuKeys: ['community'], alsoMatches: ['/dashboard/circle'] }),
       tab('Inbox', '/dashboard/messages', { menuKeys: ['inbox'] }),
@@ -80,7 +82,7 @@ export const REDESIGN_PLACES: RedesignPlace[] = [
     ],
     groups: [
       { label: 'This week', hrefs: ['/dashboard/network'] },
-      { label: 'Contacts', hrefs: ['/dashboard/network/contacts'] },
+      { label: 'Contacts and events', hrefs: ['/dashboard/network/contacts', '/dashboard/network/events'] },
       { label: 'Community', hrefs: ['/dashboard/community', '/dashboard/messages', '/dashboard/groups'] },
       { label: 'References and supporters', hrefs: ['/dashboard/references', '/dashboard/supporters'] },
       { label: 'Coaching', hrefs: ['/dashboard/my-coaching'] },

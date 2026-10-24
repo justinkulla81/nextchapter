@@ -105,7 +105,7 @@ async function buildLearningDraft(candidateId: string, firstName: string): Promi
   const body = [
     `Hi ${firstName},`,
     statusLine,
-    `A visible new skill or a real AI-fluency credential keeps your background current and gives recruiters something concrete to point to beyond your resume — it's a fast, low-cost way to stay competitive while you search.`,
+    `A visible new skill or a real AI-fluency credential keeps your background current and gives recruiters something concrete to point to beyond your resume — it's a fast way to stay competitive while you search.`,
     `Take a look at what's recommended for your background and log anything you've already been working on.`,
   ].join('\n\n')
 
@@ -270,7 +270,7 @@ async function buildRecruiterHelpDraft(candidateId: string, firstName: string): 
     `Hi ${firstName},`,
     statusLine,
     `Getting in front of real recruiters — whether through the Recruiter Database or a working session with an Executive Coach — significantly increases your odds of landing interviews, especially once your profile and grade are in good shape.`,
-    `Worth a look either way: opting into recruiter visibility costs you nothing, and a coach can help you close specific gaps faster than searching alone.`,
+    `Worth a look either way: opting into recruiter visibility is free, and a coach can help you close specific gaps faster than searching alone.`,
   ].join('\n\n')
 
   return {

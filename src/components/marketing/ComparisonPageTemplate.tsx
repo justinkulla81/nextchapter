@@ -4,30 +4,14 @@ import type { CompetitorComparison } from '@/lib/marketing/competitor-comparison
 import { WHERE_THEY_MAY_BE_STRONGER_NOTE } from '@/lib/marketing/competitor-comparisons'
 import { ComparisonCtaLink } from './ComparisonCtaLink'
 
-function formatUsd(cents: number): string {
-  return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-}
-
-interface OurPricing {
-  core: number | null
-  plus: number | null
-  premium: number | null
-}
-
 // Partners Master Build Script §D2.8: "what each is best for · honest
-// feature comparison · pricing comparison · what participants keep · what
+// feature comparison · what participants keep · what
 // the employer sees · when to choose them instead." §C5: "including where
 // LHH is stronger... converts better than a one-sided table." Every
 // comparative sentence rendered here comes from competitor-comparisons.ts,
 // which is itself keyed to docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md — see
 // that file before changing any claim on this template.
-export function ComparisonPageTemplate({
-  comparison,
-  ourPricing,
-}: {
-  comparison: CompetitorComparison
-  ourPricing: OurPricing
-}) {
+export function ComparisonPageTemplate({ comparison }: { comparison: CompetitorComparison }) {
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-border bg-white">
@@ -51,7 +35,7 @@ export function ComparisonPageTemplate({
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
           Every comparative statement below is sourced and dated in our{' '}
           <span className="font-medium">competitive claims substantiation file</span>, reviewed on a quarterly
-          cycle. Pricing and feature information about {comparison.name} reflects our own published research as
+          cycle. Feature information about {comparison.name} reflects our own published research as
           of this page&apos;s last review date and may not reflect their current offering — always confirm
           directly with {comparison.name} before relying on it for a purchase decision.
         </div>
@@ -60,39 +44,6 @@ export function ComparisonPageTemplate({
           NextChapter vs. {comparison.name}
         </h1>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">{comparison.bestForSummary}</p>
-
-        <section className="mt-12 border-t border-border pt-8">
-          <h2 className="text-xl font-bold tracking-tight text-navy">Pricing comparison</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-light-gray bg-off-white p-5">
-              <p className="text-sm font-semibold text-navy">{comparison.name}</p>
-              <p className="mt-2 text-2xl font-bold text-foreground">{comparison.pricingRangeLabel}</p>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{comparison.pricingRangeCaveat}</p>
-            </div>
-            <div className="rounded-xl border border-brand bg-white p-5">
-              <p className="text-sm font-semibold text-brand">NextChapter</p>
-              <ul className="mt-2 space-y-1 text-sm text-foreground">
-                <li>
-                  Core — {ourPricing.core !== null ? formatUsd(ourPricing.core) : '—'} / seat (6 mo)
-                </li>
-                <li>
-                  Plus — {ourPricing.plus !== null ? formatUsd(ourPricing.plus) : '—'} / seat (6 mo)
-                </li>
-                <li>
-                  Premium — {ourPricing.premium !== null ? formatUsd(ourPricing.premium) : '—'} / seat (12 mo)
-                </li>
-              </ul>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Published list prices, read live from our plan catalog. Volume pricing available: 25+ seats −10%
-                · 100+ seats −18% · 250+ seats −25%. Full detail at{' '}
-                <Link href="/pricing" className="underline underline-offset-4">
-                  /pricing
-                </Link>
-                .
-              </p>
-            </div>
-          </div>
-        </section>
 
         <section className="mt-12 border-t border-border pt-8">
           <h2 className="text-xl font-bold tracking-tight text-navy">Honest feature comparison</h2>
@@ -184,7 +135,7 @@ export function ComparisonPageTemplate({
           </Link>
           {' · '}
           <Link href="/pricing" className="underline underline-offset-4">
-            Full pricing
+            Plans
           </Link>
         </div>
       </main>

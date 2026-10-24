@@ -1,0 +1,836 @@
+[
+ {
+  "id": "consortium-orientation-program-career-forum",
+  "name": "Consortium Orientation Program & Career Forum",
+  "organizer": "Consortium for Graduate Study in Management",
+  "url": "https://cgsm.org/orientation-program",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": "Indianapolis",
+  "state": "IN",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Open to Consortium fellows; typically held in spring before the MBA begins.",
+  "speaking": "UNKNOWN",
+  "source": "organizer pages via search",
+  "whyAttend": "About 1,200 incoming MBA fellows, member schools and corporate partners in a five-day recruiting event.",
+  "segments": [
+   "Management consulting"
+  ],
+  "industries": []
+ },
+ {
+  "id": "mo-summit",
+  "name": "MO Summit",
+  "organizer": "Big Path Capital",
+  "url": "https://www.mo-summit.com/",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-14",
+  "typicalMonth": "April",
+  "city": "Asheville",
+  "state": "NC",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "CEOs and founders building growth companies with a positive-impact bent.",
+  "segments": [
+   "Small business operations and growth",
+   "Founder communities and accelerators"
+  ],
+  "industries": []
+ },
+ {
+  "id": "small-business-expo",
+  "name": "Small Business Expo",
+  "organizer": "Small Business Expo",
+  "url": "https://www.thesmallbusinessexpo.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": "Charlotte",
+  "state": "NC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing + search",
+  "whyAttend": "Multi-city expo for small business owners; 2027 listings include Miami, Charlotte, Seattle.",
+  "segments": [
+   "Starting a business"
+  ],
+  "industries": []
+ },
+ {
+  "id": "xerocon-us",
+  "name": "Xerocon (US)",
+  "organizer": "Xero",
+  "url": "https://www.xero.com/us/xerocon/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": "Denver",
+  "state": "CO",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran Aug 19-20 in Denver; 2027 dates not yet found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Accounting and bookkeeping advisors who run Xero-based practices and small-business clients.",
+  "segments": [
+   "Small business operations and growth"
+  ],
+  "industries": []
+ },
+ {
+  "id": "admonsters-publisher-forum",
+  "name": "AdMonsters Publisher Forum",
+  "organizer": "AdMonsters",
+  "url": "https://www.admonsters.com/event/publisher-forum-spring-2/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Publisher ad operations and revenue leaders.",
+  "segments": [
+   "Advertising technology"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "mirren-live",
+  "name": "Mirren Live",
+  "organizer": "Mirren",
+  "url": "https://live.mirren.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and price not read.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (not opened)",
+  "whyAttend": "Agency new-business and growth leaders; May 2027 announced.",
+  "segments": [
+   "Brand and creative"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "the-one-show",
+  "name": "The One Show",
+  "organizer": "The One Club for Creativity",
+  "url": "https://www.oneclub.org/theoneshow/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pass prices not published.",
+  "speaking": "NONE",
+  "source": "official site",
+  "whyAttend": "Creative directors, copywriters and designers in the top US creative awards week; 2027 opens for entry this fall.",
+  "segments": [
+   "Brand and creative"
+  ],
+  "industries": [
+   "Advertising, Marketing & PR"
+  ]
+ },
+ {
+  "id": "icamp-cultivated-meat-alt-protein-summit",
+  "name": "UC Davis iCAMP Cultivated Meat and Alternative Protein Summit",
+  "organizer": "UC Davis",
+  "url": "https://icamp.ucdavis.edu/annual-summit",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Davis",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site blocked automated reading; 2025 edition was Sept 8-9; next dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official site (unverified lead)",
+  "whyAttend": "Cultivated-meat and alt protein researchers, industry, investors and policy makers (about 300 per year).",
+  "segments": [
+   "Sustainable food systems and alt protein"
+  ],
+  "industries": [
+   "Agriculture & Food Production"
+  ]
+ },
+ {
+  "id": "ev-charging-summit-expo-2027",
+  "name": "EV Charging Summit & Expo (Las Vegas 2027)",
+  "organizer": "Terrapinn",
+  "url": "https://starbridge.ai/conferences/ev-charging-summit-expo-2027",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-03",
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party listings only; likely duplicates the existing EV Charging Summit row, merge by name.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Charging network operators, utilities, fleets and hardware makers; listing says 3,500+ attendees at Caesars Forum.",
+  "segments": [
+   "Electric vehicles and charging"
+  ],
+  "industries": [
+   "Automotive & Mobility",
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "housingwire-annual",
+  "name": "HousingWire Annual",
+  "organizer": "HousingWire",
+  "url": "https://events.housingwire.com/housingwire-annual",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / lead",
+  "whyAttend": "Mortgage, housing and real estate executives and tech vendors.",
+  "segments": [
+   "Residential real estate and brokerage",
+   "Proptech"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "npha-nph-annual-affordable-housing-conference",
+  "name": "NPH Annual Affordable Housing Conference",
+  "organizer": "Non-Profit Housing Association of Northern California",
+  "url": "https://yerbabuena.org/do/47th-annual-affordable-housing-conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "San Francisco",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Sept 24 (past); 2027 date not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Bay Area affordable housing developers and funders; the 2026 listing is the 47th edition.",
+  "segments": [
+   "Affordable housing and community development"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ]
+ },
+ {
+  "id": "learning-solutions-conference",
+  "name": "Learning Solutions Conference & Expo",
+  "organizer": "The Learning Guild",
+  "url": "https://learningsolutionsmag.com/conferences",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / partial",
+  "whyAttend": "Instructional designers and e-learning developers (spring, Orlando historically); 2027 status not confirmed.",
+  "segments": [
+   "Corporate learning and development"
+  ],
+  "industries": [
+   "Education & EdTech"
+  ]
+ },
+ {
+  "id": "gcpa-fall-conference",
+  "name": "GCPA Fall Conference",
+  "organizer": "Gulf Coast Power Association",
+  "url": "https://www.gulfcoastpower.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Austin",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site shows save-the-date only.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Largest annual ERCOT/Gulf Coast power gathering, now heavy on large-load data center topics.",
+  "segments": [
+   "Data centers and power demand"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ]
+ },
+ {
+  "id": "aba-annual-convention",
+  "name": "ABA Annual Convention",
+  "organizer": "American Bankers Association",
+  "url": "https://www.aba.com/events",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-27",
+  "typicalMonth": "October",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from Fed and FHLB calendars; ABA page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing; lead only",
+  "whyAttend": "1,200+ bank leaders at the national trade association's flagship meeting.",
+  "segments": [
+   "Community and regional banking"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "nacha-smarter-faster-payments",
+  "name": "Smarter Faster Payments",
+  "organizer": "Nacha",
+  "url": "https://payments.nacha.org/",
+  "startDate": "2027-04-11",
+  "endDate": "2027-04-14",
+  "typicalMonth": "April",
+  "city": "National Harbor",
+  "state": "MD",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from third-party listings (Gaylord National Harbor); Nacha page not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing; lead only",
+  "whyAttend": "Banks, processors and fintechs shaping ACH and real-time payments, with a payments-fraud focus.",
+  "segments": [
+   "Payments and fintech"
+  ],
+  "industries": [
+   "Financial Services & Banking"
+  ]
+ },
+ {
+  "id": "google-public-sector-summit",
+  "name": "Google Public Sector Summit",
+  "organizer": "Google Public Sector",
+  "url": "https://events.govexec.com/google-public-sector-summit/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Washington",
+  "state": "DC",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cost not confirmed from the page; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search",
+  "whyAttend": "Federal, state, local and education technology leaders on AI for government; 2026 edition was Oct 20 in Washington.",
+  "segments": [
+   "Civic technology and digital government"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "tml-annual-conference",
+  "name": "TML Annual Conference & Exhibition",
+  "organizer": "Texas Municipal League",
+  "url": "https://www.tml.org",
+  "startDate": "2026-11-11",
+  "endDate": "2026-11-13",
+  "typicalMonth": "November",
+  "city": "San Antonio",
+  "state": "TX",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "TML site shows Nov 11; city and Nov 13 end from third-party listings. Prices on tmlconference.org, not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Texas mayors, council members, city managers and finance directors under one roof; one of the largest state municipal league meetings.",
+  "segments": [
+   "City and county government"
+  ],
+  "industries": [
+   "Government & Public Sector"
+  ]
+ },
+ {
+  "id": "behavioral-health-tech-bht",
+  "name": "Behavioral Health Tech (BHT)",
+  "organizer": "Behavioral Health Tech",
+  "url": "https://behavioralhealthtech.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Nashville",
+  "state": "TN",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing (lead)",
+  "whyAttend": "Behavioral health providers, payers and tech vendors; 2026 edition was Sept 22-24 in Nashville.",
+  "segments": [
+   "Behavioral health"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "rock-health-summit",
+  "name": "Rock Health Summit",
+  "organizer": "Rock Health",
+  "url": "https://rockhealth.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "San Francisco",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition reported Oct 14 by third parties; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Digital health founders, investors and health system partners.",
+  "segments": [],
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ]
+ },
+ {
+  "id": "sbc-summit-americas",
+  "name": "SBC Summit Americas",
+  "organizer": "SBC",
+  "url": "https://sbcevents.com/sbc-summit/sbc-summit-2026-2027-dates/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": "Fort Lauderdale",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing only",
+  "whyAttend": "Sports-betting and iGaming operators and suppliers across the Americas.",
+  "segments": [
+   "Cruise, gaming and attractions"
+  ],
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ]
+ },
+ {
+  "id": "itc-vegas",
+  "name": "ITC Vegas",
+  "organizer": "InsurTech Connect",
+  "url": "https://www.insurtechconnect.com",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-23",
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site did not load for automated access this session.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "The biggest insurance innovation event, with carriers, MGAs, brokers, insurtechs and investors.",
+  "segments": [],
+  "industries": [
+   "Insurance"
+  ]
+ },
+ {
+  "id": "liebert-cassidy-whitmore-annual-employment-law-conference",
+  "name": "Liebert Cassidy Whitmore Annual Employment Law Conference",
+  "organizer": "Liebert Cassidy Whitmore",
+  "url": "https://www.lcwlegal.com/events-and-training/lcw-conference/2027-liebert-cassidy-whitmore-annual-employment-law-conference/",
+  "startDate": "2027-02-18",
+  "endDate": "2027-02-19",
+  "typicalMonth": "February",
+  "city": "San Diego",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page says more details to come.",
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "Public-sector employment lawyers and HR/labor relations leaders; the main California public-agency employment event.",
+  "segments": [
+   "Employment and immigration"
+  ],
+  "industries": [
+   "Legal Services"
+  ]
+ },
+ {
+  "id": "iot-tech-expo-na",
+  "name": "IoT Tech Expo North America",
+  "organizer": "TechEx",
+  "url": "https://www.iottechexpo.com/northamerica/",
+  "startDate": "2027-06-16",
+  "endDate": "2027-06-17",
+  "typicalMonth": "June",
+  "city": "San Jose",
+  "state": "CA",
+  "access": "MIXED",
+  "costLow": 0,
+  "costHigh": 1399,
+  "costNote": "Free expo pass; Gold Pass $1,399. 2027 date from a promo page only.",
+  "speaking": "UNKNOWN",
+  "source": "official domain search (dates conflict or unconfirmed)",
+  "whyAttend": "IoT and edge computing practitioners; free expo pass available.",
+  "segments": [
+   "Additive manufacturing and Industry 4.0"
+  ],
+  "industries": [
+   "Manufacturing & Industrial"
+  ]
+ },
+ {
+  "id": "carnegie-mellon-sports-analytics-conference",
+  "name": "Carnegie Mellon Sports Analytics Conference (CMSAC)",
+  "organizer": "Carnegie Mellon University",
+  "url": "https://www.cmu.edu/dietrich/statistics-datascience/cmsac/index.html",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "Pittsburgh",
+  "state": "PA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026/2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "search results",
+  "whyAttend": "Sports analytics research with 200+ attendees and reps from 15 pro teams in 2025.",
+  "segments": [
+   "Sports business"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "spobis-conference",
+  "name": "SPOBIS Conference",
+  "organizer": "SPOBIS",
+  "url": "https://spobis.maglr.com/",
+  "startDate": "2027-02-03",
+  "endDate": "2027-02-04",
+  "typicalMonth": "February",
+  "city": "Hamburg",
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Found via search; official page not opened.",
+  "speaking": "UNKNOWN",
+  "source": "search listing; official site not opened",
+  "whyAttend": "Leagues, clubs, agencies and sponsors in a large European sports business meeting that US sports marketers attend.",
+  "segments": [
+   "Sports business"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ]
+ },
+ {
+  "id": "dance-usa-national-conference",
+  "name": "Dance/USA National Conference",
+  "organizer": "Dance/USA",
+  "url": "https://danceusa.org/conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Appears biennial (2025 in Chicago); 2027 not confirmed.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Dance company managers and executives.",
+  "segments": [
+   "Arts, culture and museums"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ]
+ },
+ {
+  "id": "cell-and-gene-meeting-on-the-mesa",
+  "name": "Cell & Gene Meeting on the Mesa",
+  "organizer": "Alliance for Regenerative Medicine",
+  "url": "https://www.armiusa.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Phoenix",
+  "state": "AZ",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ran Oct 5-7; 2027 dates not read.",
+  "speaking": "UNKNOWN",
+  "source": "official site",
+  "whyAttend": "Senior cell and gene therapy executives hold partnering meetings and company presentations.",
+  "segments": [
+   "Biomanufacturing and CMC",
+   "Drug discovery and R&D"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ]
+ },
+ {
+  "id": "digital-pm-summit",
+  "name": "Digital PM Summit",
+  "organizer": "The Bureau of Digital",
+  "url": "https://thebureau.community/2026-digital-pm-summit",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Asheville",
+  "state": "NC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Oct 19-20, Asheville): $1,150 member / $1,650 non-member per ticketing listing; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Annual meeting of project managers and delivery leads at digital agencies and studios.",
+  "segments": [
+   "Project and program management"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ]
+ },
+ {
+  "id": "groceryshop",
+  "name": "Groceryshop",
+  "organizer": "Shoptalk",
+  "url": "https://shoptalk.com/",
+  "startDate": "2027-09-13",
+  "endDate": "2027-09-15",
+  "typicalMonth": "September",
+  "city": "Las Vegas",
+  "state": "NV",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Mandalay Bay, Las Vegas; pass prices not on shoptalk.com.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "CPG brands, grocers and retail media leaders discuss the future of grocery.",
+  "segments": [],
+  "industries": [
+   "Retail & E-commerce",
+   "Consumer Packaged Goods"
+  ]
+ },
+ {
+  "id": "jff-horizons-summit",
+  "name": "Horizons Summit (JFF)",
+  "organizer": "Jobs for the Future",
+  "url": "https://horizons.jff.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Sign-up for updates only so far.",
+  "speaking": "UNKNOWN",
+  "source": "official site + search snippet",
+  "whyAttend": "2,000+ employers, workforce providers, investors and policymakers on skills-based hiring and good jobs; 2027 edition announced, details pending.",
+  "segments": [
+   "Career coaching and outplacement"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ]
+ },
+ {
+  "id": "community-over-code-north-america",
+  "name": "Community Over Code North America",
+  "organizer": "Apache Software Foundation",
+  "url": "https://communityovercode.apache.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Minneapolis",
+  "state": "MN",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 NA edition was Sept 11-14 in Minneapolis; the 2026 site lists a Sydney event Nov 18-19 and a Glasgow edition; no 2027 NA edition announced.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "The ASF's flagship; committers and contributors across Apache projects plus open source community builders.",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "kdd",
+  "name": "ACM SIGKDD Conference (KDD)",
+  "organizer": "ACM SIGKDD",
+  "url": "https://kdd.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "August",
+  "city": "San Jose",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "source": "third-party listing / search result",
+  "whyAttend": "Premier data mining and applied ML conference; data scientists and ML researchers.",
+  "segments": [
+   "AI and machine learning",
+   "Data engineering and analytics"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "shift-ux",
+  "name": "Shift UX",
+  "organizer": "Rosenfeld Media",
+  "url": "https://rosenfeldmedia.com/upcoming-conferences/",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-22",
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed with a notify-me sign-up; price and format not seen.",
+  "speaking": "UNKNOWN",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "New Rosenfeld Media conference for UX and design practitioners.",
+  "segments": [
+   "Design and user experience"
+  ],
+  "industries": [
+   "Technology & Software"
+  ]
+ },
+ {
+  "id": "wispamerica",
+  "name": "WISPAmerica",
+  "organizer": "Wireless Internet Service Providers Association",
+  "url": "https://www.wispa.org/events/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "March",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition was in Oklahoma City in March; 2027 dates not found.",
+  "speaking": "UNKNOWN",
+  "source": "official site (unverified lead)",
+  "whyAttend": "Independent wireless and fiber ISP operators; about 1,500 attendees.",
+  "segments": [
+   "Broadband and fiber"
+  ],
+  "industries": [
+   "Telecommunications"
+  ]
+ },
+ {
+  "id": "parcel-forum",
+  "name": "Parcel Forum",
+  "organizer": "Transportation Insight",
+  "url": "https://transportationinsight.com/events/parcel-forum-2026/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not announced on pages seen.",
+  "speaking": "UNKNOWN",
+  "source": "official site + press",
+  "whyAttend": "Shippers and parcel managers on carrier contracts and fulfillment costs (2026: Sept 14-16, Gaylord Palms).",
+  "segments": [
+   "Warehousing and fulfillment",
+   "Freight, trucking and brokerage"
+  ],
+  "industries": [
+   "Transportation & Logistics"
+  ]
+ }
+]

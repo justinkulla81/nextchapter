@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils'
 import { requireWorkspace } from '@/lib/higher-ed/access'
 import { getWorkspace, labelFor, orgBasePath, orgKindOf, tabsFor, type WorkspaceKey } from '@/lib/higher-ed/workspaces'
 import { loadModules } from '@/components/higher-ed/screens-community'
+import { LockedFeature } from '@/components/plans/LockedFeature'
+import { blockedScreen } from '@/lib/plans/entitlements'
 import { ComingIn } from '@/components/higher-ed/ComingIn'
 import { COMING_DESCRIPTIONS, WORKSPACE_SCREENS, type ScreenSearchParams } from '@/components/higher-ed/screens'
 
@@ -30,6 +32,8 @@ export default async function WorkspacePage({
   if (!active || (tab && tab.length > 1)) notFound()
 
   const Screen = WORKSPACE_SCREENS[`${config.key}:${active.key}`]
+  // The free plan locks reporting, the CRM exchange, the activity log and WIOA reporting.
+  const locked = blockedScreen(`${config.key}:${active.key}`, ctx.institution.plan)
   const base = `${orgBasePath(slug, ctx.institution.orgType)}/${config.homePath}`
 
   return (
@@ -66,7 +70,9 @@ export default async function WorkspacePage({
         </nav>
       )}
 
-      {Screen ? (
+      {locked ? (
+        <LockedFeature feature={locked} slug={slug} plan={ctx.institution.plan} />
+      ) : Screen ? (
         <Screen ctx={ctx} searchParams={await searchParams} base={base} />
       ) : (
         <ComingIn step={active.comingIn ?? 'a later step'} what={COMING_DESCRIPTIONS[`${config.key}:${active.key}`] ?? active.label} />

@@ -1,0 +1,1231 @@
+[
+ {
+  "id": "podcast-movement-evolutions",
+  "name": "Podcast Movement Evolutions",
+  "organizer": "Podcast Movement / Sounds Profitable",
+  "url": "https://www.podcastmovement.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Marketing",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main US gathering of podcast producers, networks, hosts and ad buyers; the site also lists Podcast Movement 2027 in New York City with no dates yet.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not published on the homepage.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Podcasting and creator economy"
+  ],
+  "roles": [
+   "podcast producer"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "podfest-expo",
+  "name": "Podfest Expo",
+  "organizer": "Podfest",
+  "url": "https://www.podfestexpo.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-14",
+  "endDate": "2027-01-17",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Independent podcasters, producers and show creators meeting for workshops and networking.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices are on go.podfestexpo.com/tickets (not read).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://podfestexpo.com/speakers-2027/",
+  "speakingDeadline": null,
+  "speakingNote": "A speakers page exists; the application process was not shown.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Podcasting and creator economy"
+  ],
+  "roles": [
+   "podcast producer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "vidcon-x-lions-creators",
+  "name": "VidCon x LIONS Creators (Insight to Impact)",
+  "organizer": "Informa Connect",
+  "url": "https://www.vidcon.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Creators, platforms, brands and agencies; VidCon's new home as part of the Insight to Impact event.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not yet published; site says 'fall of 2027'.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site has a Featured Creator Submissions page; not confirmed as a speaker call.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Podcasting and creator economy"
+  ],
+  "roles": [
+   "creator business manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ana-creator-marketing-conference",
+  "name": "ANA Creator Marketing Conference",
+  "organizer": "Association of National Advertisers (ANA)",
+  "url": "https://www.ana.net/conference/show/id/infl-mar27",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-03",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Brand creator-marketing leaders, agencies and platforms sharing contracts, rates and ROI measurement.",
+  "access": "PAID",
+  "costLow": 1299,
+  "costHigh": 1999,
+  "costNote": "Early bird through Dec 31, 2026 (in-person Platinum member $1,299 to nonmember $1,999); virtual $1,099 to $1,799; client-side (brand) marketers $0.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://www.ana.net/conference/show/id/infl-mar27",
+  "speakingDeadline": null,
+  "speakingNote": "Site has a Speaker Opportunities link; no details read.",
+  "cheaperWays": "Virtual pass is cheaper; client-side brand marketers attend free.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Podcasting and creator economy"
+  ],
+  "roles": [
+   "creator business manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "twitchcon-san-diego",
+  "name": "TwitchCon San Diego",
+  "organizer": "Twitch",
+  "url": "https://www.twitchcon.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-13",
+  "endDate": "2026-11-15",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Streamers, creator managers and Twitch partners; TwitchCon Europe follows in Berlin May 22-23, 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices are on the Buy Passes page (not read).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Podcasting and creator economy",
+   "Video games and esports"
+  ],
+  "roles": [
+   "creator business manager",
+   "esports executive"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "gdc-festival-of-gaming",
+  "name": "GDC Festival of Gaming",
+  "organizer": "Informa Festivals",
+  "url": "https://gdconf.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest professional game-industry event: developers, publishers, marketers, investors and recruiters.",
+  "access": "PAID",
+  "costLow": 125,
+  "costHigh": 1249,
+  "costNote": "Early rate to Dec 11: Business Hall only $125, Festival $549, Game Changer $1,249; Academic pass $299.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Academic pass $299 for students, faculty and staff; Business Hall only $125; Indie/Start-up pass $299 (application).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Video games and esports"
+  ],
+  "roles": [
+   "game marketer",
+   "esports executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "pax-east",
+  "name": "PAX East",
+  "organizer": null,
+  "url": "https://east.paxsite.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-22",
+  "endDate": "2027-04-25",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Large consumer-and-industry games show where game marketers meet studios, publishers and community managers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Badge prices not listed yet ('news coming soon').",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Video games and esports"
+  ],
+  "roles": [
+   "game marketer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "dice-summit",
+  "name": "DICE Summit",
+  "organizer": "Academy of Interactive Arts & Sciences (AIAS)",
+  "url": "https://interactive.org",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-16",
+  "endDate": "2027-02-18",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Executive-level games gathering of studio heads, platform executives, publishers and investors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Third-party listing shows an average pass price around $499; not confirmed on the official site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Video games and esports"
+  ],
+  "roles": [
+   "esports executive",
+   "game marketer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "gamesbeat-summit",
+  "name": "GamesBeat Summit",
+  "organizer": "GamesBeat",
+  "url": "https://gamesbeat.com",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Games business leaders, creators and investors; the 2027 edition is billed as spring 2027 in Los Angeles.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Past editions around $997; 2027 pricing not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Video games and esports"
+  ],
+  "roles": [
+   "game marketer",
+   "esports executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "caa-world-congress-of-sports",
+  "name": "CAA World Congress of Sports",
+  "organizer": "Sports Business Journal",
+  "url": "https://www.worldcongressofsports.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-21",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Marketing",
+   "Sales"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "Commissioners, team presidents, sponsors, agencies and media leaders at North America's top sports business conference.",
+  "access": "PAID",
+  "costLow": 295,
+  "costHigh": 2195,
+  "costNote": "Virtual $295; in-person $1,895 early (to Jan 29, 2027), $2,195 standard.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2027 speaker lineup 'coming soon'; curated by organizer.",
+  "cheaperWays": "Virtual pass $295; groups of three or more get special rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "sports marketing executive",
+   "team operations leader"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "mit-sloan-sports-analytics-conference",
+  "name": "MIT Sloan Sports Analytics Conference",
+  "organizer": "MIT Sloan",
+  "url": "https://www.sloansportsconference.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-25",
+  "endDate": "2027-02-26",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Team front offices, league staff, analysts and students; heavy recruiting traffic.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Tickets sold through Eventbrite; prices not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.sloansportsconference.com/research-paper-competition",
+  "speakingDeadline": null,
+  "speakingNote": "Research Paper Competition page exists; deadline not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "team operations leader",
+   "sports marketing executive"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD",
+   "CAREER_CHANGE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nrl-business-of-sport-conference",
+  "name": "NRL Business of Sport Conference (Las Vegas)",
+  "organizer": "National Rugby League",
+  "url": "https://www.nrl.com/rugby-league-in-las-vegas-2027/business-of-sport-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-26",
+  "endDate": "2027-02-26",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "C-suite and senior sport executives from 11 countries; 2026 edition drew 300+ VIPs.",
+  "access": "UNKNOWN",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Speakers and registration not yet announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "sports marketing executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nacda-convention",
+  "name": "NACDA & Affiliates Convention",
+  "organizer": "NACDA",
+  "url": "https://nacda.com/convention",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "College athletic directors, deputy ADs and ops leaders; the archived 2026 edition was June 7-10 at Mandalay Bay.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": 1750,
+  "costNote": "2026 walk-around badge $1,750 (on-site registration); 2027 details not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "athletic director",
+   "team operations leader"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "national-athletic-directors-conference",
+  "name": "National Athletic Directors Conference",
+  "organizer": "NIAAA / NFHS",
+  "url": "https://www.adconference.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-11",
+  "endDate": "2026-12-15",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "High school and interscholastic athletic administrators, with Leadership Training Institute courses.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration on events.american-tradeshow.com/nadc26; prices not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "athletic director"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "iavm-venueconnect",
+  "name": "IAVM VenueConnect",
+  "organizer": "IAVM",
+  "url": "https://venueconnect.iavm.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Venue, arena and stadium managers and their suppliers; 2026 edition was Aug 9-12 in Indianapolis, 2027 not yet announced.",
+  "access": "PAID",
+  "costLow": 150,
+  "costHigh": 2525,
+  "costNote": "2026 rates: Student member $150, Young Professional $650, Professional member $1,499, nonmember $2,049.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student member $150; Young Professional and Faculty $650 (2026 rates).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "team operations leader"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "sport-marketing-association-conference",
+  "name": "Sport Marketing Association Conference",
+  "organizer": "Sport Marketing Association",
+  "url": "https://www.sportmarketingassociation.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-28",
+  "endDate": "2026-10-30",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Baltimore",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Sport marketing academics and practitioners; good for faculty and graduate students.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "sports marketing executive"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "ncaa-convention",
+  "name": "NCAA Convention",
+  "organizer": "NCAA",
+  "url": "https://www.ncaa.org/ncaa-convention/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-13",
+  "endDate": "2027-01-15",
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Athletic directors, compliance and administrators from member schools (Divisions II and III vote in person).",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration and cost not read; one older NCAA schedule showed Jan 13-16.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "athletic director"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ala-annual-conference",
+  "name": "ALA Annual Conference & Exhibition",
+  "organizer": "American Library Association",
+  "url": "https://www.ala.org/conferencesevents/past-and-future",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-24",
+  "endDate": "2027-06-28",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest US librarian gathering: public, academic, school and special librarians plus vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not yet published; presenters get a discount.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.ala.org/conferencesevents/ala-annual-2027-call-proposals",
+  "speakingDeadline": "2026-09-21",
+  "speakingNote": "Call for program and poster proposals closed Sept 21, 2026; notifications December 2026.",
+  "cheaperWays": "Presenter registration discount.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "librarian",
+   "archivist"
+  ],
+  "journeys": [
+   "GROWING",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "pla-conference",
+  "name": "PLA Conference (Public Library Association)",
+  "organizer": "Public Library Association (ALA)",
+  "url": "https://www.ala.org/pla/education/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2028-03-13",
+  "endDate": "2028-03-15",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Biennial gathering of 6,000+ public library workers, directors and vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens fall 2027.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.ala.org/pla/education/conferences",
+  "speakingDeadline": null,
+  "speakingNote": "Call for program proposals expected to open early 2027.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "librarian"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "acrl-conference",
+  "name": "ACRL Conference",
+  "organizer": "Association of College & Research Libraries",
+  "url": "https://s4.goeshow.com/acrl/national/2027/abstract_submission.cfm",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-04-07",
+  "endDate": "2027-04-10",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Academic and research librarians; in-person plus online component.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration reportedly opens October 2026; fees not confirmed.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://s4.goeshow.com/acrl/national/2027/abstract_submission.cfm",
+  "speakingDeadline": "2026-10-16",
+  "speakingNote": "Main proposal deadline June 2026 passed; a late deadline of Oct 16, 2026 for posters/lightning talks per search results.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "librarian"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "computers-in-libraries",
+  "name": "Computers in Libraries",
+  "organizer": "Information Today, Inc.",
+  "url": "https://computersinlibraries.infotoday.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-16",
+  "endDate": "2027-03-18",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Arlington",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Data & Analytics"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Technology-focused librarians, information managers and vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not on the page; register by Feb 12 to save.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://computersinlibraries.infotoday.com",
+  "speakingDeadline": null,
+  "speakingNote": "Site has a Be a Speaker link; deadline not read.",
+  "cheaperWays": "Early registration discount; group discount program.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "librarian"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "charleston-conference",
+  "name": "Charleston Conference",
+  "organizer": "Charleston Hub",
+  "url": "https://www.charleston-hub.com/the-charleston-conference/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-02",
+  "endDate": "2026-11-06",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Charleston",
+  "state": "SC",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Acquisitions and collection librarians, publishers and vendors.",
+  "access": "PAID",
+  "costLow": 75,
+  "costHigh": 850,
+  "costNote": "In person: $695 regular to Oct 23, $850 late/on-site; virtual $450; student/retiree $110 in person.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.charleston-hub.com/the-charleston-conference/speaker-info/",
+  "speakingDeadline": "2026-06-30",
+  "speakingNote": "2026 call closed June 30; next opens around April.",
+  "cheaperWays": "Students and retirees $110 in person or $75 virtual; virtual passes; scholarships page.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "librarian"
+  ],
+  "journeys": [
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "saa-annual-meeting",
+  "name": "SAA Annual Meeting (ARCHIVES * RECORDS)",
+  "organizer": "Society of American Archivists / CoSA",
+  "url": "https://www2.archivists.org/am2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-25",
+  "endDate": "2027-08-28",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Archivists, records managers and special-collections staff; in-person only 2027-2030.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "archivist"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "arma-infocon",
+  "name": "ARMA InfoCon",
+  "organizer": "ARMA International",
+  "url": "https://infocon.arma.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-25",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Legal Services"
+  ],
+  "functions": [
+   "Operations",
+   "Legal"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Records and information governance professionals and archivists in the corporate and public sector.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees on Registration Fees page (not read).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "archivist"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "tla-annual-conference",
+  "name": "TLA Annual Conference (Texas Library Association)",
+  "organizer": "Texas Library Association",
+  "url": "https://conference.txla.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-19",
+  "endDate": "2027-04-22",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "San Antonio",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The biggest state library conference, with public, school and academic librarians and vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates on conference.txla.org/registration/rates/ (not read).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://txla.org/news/share-your-expertise-at-tla-2027/",
+  "speakingDeadline": "2026-06-24",
+  "speakingNote": "Session proposals were due June 24, 2026.",
+  "cheaperWays": "Conference stipends page exists.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "librarian"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ }
+]

@@ -1,0 +1,1207 @@
+[
+ {
+  "id": "aircargo-conference-aci-na",
+  "name": "ACI-NA AirCargo Conference",
+  "organizer": "Airports Council International - North America (with Airforwarders Association and AEMCA)",
+  "url": "https://airportscouncil.org/education/conferences/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-28",
+  "endDate": "2027-03-02",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Arlington",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Airport cargo and properties managers, forwarders, airlines and ground handlers in one room, with the largest US airport-cargo exhibit floor.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pricing not shown on ACI-NA pages found; ACI-NA members get a discount on the registration form.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "ACI-NA member discount on registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "roles": [
+   "air cargo manager",
+   "airport logistics lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "tiaca-air-cargo-forum",
+  "name": "TIACA Air Cargo Forum",
+  "organizer": "The International Air Cargo Association (TIACA)",
+  "url": "https://aircargoforum.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-26",
+  "endDate": "2026-10-29",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The industry's global gathering of airlines, airports, forwarders, ground handlers and shippers; about 3,500 visitors and 300 booths expected.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration open; pass prices not in search results (see aircargoforum.org). Alternates Miami and Abu Dhabi; 2027 edition is Abu Dhabi, Nov 9-11, 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "roles": [
+   "air cargo manager",
+   "airport logistics lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cns-partnership-conference",
+  "name": "CNS Partnership Conference",
+  "organizer": "IATA Cargo Network Services (CNS)",
+  "url": "https://www.iata.org/en/events/all/cns-partnership-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-11",
+  "endDate": "2027-05-13",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "US air cargo forwarders, airlines and handlers meet CNS and regulators on cargo policy and partnership.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed as 'Save the Date'; fee not yet published. CNS-endorsed agents get a discount.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Discount for CNS-endorsed agents.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "roles": [
+   "air cargo manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iata-world-cargo-symposium",
+  "name": "IATA World Cargo Symposium",
+  "organizer": "IATA",
+  "url": "https://www.iata.org/en/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-09",
+  "endDate": "2027-03-11",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Calgary",
+  "state": null,
+  "country": "CA",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "IATA's flagship cargo event: airline cargo chiefs, forwarders and regulators set the year's air cargo agenda.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee not shown in the listing found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "roles": [
+   "air cargo manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "air-cargo-americas",
+  "name": "air cargo Americas",
+  "organizer": "Messe Muenchen",
+  "url": "https://messe-muenchen.de/en/events/air-cargo-americas-2027.html",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-11-09",
+  "endDate": "2027-11-11",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Biennial Americas air cargo show co-located with transport logistic Americas: airports, airlines, forwarders and handlers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Visitor registration not yet open in results.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "roles": [
+   "air cargo manager",
+   "airport logistics lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "air-cargo-europe",
+  "name": "air cargo Europe",
+  "organizer": "Messe Muenchen",
+  "url": "https://aircargoeurope.com/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-29",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Munich",
+  "state": null,
+  "country": "DE",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Europe's largest air cargo show; US forwarders and carriers routinely exhibit.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates from third-party listings only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain exists",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "roles": [
+   "air cargo manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cargo-facts-symposium",
+  "name": "Cargo Facts Symposium",
+  "organizer": "Cargo Facts (Cargo Facts Events)",
+  "url": "https://cargofactsevents.com/cfs/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-21",
+  "endDate": "2026-10-23",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Freighter operators, lessors, integrators and airline cargo executives discuss fleet and market outlook.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird ended Sept 4; prices not in results. Final day is Oct 23, 2026; expect a late-October 2027 edition.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "roles": [
+   "air cargo manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aaae-annual-conference",
+  "name": "AAAE Annual Conference & Exposition",
+  "organizer": "American Association of Airport Executives",
+  "url": "https://aaae.org/annual",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-16",
+  "endDate": "2027-05-18",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "About 2,600 airport managers and aviation officials from FAA, TSA and DHS.",
+  "access": "PAID",
+  "costLow": 995,
+  "costHigh": 1195,
+  "costNote": "Airport-member full conference $995 early (to Mar 26, 2027), $1,195 regular; other categories differ.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Student rate $400 early / $475 regular (full-time students not working in aviation).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Air cargo and aviation logistics"
+  ],
+  "roles": [
+   "airport logistics lead"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "lmd-conference-expo",
+  "name": "Last Mile Delivery Conference & Expo",
+  "organizer": "LMD Conference",
+  "url": "https://lmdconference.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-22",
+  "endDate": "2026-10-23",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Retail, CPG, carrier and 3PL last-mile leaders with scheduled one-on-one meetings.",
+  "access": "PAID",
+  "costLow": 1250,
+  "costHigh": 1250,
+  "costNote": "Standard $1,250 per attendee; groups save 25% for 3+ and up to 33% for 10+. Final day Oct 23, 2026; recurs each autumn.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Group discounts of 25-33%.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Last mile and parcel"
+  ],
+  "roles": [
+   "last-mile operations manager",
+   "parcel network planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "national-postal-forum",
+  "name": "National Postal Forum",
+  "organizer": "National Postal Forum (USPS industry)",
+  "url": "https://www.npf.org/register",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-16",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Mailers, shippers and USPS leaders; the biggest USPS-facing mail and parcel exhibit hall.",
+  "access": "PAID",
+  "costLow": 1100,
+  "costHigh": 1200,
+  "costNote": "Full registration $1,100 early bird to Jan 8, 2027; $1,150 to May 7; $1,200 on site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Exhibit Hall pass offered separately.",
+  "applyUrl": "https://www.npf.org/exhibit-hall-pass",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Last mile and parcel"
+  ],
+  "roles": [
+   "parcel network planner",
+   "last-mile operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nasstrac-shippers-conference",
+  "name": "NASSTRAC Shippers Conference & Transportation Expo",
+  "organizer": "National Shippers Strategic Transportation Council",
+  "url": "https://www.nasstrac.org/conference/default.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Shipper transportation managers meet parcel, LTL and truckload carriers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "No 2027 dates or pricing found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search (no 2027 info)",
+  "segments": [
+   "Last mile and parcel"
+  ],
+  "roles": [
+   "parcel network planner",
+   "last-mile operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cscmp-edge",
+  "name": "CSCMP EDGE",
+  "organizer": "Council of Supply Chain Management Professionals",
+  "url": "https://www.cscmpedge.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The supply chain profession's annual gathering: shippers, carriers and 3PLs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Oct 4-7 in Nashville; next dates not seen. A third-party listing showed $2,495-$2,795 (unconfirmed).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "CSCMP corporate members get preferred pricing.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing",
+  "segments": [
+   "Last mile and parcel"
+  ],
+  "roles": [
+   "parcel network planner",
+   "last-mile operations manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "apta-legislative-conference",
+  "name": "APTA Legislative Conference",
+  "organizer": "American Public Transportation Association",
+  "url": "https://www.apta.com/event/legislative-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-28",
+  "endDate": "2027-03-02",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Transit CEOs, board members and staff meet Congress and USDOT on funding.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transit agency executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "apta-rail-conference",
+  "name": "APTA Rail Conference",
+  "organizer": "American Public Transportation Association",
+  "url": "https://www.apta.com/event/rail-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "St. Louis",
+  "state": "MO",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Commuter, light and heavy rail operators and suppliers share operations and safety practice.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found; APTA page also carries a stale 2026 Baltimore line.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transit agency executive",
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "apta-transform-expo",
+  "name": "APTA TRANSform Conference & EXPO",
+  "organizer": "American Public Transportation Association",
+  "url": "https://www.apta.com/event/apta-2026-transform-expo/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "APTA's largest gathering of transit agencies, planners and suppliers; EXPO included with conference registration.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Chicago, Oct 4-7) has ended; next dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transit agency executive",
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "trb-annual-meeting",
+  "name": "TRB Annual Meeting",
+  "organizer": "Transportation Research Board (National Academies)",
+  "url": "https://www.nationalacademies.org/events/887",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-10",
+  "endDate": "2027-01-14",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Engineering",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The largest transportation research and planning gathering in the world.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 fees not yet posted. 2026 benchmark: $1,185 early-bird, $1,470 advance, $1,520 onsite; student affiliate $300 early.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Papers and sessions via TRB committees; check TRB site.",
+  "cheaperWays": "Student affiliates pay far less; approved media register free; one-day pass in 2026 was $710.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transportation planner",
+   "transit agency executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "apa-national-planning-conference",
+  "name": "APA National Planning Conference (NPC27)",
+  "organizer": "American Planning Association",
+  "url": "https://www.planning.org/conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-15",
+  "endDate": "2027-05-18",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The profession's national meeting; transportation and mobility planners across public agencies and consultancies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.planning.org/conference/proposal",
+  "speakingDeadline": "2026-08-26",
+  "speakingNote": "Session proposals for NPC27 closed Aug 26, 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "its-america-conference-expo",
+  "name": "ITS America Conference & Expo",
+  "organizer": "Intelligent Transportation Society of America",
+  "url": "https://itsa.org/event/2027-its-america-conference-expo/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-15",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Salt Lake City",
+  "state": "UT",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Public agencies, transit operators and technology vendors on intelligent transportation.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transportation planner",
+   "transit agency executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ite-annual-meeting",
+  "name": "ITE Annual Meeting & Exhibition",
+  "organizer": "Institute of Transportation Engineers",
+  "url": "https://www.ite.org/events-meetings/ite-calendar/2027-ite-international-annual-meeting-and-exhibition/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-25",
+  "endDate": "2027-07-28",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Calgary",
+  "state": null,
+  "country": "CA",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Engineering"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Traffic engineers and transportation planners from agencies and consultancies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open; held with ITE Canada District; passport needed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ctaa-expo",
+  "name": "CTAA EXPO",
+  "organizer": "Community Transportation Association of America",
+  "url": "https://ctaa.org/about_expo",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-09",
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Atlantic City",
+  "state": "NJ",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Rural, small-urban and specialized transit managers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "CTAA page lists 2027 in Atlantic City; the June 6-9 dates come from third-party listings.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official page (location) + third-party dates",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transit agency executive",
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aashto-annual-meeting",
+  "name": "AASHTO Annual Meeting",
+  "organizer": "American Association of State Highway and Transportation Officials",
+  "url": "https://aashtojournal.transportation.org/registration-open-for-the-2026-aashto-annual-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-15",
+  "endDate": "2026-11-18",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "State DOT chiefs and senior staff set transportation policy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration open; fee not seen.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transit agency executive",
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ampo-annual-conference",
+  "name": "AMPO Annual Conference",
+  "organizer": "Association of Metropolitan Planning Organizations",
+  "url": "https://ampo.org/news-events/ampo-annual-conference/2026-ampo-annual-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "MPO directors and planners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Sacramento, Sept 14-18) has ended; next dates not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "cnu-congress",
+  "name": "Congress for the New Urbanism (CNU 35)",
+  "organizer": "Congress for the New Urbanism",
+  "url": "https://www.cnu.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-15",
+  "endDate": "2027-06-18",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Minneapolis",
+  "state": "MN",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Urban designers, planners and city staff on walkable places and transit-oriented development.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "railway-interchange",
+  "name": "Railway Interchange",
+  "organizer": "REMSA, Railway Supply Institute and partner associations",
+  "url": "https://railwayinterchange.org/",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-25",
+  "endDate": "2027-05-27",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "North America's largest rail conference and exhibition, with 4,000+ rail professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 fee not published in results.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transit agency executive"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "wts-international-conference",
+  "name": "WTS International Annual Conference",
+  "organizer": "WTS International",
+  "url": "https://www.wtsinternational.org/events/2026-wts-international-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Women across transit agencies, DOTs and consultancies, strong on mentoring.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 5-7 in Los Angeles; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transit agency executive",
+   "transportation planner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "nacto-designing-cities",
+  "name": "NACTO Designing Cities Conference",
+  "organizer": "National Association of City Transportation Officials",
+  "url": "https://nacto.org/events/past-events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Transportation & Logistics"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "City transportation officials and street designers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was May 12-15, Minneapolis; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Public transit and infrastructure"
+  ],
+  "roles": [
+   "transportation planner"
+  ],
+  "journeys": []
+ }
+]

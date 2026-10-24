@@ -6,6 +6,8 @@
 import 'server-only'
 import { sendCampaign } from './outreach'
 import { prisma } from '@/lib/prisma'
+import { inviteCapMessage, institutionEntitlements } from '@/lib/plans/entitlements'
+import { engagedMemberCount, recordCapReached } from '@/lib/plans/member-cap'
 
 const BATCH = 100
 
@@ -36,15 +38,28 @@ export async function countInvitable(institutionId: string): Promise<number> {
   return prisma.institutionMember.count({ where: invitableWhere(institutionId) })
 }
 
-export async function sendJoinInvites(args: { institutionId: string; createdBy: string }): Promise<{ sent: number; remaining: number; demo: boolean }> {
+export async function sendJoinInvites(args: { institutionId: string; createdBy: string }): Promise<{ sent: number; remaining: number; demo: boolean; capReached?: { cap: number; left: number; message: string } }> {
   const inst = await prisma.institution.findUniqueOrThrow({
     where: { id: args.institutionId },
-    select: { slug: true, name: true, programBrandName: true, isDemo: true, orgType: true },
+    select: { slug: true, name: true, programBrandName: true, isDemo: true, orgType: true, plan: true },
   })
+  // The free plan: invitations stop at the member cap (people already invited
+  // or joined count; see src/lib/plans/member-cap.ts).
+  const cap = institutionEntitlements({ plan: inst.plan }).memberCap
+  let room = BATCH
+  let left = Infinity
+  if (cap !== null) {
+    left = Math.max(0, cap - (await engagedMemberCount(args.institutionId)))
+    if (left === 0) {
+      recordCapReached(args.createdBy, inst.slug, cap, 'invite')
+      return { sent: 0, remaining: await countInvitable(args.institutionId), demo: inst.isDemo, capReached: { cap, left, message: inviteCapMessage(cap, 0) } }
+    }
+    room = Math.min(BATCH, left)
+  }
   const brand = inst.programBrandName ?? inst.name
   const members = await prisma.institutionMember.findMany({
     where: invitableWhere(args.institutionId),
-    take: BATCH,
+    take: room,
     orderBy: { createdAt: 'asc' },
     select: { id: true, email: true, firstName: true },
   })
@@ -81,5 +96,11 @@ ${inst.name} Alumni Relations`
   const invited = [...r.sendIds.keys()]
   if (invited.length) await prisma.institutionMember.updateMany({ where: { id: { in: invited }, status: 'IMPORTED' }, data: { status: 'INVITED' } })
   const sent = r.sent
-  return { sent, remaining: await countInvitable(args.institutionId), demo: inst.isDemo }
+  const remaining = await countInvitable(args.institutionId)
+  const leftNow = Math.max(0, left - sent)
+  if (cap !== null && remaining > 0 && leftNow === 0) {
+    recordCapReached(args.createdBy, inst.slug, cap, 'invite')
+    return { sent, remaining, demo: inst.isDemo, capReached: { cap, left: 0, message: inviteCapMessage(cap, remaining) } }
+  }
+  return { sent, remaining, demo: inst.isDemo }
 }

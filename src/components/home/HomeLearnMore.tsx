@@ -40,10 +40,10 @@ const TABS = [
     title: 'Free for candidates, permanently.',
     items: [
       { title: 'What is free', body: 'The Market Reality Report, Resume Studio, your networking and application tracker, the skills assessment, community and company pages.' },
-      { title: 'Who pays', body: 'Employers, recruiters, colleges and coaches pay for their own tools. You never do.' },
+      { title: 'Who it is for', body: 'Employers, recruiters, colleges and coaches have their own tools. Candidates are never charged.' },
     ],
     why: 'Someone who just lost a job needs a plan, not a paywall.',
-    link: { href: '/pricing', label: 'See pricing for organizations' },
+    link: { href: '/pricing', label: 'See plans for organizations' },
   },
   {
     id: 'scams',

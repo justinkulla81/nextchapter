@@ -1,0 +1,1136 @@
+[
+ {
+  "id": "maicon",
+  "name": "MAICON (Marketing AI Conference)",
+  "organizer": "Marketing AI Institute",
+  "url": "https://www.marketingaiinstitute.com/maicon",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-10-04",
+  "endDate": "2027-10-07",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Cleveland",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Marketers and CMOs learning applied AI for content, demand gen and ops.",
+  "access": "PAID",
+  "costLow": 1199,
+  "costHigh": 2999,
+  "costNote": "Main conference $1,199 early (to Oct 31, 2026), $2,099 full; AI for CMOs Experience $2,099-$2,999 (reviewed for fit); workshop +$500.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "2027 agenda announced spring 2027; no public call seen.",
+  "cheaperWays": "Group of 4+ saves 10%; passes transferable free.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Content and social media marketing",
+   "B2B and demand generation marketing"
+  ],
+  "roles": [
+   "content marketer",
+   "marketing operations",
+   "demand generation manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "affiliate-summit-west",
+  "name": "Affiliate Summit West",
+  "organizer": "Clarion Events",
+  "url": "https://www.affiliatesummit.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-26",
+  "endDate": "2027-01-28",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Performance marketers, affiliate managers, networks and advertisers; 7,000+ expected.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pass prices not on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "paid media manager",
+   "SEO specialist"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "affiliate-summit-east",
+  "name": "Affiliate Summit East",
+  "organizer": "Clarion Events",
+  "url": "https://www.affiliatesummit.com",
+  "kind": "TRADE_SHOW",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-27",
+  "endDate": "2027-07-28",
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "East-coast affiliate and performance marketing partners; 4,500+ expected.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pass prices not on the page; page shows conflicting dates (header July 26-27, section July 27-28).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "paid media manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "social-fresh-conference",
+  "name": "Social Fresh Conference",
+  "organizer": "Social Fresh",
+  "url": "https://socialfresh.com/conference/social-media-conference-2027/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-03-23",
+  "endDate": "2027-03-25",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Social, content and creator marketers from brands; sessions at the William Vale in Brooklyn.",
+  "access": "PAID",
+  "costLow": 897,
+  "costHigh": 1997,
+  "costNote": "Virtual $897, All Access $1,497, Exec $1,997 (sale prices; originals $997/$1,997/$2,497).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Lineup being announced; no call seen.",
+  "cheaperWays": "Virtual pass $897.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Content and social media marketing"
+  ],
+  "roles": [
+   "social media manager",
+   "content marketer",
+   "community manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "forrester-b2b-summit-north-america",
+  "name": "Forrester B2B Summit North America",
+  "organizer": "Forrester",
+  "url": "https://www.forrester.com/event/b2b-summit-north-america/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-04",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR",
+   "Technology & Software"
+  ],
+  "functions": [
+   "Marketing",
+   "Sales"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "B2B marketing, sales and RevOps leaders with Forrester analysts.",
+  "access": "PAID",
+  "costLow": 1957,
+  "costHigh": 2995,
+  "costNote": "Early bird to Nov 30, 2026: client $1,957, non-client $2,097; standard from Dec 1: $2,795 client / $2,995 non-client.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Sessions led by Forrester analysts and GTM leaders.",
+  "cheaperWays": "Teams: 5 tickets for the price of 4.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "B2B and demand generation marketing"
+  ],
+  "roles": [
+   "demand generation manager",
+   "account-based marketer",
+   "marketing operations"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ana-masters-of-b2b-marketing",
+  "name": "ANA Masters of B2B Marketing",
+  "organizer": "Association of National Advertisers (ANA)",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-24",
+  "endDate": "2027-05-26",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "B2B brand marketing leaders at ANA member companies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing is on each conference's own registration page (not read); ANA lists dates only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "B2B and demand generation marketing"
+  ],
+  "roles": [
+   "demand generation manager",
+   "account-based marketer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ana-brand-masters",
+  "name": "ANA Brand Masters",
+  "organizer": "Association of National Advertisers (ANA)",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-17",
+  "endDate": "2027-05-19",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Brand-side marketing and brand strategy leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing is on each conference's own registration page (not read); ANA lists dates only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "brand strategist",
+   "creative director"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ana-masters-of-data",
+  "name": "ANA Masters of Data",
+  "organizer": "Association of National Advertisers (ANA)",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-26",
+  "endDate": "2027-04-28",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Marketing data, privacy and analytics leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing is on each conference's own registration page (not read); ANA lists dates only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "marketing analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ana-measurement-and-analytics-conference",
+  "name": "ANA Measurement & Analytics Conference",
+  "organizer": "Association of National Advertisers (ANA)",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-13",
+  "endDate": "2027-09-15",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Marketing measurement, attribution and analytics leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing is on each conference's own registration page (not read); ANA lists dates only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "marketing analyst",
+   "paid media manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ana-ai-and-technology-for-marketers",
+  "name": "ANA AI and Technology for Marketers",
+  "organizer": "Association of National Advertisers (ANA)",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-07",
+  "endDate": "2027-06-09",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Phoenix",
+  "state": "AZ",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Martech and AI adoption for brand marketers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing is on each conference's own registration page (not read); ANA lists dates only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "B2B and demand generation marketing",
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "marketing operations",
+   "marketing analyst"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ana-in-house-agency-conference",
+  "name": "ANA In-House Agency Conference",
+  "organizer": "Association of National Advertisers (ANA)",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Leaders of brand in-house creative and marketing agencies.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing is on each conference's own registration page (not read); ANA lists dates only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "creative director",
+   "copywriter"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ana-multicultural-and-inclusive-marketing",
+  "name": "ANA Multicultural and Inclusive Marketing Conference",
+  "organizer": "Association of National Advertisers (ANA)",
+  "url": "https://www.ana.net/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-09",
+  "endDate": "2026-11-11",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Marketers working on multicultural and inclusive campaigns.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing is on each conference's own registration page (not read); ANA lists dates only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative",
+   "Content and social media marketing"
+  ],
+  "roles": [
+   "brand strategist",
+   "content marketer"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "admerica-aaf-national-conference",
+  "name": "ADMERICA (AAF National Conference)",
+  "organizer": "American Advertising Federation (AAF)",
+  "url": "https://www.aaf.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Ad club leaders, agency and brand creatives; 2026 edition was late May in Austin.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and prices not on the page for 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "creative director",
+   "copywriter",
+   "brand strategist"
+  ],
+  "journeys": [
+   "GROWING",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "prsa-icon",
+  "name": "PRSA ICON",
+  "organizer": "Public Relations Society of America",
+  "url": "https://www.prsa.org/icon",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The PR profession's annual conference; 2026 edition ran Oct 18-20 in Orlando, next not announced.",
+  "access": "PAID",
+  "costLow": 1755,
+  "costHigh": 2405,
+  "costNote": "2026 3-day pass: members $1,755 saver / $2,005, nonmembers $2,155 saver / $2,405.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Single-day passes ($625-$950 in 2026); member rates.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Content and social media marketing",
+   "Brand and creative"
+  ],
+  "roles": [
+   "content marketer",
+   "brand strategist",
+   "social media manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "the-one-show",
+  "name": "The One Show",
+  "organizer": "The One Club for Creativity",
+  "url": "https://www.oneclub.org/theoneshow/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Design"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Creative directors, copywriters and designers in the top US creative awards week; 2027 opens for entry this fall.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 pass prices not published.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "creative director",
+   "copywriter"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "adcolor-conference",
+  "name": "ADCOLOR Conference",
+  "organizer": "ADCOLOR",
+  "url": "https://www.adcolor.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Diversity-focused gathering of ad, marketing, media and tech professionals at all levels.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page still showed the Nov 2023 edition; current dates unconfirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Brand and creative"
+  ],
+  "roles": [
+   "creative director",
+   "copywriter",
+   "brand strategist"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "pubcon",
+  "name": "Pubcon",
+  "organizer": "Pubcon",
+  "url": "https://www.pubcon.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Search, social and digital marketers; site currently lists only Pubcon Pro Virtual (Jan 14, 2026).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing in checkout; not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "SEO specialist",
+   "paid media manager"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "mozcon",
+  "name": "MozCon",
+  "organizer": "Moz",
+  "url": "https://moz.com/mozcon",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "SEO and digital marketing practitioners; 2026 ran as one-day roadshows in NYC and London per a listing.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official page could not be fetched.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Digital marketing, SEO and performance"
+  ],
+  "roles": [
+   "SEO specialist"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "content-marketing-world",
+  "name": "Content Marketing World",
+  "organizer": "Informa / Content Marketing Institute",
+  "url": "https://www.contentmarketingworld.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Content marketers and editorial leaders; 2026 edition was Oct 5-7 in Denver per listings.",
+  "access": "PAID",
+  "costLow": 1349,
+  "costHigh": null,
+  "costNote": "A listing shows 2026 tickets from $1,349; official page blocked.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "Content and social media marketing"
+  ],
+  "roles": [
+   "content marketer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "marketingprofs-b2b-forum",
+  "name": "MarketingProfs B2B Marketing Forum",
+  "organizer": "MarketingProfs",
+  "url": "https://www.marketingprofs.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-02",
+  "endDate": "2026-11-04",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "B2B content, demand gen and brand marketers; 2026 edition per MarketingProfs and a CMO roundup.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official event page blocked; pricing unknown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "search listing (lead)",
+  "segments": [
+   "B2B and demand generation marketing",
+   "Content and social media marketing"
+  ],
+  "roles": [
+   "demand generation manager",
+   "content marketer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "mops-apalooza",
+  "name": "MOps-Apalooza",
+  "organizer": "MarketingOps.com",
+  "url": "https://www.marketingops.com/mops-apalooza/",
+  "kind": "CONFERENCE",
+  "format": "VIRTUAL",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR"
+  ],
+  "functions": [
+   "Marketing",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Marketing operations, RevOps and GTM professionals; 2026 was a two-day virtual event, with an in-person return reportedly planned for 2027.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page shows a paid MO Pro Member track and a free Invited Guest track.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Call for speakers announced via newsletter.",
+  "cheaperWays": "Free Invited Guest experience.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "B2B and demand generation marketing"
+  ],
+  "roles": [
+   "marketing operations"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "saastr-annual",
+  "name": "SaaStr Annual",
+  "organizer": "SaaStr",
+  "url": "https://www.saastr.com/annual/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "San Francisco Bay Area",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Advertising, Marketing & PR",
+   "Technology & Software"
+  ],
+  "functions": [
+   "Sales",
+   "Marketing"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "SaaS founders, CMOs and GTM leaders; 2026 edition May 12-14.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Public ticket prices not shown.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "B2B and demand generation marketing"
+  ],
+  "roles": [
+   "demand generation manager",
+   "account-based marketer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ }
+]

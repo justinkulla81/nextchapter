@@ -11721,13 +11721,13 @@
 ],
 [
 "Dean of the School of Law",
-"C_SUITE",
-100
+"VP",
+80
 ],
 [
 "Dean, College of Engineering",
-"C_SUITE",
-100
+"VP",
+80
 ],
 [
 "Executive Director, Information Technology Services",
@@ -14143,8 +14143,8 @@ true
 ],
 [
 "City Planner",
-"DIRECTOR",
-68
+"MID_IC",
+30
 ],
 [
 "Senior Transportation Planner",
@@ -22985,5 +22985,380 @@ true
 "Construction Project Manager I or II",
 "MANAGER",
 40
+],
+[
+"Manager in Training",
+"EARLY_IC",
+25
+],
+[
+"MANAGER IN TRAINING",
+"EARLY_IC",
+25
+],
+[
+"MIT (Manager in Training)",
+"EARLY_IC",
+25
+],
+[
+"Manager In Training (Roanoke, Va.)",
+"EARLY_IC",
+25
+],
+[
+"Manager in Training #199 - Catersville, GA",
+"EARLY_IC",
+25
+],
+[
+"Manager in Training, Nutrition Services",
+"EARLY_IC",
+25
+],
+[
+"Manager in Training Program",
+"ENTRY_IC",
+20
+],
+[
+"Manager-In-Training (Food & Beverage)",
+"EARLY_IC",
+25
+],
+[
+"Supply Chain Training Manager",
+"MANAGER",
+40
+],
+[
+"District Manager in Training",
+"MANAGER",
+40
+],
+[
+"Deli Manager In Training - Peoria",
+"MANAGER",
+40
+],
+[
+"General Manager in Training",
+"MANAGER",
+40
+],
+[
+"Manager In Training (Part Time)",
+"MANAGER",
+40
+],
+[
+"Senior Engineer- Manager In Training",
+"SENIOR_IC",
+45
+],
+[
+"Assistant City Planner",
+"EARLY_IC",
+25
+],
+[
+"Assistant County Planner - Long Range",
+"EARLY_IC",
+25
+],
+[
+"Assistant Town Planner",
+"EARLY_IC",
+25
+],
+[
+"Assistant City Planner I",
+"ENTRY_IC",
+20
+],
+[
+"Asst. City Planner",
+"MID_IC",
+30
+],
+[
+"City Planning Manager",
+"MANAGER",
+40
+],
+[
+"Assistant City Planning Manager",
+"MANAGER",
+40
+],
+[
+"Assistant City Engineer",
+"DIRECTOR",
+68
+],
+[
+"Principal/Associate Town Planner",
+"DIRECTOR",
+68
+],
+[
+"CONTACT REPRESENTATIVE (RECENT GRADUATE) (GS-4/5)",
+"OTHER",
+0
+],
+[
+"IT Project Manager (Plcypln) - CES Recent Graduate (GG-7/9)",
+"MANAGER",
+40
+],
+[
+"Recent Graduate Program Manager",
+"ENTRY_IC",
+20
+],
+[
+"Recent Graduate Program Manager (GS-12)",
+"MID_IC",
+30
+],
+[
+"Part Sales Manager \u2013 Full Time",
+"OTHER",
+0
+],
+[
+"Assistant Deli Manager",
+"OTHER",
+0
+],
+[
+"Assistant Fitness Manager",
+"OTHER",
+0
+],
+[
+"Grooming Salon Manager",
+"OTHER",
+0
+],
+[
+"Retail Co-Manager - Ohio",
+"OTHER",
+0
+],
+[
+"Assistant Dental Office Manager",
+"OTHER",
+0
+],
+[
+"Parts Sales Manager",
+"MANAGER",
+40
+],
+[
+"Meat Category Manager",
+"MANAGER",
+40
+],
+[
+"District Personal Training Manager",
+"MANAGER",
+40
+],
+[
+"Dairy Manager - Dairy Farm",
+"MANAGER",
+40
+],
+[
+"Physician Clinic Medical Director",
+"OTHER",
+0
+],
+[
+"Medical Director (DVM) - Small Animal Practice",
+"OTHER",
+0
+],
+[
+"Founding Partner Veterinarian -Kansas City",
+"OTHER",
+0
+],
+[
+"Prosthetist and/or Orthotist Clinician (CPO, CO, CP, Board Eligible)",
+"OTHER",
+0
+],
+[
+"Physician (Primary Care) (VM-15)",
+"OTHER",
+0
+],
+[
+"Physician (Family Medicine) (GP-14)",
+"OTHER",
+0
+],
+[
+"Staff Psychologist (GS-13)",
+"OTHER",
+0
+],
+[
+"Industrial-Organizational Psychologist (GS-13)",
+"SENIOR_IC",
+45
+],
+[
+"Chief Physician and Medical Officer, Bemidji",
+"C_SUITE",
+100
+],
+[
+"Medical Director, Clinical Development",
+"DIRECTOR",
+65
+],
+[
+"Director of Physician Services",
+"DIRECTOR",
+65
+],
+[
+"Physician Liaison Director",
+"DIRECTOR",
+65
+],
+[
+"Manager, Financial Reporting - Physician Practice Clients",
+"MANAGER",
+40
+],
+[
+"Underwriter - Physicians & Surgeons",
+"EARLY_IC",
+25
+],
+[
+"Food Service Director",
+"MANAGER",
+40
+],
+[
+"Assistant Food Service Director",
+"OTHER",
+0
+],
+[
+"Director of Food and Nutrition Services",
+"DIRECTOR",
+65
+],
+[
+"Regional Food Service Director",
+"DIRECTOR",
+65
+],
+[
+"Food and Nutrition Director (Hospital)",
+"DIRECTOR",
+65
+],
+[
+"Provost",
+"EVP_SVP",
+90
+],
+[
+"Provost and Vice President for Academic Affairs",
+"EVP_SVP",
+90
+],
+[
+"President and Provost",
+"C_SUITE",
+100
+],
+[
+"Associate Provost",
+"DIRECTOR",
+68
+],
+[
+"Administrative Operations & Project Coordinator - Provost's Office",
+"ENTRY_IC",
+20
+],
+[
+"Dean",
+"VP",
+80
+],
+[
+"Dean of the Business School",
+"VP",
+80
+],
+[
+"Associate Dean",
+"DIRECTOR",
+68
+],
+[
+"Executive Dean",
+"C_SUITE",
+100
+],
+[
+"Project Coordinator- Dean's Office",
+"ENTRY_IC",
+20
+],
+[
+"Jimmy Dean Brand Manager",
+"MID_IC",
+30
+],
+[
+"Deputy Chief Financial Officer",
+"DIRECTOR",
+68
+],
+[
+"Assistant Chief Counsel",
+"DIRECTOR",
+68
+],
+[
+"Assistant Chief IP Counsel",
+"MANAGER",
+40
+],
+[
+"Associate Vice President/Deputy Chief Information Officer",
+"VP",
+80
+],
+[
+"Senior Vice President, Deputy Chief Risk Officer",
+"C_SUITE",
+100
+],
+[
+"CITY PLANNER",
+"MID_IC",
+30
+],
+[
+"ADMINISTRATIVE CITY PLANNER",
+"SENIOR_IC",
+45
+],
+[
+"City Planning Director",
+"DIRECTOR",
+65
 ]
 ]

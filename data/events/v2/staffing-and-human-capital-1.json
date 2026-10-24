@@ -1,0 +1,1405 @@
+[
+ {
+  "id": "sia-executive-forum-north-america",
+  "name": "SIA Executive Forum North America",
+  "organizer": "Staffing Industry Analysts",
+  "url": "https://www.staffingindustry.com/conferences/executive-forum-north-america",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-11",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Sales"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "SIA's flagship: CEOs, founders and owners of staffing firms, MSPs, VMS and RPO providers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee schedule is on SIA's event page; amount not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.staffingindustry.com/call-for-speakers",
+  "speakingDeadline": null,
+  "speakingNote": "SIA takes speaker proposals for its annual conferences.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "staffing firm owner",
+   "recruiter"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "sia-cws-summit-north-america",
+  "name": "SIA Contingent Workforce Strategies Summit North America",
+  "organizer": "Staffing Industry Analysts",
+  "url": "https://www.staffingindustry.com/conferences/cws-summit-north-america",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Dallas",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Operations",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Buyers of contingent labor, MSP, VMS and staffing suppliers meet to set program strategy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.staffingindustry.com/call-for-speakers",
+  "speakingDeadline": null,
+  "speakingNote": "2026 edition was Sept 28-29 at the Omni Dallas; 2027 dates not found.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "account manager staffing",
+   "staffing firm owner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "techserve-alliance-executive-summit",
+  "name": "TechServe Alliance Executive Summit",
+  "organizer": "TechServe Alliance",
+  "url": "https://events.techservealliance.org/2026/home",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-09",
+  "endDate": "2026-11-11",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Huntington Beach",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Sales"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Leaders of IT and engineering staffing and solutions firms share peer networking and benchmarks.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates are on a separate registration page; not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "staffing firm owner",
+   "account manager staffing"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "bullhorn-engage",
+  "name": "Bullhorn Engage (Boston)",
+  "organizer": "Bullhorn",
+  "url": "https://events.bullhorn.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Sales",
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Recruiters and staffing agency teams on Bullhorn, with peers, product roadmap and sessions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Site lists Engage Boston 2026 (held May 2026); a 2027 US date was not found.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "recruiter",
+   "account manager staffing",
+   "staffing firm owner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "ere-recruiting-innovation-summit",
+  "name": "ERE Recruiting Innovation Summit",
+  "organizer": "ERE",
+  "url": "https://www.ererecruitingconference.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-10",
+  "endDate": "2026-11-11",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Talent acquisition leaders and recruiters on AI, quality of hire and employer brand.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket price not published on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Page has a Speak link; terms not read. A third-party list shows the 2027 edition in Atlanta May 18-19 (not confirmed).",
+  "cheaperWays": "Discounted pricing for HR/TA teams; a First 25 offer; discounted hotel block.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Corporate talent acquisition",
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "talent acquisition leader",
+   "recruiter",
+   "sourcer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "sourcecon",
+  "name": "SourceCon",
+  "organizer": "ERE",
+  "url": "https://www.sourcecon.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The sourcing community's conference: sourcers and recruiters trading search and AI techniques.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Corporate talent acquisition",
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "sourcer",
+   "recruiter"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "talent42",
+  "name": "Talent42",
+  "organizer": "ERE",
+  "url": "https://www.talent42.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Tech recruiting conference for technical recruiters and sourcers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Corporate talent acquisition"
+  ],
+  "roles": [
+   "recruiter",
+   "sourcer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "linkedin-talent-connect",
+  "name": "LinkedIn Talent Connect",
+  "organizer": "LinkedIn",
+  "url": "https://business.linkedin.com/events/talent-connect",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Recruiting leaders, sourcers and recruiters on LinkedIn Talent Solutions.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition listed Sept 28-30 in New York; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Corporate talent acquisition",
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "talent acquisition leader",
+   "recruiter",
+   "sourcer"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "indeed-futureworks",
+  "name": "Indeed FutureWorks",
+  "organizer": "Indeed",
+  "url": "https://indeedfutureworks.com",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2027-09-15",
+  "endDate": "2027-09-16",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Employers, recruiters and talent leaders on hiring and the labor market, Indeed's annual conference.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not published; site says in-person registration currently closed and offers a mailing list; a virtual option exists.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Corporate talent acquisition",
+   "Staffing and recruiting firms"
+  ],
+  "roles": [
+   "talent acquisition leader",
+   "recruiter",
+   "recruiting coordinator"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "conference-board-chro-summit",
+  "name": "The Conference Board CHRO Summit",
+  "organizer": "The Conference Board",
+  "url": "https://www.conference-board.org/events/chrosummit",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-17",
+  "endDate": "2027-06-17",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "One-day room of chief human resource officers and equivalents.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed; members get discounts on most events.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://www.conference-board.org/events/chrosummit",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HR leadership"
+  ],
+  "roles": [
+   "CHRO"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "conference-board-people-first",
+  "name": "The Conference Board People First",
+  "organizer": "The Conference Board",
+  "url": "https://www.conference-board.org/conferences/people-conference-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-11-04",
+  "endDate": "2027-11-05",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Talent strategy, workforce planning and AI for senior HR leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HR leadership",
+   "Corporate talent acquisition"
+  ],
+  "roles": [
+   "CHRO",
+   "HR director",
+   "talent acquisition leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "conference-board-executive-compensation",
+  "name": "The Conference Board Executive Compensation",
+  "organizer": "The Conference Board",
+  "url": "https://www.conference-board.org/north-america/conferences/total-rewards",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-16",
+  "endDate": "2027-09-17",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources",
+   "Finance"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Compensation leaders and committee advisers on executive pay.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Listed on the events page as Get Updates; price not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Compensation and benefits",
+   "HR leadership"
+  ],
+  "roles": [
+   "compensation analyst",
+   "HR director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "conference-board-employee-health-care",
+  "name": "The Conference Board Employee Health Care Conference",
+  "organizer": "The Conference Board",
+  "url": "https://www.conference-board.org/north-america/conferences/total-rewards",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-22",
+  "endDate": "2027-03-24",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Benefits managers and HR leaders on employer health care cost and strategy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed; San Diego edition Apr 7-9, 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "benefits manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "worldatwork-total-rewards",
+  "name": "WorldatWork Total Rewards (TR27)",
+  "organizer": "WorldatWork",
+  "url": "https://totalrewards.worldatwork.org/2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-25",
+  "endDate": "2027-04-28",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The main US gathering of compensation, benefits and total rewards professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates on a separate page; not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "compensation analyst",
+   "benefits manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "worldatwork-sales-comp",
+  "name": "WorldatWork Sales Comp",
+  "organizer": "WorldatWork",
+  "url": "https://worldatwork.org/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-23",
+  "endDate": "2027-08-25",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Chicago",
+  "state": "IL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources",
+   "Sales"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Sales compensation designers and analysts.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page says more details coming soon.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "compensation analyst"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "iscebs-employee-benefits-symposium",
+  "name": "ISCEBS Employee Benefits Symposium",
+  "organizer": "International Society of Certified Employee Benefit Specialists",
+  "url": "https://www.iscebs.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-19",
+  "endDate": "2027-09-22",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "CEBS-credentialed benefits managers and consultants.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not on the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "benefits manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "plansponsor-national-conference",
+  "name": "PLANSPONSOR National Conference",
+  "organizer": "PLANSPONSOR",
+  "url": "https://www.plansponsor.com/events/psnc2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Retirement and benefit plan sponsors and benefits managers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Exact dates unconfirmed; official pages show June 4 and June 7 awards.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "benefits manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "business-group-on-health-annual-conference",
+  "name": "Business Group on Health Annual Conference",
+  "organizer": "Business Group on Health",
+  "url": "https://www.businessgrouphealth.org/annual-conference/agenda",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Large employers' benefits and health leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 was Apr 22-24 in New Orleans; 2027 listing says Apr 28-30 Washington DC (unconfirmed).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.businessgrouphealth.org/annual-conference/speaking-opportunities",
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "benefits manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "naspp-annual-conference",
+  "name": "NASPP Annual Conference",
+  "organizer": "National Association of Stock Plan Professionals",
+  "url": "https://conference.naspp.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": null,
+  "state": null,
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources",
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Equity compensation professionals who run stock plans.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site shows the 2026 edition (Orlando, mid-October); 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "compensation analyst"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hro-today-forum-north-america",
+  "name": "HRO Today Forum North America",
+  "organizer": "HRO Today",
+  "url": "https://www.hrotoday.com/hro-today-north-america-forum/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Washington",
+  "state": "DC",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Talent acquisition and workforce solutions leaders and providers (RPO, MSP).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates May 12-14, 2027 from HR Dive; site returned 403.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "HR leadership",
+   "Corporate talent acquisition"
+  ],
+  "roles": [
+   "talent acquisition leader"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hci-spark-hr",
+  "name": "HCI SPARK HR",
+  "organizer": "Human Capital Institute",
+  "url": "https://www.hci.org/conferences/spark-hr-2026",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Clearwater",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "HR leaders and business partners on workforce strategy.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates May 4-6, 2027 from HR Dive.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "HR leadership",
+   "Corporate talent acquisition"
+  ],
+  "roles": [
+   "HR director",
+   "HR business partner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "transform-people-leaders",
+  "name": "Transform",
+  "organizer": null,
+  "url": "https://www.transform.us/conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-12",
+  "endDate": "2027-04-14",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 4,500 people leaders, talent partners and entrepreneurs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fee not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Corporate talent acquisition",
+   "HR leadership"
+  ],
+  "roles": [
+   "talent acquisition leader",
+   "CHRO",
+   "HR business partner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "california-hr-conference",
+  "name": "California HR Conference",
+  "organizer": "California State Council of SHRM",
+  "url": "https://cahrconference.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-12",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Anaheim",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "California HR directors and business partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Rates coming soon on the site.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HR leadership"
+  ],
+  "roles": [
+   "HR director",
+   "HR business partner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "josh-bersin-irresistible",
+  "name": "Josh Bersin Irresistible",
+  "organizer": "The Josh Bersin Company",
+  "url": "https://joshbersin.com/irresistible/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Los Angeles",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Global HR leaders and their teams on AI.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was June 8-10 at USC; 2027 page linked but empty.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "HR leadership"
+  ],
+  "roles": [
+   "CHRO",
+   "HR director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "aesc-global-summit-on-leadership",
+  "name": "AESC Global Summit on Leadership",
+  "organizer": "AESC",
+  "url": "https://www.aesc.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-16",
+  "endDate": "2026-11-17",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "London",
+  "state": null,
+  "country": "UK",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Executive search and leadership advisory firms.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Staffing and recruiting firms",
+   "HR leadership"
+  ],
+  "roles": [
+   "recruiter",
+   "staffing firm owner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "dmec-compliance-conference",
+  "name": "DMEC Compliance Conference",
+  "organizer": "DMEC",
+  "url": "https://dmec.org/conferences-and-webinars/2027-dmec-compliance-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-20",
+  "endDate": "2027-04-23",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Portland",
+  "state": "OR",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Leave, disability and absence compliance for benefits and HR teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Call for presentations is closed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Compensation and benefits",
+   "HR leadership"
+  ],
+  "roles": [
+   "benefits manager",
+   "HR director"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "dmec-annual-conference",
+  "name": "DMEC Annual Conference",
+  "organizer": "DMEC",
+  "url": "https://dmec.org/conferences-and-webinars/annual-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Denver",
+  "state": "CO",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Leave and disability management professionals.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates Aug 16-19, 2027 from HR Dive.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "Compensation and benefits"
+  ],
+  "roles": [
+   "benefits manager"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hrwest",
+  "name": "HRWest",
+  "organizer": "HR.com",
+  "url": "https://www.hr.com/en/webcasts_events/live_events/hrwest/hrwest-2027-agenda-listing_mnq4uvmw.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "March",
+  "city": "South San Francisco",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "West Coast HR leaders and business partners.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates Mar 23-24, 2027 from HR Dive.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "third-party listing + official domain search",
+  "segments": [
+   "HR leadership"
+  ],
+  "roles": [
+   "HR director",
+   "HR business partner"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "hr-in-hospitality",
+  "name": "HR in Hospitality Conference",
+  "organizer": null,
+  "url": "https://hrinhospitality.com/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-09",
+  "endDate": "2027-06-10",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Las Vegas",
+  "state": "NV",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "HR directors in hotels and restaurants.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration page not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "HR leadership"
+  ],
+  "roles": [
+   "HR director",
+   "HR business partner"
+  ],
+  "journeys": []
+ }
+]

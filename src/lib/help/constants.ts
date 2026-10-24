@@ -1,5 +1,8 @@
 // Shared by the portal form, the Help & feedback page and the admin inbox.
 
+/** The candidate Help and feedback page, opened on "Report a problem". */
+export const SUPPORT_HELP_PATH = '/dashboard/help?kind=problem'
+
 export type HelpFormKind = 'help' | 'problem' | 'idea' | 'feedback'
 
 /** Where a help request came from. CANDIDATE is the member portal; the rest are partner portals. */
