@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 const m = vi.hoisted(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fn = () => vi.fn(async (..._a: unknown[]): Promise<any> => null)
   return {
     sessionFindFirst: fn(),
@@ -315,6 +316,7 @@ describe('what the member can see', () => {
   it('asks the database only for a SENT summary, sent follow-ups and confirmed-or-decided topics', async () => {
     m.sessionFindFirst.mockResolvedValue(row)
     await getMemberCoachingView('c1')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const arg = m.sessionFindFirst.mock.calls[0][0] as { where: unknown; select: Record<string, any> }
     expect(arg.where).toEqual({ candidateId: 'c1', summary: { is: { state: 'SENT' } } })
     expect(arg.select.followUps.where).toEqual({ visibleToMemberAt: { not: null } })
