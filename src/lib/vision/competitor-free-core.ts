@@ -35,7 +35,7 @@ const RULES: { kind: EventKind; re: RegExp }[] = [
   { kind: 'ACQUISITION', re: /\b(acquires?|acquired|acquisition|to acquire|buys|bought|merges?|merger|to be acquired|takes? over|snapped up)\b/i },
   { kind: 'FUNDING', re: /\b(raises?|raised|secures?|closes?|lands?|announces?)\b.{0,40}(\$\s?\d[\d.,]*\s?(?:m|b|k|million|billion)?\b|series [a-f]\b|seed round|funding|investment|round)|\bseries [a-f] (?:funding|round)|\bfunding round\b|\bventure funding\b/i },
   { kind: 'WIN', re: /\b(awarded|wins?|won|selected|chosen)\b.{0,60}\b(contract|grant|rfp|bid|award|state|county|city|department|agency|board)\b|\bcontract award\b/i },
-  { kind: 'LOGO', re: /\b(selects|chooses|adopts|partners? with|partnership with|signs|taps|deploys|rolls out|launches with)\b/i },
+  { kind: 'LOGO', re: /\b(selects|chooses|adopts|partners? with|partnership with|taps|signs (?:a |an |new )?(?:deal|agreement|contract|partnership)|deploys|rolls out)\b/i },
 ]
 
 const stop = new Set(['inc', 'llc', 'ltd', 'corp', 'corporation', 'company', 'co', 'the', 'group', 'holdings', 'technologies', 'technology', 'solutions', 'labs'])
@@ -66,6 +66,8 @@ export function eventsFromFeed(items: FeedItem[], companyName: string, now: Date
     if (!headlineNamesCompany(it.title, companyName)) continue
     const kind = classifyHeadline(it.title)
     if (!kind) continue
+    // "X raises $5M ... backed by Indeed" is news about X, not Indeed: for funding and layoffs the company must be the subject.
+    if ((kind === 'FUNDING' || kind === 'LAYOFF') && !headlineNamesCompany(it.title.split(/\s+/).slice(0, 5).join(' '), companyName)) continue
     const title = (it.source && it.title.endsWith(` - ${it.source}`) ? it.title.slice(0, -(it.source.length + 3)) : it.title).slice(0, 200)
     const dedupeKey = `${kind}:${norm(title).slice(0, 80)}`
     if (seen.has(dedupeKey)) continue
