@@ -1,0 +1,68 @@
+{
+  "competitor": "Simplify",
+  "cells": [
+    {
+      "capabilityKey": "job_board",
+      "status": "YES",
+      "note": "Page says it indexes postings from 50+ job boards and company career pages daily and ranks them against member preferences.",
+      "evidenceUrl": "https://simplify.jobs/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_fit_score",
+      "status": "PARTIAL",
+      "note": "Page says it surfaces opportunities with the highest fit from the member's profile; no per-job reason is described.",
+      "evidenceUrl": "https://simplify.jobs/ai-job-search",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_tracker",
+      "status": "YES",
+      "note": "Jobs applied to through Simplify are saved to a tracker with status updates, notes and contacts.",
+      "evidenceUrl": "https://simplify.jobs/job-application-tracker",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "contacts",
+      "status": "PARTIAL",
+      "note": "Tracker records recruiters, referrals and other contacts per job.",
+      "evidenceUrl": "https://simplify.jobs/job-application-tracker",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_who_to_contact",
+      "status": "YES",
+      "note": "Maps alumni, former colleagues and mutual connections at target companies and finds people to contact.",
+      "evidenceUrl": "https://simplify.jobs/networking",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "backchannel_match",
+      "status": "PARTIAL",
+      "note": "Helps turn connections at target companies into referrals; page does not describe matching members with people who vouch for them.",
+      "evidenceUrl": "https://simplify.jobs/networking",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_analysis",
+      "status": "YES",
+      "note": "Gives an ATS Readiness Score and feedback on content, clarity and formatting.",
+      "evidenceUrl": "https://simplify.jobs/resume-builder",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_studio",
+      "status": "YES",
+      "note": "Resume builder adds a target job description to find missing keywords and tailor each version.",
+      "evidenceUrl": "https://simplify.jobs/resume-builder",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_skill_gap",
+      "status": "PARTIAL",
+      "note": "Resume builder page lists skill gap prompts against a target job.",
+      "evidenceUrl": "https://simplify.jobs/resume-builder",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

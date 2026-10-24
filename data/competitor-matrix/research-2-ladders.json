@@ -1,0 +1,19 @@
+{
+  "competitor": "Ladders",
+  "cells": [
+    {
+      "capabilityKey": "job_board",
+      "status": "PARTIAL",
+      "note": "Ladders lists job pages by state for roles it describes as $100K+; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.theladders.com/jobs/california-jobs",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_analysis",
+      "status": "PARTIAL",
+      "note": "Page offers a free resume review; search result describes a score and feedback; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.theladders.com/resume-services/free-resume-review",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

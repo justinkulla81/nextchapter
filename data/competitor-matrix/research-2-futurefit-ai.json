@@ -1,0 +1,19 @@
+{
+  "competitor": "FutureFit AI",
+  "cells": [
+    {
+      "capabilityKey": "pivot_paths",
+      "status": "PARTIAL",
+      "note": "Recommends skills-based career paths with a roadmap to learning and job opportunities; pay and local openings per path are not described.",
+      "evidenceUrl": "https://www.futurefit.ai/solutions-use-case/career-navigation",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "local_market_view",
+      "status": "PARTIAL",
+      "note": "Page says recommendations of jobs, training and opportunities are based on the local market.",
+      "evidenceUrl": "https://www.futurefit.ai/solutions-use-case/labor-exchange",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

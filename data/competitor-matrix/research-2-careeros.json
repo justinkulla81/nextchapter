@@ -1,0 +1,40 @@
+{
+  "competitor": "CareerOS",
+  "cells": [
+    {
+      "capabilityKey": "job_tracker",
+      "status": "YES",
+      "note": "Saved roles sit in one board with a pipeline that updates as the student moves.",
+      "evidenceUrl": "https://www.careeros.com/for-students",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "contacts",
+      "status": "PARTIAL",
+      "note": "Students save contacts with a browser extension and draft outreach; strength and due dates are not described.",
+      "evidenceUrl": "https://www.careeros.com/for-students",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_who_to_contact",
+      "status": "PARTIAL",
+      "note": "Page says AI researches companies and finds relevant contacts.",
+      "evidenceUrl": "https://www.careeros.com/for-students",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_studio",
+      "status": "PARTIAL",
+      "note": "Page lists tailoring a resume and cover letter for a job.",
+      "evidenceUrl": "https://www.careeros.com/for-students",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "follow_up_reminders",
+      "status": "PARTIAL",
+      "note": "Page lists reminders for deadlines; reminders for contact follow-ups are not described.",
+      "evidenceUrl": "https://www.careeros.com/for-students",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

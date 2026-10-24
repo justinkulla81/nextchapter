@@ -1,0 +1,19 @@
+{
+  "competitor": "ZipRecruiter",
+  "cells": [
+    {
+      "capabilityKey": "job_fit_score",
+      "status": "PARTIAL",
+      "note": "Company blog says each job shows a match rating (Great, Good, Fair, Not a Match) with suggestions; read from a search result, as the page blocked fetching.",
+      "evidenceUrl": "https://www.ziprecruiter.com/blog/ziprecruiter-tells-you-how-strong-a-match-you-are-for-every-job/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_alerts",
+      "status": "PARTIAL",
+      "note": "Company blog says seekers can opt in to text alerts for jobs posted in the past day that match their filters; read from a search result, as the page blocked fetching.",
+      "evidenceUrl": "https://www.ziprecruiter.com/blog/new-job-seeker-tools/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

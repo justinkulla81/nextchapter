@@ -1,0 +1,19 @@
+{
+  "competitor": "Teal",
+  "cells": [
+    {
+      "capabilityKey": "linkedin_review",
+      "status": "YES",
+      "note": "Page titled LinkedIn Profile Review Tool; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.tealhq.com/tools/linkedin-review",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "resume_studio",
+      "status": "PARTIAL",
+      "note": "Resume builder page; search result describes a match score against a job description and keyword highlighting; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.tealhq.com/tools/resume-builder",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

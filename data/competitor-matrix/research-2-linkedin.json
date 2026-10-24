@@ -1,0 +1,82 @@
+{
+  "competitor": "LinkedIn",
+  "cells": [
+    {
+      "capabilityKey": "job_board",
+      "status": "YES",
+      "note": "Help page describes searching for and applying to jobs on LinkedIn.",
+      "evidenceUrl": "https://www.linkedin.com/help/linkedin/answer/a511279",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_alerts",
+      "status": "YES",
+      "note": "Members create job alerts for a search, delivered daily or weekly by email or app notification, up to 20 alerts.",
+      "evidenceUrl": "https://www.linkedin.com/help/linkedin/answer/a511279",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_fit_score",
+      "status": "PARTIAL",
+      "note": "Skills Match insight shows how many of a job's required skills match the member's profile; no single verdict with a reason, and the page says it is rolling out.",
+      "evidenceUrl": "https://www.linkedin.com/help/linkedin/answer/a793433",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_skill_gap",
+      "status": "YES",
+      "note": "Premium 'How you match' lists skills the job asks for that are missing from the member's profile.",
+      "evidenceUrl": "https://www.linkedin.com/help/linkedin/answer/a1462281",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_pay_vs_market",
+      "status": "PARTIAL",
+      "note": "Job listings show an employer-provided or estimated salary range; the page does not describe comparing an offered range with market pay.",
+      "evidenceUrl": "https://www.linkedin.com/blog/member/product/introducing-salary-insights-on-jobs",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_who_to_contact",
+      "status": "YES",
+      "note": "Job details page shows a Meet the Hiring Team section where members can connect and message the poster and team, and members are notified when a first- or second-degree connection is hiring.",
+      "evidenceUrl": "https://www.linkedin.com/help/linkedin/answer/a767235",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_tracker",
+      "status": "PARTIAL",
+      "note": "Members can save jobs (up to 2000) and view jobs they applied for on LinkedIn; the pages do not describe a status per job.",
+      "evidenceUrl": "https://www.linkedin.com/help/linkedin/answer/a513247",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_scam_watch",
+      "status": "PARTIAL",
+      "note": "Members can report a job as spam or a scam and the page lists warning signs; the page does not describe an automatic check.",
+      "evidenceUrl": "https://www.linkedin.com/help/linkedin/answer/a513290",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "confidential_mode",
+      "status": "PARTIAL",
+      "note": "Open to Work can be limited to people using LinkedIn Recruiter; the page says complete privacy cannot be guaranteed.",
+      "evidenceUrl": "https://www.linkedin.com/help/linkedin/answer/a507508",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "ld_jobs_report",
+      "status": "PARTIAL",
+      "note": "Regular Workforce Reports on hiring, skills and migration trends in the US; not limited to white-collar occupations.",
+      "evidenceUrl": "https://economicgraph.linkedin.com/workforce-data",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "local_market_view",
+      "status": "PARTIAL",
+      "note": "Workforce Reports include a city section covering trends in 20 of the largest US metro areas.",
+      "evidenceUrl": "https://economicgraph.linkedin.com/workforce-data",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

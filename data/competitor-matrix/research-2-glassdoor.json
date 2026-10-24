@@ -1,0 +1,19 @@
+{
+  "competitor": "Glassdoor",
+  "cells": [
+    {
+      "capabilityKey": "job_board",
+      "status": "YES",
+      "note": "Glassdoor lists open jobs; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.glassdoor.com/Jobs/Glassdoor-Jobs-E100431.htm",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "job_alerts",
+      "status": "YES",
+      "note": "Jobs page offers creating an alert for similar jobs; read from a search result, as the site blocked fetching.",
+      "evidenceUrl": "https://www.glassdoor.com/Jobs/Glassdoor-Jobs-E100431.htm",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}
