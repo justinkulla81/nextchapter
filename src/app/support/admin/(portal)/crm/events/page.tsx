@@ -67,6 +67,7 @@ export default async function CrmEventsPage({ searchParams }: { searchParams: Pr
             Publish only what you have checked on the event&apos;s own site.
           </p>
         </div>
+        <Link href="/support/admin/crm/events/reminders" className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">Reminder preview</Link>
         <Link href="/support/admin/crm/events/coverage" className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">Coverage map</Link>
         <Link href="/support/admin/crm/events/new" className="rounded-md border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">Add an event</Link>
       </header>

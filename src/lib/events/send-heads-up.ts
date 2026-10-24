@@ -84,3 +84,27 @@ export async function sendConferenceHeadsUp(
   captureServerEvent(candidate.id, stage === 'NEXT_EDITION' ? 'conference_next_edition_sent' : 'conference_heads_up_sent', { eventId: e.id, stage, source, edition: opts.edition ?? '', access: e.access, speaking: e.speaking })
   return true
 }
+
+/** Sends a sample reminder (made-up event) to one address so the owner can see exactly what members get. Records nothing. */
+export async function sendTestHeadsUp(to: string, firstName: string | null, which: 'EXPLORE' | 'CHECK_IN' | 'BOOK'): Promise<boolean> {
+  if (!process.env.RESEND_API_KEY) return false
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const e = {
+    id: 'sample', name: 'Sample Annual Conference', url: appUrl, startDate: new Date(Date.now() + 200 * 86_400_000), endDate: new Date(Date.now() + 202 * 86_400_000),
+    datesConfirmed: true, typicalMonth: null, city: 'Las Vegas', state: 'NV', country: 'US', format: 'IN_PERSON', kind: 'CONFERENCE', access: 'PAID', costLow: 1795, costHigh: 2295,
+    costNote: null, cheaperWays: 'Volunteer passes and a $199 expo-only pass.', speaking: 'LIKELY', speakingDeadline: null, speakingUrl: null,
+  } as unknown as ConferenceRow
+  const resend = createResend(process.env.RESEND_API_KEY)
+  const f: FollowUp = { interestId: 'sample', attendedCount: 0, spokeCount: 0, outcome: null }
+  const { error } = await resend.emails.send({
+    from: 'NextChapter <support@launchyournextchapter.com>',
+    to,
+    subject: `[TEST, sample event] ${STAGE_SUBJECT[which](e.name)}`,
+    react: ConferenceHeadsUpEmail({
+      firstName, headline: STAGE_SUBJECT[which](e.name), eventName: e.name, when: whenLabel(e), where: whereLabel(e), cost: costLabel(e), steps: STEPS[which](e, f),
+      eventUrl: appUrl, planUrl: `${appUrl}/dashboard/network/events`, unsubscribeUrl: `${appUrl}/dashboard/privacy`,
+      buttons: which === 'CHECK_IN' ? [{ label: 'I went', href: appUrl }, { label: 'I spoke', href: appUrl }, { label: 'I did not go', href: appUrl }] : undefined,
+    }),
+  })
+  return !error
+}
