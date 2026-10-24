@@ -19,6 +19,8 @@ describe('apply helper: field mapping', () => {
     [{ name: 'first_name' }, 'first_name'],
     [{ autocomplete: 'family-name' }, 'last_name'],
     [{ label: 'Your name', name: 'name' }, 'full_name'],
+    [{ label: 'Name\n\u2731' }, 'full_name'],
+    [{ label: 'Current location\n\u2731', name: 'location' }, 'location'],
   ])('maps %j to %s', (desc, want) => expect(M.classifyField(desc)).toBe(want))
 
   it.each([

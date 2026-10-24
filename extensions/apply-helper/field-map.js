@@ -16,7 +16,7 @@
   }
 
   function norm(s) {
-    return String(s == null ? '' : s).toLowerCase().replace(/[*_:()✓]/g, ' ').replace(/\s+/g, ' ').trim()
+    return String(s == null ? '' : s).toLowerCase().replace(/[*_:()\u2713\u2731\uff0a]/g, ' ').replace(/\s+/g, ' ').trim()
   }
 
   // Ordered: the first rule that matches wins, so specific rules go before general ones.
