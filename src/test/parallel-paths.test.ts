@@ -24,6 +24,10 @@ import {
   parseSideInput,
   previousMainOf,
   rememberPreviousMain,
+  mergeSchoolDetails,
+  parseSchoolInput,
+  schoolDetailsOf,
+  schoolEndDate,
   sideDetailsOf,
   sideIncomeOf,
   statedLevelsOf,
@@ -264,5 +268,39 @@ describe('paths on Home: the row, the focus switch and the hours cap', () => {
     const all = Object.fromEntries(INTEREST_KEYS.map((k) => [k, { level: 'doing' }]))
     const s = { main: 'GROWING' as const, journeyDetails: { hoursAvailable: 10, paths: all }, kinds: [] }
     expect(parallelPlanItems(s).length).toBe(activePaths(s).length)
+  })
+})
+
+describe('going back to school', () => {
+  it('reads and parses safely, keeping the level and every other answer', () => {
+    expect(schoolDetailsOf({ paths: { school: { level: 'doing', program: ' MBA ', mode: 'full', ends: '2027-05', funding: 'loans', junk: 1 } } })).toEqual({ program: 'MBA', mode: 'full', ends: '2027-05', funding: 'loans' })
+    expect(schoolDetailsOf({ paths: { school: { mode: 'sometimes', ends: '2027-13', funding: 'gold' } } })).toEqual({})
+    expect(schoolDetailsOf(null)).toEqual({})
+    expect(parseSchoolInput({ program: 'x'.repeat(200), mode: 'part', ends: '2026-12', funding: 'employer' })).toEqual({ program: 'x'.repeat(120), mode: 'part', ends: '2026-12', funding: 'employer' })
+    expect(parseSchoolInput({ program: '', mode: '', ends: 'soon', funding: '' })).toEqual({})
+    expect(mergeSchoolDetails({ paths: { school: { level: 'doing' }, side: { hours: 4 } } }, { program: 'MBA' })).toEqual({ school: { level: 'doing', program: 'MBA' }, side: { hours: 4 } })
+    expect(schoolEndDate({ ends: '2027-05' })!.toISOString().slice(0, 10)).toBe('2027-05-31')
+    expect(schoolEndDate({})).toBeNull()
+  })
+  const now = new Date('2026-10-23T12:00:00Z')
+  const sig = (school: Record<string, unknown>) => ({ main: 'GROWING' as const, journeyDetails: { paths: { school } }, now, weekNumber: 1 })
+  it('a full-time student gets the school-network and proof steps, timed to when the program ends, named for the program', () => {
+    const early = parallelPlanItems(sig({ level: 'doing', program: 'MBA', mode: 'full', ends: '2028-05' }))
+    expect(early).toHaveLength(1)
+    expect(early[0].text).toMatch(/^MBA: /)
+    const closing = parallelPlanItems(sig({ level: 'doing', program: 'MBA', mode: 'full', ends: '2027-01' }))
+    expect(closing[0].text).not.toBe(early[0].text)
+  })
+  it('part-time and researching students get their own step, and one step only', () => {
+    expect(parallelPlanItems(sig({ level: 'doing', mode: 'part' }))[0].text).toMatch(/coursework/)
+    const r = parallelPlanItems(sig({ level: 'researching', program: 'Master of Public Health' }))
+    expect(r).toHaveLength(1)
+    expect(r[0].text).toMatch(/Ask two people who finished Master of Public Health/)
+    expect(parallelPlanItems(sig({ level: 'researching' }))[0].text).toMatch(/Look at one program/)
+    expect(parallelPlanItems(sig({ level: 'curious', program: 'MBA' }))).toEqual([])
+  })
+  it('shows the program on the card', () => {
+    const c = activePaths(sig({ level: 'doing', program: 'MBA', mode: 'full', ends: '2027-05' })).find((x) => x.key === 'school')!
+    expect(c.line).toBe('Doing it: MBA, full time, ends 2027-05')
   })
 })

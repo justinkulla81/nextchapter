@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { applyJourneyChange } from '@/lib/journey/apply'
 import { effectiveJourney, getJourney } from '@/lib/journey/journey'
-import { INCOME_NEED_OPTIONS, SWITCHABLE_MAIN, askableInterests, effectiveLevelsOf, mergeInterestLevels, mergeSideDetails, parseInterestInput, parseSideInput, previousMainOf } from '@/lib/journey/paths'
+import { INCOME_NEED_OPTIONS, SWITCHABLE_MAIN, askableInterests, effectiveLevelsOf, mergeInterestLevels, mergeSchoolDetails, mergeSideDetails, parseInterestInput, parseSchoolInput, parseSideInput, previousMainOf } from '@/lib/journey/paths'
 import { buyDetailsOf, journeyStageForBuyStage } from '@/lib/journey/buy-business'
 import { getParallelPaths, saveParallelPaths } from '@/lib/job-reviews/data'
 import { workingNowOf } from '@/lib/journey/intensity'
@@ -107,5 +107,22 @@ export async function savePathInterests(formData: FormData): Promise<void> {
     activeCount: Object.values(after).filter((l) => l === 'researching' || l === 'doing').length,
     main: signals.main,
   })
+  refresh()
+}
+
+// Going back to school: program, full or part time, when it ends and how it is paid for. Saving it also records how serious it is
+// when the member has not said (full or part time means they are doing it; a program alone means they are researching it).
+export async function saveSchoolDetails(formData: FormData): Promise<void> {
+  const profile = await currentProfile()
+  const parsed = parseSchoolInput({ program: String(formData.get('program') ?? ''), mode: String(formData.get('mode') ?? ''), ends: String(formData.get('ends') ?? ''), funding: String(formData.get('funding') ?? '') })
+  const existing = (profile.journeyDetails as Record<string, unknown> | null) ?? {}
+  let paths = mergeSchoolDetails(existing, parsed)
+  const kinds = await getParallelPaths(profile.id)
+  const signals = { main: effectiveJourney(profile), journeyDetails: { ...existing, paths }, kinds, workingNow: workingNowOf(existing), interimInterest: profile.interimConsultingInterest }
+  if (!effectiveLevelsOf(signals).school && Object.keys(parsed).length > 0) {
+    paths = mergeInterestLevels({ ...existing, paths }, { school: parsed.mode ? 'doing' : 'researching' })
+  }
+  await prisma.candidateProfile.update({ where: { id: profile.id }, data: { journeyDetails: { ...existing, paths } as Prisma.InputJsonValue } })
+  captureServerEvent(profile.id, 'school_details_saved', { mode: parsed.mode ?? null, funding: parsed.funding ?? null, hasProgram: !!parsed.program, ends: parsed.ends ?? null, main: signals.main })
   refresh()
 }
