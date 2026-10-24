@@ -27,10 +27,22 @@ export const PORTAL_TYPES: Record<PortalType, PortalTypeInfo> = {
 
 export const PORTAL_TYPE_ORDER: PortalType[] = ['employer', 'higher_ed', 'workforce', 'recruiter', 'coach']
 
-/** "Employer · Outplacement", or just "Recruiter" when the portal has one purpose. */
+/**
+ * The three employer sections follow the employee lifecycle (src/lib/employer/sections.ts). Retention, Learning and
+ * development and Job retraining are services inside Employees, so their label names the section first.
+ */
+const EMPLOYER_USE_SECTION: Record<string, string> = {
+  Retention: 'Employees',
+  'Learning and development': 'Employees',
+  'Job retraining': 'Employees',
+}
+
+/** "Employer · Outplacement", "Employer · Employees · Retention", or just "Recruiter" when the portal has one purpose. */
 export function portalTypeLabel(type: PortalType, use?: string | null): string {
   const info = PORTAL_TYPES[type]
-  return use && info.uses.includes(use) ? `${info.label} · ${use}` : info.label
+  if (!use || !info.uses.includes(use)) return info.label
+  const section = type === 'employer' ? EMPLOYER_USE_SECTION[use] : undefined
+  return section ? `${info.label} · ${section} · ${use}` : `${info.label} · ${use}`
 }
 
 /**
