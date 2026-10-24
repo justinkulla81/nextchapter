@@ -1,0 +1,40 @@
+{
+  "competitor": "Handshake",
+  "cells": [
+    {
+      "capabilityKey": "he_events",
+      "status": "PARTIAL",
+      "note": "Career centers page describes event registration for students and alumni; alumni-specific events are not described.",
+      "evidenceUrl": "https://joinhandshake.com/career-centers/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_outcomes_report",
+      "status": "PARTIAL",
+      "note": "Roadmap entry describes sourced outcomes that combine Handshake data and public professional profiles to help career centers measure outcomes; a public report is not described.",
+      "evidenceUrl": "https://updates.joinhandshake.com/board/outcomes-reporting",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_roi_dashboard",
+      "status": "PARTIAL",
+      "note": "Career centers page describes reporting tools covering student engagement through post-grad outcomes for career center teams.",
+      "evidenceUrl": "https://joinhandshake.com/career-centers/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_internships",
+      "status": "PARTIAL",
+      "note": "Career center webinar page describes an Experiences tool to track, manage and report on internship programs; recruiting by target company is not described.",
+      "evidenceUrl": "https://joinhandshake.com/career-centers/events/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "wf_member_companies",
+      "status": "YES",
+      "note": "Career center webinar page lists Employer Relationship Management tools for career center teams.",
+      "evidenceUrl": "https://joinhandshake.com/career-centers/events/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

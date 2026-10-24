@@ -1,0 +1,19 @@
+{
+  "competitor": "CaseWorthy",
+  "cells": [
+    {
+      "capabilityKey": "wf_participants",
+      "status": "YES",
+      "note": "Career and employment services page describes tracking training participation, Individual Training Accounts and workforce program progress.",
+      "evidenceUrl": "https://caseworthy.com/who-we-serve/career-and-employment-services/",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "wf_member_companies",
+      "status": "YES",
+      "note": "Career and employment services page describes managing employer relationships, tracking job opportunities and coordinating hiring events.",
+      "evidenceUrl": "https://caseworthy.com/who-we-serve/career-and-employment-services/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

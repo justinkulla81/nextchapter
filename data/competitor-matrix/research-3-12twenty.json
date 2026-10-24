@@ -1,0 +1,61 @@
+{
+  "competitor": "12twenty",
+  "cells": [
+    {
+      "capabilityKey": "he_alumni_network",
+      "status": "YES",
+      "note": "Community Engagement Hub page describes an opt-in directory where students and alumni find each other by employer or expertise.",
+      "evidenceUrl": "https://12twenty.com/community-engagement-hub",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_mentoring",
+      "status": "YES",
+      "note": "Community Engagement Hub page describes students searching verified alumni mentors by skills and employers.",
+      "evidenceUrl": "https://12twenty.com/community-engagement-hub",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_events",
+      "status": "PARTIAL",
+      "note": "Career Services Hub page describes event registration and attendance check-in for career center events; alumni events are not described there.",
+      "evidenceUrl": "https://12twenty.com/csh",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_outcomes_report",
+      "status": "PARTIAL",
+      "note": "Career Cloud page describes first destination surveys, one-click NACE reports and shareable dashboards; a public outcomes report is not described.",
+      "evidenceUrl": "https://12twenty.com/career-cloud",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_roi_dashboard",
+      "status": "PARTIAL",
+      "note": "Community Engagement Hub page describes engagement analytics on logins, profile views and messaging by class year and school.",
+      "evidenceUrl": "https://12twenty.com/community-engagement-hub",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_internships",
+      "status": "YES",
+      "note": "Experiential Learning Hub page describes online approvals and logging of hours and evaluations for internships and externships.",
+      "evidenceUrl": "https://12twenty.com/experiential-learning",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "wf_member_companies",
+      "status": "YES",
+      "note": "Employer Relationship Management Hub page describes an employer directory, contact profiles, notes, tasks and meetings.",
+      "evidenceUrl": "https://12twenty.com/erm",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "community_feed",
+      "status": "YES",
+      "note": "Community Engagement Hub page describes groups with built-in message boards and email notifications.",
+      "evidenceUrl": "https://12twenty.com/community-engagement-hub",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

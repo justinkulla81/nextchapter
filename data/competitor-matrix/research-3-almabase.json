@@ -1,0 +1,40 @@
+{
+  "competitor": "Almabase",
+  "cells": [
+    {
+      "capabilityKey": "he_alumni_network",
+      "status": "YES",
+      "note": "Features page describes an alumni directory and a space for alumni to find and connect with each other.",
+      "evidenceUrl": "https://almabase.com/platform",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_mentoring",
+      "status": "YES",
+      "note": "Features page lists a mentorship program product.",
+      "evidenceUrl": "https://almabase.com/platform",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_events",
+      "status": "YES",
+      "note": "Events management page describes invitations, registration, ticketing and check-in for reunions and homecomings.",
+      "evidenceUrl": "https://www.almabase.com/lp/events-management",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "he_giving",
+      "status": "YES",
+      "note": "Features page describes online giving pages and giving day tools for alumni donations.",
+      "evidenceUrl": "https://almabase.com/platform",
+      "checkedAt": "2026-10-24"
+    },
+    {
+      "capabilityKey": "community_feed",
+      "status": "PARTIAL",
+      "note": "Features page lists affinity groups for networking among members; posts and replies are not described.",
+      "evidenceUrl": "https://almabase.com/platform",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}

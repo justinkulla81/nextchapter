@@ -1,0 +1,12 @@
+{
+  "competitor": "Capstone Workforce",
+  "cells": [
+    {
+      "capabilityKey": "wf_participants",
+      "status": "PARTIAL",
+      "note": "Homepage offers organizations participant readiness scores and funder-ready reports; programs and cohorts are not described.",
+      "evidenceUrl": "https://www.capstoneworkforce.com/",
+      "checkedAt": "2026-10-24"
+    }
+  ]
+}
