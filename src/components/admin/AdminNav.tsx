@@ -284,7 +284,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/jobs`, label: 'All jobs' },
         { href: `${A}/jobs/lifecycle`, label: 'Open vs closed jobs' },
         { href: `${A}/jobs/apply-fit`, label: 'Application fit' },
-        { href: `${A}/job-flags`,  },
+        { href: `${A}/job-flags`, label: 'Job flags' },
         { href: `${A}/likely-openings`, label: 'Likely openings' },
         { href: `${A}/interim-listings`, label: 'Interim work listings' },
       ],
