@@ -25,6 +25,8 @@ const span = (ms: number) => {
   return `${Math.round(h / 24)} days`
 }
 const ago = (d: Date) => `${span(Date.now() - d.getTime())} ago`
+/** How long a conversation waited for its first reply, or has been waiting so far. */
+const waited = (opened: Date, firstReplyAt: Date | undefined) => (firstReplyAt ? firstReplyAt.getTime() : Date.now()) - opened.getTime()
 
 export default async function HelpThreadPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -62,7 +64,7 @@ export default async function HelpThreadPage({ params }: { params: Promise<{ id:
   })
 
   const firstReply = r.messages.find((m) => m.fromAdmin)
-  const waitedMs = firstReply ? firstReply.createdAt.getTime() - r.createdAt.getTime() : Date.now() - r.createdAt.getTime()
+  const waitedMs = waited(r.createdAt, firstReply?.createdAt)
   const resolved = r.status === 'RESOLVED'
   const waitingOnUs = !resolved && !r.lastMessageFromAdmin
 
