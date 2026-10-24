@@ -2,7 +2,7 @@ import { after, NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { displayCompanyName } from '@/lib/text/org-name-match'
 import { cleanJobLocation as cleanLocation, parsePostedDate as postedDate, screenImportedJob } from '@/lib/jobs/import-screen'
-import { excerptOf, skillsFrom } from '@/lib/jobs/posting-text'
+import { fullDescriptionOf, skillsFrom } from '@/lib/jobs/posting-text'
 import { linkPostingsToCompanies } from '@/lib/companies/posting-company'
 import { isBearerAuthorized } from '@/lib/auth/bearer-secret'
 import { buildOpeningRow, closeArchivedOpenings, upsertOpenings, type OpeningRow } from '@/lib/companies/job-openings'
@@ -207,7 +207,7 @@ function storableSalary(n: number | null | undefined): number | null {
 }
 
 // The years-of-experience requirement, read from the FULL description the sender
-// sent (only an excerpt is stored); null when the text names none. Left out when
+// sent; null when the text names none. Left out when
 // there is no description, so a row keeps what it holds.
 function yearsRequiredOf(description: string | null | undefined) {
   if (!description?.trim()) return {}
@@ -232,7 +232,9 @@ function rowData({ job, level }: Screened) {
     title: job.title.trim(),
     companyName: displayCompanyName(job.companyName.trim()),
     location: cleanLocation(job.location),
-    description: excerptOf(job.description),
+    // The full posting text (capped at 50k characters), not an excerpt: aggregator feeds
+    // (Jooble, Talent.com) and Google for Jobs want the employer's whole description.
+    description: fullDescriptionOf(job.description),
     skills: skillsFrom(job.title, job.description),
     // O*NET skills / tools the full posting names (text-skill-ids.ts): the board's skills criterion.
     skillIds: [...textSkillIds(job.title, job.description, skillsFrom(job.title, job.description).join(' , '))].sort(),

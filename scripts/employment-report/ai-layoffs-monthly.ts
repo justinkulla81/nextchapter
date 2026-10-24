@@ -26,7 +26,6 @@
 // Usage: npm run report:ai-layoffs [-- --edition 2026-10]
 import fs from 'node:fs'
 import path from 'node:path'
-import { prisma } from '@/lib/prisma'
 
 // The news check started collecting in October 2026; earlier months hold only
 // the odd stray article, so a count for them would read as a calm market that
@@ -93,10 +92,22 @@ async function lookupCountry(name: string): Promise<string | null> {
 
 async function main() {
   const edition = process.argv.includes('--edition') ? process.argv[process.argv.indexOf('--edition') + 1] : null
-  const mentions = await prisma.layoffNewsMention.findMany({
-    where: { publishedAt: { gte: new Date(`${FIRST_FULL_MONTH}-01`) }, noticeId: { not: null } },
-    select: { noticeId: true, headline: true, url: true },
-  })
+  // --from-json <file> (or AI_LAYOFFS_JSON): read the inputs from the layoff-ai-export function's output instead of the
+  // database, for environments with no database connection (see docs/jobs-report/early-warning-cloud-run.md).
+  const jsonArg = process.argv.includes('--from-json') ? process.argv[process.argv.indexOf('--from-json') + 1] : process.env.AI_LAYOFFS_JSON
+  const exported = jsonArg
+    ? (JSON.parse(fs.readFileSync(jsonArg, 'utf8')) as {
+        mentions: { noticeId: string; headline: string; url: string }[]
+        notices: { id: string; employer: string; state: string | null; employees: number | null; noticeDate: string | null; source: string }[]
+      })
+    : null
+  const prisma = exported ? null : (await import('@/lib/prisma')).prisma
+  const mentions = exported
+    ? exported.mentions
+    : await prisma!.layoffNewsMention.findMany({
+        where: { publishedAt: { gte: new Date(`${FIRST_FULL_MONTH}-01`) }, noticeId: { not: null } },
+        select: { noticeId: true, headline: true, url: true },
+      })
   const byNotice = new Map<string, { cited: string | null; denied: boolean; mentions: number }>()
   for (const r of mentions) {
     const c = byNotice.get(r.noticeId!) ?? { cited: null, denied: false, mentions: 0 }
@@ -107,10 +118,12 @@ async function main() {
     }
     byNotice.set(r.noticeId!, c)
   }
-  const notices = await prisma.warnNotice.findMany({
-    where: { id: { in: [...byNotice.keys()] } },
-    select: { id: true, employer: true, state: true, employees: true, noticeDate: true, source: true },
-  })
+  const notices = exported
+    ? exported.notices.filter((n) => byNotice.has(n.id)).map((n) => ({ ...n, noticeDate: n.noticeDate ? new Date(/Z|[+-]\d\d:?\d\d$/.test(n.noticeDate) ? n.noticeDate : `${n.noticeDate}Z`) : null }))
+    : await prisma!.warnNotice.findMany({
+        where: { id: { in: [...byNotice.keys()] } },
+        select: { id: true, employer: true, state: true, employees: true, noticeDate: true, source: true },
+      })
 
   const countries = readCountries()
   // One row per canonical company and month: a cited claim beats a denial, the larger headcount wins.
@@ -165,6 +178,6 @@ async function main() {
   }
   console.log(lines.join('\n'))
   console.log(`\n${events.size} companies with an AI claim; ${excluded} AI-claim notices excluded (no company/country resolved); ${notices.length} notices matched, ${mentions.length} mentions used`)
-  await prisma.$disconnect()
+  await prisma?.$disconnect()
 }
 main()

@@ -4,6 +4,7 @@ import { CalendarClock } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getDashboardProfile } from '@/lib/dashboard/get-dashboard-data'
 import { listUpcomingForCandidate, loadBookingView } from '@/lib/coach/booking/service'
+import { CALENDAR_MODE_MESSAGE } from '@/lib/coach/booking/calendar-mode'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { SlotPicker } from '@/components/dashboard/book-session/SlotPicker'
@@ -38,6 +39,7 @@ export default async function BookSessionPage() {
   let coach: { id: string; fullName: string } | null = null
   let config: Awaited<ReturnType<typeof loadBookingView>>['config'] | null = null
   let slots: Date[] = []
+  let calendar: 'shared' | 'coach' | 'paused' | 'unreadable' = 'shared'
   let upcoming: Awaited<ReturnType<typeof listUpcomingForCandidate>> = []
   let failed = false
   try {
@@ -46,6 +48,7 @@ export default async function BookSessionPage() {
       const [view, mine] = await Promise.all([loadBookingView(coach.id), listUpcomingForCandidate(profile.id)])
       config = view.config
       slots = view.slots
+      calendar = view.calendar
       upcoming = mine
     }
   } catch (error) {
@@ -89,7 +92,17 @@ export default async function BookSessionPage() {
                         </p>
                       )}
                     </div>
-                    <CancelSessionForm bookingId={b.id} />
+                    <div className="flex flex-wrap items-center gap-2">
+                      {slots.length > 0 && (
+                        <details className="text-sm">
+                          <summary className="cursor-pointer rounded-md px-2 py-1 font-medium text-foreground hover:bg-muted">Change time</summary>
+                          <div className="mt-3 w-full">
+                            <SlotPicker slots={slots.map((s) => s.toISOString())} coachId={coach.id} coachName={coach.fullName} rescheduleBookingId={b.id} />
+                          </div>
+                        </details>
+                      )}
+                      <CancelSessionForm bookingId={b.id} />
+                    </div>
                   </CardContent>
                 </Card>
               </li>
@@ -109,6 +122,8 @@ export default async function BookSessionPage() {
             description="Send them a message and ask when they are free. They can turn on booking from their coach settings."
             cta={{ label: 'Message your coach', href: '/dashboard/messages' }}
           />
+        ) : calendar === 'paused' || calendar === 'unreadable' ? (
+          <EmptyState icon={CalendarClock} title={calendar === 'paused' ? `${coach.fullName.split(' ')[0]} isn’t taking bookings right now` : 'We could not load times just now'} description={`${CALENDAR_MODE_MESSAGE[calendar]} Your booked sessions and their video links still work.`} cta={{ label: 'Message your coach', href: '/dashboard/messages' }} />
         ) : slots.length === 0 ? (
           <EmptyState icon={CalendarClock} title="No open times right now" description={`${coach.fullName.split(' ')[0]} has no open times in the next ${config.maxDaysAhead} days. Check back soon, or send them a message.`} />
         ) : (

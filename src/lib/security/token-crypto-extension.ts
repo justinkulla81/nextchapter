@@ -12,6 +12,7 @@ const ENCRYPTED_MODELS = new Set([
   'LinkedInConnection',
   'GoogleInboxConnection',
   'AdminGoogleCalendarConnection',
+  'CoachGoogleConnection',
 ])
 const FIELDS = ['accessToken', 'refreshToken'] as const
 

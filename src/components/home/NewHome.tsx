@@ -17,10 +17,11 @@ const action =
   'inline-flex h-14 items-center rounded-full bg-action px-8 text-base font-semibold text-action-foreground hover:brightness-95'
 
 const AUDIENCES = [
-  { label: 'Employers', href: '/outplacement' },
+  { label: 'Employers', href: '/employers' },
   { label: 'Recruiters', href: '/recruiters' },
   { label: 'Coaches', href: '/coaches' },
-  { label: 'Colleges and nonprofits', href: '/nonprofits' },
+  { label: 'Colleges', href: '/higher-education' },
+  { label: 'Nonprofits', href: '/nonprofits' },
   { label: 'Government and workforce', href: '/government-workforce' },
 ]
 

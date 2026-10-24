@@ -57,3 +57,20 @@ export async function deleteCalendarEvent(eventId: string): Promise<boolean> {
     return false
   }
 }
+
+/** Moves an event on the shared calendar to a new time. The Meet link stays. False when Google would not change it. */
+export async function moveCalendarEvent(eventId: string, start: Date, end: Date): Promise<boolean> {
+  try {
+    const accessToken = await getValidAdminAccessToken()
+    const response = await fetch(`${EVENTS_URL}/${encodeURIComponent(eventId)}?sendUpdates=all`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ start: { dateTime: start.toISOString() }, end: { dateTime: end.toISOString() } }),
+    })
+    if (!response.ok) console.error('Failed to move calendar event:', response.status, await googleErrorReason(response))
+    return response.ok
+  } catch (error) {
+    console.error('Failed to move calendar event:', error)
+    return false
+  }
+}
