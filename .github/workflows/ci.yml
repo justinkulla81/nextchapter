@@ -25,6 +25,9 @@ jobs:
       # Shipped (non-dev) dependencies must have no high/critical advisories
       # (CASA 6.1.1). Dev-only tooling (eslint, shadcn CLI) is not deployed.
       - run: npm audit --omit=dev --audit-level=high
+      # The project is large enough that tsc exceeds node's default heap on the runner.
       - run: npx tsc --noEmit -p .
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
       - run: npx vitest run
       - run: npx eslint src --ignore-pattern src/test/token-crypto-extension.test.ts
