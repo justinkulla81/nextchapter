@@ -21,6 +21,8 @@ import type { Relocation } from './relocation'
 import { situationPlanItems } from './situation'
 import { parallelPlanItems } from './paths'
 import { reaskPlanItems } from './stalled-reask'
+import { startPlanItems } from './start-business'
+import { gradPlanItems } from '@/lib/early-career/graduation-plan'
 import { deriveLearningPaths, pathPlanItems, pathProgressOf } from './learning-paths'
 
 export type EngagementSignals = {
@@ -454,7 +456,11 @@ export function profileDrivenItems(s: EngagementSignals, now: Date = new Date())
   out.push(...reaskPlanItems(s.rawDetails, now))
   // What runs next to the main journey: at most one step per active path (researching or doing it; curious adds nothing).
   out.push(...parallelPlanItems({ main: s.journey, journeyDetails: s.rawDetails, kinds: s.parallelKinds, workingNow: s.workingNow, interimInterest: s.interimInterest }))
+  // Building something of their own: the steps for the stage they are on (idea, validate, build, launch, grow).
+  if (s.journey === 'ENTREPRENEUR') out.push(...startPlanItems(s.rawDetails, s.weeksInStage + 1))
   if (s.journey === 'ENTREPRENEUR' && s.venture) out.push({ text: `Venture check-in: ${s.venture}. Name the one thing that must happen this month` })
+  // A student or new grad: this week's positioning, school-network and proof steps for how close graduation is.
+  if (s.journey === 'STUDENT_NEW_GRAD') out.push(...gradPlanItems(s.graduation ?? null, s.weeksInStage + 1, now))
   if (s.journey === 'STUDENT_NEW_GRAD' && s.graduation) {
     const days = Math.ceil((s.graduation.getTime() - now.getTime()) / DAYS)
     if (days > 0 && days <= 150) out.push({ text: `You graduate in ${days <= 14 ? 'about two weeks' : `${Math.round(days / 7)} weeks`}: line up conversations now so offers arrive near graduation` })
