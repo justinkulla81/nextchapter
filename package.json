@@ -10,6 +10,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "seo:check-sitemap": "node scripts/check-sitemap-indexable.mjs",
+    "mailing:auto-assign": "node --env-file=.env.local --conditions=react-server --import tsx scripts/mailing/auto-assign.ts",
     "careers:import-onet": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-onet.ts",
     "careers:import-bls": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-bls.ts",
     "careers:build-aliases": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/build-skill-aliases.ts",

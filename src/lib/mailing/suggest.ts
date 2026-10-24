@@ -9,6 +9,9 @@ import type { CrmPersonRole } from '@prisma/client'
 const ROLE_LISTS: Partial<Record<CrmPersonRole, string>> = {
   INVESTOR_VC: 'investors',
   INVESTOR_ANGEL: 'investors',
+  INCUBATOR: 'investors',
+  GRANTS: 'investors',
+  HIRING_MANAGER: 'employers',
   ADVISOR: 'advisors',
   JOB_SEEKER: 'candidates',
   BD_PARTNER: 'bd_partners',
@@ -40,15 +43,33 @@ const PIPELINE_LISTS: Record<string, string> = {
   recruiter_recruiting: 'recruiters',
 }
 
+// Fallback when a person's own role names no list: what their organization is.
+// EMPLOYER and GOVERNMENT are left out on purpose — too broad to imply a list.
+const ORG_TYPE_LISTS: Record<string, string> = {
+  VC_FUND: 'investors',
+  ANGEL_SYNDICATE: 'investors',
+  UNIVERSITY: 'higher_ed',
+  WORKFORCE_PROVIDER: 'workforce',
+  OUTPLACEMENT_LEAD: 'employers',
+  OUTPLACEMENT_FIRM: 'employers',
+  SEARCH_FIRM: 'recruiters',
+  COACHING_FIRM: 'coaches',
+  THINK_TANK: 'research_partners',
+}
+
 export function suggestListKeys(input: {
   roles: CrmPersonRole[]
   pipelineKeys: string[]
   /** Works at a workforce board (an org linked to one). */
   isWorkforceBoard?: boolean
+  /** Types of the organizations they currently work at. */
+  orgTypes?: string[]
 }): string[] {
   const keys = new Set<string>(['monthly_update'])
   for (const r of input.roles) if (ROLE_LISTS[r]) keys.add(ROLE_LISTS[r]!)
   for (const p of input.pipelineKeys) if (PIPELINE_LISTS[p]) keys.add(PIPELINE_LISTS[p])
+  const hasRoleList = [...keys].length > 1
+  if (!hasRoleList) for (const t of input.orgTypes ?? []) if (ORG_TYPE_LISTS[t]) keys.add(ORG_TYPE_LISTS[t])
   if (input.isWorkforceBoard) keys.add('workforce')
   return [...keys]
 }

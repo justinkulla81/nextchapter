@@ -145,13 +145,14 @@ export async function suggestionsFor(personIds: string[]): Promise<Map<string, s
     select: {
       id: true, roles: true,
       opportunities: { where: { stage: { isLost: false } }, select: { pipeline: { select: { key: true } } } },
-      affiliations: { where: { isCurrent: true }, select: { org: { select: { name: true, dealStatus: true } } } },
+      affiliations: { where: { isCurrent: true }, select: { org: { select: { name: true, orgTypes: true } } } },
     },
   })
   return new Map(people.map((p) => [p.id, suggestListKeys({
     roles: p.roles,
     pipelineKeys: p.opportunities.map((o) => o.pipeline.key),
     isWorkforceBoard: p.affiliations.some((a) => WORKFORCE_ORG.test(a.org.name)),
+    orgTypes: p.affiliations.flatMap((a) => a.org.orgTypes),
   })]))
 }
 
