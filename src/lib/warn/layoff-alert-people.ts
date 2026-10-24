@@ -137,13 +137,13 @@ export async function layoffPeople(orgId: string | null, place: LayoffPlace): Pr
   const recruiterRows = state
     ? await prisma.crmPerson.findMany({
         where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' }, recruiterKind: 'recruiter', coverageStates: { hasSome: [state, 'NATIONAL'] } },
-        select: { ...personSelect, coverageStates: true, coverageIndustries: true, coverageFunctions: true, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { id: true, name: true } } }, take: 1 } },
+        select: { ...personSelect, coverageStates: true, coverageIndustries: true, coverageFunctions: true, recruiterModels: true, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { id: true, name: true } } }, take: 1 } },
         take: 1500,
       })
     : []
   // One card per firm: the firm, how many of its recruiters fit, and the best one to contact first. Firms rank by their best recruiter's fit.
   const fitted = recruiterRows
-    .map((p) => ({ p, fit: recruiterFit({ states: p.coverageStates, industries: p.coverageIndustries, functions: p.coverageFunctions }, { state, industry: place.industryKey ?? null }) }))
+    .map((p) => ({ p, fit: recruiterFit({ states: p.coverageStates, industries: p.coverageIndustries, functions: p.coverageFunctions }, { state, industry: place.industryKey ?? null }) + (p.recruiterModels.includes('candidate_rep') ? 2 : 0) }))
     .filter((x) => x.fit > 0)
   const byFirm = new Map<string, typeof fitted>()
   for (const x of fitted) {

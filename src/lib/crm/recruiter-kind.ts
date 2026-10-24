@@ -21,13 +21,26 @@ export interface KindInput {
   title: string | null
   /** A SearchFirm row exists, the name reads like a search/staffing firm, or the person came from the researched firm lists. */
   atSearchFirm: boolean
+  /**
+   * The CRM labels the organization "Staffing / Recruiting" but nothing else says it is a search firm. That label is
+   * also on some employers (the import tagged an employer's own recruiters that way), so it only counts for the
+   * people who lead a firm, not for an employer's talent-acquisition staff.
+   */
+  labelledRecruitingFirm?: boolean
 }
 
-export function classifyRecruiter({ title, atSearchFirm }: KindInput): RecruiterKind {
+const FIRM_LEADER = /\b(managing (director|partner|principal)|partner|principal|founder|owner|president|ceo|chairman|chair|managing member)\b/i
+
+/**
+ * Anyone who works at a search or recruiting firm is a recruiter, except the firm's back office. At an employer,
+ * only talent-acquisition staff are recruiters, and they are in-house.
+ */
+export function classifyRecruiter({ title, atSearchFirm, labelledRecruitingFirm }: KindInput): RecruiterKind {
   const t = (title ?? '').trim()
   if (/office contact/i.test(t)) return 'recruiter'
   if (SUPPORT.test(t) && !/recruit|search (consultant|partner)|executive search|talent acquisition/i.test(t)) return 'support'
-  if (atSearchFirm) return !t || PLACES.test(t) || /\b(director|vice president|\bvp\b|principal|owner|founder|president|ceo)\b/i.test(t) ? 'recruiter' : HR.test(t) ? 'hr' : 'unclear'
+  const firm = atSearchFirm || (!!labelledRecruitingFirm && FIRM_LEADER.test(t))
+  if (firm) return HR.test(t) && !PLACES.test(t) ? 'support' : 'recruiter'
   if (IN_HOUSE_TA.test(t) && !/human resources officer|chro/i.test(t)) return 'in_house'
   if (HR.test(t)) return 'hr'
   return 'unclear'

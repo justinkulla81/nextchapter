@@ -13,14 +13,14 @@ const FIRM_NAME = /\b(search|staffing|recruit\w*|headhunt\w*)\b/i
 async function main() {
   const people = await prisma.crmPerson.findMany({
     where: { deletedAt: null, mergedIntoId: null, roles: { has: 'RECRUITER_PROSPECT' } },
-    select: { id: true, coverageSource: true, recruiterKind: true, affiliations: { where: { isCurrent: true }, take: 1, select: { title: true, org: { select: { name: true, searchFirms: { take: 1, select: { id: true } } } } } } },
+    select: { id: true, coverageSource: true, recruiterKind: true, affiliations: { where: { isCurrent: true }, take: 1, select: { title: true, org: { select: { name: true, industry: true, searchFirms: { take: 1, select: { id: true } } } } } } },
   })
   const tally: Record<string, number> = {}
   const byKind = new Map<RecruiterKind, string[]>()
   for (const p of people) {
     const a = p.affiliations[0]
     const atSearchFirm = p.coverageSource === 'research' || !!a?.org.searchFirms.length || FIRM_NAME.test(a?.org.name ?? '')
-    const kind = classifyRecruiter({ title: a?.title ?? null, atSearchFirm })
+    const kind = classifyRecruiter({ title: a?.title ?? null, atSearchFirm, labelledRecruitingFirm: a?.org.industry === 'Staffing / Recruiting' })
     tally[kind] = (tally[kind] ?? 0) + 1
     if (p.recruiterKind !== kind) byKind.set(kind, [...(byKind.get(kind) ?? []), p.id])
   }
