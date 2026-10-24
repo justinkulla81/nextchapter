@@ -490,13 +490,14 @@ export async function saveWatchSettings(formData: FormData) {
     create: { id: 'singleton' },
     update: {
       enabled: formData.get('enabled') === 'on',
+      mode: formData.get('mode') === 'PAID' ? 'PAID' : 'FREE',
       refreshEnabled: formData.get('refreshEnabled') === 'on',
       newsEnabled: formData.get('newsEnabled') === 'on',
       monthlyCapUsd: Number.isFinite(cap) && cap >= 0 && cap <= 500 ? cap : 50,
       updatedByEmail: admin.email ?? null,
     },
   })
-  captureServerEvent(admin.email ?? 'admin', 'vision_competitor_watch_settings_saved', { enabled: formData.get('enabled') === 'on', cap })
+  captureServerEvent(admin.email ?? 'admin', 'vision_competitor_watch_settings_saved', { enabled: formData.get('enabled') === 'on', cap, mode: formData.get('mode') === 'PAID' ? 'PAID' : 'FREE' })
   revalidatePath(`${V}/competitors`)
 }
 

@@ -44,7 +44,7 @@ export function mergeRefresh(c: ProductCompetitor, e: EnrichedCompetitor) {
   }
 }
 
-async function saveEvents(competitorId: string, events: CleanEvent[], source: string): Promise<number> {
+export async function saveEvents(competitorId: string, events: CleanEvent[], source: string): Promise<number> {
   if (events.length === 0) return 0
   const r = await prisma.competitorEvent.createMany({
     data: events.map((e) => ({ competitorId, kind: e.kind, title: e.title, summary: e.summary, url: e.url, amountUsd: e.amountUsd, occurredAt: e.occurredAt, source, dedupeKey: e.dedupeKey })),
