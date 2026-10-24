@@ -16,6 +16,14 @@ describe('classifyHeadline', () => {
   it('drops headlines no rule matches', () => expect(classifyHeadline('Acme CEO talks about the future of work')).toBeNull())
 })
 
+describe('precision', () => {
+  it('does not treat the word signs as a customer win', () => expect(classifyHeadline('Employment figures: signs of stabilisation')).toBeNull())
+  it('funding of a different company that merely mentions ours is dropped', () => {
+    const items = [{ title: 'HiringCafe raises $6.8M pre-seed, backed by ZipRecruiter and Indeed angels', link: 'https://x.com/a', source: null, publishedAt: now }]
+    expect(eventsFromFeed(items, 'Indeed', now)).toHaveLength(0)
+  })
+})
+
 describe('news feed', () => {
   const xml = `<rss><channel>
   <item><title>Acme raises $20M Series B - TechCrunch</title><link>https://news.google.com/rss/articles/abc</link><pubDate>Wed, 21 Oct 2026 10:00:00 GMT</pubDate><source url="x">TechCrunch</source></item>
