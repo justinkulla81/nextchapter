@@ -91,6 +91,19 @@ export default function ReportsHubPage() {
           )}
         </div>
 
+        <Link
+          href="/reports/early-warning"
+          className="group mt-5 block rounded-xl border border-light-gray bg-white p-6 transition-colors hover:border-brand"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand">Early warning</p>
+          <h2 className="mt-3 text-xl font-bold tracking-tight text-navy">Are young graduates the canary?</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Unemployment for graduates, early-career and senior white-collar workers, a test of who moves first, job cuts that cite AI by
+            country, and ten peer economies side by side.
+          </p>
+          <p className="mt-4 text-sm font-semibold text-brand group-hover:underline">See the early-warning indicators →</p>
+        </Link>
+
         {/* Approved message, backed by exact report figures with sources */}
         <section className="mt-14" aria-labelledby="longer-search">
           <h2 id="longer-search" className="text-xl font-bold tracking-tight text-navy">{LONGER_SEARCH_HEADLINE}</h2>
