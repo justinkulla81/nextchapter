@@ -48,7 +48,7 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/recruiters', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/talent', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/government-workforce', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
-  { path: '/nonprofits', updated: '2026-07-14', freq: 'monthly', priority: 0.5 },
+  { path: '/nonprofits', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/coaching', updated: '2026-08-07', freq: 'monthly', priority: 0.5 },
   { path: '/coaches', updated: '2026-10-24', freq: 'monthly', priority: 0.5 },
   { path: '/membership', updated: '2026-08-22', freq: 'monthly', priority: 0.5 },
