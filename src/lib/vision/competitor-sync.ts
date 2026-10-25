@@ -36,7 +36,7 @@ export async function syncProductGaps(c: ProductCompetitor): Promise<number> {
   return created
 }
 
-async function orgFor(buyer: string, government: boolean): Promise<string | null> {
+export async function orgFor(buyer: string, government: boolean): Promise<string | null> {
   const canonical = normalizeOrgName(buyer)
   if (!canonical) return null
   const found = await prisma.crmOrganization.findUnique({ where: { canonicalNameNormalized: canonical }, select: { id: true } })
@@ -48,7 +48,7 @@ async function orgFor(buyer: string, government: boolean): Promise<string | null
   return made.id
 }
 
-async function recordWin(w: CrmWin, government: boolean, now: Date): Promise<boolean> {
+export async function recordWin(w: CrmWin, government: boolean, now: Date): Promise<boolean> {
   const dup = await prisma.crmActivity.findFirst({ where: { sourceRef: w.ref }, select: { id: true } })
   if (dup) return false
   const orgId = await orgFor(w.buyer, government)

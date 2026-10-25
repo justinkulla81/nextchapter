@@ -55,3 +55,12 @@ CREATE TABLE IF NOT EXISTS "BoardBidCheck" (
   "bidsFound" INTEGER NOT NULL DEFAULT 0,
   "note"      TEXT
 );
+
+-- CRM links (additive columns on the tables above): which CRM organization a bid or win is filed under.
+ALTER TABLE "BoardBid" ADD COLUMN IF NOT EXISTS "orgId" TEXT;
+ALTER TABLE "BoardBid" ADD COLUMN IF NOT EXISTS "filedAt" TIMESTAMP(3);
+ALTER TABLE "CompetitorAward" ADD COLUMN IF NOT EXISTS "competitorOrgId" TEXT;
+ALTER TABLE "CompetitorAward" ADD COLUMN IF NOT EXISTS "buyerOrgId" TEXT;
+ALTER TABLE "CompetitorAward" ADD COLUMN IF NOT EXISTS "filedAt" TIMESTAMP(3);
+CREATE INDEX IF NOT EXISTS "BoardBid_orgId_idx" ON "BoardBid"("orgId");
+CREATE INDEX IF NOT EXISTS "CompetitorAward_competitorOrgId_idx" ON "CompetitorAward"("competitorOrgId");

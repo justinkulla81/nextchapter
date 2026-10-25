@@ -14626,8 +14626,13 @@ model CompetitorAward {
   url            String
   firstSeenAt    DateTime  @default(now())
   lastSeenAt     DateTime  @default(now())
+  /// CRM organizations: the competitor, and the agency that bought.
+  competitorOrgId String?
+  buyerOrgId      String?
+  filedAt         DateTime?
 
   @@unique([awardKey, competitorName])
+  @@index([competitorOrgId])
   @@index([competitorName])
   @@index([firstSeenAt])
 }
@@ -14659,8 +14664,12 @@ model BoardBid {
   status       String    @default("OPEN")
   firstSeenAt  DateTime  @default(now())
   lastSeenAt   DateTime  @default(now())
+  /// The board's CRM organization, once filed.
+  orgId        String?
+  filedAt      DateTime?
 
   @@index([boardId])
+  @@index([orgId])
   @@index([status, deadline])
   @@index([firstSeenAt])
 }
