@@ -40,7 +40,14 @@ interface NavLink {
 // action (see src/lib/employer/outplacement-auth.ts's own comment on why
 // both exist).
 // Growth and Learning show only for an org with that program.
-function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[]): NavLink[] {
+function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[], employeesOnly = false): NavLink[] {
+  // A person who holds only the Employees section (no outplacement access) sees only its pages.
+  if (employeesOnly) {
+    const only: NavLink[] = []
+    if (programs.includes('GROWTH')) only.push({ href: '/employer/growth', label: 'Growth' })
+    if (programs.includes('LEARNING')) only.push({ href: '/employer/learning', label: 'Learning' })
+    return only
+  }
   const links: NavLink[] = [{ href: '/employer', label: 'Overview' }]
   if (role === 'ADMIN' || role === 'VIEWER') {
     if (programs.includes('GROWTH')) links.push({ href: '/employer/growth', label: 'Growth' })
@@ -96,10 +103,10 @@ function NavContent({ pathname, links, onNavigate, sections = [] }: { pathname: 
   )
 }
 
-export function EmployerNav({ role, brand, programs = [], sections = [] }: { role: OutplacementRole; brand?: PartnerBrand; programs?: OutplacementProgramType[]; sections?: SwitcherLinkItem[] }) {
+export function EmployerNav({ role, brand, programs = [], sections = [], employeesOnly = false }: { role: OutplacementRole; brand?: PartnerBrand; programs?: OutplacementProgramType[]; sections?: SwitcherLinkItem[]; employeesOnly?: boolean }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const links = buildLinks(role, programs)
+  const links = buildLinks(role, programs, employeesOnly)
   const current = links.find((link) => (link.href === '/employer' ? pathname === link.href : pathname === link.href || pathname.startsWith(`${link.href}/`)))
 
   return (

@@ -5,13 +5,13 @@ import { EMPLOYER_SECTION_ORDER, type EmployerSectionKey } from '@/lib/employer/
 
 // Which employer sections a signed-in person holds, and their role in each (docs/specs/employer-sections-build-plan.md, 3.1).
 //
-// READ ONLY. This function never writes, and nothing that signs anyone in calls it. It is the union of:
-//   1. Today's checks, which stay the source of truth:
+// READ ONLY. These functions never write. getEmployerAccess is the union of:
+//   1. Today's checks, which stay the source of truth and are always asked first (getLegacyGrants):
 //        Hiring        EmployerProfile.userId, or an accepted EmployerSeat      (resolveEmployerForUserId)
 //        Outplacement  OutplacementOrgUser.userId, any role                     (getCurrentOutplacementOrgUser)
 //        Employees     the same OutplacementOrgUser when its role is ADMIN or VIEWER and the org has an ACTIVE
 //                      GROWTH or LEARNING contract                              (the Growth and Learning pages)
-//   2. New: OrgWorkspaceAdmin rows for the person (by user id, or by email while the row has no user id yet).
+//   2. New: OrgWorkspaceAdmin rows for the person (getWorkspaceGrants), by user id, or by email while the row has no user id yet.
 // The new table only ever adds access. A person who holds a section today holds it here, with the same role.
 // scripts/employer/access-diff.ts proves that against a database, read only.
 
@@ -53,7 +53,7 @@ export interface EmployerAccessInput {
   email?: string | null
 }
 
-/** Only the read methods this function uses, so a caller (the diff script) can hand it a client that cannot write. */
+/** Only the read methods these functions use, so a caller (the diff script) can hand them a client that cannot write. */
 export type EmployerAccessDb = Pick<PrismaClient, 'employerProfile' | 'employerSeat' | 'outplacementOrgUser' | 'outplacementContract' | 'orgWorkspaceAdmin'>
 
 interface WorkspaceAdminRow {
@@ -73,9 +73,9 @@ function servicesFromJson(v: unknown): Record<string, boolean> {
   return out
 }
 
-export async function getEmployerAccess(input: EmployerAccessInput, db: EmployerAccessDb = prisma): Promise<EmployerAccess> {
+/** Today's checks only (Hiring, Outplacement, Employees). The source of truth, always asked first. */
+export async function getLegacyGrants(input: EmployerAccessInput, db: EmployerAccessDb = prisma): Promise<SectionGrant[]> {
   const { userId } = input
-  const email = input.email?.trim().toLowerCase() || null
   const grants: SectionGrant[] = []
 
   // ── Legacy: Hiring ───────────────────────────────────────────────────────
@@ -109,10 +109,16 @@ export async function getEmployerAccess(input: EmployerAccessInput, db: Employer
       }
     }
   }
+  return grants
+}
 
-  // ── New, additive: OrgWorkspaceAdmin ─────────────────────────────────────
-  let rows: WorkspaceAdminRow[] = []
+/** New, additive: OrgWorkspaceAdmin rows (ACTIVE workspaces only). Only ever added to the legacy grants. Fails soft. */
+export async function getWorkspaceGrants(input: EmployerAccessInput, db: EmployerAccessDb = prisma): Promise<{ grants: SectionGrant[]; warnings: string[] }> {
+  const { userId } = input
+  const email = input.email?.trim().toLowerCase() || null
+  const grants: SectionGrant[] = []
   const warnings: string[] = []
+  let rows: WorkspaceAdminRow[] = []
   try {
     rows = await db.orgWorkspaceAdmin.findMany({
       where: {
@@ -143,9 +149,15 @@ export async function getEmployerAccess(input: EmployerAccessInput, db: Employer
       enterprise: r.workspace.org.enterprise,
     })
   }
+  return { grants, warnings }
+}
 
+export async function getEmployerAccess(input: EmployerAccessInput, db: EmployerAccessDb = prisma): Promise<EmployerAccess> {
+  const legacy = await getLegacyGrants(input, db)
+  const { grants: added, warnings } = await getWorkspaceGrants(input, db)
+  const grants = [...legacy, ...added]
   const held = new Set(grants.map((g) => g.section))
-  return { userId, sections: EMPLOYER_SECTION_ORDER.filter((s) => held.has(s)), grants, ...(warnings.length ? { warnings } : {}) }
+  return { userId: input.userId, sections: EMPLOYER_SECTION_ORDER.filter((s) => held.has(s)), grants, ...(warnings.length ? { warnings } : {}) }
 }
 
 /** The grants a person holds in one section. Legacy grants come first, so the first one is the one today's checks give. */
