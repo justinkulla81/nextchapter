@@ -26,7 +26,11 @@ jobs:
       # (CASA 6.1.1). Dev-only tooling (eslint, shadcn CLI) is not deployed.
       - run: npm audit --omit=dev --audit-level=high
       # The project is large enough that tsc exceeds node's default heap on the runner.
+      # The type-check sits near Node's default heap limit and has crashed with
+      # exit 134 (out of memory) on main and on PRs; give it headroom.
       - run: npx tsc --noEmit -p .
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
         env:
           NODE_OPTIONS: --max-old-space-size=6144
       - run: npx vitest run
