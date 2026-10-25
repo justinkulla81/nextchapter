@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils'
 
 /**
  * The one visual treatment for any question whose answer personalizes what the
- * user sees. It is deliberately louder than body copy: a "Personalize" tag says
- * what the question is for, the question is the largest text in the block, and
- * a "What you get" line states the payoff so answering feels worth the effort.
+ * user sees. It matches ChoiceField (the redesign's question pattern): the
+ * question is semibold ink text, with a quiet line saying what answering gets
+ * you. A small "Personalize" tag says what the question is for. No card or
+ * border: the page contract allows one headline, one action, few boxes.
  *
  * Neutral (foreground) colors on purpose — the accent color stays reserved for
  * the answer buttons inside, which are the actionable part.
@@ -40,7 +41,7 @@ export function PersonalizationQuestion({
     <section
       aria-labelledby={`${id}-question`}
       className={cn(
-        'space-y-3 rounded-xl border-2 border-foreground/20 bg-card p-4 shadow-sm sm:p-6',
+        'space-y-2',
         pending && 'cursor-wait',
         className
       )}
@@ -53,11 +54,11 @@ export function PersonalizationQuestion({
         {optional && <span className="text-xs text-muted-foreground">Optional, takes a few seconds</span>}
         {badge}
       </div>
-      <h3 id={`${id}-question`} className="text-base font-semibold leading-snug text-foreground sm:text-lg">
+      <h3 id={`${id}-question`} className="text-base font-semibold leading-snug text-ink">
         {htmlFor ? <label htmlFor={htmlFor}>{question}</label> : question}
       </h3>
-      <p className="text-sm text-foreground">
-        <span className="font-semibold">What you get: </span>
+      <p className="text-sm text-muted-foreground">
+        <span className="font-medium text-foreground">What you get: </span>
         {payoff}
       </p>
       {children}

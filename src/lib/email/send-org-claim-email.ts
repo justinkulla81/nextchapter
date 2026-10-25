@@ -34,11 +34,22 @@ export function sendOrgClaimLinkEmail(p: { to: string; name: string; orgName: st
   )
 }
 
+/** To the section's existing admins when a later person verifies a work email and asks for the same section. Grants nothing. */
+export function sendSectionClaimRequestEmail(p: { to: string; orgName: string; sectionLabel: string; name: string; title: string; email: string }): Promise<boolean> {
+  return send(
+    'organization', p.to, `${p.name} asked for access to ${p.sectionLabel} at ${p.orgName}`,
+    shell(
+      `<p>${esc(p.name)} (${esc(p.title)}, ${esc(p.email)}) confirmed a work email at your organization and asked for access to the ${esc(p.sectionLabel)} section of ${esc(p.orgName)} on NextChapter.</p><p>Nothing was granted. If you know this person, add them from the Team page of the ${esc(p.sectionLabel)} section. If you do not, ignore this email.</p>`,
+    ),
+    'section claim request',
+  )
+}
+
 /** To the team when a claim is verified. */
-export function sendOrgClaimAdminEmail(p: { orgName: string; name: string; title: string; email: string; needsReview: boolean; pageUrl: string }): Promise<boolean> {
+export function sendOrgClaimAdminEmail(p: { orgName: string; name: string; title: string; email: string; needsReview: boolean; pageUrl: string; section?: { label: string; outcome: string } }): Promise<boolean> {
   return send(
     'admin', 'justin@launchyournextchapter.com', `${p.orgName}: page claim verified${p.needsReview ? ' (needs review)' : ''}`,
-    `<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111"><p><b>${esc(p.name)}</b>, ${esc(p.title)}, ${esc(p.email)}, verified their work email and claimed the <b>${esc(p.orgName)}</b> page.</p>${p.needsReview ? '<p><b>Needs review:</b> we have no email domain on file for this organization, so the address could not be matched to it.</p>' : '<p>The address is at the organization&apos;s known domain.</p>'}<p>${esc(p.pageUrl)}</p><p>They are in the CRM as a P0 lead due today.</p></div>`,
+    `<div style="font:14px/1.5 Arial,Helvetica,sans-serif;color:#111"><p><b>${esc(p.name)}</b>, ${esc(p.title)}, ${esc(p.email)}, verified their work email and claimed the <b>${esc(p.orgName)}</b> page.</p>${p.section ? `<p>Section: <b>${esc(p.section.label)}</b>. ${p.section.outcome === 'admin' ? 'First claimant of this section, recorded as its administrator (no access until it is set up).' : p.section.outcome === 'requested' ? 'The section already has an administrator; the request was sent to them and nothing was granted.' : p.section.outcome === 'review' ? 'Held for review; nothing was created.' : ''}</p>` : ''}${p.needsReview ? '<p><b>Needs review:</b> we have no email domain on file for this organization, so the address could not be matched to it.</p>' : '<p>The address is at the organization&apos;s known domain.</p>'}<p>${esc(p.pageUrl)}</p><p>They are in the CRM as a P0 lead due today.</p></div>`,
     'organization claim admin',
   )
 }

@@ -1,0 +1,1498 @@
+[
+ {
+  "id": "ksba-annual-conference",
+  "name": "KSBA Annual Conference",
+  "organizer": "Kentucky School Boards Association",
+  "url": "https://www.ksba.org/AnnualConference.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-19",
+  "endDate": "2027-02-21",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "More than 1,000 Kentucky school board members, superintendents and district administrators, plus vendors who sell to districts.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fee not shown on the conference page; exhibitor booth $1,350.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.ksba.org/AnnualConference.aspx",
+  "speakingDeadline": "2026-10-25",
+  "speakingNote": "Workshop proposals through an online form (deadline extended to Oct 25, 2026); most sessions 75 minutes, a few 3 hours.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Education policy and school districts",
+   "K-12 school leadership"
+  ],
+  "roles": [
+   "school board member",
+   "superintendent",
+   "district administrator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "kea-delegate-assembly",
+  "name": "KEA Delegate Assembly",
+  "organizer": "Kentucky Education Association",
+  "url": "https://www.kea.org/2027-kea-delegate-assembly/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-01",
+  "endDate": "2027-04-02",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Elected teacher delegates from every Kentucky local set KEA policy and elect officers; useful for teacher-leaders and union staff.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Delegates are elected by their local; no public registration fee listed.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Locals without enough members cluster with another local in their district to send a delegate.",
+  "applyUrl": "https://www.kea.org/2027-kea-delegate-assembly/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "K-12 teachers"
+  ],
+  "roles": [
+   "teacher",
+   "union representative"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "kaco-conference-exposition",
+  "name": "KACo Conference & Exposition",
+  "organizer": "Kentucky Association of Counties",
+  "url": "https://conference.kaco.org/general-information/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-18",
+  "endDate": "2026-11-20",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Lexington",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Judge-executives, county officials and staff and the vendors and state agencies that serve Kentucky's 120 counties.",
+  "access": "PAID",
+  "costLow": 469,
+  "costHigh": 569,
+  "costNote": "$469 members, $569 non-members; early bird ends Nov 4; spouse registration free.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Spouse registration is free.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "State government",
+   "City and county government"
+  ],
+  "roles": [
+   "county official",
+   "county administrator"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "klc-conference-expo",
+  "name": "KLC Conference & Expo",
+  "organizer": "Kentucky League of Cities",
+  "url": "https://www.klc.org/EventView/13331/klc-conference-expo",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Covington",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Kentucky mayors, council members, city managers and department heads, plus vendors selling to cities.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition (Sept 22-25, Covington) has ended; 2027 dates and fees not yet posted. 2024 rate was $469 member, $569 non-member.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "2024 listing showed a $249 one-day Wednesday pass and a first-time-attendee rate.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official domain search",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager",
+   "city official"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "kyshrm-annual-conference",
+  "name": "KYSHRM Annual Conference",
+  "organizer": "Kentucky SHRM State Council",
+  "url": "https://kyshrm.org/conferences-and-events/annual-kyshrm-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Lexington",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Close to 1,000 Kentucky HR professionals each year; the 2026 edition was at the Galt House, Louisville, and the 2027 edition returns to Lexington.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not published on the conference page; KYSHRM members save $300.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://kyshrmconference.com",
+  "speakingDeadline": null,
+  "speakingNote": "Speaker submissions through an online portal (page heading looked out of date).",
+  "cheaperWays": "KYSHRM members save $300 on registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "HR leadership",
+   "Corporate talent acquisition"
+  ],
+  "roles": [
+   "HR manager",
+   "HR director",
+   "recruiter"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "kma-annual-meeting",
+  "name": "KMA Annual Meeting",
+  "organizer": "Kentucky Medical Association",
+  "url": "https://kyma.org/2026-kma-annual-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-21",
+  "endDate": "2027-08-22",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Kentucky physicians and physician-group leaders set state medical policy at the House of Delegates.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "No 2027 price posted; save-the-date only.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Physician practice and medical group management"
+  ],
+  "roles": [
+   "physician",
+   "practice administrator"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "kha-annual-convention",
+  "name": "KHA Annual Convention",
+  "organizer": "Kentucky Hospital Association",
+  "url": "https://www.kyha.com/events/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Kentucky hospital CEOs, trustees and system leaders; the 97th convention was May 19-20, 2026 in Louisville.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and price not posted yet; KHA events page shows member and non-member rates for other events.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "Hospital and health system leadership"
+  ],
+  "roles": [
+   "hospital executive",
+   "hospital trustee"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "kba-annual-convention",
+  "name": "Kentucky Bar Association Annual Convention",
+  "organizer": "Kentucky Bar Association",
+  "url": "https://kybar.org/CLE/Annual-Convention",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Covington",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Kentucky lawyers, judges and law-firm leaders at the state bar's CLE convention and officer swearing-in.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates, location and fees not posted; contact kybar@kybar.org.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://kybar.org/CLE/Annual-Convention",
+  "speakingDeadline": "2026-09-18",
+  "speakingNote": "2027 CLE breakout RFP form emailed to the CLE office; the deadline has passed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "lawyer"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "kentucky-chamber-day-dinner",
+  "name": "Kentucky Chamber Day Dinner",
+  "organizer": "Kentucky Chamber of Commerce",
+  "url": "https://www.kychamber.com/events/kychamberday",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-07",
+  "endDate": "2027-01-07",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Lexington",
+  "state": "KY",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "More than 2,000 Kentucky business leaders hear the Governor and legislative leaders on the eve of the General Assembly.",
+  "access": "PAID",
+  "costLow": 199,
+  "costHigh": 349,
+  "costNote": "$349 non-members, $249 Chamber members, $199 local chamber staff; tables of 10 from $1,650.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Local chamber staff rate $199.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "State government",
+   "Economic development and planning"
+  ],
+  "roles": [
+   "business owner",
+   "executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "kentucky-workforce-summit",
+  "name": "Kentucky Workforce Summit",
+  "organizer": "Kentucky Chamber of Commerce",
+  "url": "https://www.kychamber.com/events/education/workforce",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-09",
+  "endDate": "2027-02-10",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Lexington",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Staffing & Human Capital",
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Human Resources"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "HR leaders, workforce boards, career-technical educators and employers working on Kentucky's labor shortage.",
+  "access": "PAID",
+  "costLow": 599,
+  "costHigh": 699,
+  "costNote": "$699 non-members; $599 Chamber, non-profit and government.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Send one, get one free offer by contacting the Chamber; non-profit and government rate $599.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Workforce development boards",
+   "Adult education and workforce training"
+  ],
+  "roles": [
+   "workforce development director",
+   "HR manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "kentucky-healthcare-innovation-summit",
+  "name": "Kentucky Healthcare Innovation Summit",
+  "organizer": "Kentucky Chamber of Commerce",
+  "url": "https://www.kychamber.com/events/healthcareinnovation",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-03",
+  "endDate": "2027-03-03",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Insurance"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Employers, benefit administrators, insurers and providers swapping notes on healthcare cost and workplace trends.",
+  "access": "PAID",
+  "costLow": 299,
+  "costHigh": 399,
+  "costNote": "$299 Chamber members, non-profits and government; $399 non-members. Registration opening soon.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Buy one registration, get the next half off (by phone).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Health plans and payers",
+   "Hospital and health system leadership"
+  ],
+  "roles": [
+   "benefits administrator",
+   "health plan executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "kentucky-economic-summit",
+  "name": "Kentucky Economic Summit",
+  "organizer": "Kentucky Chamber of Commerce",
+  "url": "https://www.kychamber.com/events/economicsummit",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Lexington",
+  "state": "KY",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Finance",
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Business owners, economists, investors and economic-development officials read the state economy; the 2026 edition was May 21.",
+  "access": "PAID",
+  "costLow": 399,
+  "costHigh": 499,
+  "costNote": "2026 prices: $499 non-members, $399 Chamber/non-profit/government; 2027 not yet posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Buy one, get the next half off (by phone).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economist",
+   "business executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "kentucky-ai-summit",
+  "name": "Kentucky AI Summit",
+  "organizer": "Kentucky Chamber of Commerce",
+  "url": "https://kychamber.com/events/education/aisummit",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Kentucky employers learning how AI is used in business, with networking.",
+  "access": "PAID",
+  "costLow": 249,
+  "costHigh": 349,
+  "costNote": "2025 prices: $249 members/government/non-profit, $349 non-members; later dates not confirmed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official site",
+  "segments": [
+   "AI and machine learning"
+  ],
+  "roles": [
+   "business leader",
+   "operations manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "usasbe-2027",
+  "name": "USASBE Annual Conference",
+  "organizer": "United States Association for Small Business and Entrepreneurship",
+  "url": "https://www.usasbe.org/events/usasbe2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-10",
+  "endDate": "2027-02-13",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Education & EdTech",
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Entrepreneurship educators, researchers and program leaders; attendees must be USASBE members.",
+  "access": "PAID",
+  "costLow": 720,
+  "costHigh": 905,
+  "costNote": "$720 current member; $905 new/renewing member; $815 new/renewing student (all include membership as applicable).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.usasbe.org/events/usasbe2027",
+  "speakingDeadline": "2026-10-13",
+  "speakingNote": "Research, Teaching and Programming submissions via EasyChair; main windows closed Oct 5-13, 2026.",
+  "cheaperWays": "Student membership + registration $815; Learning Journey Day Feb 13.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Starting a business",
+   "Founder communities and accelerators"
+  ],
+  "roles": [
+   "entrepreneurship educator",
+   "program director"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "kentucky-innovator-challenge",
+  "name": "Kentucky Innovator Challenge (R&D Partnerships Week)",
+  "organizer": "UK Innovate, University of Kentucky",
+  "url": "https://research.uky.edu/uk-innovate/events/kentucky-innovator-challenge",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-01",
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Lexington",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Education & EdTech",
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Business, university and government leaders on research partnerships and startups; free.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Free per the page; exact November 2026 dates not stated.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Free.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Founder communities and accelerators",
+   "Startup founders and operators"
+  ],
+  "roles": [
+   "founder",
+   "research commercialization officer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "kyacac-oacac-super-conference",
+  "name": "KYACAC & OACAC Super Conference",
+  "organizer": "Kentucky and Ohio Associations for College Admission Counseling",
+  "url": "https://sites.google.com/kyacac.org/kyacac/annual-conference-gwi",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-14",
+  "endDate": "2027-03-16",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Cincinnati",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "High school counselors and college admission staff from Kentucky and Ohio.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing coming in the months ahead.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "School counselors, librarians and support",
+   "Student affairs and advising"
+  ],
+  "roles": [
+   "school counselor",
+   "admissions counselor"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "acec-ky-partnering-conference",
+  "name": "ACEC-KY/FHWA/KYTC Partnering Conference",
+  "organizer": "ACEC Kentucky",
+  "url": "https://www.kyengcenter.org/events/EventDetails.aspx?id=2071123",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Lexington",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Construction & Real Estate",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Kentucky consulting engineers meet Transportation Cabinet and FHWA staff who hire them; 2026 edition Sept 9-11.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Architecture, engineering and design",
+   "Public utilities and transportation agencies"
+  ],
+  "roles": [
+   "civil engineer",
+   "engineering firm principal"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "kycpa-state-tax-conference",
+  "name": "KyCPA Kentucky State Tax Conference",
+  "organizer": "Kentucky Society of CPAs",
+  "url": "https://kycpa.org/cpe/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-17",
+  "endDate": "2026-12-17",
+  "datesConfirmed": false,
+  "typicalMonth": "December",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Kentucky tax practitioners; KyCPA runs 15+ conferences yearly of 50-250 people.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on KyCPA catalog; not opened.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://kycpa.org/cpe-info/speakingopp/",
+  "speakingDeadline": null,
+  "speakingNote": "Rolling speaker applications to conference task forces; senior-level speakers, 4.0+ past ratings.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Tax"
+  ],
+  "roles": [
+   "tax accountant",
+   "CPA"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "oha-annual-membership-meeting",
+  "name": "OHA Annual Membership Meeting",
+  "organizer": "Ohio Hospital Association",
+  "url": "https://ohiohospitals.org/annualmeeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-22",
+  "endDate": "2027-06-23",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Columbus",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Ohio hospital and health-system leaders and managers across six tracks, from nursing to finance.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration details to be announced.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://ohiohospitals.org/annualmeeting",
+  "speakingDeadline": "2026-12-31",
+  "speakingNote": "60-minute sessions in six tracks; reviewers favor broadly useful topics.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Hospital and health system leadership",
+   "Nursing leadership"
+  ],
+  "roles": [
+   "hospital executive",
+   "nurse leader"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "osma-annual-meeting",
+  "name": "OSMA Annual Meeting",
+  "organizer": "Ohio State Medical Association",
+  "url": "https://www.osma.org/annualmeeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-02",
+  "endDate": "2027-04-04",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Westerville",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Ohio physician leaders vote on policy and elect officers at the House of Delegates.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Physician practice and medical group management"
+  ],
+  "roles": [
+   "physician",
+   "practice administrator"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "isba-solo-small-firm-conference",
+  "name": "ISBA Solo & Small Firm Conference",
+  "organizer": "Indiana State Bar Association",
+  "url": "https://www.inbar.org/event/SSFC2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-10",
+  "endDate": "2027-06-12",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "French Lick",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Indiana solo and small-firm lawyers; good for referrals and practice-building.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Schedule and registration around March 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official domain search",
+  "segments": [
+   "Independent and fractional consultants",
+   "Litigation and trial"
+  ],
+  "roles": [
+   "solo lawyer",
+   "small firm partner"
+  ],
+  "journeys": [
+   "FRACTIONAL",
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "indiana-safety-health-conference",
+  "name": "Indiana Safety and Health Conference & Expo",
+  "organizer": "Central Indiana ASSP and Indiana Chamber",
+  "url": "https://centralindiana.assp.org/events/2027-indiana-safety-and-health-conference-expo/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-08",
+  "endDate": "2027-02-10",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Manufacturing & Industrial",
+   "Construction & Real Estate"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Indiana's largest occupational safety conference: EHS managers, with the Governor's Workplace Safety Awards.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices at insafetyconf.com; early bird ends Feb 1, 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Early-bird pricing until Feb 1, 2027.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Environmental, health and safety"
+  ],
+  "roles": [
+   "EHS manager",
+   "safety director"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "mcdermott-healthex",
+  "name": "McDermott HealthEx",
+  "organizer": "McDermott",
+  "url": "https://insights.healthcarecouncil.com/public-event/healthex-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-11",
+  "endDate": "2027-05-12",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Nashville healthcare-investor and operator crowd; listed by the Nashville Health Care Council.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration opens Jan 19, 2027; free Council login needed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official domain",
+  "segments": [
+   "Hospital and health system leadership",
+   "Digital health and virtual care"
+  ],
+  "roles": [
+   "healthcare executive",
+   "investor"
+  ],
+  "journeys": [
+   "GROWING",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "tscpa-technology-conference",
+  "name": "TSCPA Technology Conference",
+  "organizer": "Tennessee Society of CPAs",
+  "url": "https://tscpa.com/tech26",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-09",
+  "endDate": "2026-11-10",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Brentwood",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Tennessee CPAs on firm technology and AI; 16 CPE.",
+  "access": "PAID",
+  "costLow": 579,
+  "costHigh": 699,
+  "costNote": "$579 members, $699 non-members; in-person sold out, live stream available.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Save $50 before Oct 27; teams over five get 15% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Public accounting"
+  ],
+  "roles": [
+   "CPA",
+   "accounting technology lead"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "tscpa-federal-tax-conference",
+  "name": "Tennessee Federal Tax Conference",
+  "organizer": "TSCPA and Tennessee Federal Tax Institute",
+  "url": "https://tscpa.com/fedtax26",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-18",
+  "endDate": "2026-11-20",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Nashville",
+  "state": "TN",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Tax practitioners at the state's flagship federal tax update.",
+  "access": "PAID",
+  "costLow": 255,
+  "costHigh": 765,
+  "costNote": "$255 per day; three days.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Teams over five get 15% off; live stream option.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Tax"
+  ],
+  "roles": [
+   "tax partner",
+   "CPA"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "wv-chamber-business-summit",
+  "name": "WV Chamber Annual Meeting & Business Summit",
+  "organizer": "West Virginia Chamber of Commerce",
+  "url": "https://wvchamber.com/?p=7082",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "White Sulphur Springs",
+  "state": "WV",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "West Virginia business and political leaders at the Greenbrier; 2026 edition Sept 2-4.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Members-only; 2027 not announced.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": "https://wvchamber.com/?p=7082",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official domain",
+  "segments": [
+   "State government",
+   "Economic development and planning"
+  ],
+  "roles": [
+   "business owner",
+   "executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ocma-annual-conference",
+  "name": "OCMA Annual Conference",
+  "organizer": "Ohio City/County Management Association",
+  "url": "https://www.ocmaohio.org/events/2027-ocma-annual-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-03",
+  "endDate": "2027-02-05",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Columbus",
+  "state": "OH",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Ohio city and county managers and assistants.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not read; page blocked.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official domain search",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager",
+   "assistant city manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "sreb-making-schools-work",
+  "name": "SREB Making Schools Work Conference",
+  "organizer": "Southern Regional Education Board",
+  "url": "https://sreb.org/pod/making-schools-work-2027",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-13",
+  "endDate": "2027-07-16",
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Louisville",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Southern state school leaders and CTE teams.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early bird to Apr 30, 2027.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://sreb.org/pod/making-schools-work-2027",
+  "speakingDeadline": null,
+  "speakingNote": "Proposals open since Oct 1, 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "K-12 school leadership",
+   "Career and technical education"
+  ],
+  "roles": [
+   "principal",
+   "CTE director"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "us-equestrian-annual-meeting",
+  "name": "US Equestrian Annual Meeting",
+  "organizer": "US Equestrian",
+  "url": "https://www.usequestrian.org/annual-meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-14",
+  "endDate": "2027-01-17",
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "Lexington",
+  "state": "KY",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Equestrian sport governance and business leaders in Horse Capital.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Sports business"
+  ],
+  "roles": [
+   "sports executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "indiana-judicial-conference-annual-meeting",
+  "name": "Judicial Conference of Indiana Annual Meeting",
+  "organizer": "Indiana Office of Court Services",
+  "url": "https://secure.in.gov/courts/iocs/education/conferences",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-15",
+  "endDate": "2027-09-17",
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Indianapolis",
+  "state": "IN",
+  "country": "US",
+  "industries": [
+   "Legal Services",
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Indiana judges and court leaders; tentative dates listed.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": null,
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "judge",
+   "court administrator"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ }
+]

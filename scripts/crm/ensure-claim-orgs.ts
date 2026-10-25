@@ -1,12 +1,12 @@
 /**
- * Gives every cold-email recipient organization (American Job Center, workforce board, college) the CRM organization record its
+ * Gives every cold-email recipient organization (American Job Center, workforce board, college, economic development group, career-development group, or any other recipient) the CRM organization record its
  * /prepared/<slug> claim page needs. Reads the merge file written by outreach-data.ts; creates records only for rows with no page.
  *
  *   npx tsx --conditions=react-server --env-file=.env.local scripts/crm/ensure-claim-orgs.ts <merge.csv>           (dry run, writes nothing)
  *   npx tsx --conditions=react-server --env-file=.env.local scripts/crm/ensure-claim-orgs.ts <merge.csv> --apply   (creates the records)
  *
- * Never guesses: a name that reads the same as another recipient's name (two centers called "Career Center"), or that cannot make a safe
- * page address, is skipped and listed. No email domain is stored, so every claim of a created page goes to a person for review.
+ * Same name in the same state is one organization; same name in different states gets "Name (State)" records; a name that cannot make a safe
+ * page address is skipped and listed. No email domain is stored, so every claim of a created page goes to a person for review.
  */
 import { readFileSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
@@ -37,35 +37,47 @@ function parseCsv(text: string): Record<string, string>[] {
 const decode = (s: string) => s.replace(/&amp;/gi, '&').replace(/&#0?39;|&apos;/gi, "'").trim()
 
 async function main() {
-  const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => ['ajc', 'board', 'college'].includes(r.template) && !r.claim_url)
+  const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => !!r.template && !r.claim_url)
   // One entry per distinct recipient name, remembering which kind it is.
-  const wanted = new Map<string, { name: string; kind: string }>()
-  for (const r of rows) { const name = decode(r.recipient_org); if (name && !wanted.has(`${r.template}|${name}`)) wanted.set(`${r.template}|${name}`, { name, kind: r.template }) }
+  const wanted = new Map<string, { name: string; kind: string; stateName: string }>()
+  for (const r of rows) { const name = decode(r.recipient_org); if (name && !wanted.has(`${r.template}|${name}`)) wanted.set(`${r.template}|${name}`, { name, kind: r.template, stateName: r.state ?? '' }) }
 
   const existing = new Set((await prisma.crmOrganization.findMany({ select: { canonicalNameNormalized: true } })).map((o) => o.canonicalNameNormalized))
-  const [ajcs, boards, colleges] = await Promise.all([
+  const [ajcs, boards, colleges, leads] = await Promise.all([
     prisma.americanJobCenter.findMany({ select: { name: true, state: true, city: true } }),
     prisma.workforceBoard.findMany({ select: { name: true, state: true, website: true } }),
     prisma.collegeProfile.findMany({ select: { name: true, state: true, city: true, website: true } }),
+    prisma.geoOrgLead.findMany({ select: { name: true, state: true } }),
   ])
   const place = (kind: string, name: string) => {
     if (kind === 'ajc') { const a = ajcs.filter((x) => decode(x.name) === name); return a.length === 1 ? { state: a[0].state, city: a[0].city, website: null } : { state: a[0]?.state ?? null, city: null, website: null } }
     if (kind === 'board') { const b = boards.filter((x) => decode(x.name) === name)[0]; return { state: b?.state ?? null, city: null, website: b?.website ?? null } }
+    if (kind === 'edo' || kind === 'career_dev') { const l = leads.find((x) => decode(x.name) === name); return { state: l?.state ?? null, city: null, website: null } }
     const c = colleges.filter((x) => decode(x.name) === name)[0]; return { state: c?.state ?? null, city: c?.city ?? null, website: c?.website ?? null }
   }
 
-  // A canonical name wanted by two different recipients is ambiguous: neither gets a record.
-  const byCanon = new Map<string, string[]>()
-  for (const w of wanted.values()) { const c = normalizeOrgName(w.name); byCanon.set(c, [...(byCanon.get(c) ?? []), w.name]) }
+  // Names that read the same (spelled with or without "Inc", or the same center under two spellings) are one organization when they are in
+  // the same state: one record, shortest spelling. In different states they are different organizations (Quincy, MA and Quincy, WA): each
+  // gets its own record named "Name (State)", which outreach-data.ts looks up by that name when the plain one is taken.
+  const groups = new Map<string, { name: string; kind: string; stateName: string }[]>()
+  for (const w of wanted.values()) { const c = normalizeOrgName(w.name); groups.set(c, [...(groups.get(c) ?? []), w]) }
 
   const skipped: { name: string; why: string }[] = []
   const toCreate: { name: string; canon: string; kind: string }[] = []
-  for (const w of wanted.values()) {
-    const canon = normalizeOrgName(w.name)
-    if (existing.has(canon)) { skipped.push({ name: w.name, why: 'a record with this name already exists, so the recipient already has a page (names with an ampersand now get one)' }); continue }
-    if ((byCanon.get(canon) ?? []).length > 1) { skipped.push({ name: w.name, why: 'another recipient has a name that reads the same' }); continue }
-    if (!claimSlug(canon)) { skipped.push({ name: w.name, why: 'name cannot make a safe page address' }); continue }
-    toCreate.push({ name: w.name, canon, kind: w.kind })
+  for (const [canon, ws] of groups) {
+    const states = new Set(ws.map((w) => w.stateName))
+    if (existing.has(canon)) { for (const w of ws) skipped.push({ name: w.name, why: 'a record with this name already exists, so the recipient already has a page (names with an ampersand now get one)' }); continue }
+    if (states.size === 1) {
+      const name = ws.map((w) => w.name).sort((x, y) => x.length - y.length)[0]
+      if (!claimSlug(canon)) { skipped.push({ name, why: 'name cannot make a safe page address' }); continue }
+      toCreate.push({ name, canon, kind: ws[0].kind }); continue
+    }
+    for (const st of states) {
+      const w = ws.filter((x) => x.stateName === st).sort((x, y) => x.name.length - y.name.length)[0]
+      const name = st ? `${w.name} (${st})` : w.name, c2 = normalizeOrgName(name)
+      if (existing.has(c2) || !claimSlug(c2)) { skipped.push({ name, why: 'already has a record or cannot make a safe page address' }); continue }
+      toCreate.push({ name, canon: c2, kind: w.kind })
+    }
   }
 
   console.log(`${wanted.size} recipient organizations without a page: ${toCreate.length} to create, ${skipped.length} skipped`)
@@ -77,7 +89,7 @@ async function main() {
     const p = place(t.kind, t.name)
     await prisma.crmOrganization.create({
       data: {
-        name: t.name, canonicalNameNormalized: t.canon, orgTypes: [t.kind === 'college' ? 'UNIVERSITY' : 'GOVERNMENT'],
+        name: t.name, canonicalNameNormalized: t.canon, orgTypes: [t.kind === 'college' ? 'UNIVERSITY' : t.kind === 'ajc' || t.kind === 'board' ? 'GOVERNMENT' : 'OTHER'],
         website: p.website, hqCity: p.city, hqRegion: p.state, usState: p.state,
       },
     })

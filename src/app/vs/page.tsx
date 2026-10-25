@@ -8,7 +8,7 @@ import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
 export const metadata: Metadata = {
   title: 'Compare outplacement providers',
   description:
-    'Honest, two-sided comparisons of NextChapter against LHH, Randstad RiseSmart, Careerminds, and INTOO — reporting, what participants keep, and where each is genuinely stronger.',
+    'Side-by-side comparisons of NextChapter with LHH, Randstad RiseSmart, Careerminds and INTOO: what we do, and the questions to ask each vendor on reporting and what participants keep.',
   alternates: { canonical: '/vs' },
 }
 
@@ -18,9 +18,7 @@ const jsonLd = {
   name: 'Compare outplacement providers — NextChapter',
 }
 
-// Index page for the four /vs/[competitor] comparisons — Partners Master
-// Build Script §D2.8. Not itself a page with comparative claims, so it
-// carries no substantiation-file rows of its own.
+// Index page for the four /vs/[competitor] comparisons. It makes no claims of its own.
 export default function ComparisonIndexPage() {
   return (
     <div className="flex flex-1 flex-col">
@@ -45,8 +43,8 @@ export default function ComparisonIndexPage() {
           How NextChapter compares
         </h1>
         <p className="mt-3 max-w-xl text-lg text-muted-foreground">
-          Written fairly, on purpose — including where each provider is genuinely stronger. A one-sided
-          comparison gets dismissed as marketing; this one is built to be forwarded.
+          What NextChapter does, next to the questions to ask each provider. We describe what we can show
+          about our own product and make no claims about theirs.
         </p>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2">

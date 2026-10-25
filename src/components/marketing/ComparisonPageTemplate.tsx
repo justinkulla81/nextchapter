@@ -4,13 +4,8 @@ import type { CompetitorComparison } from '@/lib/marketing/competitor-comparison
 import { WHERE_THEY_MAY_BE_STRONGER_NOTE } from '@/lib/marketing/competitor-comparisons'
 import { ComparisonCtaLink } from './ComparisonCtaLink'
 
-// Partners Master Build Script §D2.8: "what each is best for · honest
-// feature comparison · what participants keep · what
-// the employer sees · when to choose them instead." §C5: "including where
-// LHH is stronger... converts better than a one-sided table." Every
-// comparative sentence rendered here comes from competitor-comparisons.ts,
-// which is itself keyed to docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md — see
-// that file before changing any claim on this template.
+// Every sentence rendered here comes from competitor-comparisons.ts, whose NextChapter statements are keyed to
+// docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md. Competitor columns are questions, never claims.
 export function ComparisonPageTemplate({ comparison }: { comparison: CompetitorComparison }) {
   return (
     <div className="flex flex-1 flex-col">
@@ -30,14 +25,12 @@ export function ComparisonPageTemplate({ comparison }: { comparison: CompetitorC
       </header>
 
       <main className="mx-auto w-full max-w-4xl px-6 py-16">
-        {/* Honesty banner — this build has no independently verified
-            competitor data; see docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md. */}
+        {/* Statements about NextChapter are listed in docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md.
+            Nothing is claimed about the other vendor, so none of it can go stale. */}
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
-          Every comparative statement below is sourced and dated in our{' '}
-          <span className="font-medium">competitive claims substantiation file</span>, reviewed on a quarterly
-          cycle. Feature information about {comparison.name} reflects our own published research as
-          of this page&apos;s last review date and may not reflect their current offering — always confirm
-          directly with {comparison.name} before relying on it for a purchase decision.
+          The NextChapter column describes our own product. The {comparison.name} column is a list of questions,
+          not statements, because we have not verified current details of its offering. Confirm everything
+          directly with {comparison.name} before you decide.
         </div>
 
         <h1 className="mt-8 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
@@ -46,14 +39,14 @@ export function ComparisonPageTemplate({ comparison }: { comparison: CompetitorC
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground">{comparison.bestForSummary}</p>
 
         <section className="mt-12 border-t border-border pt-8">
-          <h2 className="text-xl font-bold tracking-tight text-navy">Honest feature comparison</h2>
+          <h2 className="text-xl font-bold tracking-tight text-navy">Feature comparison</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[640px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-border text-left">
                   <th className="py-2 pr-4 font-semibold text-navy">&nbsp;</th>
                   <th className="py-2 pr-4 font-semibold text-brand">NextChapter</th>
-                  <th className="py-2 font-semibold text-navy">{comparison.name}</th>
+                  <th className="py-2 font-semibold text-navy">Ask {comparison.name}</th>
                 </tr>
               </thead>
               <tbody>
@@ -61,7 +54,7 @@ export function ComparisonPageTemplate({ comparison }: { comparison: CompetitorC
                   <tr key={row.aspect} className="border-b border-border align-top">
                     <td className="py-3 pr-4 font-medium text-foreground">{row.aspect}</td>
                     <td className="py-3 pr-4 text-foreground">{row.us}</td>
-                    <td className="py-3 text-muted-foreground">{row.them}</td>
+                    <td className="py-3 text-muted-foreground">{row.ask}</td>
                   </tr>
                 ))}
               </tbody>
@@ -74,20 +67,20 @@ export function ComparisonPageTemplate({ comparison }: { comparison: CompetitorC
             <h2 className="text-lg font-bold tracking-tight text-navy">What participants keep</h2>
             <p className="mt-3 text-sm leading-relaxed text-foreground">{comparison.whatParticipantsKeep.us}</p>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {comparison.name}: {comparison.whatParticipantsKeep.them}
+              Ask {comparison.name}: {comparison.whatParticipantsKeep.ask}
             </p>
           </div>
           <div>
             <h2 className="text-lg font-bold tracking-tight text-navy">What the employer sees</h2>
             <p className="mt-3 text-sm leading-relaxed text-foreground">{comparison.whatTheEmployerSees.us}</p>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {comparison.name}: {comparison.whatTheEmployerSees.them}
+              Ask {comparison.name}: {comparison.whatTheEmployerSees.ask}
             </p>
           </div>
         </section>
 
         <section className="mt-12 border-t border-border pt-8">
-          <h2 className="text-xl font-bold tracking-tight text-navy">Where they may be stronger — genuinely</h2>
+          <h2 className="text-xl font-bold tracking-tight text-navy">What to check about any vendor</h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {WHERE_THEY_MAY_BE_STRONGER_NOTE}
           </p>
@@ -119,8 +112,7 @@ export function ComparisonPageTemplate({ comparison }: { comparison: CompetitorC
         <div className="mt-16 rounded-xl bg-navy px-8 py-10 text-center text-white">
           <h2 className="text-2xl font-bold tracking-tight">Run your own comparison</h2>
           <p className="mx-auto mt-2 max-w-xl text-light-blue">
-            Our vendor-neutral RFP template asks the eight questions that separate a real evaluation from a
-            sales pitch — including the ones {comparison.name} answers differently than we do.
+            Our vendor-neutral RFP template lists eight questions to put to any outplacement vendor. You can put them to {comparison.name} and to us.
           </p>
           <ComparisonCtaLink competitorSlug={comparison.slug} />
         </div>

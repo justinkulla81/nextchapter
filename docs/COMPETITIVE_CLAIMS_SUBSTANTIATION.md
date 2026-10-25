@@ -28,7 +28,7 @@ one) is what §D6 warns creates exposure.
 | Field | Value |
 |---|---|
 | File created | 2026-08-15 |
-| Last reviewed | 2026-08-15 (initial build — no independent verification performed, see status above) |
+| Last reviewed | 2026-10-25 (`/vs/*` and `/insights/*` only: competitor claims removed, own-product claims checked against code, see the 2026-10-25 section). The older rows above were not re-verified. |
 | Next review due | 2026-11-13 |
 | Owner | Marketing/legal (unassigned — needs a named owner before launch) |
 
@@ -129,3 +129,44 @@ Owner decision 2026-10-23: the website shows plans, not prices, and carries no c
 | 16, 17 | Our own prices, volume discounts, per-seat amounts | `/pricing`, `/outplacement`, `/vs/*`, `/membership`, llms.txt |
 
 Also retired: the outplacement cost calculator and the article `/insights/outplacement-cost-per-employee` (permanent redirect to `/outplacement`), and `src/lib/marketing/incumbent-cost-ranges.ts`. Rows 6 to 12, 15 and 18 to 19 are not cost claims and stay. `src/test/no-public-prices.test.ts` fails if an amount or "per seat", "per month", "discount" or "savings" wording returns to the listed files.
+
+## Added 2026-10-25: review of `/vs/*` and `/insights/*`
+
+**Evidence base.** `data/competitor-matrix/` holds only `_sample.json`, and the capability matrix has no researched cell for LHH, Randstad RiseSmart, Careerminds or INTOO. So there is no evidence URL and date for any statement about those vendors. Result: the pages make no statement about a competitor. The competitor column is a list of questions to ask the vendor. Rows 6 to 11 and 13 above were sourced only to the Master Build Script's own estimates and are no longer on any of these pages (see "Removed" below).
+
+Rules enforced by `src/test/vs-insights-claims.test.ts`: every `substantiationRef` in `src/lib/marketing/competitor-comparisons.ts` must have a row below with status OK; the `/vs` and `/insights` files may not contain "only", "first", "no other", "unlike", "nobody", "best", "leading", "most vendors", "the industry", "genuinely" or "honest"; and each competitor column entry must be a question.
+
+### Own-product claims (kept)
+
+| ID | Claim | Where | Evidence (this repo) | Status |
+|---|---|---|---|---|
+| VS-1 | A live roster of enrolled people and their status, aggregate outcomes for the program, and a printable quarterly review | `/vs/*` Reporting row, `/insights/outplacement-reporting` | Capability matrix `op_roster`, `op_scorecard`, `op_reporting` (`src/lib/vision/capabilities.ts`, BUILT); `src/lib/employer/outplacement-roster.ts`, `outcome-scorecard.ts`, `outplacement-reporting.ts` | OK. No comparison made. |
+| VS-2 | When a seat ends the person keeps their account (free, as long as they want it), profile, résumé, documents, search plan, contacts and notes; employer-paid coaching sessions and the recruiter network stop | `/vs/*` "What the person keeps" row and section, `/insights/outplacement-account-after-contract` | `src/lib/employer/seat-continuity.ts` (`continuityCopy`) | OK. Replaces the earlier "permanent Executive Dossier, five references, permanent alumni" wording, which the code does not support (reference target is 3, and the Dossier is not listed as kept). |
+| VS-3 | Aggregates need a group of at least 10; no individual's activity, grade or usage is shown to the employer | `/vs/*` employer row and section, `/insights/outplacement-reporting` | `EMPLOYER_MIN_CELL_SIZE = 10` in `src/lib/employer/candidate-identity-guard.ts`; `SeatUtilizationMockup` states the same. The word "contractual" was dropped: no contract text was checked. | OK |
+| VS-4 | A compliance pack documenting that the severance support was offered | `/vs/*` "Proof the obligation was met" row | Capability matrix `op_compliance_pack`; `src/lib/employer/format-compliance-pack.ts` | OK |
+| VS-5 | Structured reference collection from past managers and colleagues | `/vs/*` References row | Capability matrix `reference_collection`; `src/lib/references/aggregate-performance.ts` | OK. No count and no timing claim. |
+| VS-6 | Outplacement seats are enrolled one by one or by CSV, and bought on their own | `/vs/*` "How you buy it" row | Capability matrix `op_enrollment`; `src/lib/employer/outplacement-enrollment.ts`. "Bought on their own" describes how we sell, and the owner should confirm it. | OK, owner to confirm sales model |
+
+### Removed or softened (do not re-add without a dated evidence row: URL, date visited, quote or screenshot)
+
+| Was | Where | Why | Now |
+|---|---|---|---|
+| Commonly quarterly PDF reporting (rows 6, 10) | `/vs/*` table, employer section | Competitor claim, no evidence | Question to ask the vendor |
+| Portal access commonly ends with the contract (row 7) | `/vs/*`, `/insights/outplacement-account-after-contract` meta, lead and body | Competitor claim, no evidence | "Depends on the provider and the contract. Ask." |
+| Large caseloads and templated curriculum at volume; "reportedly strongest at the executive tier" (row 8) | `/vs/*` Delivery at volume row | Competitor claim, no evidence; our own "same program at every tier" had no evidence either | Row removed |
+| Outplacement frequently bundled into staffing or RPO (row 9) | `/vs/*` | Competitor claim, no evidence | Question to ask the vendor |
+| "Does not structure or score participant activity" (row 10); "most outplacement reporting measures utilization", "the industry sells access", "almost nobody reports" | `/vs/*`, `/insights/outplacement-reporting` | Industry-wide and "nobody" claims, no survey | Reworded to what a report should show |
+| "Every candidate is scored across the same competency model" | `/vs/*`, `/insights/outplacement-reporting` | Not verified in code as worded | Replaced by VS-1 |
+| "That boundary is contractual" | `/vs/*`, reporting article | No contract text checked | Dropped, VS-3 stated instead |
+| "Five structured references", "permanent Executive Dossier", "free permanent alumni account", "employer's reporting access ends per the contract" | `/vs/*`, after-contract article | Not supported by code (see VS-2) | VS-2 wording |
+| Generic strengths of large providers: "60+ countries", coach bench, brand safety, "per the Master Build Script" (row 11) | `/vs/*` "Where they may be stronger" | Category claim sourced only to the spec's estimate, and it cited an internal document | Heading is now "What to check about any vendor": questions, no numbers |
+| LHH "one of the largest, most established names"; RiseSmart "one of the largest global staffing organizations"; Careerminds and INTOO "virtual-first" (row 13) | `/vs/*` summaries and index cards | Competitor characterisation and superlatives, no evidence | "X is an outplacement provider" plus a statement that we have not verified its offering |
+| "If you're running a 12-country reduction, use LHH" | `/vs/lhh` | Implied LHH covers 12 countries | "Check which countries LHH covers directly" |
+| Banner "every comparative statement below is sourced and dated in our substantiation file" | `/vs/*` | Untrue: rows 6 to 13 were unverified | Banner states the competitor column is questions only |
+| "Honest, two-sided", "written fairly", "built to be forwarded", "Truthful, specific", "questions that separate a real evaluation from a sales pitch", "answers actually differentiate" | `/vs`, `/vs/*`, `/insights` pages, metadata, JSON-LD descriptions | Self-praise and implied comparison | Plain descriptions |
+| Title "Why your outplacement report says nothing" | `/insights/outplacement-reporting`, `src/lib/seo/insights.ts` | Absolute claim about every report | "What your outplacement report should show" |
+| "References are commonly collected late, often once an offer is on the table" | `/insights/outplacement-vendor-questions` | Industry claim, no evidence (row 15 in the older table covers the same idea) | Reworded as a question to ask |
+
+### Claims left that could not be substantiated
+
+None remain on `/vs/*` or `/insights/*` as statements about a competitor. Two softer items remain: (1) "X is an outplacement provider" for each named vendor, which is a plain description rather than a researched fact, and (2) VS-6 "bought on their own", which needs the owner's confirmation. The older rows 1 to 5, 14 to 17 above were already removed on 2026-10-23.

@@ -19,6 +19,9 @@ import { finishTalentClaim } from '@/app/in/claim/[token]/actions'
 import { finishAcceptingOutplacementSeat } from '@/app/employer/seats/accept/[token]/actions'
 import { finishAcceptingOutplacementOrgInvite } from '@/app/employer/invite/accept/[token]/actions'
 import { finishAcceptingInstitutionInvite } from '@/app/i/invite/actions'
+import { finishSectionBridge } from '@/app/auth/callback/actions'
+import { isEmployerSectionKey } from '@/lib/employer/sections'
+import { cookieOwnerForSection } from '@/lib/employer/section-links'
 import { readPendingSignupRoleCookie, clearPendingSignupRoleCookie } from '@/lib/auth/pending-signup-role'
 
 type Status = 'verifying' | 'confirm' | 'secure-account' | 'redirecting' | 'error'
@@ -59,6 +62,12 @@ export function CallbackHandler() {
   // The college join welcome, or a workforce org's member-company invite.
   const institutionJoinPath = joinTo && (/^\/i\/[a-z0-9-]+\/welcome(\?t=[A-Za-z0-9_-]+)?$/.test(joinTo) || /^\/i\/[a-z0-9-]+\/member\/[A-Za-z0-9_-]+$/.test(joinTo)) ? joinTo : null
   const inviteToken = searchParams.get('inviteToken')
+  // Employer section switch (src/lib/employer/section-bridge.ts): a one-time sign-in link for the person's own email, minted
+  // by /api/employer/section-switch. `to` is a section key from an allow-list (anything else is ignored); the page to open
+  // is chosen on the server after the session exists, never taken from this URL.
+  const bridgeToRaw = searchParams.get('next') === 'section-bridge' ? searchParams.get('to') : null
+  const bridgeTo = isEmployerSectionKey(bridgeToRaw) ? bridgeToRaw : null
+  const bridgeArrival = searchParams.get('arrival')
   // Every non-candidate portal now has its own session cookie (see
   // src/lib/supabase/portal.ts) — this is the single shared handler for
   // every portal's signup-confirmation link, so it must establish the
@@ -68,7 +77,9 @@ export function CallbackHandler() {
   // are deliberately excluded — those three create a CANDIDATE account
   // (coachId/sourcingRecruiterId/candidateId set on a CandidateProfile),
   // not a portal-side account, so they stay on the default cookie.
-  const portal: PortalKey | undefined = nextIsEmployer || nextIsEmployerSeat
+  const portal: PortalKey | undefined = bridgeTo
+    ? cookieOwnerForSection(bridgeTo)
+    : nextIsEmployer || nextIsEmployerSeat
     ? 'talent'
     : nextIsRecruiter
       ? 'recruiter'
@@ -115,6 +126,17 @@ export function CallbackHandler() {
     // has no durable way to log back in afterward.
     if (nextIsSecureAccount) {
       setStatus('secure-account')
+      return
+    }
+    if (bridgeTo) {
+      const result = await finishSectionBridge(bridgeTo, bridgeArrival ?? '')
+      if (result.error || !result.path) {
+        console.error('finishSectionBridge error:', result.error)
+        setStatus('error')
+        return
+      }
+      setStatus('redirecting')
+      router.replace(result.path)
       return
     }
     if (nextIsEmployer) {

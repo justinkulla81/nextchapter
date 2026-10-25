@@ -11,6 +11,7 @@ import { employerUseForPath } from '@/lib/partners/portal-types'
 import type { PartnerBrand } from '@/lib/partners/brand'
 import type { OutplacementProgramType, OutplacementRole } from '@prisma/client'
 import { SignOutForm } from '@/components/auth/SignOutForm'
+import { SectionSwitcher, type SwitcherLinkItem } from '@/components/employer/SectionSwitcher'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -39,7 +40,14 @@ interface NavLink {
 // action (see src/lib/employer/outplacement-auth.ts's own comment on why
 // both exist).
 // Growth and Learning show only for an org with that program.
-function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[]): NavLink[] {
+function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[], employeesOnly = false): NavLink[] {
+  // A person who holds only the Employees section (no outplacement access) sees only its pages.
+  if (employeesOnly) {
+    const only: NavLink[] = []
+    if (programs.includes('GROWTH')) only.push({ href: '/employer/growth', label: 'Growth' })
+    if (programs.includes('LEARNING')) only.push({ href: '/employer/learning', label: 'Learning' })
+    return only
+  }
   const links: NavLink[] = [{ href: '/employer', label: 'Overview' }]
   if (role === 'ADMIN' || role === 'VIEWER') {
     if (programs.includes('GROWTH')) links.push({ href: '/employer/growth', label: 'Growth' })
@@ -66,11 +74,13 @@ function buildLinks(role: OutplacementRole, programs: OutplacementProgramType[])
   return links
 }
 
-function NavContent({ pathname, links, onNavigate }: { pathname: string; links: NavLink[]; onNavigate?: () => void }) {
+function NavContent({ pathname, links, onNavigate, sections = [] }: { pathname: string; links: NavLink[]; onNavigate?: () => void; sections?: SwitcherLinkItem[] }) {
   const isActive = (href: string) => (href === '/employer' ? pathname === href : pathname === href || pathname.startsWith(`${href}/`))
 
   return (
     <nav className="flex h-full flex-col gap-2 overflow-y-auto px-4 py-6">
+      {/* The top bar carries the switcher from md up; the drawer carries it below that. */}
+      <SectionSwitcher items={sections} className="flex-wrap px-2 pb-3 md:hidden" />
       <div className="space-y-0.5">
         {links.map((link) => (
           <Link
@@ -93,15 +103,15 @@ function NavContent({ pathname, links, onNavigate }: { pathname: string; links: 
   )
 }
 
-export function EmployerNav({ role, brand, programs = [] }: { role: OutplacementRole; brand?: PartnerBrand; programs?: OutplacementProgramType[] }) {
+export function EmployerNav({ role, brand, programs = [], sections = [], employeesOnly = false }: { role: OutplacementRole; brand?: PartnerBrand; programs?: OutplacementProgramType[]; sections?: SwitcherLinkItem[]; employeesOnly?: boolean }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
-  const links = buildLinks(role, programs)
+  const links = buildLinks(role, programs, employeesOnly)
   const current = links.find((link) => (link.href === '/employer' ? pathname === link.href : pathname === link.href || pathname.startsWith(`${link.href}/`)))
 
   return (
     <>
-      <PartnerTopBar surface="employer" use={employerUseForPath(pathname)} brand={brand}>
+      <PartnerTopBar surface="employer" use={employerUseForPath(pathname)} brand={brand} switcher={<SectionSwitcher items={sections} />}>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -118,7 +128,7 @@ export function EmployerNav({ role, brand, programs = [] }: { role: Outplacement
 
       <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 lg:block" style={{ backgroundColor: chromeFor('employer') }}>
         <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
-        <NavContent pathname={pathname} links={links} />
+        <NavContent pathname={pathname} links={links} sections={sections} />
       </aside>
 
       {open && (
@@ -126,7 +136,7 @@ export function EmployerNav({ role, brand, programs = [] }: { role: Outplacement
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 shadow-xl" style={{ backgroundColor: chromeFor('employer') }}>
             <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
-            <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
+            <NavContent pathname={pathname} links={links} sections={sections} onNavigate={() => setOpen(false)} />
           </div>
         </div>
       )}

@@ -25,8 +25,15 @@ export const PORTALS: PortalMeta[] = [
   { type: 'RECRUITER', label: 'Recruiter firm', blurb: 'Searches, consented introductions, submissions and placements.', available: true, peopleLabel: 'Candidates', signInPath: '/recruiters/login' },
 ]
 
+// An Employees workspace (docs/specs/employer-sections.md) is an employer section, not something staff pick when creating an
+// organization, so it is not in PORTALS (the create form lists those). Pages that show an organization's workspaces still
+// need a label for it, so portalMeta answers for it (and for any future workspace type) instead of returning undefined.
+const SECTION_META: Record<string, PortalMeta> = {
+  EMPLOYEES: { type: 'EMPLOYEES' as PortalType, label: 'Employees', blurb: 'Learning and development, retention and job retraining for current employees.', available: true, peopleLabel: 'Employees', signInPath: '/employer/login' },
+}
+
 export function portalMeta(type: PortalType): PortalMeta {
-  return PORTALS.find((p) => p.type === type) as PortalMeta
+  return PORTALS.find((p) => p.type === type) ?? SECTION_META[type] ?? { type, label: String(type), blurb: '', available: false, peopleLabel: 'People', signInPath: '/' }
 }
 
 export function isPortalType(v: unknown): v is PortalType {

@@ -39,7 +39,7 @@ export function OrgClaimPage({ org, stats }: { org: ClaimableOrg; stats: Communi
         <h2 id="claim-h" className="font-serif text-2xl font-semibold tracking-tight text-navy sm:text-3xl">Claim this page for {org.name}</h2>
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           <p className="text-muted-foreground">Claiming confirms that you work at {org.name}. We email a one-time link to your work address, and the claim counts once you use it.</p>
-          <OrgClaimForm slug={org.slug} orgName={org.name} domain={domain} />
+          <OrgClaimForm slug={org.slug} orgName={org.name} domain={domain} sections={org.orgTypes.includes('EMPLOYER')} />
         </div>
       </section>
 

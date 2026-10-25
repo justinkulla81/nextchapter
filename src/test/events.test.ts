@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { matchEvents, seniorityFromScore, type MemberEventFacts } from '@/lib/events/match'
+import { matchEvents, newEventsFor, seniorityFromScore, type MemberEventFacts } from '@/lib/events/match'
 import { costLabel, whenLabel, hasUpcomingDates } from '@/lib/events/format'
 import { normalizeRow } from '@/lib/events/normalize'
 import type { ConferenceRow } from '@/lib/events/types'
@@ -100,5 +100,26 @@ describe('speaking inference', () => {
     expect(normalizeRow({ ...row, kind: 'TRADE_SHOW', programFormats: ['EXPO'] }).row?.speaking).toBe('UNKNOWN')
     expect(normalizeRow({ ...row, kind: 'CONFERENCE', speaking: 'NONE' }).row?.speaking).toBe('NONE')
     expect(normalizeRow({ ...row, kind: 'CONFERENCE', speaking: 'OPEN_CFP', speakingUrl: 'https://x.example/cfp' }).row?.speaking).toBe('OPEN_CFP')
+  })
+})
+
+describe('new conference notices', () => {
+  const since = new Date('2026-10-26T00:00:00Z')
+  const fits = (id: string, createdAt: string, o: Partial<ConferenceRow> = {}) =>
+    ev({ id, createdAt: new Date(createdAt), functions: ['Finance'], industries: ['Insurance'], importance: 2, ...o })
+  it('names only events added after launch that fit, at most three', () => {
+    const events = [fits('old', '2026-10-24T00:00:00Z'), fits('a', '2026-11-02T00:00:00Z'), fits('b', '2026-11-02T00:00:00Z'), fits('c', '2026-11-03T00:00:00Z'), fits('d', '2026-11-03T00:00:00Z')]
+    const r = newEventsFor(events, facts, since, new Set(), new Set(), NOW)
+    expect(r).toHaveLength(3)
+    expect(r.map((m) => m.event.id)).not.toContain('old')
+  })
+  it('skips events already announced or saved, and events that do not fit', () => {
+    const events = [fits('a', '2026-11-02T00:00:00Z'), fits('b', '2026-11-02T00:00:00Z'), fits('c', '2026-11-02T00:00:00Z', { functions: ['Legal'], industries: ['Legal Services'] })]
+    const r = newEventsFor(events, facts, since, new Set(['a']), new Set(['b']), NOW)
+    expect(r.map((m) => m.event.id)).toEqual([])
+  })
+  it('skips events too far out to plan for', () => {
+    const far = fits('far', '2026-11-02T00:00:00Z', { startDate: new Date('2029-05-01T00:00:00Z'), endDate: new Date('2029-05-03T00:00:00Z') })
+    expect(newEventsFor([far], facts, since, new Set(), new Set(), NOW)).toEqual([])
   })
 })

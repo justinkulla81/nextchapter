@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
+import { requireEmployeesRole } from '@/lib/employer/outplacement-auth'
 import { learningReport, orgProgramTypes } from '@/lib/employer/staff-programs'
 import { PROGRAM_TYPE_BLURB } from '@/lib/employer/program-type'
 import { NotOnProgram, StatTile, showCell } from '@/components/employer/StaffStats'
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 export const metadata: Metadata = { title: 'Learning' }
 
 export default async function EmployerLearningPage() {
-  const orgUser = await requireOutplacementRole(['ADMIN', 'VIEWER'])
+  const orgUser = await requireEmployeesRole(['ADMIN', 'VIEWER'])
   if (!(await orgProgramTypes(orgUser.orgId)).has('LEARNING')) return <NotOnProgram program="Learning" what={PROGRAM_TYPE_BLURB.LEARNING} />
   const r = await learningReport(orgUser.orgId)
   const isAdmin = orgUser.role === 'ADMIN'
