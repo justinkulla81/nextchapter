@@ -45,6 +45,7 @@ import { HiringDashboard, HiringEvidenceBrief, HiringRoles, EmployeesLearning, E
 import { CoachClients, CoachBrief, CoachSessionLog } from './marketing-coach'
 import { RecruiterPacket, RecruiterSearch, RecruiterPipeline } from './marketing-recruiter'
 
+import { AdvisoryBoardsNone, AdvisoryBoardsAdvisory } from './advisory-boards-live'
 import { BeFoundQuiet, BeFoundPublic, SeniorMenuCompare } from './be-found-live'
 
 const CoachMatchShortlistLive = () => <CoachMatchLive step="shortlist" />
@@ -95,6 +96,8 @@ export const MOCKUPS: Mockup[] = [
   { path: 'coach/scheduling-disconnected', place: 'Coach', title: 'Calendar and booking: Google access lost', replaces: 'new (no error state today)', Component: CoachSchedulingBroken },
   { path: 'network/found/quiet', place: 'Network', title: 'Be found: quiet version (Confidential Search Mode on)', replaces: 'new tab in Network', Component: BeFoundQuiet },
   { path: 'network/found/public', place: 'Network', title: 'Be found: public version', replaces: 'new tab in Network', Component: BeFoundPublic },
+  { path: 'network/found/advisory', place: 'Network', title: 'Advisory and boards: before they say where they are', replaces: 'new tab in Network (inside Be found)', Component: AdvisoryBoardsNone },
+  { path: 'network/found/advisory-has-advised', place: 'Network', title: 'Advisory and boards: has advised, health and education', replaces: 'new tab in Network (inside Be found)', Component: AdvisoryBoardsAdvisory },
   { path: 'network/found/senior-menu', place: 'Network', title: 'Senior overlay: menu order, standard vs senior leader', replaces: 'the order and emphasis of existing menu entries', Component: SeniorMenuCompare },
   { path: 'jobs/find/scope-broader', place: 'Jobs', title: 'Find a job: search scope Broader, with the once-only pivot message', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeBroaderFirst },
   { path: 'jobs/find/scope-everything', place: 'Jobs', title: 'Find a job: search scope Everything, with the exploring question', replaces: 'the Narrow / Wide buttons (BreadthToggle) in Filters and views', Component: ScopeEverythingQuestion },

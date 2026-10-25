@@ -95,7 +95,7 @@ export const MOBILE_TAB: Record<MenuMode, MobileTab> = {
 export type Visibility = 'show' | 'locked' | 'hide'
 
 export type MenuItemKey =
-  | 'beFound'
+  | 'beFound' | 'advisory'
   | 'strategy' | 'profile' | 'assessments' | 'marketReality' | 'worth' | 'local'
   | 'references' | 'portfolio' | 'marketing'
   | 'jobs' | 'companies' | 'interviewPrep' | 'offer' | 'marketIntel'
@@ -126,6 +126,7 @@ export const MENU_LABELS: Record<MenuItemKey, string> = {
   offer: "Got An Offer 🎉",
   marketIntel: "Market Intelligence",
   beFound: "Be found",
+  advisory: "Advisory and boards",
   network: "Network with Contacts",
   contacts: "My Contacts",
   community: "NextChapter Community",
@@ -186,6 +187,8 @@ export const MENU_RULES: Record<MenuItemKey, Rule> = {
   // Network
   // Building public visibility before you need it: for anyone thinking about leaving or searching, not once landed or on a break.
   beFound: { pillar: 'network', modes: { LANDED: H, LEAVE: H, BUYING: H, PORTFOLIO: H } },
+  // Getting onto boards and advisory roles: fractional members want it too, so only landed, on a break and buying hide it.
+  advisory: { pillar: 'network', modes: { LANDED: H, LEAVE: H, BUYING: H } },
   network: { pillar: 'network' },
   contacts: { pillar: 'network' },
   community: { pillar: 'network' },
@@ -311,7 +314,7 @@ export function seniorOverlayOn(senior: boolean, override: boolean | null | unde
 }
 
 /** Tools a senior leader reaches for first. Recruiters, interim and fractional work are never hidden for them. */
-export const SENIOR_PROMOTED: readonly MenuItemKey[] = ['network', 'recruiter', 'beFound', 'interim', 'eqoveriq', 'learning']
+export const SENIOR_PROMOTED: readonly MenuItemKey[] = ['network', 'recruiter', 'beFound', 'advisory', 'interim', 'eqoveriq', 'learning']
 
 /** Muted, not removed. */
 export const SENIOR_DEMOTED: readonly MenuItemKey[] = ['jobs']
@@ -321,7 +324,7 @@ export function seniorItemVisibility(key: MenuItemKey, mode: MenuMode, overlay: 
   const base = itemVisibility(key, mode)
   if (!overlay.on || base === 'show') return base
   // "Be found" stays off where it makes no sense (landed, on a break, buying a business).
-  if (key === 'beFound') return base
+  if (key === 'beFound' || key === 'advisory') return base
   return SENIOR_PROMOTED.includes(key) ? 'show' : base
 }
 
