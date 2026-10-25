@@ -99,3 +99,32 @@ links on the corporate careers page. Only call an employer unreadable after the 
 
 The onboarding order is decided and final: `docs/onboarding-flow.md`. Any
 personalization, Home or dashboard work must fit it.
+
+## Google accounts: we never write to a member's
+
+Owner rule (2026-10-25), no exceptions without the owner's explicit approval.
+NextChapter never writes anything to a member's Google account: no sending or
+drafting email, no labels or marking messages read, no creating, changing,
+deleting or inviting to calendar events, no Drive or Docs changes. Member
+connections stay read-only (`gmail.readonly`, `calendar.events.readonly`, plus
+identity scopes) and a feature that needs a member's Google account to change
+must be designed differently.
+
+What to do instead: notify the member, ask whether they want it, and hand them
+the thing to do themselves: a link to the registration or submission page, a
+downloadable `.ics` (`src/lib/conferences/ics.ts`), a draft they copy, a
+`mailto:` or compose link they send themselves.
+
+- Never add a write scope to a member-facing OAuth flow (`email-tracking/`,
+  `calendar-tracking/`, `onboarding/join-oauth.ts`, `google-connect`, `auth/gmail`,
+  `auth/calendar`). `src/test/google-read-only-for-members.test.ts` fails if a write
+  scope or write call appears outside the reviewed admin, coach and indexing files.
+  Adding to that allowlist needs the owner's approval.
+- The write scopes that exist belong to NextChapter's own team accounts (admin
+  Gmail send, admin Calendar and Meet, Google indexing) and to coaches' own
+  accounts. They never use a member's credentials.
+- Gmail push notifications (`email-tracking/gmail-push.ts`, a mailbox
+  subscription) are switched off in production (no `GMAIL_PUSH_TOPIC`). Do not
+  enable them without the owner's approval and a privacy policy update.
+- The privacy policy (`src/app/privacy-policy/page.tsx`) states this promise.
+  Keep it true, and update the policy in the same change if any of it changes.
