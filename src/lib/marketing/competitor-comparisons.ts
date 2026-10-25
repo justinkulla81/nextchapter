@@ -1,26 +1,25 @@
-// Comparison-page content for /vs/[competitor] — Partners Master Build
-// Script §D2.8 ("Comparison pages, written fairly") and §C5 ("Publish the
-// comparison honestly... including where LHH is stronger... converts
-// better than a one-sided table").
+// Comparison-page content for /vs/[competitor].
 //
-// EVERY comparative claim in this file traces to a numbered row in
-// docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md. Do not add a new comparative
-// statement here without adding a matching row there first — that file is
-// the actual defense per §D3's "one rule above all."
-//
-// This is deliberately NOT a finished, launch-ready comparison. The spec's
-// own §A2.1 table is presented there as "informed estimates, not cited
-// sources," and this build has no independent, current verification of any
-// competitor's real pricing, features, or market position. Every page
-// rendered from this data carries a visible "needs independent
-// verification" notice — see ComparisonPageTemplate.
+// Rules (CLAUDE.md and docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md):
+//  - Every statement about NextChapter carries a `VS-n` id that has a row in the
+//    "Claims on /vs and /insights" table of the substantiation file, with its
+//    evidence (a file in this repo) and a status of OK.
+//  - Statements about a competitor are NOT made here. data/competitor-matrix/ holds
+//    no researched cells for LHH, Randstad RiseSmart, Careerminds or INTOO (only
+//    _sample.json), so there is no evidence URL and date to cite. Each competitor
+//    column is therefore a question to put to the vendor, not a claim about it.
+//  - No "only", "first", "no other", "unlike", "nobody", "best" or "leading", and no
+//    prices. src/test/vs-insights-claims.test.ts fails on those words and on a
+//    missing substantiation row.
 
 export interface FeatureComparisonRow {
   aspect: string
+  /** What NextChapter does. Substantiated by the row named in substantiationRef. */
   us: string
-  them: string
-  /** Row number in docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md */
-  substantiationRef: number
+  /** A question to put to the vendor. Never a statement about the vendor. */
+  ask: string
+  /** `VS-n` id in docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md */
+  substantiationRef: string
 }
 
 export interface CompetitorComparison {
@@ -31,200 +30,147 @@ export interface CompetitorComparison {
   shortName: string
   metaTitle: string
   metaDescription: string
-  /** One paragraph: what this vendor is genuinely best for. */
+  /** One paragraph on how to approach this vendor in an evaluation. Makes no claim about the vendor's strengths. */
   bestForSummary: string
-  /** The §D1.1 concession, adapted per vendor. Deliberately NOT verbatim
-   * even for LHH — the spec's own sentence ("...land faster with proof
-   * they keep...") is an unquantified but still real placement-speed
-   * claim, which conflicts with §C1.3's "no placement-speed claims until
-   * there is outcome data." That rule wins; every version here is reworded
-   * to concede+redirect without any speed/outcome claim. See
-   * docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md row 12. */
+  /** Concede-and-redirect sentence. Conditional on the buyer's need; claims nothing about speed or outcomes. */
   concessionParagraph: string
-  isConcessionVerbatim: boolean
-  /** §D1.1 "where they're genuinely stronger" bullets — same list across
-   * all four vendors, since that's the only sourced content available;
-   * see the disclaimer rendered alongside this on the page. */
   whereTheyMayBeStrongerBullets: string[]
   featureComparison: FeatureComparisonRow[]
-  whatParticipantsKeep: { us: string; them: string }
-  whatTheEmployerSees: { us: string; them: string }
+  whatParticipantsKeep: { us: string; ask: string; substantiationRef: string }
+  whatTheEmployerSees: { us: string; ask: string; substantiationRef: string }
   whenToChooseThemInstead: string[]
 }
 
-const WHERE_THEY_MAY_BE_STRONGER = [
-  'Global footprint — large providers commonly operate across 60+ countries with local labor-law knowledge, per the Master Build Script’s own assessment of the category.',
-  'Coach supply at scale — a large contractor bench available on short notice for a sudden, large reduction.',
-  'Procurement readiness — established vendors are more likely to already carry SOC 2, standard MSAs, insurance, and a long reference list procurement teams recognize.',
-  'Brand safety — choosing a long-established, widely recognized vendor carries less internal risk for the buyer than choosing an unproven one.',
-  'Physical services — in-person workshops and local offices, where a contract or workforce actually requires them.',
+// Things a buyer should check with any vendor, ours included. Not claims about a named vendor.
+const THINGS_TO_CHECK = [
+  'Countries covered. If your reduction spans several countries, ask which ones the vendor serves directly and how local labor-law questions are handled.',
+  'Coach capacity. If you need a large number of people supported on short notice, ask how many coaches are available and how quickly.',
+  'Procurement requirements. If your process needs certifications, insurance, standard contract terms or references, ask each vendor, including us, for them.',
+  'Vendor history. A longer-established vendor may matter to your internal risk review. Ask each vendor how long it has served employers like you.',
+  'In-person services. If your contract or workforce needs workshops or local offices, ask each vendor whether it provides them.',
 ]
 
-const WHERE_THEY_MAY_BE_STRONGER_DISCLAIMER =
-  'These are the categories of strength the Master Build Script (§D1.1) associates with large outplacement providers as a category — not a vendor-specific verified fact about this particular company. We have not independently confirmed which of these apply, or to what degree, to this vendor specifically. Treat this as a starting point for your own diligence, not a substitute for it.'
+const THINGS_TO_CHECK_NOTE = 'These are questions for any outplacement vendor, not statements about this one. We have not verified any of them for this vendor, so ask it directly.'
 
 const FEATURE_COMPARISON: FeatureComparisonRow[] = [
   {
-    aspect: 'Reporting latency',
-    us: 'Live seat utilization and aggregate outcomes, visible as soon as a cohort is enrolled.',
-    them: 'Commonly quarterly PDF reporting, per the Master Build Script’s assessment of the category.',
-    substantiationRef: 6,
+    aspect: 'Reporting',
+    us: 'A live roster of enrolled people and their status, aggregate outcomes for the program, and a printable quarterly review.',
+    ask: 'What is your reporting latency: real time, monthly or quarterly? Can we see utilization the day a cohort is enrolled? (Questions 2 and 3 on our RFP template.)',
+    substantiationRef: 'VS-1',
   },
   {
-    aspect: 'What the candidate keeps after the contract ends',
-    us: 'A permanent Executive Dossier, collected references, and a free, permanent alumni account — none of it tied to the employer’s contract term.',
-    them: 'Portal access commonly ends when the contract ends, per the Master Build Script’s assessment of the category. Ask this vendor directly — it’s question 7 on our RFP template.',
-    substantiationRef: 7,
+    aspect: 'What the person keeps after the seat ends',
+    us: 'Their account, free, for as long as they want it, plus their profile, résumé, documents and search plan. Employer-paid coaching sessions and the recruiter network stop.',
+    ask: 'What does the participant keep, and for how long, after the contract ends? What is deleted, and who decides? (Questions 1 and 7.)',
+    substantiationRef: 'VS-2',
   },
   {
-    aspect: 'Delivery at volume',
-    us: 'The same structured, scored program at every tier.',
-    them: 'Large caseloads and templated curriculum are common at volume, per the Master Build Script’s assessment — reportedly strongest at the executive tier, thinner below it.',
-    substantiationRef: 8,
+    aspect: 'What the employer sees about individuals',
+    us: 'Aggregate outcomes with a minimum group size of 10. No individual’s activity, grade or usage is shown to the employer.',
+    ask: 'What does the employer see about each participant? Is there a minimum group size on aggregate reporting?',
+    substantiationRef: 'VS-3',
   },
   {
-    aspect: 'Measurement',
-    us: 'Every candidate is scored across the same competency model; the employer sees aggregate results, never an individual’s grade or activity.',
-    them: 'Commonly does not structure or score participant activity or output, per the Master Build Script’s assessment of the category.',
-    substantiationRef: 10,
+    aspect: 'Proof the obligation was met',
+    us: 'A compliance pack documenting that the severance support was offered.',
+    ask: 'What documentation do you provide that the severance obligation was met? Ask for a sample before signing. (Question 5.)',
+    substantiationRef: 'VS-4',
+  },
+  {
+    aspect: 'References',
+    us: 'Structured reference collection from past managers and colleagues.',
+    ask: 'What percentage of participants complete a structured reference process? (Question 4.)',
+    substantiationRef: 'VS-5',
   },
   {
     aspect: 'How you buy it',
-    us: 'Evaluated on its own, with no bundling requirement.',
-    them: 'Outplacement is frequently bundled into a broader staffing or RPO relationship rather than independently evaluated, per the Master Build Script’s assessment of the category.',
-    substantiationRef: 9,
+    us: 'Outplacement seats are enrolled one by one or by CSV, and bought on their own.',
+    ask: 'Is outplacement sold on its own or as part of a wider staffing or RPO agreement?',
+    substantiationRef: 'VS-6',
   },
 ]
 
-const WHAT_PARTICIPANTS_KEEP_US =
-  'The Executive Dossier, five structured references, and a free permanent alumni account — all of it stays with the person, not the employer’s contract.'
-const WHAT_EMPLOYER_SEES_US =
-  'Live seat utilization and aggregate outcomes, plus an exportable compliance pack documenting the severance obligation was met — never an individual’s grade or whether they used the product. That boundary is contractual.'
+const WHAT_PARTICIPANTS_KEEP_US = FEATURE_COMPARISON[1].us
+const WHAT_EMPLOYER_SEES_US = 'A live roster, aggregate outcomes and a compliance pack. Aggregates need a group of at least 10, and no individual’s activity, grade or usage is shown.'
+
+const PARTICIPANTS_KEEP_ASK = 'Ask what the participant keeps and for how long after the contract ends. It is question 7 on our RFP template.'
+const EMPLOYER_SEES_ASK = 'Ask about reporting latency and what is shown about individuals. It is question 2 on our RFP template.'
+
+function comparison(
+  c: Pick<CompetitorComparison, 'slug' | 'name' | 'shortName' | 'bestForSummary' | 'concessionParagraph' | 'whenToChooseThemInstead'>,
+): CompetitorComparison {
+  return {
+    ...c,
+    metaTitle: `NextChapter vs. ${c.name}: outplacement comparison`,
+    metaDescription: `A side-by-side look at NextChapter and ${c.name} outplacement: what we do, and the questions to ask ${c.name} on reporting, what participants keep and what the employer sees.`,
+    whereTheyMayBeStrongerBullets: THINGS_TO_CHECK,
+    featureComparison: FEATURE_COMPARISON,
+    whatParticipantsKeep: { us: WHAT_PARTICIPANTS_KEEP_US, ask: PARTICIPANTS_KEEP_ASK, substantiationRef: 'VS-2' },
+    whatTheEmployerSees: { us: WHAT_EMPLOYER_SEES_US, ask: EMPLOYER_SEES_ASK, substantiationRef: 'VS-3' },
+  }
+}
 
 export const COMPETITOR_COMPARISONS: CompetitorComparison[] = [
-  {
+  comparison({
     slug: 'lhh',
     name: 'LHH',
     shortName: 'LHH',
-    metaTitle: 'NextChapter vs. LHH — outplacement comparison',
-    metaDescription:
-      'An honest, two-sided comparison of NextChapter and LHH outplacement — reporting, what participants keep, and when LHH is genuinely the better call.',
     bestForSummary:
-      'LHH is one of the largest, most established names in the category — the reflexive choice for a multi-country reduction or an executive-tier program where global reach and brand recognition matter most.',
+      'LHH is an outplacement provider. This page sets out what NextChapter does and the questions to ask LHH, because we have not verified current details of its offering.',
     concessionParagraph:
-      'If you’re running a 12-country reduction, use LHH. If you’re running a US reduction and want your people to walk away with proof they keep, not just promises, that’s us.',
-    isConcessionVerbatim: false,
-    whereTheyMayBeStrongerBullets: WHERE_THEY_MAY_BE_STRONGER,
-    featureComparison: FEATURE_COMPARISON,
-    whatParticipantsKeep: {
-      us: WHAT_PARTICIPANTS_KEEP_US,
-      them:
-        'Varies by contract and vendor. Ask directly what the participant keeps and for how long after the contract ends — it’s question 7 on our RFP template.',
-    },
-    whatTheEmployerSees: {
-      us: WHAT_EMPLOYER_SEES_US,
-      them:
-        'Typically periodic reporting rather than a live view, per the Master Build Script’s assessment of the category. Ask about reporting latency directly — it’s question 2 on our RFP template.',
-    },
+      'If you are running a multi-country reduction, check which countries LHH covers directly. If you are running a US reduction and want your people to walk away with proof they keep, not just promises, that is us.',
     whenToChooseThemInstead: [
-      'You’re running a reduction across multiple countries and need local labor-law compliance in each one.',
-      'Your workforce or contract specifically requires in-person, on-site delivery.',
-      'Procurement requires an established, long-track-record vendor with an extensive reference list already on file.',
+      'You are running a reduction across several countries and LHH confirms it covers each one.',
+      'Your workforce or contract requires in-person, on-site delivery and LHH confirms it provides it.',
+      'Procurement requires specific certifications or references and LHH supplies them.',
     ],
-  },
-  {
+  }),
+  comparison({
     slug: 'randstad-risesmart',
     name: 'Randstad RiseSmart',
     shortName: 'RiseSmart',
-    metaTitle: 'NextChapter vs. Randstad RiseSmart — outplacement comparison',
-    metaDescription:
-      'An honest, two-sided comparison of NextChapter and Randstad RiseSmart outplacement — reporting, what participants keep, and when RiseSmart is genuinely the better call.',
     bestForSummary:
-      'As part of Randstad, one of the largest global staffing organizations, RiseSmart is a common choice for buyers who already have or want a broader Randstad relationship, or who want a well-known staffing brand behind a mid-level program.',
+      'Randstad RiseSmart is an outplacement provider. This page sets out what NextChapter does and the questions to ask Randstad RiseSmart, because we have not verified current details of its offering.',
     concessionParagraph:
-      'If you’re running a multi-country reduction and want a global staffing brand behind the program, Randstad RiseSmart is a reasonable, defensible choice. If you’re running a US reduction and want your people to walk away with proof they keep, not just promises, that’s us.',
-    isConcessionVerbatim: false,
-    whereTheyMayBeStrongerBullets: WHERE_THEY_MAY_BE_STRONGER,
-    featureComparison: FEATURE_COMPARISON,
-    whatParticipantsKeep: {
-      us: WHAT_PARTICIPANTS_KEEP_US,
-      them:
-        'Varies by contract and vendor. Ask directly what the participant keeps and for how long after the contract ends — it’s question 7 on our RFP template.',
-    },
-    whatTheEmployerSees: {
-      us: WHAT_EMPLOYER_SEES_US,
-      them:
-        'Typically periodic reporting rather than a live view, per the Master Build Script’s assessment of the category. Ask about reporting latency directly — it’s question 2 on our RFP template.',
-    },
+      'If you already have a Randstad relationship or are running a multi-country reduction, ask Randstad RiseSmart what it covers. If you are running a US reduction and want your people to walk away with proof they keep, not just promises, that is us.',
     whenToChooseThemInstead: [
-      'You already run a broader Randstad staffing or RPO relationship and want outplacement bundled into it.',
-      'You’re running a reduction across multiple countries and need local labor-law compliance in each one.',
-      'Procurement requires an established, global staffing brand with an extensive reference list already on file.',
+      'You already have a Randstad staffing or RPO relationship and want outplacement handled inside it.',
+      'You are running a reduction across several countries and Randstad RiseSmart confirms it covers each one.',
+      'Procurement requires specific certifications or references and Randstad RiseSmart supplies them.',
     ],
-  },
-  {
+  }),
+  comparison({
     slug: 'careerminds',
     name: 'Careerminds',
     shortName: 'Careerminds',
-    metaTitle: 'NextChapter vs. Careerminds — outplacement comparison',
-    metaDescription:
-      'An honest, two-sided comparison of NextChapter and Careerminds outplacement — reporting, what participants keep, and when a virtual-first provider is genuinely the better call.',
     bestForSummary:
-      'Careerminds is a virtual-first provider. It is a reasonable pick for a buyer whose primary constraint is a fully virtual program and who doesn’t need a durable candidate artifact or a dedicated recruiter relationship.',
+      'Careerminds is an outplacement provider. This page sets out what NextChapter does and the questions to ask Careerminds, because we have not verified current details of its offering.',
     concessionParagraph:
-      'If your primary constraint is a fully virtual program and you don’t need coaching depth, a dedicated recruiter relationship, or a durable artifact the participant keeps, a virtual-first provider like Careerminds is worth a look. If you want your people to walk away with proof they keep, not just promises, that’s us.',
-    isConcessionVerbatim: false,
-    whereTheyMayBeStrongerBullets: WHERE_THEY_MAY_BE_STRONGER,
-    featureComparison: FEATURE_COMPARISON,
-    whatParticipantsKeep: {
-      us: WHAT_PARTICIPANTS_KEEP_US,
-      them:
-        'Varies by contract and vendor. Ask directly what the participant keeps and for how long after the contract ends — it’s question 7 on our RFP template.',
-    },
-    whatTheEmployerSees: {
-      us: WHAT_EMPLOYER_SEES_US,
-      them:
-        'Varies by vendor. Ask about reporting latency directly — it’s question 2 on our RFP template.',
-    },
+      'If your main requirement is a fully virtual program, ask Careerminds how it delivers one. If you want your people to walk away with proof they keep, not just promises, that is us.',
     whenToChooseThemInstead: [
-      'The program can be entirely virtual.',
-      'Coaching depth is not a priority.',
-      'Your workforce doesn’t need in-person delivery at any point.',
+      'Your main requirement is a fully virtual program and Careerminds confirms it delivers one.',
+      'Coaching depth is not a priority for your program.',
+      'Your workforce does not need in-person delivery at any point.',
     ],
-  },
-  {
+  }),
+  comparison({
     slug: 'intoo',
     name: 'INTOO',
     shortName: 'INTOO',
-    metaTitle: 'NextChapter vs. INTOO — outplacement comparison',
-    metaDescription:
-      'An honest, two-sided comparison of NextChapter and INTOO outplacement — reporting, what participants keep, and when a virtual-first provider is genuinely the better call.',
     bestForSummary:
-      'INTOO is a virtual-first provider. It is a reasonable pick for a buyer whose primary constraint is a fully virtual program and who doesn’t need a durable candidate artifact or a dedicated recruiter relationship.',
+      'INTOO is an outplacement provider. This page sets out what NextChapter does and the questions to ask INTOO, because we have not verified current details of its offering.',
     concessionParagraph:
-      'If your primary constraint is a fully virtual program and you don’t need coaching depth, a dedicated recruiter relationship, or a durable artifact the participant keeps, a virtual-first provider like INTOO is worth a look. If you want your people to walk away with proof they keep, not just promises, that’s us.',
-    isConcessionVerbatim: false,
-    whereTheyMayBeStrongerBullets: WHERE_THEY_MAY_BE_STRONGER,
-    featureComparison: FEATURE_COMPARISON,
-    whatParticipantsKeep: {
-      us: WHAT_PARTICIPANTS_KEEP_US,
-      them:
-        'Varies by contract and vendor. Ask directly what the participant keeps and for how long after the contract ends — it’s question 7 on our RFP template.',
-    },
-    whatTheEmployerSees: {
-      us: WHAT_EMPLOYER_SEES_US,
-      them:
-        'Varies by vendor. Ask about reporting latency directly — it’s question 2 on our RFP template.',
-    },
+      'If your main requirement is a fully virtual program, ask INTOO how it delivers one. If you want your people to walk away with proof they keep, not just promises, that is us.',
     whenToChooseThemInstead: [
-      'The program can be entirely virtual.',
-      'Coaching depth is not a priority.',
-      'Your workforce doesn’t need in-person delivery at any point.',
+      'Your main requirement is a fully virtual program and INTOO confirms it delivers one.',
+      'Coaching depth is not a priority for your program.',
+      'Your workforce does not need in-person delivery at any point.',
     ],
-  },
+  }),
 ]
 
-export const WHERE_THEY_MAY_BE_STRONGER_NOTE = WHERE_THEY_MAY_BE_STRONGER_DISCLAIMER
+export const WHERE_THEY_MAY_BE_STRONGER_NOTE = THINGS_TO_CHECK_NOTE
 
 export function getComparison(slug: string): CompetitorComparison | undefined {
   return COMPETITOR_COMPARISONS.find((c) => c.slug === slug)

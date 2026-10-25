@@ -13,20 +13,20 @@ export const INSIGHT_ARTICLES: InsightArticle[] = [
   {
     slug: 'outplacement-vendor-questions',
     title: 'The questions to ask an outplacement vendor',
-    description: 'Eight questions that separate a real evaluation from a sales pitch.',
-    lastUpdated: '2026-08-15',
+    description: 'Eight questions to put to every outplacement vendor you evaluate.',
+    lastUpdated: '2026-10-25',
   },
   {
     slug: 'outplacement-reporting',
-    title: 'Why your outplacement report says nothing',
+    title: 'What your outplacement report should show',
     description: 'Utilization isn’t outcome. What to ask your provider to report instead.',
-    lastUpdated: '2026-08-15',
+    lastUpdated: '2026-10-25',
   },
   {
     slug: 'outplacement-account-after-contract',
     title: 'What happens to your outplacement account when the contract ends',
-    description: 'What to ask before you sign, and how a permanent alumni account changes the calculus.',
-    lastUpdated: '2026-08-15',
+    description: 'What to ask before you sign, and what stays with the participant when a seat ends.',
+    lastUpdated: '2026-10-25',
   },
 ]
 
