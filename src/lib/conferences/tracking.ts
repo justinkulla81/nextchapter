@@ -2,6 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { normalizeContactKey } from '@/lib/network/csv-import'
+import { creditConferenceAction } from './sprint-credit'
 import { EVIDENCE_TRACK_STATUSES, TRACK_STATUSES, USER_STATUSES, type TalkKind, type TrackStatus, type UserStatus } from './constants'
 
 /** Latest non-cancelled edition of a series, the one a member plans around. */
@@ -18,7 +19,12 @@ export async function setUserStatus(candidateId: string, seriesId: string, statu
   const before = await prisma.userConference.findUnique({ where, select: { status: true } })
   if (opts.onlyIfNew && before) return before
   const row = await prisma.userConference.upsert({ where, create: { candidateId, seriesId, editionId, status }, update: { status, ...(editionId ? { editionId } : {}) } })
-  if (before?.status !== status) captureServerEvent(candidateId, 'user_conference_status_set', { seriesId, status, previous: before?.status ?? null })
+  if (before?.status !== status) {
+    captureServerEvent(candidateId, 'user_conference_status_set', { seriesId, status, previous: before?.status ?? null })
+    // Sprint credit only on the change itself: registering, and having been there.
+    if (status === 'REGISTERED') await creditConferenceAction(candidateId, 'CONFERENCE_REGISTER')
+    if (status === 'ATTENDED') await creditConferenceAction(candidateId, 'ENGAGE_EVENT')
+  }
   return row
 }
 
@@ -30,6 +36,9 @@ export async function clearUserStatus(candidateId: string, seriesId: string) {
 export async function saveNotes(candidateId: string, seriesId: string, notes: string | null, goals: string | null) {
   await prisma.userConference.updateMany({ where: { candidateId, seriesId }, data: { notes: notes?.slice(0, 4000) || null, goals: goals?.slice(0, 2000) || null } })
 }
+
+/** Stages that mean the proposal, paper, entry or nomination went in. */
+export const SENT_OR_BEYOND: readonly TrackStatus[] = ['SUBMITTED', 'ACCEPTED', 'REJECTED', 'DELIVERED']
 
 const TALK_KIND_FOR: Record<string, TalkKind> = { CALL_FOR_SPEAKERS: 'TALK', PRESENTATION: 'TALK', CALL_FOR_SUBMISSIONS: 'SUBMISSION_ACCEPTED', AWARD: 'AWARD', CONTEST: 'AWARD', DEMO: 'DEMO', REPORT: 'TALK' }
 
@@ -56,6 +65,10 @@ export async function setTrackStatus(candidateId: string, opportunityId: string,
     }
   }
   captureServerEvent(candidateId, 'conference_opportunity_status_set', { opportunityId, seriesId: opp.seriesId, type: opp.type, status, previous: before?.status ?? null })
+  // Sprint credit: the first time it is sent (or any later stage that implies it was), and again for a delivered talk.
+  const sent = (st: string | undefined) => !!st && SENT_OR_BEYOND.includes(st as TrackStatus)
+  if (sent(status) && !sent(before?.status)) await creditConferenceAction(candidateId, 'CONFERENCE_SUBMISSION')
+  if (status === 'DELIVERED' && before?.status !== 'DELIVERED') await creditConferenceAction(candidateId, 'CONFERENCE_TALK')
   // Working on an opportunity means following the series.
   await setUserStatus(candidateId, opp.seriesId, 'TRACKING', { onlyIfNew: true })
 }
@@ -85,12 +98,14 @@ export async function logPeopleMet(candidateId: string, seriesId: string, people
   const series = await prisma.conferenceEvent.findUnique({ where: { id: seriesId }, select: { name: true } })
   if (!uc || !series) return 0
   let added = 0
+  let created = 0
   for (const p of people.slice(0, 20)) {
     const name = p.name.trim().slice(0, 120)
     if (!name) continue
     const company = p.company?.trim().slice(0, 120) || null
     const key = normalizeContactKey(name, company)
     const existing = await prisma.supportNetworkContact.findFirst({ where: { candidateId, normalizedKey: key, removedAt: null }, select: { id: true } })
+    if (!existing) created++
     const contactId = existing?.id ?? (await prisma.supportNetworkContact.create({
       data: { candidateId, name, company, title: p.title?.trim().slice(0, 120) || null, normalizedKey: key, source: 'MANUAL' },
       select: { id: true },
@@ -102,6 +117,8 @@ export async function logPeopleMet(candidateId: string, seriesId: string, people
     })
     added++
   }
-  if (added > 0) captureServerEvent(candidateId, 'conference_people_logged', { seriesId, count: added })
+  if (added > 0) captureServerEvent(candidateId, 'conference_people_logged', { seriesId, count: added, newContacts: created })
+  // Genuinely new contacts only, like the CSV import: re-logging someone already in the Contact Book earns nothing.
+  if (created > 0) await creditConferenceAction(candidateId, 'NETWORKING_LIST')
   return added
 }

@@ -36,6 +36,12 @@ const ACTION_TYPE_EFFORT: Partial<Record<string, ActionEffort>> = {
   // Same weight as ENGAGE_COMMENT — a single lightweight peer interaction.
   ENGAGE_PEER_SUPPORT: { minutes: 5, points: 5 },
 
+  // Conferences (src/lib/conferences): real, in-app moments. Sending a speaker proposal, paper, entry or nomination is
+  // real drafting work; delivering a talk is prep plus the talk; registering is a light step.
+  CONFERENCE_SUBMISSION: { minutes: 45, points: 45 },
+  CONFERENCE_TALK: { minutes: 60, points: 60 },
+  CONFERENCE_REGISTER: { minutes: 10, points: 10 },
+
   // Thought Leadership
   LINKEDIN_POST_IDEA: { minutes: 20, points: 20 },
   THOUGHT_LEADERSHIP_SHARE: { minutes: 10, points: 10 },
@@ -306,6 +312,9 @@ const ENGINE_BY_ACTION_TYPE: Record<string, SearchExecutionEngineKey> = {
   ENGAGE_EVENT: 'connecting',
   ENGAGE_POST_UPDATE: 'connecting',
   ENGAGE_PEER_SUPPORT: 'connecting',
+  CONFERENCE_REGISTER: 'connecting',
+  CONFERENCE_SUBMISSION: 'working',
+  CONFERENCE_TALK: 'working',
 
   LINKEDIN_POST_IDEA: 'working',
   THOUGHT_LEADERSHIP_SHARE: 'working',
@@ -494,6 +503,9 @@ const NAV_CATEGORY_BY_ACTION_TYPE: Partial<Record<string, NavCategory>> = {
   WATCHLIST_POSTING_VIEWED: 'Working and Learning',
   JOB_APPLICATION_SUBMITTED: 'Working and Learning',
   JOB_INTERESTED_REACTION: 'Working and Learning',
+  CONFERENCE_REGISTER: 'Connecting',
+  CONFERENCE_SUBMISSION: 'Working and Learning',
+  CONFERENCE_TALK: 'Working and Learning',
 }
 
 export function navCategoryForActionType(actionType: string | undefined): NavCategory | undefined {
@@ -568,6 +580,10 @@ const RECURRING_ACTION_TYPES = new Set<string>([
   // this set.
   'JOB_APPLICATION_SUBMITTED',
   'JOB_INTERESTED_REACTION',
+  // Conference moments come round again with each deadline, so they reset weekly like the other event-driven types.
+  'CONFERENCE_REGISTER',
+  'CONFERENCE_SUBMISSION',
+  'CONFERENCE_TALK',
 ])
 
 export function isRecurringActionType(actionType: string | undefined): boolean {
@@ -611,6 +627,9 @@ const RECURRING_ACTION_TARGET_COUNT: Partial<Record<string, number>> = {
   JOB_BOARD_USAGE_CONFIRMED: 3,
   JOB_APPLICATION_SUBMITTED: 3,
   JOB_INTERESTED_REACTION: 3,
+  CONFERENCE_REGISTER: 1,
+  CONFERENCE_SUBMISSION: 1,
+  CONFERENCE_TALK: 1,
 }
 
 export function getRecurringTargetCount(actionType: string | undefined): number | null {
@@ -699,6 +718,11 @@ export const AUTO_DETECTED_ACTION_TYPES = new Set<string>([
   // tough question is the actual "mock interview" work; a self-report
   // "Mark done" click on this bullet was not evidence of that.
   'INTERVIEW_PREP',
+  // Verified by a real status change on a conference or opportunity (src/lib/conferences/sprint-credit.ts),
+  // never by a Mark done click.
+  'CONFERENCE_REGISTER',
+  'CONFERENCE_SUBMISSION',
+  'CONFERENCE_TALK',
 ])
 
 export function isAutoDetectedActionType(actionType: string | undefined): boolean {
@@ -719,6 +743,9 @@ export const ACTION_TYPE_LINK: Partial<Record<string, { href: string; label: str
   REFERENCE_FOLLOW_UP: { href: '/dashboard/references', label: 'My References' },
   ENGAGE_COMMENT: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_EVENT: { href: '/dashboard/community', label: 'Support Network' },
+  CONFERENCE_REGISTER: { href: '/dashboard/conferences', label: 'Conferences' },
+  CONFERENCE_SUBMISSION: { href: '/dashboard/conferences/opportunities', label: 'Conference deadlines' },
+  CONFERENCE_TALK: { href: '/dashboard/conferences', label: 'Conferences' },
   ENGAGE_POST_UPDATE: { href: '/dashboard/community', label: 'Support Network' },
   ENGAGE_PEER_SUPPORT: { href: '/dashboard/community', label: 'Support Network' },
   LINKEDIN_SETUP: { href: '/dashboard/linkedin', label: 'LinkedIn' },
@@ -822,6 +849,9 @@ const WHY_OVERRIDE_BY_ACTION_TYPE: Partial<Record<string, string>> = {
   REFERENCE_ADDED: 'a strong reference is real proof for a hiring manager, not just your word',
   REFERENCE_REQUESTED: 'the first step toward a real reference — ask while it\'s still fresh for them',
   REFERENCE_FOLLOW_UP: 'a gentle nudge is often all it takes to get a pending reference across the line',
+  CONFERENCE_REGISTER: 'the people who hire in your field are in the room, and a ticket booked early costs less',
+  CONFERENCE_SUBMISSION: 'speaking, entering and presenting put your work in front of the people who hire',
+  CONFERENCE_TALK: 'a talk you gave is proof of your expertise that a CV cannot show',
   LEARNING_MODULE: 'a new skill makes you a stronger candidate for the roles you want',
   LEARNING_CERTIFICATE: 'a credential you can point to strengthens your resume and LinkedIn',
   LEARNING_NEW_TOOL: 'staying current on the tools employers use keeps you competitive',

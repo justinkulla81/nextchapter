@@ -4,6 +4,7 @@ import { getEmailReminders, getStaleContacts } from '@/lib/network/reminders'
 import { getNeedsFollowUpList, type NeedsFollowUpItem } from '@/lib/network/needs-follow-up'
 import { formatDisplayName } from '@/lib/format-name'
 import { upcomingConferenceItems } from '@/lib/conferences/queries'
+import { isFollowUpPrompt } from '@/lib/conferences/sprint'
 
 // Prompt 87 point 3 — ONE view over the four "this needs your attention"
 // signals that used to each live in their own place: starred contacts
@@ -74,8 +75,9 @@ export async function getUnifiedFollowUps(
       take: 5,
     }),
     getStaleContacts(candidateId),
-    // Deadlines, conference dates and who-you-met prompts. Fail-soft until the conference tables are applied.
-    upcomingConferenceItems(candidateId).catch(() => []),
+    // Only the people prompt ("log who you met") belongs in follow-ups: deadlines and dates live in the Weekly Search
+    // Sprint. Fail-soft until the conference tables are applied.
+    upcomingConferenceItems(candidateId).then((items) => items.filter(isFollowUpPrompt)).catch(() => []),
   ])
 
   const starredIds = new Set(starred.map((r) => r.contactId))

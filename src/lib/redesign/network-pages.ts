@@ -43,7 +43,7 @@ export function followUpWhy(kind: FollowUpKind): string {
     case 'stale-contact':
       return 'It has been a while since you spoke. A hello keeps the relationship warm.'
     case 'conference':
-      return 'A conference you track has a deadline, date or follow-up coming up.'
+      return 'You went to a conference and have not logged who you met. They go into your Contact Book so you can follow up.'
   }
 }
 
@@ -57,7 +57,7 @@ export function followUpActionLabel(kind: FollowUpKind): string {
     case 'unanswered-application':
       return 'Follow up'
     case 'conference':
-      return 'Open it'
+      return 'Log who you met'
   }
 }
 

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { signLink } from '@/lib/email/signed-links'
 import type { Outcome } from './headsup'
+import { setUserStatus } from '@/lib/conferences/tracking'
 
 /** One-click links in the check-in email. GET only confirms; POST records (mail scanners open every link). */
 export function outcomeUrl(appUrl: string, interestId: string, outcome: Outcome): string {
@@ -28,5 +29,22 @@ export async function applyOutcome(candidateId: string, eventId: string, outcome
     },
   })
   captureServerEvent(candidateId, 'conference_outcome_recorded', { eventId, outcome, attendedCount: row.attendedCount + (went ? 1 : 0), spokeCount: row.spokeCount + (outcome === 'SPOKE' ? 1 : 0) })
+  // Keep the member's Conferences tracking in step with how it went. Attending credits the Weekly Search Sprint;
+  // "I spoke" also goes into their speaking history, which feeds the Dossier. Fail-soft before the v2 tables exist.
+  await syncConferenceOutcome(candidateId, eventId, outcome, row.editionEnd).catch((error) => console.error('Failed to sync conference outcome:', error))
   return true
+}
+
+async function syncConferenceOutcome(candidateId: string, eventId: string, outcome: Outcome, editionEnd: Date | null) {
+  if (outcome === 'DID_NOT_GO') {
+    await setUserStatus(candidateId, eventId, 'TRACKING')
+    return
+  }
+  await setUserStatus(candidateId, eventId, 'ATTENDED')
+  if (outcome !== 'SPOKE') return
+  const series = await prisma.conferenceEvent.findUnique({ where: { id: eventId }, select: { name: true } })
+  const already = await prisma.conferenceTalk.findFirst({ where: { candidateId, seriesId: eventId, deliveredOn: editionEnd } })
+  if (series && !already) {
+    await prisma.conferenceTalk.create({ data: { candidateId, seriesId: eventId, kind: 'TALK', title: `Spoke at ${series.name}`, eventName: series.name, deliveredOn: editionEnd } })
+  }
 }

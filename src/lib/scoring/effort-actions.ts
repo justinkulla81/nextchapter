@@ -61,6 +61,8 @@ export const ENGAGEMENT_ACTION_TYPES: ReadonlySet<string> = new Set([
   'ENGAGE_EVENT',
   'ENGAGE_POST_UPDATE',
   'ENGAGE_PEER_SUPPORT',
+  // Registering for a conference is a first step; the proposal and the talk are work.
+  'CONFERENCE_REGISTER',
   // Fractional and interim work
   'INTERIM_PROFILE_CREATED',
   // Learning
@@ -76,6 +78,8 @@ export const ENGAGEMENT_MINUTES_PER_WEEK_CAP = 10
 // the materials that get interviews, and the first work from a platform.
 export const COUNTS_AS_EFFORT: ReadonlySet<string> = new Set([
   'CHECK_IN_NOTE_SENT',
+  'CONFERENCE_SUBMISSION',
+  'CONFERENCE_TALK',
   'CORE_NARRATIVE_COMPLETE',
   'COURSE_ENROLLED',
   'EMPLOYER_TAGGED',

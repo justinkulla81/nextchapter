@@ -22,6 +22,7 @@ import { reconcileVerifiedActions } from '@/lib/weekly/action-verification'
 import { isProfileChecklistActionType } from '@/lib/weekly/profile-checklist'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { syncFollowUpFromPlan } from '@/lib/coach/follow-up-sync'
+import { loadConferenceSuggestions } from '@/lib/conferences/sprint-data'
 
 export interface CommittedAction {
   text: string
@@ -414,6 +415,15 @@ async function getGeneralSuggestedActions(candidateId: string, weekNumber: numbe
       suggestions.push({ text: 'Follow up on a pending reference', actionType: 'REFERENCE_FOLLOW_UP' })
       usedTypes.add('REFERENCE_FOLLOW_UP')
     }
+  }
+
+  // Real dates and deadlines from the conferences the member follows: a proposal closing soon, a conference to
+  // register for, one to attend this week. Each is suggested only when the data says it is true today, and the
+  // Sprint credits it when the member actually does it (src/lib/conferences/sprint-credit.ts).
+  for (const s of await loadConferenceSuggestions(candidateId).catch(() => [])) {
+    if (usedTypes.has(s.actionType)) continue
+    suggestions.push({ text: s.text, actionType: s.actionType })
+    usedTypes.add(s.actionType)
   }
 
   // Says they like being visible (content, networking) but recent weeks
