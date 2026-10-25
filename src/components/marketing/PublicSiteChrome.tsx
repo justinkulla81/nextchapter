@@ -58,7 +58,7 @@ export function PublicSiteHeader({ current }: { current?: 'about' | 'contact' | 
 }
 
 /** The homepage's closing band and footer links, with About and Contact. */
-export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'careers' | 'ai-skills' | 'ai-training' | 'funding' }) {
+export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' | 'reports' | 'authors' | 'editorial' | 'layoffs' | 'benefits' | 'scam-watch' | 'careers' | 'ai-skills' | 'ai-training' | 'funding' | 'seo' }) {
   return (
     <footer className="bg-navy text-white">
       <div className="border-b border-white/10">
