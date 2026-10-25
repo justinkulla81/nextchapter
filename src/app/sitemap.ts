@@ -11,6 +11,7 @@ import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
+import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
 export const revalidate = 3600
@@ -69,6 +70,29 @@ const COMPARISONS_UPDATED = '2026-08-25'
 // /reports/replication mirrors the replication repository's README.
 const REPLICATION_UPDATED = '2026-10-07'
 
+// The board and college directories are refreshed from CareerOneStop and IPEDS about monthly.
+const DIRECTORY_UPDATED = '2026-10-25'
+
+async function loadSeoStatePages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
+  try {
+    const states = await getStatesWithBoards()
+    return await Promise.all(
+      states.map(async (s) => {
+        const slug = stateSlug(s.state)
+        const [boards, colleges] = await Promise.all([getStateBoards(s.state), getStateColleges(s.state)])
+        return [
+          entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
+          entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
+          ...(colleges.length ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
+          ...boards.map((b) => entry(`/workforce-boards/${slug}/${b.slug}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
+        ]
+      }),
+    )
+  } catch {
+    return []
+  }
+}
+
 const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), dates[0])
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -91,6 +115,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: freq,
     priority,
   })
+
+  const seoStatePages = await loadSeoStatePages(entry)
 
   return [
     // The homepage shows the latest News, so it changes when News does.
@@ -141,6 +167,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Unemployment benefits: dated by the last verification against sources.
     entry('/unemployment-benefits', UI_LAST_VERIFIED, 'monthly', 0.7),
     ...ALL_STATE_CODES.map((c) => entry(`/unemployment-benefits/${stateSlug(c)}`, UI_LAST_VERIFIED, 'monthly', 0.6)),
+
+    // Workforce boards, rapid response and higher education by state, and the WARN checker. Dated by the
+    // directory refresh, which is monthly; a database failure leaves these out rather than failing the sitemap.
+    entry('/workforce-boards', DIRECTORY_UPDATED, 'monthly', 0.6),
+    entry('/rapid-response', DIRECTORY_UPDATED, 'monthly', 0.6),
+    entry('/tools/warn-act-checker', DIRECTORY_UPDATED, 'yearly', 0.6),
+    ...seoStatePages.flatMap((p) => p),
 
     // Author pages.
     ...Object.keys(AUTHORS).map((slug) => entry(`/authors/${slug}`, latestOf([newestGuide, newestInsight, ...(newestReport ? [newestReport] : [])]), 'monthly', 0.4)),
