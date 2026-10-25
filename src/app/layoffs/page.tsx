@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
@@ -13,12 +14,7 @@ export const revalidate = 86400
 const DESCRIPTION =
   'WARN Act layoff notices filed with US state labor departments, collected daily: this year’s totals, the latest filings, and a page for every state and employer with a recent notice.'
 
-export const metadata: Metadata = {
-  title: 'Layoff tracker: WARN notices by state',
-  description: DESCRIPTION,
-  ...canonical('/layoffs'),
-  openGraph: { title: 'NextChapter layoff tracker: WARN notices by state', description: DESCRIPTION, type: 'website' },
-}
+export const metadata: Metadata = pageMetadata('/layoffs')
 
 const LINK = 'text-brand underline underline-offset-4'
 

@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -10,12 +11,7 @@ const TITLE = 'AI training for colleges, workforce boards and employers'
 const DESCRIPTION =
   'NextChapter, the leading job transition platform, measures the AI-skill gap for the people you serve and builds the short courses that close it, for the budgets and grants that already pay for training.'
 
-export const metadata: Metadata = {
-  title: { absolute: `${TITLE} | NextChapter` },
-  description: DESCRIPTION,
-  ...canonical('/ai-training'),
-  openGraph: { title: TITLE, description: DESCRIPTION, url: `${SITE_URL}/ai-training`, type: 'website' },
-}
+export const metadata: Metadata = pageMetadata('/ai-training')
 
 const BUILD = [
   { t: 'Gap analysis', d: 'For your alumni, participants or employees: which AI skills the jobs in their functions ask for and which are missing from their profiles. Counts only, never names, once at least 10 people are in view.' },

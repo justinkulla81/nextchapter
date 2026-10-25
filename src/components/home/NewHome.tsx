@@ -38,6 +38,24 @@ const FOOTER_LINKS = [
   { label: 'Terms', href: '/terms' },
 ]
 
+// Keyword-owning pages (docs/seo/keyword-map.md), linked from the footer so the homepage passes its weight to each topic.
+const TOPIC_LINKS = [
+  { label: 'Laid off', href: '/start/laid-off' },
+  { label: 'Layoff tracker', href: '/layoffs' },
+  { label: 'Unemployment benefits', href: '/unemployment-benefits' },
+  { label: 'Severance', href: '/topics/severance' },
+  { label: 'Job search', href: '/jobs' },
+  { label: 'Job search strategy', href: '/topics/job-search-strategy' },
+  { label: 'Resume tips', href: '/topics/resume-tips' },
+  { label: 'Career change', href: '/start/career-change' },
+  { label: 'Career pivot', href: '/topics/career-pivot' },
+  { label: 'Career exploration', href: '/topics/career-exploration' },
+  { label: 'Career coach', href: '/coaching' },
+  { label: 'Executive recruiters', href: '/topics/executive-recruiters' },
+  { label: 'Reverse recruiter', href: '/topics/reverse-recruiter' },
+  { label: 'Outplacement', href: '/outplacement' },
+]
+
 export function NewHome() {
   return (
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
@@ -118,7 +136,14 @@ export function NewHome() {
               Get your Market Reality Assessment
             </TrackedLink>
           </div>
-          <nav aria-label="Footer" className="mt-12 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-white/80">
+          <nav aria-label="Topics" className="mt-12 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-white/80">
+            {TOPIC_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className="underline-offset-4 hover:text-white hover:underline">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <nav aria-label="Footer" className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-white/80">
             {FOOTER_LINKS.map((l) => (
               <Link key={l.href} href={l.href} className="underline-offset-4 hover:text-white hover:underline">
                 {l.label}

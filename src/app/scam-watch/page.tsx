@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ShieldAlert, MailWarning, Link2, BellRing } from 'lucide-react'
@@ -6,12 +7,7 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { canonical } from '@/lib/seo/canonical'
 
-export const metadata: Metadata = {
-  ...canonical('/scam-watch'),
-  title: 'Fake recruiter scam watch',
-  description:
-    'Fake recruiters and fake job offers target people who are job hunting. NextChapter checks recruiter emails in your connected Gmail and tells you within minutes when one looks fake.',
-}
+export const metadata: Metadata = pageMetadata('/scam-watch')
 
 const jsonLd = {
   '@context': 'https://schema.org',

@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -17,7 +18,7 @@ const LICENSE = 'https://creativecommons.org/licenses/by/4.0/'
 const { lead: LEAD } = buildEarlyWarning()
 
 export function generateMetadata(): Metadata {
-  const title = 'Are young graduates the canary? Early-warning labor indicators | NextChapter'
+  const title = `${pageSeo('/reports/early-warning').title} | NextChapter`
   return {
     title: { absolute: title },
     description: LEAD,

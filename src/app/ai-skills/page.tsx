@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -18,12 +19,7 @@ const TITLE = 'AI skills in job postings: how common, and what they pay'
 const DESCRIPTION =
   'Which functions ask for AI skills, how much more those postings advertise, and what the research says about seniority. Measured on live U.S. job postings, with the limits stated.'
 
-export const metadata: Metadata = {
-  title: { absolute: `${TITLE} | NextChapter` },
-  description: DESCRIPTION,
-  ...canonical('/ai-skills'),
-  openGraph: { title: TITLE, description: DESCRIPTION, url: `${SITE_URL}/ai-skills`, type: 'article' },
-}
+export const metadata: Metadata = pageMetadata('/ai-skills')
 
 const longDate = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 

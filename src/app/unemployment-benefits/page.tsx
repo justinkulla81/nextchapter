@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
@@ -12,11 +13,7 @@ import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 const DESCRIPTION =
   'Unemployment benefits in every state and DC: the maximum and minimum weekly benefit, how many weeks, the waiting week, how severance counts, and where to file. From official Department of Labor and state sources.'
 
-export const metadata: Metadata = {
-  title: 'Unemployment benefits by state',
-  description: DESCRIPTION,
-  ...canonical('/unemployment-benefits'),
-}
+export const metadata: Metadata = pageMetadata('/unemployment-benefits')
 
 const LINK = 'text-brand underline underline-offset-4'
 

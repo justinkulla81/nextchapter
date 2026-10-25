@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
@@ -5,12 +6,7 @@ import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
 
-export const metadata: Metadata = {
-  title: 'Compare outplacement providers',
-  description:
-    'Honest, two-sided comparisons of NextChapter against LHH, Randstad RiseSmart, Careerminds, and INTOO — reporting, what participants keep, and where each is genuinely stronger.',
-  alternates: { canonical: '/vs' },
-}
+export const metadata: Metadata = pageMetadata('/vs')
 
 const jsonLd = {
   '@context': 'https://schema.org',

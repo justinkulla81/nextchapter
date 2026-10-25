@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
@@ -9,11 +10,7 @@ import { canonical } from '@/lib/seo/canonical'
 const DESCRIPTION =
   'Relocation grants, tuition aid, federal training money and free courses, ranked for you. Join NextChapter free and see the programs you qualify for, best fit first.'
 
-export const metadata: Metadata = {
-  title: 'Funding to relocate, retrain and reskill',
-  description: DESCRIPTION,
-  ...canonical('/funding'),
-}
+export const metadata: Metadata = pageMetadata('/funding')
 
 const action = 'inline-flex h-14 items-center rounded-full bg-action px-8 text-base font-semibold text-action-foreground hover:brightness-95'
 const fmt = (n: number) => n.toLocaleString('en-US')

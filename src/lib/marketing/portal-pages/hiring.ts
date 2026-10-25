@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
@@ -23,9 +24,7 @@ const roles = shot('hiring-roles', {
 
 export const HIRING: PortalPageDef = {
   seo: {
-    title: 'Hire candidates who show their evidence',
-    description:
-      'Post a role on NextChapter and see candidates who chose to be seen, matched on what they say they want, with an evidence brief for each. Name and contact stay private until the candidate agrees.',
+    ...pageSeo('/talent'),
     path: '/talent',
     image: { src: dashboard.src, width: dashboard.width, height: dashboard.height, alt: dashboard.alt },
   },

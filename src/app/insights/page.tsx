@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
@@ -5,12 +6,7 @@ import { Logo } from '@/components/Logo'
 import { StructuredData } from '@/components/StructuredData'
 import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 
-export const metadata: Metadata = {
-  title: 'Outplacement insights',
-  description:
-    'The questions to ask a vendor, why utilization reporting misses the point, and what happens to your account when the contract ends.',
-  alternates: { canonical: '/insights' },
-}
+export const metadata: Metadata = pageMetadata('/insights')
 
 const ARTICLES = INSIGHT_ARTICLES.map((a) => ({ href: `/insights/${a.slug}`, title: a.title, description: a.description }))
 

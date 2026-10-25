@@ -1,3 +1,4 @@
+import { rapidResponseStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   return {
-    title: `${d.name} layoff support for employers: rapid response and WARN`,
+    title: rapidResponseStateSeo(d.name).title,
     description: `Planning a layoff in ${d.name}? The federal WARN Act rules, the ${d.boards.length} local workforce ${d.boards.length === 1 ? 'board' : 'boards'} and ${d.centers.length} American Job Centers that help affected workers, and a free notice checker.`,
     ...canonical(`/rapid-response/${state}`),
   }
@@ -40,7 +41,7 @@ export default async function RapidResponseStatePage({ params }: { params: Promi
   return (
     <SeoPage
       trail={[{ name: 'Rapid response', path: '/rapid-response' }, { name: d.name, path: `/rapid-response/${state}` }]}
-      h1={`${d.name} layoff support for employers`}
+      h1={rapidResponseStateSeo(d.name).h1}
       lede={<>What an employer planning a layoff in {d.name} needs: the federal notice rules, the local workforce boards and American Job Centers that serve affected workers, and support for the people leaving.</>}
     >
       <section aria-labelledby="warn" className="mt-10">

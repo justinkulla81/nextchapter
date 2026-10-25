@@ -1,3 +1,4 @@
+import { fitDescription, unemploymentStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -53,8 +54,8 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   if (!code) return {}
   const name = stateName(code)
   return {
-    title: `${name} unemployment benefits`,
-    description: lead(name, STATE_UI[code]),
+    title: unemploymentStateSeo(name).title,
+    description: fitDescription(lead(name, STATE_UI[code])),
     ...canonical(`/unemployment-benefits/${state}`),
   }
 }
@@ -142,7 +143,7 @@ export default async function StateBenefitsPage({ params }: { params: Promise<{ 
           <span aria-hidden> › </span>
           <span className="text-foreground">{name}</span>
         </nav>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{name} unemployment benefits</h1>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{unemploymentStateSeo(name).h1}</h1>
         <p className="mt-4 text-lg leading-relaxed text-foreground">{lead(name, ui)}</p>
         <AuthorByline updated={UI_LAST_VERIFIED} />
         <p className="mt-1 text-sm text-muted-foreground">Last verified {formatContentDate(UI_LAST_VERIFIED)} against official sources.</p>

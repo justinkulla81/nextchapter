@@ -11,6 +11,7 @@ import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
+import { TOPICS } from '@/lib/seo/topics'
 import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
@@ -66,6 +67,8 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
 // /start/[persona] content lives in personas.ts; /vs/[competitor] in competitor-comparisons.ts.
 const PERSONAS_UPDATED = '2026-10-02'
 const COMPARISONS_UPDATED = '2026-08-25'
+
+const TOPICS_UPDATED = '2026-10-25'
 
 // /reports/replication mirrors the replication repository's README.
 const REPLICATION_UPDATED = '2026-10-07'
@@ -130,6 +133,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       : []),
     ...REPORT_EDITIONS.map((e) => entry(`/reports/${e.slug}`, e.updatedAt ?? e.publishedAt, 'monthly', 0.7)),
     entry('/reports/replication', REPLICATION_UPDATED, 'monthly', 0.5),
+
+    // Topic explainers: severance, resumes, job search strategy, career pivot, career exploration, recruiters.
+    entry('/topics', TOPICS_UPDATED, 'monthly', 0.6),
+    ...TOPICS.map((t) => entry(`/topics/${t.slug}`, t.updated, 'monthly', 0.7)),
 
     // Guides.
     entry('/resources', newestGuide, 'monthly', 0.5),

@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "seo:keyword-map": "tsx scripts/seo/keyword-map-md.ts",
     "seo:check-sitemap": "node scripts/check-sitemap-indexable.mjs",
     "mailing:auto-assign": "node --env-file=.env.local --conditions=react-server --import tsx scripts/mailing/auto-assign.ts",
     "careers:import-onet": "node --env-file=.env.local --conditions=react-server --import tsx scripts/careers/import-onet.ts",

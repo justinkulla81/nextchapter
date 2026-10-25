@@ -1,3 +1,5 @@
+import { fitDescription } from '@/lib/seo/templates'
+import { pageSeo } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -26,9 +28,9 @@ export function generateMetadata(): Metadata {
     : `The NextChapter White-Collar Long-Search Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100). A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
   return {
     title: {
-      absolute: 'White-Collar Long-Search Index | NextChapter',
+      absolute: `${pageSeo('/reports/white-collar-index').title} | NextChapter`,
     },
-    description,
+    description: fitDescription(description, 160),
     alternates: { canonical: `/reports/${SLUG}` },
     openGraph: {
       type: 'article',

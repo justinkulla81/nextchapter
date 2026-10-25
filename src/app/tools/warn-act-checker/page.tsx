@@ -1,14 +1,11 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { WarnActChecker } from '@/components/tools/WarnActChecker'
 import { canonical } from '@/lib/seo/canonical'
 
-export const metadata: Metadata = {
-  title: 'WARN Act checker: does your layoff need 60 days’ notice?',
-  description: 'A free calculator for employers. Enter your headcount and the number of jobs being cut to see whether federal WARN Act notice is likely required.',
-  ...canonical('/tools/warn-act-checker'),
-}
+export const metadata: Metadata = pageMetadata('/tools/warn-act-checker')
 
 const FAQ = [
   { q: 'Which employers does the WARN Act cover?', a: 'Generally employers with 100 or more full-time employees, or 100 or more employees who together work at least 4,000 hours a week, not counting overtime.' },

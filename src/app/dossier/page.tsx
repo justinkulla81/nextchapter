@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { StructuredData } from '@/components/StructuredData'
@@ -5,11 +6,7 @@ import { SampleDossier } from '@/components/marketing/SampleDossier'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { canonical } from '@/lib/seo/canonical'
 
-export const metadata = {
-  ...canonical('/dossier'),
-  title: 'The Executive Dossier',
-  description: 'What the Executive Dossier contains, who sees it, and what you keep — the whole product in one page.',
-}
+export const metadata = pageMetadata('/dossier')
 
 const jsonLd = {
   '@context': 'https://schema.org',
