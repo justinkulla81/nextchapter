@@ -43,6 +43,8 @@ export interface EmployerAccess {
   /** Sections held, in display order (Hiring, Employees, Outplacement). */
   sections: EmployerSectionKey[]
   grants: SectionGrant[]
+  /** Set when the new tables could not be read (not applied yet, or an error). Today's access is still complete. */
+  warnings?: string[]
 }
 
 export interface EmployerAccessInput {
@@ -53,6 +55,11 @@ export interface EmployerAccessInput {
 
 /** Only the read methods this function uses, so a caller (the diff script) can hand it a client that cannot write. */
 export type EmployerAccessDb = Pick<PrismaClient, 'employerProfile' | 'employerSeat' | 'outplacementOrgUser' | 'outplacementContract' | 'orgWorkspaceAdmin'>
+
+interface WorkspaceAdminRow {
+  role: string
+  workspace: { id: string; orgId: string; type: string; refId: string | null; plan: string; services: unknown; org: { enterprise: boolean } }
+}
 
 const WORKSPACE_TYPE_TO_SECTION: Record<string, EmployerSectionKey> = { HIRING: 'hiring', EMPLOYEES: 'employees', OUTPLACEMENT: 'outplacement' }
 const SEAT_ROLE_TO_HIRING_ROLE: Record<string, string> = { OWNER: 'ADMIN', MEMBER: 'VIEWER' }
@@ -104,16 +111,23 @@ export async function getEmployerAccess(input: EmployerAccessInput, db: Employer
   }
 
   // ── New, additive: OrgWorkspaceAdmin ─────────────────────────────────────
-  const rows = await db.orgWorkspaceAdmin.findMany({
-    where: {
-      OR: [{ userId }, ...(email ? [{ userId: null, email: { equals: email, mode: 'insensitive' as const } }] : [])],
-      workspace: { status: 'ACTIVE', type: { in: ['HIRING', 'EMPLOYEES', 'OUTPLACEMENT'] } },
-    },
-    select: {
-      role: true,
-      workspace: { select: { id: true, orgId: true, type: true, refId: true, plan: true, services: true, org: { select: { enterprise: true } } } },
-    },
-  })
+  let rows: WorkspaceAdminRow[] = []
+  const warnings: string[] = []
+  try {
+    rows = await db.orgWorkspaceAdmin.findMany({
+      where: {
+        OR: [{ userId }, ...(email ? [{ userId: null, email: { equals: email, mode: 'insensitive' as const } }] : [])],
+        workspace: { status: 'ACTIVE', type: { in: ['HIRING', 'EMPLOYEES', 'OUTPLACEMENT'] } },
+      },
+      select: {
+        role: true,
+        workspace: { select: { id: true, orgId: true, type: true, refId: true, plan: true, services: true, org: { select: { enterprise: true } } } },
+      },
+    })
+  } catch (e) {
+    // The new table is only ever a fallback and an addition. If it is missing or fails, today's access is still the answer.
+    warnings.push(`OrgWorkspaceAdmin not readable: ${e instanceof Error ? e.message.split('\n').pop() : 'unknown error'}`)
+  }
   for (const r of rows) {
     const section = WORKSPACE_TYPE_TO_SECTION[r.workspace.type]
     if (!section) continue
@@ -131,7 +145,7 @@ export async function getEmployerAccess(input: EmployerAccessInput, db: Employer
   }
 
   const held = new Set(grants.map((g) => g.section))
-  return { userId, sections: EMPLOYER_SECTION_ORDER.filter((s) => held.has(s)), grants }
+  return { userId, sections: EMPLOYER_SECTION_ORDER.filter((s) => held.has(s)), grants, ...(warnings.length ? { warnings } : {}) }
 }
 
 /** The grants a person holds in one section. Legacy grants come first, so the first one is the one today's checks give. */

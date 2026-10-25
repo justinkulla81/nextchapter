@@ -48,7 +48,18 @@ async function main() {
       userIds = [...new Set([...profiles, ...seats, ...orgUsers].map((r) => r.userId).filter((u): u is string => !!u))].sort()
       if (limit) userIds = userIds.slice(0, limit)
     }
-    const report = await runDiff(db, userIds, (userId) => getEmployerAccess({ userId }, db), (d, t) => !json && console.error(`checked ${d}/${t}`))
+    const warned = new Set<string>()
+    const report = await runDiff(
+      db,
+      userIds,
+      async (userId) => {
+        const a = await getEmployerAccess({ userId }, db)
+        for (const w of a.warnings ?? []) warned.add(w)
+        return a
+      },
+      (d, t) => !json && console.error(`checked ${d}/${t}`)
+    )
+    if (warned.size) console.error(`Warnings (the new tables could not be read; only today's access was compared): ${[...warned].join(' | ')}`)
     if (json) console.log(JSON.stringify(report, null, 2))
     else {
       console.log(`Users checked: ${report.usersChecked} (${report.usersWithAccess} hold a section today)`)
