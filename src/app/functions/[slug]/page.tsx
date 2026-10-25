@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
+import Link from 'next/link'
+import { LINK, JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, associationSlug, functionBySlug, JOB_FUNCTIONS } from '@/lib/seo/topics'
@@ -77,6 +78,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
           <Chips kind="function_to_employer" event="topic_link_clicked" items={jobs.employers.map((e) => ({ href: `/employers/${e.slug}`, label: e.name, detail: `${e.count.toLocaleString()} open` }))} />
         </Section>
       )}
+      <p className="mt-4 text-sm"><Link href={`/top-employers/${slug}`} className={LINK}>Ranked: the employers hiring the most {fn.name.toLowerCase()} jobs</Link></p>
       <Section id="conferences" title={`${fn.name} conferences`} note="Conferences organizers tag for this function. Many events are not tagged to a function yet, so this list is a floor.">
         <ConferenceList rows={confs.rows} total={confs.total} upcoming={confs.upcoming} source={`function:${slug}`} />
       </Section>

@@ -150,3 +150,9 @@ export async function employersInShard(shard: number): Promise<{ id: string; can
   )
   return rows
 }
+
+/** Ids of every company that has a public employer page (the sitemap rule), for lists that link to them. */
+export async function employerPageCompanyIds(): Promise<Set<string>> {
+  const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT c.id ${ELIGIBLE}`)
+  return new Set(rows.map((r) => r.id))
+}
