@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { canonicalCandidates, claimSlug } from '@/lib/org-claims/urls'
+import { canonicalCandidates, claimSlug, isSlugOverride } from '@/lib/org-claims/urls'
 import { PROSPECTS } from '@/lib/prospects/config'
 
 export interface ClaimableOrg {
@@ -22,7 +22,9 @@ export async function resolveClaimableOrg(slug: string): Promise<ClaimableOrg | 
     select: { id: true, name: true, canonicalNameNormalized: true, emailDomain: true, orgTypes: true },
   })
   // Two stored names that read to the same address ('a and b', 'a & b') are ambiguous: neither gets a page.
-  const matches = found.filter((o) => claimSlug(o.canonicalNameNormalized) === slug)
+  let matches = found.filter((o) => claimSlug(o.canonicalNameNormalized) === slug)
+  // A hand-picked address wins over a name that merely reads the same.
+  if (matches.length > 1) matches = matches.filter((o) => isSlugOverride(o.canonicalNameNormalized))
   if (matches.length !== 1) return null
   const org = matches[0]
   return { id: org.id, name: org.name, slug, emailDomain: org.emailDomain, orgTypes: org.orgTypes }
