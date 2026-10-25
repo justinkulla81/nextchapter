@@ -125,7 +125,7 @@ describe('senior overlay', () => {
     for (const m of allModes) {
       for (const k of SENIOR_PROMOTED) {
         const v = seniorItemVisibility(k, m, ON)
-        if (k === 'beFound') expect(v).toBe(itemVisibility(k, m))
+        if (k === 'beFound' || k === 'advisory') expect(v).toBe(itemVisibility(k, m))
         else expect(v).toBe('show')
       }
     }
