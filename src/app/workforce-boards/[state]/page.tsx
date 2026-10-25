@@ -100,7 +100,7 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> board and job center listings from CareerOneStop (U.S. Department of Labor); unemployment from the Bureau of Labor Statistics;
-        layoff notices from {d.name}’s published WARN record. For employers: <Link href={`/rapid-response/${stateSlug(d.code)}`} className={LINK}>rapid response and layoff support in {d.name}</Link>.
+        layoff notices from {d.name}’s published WARN record. <Link href={`/places/${state}`} className={LINK}>{d.name} by county and city</Link>. For employers: <Link href={`/rapid-response/${stateSlug(d.code)}`} className={LINK}>rapid response and layoff support in {d.name}</Link>.
       </p>
     </SeoPage>
   )

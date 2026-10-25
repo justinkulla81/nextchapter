@@ -5,6 +5,7 @@ import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
+import { getBoardCounties, placeUrl } from '@/lib/places/places'
 import { getBoardLabor, getStateBoards, getStateCenters, periodLabel, rateText } from '@/lib/seo/workforce-pages'
 
 export const revalidate = 86400
@@ -20,9 +21,10 @@ async function load(stateSlugParam: string, boardSlug: string) {
   const board = boards.find((b) => b.slug === boardSlug)
   if (!board) return null
   const [centers, labor] = await Promise.all([getStateCenters(code), getBoardLabor(board)])
+  const servedCounties = await getBoardCounties(board)
   const mine = centers.filter((c) => c.boardId === board.id)
   // A board with no linked centers falls back to the state's list, labeled as such.
-  return { code, name: stateName(code), board, labor, centers: mine.length ? mine : centers, centersAreLocal: mine.length > 0 }
+  return { code, name: stateName(code), board, servedCounties, labor, centers: mine.length ? mine : centers, centersAreLocal: mine.length > 0 }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ state: string; board: string }> }): Promise<Metadata> {
@@ -55,6 +57,17 @@ export default async function WorkforceBoardPage({ params }: { params: Promise<{
             <Stat value={rateText(d.labor)} label={`unemployment, ${periodLabel(d.labor.period)}`} note={d.labor.rateYearAgo != null ? `${d.labor.rateYearAgo.toFixed(1)}% a year earlier` : undefined} />
             <Stat value={d.labor.unemployed.toLocaleString()} label="people unemployed" />
             <Stat value={d.labor.laborForce.toLocaleString()} label="in the labor force" note={`${d.labor.counties} ${d.labor.counties === 1 ? 'county' : 'counties'}, BLS`} />
+          </ul>
+        </section>
+      )}
+
+      {d.servedCounties.length > 0 && (
+        <section aria-labelledby="counties" className="mt-12">
+          <h2 id="counties" className={H2}>Counties served</h2>
+          <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            {d.servedCounties.map((c) => (
+              <li key={c.fips}><Link href={placeUrl.county(state, c.slug)} className={LINK}>{c.name}</Link></li>
+            ))}
           </ul>
         </section>
       )}
@@ -93,7 +106,7 @@ export default async function WorkforceBoardPage({ params }: { params: Promise<{
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> CareerOneStop (U.S. Department of Labor) for the board and centers; Bureau of Labor Statistics for unemployment.{' '}
-        <Link href={`/workforce-boards/${state}`} className={LINK}>All {d.name} boards</Link>.
+        <Link href={`/workforce-boards/${state}`} className={LINK}>All {d.name} boards</Link>. <Link href={`/places/${state}`} className={LINK}>{d.name} by county and city</Link>.
       </p>
     </SeoPage>
   )

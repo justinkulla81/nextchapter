@@ -9,6 +9,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { TWELVE_MONTHS_MS, getPublicNotices, noticeDay } from '@/lib/warn/layoff-pages'
+import { getPlaceLinker, getStateCounties, placeUrl } from '@/lib/places/places'
 
 export const revalidate = 86400
 
@@ -50,6 +51,10 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
   const d = await load(state)
   if (!d) notFound()
 
+  const [linkPlace, counties] = await Promise.all([getPlaceLinker(d.code), getStateCounties(d.code)])
+  const placesWithPages = [...new Set(d.recent.map((n) => n.place))]
+    .map((place) => ({ place, href: linkPlace(place) }))
+    .filter((x): x is { place: string; href: string } => !!x.place && !!x.href)
   const workers = d.recent.reduce((s, n) => s + (n.workers ?? 0), 0)
   const figures = STATE_FIGURES[d.code]
   const earliest = d.all[d.all.length - 1].noticeDate
@@ -113,8 +118,22 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
           <section aria-labelledby="notices" className="mt-12">
             <h2 id="notices" className={H2}>Notices in the last 12 months</h2>
             <div className="mt-4">
-              <NoticeTable notices={d.recent} caption={`WARN notices filed in ${d.name}, newest first`} linkEmployer page="state" />
+              <NoticeTable notices={d.recent} caption={`WARN notices filed in ${d.name}, newest first`} linkEmployer page="state" placeHref={linkPlace} />
             </div>
+          </section>
+
+          <section aria-labelledby="local" className="mt-12">
+            <h2 id="local" className={H2}>{d.name} layoffs by county and city</h2>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              Each county and city page shows its layoff notices next to local unemployment, open jobs, the largest employers, colleges,
+              the workforce board and job centers.
+            </p>
+            <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
+              {placesWithPages.map(({ place, href }) => (
+                <li key={place}><Link href={href} className={LINK}>{place}</Link></li>
+              ))}
+              <li><Link href={placeUrl.state(state)} className={LINK}>All {d.name} counties and cities ({counties.length} counties)</Link></li>
+            </ul>
           </section>
 
           <section aria-labelledby="boards" className="mt-12">

@@ -55,6 +55,8 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
           <Link href={`/layoffs/${state}`} className={LINK}>{d.name} layoff notices</Link>
           {' · '}
           <Link href={`/workforce-boards/${state}`} className={LINK}>{d.name} workforce boards</Link>
+          {' · '}
+          <Link href={`/places/${state}`} className={LINK}>{d.name} by county and city</Link>
         </p>
       </section>
 
