@@ -2,8 +2,9 @@ import { orgSlug } from '@/lib/crm/org-slug'
 
 export const SITE_URL = 'https://launchyournextchapter.com'
 
-/** Hand-picked page addresses for names that cannot be turned into a slug (the stored name 'merck &' is "Merck & Co" with the suffix stripped). */
-const SLUG_OVERRIDES: Record<string, string> = { 'merck &': 'merck-and-co' }
+/** Hand-picked page addresses for names that cannot be turned into a slug (the stored name 'merck &' is "Merck & Co" with the suffix stripped; 'owens &amp minor' is the record the people are attached to, a duplicate of the clean 'owens & minor'). */
+const SLUG_OVERRIDES: Record<string, string> = { 'merck &': 'merck-and-co', 'owens &amp minor': 'owens-and-minor' }
+export const isSlugOverride = (canonical: string): boolean => canonical in SLUG_OVERRIDES
 const CANONICAL_FOR_OVERRIDE = new Map(Object.entries(SLUG_OVERRIDES).map(([c, s]) => [s, c]))
 
 /** The address for an organization's page. Like orgSlug, but an ampersand reads as "and" (owens-and-minor). Null when the name still is not safe. */
