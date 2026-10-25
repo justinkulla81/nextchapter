@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { canonicalFromSlug, orgSlug } from '@/lib/crm/org-slug'
+import { canonicalCandidates, claimSlug } from '@/lib/org-claims/urls'
 import { PROSPECTS } from '@/lib/prospects/config'
 
 export interface ClaimableOrg {
@@ -17,10 +17,13 @@ export interface ClaimableOrg {
  */
 export async function resolveClaimableOrg(slug: string): Promise<ClaimableOrg | null> {
   if (PROSPECTS[slug] || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null
-  const org = await prisma.crmOrganization.findUnique({
-    where: { canonicalNameNormalized: canonicalFromSlug(slug) },
+  const found = await prisma.crmOrganization.findMany({
+    where: { canonicalNameNormalized: { in: canonicalCandidates(slug) } },
     select: { id: true, name: true, canonicalNameNormalized: true, emailDomain: true, orgTypes: true },
   })
-  if (!org || orgSlug(org.canonicalNameNormalized) !== slug) return null
+  // Two stored names that read to the same address ('a and b', 'a & b') are ambiguous: neither gets a page.
+  const matches = found.filter((o) => claimSlug(o.canonicalNameNormalized) === slug)
+  if (matches.length !== 1) return null
+  const org = matches[0]
   return { id: org.id, name: org.name, slug, emailDomain: org.emailDomain, orgTypes: org.orgTypes }
 }
