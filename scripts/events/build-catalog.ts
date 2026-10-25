@@ -10,6 +10,7 @@ import { normalizeRow } from '../../src/lib/events/normalize'
 
 const DIR = join(__dirname, '../../data/events')
 const out = new Map<string, Record<string, unknown>>()
+const byNumber = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
 let dropped = 0
 const files: string[] = []
 const walk = (d: string) => {
@@ -43,7 +44,8 @@ for (const f of files) {
 let dropped2 = 0, published2 = 0, jump = 0
 const reviewDir = join(DIR, 'review')
 if (existsSync(reviewDir)) {
-  for (const f of readdirSync(reviewDir).filter((x) => x.endsWith('.json')).sort()) {
+  // Numeric order (chunk-2 before chunk-10, and chunk-16 after chunk-7) so a later decision always wins.
+  for (const f of readdirSync(reviewDir).filter((x) => x.endsWith('.json')).sort(byNumber)) {
     const decisions = JSON.parse(readFileSync(join(reviewDir, f), 'utf8')) as { id: string; action: string; reason?: string; patch?: Record<string, unknown> }[]
     for (const d of decisions) {
       const cur = out.get(d.id)
@@ -65,12 +67,12 @@ if (existsSync(reviewDir)) {
 let patched = 0
 const patchDir = join(DIR, 'patches')
 if (existsSync(patchDir)) {
-  for (const f of readdirSync(patchDir).filter((x) => x.endsWith('.json')).sort()) {
+  for (const f of readdirSync(patchDir).filter((x) => x.endsWith('.json')).sort(byNumber)) {
     for (const d of JSON.parse(readFileSync(join(patchDir, f), 'utf8')) as { id: string; patch: Record<string, unknown> }[]) {
       const cur = out.get(d.id)
       if (!cur || !d.patch) continue
-      // Only price and access fields can be patched this way; a patch never changes what is published.
-      const allowed = ['costLow', 'costHigh', 'costNote', 'cheaperWays', 'access', 'applyUrl', 'applyDeadline'] as const
+      // Only price, access and link fields can be patched this way; a patch never changes what is published.
+      const allowed = ['costLow', 'costHigh', 'costNote', 'cheaperWays', 'access', 'applyUrl', 'applyDeadline', 'url'] as const
       const merged: Record<string, unknown> = { ...cur }
       for (const k of allowed) if (k in d.patch) merged[k] = d.patch[k]
       const { row } = normalizeRow({ ...merged, verified: cur.verified })

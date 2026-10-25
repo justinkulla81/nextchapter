@@ -122,3 +122,21 @@ export function matchEvents(events: ConferenceRow[], facts: MemberEventFacts, fi
   }
   return out.sort((a, b) => b.score - a.score || (a.event.startDate?.getTime() ?? Infinity) - (b.event.startDate?.getTime() ?? Infinity) || a.event.name.localeCompare(b.event.name))
 }
+
+/** An event added after this date is "new" to members; earlier events were all added at launch and are not announced. */
+export const NEW_EVENT_SINCE_DEFAULT = '2026-10-26T00:00:00Z'
+const NEW_EVENT_MIN_SCORE = 5
+const NEW_EVENT_MAX = 3
+
+/**
+ * New conferences worth telling this member about: added since `since`, not already announced to them, not one they
+ * saved, matching their field closely enough, and still ahead of them (next dates in the next 14 months, or a usual month).
+ */
+export function newEventsFor(events: ConferenceRow[], facts: MemberEventFacts, since: Date, announced: ReadonlySet<string>, savedIds: ReadonlySet<string>, now = new Date()): EventMatch[] {
+  const fresh = events.filter((e) => e.published && e.url && e.createdAt && e.createdAt >= since && !announced.has(e.id) && !savedIds.has(e.id))
+  const horizon = now.getTime() + 14 * 30 * 86_400_000
+  return matchEvents(fresh, facts, {}, now)
+    .filter((m) => m.score >= NEW_EVENT_MIN_SCORE)
+    .filter((m) => !m.event.startDate || !m.event.datesConfirmed || m.event.startDate.getTime() <= horizon)
+    .slice(0, NEW_EVENT_MAX)
+}
