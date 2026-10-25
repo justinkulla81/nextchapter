@@ -145,6 +145,12 @@ export default async function CrmPeopleQueuePage({
         </nav>
       </header>
 
+      <div className="flex flex-wrap gap-2 text-sm" aria-label="What is waiting">
+        <SummaryChip count={followUps.filter((f) => f.date < now).length} label="overdue" tone="critical" />
+        <SummaryChip count={followUps.filter((f) => f.date >= now).length} label="coming up" tone="warning" />
+        <SummaryChip count={priorityPeople.filter((p) => !p.lastTouchedAt).length} label="priority people never contacted" tone="good" />
+      </div>
+
       {totalItems === 0 && (
         <div className="rounded-lg border border-dashed border-border p-8 text-center">
           <p className="font-medium">Nothing needs you this morning.</p>
@@ -207,6 +213,15 @@ export default async function CrmPeopleQueuePage({
 const TONE = { critical: 'border-destructive/50', warning: 'border-orange/50', good: 'border-brand/50', muted: 'border-border' } as const
 
 function Band({ tone, title, count, empty, children }: { tone: keyof typeof TONE; title: string; count: number; empty: string; children: React.ReactNode }) {
+  // Nothing in it: one quiet line, so the bands with real work stay in view.
+  if (count === 0) {
+    return (
+      <p className="flex items-baseline gap-2 text-sm text-muted-foreground">
+        <span className={`inline-block h-2 w-2 rounded-sm border-2 ${TONE[tone]}`} aria-hidden />
+        <span className="font-medium text-foreground">{title}</span> · {empty}
+      </p>
+    )
+  }
   return (
     <section>
       <h2 className="flex items-baseline gap-2 text-lg font-semibold">
@@ -263,5 +278,20 @@ function Row({
         </div>
       </div>
     </li>
+  )
+}
+
+const CHIP_TONE = {
+  critical: 'border-destructive/50 bg-destructive/5',
+  warning: 'border-orange/50 bg-orange/10',
+  good: 'border-brand/40 bg-brand/5',
+} as const
+
+/** A count of one kind of thing waiting. Coloured when there is something, quiet when there is not. */
+function SummaryChip({ count, label, tone }: { count: number; label: string; tone: keyof typeof CHIP_TONE }) {
+  return (
+    <span className={`rounded-full border px-3 py-1 ${count > 0 ? CHIP_TONE[tone] : 'border-border text-muted-foreground'}`}>
+      <span className="font-semibold tabular-nums">{count}</span> {label}
+    </span>
   )
 }
