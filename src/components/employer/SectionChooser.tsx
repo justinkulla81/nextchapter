@@ -1,4 +1,5 @@
 import { Briefcase, LifeBuoy, Sprout } from 'lucide-react'
+import { SectionEntry } from '@/components/employer/SectionSwitcher'
 import { EMPLOYER_SECTIONS, type EmployerSection, type EmployerSectionKey } from '@/lib/employer/sections'
 
 const ICONS: Record<EmployerSectionKey, typeof Briefcase> = { hiring: Briefcase, employees: Sprout, outplacement: LifeBuoy }
@@ -7,6 +8,8 @@ export interface ChooserEntry {
   key: EmployerSectionKey
   href: string
   action: string
+  /** Signed in: a CSRF token, so the button opens the section through the sign-in bridge (it signs the person in to that section if needed). */
+  csrf?: string
 }
 
 function SectionCard({ section, entry }: { section: EmployerSection; entry: ChooserEntry }) {
@@ -20,9 +23,14 @@ function SectionCard({ section, entry }: { section: EmployerSection; entry: Choo
         <p className="text-sm text-muted-foreground">{section.blurb}</p>
       </div>
       {section.key === 'employees' && <p className="text-sm text-muted-foreground">{section.services.map((s) => s.label).join(', ')}</p>}
-      <a href={entry.href} className="mt-auto inline-flex w-fit rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
-        {entry.action}
-      </a>
+      <div className="mt-auto">
+        <SectionEntry
+          item={{ key: entry.key, label: section.label, href: entry.href, csrf: entry.csrf }}
+          bridge={!!entry.csrf}
+          label={entry.action}
+          className="inline-flex w-fit rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+        />
+      </div>
     </li>
   )
 }

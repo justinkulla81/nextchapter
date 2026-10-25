@@ -17,7 +17,7 @@ export function readOnlyDb<T extends object>(client: T): T {
     get(target, prop, receiver) {
       if (typeof prop !== 'string') return Reflect.get(target, prop, receiver)
       if (prop.startsWith('$')) {
-        if (prop === '$disconnect') return Reflect.get(target, prop, receiver).bind(target)
+        if (prop === '$disconnect') return (Reflect.get(target, prop, receiver) as (...a: unknown[]) => unknown).bind(target)
         return () => {
           throw new ReadOnlyViolation(prop)
         }
