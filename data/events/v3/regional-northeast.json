@@ -1,0 +1,1497 @@
+[
+ {
+  "id": "njlm-annual-conference",
+  "name": "New Jersey State League of Municipalities Annual Conference",
+  "organizer": "New Jersey State League of Municipalities",
+  "url": "https://conference.njlm.org/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-17",
+  "endDate": "2026-11-19",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Atlantic City",
+  "state": "NJ",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Mayors, administrators, clerks and engineers from New Jersey's 564 municipalities plus 700+ exhibiting vendors, the state's main local-government marketplace.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Official site says registration is open but lists no fees; session proposal portal is closed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Session proposal page was closed when checked.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "City and county government",
+   "Public procurement and contracting"
+  ],
+  "roles": [
+   "city manager",
+   "municipal clerk",
+   "public works director",
+   "procurement officer"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nysba-annual-meeting",
+  "name": "New York State Bar Association Annual Meeting",
+  "organizer": "New York State Bar Association",
+  "url": "https://nysba.org/am2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-19",
+  "endDate": "2027-01-22",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "New York's largest lawyer gathering: section meetings, CLE, a Tech Summit and the House of Delegates, with the state's bar leaders and judges in the hallway.",
+  "access": "PAID",
+  "costLow": 150,
+  "costHigh": 595,
+  "costNote": "General registration $150 NYSBA member early bird (to Nov 2), $250 after, $395 non-member; All Access Pass $595; CLE programs extra ($195 to $225).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Page lists no call for speakers; sections program their own CLE.",
+  "cheaperWays": "Member early-bird $150 general registration.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Corporate, M&A and securities",
+   "In-house counsel"
+  ],
+  "roles": [
+   "attorney",
+   "litigator",
+   "in-house counsel"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "njea-convention",
+  "name": "NJEA Convention",
+  "organizer": "New Jersey Education Association",
+  "url": "https://njeaconvention.njea.org/",
+  "kind": "CONFERENCE",
+  "format": "HYBRID",
+  "startDate": "2026-11-05",
+  "endDate": "2026-11-06",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Atlantic City",
+  "state": "NJ",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Tens of thousands of New Jersey teachers and school staff attend hundreds of workshops, with the state's education vendors and union leaders on site.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration is by NJEA member PIN; no price stated. Virtual attendance requires preregistration.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Workshops are presented by members and invited presenters; no call page found.",
+  "cheaperWays": "Virtual attendance with keynote livestream is offered.",
+  "applyUrl": "https://njeaconvention.njea.org/2026/09/13/register-for-the-2026-njea-convention/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "K-12 teachers",
+   "K-12 school leadership"
+  ],
+  "roles": [
+   "teacher",
+   "school counselor",
+   "school librarian"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "mha-annual-meeting-ma",
+  "name": "Massachusetts Health & Hospital Association Annual Meeting",
+  "organizer": "Massachusetts Health & Hospital Association",
+  "url": "https://www.mhalink.org/event/mhas-annual-meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-14",
+  "endDate": "2027-01-14",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Massachusetts hospital CEOs, trustees and health policy leaders gather for the state hospital association's annual meeting.",
+  "access": "PAID",
+  "costLow": 399,
+  "costHigh": 799,
+  "costNote": "Early bird $399 members, $799 non-members; tables of 8 available.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No speaker process listed; speakers named by MHA.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Hospital and health system leadership"
+  ],
+  "roles": [
+   "hospital ceo",
+   "health system executive",
+   "hospital trustee"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "mma-connect-351",
+  "name": "MMA Connect 351 (Annual Meeting & Trade Show)",
+  "organizer": "Massachusetts Municipal Association",
+  "url": "https://www.mma.org/connect-351/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-21",
+  "endDate": "2027-01-23",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Selectboard members, mayors, town managers and department heads from Massachusetts' 351 cities and towns, plus a trade show of vendors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Attendee registration opens Oct 1; fees not published in the source read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.mma.org/connect-351/workshop-suggestion-form/",
+  "speakingDeadline": null,
+  "speakingNote": "Workshop topic suggestions accepted through an online form.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "City and county government",
+   "Economic development and planning"
+  ],
+  "roles": [
+   "town manager",
+   "selectboard member",
+   "mayor",
+   "department head"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "msba-legal-summit",
+  "name": "MSBA Legal Summit & Annual Meeting",
+  "organizer": "Maryland State Bar Association",
+  "url": "https://www.msba.org/site/site/content/Education-and-Events/2027-MSBA-Legal-Summit-Call-for-Programs.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-09",
+  "endDate": "2027-06-11",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Ocean City",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Maryland lawyers, judges and bar leaders at the state bar's three-day summer meeting by the beach.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not published yet; a $795 Passport membership includes free registration to the Legal Summit.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.msba.org/site/site/content/Education-and-Events/2027-MSBA-Legal-Summit-Call-for-Programs.aspx",
+  "speakingDeadline": "2026-12-01",
+  "speakingNote": "Program proposals from the Maryland legal community; selections notified about Dec 18.",
+  "cheaperWays": "Passport membership bundles free multi-day events.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "attorney",
+   "litigator"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "connecticut-legal-conference",
+  "name": "Connecticut Legal Conference",
+  "organizer": "Connecticut Bar Association",
+  "url": "https://www.ctbar.org/events-education/upcoming-special-events/clc",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-08",
+  "endDate": "2027-06-08",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Hartford",
+  "state": "CT",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The Connecticut Bar Association's annual day of CLE, networking and its annual meeting, drawing lawyers from every practice area in the state.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed on the page read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://www.ctbar.org/events-education/upcoming-special-events/clc",
+  "speakingDeadline": null,
+  "speakingNote": "Site menu links a Become a Speaker page; terms not read.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Corporate, M&A and securities"
+  ],
+  "roles": [
+   "attorney"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "selectusa-investment-summit",
+  "name": "SelectUSA Investment Summit",
+  "organizer": "U.S. Department of Commerce",
+  "url": "https://www.selectusasummit.us",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-02",
+  "endDate": "2027-05-05",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "National Harbor",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector",
+   "Professional Services & Consulting"
+  ],
+  "functions": [
+   "Executive Leadership",
+   "Sales"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 1,
+  "whyAttend": "The federal government's flagship foreign direct investment event: state and metro economic developers meet global companies choosing where to invest in the US.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Super Early Bird ends Dec 21, 2026; amounts on the application page, not read.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.selectusasummit.us",
+  "speakingDeadline": null,
+  "speakingNote": "Site links a Call for Speakers application.",
+  "cheaperWays": null,
+  "applyUrl": "https://www.selectusasummit.us",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development director",
+   "site selector"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "philly-tech-week",
+  "name": "Philly Tech Week",
+  "organizer": "1Philadelphia",
+  "url": "https://phillytechweek.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-03",
+  "endDate": "2027-05-08",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Philadelphia",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Six days and about 100 community events across Philadelphia with founders, engineers and employers like Comcast, Google and Wharton.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Cart shows $0; individual events set their own tickets.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://phillytechweek.com",
+  "speakingDeadline": null,
+  "speakingNote": "Anyone can host an event through the Host Event page.",
+  "cheaperWays": "Mostly free community events.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Startup founders and operators",
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "software engineer",
+   "founder",
+   "product manager"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE",
+   "ENTREPRENEUR",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "massbio-state-of-possible",
+  "name": "MassBio State of Possible Conference",
+  "organizer": "MassBio",
+  "url": "https://www.massbio.org/annual-state-of-possible-conference/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-08",
+  "endDate": "2027-04-08",
+  "datesConfirmed": true,
+  "typicalMonth": "April",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "MassBio's annual meeting: 600+ life sciences executives and investors with the governor and headline biotech CEOs.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices not listed yet.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "No 2027 speaker process listed.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Biotech business and investing",
+   "Drug discovery and R&D"
+  ],
+  "roles": [
+   "biotech executive",
+   "business development"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "hanys-annual-conference",
+  "name": "HANYS Annual Membership Conference",
+  "organizer": "Healthcare Association of New York State",
+  "url": "https://www.hanys.org/annual_meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Saratoga Springs",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "New York hospital and health system leaders meet at the state association's flagship three-day event.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ended June 24-26 at the Saratoga Hilton; site says check back in 2027.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Hospital and health system leadership"
+  ],
+  "roles": [
+   "hospital executive",
+   "health system ceo"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "virginia-realtors-annual-convention",
+  "name": "Virginia REALTORS Annual Convention",
+  "organizer": "Virginia REALTORS",
+  "url": "https://virginiarealtors.org/education-events/event-dates/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-09-21",
+  "endDate": "2027-09-23",
+  "datesConfirmed": true,
+  "typicalMonth": "September",
+  "city": "Woodford",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Construction & Real Estate"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Virginia agents, brokers and association leaders for education, expo and statewide networking.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not listed on the dates page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Residential real estate and brokerage"
+  ],
+  "roles": [
+   "real estate agent",
+   "broker"
+  ],
+  "journeys": [
+   "GROWING",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "njsba-annual-meeting",
+  "name": "NJSBA Annual Meeting and Convention",
+  "organizer": "New Jersey State Bar Association",
+  "url": "https://njsba.com/meetings-events/annual-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-19",
+  "endDate": "2027-05-21",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Atlantic City",
+  "state": "NJ",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "New Jersey's biggest lawyer convention: CLE, exhibitors and bar leadership at the shore.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": "https://njsba.com/meetings-events/annual-meeting/",
+  "speakingDeadline": null,
+  "speakingNote": "NJSBA says it will announce when proposals are accepted.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-25",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Corporate, M&A and securities"
+  ],
+  "roles": [
+   "attorney"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "vml-annual-conference",
+  "name": "Virginia Municipal League Annual Conference",
+  "organizer": "Virginia Municipal League",
+  "url": "https://www.vml.org/Opportunities/2026-Annual-Conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Norfolk",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "About 1,000 Virginia local officials, staff, speakers and vendors each fall.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fees not published on the 2026 page; 2026 edition was Oct 11-13 in Norfolk.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "town manager",
+   "city clerk",
+   "mayor"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "pasa-psba-school-leadership-conference",
+  "name": "PASA-PSBA School Leadership Conference",
+  "organizer": "Pennsylvania Association of School Administrators and Pennsylvania School Boards Association",
+  "url": "https://www.pasa-net.org/index.asp",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Poconos",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Superintendents, school board members and administrators from across Pennsylvania meet in one joint conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Oct 18-20 at Kalahari Resorts; 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "K-12 school leadership",
+   "Education policy and school districts"
+  ],
+  "roles": [
+   "superintendent",
+   "school board member",
+   "principal"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "pa-chamber-annual-dinner",
+  "name": "PA Chamber Annual Dinner",
+  "organizer": "Pennsylvania Chamber of Business and Industry",
+  "url": "https://www.pachamber.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Hershey",
+  "state": "PA",
+  "country": "US",
+  "industries": [],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Pennsylvania business owners and executives with the governor and legislators at the chamber's signature evening.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition Oct 5 at Hershey Lodge; tables and sponsorships mainly.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Small business operations and growth"
+  ],
+  "roles": [
+   "business owner",
+   "executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "pennsylvania-bar-association-annual-meeting",
+  "name": "Pennsylvania Bar Association Annual Meeting",
+  "organizer": "Pennsylvania Bar Association",
+  "url": "https://www.pabar.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Pennsylvania lawyers and judges at the state bar's annual meeting; 2026 was in Pittsburgh May 6-8.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Dates and pricing for 2027 not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Litigation and trial"
+  ],
+  "roles": [
+   "attorney"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "maryland-nonprofits-annual-conference",
+  "name": "Maryland Nonprofits Annual Conference (MANOAC)",
+  "organizer": "Maryland Nonprofits",
+  "url": "https://marylandnonprofits.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Linthicum Heights",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Maryland nonprofit directors, development staff and funders at the state nonprofit association's conference.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2025 edition Oct 8-9; site links a MANOAC26 page not opened.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Nonprofit leadership and boards",
+   "Fundraising and development"
+  ],
+  "roles": [
+   "executive director",
+   "development director"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "mass-nonprofit-network-conference",
+  "name": "Mass Nonprofit Network Annual Conference",
+  "organizer": "Mass Nonprofit Network",
+  "url": "https://www.massnonprofit.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Worcester",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Massachusetts nonprofit leaders; the 2025 edition was held Oct 22 at the DCU Center in Worcester.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 or 2027 details not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Nonprofit leadership and boards"
+  ],
+  "roles": [
+   "executive director",
+   "board member"
+  ],
+  "journeys": [
+   "GROWING",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "mba-vba-annual-convention",
+  "name": "MBA|VBA Annual Convention (Maryland and Virginia Bankers)",
+  "organizer": "Maryland Bankers Association and Virginia Bankers Association",
+  "url": "https://www.vabankers.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Hot Springs",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Community bank CEOs and directors from Maryland and Virginia; 2026 was June 7-10 at the Homestead.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 details not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Community and regional banking"
+  ],
+  "roles": [
+   "bank ceo",
+   "bank director"
+  ],
+  "journeys": [
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "nysut-representative-assembly",
+  "name": "NYSUT Representative Assembly",
+  "organizer": "New York State United Teachers",
+  "url": "https://www.nysut.org/about/representative-assembly",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Albany",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR"
+  ],
+  "importance": 3,
+  "whyAttend": "Union delegates elect NYSUT officers and set policy; 2026 was May 1-2 in Albany.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Delegates only.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "K-12 teachers"
+  ],
+  "roles": [
+   "teacher",
+   "union delegate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "mta-annual-meeting-of-delegates",
+  "name": "MTA Annual Meeting of Delegates",
+  "organizer": "Massachusetts Teachers Association",
+  "url": "https://www.massteacher.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-14",
+  "endDate": "2027-05-15",
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Boston",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Elected delegates of the Massachusetts teachers union set policy at the Hynes; 2027 dates from a third-party listing only.",
+  "access": "INVITE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Delegates only.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "K-12 teachers"
+  ],
+  "roles": [
+   "teacher",
+   "union delegate"
+  ],
+  "journeys": []
+ },
+ {
+  "id": "macpa-mid-atlantic-coastal-conference",
+  "name": "MACPA Mid-Atlantic Coastal Conference",
+  "organizer": "Maryland Association of CPAs",
+  "url": "https://macpa.org/featured-events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Ocean City",
+  "state": "MD",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [
+   "Finance"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Maryland and neighboring-state CPAs for CPE and networking; 2026 was June 22-24.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 details not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Public accounting",
+   "Tax"
+  ],
+  "roles": [
+   "cpa",
+   "tax accountant"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "pa-pharmacists-annual-conference",
+  "name": "Pennsylvania Pharmacists Association Annual Conference",
+  "organizer": "Pennsylvania Pharmacists Association",
+  "url": "https://members.papharmacists.com/events/EventDetails.aspx?id=1952207",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-05",
+  "endDate": "2027-02-07",
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Harrisburg",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Pennsylvania pharmacists at the Harrisburg Hilton; details still to come.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Details not published.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Pharmacy"
+  ],
+  "roles": [
+   "pharmacist"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "ny-tech-week",
+  "name": "Tech Week New York",
+  "organizer": "a16z",
+  "url": "https://www.tech-week.com/calendar/nyc",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "New York",
+  "state": "NY",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Venture Capital & Private Equity"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "City-wide week of founder and investor events; 2026 ran June 1-7 with Boston the week before.",
+  "access": "FREE",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Most events free via sign-up; individual hosts vary.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Startup founders and operators",
+   "Venture capital"
+  ],
+  "roles": [
+   "founder",
+   "engineer"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "EXPLORING_MOVE",
+   "CAREER_CHANGE"
+  ]
+ },
+ {
+  "id": "nvtc-cyber-summit",
+  "name": "NVTC Cyber Summit & Cyber50 Awards",
+  "organizer": "Northern Virginia Technology Council",
+  "url": "https://www.nvtc.org/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-28",
+  "endDate": "2026-10-28",
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Reston",
+  "state": "VA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Northern Virginia cyber leaders and government-adjacent contractors; the council lists member discounts up to 25%.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not listed on home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Members get up to 25% off.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Cybersecurity"
+  ],
+  "roles": [
+   "ciso",
+   "security engineer"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "pittsburgh-cio-tech-titan-awards",
+  "name": "Pittsburgh CIO of the Year & Tech Titan Awards",
+  "organizer": "Pittsburgh Technology Council",
+  "url": "https://www.pghtech.org/events/2026CIO_Year",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Pittsburgh",
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Pittsburgh CIOs, CISOs and CTOs with the Technology Council and local CIO groups; 2026 edition was April 16.",
+  "access": "PAID",
+  "costLow": 230,
+  "costHigh": 550,
+  "costNote": "2026 pricing: members $230 to $300, non-members $435 to $550 by timing.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "IT leadership and operations"
+  ],
+  "roles": [
+   "cio",
+   "cto",
+   "ciso"
+  ],
+  "journeys": [
+   "PROMOTION",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "njbia-public-policy-forum",
+  "name": "NJBIA Public Policy Forum",
+  "organizer": "New Jersey Business & Industry Association",
+  "url": "https://njbia.org/gov-mikie-sherrill-to-keynote-njbias-public-policy-forum-on-friday/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "January",
+  "city": "Princeton",
+  "state": "NJ",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [
+   "Executive Leadership"
+  ],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "New Jersey business leaders and legislators; 2026 edition Jan 30 at the Princeton Marriott at Forrestal.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price not stated.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "government relations",
+   "business executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "massachusetts-library-association-conference",
+  "name": "Massachusetts Library Association Annual Conference",
+  "organizer": "Massachusetts Library Association",
+  "url": "https://www.masslib.org/schedule.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Massachusetts",
+  "state": "MA",
+  "country": "US",
+  "industries": [
+   "Media & Entertainment",
+   "Education & EdTech"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Massachusetts librarians and library vendors; the 2026 conference was in mid-May.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Details not found.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Libraries and information science"
+  ],
+  "roles": [
+   "librarian"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "pa-homecare-association-annual-conference",
+  "name": "Pennsylvania Homecare Association Annual Conference",
+  "organizer": "Pennsylvania Homecare Association",
+  "url": "https://pahomecare.org/education/annual-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": null,
+  "city": null,
+  "state": "PA",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Pennsylvania home care agency owners and clinicians; official page returned 403.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Not read.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": "official domain search",
+  "segments": [
+   "Long-term care and senior living"
+  ],
+  "roles": [
+   "home care administrator"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ }
+]

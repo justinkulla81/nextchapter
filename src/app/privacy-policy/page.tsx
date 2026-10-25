@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'October 20, 2026'
+const EFFECTIVE_DATE = 'October 25, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -116,6 +116,16 @@ export default function PrivacyPolicyPage() {
               this permission from members, and it gives no access to any member&apos;s documents.
             </li>
           </ul>
+          <h3 className="text-lg font-semibold text-navy">We never write to your Google account</h3>
+          <p>
+            Your Google connection is read-only. Through it, we never create, change, send, or
+            delete anything in your Gmail or Calendar: we never send email from your address, and
+            we never add, edit, or remove events on your calendar. The permissions we ask members
+            for cannot do those things, and we never ask members for permission to write to Google.
+            When a feature suggests something that belongs on your calendar, such as a conference
+            deadline, we show it to you or give you a file to download, and you choose whether to
+            add it yourself.
+          </p>
           <h3 className="text-lg font-semibold text-navy">What Google data we keep</h3>
           <p>
             We read message content only to classify it, and we don&apos;t store email bodies or

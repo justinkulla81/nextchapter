@@ -8,12 +8,12 @@ import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { SeatUtilizationMockup } from '@/components/marketing/SeatUtilizationMockup'
 
 export const metadata: Metadata = {
-  title: 'Why your outplacement report says nothing',
+  title: 'What your outplacement report should show',
   description:
-    'Outplacement is usually measured by utilization — logins, sessions completed — not by what a participant actually produced. Here is why that gap matters, and what to ask for instead.',
+    'Utilization (logins, sessions completed) is not the same as what a participant produced. Here is why that gap matters, and what to ask your provider to report.',
   alternates: { canonical: '/insights/outplacement-reporting' },
   openGraph: {
-    title: 'Why your outplacement report says nothing',
+    title: 'What your outplacement report should show',
     description: 'Utilization isn’t outcome. What to ask your provider to report instead.',
     url: 'https://launchyournextchapter.com/insights/outplacement-reporting',
     type: 'article',
@@ -22,12 +22,8 @@ export const metadata: Metadata = {
 
 const ARTICLE = insight('outplacement-reporting')
 
-// Partners Master Build Script §D2.7's third category-narrative piece,
-// carrying the argument named there: "outplacement is measured wrong...
-// the industry sells access and reports on utilization. Nobody reports on
-// what the participant produced." No placement-rate or speed claim
-// anywhere in this file — §C1.3 / §D3 boundary — see the phase report's
-// grep check.
+// Makes no claim about how the industry reports or about any vendor: only what a report should show and what
+// NextChapter does (docs/COMPETITIVE_CLAIMS_SUBSTANTIATION.md, rows VS-1 and VS-3). No placement-rate or speed claim.
 export default function OutplacementReportingArticlePage() {
   const jsonLd = articleJsonLd({
     headline: ARTICLE.title,
@@ -57,42 +53,40 @@ export default function OutplacementReportingArticlePage() {
 
       <main className="mx-auto w-full max-w-3xl px-6 py-16">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Why your outplacement report says nothing
+          What your outplacement report should show
         </h1>
         <AuthorByline updated={ARTICLE.lastUpdated} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
           <p className="font-medium">
-            Most outplacement reports measure utilization — logins and sessions completed — not what participants produced. Ask your provider to report outcomes instead: a resume that passes an applicant tracking system, references ready to speak, and a clear list of target companies.
+            A report that counts logins and sessions completed shows use, not what participants produced. Ask your provider what it reports beyond use: a resume that passes an applicant tracking system, references ready to speak, and a clear list of target companies.
           </p>
           <p>
-            Most outplacement reporting measures utilization: how many participants logged in, how many
-            sessions they completed, how many resources they opened. Utilization is easy to measure and easy
-            to report, which is probably why it&apos;s what most vendors report. It is also not the same thing
-            as an outcome. A participant can complete every session on a curriculum and still not have a
+            Utilization is how many participants logged in, how many sessions they completed, how many
+            resources they opened. It is easy to measure and report. It is not the same thing as an
+            outcome. A participant can complete every session on a curriculum and still not have a
             resume that passes an applicant tracking system, a set of references ready to speak on their
             behalf, or a clear sense of what companies to target.
           </p>
           <p>
-            The industry sells access — a coach, a portal, a job board — and reports on whether that access
-            was used. Almost nobody reports on what the participant actually produced with it: a scored,
-            structured view of where their search stands and what specifically is holding it back.
+            Access to a coach, a portal or a job board is one thing; what the participant produced with it
+            is another. When you evaluate a provider, ask whether its report shows where each search stands
+            and what is holding it back, or just whether the access was used.
           </p>
           <p>
             This isn&apos;t a claim about how fast anyone gets hired — we don&apos;t have outcome data to make
             that claim yet, and we won&apos;t make it until we do. It&apos;s a claim about what gets measured
-            in the meantime, and whether &ldquo;62% logged in this month&rdquo; tells an HR buyer anything
-            useful about whether the program is working.
+            in the meantime, and whether a figure such as &ldquo;62% logged in this month&rdquo; (an example, not a
+            real number) tells an HR buyer whether the program is working.
           </p>
         </div>
 
         <div className="mt-10">
           <h2 className="text-xl font-bold tracking-tight text-navy">What we report instead</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Every NextChapter candidate is scored across the same competency model — targeting, resume signal,
-            networking, applications, and more. Employers see aggregate results across their cohort, live, not
-            a quarterly summary of logins. They never see an individual&apos;s grade or activity — that
-            boundary is contractual.
+            NextChapter gives the employer a live roster of enrolled people and their status, aggregate
+            outcomes for the program, and a printable quarterly review. Aggregates need a group of at least
+            10, and no individual&apos;s activity, grade or usage is shown to the employer.
           </p>
           <div className="mt-4">
             <SeatUtilizationMockup />

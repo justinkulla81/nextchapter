@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/admin/auth'
-import { listOpenBoardBids } from '@/lib/bids/queries'
+import { listCompetitorAwards, listOpenBoardBids, loadCrossRefs } from '@/lib/bids/queries'
 import { BoardBidsView } from '@/components/admin/BidViews'
 
 export const maxDuration = 30
@@ -14,5 +14,6 @@ export default async function BoardBidsPage() {
   } catch {
     missing = true
   }
-  return <BoardBidsView rows={rows} missing={missing} />
+  const refs = missing ? undefined : (await loadCrossRefs(await listCompetitorAwards({ limit: 1500 }).catch(() => []), rows).catch(() => null))?.refs
+  return <BoardBidsView rows={rows} missing={missing} refs={refs} />
 }
