@@ -10,6 +10,7 @@ import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
 import { CrmEmailChart, type EmailDay } from '@/components/admin/CrmEmailChart'
 import { priorityTierClass } from '@/lib/crm/labels'
 import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
+import { GroupHeading } from '@/components/admin/Collapsible'
 import { loadPromptCards } from '@/lib/mailing/prompt-cards'
 import { MailingPromptQueue } from '@/components/admin/mailing/MailingPromptQueue'
 
@@ -216,6 +217,15 @@ export default async function CrmHomePage({
   // the offset; rows outside the listed days are simply not plotted.
   const chartStart = new Date(Math.max(CRM_ACTIVITY_CUTOFF.getTime(), now.getTime() - (CHART_DAYS + 1) * DAY))
   const weekAgo = new Date(now.getTime() - WEEK_DAYS * DAY)
+
+  const endOfToday = new Date(now)
+  endOfToday.setHours(23, 59, 59, 999)
+  // What is waiting on you right now: the same simple definitions the nav badges use.
+  const [todosDue, peopleFollowUps, companyFollowUps] = await Promise.all([
+    prisma.crmTask.count({ where: { status: 'OPEN', dueAt: { lte: endOfToday } } }),
+    prisma.crmPerson.count({ where: { nextFollowUpAt: { lt: now }, deletedAt: null } }),
+    prisma.crmOpportunity.count({ where: { outcome: 'OPEN', OR: [{ committedFollowUpAt: { lt: now } }, { nextStepDueAt: { lt: now } }] } }),
+  ])
 
   const [stats0, feedRows, inviteRows, signupData, possibleSignups, mailingPrompts] = await Promise.all([
     getHomeStats(chartStart, weekAgo),
@@ -430,93 +440,63 @@ export default async function CrmHomePage({
 
       <CrmSyncHealthAlert />
 
-      {possibleSignups.length > 0 && (
-        <Link
-          href="/support/admin/crm/needs-completion"
-          className="flex items-center gap-2 rounded-lg border border-emerald-400/50 bg-emerald-50 px-3 py-2 text-sm hover:border-emerald-500 dark:bg-emerald-950/40"
-        >
-          <span className="rounded-full bg-emerald-200 px-1.5 py-0.5 text-xs font-semibold text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200">
-            {possibleSignups.length}
-          </span>
-          <span>
-            {possibleSignups.length === 1
-              ? `${possibleSignups[0].matchedName ?? 'Someone you invited'} may have signed up — review on the Review List`
-              : 'new sign-ups may be people already in your CRM — review on the Review List'}
-          </span>
-        </Link>
-      )}
-
-      {needsReviewCount > 0 && (
-        <Link
-          href="/support/admin/crm/needs-review"
-          className="flex items-center gap-2 rounded-lg border border-orange/40 bg-orange/5 px-3 py-2 text-sm hover:border-orange"
-        >
-          <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-xs font-semibold text-orange">
-            {needsReviewCount}
-          </span>
-          <span>
-            outbound {needsReviewCount === 1 ? 'email doesn\u2019t' : 'emails don\u2019t'} mention NextChapter and
-            {needsReviewCount === 1 ? ' needs' : ' need'} review before counting as outreach
-          </span>
-          <span className="ml-auto font-medium text-orange">Review →</span>
-        </Link>
-      )}
-
-      {mailingPrompts && mailingPrompts.cards.length > 0 && (
-        <section className="space-y-2">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-base font-semibold">
-              Add to a mailing list? <span className="text-sm font-normal text-muted-foreground">{mailingPrompts.total}</span>
-            </h2>
-            <Link href="/support/admin/crm/mailing/queue" className="text-sm font-medium text-brand hover:underline">
-              See all{mailingPrompts.total > mailingPrompts.cards.length ? ` ${mailingPrompts.total}` : ''} and answer several at once →
-            </Link>
-          </div>
-          <MailingPromptQueue cards={mailingPrompts.cards} lists={mailingPrompts.lists} compact />
-        </section>
-      )}
-
-      <section className="rounded-lg border border-border bg-card p-4">
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-base font-semibold">Outreach per day</h2>
-          <p className="text-sm text-muted-foreground">
-            Last 7 days: <span className="font-medium tabular-nums text-foreground">{sentWeek + invitesWeek}</span> total ·{' '}
-            <span className="font-medium tabular-nums text-foreground">{sentWeek}</span> emails sent ·{' '}
-            <span className="font-medium tabular-nums text-foreground">{invitesWeek}</span> invites
-          </p>
+      <section className="space-y-3">
+        <GroupHeading tone="action">Needs you today</GroupHeading>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <NeedCard href="/support/admin/crm/todos" count={todosDue} label="To-dos due" none="Nothing due today" />
+          <NeedCard href="/support/admin/crm/queue/people" count={peopleFollowUps} label="People to follow up with" none="No one overdue" />
+          <NeedCard href="/support/admin/crm/queue" count={companyFollowUps} label="Companies to follow up with" none="No company overdue" />
         </div>
-        <CrmEmailChart days={days} />
-      </section>
+        {possibleSignups.length > 0 && (
+          <Link
+            href="/support/admin/crm/needs-completion"
+            className="flex items-center gap-2 rounded-lg border border-emerald-400/50 bg-emerald-50 px-3 py-2 text-sm hover:border-emerald-500 dark:bg-emerald-950/40"
+          >
+            <span className="rounded-full bg-emerald-200 px-1.5 py-0.5 text-xs font-semibold text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200">
+              {possibleSignups.length}
+            </span>
+            <span>
+              {possibleSignups.length === 1
+                ? `${possibleSignups[0].matchedName ?? 'Someone you invited'} may have signed up — review on the Review List`
+                : 'new sign-ups may be people already in your CRM — review on the Review List'}
+            </span>
+          </Link>
+        )}
 
-      <section aria-label="Stats" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => {
-          const main = (
-            <>
-              <p className="text-xs text-muted-foreground">
-                {s.tone ? <span className={`rounded px-1.5 py-0.5 font-semibold ${s.tone}`}>{s.label}</span> : s.label}
-              </p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums">{s.value}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{s.hint}</p>
-            </>
-          )
-          // A card with a second number links each number to its own list.
-          return s.sub ? (
-            <div key={s.label} className="flex items-end justify-between gap-3 rounded-lg border border-border bg-card p-3 hover:border-brand">
-              <Link href={s.href} className="min-w-0 hover:underline">{main}</Link>
-              <Link href={s.sub.href} className="text-right hover:underline">
-                <p className="text-2xl font-semibold tabular-nums">{s.sub.value}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{s.sub.label}</p>
+        {needsReviewCount > 0 && (
+          <Link
+            href="/support/admin/crm/needs-review"
+            className="flex items-center gap-2 rounded-lg border border-orange/40 bg-orange/5 px-3 py-2 text-sm hover:border-orange"
+          >
+            <span className="rounded-full bg-orange/20 px-1.5 py-0.5 text-xs font-semibold text-orange">
+              {needsReviewCount}
+            </span>
+            <span>
+              outbound {needsReviewCount === 1 ? 'email doesn\u2019t' : 'emails don\u2019t'} mention NextChapter and
+              {needsReviewCount === 1 ? ' needs' : ' need'} review before counting as outreach
+            </span>
+            <span className="ml-auto font-medium text-orange">Review →</span>
+          </Link>
+        )}
+
+        {mailingPrompts && mailingPrompts.cards.length > 0 && (
+          <section className="space-y-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-base font-semibold">
+                Add to a mailing list? <span className="text-sm font-normal text-muted-foreground">{mailingPrompts.total}</span>
+              </h2>
+              <Link href="/support/admin/crm/mailing/queue" className="text-sm font-medium text-brand hover:underline">
+                See all{mailingPrompts.total > mailingPrompts.cards.length ? ` ${mailingPrompts.total}` : ''} and answer several at once →
               </Link>
             </div>
-          ) : (
-            <Link key={s.label} href={s.href} className="rounded-lg border border-border bg-card p-3 hover:border-brand">
-              {main}
-            </Link>
-          )
-        })}
+            <MailingPromptQueue cards={mailingPrompts.cards} lists={mailingPrompts.lists} compact />
+          </section>
+        )}
+
       </section>
 
-      <section>
+      <section className="space-y-3">
+        <GroupHeading tone="history">Recent activity</GroupHeading>
         <div className="mb-2 flex items-baseline justify-between gap-2">
           <h2 className="text-lg font-semibold">Activity <span className="text-sm font-normal text-muted-foreground">· emails, invites and sign-ups</span></h2>
           {before && (
@@ -632,6 +612,66 @@ export default async function CrmHomePage({
           </div>
         )}
       </section>
+
+      <section className="space-y-3">
+        <GroupHeading>At a glance</GroupHeading>
+        <section className="rounded-lg border border-border bg-card p-4">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-base font-semibold">Outreach per day</h2>
+            <p className="text-sm text-muted-foreground">
+              Last 7 days: <span className="font-medium tabular-nums text-foreground">{sentWeek + invitesWeek}</span> total ·{' '}
+              <span className="font-medium tabular-nums text-foreground">{sentWeek}</span> emails sent ·{' '}
+              <span className="font-medium tabular-nums text-foreground">{invitesWeek}</span> invites
+            </p>
+          </div>
+          <CrmEmailChart days={days} />
+        </section>
+
+        <section aria-label="Stats" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((s) => {
+            const main = (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  {s.tone ? <span className={`rounded px-1.5 py-0.5 font-semibold ${s.tone}`}>{s.label}</span> : s.label}
+                </p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums">{s.value}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{s.hint}</p>
+              </>
+            )
+            // A card with a second number links each number to its own list.
+            return s.sub ? (
+              <div key={s.label} className="flex items-end justify-between gap-3 rounded-lg border border-border bg-card p-3 hover:border-brand">
+                <Link href={s.href} className="min-w-0 hover:underline">{main}</Link>
+                <Link href={s.sub.href} className="text-right hover:underline">
+                  <p className="text-2xl font-semibold tabular-nums">{s.sub.value}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{s.sub.label}</p>
+                </Link>
+              </div>
+            ) : (
+              <Link key={s.label} href={s.href} className="rounded-lg border border-border bg-card p-3 hover:border-brand">
+                {main}
+              </Link>
+            )
+          })}
+        </section>
+
+      </section>
+
     </div>
+  )
+}
+
+/** One thing that is waiting on you, with how many, linking to where you deal with it. Warm when there is something to do. */
+function NeedCard({ href, count, label, none }: { href: string; count: number; label: string; none: string }) {
+  const waiting = count > 0
+  return (
+    <Link
+      href={href}
+      className={`rounded-lg border p-3 hover:border-brand ${waiting ? 'border-orange/50 bg-orange/10' : 'border-border bg-card'}`}
+    >
+      <p className="text-2xl font-semibold tabular-nums">{count}</p>
+      <p className="text-sm font-medium">{label}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{waiting ? 'Open the list →' : none}</p>
+    </Link>
   )
 }

@@ -85,6 +85,32 @@ export function BoardBidsView({ rows, missing, refs }: { rows: Awaited<ReturnTyp
 
 const money = (n: number) => (n >= 1_000_000_000 ? `$${(n / 1_000_000_000).toFixed(1)}B` : n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M` : `$${Math.round(n).toLocaleString('en-US')}`)
 
+/** One line per competitor that has won something: how many awards and how much, biggest first. */
+function WinnersTable({ entries }: { entries: [string, Awaited<ReturnType<typeof listCompetitorAwards>>][] }) {
+  const rows = entries
+    .map(([name, awards]) => ({ name, count: awards.length, total: awards.reduce((t, a) => t + a.amount, 0), workforce: awards.filter(awardIsWorkforce).reduce((t, a) => t + a.amount, 0), latest: awards.reduce<Date | null>((d, a) => (a.startDate && (!d || a.startDate > d) ? a.startDate : d), null) }))
+    .sort((a, b) => b.total - a.total)
+  return (
+    <section className="overflow-x-auto rounded-lg border border-border">
+      <h2 className="border-b border-border bg-muted/30 px-3 py-2 text-sm font-semibold">Who has won, and how much ({rows.length} competitors · {money(rows.reduce((t, r) => t + r.total, 0))} in total)</h2>
+      <table className="w-full text-sm">
+        <thead><tr className="border-b border-border text-left text-xs text-muted-foreground"><th className="px-3 py-1.5 font-medium">Competitor</th><th className="px-3 py-1.5 text-right font-medium">Awards</th><th className="px-3 py-1.5 text-right font-medium">Total won</th><th className="px-3 py-1.5 text-right font-medium">Of which workforce</th><th className="px-3 py-1.5 font-medium">Latest start</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.name} className="border-b border-border last:border-0">
+              <td className="px-3 py-1.5 font-medium">{r.name}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums">{r.count}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums">{money(r.total)}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums">{r.workforce > 0 ? money(r.workforce) : '—'}</td>
+              <td className="px-3 py-1.5 text-xs text-muted-foreground">{r.latest ? formatDate(r.latest) : '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  )
+}
+
 function Block({ entries, refs, cardIds }: { entries: [string, Awaited<ReturnType<typeof listCompetitorAwards>>][]; refs?: CrossRefs; cardIds?: Record<string, string> }) {
   return (
     <div className="space-y-4">
@@ -150,7 +176,7 @@ export function CompetitorWinsView({ rows, missing, refs, cardIds }: { rows: Awa
         <p className="rounded-lg border border-border bg-muted/30 p-3 text-sm">The bid tables are not applied yet. Run <code>prisma/manual/bid-finder.sql</code>.</p>
       ) : (
         <>
-          {exact.length === 0 ? <p className="text-sm text-muted-foreground">No wins found yet. The first pass fills this in.</p> : <Block entries={exact} refs={refs} cardIds={cardIds} />}
+          {exact.length === 0 ? <p className="text-sm text-muted-foreground">No wins found yet. The first pass fills this in.</p> : <><WinnersTable entries={exact} /><h2 className="text-sm font-semibold">Every award, by competitor</h2><Block entries={exact} refs={refs} cardIds={cardIds} /></>}
           {review.length > 0 && (
             <details className="rounded-lg border border-border p-3">
               <summary className="cursor-pointer text-sm font-medium">Name looks similar — confirm before relying on it ({review.length} competitors)</summary>

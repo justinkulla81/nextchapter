@@ -8,6 +8,7 @@ import { SEGMENT_LABEL } from '@/lib/search-firms/match'
 import { PITCH_DRAFTS, SUBMIT_SEARCH_PATH, wordCount } from '@/lib/search-firms/pitches'
 import { SearchFirmReviewRow } from '@/components/search-firms/SearchFirmReviewRow'
 import { setSearchRequestStatus } from './actions'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 60
 
@@ -70,7 +71,7 @@ export default async function SearchFirmsPage({ searchParams }: { searchParams: 
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Searches sent in ({requests.length})</h2>
+        <SectionTitle>Searches sent in ({requests.length})</SectionTitle>
         {requests.length === 0 ? (
           <p className="text-sm text-muted-foreground">None yet. They arrive from {SUBMIT_SEARCH_PATH}; no reply is emailed automatically.</p>
         ) : (
@@ -107,7 +108,7 @@ export default async function SearchFirmsPage({ searchParams }: { searchParams: 
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Pitch drafts — for approval, not sent</h2>
+        <SectionTitle>Pitch drafts — for approval, not sent</SectionTitle>
         <div className="grid gap-4 lg:grid-cols-3">
           {PITCH_DRAFTS.map((p) => (
             <div key={p.segment} className="space-y-2 rounded-lg border border-border p-4 text-sm">
@@ -125,7 +126,7 @@ export default async function SearchFirmsPage({ searchParams }: { searchParams: 
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Firms ({rows.length})</h2>
+          <SectionTitle>Firms ({rows.length})</SectionTitle>
           <a href={exportHref} className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">
             Download CSV
           </a>

@@ -4,6 +4,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { candidateUnsubscribeUrl } from '@/lib/email/signed-links'
 import { captureServerEvent } from '@/lib/posthog/server'
 import ConferenceHeadsUpEmail from '@/emails/conference-heads-up'
+import ConferenceNewEventsEmail from '@/emails/conference-new-events'
+import { SPEAKING_LABEL, type Speaking } from './types'
+import type { EventMatch } from './match'
 import { prisma } from '@/lib/prisma'
 import { costLabel, whenLabel, whereLabel } from './format'
 import { STAGE_SUBJECT, type Stage } from './headsup'
@@ -13,6 +16,8 @@ import type { ConferenceRow } from './types'
 export interface FollowUp { interestId: string; attendedCount: number; spokeCount: number; outcome: string | null }
 
 const STEPS: Record<Stage, (e: ConferenceRow, f?: FollowUp) => string[]> = {
+  // NEW_EVENT is sent by sendNewEventsDigest, which builds its own list.
+  NEW_EVENT: () => [],
   CHECK_IN: () => ['Did you go? One tap tells us, and we will tell you when next year\u2019s dates are announced, early enough to ask about speaking and to book.', 'If you spoke, say so below. That helps us find the right panels and organizers for you next time.'],
   NEXT_EDITION: (e, f) => [
     f && (f.spokeCount > 0 || f.outcome === 'SPOKE') ? 'You spoke here before. Propose again early: organizers remember returning speakers.' : 'Ask the organizer about speaking or a panel now. Slots are chosen months ahead.',
@@ -107,4 +112,46 @@ export async function sendTestHeadsUp(to: string, firstName: string | null, whic
     }),
   })
   return !error
+}
+
+/** One email naming up to 3 events added since launch that fit the member. Each event is recorded so it is announced once. */
+export async function sendNewEventsDigest(candidate: { id: string; userId: string; firstName: string | null }, matches: EventMatch[]): Promise<boolean> {
+  if (!process.env.RESEND_API_KEY || matches.length === 0) return false
+  const admin = createAdminClient()
+  const { data } = await admin.auth.admin.getUserById(candidate.userId)
+  const to = data.user?.email
+  if (!to) return false
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // Record first, one row per event: a concurrent run hits the unique key and stops, so nobody is told twice.
+  const recorded: string[] = []
+  for (const m of matches) {
+    try {
+      await prisma.conferenceNudge.create({ data: { candidateId: candidate.id, eventId: m.event.id, stage: 'NEW_EVENT', edition: '' } })
+      recorded.push(m.event.id)
+    } catch {
+      /* already announced to this member */
+    }
+  }
+  const sending = matches.filter((m) => recorded.includes(m.event.id))
+  if (sending.length === 0) return false
+  const items = sending.map((m) => ({
+    name: m.event.name, url: m.event.url!, when: whenLabel(m.event), where: whereLabel(m.event), cost: costLabel(m.event).replace(/\.?$/, '.'),
+    speaking: SPEAKING_LABEL[m.event.speaking as Speaking] ?? '', why: m.why,
+  }))
+  const headline = sending.length === 1 ? STAGE_SUBJECT.NEW_EVENT(sending[0].event.name) : `${sending.length} new conferences for you: ${sending.map((m) => m.event.name).slice(0, 2).join(', ')}${sending.length > 2 ? ' and more' : ''}`
+  const resend = createResend(process.env.RESEND_API_KEY)
+  const { error } = await resend.emails.send({
+    from: 'NextChapter <support@launchyournextchapter.com>',
+    replyTo: 'support@launchyournextchapter.com',
+    to,
+    subject: headline,
+    react: ConferenceNewEventsEmail({ firstName: candidate.firstName, headline, events: items, planUrl: `${appUrl}/dashboard/network/events`, unsubscribeUrl: candidateUnsubscribeUrl(appUrl, candidate.id, 'weekly') }),
+  })
+  if (error) {
+    await prisma.conferenceNudge.deleteMany({ where: { candidateId: candidate.id, eventId: { in: recorded }, stage: 'NEW_EVENT' } })
+    console.error('New-events email failed', error)
+    return false
+  }
+  captureServerEvent(candidate.id, 'conference_new_events_sent', { eventIds: sending.map((m) => m.event.id), count: sending.length })
+  return true
 }

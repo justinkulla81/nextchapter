@@ -6,6 +6,7 @@ import { CrmTokenCreator } from '@/components/admin/CrmTokenCreator'
 import { CrmTokenRegenerateButton } from '@/components/admin/CrmTokenRegenerateButton'
 import { revokeCaptureToken } from './actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 
@@ -36,7 +37,7 @@ export default async function CrmCaptureTokensPage() {
       <CrmTokenCreator />
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Tokens ({live.length} active)</h2>
+        <SectionTitle>Tokens ({live.length} active)</SectionTitle>
         {tokens.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
             None yet. Create one above, then paste it into the extension.

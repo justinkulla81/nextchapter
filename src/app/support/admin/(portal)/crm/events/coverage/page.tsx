@@ -4,6 +4,7 @@ import { listEvents } from '@/lib/events/store'
 import { INDUSTRIES, TAXONOMY, cellCount } from '@/lib/events/taxonomy'
 import { SENIORITIES, SENIORITY_LABEL } from '@/lib/events/types'
 import { PRIMARY_FUNCTION_OPTIONS } from '@/lib/constants/onboarding'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 
@@ -41,7 +42,7 @@ export default async function EventCoveragePage() {
       ) : (
         <>
           <section className="space-y-2">
-            <h2 className="text-lg font-semibold">By function and level</h2>
+            <SectionTitle>By function and level</SectionTitle>
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-border text-left text-xs text-muted-foreground"><th className="p-2">Function</th><th className="p-2">All</th>{SENIORITIES.map((s) => <th key={s} className="p-2">{SENIORITY_LABEL[s]}</th>)}</tr></thead>
@@ -65,7 +66,7 @@ export default async function EventCoveragePage() {
             const industryRows = live.filter((r) => r.industries.includes(ind))
             return (
               <section key={ind} className="space-y-2">
-                <h2 className="text-lg font-semibold">{ind} <span className="text-sm font-normal text-muted-foreground">({industryRows.length} events)</span></h2>
+                <SectionTitle>{ind} <span className="text-sm font-normal text-muted-foreground">({industryRows.length} events)</span></SectionTitle>
                 <ul className="divide-y divide-border rounded-lg border border-border">
                   {Object.entries(TAXONOMY[ind]).map(([seg, roles]) => {
                     const n = inSegment(seg).length

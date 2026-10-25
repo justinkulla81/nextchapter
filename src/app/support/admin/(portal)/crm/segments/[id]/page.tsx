@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SectionTitle } from '@/components/admin/Collapsible'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -58,46 +59,9 @@ export default async function CrmSegmentDetailPage({ params }: { params: Promise
         </p>
       )}
 
-      <section>
-        <h2 className="mb-2 text-lg font-semibold">Recipients ({live.length})</h2>
-        <ul className="max-h-96 overflow-auto rounded-lg border border-border divide-y divide-border text-sm">
-          {live.map((r) => (
-            <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-2.5">
-              <span className="min-w-0">
-                <Link href={`/support/admin/crm/people/${r.id}`} className="font-medium hover:underline">{r.fullName}</Link>
-                {r.org && <span className="ml-1.5 text-xs text-muted-foreground">{r.org}</span>}
-                <span className="block truncate text-xs text-muted-foreground">{r.email}</span>
-              </span>
-              <form action={excludeFromSegment.bind(null, id, r.id)}>
-                <SubmitButton size="sm" variant="outline" pendingLabel="Removing…">Remove</SubmitButton>
-              </form>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {excluded.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-lg font-semibold">Removed ({excluded.length})</h2>
-          <p className="mb-2 text-sm text-muted-foreground">
-            Kept with the segment, so a removal is not lost the next time it re-evaluates.
-          </p>
-          <ul className="rounded-lg border border-border divide-y divide-border text-sm">
-            {excluded.map((r) => (
-              <li key={r.id} className="flex items-center justify-between gap-2 p-2.5">
-                <span className="text-muted-foreground">{r.fullName} — {r.email}</span>
-                <form action={includeInSegment.bind(null, id, r.id)}>
-                  <SubmitButton size="sm" variant="outline" pendingLabel="Restoring…">Put back</SubmitButton>
-                </form>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       {staged ? (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Ready to send</h2>
+          <SectionTitle tone="action">Ready to send</SectionTitle>
           <div className="rounded-lg border border-border p-4">
             <p className="text-sm font-medium">{staged.subject}</p>
             <pre className="mt-2 whitespace-pre-wrap font-sans text-sm text-muted-foreground">{staged.body}</pre>
@@ -115,7 +79,7 @@ export default async function CrmSegmentDetailPage({ params }: { params: Promise
         </section>
       ) : (
         <section>
-          <h2 className="mb-2 text-lg font-semibold">Write an update</h2>
+          <div className="mb-2"><SectionTitle tone="action">Write an update</SectionTitle></div>
           <form action={stage} className="space-y-3 rounded-lg border border-border p-4">
             <label className="block text-sm">
               <span className="mb-1 block font-medium">Subject</span>
@@ -139,9 +103,46 @@ export default async function CrmSegmentDetailPage({ params }: { params: Promise
         </section>
       )}
 
+      <section>
+        <div className="mb-2"><SectionTitle>Recipients ({live.length})</SectionTitle></div>
+        <ul className="max-h-96 overflow-auto rounded-lg border border-border divide-y divide-border text-sm">
+          {live.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-2.5">
+              <span className="min-w-0">
+                <Link href={`/support/admin/crm/people/${r.id}`} className="font-medium hover:underline">{r.fullName}</Link>
+                {r.org && <span className="ml-1.5 text-xs text-muted-foreground">{r.org}</span>}
+                <span className="block truncate text-xs text-muted-foreground">{r.email}</span>
+              </span>
+              <form action={excludeFromSegment.bind(null, id, r.id)}>
+                <SubmitButton size="sm" variant="outline" pendingLabel="Removing…">Remove</SubmitButton>
+              </form>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {excluded.length > 0 && (
+        <section>
+          <div className="mb-2"><SectionTitle>Removed ({excluded.length})</SectionTitle></div>
+          <p className="mb-2 text-sm text-muted-foreground">
+            Kept with the segment, so a removal is not lost the next time it re-evaluates.
+          </p>
+          <ul className="rounded-lg border border-border divide-y divide-border text-sm">
+            {excluded.map((r) => (
+              <li key={r.id} className="flex items-center justify-between gap-2 p-2.5">
+                <span className="text-muted-foreground">{r.fullName} — {r.email}</span>
+                <form action={includeInSegment.bind(null, id, r.id)}>
+                  <SubmitButton size="sm" variant="outline" pendingLabel="Restoring…">Put back</SubmitButton>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {broadcasts.filter((b) => b.sentAt).length > 0 && (
         <section>
-          <h2 className="mb-2 text-lg font-semibold">History</h2>
+          <div className="mb-2"><SectionTitle tone="history">History</SectionTitle></div>
           <ul className="rounded-lg border border-border divide-y divide-border text-sm">
             {broadcasts.filter((b) => b.sentAt).map((b) => (
               <li key={b.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3">

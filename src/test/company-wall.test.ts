@@ -143,7 +143,8 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/app/claim/actions.ts': 'person claim page (added by another session, registered here because main was red on it): checks the person exists and writes one CRM activity when they claim; reads nothing back to the visitor',
     // Organization claim pages (owner-requested 2026-10-23). They show a public page for a CRM organization: its name, the state/county its
     // layoff figures are for, and (as a hint) the email domain a claimant must use. No CRM person, note, status or contact is read for display.
-    'src/lib/seo/workforce-pages.ts': 'public college pages: reads only the CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
+    'src/lib/seo/employer-pages.ts': 'public employer pages: reads only the linked CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
+    'src/lib/seo/workforce-pages.ts':'public college pages: reads only the CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
     'src/lib/org-claims/org.ts':'public claim page: resolves a CRM organization by slug; returns its name, type and email domain only',
     'src/lib/org-claims/community-stats.ts': 'public claim page and mailing merge field: reads the organization name to find its place, then public WARN filing counts',
     'src/lib/org-claims/claim.ts': 'public claim page: a verified claimant is written into the CRM as a lead (writes only) and the owner is emailed',

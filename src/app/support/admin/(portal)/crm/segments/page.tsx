@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { createSegment, deleteSegment } from './actions'
 import { PERSON_ROLES, PERSON_ROLE_LABELS, QUALITIES, QUALITY_LABELS, formatDate } from '@/lib/crm/labels'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 
@@ -41,7 +42,7 @@ export default async function CrmSegmentsPage() {
       </div>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Your segments</h2>
+        <SectionTitle>Your segments</SectionTitle>
         {segments.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
             No segments yet. Create one below.
@@ -77,7 +78,7 @@ export default async function CrmSegmentsPage() {
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">New segment</h2>
+        <SectionTitle>New segment</SectionTitle>
         <form action={createSegment} className="space-y-3 rounded-lg border border-border p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm">
@@ -152,7 +153,7 @@ export default async function CrmSegmentsPage() {
 
       {recentSends.length > 0 && (
         <section>
-          <h2 className="mb-2 text-lg font-semibold">Recently sent</h2>
+          <SectionTitle tone="history">Recently sent</SectionTitle>
           <ul className="rounded-lg border border-border divide-y divide-border text-sm">
             {recentSends.map((b) => (
               <li key={b.id} className="flex flex-wrap items-baseline justify-between gap-2 p-3">

@@ -88,4 +88,6 @@ export interface ConferenceRow {
   locked: boolean
   adminNote: string | null
   source: string | null
+  /** When the row first entered the catalog. Used to tell members about events added after launch. */
+  createdAt?: Date
 }

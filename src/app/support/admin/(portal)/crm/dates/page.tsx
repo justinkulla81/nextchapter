@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { CrmDateCheckButton } from '@/components/admin/CrmDateCheckButton'
 import { formatDate } from '@/lib/crm/labels'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 const DAY = 86_400_000
@@ -117,7 +118,7 @@ export default async function CrmDatesPage() {
 
       {past.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold">Passed ({past.length})</h2>
+          <SectionTitle>Passed ({past.length})</SectionTitle>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             Checking fetches the source page and shows any dates it finds, with the sentence each came from.
             It never writes a date for you, and a result is reused for 24 hours rather than re-fetching.

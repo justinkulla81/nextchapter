@@ -185,6 +185,13 @@ export default async function CrmQueuePage({
         </nav>
       </header>
 
+      <div className="flex flex-wrap gap-2 text-sm" aria-label="What is waiting">
+        <SummaryChip count={promised.length} label="promised" tone="critical" />
+        <SummaryChip count={overdueSteps.length} label="overdue next steps" tone="warning" />
+        <SummaryChip count={upcoming.length} label="deadlines in 60 days" tone="warning" />
+        <SummaryChip count={pastDue.length} label="dates to check" tone="muted" />
+      </div>
+
       {priorityOrgsTotal > PRIORITY_ORG_CAP && (
         <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
           Showing the {PRIORITY_ORG_CAP} highest-scored of {priorityOrgsTotal.toLocaleString()} organizations with a{' '}
@@ -346,6 +353,15 @@ function Band({
   empty: string
   children: React.ReactNode
 }) {
+  // Nothing in it: one quiet line, so the bands with real work stay in view.
+  if (count === 0) {
+    return (
+      <p className="flex items-baseline gap-2 text-sm text-muted-foreground">
+        <span className={`inline-block h-2 w-2 rounded-sm border-2 ${TONE[tone]}`} aria-hidden />
+        <span className="font-medium text-foreground">{title}</span> · {empty}
+      </p>
+    )
+  }
   return (
     <section>
       <h2 className="flex items-baseline gap-2 text-lg font-semibold">
@@ -425,4 +441,19 @@ function linkNames(text: string, people?: { id: string; fullName: string }[]): R
       ? <CrmPeekButton key={i} id={person.id} kind="person" className="font-medium text-foreground hover:underline">{part}</CrmPeekButton>
       : part
   })
+}
+
+const CHIP_TONE = {
+  critical: 'border-destructive/50 bg-destructive/5',
+  warning: 'border-orange/50 bg-orange/10',
+  muted: 'border-border bg-muted/40',
+} as const
+
+/** A count of one kind of thing waiting. Warm when there is something, quiet when there is not. */
+function SummaryChip({ count, label, tone }: { count: number; label: string; tone: keyof typeof CHIP_TONE }) {
+  return (
+    <span className={`rounded-full border px-3 py-1 ${count > 0 ? CHIP_TONE[tone] : 'border-border text-muted-foreground'}`}>
+      <span className="font-semibold tabular-nums">{count}</span> {label}
+    </span>
+  )
 }

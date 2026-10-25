@@ -6,6 +6,7 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { CADENCES } from '@/lib/mailing/cadence'
 import { saveList, saveSettings, setListActive } from '../actions'
 import { MailingGroupBuilder } from '@/components/admin/mailing/MailingGroupBuilder'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 const input = 'h-8 w-full rounded border border-input bg-transparent px-2 text-sm'
 
@@ -26,7 +27,7 @@ export default async function MailingListsPage() {
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Lists</h2>
+        <SectionTitle>Lists</SectionTitle>
         {lists.map((l) => (
           <form key={l.id} action={saveList} className={`grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[1fr_1fr_1fr_9rem_auto] ${l.isActive ? '' : 'opacity-60'}`}>
             <input type="hidden" name="id" value={l.id} />
@@ -72,7 +73,7 @@ export default async function MailingListsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Add or remove people in bulk</h2>
+        <SectionTitle>Add or remove people in bulk</SectionTitle>
         <MailingGroupBuilder
           lists={lists.filter((l) => l.isActive).map((l) => ({ id: l.id, key: l.key, name: l.name, audience: l.audience }))}
           defaultListIds={lists.filter((l) => l.key === 'monthly_update').map((l) => l.id)}
@@ -80,7 +81,7 @@ export default async function MailingListsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Sender settings</h2>
+        <SectionTitle>Sender settings</SectionTitle>
         <form action={saveSettings} className="grid max-w-3xl gap-3 sm:grid-cols-2">
           <label className="text-xs"><span className="mb-1 block font-medium">From name</span><input name="fromName" defaultValue={settings.fromName} className={input} /></label>
           <label className="text-xs">
