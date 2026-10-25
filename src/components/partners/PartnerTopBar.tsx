@@ -21,7 +21,8 @@ export function chromeFor(surface: PartnerSurface): string {
   return type ? PORTAL_TYPES[type].chrome : '#0b2545'
 }
 
-export function PartnerTopBar({ surface, use, brand, children }: { surface: PartnerSurface; use?: string; brand?: PartnerBrand; children?: ReactNode }) {
+// `switcher` is the employer section switcher (adjacent buttons for the sections the person holds); other portals pass none.
+export function PartnerTopBar({ surface, use, brand, switcher, children }: { surface: PartnerSurface; use?: string; brand?: PartnerBrand; switcher?: ReactNode; children?: ReactNode }) {
   const hasBrand = !!brand && (brand.name || brand.logoUrl)
   const type = SURFACE_PORTAL[surface]
   return (
@@ -42,6 +43,7 @@ export function PartnerTopBar({ surface, use, brand, children }: { surface: Part
         ) : (
           <PartnerWordmark surface={surface} className="shrink-0 text-base lg:text-lg" />
         )}
+        {switcher && <div className="hidden md:block">{switcher}</div>}
         {hasBrand && brand && (
           <>
             <span aria-hidden="true" className="h-5 w-px shrink-0 bg-white/25" />

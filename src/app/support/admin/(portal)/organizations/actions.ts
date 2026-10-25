@@ -10,6 +10,7 @@ import { clearDemoData } from '@/lib/demo/seed'
 import { createDemoAccessLink } from '@/lib/demo/access'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { recordPartnerAudit } from '@/lib/partners/audit'
+import { setOrganizationEnterprise, setWorkspacePlan } from '@/lib/employer/section-plans'
 
 // Writes the same audit entry to every portal the organization has, so each
 // partner sees admin changes to their own account on their activity page.
@@ -115,4 +116,23 @@ export async function demoAccessLinkAction(organizationId: string, key: string):
     await auditOrganization(organizationId, admin.email ?? null, 'demo.access', { key })
   }
   return r
+}
+
+// Employer sections: the plan each section is on, and the enterprise package. Staff only, and no payment is taken here.
+export async function setWorkspacePlanAction(workspaceId: string, plan: string, note: string | null): Promise<{ error?: string }> {
+  const admin = await requireAdmin()
+  const r = await setWorkspacePlan({ workspaceId, plan, note, actor: admin.email ?? null })
+  if (r.error || !r.organizationId) return { error: r.error ?? 'Something went wrong.' }
+  await auditOrganization(r.organizationId, admin.email ?? null, 'plan.set', { plan })
+  revalidatePath(`/support/admin/organizations/${r.organizationId}`)
+  return {}
+}
+
+export async function setEnterpriseAction(organizationId: string, on: boolean): Promise<{ error?: string }> {
+  const admin = await requireAdmin()
+  const r = await setOrganizationEnterprise({ organizationId, on, actor: admin.email ?? null })
+  if (r.error) return r
+  await auditOrganization(organizationId, admin.email ?? null, 'enterprise.set', { on })
+  revalidatePath(`/support/admin/organizations/${organizationId}`)
+  return {}
 }
