@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/admin/auth'
-import { listCompetitorAwards } from '@/lib/bids/queries'
+import { listCompetitorAwards, listOpenBoardBids, loadCrossRefs } from '@/lib/bids/queries'
 import { CompetitorWinsView } from '@/components/admin/BidViews'
 
 export const maxDuration = 30
@@ -14,5 +14,6 @@ export default async function CompetitorWinsPage() {
   } catch {
     missing = true
   }
-  return <CompetitorWinsView rows={rows} missing={missing} />
+  const ctx = missing ? null : await loadCrossRefs(rows, await listOpenBoardBids().catch(() => [])).catch(() => null)
+  return <CompetitorWinsView rows={rows} missing={missing} refs={ctx?.refs} cardIds={ctx?.cardIds} />
 }
