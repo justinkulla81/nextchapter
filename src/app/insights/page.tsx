@@ -8,7 +8,7 @@ import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 export const metadata: Metadata = {
   title: 'Outplacement insights',
   description:
-    'The questions to ask a vendor, why utilization reporting misses the point, and what happens to your account when the contract ends.',
+    'The questions to ask a vendor, what an outplacement report should show, and what happens to your account when the contract ends.',
   alternates: { canonical: '/insights' },
 }
 
@@ -42,7 +42,7 @@ export default function InsightsIndexPage() {
       <main className="mx-auto w-full max-w-3xl px-6 py-16">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">Outplacement insights</h1>
         <p className="mt-3 max-w-xl text-lg text-muted-foreground">
-          Truthful, specific, and built from real product capability — not filler.
+          Questions to ask, and plain answers about how NextChapter works.
         </p>
 
         <div className="mt-10 space-y-4">
