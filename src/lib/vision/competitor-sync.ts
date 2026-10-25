@@ -10,15 +10,17 @@ import { addSeenAt, downloadEmail, gapIdeas, winsFromAwards, winsFromCard, type 
 const SITE = 'https://launchyournextchapter.com'
 const TO = 'justin@launchyournextchapter.com'
 
-/** Features we lack that a direct or adjacent competitor has become product-list ideas (status SPARK). Repeats add the competitor's name instead of a second idea. */
+/** The first few features we lack that a DIRECT competitor has become product-list ideas (status SPARK). The card lists its most important gaps first; taking all of them from every card would put hundreds of near-duplicates on the list. Repeats add the competitor's name instead of a second idea. */
+const GAPS_PER_CARD = 3
 export async function syncProductGaps(c: ProductCompetitor): Promise<number> {
-  if (c.relationship !== 'DIRECT' && c.relationship !== 'ADJACENT') return 0
+  if (c.relationship !== 'DIRECT') return 0
   if (c.status !== 'ACTIVE' || c.weNeed.length === 0) return 0
+  const needs = c.weNeed.slice(0, GAPS_PER_CARD)
   const existing = await prisma.productItem.findMany({ where: { kind: 'FEATURE' }, select: { id: true, title: true, body: true } })
   const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
   const byKey = new Map(existing.map((e) => [key(e.title), e]))
   let created = 0
-  for (const need of c.weNeed) {
+  for (const need of needs) {
     const title = need.replace(/\s+/g, ' ').trim().replace(/[.;]+$/, '').slice(0, 140)
     const seen = byKey.get(key(title))
     if (seen && seen.body?.startsWith('Seen at competitors:')) {
@@ -26,7 +28,7 @@ export async function syncProductGaps(c: ProductCompetitor): Promise<number> {
       if (next !== seen.body) await prisma.productItem.update({ where: { id: seen.id }, data: { body: next } })
     }
   }
-  for (const title of gapIdeas(c.weNeed, existing.map((e) => e.title))) {
+  for (const title of gapIdeas(needs, existing.map((e) => e.title))) {
     await prisma.productItem.create({ data: { kind: 'FEATURE', area: 'PRODUCT', title, status: 'SPARK', body: addSeenAt(null, c.name) } })
     created++
   }
