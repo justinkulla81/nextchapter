@@ -56,13 +56,15 @@ const colleges = rows.filter((r) => r.template === 'college').sort((a, b) => Num
 const rapidResponse = rows.filter((r) => r.template === 'rr').sort((a, b) => hash(a.email) - hash(b.email))
 // Job centers (ajc) are off the calendar by Justin's call on 2026-10-21; set INCLUDE_AJC=1 to bring them back, after the other audiences.
 // Already-sent centers keep their follow-ups; no new ones are started unless INCLUDE_AJC=1.
+// Colleges (higher ed) are on hold by Justin's call on 2026-10-24 until the new college email copy is approved; already-sent colleges keep
+// their follow-ups, and no new ones start unless INCLUDE_COLLEGES=1.
 const centers = rows.filter((r) => r.template === 'ajc' && !pilotBoards.has((r.board ?? '').toLowerCase())).sort((a, b) => hash(a.email) - hash(b.email))
 // Order is priority (Justin, 2026-10-21): state Rapid Response, employers (outplacement), workforce boards, higher ed, then job centers if enabled.
 const audiences: Aud[] = [
   { name: 'rapid response', pool: rapidResponse, arms: ['C1', 'C2'], armOf: (r) => (r.variant.startsWith('C1') ? 'C1' : r.variant.startsWith('C2') ? 'C2' : null) },
   { name: 'employers', pool: employers, arms: ['early', 'late'], armOf: (r) => (['T1', 'T2'].includes(r.timing) ? 'early' : 'late'), earliest: (r) => Date.parse(r.send_on) },
   { name: 'boards', pool: boards, arms: ['GROW', 'FLAT'], armOf: (r) => r.variant },
-  { name: 'higher ed', pool: colleges, arms: ['CC', '4YR'], armOf: (r) => r.variant },
+  { noNew: process.env.INCLUDE_COLLEGES !== '1', name: 'higher ed', pool: colleges, arms: ['CC', '4YR'], armOf: (r) => r.variant },
   { noNew: process.env.INCLUDE_AJC !== '1', name: 'job centers', pool: centers, arms: ['C1', 'C2'], armOf: (r) => (r.variant.startsWith('C1') ? 'C1' : r.variant.startsWith('C2') ? 'C2' : null) },
 ]
 
