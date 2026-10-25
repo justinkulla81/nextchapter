@@ -358,12 +358,12 @@ async function main() {
     where: { deletedAt: null, mergedIntoId: null, email: { not: null }, OR: [
       { notes: { contains: 'State Rapid Response Coordinators page' } }, { notes: { contains: 'Found by web search' } }, { notes: { contains: 'buys, funds, refers or advises' } },
     ] },
-    select: { fullName: true, firstName: true, email: true, notes: true, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { name: true, usState: true, orgTypes: true } } }, take: 1 } },
+    select: { fullName: true, firstName: true, email: true, notes: true, affiliations: { where: { isCurrent: true }, select: { title: true, orgId: true, org: { select: { name: true, usState: true, orgTypes: true } } }, take: 1 } },
   })
   for (const p of ppl) {
     const a = p.affiliations[0]; if (!a) continue
     const notes = p.notes ?? '', title = a.title ?? '', state = a.org.usState ?? ''
-    const who = { first: first(p.fullName, p.firstName), email: p.email!, org: a.org.name, title }
+    const who = { first: first(p.fullName, p.firstName), email: p.email!, org: a.org.name, title, orgId: a.orgId }
     if (/State Rapid Response Coordinators page/.test(notes)) { if (state) add('rr', who, { notice: byState.get(state), state }); continue }
     if (/Found by web search/.test(notes) && a.org.orgTypes.includes('GOVERNMENT') && state && !/which filed a WARN/.test(notes)) {
       const template = /unemployment|reemployment|\bRESEA\b/i.test(title) ? 'state_ui' : /labor market|information|career|pathway|adult learner|research/i.test(title) ? 'state_career' : 'state_agency'

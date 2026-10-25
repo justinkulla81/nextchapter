@@ -1,5 +1,5 @@
 /**
- * Gives every cold-email recipient organization (American Job Center, workforce board, college) the CRM organization record its
+ * Gives every cold-email recipient organization (American Job Center, workforce board, college, economic development group, career-development group, or any other recipient) the CRM organization record its
  * /prepared/<slug> claim page needs. Reads the merge file written by outreach-data.ts; creates records only for rows with no page.
  *
  *   npx tsx --conditions=react-server --env-file=.env.local scripts/crm/ensure-claim-orgs.ts <merge.csv>           (dry run, writes nothing)
@@ -37,20 +37,22 @@ function parseCsv(text: string): Record<string, string>[] {
 const decode = (s: string) => s.replace(/&amp;/gi, '&').replace(/&#0?39;|&apos;/gi, "'").trim()
 
 async function main() {
-  const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => ['ajc', 'board', 'college'].includes(r.template) && !r.claim_url)
+  const rows = parseCsv(readFileSync(file, 'utf8')).filter((r) => !!r.template && !r.claim_url)
   // One entry per distinct recipient name, remembering which kind it is.
   const wanted = new Map<string, { name: string; kind: string }>()
   for (const r of rows) { const name = decode(r.recipient_org); if (name && !wanted.has(`${r.template}|${name}`)) wanted.set(`${r.template}|${name}`, { name, kind: r.template }) }
 
   const existing = new Set((await prisma.crmOrganization.findMany({ select: { canonicalNameNormalized: true } })).map((o) => o.canonicalNameNormalized))
-  const [ajcs, boards, colleges] = await Promise.all([
+  const [ajcs, boards, colleges, leads] = await Promise.all([
     prisma.americanJobCenter.findMany({ select: { name: true, state: true, city: true } }),
     prisma.workforceBoard.findMany({ select: { name: true, state: true, website: true } }),
     prisma.collegeProfile.findMany({ select: { name: true, state: true, city: true, website: true } }),
+    prisma.geoOrgLead.findMany({ select: { name: true, state: true } }),
   ])
   const place = (kind: string, name: string) => {
     if (kind === 'ajc') { const a = ajcs.filter((x) => decode(x.name) === name); return a.length === 1 ? { state: a[0].state, city: a[0].city, website: null } : { state: a[0]?.state ?? null, city: null, website: null } }
     if (kind === 'board') { const b = boards.filter((x) => decode(x.name) === name)[0]; return { state: b?.state ?? null, city: null, website: b?.website ?? null } }
+    if (kind === 'edo' || kind === 'career_dev') { const l = leads.find((x) => decode(x.name) === name); return { state: l?.state ?? null, city: null, website: null } }
     const c = colleges.filter((x) => decode(x.name) === name)[0]; return { state: c?.state ?? null, city: c?.city ?? null, website: c?.website ?? null }
   }
 
@@ -77,7 +79,7 @@ async function main() {
     const p = place(t.kind, t.name)
     await prisma.crmOrganization.create({
       data: {
-        name: t.name, canonicalNameNormalized: t.canon, orgTypes: [t.kind === 'college' ? 'UNIVERSITY' : 'GOVERNMENT'],
+        name: t.name, canonicalNameNormalized: t.canon, orgTypes: [t.kind === 'college' ? 'UNIVERSITY' : t.kind === 'ajc' || t.kind === 'board' ? 'GOVERNMENT' : 'OTHER'],
         website: p.website, hqCity: p.city, hqRegion: p.state, usState: p.state,
       },
     })
