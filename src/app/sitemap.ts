@@ -8,10 +8,13 @@ import { AUTHORS } from '@/lib/seo/authors'
 import { SITE_URL } from '@/lib/seo/facts'
 import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
+import { STATE_NAMES } from '@/lib/workforce/places'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
+import { getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
+import { prisma } from '@/lib/prisma'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
 export const revalidate = 3600
@@ -93,6 +96,24 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
   }
 }
 
+// Nonprofit pages (IRS records, $1 million or more in revenue) and economic development pages by state.
+async function loadNonprofitPages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
+  try {
+    const [counts, orgs, edo] = await Promise.all([
+      getStateNonprofitCounts(),
+      nonprofitsForSitemap(),
+      prisma.localPartnerOrg.groupBy({ by: ['state'], where: { OR: [{ confidence: null }, { confidence: { not: 'low' } }] }, _count: { _all: true } }),
+    ])
+    return [
+      ...counts.filter((c) => c.state in STATE_NAMES).map((c) => entry(`/nonprofits/${stateSlug(c.state)}`, DIRECTORY_UPDATED, 'monthly', 0.5)),
+      ...orgs.filter((o) => o.state in STATE_NAMES).map((o) => entry(`/nonprofits/${stateSlug(o.state)}/${o.slug}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
+      ...edo.filter((e) => e.state in STATE_NAMES).map((e) => entry(`/economic-development/${stateSlug(e.state)}`, DIRECTORY_UPDATED, 'monthly', 0.5)),
+    ]
+  } catch {
+    return []
+  }
+}
+
 const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), dates[0])
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -116,7 +137,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   })
 
-  const seoStatePages = await loadSeoStatePages(entry)
+  const seoStatePages = [...(await loadSeoStatePages(entry)), await loadNonprofitPages(entry)]
 
   return [
     // The homepage shows the latest News, so it changes when News does.
@@ -173,6 +194,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/workforce-boards', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/rapid-response', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/tools/warn-act-checker', DIRECTORY_UPDATED, 'yearly', 0.6),
+    entry('/economic-development', DIRECTORY_UPDATED, 'monthly', 0.6),
     ...seoStatePages.flatMap((p) => p),
 
     // Author pages.
