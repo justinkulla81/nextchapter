@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runWatchByMode } from '@/lib/vision/competitor-free'
+import { prisma } from '@/lib/prisma'
+import { syncCrmWins, syncProductGaps } from '@/lib/vision/competitor-sync'
 import { captureServerEvent } from '@/lib/posthog/server'
 
 export const maxDuration = 300
@@ -13,6 +15,15 @@ export const maxDuration = 300
 export const GET = withCronRun('competitor-watch', async (request: NextRequest) => {
   const job = request.nextUrl.searchParams.get('job') === 'news' ? 'news' : 'refresh'
   const r = await runWatchByMode(job)
-  captureServerEvent('cron', 'competitor_watch_run', { ...r })
-  return NextResponse.json(r)
+  // Pass the findings on: wins to CRM notes and re-bid dates, new gaps to the product list. Idempotent; only when the watch is on.
+  let synced = { wins: 0, ideas: 0 }
+  if (!r.skipped) {
+    try {
+      const cards = await prisma.productCompetitor.findMany({ where: { status: 'ACTIVE' } })
+      synced = { wins: await syncCrmWins(cards), ideas: 0 }
+      for (const c of cards) { if (synced.ideas >= 25) break; synced.ideas += await syncProductGaps(c) } // at most 25 new ideas a run so the roadmap is not flooded
+    } catch (e) { console.error('Competitor watch sync failed', e) }
+  }
+  captureServerEvent('cron', 'competitor_watch_run', { ...r, ...synced })
+  return NextResponse.json({ ...r, synced })
 })

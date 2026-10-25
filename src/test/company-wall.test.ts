@@ -155,6 +155,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/warn/layoff-primary-run.ts': 'admin WARN tooling: imported only by the warn-sync and layoff-news crons',
     'src/lib/warn/news-check.ts': 'admin WARN tooling: imported only by the warn-sync and layoff-news crons',
     'src/lib/warn/sync.ts': 'admin WARN tooling',
+    'src/lib/vision/competitor-sync.ts': 'admin competitor tooling: imported only by the admin Competitors actions and the competitor-watch cron',
     'src/lib/workforce/college-crm.ts': 'admin workforce tooling',
     'src/lib/workforce/college-rank.ts': 'admin workforce tooling',
     'src/lib/higher-ed/demo-seed.ts': "not the CRM: writes crmExchangeRun, a college's CSV import log (Higher Ed)",

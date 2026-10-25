@@ -10,6 +10,7 @@ import { defaultAreaForKind } from '@/lib/vision/labels'
 import { cleanAreas, cleanRelationship, cleanStatus, hostOf, homepageOf, parseCustomers, parseLines, parseWins, parseUsd } from '@/lib/vision/competitor-areas'
 import { enrichCompetitor, type EnrichedCompetitor } from '@/lib/vision/competitor-enrich'
 import { mergeRefresh } from '@/lib/vision/competitor-watch'
+import { sendCompetitorDownload, syncNewCompetitor } from '@/lib/vision/competitor-sync'
 import { notifyCandidateFeedbackAddressed } from '@/lib/help/notify'
 import type {
   ProductItemKind, ProductItemArea, ProductItemStatus, ProductRoadmapBucket, ProductEffort,
@@ -390,6 +391,9 @@ export async function quickAddCompetitor(formData: FormData) {
       data: { ...cardData(data), name: taken ? `${data.name} (${host})` : data.name, url, filledBy: 'website', needsReview: true, lastReviewedAt: new Date() },
       select: { id: true },
     })
+    const row = await prisma.productCompetitor.findUnique({ where: { id: created.id } })
+    const sync = row ? await syncNewCompetitor(row) : null
+    captureServerEvent(admin.email ?? 'admin', 'vision_competitor_synced', { ideas: sync?.ideas ?? 0, wins: sync?.wins ?? 0, emailed: sync?.emailed ?? false })
     captureServerEvent(admin.email ?? 'admin', 'vision_competitor_quick_added', { host, ok: true, areas: data.areas.length, costUsd: Math.round(cost * 1000) / 1000, searches })
   } catch (e) {
     failure = e instanceof Error ? e.message : 'unknown error'
@@ -518,5 +522,15 @@ export async function decideCellProposal(proposalId: string, accept: boolean) {
   await prisma.competitorCellProposal.deleteMany({ where: { competitorId: p.competitorId, capabilityId: p.capabilityId, state: accept ? 'ACCEPTED' : 'REJECTED' } })
   await prisma.competitorCellProposal.update({ where: { id: p.id }, data: { state: accept ? 'ACCEPTED' : 'REJECTED', decidedBy: who, decidedAt: new Date() } })
   captureServerEvent(who, 'vision_cell_proposal_decided', { accept, status: p.status })
+  revalidatePath(`${V}/competitors`)
+}
+
+/** Emails the full download of one competitor to Justin, on demand. */
+export async function emailCompetitorDownload(competitorId: string) {
+  const admin = await requireAdmin()
+  const c = await prisma.productCompetitor.findUnique({ where: { id: competitorId } })
+  if (!c) return
+  const ok = await sendCompetitorDownload(c)
+  captureServerEvent(admin.email ?? 'admin', 'vision_competitor_download_emailed', { ok })
   revalidatePath(`${V}/competitors`)
 }

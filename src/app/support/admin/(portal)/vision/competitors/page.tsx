@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { VisionMatrixCell } from '@/components/admin/VisionMatrixCell'
 import { CompetitorForm } from '@/components/admin/CompetitorForm'
-import { quickAddCompetitor, refreshCompetitorFromWebsite, deleteCompetitor, saveWatchSettings, decideCellProposal } from '../actions'
+import { quickAddCompetitor, refreshCompetitorFromWebsite, deleteCompetitor, saveWatchSettings, decideCellProposal, emailCompetitorDownload } from '../actions'
 import { getWatchSettings, spentThisMonth } from '@/lib/vision/competitor-watch'
 import { EVENT_LABEL, type EventKind } from '@/lib/vision/competitor-watch-core'
 import { formatDate } from '@/lib/vision/labels'
@@ -147,7 +147,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
           <label className="flex items-center gap-1.5"><input type="radio" name="mode" value="FREE" defaultChecked={watch.mode !== 'PAID'} /> Free mode</label>
           <label className="flex items-center gap-1.5"><input type="radio" name="mode" value="PAID" defaultChecked={watch.mode === 'PAID'} /> Paid mode (about $40 a month)</label>
           <label className="flex items-center gap-1.5"><input type="checkbox" name="refreshEnabled" defaultChecked={watch.refreshEnabled} /> Monthly refresh</label>
-          <label className="flex items-center gap-1.5"><input type="checkbox" name="newsEnabled" defaultChecked={watch.newsEnabled} /> Weekly news</label>
+          <label className="flex items-center gap-1.5"><input type="checkbox" name="newsEnabled" defaultChecked={watch.newsEnabled} /> Monthly news</label>
           <label className="flex items-center gap-1.5">Monthly limit $<input name="monthlyCapUsd" type="number" min={0} max={500} step={1} defaultValue={watch.monthlyCapUsd} className="h-9 w-20 rounded-md border border-input bg-background px-2" /></label>
           <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
           <span className="text-muted-foreground">{watch.mode === 'PAID' ? `Spent this month: $${spent.toFixed(2)} of $${watch.monthlyCapUsd.toFixed(0)}` : 'Free mode: $0 spent'} · {watch.enabled ? 'on' : 'off'}</span>
@@ -349,6 +349,7 @@ export default async function VisionCompetitorsPage({ searchParams }: { searchPa
                     <summary className="inline-block cursor-pointer rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted">Edit</summary>
                     <div className="mt-3"><CompetitorForm v={{ ...c, customers, wins }} submitLabel="Save changes" /></div>
                   </details>
+                  <form action={emailCompetitorDownload.bind(null, c.id)}><SubmitButton size="sm" variant="outline" pendingLabel="Sending…">Email me this card</SubmitButton></form>
                   {c.url && (
                     <form action={refreshCompetitorFromWebsite.bind(null, c.id)}>
                       <SubmitButton size="sm" variant="outline" pendingLabel="Reading the site…">Refresh from website</SubmitButton>
