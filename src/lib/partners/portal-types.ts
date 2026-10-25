@@ -22,7 +22,7 @@ export const PORTAL_TYPES: Record<PortalType, PortalTypeInfo> = {
   higher_ed: { key: 'higher_ed', label: 'Higher education', uses: ['Career services', 'Alumni'], chrome: '#6b1d2a' },
   workforce: { key: 'workforce', label: 'Workforce', uses: ['Workforce boards', 'Economic development'], chrome: '#1e4d3a' },
   recruiter: { key: 'recruiter', label: 'Recruiter', uses: [], chrome: '#3a3f7a' },
-  coach: { key: 'coach', label: 'Coach', uses: [], chrome: '#6b4a1f' },
+  coach: { key: 'coach', label: 'Coach', uses: [], chrome: '#0e6672' },
 }
 
 export const PORTAL_TYPE_ORDER: PortalType[] = ['employer', 'higher_ed', 'workforce', 'recruiter', 'coach']
