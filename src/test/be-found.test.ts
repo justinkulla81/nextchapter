@@ -22,13 +22,20 @@ describe('Be found', () => {
     expect(text.match(/open to work/gi)).toHaveLength(1)
     expect(text.match(/\bsearch\b/gi)).toHaveLength(1) // only the intro, to say none of it mentions one
   })
+  it('sends the speaking step to the conferences catalog in both modes', () => {
+    for (const m of ['quiet', 'public'] as const) {
+      const step = beFoundPlan(m).steps.find((x) => x.key === 'speaking')!
+      expect(step.href).toBe('/dashboard/network/events')
+      expect(step.hrefLabel).toBe('Find conferences')
+    }
+  })
   it('the public version may say what they want next', () => {
     expect(beFoundPlan('public').steps[0].body).toMatch(/what you want next/)
   })
   it('only links to pages that exist, and states no statistic', () => {
     for (const m of ['quiet', 'public'] as const) {
       const p = beFoundPlan(m)
-      for (const s of p.steps) if (s.href) expect(s.href).toBe('/dashboard/linkedin')
+      for (const s of p.steps) if (s.href) expect(['/dashboard/linkedin', '/dashboard/network/events']).toContain(s.href)
       expect(JSON.stringify(p)).not.toMatch(/\d+\s?%|\b\d+x\b/)
     }
   })
