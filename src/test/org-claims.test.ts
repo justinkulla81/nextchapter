@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const db = vi.hoisted(() => ({
   orgClaim: { count: vi.fn(), create: vi.fn(), updateMany: vi.fn(), findUnique: vi.fn() },
-  crmOrganization: { findUnique: vi.fn() },
+  crmOrganization: { findUnique: vi.fn(), findMany: vi.fn() },
   crmPerson: { update: vi.fn() },
 }))
 vi.mock('server-only', () => ({}))
@@ -20,7 +20,7 @@ import { checkClaimEmail, domainMatches } from '@/lib/org-claims/rules'
 import { hashClaimToken, newClaimToken, tokenState, hashIp, CLAIM_TOKEN_DAYS } from '@/lib/org-claims/token'
 import { communityStatCards, communityStatSentence, formatWindow, sourceLine } from '@/lib/org-claims/format'
 import type { CommunityStats } from '@/lib/org-claims/community-stats'
-import { claimUrlFor } from '@/lib/org-claims/urls'
+import { canonicalCandidates, claimSlug, claimUrlFor } from '@/lib/org-claims/urls'
 import { confirmOrgClaim, onClaimVerified, requestOrgClaim } from '@/lib/org-claims/claim'
 import { applyMergeTags, renderEmail } from '@/lib/mailing/render'
 
@@ -132,7 +132,19 @@ describe('merge fields', () => {
   })
   it('builds the page url only for names that make a safe slug', () => {
     expect(claimUrlFor('example college')).toBe('https://launchyournextchapter.com/prepared/example-college')
-    expect(claimUrlFor('a&b partners')).toBeNull()
+    expect(claimUrlFor('a/b partners')).toBeNull()
+  })
+  it('reads an ampersand as "and" in the address and finds the stored name again from it', () => {
+    expect(claimUrlFor('owens & minor')).toBe('https://launchyournextchapter.com/prepared/owens-and-minor')
+    expect(claimUrlFor('texas a&m university')).toBe('https://launchyournextchapter.com/prepared/texas-a-and-m-university')
+    expect(claimUrlFor('merck &')).toBe('https://launchyournextchapter.com/prepared/merck-and-co')
+    expect(canonicalCandidates('owens-and-minor')).toContain('owens & minor')
+    expect(canonicalCandidates('texas-a-and-m-university')).toContain('texas a&m university')
+    expect(canonicalCandidates('merck-and-co')[0]).toBe('merck &')
+    for (const name of ['owens & minor', 'texas a&m university', 'cape & islands workforce board', 'merck &']) {
+      const slug = claimSlug(name)!
+      expect(canonicalCandidates(slug)).toContain(name)
+    }
   })
 })
 
@@ -141,7 +153,7 @@ const org = { id: 'o1', name: 'Example College', canonicalNameNormalized: 'examp
 describe('requestOrgClaim', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    db.crmOrganization.findUnique.mockResolvedValue(org)
+    db.crmOrganization.findMany.mockResolvedValue([org])
     db.orgClaim.count.mockResolvedValue(0)
     db.orgClaim.create.mockResolvedValue({ id: 'c1' })
     db.orgClaim.updateMany.mockResolvedValue({ count: 0 })
@@ -169,7 +181,7 @@ describe('requestOrgClaim', () => {
     expect(mail.link).not.toHaveBeenCalled()
   })
   it('marks a claim for review when the organization has no known domain', async () => {
-    db.crmOrganization.findUnique.mockResolvedValue({ ...org, emailDomain: null })
+    db.crmOrganization.findMany.mockResolvedValue([{ ...org, emailDomain: null }])
     expect(await requestOrgClaim({ ...input, email: 'pat@board.org' })).toMatchObject({ ok: true, needsReview: true })
     expect(db.orgClaim.create.mock.calls[0][0].data.needsReview).toBe(true)
   })
@@ -183,7 +195,7 @@ describe('requestOrgClaim', () => {
   it('needs a full name and a title, and an organization that exists', async () => {
     expect(await requestOrgClaim({ ...input, name: 'Pat' })).toMatchObject({ ok: false })
     expect(await requestOrgClaim({ ...input, title: ' ' })).toMatchObject({ ok: false })
-    db.crmOrganization.findUnique.mockResolvedValue(null)
+    db.crmOrganization.findMany.mockResolvedValue([])
     expect(await requestOrgClaim(input)).toMatchObject({ ok: false, error: expect.stringContaining('no longer available') })
   })
   it('does not resolve the hand-built prospects or slugs that do not round-trip', async () => {

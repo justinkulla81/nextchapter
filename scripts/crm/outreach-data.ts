@@ -15,6 +15,9 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { prisma } from '../../src/lib/prisma'
 import { isHrLeaderTitle } from '../../src/lib/crm/org-domains'
 import { cityFromAddress } from '../../src/lib/workforce/places'
+import { normalizeOrgName } from '../../src/lib/text/org-name-match'
+import { claimUrlFor } from '../../src/lib/org-claims/urls'
+import { cleanDomain, domainMatches } from '../../src/lib/org-claims/rules'
 
 const STATES: Record<string, string> = { AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'the District of Columbia', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming' }
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -85,7 +88,7 @@ const roughly = (n: number) => { const m = 10 ** Math.max(0, String(Math.round(n
 function areaMarketLine(area: Area | undefined): string {
   if (!area || area.unemp == null) return ''
   const trend = area.unempPrior != null && Math.abs(area.unemp - area.unempPrior) >= 0.2 ? `, ${area.unemp > area.unempPrior ? 'up' : 'down'} from ${area.unempPrior.toFixed(1)}% a year ago` : ''
-  const wc = area.wcUnemp != null ? `; our estimate for white-collar workers there is ${area.wcUnemp.toFixed(1)}%` : ''
+  const wc = area.wcUnemp != null ? `; our estimate for professionals there is ${area.wcUnemp.toFixed(1)}%` : ''
   return `${area.name}'s unemployment rate is ${area.unemp.toFixed(1)}%${trend}${wc}.`
 }
 
@@ -183,7 +186,23 @@ async function main() {
   const counts: Record<string, { rows: number; ready: number }> = {}
   const examples: Record<string, Row[]> = {}
 
-  const add = (template: string, who: { first: string; email: string; org: string; title: string }, ctx: { notice?: Notice; area?: Area; state?: string; board?: string; center?: string; extra?: Record<string, string> }) => {
+  // The recipient organization's own claim page (/prepared/<slug>): it exists only when the CRM holds the organization and its name makes a safe slug.
+  const crmOrgs = await prisma.crmOrganization.findMany({ select: { id: true, canonicalNameNormalized: true, emailDomain: true } })
+  const domainByCanon = new Map(crmOrgs.map((o) => [o.canonicalNameNormalized, cleanDomain(o.emailDomain)]))
+  const orgById = new Map(crmOrgs.map((o) => [o.id, o.canonicalNameNormalized]))
+  const orgByName = new Set(crmOrgs.map((o) => o.canonicalNameNormalized))
+  const claimPageFor = (name: string, orgId?: string): string => {
+    const canon = (orgId ? orgById.get(orgId) : undefined) ?? (orgByName.has(normalizeOrgName(name)) ? normalizeOrgName(name) : '')
+    return (canon && claimUrlFor(canon)) || ''
+  }
+  /** Whether this recipient's own address could claim the page: 'ok' (at the org's domain), 'review' (org has no known domain, a person reviews), 'other-domain' (they would use a different work address). */
+  const claimCheck = (name: string, email: string, orgId?: string): string => {
+    const canon = (orgId ? orgById.get(orgId) : undefined) ?? (orgByName.has(normalizeOrgName(name)) ? normalizeOrgName(name) : '')
+    if (!canon) return ''
+    const od = domainByCanon.get(canon)
+    return !od ? 'review' : domainMatches(email.split('@')[1]?.toLowerCase() ?? '', od) ? 'ok' : 'other-domain'
+  }
+  const add = (template: string, who: { first: string; email: string; org: string; title: string; orgId?: string }, ctx: { notice?: Notice; area?: Area; state?: string; board?: string; center?: string; extra?: Record<string, string> }) => {
     const t = T.get(template)!
     const state = ctx.state ?? ctx.notice?.state ?? ''
     const area = ctx.area ?? (ctx.notice?.county && state ? areaByName.get(`${state}|${countyBase(ctx.notice.county)}`) : undefined)
@@ -193,6 +212,7 @@ async function main() {
     const row: Row = {
       template, first_name: who.first, email: who.email, recipient_org: who.org, recipient_title: who.title, org: who.org,
       // Booking link for the follow-ups. It goes through our own /book route, which counts the click and forwards to the Google Calendar booking page; the query holds only the template and step, nothing about the person.
+      claim_url: claimPageFor(who.org, who.orgId), claim_check: claimCheck(who.org, who.email, who.orgId),
       book_link_1: `${BOOK_BASE}?t=${template}&s=2`, book_link_2: `${BOOK_BASE}?t=${template}&s=3`,
       company: ctx.notice && ctx.notice.employer.length <= 45 ? ctx.notice.employer : '', employees: ctx.notice ? n0(ctx.notice.employees) : '',
       county: area?.name ?? ctx.notice?.county ?? (cityOf(ctx.notice, state) ? `${cityOf(ctx.notice, state)}, ${stateName}` : stateName), state: stateName, state_code: state,
@@ -282,7 +302,7 @@ async function main() {
     const template = isHrLeaderTitle(t) ? 'head_hr' : /total rewards|compensation|benefits/i.test(t) ? 'rewards' : /employee relations|labor relations|business partner|hrbp|human resources (director|manager)|hr (director|manager)/i.test(t) ? 'er' : /talent acquisition|recruit/i.test(t) ? 'ta' : null
     const n0 = byOrg.get(a.orgId)
     const notice = n0 ? { ...n0, employer: clean(a.org.name) } : undefined
-    if (template && notice) add(template, { first: first(a.person.fullName, a.person.firstName), email: a.person.email!, org: a.org.name, title: t }, { notice })
+    if (template && notice) add(template, { first: first(a.person.fullName, a.person.firstName), email: a.person.email!, org: a.org.name, title: t, orgId: a.orgId }, { notice })
   }
 
   // 2. Workforce board directors and chairs.
@@ -409,7 +429,7 @@ async function main() {
     }
      r.suppressed = suppress.get(k) ?? ''; r.send = r.ready === 'yes' && !r.duplicate && !r.suppressed ? 'yes' : '' }
   const HEAD = ['template', 'variant', 'concept', 'board_group', 'college_level', 'timing', 'timing_test', 'send_on', 'subject', 'send', 'ready', 'duplicate', 'suppressed', 'missing', 'first_name', 'email', 'recipient_org', 'recipient_title', 'subject_a', 'subject_b', 'preview_text', 'opening_line', 'email_text', 'email_html', 'followup_1', 'followup_2', 'facts',
-    'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective']
+    'company', 'employees', 'county', 'state', 'state_jobs_90d', 'state_notices_90d', 'state_open_roles', 'state_open_mgr_roles', 'county_unemp', 'county_unemp_as_of', 'county_wc_share', 'county_jobs_90d', 'county_jobs_12mo', 'board', 'center', 'rr_agency', 'effective_date', 'days_to_effective', 'claim_url', 'claim_check']
   writeFileSync(out, [HEAD.map(q).join(','), ...rows.map((r) => HEAD.map((h) => q(r[h] ?? '')).join(','))].join('\n') + '\n')
   // The send list: only rows that are ready, unique and not suppressed, with just what a mail merge needs.
   const SEND = ['template', 'variant', 'concept', 'board_group', 'college_level', 'timing', 'timing_test', 'send_on', 'subject', 'email', 'first_name', 'subject_a', 'subject_b', 'preview_text', 'email_html', 'email_text', 'followup_1', 'followup_2', 'recipient_org', 'recipient_title']
