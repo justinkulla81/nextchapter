@@ -66,6 +66,8 @@ export function beFoundPlan(mode: BeFoundMode): BeFoundPlan {
         key: 'speaking',
         title: 'Speak at conferences and on panels',
         body: quiet ? 'Offer a talk on your expertise to the conferences in your industry. Organizers want practitioners with a point of view.' : 'Offer a talk on your expertise to the conferences in your industry, and let organizers know you are available.',
+        href: '/dashboard/network/events',
+        hrefLabel: 'Find conferences',
       },
       {
         key: 'articles',
