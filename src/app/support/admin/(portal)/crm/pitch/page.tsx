@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { buildFromParams, type Params } from '@/lib/pitch/request'
 import { CUSTOMER_LABELS, CUSTOMER_TYPES } from '@/lib/pitch/types'
 import { NEXTCHAPTER_COLORS } from '@/lib/pitch/brand'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 60
 const BASE = '/support/admin/crm/pitch'
@@ -129,7 +130,7 @@ export default async function PitchBuilderPage({ searchParams }: { searchParams:
       {built && (
         <section className="space-y-4 rounded-lg border border-border p-5" aria-labelledby="preview">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 id="preview" className="text-lg font-semibold">{built.deck.slides.length} slides{built.deck.generic ? ' (generic)' : ''}{built.edited ? ', using your edited rules' : ', using default rules'}</h2>
+            <SectionTitle id="preview">{built.deck.slides.length} slides{built.deck.generic ? ' (generic)' : ''}{built.edited ? ', using your edited rules' : ', using default rules'}</SectionTitle>
             <div className="flex gap-2">
               <a href={dl('pptx')} className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90">Download PowerPoint (opens in Google Slides)</a>
               <a href={dl('pdf')} className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted">Download PDF</a>

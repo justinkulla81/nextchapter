@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { nameKey } from '@/lib/conferences/canonical'
 import { OPPORTUNITY_LABEL, type OpportunityType } from '@/lib/conferences/constants'
 import { approveEntry, mergeEntry, resolveChangeAdmin } from './actions'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 
@@ -42,7 +43,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">New entries ({pending.length})</h2>
+        <SectionTitle>New entries ({pending.length})</SectionTitle>
         {pending.length === 0 && <p className="text-sm text-muted-foreground">Nothing waiting.</p>}
         <ul className="divide-y divide-border rounded-lg border border-border">
           {pending.map((p) => (
@@ -68,7 +69,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Likely duplicates ({dupes.length})</h2>
+        <SectionTitle>Likely duplicates ({dupes.length})</SectionTitle>
         {dupes.length === 0 && <p className="text-sm text-muted-foreground">None found.</p>}
         <ul className="space-y-2">
           {dupes.map((g) => (
@@ -86,7 +87,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Changes found by the weekly re-check ({changes.length})</h2>
+        <SectionTitle>Changes found by the weekly re-check ({changes.length})</SectionTitle>
         {changes.length === 0 && <p className="text-sm text-muted-foreground">Nothing to confirm.</p>}
         <ul className="divide-y divide-border rounded-lg border border-border">
           {changes.map((c) => (

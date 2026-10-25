@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SectionTitle } from '@/components/admin/Collapsible'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -71,8 +72,22 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
         groups={[{ label: `In ${a.name}`, rows: benefits.local }, { label: `Across ${a.state}`, rows: benefits.statewide }]}
       />
 
+      <section aria-labelledby="leads" className="space-y-2">
+        <SectionTitle id="leads" tone="action">Leads in this area</SectionTitle>
+        {a.orgLeads.length === 0 ? <p className="text-sm text-muted-foreground">No economic development groups, chambers or workforce nonprofits found.</p> : (
+          <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+            {a.orgLeads.map((l) => (
+              <li key={l.id} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2">
+                <span className="font-medium"><FitScoreBadge score={l.fitScore} breakdown={l.fitBreakdown as FitBreakdown} /> {l.name}</span>
+                <span className="text-muted-foreground">{KIND_LABELS[l.kind]} · {money(l.revenue)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section aria-labelledby="numbers" className="space-y-3">
-        <h2 id="numbers" className="text-lg font-semibold">The numbers</h2>
+        <SectionTitle id="numbers">The numbers</SectionTitle>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <Stat label="Unemployment rate" value={pct(a.unemploymentRate)} note={delta == null ? undefined : `${delta > 0 ? 'Up' : delta < 0 ? 'Down' : 'Flat'} ${Math.abs(delta).toFixed(1)} points from a year ago${state?.unemploymentRate != null ? `; state ${pct(state.unemploymentRate)}` : ''}`} />
           <Stat label="White-collar unemployment (estimate)" value={pct(a.wcUnemploymentEst)} note="Modeled from the county rate and its white-collar share" />
@@ -86,7 +101,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
       </section>
 
       <section aria-labelledby="layoffs" className="space-y-2">
-        <h2 id="layoffs" className="text-lg font-semibold">Layoff announcements, last 12 months</h2>
+        <SectionTitle id="layoffs" tone="history">Layoff announcements, last 12 months</SectionTitle>
         <p className="text-xs text-muted-foreground">Filings that name this county. The total above also counts filings placed here by ZIP code or city, so it can be higher than this list.</p>
         {warn.length === 0 ? <p className="text-sm text-muted-foreground">No WARN filings on file for this area.</p> : (
           <ul className="divide-y divide-border rounded-lg border border-border text-sm">
@@ -101,7 +116,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
       </section>
 
       <section aria-labelledby="wioa" className="space-y-2">
-        <h2 id="wioa" className="text-lg font-semibold">Workforce board (WIOA)</h2>
+        <SectionTitle id="wioa">Workforce board (WIOA)</SectionTitle>
         {boards.length === 0 ? <p className="text-sm text-muted-foreground">No board matched.</p> : boards.map((b) => (
           <div key={b.id} className="rounded-lg border border-border p-3 text-sm">
             <p className="font-medium">{b.website ? <a href={b.website} className="text-brand hover:underline" target="_blank" rel="noreferrer">{b.name}</a> : b.name}</p>
@@ -111,7 +126,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
       </section>
 
       <section aria-labelledby="he" className="space-y-2">
-        <h2 id="he" className="text-lg font-semibold">Higher education ({a.higherEdCount})</h2>
+        <SectionTitle id="he">Higher education ({a.higherEdCount})</SectionTitle>
         {colleges.length === 0 ? <p className="text-sm text-muted-foreground">No degree-granting colleges.</p> : (
           <ul className="divide-y divide-border rounded-lg border border-border text-sm">
             {colleges.map((c) => (
@@ -125,7 +140,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
       </section>
 
       <section aria-labelledby="emp" className="space-y-2">
-        <h2 id="emp" className="text-lg font-semibold">Major employers</h2>
+        <SectionTitle id="emp">Major employers</SectionTitle>
         <p className="text-xs text-muted-foreground">Employers that filed layoff notices here in the last 12 months, by workers. A full employer list needs a paid data source.</p>
         {employers.length === 0 ? <p className="text-sm text-muted-foreground">None on file.</p> : (
           <ul className="flex flex-wrap gap-2 text-sm">{employers.map((e) => <li key={e.employer} className="rounded-md border border-border px-2.5 py-1">{e.employer} <span className="text-muted-foreground">({num(e.workers)})</span></li>)}</ul>
@@ -133,7 +148,7 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
       </section>
 
       <section aria-labelledby="dc" className="space-y-2">
-        <h2 id="dc" className="text-lg font-semibold">Data centers ({a.dataCenterCount})</h2>
+        <SectionTitle id="dc">Data centers ({a.dataCenterCount})</SectionTitle>
         <p className="text-xs text-muted-foreground">From OpenStreetMap, which undercounts new and hyperscale sites.</p>
         {dcs.length === 0 ? <p className="text-sm text-muted-foreground">None mapped.</p> : (
           <ul className="flex flex-wrap gap-2 text-sm">{dcs.map((d, i) => <li key={i} className="rounded-md border border-border px-2.5 py-1">{d.name}</li>)}</ul>
@@ -141,37 +156,24 @@ export default async function GeographyDetailPage({ params }: { params: Promise<
       </section>
 
       <section aria-labelledby="init" className="space-y-2">
-        <h2 id="init" className="text-lg font-semibold">Local initiatives</h2>
+        <SectionTitle id="init">Local initiatives</SectionTitle>
         <p className="whitespace-pre-wrap text-sm">{a.initiatives ?? <span className="text-muted-foreground">Not researched yet.</span>}</p>
       </section>
 
       <section aria-labelledby="news" className="space-y-2">
-        <h2 id="news" className="text-lg font-semibold">Recent news</h2>
+        <SectionTitle id="news" tone="history">Recent news</SectionTitle>
         {news.length === 0 ? <p className="text-sm text-muted-foreground">Not pulled yet.</p> : (
           <ul className="space-y-1 text-sm">{news.map((n) => <li key={n.url}><a href={n.url} className="text-brand hover:underline" target="_blank" rel="noreferrer">{n.title}</a> <span className="text-muted-foreground">{n.publisher}{n.publishedAt ? ` · ${n.publishedAt.slice(0, 10)}` : ''}</span></li>)}</ul>
         )}
       </section>
 
       <section aria-labelledby="recruiters" className="space-y-2">
-        <h2 id="recruiters" className="text-lg font-semibold">Recruiters covering {state?.name ?? a.name}</h2>
+        <SectionTitle id="recruiters" tone="action">Recruiters covering {state?.name ?? a.name}</SectionTitle>
         <p className="text-xs text-muted-foreground">Recruiters tagged to {a.state}, local first, then national. These appear in the layoff alert for a notice here.</p>
         <RecruiterTable rows={recs.rows} total={recs.total} localState={a.state} openFirst={2} empty={`No recruiters tagged to ${a.state} yet.`} />
         <Link href={`/support/admin/crm/recruiters?state=${a.state}`} className="text-sm text-brand hover:underline">Filter by industry and function</Link>
       </section>
 
-      <section aria-labelledby="leads" className="space-y-2">
-        <h2 id="leads" className="text-lg font-semibold">Leads in this area</h2>
-        {a.orgLeads.length === 0 ? <p className="text-sm text-muted-foreground">No economic development groups, chambers or workforce nonprofits found.</p> : (
-          <ul className="divide-y divide-border rounded-lg border border-border text-sm">
-            {a.orgLeads.map((l) => (
-              <li key={l.id} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2">
-                <span className="font-medium"><FitScoreBadge score={l.fitScore} breakdown={l.fitBreakdown as FitBreakdown} /> {l.name}</span>
-                <span className="text-muted-foreground">{KIND_LABELS[l.kind]} · {money(l.revenue)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </div>
   )
 }

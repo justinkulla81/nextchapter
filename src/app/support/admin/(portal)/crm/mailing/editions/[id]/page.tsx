@@ -10,6 +10,7 @@ import { EditionRecipientsTable } from '@/components/admin/mailing/EditionRecipi
 import { EditionVersions } from '@/components/admin/mailing/EditionVersions'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { duplicateEdition } from '../../actions'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 60
 
@@ -165,7 +166,7 @@ export default async function EditionPage({ params }: { params: Promise<{ id: st
       />
 
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">What was sent</h2>
+        <SectionTitle tone="history">What was sent</SectionTitle>
         <div className="max-w-2xl rounded-lg border border-border bg-white p-4 text-black">
           <p className="mb-3 border-b border-neutral-200 pb-2 text-sm"><span className="text-neutral-500">Subject:</span> {edition.subject}</p>
           <div className="text-[15px] leading-relaxed [&_a]:underline [&_ul]:list-disc [&_ul]:pl-6 [&_p]:mb-3" dangerouslySetInnerHTML={{ __html: sanitizeBodyHtml(edition.bodyHtml) }} />

@@ -6,6 +6,7 @@ import { CADENCE_LABEL } from '@/lib/mailing/cadence'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { ListMemberAdd } from '@/components/admin/mailing/ListMemberAdd'
 import { removeListMember } from '../../actions'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 const ACTIVE_SHOWN = 500
 const GONE_SHOWN = 200
@@ -57,12 +58,12 @@ export default async function ListReadershipPage({ params }: { params: Promise<{
       </header>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Add someone</h2>
+        <SectionTitle tone="action">Add someone</SectionTitle>
         <ListMemberAdd listId={list.id} />
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Default readership ({activeCount})</h2>
+        <SectionTitle>Default readership ({activeCount})</SectionTitle>
         {activeCount === 0 ? (
           <p className="text-sm text-muted-foreground">Nobody is on this list yet. Add someone above, or answer the &ldquo;Add to a list?&rdquo; cards.</p>
         ) : (
@@ -89,7 +90,7 @@ export default async function ListReadershipPage({ params }: { params: Promise<{
 
       {goneCount > 0 && (
         <section className="space-y-2">
-          <h2 className="text-lg font-semibold">Not mailed ({goneCount})</h2>
+          <SectionTitle>Not mailed ({goneCount})</SectionTitle>
           <p className="text-xs text-muted-foreground">Kept on record so an import or signup can&apos;t quietly add them back.</p>
           <ul className="divide-y divide-border rounded-lg border border-border text-sm">
             {gone.map((m) => (

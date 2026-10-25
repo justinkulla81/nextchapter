@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { loadRuleSet } from '@/lib/pitch/store'
 import { CUSTOMER_TYPES, CUSTOMER_LABELS, type CustomerType, type SlideRule } from '@/lib/pitch/types'
 import { saveRules, resetRules } from '../actions'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 const EDITABLE_TEXT: SlideRule['kind'][] = ['bullets', 'stats', 'timeline', 'demo']
 const TOKENS = ['org', 'area', 'state', 'board', 'unemp', 'unempChange', 'wcEst', 'bcEst', 'wcShare', 'income', 'layoffs12', 'layoffs90', 'colleges', 'dataCenters', 'natWc', 'natWcChange', 'natInfo', 'natInfoChange', 'natAsOf']
@@ -61,7 +62,7 @@ export default async function PitchRuleEditor({ params, searchParams }: { params
         <textarea name="order" defaultValue={rules.slides.map((s) => s.id).join('\n')} hidden readOnly />
 
         <section className="space-y-3" aria-labelledby="who">
-          <h2 id="who" className="text-lg font-semibold">Audience and angle</h2>
+          <SectionTitle id="who" tone="action">Audience and angle</SectionTitle>
           <label className="block space-y-1 text-sm">Who we pitch<input name="buyer" defaultValue={rules.buyer} className={field} /></label>
           <label className="block space-y-1 text-sm">Angle (the reason they should care)<textarea name="angle" defaultValue={rules.angle} rows={2} className={field} /></label>
           <div className="grid gap-3 md:grid-cols-2">
@@ -72,7 +73,7 @@ export default async function PitchRuleEditor({ params, searchParams }: { params
         </section>
 
         <section className="space-y-3" aria-labelledby="packages">
-          <h2 id="packages" className="text-lg font-semibold">Packages (no prices)</h2>
+          <SectionTitle id="packages">Packages (no prices)</SectionTitle>
           <label className="block space-y-1 text-sm">One block per package, separated by a blank line. First line: Name | who it is for. Then one line per thing it includes.
             <textarea name="packages" defaultValue={rules.packages.map((x) => [`${x.name} | ${x.bestFor}`, ...x.includes].join('\n')).join('\n\n')} rows={Math.max(10, rules.packages.reduce((n, x) => n + x.includes.length + 2, 0))} className={field} />
           </label>
@@ -82,7 +83,7 @@ export default async function PitchRuleEditor({ params, searchParams }: { params
         </section>
 
         <section className="space-y-3" aria-labelledby="offer">
-          <h2 id="offer" className="text-lg font-semibold">The offer</h2>
+          <SectionTitle id="offer">The offer</SectionTitle>
           <div className="grid gap-3 md:grid-cols-3">
             <label className="space-y-1 text-sm">Offer name<input name="offer_name" defaultValue={rules.offer.name} className={field} /></label>
             <label className="space-y-1 text-sm">Term<input name="offer_term" defaultValue={rules.offer.term} className={field} /></label>
@@ -95,7 +96,7 @@ export default async function PitchRuleEditor({ params, searchParams }: { params
         </section>
 
         <section className="space-y-3" aria-labelledby="main">
-          <h2 id="main" className="text-lg font-semibold">Main deck ({main.filter((s) => s.enabled).length} of {main.length} slides on)</h2>
+          <SectionTitle id="main">Main deck ({main.filter((s) => s.enabled).length} of {main.length} slides on)</SectionTitle>
           <details className="rounded-md border border-border p-3 text-sm">
             <summary className="cursor-pointer font-medium">Fill-in values you can use in any text</summary>
             <p className="mt-2 text-muted-foreground">Write them in double braces, for example {'{{area}}'} or {'{{wcEst}}'}. They fill from the area&apos;s data when a deck is built.</p>
@@ -105,7 +106,7 @@ export default async function PitchRuleEditor({ params, searchParams }: { params
         </section>
 
         <section className="space-y-3" aria-labelledby="appx">
-          <h2 id="appx" className="text-lg font-semibold">Appendix ({appx.filter((s) => s.enabled).length} of {appx.length} slides on)</h2>
+          <SectionTitle id="appx">Appendix ({appx.filter((s) => s.enabled).length} of {appx.length} slides on)</SectionTitle>
           <ol className="space-y-3">{appx.map((s) => <Row key={s.id} s={s} />)}</ol>
         </section>
 

@@ -7,6 +7,7 @@ import { suggestKeeper } from '@/lib/duplicates/suggest'
 import { looseKey } from '@/lib/crm/org-duplicates'
 import { decidedAliasPairs } from '@/lib/companies/company-alias'
 import { DuplicateGroupList, AbbreviationActions, AliasForm } from '@/components/admin/CrmDuplicateActions'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 60
 
@@ -143,7 +144,7 @@ export default async function DuplicateOrganizationsPage() {
         <p className="text-sm text-muted-foreground">Showing the first {PAGE_LIMIT} of {rows.length.toLocaleString()} groups.</p>
       )}
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Duplicate companies ({companyRows.length.toLocaleString()})</h2>
+        <SectionTitle>Duplicate companies ({companyRows.length.toLocaleString()})</SectionTitle>
         <p className="max-w-prose text-sm text-muted-foreground">
           The directory companies behind job postings and resumes, with names that are the same letters. Merging moves postings, resumes, intel and
           CRM records to the one you keep, and the other name keeps resolving to it.
@@ -167,7 +168,7 @@ export default async function DuplicateOrganizationsPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Add an alias by hand</h2>
+        <SectionTitle>Add an alias by hand</SectionTitle>
         <p className="max-w-prose text-sm text-muted-foreground">
           For renames and abbreviations the suggestions can&apos;t find, like Rtx and Raytheon. If a company already exists under the left name it is
           merged into the one on the right; otherwise future resumes and postings with that name resolve to it.
@@ -176,7 +177,7 @@ export default async function DuplicateOrganizationsPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Possible abbreviations ({abbreviations.length.toLocaleString()})</h2>
+        <SectionTitle>Possible abbreviations ({abbreviations.length.toLocaleString()})</SectionTitle>
         <p className="max-w-prose text-sm text-muted-foreground">
           A company whose whole name is the initials of another (&quot;AWS&quot; and &quot;Amazon Web Services&quot;). Nothing happens until
           you confirm, because an acronym can belong to more than one company.

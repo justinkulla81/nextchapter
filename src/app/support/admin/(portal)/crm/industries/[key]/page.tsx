@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { industryEcosystem } from '@/lib/crm/ecosystem'
 import { INDUSTRY_KEYS, industryName } from '@/lib/crm/coverage'
 import { RecruiterTable } from '@/components/admin/RecruiterTable'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 
@@ -23,13 +24,13 @@ export default async function IndustryPage({ params }: { params: Promise<{ key: 
       </header>
 
       <section aria-labelledby="rec" className="space-y-2">
-        <h2 id="rec" className="text-lg font-semibold">Recruiters</h2>
+        <SectionTitle id="rec" tone="action">Recruiters</SectionTitle>
         <RecruiterTable rows={e.recruiters.rows} total={e.recruiters.total} empty="No recruiters tagged to this industry yet." />
         <Link href={`/support/admin/crm/recruiters?industry=${key}`} className="text-sm text-brand hover:underline">Filter by state</Link>
       </section>
 
       <section aria-labelledby="lay" className="space-y-2">
-        <h2 id="lay" className="text-lg font-semibold">Largest recent layoffs</h2>
+        <SectionTitle id="lay">Largest recent layoffs</SectionTitle>
         {e.layoffs.length === 0 ? <p className="text-sm text-muted-foreground">None in this sector.</p> : (
           <ul className="divide-y divide-border rounded-lg border border-border text-sm">
             {e.layoffs.map((n) => (
@@ -43,7 +44,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ key: 
       </section>
 
       <section aria-labelledby="emp" className="space-y-2">
-        <h2 id="emp" className="text-lg font-semibold">Employers in the CRM</h2>
+        <SectionTitle id="emp">Employers in the CRM</SectionTitle>
         {e.employers.length === 0 ? <p className="text-sm text-muted-foreground">None.</p> : (
           <ul className="flex flex-wrap gap-2 text-sm">
             {e.employers.map((o) => <li key={o.id}><Link href={`/support/admin/crm/organizations/${o.id}`} className="rounded-md border border-border px-2.5 py-1 hover:bg-muted">{o.name}{o.usState ? <span className="text-muted-foreground"> ({o.usState})</span> : null}</Link></li>)}

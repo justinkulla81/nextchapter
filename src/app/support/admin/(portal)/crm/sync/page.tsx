@@ -9,6 +9,7 @@ import { CrmSyncButton } from '@/components/admin/CrmSyncButton'
 import { updateSyncSetting, updateSelfEmails, disconnectAdminGmailInbox } from '../actions'
 import { formatDate, sinceLabel } from '@/lib/crm/labels'
 import { CrmSyncHealthAlert } from '@/components/admin/CrmSyncHealthAlert'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 
@@ -166,7 +167,7 @@ export default async function CrmSyncPage({
       </section>
 
       <section>
-        <h2 className="mb-1 text-lg font-semibold">How often it runs</h2>
+        <SectionTitle>How often it runs</SectionTitle>
         <p className="mb-2 text-sm text-muted-foreground">
           The job wakes hourly and sweeps only when one is due, so changing this takes effect immediately
           rather than needing a deploy. The look-back window widens with the interval, so nothing falls
@@ -201,7 +202,7 @@ export default async function CrmSyncPage({
           conversation with someone. Aliases come from Gmail; this covers
           the forwarding-only ones Gmail doesn't list. */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Your addresses</h2>
+        <SectionTitle>Your addresses</SectionTitle>
         <p className="max-w-2xl text-sm text-muted-foreground">
           Mail to or from any of these is treated as you — never logged as correspondence, and never
           turned into a person. Saving also removes any record already made for one of them.
@@ -231,7 +232,7 @@ export default async function CrmSyncPage({
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Last runs</h2>
+        <SectionTitle>Last runs</SectionTitle>
         {runs.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
             The sweep has never run. It is scheduled daily at 06:00 UTC; until then this page will look

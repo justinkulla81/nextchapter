@@ -17,6 +17,7 @@ import { firstNamesAreEquivalent, firstNameOf, lastNameOf } from '@/lib/crm/nick
 import { CrmSignupMatchActions } from '@/components/admin/CrmSignupMatchActions'
 import { SearchFirmReviewRow } from '@/components/search-firms/SearchFirmReviewRow'
 import { loadRoutesToConfirm } from '@/lib/crm/route-review'
+import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 
@@ -212,7 +213,7 @@ export default async function CrmNeedsCompletionPage({
 
       {routeReviews.length > 0 && (
         <section aria-labelledby="route-reviews">
-          <h2 id="route-reviews" className="text-lg font-semibold">Routes in to confirm ({routeReviews.length})</h2>
+          <SectionTitle id="route-reviews" tone="action">Routes in to confirm ({routeReviews.length})</SectionTitle>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             Ways in that are rated but that nobody has asked about yet. They do not count as a warm way in for a
             candidate until someone has asked: open the organization, then mark it asked, re-rate it, or decline it.
@@ -244,7 +245,7 @@ export default async function CrmNeedsCompletionPage({
 
       {firmReviews.length > 0 && (
         <section aria-labelledby="firm-matches">
-          <h2 id="firm-matches" className="text-lg font-semibold">Search firms to match</h2>
+          <SectionTitle id="firm-matches">Search firms to match</SectionTitle>
           <p className="mt-1 text-sm text-muted-foreground">
             Firms from the <Link href="/support/admin/crm/search-firms" className="underline">search-firm list</Link> whose
             name is close to an organization already in the CRM. Link them if they are the same firm; otherwise add the firm as its own.
@@ -261,7 +262,7 @@ export default async function CrmNeedsCompletionPage({
 
       {signupMatches.length > 0 && (
         <section aria-labelledby="signup-matches">
-          <h2 id="signup-matches" className="text-lg font-semibold">Possible sign-ups</h2>
+          <SectionTitle id="signup-matches" tone="action">Possible sign-ups</SectionTitle>
           <p className="mt-1 text-sm text-muted-foreground">
             New NextChapter accounts that look like someone already in the CRM. Linking merges the
             record the sign-up created into the existing one.
