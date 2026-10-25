@@ -10576,8 +10576,14 @@ model OrgClaim {
   needsReview       Boolean         @default(false)
   ipHash            String?
   createdAt         DateTime        @default(now())
+  /// Which employer section was claimed: hiring | employees | outplacement. Null = the page as a whole (every older claim).
+  /// Applied by hand: prisma/manual/2026-10-25-org-claim-section.sql.
+  section           String?
+  /// What the verified claim did: ADMIN | REQUESTED | REVIEW | SKIPPED. Null = not a section claim.
+  outcome           String?
 
   @@index([crmOrganizationId])
+  @@index([crmOrganizationId, section])
   @@index([email, createdAt])
   @@index([ipHash, createdAt])
 }
