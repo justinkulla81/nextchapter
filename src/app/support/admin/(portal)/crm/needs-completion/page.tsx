@@ -245,7 +245,7 @@ export default async function CrmNeedsCompletionPage({
 
       {firmReviews.length > 0 && (
         <section aria-labelledby="firm-matches">
-          <SectionTitle id="firm-matches">Search firms to match</SectionTitle>
+          <SectionTitle id="firm-matches" tone="action">Search firms to match</SectionTitle>
           <p className="mt-1 text-sm text-muted-foreground">
             Firms from the <Link href="/support/admin/crm/search-firms" className="underline">search-firm list</Link> whose
             name is close to an organization already in the CRM. Link them if they are the same firm; otherwise add the firm as its own.
