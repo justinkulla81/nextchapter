@@ -1,0 +1,1535 @@
+[
+ {
+  "id": "emerge-americas",
+  "name": "eMerge Americas",
+  "organizer": "eMerge Americas",
+  "url": "https://emergeamericas.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-02",
+  "endDate": "2027-03-04",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Miami Beach",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Venture Capital & Private Equity"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Miami's flagship tech and startup conference: founders, investors, corporate innovation leads and Latin America tech operators in one hall.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird passes advertised (60% off) but tier prices are not published on the page; email info@emergeamericas.com.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": "Speakers directory is published; no public call found.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Startup founders and operators",
+   "Venture capital"
+  ],
+  "roles": [
+   "founder",
+   "venture partner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "texas-tribune-festival",
+  "name": "The Texas Tribune Festival (TribFest)",
+  "organizer": "The Texas Tribune",
+  "url": "https://festival.texastribune.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "September",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector",
+   "Media & Entertainment"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Texas's biggest politics and policy gathering: elected officials, agency heads, lobbyists, reporters and civic leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition ended Sept 26; 2027 dates not yet announced and ticket prices not shown on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Membership is promoted for ticket perks; details on the tickets page.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "State government",
+   "Journalism and news",
+   "Public affairs and government relations"
+  ],
+  "roles": [
+   "policy analyst",
+   "reporter",
+   "government relations"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "florida-bar-annual-convention",
+  "name": "The Florida Bar Annual Convention",
+  "organizer": "The Florida Bar",
+  "url": "https://www.floridabar.org/event/annual-florida-bar-convention-jw-marriott-orlando-grande-lakes-june-23-26-2027/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-23",
+  "endDate": "2027-06-26",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Florida's statewide lawyer gathering: section meetings, CLE, judges and Bar leaders.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration price not listed on the event page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Corporate, M&A and securities",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "trial lawyer",
+   "judge"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "state-bar-of-texas-annual-meeting",
+  "name": "State Bar of Texas Annual Meeting",
+  "organizer": "State Bar of Texas",
+  "url": "https://www.texasbar.com/Content/NavigationMenu/Events/AnnualMeeting/default.htm",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-17",
+  "endDate": "2027-06-18",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "Fort Worth",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The annual gathering of Texas lawyers: CLE, section leaders, the House of Delegates and the Bar's leadership.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration prices not yet posted (packets 'coming soon').",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Corporate, M&A and securities",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "in-house counsel",
+   "judge"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "georgia-bankers-association-annual-meeting",
+  "name": "Georgia Bankers Association Annual Meeting",
+  "organizer": "Georgia Bankers Association",
+  "url": "https://www.gabankers.com",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-06-06",
+  "endDate": "2027-06-08",
+  "datesConfirmed": true,
+  "typicalMonth": "June",
+  "city": "San Diego",
+  "state": "CA",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Where Georgia community and regional bank CEOs, directors and vendors meet each June (held out of state).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Save-the-date only; registration details not yet posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Community and regional banking"
+  ],
+  "roles": [
+   "bank executive",
+   "community bank CFO"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "future-of-florida-forum",
+  "name": "Future of Florida Forum (F3) and Florida Chamber Annual Meeting",
+  "organizer": "Florida Chamber of Commerce",
+  "url": "https://www.flchamber.com/?p=114130",
+  "kind": "SUMMIT",
+  "format": "HYBRID",
+  "startDate": "2026-10-27",
+  "endDate": "2026-10-28",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "MID",
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Florida's business, elected and education leaders align on the Florida 2030 Blueprint.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration tiers not listed on the page; virtual attendance (live or 30-day replay) available.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Virtual registration available.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning",
+   "State government",
+   "Workforce development boards"
+  ],
+  "roles": [
+   "economic development",
+   "policy analyst",
+   "workforce"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "texmed",
+  "name": "TexMed",
+  "organizer": "Texas Medical Association",
+  "url": "https://www.texmed.org/texmed",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-04-15",
+  "endDate": "2027-04-17",
+  "datesConfirmed": false,
+  "typicalMonth": "April",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "The Texas Medical Association's annual conference: physicians, practice managers, medical society leaders and an exhibit hall.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Free for TMA members; nonmember rates not listed for 2027 (2026 nonmember physicians paid $623 per search summary, unconfirmed). Page dates conflict, confirm with TMA.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://texmed.jotform.com/form/TM27_CME_Lecture",
+  "speakingDeadline": "2026-12-01",
+  "speakingNote": "CME lecture and poster proposals due Dec 1, 2026; acceptance by content quality and space.",
+  "cheaperWays": "Free for TMA members, CMS and Alliance members.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Physician practice and medical group management",
+   "Hospital and health system leadership"
+  ],
+  "roles": [
+   "practice administrator",
+   "physician executive"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "venture-atlanta",
+  "name": "Venture Atlanta",
+  "organizer": "Atlanta Technology Development Center (Georgia Tech)",
+  "url": "https://www.ventureatlanta.org/conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "October",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Venture Capital & Private Equity"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The Southeast's startup-investor showcase: founders pitching to VCs, angels and corporate investors.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 edition was Oct 14-15 at the Woodruff Arts Center; 2027 not yet announced. 2026 pricing was not posted online.",
+  "speaking": "BY_INVITE",
+  "speakingUrl": "https://www.ventureatlanta.org/pitch/",
+  "speakingDeadline": null,
+  "speakingNote": "Startups apply to pitch via the pitch page.",
+  "cheaperWays": "A limited number of student tickets was released for 2026.",
+  "applyUrl": "https://www.ventureatlanta.org/pitch/",
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Startup founders and operators",
+   "Venture capital"
+  ],
+  "roles": [
+   "founder",
+   "venture partner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "florida-realtors-convention-trade-expo",
+  "name": "Florida Realtors Convention & Trade Expo",
+  "organizer": "Florida Realtors",
+  "url": "https://www.floridarealtors.org/events/annual-convention/about",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-25",
+  "endDate": "2027-08-26",
+  "datesConfirmed": true,
+  "typicalMonth": "August",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Construction & Real Estate"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 1,
+  "whyAttend": "Florida's largest real estate gathering: agents, brokers, MLS and tech vendors, plus REBarCamp.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Two-day Trade Expo is free with registration; 2027 convention prices not yet posted (2026 member rate $175-195).",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://floridarealtors.org/events/convention/speaker-submission",
+  "speakingDeadline": null,
+  "speakingNote": "Site says it is accepting 2027 convention speaker applications.",
+  "cheaperWays": "Free Trade Expo admission; REBarCamp the day before.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Residential real estate and brokerage"
+  ],
+  "roles": [
+   "real estate agent",
+   "broker"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "florida-hospital-association-annual-meeting",
+  "name": "Florida Hospital Association Annual Meeting",
+  "organizer": "Florida Hospital Association",
+  "url": "https://www.fha.org/FHA/FHA/Default.aspx",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-12-09",
+  "endDate": "2026-12-10",
+  "datesConfirmed": true,
+  "typicalMonth": "December",
+  "city": "Orlando",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Florida hospital and health-system executives and trustees meet on state policy and operations.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration price not shown on the main page; see events.fha.org registration.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Hospital and health system leadership"
+  ],
+  "roles": [
+   "hospital executive",
+   "health system CEO"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "gma-annual-convention",
+  "name": "Georgia Municipal Association Annual Convention",
+  "organizer": "Georgia Municipal Association",
+  "url": "https://gacities.com/events",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Savannah",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Georgia mayors, council members, city managers and vendors; 2026 edition was June 26-30 in Savannah.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates and prices not yet posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager",
+   "city clerk",
+   "elected official"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "ncba-annual-meeting",
+  "name": "North Carolina Bar Association Annual Meeting",
+  "organizer": "North Carolina Bar Association",
+  "url": "https://www.ncbar.org/annual-meeting/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "North Carolina's statewide lawyer meeting with CLE, section programs and bar leadership.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Site says 2027 dates coming; 2026 meeting was in Charlotte. Month from third-party results.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "judge"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "new-orleans-entrepreneur-week",
+  "name": "New Orleans Entrepreneur Week (NOEW)",
+  "organizer": "Loyola University New Orleans / The Idea Village",
+  "url": "https://www.noew.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-08",
+  "endDate": "2027-03-13",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Gulf South's startup week: founders, investors and ecosystem builders, with the Summit at Loyola on Mar 11-12.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices not yet published.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.noew.org",
+  "speakingDeadline": "2026-11-20",
+  "speakingNote": "Apply to Speak form open; closes Nov 20.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Startup founders and operators",
+   "Founder communities and accelerators"
+  ],
+  "roles": [
+   "founder",
+   "accelerator manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "FRACTIONAL"
+  ]
+ },
+ {
+  "id": "texas-nonprofit-summit",
+  "name": "Texas Nonprofit Summit",
+  "organizer": "OneStar Foundation",
+  "url": "https://onestarfoundation.org/?p=26059",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-23",
+  "endDate": "2027-02-25",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Texas nonprofit leaders, board members, funders and corporate partners (400+ expected).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Early-bird registration open; prices not listed on this page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Nonprofit leadership and boards",
+   "Fundraising and development",
+   "Grantmaking and foundations"
+  ],
+  "roles": [
+   "executive director",
+   "development director"
+  ],
+  "journeys": [
+   "GROWING",
+   "NEXT_ACT"
+  ]
+ },
+ {
+  "id": "florida-venture-capital-conference",
+  "name": "Florida Venture Capital Conference",
+  "organizer": "Florida Venture Forum",
+  "url": "https://www.flventure.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-03",
+  "datesConfirmed": true,
+  "typicalMonth": "March",
+  "city": "Miami",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Venture Capital & Private Equity",
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Florida's venture conference: startups pitching to investors, plus VCs, angels and advisers.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on the registration page, not the home page. Forum members get discounts.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.flventure.org/presenter-application",
+  "speakingDeadline": null,
+  "speakingNote": "Presenter application; presenting at a Forum event is free.",
+  "cheaperWays": "Forum member discounts; free to present.",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Startup founders and operators",
+   "Venture capital"
+  ],
+  "roles": [
+   "founder",
+   "venture partner"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "GROWING"
+  ]
+ },
+ {
+  "id": "nc-tech-outlook-for-tech",
+  "name": "Outlook for Tech (NC TECH)",
+  "organizer": "NC TECH Association",
+  "url": "https://www.nctech.org/events/signature-events/index.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "February",
+  "city": "Charlotte",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "North Carolina's annual tech-sector kickoff: executives, founders and economic developers; the latest page lists Feb 12 at The Revelry in Charlotte.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Price and year not shown on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "IT leadership and operations",
+   "Startup founders and operators"
+  ],
+  "roles": [
+   "CIO",
+   "founder"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "techfest-nc",
+  "name": "TechFest NC",
+  "organizer": "NC TECH Association",
+  "url": "https://www.nctech.org/events/signature-events/index.html",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Durham",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Two-day North Carolina tech festival across Durham venues, run by the state tech association.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page shows May 13-14 without a year; a prior edition was in May 2026.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Software engineering leadership",
+   "Startup founders and operators"
+  ],
+  "roles": [
+   "engineering manager",
+   "founder"
+  ],
+  "journeys": [
+   "GROWING",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "sc-bar-convention",
+  "name": "South Carolina Bar Convention",
+  "organizer": "South Carolina Bar",
+  "url": "https://www.scbar.org/news-events/events/sc-bar-convention/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-21",
+  "endDate": "2027-01-24",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Greenville",
+  "state": "SC",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "South Carolina's annual lawyer gathering with about 1,000 attorneys and 140 judges.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration link live; prices not shown on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "judge"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "mississippi-bar-annual-meeting",
+  "name": "Mississippi Bar Annual Meeting",
+  "organizer": "The Mississippi Bar",
+  "url": "https://msbar.org/news/future-bar-convention-dates/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-07-07",
+  "endDate": "2027-07-09",
+  "datesConfirmed": true,
+  "typicalMonth": "July",
+  "city": "Sandestin",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Mississippi lawyers and judges meet each summer, held at Sandestin, Florida in 2027.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not found. Summer School for Lawyers July 5-7 precedes it.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "judge"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "alabama-state-bar-annual-meeting",
+  "name": "Alabama State Bar Annual Meeting & Legal Expo",
+  "organizer": "Alabama State Bar",
+  "url": "https://www.alabar.org/news/annual-meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Point Clear",
+  "state": "AL",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Alabama's statewide bar meeting; 2025 and 2026 editions were at the Grand Hotel, Point Clear.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 details not yet posted (contact annualmeeting@alabar.org).",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "judge"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "arkansas-bar-annual-meeting",
+  "name": "Arkansas Bar Association Annual Meeting",
+  "organizer": "Arkansas Bar Association",
+  "url": "https://www.arkbar.org/?pg=annual-meeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "June",
+  "city": "Hot Springs",
+  "state": "AR",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Arkansas lawyers' annual convention (2026 edition June 10-12, Hot Springs per news coverage).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Home page lists it as a signature event but no 2027 details.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "judge"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "greater-houston-partnership-annual-meeting",
+  "name": "Greater Houston Partnership Annual Meeting",
+  "organizer": "Greater Houston Partnership",
+  "url": "https://houston.org/events/2027-annual-meeting-partnership-week",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-01-29",
+  "endDate": "2027-01-29",
+  "datesConfirmed": true,
+  "typicalMonth": "January",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 2,
+  "whyAttend": "Houston's executives, entrepreneurs and civic leaders hear the regional economic outlook.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration details to come.",
+  "speaking": "NONE",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Economic development and planning"
+  ],
+  "roles": [
+   "economic development",
+   "executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "atlanta-tech-week",
+  "name": "Atlanta Tech Week (RenderATL)",
+  "organizer": "RenderATL",
+  "url": "https://atl.tech",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2027-08-15",
+  "endDate": "2027-08-20",
+  "datesConfirmed": false,
+  "typicalMonth": "August",
+  "city": "Atlanta",
+  "state": "GA",
+  "country": "US",
+  "industries": [
+   "Technology & Software"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Week-long Atlanta tech festival anchored by the RenderATL conference, Silicon South Summit and ATL AI Expo.",
+  "access": "MIXED",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Page shows two date ranges (Aug 15-20 and Aug 17-20, 2027); prices not listed.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Software engineering leadership",
+   "AI and machine learning",
+   "Startup founders and operators"
+  ],
+  "roles": [
+   "engineering manager",
+   "founder"
+  ],
+  "journeys": [
+   "EXPLORING_MOVE",
+   "ENTREPRENEUR"
+  ]
+ },
+ {
+  "id": "austin-tech-week",
+  "name": "Austin Tech Week",
+  "organizer": "Austin Tech Week",
+  "url": "https://www.austintech.com/",
+  "kind": "SUMMIT",
+  "format": "IN_PERSON",
+  "startDate": "2026-10-26",
+  "endDate": "2026-10-30",
+  "datesConfirmed": true,
+  "typicalMonth": "October",
+  "city": "Austin",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Technology & Software",
+   "Venture Capital & Private Equity"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Five days of founder, investor and engineering events at Station Austin.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Ticket prices not shown on the page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Startup founders and operators",
+   "Venture capital",
+   "Software engineering leadership"
+  ],
+  "roles": [
+   "founder",
+   "engineering manager"
+  ],
+  "journeys": [
+   "ENTREPRENEUR",
+   "EXPLORING_MOVE"
+  ]
+ },
+ {
+  "id": "tba-cybertech",
+  "name": "Texas Bankers Association CyberTech",
+  "organizer": "Texas Bankers Association",
+  "url": "https://www.texasbankers.com/event/cyber-tech-2025/",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-02-10",
+  "endDate": "2027-02-12",
+  "datesConfirmed": true,
+  "typicalMonth": "February",
+  "city": "Horseshoe Bay",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [
+   "Operations"
+  ],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Bank IT and security officers on cyber risk and technology.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 registration coming soon; 2025 was $850 member and $1,700 nonmember.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official domain search",
+  "segments": [
+   "Community and regional banking",
+   "Cybersecurity"
+  ],
+  "roles": [
+   "bank IT officer",
+   "information security officer"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "txcpa-houston-facts",
+  "name": "Fall Accounting Conference & Technology Symposium (F.A.C.T.S.)",
+  "organizer": "TXCPA Houston",
+  "url": "https://www.tx.cpa/houston/education/fall-accounting-conference---technology-conference",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-18",
+  "endDate": "2026-11-19",
+  "datesConfirmed": false,
+  "typicalMonth": "November",
+  "city": "Houston",
+  "state": "TX",
+  "country": "US",
+  "industries": [
+   "Accounting & Audit"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 3,
+  "whyAttend": "Houston CPAs earn up to 20 CPE over two days; in-person only with limited spots.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices on the Cvent registration page; not shown here.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Public accounting",
+   "Tax"
+  ],
+  "roles": [
+   "CPA",
+   "tax manager"
+  ],
+  "journeys": [
+   "GROWING",
+   "RETURNING"
+  ]
+ },
+ {
+  "id": "nclm-cityvision",
+  "name": "NCLM CityVision",
+  "organizer": "North Carolina League of Municipalities",
+  "url": "https://www.nclm.org/cityvision",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2027-05-04",
+  "endDate": "2027-05-06",
+  "datesConfirmed": true,
+  "typicalMonth": "May",
+  "city": "Winston-Salem",
+  "state": "NC",
+  "country": "US",
+  "industries": [
+   "Government & Public Sector"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "The League's flagship event for North Carolina local officials (600+ leaders in 2026).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not listed; use the events contact form.",
+  "speaking": "OPEN_CFP",
+  "speakingUrl": "https://www.nclm.org/events-training/cityvision/form-submit-call-for-sessions/",
+  "speakingDeadline": "2026-10-30",
+  "speakingNote": "Session, topic and keynote proposals accepted until Oct 30, 2026.",
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "City and county government"
+  ],
+  "roles": [
+   "city manager",
+   "city clerk",
+   "elected official"
+  ],
+  "journeys": [
+   "GROWING",
+   "PROMOTION"
+  ]
+ },
+ {
+  "id": "oklahoma-bar-association-annual-meeting",
+  "name": "Oklahoma Bar Association Annual Meeting",
+  "organizer": "Oklahoma Bar Association",
+  "url": "https://www.okbar.org/annualmeeting",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": "2026-11-11",
+  "endDate": "2026-11-13",
+  "datesConfirmed": true,
+  "typicalMonth": "November",
+  "city": "Oklahoma City",
+  "state": "OK",
+  "country": "US",
+  "industries": [
+   "Legal Services"
+  ],
+  "functions": [],
+  "seniorities": [],
+  "importance": 2,
+  "whyAttend": "Oklahoma lawyers meet at the Skirvin Hilton for CLE, sections and bar business.",
+  "access": "PAID",
+  "costLow": 99,
+  "costHigh": 250,
+  "costNote": "Members: Wed $99; Thu $150 through Oct 21, then $250.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": "Law students attend free; YLD members get $25 off both days (code YLD1776).",
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": true,
+  "verified": true,
+  "checkedAt": "2026-10-23",
+  "source": "official site",
+  "segments": [
+   "Litigation and trial",
+   "Courts and public interest law"
+  ],
+  "roles": [
+   "litigator",
+   "judge"
+  ],
+  "journeys": [
+   "GROWING",
+   "STUDENT_NEW_GRAD"
+  ]
+ },
+ {
+  "id": "oklahoma-bankers-association-convention",
+  "name": "Oklahoma Bankers Association Convention",
+  "organizer": "Oklahoma Bankers Association",
+  "url": "https://www.oba.com/convention",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "Oklahoma City",
+  "state": "OK",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Oklahoma bank leaders and vendors; 2026 edition was May 18-20 in Oklahoma City.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 not yet posted.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Community and regional banking"
+  ],
+  "roles": [
+   "bank executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "louisiana-bankers-association-convention",
+  "name": "Louisiana Bankers Association Convention & Exposition",
+  "organizer": "Louisiana Bankers Association",
+  "url": "https://lba.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "May",
+  "city": "New Orleans",
+  "state": "LA",
+  "country": "US",
+  "industries": [
+   "Financial Services & Banking"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Louisiana bank executives and vendors; 2027 dates only from a third-party listing.",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Not on the official page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Community and regional banking"
+  ],
+  "roles": [
+   "bank executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ },
+ {
+  "id": "georgia-hospital-association-summer-meeting",
+  "name": "Georgia Hospital Association Summer Meeting",
+  "organizer": "Georgia Hospital Association",
+  "url": "https://www.gha.org",
+  "kind": "CONFERENCE",
+  "format": "IN_PERSON",
+  "startDate": null,
+  "endDate": null,
+  "datesConfirmed": false,
+  "typicalMonth": "July",
+  "city": "Amelia Island",
+  "state": "FL",
+  "country": "US",
+  "industries": [
+   "Healthcare & Hospital Systems"
+  ],
+  "functions": [],
+  "seniorities": [
+   "SENIOR",
+   "EXECUTIVE"
+  ],
+  "importance": 3,
+  "whyAttend": "Georgia hospital executives; 2026 was July 8-10 at Amelia Island (third-party source).",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Details are on my.gha.org calendar, not the home page.",
+  "speaking": "UNKNOWN",
+  "speakingUrl": null,
+  "speakingDeadline": null,
+  "speakingNote": null,
+  "cheaperWays": null,
+  "applyUrl": null,
+  "applyDeadline": null,
+  "published": false,
+  "verified": false,
+  "checkedAt": null,
+  "source": null,
+  "segments": [
+   "Hospital and health system leadership"
+  ],
+  "roles": [
+   "hospital executive"
+  ],
+  "journeys": [
+   "GROWING"
+  ]
+ }
+]

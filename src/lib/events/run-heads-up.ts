@@ -4,8 +4,8 @@ import { NOT_CASUAL_WHERE } from '@/lib/journey/intensity'
 import { listEvents } from './store'
 import { checkInDue, dueStages, sendCap, editionKey, nextEditionDue, STAGE_PRIORITY, URGENT_STAGES, type InterestStatus, type Stage } from './headsup'
 import { factsFor } from './member'
-import { matchEvents } from './match'
-import { sendConferenceHeadsUp, type FollowUp } from './send-heads-up'
+import { matchEvents, newEventsFor, NEW_EVENT_SINCE_DEFAULT, type EventMatch } from './match'
+import { sendConferenceHeadsUp, sendNewEventsDigest, type FollowUp } from './send-heads-up'
 import type { ConferenceRow } from './types'
 
 // Daily, at most one email a week per member (urgent stages excepted). Two audiences: members who saved, are going to, or are speaking at an event get every stage; the
@@ -23,6 +23,8 @@ export interface PlannedSend {
   source: 'interest' | 'match'
   edition: string
   followUp?: FollowUp
+  /** NEW_EVENT only: the events (up to 3) the one email names. */
+  newMatches?: EventMatch[]
 }
 
 export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: boolean } = {}) {
@@ -49,6 +51,11 @@ export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: bo
   const lastMatchSend = new Map<string, Date>()
   for (const n of sentBefore) if (n.stage === 'EXPLORE') lastMatchSend.set(n.candidateId, n.sentAt > (lastMatchSend.get(n.candidateId) ?? new Date(0)) ? n.sentAt : lastMatchSend.get(n.candidateId)!)
 
+  // Events announced to each member already, and the cut-off after which an event counts as new.
+  const announced = new Map<string, Set<string>>()
+  for (const n of sentBefore) if (n.stage === 'NEW_EVENT') announced.set(n.candidateId, (announced.get(n.candidateId) ?? new Set()).add(n.eventId))
+  const since = new Date(process.env.CONFERENCE_NEW_SINCE ?? NEW_EVENT_SINCE_DEFAULT)
+
   const lastAny = new Map<string, Date>()
   for (const n of sentBefore) if (n.sentAt > (lastAny.get(n.candidateId) ?? new Date(0))) lastAny.set(n.candidateId, n.sentAt)
 
@@ -57,7 +64,7 @@ export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: bo
   for (const m of members) {
     try {
       const interests = new Map(m.conferenceInterests.map((i) => [i.eventId, i.status as InterestStatus]))
-      const todo: { event: (typeof events)[number]; stage: Stage; source: 'interest' | 'match'; edition: string; followUp?: FollowUp }[] = []
+      const todo: { event: (typeof events)[number]; stage: Stage; source: 'interest' | 'match'; edition: string; followUp?: FollowUp; newMatches?: EventMatch[] }[] = []
       for (const i of m.conferenceInterests) {
         const e = byId.get(i.eventId)
         if (!e) continue
@@ -76,13 +83,16 @@ export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: bo
         const top = matchEvents(events, factsFor(m)).find((x) => x.score >= MATCH_MIN_SCORE && x.event.importance <= 2 && x.event.verified && !interests.has(x.event.id))
         if (top && dueStages(top.event, null, now).includes('EXPLORE') && !done.has(`${m.id}|${top.event.id}|EXPLORE|${editionKey(top.event, now)}`)) todo.push({ event: top.event, stage: 'EXPLORE', source: 'match', edition: editionKey(top.event, now) })
       }
+      // New conferences added since launch that fit this member: one email naming up to three.
+      const fresh = newEventsFor(events, factsFor(m), since, announced.get(m.id) ?? new Set(), new Set(interests.keys()), now)
+      if (fresh.length > 0) todo.push({ event: fresh[0].event, stage: 'NEW_EVENT', source: 'match', edition: '', newMatches: fresh })
       todo.sort((a, b) => STAGE_PRIORITY.indexOf(a.stage) - STAGE_PRIORITY.indexOf(b.stage))
       due += todo.length
       const recent = lastAny.get(m.id)
       const capped = recent && now.getTime() - recent.getTime() < WEEKLY_GAP_DAYS * 86_400_000
       // One email a week: send the most urgent due item; the rest stay due until their windows close.
       const pick = todo.find((t) => !capped || URGENT_STAGES.includes(t.stage))
-      if (pick) plan.push({ member: { id: m.id, userId: m.userId, firstName: m.firstName }, event: pick.event, stage: pick.stage, source: pick.source, edition: pick.edition, followUp: pick.followUp })
+      if (pick) plan.push({ member: { id: m.id, userId: m.userId, firstName: m.firstName }, event: pick.event, stage: pick.stage, source: pick.source, edition: pick.edition, followUp: pick.followUp, newMatches: pick.newMatches })
     } catch (error) {
       console.error('Conference heads-up failed for member', m.id, error)
     }
@@ -96,7 +106,8 @@ export async function runConferenceHeadsUp(now = new Date(), opts: { dryRun?: bo
   if (!opts.dryRun) {
     for (const p of plan.slice(0, max)) {
       try {
-        if (await sendConferenceHeadsUp(p.member, p.event, p.stage, p.source, { edition: p.edition, followUp: p.followUp })) {
+        const ok = p.stage === 'NEW_EVENT' && p.newMatches ? await sendNewEventsDigest(p.member, p.newMatches) : await sendConferenceHeadsUp(p.member, p.event, p.stage, p.source, { edition: p.edition, followUp: p.followUp })
+        if (ok) {
           sent++
           // A new edition starts a new cycle: forget last year's answer and count down to the new end date.
           if (p.stage === 'NEXT_EDITION' && p.followUp)
