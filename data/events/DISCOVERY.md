@@ -15,7 +15,7 @@ events we do not hold yet.
    join; events outside North America only if they are the field's global flagship; nothing supported only by third-party listings.
 4. `npx tsx scripts/events/build-catalog.ts`, then `npx vitest run src/test/events.test.ts src/test/events-headsup.test.ts src/test/events-refresh.test.ts`.
 5. Commit only `data/events/**` and `src/lib/events/catalog.json`, push, open a PR titled "Events: monthly discovery YYYY-MM" with the counts
-   (new events, published, segments searched). Do not merge: the owner merges (or tells Claude to). Never touch the database.
+   (new events, published, segments searched). The run then waits for CI and merges its own PR through the guarded `merge` step (data-only files and green CI, otherwise it leaves the PR open and says why). Never touch the database.
 6. The daily refresh cron loads the new catalog into the database (locked rows are never overwritten). Report the counts back.
 
 Cost: runs on the owner's Claude plan, no API billing. About 3 to 4 subagent runs a month.
@@ -31,6 +31,8 @@ Cost: runs on the owner's Claude plan, no API billing. About 3 to 4 subagent run
 7. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh test`
 8. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh commit YYYY-MM`
 9. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh pr YYYY-MM "<counts>"`
-10. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh cleanup`
+10. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh wait` (repeat up to 3 times while it prints PENDING; on `FAILED` run `rerun` once, then `wait` again)
+11. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh merge` (refuses unless every changed file is event data and CI is green)
+12. `bash /Users/salitkulla/nc-events-discovery/scripts/events/discovery.sh cleanup`
 
 Plus: Agent (Sonnet subagents), WebSearch, WebFetch, Read and Write (data/events/v5 only), and the Gmail connector's send_message for the summary email.

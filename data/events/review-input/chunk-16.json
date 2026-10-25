@@ -1,0 +1,381 @@
+[
+ {
+  "id": "ashp-midyear",
+  "name": "ASHP Midyear Clinical Meeting and Exhibition",
+  "organizer": "ASHP",
+  "url": "https://www.ashp.org/Meetings-and-Conferences/Midyear-Clinical-Meeting-and-Exhibition",
+  "startDate": "2026-12-06",
+  "endDate": "2026-12-09",
+  "typicalMonth": "December",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration fees not retrieved; ASHP member and non-member and student rates exist (2024 student non-member from $425).",
+  "speaking": "LIKELY",
+  "source": "official domain search",
+  "whyAttend": "The pharmacist hiring hub of the year: a Personnel Placement Service connects pharmacists with health systems.",
+  "segments": [
+   "Pharmacy"
+  ],
+  "industries": [
+   "Healthcare & Hospital Systems",
+   "Pharmaceuticals & Biotech"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "ona-conference",
+  "name": "ONA Conference (Online News Association)",
+  "organizer": "Online News Association",
+  "url": "https://www.journalists.org/conference",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Not captured; 2027 timing not announced (2026 moved from fall to spring).",
+  "speaking": "LIKELY",
+  "source": "official site",
+  "whyAttend": "Digital journalists, product leads and news technologists; ONA26 moved to spring (Mar 30-Apr 1, 2026, Chicago).",
+  "segments": [
+   "Journalism and news"
+  ],
+  "industries": [
+   "Media & Entertainment"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "agbt-general-meeting",
+  "name": "AGBT General Meeting",
+  "organizer": "AGBT",
+  "url": "https://events.agbt.org/",
+  "startDate": "2027-03-01",
+  "endDate": "2027-03-04",
+  "typicalMonth": "March",
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration required and attendance capped around 1,000; price not retrieved.",
+  "speaking": "LIKELY",
+  "source": "official site + press",
+  "whyAttend": "Sequencing and genomics-tools leaders meet; where new platforms are launched.",
+  "segments": [
+   "Genomics and bioinformatics"
+  ],
+  "industries": [
+   "Pharmaceuticals & Biotech"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "all-things-open",
+  "name": "All Things Open",
+  "organizer": "All Things Open",
+  "url": "https://2026.allthingsopen.org",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "October",
+  "city": "Raleigh",
+  "state": "NC",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2026 sold on Eventbrite with an early-bird half-price sale; 2027 prices not posted.",
+  "speaking": "LIKELY",
+  "source": "third-party lead; official page not confirmed",
+  "whyAttend": "Large open source conference in Raleigh drawing maintainers, developer advocates and enterprise OSPO teams.",
+  "segments": [
+   "Open source and developer relations"
+  ],
+  "industries": [
+   "Technology & Software"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "asid-gather-national-conference",
+  "name": "ASID GATHER National Conference",
+  "organizer": "American Society of Interior Designers",
+  "url": "https://www.asid.org/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Not read.",
+  "speaking": "LIKELY",
+  "source": "official domain search",
+  "whyAttend": "Interior designers, firm principals and product makers at ASID's national flagship.",
+  "segments": [
+   "Architecture, engineering and design"
+  ],
+  "industries": [
+   "Construction & Real Estate"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "clinton-global-initiative-annual-meeting",
+  "name": "Clinton Global Initiative Annual Meeting",
+  "organizer": "Clinton Foundation",
+  "url": "https://www.clintonfoundation.org/press-and-news/annual-meeting/clinton-global-initiative-returns-to-new-york-city-september-22-23/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": "New York",
+  "state": "NY",
+  "access": "APPLY",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Fee and eligibility not confirmed from the official page; registration is gated.",
+  "speaking": "BY_INVITE",
+  "source": "official domain search",
+  "whyAttend": "Philanthropists, CEOs and nonprofit leaders making commitments.",
+  "segments": [
+   "Social enterprise and impact investing"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "fordham-ip-law-policy-conference",
+  "name": "Fordham Intellectual Property Law & Policy Conference",
+  "organizer": "Fordham Law Hansen IP Institute",
+  "url": "https://www.fordham.edu/school-of-law",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "April",
+  "city": "New York",
+  "state": "NY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not retrieved.",
+  "speaking": "BY_INVITE",
+  "source": "official site + press",
+  "whyAttend": "Patent, trademark and copyright lawyers, judges and agency officials meet; the 2026 edition was April 9-10.",
+  "segments": [
+   "Intellectual property"
+  ],
+  "industries": [
+   "Legal Services"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "hotel-data-conference",
+  "name": "Hotel Data Conference",
+  "organizer": "CoStar",
+  "url": "https://web.cvent.com/event/34d31964-ee50-4c8f-844a-e31ba5cd6203/home-2-1",
+  "startDate": "2027-08-04",
+  "endDate": "2027-08-06",
+  "typicalMonth": "August",
+  "city": "Nashville",
+  "state": "TN",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not confirmed.",
+  "speaking": "LIKELY",
+  "source": "third-party listing only",
+  "whyAttend": "Hotel analysts, revenue managers and brand data leaders on benchmarking and market data.",
+  "segments": [
+   "Hospitality technology"
+  ],
+  "industries": [
+   "Hospitality, Travel & Food Service"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "projectsummit-businessanalystworld",
+  "name": "ProjectSummit + BusinessAnalystWorld",
+  "organizer": "PMBA Conferences",
+  "url": "https://pmbaconferences.com/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": "Orlando",
+  "state": "FL",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices and dates not on the home page; earns PDUs and CDUs.",
+  "speaking": "OPEN_CFP",
+  "source": "third-party listing / search result",
+  "whyAttend": "Combined project management and business analysis conference series with regional fall events and a spring Orlando flagship; PM and BA roles in one room.",
+  "segments": [
+   "Project and program management",
+   "Business analysis and product consulting"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "safe-summit",
+  "name": "SAFe Summit",
+  "organizer": "Scaled Agile, Inc.",
+  "url": "https://framework.scaledagile.com/blog/tag/safe-summit",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "September",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Pricing not read.",
+  "speaking": "LIKELY",
+  "source": "official domain search",
+  "whyAttend": "Scaled Agile's flagship for enterprise program managers, release train engineers and PMO leaders running SAFe.",
+  "segments": [
+   "Project and program management"
+  ],
+  "industries": [
+   "Professional Services & Consulting"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "sustainable-brands",
+  "name": "Sustainable Brands",
+  "organizer": "Sustainable Brands, PBC",
+  "url": "https://sustainablebrands.com",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": "June",
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Not read.",
+  "speaking": "LIKELY",
+  "source": "official site",
+  "whyAttend": "Corporate sustainability and brand leaders exchanging practice with peers from large consumer brands.",
+  "segments": [
+   "Sustainability, ESG and climate"
+  ],
+  "industries": [
+   "Consumer Packaged Goods",
+   "Energy & Utilities"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "apsg-conference",
+  "name": "APSG Conference",
+  "organizer": "Automotive Parts Services Group",
+  "url": "https://www.aftermarketnews.com/?p=251429",
+  "startDate": "2027-03-30",
+  "endDate": "2027-04-02",
+  "typicalMonth": "March",
+  "city": "Louisville",
+  "state": "KY",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Registration not yet open; The Group (APSG) is a member organization, so eligibility may depend on membership.",
+  "speaking": "LIKELY",
+  "source": "official domain search",
+  "whyAttend": "Parts distributors, jobbers and suppliers meeting one-on-one; the aftermarket distribution group conference.",
+  "segments": [
+   "Dealerships and aftermarket"
+  ],
+  "industries": [
+   "Automotive & Mobility"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "awwa-water-infrastructure-conference",
+  "name": "AWWA Water Infrastructure Conference",
+  "organizer": "American Water Works Association",
+  "url": "https://awwa.org/wic/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "2027 dates TBD on AWWA site.",
+  "speaking": "LIKELY",
+  "source": "official site",
+  "whyAttend": "Water utility managers, engineers and consultants working on infrastructure funding and projects.",
+  "segments": [
+   "Water and wastewater utilities"
+  ],
+  "industries": [
+   "Energy & Utilities"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "collective-impact-action-summit",
+  "name": "Collective Impact Action Summit",
+  "organizer": "Collective Impact Forum",
+  "url": "https://collectiveimpactforum.org/events/",
+  "startDate": null,
+  "endDate": null,
+  "typicalMonth": null,
+  "city": null,
+  "state": null,
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "One-day virtual convening in fall 2027; dates and pricing not yet announced.",
+  "speaking": "OPEN_CFP",
+  "source": "official site",
+  "whyAttend": "Backbone and cross-sector collaboration leaders.",
+  "segments": [
+   "Volunteer management and community engagement",
+   "Social enterprise and impact investing"
+  ],
+  "industries": [
+   "Nonprofit & Social Impact"
+  ],
+  "adminNote": null
+ },
+ {
+  "id": "hrwest",
+  "name": "HRWest",
+  "organizer": "HR.com",
+  "url": "https://www.hr.com/en/webcasts_events/live_events/hrwest/hrwest-2027-agenda-listing_mnq4uvmw.html",
+  "startDate": "2027-03-23",
+  "endDate": "2027-03-24",
+  "typicalMonth": "March",
+  "city": "South San Francisco",
+  "state": "CA",
+  "access": "PAID",
+  "costLow": null,
+  "costHigh": null,
+  "costNote": "Prices not retrieved; early-bird offers have run in prior years.",
+  "speaking": "LIKELY",
+  "source": "third-party listing + official domain search",
+  "whyAttend": "West Coast HR leaders and business partners.",
+  "segments": [
+   "HR leadership"
+  ],
+  "industries": [
+   "Staffing & Human Capital"
+  ],
+  "adminNote": null
+ }
+]

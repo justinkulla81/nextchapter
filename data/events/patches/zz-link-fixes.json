@@ -1,0 +1,20 @@
+[
+ {
+  "id": "american-film-market",
+  "patch": {
+   "url": "https://americanfilmmarket.com/"
+  }
+ },
+ {
+  "id": "americas-credit-unions-governmental-affairs-conference",
+  "patch": {
+   "url": "https://www.americascreditunions.org/events-training/conference/governmental-affairs-conference"
+  }
+ },
+ {
+  "id": "iaem-annual-conference",
+  "patch": {
+   "url": "https://www.iaemconference.org/"
+  }
+ }
+]

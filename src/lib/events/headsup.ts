@@ -13,12 +13,12 @@
 import { hasUpcomingDates } from './format'
 import type { ConferenceRow } from './types'
 
-export const STAGES = ['EXPLORE', 'SPEAK_30', 'SPEAK_7', 'DECIDE', 'BOOK', 'NETWORK_PREP', 'FINAL', 'CHECK_IN', 'NEXT_EDITION'] as const
+export const STAGES = ['EXPLORE', 'SPEAK_30', 'SPEAK_7', 'DECIDE', 'BOOK', 'NETWORK_PREP', 'FINAL', 'CHECK_IN', 'NEXT_EDITION', 'NEW_EVENT'] as const
 export type Stage = (typeof STAGES)[number]
 export type InterestStatus = 'SAVED' | 'GOING' | 'SPEAKING' | 'FOLLOWING' | null
 
 /** Most urgent first. SPEAK_7 and FINAL are time-critical and ignore the weekly email cap. */
-export const STAGE_PRIORITY: Stage[] = ['SPEAK_7', 'FINAL', 'NEXT_EDITION', 'SPEAK_30', 'NETWORK_PREP', 'BOOK', 'DECIDE', 'CHECK_IN', 'EXPLORE']
+export const STAGE_PRIORITY: Stage[] = ['SPEAK_7', 'FINAL', 'NEXT_EDITION', 'SPEAK_30', 'NETWORK_PREP', 'BOOK', 'DECIDE', 'CHECK_IN', 'NEW_EVENT', 'EXPLORE']
 export const URGENT_STAGES: Stage[] = ['SPEAK_7', 'FINAL']
 
 const DAY = 86_400_000
@@ -133,6 +133,7 @@ export function networkingDraft(e: ConferenceRow, ctx: DraftContext): { subject:
 export const STAGE_SUBJECT: Record<Stage, (name: string) => string> = {
   EXPLORE: (n) => `${n}: ask now about speaking or a panel`,
   CHECK_IN: (n) => `How was ${n}?`,
+  NEW_EVENT: (n) => `New conference for you: ${n}`,
   NEXT_EDITION: (n) => `${n} has announced its next dates`,
   SPEAK_30: (n) => `${n}: speaker proposals close in about a month`,
   SPEAK_7: (n) => `${n}: speaker proposals close this week`,
