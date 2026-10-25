@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Chips, Section, TopicShell, JoinBand } from '@/components/topics/blocks'
-import { AiLayoffTable, EmployerRankTable } from '@/components/topics/EmployerRankTable'
+import { EmployerRankTable } from '@/components/topics/EmployerRankTable'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { JOB_FUNCTIONS } from '@/lib/seo/topics'
@@ -8,9 +8,9 @@ import { getEmployerRankings, getFunctionRankings, SHARE_MIN_ROLES } from '@/lib
 
 export const revalidate = 3600
 
-const TITLE = 'Top employers: entry-level hiring, no experience needed, AI hiring and AI layoffs'
+const TITLE = 'Top employers: entry-level hiring, no experience needed and AI hiring'
 const DESCRIPTION =
-  'Which employers have the most open entry-level jobs, the most jobs that need no experience, the highest share of AI jobs, and recent layoffs tied to AI, plus the biggest hirers in each function. Counted daily from verified open jobs.'
+  'Which employers have the most open entry-level jobs, the most jobs that need no experience, and the highest share of AI jobs, plus the biggest hirers in each function. Counted daily from verified open jobs.'
 export const metadata: Metadata = { title: TITLE, description: DESCRIPTION, ...canonical('/top-employers') }
 
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
@@ -42,12 +42,6 @@ export default async function TopEmployersPage() {
         <div className="mt-3">
           <EmployerRankTable rows={r.aiCount} cols={['aiSkill', 'aiShare', 'open']} list="ai_count" />
         </div>
-      </Section>
-      <Section id="ai-layoffs" title="Employers with layoffs tied to AI in the news" note="Employers with a layoff headline in the last 12 months that names AI or automation, ranked by how many separate news outlets ran one. This is what the press reported, found by matching the headline; it is not the employer’s stated reason, and it undercounts layoffs the press did not link to AI.">
-        <AiLayoffTable rows={r.aiLayoffs} />
-        {r.both.length > 0 && (
-          <p className="mt-4 text-sm text-muted-foreground">On both sides: {r.both.join(', ')} appear in the AI hiring lists above and have AI-linked layoff headlines.</p>
-        )}
       </Section>
       {fns.length > 0 && (
         <Section id="functions" title="Employers hiring the most, by function" note="Pick a function for the employers with the most open jobs in it.">

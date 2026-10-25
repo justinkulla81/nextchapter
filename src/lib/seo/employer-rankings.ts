@@ -14,8 +14,6 @@ import { JOB_FUNCTIONS } from '@/lib/seo/topics'
 //   training    entry roles describing structured training for the hire (training_provided)
 //   aiSkill     roles asking for a specific AI skill (aiSkillGroups) — the strict, public AI metric
 //   (Staffing and search firms are left out: they post for other employers, so ranking them as hirers is wrong.)
-//   layoffs     press headlines in the last 12 months that name AI or automation next to a layoff, an allowlist
-//               match on the headline (LayoffNewsMention); a floor, and what the press said, not the employer's cause
 //
 // Rankings that compare employers by a share (AI-skill share) need SHARE_MIN_ROLES open roles first, so a
 // two-job employer with one AI job does not outrank a company with a hundred.
@@ -35,12 +33,6 @@ const NOT_STAFFING = `c.industry IS DISTINCT FROM 'Staffing & Human Capital'
   AND COALESCE(c.name, r."companyName") !~* '(staffing|recruit|talent|\\msearch\\M|work at home|workforce solutions|headhunt)'
   AND COALESCE(c.name, r."companyName") !~* '^(confidential|company confidential|confidential company|remote|clients? blackbox|stealth.*|undisclosed|anonymous|various|multiple companies|hiring now|our client)$'`
 
-/** Headline words that tie a layoff to AI. An allowlist: nothing else counts. */
-const AI_HEADLINE = `\\m(AI|A\\.I\\.|artificial intelligence|generative AI|genAI|automation|automating|automated|machine learning)\\M`
-
-/** Headlines that say AI is not the reason; they name AI but argue against the link. */
-const AI_DENIAL = `(denies|denied|not behind|not due to|not because|not AI|isn.t buying|no evidence)`
-
 export interface RankedEmployer {
   name: string
   /** /employers/<slug> when that page exists, else null. */
@@ -52,14 +44,6 @@ export interface RankedEmployer {
   aiSkill: number
   /** aiSkill / open, 0-1. */
   aiShare: number
-}
-
-export interface AiLayoffEmployer {
-  name: string
-  slug: string | null
-  /** Distinct news outlets that ran an AI-linked layoff headline for this employer (syndicated copies count once). */
-  outlets: number
-  latest: { headline: string; url: string; publisher: string | null; publishedAt: string | null }
 }
 
 export interface EmployerRankings {
@@ -74,10 +58,6 @@ export interface EmployerRankings {
   aiShare: RankedEmployer[]
   /** Most open roles asking for AI skills. */
   aiCount: RankedEmployer[]
-  /** Employers with press headlines tying a recent layoff to AI. */
-  aiLayoffs: AiLayoffEmployer[]
-  /** Both sides: employers on the AI hiring list that also appear on the AI layoffs list. */
-  both: string[]
 }
 
 type Row = {
@@ -133,69 +113,17 @@ async function employerRows(pages: Set<string>): Promise<RankedEmployer[]> {
   return rows.map((r) => toRanked(r, pages))
 }
 
-/** Name variants of one employer in headlines: trailing company words dropped, known short names mapped. */
-const ALIASES: Record<string, string> = { amex: 'american express' }
-const GENERIC_TAIL = /\s+(bank|group|inc|corp|corporation|co|company|plc|ltd|llc|holdings|limited)\.?$/
-export function layoffGroupKey(companyKey: string): string {
-  let k = companyKey.toLowerCase().trim()
-  for (let i = 0; i < 2; i++) k = k.replace(GENERIC_TAIL, '')
-  return ALIASES[k] ?? k
-}
-
-async function aiLayoffRows(pages: Set<string>): Promise<AiLayoffEmployer[]> {
-  // Only employers we have a company record for: headline-parsed names ("Kroger to", "Australian bank") never match one.
-  const rows = await prisma.$queryRawUnsafe<
-    { key: string; name: string; company_id: string; canonical: string; headline: string; url: string; publisher: string | null; published_at: Date | null }[]
-  >(`SELECT m."companyKey" AS key, c.name, c.id AS company_id, c."canonicalNameNormalized" AS canonical, m.headline, m.url, m.publisher, m."publishedAt" AS published_at
-    FROM "LayoffNewsMention" m JOIN "Company" c ON c."canonicalNameNormalized" = m."companyKey"
-    WHERE m."publishedAt" > now() - interval '12 months' AND m.headline ~* '${AI_HEADLINE}' AND m.headline !~* '${AI_DENIAL}'`)
-  type Row = (typeof rows)[number]
-  type G = { rows: Row[]; outlets: Set<string>; latest: Row }
-  const groups = new Map<string, G>()
-  for (const r of rows) {
-    const k = layoffGroupKey(r.key)
-    const g = groups.get(k)
-    if (!g) {
-      groups.set(k, { rows: [r], outlets: new Set([(r.publisher ?? r.url).toLowerCase()]), latest: r })
-      continue
-    }
-    g.rows.push(r)
-    g.outlets.add((r.publisher ?? r.url).toLowerCase())
-    if ((r.published_at?.getTime() ?? 0) > (g.latest.published_at?.getTime() ?? 0)) g.latest = r
-  }
-  // Real employers only: one with a public page (open jobs or a WARN filing), or one reported by 3+ outlets. Names parsed from headlines that
-  // happen to have a company record ("AI", "Australian bank") have neither.
-  return [...groups.values()]
-    .filter((g) => g.outlets.size >= WIDELY_REPORTED || g.rows.some((r) => pages.has(r.company_id)))
-    .map((g) => {
-      // The company with the most headlines names the group; its canonical name and id make the employer-page slug.
-      const counts = new Map<string, number>()
-      for (const r of g.rows) counts.set(r.company_id, (counts.get(r.company_id) ?? 0) + 1)
-      const top = g.rows.find((r) => r.company_id === [...counts].sort((a, b) => Number(pages.has(b[0])) - Number(pages.has(a[0])) || b[1] - a[1])[0][0])!
-      return {
-        name: top.name,
-        slug: pages.has(top.company_id) ? employerSlug(top.canonical, top.company_id) : null,
-        outlets: g.outlets.size,
-        latest: { headline: g.latest.headline, url: g.latest.url, publisher: g.latest.publisher, publishedAt: g.latest.published_at ? g.latest.published_at.toISOString() : null },
-      }
-    })
-    .sort((a, b) => b.outlets - a.outlets || (b.latest.publishedAt ?? '').localeCompare(a.latest.publishedAt ?? ''))
-}
-
 export async function buildEmployerRankings(): Promise<EmployerRankings> {
   const pages = await employerPageCompanyIds()
   const all = await employerRows(pages)
   const by = (f: (e: RankedEmployer) => number) => (a: RankedEmployer, b: RankedEmployer) => f(b) - f(a) || b.open - a.open || a.name.localeCompare(b.name)
 
-  const aiLayoffs = await aiLayoffRows(pages)
 
   const aiCount = all.filter((e) => e.aiSkill > 0).sort(by((e) => e.aiSkill)).slice(0, RANK_SIZE)
   const aiShare = all
     .filter((e) => e.open >= SHARE_MIN_ROLES && e.aiSkill > 0)
     .sort((a, b) => b.aiShare - a.aiShare || b.aiSkill - a.aiSkill)
     .slice(0, RANK_SIZE)
-  const layoffNames = new Set(aiLayoffs.map((l) => l.name.toLowerCase()))
-  const both = [...aiCount, ...aiShare].map((e) => e.name).filter((n, i, a) => a.indexOf(n) === i && layoffNames.has(n.toLowerCase()))
 
   return {
     asOf: new Date().toISOString(),
@@ -205,13 +133,11 @@ export async function buildEmployerRankings(): Promise<EmployerRankings> {
     noExp: all.filter((e) => e.noExp > 0).sort(by((e) => e.noExp)).slice(0, RANK_SIZE),
     aiShare,
     aiCount,
-    aiLayoffs: aiLayoffs.slice(0, RANK_SIZE),
-    both,
   }
 }
 
 const DAY = 86_400
-export const getEmployerRankings = unstable_cache(buildEmployerRankings, ['employer-rankings-v7'], { revalidate: DAY })
+export const getEmployerRankings = unstable_cache(buildEmployerRankings, ['employer-rankings-v8'], { revalidate: DAY })
 
 // ---- by function -------------------------------------------------------------------------------------------
 

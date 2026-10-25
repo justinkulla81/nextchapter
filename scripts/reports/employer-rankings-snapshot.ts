@@ -26,8 +26,6 @@ async function main() {
     '## Most entry-level jobs', table(r.entry, [{ head: 'Entry-level', get: (e) => n(e.entry) }, { head: 'Open', get: (e) => n(e.open) }]),
     '## Most jobs needing no experience', table(r.noExp, [{ head: 'No experience', get: (e) => n(e.noExp) }, { head: 'Entry-level', get: (e) => n(e.entry) }]),
     '## Highest share asking for AI skills', table(r.aiShare, [{ head: 'Share', get: (e) => `${Math.round(e.aiShare * 100)}%` }, { head: 'AI jobs', get: (e) => n(e.aiSkill) }, { head: 'Open', get: (e) => n(e.open) }]),
-    '## Layoffs tied to AI in the news (outlets that ran a headline)',
-    r.aiLayoffs.map((l, i) => `${i + 1}. ${l.name}: ${l.outlets} outlets. "${l.latest.headline}" (${l.latest.publisher ?? 'source'})`).join('\n'),
     ...fns.flatMap((f) => [`## ${f.function}: most open jobs (${n(f.open)} total)`, table(f.employers, [{ head: 'Open', get: (e) => n(e.open) }, { head: 'Entry-level', get: (e) => n(e.entry) }])]),
   ].join('\n\n')
   writeFileSync(path.join(out, 'rankings.md'), md + '\n')
