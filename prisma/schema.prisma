@@ -14778,6 +14778,7 @@ model ConferenceEvent {
   editions         ConferenceEdition[]
   opportunities    ConferenceOpportunity[]
   changes          ConferenceChange[]
+  employers        ConferenceEmployer[]
 
   @@index([published, startDate])
   @@index([importance])
@@ -16919,6 +16920,26 @@ model CompetitorCapability {
 
 // ---- Conferences v2: editions, opportunities, member tracking, change review (prisma/manual/conferences-v2.sql) ----
 // ConferenceEvent above IS the series (one row per recurring event); these tables hang off it.
+
+/// An employer known to exhibit at, sponsor, speak at or attend a conference, with where we read it.
+/// Shown on the public conference page (/conferences/<id>). Empty until filled from exhibitor lists,
+/// sponsor pages and speaker lines; the page never invents attendance. Applied by hand: prisma/manual/conference-employers.sql.
+/// role: EXHIBITOR | SPONSOR | SPEAKER | ATTENDEE
+model ConferenceEmployer {
+  id         String          @id @default(cuid())
+  seriesId   String
+  series     ConferenceEvent @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  name       String
+  companyId  String?
+  role       String          @default("EXHIBITOR")
+  year       Int?
+  sourceUrl  String?
+  createdAt  DateTime        @default(now())
+
+  @@unique([seriesId, name, role])
+  @@index([seriesId])
+  @@index([companyId])
+}
 
 /// One year's event. Created as TBA when the previous edition ends; dates fill in from the event's own site.
 model ConferenceEdition {
