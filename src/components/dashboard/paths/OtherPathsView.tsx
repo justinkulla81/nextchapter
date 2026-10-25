@@ -10,6 +10,8 @@ import {
   INTEREST_KEYS,
   INTEREST_LABELS,
   INTEREST_LEVELS,
+  SCHOOL_FUNDING,
+  SCHOOL_MODES,
   SIDE_GOALS,
   SWITCHABLE_MAIN,
   activePaths,
@@ -20,10 +22,11 @@ import {
   incomeNeedOf,
   incomeRecommendation,
   previousMainOf,
+  schoolDetailsOf,
   sideDetailsOf,
   statedLevelsOf,
 } from '@/lib/journey/paths'
-import { savePathInterests, saveIncomeNeed, saveSideWork, switchMainFocus } from '@/app/dashboard/other-paths/actions'
+import { savePathInterests, saveIncomeNeed, saveSchoolDetails, saveSideWork, switchMainFocus } from '@/app/dashboard/other-paths/actions'
 
 // "Your other paths": what the member is thinking about or doing next to their main focus. The main journey keeps the weekly plan;
 // a path is active only at researching or doing it, and then adds one step. Shared by the page and the dev preview (sample data).
@@ -56,6 +59,7 @@ export function OtherPathsView({
   const levels = effectiveLevelsOf(signals)
   const cards = activePaths(signals)
   const side = sideDetailsOf(journeyDetails)
+  const school = schoolDetailsOf(journeyDetails)
   const previous = previousMainOf(journeyDetails)
   const mainLabel = main ? getJourney(main).label : 'Your main focus'
   const held = new Set(kinds ?? [])
@@ -147,7 +151,7 @@ export function OtherPathsView({
         )}
         <p className="text-sm text-muted-foreground">Your plan stays built around {mainLabel.toLowerCase()}.</p>
 
-        <ShowMore label="Side or part-time work: hours, income and what it is for" event="side_work_opened" properties={{ main, level: levels.side ?? null }}>
+        <ShowMore label="Side work details" event="side_work_opened" properties={{ main, level: levels.side ?? null }}>
           <form action={saveSideWork} id="side" className="space-y-5 rounded-2xl border border-border p-5">
             <fieldset className="space-y-2">
               <legend className="text-sm font-semibold text-ink">What do you do?</legend>
@@ -185,6 +189,43 @@ export function OtherPathsView({
             </fieldset>
             <ActionSubmit pendingLabel="Saving…" event="side_work_submit_pressed" props={{ main }}>
               Save side work
+            </ActionSubmit>
+          </form>
+        </ShowMore>
+        <ShowMore label="School details" event="school_details_opened" properties={{ main, level: levels.school ?? null }}>
+          <form action={saveSchoolDetails} id="school" className="space-y-5 rounded-2xl border border-border p-5">
+            <label className="space-y-1.5 text-sm font-semibold text-ink">
+              Program or degree
+              <input name="program" maxLength={120} defaultValue={school.program ?? ''} placeholder="Part-time MBA" className={INPUT} />
+            </label>
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-semibold text-ink">Full time or part time?</legend>
+              <ChoiceButtons name="mode" label="Full time or part time?" options={SCHOOL_MODES} defaultValue={school.mode} />
+              <p className="text-sm text-muted-foreground">Why we ask: full time puts your plan on your program&apos;s calendar: recruiting, your school&apos;s network and proof, timed to when it ends. Your earlier career counts as experience, not a gap.</p>
+            </fieldset>
+            <label className="space-y-1.5 text-sm font-semibold text-ink">
+              When does it end?
+              <input name="ends" type="month" defaultValue={school.ends ?? ''} className={INPUT} />
+            </label>
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-semibold text-ink">How will you pay for it?</legend>
+              <select name="funding" aria-label="How will you pay for it?" defaultValue={school.funding ?? ''} className={INPUT}>
+                <option value="">Choose one</option>
+                {SCHOOL_FUNDING.map((f) => (
+                  <option key={f.value} value={f.value}>
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-muted-foreground">
+                Why we ask: it decides what to look at first.{' '}
+                <TrackedAction href="/dashboard/funding" variant="text" event="school_funding_clicked" properties={{ funding: school.funding ?? null }}>
+                  See funding you qualify for
+                </TrackedAction>
+              </p>
+            </fieldset>
+            <ActionSubmit pendingLabel="Saving…" event="school_details_submit_pressed" props={{ main }}>
+              Save school details
             </ActionSubmit>
           </form>
         </ShowMore>

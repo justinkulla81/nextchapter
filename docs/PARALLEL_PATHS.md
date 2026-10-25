@@ -107,7 +107,24 @@ cell under 10 members withheld. No rows, names or ids. Nothing goes to any outsi
 
 Static. No model calls and nothing metered.
 
+## Going back to school (added 2026-10-23)
+
+A path with its own details: program, full or part time, the month it ends, and how it is paid for (savings, loans, employer,
+scholarship or aid), at `journeyDetails.paths.school`. Saving the form sets the level when the member has not (full or part time =
+doing it; a program alone = researching). The one plan step depends on what they told us:
+
+- Full time and doing it: the graduation-timed plan (position, the school's network, proof) from `src/lib/early-career/graduation-plan.ts`,
+  timed to the program's end month and named for the program. Their earlier career counts as experience, not a gap.
+- Part time and doing it: one coursework session and one conversation in the field they are heading to.
+- Researching: ask two people who finished the program what it cost and what it led to.
+
+The form links to Funding you qualify for.
+
+## What members are thinking about (admin)
+
+`/support/admin/path-interest`, under Reports: counts per path and level from members' own stated answers. Real members only, nobody in
+Confidential Search Mode, any cell under 10 withheld, no names, ids or rows. Nothing is sent to any outside party.
+
 ## Not built
 
-Side hustle as a main journey (rejected: it would take away a member's career plan); a path for school or training (the
-`TRAINING` kind is recorded only); exact income amounts for the runway beyond the side-work figure.
+Side hustle as a main journey (rejected: it would take away a member's career plan); a signed-in review of these pages by a member with real data.

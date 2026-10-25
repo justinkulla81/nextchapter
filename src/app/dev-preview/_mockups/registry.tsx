@@ -36,6 +36,7 @@ import { FundingLive } from './funding-live'
 import { ApplyHelperLive } from './apply-helper-live'
 import { ComparePlacesJobless, ComparePlacesEmployed, ComparePlacesLife, ComparePlacesEmpty, ComparePlacesNoCity } from './compare-places-live'
 import { HomePathsOpen, HomePathsWaiting, HomePathsNone } from './home-paths'
+import { StartPlanLive, StartHelpLive, GraduationLive, ReaskLive, OtherPathsSchoolLive } from './start-grad-live'
 import { OtherPathsNeedLive, OtherPathsBusyLive } from './other-paths-live'
 import { BuyPlanLive, BuyPlanNewLive, BuyFindLive, BuyFinancingLive, BuyTrainingLive } from './buy-business-live'
 import { BenefitsNetworkLive, CoachMatchLive, CommunityLive, ContactDetailLive, ContactsFiltersLive, ContactsLive, MessagesLive, PrivacyLive, ProfileLive } from './network-account-live'
@@ -161,6 +162,11 @@ export const MOCKUPS: Mockup[] = [
   { path: 'network/circles/recruiters', place: 'Network', title: 'Recruiters', replaces: '/dashboard/recruiter-requests', Component: RecruitersCircle },
   { path: 'network/week', place: 'Network', title: 'This week', replaces: '/dashboard/network/this-week, /dashboard/network/follow-ups', Component: NetworkThisWeek },
   { path: 'network/messages', place: 'Network', title: 'Messages', replaces: '/dashboard/messages', Component: Messages },
+  { path: 'learn/start-a-business/plan', place: 'Learn', title: 'Start a business: your plan (sample data)', replaces: 'new', Component: StartPlanLive },
+  { path: 'learn/start-a-business/help', place: 'Learn', title: 'Start a business: get help (sample data)', replaces: 'new', Component: StartHelpLive },
+  { path: 'learn/early-career/graduation', place: 'Learn', title: 'Before you graduate (sample data)', replaces: 'new section on /dashboard/early-career', Component: GraduationLive },
+  { path: 'learn/stalled-reask/card', place: 'Learn', title: 'Stalled-search re-ask (sample data)', replaces: 'new Home note', Component: ReaskLive },
+  { path: 'learn/other-paths/school', place: 'Learn', title: 'Your other paths: going back to school (sample data)', replaces: 'new', Component: OtherPathsSchoolLive },
   { path: 'learn/other-paths/need', place: 'Learn', title: 'Your other paths: needs income soon (sample data)', replaces: 'new: parallel paths', Component: OtherPathsNeedLive },
   { path: 'learn/other-paths/busy', place: 'Learn', title: 'Your other paths: side work, buying, way back (sample data)', replaces: 'new: parallel paths', Component: OtherPathsBusyLive },
   { path: 'learn/buy-a-business/plan', place: 'Learn', title: 'Buy a business: your plan (sample data)', replaces: 'new: the 12th journey', Component: BuyPlanLive },

@@ -20,6 +20,7 @@ import type { JourneyType } from '@prisma/client'
 import { buyDetailsOf, getBuyStage, hasBuyDetails, type BuyStageKey } from './buy-business'
 import { getJourney } from './journey'
 import { currentStartStage, getStartStage, hasStartDetails, startDetailsOf } from './start-business'
+import { gradPlanItems } from '@/lib/early-career/graduation-plan'
 
 export type PathPlanItem = { text: string; actionType?: string }
 
@@ -75,6 +76,9 @@ export type LevelSignals = {
   workingNow?: boolean
   /** profile.interimConsultingInterest */
   interimInterest?: boolean
+  /** For plan steps that depend on the date and the week. Default: now, and the first week. */
+  now?: Date
+  weekNumber?: number
 }
 
 const has = (kinds: readonly string[] | null | undefined, ...k: string[]) => (kinds ?? []).some((x) => k.includes(x))
@@ -306,6 +310,60 @@ export function mergeSideDetails(journeyDetails: unknown, parsed: SideDetails): 
   return { ...paths, side: { ...cur, ...parsed } }
 }
 
+// ── Going back to school ─────────────────────────────────────────────────────
+
+export const SCHOOL_MODES = [
+  { value: 'full', label: 'Full time' },
+  { value: 'part', label: 'Part time' },
+] as const
+
+export const SCHOOL_FUNDING = [
+  { value: 'savings', label: 'My savings' },
+  { value: 'loans', label: 'Loans' },
+  { value: 'employer', label: 'My employer pays' },
+  { value: 'aid', label: 'Scholarship or aid' },
+  { value: 'unsure', label: 'I do not know yet' },
+] as const
+
+export type SchoolMode = (typeof SCHOOL_MODES)[number]['value']
+export type SchoolDetails = { program?: string; mode?: SchoolMode; ends?: string; funding?: string }
+
+/** The school answers, read back safely from journeyDetails.paths.school. ends is yyyy-mm. */
+export function schoolDetailsOf(journeyDetails: unknown): SchoolDetails {
+  const raw = pathsOf(journeyDetails).school
+  if (!isObj(raw)) return {}
+  const out: SchoolDetails = {}
+  if (typeof raw.program === 'string' && raw.program.trim()) out.program = raw.program.trim().slice(0, 120)
+  if (SCHOOL_MODES.some((m) => m.value === raw.mode)) out.mode = raw.mode as SchoolMode
+  if (typeof raw.ends === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(raw.ends)) out.ends = raw.ends
+  if (SCHOOL_FUNDING.some((f) => f.value === raw.funding)) out.funding = raw.funding as string
+  return out
+}
+
+export function parseSchoolInput(input: { program?: string; mode?: string; ends?: string; funding?: string }): SchoolDetails {
+  const out: SchoolDetails = {}
+  const program = (input.program ?? '').trim().slice(0, 120)
+  if (program) out.program = program
+  if (SCHOOL_MODES.some((m) => m.value === input.mode)) out.mode = input.mode as SchoolMode
+  if (/^\d{4}-(0[1-9]|1[0-2])$/.test((input.ends ?? '').trim())) out.ends = input.ends!.trim()
+  if (SCHOOL_FUNDING.some((f) => f.value === input.funding)) out.funding = input.funding
+  return out
+}
+
+/** The paths object to store: school answers merged in, its level and every other key kept. */
+export function mergeSchoolDetails(journeyDetails: unknown, parsed: SchoolDetails): Record<string, unknown> {
+  const paths = pathsOf(journeyDetails)
+  const cur = isObj(paths.school) ? (paths.school as Record<string, unknown>) : {}
+  return { ...paths, school: { ...cur, ...parsed } }
+}
+
+/** The last day of the program month, or null. */
+export function schoolEndDate(d: SchoolDetails): Date | null {
+  if (!d.ends) return null
+  const [y, m] = d.ends.split('-').map(Number)
+  return new Date(Date.UTC(y, m, 0))
+}
+
 export function previousMainOf(journeyDetails: unknown): JourneyType | null {
   const v = pathsOf(journeyDetails).previousMain
   return typeof v === 'string' && /^[A-Z_]+$/.test(v) ? (v as JourneyType) : null
@@ -359,6 +417,11 @@ export function activePaths(s: LevelSignals): ParallelPathCard[] {
       if (bits.length) line = `${LEVEL_LABEL[level]}: ${bits.join(', ')}`
     }
     if (k === 'start' && hasStartDetails(s.journeyDetails)) line = `${LEVEL_LABEL[level]}: ${getStartStage(currentStartStage(startDetailsOf(s.journeyDetails))).label}`
+    if (k === 'school') {
+      const sd = schoolDetailsOf(s.journeyDetails)
+      const bits = [sd.program ?? null, sd.mode ? (sd.mode === 'full' ? 'full time' : 'part time') : null, sd.ends ? `ends ${sd.ends}` : null].filter(Boolean)
+      if (bits.length) line = `${LEVEL_LABEL[level]}: ${bits.join(', ')}`
+    }
     out.push({ key: k, label: INTEREST_LABELS[k], line, because: `You said you are ${level === 'doing' ? 'doing this' : 'researching this'} next to your main focus.`, href: PATH_HREF[k], level })
   }
   return out
@@ -388,8 +451,17 @@ function stepFor(k: InterestKey, level: InterestLevel, s: LevelSignals): PathPla
       return level === 'doing' ? T('Write down the one thing that must happen in your business this month') : T('Talk to one person who started a business in your field and ask what the first year cost', 'OUTREACH_CALL')
     case 'fractional':
       return level === 'doing' ? T('Ask one past client or colleague for an introduction to someone who could use your help', 'OUTREACH_CALL') : T('Write your one-line offer for fractional work: who you help and the result')
-    case 'school':
-      return level === 'doing' ? T('Spend one session on your course or program this week') : T('Look at one program you would consider and write down its cost, time and what it leads to')
+    case 'school': {
+      const sd = schoolDetailsOf(s.journeyDetails)
+      if (level === 'doing' && sd.mode === 'full') {
+        // A full-time student: positioning, the school's network and proof, timed to when the program ends.
+        const g = gradPlanItems(schoolEndDate(sd), s.weekNumber ?? 1, s.now ?? new Date())[0]
+        if (g) return { text: `${sd.program ? `${sd.program}: ` : ''}${g.text}`, actionType: g.actionType }
+      }
+      if (level === 'doing') return T(`${sd.program ? `${sd.program}: ` : ''}spend one session on your coursework this week, and keep one conversation going with someone in the field you are heading to`)
+      if (sd.program) return T(`Ask two people who finished ${sd.program} what it cost, what it led to and what they would do differently`, 'OUTREACH_CALL')
+      return T('Look at one program you would consider and write down its cost, time and what it leads to')
+    }
   }
 }
 
