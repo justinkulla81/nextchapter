@@ -938,7 +938,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['best outplacement companies', 'outplacement providers', 'outplacement comparison', 'outplacement vendor comparison'],
     seo: {
       title: 'Outplacement Providers Compared: LHH, RiseSmart and More',
-      description: 'Honest, two-sided comparisons of NextChapter with LHH, Randstad RiseSmart, Careerminds and INTOO: reporting, what participants keep and where each is stronger.',
+      description: 'Side-by-side comparisons of NextChapter with LHH, Randstad RiseSmart, Careerminds and INTOO, and the questions to ask each outplacement vendor.',
     },
   },
   {
@@ -970,7 +970,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['questions to ask an outplacement vendor', 'outplacement reporting', 'outplacement contract', 'outplacement account after contract'],
     seo: {
       title: 'Outplacement Insights for HR Buyers',
-      description: 'The questions to ask an outplacement vendor, why utilization reporting misses the point, and what happens to your account when the contract ends.',
+      description: 'The questions to ask an outplacement vendor, what an outplacement report should show, and what happens to your account when the contract ends.',
     },
   },
   {

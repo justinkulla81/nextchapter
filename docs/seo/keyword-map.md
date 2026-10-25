@@ -465,7 +465,7 @@ Title is shown before the site suffix " | NextChapter".
 ### `/vs`
 
 - Title: Outplacement Providers Compared: LHH, RiseSmart and More
-- Description: Honest, two-sided comparisons of NextChapter with LHH, Randstad RiseSmart, Careerminds and INTOO: reporting, what participants keep and where each is stronger.
+- Description: Side-by-side comparisons of NextChapter with LHH, Randstad RiseSmart, Careerminds and INTOO, and the questions to ask each outplacement vendor.
 
 ### `/rfp-template`
 
@@ -475,7 +475,7 @@ Title is shown before the site suffix " | NextChapter".
 ### `/insights`
 
 - Title: Outplacement Insights for HR Buyers
-- Description: The questions to ask an outplacement vendor, why utilization reporting misses the point, and what happens to your account when the contract ends.
+- Description: The questions to ask an outplacement vendor, what an outplacement report should show, and what happens to your account when the contract ends.
 
 ### `/employers`
 
