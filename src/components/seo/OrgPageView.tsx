@@ -1,4 +1,5 @@
 import { LocalEventSection } from '@/components/events/LocalEventSection'
+import { LinkToUs } from '@/components/seo/LinkToUs'
 import Link from 'next/link'
 import { H2, LINK, SeoPage, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -149,6 +150,7 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1 }: {
         Last changed {page.lastModified.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}.{' '}
         <Link href={`${ORG_PAGE_ROOT[row.kind]}/${ss}`} className={LINK}>All in {st}</Link>.
       </p>
+      <LinkToUs path={path} name={row.name} kind="org" />
     </SeoPage>
   )
 }

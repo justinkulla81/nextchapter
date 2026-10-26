@@ -41,6 +41,9 @@ type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
  * redirects (/for-coaches, /coach-platform) or anything robots.ts disallows.
  */
 const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: number }[] = [
+  { path: '/data', updated: '2026-10-27', freq: 'daily', priority: 0.7 },
+  { path: '/data/embed', updated: '2026-10-27', freq: 'monthly', priority: 0.5 },
+  { path: '/layoffs/this-week', updated: '2026-10-27', freq: 'daily', priority: 0.7 },
   { path: '/jobs', updated: '2026-10-22', freq: 'daily', priority: 0.8 },
   { path: '/about', updated: '2026-10-06', freq: 'monthly', priority: 0.7 },
   { path: '/careers', updated: '2026-10-26', freq: 'weekly', priority: 0.7 },

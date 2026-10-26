@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-122 clusters, 739 phrases.
+125 clusters, 753 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -32,6 +32,9 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/unemployment-benefits` | page | unemployment benefits by state | Unemployment insurance rules across states | unemployment benefits; unemployment insurance; how to file for unemployment; apply for unemployment; unemployment eligibility; weekly unemployment benefit amount; maximum unemployment benefit by state; how long does unemployment last; unemployment waiting week; does severance affect unemployment |
 | `/unemployment-benefits/:state` | family | {state} unemployment benefits | Unemployment benefits in one state | {state} unemployment; file for unemployment in {state}; {state} weekly unemployment benefit; {state} unemployment eligibility; {state} unemployment weeks |
 | `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; layoffs 2026; companies laying off; layoff list; mass layoffs; WARN notices; WARN notice list; WARN Act layoffs; who is laying off |
+| `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new WARN notices this week; latest layoff announcements |
+| `/data` | page | layoff data download | Download layoff data | WARN notices csv; WARN notice data; layoff data by state; layoffs dataset |
+| `/data/embed` | page | layoff widget for website | Embed layoff, jobs and benefits widgets | embed layoff tracker; unemployment benefits widget; jobs widget by industry |
 | `/layoffs/:state` | family | {state} layoffs | Layoffs in one state | {state} WARN notices; {state} layoff list; recent layoffs in {state}; {state} companies laying off |
 | `/layoffs/company/:slug` | family | {company} layoffs | Layoffs at one employer | {company} WARN notice; {company} layoff dates; {company} layoff 2026 |
 | `/network/company/:slug` | family | {company} laid-off workers | What happens to workers laid off from one employer | former {company} employees; {company} laid off employees jobs; {company} severance and benefits; {company} alumni |
@@ -229,6 +232,24 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Layoff Tracker: Recent Layoffs and WARN Notices by State
 - Description: Recent layoffs from WARN Act notices filed with state labor departments, collected daily: totals, the latest filings, and a page for every state and employer.
+
+### `/layoffs/this-week`
+
+- Title: Layoffs This Week: New WARN Notices by State
+- Description: Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.
+- H1: Layoffs this week: new WARN notices
+
+### `/data`
+
+- Title: Layoff Data Download: WARN Notices as CSV and JSON
+- Description: Download every WARN Act layoff notice of the last 24 months as CSV or JSON, by state or all states, free to reuse with a link back.
+- H1: Layoff data: download the WARN record
+
+### `/data/embed`
+
+- Title: Free Layoff, Jobs and Benefits Widgets for Your Site
+- Description: Add live layoff notices, open jobs by industry or state unemployment benefits widgets to your website with one copy-paste snippet. Free, with a link back.
+- H1: Embeddable layoff, jobs and benefits widgets
 
 ### `/tools/warn-act-checker`
 

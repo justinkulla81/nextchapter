@@ -12,7 +12,8 @@ import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 export const revalidate = 86400
 
 
-export const metadata: Metadata = pageMetadata('/layoffs')
+const base = pageMetadata('/layoffs')
+export const metadata: Metadata = { ...base, alternates: { ...base.alternates, types: { 'application/rss+xml': '/feeds/layoffs' } } }
 
 const LINK = 'text-brand underline underline-offset-4'
 
@@ -40,6 +41,15 @@ export default async function LayoffsHubPage() {
               <p className="mt-3 text-muted-foreground">The tracker could not be loaded right now. Please try again shortly.</p>
             </>
           )}
+
+          <section aria-labelledby="use-data" className="mt-12 rounded-xl border border-border bg-white p-6">
+            <h2 id="use-data" className="text-xl font-semibold tracking-tight text-navy">Use the layoff data</h2>
+            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
+              <li><Link href="/layoffs/this-week" className={LINK}>Layoffs this week</Link>: notices filed in the last seven days.</li>
+              <li><Link href="/data" className={LINK}>Download the WARN record</Link> as CSV or JSON, free to reuse with a link back.</li>
+              <li><Link href="/data/embed" className={LINK}>Embed layoff notices</Link> for any state on your site, or <Link href="/feeds/layoffs" className={LINK}>subscribe by RSS</Link>.</li>
+            </ul>
+          </section>
 
           <section aria-labelledby="by-state" className="mt-16">
             <h2 id="by-state" className="text-2xl font-bold tracking-tight text-navy">WARN notices by state</h2>

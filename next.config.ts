@@ -160,7 +160,15 @@ const nextConfig: NextConfig = {
       { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
     ];
     return [
-      { source: "/:path*", headers: security },
+      // /embed/* is meant to sit in other sites' iframes: same headers, but any site may frame it.
+      { source: "/:path((?!embed/).*)", headers: security },
+      {
+        source: "/embed/:path*",
+        headers: [
+          ...security.filter((h) => h.key !== "Content-Security-Policy" && h.key !== "X-Frame-Options"),
+          { key: "Content-Security-Policy", value: csp.replace("frame-ancestors 'self'", "frame-ancestors *") },
+        ],
+      },
       { source: "/images/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/marketing/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },
       { source: "/guides/:path*", headers: [{ key: "Cache-Control", value: cacheable }] },

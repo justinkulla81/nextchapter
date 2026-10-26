@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { LinkToUs } from '@/components/seo/LinkToUs'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
@@ -107,6 +108,7 @@ export default async function NonprofitPage({ params }: { params: Promise<{ stat
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> IRS tax-exempt organization records; Bureau of Labor Statistics; Grants.gov and SAM.gov.
       </p>
+      <LinkToUs path={path} name={o.name} kind="nonprofit" />
     </SeoPage>
   )
 }

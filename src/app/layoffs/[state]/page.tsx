@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   return {
     title: titleMeta(layoffsStateSeo(d.name).title),
     description: fitDescription(description, 165),
-    ...canonical(`/layoffs/${state}`),
+    alternates: { ...canonical(`/layoffs/${state}`).alternates, types: { 'application/rss+xml': `/feeds/layoffs/${state}` } },
   }
 }
 
