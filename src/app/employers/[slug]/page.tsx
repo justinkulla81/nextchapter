@@ -10,6 +10,8 @@ import { getEmployerInsights } from '@/lib/seo/employer-insights'
 import { insightText } from '@/lib/seo/employer-insight-text'
 import { EmployerInsights } from '@/components/seo/EmployerInsights'
 import { stateName } from '@/lib/seo/states'
+import { conferencesForEmployer } from '@/lib/events/conference-employers'
+import { prisma } from '@/lib/prisma'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { titleMeta } from '@/lib/seo/title'
 
@@ -70,6 +72,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   const text = ins ? insightText(e.name, ins, e.industry) : { glance: [], faq: [] }
   const hq = [e.hqMetro, e.industry].filter(Boolean).join(' · ')
   const industryBucket = bucketFromIndustryText(e.industry)
+  const seenAt = conferencesForEmployer(e.name)
+  const seenConfs = seenAt.length ? await prisma.conferenceEvent.findMany({ where: { id: { in: seenAt.map((x) => x.id) }, published: true }, select: { id: true, name: true }, orderBy: { name: 'asc' }, take: 12 }).catch(() => []) : []
   const topFunction = p?.topFunctions[0] ? functionByName(p.topFunctions[0].function) : null
 
   const faq: { q: string; a: string }[] = []
@@ -217,6 +221,15 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         <span className="font-medium text-foreground">Sources:</span> open roles from {e.name}’s career site and applicant system, checked daily;
         market pay ranges from posted salaries across the board. Updated {p?.firstSeenAt ? 'daily' : 'regularly'}.
       </p>
+      {seenConfs.length > 0 && (
+        <section aria-labelledby="conferences" className="mt-10">
+          <h2 id="conferences" className={H2}>Conferences where {e.name} appears</h2>
+          <p className="mt-2 text-sm text-muted-foreground">Listed as an exhibitor, sponsor or speaker on the event’s own pages.</p>
+          <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">
+            {seenConfs.map((c) => <li key={c.id}><Link href={`/conferences/${c.id}`} className="underline underline-offset-4">{c.name}</Link></li>)}
+          </ul>
+        </section>
+      )}
     </SeoPage>
   )
 }

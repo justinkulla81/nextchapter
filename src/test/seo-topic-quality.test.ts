@@ -39,6 +39,12 @@ describe('sourced facts', () => {
     expect(facts.find((f) => f.key === 'exposure')?.period).toBe('estimate')
     expect(facts.find((f) => f.key === 'ces')?.value).toContain('financial activities')
   })
+  it('adds BLS wage and Economic Index facts with their sources', () => {
+    const facts = exposureFacts('Finance', { '13': { median: 82660, year: '2025' } })
+    expect(facts.find((f) => f.key === 'wage')?.value).toBe('$82,660')
+    expect(facts.find((f) => f.key === 'wage')?.period).toBe('May 2025')
+    expect(facts.find((f) => f.key === 'aei')?.source).toContain('Anthropic Economic Index')
+  })
   it('has no exposure fact for a function without a confident occupation group', () => {
     expect(exposureFacts('Customer Success')).toEqual([])
   })

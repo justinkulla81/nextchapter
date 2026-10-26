@@ -111,25 +111,72 @@ export function bucketFromIndustryText(text: string | null | undefined): string 
  * "54 (NAICS 541512)"), then the matched company's industry. Sectors that span several buckets with no
  * safe way to choose (56 Administrative and Support, 42 Wholesale) map to nothing.
  */
+/** Longest NAICS prefix wins. Finer than the two-digit sector where the code is known to be a bucket of its own. */
+const NAICS_PREFIX: [string, string][] = [
+  ['5411', 'Legal Services'], ['5412', 'Accounting & Audit'], ['5415', 'Technology & Software'], ['5418', 'Advertising, Marketing & PR'],
+  ['5416', 'Professional Services & Consulting'], ['5613', 'Staffing & Human Capital'], ['524', 'Insurance'], ['523', 'Financial Services & Banking'],
+  ['3254', 'Pharmaceuticals & Biotech'], ['3391', 'Medical Devices'], ['3364', 'Aerospace & Defense'], ['3361', 'Automotive & Mobility'], ['3362', 'Automotive & Mobility'], ['3363', 'Automotive & Mobility'],
+  ['311', 'Agriculture & Food Production'], ['312', 'Consumer Packaged Goods'], ['517', 'Telecommunications'], ['512', 'Media & Entertainment'], ['515', 'Media & Entertainment'], ['519', 'Technology & Software'],
+  ['62', 'Healthcare & Hospital Systems'], ['31', 'Manufacturing & Industrial'], ['32', 'Manufacturing & Industrial'], ['33', 'Manufacturing & Industrial'],
+  ['54', 'Professional Services & Consulting'], ['53', 'Construction & Real Estate'], ['23', 'Construction & Real Estate'], ['44', 'Retail & E-commerce'], ['45', 'Retail & E-commerce'],
+  ['48', 'Transportation & Logistics'], ['49', 'Transportation & Logistics'], ['92', 'Government & Public Sector'], ['71', 'Media & Entertainment'],
+  ['72', 'Hospitality, Travel & Food Service'], ['61', 'Education & EdTech'], ['22', 'Energy & Utilities'], ['21', 'Energy & Utilities'], ['11', 'Agriculture & Food Production'], ['52', 'Financial Services & Banking'],
+]
+
+/** A WARN filing's own industry words (state forms sometimes give a plain description instead of a code). */
+const WARN_TEXT: [RegExp, string][] = [
+  [/clothing|apparel|department store|grocery|supermarket|retail|stores?\b/i, 'Retail & E-commerce'],
+  [/restaurant|hotel|motel|lodging|casino|catering|food service|airline|travel/i, 'Hospitality, Travel & Food Service'],
+  [/hospital|clinic|health|nursing|medical|dental|physician/i, 'Healthcare & Hospital Systems'],
+  [/software|computer|internet|data processing|telecom/i, 'Technology & Software'],
+  [/bank|credit union|savings|securities|mortgage/i, 'Financial Services & Banking'],
+  [/insurance/i, 'Insurance'],
+  [/school|college|universit|education/i, 'Education & EdTech'],
+  [/trucking|freight|warehous|logistics|courier|shipping|air transport/i, 'Transportation & Logistics'],
+  [/manufactur|fabricat|machin|plastics|metal|steel|partitions/i, 'Manufacturing & Industrial'],
+  [/staffing|employment services|temporary help/i, 'Staffing & Human Capital'],
+  [/construction|contractor|real estate|realty/i, 'Construction & Real Estate'],
+  [/government|public administration/i, 'Government & Public Sector'],
+]
+
+/** Last resort when a filing names no industry and the employer is not in our company table: obvious words in the employer's own name. */
+const WARN_NAME: [RegExp, string][] = [
+  [/\b(hospital|health ?care|medical center|clinic|nursing|rehab|pharmacy)\b/i, 'Healthcare & Hospital Systems'],
+  [/\b(insurance|assurance)\b/i, 'Insurance'],
+  [/\b(bank|bancorp|credit union|financial)\b/i, 'Financial Services & Banking'],
+  [/\b(hotel|hotels|resort|restaurant|kitchen|bar & grill|brewing|cafe|casino|hospitality)\b/i, 'Hospitality, Travel & Food Service'],
+  [/\b(university|college|school district|academy)\b/i, 'Education & EdTech'],
+  [/\b(logistics|freight|trucking|transport|delivery|express|distribution)\b/i, 'Transportation & Logistics'],
+  [/\b(software|technologies|technology|cloud)\b/i, 'Technology & Software'],
+  [/\b(staffing|recruiting|workforce)\b/i, 'Staffing & Human Capital'],
+  [/\b(foods?|beverage|bakery|farms?)\b/i, 'Agriculture & Food Production'],
+  [/\b(manufacturing|industries|industrial|steel|metals|plastics|fabrication)\b/i, 'Manufacturing & Industrial'],
+  [/\b(energy|power|electric|solar|oil|gas|utilities)\b/i, 'Energy & Utilities'],
+]
+
+/**
+ * A WARN notice's industry: its own NAICS code or industry words first, then the matched company's industry, then obvious
+ * words in the employer's name. Sectors that span several buckets with no safe way to choose (56 Administrative and
+ * Support, 42 Wholesale) map to nothing.
+ */
 export function bucketFromWarn(industry: string | null | undefined, employer: string, companyIndustry: string | null | undefined): string | null {
   const t = (industry ?? '').trim()
   const fromCompany = bucketFromIndustryText(companyIndustry)
   if (t && !/^n\/?a$/i.test(t)) {
     if (/^tech:/i.test(t)) return 'Technology & Software'
-    const naics = /\bNAICS\s+(\d{3,6})/.exec(t)?.[1]
-    const lead = naics ?? /^(\d{2})/.exec(t)?.[1] ?? ''
-    const two = lead.slice(0, 2)
-    if (naics?.startsWith('5415')) return 'Technology & Software'
-    if (two === '52') return /insur|assurance/i.test(employer) || naics?.startsWith('524') ? 'Insurance' : 'Financial Services & Banking'
-    const byTwo: Record<string, string> = {
-      '62': 'Healthcare & Hospital Systems', '31': 'Manufacturing & Industrial', '32': 'Manufacturing & Industrial', '33': 'Manufacturing & Industrial',
-      '54': 'Professional Services & Consulting', '53': 'Construction & Real Estate', '23': 'Construction & Real Estate', '44': 'Retail & E-commerce', '45': 'Retail & E-commerce',
-      '48': 'Transportation & Logistics', '49': 'Transportation & Logistics', '92': 'Government & Public Sector', '71': 'Media & Entertainment',
-      '72': 'Hospitality, Travel & Food Service', '61': 'Education & EdTech', '22': 'Energy & Utilities', '21': 'Energy & Utilities', '11': 'Agriculture & Food Production',
+    const code = /\bNAICS\s+(\d{3,6})/.exec(t)?.[1] ?? /^(\d{2,6})\b/.exec(t)?.[1] ?? ''
+    if (code) {
+      if (code.startsWith('52') && !code.startsWith('523') && !code.startsWith('524')) return /insur|assurance/i.test(employer) ? 'Insurance' : 'Financial Services & Banking'
+      const hit = NAICS_PREFIX.find(([prefix]) => code.startsWith(prefix))
+      if (hit) return hit[1]
     }
-    if (byTwo[two]) return byTwo[two]
+    if (!code) {
+      const words = WARN_TEXT.find(([re]) => re.test(t))
+      if (words) return words[1]
+    }
   }
-  return fromCompany
+  if (fromCompany) return fromCompany
+  return WARN_NAME.find(([re]) => re.test(employer))?.[1] ?? null
 }
 
 export interface JobFunction {
