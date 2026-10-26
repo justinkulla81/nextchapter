@@ -49,8 +49,14 @@ export async function setTrackStatus(candidateId: string, opportunityId: string,
     return
   }
   if (!TRACK_STATUSES.includes(status)) return
-  const opp = await prisma.conferenceOpportunity.findFirst({ where: { id: opportunityId, published: true }, include: { series: { select: { id: true, name: true } } } })
-  if (!opp) return
+  const opp = await prisma.conferenceOpportunity.findUnique({ where: { id: opportunityId }, include: { series: { select: { id: true, name: true, published: true, rejectedAt: true } } } })
+  // Registration is the conference's own Registered status, not a stage. An entry awaiting our review can be worked on by the
+  // members who follow it; anything else must be published.
+  if (!opp || opp.type === 'REGISTRATION' || opp.series.rejectedAt) return
+  if (!opp.published && !opp.series.published) {
+    const follows = await prisma.userConference.findUnique({ where: { candidateId_seriesId: { candidateId, seriesId: opp.seriesId } }, select: { id: true } })
+    if (!follows) return
+  } else if (!opp.published) return
   const before = await prisma.conferenceOpportunityTrack.findUnique({ where: { candidateId_opportunityId: { candidateId, opportunityId } }, select: { status: true } })
   await prisma.conferenceOpportunityTrack.upsert({
     where: { candidateId_opportunityId: { candidateId, opportunityId } },

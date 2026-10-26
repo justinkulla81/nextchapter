@@ -1,3 +1,6 @@
+import { StructuredData } from '@/components/StructuredData'
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { pageH1, pageSeoMeta } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -20,9 +23,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
   const sp = await searchParams
   const searched = ['q', 'loc', 'remote'].some((k) => sp[k] !== undefined && sp[k] !== '')
   return {
-    title: 'Search jobs',
-    description:
-      'Search hundreds of thousands of live professional jobs, taken from employers’ own career sites and checked to still be open.',
+    ...pageSeoMeta('/jobs'),
     robots: { index: !searched, follow: true },
     alternates: { canonical: '/jobs' },
   }
@@ -61,6 +62,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
 
   return (
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Job search', path: '/jobs' }])} />
       <header>
         <SiteNav />
       </header>
@@ -70,7 +72,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
 
       <main className="mx-auto w-full max-w-5xl px-6 pb-16">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          {searched ? `Jobs for “${what}”` : 'Newest openings'}
+          {searched ? `Jobs for “${what}”` : pageH1('/jobs', 'Newest openings')}
         </h1>
         <div className="mt-6">
           <JobSearchForm source="results" initialQ={query.q} initialLoc={query.loc} initialRemote={query.remote} />

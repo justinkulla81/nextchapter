@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getOrCreateCandidateProfile } from '@/lib/profile'
-import { previewQuickAdd, confirmQuickAdd, type QuickAddPreview } from '@/lib/conferences/quick-add'
+import { quickAdd } from '@/lib/conferences/quick-add'
+import { removeOwnOpportunity, updateOwnEntry } from '@/lib/conferences/own-entry'
 import { clearUserStatus, addTalk, logPeopleMet, saveNotes, setTrackStatus, setUserStatus } from '@/lib/conferences/tracking'
 import { firstLinkIn } from '@/lib/conferences/share'
 import { resolveChange } from '@/lib/conferences/apply-change'
@@ -18,37 +19,38 @@ async function member() {
 }
 const text = (v: FormDataEntryValue | null) => String(v ?? '').trim()
 
-export type PreviewState = { preview: QuickAddPreview | null; error: string | null; url: string }
+export type AddState = { error: string | null; url: string }
 
-export async function previewConferenceAction(_prev: PreviewState, formData: FormData): Promise<PreviewState> {
+/** One step: read the link, add the conference to the member's list, open it. Edits come afterwards, on the page. */
+export async function addConferenceAction(_prev: AddState, formData: FormData): Promise<AddState> {
   const profile = await member()
   const raw = text(formData.get('link'))
   const url = firstLinkIn(raw)
-  if (!url) return { preview: null, url: raw, error: 'That does not look like a link. Paste the web address of the conference page, starting with https://.' }
-  const preview = await previewQuickAdd(profile.id, url)
-  if (preview.status === 'invalid') return { preview: null, url: raw, error: 'We could not read that address. Check it and try again.' }
-  if (preview.status === 'exists') revalidatePath('/dashboard/conferences')
-  return { preview, url, error: null }
+  if (!url) return { url: raw, error: 'That does not look like a link. Paste the web address of the conference page, starting with https://.' }
+  const r = await quickAdd(profile.id, url)
+  if (r.status === 'invalid') return { url: raw, error: 'We could not use that address. Check it and try again.' }
+  if (r.status === 'rejected') return { url: raw, error: r.note ? `We took this one off earlier: ${r.note}` : 'We took this one off earlier, so it cannot be added.' }
+  revalidatePath('/dashboard/conferences')
+  redirect(`/dashboard/conferences/${r.seriesId}${r.created && r.read !== 'full' ? `?read=${r.read}` : ''}`)
 }
 
-export async function confirmConferenceAction(formData: FormData): Promise<void> {
+export async function editEntryAction(formData: FormData): Promise<void> {
   const profile = await member()
-  const list = (k: string) => formData.getAll(k).map(String)
+  const seriesId = text(formData.get('seriesId'))
   const num = (k: string) => { const n = parseInt(text(formData.get(k)).replace(/[^0-9]/g, ''), 10); return Number.isFinite(n) ? n : null }
-  let opportunities: unknown[] = []
-  try { opportunities = JSON.parse(text(formData.get('opportunities')) || '[]') } catch { /* none */ }
-  const result = await confirmQuickAdd(profile.id, {
-    url: text(formData.get('url')),
-    name: text(formData.get('name')), organizer: text(formData.get('organizer')),
+  await updateOwnEntry(profile.id, seriesId, {
+    url: text(formData.get('url')), name: text(formData.get('name')), organizer: text(formData.get('organizer')),
     startDate: text(formData.get('startDate')), endDate: text(formData.get('endDate')),
-    format: text(formData.get('format')), city: text(formData.get('city')), state: text(formData.get('state')), country: text(formData.get('country')),
+    format: text(formData.get('format')), city: text(formData.get('city')), state: text(formData.get('state')),
     costLow: num('costLow'), costHigh: num('costHigh'), costNote: text(formData.get('costNote')),
-    industries: list('industries'), functions: list('functions'), seniorities: list('seniorities'),
-    whyAttend: text(formData.get('whyAttend')), opportunities,
   })
-  if (!result) redirect('/dashboard/conferences/add?error=link')
-  revalidatePath('/dashboard/conferences')
-  redirect(`/dashboard/conferences/${result.seriesId}`)
+  revalidatePath('/dashboard/conferences', 'layout')
+}
+
+export async function removeOpportunityAction(formData: FormData): Promise<void> {
+  const profile = await member()
+  await removeOwnOpportunity(profile.id, text(formData.get('opportunityId')))
+  revalidatePath('/dashboard/conferences', 'layout')
 }
 
 export async function setStatusAction(formData: FormData): Promise<void> {

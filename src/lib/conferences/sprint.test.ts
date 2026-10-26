@@ -77,6 +77,28 @@ describe('register and attend suggestions', () => {
   })
 })
 
+describe('registration dates', () => {
+  const reg = (over: Partial<OpenOpportunity> = {}): OpenOpportunity => ({ id: 'r1', seriesId: 's1', type: 'REGISTRATION', title: 'Early-bird registration', deadline: d('2026-12-05'), ...over })
+
+  it('uses the real registration deadline, and names early-bird when that is what ends', () => {
+    expect(conferenceSuggestions([conf()], [reg()], none, NOW)).toEqual([{ actionType: 'CONFERENCE_REGISTER', text: 'Register for HR Tech (early-bird ends Dec 5), or tell us you are skipping it' }])
+    expect(conferenceSuggestions([conf()], [reg({ title: 'Registration', deadline: d('2026-12-20') })], none, NOW)[0].text).toContain('registration closes Dec 20')
+  })
+  it('prefers the printed deadline over the start date', () => {
+    const out = conferenceSuggestions([conf({ startDate: d('2027-01-12'), endDate: d('2027-01-14'), datesConfirmed: true })], [reg()], none, NOW)
+    expect(out).toHaveLength(1)
+    expect(out[0].text).toContain('early-bird ends Dec 5')
+  })
+  it('is not a submission: registration never produces the proposal suggestion', () => {
+    expect(conferenceSuggestions([conf()], [reg()], none, NOW).map((o) => o.actionType)).toEqual(['CONFERENCE_REGISTER'])
+  })
+  it('says nothing once registered, when the deadline passed, or when it is beyond 120 days', () => {
+    expect(conferenceSuggestions([conf({ status: 'REGISTERED' })], [reg()], none, NOW)).toEqual([])
+    expect(conferenceSuggestions([conf()], [reg({ deadline: d('2026-10-20') })], none, NOW)).toEqual([])
+    expect(conferenceSuggestions([conf()], [reg({ deadline: d('2027-04-01') })], none, NOW)).toEqual([])
+  })
+})
+
 describe('follow-ups keep only the people prompt', () => {
   it('drops deadlines, dates and openings', () => {
     expect(['deadline', 'conference', 'opens_soon', 'log_people'].filter((kind) => isFollowUpPrompt({ kind }))).toEqual(['log_people'])

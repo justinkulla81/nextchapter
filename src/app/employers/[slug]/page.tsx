@@ -1,3 +1,4 @@
+import { employerSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -10,6 +11,7 @@ import { insightText } from '@/lib/seo/employer-insight-text'
 import { EmployerInsights } from '@/components/seo/EmployerInsights'
 import { stateName } from '@/lib/seo/states'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
+import { titleMeta } from '@/lib/seo/title'
 
 // One page per employer with something of its own to say: open roles from its career site, what it hires for and
 // pays. Built on first visit, refreshed daily. A page below the bar renders but is
@@ -31,8 +33,7 @@ const PAY_LEVEL: Record<string, string> = {
 }
 
 function title(e: EmployerPage): string {
-  const open = e.profile?.openNow ?? 0
-  return open > 0 ? `${e.name} jobs and pay: ${n0(open)} open roles` : `${e.name}: open roles and pay`
+  return employerSeo(e.name, e.profile?.openNow ?? null).title
 }
 
 function description(e: EmployerPage): string {
@@ -52,7 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const e = await getEmployerBySlug(slug)
   if (!e) return {}
   return {
-    title: title(e),
+    title: titleMeta(title(e)),
     description: description(e),
     ...canonical(`/employers/${slug}`),
     ...(e.indexable ? {} : { robots: { index: false, follow: true } }),
@@ -118,7 +119,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   return (
     <SeoPage
       trail={[{ name: 'Employers', path: '/employers' }, { name: e.name, path }]}
-      h1={`${e.name}: jobs and pay`}
+      h1={employerSeo(e.name, null).h1}
       jsonLd={ld}
       lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}</>}
     >

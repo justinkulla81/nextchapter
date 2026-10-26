@@ -5,6 +5,7 @@ import { issueArrival, parseBridgeTarget, sameOrigin, verifyCsrf } from '@/lib/e
 import { peekPortalUser, type PeekedUser } from '@/lib/supabase/peek-session'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { linkedIdentityFor } from '@/lib/employer/account-link-server'
 import { callbackOriginForAppPath, portalOrigin, urlForAppPath } from '@/lib/portal-hosts'
 
 // Sign-in bridge (src/lib/employer/section-bridge.ts). POST only, with a CSRF token bound to the signed-in user and an
@@ -49,36 +50,54 @@ export async function POST(req: NextRequest) {
     return back(req, candidates.length ? 'expired' : 'signed_out')
   }
 
-  const access = await getEmployerAccess({ userId: user.id, email: user.email })
-  const grant = access.grants.find((g) => g.section === to && g.services) ?? access.grants.find((g) => g.section === to)
+  const access = await getEmployerAccess({ userId: user.id, email: user.email, includeLinked: true })
+  // The person's own grants come first. A linked account's grant (viaUserId) is used only when they hold nothing in this
+  // section themselves.
+  const forTo = access.grants.filter((g) => g.section === to)
+  const own = forTo.filter((g) => !g.viaUserId)
+  const pool = own.length ? own : forTo
+  const grant = pool.find((g) => g.services) ?? pool[0]
   if (!grant) {
     captureServerEvent(user.id, 'employer_section_switched', { to, result: 'blocked_no_access' })
     return back(req, 'no_access')
   }
   const dest = sectionAppPath(to, grant.services)
   const heldSections = access.sections
+  const linkedUserId = own.length ? null : (grant.viaUserId ?? null)
 
-  // Already signed in to the target section's own session as this same person: nothing to mint.
+  // Already signed in to the target section's own session as the person who holds it: nothing to mint.
   const targetUser = await peekPortalUser(cookieOwnerForSection(to))
-  if (targetUser?.id === user.id) {
-    captureServerEvent(user.id, 'employer_section_switched', { to, result: 'direct', heldSections })
+  if (targetUser?.id === (linkedUserId ?? user.id)) {
+    captureServerEvent(user.id, 'employer_section_switched', { to, result: 'direct', heldSections, linked: !!linkedUserId })
     return NextResponse.redirect(urlForAppPath(dest), 303)
   }
 
-  // The link is for this session's own verified email and nothing else.
-  if (!user.email) return back(req, 'unavailable')
-  const arrival = issueArrival(user.id, to)
+  // The link is for a verified email and nothing else: this session's own or, for a section held only through a linked
+  // account, that account's, and only while an active link joins the two and the linked account is a verified party to it.
+  let signInEmail = user.email
+  let signInUserId = user.id
+  if (linkedUserId) {
+    const identity = await linkedIdentityFor(user.id, linkedUserId)
+    if (!identity) {
+      captureServerEvent(user.id, 'employer_section_switched', { to, result: 'blocked_link_invalid' })
+      return back(req, 'no_access')
+    }
+    signInEmail = identity.email
+    signInUserId = identity.id
+  }
+  if (!signInEmail) return back(req, 'unavailable')
+  const arrival = issueArrival(signInUserId, to)
   if (!arrival) return back(req, 'unavailable')
   const redirectTo = `${callbackOriginForAppPath(dest)}/auth/callback?next=section-bridge&to=${to}&arrival=${encodeURIComponent(arrival)}`
   try {
-    const { data, error } = await createAdminClient().auth.admin.generateLink({ type: 'magiclink', email: user.email, options: { redirectTo } })
+    const { data, error } = await createAdminClient().auth.admin.generateLink({ type: 'magiclink', email: signInEmail, options: { redirectTo } })
     const link = data?.properties?.action_link
     // Only ever send the browser to our own Supabase project.
     if (error || !link || new URL(link).origin !== new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).origin) {
       captureServerEvent(user.id, 'employer_section_switched', { to, result: 'link_failed' })
       return back(req, 'unavailable')
     }
-    captureServerEvent(user.id, 'employer_section_switched', { to, result: 'link_issued', heldSections })
+    captureServerEvent(user.id, 'employer_section_switched', { to, result: 'link_issued', heldSections, linked: !!linkedUserId })
     return NextResponse.redirect(link, 303)
   } catch {
     captureServerEvent(user.id, 'employer_section_switched', { to, result: 'link_failed' })

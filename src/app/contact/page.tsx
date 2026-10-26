@@ -1,3 +1,6 @@
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { StructuredData } from '@/components/StructuredData'
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import type { ContactAudience } from '@prisma/client'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
@@ -5,12 +8,7 @@ import { ContactForm } from '@/components/marketing/ContactForm'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { COMPANY_LINKEDIN_URL, CONTACT_EMAIL, SUPPORT_EMAIL } from '@/lib/contact/constants'
 
-export const metadata: Metadata = {
-  title: 'Contact us',
-  description: 'Contact NextChapter: job seekers, organizations, coaches, recruiters and press.',
-  alternates: { canonical: '/contact' },
-  openGraph: { title: 'Contact NextChapter', url: 'https://launchyournextchapter.com/contact' },
-}
+export const metadata: Metadata = pageMetadata('/contact')
 
 // ?as=organization (from the About page's "Work with us") preselects the audience.
 const AS: Record<string, ContactAudience> = {
@@ -23,6 +21,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="flex flex-1 flex-col bg-white">
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Contact', path: '/contact' }])} />
       <PublicSiteHeader current="contact" />
       <main className="mx-auto w-full max-w-6xl px-6 py-16">
         <p className="text-xs font-bold uppercase tracking-[0.1em] text-brand">Contact us</p>

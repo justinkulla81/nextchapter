@@ -3,10 +3,14 @@
  * Bureau's free geocoder (coordinates in, county out), and saves it on the place so the CRM can put those companies in a county.
  * Dry run unless --apply. Free; about three requests a second per worker.
  *
- *   npx tsx --env-file=.env.local scripts/geo/fill-place-counties.ts [--apply] [--limit N]
+ *   npx tsx --conditions=react-server --env-file=.env.local scripts/geo/fill-place-counties.ts [--apply] [--limit N] [--place-pages]
+ *
+ * --place-pages: also look up every city that has a /places page (open jobs, a layoff notice, a job center or a college), so county pages
+ * and county layoff and job counts can include it.
  */
 import { PrismaClient } from '@prisma/client'
 import { placeKeys } from '../../src/lib/workforce/places'
+import { getAllCityEntries } from '../../src/lib/places/places'
 
 const prisma = new PrismaClient()
 const GEOCODER = 'https://geocoding.geo.census.gov/geocoder/geographies/coordinates'
@@ -33,6 +37,9 @@ async function main() {
     select distinct split_part(h."topLocations"->0->>'location', ', ', 1) city, split_part(h."topLocations"->0->>'location', ', ', 2) st
       from "CompanyHiringProfile" h where h."topLocations" is not null`
   const want = new Set(cities.filter((c) => c.city && /^[A-Z]{2}$/.test(c.st)).flatMap((c) => placeKeys(c.city).map((k) => `${c.st}|${k}`)))
+  if (process.argv.includes('--place-pages')) {
+    for (const c of await getAllCityEntries()) for (const k of placeKeys(c.name)) want.add(`${c.state}|${k}`)
+  }
   const places = await prisma.geoPlace.findMany({ where: { countyCheckedAt: null }, select: { id: true, state: true, nameKey: true, lat: true, lon: true, population: true } })
   // One place per (state, name): the biggest, the way the resolver picks it.
   const best = new Map<string, (typeof places)[number]>()

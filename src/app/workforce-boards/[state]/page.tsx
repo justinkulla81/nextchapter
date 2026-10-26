@@ -1,3 +1,4 @@
+import { workforceStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -5,6 +6,7 @@ import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
 import { getStateBoards, getStateCenters, getStateColleges, getStateLabor, getStateLayoffs, periodLabel, rateText } from '@/lib/seo/workforce-pages'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -26,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   return {
-    title: `${d.name} workforce development boards and job centers`,
+    title: titleMeta(workforceStateSeo(d.name).title),
     description: `${d.boards.length} workforce ${d.boards.length === 1 ? 'board' : 'boards'} and ${d.centers.length} American Job ${d.centers.length === 1 ? 'Center' : 'Centers'} in ${d.name}: the areas each serves, local unemployment, colleges and recent layoff notices.`,
     ...canonical(`/workforce-boards/${state}`),
   }
@@ -40,7 +42,7 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
   return (
     <SeoPage
       trail={[{ name: 'Workforce boards', path: '/workforce-boards' }, { name: d.name, path: `/workforce-boards/${state}` }]}
-      h1={`${d.name} workforce development boards and job centers`}
+      h1={workforceStateSeo(d.name).h1}
       lede={<>{d.name} has {d.boards.length} workforce {d.boards.length === 1 ? 'board' : 'boards'} and {d.centers.length} American Job {d.centers.length === 1 ? 'Center' : 'Centers'}. Job seekers get free help with search, training and benefits there; employers get hiring and layoff support.</>}
     >
       <section aria-labelledby="picture" className="mt-10">
@@ -100,7 +102,7 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
 
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> board and job center listings from CareerOneStop (U.S. Department of Labor); unemployment from the Bureau of Labor Statistics;
-        layoff notices from {d.name}’s published WARN record. For employers: <Link href={`/rapid-response/${stateSlug(d.code)}`} className={LINK}>rapid response and layoff support in {d.name}</Link>.
+        layoff notices from {d.name}’s published WARN record. <Link href={`/places/${state}`} className={LINK}>{d.name} by county and city</Link>. For employers: <Link href={`/rapid-response/${stateSlug(d.code)}`} className={LINK}>rapid response and layoff support in {d.name}</Link>.
       </p>
     </SeoPage>
   )

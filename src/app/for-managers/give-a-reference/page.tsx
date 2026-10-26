@@ -1,14 +1,10 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { canonical } from '@/lib/seo/canonical'
 import { StructuredData } from '@/components/StructuredData'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
-export const metadata = {
-  ...canonical('/for-managers/give-a-reference'),
-  title: 'Give a Reference',
-  description: 'Leave a reference for someone you just let go, while it’s still fresh.',
-}
+export const metadata = pageMetadata('/for-managers/give-a-reference')
 
 // Prompt 65 section 2 — public landing page. Reframes an awkward moment
 // (letting someone go) into something concrete and useful, in Victoria's
