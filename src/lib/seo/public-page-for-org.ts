@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
+import { publicPageForCrmOrg } from '@/lib/seo/org-page-links'
 import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { NONPROFIT_MIN_REVENUE, nonprofitSlug } from '@/lib/seo/nonprofit-pages'
 
@@ -20,6 +21,9 @@ const link = (path: string, label: string, indexed = true): PublicPageLink => ({
 
 export async function publicPageForOrg(org: OrgRef): Promise<PublicPageLink | null> {
   // Employer pages are listed by the "Public page" field in the Data section (src/lib/crm/public-page.ts).
+  // An American Job Center, economic development organization or workforce board linked to this record (PublicOrgPage) wins over a name guess.
+  const linked = await publicPageForCrmOrg(org.id)
+  if (linked) return link(linked.path, linked.label, linked.indexed)
 
   if (org.orgTypes.includes('UNIVERSITY')) {
     const col = await prisma.localCollege.findFirst({ where: { crmOrgId: org.id }, select: { state: true, sector: true } })
