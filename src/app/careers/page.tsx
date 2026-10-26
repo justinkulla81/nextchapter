@@ -4,10 +4,11 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { RoleBadge } from '@/components/careers/RoleBadge'
 import { CAREERS_LOCATION, CAREER_VALUES, GROUP_HEADING, GROUP_ORDER, rolesInGroup } from '@/lib/careers/roles'
 
-// Not for search engines: kept out of results here and disallowed in robots.ts.
 export const metadata: Metadata = {
   title: 'Careers at NextChapter',
-  robots: { index: false, follow: false },
+  description:
+    'Open roles at NextChapter, a small team in New York City or remote helping professionals through layoffs and career change. Leads in editorial, sales, partnerships, product, technology and marketing, plus an internship and a new graduate program. AI skills expected; no experience needed for early-career roles.',
+  alternates: { canonical: '/careers' },
 }
 
 const H2 = 'text-balance text-2xl font-bold tracking-tight text-navy sm:text-3xl'

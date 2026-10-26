@@ -28,8 +28,6 @@ const disallow = [
   '/ref/',
   '/auth/callback',
   '/auth/magic-link',
-  // Careers pages are for people we point to, not for search engines.
-  '/careers',
 ]
 
 export default function robots(): MetadataRoute.Robots {
