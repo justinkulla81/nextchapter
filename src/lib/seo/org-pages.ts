@@ -321,6 +321,17 @@ export async function getStateOrgList(kind: OrgPageKind, stateSlugParam: string)
 
 export interface SitemapOrg { path: string; lastModified: Date }
 
+async function loadStateWithRetry(code: string): Promise<StateData> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await getStateData(code)
+    } catch (e) {
+      if (attempt >= 3) throw e
+      await new Promise((r) => setTimeout(r, 2000 * attempt))
+    }
+  }
+}
+
 export interface OrgPageSummary { pages: number; indexable: SitemapOrg[] }
 
 /** Walks every state once and reports, for each kind, how many pages exist and which meet the bar (with address and lastmod). */
@@ -328,11 +339,12 @@ export async function summarizeOrgPages(): Promise<Record<OrgPageKind, OrgPageSu
   const out: Record<OrgPageKind, OrgPageSummary> = {
     JOB_CENTER: { pages: 0, indexable: [] }, ECON_DEV: { pages: 0, indexable: [] }, WORKFORCE_BOARD: { pages: 0, indexable: [] },
   }
-  // Six states at a time: each load is a handful of queries, and the walk must fit a serverless time limit.
-  for (let i = 0; i < ALL_STATE_CODES.length; i += 6) {
-    const loaded = await Promise.all(ALL_STATE_CODES.slice(i, i + 6).map(async (code) => ({ code, sd: await getStateData(code).catch(() => null) })))
+  // Two states at a time: each load runs nine queries at once and the database pool is small (17), so more than that
+  // starves the pool and loads time out; still fast enough to fit a serverless time limit.
+  for (let i = 0; i < ALL_STATE_CODES.length; i += 2) {
+    // A state that fails three times fails the whole walk: a partial list would be saved or cached as if it were complete.
+    const loaded = await Promise.all(ALL_STATE_CODES.slice(i, i + 2).map(async (code) => ({ code, sd: await loadStateWithRetry(code) })))
     for (const { code, sd } of loaded) {
-      if (!sd) continue
       for (const kind of ['JOB_CENTER', 'ECON_DEV', 'WORKFORCE_BOARD'] as const) {
         for (const row of rowsOf(sd, kind)) {
           out[kind].pages++
@@ -372,8 +384,16 @@ const savedSummary = unstable_cache(
   { revalidate: 600 },
 )
 
-/** The sitemap list: the copy the daily cron saved (read in milliseconds), else a walk of the states. */
+/**
+ * The sitemap list: the copy the daily cron saved (read in milliseconds), else a walk of the states. The walk never
+ * runs during `next build`: the build prerenders sitemaps beside the job sitemaps and the walk would starve the
+ * database pool and fail the deploy. During the build the list is simply empty, and the sitemap routes that use it
+ * render on request.
+ */
 export async function cachedIndexableOrgPages(kind: OrgPageKind): Promise<SitemapOrg[]> {
-  const all = (await savedSummary()) ?? ((await walkedSummary()) as SavedSummary)
+  const building = process.env.NEXT_PHASE === 'phase-production-build'
+  const saved = await savedSummary()
+  const all = saved ?? (building ? null : ((await walkedSummary()) as SavedSummary))
+  if (!all) return []
   return all[kind].indexable.map((p) => ({ path: p.path, lastModified: new Date(p.lastModified) }))
 }
