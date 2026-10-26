@@ -132,3 +132,12 @@ downloadable `.ics` (`src/lib/conferences/ics.ts`), a draft they copy, a
   enable them without the owner's approval and a privacy policy update.
 - The privacy policy (`src/app/privacy-policy/page.tsx`) states this promise.
   Keep it true, and update the policy in the same change if any of it changes.
+
+## Testing with a résumé
+
+Whenever the owner has to test a flow that asks for a résumé, always give them a
+fake test résumé (PDF, a made-up person and company names) with a fake email on
+`example.com`, never a real person's résumé or an address tied to a real account
+(a real address trips the duplicate-account check). Make several copies with
+different emails (`...nctest1@example.com`, `nctest2`, `nctest3`) so a retry never
+collides, and attach them with SendUserFile in the same reply. Do not wait to be asked.
