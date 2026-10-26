@@ -63,6 +63,18 @@ export async function ensureFreshAccessToken(connection: EmailConnection): Promi
 // is a transient failure, same treatment as any other non-403 error.
 const RATE_LIMIT_REASONS = new Set(['rateLimitExceeded', 'userRateLimitExceeded', 'dailyLimitExceeded', 'quotaExceeded'])
 
+/**
+ * Waits before retry number `attempt` (2s, 4s, 8s, 16s, ...) unless that would run past `deadline`, in which case it returns
+ * false and the caller gives up and tries again on its next run. Without a deadline the waits could add up to a minute in one
+ * call, past a cron job's time limit (the scam-watch job was cut off this way, 2026-10-26).
+ */
+export async function backoff(attempt: number, deadline?: number): Promise<boolean> {
+  const wait = 2000 * 2 ** attempt
+  if (deadline && Date.now() + wait > deadline) return false
+  await new Promise((r) => setTimeout(r, wait))
+  return true
+}
+
 export async function isRetryable(response: Response): Promise<boolean> {
   if (response.status === 429 || response.status >= 500) return true
   if (response.status !== 403) return false
@@ -95,7 +107,8 @@ async function isInsufficientScopeError(response: Response): Promise<boolean> {
 // upgrade" (needs a real reconnect) from an ordinary transient failure.
 export async function getFullMessage(
   accessToken: string,
-  id: string
+  id: string,
+  deadline?: number,
 ): Promise<FetchedMessage> {
   const url = `${GMAIL_API}/messages/${id}?format=full`
   // Gmail rate-limits bursts (429) and has transient 5xx — a message that
@@ -105,7 +118,7 @@ export async function getFullMessage(
   // burst. Waits are long enough to let the per-minute window roll over.
   let response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
   for (let attempt = 1; attempt <= 4 && (await isRetryable(response)); attempt++) {
-    await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt))
+    if (!(await backoff(attempt, deadline))) break
     response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
   }
   // Still rate-limited or erroring after the retries: worth another try next
@@ -128,13 +141,13 @@ export type FetchedMessage = { message: GmailMessage | null; insufficientScope: 
 // per-user rate limit.
 const MESSAGE_FETCH_CONCURRENCY = 4
 
-export async function fetchMessages(accessToken: string, ids: string[]): Promise<Map<string, FetchedMessage>> {
+export async function fetchMessages(accessToken: string, ids: string[], deadline?: number): Promise<Map<string, FetchedMessage>> {
   const results = new Map<string, FetchedMessage>()
   let nextIndex = 0
   async function worker() {
     while (nextIndex < ids.length) {
       const id = ids[nextIndex++]
-      results.set(id, await getFullMessage(accessToken, id))
+      results.set(id, await getFullMessage(accessToken, id, deadline))
     }
   }
   await Promise.all(Array.from({ length: Math.min(MESSAGE_FETCH_CONCURRENCY, ids.length) }, worker))

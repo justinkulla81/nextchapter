@@ -21,7 +21,9 @@ export const maxDuration = 60
  */
 export const GET = withCronRun('scam-watch', async () => {
   const started = Date.now()
-  const deadline = started + 45_000
+  // 20 seconds under the 60-second limit: Gmail retries wait only while they fit before this (gmail-api.ts backoff), and the
+  // last step of a pass (saving the bookmark, the run record) needs the rest.
+  const deadline = started + 40_000
   const recentlySynced = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
   const connections = await prisma.emailConnection.findMany({
     where: { disconnectedAt: null, needsReconnectAt: null, lastSyncAt: { gte: recentlySynced } },

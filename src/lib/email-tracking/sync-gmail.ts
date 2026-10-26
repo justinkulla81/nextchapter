@@ -14,7 +14,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { markInterimMarketplaceSignupCore } from '@/lib/interim-work/mark-signup'
 import { getInterimListingDomainMap } from '@/lib/interim-work/listings'
 import { trackPlatformEmail } from '@/lib/platforms/track'
-import { GMAIL_API, ensureFreshAccessToken, isRetryable, fetchMessages, extractBodyPreview, type FetchedMessage } from './gmail-api'
+import { GMAIL_API, backoff, ensureFreshAccessToken, isRetryable, fetchMessages, extractBodyPreview, type FetchedMessage } from './gmail-api'
 import { platformsForSenderDomain } from '@/lib/platforms/directory'
 import { getAttachmentFilenames, getHeader, extractEmailLinks } from '@/lib/google/gmail-body'
 import { assessRecruiterEmail } from '@/lib/scam-shield/assess-recruiter-email'
@@ -54,6 +54,7 @@ async function listMessageIds(
   labelId: 'INBOX' | 'SENT',
   afterUnixSeconds: number,
   beforeUnixSeconds: number,
+  deadline?: number,
 ): Promise<string[] | null> {
   const ids: string[] = []
   let pageToken: string | undefined
@@ -67,7 +68,7 @@ async function listMessageIds(
     const url = `${GMAIL_API}/messages?${params.toString()}`
     let response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
     for (let attempt = 1; attempt <= 4 && (await isRetryable(response)); attempt++) {
-      await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt))
+      if (!(await backoff(attempt, deadline))) break
       response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
     }
     if (!response.ok) {
@@ -501,8 +502,8 @@ export async function syncGmailConnection(
     const after = Math.floor((cursor.getTime() - QUERY_OVERLAP_MS) / 1000)
     const before = Math.floor((sliceEnd.getTime() + QUERY_OVERLAP_MS) / 1000)
     const [inboxIds, sentIds] = await Promise.all([
-      listMessageIds(accessToken, 'INBOX', after, before),
-      listMessageIds(accessToken, 'SENT', after, before),
+      listMessageIds(accessToken, 'INBOX', after, before, options.deadline),
+      listMessageIds(accessToken, 'SENT', after, before, options.deadline),
     ])
     if (!inboxIds || !sentIds) break
 
@@ -528,8 +529,8 @@ export async function syncGmailConnection(
     // running two of those concurrently for different action types can
     // silently lose one's completion to the other's overwrite.
     const [inboxFetched, sentFetched] = await Promise.all([
-      fetchMessages(accessToken, newInboxIds),
-      fetchMessages(accessToken, newSentIds),
+      fetchMessages(accessToken, newInboxIds, options.deadline),
+      fetchMessages(accessToken, newSentIds, options.deadline),
     ])
 
     let sliceComplete = true
