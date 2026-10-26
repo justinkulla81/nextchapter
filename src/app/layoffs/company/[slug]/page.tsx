@@ -1,3 +1,4 @@
+import { meetsCompanyLayoffBar } from '@/lib/seo/page-bars'
 import { layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -13,7 +14,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
-import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
+import { getCompanies, getNewsMentions, noticeDay, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
 import { StatementForm } from '@/components/employers/StatementForm'
 import { approvedStatementMap } from '@/lib/employer-statements/store'
@@ -42,9 +43,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!c) return {}
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const description = `${c.notices.length} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'} filed by ${c.name} in ${c.states.map(stateName).join(', ')}${workers ? `, naming ${workers.toLocaleString()} workers` : ''}. Latest filed ${noticeDay(c.latest)}. Dates, locations and the state record for each.`
-  // A page whose newest notice is over two years old stays reachable but
-  // out of search results: it no longer helps anyone affected now.
-  const stale = Date.now() - c.latest.getTime() > TWENTY_FOUR_MONTHS_MS
+  // A page whose newest notice is over two years old, or that is too small to be worth a search result
+  // (src/lib/seo/page-bars.ts), stays reachable but out of search results.
+  const stale = !meetsCompanyLayoffBar(c)
   return {
     title: titleMeta(layoffsCompanySeo(c.name).title),
     description,

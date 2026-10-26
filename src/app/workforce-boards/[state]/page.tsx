@@ -1,3 +1,4 @@
+import { meetsStateBoardBar } from '@/lib/seo/page-bars'
 import { workforceStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -31,6 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     title: titleMeta(workforceStateSeo(d.name).title),
     description: `${d.boards.length} workforce ${d.boards.length === 1 ? 'board' : 'boards'} and ${d.centers.length} American Job ${d.centers.length === 1 ? 'Center' : 'Centers'} in ${d.name}: the areas each serves, local unemployment, colleges and recent layoff notices.`,
     ...canonical(`/workforce-boards/${state}`),
+    ...(meetsStateBoardBar(d.boards.length, d.centers.length) ? {} : { robots: { index: false, follow: true } }),
   }
 }
 
