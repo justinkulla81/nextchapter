@@ -1,7 +1,7 @@
 import 'server-only'
-import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { heavy, memoTtl, retryOnPoolTimeout } from '@/lib/db/heavy'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 import { boardCountyKeys } from '@/lib/workforce/board-area'
 import { countyKey } from '@/lib/workforce/places'
@@ -95,7 +95,8 @@ const asMajors = (v: unknown): CollegeFacts['topMajors'] =>
 const outcomes = (c: CollegeFacts) => [c.completionRate, c.earnings6, c.earnings10, c.netPrice, c.employedShare10].filter((x) => x != null).length
 
 /** Every CRM university, keyed the way college names are matched, for the claim slug. */
-const universityOrgs = cache(async () => {
+// Kept on the instance for an hour: it is the same for every college page, and a crawl once exhausted the connection pool re-reading it.
+const universityOrgs = memoTtl(3600_000, () => 'all', () => retryOnPoolTimeout(async () => {
   const rows = await prisma.crmOrganization.findMany({
     where: { orgTypes: { has: 'UNIVERSITY' } },
     select: { id: true, name: true, canonicalNameNormalized: true },
@@ -106,7 +107,7 @@ const universityOrgs = cache(async () => {
   const byKey = new Map<string, (typeof rows)[number]>()
   for (const r of rows) { const k = strictOrgKey(r.name, normalizeOrgName); if (keyCount.get(k) === 1) byKey.set(k, r) }
   return { byId, byKey }
-})
+}))
 
 /** The CRM organization behind a college: the one it is linked to, else the only university with the same name. */
 export async function crmOrgForCollege(c: { name: string; crmOrgId: string | null }) {
@@ -115,7 +116,7 @@ export async function crmOrgForCollege(c: { name: string; crmOrgId: string | nul
 }
 
 /** All colleges in a state, one per IPEDS id (the Scorecard table first, the ranked table fills the rest). */
-export const getStateCollegeListings = cache(async (state: string): Promise<CollegeListing[]> => {
+export const getStateCollegeListings = memoTtl(3600_000, (state: string) => state, (state: string): Promise<CollegeListing[]> => retryOnPoolTimeout(async () => {
   const [profiles, locals, orgs, links] = await Promise.all([
     prisma.collegeProfile.findMany({ where: { state } }),
     prisma.localCollege.findMany({ where: { state } }),
@@ -168,7 +169,7 @@ export const getStateCollegeListings = cache(async (state: string): Promise<Coll
       }
     })
     .sort((a, b) => a.name.localeCompare(b.name))
-})
+}))
 
 const citySpellings = (name: string, key: string) => [...new Set([key, name.toLowerCase(), name.toLowerCase().replace(/\bsaint\b/g, 'st').replace(/\bst\.\s*/g, 'st ')])]
 
@@ -177,7 +178,7 @@ async function localMarket(state: string, county: County, majors: CollegeFacts['
   const spellings = [...new Set(places.flatMap((p) => citySpellings(p.name, p.key)))]
   if (spellings.length === 0) return null
   const where = Prisma.sql`WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} AND "locationState" = ${state} AND lower("locationCity") = ANY(${spellings})`
-  const [[tot], fns, emps] = await Promise.all([
+  const [[tot], fns, emps] = await heavy(() => Promise.all([
     prisma.$queryRaw<{ n: number; entry: number; noexp: number; ai: number }[]>`
       SELECT count(*)::int AS n,
              count(*) FILTER (WHERE level = 'ENTRY_IC')::int AS entry,
@@ -194,7 +195,7 @@ async function localMarket(state: string, county: County, majors: CollegeFacts['
       LEFT JOIN "Company" c ON c.id = g.cid
       LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
       ORDER BY g.n DESC, g.name`,
-  ])
+  ]))
   const byFunction = new Map(fns.map((r) => [r.f, r.n]))
   const match = functionsForMajors(majors)
   return {
