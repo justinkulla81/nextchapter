@@ -1,3 +1,4 @@
+import { meetsCompanyLayoffBar, meetsStateBoardBar } from '@/lib/seo/page-bars'
 import { CAREER_ROLES } from '@/lib/careers/roles'
 import type { MetadataRoute } from 'next'
 import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
@@ -12,7 +13,7 @@ import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
-import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
+import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { TOPICS } from '@/lib/seo/explainers'
 import { ASSOCIATION_MIN_CONFERENCES, INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
@@ -110,8 +111,9 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
         const boards = visibleBoards(all)
         const slugs = boardSlugs(boards)
         return [
-          entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
-          entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
+          ...(meetsStateBoardBar(s.boards, s.centers)
+            ? [entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5), entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)]
+            : []),
           ...(hasColleges.has(state) ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
           ...boards.filter((b) => indexableBoards.size === 0 || indexableBoards.has(`/workforce-boards/${slug}/${slugs.get(b.id)}`)).map((b) => entry(`/workforce-boards/${slug}/${slugs.get(b.id)}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
         ]
@@ -251,7 +253,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(newestNotice ? [entry('/layoffs', newestNotice, 'daily', 0.7)] : []),
     ...layoffStates.map((s) => entry(`/layoffs/${stateSlug(s.state)}`, s.latest.toISOString(), 'daily', 0.6)),
     ...[...companies.values()]
-      .filter((c) => Date.now() - c.latest.getTime() <= TWENTY_FOUR_MONTHS_MS)
+      .filter((c) => meetsCompanyLayoffBar(c))
       .map((c) => entry(`/layoffs/company/${c.slug}`, c.latest.toISOString(), 'weekly', 0.4)),
 
     // Employer network pages: the same employers, kept only where the page qualifies (recent notice, enough workers).

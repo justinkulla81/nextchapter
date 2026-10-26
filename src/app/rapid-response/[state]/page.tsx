@@ -1,3 +1,4 @@
+import { meetsStateBoardBar } from '@/lib/seo/page-bars'
 import { rapidResponseStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -31,6 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     title: titleMeta(rapidResponseStateSeo(d.name).title),
     description: `Planning a layoff in ${d.name}? The federal WARN Act rules, the ${d.boards.length} local workforce ${d.boards.length === 1 ? 'board' : 'boards'} and ${d.centers.length} American Job Centers that help affected workers, and a free notice checker.`,
     ...canonical(`/rapid-response/${state}`),
+    ...(meetsStateBoardBar(d.boards.length, d.centers.length) ? {} : { robots: { index: false, follow: true } }),
   }
 }
 
