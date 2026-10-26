@@ -54,6 +54,9 @@ const TOPIC_LINKS = [
   { label: 'Executive recruiters', href: '/topics/executive-recruiters' },
   { label: 'Reverse recruiter', href: '/topics/reverse-recruiter' },
   { label: 'Outplacement', href: '/outplacement' },
+  { label: 'Severance calculator', href: '/tools/severance-calculator' },
+  { label: 'Local job markets', href: '/places' },
+  { label: 'Glossary', href: '/glossary' },
 ]
 
 export function NewHome() {

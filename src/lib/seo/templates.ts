@@ -84,3 +84,21 @@ export function fitDescription(text: string, max = 160): string {
   }
   return out || fit(text, max)
 }
+
+/** /places/[state]: the owner of "<state> jobs" and "<state> job market". */
+export const placeStateSeo = (state: string) => ({
+  title: firstThatFits(TITLE_MAX + 10, `${state} Jobs and Job Market by County and City`, `${state} Jobs and Job Market`),
+  h1: `${state} jobs and job market: layoffs, colleges and workforce help`,
+})
+
+/** /places/[state]/county/[county]: the owner of "<county> jobs" and "<county> unemployment". */
+export const placeCountySeo = (county: string, code: string) => ({
+  title: fit(`${county}, ${code} Jobs, Unemployment and Layoffs`, 60),
+  h1: `${county}, ${code} jobs, unemployment and layoffs`,
+})
+
+/** /places/[state]/city/[city]: the owner of "<city> jobs" and "<city> layoffs". */
+export const placeCitySeo = (city: string, code: string) => ({
+  title: fit(`${city}, ${code} Jobs, Layoffs and Employers`, 60),
+  h1: `${city}, ${code} jobs, layoffs and employers`,
+})

@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-89 clusters, 550 phrases.
+104 clusters, 633 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -77,6 +77,21 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/start/happy-with-fractional-work` | page | fractional work | Fractional and consulting work | fractional executive; interim executive; portfolio career; independent consulting; keep a consulting practice full |
 | `/start/building-something` | page | starting something while you keep your job | Start something on the side | side business; startup while keeping your job; start a company; leave a job to start a company |
 | `/topics` | page | job search and career change topics | Browse job search and career topics | career topics; layoff topics; job search questions |
+| `/tools` | page | free job search and layoff tools | Free calculators and lookups for job seekers | free job search tools online; layoff tools; job loss calculator; free career tools |
+| `/tools/severance-calculator` | page | severance calculator | Work out a severance figure | severance pay calculator; how much severance should I get; severance by years of service; severance weeks per year; severance estimate |
+| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; laid off vs fired; what is COBRA; what is outplacement; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
+| `/places` | page | local job markets | Job market in my area | jobs near me; job market by state and county; local unemployment rate; job openings by county; largest employers near me |
+| `/places/:state` | family | {state} jobs | Job market in one state | {state} job market; {state} unemployment rate; {state} largest employers; {state} job openings |
+| `/places/:state/county/:county` | family | {county} jobs | Job market in one county | {county} unemployment rate; {county} largest employers; {county} job openings; {county} layoffs |
+| `/places/:state/city/:city` | family | {city} jobs | Job market in one city | {city} layoffs; {city} employers hiring; {city} job center |
+| `/industries` | page | jobs by industry | Jobs, conferences and layoffs by industry | industry job market; industry layoffs; industries hiring |
+| `/industries/:slug` | family | {industry} jobs | One industry | {industry} layoffs; {industry} conferences; {industry} associations |
+| `/functions` | page | jobs by function | Jobs, conferences and layoffs by job function | job functions; finance jobs; engineering jobs; marketing jobs; legal jobs; function job market |
+| `/functions/:slug` | family | {function} jobs | One job function | {function} layoffs; {function} conferences; {function} careers |
+| `/conferences` | page | conferences and trade shows | Find conferences to attend or speak at | industry conferences; conference calendar; call for speakers; trade shows by industry; networking conferences |
+| `/conferences/:slug` | family | {conference} dates and cost | One conference | {conference} speakers; {conference} call for speakers; {conference} registration |
+| `/associations` | page | industry associations | Industry associations and organizers | professional associations; conference organizers; event organizers |
+| `/associations/:slug` | family | {association} conferences | One association | {association} events; {association} speaking opportunities |
 | `/coaching` | page | career coach | Find a career coach | professional coach; executive coach; career coaching; AI career coach; job search coach; executive coaching for job seekers; find a career coach; online career coach; free career coach |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
 | `/topics/reverse-recruiter` | page | reverse recruiter | Have someone represent me to employers | reverse recruiting; reverse recruiting services; candidate marketing; job search representation; someone to find jobs for me; recruiter that works for the candidate |
@@ -423,6 +438,54 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Job Search, Career Change and Layoff Topics
 - Description: Plain answers on severance, resumes, job search strategy, career pivots, career exploration, executive recruiters and reverse recruiters.
 - H1: Job search, career change and layoff topics
+
+### `/tools`
+
+- Title: Free Job Search and Layoff Tools
+- Description: Free calculators and lookups for people who lost a job or plan a move: severance calculator, unemployment benefits by state, layoff tracker, WARN Act checker.
+- H1: Free job search and layoff tools
+
+### `/tools/severance-calculator`
+
+- Title: Severance Calculator: Pay by Years of Service
+- Description: Free severance calculator: enter your pay and years of service to see the common one-to-two weeks per year range, and what paid health coverage adds.
+- H1: Severance calculator
+
+### `/glossary`
+
+- Title: Layoff and Job Search Glossary: Plain Definitions
+- Description: Plain definitions of WARN notice, reduction in force, severance, COBRA, outplacement, executive recruiter, reverse recruiter, ATS and more layoff terms.
+- H1: Layoff and job search glossary
+
+### `/places`
+
+- Title: Local Job Markets: Every State, County and City
+- Description: Jobs, layoff notices, largest employers, colleges, workforce boards and American Job Centers for every U.S. state, county and city we cover.
+- H1: Local job markets
+
+### `/industries`
+
+- Title: Jobs by Industry: Openings, Conferences and Layoffs
+- Description: Every industry NextChapter tracks: open jobs, upcoming conferences, recent layoff notices, industry associations and the job functions inside it.
+- H1: Industries: jobs, conferences and layoffs
+
+### `/functions`
+
+- Title: Jobs by Function: Finance, Engineering, Marketing and More
+- Description: Every job function NextChapter tracks, from finance and engineering to marketing and legal: open jobs, conferences, associations and the industries that hire.
+- H1: Job functions: jobs, conferences and layoffs
+
+### `/conferences`
+
+- Title: Conferences and Trade Shows: Dates, Costs and Speaking
+- Description: Conferences, trade shows and summits by industry and function: dates, costs, calls for speakers, the associations that run them and the employers worth meeting.
+- H1: Conferences and trade shows
+
+### `/associations`
+
+- Title: Industry Associations and Conference Organizers
+- Description: Industry associations and event organizers that run two or more conferences in the NextChapter catalog, with their dates, costs and calls for speakers.
+- H1: Industry associations and conference organizers
 
 ### `/coaching`
 
