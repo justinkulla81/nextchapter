@@ -62,3 +62,14 @@ describe('college pings', () => {
     expect(planCollegePings(cur, cur)).toEqual([])
   })
 })
+
+describe('territories', () => {
+  it('maps territory slugs both ways and keeps them out of the state list', async () => {
+    const { COLLEGE_TERRITORIES, territoryFromSlug, territorySlug } = await import('@/lib/seo/college-bar')
+    expect(territoryFromSlug('puerto-rico')).toBe('PR')
+    expect(territorySlug('VI')).toBe('u-s-virgin-islands')
+    expect(territoryFromSlug(territorySlug('VI'))).toBe('VI')
+    expect(Object.keys(COLLEGE_TERRITORIES)).toHaveLength(8)
+    expect(territoryFromSlug('kentucky')).toBeNull()
+  })
+})
