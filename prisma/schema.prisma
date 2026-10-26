@@ -11813,6 +11813,9 @@ model ProductFeedback {
   candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
 
   rawText     String  @db.Text
+  /// Where to tell a partner-portal sender what happened to their idea (employer,
+  /// recruiter, coach, institution). Candidates are reached through candidateId.
+  contactEmail String?
   channel     String? // 'call' | 'email' | 'in person' | 'survey' | 'in-app idea' | 'in-app feedback' | ...
   /// The portal page a candidate was on when they sent it in-app.
   contextPath String?
@@ -17416,4 +17419,13 @@ model EmployerStatement {
   @@index([companySlug, status])
   @@index([warnNoticeId])
   @@index([status, createdAt])
+}
+
+/// Precomputed aggregates for the public industry and function pages (open jobs, salary quartiles, skills...), refreshed
+/// by the topic-snapshots cron so a page view reads one row instead of scanning the job board. key: "jobs:<json filter>"
+/// or "stats:<json filter>". Applied by hand: prisma/manual/topic-snapshot.sql.
+model TopicSnapshot {
+  key       String   @id
+  data      Json
+  updatedAt DateTime @default(now())
 }

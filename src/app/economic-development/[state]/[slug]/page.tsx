@@ -33,6 +33,6 @@ export default async function Page({ params }: { params: Params }) {
   const { state, slug } = await params
   const p = await getOrgPage('ECON_DEV', state, slug)
   if (!p) notFound()
-  const [hiring, claim] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('ECON_DEV', p.row.id)])
+  const [hiring, claim] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('ECON_DEV', p.row.id, p.row.aliasIds)])
   return <OrgPageView page={p} path={`/economic-development/${state}/${slug}`} hiring={hiring} claimSlug={claim} />
 }

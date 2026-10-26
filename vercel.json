@@ -2,7 +2,7 @@
   "regions": [
     "pdx1"
   ],
-  "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
+  "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ] || { git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- . ':(exclude)docs' ':(exclude)scripts' ':(exclude)extension' ':(exclude)incoming-prompts' ':(exclude)incoming-report' ':(exclude)incoming-seo' ':(exclude)*.md' 2>/dev/null; [ $? -eq 0 ]; }",
   "crons": [
     {
       "path": "/api/cron/deadline-reminders",
@@ -335,6 +335,10 @@
     {
       "path": "/api/cron/monthly-user-report",
       "schedule": "0 23 28-31 * *"
+    },
+    {
+      "path": "/api/cron/topic-snapshots",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

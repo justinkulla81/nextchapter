@@ -14,7 +14,7 @@ export async function publicPageForCrmOrg(crmOrgId: string): Promise<{ path: str
     if (!link || !ALL_STATE_CODES.includes(link.state)) return null
     const sd = await getStateData(link.state)
     const rows = link.kind === 'JOB_CENTER' ? sd.centers : link.kind === 'ECON_DEV' ? sd.econDev : sd.boards
-    const row = rows.find((r) => r.id === link.sourceId)
+    const row = rows.find((r) => r.id === link.sourceId || r.aliasIds?.includes(link.sourceId))
     if (!row) return null
     const label = link.kind === 'JOB_CENTER' ? 'American Job Center page' : link.kind === 'ECON_DEV' ? 'Economic development page' : 'Workforce board page'
     return { path: orgPagePath(link.kind as OrgPageKind, stateSlug(link.state), row.slug), name: row.name, label, indexed: buildOrgPage(row, sd).indexable }
@@ -27,7 +27,7 @@ export async function publicPageForCrmOrg(crmOrgId: string): Promise<{ path: str
 export async function sourceRowFor(kind: string, state: string, sourceId: string) {
   const sd = await getStateData(state)
   const rows = kind === 'JOB_CENTER' ? sd.centers : kind === 'ECON_DEV' ? sd.econDev : sd.boards
-  const row = rows.find((r) => r.id === sourceId)
+  const row = rows.find((r) => r.id === sourceId || r.aliasIds?.includes(sourceId))
   if (!row) return null
   const sameNameInState = rows.filter((r) => r.name.toLowerCase() === row.name.toLowerCase()).length > 1
   return { row, crmName: crmOrgName(row, { sameNameInState }) }

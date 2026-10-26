@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { PORTAL_APP_SUBROUTES } from '@/lib/supabase/portal'
-import { HEAVY_PAGES_PAUSED, PAUSED_HEAVY_PREFIXES } from '@/lib/paused-pages'
+import { pausedPrefixes } from '@/lib/paused-pages'
 
 const siteUrl = 'https://launchyournextchapter.com'
 
@@ -33,7 +33,7 @@ const disallow = [
 
 export default function robots(): MetadataRoute.Robots {
   // While the heavy pages are paused (see src/proxy.ts), tell crawlers not to ask for them.
-  const paused = HEAVY_PAGES_PAUSED() ? PAUSED_HEAVY_PREFIXES : []
+  const paused = pausedPrefixes()
   return {
     rules: [
       {

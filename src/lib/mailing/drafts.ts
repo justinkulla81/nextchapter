@@ -7,6 +7,7 @@ import { getMailingSettings } from './lists'
 import { prefillEdition } from './prefill'
 import { CADENCE_LABEL, periodFor, samePeriod, type Period } from './cadence'
 import { escapeHtml } from './render'
+import { syncCustomerUpdatesList } from './customer-updates'
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
@@ -63,6 +64,8 @@ export async function createEditionDraft(input: {
  * started by hand this period counts, so you never get a second one.
  */
 export async function draftDueEditions(now = new Date()): Promise<{ drafted: string[]; notified: number }> {
+  // Keep the customer updates list current first, so its draft has a roster.
+  await syncCustomerUpdatesList().catch((e) => console.error('Customer updates list sync failed', e))
   const lists = await prisma.mailingList.findMany({ where: { isActive: true, cadence: { not: 'AD_HOC' } } })
   const drafted: string[] = []
   for (const list of lists) {

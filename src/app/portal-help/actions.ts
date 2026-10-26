@@ -68,7 +68,7 @@ export async function submitPortalHelp(portal: PortalHelpPortal, slug: string | 
   if (!isConversationKind(kind)) {
     const fb = await prisma.productFeedback.create({
       data: {
-        source: who.feedbackSource, personLabel: label, rawText: message,
+        source: who.feedbackSource, personLabel: label, contactEmail: who.email, rawText: message,
         channel: kind === 'idea' ? 'portal idea' : 'portal feedback', contextPath, receivedAt: new Date(),
       },
     })

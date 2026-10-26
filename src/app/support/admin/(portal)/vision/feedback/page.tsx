@@ -209,8 +209,8 @@ export default async function VisionFeedbackPage({
                     {f.status !== 'ADDRESSED' && (
                       <form action={addressed} className="flex flex-wrap items-end gap-2">
                         <label className="text-xs">
-                          <span className="mb-1 block font-medium">Told them what happened</span>
-                          <input name="responseNote" placeholder="Emailed — shipped in the Sept release" className="h-8 w-64 rounded-md border border-input bg-transparent px-2 text-xs" />
+                          <span className="mb-1 block font-medium">Tell them what happened <span className="font-normal text-muted-foreground">{((f.candidateId && f.channel?.startsWith('in-app')) || (f.channel?.startsWith('portal') && f.contactEmail)) ? '(a note emails them)' : '(no email on file, so it only records it)'}</span></span>
+                          <input name="responseNote" placeholder="We built it. It is live in your portal now" className="h-8 w-64 rounded-md border border-input bg-transparent px-2 text-xs" />
                         </label>
                         <SubmitButton size="sm" variant="outline" pendingLabel="Saving…">Mark as told</SubmitButton>
                       </form>

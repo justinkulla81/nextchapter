@@ -8,7 +8,7 @@ export const slugifyName = (s: string) =>
   s.toLowerCase().replace(/&/g, ' and ').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
 /** "Morgan County Economic Development (listed by EDAA)" → "Morgan County Economic Development". */
-export const cleanOrgName = (s: string) => s.replace(/\s*\((?:listed by|source:)[^)]*\)\s*$/i, '').replace(/\s+/g, ' ').trim()
+export const cleanOrgName = (s: string) => s.replace(/\s*\((?:listed by|source:|[A-Z]{2} DLG\/)[^)]*\)\s*$/i, '').replace(/\s+/g, ' ').trim()
 
 /**
  * Page addresses within one state. A name is its own slug; two organizations that read the same get their city
@@ -91,4 +91,25 @@ export const ORG_SITEMAP_SHARD_SIZE = 2000
 /** Pages to tell IndexNow about: indexable pages never announced, or whose lastmod moved since the last announcement. */
 export function planOrgPageUpdates(current: { path: string; lastModified: string }[], announced: Record<string, string>): string[] {
   return current.filter((p) => announced[p.path] !== p.lastModified).map((p) => p.path)
+}
+
+// ---------------------------------------------------------------------------------------------
+// Duplicate partner records
+
+/** What makes two partner records the same organization: the same cleaned name in the same state. */
+export const partnerKey = (name: string) => cleanOrgName(name).toLowerCase().replace(/[^a-z0-9]/g, '')
+
+/**
+ * Groups records that are one organization under two sources (an EDA economic development district and the state
+ * directory's copy of it). The record with the better claim to the page comes first: a district over a directory
+ * listing, then the one naming more counties, then the lower id so the choice never depends on row order.
+ */
+export function groupPartnerDuplicates<T extends { id: string; name: string; kind: string; counties: string[] }>(rows: T[]): { primary: T; aliases: T[] }[] {
+  const groups = new Map<string, T[]>()
+  for (const r of rows) groups.set(partnerKey(r.name), [...(groups.get(partnerKey(r.name)) ?? []), r])
+  const rank = (r: T) => (r.kind === 'EDD' ? 0 : 1)
+  return [...groups.values()].map((g) => {
+    const sorted = [...g].sort((a, b) => rank(a) - rank(b) || b.counties.length - a.counties.length || a.id.localeCompare(b.id))
+    return { primary: sorted[0], aliases: sorted.slice(1) }
+  })
 }

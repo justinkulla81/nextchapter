@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
-  ORG_PAGE_MIN_EXTRA_BLOCKS, ORG_PAGE_MIN_OPEN_JOBS, cleanOrgName, crmOrgName, extraBlocks, meetsOrgPageBar, orgSlugs, planOrgPageUpdates, slugifyName, type OrgPageFacts,
+  ORG_PAGE_MIN_EXTRA_BLOCKS, ORG_PAGE_MIN_OPEN_JOBS, cleanOrgName, crmOrgName, groupPartnerDuplicates, partnerKey, extraBlocks, meetsOrgPageBar, orgSlugs, planOrgPageUpdates, slugifyName, type OrgPageFacts,
 } from '@/lib/seo/org-page-rules'
 
 const base: OrgPageFacts = { hasIdentity: true, hasArea: true, jobsOpen: 40, entryLevelJobs: 6, colleges: 1, otherPartners: 0, hasLabor: false }
@@ -53,6 +53,27 @@ describe('slugs', () => {
   })
 })
 
+describe('duplicate partner records', () => {
+  const rows = [
+    { id: 'state-KY', name: 'Barren River Area Development District', kind: 'LOCAL_EDO', counties: ['warren'] },
+    { id: 'edd-12', name: 'Barren River Area Development District (KY DLG/Gold)', kind: 'EDD', counties: ['allen', 'barren', 'warren'] },
+    { id: 'edo-1', name: 'Lowndes County Economic Development Commission', kind: 'LOCAL_EDO', counties: ['lowndes'] },
+  ]
+  it('strips source tags so the two spellings share a key', () => {
+    expect(cleanOrgName('Kentucky River ADD (KY DLG/Gold)')).toBe('Kentucky River ADD')
+    expect(partnerKey(rows[0].name)).toBe(partnerKey(rows[1].name))
+  })
+  it('folds a district and its directory copy into the district', () => {
+    const g = groupPartnerDuplicates(rows)
+    expect(g).toHaveLength(2)
+    const barren = g.find((x) => x.primary.id === 'edd-12')!
+    expect(barren.aliases.map((a) => a.id)).toEqual(['state-KY'])
+  })
+  it('never depends on row order', () => {
+    expect(groupPartnerDuplicates([...rows].reverse()).map((g) => g.primary.id).sort()).toEqual(groupPartnerDuplicates(rows).map((g) => g.primary.id).sort())
+  })
+})
+
 describe('CRM names and IndexNow plan', () => {
   it('qualifies the name with the state, or the city on a clash', () => {
     expect(crmOrgName({ name: 'Career Center (listed by X)', state: 'KY', city: 'Paris' })).toBe('Career Center (KY)')
@@ -76,6 +97,7 @@ describe('layoffs are never on these pages (owner decision 2026-10-25)', () => {
     'src/lib/seo/org-pages.ts', 'src/lib/seo/org-page-jsonld.ts', 'src/lib/seo/org-page-rules.ts', 'src/components/seo/OrgPageView.tsx',
     ...['job-centers', 'economic-development'].flatMap((d) => walk(join('src/app', d))),
     ...walk('src/app/workforce-boards/[state]/[board]'),
+    ...walk('src/app/nonprofits'),
   ]
   it.each(files)('%s does not read or show layoff data', (f) => {
     const text = readFileSync(f, 'utf8').replace(/^\s*(\/\/|\*|\/\*).*$/gm, '')

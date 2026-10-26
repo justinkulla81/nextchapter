@@ -2,6 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { heavy, memoTtl } from '@/lib/db/heavy'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
 import { boardCountyKeys } from '@/lib/workforce/board-area'
 import { areaPlaces, countyKey, placeKey } from '@/lib/workforce/places'
@@ -157,7 +158,7 @@ export const getStateCityPlaces = cache(async (state: string): Promise<CityPlace
 const jobsWhere = (extra: Prisma.Sql) => Prisma.sql`WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL} ${extra}`
 
 /** Open public roles by city key: one state, or every state when none is given. */
-const getJobCounts = cache(async (state: string | null): Promise<Map<string, Map<string, number>>> => {
+async function loadJobCounts(state: string | null): Promise<Map<string, Map<string, number>>> {
   const rows = await prisma.$queryRaw<{ st: string; city: string; n: number }[]>`
     SELECT "locationState" AS st, lower("locationCity") AS city, count(*)::int AS n
     FROM "ExclusiveJobPosting"
@@ -171,12 +172,19 @@ const getJobCounts = cache(async (state: string | null): Promise<Map<string, Map
     by.set(r.st, m)
   }
   return by
-})
+}
 
-const getStateJobTotal = cache(async (state: string): Promise<number> => {
+// Place pages are crawled in bursts: the heavy aggregates run at most three at a time, and one result is kept for ten minutes
+// and shared by every county, city and state page of that state on this instance (a state's job counts are one scan of the board).
+const sharedJobCounts = memoTtl(10 * 60_000, (state: string | null) => state ?? '*', (state: string | null) => heavy(() => loadJobCounts(state)))
+const getJobCounts = cache((state: string | null) => sharedJobCounts(state))
+
+async function loadStateJobTotal(state: string): Promise<number> {
   const [r] = await prisma.$queryRaw<{ n: number }[]>`SELECT count(*)::int AS n FROM "ExclusiveJobPosting" ${jobsWhere(Prisma.sql`AND "locationState" = ${state}`)}`
   return r?.n ?? 0
-})
+}
+const sharedStateJobTotal = memoTtl(10 * 60_000, (state: string) => state, (state: string) => heavy(() => loadStateJobTotal(state)))
+const getStateJobTotal = cache((state: string) => sharedStateJobTotal(state))
 
 export interface PlaceCenter { id: string; name: string; kind: string | null; city: string | null; phone: string | null; hours: string | null; detailsUrl: string | null; boardId: string | null; countyFips: string | null; state: string }
 export interface PlaceCollege { id: string; name: string; city: string | null; sector: number | null; size: number | null; website: string | null; countyFips: string | null; state: string }
@@ -275,13 +283,15 @@ function buildCityEntries(
 
 const byActivity = (a: CityEntry, b: CityEntry) => b.jobs + b.notices * 5 - (a.jobs + a.notices * 5) || (b.population ?? 0) - (a.population ?? 0) || a.name.localeCompare(b.name)
 
-/** The cities in a state that have a page, most active first. */
-export const getStateCities = cache(async (state: string): Promise<CityEntry[]> => {
+async function loadStateCities(state: string): Promise<CityEntry[]> {
   const [places, jobs, notices, centers, colleges] = await Promise.all([
     getStateCityPlaces(state), getJobCounts(state), getPublicNotices(), loadCenters(state), loadColleges(state),
   ])
   return buildCityEntries(places, jobs.get(state) ?? new Map(), notices.filter((n) => n.state === state), centers, colleges).sort(byActivity)
-})
+}
+const sharedStateCities = memoTtl(10 * 60_000, (state: string) => state, loadStateCities)
+/** The cities in a state that have a page, most active first. */
+export const getStateCities = cache((state: string) => sharedStateCities(state))
 
 /** Every state's cities with a page, for the sitemap. */
 export async function getAllCityEntries(): Promise<CityEntry[]> {
@@ -301,7 +311,7 @@ export interface PlaceEmployer { name: string; openRoles: number; href: string |
 export interface PlaceJob { id: string; title: string; company: string; verifiedAt: Date | null }
 
 /** Employers with the most open public roles in a state, optionally limited to some cities (lowercase spellings). */
-async function topHiringEmployers(state: string, cityNames: string[] | null, limit = 12): Promise<PlaceEmployer[]> {
+async function loadTopHiringEmployers(state: string, cityNames: string[] | null, limit: number): Promise<PlaceEmployer[]> {
   const rows = await prisma.$queryRaw<{ name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }[]>`
     SELECT g.name, g.n, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable
     FROM (
@@ -316,7 +326,7 @@ async function topHiringEmployers(state: string, cityNames: string[] | null, lim
   return rows.map((r) => ({ name: r.name, openRoles: r.n, href: r.linkable && r.cn && r.cid ? `/employers/${employerSlug(r.cn, r.cid)}` : null }))
 }
 
-async function recentJobs(state: string, cityNames: string[], limit = 10): Promise<PlaceJob[]> {
+async function loadRecentJobs(state: string, cityNames: string[], limit: number): Promise<PlaceJob[]> {
   const rows = await prisma.$queryRaw<{ id: string; title: string; company: string; at: Date | null }[]>`
     SELECT id, title, "companyName" AS company, "lastVerifiedAt" AS at
     FROM "ExclusiveJobPosting"
@@ -335,7 +345,7 @@ const roundedCount = (n: number) => (n >= 10_000 ? Math.round(n / 1000) * 1000 :
  * Large employers headquartered in a state (or a city in it). Ranked by a published employee count where we have one
  * (CompanyHeadcount: figure, year and source), then by the company directory's estimated size band.
  */
-async function largeEmployersHeadquartered(state: string, cityKeyNames: string[] | null, limit = 12): Promise<HqEmployer[]> {
+async function loadLargeEmployersHeadquartered(state: string, cityKeyNames: string[] | null, limit: number): Promise<HqEmployer[]> {
   const rows = await prisma.$queryRaw<{ name: string; band: string | null; cn: string; cid: string; linkable: boolean | null; emp: number | null; yr: number | null }[]>`
     SELECT c.name, c."sizeBand"::text AS band, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable,
            hc.employees AS emp, hc."asOfYear" AS yr
@@ -356,6 +366,14 @@ async function largeEmployersHeadquartered(state: string, cityKeyNames: string[]
     href: r.linkable ? `/employers/${employerSlug(r.cn, r.cid)}` : null,
   }))
 }
+
+const key = (...parts: (string | number | string[] | null)[]) => parts.map((p) => (Array.isArray(p) ? p.join(',') : String(p))).join('|')
+const sharedTop = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) => heavy(() => loadTopHiringEmployers(a, b, c)))
+const sharedJobs = memoTtl(10 * 60_000, (a: string, b: string[], c: number) => key(a, b, c), (a: string, b: string[], c: number) => heavy(() => loadRecentJobs(a, b, c)))
+const sharedHq = memoTtl(10 * 60_000, (a: string, b: string[] | null, c: number) => key(a, b, c), (a: string, b: string[] | null, c: number) => heavy(() => loadLargeEmployersHeadquartered(a, b, c)))
+const topHiringEmployers = (state: string, cityNames: string[] | null, limit = 12) => sharedTop(state, cityNames, limit)
+const recentJobs = (state: string, cityNames: string[], limit = 10) => sharedJobs(state, cityNames, limit)
+const largeEmployersHeadquartered = (state: string, cityKeyNames: string[] | null, limit = 12) => sharedHq(state, cityKeyNames, limit)
 
 /** Lowercase spellings a city might carry on a job: Census key and display name. */
 const citySpellings = (p: CityPlace) => [...new Set([p.key, p.name.toLowerCase(), p.name.toLowerCase().replace(/\bsaint\b/g, 'st').replace(/\bst\.\s*/g, 'st ')])]
