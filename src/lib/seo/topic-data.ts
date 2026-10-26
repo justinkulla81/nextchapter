@@ -332,9 +332,10 @@ export async function getConference(id: string): Promise<ConferenceDetail | null
     employersForConference(id),
     speakersForConference(id),
     getAssociations().catch(() => [] as Association[]),
+    // From the cached catalog, not a 120-row database read on every cold render of every conference page.
     conf.industries.length
-      ? prisma.conferenceEvent.findMany({ where: { published: true, id: { not: id }, industries: { hasSome: conf.industries } }, orderBy: [{ importance: 'asc' }], take: 120 })
-      : Promise.resolve([]),
+      ? catalogConferences((r) => r.id !== id && r.industries.some((i) => conf.industries.includes(i)), 6).then((l) => l.rows)
+      : Promise.resolve([] as Conf[]),
   ])
   const slug = conf.organizer ? associationSlug(conf.organizer) : ''
   return {
@@ -344,7 +345,7 @@ export async function getConference(id: string): Promise<ConferenceDetail | null
     employers,
     speakers,
     association: associations.find((a) => a.slug === slug) ?? null,
-    related: sortConferences(related as unknown as Conf[]).slice(0, 6),
+    related,
   }
 }
 
