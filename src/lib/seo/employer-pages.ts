@@ -139,6 +139,17 @@ export async function employersInShard(shard: number): Promise<{ id: string; can
   return rows
 }
 
+/** Whether one company's page is offered to search engines (the same rule as the sitemap, for a single id). */
+export async function isCompanyOfferedToSearch(companyId: string): Promise<boolean> {
+  const rows = await prisma.$queryRawUnsafe<{ ok: number }[]>(
+    `SELECT 1 AS ok FROM "Company" c JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
+     WHERE c.id = $1 AND (p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
+       OR (p."openNow" >= 1 AND p."opened12mo" >= 3 AND COALESCE(c.industry, p.industry) IS NOT NULL)) LIMIT 1`,
+    companyId,
+  )
+  return rows.length > 0
+}
+
 /** Ids of every company that has a public employer page (the sitemap rule), for lists that link to them. */
 export async function employerPageCompanyIds(): Promise<Set<string>> {
   const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT c.id ${ELIGIBLE}`)

@@ -1,9 +1,9 @@
 import { workforceBoardSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { OrgPageView } from '@/components/seo/OrgPageView'
 import { canonical } from '@/lib/seo/canonical'
-import { areaHiring, claimSlugFor, getOrgPage } from '@/lib/seo/org-pages'
+import { areaHiring, claimSlugFor, getOrgPage, renamedOrgSlug } from '@/lib/seo/org-pages'
 import { stateName } from '@/lib/seo/states'
 import { titleMeta } from '@/lib/seo/title'
 
@@ -34,7 +34,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function WorkforceBoardPage({ params }: { params: Params }) {
   const { state, board } = await params
   const p = await getOrgPage('WORKFORCE_BOARD', state, board)
-  if (!p) notFound()
+  if (!p) {
+    // The address was an organization's old slug (records merged since): send it to the current page.
+    const current = await renamedOrgSlug('WORKFORCE_BOARD', state, board)
+    if (current) permanentRedirect(`/workforce-boards/${state}/${current}`)
+    notFound()
+  }
   const [hiring, claim] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('WORKFORCE_BOARD', p.row.id)])
   return <OrgPageView h1={workforceBoardSeo(p.row.name, p.row.state).h1} page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} />
 }

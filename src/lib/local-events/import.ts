@@ -40,6 +40,7 @@ export async function importLocalEvents(sources: IncomingSource[], events: Incom
   const srcIds = [...new Set(events.flatMap((e) => e.hostIds ?? []))]
   const srcRows = await prisma.localEventSource.findMany({ where: { id: { in: srcIds } } })
   const src = new Map(srcRows.map((r) => [r.id, r]))
+  const centersByBoard = new Map<string, { id: string; name: string }[]>()
   const stats = { received: events.length, created: 0, updated: 0, skipped: 0, lowScore: 0 }
   for (const e of events) {
     const startsAt = new Date(e.startsAt)
@@ -76,6 +77,16 @@ export async function importLocalEvents(sources: IncomingSource[], events: Incom
     const add = (targetKind: string, targetId: string, targetName: string, role: string) => links.set(`${targetKind}|${targetId}|${role}`, { targetKind, targetId, targetName, role })
     // Source ids are "<KIND>:<org id>"; the link keeps the org's own id so it matches the org's page.
     for (const h of hosts) add(h.kind, h.id.slice(h.kind.length + 1), h.name, 'HOST')
+    // A board's events also belong on the pages of the job centers it runs.
+    for (const h of hosts.filter((x) => x.kind === 'WORKFORCE_BOARD')) {
+      const bid = h.id.slice('WORKFORCE_BOARD:'.length)
+      let centers = centersByBoard.get(bid)
+      if (!centers) {
+        centers = await prisma.americanJobCenter.findMany({ where: { workforceBoardId: bid }, select: { id: true, name: true } })
+        centersByBoard.set(bid, centers)
+      }
+      for (const c of centers) add('JOB_CENTER', c.id, c.name, 'PARTNER')
+    }
     for (const p of e.partners ?? []) add(p.kind, p.id, p.name, 'PARTNER')
     const names = [...(e.sponsors ?? []).map((n) => [n, 'SPONSOR'] as const), ...(e.employers ?? []).map((n) => [n, 'EMPLOYER'] as const)].slice(0, 40)
     if (names.length) {
