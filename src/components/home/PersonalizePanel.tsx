@@ -25,6 +25,8 @@ export function PersonalizePanel({
   intro = 'Anyone sees these same jobs. Without a profile you don’t get:',
   properties,
   mobileFirst = true,
+  positive = false,
+  cta = 'Personalize my results',
 }: {
   heading?: string
   intro?: string
@@ -32,6 +34,9 @@ export function PersonalizePanel({
   properties: Record<string, unknown>
   /** On narrow screens, show the panel above the content beside it (the search list) or below it (a job page). */
   mobileFirst?: boolean
+  /** List what a profile gives (checks) instead of what the visitor is missing (crosses). */
+  positive?: boolean
+  cta?: string
 }) {
   return (
     <aside
@@ -45,7 +50,7 @@ export function PersonalizePanel({
       <ul className="mt-3 space-y-2 text-sm">
         {NOT_INCLUDED.map((item) => (
           <li key={item} className="flex gap-2">
-            <span aria-hidden className="text-muted-foreground">✕</span>
+            <span aria-hidden className={positive ? 'text-success' : 'text-muted-foreground'}>{positive ? '✓' : '✕'}</span>
             <span>{item}</span>
           </li>
         ))}
@@ -71,7 +76,7 @@ export function PersonalizePanel({
         properties={properties}
         className={cn(buttonVariants({ size: 'lg' }), 'mt-4 h-12 w-full rounded-full bg-action text-action-foreground hover:brightness-95')}
       >
-        Personalize my results
+        {cta}
       </TrackedLink>
     </aside>
   )
