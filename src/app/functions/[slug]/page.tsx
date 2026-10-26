@@ -1,3 +1,4 @@
+import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   ].filter(Boolean)
   return {
     title: `${d.fn.name} jobs, conferences and layoffs`,
-    description: `${d.fn.blurb} ${bits.length ? `${bits.join(', ')}, ` : ''}associations and the industries that hire for it.`.replace(/\s+/g, ' ').trim(),
+    description: fitDescription(`${d.fn.blurb} ${bits.length ? `${bits.join(', ')}, ` : ''}associations and the industries that hire for it.`.replace(/\s+/g, ' ').trim(), 165),
     ...canonical(`/functions/${slug}`),
   }
 }

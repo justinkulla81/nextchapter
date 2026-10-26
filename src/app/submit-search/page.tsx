@@ -1,19 +1,18 @@
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { StructuredData } from '@/components/StructuredData'
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { SubmitSearchForm } from '@/components/search-firms/SubmitSearchForm'
 import { submitSearch } from './actions'
 
-export const metadata: Metadata = {
-  title: 'Send us a search',
-  description:
-    'Recruiters and employers: send NextChapter an open or confidential search. We return a screened shortlist of members at the right level within days. Free.',
-  alternates: { canonical: '/submit-search' },
-}
+export const metadata: Metadata = pageMetadata('/submit-search')
 
 export default async function SubmitSearchPage({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
   const { ref } = await searchParams
   return (
     <div className="flex flex-1 flex-col">
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Send us a search', path: '/submit-search' }])} />
       <PublicSiteHeader />
       <div className="mx-auto max-w-2xl px-6 py-16">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">Send us a search</h1>

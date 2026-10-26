@@ -4,6 +4,8 @@ import { GuideEmailGate } from '@/components/guides/GuideEmailGate'
 import type { GuideLandingContent } from '@/lib/constants/guide-landing-content'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { AuthorByline } from '@/components/seo/AuthorByline'
+import { RelatedLinks } from '@/components/seo/RelatedLinks'
+import { pageH1 } from '@/lib/seo/keywords'
 
 // Guides whose readers (just laid off, benefits, a long search) are the exact
 // audience for the labor-market data. These get a "Related research" link.
@@ -29,7 +31,7 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
       <PublicSiteHeader />
 
       <main className="mx-auto w-full max-w-3xl px-6 py-16">
-        <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{content.title}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1(`/resources/${content.slug}`, content.title)}</h1>
         <AuthorByline updated={content.lastUpdated} reviewedBy={content.reviewedBy} />
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
@@ -39,9 +41,9 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
         </div>
 
         <div className="mt-8 rounded-xl border border-light-gray bg-off-white p-6">
-          <p className="text-sm font-semibold tracking-wide text-navy uppercase">
+          <h2 className="text-sm font-semibold tracking-wide text-navy uppercase">
             What the full guide covers
-          </p>
+          </h2>
           <ul className="mt-4 space-y-2">
             {content.outline.map((item) => (
               <li key={item} className="flex items-start gap-3 text-sm text-foreground">
@@ -90,6 +92,8 @@ export function GuideLandingPageTemplate({ content }: { content: GuideLandingCon
             <Link href="/reports/white-collar-index" className="text-brand underline underline-offset-4">White-Collar Long-Search Index</Link>.
           </div>
         )}
+
+        <RelatedLinks path={`/resources/${content.slug}`} />
 
         <div className="mt-16 border-t border-border pt-6 text-sm text-muted-foreground">
           <Link href="/resources" className="underline underline-offset-4">

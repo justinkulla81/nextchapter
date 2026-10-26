@@ -123,6 +123,10 @@ downloadable `.ics` (`src/lib/conferences/ics.ts`), a draft they copy, a
 - The write scopes that exist belong to NextChapter's own team accounts (admin
   Gmail send, admin Calendar and Meet, Google indexing) and to coaches' own
   accounts. They never use a member's credentials.
+- Coach session booking sends the member a Google Calendar invitation from the
+  coach's own calendar. The owner approved this on 2026-10-25 (it is a session the
+  member asked for, and it never uses the member's credentials). The privacy policy
+  says so.
 - Gmail push notifications (`email-tracking/gmail-push.ts`, a mailbox
   subscription) are switched off in production (no `GMAIL_PUSH_TOPIC`). Do not
   enable them without the owner's approval and a privacy policy update.

@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { orgSlug, canonicalFromSlug } from '@/lib/crm/org-slug'
+import { searchFirmPublicPath } from '@/lib/seo/search-firm-link'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { SectionTitle } from '@/components/admin/Collapsible'
 import { setTodoDone } from '../../todos/actions'
@@ -56,12 +57,14 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
       outplacementProfile: true,
       partnerProfile: true,
       researchProfile: true,
-      company: { select: { id: true, name: true, chroName: true, chroEmail: true, chroLinkedinUrl: true } },
+      company: { select: { id: true, name: true, chroName: true, chroEmail: true, chroLinkedinUrl: true, industry: true } },
+      searchFirms: { select: { id: true }, take: 1 },
     },
   })
   if (!org) notFound()
   const id = org.id
   const slug = orgSlug(org.canonicalNameNormalized)
+  const firmPublicPath = searchFirmPublicPath({ canonicalNameNormalized: org.canonicalNameNormalized, orgTypes: org.orgTypes, hasSearchFirm: org.searchFirms.length > 0, companyIndustry: org.company?.industry ?? null })
   if (slug && param !== slug) redirect(`/support/admin/crm/organizations/${slug}`)
   // Open federal grants this organization could apply for. The table is applied
   // by hand, so a missing one reads as "none" rather than breaking the page.
@@ -405,6 +408,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
         <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-border p-4 text-sm sm:grid-cols-2">
           <Field label="Website" value={org.website ? <a href={org.website} target="_blank" rel="noreferrer" className="underline">{org.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')} ↗</a> : null} />
+          <Field label="Public page" value={firmPublicPath ? <a href={firmPublicPath} target="_blank" rel="noreferrer" className="underline">{`launchyournextchapter.com${firmPublicPath}`} ↗</a> : null} />
           <Field label="Location" value={org.hqRegion ?? org.hqCity} />
           <Field label="Email domain" value={org.emailDomain ? `@${org.emailDomain}` : null} />
           <Field label="Last contacted" value={lastTouch ? formatDate(lastTouch) : 'Never'} />

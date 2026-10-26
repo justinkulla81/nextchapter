@@ -1,3 +1,4 @@
+import { employerSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -29,11 +30,7 @@ const PAY_LEVEL: Record<string, string> = {
 }
 
 function title(e: EmployerPage): string {
-  const bits: string[] = []
-  if (e.profile && e.profile.openNow > 0) bits.push('jobs')
-  bits.push('pay')
-  if (e.notices.length > 0) bits.push('layoffs')
-  return `${e.name} ${bits.join(', ')}: ${e.profile && e.profile.openNow > 0 ? `${n0(e.profile.openNow)} open roles` : 'hiring and layoff record'}`
+  return employerSeo(e.name, e.profile?.openNow ?? null).title
 }
 
 function description(e: EmployerPage): string {
@@ -105,7 +102,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   return (
     <SeoPage
       trail={[{ name: 'Employers', path: '/employers' }, { name: e.name, path }]}
-      h1={`${e.name}: jobs, pay and layoffs`}
+      h1={employerSeo(e.name, null).h1}
       jsonLd={ld}
       lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}</>}
     >

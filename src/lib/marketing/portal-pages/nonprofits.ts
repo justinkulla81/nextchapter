@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
@@ -25,9 +26,7 @@ const layoffs = shot('workforce-hub-layoffs', {
 
 export const NONPROFITS: PortalPageDef = {
   seo: {
-    title: 'Workspace for nonprofits and community organizations',
-    description:
-      'Claim your organization’s page on NextChapter with a work email at your domain. A free workspace gives your own page, services and basic counts. Research partners can start a conversation.',
+    ...pageSeo('/nonprofits'),
     path: '/nonprofits',
     image: { src: admin.src, width: admin.width, height: admin.height, alt: admin.alt },
   },

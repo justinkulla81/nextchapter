@@ -3,6 +3,7 @@ import { PUBLIC_JOB_SITEMAP_SHARDS } from '@/lib/jobs/public-job-page'
 import { EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages } from '@/lib/seo/employer-pages'
 import { ORG_SITEMAP_SHARD_SIZE } from '@/lib/seo/org-page-rules'
 import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
+import { SEARCH_FIRM_SITEMAP_SHARD_SIZE, countSearchFirmPages } from '@/lib/seo/search-firm-pages'
 
 // The sitemap index: the main sitemap, the job sitemaps (src/app/jobs/sitemap.ts) and the employer sitemaps
 // (src/app/employers/sitemap.ts), the place pages (src/app/places/sitemap.ts), and the American Job Center and
@@ -18,13 +19,16 @@ export async function GET() {
   const shards = async (kind: 'JOB_CENTER' | 'ECON_DEV') =>
     Math.max(1, Math.ceil((await cachedIndexableOrgPages(kind).catch(() => [])).length / ORG_SITEMAP_SHARD_SIZE))
   const [centerShards, econShards] = await Promise.all([shards('JOB_CENTER'), shards('ECON_DEV')])
+  const searchFirmShards = Math.max(1, Math.ceil((await countSearchFirmPages().catch(() => 0)) / SEARCH_FIRM_SITEMAP_SHARD_SIZE))
   const maps = [
     `${SITE_URL}/sitemap.xml`,
     `${SITE_URL}/places/sitemap.xml`,
+    `${SITE_URL}/salaries/sitemap.xml`,
     ...Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => `${SITE_URL}/jobs/sitemap/${i}.xml`),
     ...Array.from({ length: employerShards }, (_, i) => `${SITE_URL}/employers/sitemap/${i}.xml`),
     ...Array.from({ length: centerShards }, (_, i) => `${SITE_URL}/job-centers/sitemap/${i}.xml`),
     ...Array.from({ length: econShards }, (_, i) => `${SITE_URL}/economic-development/sitemap/${i}.xml`),
+    ...Array.from({ length: searchFirmShards }, (_, i) => `${SITE_URL}/search-firms/sitemap/${i}.xml`),
   ]
   const body =
     '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +

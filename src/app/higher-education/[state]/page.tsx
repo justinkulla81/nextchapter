@@ -1,3 +1,4 @@
+import { higherEdStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   return {
-    title: `${d.name} colleges: career services and alumni support`,
+    title: higherEdStateSeo(d.name).title,
     description: `${d.colleges.length} public and private nonprofit colleges in ${d.name} and the job market their graduates enter: unemployment, layoff notices and a free alumni workspace for career services.`,
     ...canonical(`/higher-education/${state}`),
   }
@@ -41,7 +42,7 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
   return (
     <SeoPage
       trail={[{ name: 'Higher education', path: '/higher-education' }, { name: d.name, path: `/higher-education/${state}` }]}
-      h1={`${d.name} colleges: career services and alumni support`}
+      h1={higherEdStateSeo(d.name).h1}
       lede={<>{d.colleges.length} public and private nonprofit colleges in {d.name}, and the job market their graduates enter. A career services or alumni staff member can claim their college’s page and set up a free workspace.</>}
     >
       <section aria-labelledby="market" className="mt-10">

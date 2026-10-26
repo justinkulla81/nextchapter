@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
@@ -25,9 +26,7 @@ const caseload = shot('higher-education-career-caseload', {
 
 export const HIGHER_EDUCATION: PortalPageDef = {
   seo: {
-    title: 'Alumni and student career workspace for colleges',
-    description:
-      'Claim your institution’s page on NextChapter with a work email at your domain. A free workspace gives career services and alumni relations their own page, services and basic counts.',
+    ...pageSeo('/higher-education'),
     path: '/higher-education',
     image: { src: admin.src, width: admin.width, height: admin.height, alt: admin.alt },
   },

@@ -1,17 +1,15 @@
+import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Logo } from '@/components/Logo'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { FAQSection } from '@/components/FAQSection'
 import { FAQ_CATEGORIES } from '@/components/faq-data'
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { StructuredData } from '@/components/StructuredData'
 import { createClient } from '@/lib/supabase/server'
 
-export const metadata: Metadata = {
-  title: 'FAQ',
-  description: 'Answers to common questions about NextChapter — plans, the Market Reality Assessment, privacy, and how matching with employers works.',
-  alternates: { canonical: '/faq' },
-}
+export const metadata: Metadata = pageMetadata('/faq')
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -42,6 +40,7 @@ export default async function FAQPage() {
     {!isLoggedIn && <PublicSiteHeader />}
     <div className="mx-auto max-w-3xl px-6 py-16">
       <StructuredData data={jsonLd} />
+      <StructuredData data={breadcrumbJsonLd([{ name: 'FAQ', path: '/faq' }])} />
       {isLoggedIn && (
         <div className="flex items-center justify-between">
           <Link href="/dashboard" className="inline-block">
@@ -54,7 +53,7 @@ export default async function FAQPage() {
       )}
 
       <h1 className="mt-8 text-center text-3xl font-bold tracking-tight text-navy">
-        Frequently asked questions
+        {pageH1('/faq', 'Frequently asked questions')}
       </h1>
 
       <div className="mt-12">

@@ -19,7 +19,8 @@ function addressLine(row: { street: string | null; city: string | null; state: s
 const ROOT_NAME = { JOB_CENTER: 'American Job Centers', ECON_DEV: 'Economic development', WORKFORCE_BOARD: 'Workforce boards' } as const
 
 /** The page for an American Job Center or an economic development organization. */
-export function OrgPageView({ page, path, hiring, claimSlug }: {
+export function OrgPageView({ page, path, hiring, claimSlug, h1 }: {
+  h1?: string
   page: OrgPage
   path: string
   hiring: { employers: HiringEmployer[]; jobs: AreaJob[] }
@@ -40,7 +41,7 @@ export function OrgPageView({ page, path, hiring, claimSlug }: {
   return (
     <SeoPage
       trail={[{ name: ROOT_NAME[row.kind], path: ORG_PAGE_ROOT[row.kind] }, { name: st, path: `${ORG_PAGE_ROOT[row.kind]}/${ss}` }, { name: row.name, path }]}
-      h1={row.name}
+      h1={h1 ?? row.name}
       lede={lede}
       jsonLd={orgJsonLd(page, path, hiring.jobs)}
     >

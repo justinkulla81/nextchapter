@@ -1,3 +1,4 @@
+import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const speak = c.speaking === 'OPEN_CFP' ? ' Open call for speakers.' : ''
   return {
     title: `${c.name}: dates, cost, speakers and employers`,
-    description: `${c.name}${c.organizer ? ` by ${c.organizer}` : ''}. ${when}${where ? `, ${where}` : ''}. ${costLabel(c)}.${speak} Industries, functions and speaking opportunities.`.replace(/\s+/g, ' ').slice(0, 300),
+    description: fitDescription(`${c.name}${c.organizer ? ` by ${c.organizer}` : ''}. ${when}${where ? `, ${where}` : ''}. ${costLabel(c)}.${speak} Industries, functions and speaking opportunities.`.replace(/\s+/g, ' '), 165),
     ...canonical(conferencePath(c.id)),
   }
 }

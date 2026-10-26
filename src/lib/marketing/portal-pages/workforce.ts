@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
@@ -26,9 +27,7 @@ const layoffs = shot('workforce-hub-layoffs', {
 
 export const WORKFORCE: PortalPageDef = {
   seo: {
-    title: 'Job seeker support for workforce boards and economic development',
-    description:
-      'Claim your organization’s page on NextChapter with a work email at your domain. A free workspace gives workforce boards, chambers and community organizations their own page, services and basic counts.',
+    ...pageSeo('/government-workforce'),
     path: '/government-workforce',
     image: { src: dashboard.src, width: dashboard.width, height: dashboard.height, alt: dashboard.alt },
   },

@@ -1,3 +1,4 @@
+import { workforceBoardSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { OrgPageView } from '@/components/seo/OrgPageView'
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!p) return {}
   const { row, blocks } = p
   return {
-    title: `${row.name}, ${row.state}`,
+    title: workforceBoardSeo(row.name, row.state).title,
     description: `${row.name} in ${stateName(row.state)}: the area it serves, ${blocks.jobsOpen.toLocaleString('en-US')} open professional jobs there, local unemployment and the American Job Centers where job seekers and employers get help.`,
     ...canonical(`/workforce-boards/${state}/${board}`),
     ...(p.indexable ? {} : { robots: { index: false, follow: true } }),
@@ -34,5 +35,5 @@ export default async function WorkforceBoardPage({ params }: { params: Params })
   const p = await getOrgPage('WORKFORCE_BOARD', state, board)
   if (!p) notFound()
   const [hiring, claim] = await Promise.all([areaHiring(p.row.state, p.area), claimSlugFor('WORKFORCE_BOARD', p.row.id)])
-  return <OrgPageView page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} />
+  return <OrgPageView h1={workforceBoardSeo(p.row.name, p.row.state).h1} page={p} path={`/workforce-boards/${state}/${board}`} hiring={hiring} claimSlug={claim} />
 }

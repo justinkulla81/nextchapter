@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
@@ -25,9 +26,7 @@ const enroll = shot('employees-enroll', {
 
 export const EMPLOYEES: PortalPageDef = {
   seo: {
-    title: 'Employee development and retention',
-    description:
-      'Give your current employees promotion and raise preparation, internal roles and a skills plan starting with your courses. You see counts by team, never by person.',
+    ...pageSeo('/employees'),
     path: '/employees',
     image: { src: retention.src, width: retention.width, height: retention.height, alt: retention.alt },
   },

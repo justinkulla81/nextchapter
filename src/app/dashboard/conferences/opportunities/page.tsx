@@ -60,10 +60,12 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
                     {o.eligibility && <Chip>{o.eligibility}</Chip>}
                   </div>
                 </div>
+                {o.type !== 'REGISTRATION' && (
                 <StatusSelect
                   action={setTrackAction} hidden={{ opportunityId: o.id }} value={o.myStatus} label={`Your stage for ${o.title}`} none="Not tracking" event="conference_opportunity_stage_changed"
                   options={TRACK_STATUSES.map((s) => ({ value: s, label: TRACK_LABEL[s as TrackStatus] }))}
                 />
+                )}
               </li>
             )
           })}

@@ -8,18 +8,22 @@ export const USER_STATUS_LABEL: Record<UserStatus, string> = {
 /** The older ConferenceInterest states map onto the new ones so the two pages stay in step. */
 export const INTEREST_TO_STATUS: Record<string, UserStatus> = { SAVED: 'INTERESTED', GOING: 'ATTENDING', SPEAKING: 'SPEAKING', FOLLOWING: 'TRACKING' }
 
-export const OPPORTUNITY_TYPES = ['CALL_FOR_SPEAKERS', 'CALL_FOR_SUBMISSIONS', 'REPORT', 'CONTEST', 'PRESENTATION', 'AWARD', 'DEMO'] as const
+export const OPPORTUNITY_TYPES = ['CALL_FOR_SPEAKERS', 'CALL_FOR_SUBMISSIONS', 'REGISTRATION', 'REPORT', 'CONTEST', 'PRESENTATION', 'AWARD', 'DEMO'] as const
 export type OpportunityType = (typeof OPPORTUNITY_TYPES)[number]
 export const OPPORTUNITY_LABEL: Record<OpportunityType, string> = {
   CALL_FOR_SPEAKERS: 'Call for speakers',
   CALL_FOR_SUBMISSIONS: 'Call for submissions or papers',
+  REGISTRATION: 'Registration dates',
   REPORT: 'Report from the conference',
   CONTEST: 'Contest or competition',
   PRESENTATION: 'Presentation or session',
   AWARD: 'Award or nomination',
   DEMO: 'Demo or showcase',
 }
-/** Types a member can act on before a deadline; reports and sessions are reading and watching. */
+/**
+ * Types a member can send something to before a deadline. Registration is tracked on the conference itself
+ * (Registered), not per opportunity, and reports and sessions are reading and watching.
+ */
 export const ACTIONABLE_TYPES: readonly OpportunityType[] = ['CALL_FOR_SPEAKERS', 'CALL_FOR_SUBMISSIONS', 'CONTEST', 'AWARD', 'DEMO']
 
 export const TRACK_STATUSES = ['WATCHING', 'DRAFTING', 'SUBMITTED', 'ACCEPTED', 'REJECTED', 'DELIVERED'] as const

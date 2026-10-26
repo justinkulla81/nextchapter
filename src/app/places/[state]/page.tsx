@@ -1,3 +1,4 @@
+import { placeStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     d.layoffs.notices ? `${d.layoffs.notices} WARN layoff notices in 12 months` : null,
   ].filter(Boolean)
   return {
-    title: `${name} jobs, layoffs, colleges and workforce help by county and city`,
+    title: placeStateSeo(name).title,
     description: `${name} job market by county and city: ${bits.join(', ')}. Largest employers, colleges, workforce boards and American Job Centers.`,
     ...canonical(placeUrl.state(state)),
   }
@@ -50,7 +51,7 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
   return (
     <SeoPage
       trail={[{ name: 'Local job markets', path: '/places' }, { name, path: placeUrl.state(state) }]}
-      h1={`${name}: jobs, layoffs, colleges and workforce help`}
+      h1={placeStateSeo(name).h1}
       lede={<>
         {d.area?.unemploymentRate != null && <>{name}’s unemployment rate is {d.area.unemploymentRate.toFixed(1)}%. </>}
         {d.jobsOpen > 0 && <>{d.jobsOpen.toLocaleString()} open professional jobs are listed here. </>}

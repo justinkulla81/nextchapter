@@ -1,0 +1,42 @@
+// Plain definitions for the "what is ..." searches around layoffs and job searching. One page (/glossary), one anchor
+// per term, DefinedTermSet JSON-LD. Keep each definition general and checkable.
+
+export interface GlossaryTerm {
+  slug: string
+  term: string
+  definition: string
+  /** A page that goes deeper, linked from the definition. */
+  more?: { href: string; label: string }
+}
+
+export const GLOSSARY: GlossaryTerm[] = [
+  { slug: 'warn-notice', term: 'WARN notice', definition: 'A written notice that the federal Worker Adjustment and Retraining Notification Act requires many employers with 100 or more employees to give at least 60 days before a mass layoff or plant closing. Employers file them with the state, which is how layoffs become public.', more: { href: '/layoffs', label: 'See recent WARN notices' } },
+  { slug: 'reduction-in-force', term: 'Reduction in force (RIF)', definition: 'A layoff in which an employer eliminates positions, usually for cost or restructuring reasons, instead of ending a job because of an individual’s performance.', more: { href: '/tools/warn-act-checker', label: 'WARN Act checker' } },
+  { slug: 'laid-off-vs-fired', term: 'Laid off vs. fired', definition: 'Being laid off means the employer ended your job because the position or work went away. Being fired means it ended your job for a reason tied to you, such as conduct or performance. The difference matters for unemployment benefits and for how you describe the exit.', more: { href: '/start/laid-off', label: 'Laid off? What to do next' } },
+  { slug: 'severance', term: 'Severance pay', definition: 'Money and benefits an employer gives a departing employee, often in exchange for a signed release of legal claims. Federal law does not require it.', more: { href: '/topics/severance', label: 'Severance package guide' } },
+  { slug: 'release-agreement', term: 'Release agreement', definition: 'A contract in which you give up the right to sue the employer over your employment in return for severance. Workers 40 and older generally have at least 21 days to consider one (45 in a group layoff) and 7 days to revoke.' },
+  { slug: 'unemployment-insurance', term: 'Unemployment insurance', definition: 'A state program that pays weekly benefits to people who lost a job through no fault of their own and are looking for work. Amounts, length and rules differ by state.', more: { href: '/unemployment-benefits', label: 'Unemployment benefits by state' } },
+  { slug: 'waiting-week', term: 'Waiting week', definition: 'An unpaid first week of an unemployment claim in states that require one before benefits begin.', more: { href: '/unemployment-benefits', label: 'Which states have one' } },
+  { slug: 'cobra', term: 'COBRA', definition: 'A federal law that lets you keep your employer’s group health plan for a limited time after leaving a job, by paying the full premium yourself. You have 60 days to elect it.', more: { href: '/resources/cobra-aca', label: 'COBRA vs. marketplace' } },
+  { slug: 'special-enrollment-period', term: 'Special enrollment period', definition: 'A window outside the usual open enrollment when you can buy marketplace health insurance because of a qualifying event, such as losing job-based coverage.' },
+  { slug: 'outplacement', term: 'Outplacement', definition: 'Job search help an employer pays for when it ends someone’s job: coaching, resume help and search tools, usually bought by the employer for the people leaving.', more: { href: '/outplacement', label: 'Outplacement services' } },
+  { slug: 'rapid-response', term: 'Rapid response', definition: 'A state service, funded under the Workforce Innovation and Opportunity Act, that helps employers and workers when a layoff or closing is planned.', more: { href: '/rapid-response', label: 'Rapid response by state' } },
+  { slug: 'american-job-center', term: 'American Job Center', definition: 'A public career center, part of the federal workforce system, that offers job search help, training referrals and unemployment services at no charge.', more: { href: '/workforce-boards', label: 'Find job centers and boards' } },
+  { slug: 'workforce-development-board', term: 'Workforce development board', definition: 'A local board that directs federal workforce funds, sets priorities for training and oversees the American Job Centers in its area.', more: { href: '/workforce-boards', label: 'Workforce boards by state' } },
+  { slug: 'wioa', term: 'WIOA', definition: 'The Workforce Innovation and Opportunity Act, the federal law that funds job training and career services for adults and dislocated workers.' },
+  { slug: 'dislocated-worker', term: 'Dislocated worker', definition: 'In workforce programs, a person who lost a job through a layoff or closure and is unlikely to return to the same industry or occupation. Dislocated workers can qualify for additional training help.', more: { href: '/funding', label: 'Funding for laid-off workers' } },
+  { slug: 'executive-recruiter', term: 'Executive recruiter', definition: 'A recruiter, often at a search firm, hired by an employer to fill senior roles. The employer pays, not the candidate.', more: { href: '/topics/executive-recruiters', label: 'How to work with executive recruiters' } },
+  { slug: 'retained-search', term: 'Retained search', definition: 'An executive search in which the employer pays the firm up front to work the role exclusively, whether or not the firm fills it.' },
+  { slug: 'contingent-recruiter', term: 'Contingent recruiter', definition: 'A recruiter paid only if the employer hires a candidate they present. They often work many roles at once.' },
+  { slug: 'reverse-recruiter', term: 'Reverse recruiter', definition: 'A service that represents the job seeker, usually for a fee the job seeker pays, by finding openings and contacting employers on their behalf.', more: { href: '/topics/reverse-recruiter', label: 'Reverse recruiter guide' } },
+  { slug: 'ats', term: 'Applicant tracking system (ATS)', definition: 'Software employers use to collect, sort and track applications. Many parse a resume into fields before a person reads it.', more: { href: '/resources/gatekeeper', label: 'Getting past ATS screens' } },
+  { slug: 'transferable-skills', term: 'Transferable skills', definition: 'Skills that carry from one role or industry to another, such as managing projects, analyzing data or leading a team.', more: { href: '/topics/career-pivot', label: 'Career pivot guide' } },
+  { slug: 'career-pivot', term: 'Career pivot', definition: 'A move to a new role, function or industry that keeps part of what you already do well.', more: { href: '/topics/career-pivot', label: 'How to pivot' } },
+  { slug: 'career-exploration', term: 'Career exploration', definition: 'The process of working out what to do next by looking at your own history, the roles open to you and what they pay and require.', more: { href: '/topics/career-exploration', label: 'Career exploration guide' } },
+  { slug: 'informational-interview', term: 'Informational interview', definition: 'A short conversation with someone in a role or company you are interested in, to learn about the work, not to ask for a job.', more: { href: '/resources/network-activation', label: 'How to network' } },
+  { slug: 'fractional-work', term: 'Fractional work', definition: 'Part-time, ongoing work for one or more companies, usually at a senior level, such as a fractional CFO or CMO.', more: { href: '/start/happy-with-fractional-work', label: 'Fractional work' } },
+  { slug: 'bridge-job', term: 'Bridge job', definition: 'A temporary or interim role taken to earn income while searching for the next permanent one.', more: { href: '/resources/bridge-income', label: 'Bridge income' } },
+  { slug: 'garden-leave', term: 'Garden leave', definition: 'A period after resigning or being let go in which you are still paid but do not work, often tied to a non-compete or notice period.' },
+  { slug: 'non-compete', term: 'Non-compete agreement', definition: 'A contract limiting where you can work after leaving a job. Whether it is enforceable depends on the state and the terms.' },
+  { slug: 'total-compensation', term: 'Total compensation', definition: 'Everything an employer pays or provides: base pay, bonus, equity, benefits and retirement matches. Compare offers on total compensation, not base alone.', more: { href: '/resources/offer-letter', label: 'Read and negotiate an offer' } },
+]
