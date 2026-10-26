@@ -10,5 +10,7 @@ export const maxDuration = 120
 // 'pending' with no named contact.
 export const GET = withCronRun('ats-job-board-feed', async () => {
   const result = await runAtsJobBoardFeed()
+  // The counts (including usajobsFetched) otherwise only exist in the response body.
+  console.log(`ats-job-board-feed: ${JSON.stringify(result)}`)
   return NextResponse.json(result)
 })
