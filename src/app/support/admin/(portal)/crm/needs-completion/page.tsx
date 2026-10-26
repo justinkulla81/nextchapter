@@ -18,6 +18,9 @@ import { CrmSignupMatchActions } from '@/components/admin/CrmSignupMatchActions'
 import { SearchFirmReviewRow } from '@/components/search-firms/SearchFirmReviewRow'
 import { loadRoutesToConfirm } from '@/lib/crm/route-review'
 import { SectionTitle } from '@/components/admin/Collapsible'
+import { SubmitButton } from '@/components/ui/submit-button'
+import { publicPageReviews } from '@/lib/seo/org-page-links'
+import { addPublicPageAsNewOrg, linkPublicPageToSuggestedOrg } from '../public-pages/actions'
 
 export const maxDuration = 30
 
@@ -36,8 +39,10 @@ export default async function CrmNeedsCompletionPage({
   const perPage = readPageSize(sp.per)
 
   // Stage 1: everything that depends only on the request.
-  const [routeReviews, signupMatches, firmReviews, total, rows] = await Promise.all([
+  const [routeReviews, publicPageMatches, signupMatches, firmReviews, total, rows] = await Promise.all([
     loadRoutesToConfirm(),
+    // Job centers, economic development organizations and workforce boards whose name may be an organization already here.
+    publicPageReviews(),
     // Sign-ups that may be someone already in the CRM — never linked on a
     // guess; they wait here for a yes/no.
     prisma.candidateIdentityMatch.findMany({
@@ -237,6 +242,30 @@ export default async function CrmNeedsCompletionPage({
                     </li>
                   ))}
                 </ul>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {publicPageMatches.length > 0 && (
+        <section aria-labelledby="public-page-matches">
+          <SectionTitle id="public-page-matches" tone="action">Public pages to match</SectionTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Job centers, economic development organizations and workforce boards that have a public page and share a name with an organization whose state is not recorded.
+            Link them if they are the same; otherwise add them as their own.
+          </p>
+          <ul className="mt-3 divide-y divide-border rounded-lg border border-border">
+            {publicPageMatches.map((m) => (
+              <li key={`${m.kind}:${m.sourceId}`} className="space-y-2 px-3 py-2">
+                <p className="text-sm">
+                  <span className="font-medium">{m.name}</span> — same as <Link href={`/support/admin/crm/organizations/${m.orgId}`} className="underline">{m.orgName}</Link>?
+                  {m.reason && <span className="block text-xs text-muted-foreground">{m.reason}</span>}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <form action={linkPublicPageToSuggestedOrg.bind(null, m.kind, m.sourceId)}><SubmitButton size="sm" variant="outline" pendingLabel="Linking…">Same organization — link</SubmitButton></form>
+                  <form action={addPublicPageAsNewOrg.bind(null, m.kind, m.sourceId)}><SubmitButton size="sm" variant="outline" pendingLabel="Adding…">Different — add as new</SubmitButton></form>
+                </div>
               </li>
             ))}
           </ul>

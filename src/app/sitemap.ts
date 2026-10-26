@@ -1,5 +1,6 @@
 import { CAREER_ROLES } from '@/lib/careers/roles'
 import type { MetadataRoute } from 'next'
+import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PERSONAS } from '@/lib/constants/personas'
 import { COMPETITOR_COMPARISONS } from '@/lib/marketing/competitor-comparisons'
@@ -97,6 +98,8 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
       prisma.workforceBoard.findMany({ select: { id: true, state: true, name: true, statewide: true }, orderBy: { name: 'asc' } }),
       prisma.localCollege.groupBy({ by: ['state'], where: { sector: { in: [1, 2, 4, 5] } }, _count: { _all: true } }),
     ])
+    // A board page below the content bar (src/lib/seo/org-page-rules.ts) is noindex, so it stays out of the sitemap.
+    const indexableBoards = new Set((await cachedIndexableOrgPages('WORKFORCE_BOARD').catch(() => null))?.map((p) => p.path))
     const hasColleges = new Set(collegeStates.map((c) => c.state))
     const byState = new Map<string, typeof rows>()
     for (const r of rows) byState.set(r.state, [...(byState.get(r.state) ?? []), r])
@@ -110,7 +113,7 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
           entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
           entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
           ...(hasColleges.has(state) ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
-          ...boards.map((b) => entry(`/workforce-boards/${slug}/${slugs.get(b.id)}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
+          ...boards.filter((b) => indexableBoards.size === 0 || indexableBoards.has(`/workforce-boards/${slug}/${slugs.get(b.id)}`)).map((b) => entry(`/workforce-boards/${slug}/${slugs.get(b.id)}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
         ]
       })
   } catch (e) {
