@@ -12,8 +12,9 @@ import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { TOPICS } from '@/lib/seo/explainers'
-import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
-import { getAssociations, getCatalogIndex } from '@/lib/seo/topic-data'
+import { ASSOCIATION_MIN_CONFERENCES, INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
+import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
+import { assessAssociation } from '@/lib/seo/topic-quality'
 import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
@@ -105,28 +106,38 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
 // rows out rather than failing the sitemap; the industry and function pages are fixed lists.
 const TOPICS_UPDATED = '2026-10-25'
 async function loadTopicPages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
-  const fixed = [
+  const hubs = [
     entry('/industries', TOPICS_UPDATED, 'weekly', 0.7),
-    ...INDUSTRIES.map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
     entry('/functions', TOPICS_UPDATED, 'weekly', 0.7),
-    ...JOB_FUNCTIONS.map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
     entry('/conferences', TOPICS_UPDATED, 'daily', 0.7),
     entry('/associations', TOPICS_UPDATED, 'weekly', 0.6),
   ]
+  // A page below its quality bar renders for visitors but is noindex, so it stays out of the sitemap too
+  // (src/lib/seo/topic-quality.ts). It returns by itself once its data passes the bar. Conferences and associations are
+  // judged from the catalog rows, so the sitemap and the page agree without rendering every page. Industry and function
+  // pages are built from thousands of live jobs and pass by construction; their on-page gate still applies.
   try {
-    const [catalog, associations] = await Promise.all([getCatalogIndex(), getAssociations()])
+    const [catalog, assessments] = await Promise.all([getCatalogIndex(), getConferenceAssessments()])
     const newest = new Map<string, string>()
+    const byOrg = new Map<string, typeof catalog>()
     for (const c of catalog) if (c.organizer) {
       const slug = associationSlug(c.organizer)
       if (c.updatedAt > (newest.get(slug) ?? '')) newest.set(slug, c.updatedAt)
+      byOrg.set(slug, [...(byOrg.get(slug) ?? []), c])
     }
+    const assocEntries = [...byOrg]
+      .filter(([, rows]) => rows.length >= ASSOCIATION_MIN_CONFERENCES && assessAssociation(rows).indexable)
+      .map(([slug]) => entry(`/associations/${slug}`, newest.get(slug) ?? TOPICS_UPDATED, 'weekly', 0.5))
     return [
-      ...fixed,
-      ...catalog.map((c) => entry(`/conferences/${c.id}`, c.updatedAt, 'weekly', c.importance === 1 ? 0.6 : 0.5)),
-      ...associations.map((a) => entry(`/associations/${a.slug}`, newest.get(a.slug) ?? TOPICS_UPDATED, 'weekly', 0.5)),
+      ...hubs,
+      ...INDUSTRIES.filter((i) => i.rule).map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+      ...JOB_FUNCTIONS.map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+      ...catalog.filter((c) => assessments.get(c.id)?.indexable).map((c) => entry(`/conferences/${c.id}`, c.updatedAt, 'weekly', c.importance === 1 ? 0.6 : 0.5)),
+      ...assocEntries,
     ]
-  } catch {
-    return fixed
+  } catch (error) {
+    console.error('topic pages left out of the sitemap:', error instanceof Error ? error.message : error)
+    return hubs
   }
 }
 

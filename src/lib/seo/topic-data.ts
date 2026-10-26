@@ -11,6 +11,7 @@ import { employerSlug as layoffEmployerSlug, TWELVE_MONTHS_MS } from '@/lib/warn
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { EMPLOYER_MIN_OPEN_ROLES } from '@/lib/seo/employer-pages'
 import { hasUpcomingDates } from '@/lib/events/format'
+import { assessConference, type Assessment } from '@/lib/seo/topic-quality'
 import type { ConferenceRow } from '@/lib/events/types'
 import {
   ASSOCIATION_MIN_CONFERENCES,
@@ -203,13 +204,13 @@ export function sortConferences<T extends Pick<Conf, 'datesConfirmed' | 'startDa
   })
 }
 
-export interface ConfList { total: number; upcoming: number; rows: Conf[] }
+export interface ConfList { total: number; upcoming: number; rows: Conf[]; summary: ConfSummary }
 
 async function listConferences(where: Prisma.ConferenceEventWhereInput, take = 60): Promise<ConfList> {
   const all = (await prisma.conferenceEvent.findMany({ where: { published: true, ...where }, orderBy: [{ importance: 'asc' }, { name: 'asc' }], take: 600 })) as unknown as Conf[]
   const sorted = sortConferences(all)
   const now = new Date()
-  return { total: all.length, upcoming: all.filter((c) => hasUpcomingDates(c, now)).length, rows: sorted.slice(0, take) }
+  return { total: all.length, upcoming: all.filter((c) => hasUpcomingDates(c, now)).length, rows: sorted.slice(0, take), summary: summarizeConferences(all) }
 }
 
 export const conferencesForIndustry = (bucket: string, take?: number) => listConferences({ industries: { has: bucket } }, take)
@@ -218,10 +219,17 @@ export const conferencesForOrganizer = (organizers: string[]) => listConferences
 
 /** Every published conference's slug inputs, for the sitemap, the hub and association grouping. */
 async function loadCatalogIndex() {
-  const rows = await prisma.conferenceEvent.findMany({ where: { published: true }, select: { id: true, name: true, organizer: true, updatedAt: true, industries: true, functions: true, importance: true } })
-  return rows.map((r) => ({ ...r, updatedAt: r.updatedAt.toISOString() }))
+  const rows = await prisma.conferenceEvent.findMany({
+    where: { published: true },
+    select: {
+      id: true, name: true, organizer: true, updatedAt: true, industries: true, functions: true, importance: true,
+      datesConfirmed: true, startDate: true, typicalMonth: true, format: true, city: true, state: true, access: true, costLow: true, costHigh: true,
+      speaking: true, speakingDeadline: true, seniorities: true, roles: true, programFormats: true, whyAttend: true, cheaperWays: true, verified: true, checkedAt: true,
+    },
+  })
+  return rows.map((r) => ({ ...r, updatedAt: r.updatedAt.toISOString(), startDate: r.startDate?.toISOString() ?? null, speakingDeadline: r.speakingDeadline?.toISOString() ?? null, checkedAt: r.checkedAt?.toISOString() ?? null }))
 }
-const cachedCatalog = unstable_cache(loadCatalogIndex, ['topic-conference-index-v1'], { revalidate: 3600 })
+const cachedCatalog = unstable_cache(loadCatalogIndex, ['topic-conference-index-v2'], { revalidate: 3600 })
 export const getCatalogIndex = cache(() => cachedCatalog())
 
 export interface Association { slug: string; name: string; organizers: string[]; count: number }
@@ -301,3 +309,120 @@ export async function industryConferenceCounts(): Promise<Map<string, number>> {
 }
 
 export { INDUSTRIES, bucketFromIndustryText }
+
+
+// ---- quality gate over the whole catalog ----------------------------------------------------------------
+
+/** id -> assessment for every published conference, from the rows alone (no per-page queries), so the sitemap and the page agree. */
+export const getConferenceAssessments = cache(async (): Promise<Map<string, Assessment>> => {
+  const [catalog, associations] = await Promise.all([getCatalogIndex(), getAssociations()])
+  const assocSlugs = new Set(associations.map((a) => a.slug))
+  const perIndustry = new Map<string, number>()
+  for (const c of catalog) for (const i of c.industries) perIndustry.set(i, (perIndustry.get(i) ?? 0) + 1)
+  const out = new Map<string, Assessment>()
+  for (const c of catalog) {
+    const related = c.industries.length ? Math.max(0, ...c.industries.map((i) => (perIndustry.get(i) ?? 1) - 1)) : 0
+    const hasAssoc = !!c.organizer && assocSlugs.has(associationSlug(c.organizer))
+    out.set(c.id, assessConference(c, hasAssoc, related))
+  }
+  return out
+})
+
+// ---- market snapshot (jobs) ------------------------------------------------------------------------------
+
+export interface JobStats {
+  /** Verified open jobs the figures are drawn from (the newest 5,000 at most). */
+  sample: number
+  paid: number
+  p25: number | null
+  p50: number | null
+  p75: number | null
+  entryPct: number
+  noExperiencePct: number
+  aiSkillPct: number
+  aiExposedPct: number
+  remotePct: number
+  skills: { name: string; count: number }[]
+  states: { state: string; count: number }[]
+}
+
+async function loadJobStats(f: JobFilter): Promise<JobStats | null> {
+  const where = Prisma.sql`${PUBLIC} AND ${filterSql(f)}`
+  const sample = Prisma.sql`SELECT level, "postingSignals", "aiSkillGroups", "aiExposed", "workArrangement", "locationState", "salaryMin", "salaryMax", "payPeriod", skills
+    FROM "ExclusiveJobPosting" WHERE ${where} ORDER BY "postedAt" DESC NULLS LAST LIMIT 5000`
+  const paidOk = Prisma.sql`"payPeriod" = 'year' AND "salaryMin" BETWEEN 20000 AND 2000000 AND "salaryMax" >= "salaryMin" AND "salaryMax" <= 2000000`
+  const [agg, skills, states] = await Promise.all([
+    prisma.$queryRaw<{ n: number; entry: number; noexp: number; aiskill: number; aiexp: number; remote: number; paid: number; p25: number | null; p50: number | null; p75: number | null }[]>`
+      WITH s AS (${sample})
+      SELECT count(*)::int AS n,
+        count(*) FILTER (WHERE level IN ('ENTRY_IC','EARLY_IC'))::int AS entry,
+        count(*) FILTER (WHERE 'no_experience_ok' = ANY("postingSignals"))::int AS noexp,
+        count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS aiskill,
+        count(*) FILTER (WHERE "aiExposed")::int AS aiexp,
+        count(*) FILTER (WHERE "workArrangement" = 'remote')::int AS remote,
+        count(*) FILTER (WHERE ${paidOk})::int AS paid,
+        (percentile_cont(0.25) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float AS p25,
+        (percentile_cont(0.5) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float AS p50,
+        (percentile_cont(0.75) WITHIN GROUP (ORDER BY ("salaryMin" + "salaryMax") / 2.0) FILTER (WHERE ${paidOk}))::float AS p75
+      FROM s`,
+    prisma.$queryRaw<{ name: string; n: number }[]>`WITH s AS (${sample}) SELECT sk AS name, count(*)::int AS n FROM s, unnest(skills) sk GROUP BY 1 ORDER BY 2 DESC LIMIT 10`,
+    prisma.$queryRaw<{ name: string; n: number }[]>`WITH s AS (${sample}) SELECT "locationState" AS name, count(*)::int AS n FROM s WHERE "locationState" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 5`,
+  ])
+  const a = agg[0]
+  if (!a || a.n < 30) return null
+  const pct = (x: number) => Math.round((x / a.n) * 100)
+  const round = (x: number | null) => (x == null ? null : Math.round(x / 1000) * 1000)
+  return {
+    sample: a.n,
+    paid: a.paid,
+    p25: a.paid >= 30 ? round(a.p25) : null,
+    p50: a.paid >= 30 ? round(a.p50) : null,
+    p75: a.paid >= 30 ? round(a.p75) : null,
+    entryPct: pct(a.entry),
+    noExperiencePct: pct(a.noexp),
+    aiSkillPct: pct(a.aiskill),
+    aiExposedPct: pct(a.aiexp),
+    remotePct: pct(a.remote),
+    skills: skills.map((r) => ({ name: r.name, count: r.n })),
+    states: states.map((r) => ({ state: r.name, count: r.n })),
+  }
+}
+
+const cachedStats = unstable_cache((f: string) => loadJobStats(JSON.parse(f) as JobFilter), ['topic-job-stats-v1'], { revalidate: 3600 })
+export const getJobStats = (f: JobFilter) => cachedStats(JSON.stringify(f)).catch(() => null)
+
+// ---- conference summary for a list ----------------------------------------------------------------------
+
+export interface ConfSummary {
+  total: number
+  upcoming: number
+  next: { id: string; name: string; start: string }[]
+  cfpOpen: number
+  medianCost: number | null
+  costed: number
+  freeCount: number
+  topOrganizers: { name: string; count: number }[]
+  topStates: { state: string; count: number }[]
+}
+
+export function summarizeConferences(all: Pick<Conf, 'id' | 'name' | 'startDate' | 'endDate' | 'datesConfirmed' | 'speaking' | 'speakingDeadline' | 'costLow' | 'access' | 'organizer' | 'state'>[]): ConfSummary {
+  const now = new Date()
+  const up = all.filter((c) => hasUpcomingDates(c, now)).sort((a, b) => a.startDate!.getTime() - b.startDate!.getTime())
+  const costs = all.map((c) => c.costLow).filter((x): x is number => x != null && x > 0).sort((a, b) => a - b)
+  const tally = (pick: (c: (typeof all)[number]) => string | null) => {
+    const m = new Map<string, number>()
+    for (const c of all) { const v = pick(c); if (v) m.set(v, (m.get(v) ?? 0) + 1) }
+    return [...m].sort((a, b) => b[1] - a[1])
+  }
+  return {
+    total: all.length,
+    upcoming: up.length,
+    next: up.slice(0, 4).map((c) => ({ id: c.id, name: c.name, start: c.startDate!.toISOString() })),
+    cfpOpen: all.filter((c) => c.speaking === 'OPEN_CFP' && (!c.speakingDeadline || c.speakingDeadline >= now)).length,
+    medianCost: costs.length >= 5 ? costs[Math.floor(costs.length / 2)] : null,
+    costed: costs.length,
+    freeCount: all.filter((c) => c.access === 'FREE').length,
+    topOrganizers: tally((c) => c.organizer).slice(0, 5).map(([name, count]) => ({ name, count })),
+    topStates: tally((c) => c.state).slice(0, 5).map(([state, count]) => ({ state, count })),
+  }
+}

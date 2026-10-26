@@ -1,12 +1,11 @@
 import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, functionChip } from '@/components/topics/blocks'
+import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, functionChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
-import { associationPath, industryBySlug, INDUSTRIES } from '@/lib/seo/topics'
-import { conferencesForIndustry, getAssociations, getIndustryNotices, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
-import { associationSlug } from '@/lib/seo/topics'
+import { associationPath, INDUSTRIES } from '@/lib/seo/topics'
+import { loadIndustry } from '@/lib/seo/topic-load'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -14,51 +13,29 @@ export function generateStaticParams() {
   return []
 }
 
-const EMPTY_JOBS: TopicJobs = { total: 0, jobs: [], functions: [], industries: [], employers: [] }
-
-async function load(slug: string) {
-  const industry = industryBySlug(slug)
-  if (!industry) return null
-  const [jobs, confs, notices, associations] = await Promise.all([
-    industry.rule ? getTopicJobs({ rule: industry.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
-    conferencesForIndustry(industry.name, 24).catch(() => ({ total: 0, upcoming: 0, rows: [] })),
-    getIndustryNotices(industry.name),
-    getAssociations().catch(() => []),
-  ])
-  const assocSlugs = new Set(associations.map((a) => a.slug))
-  const orgCounts = new Map<string, number>()
-  for (const c of confs.rows) if (c.organizer && assocSlugs.has(associationSlug(c.organizer))) orgCounts.set(c.organizer, (orgCounts.get(c.organizer) ?? 0) + 1)
-  const orgs = [...orgCounts].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([name]) => name)
-  return { industry, jobs, confs, notices, orgs }
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const d = await load(slug)
+  const d = await loadIndustry(slug)
   if (!d) return { title: 'Industry not found', robots: { index: false, follow: true } }
-  const bits = [
-    d.jobs.total ? `about ${d.jobs.total.toLocaleString()} verified open jobs` : null,
-    d.confs.total ? `${d.confs.total.toLocaleString()} conferences` : null,
-    d.notices.length ? `${d.notices.length.toLocaleString()} recent layoff notices` : null,
-  ].filter(Boolean)
   return {
     title: `${d.industry.name}: jobs, conferences and layoffs`,
-    description: fitDescription(`${d.industry.blurb} ${bits.length ? `${bits.join(', ')}, ` : ''}industry associations and the job functions that make it up.`.replace(/\s+/g, ' ').trim(), 165),
+    description: fitDescription(d.intro, 165),
+    robots: { index: d.assessment.indexable, follow: true },
     ...canonical(`/industries/${slug}`),
   }
 }
 
 export default async function IndustryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const d = await load(slug)
+  const d = await loadIndustry(slug)
   if (!d) notFound()
-  const { industry, jobs, confs, notices, orgs } = d
+  const { industry, jobs, stats, confs, notices, orgs, facts, intro } = d
   const path = `/industries/${slug}`
   return (
     <TopicShell
       trail={[{ name: 'Industries', path: '/industries' }, { name: industry.name, path }]}
       title={`${industry.name}: jobs, conferences and layoffs`}
-      intro={`${industry.blurb} Open jobs, upcoming conferences, recent layoff notices, industry associations and the functions that make up this industry, all in one place.`}
+      intro={intro}
       jsonLd={[
         {
           '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${industry.name}: jobs, conferences and layoffs`, url: `${SITE_URL}${path}`,
@@ -66,6 +43,15 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
         },
       ]}
     >
+      <Section id="snapshot" title={`${industry.name} market snapshot`} note="Every figure names its source and period. Estimates are labeled as estimates.">
+        <FactGrid facts={facts} />
+        {stats && (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <RankList title="Skills most often named in openings" items={stats.skills.slice(0, 8).map((x) => ({ label: x.name, detail: `${Math.round((x.count / stats.sample) * 100)}%` }))} />
+            <RankList title="States with the most openings" items={stats.states.map((x) => ({ label: x.state, detail: `${Math.round((x.count / stats.sample) * 100)}%` }))} />
+          </div>
+        )}
+      </Section>
       {industry.rule && (
         <Section id="jobs" title={`Open ${industry.name} jobs`} note="Verified against the employer’s own career site within the last week.">
           <JobList jobs={jobs.jobs} total={jobs.total} source={`industry:${slug}`} />
