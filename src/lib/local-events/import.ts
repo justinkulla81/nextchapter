@@ -50,19 +50,23 @@ export async function importLocalEvents(sources: IncomingSource[], events: Incom
     const text = `${title} ${e.description ?? ''}`
     const kind: LocalEventKind = classifyKind(title, e.description ?? '')
     const score = proScore(text, kind)
-    const state = (e.state ?? hosts[0]?.state ?? null)?.toUpperCase().slice(0, 2) || null
+    const rawState = (e.state ?? hosts[0]?.state ?? null)?.toUpperCase().slice(0, 2) || null
+    const state = rawState === 'US' ? null : rawState // 'US' marks an online source with no home state
     const city = clip(e.city ?? hosts[0]?.city, 80)
-    const published = score >= PUBLISH_MIN_SCORE && kind !== 'OTHER' && !!state
+    const format = FORMATS.includes(e.format ?? '') ? e.format! : 'IN_PERSON'
+    const published = score >= PUBLISH_MIN_SCORE && kind !== 'OTHER' && (!!state || format === 'VIRTUAL')
     if (!published) stats.lowScore++
     const key = dedupeKeyOf(hosts[0]?.id ?? e.sourceUrl ?? title, title, startsAt)
     const data = {
-      title, description: clip(e.description, 1500), kind, track: trackOf(kind), format: FORMATS.includes(e.format ?? '') ? e.format! : 'IN_PERSON',
+      title, description: clip(e.description, 1500), kind, track: trackOf(kind), format,
       startsAt, endsAt: e.endsAt ? new Date(e.endsAt) : null, venue: clip(e.venue, 160), city, state,
       cityKey: city ? placeKey(city) : null, countyKey: e.county ? countyKey(e.county) : hosts[0]?.countyKey ?? null,
       url: clip(e.url, 500), registerUrl: clip(e.registerUrl, 500), cost: clip(e.cost, 80), proScore: score, published,
       sourceType: e.sourceType, sourceUrl: clip(e.sourceUrl, 500), lastSeenAt: now,
     }
     const existing = await prisma.localEvent.findUnique({ where: { dedupeKey: key }, select: { id: true, locked: true } })
+    // A row that is not published and was never stored is not worth keeping: most crawled calendars are parks and civic events.
+    if (!published && !existing) continue
     let id: string
     if (existing) {
       id = existing.id

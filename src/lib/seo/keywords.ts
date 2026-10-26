@@ -1028,6 +1028,29 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
 
+  // ---- Events ------------------------------------------------------------------------------------------------------
+  {
+    id: 'events-hub',
+    intent: 'Job fairs and business events near me',
+    owner: '/events',
+    kind: 'page',
+    primary: 'job fairs near me',
+    secondary: ['career fairs near me', 'hiring events near me', 'small business workshops near me', 'startup events near me'],
+    seo: {
+      title: 'Job Fairs and Business Events Near You, by State',
+      description: 'Upcoming job fairs, hiring events, career workshops, small-business counseling and startup events from chambers, workforce boards, SBDCs, SCORE, colleges and cities.',
+      h1: 'Job fairs and business events near you',
+    },
+  },
+  {
+    id: 'events-state',
+    intent: 'Job fairs and business events in one state',
+    owner: '/events/:state',
+    kind: 'family',
+    primary: '{state} job fairs',
+    secondary: ['{state} career fairs', '{state} hiring events', '{state} small business workshops', '{state} startup events'],
+  },
+
   // ---- Local job markets -----------------------------------------------------------------------------------------
   {
     id: 'places-hub',

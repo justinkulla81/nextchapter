@@ -14,6 +14,7 @@ import { isNetworkCompany } from '@/lib/network/eligibility'
 import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
+import { eventStateCounts, EVENTS_STATE_MIN } from '@/lib/local-events/queries'
 import { chunk, INDEXNOW_BATCH, INDEXNOW_ENDPOINT, INDEXNOW_NEW_PER_RUN, indexNowBody } from '@/lib/syndication/syndication'
 
 // Daily IndexNow for the pages the job and organization crons do not cover: employer pages, nonprofit pages, the
@@ -35,6 +36,16 @@ async function currentPages(): Promise<Page[]> {
     { path: '/workforce-boards', lastModified: ONCE }, { path: '/rapid-response', lastModified: ONCE }, { path: '/economic-development', lastModified: ONCE },
     { path: '/tools/warn-act-checker', lastModified: ONCE }, { path: '/tools/severance-calculator', lastModified: ONCE },
   ]
+
+  // The events hub and the state pages that list enough events to be indexed; resent each week because their events change.
+  try {
+    const d = new Date(); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
+    const week = d.toISOString().slice(0, 10)
+    out.push({ path: '/events', lastModified: week })
+    for (const [code, n] of Object.entries(await eventStateCounts())) if (n >= EVENTS_STATE_MIN) out.push({ path: `/events/${stateSlug(code)}`, lastModified: week })
+  } catch (e) {
+    console.error('indexnow-seo-pages: events pages left out', e)
+  }
 
   // Workforce board, rapid-response and higher-education state pages, from one read of the boards and the college states.
   const [boards, collegeStates] = await heavy(() => Promise.all([

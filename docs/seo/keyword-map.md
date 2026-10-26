@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-130 clusters, 777 phrases.
+132 clusters, 787 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -92,6 +92,8 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
 | `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; laid off vs fired; what is COBRA; what is outplacement; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
+| `/events` | page | job fairs near me | Job fairs and business events near me | career fairs near me; hiring events near me; small business workshops near me; startup events near me |
+| `/events/:state` | family | {state} job fairs | Job fairs and business events in one state | {state} career fairs; {state} hiring events; {state} small business workshops; {state} startup events |
 | `/places` | page | local job markets | Job market in my area | jobs near me; job market by state and county; local unemployment rate; job openings by county; largest employers near me |
 | `/places/:state` | family | {state} jobs | Job market in one state | {state} job market; {state} unemployment rate; {state} largest employers; {state} job openings |
 | `/places/:state/county/:county` | family | {county} jobs | Job market in one county | {county} unemployment rate; {county} largest employers; {county} job openings; {county} layoffs |
@@ -542,6 +544,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Layoff and Job Search Glossary: Plain Definitions
 - Description: Plain definitions of WARN notice, reduction in force, severance, COBRA, outplacement, executive recruiter, reverse recruiter, ATS and more layoff terms.
 - H1: Layoff and job search glossary
+
+### `/events`
+
+- Title: Job Fairs and Business Events Near You, by State
+- Description: Upcoming job fairs, hiring events, career workshops, small-business counseling and startup events from chambers, workforce boards, SBDCs, SCORE, colleges and cities.
+- H1: Job fairs and business events near you
 
 ### `/places`
 
