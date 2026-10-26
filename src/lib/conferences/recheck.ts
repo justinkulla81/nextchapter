@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { extractDateRanges, pickNewDates } from '@/lib/events/refresh'
 import { diffAgainstCatalog, type PendingChange, type SeenOpportunity } from './changes'
-import { extractWithModel, fetchPublicPage } from './extract'
+import { extractWithModel, fetchConferencePages } from './extract'
 import { rollEditions } from './editions'
 
 // Weekly. 1) roll finished editions to next year as "Dates TBA", 2) re-read each followed series' page.
@@ -18,7 +18,7 @@ export async function runConferenceRecheck(now = new Date(), opts: { limit?: num
   const followed = await prisma.userConference.findMany({ distinct: ['seriesId'], select: { seriesId: true } })
   const followedIds = new Set(followed.map((f) => f.seriesId))
   const rows = await prisma.conferenceEvent.findMany({
-    where: { url: { not: null }, OR: [{ published: true }, { id: { in: [...followedIds] } }], linkStatus: { not: 'BROKEN' } },
+    where: { url: { not: null }, rejectedAt: null, OR: [{ published: true }, { id: { in: [...followedIds] } }], linkStatus: { not: 'BROKEN' } },
     orderBy: [{ recheckedAt: { sort: 'asc', nulls: 'first' } }],
     take: opts.limit ?? PER_RUN,
     include: { opportunities: { select: { type: true, url: true, deadline: true, title: true } } },
@@ -35,7 +35,7 @@ export async function runConferenceRecheck(now = new Date(), opts: { limit?: num
 
   await Promise.all([...byHost.values()].map(async (group) => {
     for (const s of group) {
-      const page = await fetchPublicPage(s.url!)
+      const page = await fetchConferencePages(s.url!)
       if (!page) { await prisma.conferenceEvent.update({ where: { id: s.id }, data: { recheckedAt: now } }); continue }
       stats.checked++
       if (s.contentHash === page.hash) { stats.unchanged++; await prisma.conferenceEvent.update({ where: { id: s.id }, data: { recheckedAt: now } }); continue }

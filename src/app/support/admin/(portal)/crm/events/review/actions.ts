@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { mergeSeries } from '@/lib/conferences/merge'
+import { rejectEntry as rejectEntryAndNotify } from '@/lib/conferences/notify-rejected'
 import { resolveChange } from '@/lib/conferences/apply-change'
 
 const text = (v: FormDataEntryValue | null) => String(v ?? '').trim()
@@ -32,6 +33,17 @@ export async function mergeEntry(formData: FormData) {
   captureServerEvent(admin.id, 'conference_entries_merged', { sourceId, targetId, ok })
   refresh()
   redirect(`/support/admin/crm/events/review?merged=${ok ? 1 : 0}`)
+}
+
+/** Reject an entry that is not a real or usable conference. The reason is required: it goes to every member who added or followed it. */
+export async function rejectEntry(formData: FormData) {
+  const admin = await requireAdmin()
+  const id = text(formData.get('id'))
+  const reason = text(formData.get('reason'))
+  if (!reason) redirect('/support/admin/crm/events/review?error=reason')
+  const r = await rejectEntryAndNotify(id, reason, admin.id)
+  refresh()
+  redirect(`/support/admin/crm/events/review?rejected=${r ? r.members : 0}&failed=${r ? r.failed : 0}`)
 }
 
 export async function resolveChangeAdmin(formData: FormData) {
