@@ -10,7 +10,10 @@ import { withCronRun } from '@/lib/cron/run'
 // time. With ~5,000 employers that outran the platform's 300-second limit around
 // company 450, every night, on the same companies — so nine in ten never got a
 // weekly signal. It is now a handful of bulk statements.
-export const maxDuration = 300
+// Reading every open posting and matching skills in each one took 230-290 seconds on a board of
+// ~530,000 live jobs, so any slow database moment cut the run off at 300 and the week had no
+// signals. The two older snapshots are counted in SQL now, and the limit has room to spare.
+export const maxDuration = 800
 
 // Nightly company_signals job — Phase 2
 // Master Script, Part C, Prompt 2. Everything here comes from
