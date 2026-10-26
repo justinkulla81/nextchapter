@@ -65,6 +65,20 @@ export default async function LayoffsHubPage() {
             )}
           </section>
 
+          <section aria-labelledby="local" className="mt-16">
+            <h2 id="local" className="text-2xl font-bold tracking-tight text-navy">Layoffs, jobs and workforce help by county and city</h2>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Every state, county and city page puts its layoff notices next to local unemployment, open jobs, the employers
+              hiring most, colleges and the nearest job centers.
+            </p>
+            <ul className="mt-6 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              {ALL_STATE_CODES.map((c) => (
+                <li key={c}><Link href={`/places/${stateSlug(c)}`} className={LINK}>{stateName(c)}</Link></li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm"><Link href="/places" className={LINK}>All local job markets</Link></p>
+          </section>
+
           <section aria-labelledby="next" className="mt-16 rounded-xl border border-border bg-white p-6">
             <h2 id="next" className="text-xl font-semibold tracking-tight text-navy">If you’ve been laid off</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">

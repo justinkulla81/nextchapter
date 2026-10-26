@@ -11,6 +11,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { TWELVE_MONTHS_MS, getPublicNotices, noticeDay } from '@/lib/warn/layoff-pages'
 import { getPlaceLinker, getStateCounties, placeUrl } from '@/lib/places/places'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const workers = d.recent.reduce((s, n) => s + (n.workers ?? 0), 0)
   const description = `${d.recent.length} WARN layoff notices filed in ${d.name} in the last 12 months, naming ${workers.toLocaleString()} workers: dates, employers, locations and the state record for each, plus local job centers.`
   return {
-    title: layoffsStateSeo(d.name).title,
+    title: titleMeta(layoffsStateSeo(d.name).title),
     description: fitDescription(description, 165),
     ...canonical(`/layoffs/${state}`),
   }

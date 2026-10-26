@@ -8,6 +8,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { stateName } from '@/lib/seo/states'
 import { getSearchFirmBySlug, type SearchFirmPage } from '@/lib/seo/search-firm-pages'
 import { FIRM_KIND_LABEL, levelLabel, specialties } from '@/lib/seo/search-firm-bar'
+import { titleMeta } from '@/lib/seo/title'
 
 // One page per search firm, recruiting firm, staffing company or outplacement firm with searches of its own to show:
 // the roles it is recruiting for now (only ones with a public job page), what it specializes in, where, and how long its
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const f = await getSearchFirmBySlug(slug)
   if (!f) return {}
   return {
-    title: `${f.name}: open searches, specialties and pay`,
+    title: titleMeta(`${f.name}: open searches, specialties and pay`),
     description: description(f),
     ...canonical(`/search-firms/${slug}`),
     ...(f.indexable ? {} : { robots: { index: false, follow: true } }),

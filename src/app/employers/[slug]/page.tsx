@@ -9,6 +9,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { noticeDay } from '@/lib/warn/layoff-pages'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
+import { titleMeta } from '@/lib/seo/title'
 
 // One page per employer with something of its own to say: open roles from its career site, what it hires for and
 // pays, and its WARN layoff record. Built on first visit, refreshed daily. A page below the bar renders but is
@@ -53,7 +54,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const e = await getEmployerBySlug(slug)
   if (!e || (!e.profile && e.notices.length === 0)) return {}
   return {
-    title: title(e),
+    title: titleMeta(title(e)),
     description: description(e),
     ...canonical(`/employers/${slug}`),
     ...(e.indexable ? {} : { robots: { index: false, follow: true } }),

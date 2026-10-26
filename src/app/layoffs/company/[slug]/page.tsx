@@ -13,6 +13,7 @@ import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay } from '@/lib/warn/layoff-pages'
+import { titleMeta } from '@/lib/seo/title'
 
 // Pages are built on first visit and refreshed daily; there are over a
 // thousand employers, too many to prerender on every deploy.
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // out of search results: it no longer helps anyone affected now.
   const stale = Date.now() - c.latest.getTime() > TWENTY_FOUR_MONTHS_MS
   return {
-    title: layoffsCompanySeo(c.name).title,
+    title: titleMeta(layoffsCompanySeo(c.name).title),
     description,
     ...canonical(`/layoffs/company/${slug}`),
     ...(stale ? { robots: { index: false, follow: true } } : {}),

@@ -6,6 +6,7 @@ import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
 import { getStateBoards, getStateCenters, getStateColleges, getStateLabor, getStateLayoffs, periodLabel, rateText } from '@/lib/seo/workforce-pages'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   return {
-    title: workforceStateSeo(d.name).title,
+    title: titleMeta(workforceStateSeo(d.name).title),
     description: `${d.boards.length} workforce ${d.boards.length === 1 ? 'board' : 'boards'} and ${d.centers.length} American Job ${d.centers.length === 1 ? 'Center' : 'Centers'} in ${d.name}: the areas each serves, local unemployment, colleges and recent layoff notices.`,
     ...canonical(`/workforce-boards/${state}`),
   }

@@ -1,6 +1,6 @@
 import { StructuredData } from '@/components/StructuredData'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
-import { pageH1, pageSeo } from '@/lib/seo/keywords'
+import { pageH1, pageSeoMeta } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -23,7 +23,7 @@ export async function generateMetadata({ searchParams }: { searchParams: SearchP
   const sp = await searchParams
   const searched = ['q', 'loc', 'remote'].some((k) => sp[k] !== undefined && sp[k] !== '')
   return {
-    ...pageSeo('/jobs'),
+    ...pageSeoMeta('/jobs'),
     robots: { index: !searched, follow: true },
     alternates: { canonical: '/jobs' },
   }

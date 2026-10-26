@@ -14,6 +14,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { ALL_STATE_CODES, stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
 import { getStateSummaries } from '@/lib/warn/layoff-pages'
 import { jobCentersUrl, stateBoardsUrl } from '@/lib/workforce/directory'
+import { titleMeta } from '@/lib/seo/title'
 
 // Facts are static; the daily refresh keeps the link to this state's layoff
 // page and its list of workforce boards current.
@@ -54,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   if (!code) return {}
   const name = stateName(code)
   return {
-    title: unemploymentStateSeo(name).title,
+    title: titleMeta(unemploymentStateSeo(name).title),
     description: fitDescription(lead(name, STATE_UI[code])),
     ...canonical(`/unemployment-benefits/${state}`),
   }

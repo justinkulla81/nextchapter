@@ -6,6 +6,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, associationSlug, functionBySlug, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { conferencesForFunction, getAssociations, getFunctionNotices, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     d.notices.length ? `${d.notices.length.toLocaleString()} layoff notices at employers hiring for it` : null,
   ].filter(Boolean)
   return {
-    title: `${d.fn.name} jobs, conferences and layoffs`,
+    title: titleMeta(`${d.fn.name} jobs, conferences and layoffs`),
     description: fitDescription(`${d.fn.blurb} ${bits.length ? `${bits.join(', ')}, ` : ''}associations and the industries that hire for it.`.replace(/\s+/g, ' ').trim(), 165),
     ...canonical(`/functions/${slug}`),
   }
