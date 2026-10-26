@@ -3,7 +3,7 @@ import { promisify } from 'node:util'
 import { gunzip as gunzipCb, gzip as gzipCb } from 'node:zlib'
 
 // Supabase Storage for job syndication (the same REST calls as board-snapshot.ts):
-//   'job-feeds'         PUBLIC  — the aggregator XML feed parts (job-feed-server.ts)
+//   'job-feeds'         PUBLIC  — formerly the aggregator XML feed parts (feeds removed 2026-10-26; nothing writes here now)
 //   'syndication-state' PRIVATE — which job URLs IndexNow / Google have been told about
 // Each bucket is created on its first write. Objects are capped at 50 MB by the
 // project's global upload limit, so nothing written here may be larger.

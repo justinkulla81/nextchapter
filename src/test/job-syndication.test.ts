@@ -1,14 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { gunzipSync, gzipSync } from 'node:zlib'
 import type { PublicJobRow } from '@/lib/jobs/public-job-page'
 import {
   cdata,
   chunk,
   FEED_TAIL,
-  feedHead,
-  feedJobXml,
-  isFreshForJooble,
-  joobleJobXml,
   googleIndexingEnabled,
   googleIndexingQuota,
   INDEXNOW_KEY,
@@ -67,57 +62,8 @@ describe('IndexNow request', () => {
   })
 })
 
-describe('XML feed', () => {
-  it('links to our job page, never the employer', () => {
-    const xml = feedJobXml(job())
-    expect(xml).toContain('<url><![CDATA[https://launchyournextchapter.com/jobs/cmvafjckb044kif06euqw4en5]]></url>')
-    expect(xml).not.toContain('employer.example.com')
-    expect(xml).toContain('<jobtype><![CDATA[fulltime]]></jobtype>')
-    expect(xml).toContain('<salary><![CDATA[$80k–$110k a year]]></salary>')
-    expect(xml).toContain('<date><![CDATA[Thu, 08 Oct 2026 00:00:00 GMT]]></date>')
-    expect(xml).not.toContain('<remotetype>')
-    // Talent.com's required/recommended tags
-    expect(xml).toContain('<dateposted><![CDATA[2026-10-08T00:00:00.000Z]]></dateposted>')
-    expect(xml).toMatch(/<expirationdate><!\[CDATA\[\d{4}-\d{2}-\d{2}T[\d:.]+Z\]\]><\/expirationdate>/)
-    expect(xml).toContain('<isremote><![CDATA[no]]></isremote>')
-  })
-  it('uses the given url instead of our job page (employer feed)', () => {
-    const xml = feedJobXml(job(), 'https://employer.example.com/apply/123')
-    expect(xml).toContain('<url><![CDATA[https://employer.example.com/apply/123]]></url>')
-    expect(xml).not.toContain('launchyournextchapter.com/jobs/')
-  })
-  it('remote and unknown fields', () => {
-    const xml = feedJobXml(job({ workArrangement: 'remote', employmentType: 'interim', salaryMin: null, salaryMax: null, locationCity: null }))
-    expect(xml).toContain('<remotetype><![CDATA[Fully remote]]></remotetype>')
-    expect(xml).not.toContain('<jobtype>')
-    expect(xml).not.toContain('<salary>')
-    expect(xml).toContain('<city><![CDATA[]]></city>')
-  })
+describe('XML helpers', () => {
   it('CDATA survives "]]>" and drops control characters', () => {
     expect(cdata('a]]>b\u0001')).toBe('<![CDATA[a]]]]><![CDATA[>b]]>')
-  })
-  it('concatenated gzip parts read back as one well-formed document', () => {
-    const gz = Buffer.concat([gzipSync(feedHead(new Date('2026-10-22T00:00:00Z'))), gzipSync(feedJobXml(job())), gzipSync(feedJobXml(job({ id: 'b2' }))), gzipSync(FEED_TAIL)])
-    const xml = gunzipSync(gz).toString('utf8')
-    expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n<source>')).toBe(true)
-    expect(xml.match(/<job>/g)?.length).toBe(2)
-    expect(xml.trimEnd().endsWith('</source>')).toBe(true)
-  })
-})
-
-describe('Jooble feed', () => {
-  it('uses Jooble tags, DD.MM.YYYY dates and the given link', () => {
-    const xml = joobleJobXml(job(), 'https://employer.example.com/apply/9')
-    expect(xml).toContain('<job id="cmvafjckb044kif06euqw4en5">')
-    expect(xml).toContain('<link><![CDATA[https://employer.example.com/apply/9]]></link>')
-    expect(xml).toContain('<pubdate><![CDATA[08.10.2026]]></pubdate>')
-    expect(xml).toContain('<name><![CDATA[')
-    expect(xml).toContain('<region><![CDATA[')
-    expect(xml).not.toContain('<url>')
-  })
-  it('skips jobs older than 45 days', () => {
-    const now = Date.parse('2026-10-22T00:00:00Z')
-    expect(isFreshForJooble({ postedAt: new Date('2026-10-01T00:00:00Z'), createdAt: new Date('2026-09-01T00:00:00Z') }, now)).toBe(true)
-    expect(isFreshForJooble({ postedAt: new Date('2026-08-01T00:00:00Z'), createdAt: new Date('2026-08-01T00:00:00Z') }, now)).toBe(false)
   })
 })
