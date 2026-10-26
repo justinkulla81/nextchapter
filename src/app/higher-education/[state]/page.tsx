@@ -1,7 +1,7 @@
 import { fitDescription, higherEdStateSeo } from '@/lib/seo/templates'
+import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 export default async function HigherEdStatePage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params
   const d = await load(state)
-  if (!d) notFound()
+  if (!d) emptyStateOrNotFound(state, '/higher-education')
 
   return (
     <SeoPage

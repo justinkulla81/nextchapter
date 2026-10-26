@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
+import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 export default async function NonprofitStatePage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params
   const d = await load(state)
-  if (!d) notFound()
+  if (!d) emptyStateOrNotFound(state, '/nonprofits')
   const byKind = Object.keys(NONPROFIT_KINDS).map((k) => ({ k, orgs: d.orgs.filter((o) => o.kind === k) })).filter((g) => g.orgs.length > 0)
 
   return (

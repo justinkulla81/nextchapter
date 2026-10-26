@@ -1,7 +1,7 @@
 import { placeStateSeo } from '@/lib/seo/templates'
+import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 export default async function StatePlacePage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params
   const s = await load(state)
-  if (!s) notFound()
+  if (!s) emptyStateOrNotFound(state, '/places')
   const { code, name, d } = s
   const linkPlace = await getPlaceLinker(code)
   const byPop = [...d.counties].sort((a, b) => (b.population ?? 0) - (a.population ?? 0))

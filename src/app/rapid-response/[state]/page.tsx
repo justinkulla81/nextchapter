@@ -1,8 +1,8 @@
 import { meetsStateBoardBar } from '@/lib/seo/page-bars'
+import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import { rapidResponseStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 export default async function RapidResponseStatePage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params
   const d = await load(state)
-  if (!d) notFound()
+  if (!d) emptyStateOrNotFound(state, '/rapid-response')
 
   return (
     <SeoPage
