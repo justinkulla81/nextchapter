@@ -105,14 +105,13 @@ export async function publicJobsInShard(shard: number): Promise<{ id: string; la
 }
 
 /** Every public job in shard `shard` (0–15) with its dates — the syndication crons' (src/lib/syndication) view of the allowlist. */
-export async function publicJobIdsInShard(shard: number, directOnly = false): Promise<{ id: string; createdAt: Date; postedAt: Date | null }[]> {
+export async function publicJobIdsInShard(shard: number): Promise<{ id: string; createdAt: Date; postedAt: Date | null }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
   return prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null }[]>`
     SELECT id, "createdAt", "postedAt" FROM "ExclusiveJobPosting"
     WHERE ${PUBLIC_JOB_STATIC_SQL}
       AND (hashtext(id) & 15) = ${shard}::int
       AND ${PUBLIC_JOB_LIVE_SQL}
-      AND (NOT ${directOnly} OR "directListing")
     ORDER BY id`
 }
 
@@ -125,23 +124,4 @@ export async function publicJobRowsByIds(ids: string[]): Promise<PublicJobRow[]>
   const rows = await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids } }, select: PUBLIC_JOB_SELECT })
   const now = Date.now()
   return rows.filter((r) => isPublicJob(r, now))
-}
-
-/**
- * Public jobs the employer or a recruiter gave us (source 'employer' | 'recruiter') — the
- * employer-authorized subset, for the aggregator feed (src/app/feeds/jobs-employer.xml).
- * Same allowlist as every public page; these sources are few, so no sharding.
- */
-export async function publicEmployerJobs(): Promise<PublicJobRow[]> {
-  const [rows, ghosts] = await Promise.all([
-    prisma.exclusiveJobPosting.findMany({
-      where: { source: { in: ['employer', 'recruiter'] }, status: 'approved', archivedAt: null, closeReason: null },
-      select: PUBLIC_JOB_SELECT,
-      orderBy: { id: 'asc' },
-      take: 50_000,
-    }),
-    getConfirmedGhostIds(),
-  ])
-  const now = Date.now()
-  return rows.filter((r) => isPublicJob(r, now, ghosts.has(r.id)))
 }
