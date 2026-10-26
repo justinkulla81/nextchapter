@@ -8,6 +8,7 @@ import { getTitleDetail, hasSalaryPage } from '@/lib/seo/job-titles'
 import { usd } from '@/lib/seo/job-title-rules'
 import { titleJobsSeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
+import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 
 export const revalidate = 21600
 export const dynamicParams = true
@@ -46,6 +47,9 @@ export default async function TitleJobsPage({ params }: { params: Promise<{ slug
         <JobList jobs={d.jobs} total={stat.jobs} source={`title:${slug}`} />
         <p className="mt-3 text-sm"><Link href={`/jobs?q=${encodeURIComponent(stat.name)}`} className={LINK}>Search all {stat.name.toLowerCase()} jobs</Link></p>
       </Section>
+      <div className="mt-8">
+        <SaveSearchForm q={stat.name} loc="" remote={false} source="page:title" heading={`Get new ${stat.name.toLowerCase()} jobs by email`} blurb="We’ll email you when new matches are posted. No account needed." cta="Email me new jobs" />
+      </div>
       {hasSalaryPage(stat) && (
         <Section id="pay" title={`${stat.name} salary`}>
           <p className="max-w-3xl text-sm text-muted-foreground">

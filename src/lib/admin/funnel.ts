@@ -46,6 +46,24 @@ export interface OfferRow {
   captured: number
   /** What the capture is, so a count is never read as a different thing. */
   capturedMeans: string
+  /** Of those who gave an email, how many later registered (counted from the registration event; null where it does not apply). */
+  becameMembers: number | null
+}
+
+// Which offer a lead belongs to, from its kind and source (HomepageLead). Mirrors the rows in computeOffers.
+function offerKeyForLead(kind: string, source: string): string | null {
+  if (kind === 'journey') return source.startsWith('network:') ? 'network' : 'journey'
+  if (kind === 'job_alert') {
+    if (source === 'page:employer') return 'alertEmployer'
+    if (source === 'page:title') return 'alertTitle'
+    if (source === 'page:salary') return 'alertTitle'
+    if (source === 'page:place') return 'alertPlace'
+    return 'jobSearch'
+  }
+  if (kind === 'apply_save') return 'jobSave'
+  if (kind === 'layoff_alert' || kind === 'layoff_employer') return 'layoffAlert'
+  if (kind === 'deadline_reminders') return 'tools'
+  return null
 }
 
 const botPatterns = BOT_SIGNATURES.map((s) => `%${s}%`)
@@ -74,6 +92,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
   const [
     marketRealityClicks, rHome, rJobs, rJobPage, rLayoffs, rResume, rGuides, rTools, rNews, rNetwork,
     cJourney, cJobAlert, cApplySave, cLayoff, cDeadline, cResume, cGuide, cNews, cNetwork,
+    rEmployer, rTitle, rPlace, cAlertEmployer, cAlertTitle, cAlertPlace, memberEvents,
   ] = await Promise.all([
     countRaw(Prisma.sql`
       SELECT COUNT(DISTINCT "ip")::bigint AS n FROM "HomepageVisitEvent"
@@ -89,7 +108,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     reachedByPath(since, '^/(news|how-it-works|why-stuck)'),
     reachedByPath(since, '^/network/'),
     lead({ kind: 'journey', NOT: { source: { startsWith: 'network:' } } }),
-    lead({ kind: 'job_alert' }),
+    lead({ kind: 'job_alert', source: { notIn: ['page:employer', 'page:title', 'page:salary', 'page:place'] } }),
     lead({ kind: 'apply_save' }),
     lead({ kind: { in: ['layoff_alert', 'layoff_employer'] } }),
     lead({ kind: 'deadline_reminders' }),
@@ -97,18 +116,37 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     prisma.guideLead.count({ where: win }),
     prisma.newsletterSubscriber.count({ where: win }),
     lead({ kind: 'journey', source: { startsWith: 'network:' } }),
+    reachedByPath(since, '^/employers/[^/]+$'),
+    reachedByPath(since, '^/(jobs/title|salaries)/[^/]+$'),
+    reachedByPath(since, '^/places/[^/]+/city/[^/]+$'),
+    lead({ kind: 'job_alert', source: 'page:employer' }),
+    lead({ kind: 'job_alert', source: { in: ['page:title', 'page:salary'] } }),
+    lead({ kind: 'job_alert', source: 'page:place' }),
+    prisma.$queryRaw<{ kind: string | null; source: string | null; n: bigint }[]>(Prisma.sql`
+      SELECT "properties"->>'kind' AS kind, "properties"->>'source' AS source, COUNT(*)::bigint AS n
+      FROM "AnalyticsEvent" WHERE "event" = 'lead_became_member' AND "createdAt" >= ${since}
+      GROUP BY 1, 2`),
   ])
+  const members = new Map<string, number>()
+  for (const m of memberEvents) {
+    const key = offerKeyForLead(m.kind ?? '', m.source ?? '')
+    if (key) members.set(key, (members.get(key) ?? 0) + Number(m.n))
+  }
+  const mem = (key: string) => members.get(key) ?? 0
   return [
-    { key: 'marketReality', label: 'Market Reality Assessment', where: 'Homepage, funding, how-it-works buttons to /onboarding/desire', reached: marketRealityClicks, captured: registered, capturedMeans: 'accounts registered in the window, from any route' },
-    { key: 'journey', label: 'Journey picker + first-week plan', where: 'Homepage "Where are you in your search?"', reached: rHome, captured: cJourney, capturedMeans: 'emails' },
-    { key: 'jobSearch', label: 'Saved job search', where: '/jobs', reached: rJobs, captured: cJobAlert, capturedMeans: 'emails' },
-    { key: 'jobSave', label: 'Save this job', where: 'Job detail pages', reached: rJobPage, captured: cApplySave, capturedMeans: 'emails' },
-    { key: 'layoffAlert', label: 'Layoff alerts', where: '/layoffs', reached: rLayoffs, captured: cLayoff, capturedMeans: 'emails' },
-    { key: 'tools', label: 'Tools: deadline reminders', where: '/tools/*', reached: rTools, captured: cDeadline, capturedMeans: 'emails (reminders only; the calculators need no email)' },
-    { key: 'guides', label: 'Guide downloads', where: '/resources/*', reached: rGuides, captured: cGuide, capturedMeans: 'emails' },
-    { key: 'resumeRecruiters', label: 'Résumé to recruiters', where: '/submit-resume', reached: rResume, captured: cResume, capturedMeans: 'résumés (not the same offer as Market Reality)' },
-    { key: 'newsletter', label: 'Newsletter and report downloads', where: 'News, how-it-works, report pop-ups', reached: rNews, captured: cNews, capturedMeans: 'emails' },
-    { key: 'network', label: 'Network company pages', where: '/network/company/*', reached: rNetwork, captured: cNetwork, capturedMeans: 'emails' },
+    { key: 'marketReality', label: 'Market Reality Assessment', where: 'Homepage, funding, how-it-works buttons to /onboarding/desire', reached: marketRealityClicks, captured: registered, capturedMeans: 'accounts registered in the window, from any route', becameMembers: null },
+    { key: 'journey', label: 'Journey picker + first-week plan', where: 'Homepage "Where are you in your search?"', reached: rHome, captured: cJourney, capturedMeans: 'emails', becameMembers: mem('journey') },
+    { key: 'jobSearch', label: 'Saved job search', where: '/jobs', reached: rJobs, captured: cJobAlert, capturedMeans: 'emails', becameMembers: mem('jobSearch') },
+    { key: 'jobSave', label: 'Save this job', where: 'Job detail pages', reached: rJobPage, captured: cApplySave, capturedMeans: 'emails', becameMembers: mem('jobSave') },
+    { key: 'layoffAlert', label: 'Layoff alerts', where: '/layoffs', reached: rLayoffs, captured: cLayoff, capturedMeans: 'emails', becameMembers: mem('layoffAlert') },
+    { key: 'tools', label: 'Tools: deadline reminders', where: '/tools/*', reached: rTools, captured: cDeadline, capturedMeans: 'emails (reminders only; the calculators need no email)', becameMembers: mem('tools') },
+    { key: 'guides', label: 'Guide downloads', where: '/resources/*', reached: rGuides, captured: cGuide, capturedMeans: 'emails', becameMembers: mem('guides') },
+    { key: 'resumeRecruiters', label: 'Résumé to recruiters', where: '/submit-resume', reached: rResume, captured: cResume, capturedMeans: 'résumés (not the same offer as Market Reality)', becameMembers: mem('resumeRecruiters') },
+    { key: 'newsletter', label: 'Newsletter and report downloads', where: 'News, how-it-works, report pop-ups', reached: rNews, captured: cNews, capturedMeans: 'emails', becameMembers: mem('newsletter') },
+    { key: 'alertEmployer', label: 'Employer page job alerts', where: '/employers/*', reached: rEmployer, captured: cAlertEmployer, capturedMeans: 'emails', becameMembers: mem('alertEmployer') },
+    { key: 'alertTitle', label: 'Job-title and salary page alerts', where: '/jobs/title/* and /salaries/*', reached: rTitle, captured: cAlertTitle, capturedMeans: 'emails', becameMembers: mem('alertTitle') },
+    { key: 'alertPlace', label: 'City page job alerts', where: '/places/*/city/*', reached: rPlace, captured: cAlertPlace, capturedMeans: 'emails', becameMembers: mem('alertPlace') },
+    { key: 'network', label: 'Network company pages', where: '/network/company/*', reached: rNetwork, captured: cNetwork, capturedMeans: 'emails', becameMembers: mem('network') },
   ]
 }
 

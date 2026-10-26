@@ -8,6 +8,7 @@ import { getTitleDetail, hasSalaryPage } from '@/lib/seo/job-titles'
 import { usd } from '@/lib/seo/job-title-rules'
 import { salarySeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
+import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 
 export const revalidate = 21600
 export const dynamicParams = true
@@ -69,6 +70,9 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
         <JobList jobs={d.jobs} total={stat.jobs} source={`salary:${slug}`} allHref={`/jobs/title/${slug}`} />
         <p className="mt-3 text-sm"><Link href={`/jobs/title/${slug}`} className={LINK}>All {stat.jobs.toLocaleString('en-US')} {stat.name.toLowerCase()} jobs</Link></p>
       </Section>
+      <div className="mt-8">
+        <SaveSearchForm q={stat.name} loc="" remote={false} source="page:salary" heading={`Get ${stat.name.toLowerCase()} jobs that pay like this`} blurb="We’ll email you new openings for this title. No account needed." cta="Email me new jobs" />
+      </div>
       {d.related.length > 0 && (
         <Section id="related" title="Related salaries">
           <Chips kind="salary_to_salary" event="topic_link_clicked" items={d.related.filter(hasSalaryPage).map((t) => ({ href: `/salaries/${t.slug}`, label: t.name, detail: usd(t.median!) }))} />

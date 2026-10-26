@@ -86,7 +86,12 @@ export function NewHome() {
             See the other 13
           </Link>
         </p>
-        <div className="mx-auto mt-10 max-w-2xl overflow-hidden rounded-2xl border border-border bg-white shadow-lg">
+      </section>
+
+      <HomeTryIt />
+
+      <section className="mx-auto max-w-3xl px-6 py-12 text-center" aria-label="How it works, in a video">
+        <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-border bg-white shadow-lg">
           <video
             controls
             // "none": "metadata" still pulled ~360 KB on load, delaying the hero text (LCP) on
@@ -99,8 +104,6 @@ export function NewHome() {
           </video>
         </div>
       </section>
-
-      <HomeTryIt />
 
       <Suspense fallback={null}>
         <AiJobsStat />
