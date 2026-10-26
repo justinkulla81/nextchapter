@@ -386,7 +386,13 @@ export const getConferenceAssessments = cache(async (): Promise<Map<string, Asse
   for (const c of catalog) {
     const related = c.industries.length ? Math.max(0, ...c.industries.map((i) => (perIndustry.get(i) ?? 1) - 1)) : 0
     const hasAssoc = !!c.organizer && assocSlugs.has(associationSlug(c.organizer))
-    out.set(c.id, assessConference(c, hasAssoc, related, placeLinkCount(c.id, c.state), extraById.get(c.id)))
+    const a = assessConference(c, hasAssoc, related, placeLinkCount(c.id, c.state), extraById.get(c.id))
+    // Offer a conference to search engines only when it has something no other page has: a sourced employer or speaker list, or it is a top-tier event with confirmed upcoming dates.
+    // The rest of the catalog still renders for visitors and links onward, but stays noindex and out of the sitemap until a list arrives; this flips by itself.
+    const e = extraById.get(c.id)
+    const hasLists = !!e && (e.employers > 0 || e.speakers > 0)
+    const topUpcoming = c.importance === 1 && c.datesConfirmed && !!c.startDate && new Date(c.startDate).getTime() >= Date.now() - 86_400_000
+    out.set(c.id, hasLists || topUpcoming ? a : { ...a, indexable: false })
   }
   return out
 })
