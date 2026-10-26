@@ -75,21 +75,37 @@ export interface TopicJobs {
 
 async function loadJobs(f: JobFilter): Promise<TopicJobs> {
   const where = Prisma.sql`${PUBLIC} AND ${filterSql(f)}`
-  const [count, ids, fnRows, indRows, empRows, ghosts] = await Promise.all([
-    prisma.$queryRaw<{ n: number }[]>`SELECT count(*)::int AS n FROM "ExclusiveJobPosting" WHERE ${where}`,
-    prisma.$queryRaw<{ id: string }[]>`SELECT id FROM "ExclusiveJobPosting" WHERE ${where} ORDER BY "postedAt" DESC NULLS LAST LIMIT 80`,
-    prisma.$queryRaw<{ name: string; n: number }[]>`
-      SELECT "targetFunction" AS name, count(*)::int AS n FROM "ExclusiveJobPosting" WHERE ${where} AND "targetFunction" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 8`,
-    prisma.$queryRaw<{ name: string; n: number }[]>`
-      SELECT industry AS name, count(*)::int AS n FROM "ExclusiveJobPosting" WHERE ${where} AND industry IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 6`,
-    prisma.$queryRaw<{ id: string; name: string; canonical: string; n: number }[]>`
-      SELECT c.id, c.name, c."canonicalNameNormalized" AS canonical, t.n
-      FROM (SELECT "companyId" AS cid, count(*)::int AS n FROM "ExclusiveJobPosting" WHERE ${where} AND "companyId" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 60) t
-      JOIN "Company" c ON c.id = t.cid JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
-      WHERE p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
-      ORDER BY t.n DESC LIMIT 12`,
+  // One scan of the open board, shared by every figure below (it used to be five scans on five connections, 18-35 s each).
+  // The partial index ExclusiveJobPosting_seo_topic_idx (prisma/manual/2026-10-26-seo-page-indexes.sql) makes this scan an
+  // index-only read; without it the query still works, just slowly.
+  const [agg, ghosts] = await Promise.all([
+    prisma.$queryRaw<
+      { total: number; ids: string[] | null; functions: { name: string; n: number }[] | null; industries: { name: string; n: number }[] | null; employers: { cid: string; n: number }[] | null }[]
+    >`WITH f AS MATERIALIZED (
+        SELECT id, "postedAt", "targetFunction", industry, "companyId" FROM "ExclusiveJobPosting" WHERE ${where}
+      )
+      SELECT (SELECT count(*) FROM f)::int AS total,
+        (SELECT json_agg(x.id ORDER BY x."postedAt" DESC NULLS LAST) FROM (SELECT id, "postedAt" FROM f ORDER BY "postedAt" DESC NULLS LAST LIMIT 80) x) AS ids,
+        (SELECT json_agg(x) FROM (SELECT "targetFunction" AS name, count(*)::int AS n FROM f WHERE "targetFunction" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 8) x) AS functions,
+        (SELECT json_agg(x) FROM (SELECT industry AS name, count(*)::int AS n FROM f WHERE industry IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 6) x) AS industries,
+        (SELECT json_agg(x) FROM (SELECT "companyId" AS cid, count(*)::int AS n FROM f WHERE "companyId" IS NOT NULL GROUP BY 1 ORDER BY 2 DESC LIMIT 60) x) AS employers`,
     getConfirmedGhostIds(),
   ])
+  const a = agg[0]
+  const count = [{ n: a?.total ?? 0 }]
+  const ids = (a?.ids ?? []).map((id) => ({ id }))
+  const fnRows = a?.functions ?? []
+  const indRows = a?.industries ?? []
+  // Only employers that have a public page get a link: the 60 busiest, joined to their company record in a second, small query.
+  const topEmployers = a?.employers ?? []
+  const empRows = topEmployers.length
+    ? await prisma.$queryRaw<{ id: string; name: string; canonical: string }[]>`
+        SELECT c.id, c.name, c."canonicalNameNormalized" AS canonical
+        FROM "Company" c JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
+        WHERE c.id = ANY(${topEmployers.map((e) => e.cid)}::text[]) AND p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}`
+    : []
+  const nByCompany = new Map(topEmployers.map((e) => [e.cid, e.n]))
+  const empSorted = empRows.map((r) => ({ ...r, n: nByCompany.get(r.id) ?? 0 })).sort((x, y) => y.n - x.n).slice(0, 12)
   const wide = await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids.map((r) => r.id) } }, select: PUBLIC_JOB_SELECT })
   const byId = new Map(wide.map((w) => [w.id, w]))
   const now = Date.now()
@@ -102,7 +118,7 @@ async function loadJobs(f: JobFilter): Promise<TopicJobs> {
     jobs: rows.map((r) => ({ id: r.id, title: r.title, company: r.companyName, location: r.location, postedAt: (r.postedAt ?? r.createdAt).toISOString(), pay: payText(r.salaryMin, r.salaryMax, r.payPeriod) })),
     functions: fnRows.map((r) => ({ name: r.name, count: r.n })),
     industries: mergeBuckets(indRows),
-    employers: empRows.map((r) => ({ name: r.name, slug: employerSlug(r.canonical, r.id), count: r.n })),
+    employers: empSorted.map((r) => ({ name: r.name, slug: employerSlug(r.canonical, r.id), count: r.n })),
   }
 }
 
@@ -116,7 +132,7 @@ function mergeBuckets(rows: { name: string; n: number }[]): { name: string; coun
   return [...m].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
 }
 
-const cachedJobs = unstable_cache((f: string) => heavy(() => loadJobs(JSON.parse(f) as JobFilter)), ['topic-jobs-v3'], { revalidate: 3600 })
+const cachedJobs = unstable_cache((f: string) => heavy(() => loadJobs(JSON.parse(f) as JobFilter)), ['topic-jobs-v4'], { revalidate: 3600 })
 
 /** Open public jobs for an industry rule or a function, with the functions/industries/employers they sit in. */
 export async function getTopicJobs(f: JobFilter): Promise<TopicJobs> {
