@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { publicPageForCrmOrg } from '@/lib/seo/org-page-links'
 import { notFound, redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
@@ -74,7 +73,6 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   const inBoardDirectory = org.orgTypes.includes('GOVERNMENT')
     ? Boolean(await prisma.workforceBoard.findFirst({ where: { name: { equals: org.name, mode: 'insensitive' } }, select: { id: true } }).catch(() => null))
     : false
-  const publicPage = await publicPageForCrmOrg(org.id)
   const employerBenefits = await programsForEmployer(org.canonicalNameNormalized)
   const funding = await opportunitiesForKinds(kindsForOrg({ orgTypes: org.orgTypes, name: org.name, inBoardDirectory }), { state: org.usState }).catch(() => [])
   // Everything below depends only on the org, so it all loads together.
@@ -792,7 +790,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
           <Field
             label="Public page"
             value={(() => {
-              const pages = [...publicPagesFor(org), ...(publicPage ? [{ label: 'Job center / economic development / board page', path: publicPage.path }] : [])]
+              const pages = publicPagesFor(org)
               return pages.length ? (
                 <span className="flex flex-col gap-1">
                   {pages.map((pg) => <a key={pg.path} href={`https://launchyournextchapter.com${pg.path}`} target="_blank" rel="noreferrer" className="underline">{pg.label} ↗</a>)}

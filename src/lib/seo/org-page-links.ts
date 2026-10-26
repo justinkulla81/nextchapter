@@ -1,21 +1,23 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
-import { getStateData } from '@/lib/seo/org-pages'
+import { buildOrgPage, getStateData } from '@/lib/seo/org-pages'
 import { crmOrgName, orgPagePath, type OrgPageKind } from '@/lib/seo/org-page-rules'
 
 /**
  * The public page for a CRM organization, if one of the American Job Center / economic development / workforce board
  * pages is linked to it (PublicOrgPage). Null when none, or while the link table has not been applied yet.
  */
-export async function publicPageForCrmOrg(crmOrgId: string): Promise<{ path: string; name: string } | null> {
+export async function publicPageForCrmOrg(crmOrgId: string): Promise<{ path: string; name: string; label: string; indexed: boolean } | null> {
   try {
     const link = await prisma.publicOrgPage.findFirst({ where: { crmOrgId, matchStatus: { in: ['LINKED', 'CREATED'] } }, select: { kind: true, sourceId: true, state: true } })
     if (!link || !ALL_STATE_CODES.includes(link.state)) return null
     const sd = await getStateData(link.state)
     const rows = link.kind === 'JOB_CENTER' ? sd.centers : link.kind === 'ECON_DEV' ? sd.econDev : sd.boards
     const row = rows.find((r) => r.id === link.sourceId)
-    return row ? { path: orgPagePath(link.kind as OrgPageKind, stateSlug(link.state), row.slug), name: row.name } : null
+    if (!row) return null
+    const label = link.kind === 'JOB_CENTER' ? 'American Job Center page' : link.kind === 'ECON_DEV' ? 'Economic development page' : 'Workforce board page'
+    return { path: orgPagePath(link.kind as OrgPageKind, stateSlug(link.state), row.slug), name: row.name, label, indexed: buildOrgPage(row, sd).indexable }
   } catch {
     return null
   }
