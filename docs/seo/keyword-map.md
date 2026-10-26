@@ -9,12 +9,13 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-118 clusters, 718 phrases.
+119 clusters, 722 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
 | `/` | page | job transition platform | Find help after a layoff or while changing jobs; brand searches | job transition; job search help; free job search tools; help finding a job after a layoff; white collar job search; job search for experienced professionals; market reality assessment; nextchapter |
 | `/about` | page | about NextChapter | Who is NextChapter | nextchapter company; justin kulla; job transition company |
+| `/careers` | page | careers at NextChapter | Jobs at NextChapter | nextchapter jobs; work at nextchapter; nextchapter openings |
 | `/how-it-works` | page | how NextChapter works | How the product works | weekly job search plan; search sprint; job search action plan; job search score |
 | `/faq` | page | NextChapter FAQ | Product questions | is nextchapter free; nextchapter privacy |
 | `/pricing` | page | plans and pricing | What it costs | free job search platform; nextchapter plans; job search tools free |

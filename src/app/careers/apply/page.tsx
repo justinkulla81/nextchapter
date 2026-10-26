@@ -4,7 +4,7 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { ApplyForm } from '@/components/careers/ApplyForm'
 import { APPLY_ROLES } from '@/lib/careers/application'
 
-// Not for search engines: kept out of results here and disallowed in robots.ts.
+// The roles are indexed; the form behind them is not.
 export const metadata: Metadata = {
   title: 'Apply: careers at NextChapter',
   robots: { index: false, follow: false },

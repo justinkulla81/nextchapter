@@ -1,3 +1,4 @@
+import { CAREER_ROLES } from '@/lib/careers/roles'
 import type { MetadataRoute } from 'next'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PERSONAS } from '@/lib/constants/personas'
@@ -38,6 +39,7 @@ type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
 const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: number }[] = [
   { path: '/jobs', updated: '2026-10-22', freq: 'daily', priority: 0.8 },
   { path: '/about', updated: '2026-10-06', freq: 'monthly', priority: 0.7 },
+  { path: '/careers', updated: '2026-10-26', freq: 'weekly', priority: 0.7 },
   { path: '/how-it-works', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/why-stuck', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/glossary', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
@@ -207,6 +209,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // The homepage shows the latest News, so it changes when News does.
     entry('/', latestOf(['2026-10-06', ...(newestNews ? [newestNews] : [])]), 'weekly', 1),
     ...STATIC_PAGES.map((p) => entry(p.path, p.updated, p.freq, p.priority)),
+    ...CAREER_ROLES.map((r) => entry(`/careers/${r.slug}`, '2026-10-26', 'weekly', r.kind === 'platform' ? 0.4 : 0.6)),
 
     // The White Collar Employment Report: hub, the evergreen index, and every edition.
     // The index is refreshed with each edition.
