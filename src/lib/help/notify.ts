@@ -168,35 +168,55 @@ export async function notifyCandidateOfReply(requestId: string, body: string): P
   return send({ to, subject: `Re: ${r.subject}`, replyTo: replyAddress(requestId), html, text, audience: PORTAL_AUDIENCE[r.portal] ?? 'candidate', ref: requestId })
 }
 
-/** An in-app idea or feedback was marked Addressed with a note: tell the candidate. */
-export async function notifyCandidateFeedbackAddressed(feedbackId: string): Promise<boolean> {
+/**
+ * An idea or feedback was marked Addressed with a note: tell the person what
+ * happened. Candidates (in-app) and partner-portal senders (employer, recruiter,
+ * coach, institution, reached at the email they were signed in with) both get it.
+ * Only ever sent when you wrote a note.
+ */
+export async function notifyFeedbackAddressed(feedbackId: string): Promise<boolean> {
   const fb = await prisma.productFeedback.findUnique({
     where: { id: feedbackId },
-    select: { candidateId: true, channel: true, rawText: true, responseNote: true },
+    select: { candidateId: true, contactEmail: true, source: true, personLabel: true, channel: true, rawText: true, responseNote: true },
   })
-  if (!fb?.candidateId || !fb.responseNote || !fb.channel?.startsWith('in-app')) return false
+  if (!fb?.responseNote) return false
   // A problem report sent to Vision was already answered in its conversation.
   if (fb.channel === 'in-app problem') return false
-  const c = await prisma.candidateProfile.findUnique({ where: { id: fb.candidateId }, select: { firstName: true, email: true } })
-  if (!c?.email) return false
-  const what = fb.channel === 'in-app idea' ? 'idea' : 'feedback'
-  const link = `${APP_URL}/dashboard/help`
+
+  let to: string | null = null
+  let first: string | null = null
+  let audience: EmailAudience = 'candidate'
+  let link = `${APP_URL}/dashboard/help`
+  if (fb.candidateId && fb.channel?.startsWith('in-app')) {
+    const c = await prisma.candidateProfile.findUnique({ where: { id: fb.candidateId }, select: { firstName: true, email: true } })
+    to = c?.email ?? null
+    first = c?.firstName ?? null
+  } else if (fb.channel?.startsWith('portal') && fb.contactEmail) {
+    to = fb.contactEmail
+    first = fb.personLabel?.split(' ')[0] ?? null
+    audience = ({ EMPLOYER: 'employer', RECRUITER: 'recruiter', COACH: 'coach' } as Record<string, EmailAudience>)[fb.source] ?? 'organization'
+    // They have no ideas list in the portal: the email stands on its own.
+    link = ''
+  }
+  if (!to) return false
+
+  const what = fb.channel?.endsWith('idea') ? 'idea' : 'feedback'
   const excerpt = clip(fb.rawText, 240)
   const html = emailDocument({
     preheader: `An update on the ${what} you sent us.`,
     label: 'Support',
     bodyHtml: `
-      <p style="margin:0 0 16px;font-size:16px;line-height:1.65">${c.firstName ? `Hi ${escapeHtml(c.firstName)},` : 'Hello,'}</p>
+      <p style="margin:0 0 16px;font-size:16px;line-height:1.65">${first ? `Hi ${escapeHtml(first)},` : 'Hello,'}</p>
       <p style="margin:0 0 14px;font-size:16px;line-height:1.65">Thank you for your ${what}. Here is what happened with it.</p>
       <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#55606e">What you told us</p>
       <div style="margin:0 0 18px;border-left:3px solid #e3e8ef;padding:2px 0 2px 12px;font-size:14px;line-height:1.55;color:#55606e;white-space:pre-wrap">${escapeHtml(excerpt)}</div>
       <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#1d4e89">Our response</p>
       ${textToHtml(fb.responseNote)}
-      <p style="margin:18px 0 20px;font-size:16px;line-height:1.65">Thanks,<br><strong>The NextChapter team</strong></p>
-      ${buttonHtml('See your ideas and feedback', link)}`,
+      <p style="margin:18px 0 ${link ? '20px' : '4px'};font-size:16px;line-height:1.65">Thanks,<br><strong>The NextChapter team</strong></p>
+      ${link ? buttonHtml('See your ideas and feedback', link) : '<p style="margin:0;font-size:14px;color:#55606e">Reply to this email any time. It comes straight to us.</p>'}`,
   })
-  const text = `${c.firstName ? `Hi ${c.firstName},` : 'Hello,'}\n\nThank you for your ${what}. Here is what happened with it.\n\nWhat you told us:\n${excerpt}\n\nOur response:\n${fb.responseNote}\n\nThanks,\nThe NextChapter team\n\n${link}`
-  return send({ to: c.email, subject: `An update on your ${what}`, replyTo: SUPPORT, html, text, audience: 'candidate' })
+  const text = `${first ? `Hi ${first},` : 'Hello,'}\n\nThank you for your ${what}. Here is what happened with it.\n\nWhat you told us:\n${excerpt}\n\nOur response:\n${fb.responseNote}\n\nThanks,\nThe NextChapter team\n\n${link || 'Reply to this email any time. It comes straight to us.'}`
+  return send({ to, subject: `An update on your ${what}`, replyTo: SUPPORT, html, text, audience })
 }
 
 /** Yesterday's in-app ideas and feedback, in one email. Nothing sent when there are none. */

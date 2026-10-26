@@ -2,7 +2,7 @@
   "regions": [
     "pdx1"
   ],
-  "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
+  "ignoreCommand": "sh scripts/vercel-ignore-build.sh",
   "crons": [
     {
       "path": "/api/cron/deadline-reminders",
