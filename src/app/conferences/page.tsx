@@ -1,15 +1,14 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Chips, ConferenceList, Section, TopicShell, functionChip, industryChip } from '@/components/topics/blocks'
 import { prisma } from '@/lib/prisma'
-import { canonical } from '@/lib/seo/canonical'
 import { INDUSTRIES, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { getAssociations, sortConferences, type Conf } from '@/lib/seo/topic-data'
 
 export const revalidate = 3600
 
-const DESCRIPTION = 'Conferences, trade shows and summits by industry and function: dates, costs, calls for speakers, the associations that run them and the employers worth meeting.'
-export const metadata: Metadata = { title: 'Conferences and trade shows: dates, costs and speaking', description: DESCRIPTION, ...canonical('/conferences') }
+export const metadata: Metadata = pageMetadata('/conferences')
 
 async function load() {
   const today = new Date()

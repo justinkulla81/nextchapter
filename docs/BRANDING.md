@@ -14,6 +14,10 @@
 
 Even there, name the platform once with the standard line, then use the buyer's budget language for the offer. Example: the workforce page says "NextChapter, the leading job transition platform" in its description and "career services that include AI training" in the body.
 
+## Search terms in titles and headings
+
+Owner decision 2026-10-26: we want to rank for the phrases people actually search, including "career coach", "career exploration", "career change", "career pivot" and "professional coach". Those phrases may appear in titles, headings and body copy of any public page that answers that search (the map is `docs/seo/keyword-map.md`). The rule above still governs how we describe NextChapter itself: it is "the leading job transition platform", not a "career platform". A page about career coaching says what the coach does; it does not rename the company.
+
 ## Retired wording
 
 "Career-transition platform" and "AI-powered career-transition platform" are retired. `src/test/positioning.test.ts` fails if they come back in source.

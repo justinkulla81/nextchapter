@@ -4,6 +4,7 @@ import { PostHogProvider } from "@/lib/posthog/provider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { HomepageVisitTracker } from "@/components/marketing/HomepageVisitTracker";
 import "./globals.css";
+import { HOME_KEYWORDS, pageSeo } from '@/lib/seo/keywords'
 import { PortalCanonicalUrl } from '@/components/PortalCanonicalUrl'
 
 // Self-hosted (fontsource) rather than next/font/google: a Google Fonts
@@ -30,9 +31,7 @@ const sourceSerif4 = localFont({
 });
 
 const siteUrl = "https://launchyournextchapter.com";
-const title = "NextChapter — Welcome to your Next Chapter";
-const description =
-  "NextChapter is the leading job transition platform for white-collar workers, including people affected by AI and mass layoffs. Upload your resume, build a profile that shows how you actually work, and get a free Market Reality Assessment with a personalized action plan, whether you're searching, thinking about a move, or growing in your current job. Free for candidates, always.";
+const { title, description } = pageSeo("/");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -41,15 +40,7 @@ export const metadata: Metadata = {
     template: "%s | NextChapter",
   },
   description,
-  keywords: [
-    "job search",
-    "market reality assessment",
-    "candidate profile",
-    "resume review",
-    "job search platform",
-    "career change",
-    "employment references",
-  ],
+  keywords: HOME_KEYWORDS,
   robots: {
     index: true,
     follow: true,
