@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { PERSONAS } from '@/lib/constants/personas'
 import { JOURNEY_GROUPS } from '@/lib/constants/journey-groups'
 import { planFor } from '@/lib/leads/first-week-plans'
+import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
+import { SITUATION_SESSION_KEY } from '@/lib/constants/onboarding'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
@@ -20,6 +22,18 @@ const FOLLOWUPS = [
   { value: 'months', label: 'A few months' },
   { value: 'long', label: 'Six months or more' },
 ]
+
+// The answer they just gave goes with them into onboarding, whose first question then comes preselected: they confirm
+// instead of answering again. (Same hand-off as the /start pages, via sessionStorage; a blocked store just means no preselect.)
+function rememberSituation(slug: string | null | undefined) {
+  const situation = PERSONAS.find((p) => p.slug === slug)?.situation
+  if (!situation) return
+  try {
+    sessionStorage.setItem(SITUATION_SESSION_KEY, situation)
+  } catch {
+    // Private windows can block storage.
+  }
+}
 
 // `source` says which page the form sits on ('home', or 'network:<type>:<slug>'); `compact` skips the
 // how-long question for pages that already know the person's context; `situations` limits the choices.
@@ -54,8 +68,11 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
           )}
         </p>
         <Link
-          href={`/start/${slug}`}
-          onClick={() => posthog.capture('journey_picker_continue_clicked', { situation: slug })}
+          href={MARKET_REALITY_START_HREF}
+          onClick={() => {
+            rememberSituation(slug)
+            posthog.capture('journey_picker_continue_clicked', { situation: slug })
+          }}
           className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
         >
           {state.capped ? 'Get your Market Reality Assessment' : 'Or start now: get your Market Reality Assessment'}
@@ -204,6 +221,18 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
             </Button>
           </form>
           <p className="mt-2 text-center text-sm text-muted-foreground">One plan, and nothing else unless you ask.</p>
+          <p className="mt-1 text-center text-sm">
+            <Link
+              href={MARKET_REALITY_START_HREF}
+              onClick={() => {
+                rememberSituation(situation)
+                posthog.capture('journey_picker_skip_to_assessment_clicked', { situation, source })
+              }}
+              className="text-muted-foreground underline underline-offset-4"
+            >
+              Skip the email: start my Market Reality Assessment
+            </Link>
+          </p>
           {state?.error && (
             <p role="alert" className="mt-3 text-center text-sm text-destructive">
               {state.error}
