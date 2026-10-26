@@ -1,5 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
+import { heavy } from '@/lib/db/heavy'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -11,6 +12,8 @@ import { employerSlug as layoffEmployerSlug, TWELVE_MONTHS_MS } from '@/lib/warn
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { EMPLOYER_MIN_OPEN_ROLES } from '@/lib/seo/employer-pages'
 import { hasUpcomingDates } from '@/lib/events/format'
+import { employersForConference } from '@/lib/events/conference-employers'
+import { effectiveFunctions, inferFunctions } from '@/lib/seo/function-inference'
 import { assessConference, type Assessment } from '@/lib/seo/topic-quality'
 import type { ConferenceRow } from '@/lib/events/types'
 import {
@@ -113,7 +116,7 @@ function mergeBuckets(rows: { name: string; n: number }[]): { name: string; coun
   return [...m].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
 }
 
-const cachedJobs = unstable_cache((f: string) => loadJobs(JSON.parse(f) as JobFilter), ['topic-jobs-v3'], { revalidate: 3600 })
+const cachedJobs = unstable_cache((f: string) => heavy(() => loadJobs(JSON.parse(f) as JobFilter)), ['topic-jobs-v3'], { revalidate: 3600 })
 
 /** Open public jobs for an industry rule or a function, with the functions/industries/employers they sit in. */
 export async function getTopicJobs(f: JobFilter): Promise<TopicJobs> {
@@ -214,7 +217,11 @@ async function listConferences(where: Prisma.ConferenceEventWhereInput, take = 6
 }
 
 export const conferencesForIndustry = (bucket: string, take?: number) => listConferences({ industries: { has: bucket } }, take)
-export const conferencesForFunction = (fn: string, take?: number) => listConferences({ functions: { has: fn } }, take)
+/** Conferences tagged for the function, plus those with no function tag whose roles point to it (function-inference.ts). */
+export async function conferencesForFunction(fn: string, take?: number): Promise<ConfList> {
+  const inferred = (await getCatalogIndex()).filter((c) => c.ownFunctions.length === 0 && inferFunctions(c.roles).includes(fn)).map((c) => c.id)
+  return listConferences({ OR: [{ functions: { has: fn } }, ...(inferred.length ? [{ id: { in: inferred } }] : [])] }, take)
+}
 export const conferencesForOrganizer = (organizers: string[]) => listConferences({ organizer: { in: organizers } }, 100)
 
 /** Every published conference's slug inputs, for the sitemap, the hub and association grouping. */
@@ -227,7 +234,7 @@ async function loadCatalogIndex() {
       speaking: true, speakingDeadline: true, seniorities: true, roles: true, programFormats: true, whyAttend: true, cheaperWays: true, verified: true, checkedAt: true,
     },
   })
-  return rows.map((r) => ({ ...r, updatedAt: r.updatedAt.toISOString(), startDate: r.startDate?.toISOString() ?? null, speakingDeadline: r.speakingDeadline?.toISOString() ?? null, checkedAt: r.checkedAt?.toISOString() ?? null }))
+  return rows.map((r) => ({ ...r, ownFunctions: r.functions, functions: effectiveFunctions(r), updatedAt: r.updatedAt.toISOString(), startDate: r.startDate?.toISOString() ?? null, speakingDeadline: r.speakingDeadline?.toISOString() ?? null, checkedAt: r.checkedAt?.toISOString() ?? null }))
 }
 const cachedCatalog = unstable_cache(loadCatalogIndex, ['topic-conference-index-v2'], { revalidate: 3600 })
 export const getCatalogIndex = cache(() => cachedCatalog())
@@ -283,7 +290,7 @@ export async function getConference(id: string): Promise<ConferenceDetail | null
       select: { id: true, type: true, title: true, url: true, opensAt: true, deadline: true, eligibility: true, notes: true },
     }),
     // The table is applied by hand (prisma/manual/conference-employers.sql); a deploy that lands first must not 500.
-    prisma.conferenceEmployer.findMany({ where: { seriesId: id }, orderBy: [{ role: 'asc' }, { name: 'asc' }], take: 200, select: { name: true, role: true, year: true, sourceUrl: true } }).catch(() => []),
+    employersForConference(id),
     getAssociations().catch(() => [] as Association[]),
     conf.industries.length
       ? prisma.conferenceEvent.findMany({ where: { published: true, id: { not: id }, industries: { hasSome: conf.industries } }, orderBy: [{ importance: 'asc' }], take: 120 })

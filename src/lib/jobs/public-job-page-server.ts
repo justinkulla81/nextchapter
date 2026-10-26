@@ -1,6 +1,7 @@
 import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { retryOnPoolTimeout } from '@/lib/db/heavy'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import {
   PUBLIC_JOB_GHOST_AGE_DAYS,
@@ -55,8 +56,8 @@ export const PUBLIC_JOB_SELECT = {
 export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
   if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
   const [job, ghosts] = await Promise.all([
-    prisma.exclusiveJobPosting.findUnique({ where: { id }, select: PUBLIC_JOB_SELECT }),
-    getConfirmedGhostIds(),
+    retryOnPoolTimeout(() => prisma.exclusiveJobPosting.findUnique({ where: { id }, select: PUBLIC_JOB_SELECT })),
+    retryOnPoolTimeout(() => getConfirmedGhostIds()),
   ])
   if (!job || !isPublicJob(job, Date.now(), ghosts.has(job.id))) return null
   return job

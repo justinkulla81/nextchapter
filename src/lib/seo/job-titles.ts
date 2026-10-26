@@ -1,4 +1,5 @@
 import 'server-only'
+import { heavy } from '@/lib/db/heavy'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -30,22 +31,6 @@ const PAY = Prisma.sql`CASE
   WHEN "payPeriod" = 'year' AND "salaryMin" BETWEEN 25000 AND 1500000 AND COALESCE("salaryMax", "salaryMin") BETWEEN "salaryMin" AND "salaryMin" * 3 THEN ("salaryMin" + COALESCE("salaryMax", "salaryMin")) / 2.0
   WHEN "payPeriod" = 'hour' AND "salaryMin" * 2080 BETWEEN 25000 AND 400000 AND COALESCE("salaryMax", "salaryMin") BETWEEN "salaryMin" AND "salaryMin" * 3 THEN ("salaryMin" + COALESCE("salaryMax", "salaryMin")) / 2.0 * 2080
   ELSE NULL END`
-
-// The scans below read tens of thousands of rows. A crawl asks for many pages at once, so at most MAX_SCANS run per server
-// instance; the rest wait their turn instead of taking every database connection from the pages that need one.
-const MAX_SCANS = 2
-let running = 0
-const waiting: (() => void)[] = []
-async function limited<T>(run: () => Promise<T>): Promise<T> {
-  if (running >= MAX_SCANS) await new Promise<void>((resolve) => waiting.push(resolve))
-  running++
-  try {
-    return await run()
-  } finally {
-    running--
-    waiting.shift()?.()
-  }
-}
 
 export interface TitleStat {
   slug: string
@@ -82,7 +67,7 @@ async function loadTitleIndex(): Promise<TitleStat[]> {
   return out
 }
 
-const cachedIndex = unstable_cache(() => limited(loadTitleIndex), ['job-title-index-v1'], { revalidate: 21600 })
+const cachedIndex = unstable_cache(() => heavy(loadTitleIndex), ['job-title-index-v1'], { revalidate: 21600 })
 
 /** Every title with enough open listings for a page, most listings first. */
 export async function getTitleIndex(): Promise<TitleStat[]> {
@@ -133,7 +118,7 @@ async function loadDetail(slug: string): Promise<TitleDetail | null> {
   const stat = index.find((t) => t.slug === slug)
   if (!stat) return null
   // One scan of this title's open listings (a few thousand rows at most); states, employers and the newest jobs come from it.
-  const rows = await limited(() => prisma.$queryRaw<{ id: string; state: string | null; company: string; posted: Date | null; pay: number | null }[]>`
+  const rows = await heavy(() => prisma.$queryRaw<{ id: string; state: string | null; company: string; posted: Date | null; pay: number | null }[]>`
     SELECT id, "locationState" AS state, "companyName" AS company, COALESCE("postedAt", "createdAt") AS posted, ${PAY} AS pay
     FROM "ExclusiveJobPosting" WHERE ${PUBLIC} AND ${BASE} = ${stat.base} ORDER BY COALESCE("postedAt", "createdAt") DESC LIMIT 5000`)
   const jobs = await rowsToJobs(rows.slice(0, 60).map((r) => r.id), 15)
@@ -187,7 +172,7 @@ async function loadType(slug: string): Promise<JobTypeDetail | null> {
   if (!type) return null
   // One scan of this type's open listings (tens of thousands of light rows); everything shown comes from it.
   const [rows, index] = await Promise.all([
-    limited(() => prisma.$queryRaw<{ id: string; state: string | null; base: string; pay: number | null }[]>`
+    heavy(() => prisma.$queryRaw<{ id: string; state: string | null; base: string; pay: number | null }[]>`
       SELECT id, "locationState" AS state, ${BASE} AS base, ${PAY} AS pay
       FROM "ExclusiveJobPosting" WHERE ${PUBLIC} AND ${type.sql} ORDER BY COALESCE("postedAt", "createdAt") DESC LIMIT 60000`),
     getTitleIndex(),
