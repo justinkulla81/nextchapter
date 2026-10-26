@@ -15,12 +15,15 @@ export function NoticeTable({
   showState = false,
   linkEmployer = false,
   page,
+  placeHref,
 }: {
   notices: PublicNotice[]
   caption: string
   showState?: boolean
   linkEmployer?: boolean
   page: 'state' | 'company'
+  /** Link for a notice's city or county, when that place has its own page. */
+  placeHref?: (place: string | null) => string | null
 }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-white">
@@ -54,7 +57,7 @@ export function NoticeTable({
                 )}
               </th>
               {showState && <td className="px-4 py-3 whitespace-nowrap">{stateName(n.state)}</td>}
-              <td className="px-4 py-3">{n.place ?? '—'}</td>
+              <td className="px-4 py-3">{(() => { const h = placeHref?.(n.place); return h && n.place ? <Link href={h} className="hover:text-brand hover:underline">{n.place}</Link> : (n.place ?? '—') })()}</td>
               <td className="px-4 py-3 text-right tabular-nums">{n.workers != null ? n.workers.toLocaleString() : '—'}</td>
               <td className="px-4 py-3">{n.type ?? '—'}</td>
               <td className="px-4 py-3 whitespace-nowrap">
