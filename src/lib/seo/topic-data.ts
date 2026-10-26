@@ -360,9 +360,23 @@ export { INDUSTRIES, bucketFromIndustryText }
 
 // ---- quality gate over the whole catalog ----------------------------------------------------------------
 
+/** Rows of employers and named speakers per conference, for the quality bar. A failed read throws so nothing is cached; the caller falls back to catalog facts only. */
+async function loadConferenceExtras(): Promise<[string, { employers: number; speakers: number }][]> {
+  const [emp, spk] = await Promise.all([
+    prisma.conferenceEmployer.groupBy({ by: ['seriesId'], _count: { _all: true } }),
+    prisma.conferenceSpeaker.groupBy({ by: ['seriesId'], _count: { _all: true } }),
+  ])
+  const m = new Map<string, { employers: number; speakers: number }>()
+  for (const r of emp) m.set(r.seriesId, { employers: r._count._all, speakers: m.get(r.seriesId)?.speakers ?? 0 })
+  for (const r of spk) m.set(r.seriesId, { employers: m.get(r.seriesId)?.employers ?? 0, speakers: r._count._all })
+  return [...m]
+}
+const cachedConferenceExtras = unstable_cache(loadConferenceExtras, ['conference-extras-v1'], { revalidate: 3600 })
+
 /** id -> assessment for every published conference, from the rows alone (no per-page queries), so the sitemap and the page agree. */
 export const getConferenceAssessments = cache(async (): Promise<Map<string, Assessment>> => {
-  const [catalog, associations] = await Promise.all([getCatalogIndex(), getAssociations()])
+  const [catalog, associations, extras] = await Promise.all([getCatalogIndex(), getAssociations(), cachedConferenceExtras().catch(() => [] as [string, { employers: number; speakers: number }][])])
+  const extraById = new Map(extras)
   const assocSlugs = new Set(associations.map((a) => a.slug))
   const perIndustry = new Map<string, number>()
   for (const c of catalog) for (const i of c.industries) perIndustry.set(i, (perIndustry.get(i) ?? 0) + 1)
@@ -370,7 +384,7 @@ export const getConferenceAssessments = cache(async (): Promise<Map<string, Asse
   for (const c of catalog) {
     const related = c.industries.length ? Math.max(0, ...c.industries.map((i) => (perIndustry.get(i) ?? 1) - 1)) : 0
     const hasAssoc = !!c.organizer && assocSlugs.has(associationSlug(c.organizer))
-    out.set(c.id, assessConference(c, hasAssoc, related))
+    out.set(c.id, assessConference(c, hasAssoc, related, extraById.get(c.id)))
   }
   return out
 })
