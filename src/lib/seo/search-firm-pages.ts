@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
-import { unstable_cache } from 'next/cache'
+import { memoTtl } from '@/lib/db/heavy'
+import { persisted, storeNow } from '@/lib/seo/topic-snapshot'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
@@ -139,7 +140,7 @@ interface HitRow {
  * Every firm with at least SEARCH_FIRM_MIN_PUBLIC_ROLES public searches — the same rule as the page's `indexable`, in SQL.
  * One pass over the firms' postings (the allowlist from public-job-page-server.ts), grouped here. Cached for 6 hours.
  */
-async function loadFirmListings(): Promise<FirmListing[]> {
+export async function loadFirmListings(): Promise<FirmListing[]> {
   const hits = await prisma.$queryRaw<HitRow[]>`
     WITH firms AS (
       SELECT o.id AS oid, o."canonicalNameNormalized" AS canon, o.name AS fname, f.name AS fname2, o."companyId" AS cid,
@@ -149,15 +150,20 @@ async function loadFirmListings(): Promise<FirmListing[]> {
       LEFT JOIN "Company" c ON c.id = o."companyId"
       WHERE o."orgTypes" && ARRAY['SEARCH_FIRM', 'OUTPLACEMENT_FIRM']::"CrmOrgType"[] OR f.id IS NOT NULL OR c.industry = ${STAFFING_INDUSTRY}
     ),
+    -- Postings that name a search firm as their source, read once (the allowlist's partial index narrows it), then matched to
+    -- firms by name. Joining firm by firm made the planner re-scan the board for every firm.
+    sf AS (
+      SELECT "ExclusiveJobPosting".id AS jid, "sourceName" AS sname, "targetFunction" AS fn, "locationState" AS state, "lastVerifiedAt" AS verified
+      FROM "ExclusiveJobPosting"
+      WHERE "sourceCategory" = 'search_firm' AND ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}
+    ),
     hits AS (
       SELECT fm.oid, "ExclusiveJobPosting".id AS jid, "targetFunction" AS fn, "locationState" AS state, "lastVerifiedAt" AS verified
       FROM firms fm JOIN "ExclusiveJobPosting" ON "ExclusiveJobPosting"."companyId" = fm.cid
       WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}
       UNION
-      SELECT fm.oid, "ExclusiveJobPosting".id AS jid, "targetFunction" AS fn, "locationState" AS state, "lastVerifiedAt" AS verified
-      FROM firms fm JOIN "ExclusiveJobPosting" ON "ExclusiveJobPosting"."sourceCategory" = 'search_firm'
-        AND "ExclusiveJobPosting"."sourceName" IN (fm.fname, fm.fname2)
-      WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}
+      SELECT fm.oid, sf.jid, sf.fn, sf.state, sf.verified
+      FROM firms fm JOIN sf ON sf.sname = fm.fname OR sf.sname = fm.fname2
     )
     SELECT fm.oid, fm.canon, fm.fname AS name, fm.segment, COALESCE(fm.staffing, false) AS staffing, fm.types, h.fn, h.state, h.verified, h.jid AS "jobId"
     FROM hits h JOIN firms fm ON fm.oid = h.oid`
@@ -189,11 +195,23 @@ async function loadFirmListings(): Promise<FirmListing[]> {
 /** The cache stores JSON, so the date comes back as an ISO string. */
 export type CachedFirmListing = Omit<FirmListing, 'lastVerifiedAt'> & { lastVerifiedAt: string }
 
-export const getFirmListings: () => Promise<CachedFirmListing[]> = unstable_cache(
-  async (): Promise<CachedFirmListing[]> => (await loadFirmListings()).map((f) => ({ ...f, lastVerifiedAt: f.lastVerifiedAt.toISOString() })),
-  ['search-firm-listings-v1'],
-  { revalidate: 21_600 },
-)
+const FIRMS_KEY = 'firms:v2'
+const FIRMS_MAX_AGE_MS = 24 * 3600_000
+const toCached = async (): Promise<CachedFirmListing[]> => (await loadFirmListings()).map((f) => ({ ...f, lastVerifiedAt: f.lastVerifiedAt.toISOString() }))
+
+/**
+ * The firm list for the hub, the sitemap and llms.txt. Read from a stored row (TopicSnapshot); the scan runs from the
+ * topic-snapshots cron and, for a stale row, after a response, never in front of a visitor. A failed scan stores nothing.
+ */
+export const getFirmListings: () => Promise<CachedFirmListing[]> = memoTtl(5 * 60_000, () => 'firms', () => persisted(FIRMS_KEY, FIRMS_MAX_AGE_MS, toCached))
+
+/** Cron entry: recompute the stored list when it is more than a day old (or missing). */
+export async function refreshFirmListings(): Promise<boolean> {
+  const row = await prisma.topicSnapshot.findUnique({ where: { key: FIRMS_KEY }, select: { updatedAt: true } }).catch(() => null)
+  if (row && Date.now() - row.updatedAt.getTime() < FIRMS_MAX_AGE_MS) return false
+  await storeNow(FIRMS_KEY, toCached)
+  return true
+}
 
 export async function countSearchFirmPages(): Promise<number> {
   return (await getFirmListings()).length
