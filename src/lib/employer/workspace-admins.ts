@@ -6,7 +6,7 @@ import { isSectionRole, lastAdminBlock } from '@/lib/employer/section-roles'
 import { sectionForWorkspaceType } from '@/lib/employer/sections'
 
 // Managing who runs a section through the new OrgWorkspaceAdmin table. Every change here carries the same last-admin rule
-// as outplacement's removeOrgUser (src/lib/employer/section-roles.ts lastAdminBlock): never yourself, never the last active
+// as outplacement's removeOrgUser (src/lib/employer/section-roles.ts lastAdminBlock): never yourself, never the last
 // admin of the workspace. Only an ADMIN of the same workspace may change it. Staff use it from the organization page
 // (`staff: true`); the Team pages of Hiring and Employees will call it as the section's own admin.
 
@@ -48,7 +48,7 @@ async function load(db: Db, actor: WorkspaceActor, adminId: string): Promise<{ t
     select: { id: true },
   })
   if (!isAdmin && !actor.staff) return { error: 'Only an admin of this section can do this.' }
-  const activeAdmins = await db.orgWorkspaceAdmin.count({ where: { workspaceId: target.workspaceId, role: 'ADMIN', userId: { not: null } } })
+  const activeAdmins = await db.orgWorkspaceAdmin.count({ where: { workspaceId: target.workspaceId, role: 'ADMIN' } })
   return { target, activeAdmins }
 }
 
@@ -56,7 +56,7 @@ export async function removeWorkspaceAdmin(actor: WorkspaceActor, adminId: strin
   const loaded = await load(db, actor, adminId)
   if ('error' in loaded) return loaded
   const { target, activeAdmins } = loaded
-  const blocked = lastAdminBlock(actor.userId, { userId: target.userId, role: target.role, active: !!target.userId }, activeAdmins, 'remove')
+  const blocked = lastAdminBlock(actor.userId, { userId: target.userId, role: target.role, active: true }, activeAdmins, 'remove')
   if (blocked) return { error: blocked }
   await db.orgWorkspaceAdmin.delete({ where: { id: target.id } })
   if (actor.staff) return { detail: { workspaceId: target.workspaceId, section: sectionForWorkspaceType(target.workspace.type)?.key ?? null, adminId: target.id, role: target.role, pending: !target.userId, email: target.email } }
@@ -74,7 +74,7 @@ export async function setWorkspaceAdminRole(actor: WorkspaceActor, adminId: stri
   if (role === target.role) return actor.staff ? { detail: { workspaceId: target.workspaceId, section: section.key, adminId: target.id, role, from: role, to: role, pending: !target.userId, email: target.email } } : {}
   // Taking ADMIN away is held to the same rule as removing the person.
   if (target.role === 'ADMIN' && role !== 'ADMIN') {
-    const blocked = lastAdminBlock(actor.userId, { userId: target.userId, role: target.role, active: !!target.userId }, activeAdmins, 'change_role')
+    const blocked = lastAdminBlock(actor.userId, { userId: target.userId, role: target.role, active: true }, activeAdmins, 'change_role')
     if (blocked) return { error: blocked }
   }
   await db.orgWorkspaceAdmin.update({ where: { id: target.id }, data: { role } })

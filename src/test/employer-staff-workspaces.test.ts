@@ -229,7 +229,7 @@ describe('team: add, change role, remove', () => {
     expect(capture).not.toHaveBeenCalled()
     expect(db.partnerAuditEvent.create).not.toHaveBeenCalled()
   })
-  it('allows removing an admin when another active admin remains, and removes a pending one freely', async () => {
+  it('allows removing an admin when another admin remains, and removes a pending one when another admin remains', async () => {
     db.orgWorkspaceAdmin.findUnique.mockResolvedValue({ id: 'a1', workspaceId: 'w1', role: 'ADMIN', userId: 'u2', email: 'two@acme.com', workspace: { type: 'HIRING', id: 'w1', orgId: 'o1', refId: null } })
     db.orgWorkspaceAdmin.count.mockResolvedValue(2)
     const r = await actions.removeSectionAdminAction('a1')
@@ -239,8 +239,11 @@ describe('team: add, change role, remove', () => {
     // The audit entry lands under the workspace id (not linked), read before the row was deleted.
     expect(db.partnerAuditEvent.create.mock.calls[0][0].data).toMatchObject({ action: 'workspace_team.removed', refId: 'w1' })
     db.orgWorkspaceAdmin.findUnique.mockResolvedValue({ id: 'a2', workspaceId: 'w1', role: 'ADMIN', userId: null, email: 'wait@acme.com', workspace: { type: 'HIRING', id: 'w1', orgId: 'o1', refId: null } })
-    db.orgWorkspaceAdmin.count.mockResolvedValue(1)
+    db.orgWorkspaceAdmin.count.mockResolvedValue(2)
     expect((await actions.removeSectionAdminAction('a2')).error).toBeUndefined()
+    // A sole admin who has not signed in yet is still the last admin: removing them would leave the section with none.
+    db.orgWorkspaceAdmin.count.mockResolvedValue(1)
+    expect((await actions.removeSectionAdminAction('a2')).error).toMatch(/only active admin/)
   })
   it('still never lets the staff member remove or demote their own admin row', async () => {
     db.orgWorkspaceAdmin.findUnique.mockResolvedValue({ id: 'a1', workspaceId: 'w1', role: 'ADMIN', userId: STAFF.id, email: 'staff@nextchapter.test', workspace: { type: 'HIRING', id: 'w1', orgId: 'o1', refId: null } })
