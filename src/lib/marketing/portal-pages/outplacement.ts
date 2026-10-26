@@ -89,6 +89,7 @@ export const OUTPLACEMENT: PortalPageDef = {
         a: 'On https://launchyournextchapter.com/security, which includes our current SOC 2 status.',
       },
     ],
+    asset: 'outplacement-rfp-kit',
     finalCta: {
       title: 'Talk to us about outplacement',
       intro: 'Tell us about the reduction you are planning or the program you run. We will show the reporting and the compliance record on your own seat count.',

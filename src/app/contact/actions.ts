@@ -18,7 +18,12 @@ const AUDIENCES = new Set<ContactAudience>(['CANDIDATE', 'ORGANIZATION', 'COACH_
 const MAX_PER_HOUR_PER_IP = 5
 // Forms on other pages that post here. An allowlist: the value is stored
 // and shown to admins, so it is never whatever the browser sent.
-const SOURCES = new Set(['why-stuck', 'about', 'recruiters', 'organizations'])
+// Every partner page's "Talk to us" form names itself here (the values in src/lib/marketing/portal-pages/*.ts); any not
+// listed was stored as no source at all, so the admin funnel could not tell which page a message came from.
+const SOURCES = new Set([
+  'why-stuck', 'about', 'recruiters', 'organizations',
+  'employers', 'talent', 'outplacement', 'employees', 'higher-education', 'government-workforce', 'nonprofits', 'coaches',
+])
 
 export async function submitContactForm(_prev: ContactFormState, formData: FormData): Promise<ContactFormState> {
   const text = (k: string, max: number) => ((formData.get(k) as string | null) ?? '').trim().slice(0, max)

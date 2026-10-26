@@ -1,6 +1,7 @@
 import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { B2bAssetBox } from '@/components/marketing/B2bAssetBox'
 import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getStatesWithBoards } from '@/lib/seo/workforce-pages'
@@ -30,6 +31,10 @@ export default async function WorkforceHubPage() {
           ))}
         </ul>
       </section>
+      <section aria-label="Free demo" className="mt-10">
+        <B2bAssetBox assetKey="workforce-demo" page="workforce_hub" />
+      </section>
+
       <ActionBand
         title="Run a workforce board?"
         body="Claim your board’s page and set up a free workspace. Use a work email at your organization’s domain."

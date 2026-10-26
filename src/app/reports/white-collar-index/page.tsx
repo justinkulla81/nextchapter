@@ -7,6 +7,7 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { SITE_URL, latestReport } from '@/lib/reports'
 import { AuthorByline } from '@/components/seo/AuthorByline'
+import { ShareBar } from '@/components/marketing/ShareBar'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { readWcIndex, wcIndexSummary, monthLabel, monthShort, type WcIndexPoint } from '@/lib/reports-wc-index'
 import { titleMeta } from '@/lib/seo/title'
@@ -227,6 +228,7 @@ export default function WhiteCollarIndexPage() {
         <p className="mt-3 max-w-2xl text-lg text-foreground">{LEAD}</p>
         {/* The index is refreshed with each monthly edition. */}
         {latestReport() && <AuthorByline updated={latestReport()!.publishedAt} />}
+        <div className="mt-4"><ShareBar url={`${SITE_URL}/reports/${SLUG}`} title="NextChapter White-Collar Long-Search Index" placement="report_index" label="Send this to someone" /></div>
 
         {/* Latest value + year change */}
         <div className="mt-6 flex flex-wrap items-end gap-x-10 gap-y-4">

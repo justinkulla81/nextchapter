@@ -33,6 +33,20 @@ export interface FunnelData {
   leadsBySource: { source: string; count: number }[]
   landing: { path: string; visitors: number; leadsSameSource: number }[]
   offers: OfferRow[]
+  b2b: B2bRow[]
+}
+
+export interface B2bRow {
+  key: string
+  label: string
+  /** Where the audience lands, in words. */
+  where: string
+  /** Distinct visitors to those pages. */
+  reached: number
+  /** People or organizations who raised a hand, summed over the forms below. */
+  raisedHand: number
+  /** The forms that count, so the number is never read as something else. */
+  counts: string
 }
 
 export interface OfferRow {
@@ -84,6 +98,34 @@ function reachedByPath(since: Date, pathRegex: string): Promise<number> {
     SELECT COUNT(DISTINCT "ip")::bigint AS n FROM "HomepageVisitEvent"
     WHERE "eventType" = 'PAGE_VIEW' AND "ip" IS NOT NULL AND "path" ~ ${pathRegex}
       AND "createdAt" >= ${since} AND ${humanOnly()}`)
+}
+
+async function computeB2b(since: Date): Promise<B2bRow[]> {
+  const win = { createdAt: { gte: since } }
+  const contacts = (sources: string[]) => prisma.contactSubmission.count({ where: { ...win, source: { in: sources } } })
+  const [rEmp, rGov, rHigher, rRec, rOrg, cEmp, cGov, cHigher, cRec, cOrg, waitlist, demos, claims, recruiters] = await Promise.all([
+    reachedByPath(since, '^/((employers|talent|employees)/?(\\?.*)?$|outplacement)'),
+    reachedByPath(since, '^/(government-workforce|workforce-boards|rapid-response|job-centers/?(\\?.*)?$|economic-development/?(\\?.*)?$)'),
+    reachedByPath(since, '^/higher-education/?(\\?.*)?$'),
+    reachedByPath(since, '^/(recruiters|in/|search-firms/?(\\?.*)?$)'),
+    reachedByPath(since, '^/(for-organizations|nonprofits/?(\\?.*)?$|coaches)'),
+    contacts(['employers', 'talent', 'outplacement', 'employees', 'asset:outplacement-rfp-kit']),
+    contacts(['government-workforce', 'asset:workforce-demo']),
+    contacts(['higher-education']),
+    contacts(['recruiters']),
+    contacts(['organizations', 'nonprofits', 'coaches']),
+    prisma.waitlistSignup.count({ where: { ...win, audience: 'Employer' } }),
+    prisma.institution.count({ where: { ...win, isDemo: true, orgType: { not: 'COLLEGE' } } }),
+    prisma.orgClaim.count({ where: win }),
+    prisma.recruiter.count({ where: win }),
+  ])
+  return [
+    { key: 'employers', label: 'Employers and HR', where: '/employers, /outplacement, /talent, /employees', reached: rEmp, raisedHand: cEmp + waitlist, counts: 'contact messages and template requests, employer waitlist (employer accounts are left out: 12 were created in two days in October, not by visitors)' },
+    { key: 'workforce', label: 'Workforce boards and government', where: '/government-workforce, /workforce-boards/*, rapid response, job centers', reached: rGov, raisedHand: cGov + demos + claims, counts: 'contact messages, demos built, page claims' },
+    { key: 'higher', label: 'Higher education', where: '/higher-education', reached: rHigher, raisedHand: cHigher, counts: 'contact messages (page claims are in the workforce row)' },
+    { key: 'recruiters', label: 'Recruiters and search firms', where: '/recruiters, /search-firms', reached: rRec, raisedHand: cRec + recruiters, counts: 'contact messages, new recruiter accounts' },
+    { key: 'orgs', label: 'Other organizations', where: '/for-organizations, /nonprofits, /coaches', reached: rOrg, raisedHand: cOrg, counts: 'contact messages' },
+  ]
 }
 
 async function computeOffers(since: Date, registered: number): Promise<OfferRow[]> {
@@ -211,7 +253,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
     prisma.candidateProfile.count({ where: { ...registeredWhere, hireOutcomes: { some: {} } } }),
   ])
 
-  const offers = await computeOffers(since, registered)
+  const [offers, b2b] = await Promise.all([computeOffers(since, registered), computeB2b(since)])
 
   const landing = landingRows.map((r) => ({
     path: r.path,
@@ -246,6 +288,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
       .slice(0, 15),
     landing,
     offers,
+    b2b,
   }
 }
 

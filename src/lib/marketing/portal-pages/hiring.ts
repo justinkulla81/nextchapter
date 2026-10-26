@@ -83,6 +83,7 @@ export const HIRING: PortalPageDef = {
         a: 'Yes, with seats on the Hiring team plan. Each person sees what the candidate chose to share. Talk to us to set it up.',
       },
     ],
+    asset: 'outplacement-rfp-kit',
     finalCta: {
       title: 'Post a role',
       intro: 'Create an account and describe a role. Questions about the Hiring team plan: send us a message.',
