@@ -9,6 +9,7 @@ import { AUTHORS } from '@/lib/seo/authors'
 import { SITE_URL } from '@/lib/seo/facts'
 import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
+import { STATE_NAMES } from '@/lib/workforce/places'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
@@ -16,7 +17,10 @@ import { TOPICS } from '@/lib/seo/explainers'
 import { ASSOCIATION_MIN_CONFERENCES, INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
-import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
+import { boardSlugs } from '@/lib/seo/workforce-pages'
+import { visibleBoards } from '@/lib/workforce/board-area'
+import { getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
+import { prisma } from '@/lib/prisma'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
 export const revalidate = 3600
@@ -83,24 +87,54 @@ const REPLICATION_UPDATED = '2026-10-07'
 // The board and college directories are refreshed from CareerOneStop and IPEDS about monthly.
 const DIRECTORY_UPDATED = '2026-10-25'
 
+// Two queries for every state (all boards, and which states have colleges), not one pair per state: this loader
+// ran fifty-odd concurrent reads beside the topic and nonprofit loaders and, failing quietly, dropped every
+// workforce, rapid-response and higher-education page from the sitemap.
 async function loadSeoStatePages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
   try {
-    const states = await getStatesWithBoards()
+    const [rows, collegeStates] = await Promise.all([
+      prisma.workforceBoard.findMany({ select: { id: true, state: true, name: true, statewide: true }, orderBy: { name: 'asc' } }),
+      prisma.localCollege.groupBy({ by: ['state'], where: { sector: { in: [1, 2, 4, 5] } }, _count: { _all: true } }),
+    ])
     // A board page below the content bar (src/lib/seo/org-page-rules.ts) is noindex, so it stays out of the sitemap.
     const indexableBoards = new Set((await cachedIndexableOrgPages('WORKFORCE_BOARD').catch(() => null))?.map((p) => p.path))
-    return await Promise.all(
-      states.map(async (s) => {
-        const slug = stateSlug(s.state)
-        const [boards, colleges] = await Promise.all([getStateBoards(s.state), getStateColleges(s.state)])
+    const hasColleges = new Set(collegeStates.map((c) => c.state))
+    const byState = new Map<string, typeof rows>()
+    for (const r of rows) byState.set(r.state, [...(byState.get(r.state) ?? []), r])
+    return [...byState.entries()]
+      .filter(([state]) => state in STATE_NAMES)
+      .map(([state, all]) => {
+        const slug = stateSlug(state)
+        const boards = visibleBoards(all)
+        const slugs = boardSlugs(boards)
         return [
           entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
           entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
-          ...(colleges.length ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
-          ...boards.filter((b) => indexableBoards.size === 0 || indexableBoards.has(`/workforce-boards/${slug}/${b.slug}`)).map((b) => entry(`/workforce-boards/${slug}/${b.slug}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
+          ...(hasColleges.has(state) ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
+          ...boards.filter((b) => indexableBoards.size === 0 || indexableBoards.has(`/workforce-boards/${slug}/${slugs.get(b.id)}`)).map((b) => entry(`/workforce-boards/${slug}/${slugs.get(b.id)}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
         ]
-      }),
-    )
-  } catch {
+      })
+  } catch (e) {
+    console.error('sitemap: workforce state pages left out', e)
+    return []
+  }
+}
+
+// Nonprofit pages (IRS records, $1 million or more in revenue) and economic development pages by state.
+async function loadNonprofitPages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
+  try {
+    const [counts, orgs, edo] = await Promise.all([
+      getStateNonprofitCounts(),
+      nonprofitsForSitemap(),
+      prisma.localPartnerOrg.groupBy({ by: ['state'], where: { OR: [{ confidence: null }, { confidence: { not: 'low' } }] }, _count: { _all: true } }),
+    ])
+    return [
+      ...counts.filter((c) => c.state in STATE_NAMES).map((c) => entry(`/nonprofits/${stateSlug(c.state)}`, DIRECTORY_UPDATED, 'monthly', 0.5)),
+      ...orgs.filter((o) => o.state in STATE_NAMES).map((o) => entry(`/nonprofits/${stateSlug(o.state)}/${o.slug}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
+      ...edo.filter((e) => e.state in STATE_NAMES).map((e) => entry(`/economic-development/${stateSlug(e.state)}`, DIRECTORY_UPDATED, 'monthly', 0.5)),
+    ]
+  } catch (e) {
+    console.error('sitemap: nonprofit and economic development pages left out', e)
     return []
   }
 }
@@ -169,7 +203,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   })
 
-  const [seoStatePages, topicPages] = await Promise.all([loadSeoStatePages(entry), loadTopicPages(entry)])
+  const [stateAndWorkforcePages, topicPages, nonprofitPages] = await Promise.all([loadSeoStatePages(entry), loadTopicPages(entry), loadNonprofitPages(entry)])
+  const seoStatePages = [...stateAndWorkforcePages, nonprofitPages]
 
   return [
     // The homepage shows the latest News, so it changes when News does.
@@ -230,6 +265,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/workforce-boards', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/rapid-response', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/tools/warn-act-checker', DIRECTORY_UPDATED, 'yearly', 0.6),
+    entry('/economic-development', DIRECTORY_UPDATED, 'monthly', 0.6),
     ...seoStatePages.flatMap((p) => p),
 
     // Industry, function, conference and association pages.

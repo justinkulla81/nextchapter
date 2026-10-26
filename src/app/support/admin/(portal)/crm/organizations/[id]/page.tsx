@@ -32,6 +32,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { CrmHiringClient } from '@/components/admin/CrmHiringClient'
 import { MANDATE_STATUS_LABELS } from '@/lib/crm/mandates'
 import { Suspense } from 'react'
+import { publicPageForOrg } from '@/lib/seo/public-page-for-org'
 import { CompanyHiringIndex, CompanyHiringIndexSkeleton } from '@/components/companies/CompanyHiringIndex'
 
 export const maxDuration = 30
@@ -65,6 +66,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
   if (!org) notFound()
   const id = org.id
   const slug = orgSlug(org.canonicalNameNormalized)
+  const publicPage = await publicPageForOrg(org).catch(() => null)
   const firmPublicPath = searchFirmPublicPath({ canonicalNameNormalized: org.canonicalNameNormalized, orgTypes: org.orgTypes, hasSearchFirm: org.searchFirms.length > 0, companyIndustry: org.company?.industry ?? null })
   if (slug && param !== slug) redirect(`/support/admin/crm/organizations/${slug}`)
   // Open federal grants this organization could apply for. The table is applied
@@ -197,6 +199,12 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             ))}
             {org.hqRegion && <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{org.hqRegion}</span>}
           </div>
+          {publicPage && (
+            <p className="mt-2 text-sm">
+              <a href={publicPage.url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-4">{publicPage.label}</a>
+              {!publicPage.indexed && <span className="ml-2 text-xs text-muted-foreground">not offered to search engines yet</span>}
+            </p>
+          )}
           <CrmHiringClient orgId={org.id} value={org.hiringClient} />
           {org.focus && <p className="mt-3 max-w-prose text-sm text-muted-foreground">{org.focus}</p>}
         </div>

@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-114 clusters, 690 phrases.
+118 clusters, 718 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -50,10 +50,10 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/why-stuck` | page | why your job search isn’t working | Why is my search not working | why cant i find a job; not getting interviews; applications going nowhere; ghosted after applying; ats rejection; hard to find a job right now |
 | `/start/searching-too-long` | page | job search taking too long | Search has dragged on for months | been looking for a job for months; long-term unemployed; job search stalled; unemployed for a year |
 | `/resources/gatekeeper` | page | getting past ATS screens and recruiters | Get past recruiters and resume screening | applicant tracking system; ATS resume; resume screening; how recruiters screen resumes; get an interview; getting past the gatekeeper |
-| `/topics/resume-tips` | page | resume tips for experienced professionals | Write or fix a resume | resume review; resume help; resume after layoff; executive resume; resume writing; resume summary; how to write a resume |
+| `/topics/resume-tips` | page | resume tips for experienced professionals | Write or fix a resume | resume help; resume after layoff; executive resume; resume writing; resume summary; how to write a resume |
 | `/dossier` | page | executive dossier | Proof of work beyond a resume | professional portfolio; proof of work; verified references; career portfolio; resume alternative; candidate evidence |
 | `/membership` | page | membership between jobs | Keep a profile current between jobs | keep your dossier current; alumni membership; career maintenance |
-| `/resources/interview-prep` | page | interview prep | Prepare for interviews | how to prepare for an interview; interview questions; behavioral interview; phone screen; final round interview; executive interview |
+| `/resources/interview-prep` | page | interview prep | Prepare for interviews | how to prepare for an interview; behavioral interview; phone screen; final round interview; executive interview |
 | `/resources/post-interview` | page | follow up after an interview | What to do after an interview | thank you email after interview; interview thank you note; waiting to hear back; second interview follow up |
 | `/resources/offer-letter` | page | how to negotiate a job offer | Read and negotiate an offer | salary negotiation; offer letter; total compensation; negotiation script; job offer red flags; counteroffer |
 | `/resources/first-90-days` | page | first 90 days in a new job | Start well in a new job | new job first 90 days plan; starting a new role; onboarding yourself; first month at a new job |
@@ -105,6 +105,10 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/cover-letter-tips` | page | cover letter tips | Write a cover letter | cover letter for experienced professionals; cover letter after layoff; cover letter for career change; how long should a cover letter be; do I need a cover letter |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
 | `/topics/reverse-recruiter` | page | reverse recruiter | Have someone represent me to employers | reverse recruiting; reverse recruiting services; candidate marketing; job search representation; someone to find jobs for me; recruiter that works for the candidate |
+| `/topics/resume-review` | page | free resume review | Get my resume reviewed | resume review; resume feedback; review my resume; is my resume good; resume critique; ats resume checker |
+| `/topics/interview-questions-and-answers` | page | interview questions and answers | Answer common interview questions | interview questions; common interview questions; tell me about yourself; behavioral interview questions; what is your biggest weakness; questions to ask the interviewer |
+| `/topics/career-advice` | page | career advice | General career advice | career advice for professionals; career guidance; career help; career development advice; how to advance your career; when to change jobs |
+| `/topics/problems-at-work` | page | problems at work | Deal with a problem at work | work problems; difficult boss; bad boss; micromanager; toxic workplace; burnout at work; passed over for promotion; conflict with coworker |
 | `/submit-resume` | page | submit resume to recruiters | Put my resume in front of recruiters | send my resume to recruiters; get recruiters to find me; resume submission; recruiter introductions |
 | `/scam-watch` | page | fake recruiter scams | Is this recruiter or job offer fake | job scam; recruiter scam; fake job offer; is this recruiter real; linkedin recruiter scam; job offer scam email |
 | `/for-managers/give-a-reference` | page | give a reference for an employee you let go | Manager wants to give a reference after a layoff | reference for a former employee; write a reference after a layoff; manager reference; recommendation for a laid off employee |
@@ -549,6 +553,26 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Reverse Recruiter: What It Is and How It Compares
 - Description: A reverse recruiter represents the job seeker instead of the employer. What they do, how they charge, what to ask, and how it compares with recruiters and coaches.
+
+### `/topics/resume-review`
+
+- Title: Free Resume Review: What to Check and Where to Get One
+- Description: How to review your resume yourself in fifteen minutes, where to get a free outside review, and what a good review should tell you before you apply.
+
+### `/topics/interview-questions-and-answers`
+
+- Title: Common Interview Questions and How to Answer Them
+- Description: The interview questions experienced professionals get most, how to answer each in under two minutes, a structure for behavioral questions and what to ask back.
+
+### `/topics/career-advice`
+
+- Title: Career Advice for Experienced Professionals
+- Description: Practical career advice for experienced professionals: know your market, keep proof of your results current, stay connected and decide when to stay or move.
+
+### `/topics/problems-at-work`
+
+- Title: Problems at Work: Difficult Boss, Burnout, Passed Over
+- Description: What to do about a difficult boss, burnout, a micromanager or a missed promotion: document it, talk first, use the formal channel and line up options early.
 
 ### `/submit-resume`
 

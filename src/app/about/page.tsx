@@ -10,13 +10,14 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { COMPANY_LINKEDIN_URL, FOUNDER_LINKEDIN_URL } from '@/lib/contact/constants'
 import { FACTS } from '@/lib/seo/facts'
 import { organizationJsonLd, personJsonLd } from '@/lib/seo/jsonld'
+import { fitDescription } from '@/lib/seo/templates'
 
 const TITLE = 'About: the leading job transition platform'
 const DESCRIPTION = `${FACTS.name} is ${FACTS.tagline.charAt(0).toLowerCase()}${FACTS.tagline.slice(1)} Founded by ${FACTS.founder.name}, a serial education technology founder, operator and investor. MIT, Harvard, Carnegie Mellon.`
 
 export const metadata: Metadata = {
   title: TITLE,
-  description: DESCRIPTION,
+  description: fitDescription(DESCRIPTION),
   alternates: { canonical: '/about' },
   openGraph: { title: 'About NextChapter: the leading job transition platform', description: DESCRIPTION, url: 'https://launchyournextchapter.com/about' },
 }
