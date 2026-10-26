@@ -23,6 +23,13 @@ export interface CustomerUpdate {
 
 export const CUSTOMER_UPDATES: CustomerUpdate[] = [
   {
+    date: '2026-10-27',
+    audiences: ['employer', 'recruiter', 'coach', 'institution'],
+    title: 'Link to your free NextChapter page, or put our layoff and jobs widgets on your site',
+    summary: 'Your organization\'s public page now has a copy-paste link and badge for your own website. We also publish the layoff record as a free download and as embeddable widgets (layoff notices, open jobs, unemployment benefits) you can place on any page.',
+    href: 'https://launchyournextchapter.com/data/embed',
+  },
+  {
     date: '2026-10-25',
     audiences: ['employer', 'recruiter', 'coach', 'institution'],
     title: 'Reply to our emails and it lands in your conversation',

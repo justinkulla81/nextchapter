@@ -1,4 +1,5 @@
 import { LocalEventSection } from '@/components/events/LocalEventSection'
+import { LinkToUs } from '@/components/seo/LinkToUs'
 import { employerSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -240,6 +241,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         </section>
       )}
       <LocalEventSection id="local-events" title={`Job fairs and events with ${e.name}`} intro="Local hiring events and business events this employer sponsors or recruits at." scope={{ link: { kind: 'COMPANY', id: e.id } }} />
+      <LinkToUs path={path} name={e.name} kind="employer" />
     </SeoPage>
   )
 }

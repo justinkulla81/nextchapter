@@ -79,7 +79,8 @@ describe('security headers (next.config.ts)', () => {
   it('sends HSTS, CSP, frame, referrer and permissions headers on every path', async () => {
     const { default: config } = await import('../../next.config')
     const rules = await config.headers!()
-    const all = rules.find((r) => r.source === '/:path*')!
+    // Every path except /embed/*, which is built to be framed by other sites (next.config.ts).
+    const all = rules.find((r) => r.source === '/:path((?!embed/).*)')!
     const h = Object.fromEntries(all.headers.map((x) => [x.key.toLowerCase(), x.value]))
     expect(h['strict-transport-security']).toMatch(/max-age=\d{8,}; includeSubDomains/)
     expect(h['content-security-policy']).toContain("frame-ancestors 'self'")
@@ -88,5 +89,16 @@ describe('security headers (next.config.ts)', () => {
     expect(h['x-content-type-options']).toBe('nosniff')
     expect(h['referrer-policy']).toBe('strict-origin-when-cross-origin')
     expect(h['permissions-policy']).toContain('camera=()')
+  })
+  it('lets other sites frame only /embed/*, and keeps every other protection there', async () => {
+    const { default: config } = await import('../../next.config')
+    const rules = await config.headers!()
+    const embed = rules.find((r) => r.source === '/embed/:path*')!
+    const h = Object.fromEntries(embed.headers.map((x) => [x.key.toLowerCase(), x.value]))
+    expect(h['content-security-policy']).toContain('frame-ancestors *')
+    expect(h['content-security-policy']).toContain("object-src 'none'")
+    expect(h['x-frame-options']).toBeUndefined()
+    expect(h['x-content-type-options']).toBe('nosniff')
+    expect(h['strict-transport-security']).toBeDefined()
   })
 })

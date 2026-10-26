@@ -1,4 +1,5 @@
 import { fitDescription } from '@/lib/seo/templates'
+import { LinkToUs } from '@/components/seo/LinkToUs'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -279,6 +280,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
           <ConferenceList rows={related} total={related.length} source={`conference:${c.id}`} />
         </Section>
       )}
+      <LinkToUs path={path} name={c.name} kind="conference" />
       <JoinBand source={`conference:${c.id}`} what="the industries this event serves" />
     </TopicShell>
   )

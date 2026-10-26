@@ -8,7 +8,8 @@ import { getAssociations, sortConferences, type Conf } from '@/lib/seo/topic-dat
 
 export const revalidate = 3600
 
-export const metadata: Metadata = pageMetadata('/conferences')
+const base = pageMetadata('/conferences')
+export const metadata: Metadata = { ...base, alternates: { ...base.alternates, types: { 'application/rss+xml': '/feeds/conferences' } } }
 
 async function load() {
   const today = new Date()
