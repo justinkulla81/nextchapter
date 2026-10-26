@@ -18,6 +18,7 @@ import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { TOPICS } from '@/lib/seo/explainers'
 import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
+import { WEEK_MIN_NOTICES, getWeeks } from '@/lib/layoffs/weekly'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
 import { topicsWithSnapshot } from '@/lib/seo/topic-snapshot'
@@ -43,6 +44,7 @@ type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
 const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: number }[] = [
   { path: '/data', updated: '2026-10-27', freq: 'daily', priority: 0.7 },
   { path: '/data/embed', updated: '2026-10-27', freq: 'monthly', priority: 0.5 },
+  { path: '/layoffs/week', updated: '2026-10-27', freq: 'daily', priority: 0.6 },
   { path: '/layoffs/this-week', updated: '2026-10-27', freq: 'daily', priority: 0.7 },
   { path: '/jobs', updated: '2026-10-22', freq: 'daily', priority: 0.8 },
   { path: '/about', updated: '2026-10-06', freq: 'monthly', priority: 0.7 },
@@ -53,6 +55,9 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/tools', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
   { path: '/tools/severance-calculator', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/tools/layoff-deadlines', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/salary-converter', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/layoff-runway', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/unemployment-estimator', updated: '2026-10-27', freq: 'yearly', priority: 0.7 },
   { path: '/tools/pay-check', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/tools/resume-check', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
@@ -198,11 +203,12 @@ const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), da
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // News items that have their own page — the ones with our take.
-  const [news, layoffStates, companies, announcements] = await Promise.all([
+  const [news, layoffStates, companies, announcements, weeks] = await Promise.all([
     getPublishedNews(500),
     getStateSummaries().catch(() => []),
     getCompanies().catch(() => new Map()),
     getAnnouncements().catch(() => new Map()),
+    getWeeks().catch(() => []),
   ])
   // Employers with a recent announcement are listed even without a WARN filing (their page exists and is indexable).
   const announced = [...announcements.values()].filter((a) => hasRecentAnnouncement(a))
@@ -265,6 +271,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // are noindex). Each dated by its newest notice.
     ...(newestNotice ? [entry('/layoffs', newestNotice, 'daily', 0.7)] : []),
     ...layoffStates.map((s) => entry(`/layoffs/${stateSlug(s.state)}`, s.latest.toISOString(), 'daily', 0.6)),
+    // One page per complete week with at least three notices (fewer is noindex on the page).
+    ...weeks.filter((w) => w.count >= WEEK_MIN_NOTICES).map((w) => entry(`/layoffs/week/${w.id}`, new Date(w.monday.getTime() + 8 * 86_400_000).toISOString(), 'monthly', 0.4)),
     ...[...companies.values()]
       .filter((c) => meetsCompanyLayoffBar(c) && !announced.some((a) => a.slug === c.slug))
       .map((c) => entry(`/layoffs/company/${c.slug}`, c.latest.toISOString(), 'weekly', 0.4)),

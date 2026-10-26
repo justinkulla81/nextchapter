@@ -123,6 +123,7 @@ export default async function LayoffsThisWeek() {
           <section aria-labelledby="more" className="mt-10 rounded-xl border border-border bg-white p-6">
             <h2 id="more" className="text-xl font-semibold tracking-tight text-navy">Use this data</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
+              <li><Link href="/layoffs/week" className={LINK}>Every earlier week</Link>, one page per week of the last two years.</li>
               <li><Link href="/data" className={LINK}>Download the WARN record as CSV or JSON</Link>, free to reuse with a link back.</li>
               <li><Link href="/feeds/layoffs" className={LINK}>Subscribe by RSS</Link> to new notices.</li>
               <li><Link href="/data/embed" className={LINK}>Embed layoff notices</Link> for any state on your own site.</li>

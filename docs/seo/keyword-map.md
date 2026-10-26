@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-125 clusters, 753 phrases.
+130 clusters, 777 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -33,6 +33,8 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/unemployment-benefits/:state` | family | {state} unemployment benefits | Unemployment benefits in one state | {state} unemployment; file for unemployment in {state}; {state} weekly unemployment benefit; {state} unemployment eligibility; {state} unemployment weeks |
 | `/layoffs` | page | layoff tracker | Which companies are laying off, and where | layoffs; recent layoffs; layoffs today; layoffs 2026; companies laying off; layoff list; mass layoffs; WARN notices; WARN notice list; WARN Act layoffs; who is laying off |
 | `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new WARN notices this week; latest layoff announcements |
+| `/layoffs/week` | page | layoffs by week | Layoff notices week by week | weekly layoffs; weekly layoff report; layoffs last week; WARN notices by week |
+| `/layoffs/week/:week` | family | layoffs week of {date} | Layoffs in one calendar week | layoffs {week}; WARN notices week of {date} |
 | `/data` | page | layoff data download | Download layoff data | WARN notices csv; WARN notice data; layoff data by state; layoffs dataset |
 | `/data/embed` | page | layoff widget for website | Embed layoff, jobs and benefits widgets | embed layoff tracker; unemployment benefits widget; jobs widget by industry |
 | `/layoffs/:state` | family | {state} layoffs | Layoffs in one state | {state} WARN notices; {state} layoff list; recent layoffs in {state}; {state} companies laying off |
@@ -83,6 +85,9 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics` | page | job search and career change topics | Browse job search and career topics | career topics; layoff topics; job search questions |
 | `/tools` | page | free job search and layoff tools | Free calculators and lookups for job seekers | free job search tools online; layoff tools; job loss calculator; free career tools |
 | `/tools/severance-calculator` | page | severance calculator | Work out a severance figure | severance pay calculator; how much severance should I get; severance by years of service; severance weeks per year; severance estimate |
+| `/tools/salary-converter` | page | salary converter | Convert hourly pay to a yearly salary | hourly to salary calculator; hourly to yearly; salary to hourly; annual salary to hourly wage; hourly rate to annual salary |
+| `/tools/layoff-runway` | page | layoff runway calculator | Work out how long money lasts after a layoff | how long will my savings last after a layoff; savings runway calculator; how many months of savings do I need; job loss budget calculator |
+| `/tools/unemployment-estimator` | page | unemployment benefit estimator | Estimate unemployment benefits | unemployment calculator; how much unemployment will I get; unemployment benefits calculator by state; estimate unemployment pay |
 | `/tools/layoff-deadlines` | page | deadlines after a layoff | Find the dates that matter after a layoff | layoff deadlines; cobra deadline after layoff; when to file for unemployment after layoff; what to do after being laid off by when; layoff checklist dates |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
@@ -238,6 +243,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Layoffs This Week: New WARN Notices by State
 - Description: Layoff notices filed in the last seven days: how many workers, which states and employers, with the state record for each. Updated every day.
 - H1: Layoffs this week: new WARN notices
+
+### `/layoffs/week`
+
+- Title: Layoffs by Week: WARN Notices, Week by Week
+- Description: Every week of WARN layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.
+- H1: Layoffs by week: WARN notices
 
 ### `/data`
 
@@ -489,6 +500,24 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Severance Calculator: Pay by Years of Service
 - Description: Free severance calculator: enter your pay and years of service to see the common one-to-two weeks per year range, and what paid health coverage adds.
 - H1: Severance calculator
+
+### `/tools/salary-converter`
+
+- Title: Salary Converter: Hourly to Yearly Pay and Back
+- Description: Free salary converter: turn hourly pay into yearly, monthly, weekly and daily pay, or the reverse, with hours and weeks you can change for any schedule.
+- H1: Salary converter: hourly to yearly and back
+
+### `/tools/layoff-runway`
+
+- Title: Layoff Runway: How Long Will Your Money Last?
+- Description: Free calculator: enter savings, monthly spending and severance to see how many months they cover, and what your state’s unemployment benefits add.
+- H1: Layoff runway: how long your money will last
+
+### `/tools/unemployment-estimator`
+
+- Title: Unemployment Benefit Estimator: How Much Will You Get?
+- Description: Pick your state and enter your pay for a planning estimate of your weekly unemployment benefit, the weeks it can last and the most you could receive.
+- H1: Unemployment benefit estimator: about how much you could get
 
 ### `/tools/layoff-deadlines`
 
