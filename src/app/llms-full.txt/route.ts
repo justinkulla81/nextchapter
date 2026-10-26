@@ -41,5 +41,7 @@ export function GET() {
     )
   }
 
+  parts.push(`# College pages\n\nURL: ${SITE_URL}/higher-education\n\nA page for each college at ${SITE_URL}/higher-education/<state>/<college>: enrollment, degrees by field, graduation rate, earnings and net price (IPEDS and the College Scorecard), open professional jobs in its county, and the workforce board and American Job Centers that serve it. The full list of colleges is at ${SITE_URL}/higher-education/llms.txt.`)
+
   return new Response(parts.join('\n\n---\n\n') + '\n', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
 }

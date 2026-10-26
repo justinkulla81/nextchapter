@@ -17279,3 +17279,19 @@ model CoachSessionTopic {
   @@unique([sessionId, topic])
   @@index([candidateId, status])
 }
+
+/// A college's organization in the CRM, one row per IPEDS id, written by scripts/colleges/link-crm.ts. MATCHED: an
+/// organization with the same name or domain already existed. ADDED: we created it. REVIEW: a similarly named
+/// organization exists and a person decides on the Review List (reviewOrgId): never guessed. The public college page
+/// reads crmOrgId only for its claim link and falls back to a name match while this table is empty or missing.
+model CollegeOrgLink {
+  unitid       String   @id
+  crmOrgId     String?
+  matchStatus  String   @default("REVIEW")
+  reviewOrgId  String?
+  reviewReason String?
+  updatedAt    DateTime @updatedAt
+
+  @@index([matchStatus])
+  @@index([crmOrgId])
+}

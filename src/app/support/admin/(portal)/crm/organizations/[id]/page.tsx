@@ -9,6 +9,7 @@ import { setTodoDone } from '../../todos/actions'
 import { CrmMeetLink } from '@/components/admin/CrmMeetLink'
 import { CrmGraduateOrganization } from '@/components/admin/CrmGraduateButtons'
 import { CrmCollegeProfile } from '@/components/admin/CrmCollegeProfile'
+import { CrmCollegePublicLink } from '@/components/admin/CrmCollegePublicLink'
 import { CrmOrgContext } from '@/components/admin/CrmOrgContext'
 import { CrmOrgQualitySelect } from '@/components/admin/CrmOrgQualitySelect'
 import { CrmDealStatusSelect } from '@/components/admin/CrmDealStatusSelect'
@@ -191,6 +192,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
             ))}
             {org.hqRegion && <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{org.hqRegion}</span>}
           </div>
+          <Suspense fallback={null}><CrmCollegePublicLink org={org} /></Suspense>
           <CrmHiringClient orgId={org.id} value={org.hiringClient} />
           {org.focus && <p className="mt-3 max-w-prose text-sm text-muted-foreground">{org.focus}</p>}
         </div>
