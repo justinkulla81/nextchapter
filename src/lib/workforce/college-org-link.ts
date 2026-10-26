@@ -89,10 +89,37 @@ export async function resolveCollegeAsSame(unitid: string): Promise<void> {
   await recordLink(unitid, row.reviewOrgId, 'MATCHED')
 }
 
+/** One college by IPEDS id (the Scorecard row first, the ranked row otherwise). */
+async function loadCollege(unitid: string): Promise<CollegeToLink | null> {
+  const p = await prisma.collegeProfile.findUnique({ where: { unitid }, select: { unitid: true, name: true, website: true, city: true, state: true } })
+  if (p) return p
+  const l = await prisma.localCollege.findUnique({ where: { id: unitid }, select: { id: true, name: true, website: true, city: true, state: true } })
+  return l ? { unitid: l.id, name: l.name, website: l.website, city: l.city, state: l.state } : null
+}
+
 /** Review List: different organizations — add the college as its own. */
 export async function resolveCollegeAsDifferent(unitid: string): Promise<void> {
-  const colleges = await loadCollegesToLink()
-  const c = colleges.find((x) => x.unitid === unitid)
+  const c = await loadCollege(unitid)
   if (!c) return
   await recordLink(unitid, await createCollegeOrg(c), 'ADDED')
+}
+
+/** Review reasons the bulk button can settle at once, by the start of the reason text the matcher wrote. */
+export const REVIEW_GROUPS = {
+  shortened: { prefix: 'A shortened form', label: 'a shortened form of the name' },
+  website: { prefix: 'Same website', label: 'the same website under a different name' },
+} as const
+export type ReviewGroup = keyof typeof REVIEW_GROUPS
+export const REVIEW_BATCH = 40
+
+/** Review List: the next batch of one reason, all decided "different, add as new" by a person's click. Returns how many were done. */
+export async function resolveReviewGroupAsDifferent(group: ReviewGroup, limit = REVIEW_BATCH): Promise<number> {
+  const rows = await prisma.collegeOrgLink.findMany({
+    where: { matchStatus: 'REVIEW', reviewReason: { startsWith: REVIEW_GROUPS[group].prefix } },
+    orderBy: { unitid: 'asc' },
+    take: limit,
+    select: { unitid: true },
+  })
+  for (const r of rows) await resolveCollegeAsDifferent(r.unitid)
+  return rows.length
 }

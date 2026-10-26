@@ -13,10 +13,20 @@ import { prisma } from '@/lib/prisma'
 import type { OrgForMatch } from '@/lib/search-firms/match'
 import { createCollegeOrg, existingLinks, loadCollegesToLink, planCollegeLink, recordLink, recordReview, tagUniversity } from '@/lib/workforce/college-org-link'
 
+/** A busy database (pool timeout, dropped connection) is retried with a pause rather than ending a long run. */
+async function retry<T>(f: () => Promise<T>): Promise<T> {
+  for (let i = 1; ; i++) {
+    try { return await f() } catch (e) {
+      if (i >= 6) throw e
+      await new Promise((r) => setTimeout(r, 2000 * i))
+    }
+  }
+}
+
 async function main() {
   const apply = process.argv.includes('--apply')
-  const colleges = await loadCollegesToLink()
-  const orgs: OrgForMatch[] = await prisma.crmOrganization.findMany({ select: { id: true, name: true, website: true, emailDomain: true } })
+  const colleges = await retry(loadCollegesToLink)
+  const orgs: OrgForMatch[] = await retry(() => prisma.crmOrganization.findMany({ select: { id: true, name: true, website: true, emailDomain: true } }))
   const prior = await existingLinks()
   const count = { matched: 0, review: 0, add: 0, skipped: 0 }
   const samples: Record<string, string[]> = { matched: [], review: [], add: [] }
@@ -27,12 +37,12 @@ async function main() {
     count[plan.kind]++
     if (samples[plan.kind].length < 8) samples[plan.kind].push(plan.kind === 'review' ? `${c.name} (${c.state}) → ${plan.reason}` : `${c.name} (${c.state})`)
     if (!apply) continue
-    if (plan.kind === 'matched') { await tagUniversity(plan.orgId); await recordLink(c.unitid, plan.orgId, 'MATCHED') }
-    else if (plan.kind === 'review') await recordReview(c.unitid, plan.orgId, plan.reason)
+    if (plan.kind === 'matched') await retry(async () => { await tagUniversity(plan.orgId); await recordLink(c.unitid, plan.orgId, 'MATCHED') })
+    else if (plan.kind === 'review') await retry(() => recordReview(c.unitid, plan.orgId, plan.reason))
     else {
-      const id = await createCollegeOrg(c)
+      const id = await retry(() => createCollegeOrg(c))
       orgs.push({ id, name: c.name, website: c.website, emailDomain: null })
-      await recordLink(c.unitid, id, 'ADDED')
+      await retry(() => recordLink(c.unitid, id, 'ADDED'))
     }
   }
   console.log(apply ? 'APPLIED' : 'DRY RUN (nothing written)', { colleges: colleges.length, ...count })
