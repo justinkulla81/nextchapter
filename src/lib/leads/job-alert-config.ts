@@ -1,5 +1,6 @@
 // Job alert emails are off until the owner turns them on: with JOB_ALERT_EMAILS unset, a saved search is stored
 // and nothing is sent. The daily cron then only reports who would get an email.
+// The owner turned them on in production on 2026-10-26 (JOB_ALERT_EMAILS=1); saved searches now get the confirmation email.
 export const jobAlertEmailsOn = () => process.env.JOB_ALERT_EMAILS === '1'
 
 // One slice of the Resend plan's shared daily volume, so alerts can never crowd out the digests.
