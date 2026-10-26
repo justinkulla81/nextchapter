@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { annualPay, displayTitle, titleSlug, GENERIC_TITLES } from '@/lib/seo/job-title-rules'
+import { annualPay, baseTitle, comparePay, displayTitle, titleSlug, GENERIC_TITLES } from '@/lib/seo/job-title-rules'
 
 describe('job title rules', () => {
   it('makes a slug and a display name', () => {
@@ -17,5 +17,20 @@ describe('job title rules', () => {
     expect(annualPay(100, 100000, 'year')).toBeNull()
     expect(annualPay(5000, 6000, 'month')).toBeNull()
     expect(annualPay(null, null, 'year')).toBeNull()
+  })
+})
+
+describe('pay against the market', () => {
+  it('cuts a title the way the salary pages group it', () => {
+    expect(baseTitle('Senior Software Engineer - Payments Team')).toBe('senior software engineer')
+    expect(baseTitle('Product Manager, Growth (Remote)')).toBe('product manager')
+    expect(baseTitle('  Data   Analyst | Hybrid ')).toBe('data analyst')
+    expect(baseTitle('Full-Stack Engineer')).toBe('full-stack engineer')
+  })
+  it('places a listing against the quarters and median', () => {
+    expect(comparePay(null, 90000, 100000, 120000)).toEqual({ position: null, vsMedianPct: null })
+    expect(comparePay(80000, 90000, 100000, 120000)).toEqual({ position: 'below', vsMedianPct: -20 })
+    expect(comparePay(110000, 90000, 100000, 120000)).toEqual({ position: 'within', vsMedianPct: 10 })
+    expect(comparePay(150000, 90000, 100000, 120000)).toEqual({ position: 'above', vsMedianPct: 50 })
   })
 })

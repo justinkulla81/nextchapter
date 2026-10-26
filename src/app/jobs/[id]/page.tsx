@@ -9,6 +9,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { StructuredData } from '@/components/StructuredData'
+import { PayVsMarket } from '@/components/jobs/PayVsMarket'
 import { PersonalizePanel } from '@/components/home/PersonalizePanel'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
 import { buttonVariants } from '@/components/ui/button'
@@ -102,6 +103,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
                 {fn && <Link href={functionPath(fn.name)} className="underline underline-offset-4">{fn.name} jobs</Link>}
               </p>
             )}
+
+            <PayVsMarket jobId={job.id} title={job.title} salaryMin={job.salaryMin} salaryMax={job.salaryMax} payPeriod={job.payPeriod} />
 
             <h2 className="mt-10 font-display text-xl font-semibold">About the job</h2>
             <div className="mt-3 space-y-4 text-[15px] leading-relaxed">
