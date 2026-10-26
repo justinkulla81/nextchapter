@@ -53,17 +53,14 @@ export interface County {
   builtAt: Date | null
 }
 
-/** Every county in a state, alphabetical, with a slug unique within the state. */
-export const getStateCounties = cache(async (state: string): Promise<County[]> => {
-  const rows = await prisma.geoArea.findMany({
-    where: { level: 'COUNTY', state },
-    select: {
-      id: true, state: true, name: true, population: true, laborForce: true, unemploymentRate: true, unemploymentRatePrior: true,
-      unemploymentAsOf: true, medianHouseholdIncome: true, perCapitaIncome: true, whiteCollarShare: true, wcUnemploymentEst: true,
-      bcUnemploymentEst: true, higherEdCount: true, higherEdEnrollmentEst: true, dataBuiltAt: true,
-    },
-    orderBy: { name: 'asc' },
-  })
+const COUNTY_SELECT = {
+  id: true, state: true, name: true, population: true, laborForce: true, unemploymentRate: true, unemploymentRatePrior: true,
+  unemploymentAsOf: true, medianHouseholdIncome: true, perCapitaIncome: true, whiteCollarShare: true, wcUnemploymentEst: true,
+  bcUnemploymentEst: true, higherEdCount: true, higherEdEnrollmentEst: true, dataBuiltAt: true,
+} satisfies Prisma.GeoAreaSelect
+
+/** A state's county rows (alphabetical) as pages: a slug unique within the state. */
+function toCounties(rows: Prisma.GeoAreaGetPayload<{ select: typeof COUNTY_SELECT }>[]): County[] {
   const count = new Map<string, number>()
   for (const r of rows) count.set(slugify(r.name), (count.get(slugify(r.name)) ?? 0) + 1)
   return rows.map((r) => ({
@@ -74,7 +71,21 @@ export const getStateCounties = cache(async (state: string): Promise<County[]> =
     whiteCollarShare: r.whiteCollarShare, wcUnemploymentEst: r.wcUnemploymentEst, bcUnemploymentEst: r.bcUnemploymentEst,
     higherEdCount: r.higherEdCount, higherEdEnrollmentEst: r.higherEdEnrollmentEst, builtAt: r.dataBuiltAt,
   }))
+}
+
+/** Every county in a state, alphabetical, with a slug unique within the state. */
+export const getStateCounties = cache(async (state: string): Promise<County[]> => {
+  const rows = await prisma.geoArea.findMany({ where: { level: 'COUNTY', state }, select: COUNTY_SELECT, orderBy: { name: 'asc' } })
+  return toCounties(rows)
 })
+
+/** Every county in every state, in one query (the sitemap: 51 queries at once would exhaust the connection pool). */
+export async function getAllCounties(): Promise<Map<string, County[]>> {
+  const rows = await prisma.geoArea.findMany({ where: { level: 'COUNTY' }, select: COUNTY_SELECT, orderBy: [{ state: 'asc' }, { name: 'asc' }] })
+  const byState = new Map<string, typeof rows>()
+  for (const r of rows) byState.set(r.state, [...(byState.get(r.state) ?? []), r])
+  return new Map([...byState].map(([state, list]) => [state, toCounties(list)]))
+}
 
 export interface StateArea {
   code: string
