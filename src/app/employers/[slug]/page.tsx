@@ -6,13 +6,15 @@ import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { getEmployerBySlug, type EmployerPage } from '@/lib/seo/employer-pages'
 import { SITE_URL } from '@/lib/seo/facts'
-import { stateName, stateSlug } from '@/lib/seo/states'
-import { noticeDay } from '@/lib/warn/layoff-pages'
+import { getEmployerInsights } from '@/lib/seo/employer-insights'
+import { insightText } from '@/lib/seo/employer-insight-text'
+import { EmployerInsights } from '@/components/seo/EmployerInsights'
+import { stateName } from '@/lib/seo/states'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { titleMeta } from '@/lib/seo/title'
 
 // One page per employer with something of its own to say: open roles from its career site, what it hires for and
-// pays, and its WARN layoff record. Built on first visit, refreshed daily. A page below the bar renders but is
+// pays. Built on first visit, refreshed daily. A page below the bar renders but is
 // kept out of search results (and out of the sitemap).
 export const revalidate = 86400
 export const dynamicParams = true
@@ -42,17 +44,14 @@ function description(e: EmployerPage): string {
     parts.push(`${e.name} has ${n0(p.openNow)} open professional roles${fn ? `, most in ${fn.toLowerCase()}` : ''}`)
     if (p.opened90d > 0) parts.push(`${n0(p.opened90d)} opened in the last 90 days`)
   }
-  if (e.notices.length > 0) {
-    const w = e.notices.reduce((s, n) => s + (n.employees ?? 0), 0)
-    parts.push(`${e.notices.length} WARN layoff ${e.notices.length === 1 ? 'notice' : 'notices'}${w > 0 ? ` naming ${n0(w)} workers` : ''}, latest ${noticeDay(e.notices[0].noticeDate)}`)
-  }
+  if (parts.length === 0) return `${e.name}: open roles, posted pay and hiring history from its career site, updated daily.`
   return `${parts.join('; ')}. Posted pay, where it hires and how to apply.`.replace(/^./, (c) => c.toUpperCase())
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const e = await getEmployerBySlug(slug)
-  if (!e || (!e.profile && e.notices.length === 0)) return {}
+  if (!e) return {}
   return {
     title: titleMeta(title(e)),
     description: description(e),
@@ -64,10 +63,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function EmployerPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const e = await getEmployerBySlug(slug)
-  if (!e || (!e.profile && e.notices.length === 0)) notFound()
+  if (!e) notFound()
   const p = e.profile
   const path = `/employers/${slug}`
-  const totalWorkers = e.notices.reduce((s, n) => s + (n.employees ?? 0), 0)
+  const ins = await getEmployerInsights(e.id, e.industry, { postedPayShare: e.profile?.postedPayShare ?? null, remoteShare: e.profile?.remoteShare ?? null }).catch(() => null)
+  const text = ins ? insightText(e.name, ins, e.industry) : { glance: [], faq: [] }
   const hq = [e.hqMetro, e.industry].filter(Boolean).join(' · ')
   const industryBucket = bucketFromIndustryText(e.industry)
   const topFunction = p?.topFunctions[0] ? functionByName(p.topFunctions[0].function) : null
@@ -79,15 +79,17 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       a: `${e.name} has ${n0(p.openNow)} open professional roles on its career site as of the last check. ${p.opened90d > 0 ? `${n0(p.opened90d)} opened in the last 90 days and ${n0(p.opened12mo)} in the last 12 months.` : ''}${p.topFunctions[0] ? ` The most common function is ${p.topFunctions[0].function.toLowerCase()}.` : ''}`.trim(),
     })
   }
-  if (e.notices.length > 0) {
+  if (!p || p.openNow === 0) {
     faq.push({
-      q: `Has ${e.name} had layoffs?`,
-      a: `${e.name} has filed ${e.notices.length} WARN ${e.notices.length === 1 ? 'notice' : 'notices'} on the public record${totalWorkers > 0 ? `, naming ${n0(totalWorkers)} workers` : ''}. The most recent was filed ${noticeDay(e.notices[0].noticeDate)}${e.notices[0].state ? ` in ${stateLabel(e.notices[0].state)}` : ''}. WARN filings cover layoffs at sites with 50 or more affected workers; smaller cuts do not appear.`,
+      q: `Is ${e.name} hiring?`,
+      a: `${e.name} has no open professional roles on its career site as of the last check.${p && p.opened12mo > 0 ? ` It opened ${n0(p.opened12mo)} in the last 12 months.` : ''} This page updates daily.`,
     })
   }
   if (p && p.payLevel in PAY_LEVEL && p.payLevelSample >= 5) {
     faq.push({ q: `How well does ${e.name} pay?`, a: `Across ${n0(p.payLevelSample)} postings with a posted salary range, ${e.name}'s pay is ${PAY_LEVEL[p.payLevel]}. We compare each posted range with the market range for the same title, function and area.` })
   }
+
+  faq.push(...text.faq)
 
   const ld: Record<string, unknown>[] = [
     {
@@ -95,8 +97,22 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       '@type': 'Organization',
       '@id': `${SITE_URL}${path}#org`,
       name: e.name,
-      ...(e.website ? { url: e.website } : {}),
+      ...(e.website ? { url: e.website, sameAs: [e.website] } : {}),
+      ...(e.hqMetro ? { address: { '@type': 'PostalAddress', addressLocality: e.hqMetro } } : {}),
+      ...(e.industry ? { knowsAbout: e.industry } : {}),
     },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': `${SITE_URL}${path}`,
+      url: `${SITE_URL}${path}`,
+      name: title(e),
+      description: description(e),
+      dateModified: new Date().toISOString().slice(0, 10),
+      about: { '@id': `${SITE_URL}${path}#org` },
+      isPartOf: { '@type': 'WebSite', name: 'NextChapter', url: SITE_URL },
+    },
+    ...(e.jobs.length ? [{ '@context': 'https://schema.org', '@type': 'ItemList', name: `Open roles at ${e.name}`, itemListElement: e.jobs.map((j, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}/jobs/${j.id}`, name: j.title })) }] : []),
     ...(faq.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }] : []),
   ]
 
@@ -130,6 +146,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
           )}
         </section>
       )}
+
+      {ins && <EmployerInsights name={e.name} industry={e.industry} ins={ins} text={text} />}
 
       {e.jobs.length > 0 && (
         <section aria-labelledby="roles" className="mt-12">
@@ -177,36 +195,6 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         </section>
       )}
 
-      {e.notices.length > 0 && (
-        <section aria-labelledby="layoffs" className="mt-12">
-          <h2 id="layoffs" className={H2}>Layoff record</h2>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            WARN notices {e.name} has filed with state labor departments: {e.notices.length} {e.notices.length === 1 ? 'notice' : 'notices'}{totalWorkers > 0 && <>, naming {n0(totalWorkers)} workers</>}.
-            {e.timeline?.status === 'hiring_again' && ' It has posted new roles since its latest notice.'}
-            {e.timeline?.status === 'recent_cut' && ' Its latest notice is recent.'}
-          </p>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">
-            <table className="w-full min-w-[36rem] text-left text-sm">
-              <caption className="sr-only">WARN notices filed by {e.name}, newest first</caption>
-              <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
-                <tr><th scope="col" className="p-3">Filed</th><th scope="col" className="p-3">State</th><th scope="col" className="p-3">Workers</th><th scope="col" className="p-3">Type</th><th scope="col" className="p-3">Record</th></tr>
-              </thead>
-              <tbody>
-                {e.notices.slice(0, 15).map((n, i) => (
-                  <tr key={i} className="border-b border-border last:border-0">
-                    <td className="p-3">{noticeDay(n.noticeDate)}</td>
-                    <td className="p-3">{n.state ? <Link href={`/layoffs/${stateSlug(n.state)}`} className={LINK}>{stateLabel(n.state)}</Link> : ''}</td>
-                    <td className="p-3 tabular-nums">{n.employees != null ? n0(n.employees) : ''}</td>
-                    <td className="p-3">{n.layoffType ?? ''}</td>
-                    <td className="p-3">{n.sourceUrl && /^https?:\/\//.test(n.sourceUrl) ? <a href={n.sourceUrl} className={LINK} target="_blank" rel="noopener noreferrer">State record</a> : ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-
       {faq.length > 0 && (
         <section aria-labelledby="faq" className="mt-12">
           <h2 id="faq" className={H2}>Common questions</h2>
@@ -222,18 +210,11 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
         label="Claim this page"
         href={e.claimSlug ? `/prepared/${e.claimSlug}` : '/for-organizations'}
         event="seo_claim_clicked"
-        properties={{ page: 'employer', audience: 'employer', companyId: e.id, slug: e.slug, openRoles: p?.openNow ?? 0, warnNotices: e.notices.length }}
+        properties={{ page: 'employer', audience: 'employer', companyId: e.id, slug: e.slug, openRoles: p?.openNow ?? 0 }}
       />
 
-      {e.notices.length > 0 && (
-        <p className="mt-8 max-w-3xl text-sm text-muted-foreground">
-          If you were laid off: <Link href="/start/laid-off" className={LINK}>what to do first</Link>
-          {e.notices[0].state && <> · <Link href={`/unemployment-benefits/${stateSlug(e.notices[0].state)}`} className={LINK}>{stateLabel(e.notices[0].state)} unemployment benefits</Link></>}.
-        </p>
-      )}
-
       <p className="mt-8 max-w-3xl text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Sources:</span> open roles from {e.name}’s career site and applicant system, checked daily; layoff notices from state WARN filings;
+        <span className="font-medium text-foreground">Sources:</span> open roles from {e.name}’s career site and applicant system, checked daily;
         market pay ranges from posted salaries across the board. Updated {p?.firstSeenAt ? 'daily' : 'regularly'}.
       </p>
     </SeoPage>
