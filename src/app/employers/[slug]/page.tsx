@@ -5,6 +5,9 @@ import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { getEmployerBySlug, type EmployerPage } from '@/lib/seo/employer-pages'
 import { SITE_URL } from '@/lib/seo/facts'
+import { getEmployerInsights } from '@/lib/seo/employer-insights'
+import { insightText } from '@/lib/seo/employer-insight-text'
+import { EmployerInsights } from '@/components/seo/EmployerInsights'
 import { stateName } from '@/lib/seo/states'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 
@@ -62,6 +65,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   if (!e) notFound()
   const p = e.profile
   const path = `/employers/${slug}`
+  const ins = await getEmployerInsights(e.id, e.industry, { postedPayShare: e.profile?.postedPayShare ?? null, remoteShare: e.profile?.remoteShare ?? null }).catch(() => null)
+  const text = ins ? insightText(e.name, ins, e.industry) : { glance: [], faq: [] }
   const hq = [e.hqMetro, e.industry].filter(Boolean).join(' · ')
   const industryBucket = bucketFromIndustryText(e.industry)
   const topFunction = p?.topFunctions[0] ? functionByName(p.topFunctions[0].function) : null
@@ -82,6 +87,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   if (p && p.payLevel in PAY_LEVEL && p.payLevelSample >= 5) {
     faq.push({ q: `How well does ${e.name} pay?`, a: `Across ${n0(p.payLevelSample)} postings with a posted salary range, ${e.name}'s pay is ${PAY_LEVEL[p.payLevel]}. We compare each posted range with the market range for the same title, function and area.` })
   }
+
+  faq.push(...text.faq)
 
   const ld: Record<string, unknown>[] = [
     {
@@ -138,6 +145,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
           )}
         </section>
       )}
+
+      {ins && <EmployerInsights name={e.name} industry={e.industry} ins={ins} text={text} />}
 
       {e.jobs.length > 0 && (
         <section aria-labelledby="roles" className="mt-12">

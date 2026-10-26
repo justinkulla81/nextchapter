@@ -23,7 +23,7 @@ const WIDELY_REPORTED = 3
 export const RANK_SIZE = 25
 export const FUNCTION_RANK_SIZE = 15
 
-const LIVE = `"status" = 'approved' AND "archivedAt" IS NULL AND "institutionScopeId" IS NULL AND "orgScopeId" IS NULL
+export const LIVE_PUBLIC_SQL = `"status" = 'approved' AND "archivedAt" IS NULL AND "institutionScopeId" IS NULL AND "orgScopeId" IS NULL
   AND COALESCE("distribution", '') = 'OPEN' AND COALESCE("disclosure", 'OPEN') = 'OPEN'
   AND ("expiresAt" IS NULL OR "expiresAt" > now()) AND COALESCE("employmentType", '') NOT IN ('internship', 'co_op', 'coop')
   AND COALESCE("postingType", '') <> 'recruiter_search' AND COALESCE("sourceCategory", '') <> 'search_firm'`
@@ -76,7 +76,7 @@ type Row = {
 const ROLES_CTE = `WITH roles AS (
     SELECT DISTINCT ON (COALESCE("crawlerFingerprint", "id"))
       "companyId", "companyName", "level", "postingSignals", "aiSkillGroups", "targetFunction"
-    FROM "ExclusiveJobPosting" WHERE ${LIVE}
+    FROM "ExclusiveJobPosting" WHERE ${LIVE_PUBLIC_SQL}
     ORDER BY COALESCE("crawlerFingerprint", "id"), "lastVerifiedAt" DESC NULLS LAST, "createdAt" DESC
   )`
 
