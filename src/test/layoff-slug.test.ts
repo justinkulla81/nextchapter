@@ -12,3 +12,14 @@ describe('stripSlugSuffixes', () => {
     expect(stripSlugSuffixes('oracle-america')).toBe('oracle-america')
   })
 })
+
+describe('mergedSlug', () => {
+  it('moves the ruled subsidiaries onto their parent and leaves other slugs alone', async () => {
+    const { mergedSlug, employerSlug } = await import('@/lib/warn/layoff-pages')
+    expect(mergedSlug('oracle-america')).toBe('oracle')
+    expect(mergedSlug('meta-platforms')).toBe('meta')
+    expect(mergedSlug('amazon-fresh')).toBe('amazon-fresh')
+    expect(employerSlug('Meta Platforms, Inc.', null)).toBe('meta')
+    expect(employerSlug('Oracle America, Inc.', null)).toBe('oracle')
+  })
+})
