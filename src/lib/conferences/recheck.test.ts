@@ -6,7 +6,7 @@ const db = vi.hoisted(() => ({
   conferenceChange: { findMany: vi.fn(), create: vi.fn() },
 }))
 vi.mock('@/lib/prisma', () => ({ prisma: db }))
-const ex = vi.hoisted(() => ({ fetchPublicPage: vi.fn(), extractWithModel: vi.fn() }))
+const ex = vi.hoisted(() => ({ fetchConferencePages: vi.fn(), extractWithModel: vi.fn() }))
 vi.mock('./extract', () => ex)
 vi.mock('./editions', () => ({ rollEditions: vi.fn().mockResolvedValue(2) }))
 
@@ -26,7 +26,7 @@ beforeEach(() => {
 describe('runConferenceRecheck', () => {
   it('an unchanged page costs nothing: no model call, no change', async () => {
     db.conferenceEvent.findMany.mockResolvedValue([series()])
-    ex.fetchPublicPage.mockResolvedValue(page('old'))
+    ex.fetchConferencePages.mockResolvedValue(page('old'))
     const r = await runConferenceRecheck(NOW)
     expect(r).toMatchObject({ checked: 1, unchanged: 1, modelCalls: 0, flagged: 0, rolled: 2 })
     expect(ex.extractWithModel).not.toHaveBeenCalled()
@@ -34,7 +34,7 @@ describe('runConferenceRecheck', () => {
 
   it('the first visit only records a baseline: no model call, nothing flagged', async () => {
     db.conferenceEvent.findMany.mockResolvedValue([series({ contentHash: null })])
-    ex.fetchPublicPage.mockResolvedValue(page('h1', 'September 13-15, 2027'))
+    ex.fetchConferencePages.mockResolvedValue(page('h1', 'September 13-15, 2027'))
     const r = await runConferenceRecheck(NOW)
     expect(r).toMatchObject({ baselined: 1, modelCalls: 0, flagged: 0 })
     expect(db.conferenceEvent.update.mock.calls[0][0].data.contentHash).toBe('h1')
@@ -43,7 +43,7 @@ describe('runConferenceRecheck', () => {
 
   it('a changed page with new dates and a new speaker call is flagged for confirmation, never applied', async () => {
     db.conferenceEvent.findMany.mockResolvedValue([series()])
-    ex.fetchPublicPage.mockResolvedValue(page('new', 'Join us September 13-15, 2027 in Austin'))
+    ex.fetchConferencePages.mockResolvedValue(page('new', 'Join us September 13-15, 2027 in Austin'))
     ex.extractWithModel.mockResolvedValue({ extraction: { opportunities: [{ type: 'CALL_FOR_SPEAKERS', title: 'Speak', url: 'https://c.com/speak', deadline: '2027-02-01', opensAt: null }] }, usage: {} })
     const r = await runConferenceRecheck(NOW)
     expect(r).toMatchObject({ changed: 1, modelCalls: 1, flagged: 2 })
@@ -54,7 +54,7 @@ describe('runConferenceRecheck', () => {
 
   it('the model budget caps how many changed pages are read by the model', async () => {
     db.conferenceEvent.findMany.mockResolvedValue([series({ id: 'a', url: 'https://a.com' }), series({ id: 'b', url: 'https://b.com' }), series({ id: 'c', url: 'https://c2.com' })])
-    ex.fetchPublicPage.mockResolvedValue(page('new'))
+    ex.fetchConferencePages.mockResolvedValue(page('new'))
     const r = await runConferenceRecheck(NOW, { modelCap: 2 })
     expect(r.modelCalls).toBe(2)
     expect(r.changed).toBe(3)
@@ -62,14 +62,14 @@ describe('runConferenceRecheck', () => {
 
   it('does not re-flag a change already waiting', async () => {
     db.conferenceEvent.findMany.mockResolvedValue([series()])
-    ex.fetchPublicPage.mockResolvedValue(page('new', 'September 13-15, 2027'))
+    ex.fetchConferencePages.mockResolvedValue(page('new', 'September 13-15, 2027'))
     db.conferenceChange.findMany.mockResolvedValue([{ kind: 'DATES', payload: { start: '2027-09-13', end: '2027-09-15' } }])
     expect((await runConferenceRecheck(NOW)).flagged).toBe(0)
   })
 
   it('an unreadable page is skipped quietly', async () => {
     db.conferenceEvent.findMany.mockResolvedValue([series()])
-    ex.fetchPublicPage.mockResolvedValue(null)
+    ex.fetchConferencePages.mockResolvedValue(null)
     expect((await runConferenceRecheck(NOW)).checked).toBe(0)
   })
 })

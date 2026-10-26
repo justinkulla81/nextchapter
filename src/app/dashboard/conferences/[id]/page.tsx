@@ -12,15 +12,23 @@ import { PageHeader } from '@/components/candidate/PageHeader'
 import { Chip } from '@/components/candidate/ui'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { StatusSelect } from '@/components/conferences/StatusSelect'
-import { addTalkAction, logPeopleAction, resolveChangeAction, saveNotesAction, setStatusAction, setTrackAction } from '../actions'
+import { canEditEntry } from '@/lib/conferences/entry-rules'
+import { addTalkAction, editEntryAction, logPeopleAction, removeOpportunityAction, resolveChangeAction, saveNotesAction, setStatusAction, setTrackAction } from '../actions'
 
 export const metadata: Metadata = { title: 'Conference' }
 const dayLabel = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 const field = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-ink'
 const small = 'inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium text-ink hover:bg-muted'
 
-export default async function ConferencePage({ params }: { params: Promise<{ id: string }> }) {
+const READ_NOTE: Record<string, string> = {
+  walled: 'That site does not let us read its pages, so we added it from the link. Edit anything below.',
+  failed: 'We could not read that page, so we added it from the link. Edit anything below.',
+  limit: 'You have added a lot of links today, so we added this one without reading it. Edit anything below.',
+}
+
+export default async function ConferencePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ read?: string }> }) {
   const { id } = await params
+  const { read } = await searchParams
   const profile = await getDashboardData()
   const d = await seriesDetail(profile.id, id).catch(() => null)
   if (!d) notFound()
@@ -28,6 +36,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ id:
   const row = series as ConferenceRow
   const trackBy = new Map(tracks.map((t) => [t.opportunityId, t.status]))
   after(() => captureServerEvent(profile.id, 'conference_detail_viewed', { seriesId: id, tracked: !!uc, opportunities: opportunities.length, pendingChanges: changes.length }))
+  const canEdit = canEditEntry(series, profile.id)
   const edition = editions.find((e) => e.status === 'TBA' || e.status === 'CONFIRMED')
   const when = edition?.status === 'TBA' && !series.datesConfirmed ? 'Dates TBA' : whenLabel(row)
 
@@ -43,7 +52,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ id:
           />
         }
       />
-      {!series.published && <p className="rounded-2xl bg-muted p-4 text-sm text-ink">This conference is waiting for our review. Only you can see it until then, and your notes always stay private.</p>}
+      {read && READ_NOTE[read] && <p className="rounded-2xl bg-muted p-4 text-sm text-ink">{READ_NOTE[read]}</p>}
       {series.url && <p className="text-sm"><a href={series.url} target="_blank" rel="noopener noreferrer" className="font-medium text-brand underline underline-offset-4">Open the conference site</a></p>}
 
       {changes.length > 0 && (
@@ -85,7 +94,13 @@ export default async function ConferencePage({ params }: { params: Promise<{ id:
                   <p className="text-sm text-muted-foreground">{OPPORTUNITY_LABEL[o.type as OpportunityType]}{o.opensAt ? ` · opens ${dayLabel(o.opensAt)}` : ''}{o.deadline ? ` · closes ${dayLabel(o.deadline)}` : ''}</p>
                   {o.eligibility && <Chip>{o.eligibility}</Chip>}
                 </div>
-                {o.published && (
+                {canEdit && (
+                  <form action={removeOpportunityAction}>
+                    <input type="hidden" name="opportunityId" value={o.id} />
+                    <button type="submit" className="text-sm text-muted-foreground underline underline-offset-4" aria-label={`Remove ${o.title}`}>Not right? Remove</button>
+                  </form>
+                )}
+                {uc && o.type !== 'REGISTRATION' && (
                   <StatusSelect
                     action={setTrackAction} hidden={{ opportunityId: o.id }} value={trackBy.get(o.id) ?? null} label={`Your stage for ${o.title}`} none="Not tracking" event="conference_opportunity_stage_changed"
                     options={TRACK_STATUSES.map((s) => ({ value: s, label: TRACK_LABEL[s as TrackStatus] }))}
@@ -107,6 +122,28 @@ export default async function ConferencePage({ params }: { params: Promise<{ id:
             <button type="submit" className={small}>Save plan</button>
           </form>
         </section>
+      )}
+
+      {canEdit && (
+        <ShowMore page="conference_edit_details" label="Edit details" defaultOpen={!!read}>
+          <form action={editEntryAction} className="grid gap-3 sm:grid-cols-2">
+            <input type="hidden" name="seriesId" value={id} />
+            <label className="space-y-1 sm:col-span-2"><span className="text-sm text-ink">Name</span><input name="name" defaultValue={series.name} className={field} /></label>
+            <label className="space-y-1 sm:col-span-2"><span className="text-sm text-ink">Conference site</span><input name="url" defaultValue={series.url ?? ''} className={field} /></label>
+            <label className="space-y-1"><span className="text-sm text-ink">Organizer</span><input name="organizer" defaultValue={series.organizer ?? ''} className={field} /></label>
+            <label className="space-y-1"><span className="text-sm text-ink">Cost note</span><input name="costNote" defaultValue={series.costNote ?? ''} placeholder="Free, student rate…" className={field} /></label>
+            <label className="space-y-1"><span className="text-sm text-ink">Starts</span><input name="startDate" type="date" defaultValue={series.startDate ? series.startDate.toISOString().slice(0, 10) : ''} className={field} /></label>
+            <label className="space-y-1"><span className="text-sm text-ink">Ends</span><input name="endDate" type="date" defaultValue={series.endDate ? series.endDate.toISOString().slice(0, 10) : ''} className={field} /></label>
+            <label className="space-y-1"><span className="text-sm text-ink">City</span><input name="city" defaultValue={series.city ?? ''} className={field} /></label>
+            <label className="space-y-1"><span className="text-sm text-ink">State</span><input name="state" defaultValue={series.state ?? ''} maxLength={2} className={field} /></label>
+            <label className="space-y-1"><span className="text-sm text-ink">Ticket from ($)</span><input name="costLow" inputMode="numeric" defaultValue={series.costLow ?? ''} className={field} /></label>
+            <label className="space-y-1"><span className="text-sm text-ink">Ticket up to ($)</span><input name="costHigh" inputMode="numeric" defaultValue={series.costHigh ?? ''} className={field} /></label>
+            <label className="space-y-1 sm:col-span-2"><span className="text-sm text-ink">How is it held?</span>
+              <select name="format" defaultValue={series.format} className={field}><option value="IN_PERSON">In person</option><option value="VIRTUAL">Online</option><option value="HYBRID">Both</option></select>
+            </label>
+            <div className="sm:col-span-2"><button type="submit" className={small}>Save changes</button></div>
+          </form>
+        </ShowMore>
       )}
 
       {uc && (

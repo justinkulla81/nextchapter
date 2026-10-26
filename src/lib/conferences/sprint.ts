@@ -58,7 +58,16 @@ export function conferenceSuggestions(
     .sort((a, b) => a.startDate!.getTime() - b.startDate!.getTime())[0]
   if (attending) out.push({ actionType: 'ENGAGE_EVENT', text: `Attend ${attending.name} (${range(attending.startDate!, attending.endDate)}) and speak to three new people` })
 
-  // 3. Register: dates are confirmed, it is coming up, and the member has not said they are registered.
+  // 3. Register. A printed registration deadline (early-bird or closing) is the real date to act on, so it wins; otherwise the
+  // conference's own start date, when it is confirmed and coming up. Never once the member has said they are registered.
+  const registerBy = opportunities
+    .filter((o) => o.type === 'REGISTRATION' && o.deadline && byId.has(o.seriesId) && ['INTERESTED', 'TRACKING'].includes(byId.get(o.seriesId)!.status))
+    .filter((o) => o.deadline! >= today && o.deadline!.getTime() - today.getTime() <= REGISTER_HORIZON_DAYS * DAY)
+    .sort((a, b) => a.deadline!.getTime() - b.deadline!.getTime())[0]
+  if (registerBy) {
+    out.push({ actionType: 'CONFERENCE_REGISTER', text: `Register for ${byId.get(registerBy.seriesId)!.name} (${registerBy.title.toLowerCase().includes('early') ? 'early-bird ends' : 'registration closes'} ${short(registerBy.deadline!)}), or tell us you are skipping it` })
+    return out
+  }
   const toRegister = live
     .filter((f) => ['INTERESTED', 'TRACKING'].includes(f.status) && f.datesConfirmed && f.startDate)
     .filter((f) => f.startDate! >= today && f.startDate!.getTime() - today.getTime() <= REGISTER_HORIZON_DAYS * DAY)

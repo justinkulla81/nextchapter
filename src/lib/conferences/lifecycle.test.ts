@@ -73,7 +73,7 @@ describe('resolveChange', () => {
 
 describe('setTrackStatus and Dossier evidence', () => {
   beforeEach(() => {
-    db.conferenceOpportunity.findFirst.mockResolvedValue({ id: 'o1', seriesId: 's1', type: 'CALL_FOR_SPEAKERS', title: 'Speak', series: { id: 's1', name: 'HR Tech' } })
+    db.conferenceOpportunity.findUnique.mockResolvedValue({ id: 'o1', seriesId: 's1', type: 'CALL_FOR_SPEAKERS', title: 'Speak', published: true, series: { id: 's1', name: 'HR Tech', published: true, rejectedAt: null } })
     db.conferenceOpportunityTrack.findUnique.mockResolvedValue(null)
     db.conferenceTalk.findFirst.mockResolvedValue(null)
     db.userConference.findUnique.mockResolvedValue(null)
@@ -92,8 +92,29 @@ describe('setTrackStatus and Dossier evidence', () => {
     expect(db.conferenceTalk.create).not.toHaveBeenCalled()
   })
   it('an unpublished opportunity cannot be tracked', async () => {
-    db.conferenceOpportunity.findFirst.mockResolvedValue(null)
+    db.conferenceOpportunity.findUnique.mockResolvedValue(null)
     await setTrackStatus('m1', 'o9', 'WATCHING')
+    expect(db.conferenceOpportunityTrack.upsert).not.toHaveBeenCalled()
+  })
+  const pending = (over: object = {}) => db.conferenceOpportunity.findUnique.mockResolvedValue({ id: 'o1', seriesId: 's1', type: 'CALL_FOR_SPEAKERS', title: 'Speak', published: false, series: { id: 's1', name: 'New Summit', published: false, rejectedAt: null }, ...over })
+  it('a member who follows an entry still awaiting our review can work on its opportunities', async () => {
+    pending(); db.userConference.findUnique.mockResolvedValue({ id: 'uc' })
+    await setTrackStatus('m1', 'o1', 'DRAFTING')
+    expect(db.conferenceOpportunityTrack.upsert).toHaveBeenCalled()
+  })
+  it('someone who does not follow it cannot', async () => {
+    pending(); db.userConference.findUnique.mockResolvedValue(null)
+    await setTrackStatus('m2', 'o1', 'DRAFTING')
+    expect(db.conferenceOpportunityTrack.upsert).not.toHaveBeenCalled()
+  })
+  it('an unpublished opportunity on an approved conference stays hidden from members', async () => {
+    pending({ series: { id: 's1', name: 'Real', published: true, rejectedAt: null } }); db.userConference.findUnique.mockResolvedValue({ id: 'uc' })
+    await setTrackStatus('m1', 'o1', 'DRAFTING')
+    expect(db.conferenceOpportunityTrack.upsert).not.toHaveBeenCalled()
+  })
+  it('registration is never a stage, and nothing on a rejected conference can be worked on', async () => {
+    pending({ type: 'REGISTRATION', published: true }); await setTrackStatus('m1', 'o1', 'WATCHING')
+    pending({ published: true, series: { id: 's1', name: 'X', published: false, rejectedAt: new Date() } }); await setTrackStatus('m1', 'o1', 'WATCHING')
     expect(db.conferenceOpportunityTrack.upsert).not.toHaveBeenCalled()
   })
   it('speaking lifts the Communication trait', () => {

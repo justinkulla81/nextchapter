@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/privacy-policy' },
 }
 
-const EFFECTIVE_DATE = 'October 25, 2026'
+const EFFECTIVE_DATE = 'October 26, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -124,7 +124,9 @@ export default function PrivacyPolicyPage() {
             for cannot do those things, and we never ask members for permission to write to Google.
             When a feature suggests something that belongs on your calendar, such as a conference
             deadline, we show it to you or give you a file to download, and you choose whether to
-            add it yourself.
+            add it yourself. The one calendar message you may receive is an invitation when you
+            book a session with a coach: your coach&apos;s own calendar sends it, as any meeting
+            invitation, and we do not use your Google connection to do it.
           </p>
           <h3 className="text-lg font-semibold text-navy">What Google data we keep</h3>
           <p>
