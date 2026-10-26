@@ -166,7 +166,7 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
         <div>
           <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">3 · Organizations (B2B)</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Visitors to each audience's pages, and who raised a hand. These are different people from the candidate band, so they are not part
+            Visitors to each audience&apos;s pages, and who raised a hand. These are different people from the candidate band, so they are not part
             of the funnel above. A very small count of visitors makes the rate noise; read the counts first.
           </p>
         </div>
