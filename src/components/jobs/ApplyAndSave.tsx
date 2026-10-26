@@ -5,7 +5,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { saveAppliedJob, type ApplySaveState } from '@/lib/leads/apply-save'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
-import { CreateAccountPrompt } from '@/components/jobs/CreateAccountPrompt'
+import { SaveJourneyStep } from '@/components/jobs/SaveJourneyStep'
 
 // The Apply button on a public job page plus the one-field "save this job" box under it.
 // Apply still opens the employer's page in a new tab; this page stays open behind it and the
@@ -56,7 +56,7 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
                 ? <>Saved. We emailed <span className="font-medium">{state.email}</span> a link back to this job.</>
                 : <>Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. Keep this page open to come back to the job.</>}
             </p>
-            <CreateAccountPrompt what="job" properties={{ placement: 'job_saved', jobId, company, trigger }} />
+            <SaveJourneyStep email={state.email ?? ''} what="job" properties={{ placement: 'job_saved', jobId, company, trigger }} />
           </div>
         ) : (
           <form

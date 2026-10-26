@@ -19,3 +19,26 @@ describe('saved jobs cookie', () => {
     expect(parseSavedJobsCookie(addToSavedJobsCookie(many, 'newest1'))).toHaveLength(10)
   })
 })
+
+describe('claimSavedJobs', () => {
+  it('saves each job found by cookie or by email onto the new account', async () => {
+    vi.resetModules()
+    const upsertTracked = vi.fn(async () => ({ id: 't1', savedAt: null }))
+    const update = vi.fn(async () => ({}))
+    const findJobs = vi.fn(async () => [{ id: 'job111', title: 'Manager', companyName: 'Acme', url: 'https://x/y' }])
+    vi.doMock('next/headers', () => ({ cookies: async () => ({ get: () => ({ value: 'job111' }) }) }))
+    vi.doMock('@/lib/jobs/change-status', () => ({ upsertTracked }))
+    vi.doMock('@/lib/prisma', () => ({
+      prisma: {
+        homepageLead: { findMany: async () => [{ searchQ: 'job222' }] },
+        exclusiveJobPosting: { findMany: findJobs },
+        trackedJob: { update },
+      },
+    }))
+    const { claimSavedJobs } = await import('@/lib/leads/claim-saved-jobs')
+    expect(await claimSavedJobs('cand1', 'A@B.com')).toBe(1)
+    expect(findJobs).toHaveBeenCalledWith(expect.objectContaining({ where: { id: { in: ['job111', 'job222'] } } }))
+    expect(upsertTracked).toHaveBeenCalledWith('cand1', expect.objectContaining({ source: 'job_board', sourceId: 'job111' }))
+    expect(update).toHaveBeenCalled()
+  })
+})

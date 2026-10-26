@@ -142,6 +142,7 @@ import { ExpertNetworkRow } from '@/components/dashboard/one-board/ExpertNetwork
 import { earlyCareerAudience, featureVisible } from '@/lib/early-career/audience'
 import { TuneStripSection } from '@/components/dashboard/TuneStripSection'
 import { PageHeader } from '@/components/candidate/PageHeader'
+import { SavedSearchesStrip } from '@/components/dashboard/SavedSearchesStrip'
 import { ShowMore } from '@/components/candidate/ShowMore'
 import { FindTwoPane } from '@/components/dashboard/find/FindTwoPane'
 import { boardEntry, surfacedEntry } from '@/components/dashboard/find/entries'
@@ -1046,6 +1047,7 @@ export default async function JobFitPage({
         <PageHeader title={FIND_PART_HEADER[part].title} intro={FIND_PART_HEADER[part].intro} />
       )}
 
+      {tab === 'my_jobs' && <SavedSearchesStrip email={profile.email} />}
       <MyTabAnchors onMyJobs={tab === 'my_jobs'} />
       <BoardTabs current={tab} myJobsCount={trackedCount + applicationCount} />
       {tab === 'board' && <FindParts current={part} independent={featureVisible('interim_launch_plan', earlyCareerAudience(profile))} urlParams={urlParams} />}
