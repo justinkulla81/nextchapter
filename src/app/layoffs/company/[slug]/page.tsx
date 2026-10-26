@@ -14,7 +14,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
-import { getCompanies, getNewsMentions, noticeDay, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
+import { getCompanies, getNewsMentions, mergedSlug, noticeDay, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
 import { StatementForm } from '@/components/employers/StatementForm'
 import { approvedStatementMap } from '@/lib/employer-statements/store'
@@ -30,7 +30,8 @@ export function generateStaticParams() {
 async function load(slug: string) {
   const companies = await getCompanies()
   const c = companies.get(slug)
-  if (c) return c
+  if (c && mergedSlug(slug) === slug) return c
+  if (mergedSlug(slug) !== slug && companies.has(mergedSlug(slug))) permanentRedirect(`/layoffs/company/${mergedSlug(slug)}`)
   // A spelling from before one employer's filings were merged ("intel-corporation" → "intel").
   const merged = stripSlugSuffixes(slug)
   if (merged !== slug && companies.has(merged)) permanentRedirect(`/layoffs/company/${merged}`)

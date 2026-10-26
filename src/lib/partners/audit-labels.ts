@@ -19,6 +19,13 @@ const LABELS: Record<string, string> = {
   'connection.toggled': 'Turned a connection between portals on or off',
   'plan.set': 'Changed the plan of a section',
   'enterprise.set': 'Turned the enterprise package on or off',
+  'workspace.activated': 'Activated a section',
+  'workspace.suspended': 'Suspended a section',
+  'workspace.linked': 'Linked a section to its employer record',
+  'workspace.unlinked': 'Removed the link between a section and its employer record',
+  'workspace_team.added': 'Added someone to a section’s team',
+  'workspace_team.role_changed': 'Changed someone’s role in a section',
+  'workspace_team.removed': 'Removed someone from a section’s team',
 }
 
 export function describeAuditAction(action: string): string {
