@@ -16,13 +16,13 @@ import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { TOPICS } from '@/lib/seo/explainers'
-import { ASSOCIATION_MIN_CONFERENCES, INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
+import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
 import { topicsWithSnapshot } from '@/lib/seo/topic-snapshot'
 import { boardSlugs } from '@/lib/seo/workforce-pages'
 import { visibleBoards } from '@/lib/workforce/board-area'
-import { getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
+import { NONPROFIT_ORG_PAGES_INDEXED, getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
 import { prisma } from '@/lib/prisma'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
@@ -135,7 +135,7 @@ async function loadNonprofitPages(entry: (path: string, updated: string, freq: F
   try {
     const [counts, orgs, edo] = await Promise.all([
       getStateNonprofitCounts(),
-      nonprofitsForSitemap(),
+      NONPROFIT_ORG_PAGES_INDEXED ? nonprofitsForSitemap() : Promise.resolve([]),
       prisma.localPartnerOrg.groupBy({ by: ['state'], where: { OR: [{ confidence: null }, { confidence: { not: 'low' } }] }, _count: { _all: true } }),
     ])
     return [
@@ -175,7 +175,7 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
       byOrg.set(slug, [...(byOrg.get(slug) ?? []), c])
     }
     const assocEntries = [...byOrg]
-      .filter(([, rows]) => rows.length >= ASSOCIATION_MIN_CONFERENCES && assessAssociation(rows).indexable)
+      .filter(([, rows]) => assessAssociation(rows).indexable)
       .map(([slug]) => entry(`/associations/${slug}`, newest.get(slug) ?? TOPICS_UPDATED, 'weekly', 0.5))
     return [
       ...hubs,
