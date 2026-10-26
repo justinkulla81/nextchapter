@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { PortalHelpLauncher } from '@/components/portal/PortalHelpLauncher'
+import { NpsPromptLoader } from '@/components/nps/NpsPromptLoader'
 import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import { RecruiterNav } from '@/components/recruiter/RecruiterNav'
 import { getCurrentRecruiter } from '@/lib/recruiter/current-recruiter'
@@ -59,6 +60,9 @@ export default async function RecruiterAppLayout({ children }: { children: React
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
       <PortalActivityTracker portal="RECRUITER" />
       <PortalHelpLauncher portal="RECRUITER" />
+      <Suspense fallback={null}>
+        <NpsPromptLoader audience="RECRUITER" />
+      </Suspense>
       <Suspense fallback={<RecruiterNav accessToken={recruiter.accessToken} brand={brand} />}>
         <RecruiterNavWithBadges
           recruiterId={recruiter.id}
