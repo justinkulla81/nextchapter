@@ -182,6 +182,9 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
     { id: 'data', label: 'Data', n: null },
   ]
 
+  // A college prospect that already has a customer workspace links to its account page.
+  const collegeAccount = await prisma.institution.findUnique({ where: { crmOrganizationId: org.id }, select: { name: true } }).catch(() => null)
+
   return (
     <div className="space-y-6">
       <nav className="text-sm">
@@ -191,6 +194,11 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
       <header className="flex flex-wrap items-start justify-between gap-6">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold">{org.name}</h1>
+          {collegeAccount && (
+            <p className="mt-1 text-sm">
+              <Link href="/support/admin/institutions" className="underline underline-offset-4">Customer account: {collegeAccount.name}</Link>
+            </p>
+          )}
           <div className="mt-2 flex flex-wrap gap-1">
             {org.orgTypes.map((t) => (
               <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-xs">{ORG_TYPE_LABELS[t]}</span>
