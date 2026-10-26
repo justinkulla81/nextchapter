@@ -10,7 +10,7 @@ import { conferencesHostedBy, hasHostedConferences } from '@/lib/events/conferen
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateFromSlug } from '@/lib/seo/states'
-import { collegePath, territoryFromSlug } from '@/lib/seo/college-bar'
+import { AI_LEVELS, AI_TRACK_LABEL, aiProgramSentence, collegePath, territoryFromSlug } from '@/lib/seo/college-bar'
 import { areaName, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
 import { functionByName, functionPath } from '@/lib/seo/topics'
 
@@ -37,6 +37,8 @@ function description(c: CollegePageData, st: string): string {
   const bits: string[] = [`${c.name} is a ${kind(c) || 'college'} in ${c.city ? `${c.city}, ` : ''}${st}`]
   if (c.enrollment) bits[0] += ` with about ${n0(c.enrollment)} students`
   if (c.topMajors[0]) bits.push(`most degrees are in ${c.topMajors.slice(0, 2).map((m) => m.field.toLowerCase()).join(' and ')}`)
+  const ai = aiProgramSentence(c.aiPrograms)
+  if (ai) bits.push(`awards degrees or certificates in ${ai}`)
   if (c.market && c.market.jobsOpen > 0) bits.push(`${n0(c.market.jobsOpen)} open professional jobs in ${c.market.county.name}`)
   return `${bits.join('; ')}. Graduation, earnings and net price, local employers hiring, and the nearest workforce board.`
 }
@@ -78,6 +80,15 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   if (c.completionRate != null) faq.push({ q: `What is the graduation rate at ${c.name}?`, a: `${pct(c.completionRate)} of students complete, from the U.S. Department of Education College Scorecard (${c.dataYear ?? 'latest release'}).` })
   if (c.earnings10 != null || c.earnings6 != null) {
     faq.push({ q: `What do ${c.name} graduates earn?`, a: `Median earnings of students who received federal aid are ${[c.earnings6 != null ? `${usd(c.earnings6)} six years after entry` : '', c.earnings10 != null ? `${usd(c.earnings10)} ten years after entry` : ''].filter(Boolean).join(' and ')}, from the College Scorecard.` })
+  }
+  if (c.aiPrograms) {
+    const sentence = aiProgramSentence(c.aiPrograms)
+    faq.push({
+      q: `Does ${c.name} offer AI or data science degrees?`,
+      a: sentence
+        ? `Yes. ${c.name} awarded degrees or certificates in ${sentence} in ${c.aiPrograms.year}, from IPEDS completions by program.`
+        : `${c.name} reported no degrees or certificates in artificial intelligence, data science, data analytics or robotics for ${c.aiPrograms.year} (IPEDS completions). A new program with no graduates yet would not appear.`,
+    })
   }
   if (m && m.jobsOpen > 0) faq.push({ q: `Are there jobs near ${c.name}?`, a: `${n0(m.jobsOpen)} open professional jobs are listed in ${m.county.name}, ${n0(m.entryLevel)} of them entry level and ${n0(m.noExperience)} saying no experience is needed. ${m.topEmployers[0] ? `${m.topEmployers[0].name} has the most openings.` : ''}`.trim() })
 
@@ -147,6 +158,39 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+
+      {c.aiPrograms && (
+        <section aria-labelledby="ai" className="mt-12">
+          <h2 id="ai" className={H2}>AI and data programs</h2>
+          {c.aiPrograms.programs.length > 0 ? (
+            <>
+              <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+                Degrees and certificates awarded in {c.aiPrograms.year}, by program area and level, from IPEDS completions.
+              </p>
+              <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">
+                <table className="w-full min-w-[30rem] text-left text-sm">
+                  <caption className="sr-only">AI and data degrees and certificates at {c.name}</caption>
+                  <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
+                    <tr><th scope="col" className="p-3">Program area</th>{AI_LEVELS.map((l) => <th key={l} scope="col" className="p-3 capitalize">{l === 'certificate' ? 'Certificates' : l === 'associate' ? 'Associate' : l === 'bachelor' ? 'Bachelor’s' : l === 'master' ? 'Master’s' : 'Doctorate'}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(AI_TRACK_LABEL).filter((t) => c.aiPrograms!.programs.some((p) => p.track === t)).map((t) => (
+                      <tr key={t} className="border-b border-border last:border-0">
+                        <td className="p-3">{AI_TRACK_LABEL[t]}</td>
+                        {AI_LEVELS.map((l) => { const a = c.aiPrograms!.programs.find((p) => p.track === t && p.level === l)?.awards; return <td key={l} className="p-3 tabular-nums">{a ? n0(a) : ''}</td> })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+              {c.name} reported no degrees or certificates in artificial intelligence, data science, data analytics or robotics for {c.aiPrograms.year}. A new program with no graduates yet would not appear here.
+            </p>
+          )}
         </section>
       )}
 

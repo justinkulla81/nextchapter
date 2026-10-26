@@ -117,3 +117,46 @@ export function functionsForMajors(majors: { field: string; share: number }[], m
   }
   return { functions: functions.slice(0, max), fields }
 }
+
+/** IPEDS program codes (CIP 2020) for the tracks shown as "AI and data programs". */
+export const AI_TRACK_CIP: Record<string, string> = {
+  '11.0102': 'ai',
+  '30.7001': 'datasci', '30.7101': 'analytics', '30.7102': 'analytics', '30.7103': 'analytics', '30.7104': 'analytics',
+  '14.4201': 'robotics', '15.0405': 'robotics', '15.0406': 'robotics',
+}
+export const AI_TRACK_LABEL: Record<string, string> = {
+  ai: 'Artificial intelligence', datasci: 'Data science', analytics: 'Data analytics and business analytics', robotics: 'Robotics, mechatronics and automation',
+}
+export const AI_LEVELS = ['certificate', 'associate', 'bachelor', 'master', 'doctorate'] as const
+export type AiLevel = (typeof AI_LEVELS)[number]
+
+/** IPEDS award level code → the level shown. */
+export function aiLevelOf(awlevel: string): AiLevel | null {
+  if (['1', '2', '4', '6', '8', '20', '21'].includes(awlevel)) return 'certificate'
+  if (awlevel === '3') return 'associate'
+  if (awlevel === '5') return 'bachelor'
+  if (awlevel === '7') return 'master'
+  if (['17', '18', '19'].includes(awlevel)) return 'doctorate'
+  return null
+}
+
+export interface AiProgramRow { track: string; level: AiLevel; awards: number }
+export interface AiPrograms { year: number; programs: AiProgramRow[] }
+
+/** Reads the stored JSON; anything malformed counts as "not loaded". */
+export function parseAiPrograms(v: unknown): AiPrograms | null {
+  if (!v || typeof v !== 'object') return null
+  const o = v as { year?: unknown; programs?: unknown }
+  if (typeof o.year !== 'number' || !Array.isArray(o.programs)) return null
+  const programs = o.programs.filter((p): p is AiProgramRow =>
+    !!p && typeof p.track === 'string' && p.track in AI_TRACK_LABEL && AI_LEVELS.includes(p.level) && typeof p.awards === 'number' && p.awards > 0)
+  return { year: o.year, programs }
+}
+
+/** One sentence for the description and FAQ: which tracks, at which levels. Null when none. */
+export function aiProgramSentence(a: AiPrograms | null): string | null {
+  if (!a || a.programs.length === 0) return null
+  const tracks = Object.keys(AI_TRACK_LABEL).filter((t) => a.programs.some((p) => p.track === t))
+  const levels = AI_LEVELS.filter((l) => a.programs.some((p) => p.level === l))
+  return `${tracks.map((t) => AI_TRACK_LABEL[t].toLowerCase()).join(', ')} (${levels.join(', ')})`
+}
