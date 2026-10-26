@@ -17417,3 +17417,12 @@ model EmployerStatement {
   @@index([warnNoticeId])
   @@index([status, createdAt])
 }
+
+/// Precomputed aggregates for the public industry and function pages (open jobs, salary quartiles, skills...), refreshed
+/// by the topic-snapshots cron so a page view reads one row instead of scanning the job board. key: "jobs:<json filter>"
+/// or "stats:<json filter>". Applied by hand: prisma/manual/topic-snapshot.sql.
+model TopicSnapshot {
+  key       String   @id
+  data      Json
+  updatedAt DateTime @default(now())
+}
