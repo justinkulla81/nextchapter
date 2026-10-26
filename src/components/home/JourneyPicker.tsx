@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { PERSONAS } from '@/lib/constants/personas'
 import { JOURNEY_GROUPS } from '@/lib/constants/journey-groups'
 import { planFor } from '@/lib/leads/first-week-plans'
+import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 import { submitJourneyLead, type JourneyState } from '@/lib/leads/actions'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
@@ -54,7 +55,7 @@ export function JourneyPicker({ source = 'home', compact = false, situations }: 
           )}
         </p>
         <Link
-          href={`/start/${slug}`}
+          href={MARKET_REALITY_START_HREF}
           onClick={() => posthog.capture('journey_picker_continue_clicked', { situation: slug })}
           className="mt-5 inline-flex h-12 items-center rounded-full bg-action px-6 text-base font-semibold text-action-foreground hover:brightness-95"
         >
