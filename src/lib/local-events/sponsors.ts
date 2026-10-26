@@ -5,9 +5,13 @@
 const EVENT_WORDS = '(?:hiring (?:event|day|fair|blitz)|career (?:fair|event|day|expo)|job (?:fair|expo)|recruiting (?:event|day)|open house|information session|info session|virtual (?:hiring|career|job))'
 const GENERIC = /^(?:the|our|a|an|this|annual|spring|summer|fall|winter|virtual|online|in[- ]person|free|local|community|regional|county|city|state|national|career|job|hiring|hybrid|open|public|veterans?|military|student|students|women|spring|expo)$/i
 
+// Fields and services that are also the name of some company, and places that exist in many states: a match on these is a coincidence.
+const AMBIGUOUS = /^(?:pharmacy|nursing|healthcare|health care|medical|education|engineering|technology|tech|finance|insurance|construction|manufacturing|retail|hospitality|logistics|accounting|legal|law|sales|marketing|trades|energy|government|federal|nonprofit|human resources|hr|it|stem|stem[a-z ]*)$|\b(?:county|city|town|township|parish|borough|village|school district|public schools)$|^(?:city|county|town) of\b/i
+
 const clean = (s: string) => s.replace(/[“”"*]/g, '').replace(/\s+/g, ' ').replace(/^[\s:–—-]+|[\s:–—,.-]+$/g, '').trim()
 const plausible = (s: string) => {
-  if (s.length < 3 || s.length > 60) return false
+  if (s.length < 4 || s.length > 60) return false
+  if (AMBIGUOUS.test(s)) return false
   if (!/[A-Z]/.test(s[0])) return false
   const words = s.split(' ')
   if (words.length > 6) return false
