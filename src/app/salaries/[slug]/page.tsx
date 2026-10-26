@@ -9,6 +9,7 @@ import { usd } from '@/lib/seo/job-title-rules'
 import { salarySeo } from '@/lib/seo/templates'
 import { titleMeta } from '@/lib/seo/title'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
+import { ShareBar } from '@/components/marketing/ShareBar'
 
 export const revalidate = 21600
 export const dynamicParams = true
@@ -70,6 +71,9 @@ export default async function SalaryPage({ params }: { params: Promise<{ slug: s
         <JobList jobs={d.jobs} total={stat.jobs} source={`salary:${slug}`} allHref={`/jobs/title/${slug}`} />
         <p className="mt-3 text-sm"><Link href={`/jobs/title/${slug}`} className={LINK}>All {stat.jobs.toLocaleString('en-US')} {stat.name.toLowerCase()} jobs</Link></p>
       </Section>
+      <div className="mt-8">
+        <ShareBar url={`${SITE_URL}/salaries/${slug}`} title={`${stat.name} salary: what the jobs pay`} placement="salary_page" label="Send this to a friend" />
+      </div>
       <div className="mt-8">
         <SaveSearchForm q={stat.name} loc="" remote={false} source="page:salary" heading={`Get ${stat.name.toLowerCase()} jobs that pay like this`} blurb="We’ll email you new openings for this title. No account needed." cta="Email me new jobs" />
       </div>

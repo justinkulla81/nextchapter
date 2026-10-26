@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import type { ReactNode } from 'react'
 import { ContactForm } from '@/components/marketing/ContactForm'
+import { B2bAssetBox } from '@/components/marketing/B2bAssetBox'
+import type { B2bAssetKey } from '@/lib/marketing/b2b-assets'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ActionBand, AudienceSection, AudienceShell, Disclosure, actionButton } from '@/components/organizations/AudienceShell'
 import { StructuredData } from '@/components/StructuredData'
@@ -76,6 +78,8 @@ export interface PortalPageContent {
   plansIntro: string
   faq: { q: string; a: string }[]
   finalCta: PortalFinalCta
+  /** A free, specific offer shown right after the first look at the product (see b2b-assets.ts). */
+  asset?: B2bAssetKey
   footerLinks?: { href: string; label: string }[]
   jsonLd: Omit<PortalJsonLdInput, 'path' | 'planNames' | 'faq'>
 }
@@ -171,6 +175,12 @@ export function PortalMarketingPage({ content: c }: { content: PortalPageContent
               </div>
             </AudienceSection>
           )
+        )}
+
+        {c.asset && (
+          <AudienceSection id="free" title="Free to start">
+            <B2bAssetBox assetKey={c.asset} page={c.analyticsKey} />
+          </AudienceSection>
         )}
 
         {gallery.length > 0 && (

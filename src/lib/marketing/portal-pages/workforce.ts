@@ -90,6 +90,7 @@ export const WORKFORCE: PortalPageDef = {
         a: 'Job seekers use the core job search tools without paying. Membership and coaching are optional for them.',
       },
     ],
+    asset: 'workforce-demo',
     finalCta: {
       title: 'Claim your page, or tell us about your program',
       intro: 'Claim your page at the address above. For the Program plan, or if your page does not open, send us a message.',

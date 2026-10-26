@@ -3,6 +3,7 @@ import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import { workforceStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { B2bAssetBox } from '@/components/marketing/B2bAssetBox'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
@@ -92,6 +93,10 @@ export default async function WorkforceStatePage({ params }: { params: Promise<{
           </div>
         </section>
       )}
+
+      <section aria-label="Free demo" className="mt-10">
+        <B2bAssetBox assetKey="workforce-demo" page="workforce_state" />
+      </section>
 
       <ActionBand
         title={`Run a workforce board in ${d.name}?`}

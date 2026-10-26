@@ -163,6 +163,39 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
       </section>
 
       <section className="space-y-3">
+        <div>
+          <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">3 · Organizations (B2B)</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Visitors to each audience's pages, and who raised a hand. These are different people from the candidate band, so they are not part
+            of the funnel above. A very small count of visitors makes the rate noise; read the counts first.
+          </p>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-muted-foreground">
+              <th className="pb-1 font-normal">Audience</th>
+              <th className="pb-1 text-right font-normal">Visitors</th>
+              <th className="pb-1 text-right font-normal">Raised a hand</th>
+              <th className="pb-1 text-right font-normal">Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.b2b.map((r) => (
+              <tr key={r.key} className="border-t align-top">
+                <td className="py-1.5">
+                  <div className="font-medium">{r.label}</div>
+                  <div className="text-xs text-muted-foreground">{r.where} · counts = {r.counts}</div>
+                </td>
+                <td className="py-1.5 text-right tabular-nums">{r.reached.toLocaleString('en-US')}</td>
+                <td className="py-1.5 text-right tabular-nums">{r.raisedHand.toLocaleString('en-US')}</td>
+                <td className="py-1.5 text-right tabular-nums">{pct(r.raisedHand, r.reached)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Where emails come from
         </h2>
