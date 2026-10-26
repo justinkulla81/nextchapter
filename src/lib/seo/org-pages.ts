@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
+import { heavy, memoTtl } from '@/lib/db/heavy'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -111,7 +112,7 @@ export interface StateData {
 const jobsFrom = Prisma.sql`FROM "ExclusiveJobPosting" WHERE ${PUBLIC_JOB_STATIC_SQL} AND ${PUBLIC_JOB_LIVE_SQL}`
 const ENTRY = Prisma.sql`"level" IN ('ENTRY_IC', 'EARLY_IC')`
 
-export const getStateData = cache(async (state: string): Promise<StateData> => {
+async function loadStateData(state: string): Promise<StateData> {
   const [centerRows, partnerRows, boardRows, places, counties, cityJobs, stateJobs, colleges, labor] = await Promise.all([
     prisma.americanJobCenter.findMany({ where: { state }, orderBy: [{ city: 'asc' }, { name: 'asc' }] }),
     prisma.localPartnerOrg.findMany({ where: { state }, orderBy: { name: 'asc' } }),
@@ -182,7 +183,11 @@ export const getStateData = cache(async (state: string): Promise<StateData> => {
     state, centers, econDev, boards, places, counties, cityStats, stateStat, collegesByFips,
     laborByToken: new Map(labor.map((l) => [keyOf(l.nameKey), l])),
   }
-})
+}
+
+// One load per state per ten minutes on an instance, shared between requests, and at most three at a time.
+const sharedStateData = memoTtl(10 * 60_000, (state: string) => state, (state: string) => heavy(() => loadStateData(state)))
+export const getStateData = cache((state: string) => sharedStateData(state))
 
 // ---------------------------------------------------------------------------------------------
 // Area and blocks for one organization
@@ -258,7 +263,7 @@ const citySpellings = (p: CityPlace) => [p.key, p.name.toLowerCase(), p.name.toL
 export interface HiringEmployer { name: string; openRoles: number; href: string | null }
 export interface AreaJob { id: string; title: string; company: string; location: string | null }
 
-export async function areaHiring(state: string, area: Area): Promise<{ employers: HiringEmployer[]; jobs: AreaJob[] }> {
+async function loadAreaHiring(state: string, area: Area): Promise<{ employers: HiringEmployer[]; jobs: AreaJob[] }> {
   if (!area.statewide && area.places.length === 0) return { employers: [], jobs: [] }
   const spellings = area.statewide ? null : [...new Set(area.places.flatMap(citySpellings))]
   const where = Prisma.sql`AND "locationState" = ${state} ${spellings ? Prisma.sql`AND lower("locationCity") = ANY(${spellings})` : Prisma.empty}`
@@ -277,6 +282,9 @@ export async function areaHiring(state: string, area: Area): Promise<{ employers
     jobs,
   }
 }
+
+const sharedAreaHiring = memoTtl(10 * 60_000, (state: string, area: Area) => `${state}|${area.statewide}|${area.places.map((p) => p.key).join(',')}`, (state: string, area: Area) => heavy(() => loadAreaHiring(state, area)))
+export const areaHiring = (state: string, area: Area) => sharedAreaHiring(state, area)
 
 /** The slug of the CRM organization's claim page, when the organization is linked to one. Fail-soft until the link table exists. */
 export async function claimSlugFor(kind: OrgPageKind, sourceId: string): Promise<string | null> {

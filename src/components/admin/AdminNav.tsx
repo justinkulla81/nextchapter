@@ -204,6 +204,7 @@ function visionSections(): NavSection[] {
         { href: '/support/admin/vision/items', label: 'Roadmap' },
         { href: '/support/admin/vision/brainstorm', label: 'Brainstorm' },
         { href: '/support/admin/vision/feedback', label: 'Feedback' },
+        { href: '/support/admin/vision/nps', label: 'Net Promoter Score' },
         { href: '/support/admin/vision/competitors', label: 'Competitors' },
       ],
     },
@@ -254,6 +255,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
         { href: `${A}/reference-disputes`, label: 'Reference disputes', badge: badgeFor('referenceDisputes') },
         { href: `${A}/reported-messages`, label: 'Reported conversations', badge: badgeFor('reportedMessages') },
         { href: `${A}/community-moderation`, label: 'Community moderation', badge: badgeFor('communityModeration') },
+        { href: `${A}/employer-statements`, label: 'Employer statements' },
       ],
     },
     {

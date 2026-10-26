@@ -1,5 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
+import { heavy, memoTtl } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { cityFromAddress } from '@/lib/workforce/places'
@@ -46,6 +47,8 @@ export interface PublicNotice {
   place: string | null
   workers: number | null
   noticeDate: Date
+  /** When we collected it: what the alert emails use, since a state can publish a notice days after it was filed. */
+  fetchedAt: Date
   effectiveDate: Date | null
   type: string | null
   sourceUrl: string | null
@@ -53,7 +56,7 @@ export interface PublicNotice {
 }
 
 /** Every WARN filing on the public record, newest first. Cached per request. */
-export const getPublicNotices = cache(async (): Promise<PublicNotice[]> => {
+async function loadPublicNotices(): Promise<PublicNotice[]> {
   const rows = await prisma.warnNotice.findMany({
     where: {
       dismissedAt: null,
@@ -64,7 +67,7 @@ export const getPublicNotices = cache(async (): Promise<PublicNotice[]> => {
     },
     select: {
       id: true, state: true, employer: true, county: true, address: true, employees: true,
-      noticeDate: true, effectiveDate: true, layoffType: true, sourceUrl: true, workforceBoardId: true,
+      noticeDate: true, fetchedAt: true, effectiveDate: true, layoffType: true, sourceUrl: true, workforceBoardId: true,
       companyMatchStatus: true, company: { select: { name: true } },
     },
     orderBy: [{ noticeDate: 'desc' }, { employees: 'desc' }],
@@ -86,13 +89,18 @@ export const getPublicNotices = cache(async (): Promise<PublicNotice[]> => {
       place: county ? `${county} County` : cityFromAddress(r.address, r.state) ?? cityFromAddress(r.employer, r.state),
       workers: r.employees,
       noticeDate: r.noticeDate!,
+      fetchedAt: r.fetchedAt,
       effectiveDate: r.effectiveDate,
       type: readableType(r.layoffType),
       sourceUrl: r.sourceUrl && /^https:\/\//.test(r.sourceUrl) ? r.sourceUrl : null,
       board: r.workforceBoardId ? boardById.get(r.workforceBoardId) ?? null : null,
     }
   })
-})
+}
+
+// One load per instance per five minutes, shared by every page that needs the record; the per-request cache sits on top.
+const sharedNotices = memoTtl(5 * 60_000, () => 'all', () => heavy(loadPublicNotices))
+export const getPublicNotices = cache(() => sharedNotices())
 
 export interface StateSummary {
   state: string

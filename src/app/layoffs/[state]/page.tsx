@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
+import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { StructuredData } from '@/components/StructuredData'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
 import { STATE_FIGURES, STATE_FIGURES_EDITION } from '@/lib/report-state-figures'
@@ -164,6 +165,9 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             WARN Act generally applies to employers with 100 or more workers. See the{' '}
             <Link href="/layoffs" className={LINK}>national tracker</Link> for how we collect notices.
           </p>
+          <div className="mt-10">
+            <LayoffAlertForm state={d.code} stateLabel={d.name} source="layoffs:state" />
+          </div>
         </div>
       </main>
       <PublicSiteFooter page="layoffs" />

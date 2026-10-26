@@ -15,7 +15,7 @@ function escapeHtml(s: string): string {
 }
 
 /** The plain-text description as the HTML Google for Jobs and job boards expect: headings become bold lines, dashes become list items. */
-function descriptionHtml(role: CareerRole): string {
+export function careerDescriptionHtml(role: CareerRole): string {
   const blocks = roleDescriptionText(role).split('\n\n')
   return blocks
     .map((block) => {
@@ -39,7 +39,7 @@ export function careerJobPostingJsonLd(role: CareerRole): Record<string, unknown
     '@context': 'https://schema.org/',
     '@type': 'JobPosting',
     title: role.title,
-    description: descriptionHtml(role),
+    description: careerDescriptionHtml(role),
     datePosted: CAREERS_POSTED,
     employmentType,
     hiringOrganization: {

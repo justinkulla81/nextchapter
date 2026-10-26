@@ -4,6 +4,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { publicPageForCrmOrg } from '@/lib/seo/org-page-links'
+import { publicPageForOrg as collegePageForOrg } from '@/lib/seo/college-pages'
 import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { NONPROFIT_MIN_REVENUE, nonprofitSlug } from '@/lib/seo/nonprofit-pages'
 
@@ -26,6 +27,9 @@ export async function publicPageForOrg(org: OrgRef): Promise<PublicPageLink | nu
   if (linked) return link(linked.path, linked.label, linked.indexed)
 
   if (org.orgTypes.includes('UNIVERSITY')) {
+    // The college's own page (src/lib/seo/college-pages.ts); the state listing below is the fallback.
+    const page = await collegePageForOrg(org).catch(() => null)
+    if (page) return link(page.path, 'College page', page.indexable)
     const col = await prisma.localCollege.findFirst({ where: { crmOrgId: org.id }, select: { state: true, sector: true } })
     if (col && col.state in STATE_NAMES && [1, 2, 4, 5].includes(col.sector ?? 0)) return link(`/higher-education/${stateSlug(col.state)}`, 'College listing')
   }

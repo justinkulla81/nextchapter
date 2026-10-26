@@ -1,6 +1,7 @@
 import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
@@ -112,6 +113,9 @@ export default async function LayoffsHubPage() {
               <li><Link href="/resources/cobra-aca" className={LINK}>COBRA and marketplace health coverage</Link></li>
             </ul>
           </section>
+          <div className="mt-10">
+            <LayoffAlertForm source="layoffs:index" />
+          </div>
         </div>
       </main>
       <PublicSiteFooter page="layoffs" />

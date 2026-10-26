@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-119 clusters, 722 phrases.
+121 clusters, 733 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -80,6 +80,8 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics` | page | job search and career change topics | Browse job search and career topics | career topics; layoff topics; job search questions |
 | `/tools` | page | free job search and layoff tools | Free calculators and lookups for job seekers | free job search tools online; layoff tools; job loss calculator; free career tools |
 | `/tools/severance-calculator` | page | severance calculator | Work out a severance figure | severance pay calculator; how much severance should I get; severance by years of service; severance weeks per year; severance estimate |
+| `/tools/layoff-deadlines` | page | deadlines after a layoff | Find the dates that matter after a layoff | layoff deadlines; cobra deadline after layoff; when to file for unemployment after layoff; what to do after being laid off by when; layoff checklist dates |
+| `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; laid off vs fired; what is COBRA; what is outplacement; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
 | `/places` | page | local job markets | Job market in my area | jobs near me; job market by state and county; local unemployment rate; job openings by county; largest employers near me |
 | `/places/:state` | family | {state} jobs | Job market in one state | {state} job market; {state} unemployment rate; {state} largest employers; {state} job openings |
@@ -465,6 +467,18 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Severance Calculator: Pay by Years of Service
 - Description: Free severance calculator: enter your pay and years of service to see the common one-to-two weeks per year range, and what paid health coverage adds.
 - H1: Severance calculator
+
+### `/tools/layoff-deadlines`
+
+- Title: Layoff Deadlines: What to Do and By When
+- Description: Free layoff deadline tool: enter your last day to see when to file for unemployment and when the usual 60-day COBRA and Marketplace windows run out.
+- H1: Layoff deadlines: what to do and by when
+
+### `/tools/pay-check`
+
+- Title: Pay Check: Am I Paid Fairly for My Job Title?
+- Description: Free pay check: enter your job title and yearly pay to see where it sits against the range employers list today, with the median and the middle half.
+- H1: Pay check: is your salary in line?
 
 ### `/glossary`
 

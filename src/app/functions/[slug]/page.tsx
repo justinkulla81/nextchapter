@@ -68,7 +68,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
         </Section>
       )}
       <p className="mt-4 text-sm"><Link href={`/top-employers/${slug}`} className={LINK}>Ranked: the employers hiring the most {fn.name.toLowerCase()} jobs</Link></p>
-      <Section id="conferences" title={`${fn.name} conferences`} note="Conferences organizers tag for this function. Many events are not tagged to a function yet, so this list is a floor.">
+      <Section id="conferences" title={`${fn.name} conferences`} note="Conferences tagged for this function, plus events with no function tag whose attendee roles point here.">
         <ConferenceList rows={confs.rows} total={confs.total} upcoming={confs.upcoming} source={`function:${slug}`} />
       </Section>
       {orgs.length > 0 && (

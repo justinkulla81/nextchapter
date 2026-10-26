@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import Link from 'next/link'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { noticeDay, type PublicNotice } from '@/lib/warn/layoff-pages'
@@ -16,6 +17,7 @@ export function NoticeTable({
   linkEmployer = false,
   page,
   placeHref,
+  statements,
 }: {
   notices: PublicNotice[]
   caption: string
@@ -24,6 +26,8 @@ export function NoticeTable({
   page: 'state' | 'company'
   /** Link for a notice's city or county, when that place has its own page. */
   placeHref?: (place: string | null) => string | null
+  /** Approved employer statements by notice id, shown under the notice. The filing itself is never changed. */
+  statements?: Record<string, { body: string; authorTitle: string; approvedAt: Date; employer: string }>
 }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-white">
@@ -42,7 +46,8 @@ export function NoticeTable({
         </thead>
         <tbody className="divide-y divide-border">
           {notices.map((n) => (
-            <tr key={n.id}>
+            <Fragment key={n.id}>
+            <tr>
               <td className="px-4 py-3 whitespace-nowrap tabular-nums text-muted-foreground">
                 <time dateTime={n.noticeDate.toISOString().slice(0, 10)}>{noticeDay(n.noticeDate)}</time>
               </td>
@@ -75,6 +80,16 @@ export function NoticeTable({
                 )}
               </td>
             </tr>
+            {statements?.[n.id] && (
+              <tr className="bg-off-white">
+                <td colSpan={showState ? 7 : 6} className="px-4 py-3 text-sm">
+                  <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Statement from {statements[n.id].employer}, {noticeDay(statements[n.id].approvedAt)}</p>
+                  <p className="mt-1 text-navy">{statements[n.id].body}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{statements[n.id].authorTitle}. Added by the employer and reviewed by NextChapter. The state filing above is unchanged.</p>
+                </td>
+              </tr>
+            )}
+            </Fragment>
           ))}
         </tbody>
       </table>

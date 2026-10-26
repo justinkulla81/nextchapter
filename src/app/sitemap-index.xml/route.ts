@@ -7,7 +7,8 @@ import { SEARCH_FIRM_SITEMAP_SHARD_SIZE, countSearchFirmPages } from '@/lib/seo/
 
 // The sitemap index: the main sitemap, the job sitemaps (src/app/jobs/sitemap.ts) and the employer sitemaps
 // (src/app/employers/sitemap.ts), the place pages (src/app/places/sitemap.ts), and the American Job Center and
-// economic development pages (src/app/job-centers/sitemap.ts, src/app/economic-development/sitemap.ts).
+// economic development pages (src/app/job-centers/sitemap.ts, src/app/economic-development/sitemap.ts). The college pages are in
+// src/app/higher-education/sitemap.ts.
 // Next does not write an index for generateSitemaps, so this lists them. This is the
 // one URL to submit in Search Console; robots.txt points at it too.
 // Rebuilt hourly: the number of employer files follows the number of employers that pass the page bar.
@@ -23,6 +24,7 @@ export async function GET() {
   const maps = [
     `${SITE_URL}/sitemap.xml`,
     `${SITE_URL}/places/sitemap.xml`,
+    `${SITE_URL}/higher-education/sitemap.xml`,
     `${SITE_URL}/salaries/sitemap.xml`,
     ...Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => `${SITE_URL}/jobs/sitemap/${i}.xml`),
     ...Array.from({ length: employerShards }, (_, i) => `${SITE_URL}/employers/sitemap/${i}.xml`),

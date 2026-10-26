@@ -21,11 +21,13 @@ import { CheckInPromptDialog } from '@/components/dashboard/CheckInPromptDialog'
 import { getCheckInPrompt } from '@/lib/daily/check-in-prompt'
 import { HelpFeedbackLauncher } from '@/components/dashboard/HelpFeedbackLauncher'
 import { getHelpRepliesWaiting } from '@/lib/help/unread'
+import { NpsPromptLoader } from '@/components/nps/NpsPromptLoader'
 import { GoogleConnectResultBanner } from '@/components/dashboard/GoogleConnectResultBanner'
 import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
 import { getFreshJobsPeek } from '@/lib/jobs/fresh-jobs-peek'
 import { timed } from '@/lib/perf/timed'
+import { NotificationBellLoader } from '@/components/notifications/NotificationBellLoader'
 import { RedesignNav } from '@/components/dashboard/RedesignNav'
 import { RedesignParts } from '@/components/dashboard/RedesignParts'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
@@ -119,11 +121,12 @@ async function CheckInPromptLoader({ profileId }: { profileId: string }) {
   const prompt = await getCheckInPrompt(profileId).catch(() => null)
   if (prompt) return <CheckInPromptDialog {...prompt} />
   // Nothing else is due, so ask "Still searching?" at the stage's pace. Never
-  // two pop-ups at once.
+  // two pop-ups at once; the NPS question only takes the slot when neither is due.
   const profile = await getDashboardProfile()
   const stage = effectiveStage(profile)
-  if (!stage || stage === 'PAUSED' || !checkInDue(profile)) return null
-  return <JourneyCheckInDialog stageLabel={getStage(stage).label} />
+  if (stage && stage !== 'PAUSED' && checkInDue(profile)) return <JourneyCheckInDialog stageLabel={getStage(stage).label} />
+  // Nothing to check in on: the NPS question, if this member is due for it.
+  return <NpsPromptLoader audience="CANDIDATE" />
 }
 
 // The part switches (Jobs, Not posted yet, ...) at the top of a page, with the same locks as the menu.
@@ -172,6 +175,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         personName={personName}
         className="lg:pl-[calc(18rem+1.5rem)]"
       />
+      {/* The bell: layoffs, deadlines and matches worth a look. */}
+      <Suspense fallback={null}>
+        <NotificationBellLoader candidateId={profile.id} />
+      </Suspense>
       {/* Higher Ed: the member's college brand, when they joined through one. */}
       <Suspense fallback={null}>
         <CollegeBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />

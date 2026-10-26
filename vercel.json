@@ -5,6 +5,18 @@
   "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
   "crons": [
     {
+      "path": "/api/cron/deadline-reminders",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/layoff-alerts",
+      "schedule": "45 14 * * *"
+    },
+    {
+      "path": "/api/cron/job-alerts",
+      "schedule": "30 14 * * *"
+    },
+    {
       "path": "/api/cron/meeting-prep-offer",
       "schedule": "0 0 * * *"
     },
@@ -95,6 +107,10 @@
     {
       "path": "/api/cron/indexnow-org-pages",
       "schedule": "40 11 * * *"
+    },
+    {
+      "path": "/api/cron/indexnow-seo-pages",
+      "schedule": "50 11 * * *"
     },
     {
       "path": "/api/cron/google-indexing-jobs",
