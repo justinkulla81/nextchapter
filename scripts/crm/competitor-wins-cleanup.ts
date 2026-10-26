@@ -4,7 +4,7 @@
 //
 //   node --env-file=.env.local --conditions=react-server --import tsx scripts/crm/competitor-wins-cleanup.ts            (dry run)
 //   node --env-file=.env.local --conditions=react-server --import tsx scripts/crm/competitor-wins-cleanup.ts --apply
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { writeFileSync, mkdirSync, chmodSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { prisma } from '../../src/lib/prisma'
@@ -13,6 +13,17 @@ import { awardIsWorkforce } from '../../src/lib/bids/relevance'
 const APPLY = process.argv.includes('--apply')
 const ORG_NOTE = 'Added from a competitor win (Competitors page).'
 const REBID_TEXT = 'Contract end date from the award record; the buyer may re-bid around then.'
+
+// Exports are never overwritten: every run writes new, timestamped, read-only files (flag "wx" refuses an existing file),
+// and an empty export is not written at all. A run that deletes anything must have written its export first.
+const RUN_STAMP = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+function exportFile(name: string, content: string): string | null {
+  if (!content) return null
+  const dir = join(homedir(), 'nc-exports'); mkdirSync(dir, { recursive: true })
+  const file = join(dir, `${RUN_STAMP}-competitor-wins-cleanup-${APPLY ? 'apply' : 'dryrun'}-${name}`)
+  writeFileSync(file, content, { flag: 'wx' }); chmodSync(file, 0o444)
+  return file
+}
 const csv = (rows: Record<string, unknown>[]) => {
   if (!rows.length) return ''
   const cols = Object.keys(rows[0])
@@ -73,17 +84,18 @@ async function main() {
   const delOrgs = orgRows.filter((o) => o.deletable)
 
   // Export first.
-  const dir = join(homedir(), 'nc-hunter-results'); mkdirSync(dir, { recursive: true })
-  const stamp = '2026-10-26-competitor-wins-cleanup'
-  writeFileSync(join(dir, `${stamp}-notes.csv`), csv(del.map((n) => { const a = byKey.get(n.sourceRef!.slice(15))!; return { id: n.id, org: org.get(n.orgId!)?.name, competitor: a.competitorName, award: a.description, agency: a.agency, amountUsd: a.amount, startDate: a.startDate?.toISOString().slice(0, 10), url: a.url, sourceRef: n.sourceRef, subject: n.subject, body: n.body, occurredAt: n.occurredAt.toISOString() } })))
-  writeFileSync(join(dir, `${stamp}-rebid-dates.csv`), csv(deadlines.map((d) => ({ id: d.id, orgId: d.orgId, label: d.label, dueAt: d.dueAt?.toISOString(), sourceUrl: d.sourceUrl }))))
-  writeFileSync(join(dir, `${stamp}-orgs.csv`), csv(orgRows))
+  const notesFile = exportFile('notes.csv', csv(del.map((n) => { const a = byKey.get(n.sourceRef!.slice(15))!; return { id: n.id, org: org.get(n.orgId!)?.name, competitor: a.competitorName, award: a.description, agency: a.agency, amountUsd: a.amount, startDate: a.startDate?.toISOString().slice(0, 10), url: a.url, sourceRef: n.sourceRef, subject: n.subject, body: n.body, occurredAt: n.occurredAt.toISOString() } })))
+  exportFile('rebid-dates.csv', csv(deadlines.map((d) => ({ id: d.id, orgId: d.orgId, label: d.label, dueAt: d.dueAt?.toISOString(), sourceUrl: d.sourceUrl }))))
+  exportFile('orgs.csv', csv(orgRows))
+
 
   console.log(JSON.stringify({ mode: APPLY ? 'APPLY' : 'DRY RUN', importNotes: notes.length, notesToDelete: del.length, notesKept: keep, rebidDatesToDelete: deadlines.length, orgsCreatedByImport: candidates.length, orgsToDelete: delOrgs.length, orgsKept: orgRows.filter((o) => !o.deletable).map((o) => `${o.name}: ${o.reason}`).slice(0, 40) }, null, 1))
   console.log('SAMPLE (buyer | competitor | award | amount):')
   for (const n of del.slice(0, 15)) { const a = byKey.get(n.sourceRef!.slice(15))!; console.log(`- ${org.get(n.orgId!)?.name} | ${a.competitorName} | ${(a.description ?? '').slice(0, 70)} | $${Math.round(a.amount).toLocaleString('en-US')}`) }
 
+  console.log(`export written: ${notesFile ?? '(nothing to export)'}`)
   if (!APPLY) return
+  if (del.length > 0 && !notesFile) throw new Error('Refusing to delete: no export file was written for this run.')
   const r1 = await prisma.crmDeadline.deleteMany({ where: { id: { in: [...delDeadlineIds] } } })
   const r2 = await prisma.crmActivity.deleteMany({ where: { id: { in: [...delIds] }, isAutoLogged: true, sourceRef: { startsWith: 'competitor-win:' } } })
   let orgsDeleted = 0
