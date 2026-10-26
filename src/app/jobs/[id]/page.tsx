@@ -6,6 +6,8 @@ import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { NoExperienceLine } from '@/components/jobs/NoExperienceLine'
 import { TrainingProvidedLine } from '@/components/jobs/TrainingProvidedLine'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
+import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { StructuredData } from '@/components/StructuredData'
 import { PersonalizePanel } from '@/components/home/PersonalizePanel'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
@@ -90,15 +92,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             <NoExperienceLine jobId={job.id} signals={job.postingSignals} phrase={job.noExperiencePhrase} surface="public_job" className="mt-3 text-base" />
             <TrainingProvidedLine jobId={job.id} signals={job.postingSignals} phrase={job.trainingPhrase} surface="public_job" className="mt-3 text-base" />
 
-            <TrackedLink
-              href={job.url}
-              rel="nofollow"
-              event="public_job_apply_clicked"
-              properties={{ jobId: job.id, company: job.companyName, placement: 'top' }}
-              className={cn(buttonVariants({ size: 'lg' }), 'mt-6 h-12 rounded-full bg-action px-6 text-action-foreground hover:brightness-95')}
-            >
-              Apply on employer site
-            </TrackedLink>
+            <ApplyAndSave jobId={job.id} company={job.companyName} applyUrl={job.url} emailOn={applySaveEmailOn()} />
 
             {(industry || fn) && (
               <p className="mt-6 text-sm text-muted-foreground">
@@ -134,8 +128,10 @@ export default async function PublicJobPage({ params }: { params: Params }) {
           </article>
 
           <PersonalizePanel
-            heading="This page is not personalized"
-            intro="Anyone sees this same job. Without a profile you don’t get:"
+            heading="Know if you fit before you apply"
+            intro="Add your résumé once. With a free profile you get:"
+            positive
+            cta="Show me my fit"
             properties={{ placement: 'job_page', jobId: job.id }}
             mobileFirst={false}
           />
