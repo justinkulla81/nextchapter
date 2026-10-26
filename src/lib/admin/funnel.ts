@@ -32,6 +32,20 @@ export interface FunnelData {
   leadsByKind: { kind: string; count: number }[]
   leadsBySource: { source: string; count: number }[]
   landing: { path: string; visitors: number; leadsSameSource: number }[]
+  offers: OfferRow[]
+}
+
+export interface OfferRow {
+  key: string
+  label: string
+  /** Where people see it, in words. */
+  where: string
+  /** Distinct people who saw the page (or, for Market Reality, clicked the start link). */
+  reached: number
+  /** What they gave: an email, a file or a started account. */
+  captured: number
+  /** What the capture is, so a count is never read as a different thing. */
+  capturedMeans: string
 }
 
 const botPatterns = BOT_SIGNATURES.map((s) => `%${s}%`)
@@ -44,6 +58,58 @@ function humanOnly(): Prisma.Sql {
 async function countRaw(query: Prisma.Sql): Promise<number> {
   const rows = await prisma.$queryRaw<{ n: bigint }[]>(query)
   return Number(rows[0]?.n ?? 0)
+}
+
+// Distinct human visitors who viewed a page whose path matches the regex.
+function reachedByPath(since: Date, pathRegex: string): Promise<number> {
+  return countRaw(Prisma.sql`
+    SELECT COUNT(DISTINCT "ip")::bigint AS n FROM "HomepageVisitEvent"
+    WHERE "eventType" = 'PAGE_VIEW' AND "ip" IS NOT NULL AND "path" ~ ${pathRegex}
+      AND "createdAt" >= ${since} AND ${humanOnly()}`)
+}
+
+async function computeOffers(since: Date, registered: number): Promise<OfferRow[]> {
+  const win = { createdAt: { gte: since } }
+  const lead = (where: object) => prisma.homepageLead.count({ where: { ...win, ...where } })
+  const [
+    marketRealityClicks, rHome, rJobs, rJobPage, rLayoffs, rResume, rGuides, rTools, rNews, rNetwork,
+    cJourney, cJobAlert, cApplySave, cLayoff, cDeadline, cResume, cGuide, cNews, cNetwork,
+  ] = await Promise.all([
+    countRaw(Prisma.sql`
+      SELECT COUNT(DISTINCT "ip")::bigint AS n FROM "HomepageVisitEvent"
+      WHERE "eventType" = 'LINK_CLICK' AND "ip" IS NOT NULL AND "href" LIKE '%/onboarding/desire%'
+        AND "createdAt" >= ${since} AND ${humanOnly()}`),
+    reachedByPath(since, '^/$'),
+    reachedByPath(since, '^/jobs$'),
+    reachedByPath(since, '^/jobs/[a-z0-9]{20,}$'),
+    reachedByPath(since, '^/layoffs'),
+    reachedByPath(since, '^/submit-resume'),
+    reachedByPath(since, '^/resources/'),
+    reachedByPath(since, '^/tools/'),
+    reachedByPath(since, '^/(news|how-it-works|why-stuck)'),
+    reachedByPath(since, '^/network/'),
+    lead({ kind: 'journey', NOT: { source: { startsWith: 'network:' } } }),
+    lead({ kind: 'job_alert' }),
+    lead({ kind: 'apply_save' }),
+    lead({ kind: { in: ['layoff_alert', 'layoff_employer'] } }),
+    lead({ kind: 'deadline_reminders' }),
+    prisma.resumeSubmissionLead.count({ where: win }),
+    prisma.guideLead.count({ where: win }),
+    prisma.newsletterSubscriber.count({ where: win }),
+    lead({ kind: 'journey', source: { startsWith: 'network:' } }),
+  ])
+  return [
+    { key: 'marketReality', label: 'Market Reality Assessment', where: 'Homepage, funding, how-it-works buttons to /onboarding/desire', reached: marketRealityClicks, captured: registered, capturedMeans: 'accounts registered in the window, from any route' },
+    { key: 'journey', label: 'Journey picker + first-week plan', where: 'Homepage "Where are you in your search?"', reached: rHome, captured: cJourney, capturedMeans: 'emails' },
+    { key: 'jobSearch', label: 'Saved job search', where: '/jobs', reached: rJobs, captured: cJobAlert, capturedMeans: 'emails' },
+    { key: 'jobSave', label: 'Save this job', where: 'Job detail pages', reached: rJobPage, captured: cApplySave, capturedMeans: 'emails' },
+    { key: 'layoffAlert', label: 'Layoff alerts', where: '/layoffs', reached: rLayoffs, captured: cLayoff, capturedMeans: 'emails' },
+    { key: 'tools', label: 'Tools: deadline reminders', where: '/tools/*', reached: rTools, captured: cDeadline, capturedMeans: 'emails (reminders only; the calculators need no email)' },
+    { key: 'guides', label: 'Guide downloads', where: '/resources/*', reached: rGuides, captured: cGuide, capturedMeans: 'emails' },
+    { key: 'resumeRecruiters', label: 'Résumé to recruiters', where: '/submit-resume', reached: rResume, captured: cResume, capturedMeans: 'résumés (not the same offer as Market Reality)' },
+    { key: 'newsletter', label: 'Newsletter and report downloads', where: 'News, how-it-works, report pop-ups', reached: rNews, captured: cNews, capturedMeans: 'emails' },
+    { key: 'network', label: 'Network company pages', where: '/network/company/*', reached: rNetwork, captured: cNetwork, capturedMeans: 'emails' },
+  ]
 }
 
 export async function computeFunnel(windowDays: FunnelWindowDays): Promise<FunnelData> {
@@ -107,6 +173,8 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
     prisma.candidateProfile.count({ where: { ...registeredWhere, hireOutcomes: { some: {} } } }),
   ])
 
+  const offers = await computeOffers(since, registered)
+
   const landing = landingRows.map((r) => ({
     path: r.path,
     visitors: Number(r.visitors),
@@ -139,6 +207,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
       .sort((a, b) => b.count - a.count)
       .slice(0, 15),
     landing,
+    offers,
   }
 }
 

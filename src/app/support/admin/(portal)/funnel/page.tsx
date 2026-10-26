@@ -126,6 +126,41 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
       />
 
       <section className="space-y-3">
+        <div>
+          <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">Offers compared</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every way in, side by side: people who reached it, what they gave, and the rate. Sorted by rate. A row with
+            very few people reached is noise; read the count before the percentage.
+          </p>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-muted-foreground">
+              <th className="pb-1 font-normal">Offer</th>
+              <th className="pb-1 text-right font-normal">Reached</th>
+              <th className="pb-1 text-right font-normal">Gave</th>
+              <th className="pb-1 text-right font-normal">Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...data.offers]
+              .sort((a, b) => (b.reached ? b.captured / b.reached : -1) - (a.reached ? a.captured / a.reached : -1))
+              .map((o) => (
+                <tr key={o.key} className="border-t align-top">
+                  <td className="py-1.5">
+                    <div className="font-medium">{o.label}</div>
+                    <div className="text-xs text-muted-foreground">{o.where} · gave = {o.capturedMeans}</div>
+                  </td>
+                  <td className="py-1.5 text-right tabular-nums">{o.reached.toLocaleString('en-US')}</td>
+                  <td className="py-1.5 text-right tabular-nums">{o.captured.toLocaleString('en-US')}</td>
+                  <td className="py-1.5 text-right tabular-nums">{pct(o.captured, o.reached)}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
           Where emails come from
         </h2>
