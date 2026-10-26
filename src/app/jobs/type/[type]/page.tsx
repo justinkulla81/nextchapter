@@ -12,7 +12,7 @@ import { titleMeta } from '@/lib/seo/title'
 export const revalidate = 3600
 export const dynamicParams = true
 export function generateStaticParams() {
-  return JOB_TYPES.map((t) => ({ type: t.slug }))
+  return []
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
