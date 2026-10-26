@@ -32,6 +32,7 @@ export function GET() {
 - [Government & Workforce](${u('/government-workforce')}): a workspace for workforce boards, economic development organizations and chambers, with live counts from our own data.
 - [Nonprofits & community organizations](${u('/nonprofits')}): the same free workspace after a verified claim; research partnerships are set up one at a time.
 - [Recruiters](${u('/recruiters')}): search candidates who chose to be found and submit them in your firm's logo.
+- [Search firms](${u('/search-firms')}): search firms, recruiting firms and staffing companies with open searches: a page for each with the roles it is recruiting for, specialties, places, posted pay and how long its searches stay open.
 - [Coaches](${u('/coaches')}): invite clients with a code, a pre-session brief and session notes.
 
 ## Research and data
