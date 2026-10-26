@@ -1,0 +1,25 @@
+# After every production deploy, request the key public pages once so their caches are full before a crawler or visitor
+# arrives. See scripts/seo/warm-pages.sh. A newer deploy cancels a warm-up still running for an older one.
+name: Warm pages after deploy
+
+on:
+  deployment_status: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: warm-pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  warm:
+    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      # The production alias can take a moment to point at the new deploy.
+      - run: sleep 30
+      - run: scripts/seo/warm-pages.sh https://launchyournextchapter.com
