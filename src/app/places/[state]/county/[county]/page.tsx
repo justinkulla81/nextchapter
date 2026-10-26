@@ -10,6 +10,7 @@ import { countyKey } from '@/lib/workforce/places'
 import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
+import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
 import { getCountyPage, getPlaceLinker, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
 import { titleMeta } from '@/lib/seo/title'
@@ -68,7 +69,7 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
       <EconomySection id="economy" title={`${c.name} economy`} labor={c} scope={c.name} />
 
       <LayoffsSection id="layoffs" title={`${c.name} layoffs`} scope={c.name} stats={d.layoffs} notices={d.notices}
-        trackerHref={`/layoffs/${state}`} placeHref={linkPlace} />
+        trackerHref={(await hasLayoffStatePage(code)) ? `/layoffs/${state}` : null} placeHref={linkPlace} />
 
       <EmployerList id="hiring" title={`Employers hiring most in ${c.name}`}
         intro="Employers with the most open professional roles in this county’s cities. The county is taken from each job’s city, so roles with no city are not counted."

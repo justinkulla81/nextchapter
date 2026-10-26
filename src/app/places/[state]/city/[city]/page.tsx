@@ -9,6 +9,7 @@ import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
+import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
 import { getCityPage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
 import { titleMeta } from '@/lib/seo/title'
@@ -72,7 +73,7 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       <EmployerList id="hiring" title={`Employers hiring most in ${p.name}`} items={d.hiring} />
       <HeadquarteredList id="largest" title={`Largest employers headquartered in ${p.name}`} items={d.headquartered} />
 
-      <LayoffsSection id="layoffs" title={`${p.name} layoffs`} scope={p.name} stats={d.layoffs} notices={d.notices} trackerHref={`/layoffs/${state}`} />
+      <LayoffsSection id="layoffs" title={`${p.name} layoffs`} scope={p.name} stats={d.layoffs} notices={d.notices} trackerHref={(await hasLayoffStatePage(code)) ? `/layoffs/${state}` : null} />
 
       <CollegeTable id="colleges" title={`Colleges in ${p.name}`} colleges={d.colleges} showCity={false} />
 
