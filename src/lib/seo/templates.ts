@@ -75,6 +75,8 @@ export const higherEdStateSeo = (state: string) => ({
 })
 
 
+const MIN_DESCRIPTION = 110
+
 /** A meta description of at most `max` characters: the whole text, else its first sentences that fit, else a trim. */
 export function fitDescription(text: string, max = 160): string {
   if (text.length <= max) return text
@@ -85,7 +87,8 @@ export function fitDescription(text: string, max = 160): string {
     if (next.length > max) break
     out = next
   }
-  return out || fit(text, max)
+  // Whole sentences only when they leave a useful description; a one-line fragment of a long text is trimmed at a word instead.
+  return out.length >= MIN_DESCRIPTION ? out : fit(text, max)
 }
 
 /** /places/[state]: the owner of "<state> jobs" and "<state> job market". */

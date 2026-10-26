@@ -35,3 +35,20 @@ describe('keyword-map titles', () => {
     expect(cut).toEqual([])
   })
 })
+
+import { fitDescription } from '@/lib/seo/templates'
+describe('descriptions', () => {
+  it('keeps a short description whole', () => {
+    expect(fitDescription('A short, complete description.')).toBe('A short, complete description.')
+  })
+  it('keeps whole sentences when they leave a useful description, else trims at a word', () => {
+    const long = `${'Plans for job seekers and organizations, with what each includes. '.repeat(3)}${'More detail follows here and goes on. '.repeat(4)}`
+    const out = fitDescription(long)
+    expect(out.length).toBeLessThanOrEqual(160)
+    expect(out.length).toBeGreaterThanOrEqual(110)
+    const oneShort = `Plans. ${'This sentence is long and keeps going without a break so the next one never fits '.repeat(3)}`
+    const out2 = fitDescription(oneShort)
+    expect(out2.length).toBeGreaterThanOrEqual(110)
+    expect(out2.length).toBeLessThanOrEqual(160)
+  })
+})

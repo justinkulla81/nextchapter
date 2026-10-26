@@ -7,6 +7,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { functionBySlug, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { getFunctionRanking } from '@/lib/seo/employer-rankings'
 import { titleMeta } from '@/lib/seo/title'
+import { fitDescription } from '@/lib/seo/templates'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!fn) return { title: 'Function not found', robots: { index: false, follow: true } }
   return {
     title: titleMeta(`Top ${fn.name} employers: who is hiring the most`),
-    description: `The employers with the most open ${fn.name.toLowerCase()} jobs right now, with how many are entry-level and how many ask for AI skills. Counted daily from verified open jobs.`,
+    description: fitDescription(`The employers with the most open ${fn.name.toLowerCase()} jobs right now, with how many are entry-level and how many ask for AI skills. Counted daily from verified open jobs.`),
     ...canonical(`/top-employers/${slug}`),
   }
 }
