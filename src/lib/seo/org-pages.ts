@@ -14,6 +14,7 @@ import { getStateCityPlaces, getStateCounties, type CityPlace, type County } fro
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { claimSlug } from '@/lib/org-claims/urls'
+import { uniqueClaimSlugs } from '@/lib/org-claims/org'
 import {
   type OrgPageFacts, type OrgPageKind, cleanOrgName, groupPartnerDuplicates, meetsOrgPageBar, orgPagePath, orgSlugs,
 } from '@/lib/seo/org-page-rules'
@@ -308,7 +309,8 @@ export async function claimSlugFor(kind: OrgPageKind, sourceId: string, aliasIds
     const link = links.find((l) => l.sourceId === sourceId) ?? links[0]
     if (!link?.crmOrgId) return null
     const org = await prisma.crmOrganization.findUnique({ where: { id: link.crmOrgId }, select: { canonicalNameNormalized: true } })
-    return org ? claimSlug(org.canonicalNameNormalized) : null
+    const slug = org ? claimSlug(org.canonicalNameNormalized) : null
+    return slug && (await uniqueClaimSlugs([slug])).has(slug) ? slug : null
   } catch {
     return null
   }
@@ -334,6 +336,19 @@ export async function getOrgPage(kind: OrgPageKind, stateSlugParam: string, slug
   const sd = await getStateData(code)
   const row = rowsOf(sd, kind).find((r) => r.slug === slug)
   return row ? buildOrgPage(row, sd) : null
+}
+
+/**
+ * The current slug for a page address that no longer resolves because the organization's slug changed (two records were
+ * merged, so the city or id suffix that told them apart is gone). Only a longer address that starts with exactly one
+ * current slug and a hyphen counts; anything else stays a 404.
+ */
+export async function renamedOrgSlug(kind: OrgPageKind, stateSlugParam: string, slug: string): Promise<string | null> {
+  const code = ALL_STATE_CODES.find((c) => stateSlug(c) === stateSlugParam)
+  if (!code) return null
+  const sd = await getStateData(code)
+  const matches = rowsOf(sd, kind).filter((r) => slug.startsWith(`${r.slug}-`))
+  return matches.length === 1 ? matches[0].slug : null
 }
 
 export async function getStateOrgList(kind: OrgPageKind, stateSlugParam: string) {

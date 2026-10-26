@@ -78,6 +78,12 @@ export function assessConference(c: ConferenceFactInput, hasAssociationPage: boo
   return assess(facts, links, CONFERENCE_BAR)
 }
 
+/**
+ * Conferences an association needs before its page is offered to search engines. The audit found 28 of 30 sampled
+ * pages with 2 or 3 conferences under 240 words; pages with more conferences carry more of their own text.
+ */
+export const ASSOCIATION_MIN_INDEXABLE_CONFERENCES = 4
+
 /** An association page is judged on what its conferences give it, so the sitemap can decide from the catalog rows alone. */
 export function assessAssociation(rows: ConferenceFactInput[]): Assessment {
   const industries = new Set(rows.flatMap((r) => r.industries))
@@ -92,5 +98,6 @@ export function assessAssociation(rows: ConferenceFactInput[]): Assessment {
     industries.size > 0,
     rows.some((r) => r.seniorities.length > 0 || r.roles.length > 0),
   ]
-  return assess(checks.filter(Boolean).length, industries.size + functions.size + Math.min(3, rows.length))
+  const a = assess(checks.filter(Boolean).length, industries.size + functions.size + Math.min(3, rows.length))
+  return { ...a, indexable: a.indexable && rows.length >= ASSOCIATION_MIN_INDEXABLE_CONFERENCES }
 }

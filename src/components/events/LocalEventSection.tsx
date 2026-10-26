@@ -6,7 +6,7 @@ const KIND_LABEL: Record<string, string> = {
   JOB_FAIR: 'Job fair', HIRING_EVENT: 'Hiring event', CAREER_WORKSHOP: 'Career workshop', NETWORKING: 'Networking', RAPID_RESPONSE: 'Job-transition session',
   STARTUP_WORKSHOP: 'Starting a business', SMALL_BUSINESS_COUNSELING: 'Small-business counseling', PITCH: 'Pitch event', FUNDING: 'Funding', BUSINESS_NETWORKING: 'Business networking', OTHER: 'Event',
 }
-const HOST_LABEL: Record<string, string> = { CHAMBER: 'Chamber', JOB_CENTER: 'Job center', WORKFORCE_BOARD: 'Workforce board', ECON_DEV: 'Economic development', RAPID_RESPONSE: 'Rapid response', CITY: 'City', STATE_AGENCY: 'State agency', COLLEGE: 'College', SCORE: 'SCORE', SBDC: 'SBDC', COMPANY: 'Company' }
+const HOST_LABEL: Record<string, string> = { CHAMBER: 'Chamber', JOB_CENTER: 'Job center', WORKFORCE_BOARD: 'Workforce board', ECON_DEV: 'Economic development', RAPID_RESPONSE: 'Rapid response', CITY: 'City', STATE_AGENCY: 'State agency', COLLEGE: 'College', SCORE: 'SCORE', SBDC: 'SBDC / SBA partner', COMPANY: 'Company' }
 const when = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/New_York' })
 
 function Row({ e, links }: { e: LocalEventRow; links: Map<string, string> }) {

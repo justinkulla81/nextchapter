@@ -26,6 +26,7 @@ const disallow = [
   '/support/admin',
   '/noexperience/employers',
   '/api',
+  '/embed/',
   '/ref/',
   '/auth/callback',
   '/auth/magic-link',

@@ -7,7 +7,7 @@
 // Below that the page still renders (a firm can be claimed) but is noindex and out of the sitemap. The sitemap SQL
 // (search-firm-pages.ts) interpolates the same constant.
 
-export const SEARCH_FIRM_MIN_PUBLIC_ROLES = 3
+export const SEARCH_FIRM_MIN_PUBLIC_ROLES = 5 // was 3: 5 of 30 sampled pages at 3-4 roles were under the 250-word bar
 
 export function isSearchFirmIndexable(publicRoles: number): boolean {
   return publicRoles >= SEARCH_FIRM_MIN_PUBLIC_ROLES

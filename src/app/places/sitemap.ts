@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { unstable_cache } from 'next/cache'
 import { SITE_URL } from '@/lib/seo/facts'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
-import { getAllCityEntries, getAllCounties, placeUrl } from '@/lib/places/places'
+import { getAllCityEntries, getAllCounties, meetsCountyBar, placeUrl } from '@/lib/places/places'
 
 // The place pages: /places, every state, every county, and the cities that pass the bar (places.ts). Listed in the
 // sitemap index (src/app/sitemap-index.xml/route.ts) and served at /places/sitemap.xml.
@@ -22,13 +22,19 @@ const build = unstable_cache(
   async (): Promise<MetadataRoute.Sitemap> => {
     const out = states()
     const counties = await getAllCounties()
+    const cities = await getAllCityEntries()
+    const citiesIn = new Map<string, number>()
+    for (const c of cities) if (c.county) citiesIn.set(`${c.state}|${c.county}`, (citiesIn.get(`${c.state}|${c.county}`) ?? 0) + 1)
     for (const code of ALL_STATE_CODES) {
-      for (const c of counties.get(code) ?? []) out.push({ url: `${SITE_URL}${placeUrl.county(stateSlug(code), c.slug)}`, changeFrequency: 'weekly', priority: 0.5 })
+      for (const c of counties.get(code) ?? []) {
+        if (!meetsCountyBar(c.population, citiesIn.get(`${code}|${c.name}`) ?? 0)) continue
+        out.push({ url: `${SITE_URL}${placeUrl.county(stateSlug(code), c.slug)}`, changeFrequency: 'weekly', priority: 0.5 })
+      }
     }
-    for (const c of await getAllCityEntries()) out.push({ url: `${SITE_URL}${placeUrl.city(stateSlug(c.state), c.slug)}`, changeFrequency: 'daily', priority: 0.4 })
+    for (const c of cities) out.push({ url: `${SITE_URL}${placeUrl.city(stateSlug(c.state), c.slug)}`, changeFrequency: 'daily', priority: 0.4 })
     return out
   },
-  ['places-sitemap-v1'],
+  ['places-sitemap-v2'],
   { revalidate: 21600 },
 )
 

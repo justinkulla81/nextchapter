@@ -2,10 +2,13 @@ import 'server-only'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { retryOnPoolTimeout } from '@/lib/db/heavy'
+import { employerPath, isCompanyOfferedToSearch } from '@/lib/seo/employer-pages'
+import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import {
   PUBLIC_JOB_GHOST_AGE_DAYS,
   PUBLIC_JOB_SITEMAP_SHARDS,
+  PUBLIC_JOB_SOURCES,
   PUBLIC_JOB_VERIFIED_DAYS,
   isPublicJob,
   type PublicJobRow,
@@ -124,4 +127,40 @@ export async function publicJobRowsByIds(ids: string[]): Promise<PublicJobRow[]>
   const rows = await prisma.exclusiveJobPosting.findMany({ where: { id: { in: ids } }, select: PUBLIC_JOB_SELECT })
   const now = Date.now()
   return rows.filter((r) => isPublicJob(r, now))
+}
+
+/**
+ * Where a job that was public and has since closed should send people (and search engines): its employer's page when that
+ * page is offered to search engines, else the function or industry page it was tagged with, else null (a plain 404).
+ * A job that never had a public page (private, unverified, unknown) is null too. One primary-key read, plus one more
+ * for the employer check; any failure is null, so the page falls back to its 404.
+ */
+export async function closedJobRedirectTarget(id: string): Promise<string | null> {
+  if (!/^[a-z0-9]{10,40}$/i.test(id)) return null
+  try {
+    const job = await retryOnPoolTimeout(() =>
+      prisma.exclusiveJobPosting.findUnique({
+        where: { id },
+        select: {
+          status: true, archivedAt: true, closeReason: true, expiresAt: true, source: true, disclosure: true, distribution: true,
+          institutionScopeId: true, orgScopeId: true, industry: true, targetFunction: true,
+          company: { select: { id: true, canonicalNameNormalized: true } },
+        },
+      }),
+    )
+    if (!job) return null
+    const wasPublic =
+      job.status === 'approved' && job.disclosure === 'OPEN' && job.distribution === 'OPEN' && !job.institutionScopeId && !job.orgScopeId &&
+      (PUBLIC_JOB_SOURCES as readonly string[]).includes(job.source)
+    const closed = !!job.archivedAt || !!job.closeReason || (!!job.expiresAt && job.expiresAt.getTime() < Date.now())
+    if (!wasPublic || !closed) return null
+
+    if (job.company && (await isCompanyOfferedToSearch(job.company.id))) return employerPath(job.company.canonicalNameNormalized, job.company.id)
+    const fn = functionByName(job.targetFunction)
+    if (fn) return functionPath(fn.name)
+    const industry = bucketFromIndustryText(job.industry)
+    return industry ? industryPath(industry) : null
+  } catch {
+    return null
+  }
 }

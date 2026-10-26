@@ -12,6 +12,7 @@ import { visibleBoards } from '@/lib/workforce/board-area'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
+import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
 import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { chunk, INDEXNOW_BATCH, INDEXNOW_ENDPOINT, INDEXNOW_NEW_PER_RUN, indexNowBody } from '@/lib/syndication/syndication'
 
@@ -70,11 +71,18 @@ async function currentPages(): Promise<Page[]> {
   }
 
   // Layoff pages: announced again when a newer notice is filed.
-  const [companies, states] = await Promise.all([getCompanies(), getStateSummaries()])
+  const [companies, states, announcements] = await Promise.all([getCompanies(), getStateSummaries(), getAnnouncements().catch(() => new Map())])
   for (const s of states) out.push({ path: `/layoffs/${stateSlug(s.state)}`, lastModified: day(s.latest) })
   for (const c of companies.values()) {
     out.push({ path: `/layoffs/company/${c.slug}`, lastModified: day(c.latest) })
     if (isNetworkCompany(c)) out.push({ path: `/network/company/${c.slug}`, lastModified: day(c.latest) })
+  }
+  // A buyout or reported layoff is announced the day it is added, and again when a newer one lands.
+  for (const a of announcements.values()) {
+    if (!hasRecentAnnouncement(a)) continue
+    const existing = out.findIndex((o) => o.path === `/layoffs/company/${a.slug}`)
+    if (existing >= 0) out.splice(existing, 1)
+    out.push({ path: `/layoffs/company/${a.slug}`, lastModified: day(companies.get(a.slug) && companies.get(a.slug)!.latest > a.latest ? companies.get(a.slug)!.latest : a.latest) })
   }
   return out
 }

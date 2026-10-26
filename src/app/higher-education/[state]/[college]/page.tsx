@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { LinkToUs } from '@/components/seo/LinkToUs'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
@@ -263,6 +264,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
         <span className="font-medium text-foreground">Sources:</span> enrollment and degrees from IPEDS (U.S. Department of Education); graduation, earnings and net price from the College Scorecard{c.dataYear ? ` (${c.dataYear})` : ''};
         open jobs from employers’ career sites, checked daily; unemployment from the Bureau of Labor Statistics; workforce boards and American Job Centers from CareerOneStop.
       </p>
+      <LinkToUs path={path} name={c.name} kind="college" />
     </SeoPage>
   )
 }

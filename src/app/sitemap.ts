@@ -13,16 +13,17 @@ import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
+import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
 import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { TOPICS } from '@/lib/seo/explainers'
-import { ASSOCIATION_MIN_CONFERENCES, INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
+import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
 import { topicsWithSnapshot } from '@/lib/seo/topic-snapshot'
 import { boardSlugs } from '@/lib/seo/workforce-pages'
 import { visibleBoards } from '@/lib/workforce/board-area'
-import { getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
+import { NONPROFIT_ORG_PAGES_INDEXED, getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
 import { prisma } from '@/lib/prisma'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
@@ -40,6 +41,9 @@ type Freq = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>
  * redirects (/for-coaches, /coach-platform) or anything robots.ts disallows.
  */
 const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: number }[] = [
+  { path: '/data', updated: '2026-10-27', freq: 'daily', priority: 0.7 },
+  { path: '/data/embed', updated: '2026-10-27', freq: 'monthly', priority: 0.5 },
+  { path: '/layoffs/this-week', updated: '2026-10-27', freq: 'daily', priority: 0.7 },
   { path: '/jobs', updated: '2026-10-22', freq: 'daily', priority: 0.8 },
   { path: '/about', updated: '2026-10-06', freq: 'monthly', priority: 0.7 },
   { path: '/careers', updated: '2026-10-26', freq: 'weekly', priority: 0.7 },
@@ -135,7 +139,7 @@ async function loadNonprofitPages(entry: (path: string, updated: string, freq: F
   try {
     const [counts, orgs, edo] = await Promise.all([
       getStateNonprofitCounts(),
-      nonprofitsForSitemap(),
+      NONPROFIT_ORG_PAGES_INDEXED ? nonprofitsForSitemap() : Promise.resolve([]),
       prisma.localPartnerOrg.groupBy({ by: ['state'], where: { OR: [{ confidence: null }, { confidence: { not: 'low' } }] }, _count: { _all: true } }),
     ])
     return [
@@ -175,7 +179,7 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
       byOrg.set(slug, [...(byOrg.get(slug) ?? []), c])
     }
     const assocEntries = [...byOrg]
-      .filter(([, rows]) => rows.length >= ASSOCIATION_MIN_CONFERENCES && assessAssociation(rows).indexable)
+      .filter(([, rows]) => assessAssociation(rows).indexable)
       .map(([slug]) => entry(`/associations/${slug}`, newest.get(slug) ?? TOPICS_UPDATED, 'weekly', 0.5))
     return [
       ...hubs,
@@ -194,11 +198,14 @@ const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), da
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // News items that have their own page — the ones with our take.
-  const [news, layoffStates, companies] = await Promise.all([
+  const [news, layoffStates, companies, announcements] = await Promise.all([
     getPublishedNews(500),
     getStateSummaries().catch(() => []),
     getCompanies().catch(() => new Map()),
+    getAnnouncements().catch(() => new Map()),
   ])
+  // Employers with a recent announcement are listed even without a WARN filing (their page exists and is indexable).
+  const announced = [...announcements.values()].filter((a) => hasRecentAnnouncement(a))
   const newestNotice = layoffStates.length ? latestOf(layoffStates.map((s) => s.latest.toISOString())) : null
   const newsPages = news.filter((i) => i.slug)
   const newestNews = news.length ? latestOf(news.map((i) => i.liveAt)) : null
@@ -259,8 +266,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(newestNotice ? [entry('/layoffs', newestNotice, 'daily', 0.7)] : []),
     ...layoffStates.map((s) => entry(`/layoffs/${stateSlug(s.state)}`, s.latest.toISOString(), 'daily', 0.6)),
     ...[...companies.values()]
-      .filter((c) => meetsCompanyLayoffBar(c))
+      .filter((c) => meetsCompanyLayoffBar(c) && !announced.some((a) => a.slug === c.slug))
       .map((c) => entry(`/layoffs/company/${c.slug}`, c.latest.toISOString(), 'weekly', 0.4)),
+    ...announced.map((a) => {
+      const c = companies.get(a.slug)
+      const newest = c && c.latest > a.latest ? c.latest : a.latest
+      return entry(`/layoffs/company/${a.slug}`, newest.toISOString(), 'daily', 0.6)
+    }),
 
     // Employer network pages: the same employers, kept only where the page qualifies (recent notice, enough workers).
     ...[...companies.values()]

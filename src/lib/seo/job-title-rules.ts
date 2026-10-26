@@ -46,3 +46,26 @@ export function annualPay(min: number | null, max: number | null, period: string
   if (period === 'hour') return min * 2080 >= 25_000 && min * 2080 <= 400_000 ? mid * 2080 : null
   return null
 }
+
+/** The title the salary pages group by: the same cuts as the BASE expression in job-titles.ts (a " - Team" or "| Remote" tail, then anything after a comma, bracket, colon or slash), spaces collapsed, lower-cased. */
+export function baseTitle(title: string): string {
+  return title
+    .replace(/[\s]+[-–—|][\s]+[\s\S]*$/, '')
+    .replace(/[\s]*[,(:/][\s\S]*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+}
+
+export interface PayVsMarket {
+  /** Where this listing's pay sits against the listings for the same title that state pay. null when the listing states no usable annual pay. */
+  position: 'below' | 'within' | 'above' | null
+  /** Percent above (positive) or below (negative) the median, rounded to a whole number. null with no listing pay. */
+  vsMedianPct: number | null
+}
+
+/** Compares one listing's annualized pay with its title's lower quarter, median and upper quarter. */
+export function comparePay(pay: number | null, p25: number, median: number, p75: number): PayVsMarket {
+  if (pay == null) return { position: null, vsMedianPct: null }
+  return { position: pay < p25 ? 'below' : pay > p75 ? 'above' : 'within', vsMedianPct: Math.round(((pay - median) / median) * 100) }
+}

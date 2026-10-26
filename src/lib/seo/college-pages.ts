@@ -8,6 +8,7 @@ import { countyKey } from '@/lib/workforce/places'
 import { strictOrgKey } from '@/lib/crm/normalize'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { claimSlug } from '@/lib/org-claims/urls'
+import { uniqueClaimSlugs } from '@/lib/org-claims/org'
 import { getStateCityPlaces, getStateCounties, type County } from '@/lib/places/places'
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
@@ -145,16 +146,21 @@ export const getStateCollegeListings = cache(async (state: string): Promise<Coll
     })
   }
   const slugs = collegeSlugs(facts.map((f) => ({ unitid: f.unitid, name: f.name, city: f.city })))
+  const orgFor = (f: (typeof facts)[number]) => {
+    const linked = linkById.get(f.unitid) ?? f.crmOrgId
+    return (linked ? orgs.byId.get(linked) : undefined) ?? orgs.byKey.get(strictOrgKey(f.name, normalizeOrgName))
+  }
+  // A claim link goes only to an address that resolves to one organization (see uniqueClaimSlugs).
+  const claimable = await uniqueClaimSlugs(facts.flatMap((f) => { const o = orgFor(f); const s = o ? claimSlug(o.canonicalNameNormalized) : null; return s ? [s] : [] }))
   return facts
     .map((f) => {
-      const linked = linkById.get(f.unitid) ?? f.crmOrgId
-      const org = (linked ? orgs.byId.get(linked) : undefined) ?? orgs.byKey.get(strictOrgKey(f.name, normalizeOrgName))
+      const org = orgFor(f)
       return {
         ...f,
         slug: slugs.get(f.unitid)!,
         // Territories have no county job data, so their pages stay out of search results.
         indexable: !isCollegeTerritory(state) && collegeIndexable({ enrollment: f.enrollment, majors: f.topMajors.length, outcomes: outcomes(f), countyFips: f.countyFips }),
-        claimSlug: org ? claimSlug(org.canonicalNameNormalized) : null,
+        claimSlug: ((s) => (s && claimable.has(s) ? s : null))(org ? claimSlug(org.canonicalNameNormalized) : null),
       }
     })
     .sort((a, b) => a.name.localeCompare(b.name))

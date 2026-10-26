@@ -18,6 +18,18 @@ import { TWELVE_MONTHS_MS, TWENTY_FOUR_MONTHS_MS, getPublicNotices, type PublicN
 // A city page exists only when it has something of its own to say (CITY_BAR below); every county and
 // state has one.
 
+/** A county below this population needs a city page of its own in it to be offered to search engines. */
+export const COUNTY_MIN_POPULATION = 25_000
+
+/**
+ * Whether a county page is offered to search engines (indexable, in the sitemap). Every county keeps a page, but a
+ * small rural county with no city that passes the city bar has little of its own: the audit (scripts/seo/page-quality.py)
+ * found 8 of 30 sampled county pages under 250 words, all of them this kind. They render noindex, follow.
+ */
+export function meetsCountyBar(population: number | null, qualifyingCities: number): boolean {
+  return qualifyingCities >= 1 || (population ?? 0) >= COUNTY_MIN_POPULATION
+}
+
 /** Open public roles a city needs before it gets a page on jobs alone. */
 export const CITY_MIN_JOBS = 3
 

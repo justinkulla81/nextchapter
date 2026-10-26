@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { LinkToUs } from '@/components/seo/LinkToUs'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
@@ -160,6 +161,7 @@ export default async function SearchFirmPublicPage({ params }: { params: Promise
         <span className="font-medium text-foreground">Sources:</span> searches from the firm’s own job board and applicant system, checked
         {s.publicRoles > 0 && f.lastChecked ? ` (last ${f.lastChecked.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})` : ' regularly'}; only roles with a public listing are counted.
       </p>
+      <LinkToUs path={path} name={f.name} kind="search_firm" />
     </SeoPage>
   )
 }

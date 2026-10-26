@@ -34,6 +34,12 @@ FAMILIES = {  # name: (sitemap path, path regex)
     'jobs': ('/jobs/sitemap/0.xml', r'/jobs/'),
     'salaries': ('/salaries/sitemap.xml', r'/salaries/.+'),
     'jobs/title': ('/salaries/sitemap.xml', r'/jobs/title/.+'),
+    'nonprofits': ('/sitemap.xml', r'^/nonprofits/[a-z-]+/.+'),
+    'associations': ('/sitemap.xml', r'^/associations/.+'),
+    'conferences': ('/sitemap.xml', r'^/conferences/.+'),
+    'search-firms': ('/search-firms/sitemap/0.xml', r'/search-firms/.+'),
+    'job-centers': ('/job-centers/sitemap/0.xml', r'/job-centers/.+/.+'),
+    'economic-development': ('/economic-development/sitemap/0.xml', r'/economic-development/.+/.+'),
 }
 
 def get(url):

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { LinkToUs } from '@/components/seo/LinkToUs'
 import { notFound } from 'next/navigation'
 import { Chips, ConferenceList, FactGrid, JoinBand, Section, TopicShell, functionChip, industryChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
@@ -55,6 +56,7 @@ export default async function AssociationPage({ params }: { params: Promise<{ sl
       <Section id="conferences" title={`${a.name} conferences`}>
         <ConferenceList rows={confs.rows} total={confs.total} upcoming={confs.upcoming} source={`association:${slug}`} />
       </Section>
+      <LinkToUs path={path} name={a.name} kind="association" />
       <JoinBand source={`association:${slug}`} what="the industries these events serve" />
     </TopicShell>
   )
