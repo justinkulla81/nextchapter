@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
@@ -27,9 +28,7 @@ const pipeline = shot('recruiter-pipeline', {
 
 export const RECRUITERS: PortalPageDef = {
   seo: {
-    title: 'Candidate search and submission packets for recruiters',
-    description:
-      'Search candidates who chose to be found, ask for an introduction, and submit a packet in your firm’s logo built from the candidate’s Dossier. The recruiter workspace is free for now.',
+    ...pageSeo('/recruiters'),
     path: '/recruiters',
     image: { src: search.src, width: search.width, height: search.height, alt: search.alt },
   },

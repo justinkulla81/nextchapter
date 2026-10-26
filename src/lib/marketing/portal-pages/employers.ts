@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
 
@@ -25,9 +26,7 @@ const outplacement = shot('outplacement-reporting', {
 
 export const EMPLOYERS: PortalPageDef = {
   seo: {
-    title: 'Employer solutions for hiring, employees and outplacement',
-    description:
-      'NextChapter for employers, by stage of the employee lifecycle: Hiring for future employees, Employees for current ones, and Outplacement for people who are leaving.',
+    ...pageSeo('/employers'),
     path: '/employers',
     image: { src: hiring.src, width: hiring.width, height: hiring.height, alt: hiring.alt },
   },

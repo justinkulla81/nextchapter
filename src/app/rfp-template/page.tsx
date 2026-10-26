@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
@@ -5,18 +6,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { RfpDownloadButton } from '@/components/marketing/RfpDownloadButton'
 import { RFP_QUESTIONS, SCORECARD_CRITERIA } from '@/lib/marketing/rfp-template-content'
 
-export const metadata: Metadata = {
-  title: 'Outplacement RFP Template & Vendor Scorecard',
-  description:
-    'A free, vendor-neutral RFP template and scorecard for evaluating any outplacement provider — eight questions that separate a real evaluation from a sales pitch.',
-  alternates: { canonical: '/rfp-template' },
-  openGraph: {
-    title: 'Outplacement RFP Template & Vendor Evaluation Scorecard — NextChapter',
-    description:
-      'A free, vendor-neutral RFP template and scorecard for evaluating any outplacement provider.',
-    url: 'https://launchyournextchapter.com/rfp-template',
-  },
-}
+export const metadata: Metadata = pageMetadata('/rfp-template')
 
 const jsonLd = {
   '@context': 'https://schema.org',
