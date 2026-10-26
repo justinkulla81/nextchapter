@@ -30,6 +30,13 @@ export const CUSTOMER_UPDATES: CustomerUpdate[] = [
     href: 'https://launchyournextchapter.com/data/embed',
   },
   {
+    date: '2026-10-26',
+    audiences: ['employer', 'institution'],
+    title: 'Job fairs and hiring events now appear on your public page',
+    summary: 'We list upcoming job fairs, hiring events, career workshops and small-business events from chambers, workforce boards, colleges, SBDCs and SCORE, and link each one to the organizations hosting it and the employers hiring or sponsoring. If your event is on your own events page, it can appear on yours.',
+    href: 'https://launchyournextchapter.com/events',
+  },
+  {
     date: '2026-10-25',
     audiences: ['employer', 'recruiter', 'coach', 'institution'],
     title: 'Reply to our emails and it lands in your conversation',

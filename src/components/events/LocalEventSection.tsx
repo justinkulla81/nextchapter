@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { localEvents, type LocalEventRow, type LocalEventScope } from '@/lib/local-events/queries'
 import { hostKey, hostLinkMap } from '@/lib/local-events/hosts'
 
@@ -17,7 +17,7 @@ function Row({ e, links }: { e: LocalEventRow; links: Map<string, string> }) {
         <span className="text-xs font-semibold uppercase tracking-wide text-brand">{KIND_LABEL[e.kind] ?? 'Event'}</span>
         <span className="text-xs text-muted-foreground">{when(e.startsAt)}{e.format === 'VIRTUAL' ? ' · Online' : e.city ? ` · ${e.city}${e.state ? `, ${e.state}` : ''}` : ''}{e.cost ? ` · ${e.cost}` : ''}</span>
       </div>
-      <p className="mt-1 font-medium text-navy">{href ? <a href={href} rel="nofollow noopener" className="underline-offset-4 hover:underline">{e.title}</a> : e.title}</p>
+      <p className="mt-1 font-medium text-navy">{href ? <TrackedLink href={href} rel="nofollow" event="local_event_clicked" properties={{ eventId: e.id, kind: e.kind, track: e.track, state: e.state, target: 'event' }} className="underline-offset-4 hover:underline">{e.title}</TrackedLink> : e.title}</p>
       {e.hosts.length > 0 && (
         <p className="mt-1 text-xs text-muted-foreground">
           {e.hosts.map((h, i) => {
@@ -25,7 +25,7 @@ function Row({ e, links }: { e: LocalEventRow; links: Map<string, string> }) {
             return (
               <span key={`${h.kind}${h.id}${h.role}`}>
                 {i > 0 && ' · '}{h.role === 'SPONSOR' ? 'Sponsored by ' : h.role === 'EMPLOYER' ? 'Hiring: ' : h.role === 'PARTNER' ? 'With ' : `${HOST_LABEL[h.kind] ?? 'Host'}: `}
-                {to ? <Link href={to} className="text-brand underline underline-offset-2">{h.name}</Link> : h.name}
+                {to ? <TrackedLink href={to} event="local_event_clicked" properties={{ eventId: e.id, kind: e.kind, track: e.track, state: e.state, target: 'host', hostKind: h.kind }} className="text-brand underline underline-offset-2">{h.name}</TrackedLink> : h.name}
               </span>
             )
           })}

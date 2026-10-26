@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { placeKey, countyKey } from '@/lib/workforce/places'
+import { extractCompanies } from './sponsors'
 import { classifyKind, isNoise, proScore, trackOf, PUBLISH_MIN_SCORE, type LocalEventKind } from './classify'
 
 export interface IncomingSource { id: string; kind: string; name: string; state: string; city?: string | null; county?: string | null; website: string; eventsUrl?: string | null; feedType?: string | null; eventCount?: number; note?: string | null }
@@ -92,7 +93,9 @@ export async function importLocalEvents(sources: IncomingSource[], events: Incom
       for (const c of centers) add('JOB_CENTER', c.id, c.name, 'PARTNER')
     }
     for (const p of e.partners ?? []) add(p.kind, p.id, p.name, 'PARTNER')
-    const names = [...(e.sponsors ?? []).map((n) => [n, 'SPONSOR'] as const), ...(e.employers ?? []).map((n) => [n, 'EMPLOYER'] as const)].slice(0, 40)
+    const found = extractCompanies(title, e.description ?? '')
+    const hostNames = new Set(hosts.map((h) => normalizeOrgName(h.name)))
+    const names = [...[...(e.sponsors ?? []), ...found.sponsors].map((n) => [n, 'SPONSOR'] as const), ...[...(e.employers ?? []), ...found.employers].map((n) => [n, 'EMPLOYER'] as const)].filter(([n]) => !hostNames.has(normalizeOrgName(n))).slice(0, 40)
     if (names.length) {
       const keys = names.map(([n]) => normalizeOrgName(n)).filter(Boolean)
       const cos = await prisma.company.findMany({ where: { canonicalNameNormalized: { in: keys } }, select: { id: true, name: true, canonicalNameNormalized: true } })
