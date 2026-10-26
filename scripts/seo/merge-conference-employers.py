@@ -10,7 +10,7 @@ dest = "src/lib/events/conference-employers.json"
 data = json.load(open(dest)) if os.path.exists(dest) else {}
 ROLES = {"SPONSOR", "EXHIBITOR", "SPEAKER", "ATTENDEE"}
 # Pages that list an association-wide partner program or past speakers, not this event's own sponsors.
-EXCLUDE = {"nsa-annual-conference", "assp-safety-conference", "conference-board-chro-summit", "assessment-institute-indianapolis"}
+EXCLUDE = {"data-center-world", "mackinac-policy-conference", "nsa-annual-conference", "assp-safety-conference", "conference-board-chro-summit", "assessment-institute-indianapolis"}
 new = {}
 for f in sorted(glob.glob(os.path.join(sys.argv[1], "out*.json"))):
     try:
