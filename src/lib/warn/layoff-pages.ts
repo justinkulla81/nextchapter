@@ -177,7 +177,7 @@ export async function getCompanies(): Promise<Map<string, CompanySummary>> {
 
 /** Press reports that name the employer, newest first. */
 export async function getNewsMentions(company: CompanySummary) {
-  const keys = [...new Set(company.notices.map((n) => normalizeOrgName(n.employer)))]
+  const keys = [...new Set([...company.notices.map((n) => normalizeOrgName(n.employer)), normalizeOrgName(company.name)])]
   return prisma.layoffNewsMention.findMany({
     where: { OR: [{ companyKey: { in: keys } }, { noticeId: { in: company.notices.map((n) => n.id) } }] },
     select: { id: true, headline: true, url: true, publisher: true, publishedAt: true },
