@@ -10,9 +10,15 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { claimSlug } from '@/lib/org-claims/urls'
 import { getStateCityPlaces, getStateCounties, type County } from '@/lib/places/places'
 import { employerSlug } from '@/lib/seo/employer-slug'
-import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
+import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
+
+/** URL slug for a state or territory. */
+export const areaSlug = (code: string): string => (isCollegeTerritory(code) ? territorySlug(code) : stateSlug(code))
+/** Display name for a state or territory. */
+export const areaName = (code: string): string => COLLEGE_TERRITORIES[code] ?? stateName(code)
+const COLLEGE_AREAS = [...ALL_STATE_CODES, ...Object.keys(COLLEGE_TERRITORIES)]
 import { getStateBoards, type PublicBoard } from '@/lib/seo/workforce-pages'
-import { COLLEGE_SLUG_RE, collegeIndexable, collegePath, collegeSlugs, unitidFromSlug } from '@/lib/seo/college-bar'
+import { COLLEGE_SLUG_RE, COLLEGE_TERRITORIES, collegeIndexable, collegePath, collegeSlugs, isCollegeTerritory, territorySlug, unitidFromSlug } from '@/lib/seo/college-bar'
 
 // Public college pages (/higher-education/<state>/<college>): IPEDS and College Scorecard facts for the college, the
 // job market in its county, the workforce board and American Job Centers that serve it, and peer colleges in its
@@ -139,7 +145,8 @@ export const getStateCollegeListings = cache(async (state: string): Promise<Coll
       return {
         ...f,
         slug: slugs.get(f.unitid)!,
-        indexable: collegeIndexable({ enrollment: f.enrollment, majors: f.topMajors.length, outcomes: outcomes(f), countyFips: f.countyFips }),
+        // Territories have no county job data, so their pages stay out of search results.
+        indexable: !isCollegeTerritory(state) && collegeIndexable({ enrollment: f.enrollment, majors: f.topMajors.length, outcomes: outcomes(f), countyFips: f.countyFips }),
         claimSlug: org ? claimSlug(org.canonicalNameNormalized) : null,
       }
     })
@@ -186,7 +193,7 @@ function boardServes(b: PublicBoard, county: County): boolean {
 
 /** The page data for one college, or null when the address stands for no college. `canonicalSlug` differs from `slug` when the address is an older or id-only form. */
 export async function getCollegePage(stateCode: string, slug: string): Promise<(CollegePageData & { canonicalSlug: string }) | null> {
-  if (!ALL_STATE_CODES.includes(stateCode) || !COLLEGE_SLUG_RE.test(slug)) return null
+  if (!COLLEGE_AREAS.includes(stateCode) || !COLLEGE_SLUG_RE.test(slug)) return null
   const list = await getStateCollegeListings(stateCode)
   const id = unitidFromSlug(slug)
   const c = list.find((x) => x.slug === slug) ?? (id ? list.find((x) => x.unitid === id) : undefined)
@@ -208,7 +215,7 @@ export async function getCollegePage(stateCode: string, slug: string): Promise<(
     canonicalSlug: c.slug,
     stateName: stateCode,
     market,
-    boards: county ? boards.filter((b) => boardServes(b, county)).map((b) => ({ name: b.name, website: b.website, href: `/workforce-boards/${stateSlug(stateCode)}/${b.slug}` })) : [],
+    boards: county ? boards.filter((b) => boardServes(b, county)).map((b) => ({ name: b.name, website: b.website, href: `/workforce-boards/${areaSlug(stateCode)}/${b.slug}` })) : [],
     centers,
     peers,
   }
@@ -228,12 +235,12 @@ export async function indexableColleges(): Promise<{ state: string; slug: string
 /** The public page of the college a CRM organization stands for, for the admin "Public page" link. */
 export async function publicPageForOrg(org: { id: string; name: string; usState: string | null }): Promise<{ path: string; indexable: boolean } | null> {
   const linked = await prisma.localCollege.findFirst({ where: { crmOrgId: org.id }, select: { id: true, state: true } })
-  const states = linked ? [linked.state] : org.usState && ALL_STATE_CODES.includes(org.usState) ? [org.usState] : []
+  const states = linked ? [linked.state] : org.usState && COLLEGE_AREAS.includes(org.usState) ? [org.usState] : []
   const key = strictOrgKey(org.name, normalizeOrgName)
   for (const state of states) {
     const list = await getStateCollegeListings(state)
     const hit = linked ? list.find((c) => c.unitid === linked.id) : list.filter((c) => strictOrgKey(c.name, normalizeOrgName) === key)[0]
-    if (hit) return { path: collegePath(stateSlug(state), hit.slug), indexable: hit.indexable }
+    if (hit) return { path: collegePath(areaSlug(state), hit.slug), indexable: hit.indexable }
   }
   return null
 }

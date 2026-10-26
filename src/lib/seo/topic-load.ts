@@ -30,7 +30,7 @@ export const loadIndustry = cache(async (slug: string) => {
     industry.rule ? getTopicJobs({ rule: industry.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
     industry.rule ? getJobStats({ rule: industry.rule }) : Promise.resolve(null),
     getIndustryTrends(),
-    conferencesForIndustry(industry.name, 24).catch(() => EMPTY_CONFS),
+    conferencesForIndustry(industry.name, 60).catch(() => EMPTY_CONFS),
     getIndustryNotices(industry.name),
   ])
   const orgs = await organizersWithPages(confs)
@@ -54,7 +54,7 @@ export const loadFunction = cache(async (slug: string) => {
     getGroupWages(),
     getTopicJobs({ fn: fn.name }).catch(() => EMPTY_JOBS),
     getJobStats({ fn: fn.name }),
-    conferencesForFunction(fn.name, 24).catch(() => EMPTY_CONFS),
+    conferencesForFunction(fn.name, 60).catch(() => EMPTY_CONFS),
   ])
   // Layoffs are not shown by employer on a function page (too shaming, owner decision 2026-10-26), so none are read here.
   const orgs = await organizersWithPages(confs)

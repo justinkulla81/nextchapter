@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-121 clusters, 733 phrases.
+122 clusters, 739 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -82,6 +82,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/severance-calculator` | page | severance calculator | Work out a severance figure | severance pay calculator; how much severance should I get; severance by years of service; severance weeks per year; severance estimate |
 | `/tools/layoff-deadlines` | page | deadlines after a layoff | Find the dates that matter after a layoff | layoff deadlines; cobra deadline after layoff; when to file for unemployment after layoff; what to do after being laid off by when; layoff checklist dates |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
+| `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
 | `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; laid off vs fired; what is COBRA; what is outplacement; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
 | `/places` | page | local job markets | Job market in my area | jobs near me; job market by state and county; local unemployment rate; job openings by county; largest employers near me |
 | `/places/:state` | family | {state} jobs | Job market in one state | {state} job market; {state} unemployment rate; {state} largest employers; {state} job openings |
@@ -479,6 +480,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Pay Check: Am I Paid Fairly for My Job Title?
 - Description: Free pay check: enter your job title and yearly pay to see where it sits against the range employers list today, with the median and the middle half.
 - H1: Pay check: is your salary in line?
+
+### `/tools/resume-check`
+
+- Title: Free Resume Check: Score Your Resume Out of 100
+- Description: Paste your resume to get a free score out of 100 and see how many fixes it needs. Rule-based, no AI, and we do not save your resume.
+- H1: Free resume check: score your resume in a minute
 
 ### `/glossary`
 

@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SeoPage, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, JobList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
+import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getCityPage, placeUrl } from '@/lib/places/places'
@@ -72,6 +74,9 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       <LayoffsSection id="layoffs" title={`${p.name} layoffs`} scope={p.name} stats={d.layoffs} notices={d.notices} trackerHref={`/layoffs/${state}`} />
 
       <CollegeTable id="colleges" title={`Colleges in ${p.name}`} colleges={d.colleges} showCity={false} />
+
+      <ConferenceSection id="conferences" title={`Conferences in ${p.name}`} intro={`Industry conferences and trade shows held in ${p.name}.`}
+        source={`place:city:${code}:${p.slug}`} load={() => conferencesAtPlace('city', code, p.slug, 12)} more={{ href: '/conferences', label: 'All conferences' }} />
 
       <WorkforceSection id="workforce" state={name} stateSlugValue={state} boards={d.boards} centers={d.centers} scope={p.name} />
 

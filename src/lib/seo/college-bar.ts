@@ -65,3 +65,15 @@ export const collegePath = (stateSlugValue: string, slug: string) => `/higher-ed
 export function planCollegePings(current: Record<string, string>, announced: Record<string, string>): string[] {
   return Object.keys(current).filter((u) => announced[u] !== current[u]).sort()
 }
+
+/** US territories with colleges in IPEDS. The site's state list stops at the 50 states and DC, so their college pages use this one. */
+export const COLLEGE_TERRITORIES: Record<string, string> = {
+  AS: 'American Samoa', FM: 'Federated States of Micronesia', GU: 'Guam', MH: 'Marshall Islands',
+  MP: 'Northern Mariana Islands', PR: 'Puerto Rico', PW: 'Palau', VI: 'U.S. Virgin Islands',
+}
+export const isCollegeTerritory = (code: string) => code in COLLEGE_TERRITORIES
+
+const TERRITORY_BY_SLUG = Object.fromEntries(Object.entries(COLLEGE_TERRITORIES).map(([c, n]) => [slugify(n), c]))
+/** The territory a slug stands for ("puerto-rico" → "PR"), or null. */
+export const territoryFromSlug = (slug: string): string | null => TERRITORY_BY_SLUG[slug] ?? null
+export const territorySlug = (code: string): string => slugify(COLLEGE_TERRITORIES[code])

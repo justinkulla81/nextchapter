@@ -4,10 +4,13 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { higherEdConferencesIn } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { collegePath } from '@/lib/seo/college-bar'
-import { getStateCollegeListings } from '@/lib/seo/college-pages'
-import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
+import { areaName, getStateCollegeListings } from '@/lib/seo/college-pages'
+import { stateFromSlug, stateSlug } from '@/lib/seo/states'
+import { isCollegeTerritory, territoryFromSlug } from '@/lib/seo/college-bar'
 import { getStateLabor, periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import { titleMeta } from '@/lib/seo/title'
 
@@ -18,12 +21,12 @@ export function generateStaticParams() {
 }
 
 async function load(slug: string) {
-  const code = stateFromSlug(slug)
+  const code = stateFromSlug(slug) ?? territoryFromSlug(slug)
   if (!code) return null
   const colleges = await getStateCollegeListings(code)
   if (colleges.length === 0) return null
   const labor = await getStateLabor(code)
-  return { code, name: stateName(code), colleges, labor }
+  return { code, name: areaName(code), colleges, labor }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ state: string }> }): Promise<Metadata> {
@@ -54,11 +57,13 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
           {d.labor && <Stat value={rateText(d.labor)} label={`unemployment, ${periodLabel(d.labor.period)}`} note="Source: BLS Local Area Unemployment Statistics, counties summed" />}
           <Stat value={d.colleges.length.toLocaleString()} label="colleges listed" note="Source: IPEDS and the College Scorecard, U.S. Department of Education" />
         </ul>
-        <p className="mt-3 text-sm">
-          <Link href={`/workforce-boards/${state}`} className={LINK}>{d.name} workforce boards</Link>
-          {' · '}
-          <Link href={`/places/${state}`} className={LINK}>{d.name} by county and city</Link>
-        </p>
+        {!isCollegeTerritory(d.code) && (
+          <p className="mt-3 text-sm">
+            <Link href={`/workforce-boards/${state}`} className={LINK}>{d.name} workforce boards</Link>
+            {' · '}
+            <Link href={`/places/${state}`} className={LINK}>{d.name} by county and city</Link>
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="colleges" className="mt-12">
@@ -90,6 +95,9 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
         </div>
       </section>
 
+      <ConferenceSection id="conferences" title={`Higher education conferences in ${d.name}`} intro={`Conferences for college and university staff held in ${d.name}: admissions, student affairs, advancement, institutional leadership.`}
+        source={`higher_ed_state:${d.code}`} load={() => higherEdConferencesIn(d.code, 24)} more={{ href: '/conferences', label: 'All conferences' }} />
+
       <ActionBand
         title={`Work in career services or alumni relations at a ${d.name} college?`}
         body="Claim your college’s page and set up a free workspace for alumni and students. Use a work email at your institution’s domain."
@@ -100,7 +108,7 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
       />
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
         <span className="font-medium text-foreground">Sources:</span> college directory from IPEDS (U.S. Department of Education), 2-year and 4-year public, private nonprofit and for-profit institutions;
-        unemployment from the Bureau of Labor Statistics. <Link href={`/unemployment-benefits/${stateSlug(d.code)}`} className={LINK}>{d.name} unemployment benefits</Link>.
+        unemployment from the Bureau of Labor Statistics.{!isCollegeTerritory(d.code) && <> <Link href={`/unemployment-benefits/${stateSlug(d.code)}`} className={LINK}>{d.name} unemployment benefits</Link>.</>}
       </p>
     </SeoPage>
   )
