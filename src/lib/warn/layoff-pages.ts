@@ -144,6 +144,11 @@ export async function getStateSummaries(): Promise<StateSummary[]> {
   return [...by.values()].filter((s) => s.recent > 0)
 }
 
+/** Whether /layoffs/<state> exists: a state page is built only for states with a notice in the last 12 months. */
+export async function hasLayoffStatePage(code: string): Promise<boolean> {
+  return (await getStateSummaries().catch(() => [])).some((s) => s.state === code)
+}
+
 export interface CompanySummary {
   slug: string
   name: string
