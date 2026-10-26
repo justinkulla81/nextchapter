@@ -73,73 +73,77 @@ export interface EmployerInsights {
 }
 
 type CountRow = { name: string; count: number }
+type PhraseRow = { id: string; title: string; phrase: string }
 
+// One query per block, each reading its rows once (a CTE) and returning everything as JSON. A cold employer page used
+// to run about a dozen queries at once against a connection pool of a few, so one crawler hit could starve every other
+// request; this uses three connections at most.
 async function liveFor(companyId: string): Promise<EmployerLive> {
   const [row] = await prisma.$queryRaw<
     {
-      open: number; entry: number; no_exp: number; training: number; ai_skill: number; clearance: number; no_sponsorship: number
-      remote: number; hybrid: number; onsite: number; full_time: number; contract: number; part_time: number; posted_pay: number
-      new7d: number; median_age: number | null
+      agg: {
+        open: number; entry: number; no_exp: number; training: number; ai_skill: number; clearance: number; no_sponsorship: number
+        remote: number; hybrid: number; onsite: number; full_time: number; contract: number; part_time: number; posted_pay: number
+        new7d: number; median_age: number | null
+      }
+      skills: CountRow[]; tools: CountRow[]; certs: CountRow[]; no_exp_rows: PhraseRow[]; train_rows: PhraseRow[]
     }[]
-  >(Prisma.sql`SELECT count(*)::int AS open,
-      count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC'))::int AS entry,
-      count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'no_experience_ok' = ANY("postingSignals"))::int AS no_exp,
-      count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'training_provided' = ANY("postingSignals"))::int AS training,
-      count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS ai_skill,
-      count(*) FILTER (WHERE jsonb_typeof("requirementFlags") = 'array' AND "requirementFlags" @> '[{"flag":"clearance"}]')::int AS clearance,
-      count(*) FILTER (WHERE jsonb_typeof("requirementFlags") = 'array' AND "requirementFlags" @> '[{"flag":"no_sponsorship"}]')::int AS no_sponsorship,
-      count(*) FILTER (WHERE "workArrangement" = 'remote')::int AS remote,
-      count(*) FILTER (WHERE "workArrangement" = 'hybrid')::int AS hybrid,
-      count(*) FILTER (WHERE "workArrangement" = 'onsite')::int AS onsite,
-      count(*) FILTER (WHERE "employmentType" = 'full_time')::int AS full_time,
-      count(*) FILTER (WHERE "employmentType" IN ('contract', 'temporary', 'interim'))::int AS contract,
-      count(*) FILTER (WHERE "employmentType" = 'part_time')::int AS part_time,
-      count(*) FILTER (WHERE "salaryMin" IS NOT NULL OR "salaryMax" IS NOT NULL)::int AS posted_pay,
-      count(*) FILTER (WHERE COALESCE("postedAt", "createdAt") > now() - interval '7 days')::int AS new7d,
-      percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM (now() - COALESCE("postedAt", "createdAt"))) / 86400)::float8 AS median_age
-    FROM "ExclusiveJobPosting" WHERE "companyId" = ${companyId} AND ${LIVE}`)
-
-  const tally = (col: 'skills' | 'aiToolsNamed' | 'aiCertsNamed', n: number) =>
-    prisma.$queryRaw<CountRow[]>(Prisma.sql`SELECT s AS name, count(*)::int AS count
-      FROM (SELECT unnest(${Prisma.raw(`"${col}"`)}) AS s FROM "ExclusiveJobPosting" WHERE "companyId" = ${companyId} AND ${LIVE}) t
-      WHERE s <> '' GROUP BY s ORDER BY count DESC, s LIMIT ${n}`)
-  const [topSkills, aiTools, aiCerts, noExpRows, trainRows] = await Promise.all([
-    tally('skills', 10),
-    tally('aiToolsNamed', 6),
-    tally('aiCertsNamed', 4),
-    prisma.$queryRaw<{ id: string; title: string; phrase: string }[]>(Prisma.sql`SELECT id, title, "noExperiencePhrase" AS phrase
-      FROM "ExclusiveJobPosting" WHERE "companyId" = ${companyId} AND ${LIVE} AND "noExperiencePhrase" IS NOT NULL
-      ORDER BY COALESCE("postedAt", "createdAt") DESC LIMIT 3`),
-    prisma.$queryRaw<{ id: string; title: string; phrase: string }[]>(Prisma.sql`SELECT id, title, "trainingPhrase" AS phrase
-      FROM "ExclusiveJobPosting" WHERE "companyId" = ${companyId} AND ${LIVE} AND "trainingPhrase" IS NOT NULL
-      ORDER BY COALESCE("postedAt", "createdAt") DESC LIMIT 1`),
-  ])
+  >(Prisma.sql`WITH j AS (
+      SELECT "level", "postingSignals", "aiSkillGroups", "requirementFlags", "workArrangement", "employmentType", "salaryMin", "salaryMax",
+        "postedAt", "createdAt", "skills", "aiToolsNamed", "aiCertsNamed", "id", "title", "noExperiencePhrase", "trainingPhrase"
+      FROM "ExclusiveJobPosting" WHERE "companyId" = ${companyId} AND ${LIVE}
+    )
+    SELECT
+      (SELECT row_to_json(a) FROM (SELECT count(*)::int AS open,
+        count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC'))::int AS entry,
+        count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'no_experience_ok' = ANY("postingSignals"))::int AS no_exp,
+        count(*) FILTER (WHERE "level" IN ('ENTRY_IC', 'EARLY_IC') AND 'training_provided' = ANY("postingSignals"))::int AS training,
+        count(*) FILTER (WHERE cardinality("aiSkillGroups") > 0)::int AS ai_skill,
+        count(*) FILTER (WHERE jsonb_typeof("requirementFlags") = 'array' AND "requirementFlags" @> '[{"flag":"clearance"}]')::int AS clearance,
+        count(*) FILTER (WHERE jsonb_typeof("requirementFlags") = 'array' AND "requirementFlags" @> '[{"flag":"no_sponsorship"}]')::int AS no_sponsorship,
+        count(*) FILTER (WHERE "workArrangement" = 'remote')::int AS remote,
+        count(*) FILTER (WHERE "workArrangement" = 'hybrid')::int AS hybrid,
+        count(*) FILTER (WHERE "workArrangement" = 'onsite')::int AS onsite,
+        count(*) FILTER (WHERE "employmentType" = 'full_time')::int AS full_time,
+        count(*) FILTER (WHERE "employmentType" IN ('contract', 'temporary', 'interim'))::int AS contract,
+        count(*) FILTER (WHERE "employmentType" = 'part_time')::int AS part_time,
+        count(*) FILTER (WHERE "salaryMin" IS NOT NULL OR "salaryMax" IS NOT NULL)::int AS posted_pay,
+        count(*) FILTER (WHERE COALESCE("postedAt", "createdAt") > now() - interval '7 days')::int AS new7d,
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM (now() - COALESCE("postedAt", "createdAt"))) / 86400)::float8 AS median_age
+        FROM j) a) AS agg,
+      (SELECT COALESCE(json_agg(t), '[]'::json) FROM (SELECT s AS name, count(*)::int AS count FROM (SELECT unnest("skills") AS s FROM j) x WHERE s <> '' GROUP BY s ORDER BY count DESC, s LIMIT 10) t) AS skills,
+      (SELECT COALESCE(json_agg(t), '[]'::json) FROM (SELECT s AS name, count(*)::int AS count FROM (SELECT unnest("aiToolsNamed") AS s FROM j) x WHERE s <> '' GROUP BY s ORDER BY count DESC, s LIMIT 6) t) AS tools,
+      (SELECT COALESCE(json_agg(t), '[]'::json) FROM (SELECT s AS name, count(*)::int AS count FROM (SELECT unnest("aiCertsNamed") AS s FROM j) x WHERE s <> '' GROUP BY s ORDER BY count DESC, s LIMIT 4) t) AS certs,
+      (SELECT COALESCE(json_agg(t), '[]'::json) FROM (SELECT "id" AS id, "title" AS title, "noExperiencePhrase" AS phrase FROM j WHERE "noExperiencePhrase" IS NOT NULL ORDER BY COALESCE("postedAt", "createdAt") DESC LIMIT 3) t) AS no_exp_rows,
+      (SELECT COALESCE(json_agg(t), '[]'::json) FROM (SELECT "id" AS id, "title" AS title, "trainingPhrase" AS phrase FROM j WHERE "trainingPhrase" IS NOT NULL ORDER BY COALESCE("postedAt", "createdAt") DESC LIMIT 1) t) AS train_rows`)
+  const a = row?.agg
   return {
-    open: row?.open ?? 0, entry: row?.entry ?? 0, noExp: row?.no_exp ?? 0, training: row?.training ?? 0, aiSkill: row?.ai_skill ?? 0,
-    clearance: row?.clearance ?? 0, noSponsorship: row?.no_sponsorship ?? 0,
-    remote: row?.remote ?? 0, hybrid: row?.hybrid ?? 0, onsite: row?.onsite ?? 0,
-    fullTime: row?.full_time ?? 0, contract: row?.contract ?? 0, partTime: row?.part_time ?? 0,
-    postedPay: row?.posted_pay ?? 0, new7d: row?.new7d ?? 0, medianAgeDays: row?.median_age != null ? Math.round(row.median_age) : null,
-    topSkills, aiTools, aiCerts,
-    noExpExamples: noExpRows, trainingExample: trainRows[0] ?? null,
+    open: a?.open ?? 0, entry: a?.entry ?? 0, noExp: a?.no_exp ?? 0, training: a?.training ?? 0, aiSkill: a?.ai_skill ?? 0,
+    clearance: a?.clearance ?? 0, noSponsorship: a?.no_sponsorship ?? 0,
+    remote: a?.remote ?? 0, hybrid: a?.hybrid ?? 0, onsite: a?.onsite ?? 0,
+    fullTime: a?.full_time ?? 0, contract: a?.contract ?? 0, partTime: a?.part_time ?? 0,
+    postedPay: a?.posted_pay ?? 0, new7d: a?.new7d ?? 0, medianAgeDays: a?.median_age != null ? Math.round(a.median_age) : null,
+    topSkills: row?.skills ?? [], aiTools: row?.tools ?? [], aiCerts: row?.certs ?? [],
+    noExpExamples: row?.no_exp_rows ?? [], trainingExample: row?.train_rows?.[0] ?? null,
   }
 }
 
 async function historyFor(companyId: string): Promise<EmployerHistory> {
-  const [months, [stats]] = await Promise.all([
-    prisma.$queryRaw<{ month: Date; opened: number }[]>(Prisma.sql`SELECT date_trunc('month', "firstSeenAt") AS month, count(*)::int AS opened
-      FROM "CompanyJobOpening" WHERE "companyId" = ${companyId} AND "firstSeenAt" >= date_trunc('month', now()) - interval '11 months'
-      GROUP BY 1 ORDER BY 1`),
-    prisma.$queryRaw<{ closed: number; first_seen: Date | null; last90: number; prior90: number }[]>(Prisma.sql`SELECT
-        count(*) FILTER (WHERE "closedAt" > now() - interval '12 months')::int AS closed,
-        min("firstSeenAt") AS first_seen,
-        count(*) FILTER (WHERE "firstSeenAt" > now() - interval '90 days')::int AS last90,
-        count(*) FILTER (WHERE "firstSeenAt" <= now() - interval '90 days' AND "firstSeenAt" > now() - interval '180 days')::int AS prior90
-      FROM "CompanyJobOpening" WHERE "companyId" = ${companyId}`),
-  ])
-  const trackedSince = stats?.first_seen ?? null
+  const [row] = await prisma.$queryRaw<
+    { months: { month: string; opened: number }[]; closed: number; first_seen: Date | null; last90: number; prior90: number }[]
+  >(Prisma.sql`SELECT
+      (SELECT COALESCE(json_agg(m ORDER BY m.month), '[]'::json) FROM (
+        SELECT to_char(date_trunc('month', "firstSeenAt"), 'YYYY-MM') AS month, count(*)::int AS opened
+        FROM "CompanyJobOpening" WHERE "companyId" = ${companyId} AND "firstSeenAt" >= date_trunc('month', now()) - interval '11 months'
+        GROUP BY 1) m) AS months,
+      count(*) FILTER (WHERE "closedAt" > now() - interval '12 months')::int AS closed,
+      min("firstSeenAt") AS first_seen,
+      count(*) FILTER (WHERE "firstSeenAt" > now() - interval '90 days')::int AS last90,
+      count(*) FILTER (WHERE "firstSeenAt" <= now() - interval '90 days' AND "firstSeenAt" > now() - interval '180 days')::int AS prior90
+    FROM "CompanyJobOpening" WHERE "companyId" = ${companyId}`)
+  const trackedSince = row?.first_seen ?? null
   const trackedDays = trackedSince ? Math.floor((Date.now() - trackedSince.getTime()) / 86_400_000) : 0
-  const byKey = new Map(months.map((m) => [m.month.toISOString().slice(0, 7), m.opened]))
+  const byKey = new Map((row?.months ?? []).map((m) => [m.month, m.opened]))
   const startKey = trackedSince ? trackedSince.toISOString().slice(0, 7) : null
   const now = new Date()
   const filled: { month: string; opened: number }[] = []
@@ -152,11 +156,11 @@ async function historyFor(companyId: string): Promise<EmployerHistory> {
   return {
     months: filled,
     opened12mo: filled.reduce((sum, m) => sum + m.opened, 0),
-    closed12mo: stats?.closed ?? 0,
+    closed12mo: row?.closed ?? 0,
     trackedSince: trackedSince ? trackedSince.toISOString().slice(0, 10) : null,
     trackedDays,
-    last90: stats?.last90 ?? 0,
-    prior90: stats?.prior90 ?? 0,
+    last90: row?.last90 ?? 0,
+    prior90: row?.prior90 ?? 0,
   }
 }
 
@@ -175,19 +179,19 @@ async function loadBenchmarks(): Promise<IndustryBenchmark[]> {
 const cachedBenchmarks = unstable_cache(loadBenchmarks, ['employer-industry-benchmarks-v2'], { revalidate: 86_400 })
 
 async function rankAndSimilar(companyId: string, industry: string, open: number): Promise<{ rank: EmployerInsights['rank']; similar: SimilarEmployer[] }> {
-  const [[r], similarRows] = await Promise.all([
-    prisma.$queryRaw<{ ahead: number; total: number }[]>(Prisma.sql`SELECT
-        count(*) FILTER (WHERE p."openNow" > ${open})::int AS ahead, count(*)::int AS total
+  const [row] = await prisma.$queryRaw<
+    { ahead: number; total: number; similar: { id: string; name: string; canonical: string; open: number }[] }[]
+  >(Prisma.sql`WITH peers AS (
+      SELECT c.id, c.name, c."canonicalNameNormalized" AS canonical, p."openNow" AS open
       FROM "CompanyHiringProfile" p JOIN "Company" c ON c.id = p."companyId"
-      WHERE COALESCE(c.industry, p.industry) = ${industry} AND p."openNow" >= 3`),
-    prisma.$queryRaw<{ id: string; name: string; canonical: string; open: number }[]>(Prisma.sql`SELECT c.id, c.name, c."canonicalNameNormalized" AS canonical, p."openNow" AS open
-      FROM "CompanyHiringProfile" p JOIN "Company" c ON c.id = p."companyId"
-      WHERE COALESCE(c.industry, p.industry) = ${industry} AND p."openNow" >= 3 AND c.id <> ${companyId}
-      ORDER BY abs(p."openNow" - ${open}), c.name LIMIT 6`),
-  ])
+      WHERE COALESCE(c.industry, p.industry) = ${industry} AND p."openNow" >= 3
+    )
+    SELECT (SELECT count(*) FROM peers WHERE open > ${open})::int AS ahead,
+      (SELECT count(*) FROM peers)::int AS total,
+      (SELECT COALESCE(json_agg(t), '[]'::json) FROM (SELECT id, name, canonical, open FROM peers WHERE id <> ${companyId} ORDER BY abs(open - ${open}), name LIMIT 6) t) AS similar`)
   return {
-    rank: r && r.total > 0 && open >= 3 ? { position: r.ahead + 1, of: r.total } : null,
-    similar: similarRows.map((s) => ({ name: s.name, slug: employerSlug(s.canonical, s.id), open: s.open })),
+    rank: row && row.total > 0 && open >= 3 ? { position: row.ahead + 1, of: row.total } : null,
+    similar: (row?.similar ?? []).map((s) => ({ name: s.name, slug: employerSlug(s.canonical, s.id), open: s.open })),
   }
 }
 
