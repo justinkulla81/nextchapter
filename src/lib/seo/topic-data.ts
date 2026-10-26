@@ -253,12 +253,28 @@ async function loadCatalogIndex() {
       id: true, name: true, organizer: true, updatedAt: true, industries: true, functions: true, importance: true,
       datesConfirmed: true, startDate: true, typicalMonth: true, format: true, city: true, state: true, access: true, costLow: true, costHigh: true,
       speaking: true, speakingDeadline: true, seniorities: true, roles: true, programFormats: true, whyAttend: true, cheaperWays: true, verified: true, checkedAt: true,
+      endDate: true, country: true, costNote: true, segments: true, kind: true,
     },
   })
-  return rows.map((r) => ({ ...r, ownFunctions: r.functions, functions: effectiveFunctions(r), updatedAt: r.updatedAt.toISOString(), startDate: r.startDate?.toISOString() ?? null, speakingDeadline: r.speakingDeadline?.toISOString() ?? null, checkedAt: r.checkedAt?.toISOString() ?? null }))
+  return rows.map((r) => ({ ...r, ownFunctions: r.functions, functions: effectiveFunctions(r), updatedAt: r.updatedAt.toISOString(), startDate: r.startDate?.toISOString() ?? null, endDate: r.endDate?.toISOString() ?? null, speakingDeadline: r.speakingDeadline?.toISOString() ?? null, checkedAt: r.checkedAt?.toISOString() ?? null }))
 }
-const cachedCatalog = unstable_cache(loadCatalogIndex, ['topic-conference-index-v2'], { revalidate: 3600 })
+const cachedCatalog = unstable_cache(loadCatalogIndex, ['topic-conference-index-v3'], { revalidate: 3600 })
 export const getCatalogIndex = cache(() => cachedCatalog())
+
+export type CatalogRow = Awaited<ReturnType<typeof loadCatalogIndex>>[number]
+
+/** A catalog row as a list row: dates back to Date, so the conference list blocks can show it. Fields the catalog does not carry stay empty. */
+export function catalogConf(r: CatalogRow): Conf {
+  const d = (v: string | null) => (v ? new Date(v) : null)
+  return { ...r, startDate: d(r.startDate), endDate: d(r.endDate), speakingDeadline: d(r.speakingDeadline), checkedAt: d(r.checkedAt), updatedAt: new Date(r.updatedAt), linkStatus: null } as unknown as Conf
+}
+
+/** Conferences matching a test, from the cached catalog (no database read): upcoming first, soonest first, `take` of them. */
+export async function catalogConferences(test: (r: CatalogRow) => boolean, take: number): Promise<{ total: number; upcoming: number; rows: Conf[] }> {
+  const all = (await getCatalogIndex()).filter(test).map(catalogConf)
+  const now = new Date()
+  return { total: all.length, upcoming: all.filter((c) => hasUpcomingDates(c, now)).length, rows: sortConferences(all).slice(0, take) }
+}
 
 export interface Association { slug: string; name: string; organizers: string[]; count: number }
 

@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { higherEdConferencesIn } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { collegePath } from '@/lib/seo/college-bar'
 import { areaName, getStateCollegeListings } from '@/lib/seo/college-pages'
@@ -92,6 +94,9 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
           </table>
         </div>
       </section>
+
+      <ConferenceSection id="conferences" title={`Higher education conferences in ${d.name}`} intro={`Conferences for college and university staff held in ${d.name}: admissions, student affairs, advancement, institutional leadership.`}
+        source={`higher_ed_state:${d.code}`} load={() => higherEdConferencesIn(d.code, 24)} more={{ href: '/conferences', label: 'All conferences' }} />
 
       <ActionBand
         title={`Work in career services or alumni relations at a ${d.name} college?`}

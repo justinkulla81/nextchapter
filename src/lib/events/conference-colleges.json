@@ -1,0 +1,34 @@
+{
+ "assessment-institute-indianapolis": {
+  "state": "IN",
+  "unitid": "151111"
+ },
+ "smallsat-conference": {
+  "state": "UT",
+  "unitid": "230728"
+ },
+ "leadership-connections": {
+  "state": "IL",
+  "unitid": "147536"
+ },
+ "leadership-connections-national-conference": {
+  "state": "IL",
+  "unitid": "147536"
+ },
+ "menus-of-change": {
+  "state": "NY",
+  "unitid": "190503"
+ },
+ "worlds-of-flavor": {
+  "state": "NY",
+  "unitid": "190503"
+ },
+ "carnegie-mellon-sports-analytics-conference": {
+  "state": "PA",
+  "unitid": "211440"
+ },
+ "u-s-precision-livestock-farming-conference": {
+  "state": "GA",
+  "unitid": "139959"
+ }
+}

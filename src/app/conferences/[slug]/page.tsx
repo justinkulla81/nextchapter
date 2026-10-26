@@ -8,6 +8,8 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, conferencePath, industryByName, industryPath } from '@/lib/seo/topics'
 import { conferencesForOrganizer, getConference, getConferenceAssessments, getJobStats, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { hostCollege, isHigherEd, placeRefs } from '@/lib/events/conference-places'
+import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
 import { employerPageSlugs } from '@/lib/events/conference-employers'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
@@ -34,14 +36,15 @@ async function load(id: string) {
   if (!d) return null
   const primary = d.conf.industries.map((n) => industryByName(n)).find((i) => i?.rule) ?? null
   const employerSlugs = await employerPageSlugs([...d.employers.map((e) => e.name), ...d.speakers.map((p) => p.organization ?? '').filter(Boolean)])
-  const [jobs, stats, trends, organizerConfs] = await Promise.all([
+  const [jobs, stats, trends, organizerConfs, host] = await Promise.all([
     primary?.rule ? getTopicJobs({ rule: primary.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
     primary?.rule ? getJobStats({ rule: primary.rule }) : Promise.resolve(null),
     getIndustryTrends(),
     d.association ? conferencesForOrganizer(d.association.organizers).then((l) => l.rows.filter((r) => r.id !== d.conf.id).slice(0, 4)).catch(() => []) : Promise.resolve([]),
+    hostCollege(id),
   ])
   const fieldFacts = [...jobFacts(jobs.total, stats).filter((f) => ['open', 'pay', 'entry'].includes(f.key)), ...[trendFact(primary ? trends[primary.name] : undefined, primary?.name)].filter((x): x is NonNullable<ReturnType<typeof trendFact>> => !!x)]
-  return { ...d, jobs, organizerConfs, fieldFacts, employerSlugs, primaryIndustry: primary?.name ?? null }
+  return { ...d, jobs, organizerConfs, host, fieldFacts, employerSlugs, primaryIndustry: primary?.name ?? null }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -74,7 +77,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
   const { slug } = await params
   const d = await load(slug)
   if (!d) notFound()
-  const { conf: c, editions, opportunities, employers, speakers, association, related, jobs, primaryIndustry, organizerConfs, fieldFacts } = d
+  const { conf: c, editions, opportunities, employers, speakers, association, related, jobs, primaryIndustry, organizerConfs, fieldFacts, host } = d
   const path = conferencePath(c.id)
   const upcoming = hasUpcomingDates(c)
   // Named keynotes and speakers only, as the event publishes them; panelists and moderators stay on the page without structured data.
@@ -102,6 +105,16 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
   const industryItems = c.industries.map((n) => industryChip(n))
   const functionItems = effectiveFunctions(c).map((n) => functionChip(n))
   const employerSlugs = d.employerSlugs
+  const placeItems = placeRefs(c).map((r) => ({ href: r.href, label: r.label, detail: r.level === 'state' ? 'State' : r.level === 'county' ? 'County' : 'City' }))
+  const higherEd = isHigherEd(c)
+  const stateCode = c.state && stateFromSlug(stateSlug(c.state)) ? c.state : null
+  const eduItems = higherEd
+    ? [
+        { href: '/higher-education', label: 'Higher education: for colleges and career services' },
+        ...(stateCode ? [{ href: `/higher-education/${stateSlug(stateCode)}`, label: `Colleges in ${stateName(stateCode)}` }] : []),
+        ...(host ? [{ href: host.href, label: host.name, detail: 'Hosts this event' }] : []),
+      ]
+    : host ? [{ href: host.href, label: host.name, detail: 'Hosts this event' }] : []
   const employerSources = [...new Set(employers.map((e) => e.sourceUrl).filter((u): u is string => !!u && /^https:\/\//.test(u)))].slice(0, 4)
   const speakerSources = [...new Set(speakers.map((p) => p.sourceUrl).filter((u) => /^https:\/\//.test(u)))].slice(0, 4)
   const hiringIndustryNote = primaryIndustry ? `${primaryIndustry} employers` : 'Employers'
@@ -236,6 +249,13 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
         </Section>
       )}
 
+
+      {(placeItems.length > 0 || eduItems.length > 0) && (
+        <Section id="places" title="Where it is and who it is for" note={placeItems.length > 0 ? `Held in ${whereLabel(c)}. Local jobs, employers, layoffs and other conferences nearby are on the place pages.` : undefined}>
+          {placeItems.length > 0 && <Chips kind="conference_to_place" event="topic_link_clicked" items={placeItems} />}
+          {eduItems.length > 0 && <div className={placeItems.length > 0 ? 'mt-3' : ''}><Chips kind="conference_to_higher_ed" event="topic_link_clicked" items={eduItems} /></div>}
+        </Section>
+      )}
 
       {editions.length > 0 && (
         <Section id="editions" title="Past and planned editions">
