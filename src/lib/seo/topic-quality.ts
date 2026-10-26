@@ -68,8 +68,14 @@ export function conferenceLinkCount(c: ConferenceFactInput, hasAssociationPage: 
   return c.industries.length + c.functions.length + (hasAssociationPage ? 1 : 0) + Math.min(3, relatedCount) + placeLinks
 }
 
-export function assessConference(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number, placeLinks = 0): Assessment {
-  return assess(conferenceFactCount(c), conferenceLinkCount(c, hasAssociationPage, relatedCount, placeLinks), CONFERENCE_BAR)
+/** What the page holds beyond the catalog row: employers and named speakers read from the event's own pages. */
+export interface ConferenceExtras { employers: number; speakers: number }
+
+export function assessConference(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number, placeLinks = 0, extras: ConferenceExtras = { employers: 0, speakers: 0 }): Assessment {
+  // A sourced employer list and a sourced speaker list are each a fact of their own; an employer list also gives the page links to employer pages.
+  const facts = conferenceFactCount(c) + (extras.employers > 0 ? 1 : 0) + (extras.speakers > 0 ? 1 : 0)
+  const links = conferenceLinkCount(c, hasAssociationPage, relatedCount, placeLinks) + (extras.employers > 0 ? 1 : 0)
+  return assess(facts, links, CONFERENCE_BAR)
 }
 
 /** An association page is judged on what its conferences give it, so the sitemap can decide from the catalog rows alone. */
