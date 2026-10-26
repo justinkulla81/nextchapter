@@ -18,6 +18,7 @@ import { CrmSignupMatchActions } from '@/components/admin/CrmSignupMatchActions'
 import { SearchFirmReviewRow } from '@/components/search-firms/SearchFirmReviewRow'
 import { loadRoutesToConfirm } from '@/lib/crm/route-review'
 import { SectionTitle } from '@/components/admin/Collapsible'
+import { CollegeReviewSection } from '@/components/admin/CollegeReviewSection'
 import { SubmitButton } from '@/components/ui/submit-button'
 import { publicPageReviews } from '@/lib/seo/org-page-links'
 import { addPublicPageAsNewOrg, linkPublicPageToSuggestedOrg } from '../public-pages/actions'
@@ -288,6 +289,8 @@ export default async function CrmNeedsCompletionPage({
           </ul>
         </section>
       )}
+
+      <CollegeReviewSection />
 
       {signupMatches.length > 0 && (
         <section aria-labelledby="signup-matches">
