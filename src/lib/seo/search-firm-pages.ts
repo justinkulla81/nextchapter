@@ -28,7 +28,7 @@ import {
 
 export { STAFFING_INDUSTRY } from '@/lib/seo/search-firm-link'
 export const SEARCH_FIRM_SITEMAP_SHARD_SIZE = 10_000
-const MAX_ROWS = 400
+const MAX_ROWS = 2000
 const LISTED_ROLES = 12
 
 export interface SearchFirmRole { id: string; title: string; location: string | null; level: string | null; pay: [number, number] | null }
