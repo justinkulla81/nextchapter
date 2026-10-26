@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
+import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
@@ -150,6 +151,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             workers and dates the employer reported; it does not say why. See the{' '}
             <Link href="/layoffs" className={LINK}>layoff tracker</Link> for how notices are collected and what they cover.
           </p>
+          <div className="mt-10">
+            <LayoffAlertForm employer={slug} employerName={c.name} source="layoffs:company" />
+          </div>
         </div>
       </main>
       <PublicSiteFooter page="layoffs" />

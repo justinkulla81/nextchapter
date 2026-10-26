@@ -1877,6 +1877,7 @@ model CandidateProfile {
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
+  memberNotifications MemberNotification[]
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -14100,6 +14101,25 @@ model JobGapExplanation {
 
 // One instant "posted in the last 72 hours" alert email per member per
 // posting (src/lib/jobs/fresh-job-alerts.ts) — never the same job twice.
+// The bell in the member dashboard: a short list of things worth a look (a layoff at an employer you follow,
+// a deadline coming up). Written by notifyMember() (src/lib/notifications/member-notifications.ts);
+// dedupeKey keeps the same event from landing twice. readAt null = unread.
+model MemberNotification {
+  id          String           @id @default(cuid())
+  candidateId String
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  kind        String
+  title       String
+  body        String           @default("")
+  href        String
+  dedupeKey   String
+  createdAt   DateTime         @default(now())
+  readAt      DateTime?
+
+  @@unique([candidateId, dedupeKey])
+  @@index([candidateId, readAt, createdAt])
+}
+
 model FreshJobAlertSend {
   id          String   @id @default(cuid())
   candidateId String
@@ -16748,11 +16768,19 @@ model HomepageLead {
   /// When the one-time plan email went out (journey only). Null = not sent.
   planSentAt       DateTime?
   unsubscribedAt   DateTime?
+  /// Saved search (job_alert): the confirmation email went out, and the click that turned alerts on.
+  confirmSentAt    DateTime?
+  confirmedAt      DateTime?
+  /// Saved search: when the last alert email went out. New jobs are "since this", or since confirmedAt.
+  lastAlertAt      DateTime?
+  /// The journey (persona slug) we guessed from the search or the person chose after confirming. Empty = unknown.
+  journeySlug      String    @default("")
   createdAt        DateTime  @default(now())
 
   @@unique([email, kind, situation, searchQ, searchLoc, searchRemote])
   @@index([ip, createdAt])
   @@index([kind, createdAt])
+  @@index([kind, confirmedAt])
 }
 
 // What each applied job asked for and how the member's skills lined up, frozen at application time

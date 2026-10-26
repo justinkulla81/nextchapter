@@ -1,5 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
+import { memoTtl, retryOnPoolTimeout } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { orgSlug } from '@/lib/crm/org-slug'
 import { opportunitiesForKinds, type StoredOpportunity } from '@/lib/funding-opportunities/store'
@@ -76,14 +77,14 @@ export const getNonprofit = cache(async (state: string, slug: string): Promise<N
   return page.slug === slug ? page : null
 })
 
-export const getStateNonprofits = cache(async (state: string): Promise<NonprofitPage[]> => {
+export const getStateNonprofits = memoTtl(5 * 60_000, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<NonprofitPage[]> => {
   const rows = await prisma.geoOrgLead.findMany({
     where: { state, dismissedAt: null, revenue: { gte: NONPROFIT_MIN_REVENUE } },
     select: SELECT,
     orderBy: { revenue: 'desc' },
   })
   return (await withCrm(rows)).map(toPage)
-})
+}))
 
 export async function getStateNonprofitCounts(): Promise<{ state: string; n: number }[]> {
   const rows = await prisma.geoOrgLead.groupBy({ by: ['state'], where: { dismissedAt: null, revenue: { gte: NONPROFIT_MIN_REVENUE } }, _count: { _all: true } })
@@ -96,7 +97,7 @@ export async function nonprofitsForSitemap(): Promise<{ state: string; slug: str
 }
 
 /** Grants open to nonprofits in a state, soonest closing first. A failed read is "none", never an error page. */
-export const getNonprofitFunding = cache(async (state: string): Promise<StoredOpportunity[]> => {
+export const getNonprofitFunding = memoTtl(5 * 60_000, (state: string) => state, async (state: string): Promise<StoredOpportunity[]> => {
   try {
     const all = await opportunitiesForKinds(['NONPROFIT'], { state, limit: 40 })
     return all.sort((a, b) => (a.closesAt?.getTime() ?? Infinity) - (b.closesAt?.getTime() ?? Infinity)).slice(0, 8)

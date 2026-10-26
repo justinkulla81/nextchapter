@@ -10,6 +10,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     if (lead && !lead.unsubscribedAt) {
       await prisma.homepageLead.update({ where: { id: lead.id }, data: { unsubscribedAt: new Date() } })
       captureServerEvent(lead.email, 'homepage_lead_unsubscribed', { kind: lead.kind })
+      if (lead.kind === 'job_alert') captureServerEvent(lead.email, 'alert_unsubscribed', {})
     }
   } catch (error) {
     console.error('lead unsubscribe failed:', error instanceof Error ? error.message : error)

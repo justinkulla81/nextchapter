@@ -47,6 +47,8 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/glossary', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
   { path: '/tools', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
   { path: '/tools/severance-calculator', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/layoff-deadlines', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/pay-check', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
   { path: '/pricing', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
