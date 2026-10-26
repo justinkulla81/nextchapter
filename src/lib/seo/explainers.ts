@@ -420,6 +420,177 @@ export const TOPICS: TopicContent[] = [
     cta: { title: 'Get recruiters to see your resume', body: 'Send your resume and we pass strong matches to recruiters in our network. Free, no obligation.', label: 'Submit my resume', href: '/submit-resume' },
     updated: '2026-10-25',
   },
+  {
+    slug: 'resume-review',
+    h1: 'Free resume review: what to check and where to get one',
+    lede: 'A resume review answers four questions: does the resume name the role you want, does each job show results, does it get through an applicant tracking system, and can a recruiter read it in thirty seconds. You can do a first pass yourself in fifteen minutes, then get an outside read from a person who hires in your field.',
+    sections: [
+      {
+        h2: 'A fifteen-minute review you can do yourself',
+        bullets: [
+          'Read only the top third of page one. Can you tell which role you are after, and at what level?',
+          'Check each job for outcomes: what changed because of your work, with a number where you have one. Replace “responsible for” lines with results.',
+          'Compare the resume with two postings you want. Where a skill or tool is true for you and missing from the page, add it in the same words.',
+          'Look at the layout. Standard headings, real text instead of images or text boxes, one font, and a file type the application accepts.',
+          'Cut what does not support the target role: jobs older than 10 to 15 years, duties that every person in the role has.',
+        ],
+      },
+      {
+        h2: 'Where to get an outside review',
+        bullets: [
+          'A former manager or a peer in your field. They know what good looks like in your role and will tell you if a result sounds weak.',
+          'A recruiter or hiring manager you already know. Ask one question: “What role would you put me forward for after reading this?”',
+          'Public communities such as r/resumes, where volunteers comment on anonymized resumes. Remove your contact details first.',
+          'Automated checkers. These measure keyword match and formatting. They do not judge whether your story is strong, and many offer a free scan and charge for the rest.',
+          'A career coach. NextChapter’s free Market Reality Assessment reads your background the way recruiters do and shows what to fix first. Victoria, the free AI career coach, is available to every candidate, and a human executive coach is an optional addition.',
+        ],
+      },
+      {
+        h2: 'What a good review tells you',
+        paragraphs: ['A useful review names the role the reader thinks you are targeting, the three changes that matter most, and what to cut. A review that only fixes grammar or only says “looks great” has not told you whether the resume will get you interviews.'],
+      },
+      {
+        h2: 'Warning signs in paid reviews',
+        bullets: [
+          'A “free review” that is really a sales call for a rewrite package.',
+          'A promise of interviews or a job. No one can guarantee either.',
+          'Feedback that is the same for every resume: the same template paragraph, with your name inserted.',
+        ],
+      },
+    ],
+    faq: [
+      { q: 'Is a free resume review worth it?', a: 'Yes, if it comes from someone who hires or recruits in your field and tells you which role the resume points to. Generic feedback on formatting and grammar is less useful.' },
+      { q: 'Do ATS resume checkers work?', a: 'They are reliable for formatting problems and for how well your wording matches a posting. They cannot tell you whether your results are strong or whether a recruiter will find them convincing.' },
+      { q: 'How often should I update my resume?', a: 'Each time you finish a project or change something measurable at work, add the result to a running list. Then tailor the resume to each application from that list.' },
+    ],
+    cta: { title: 'See how the market reads your resume', body: 'The free Market Reality Assessment reads your background the way recruiters do and shows what to fix first.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-26',
+  },
+  {
+    slug: 'interview-questions-and-answers',
+    h1: 'Common interview questions and how to answer them',
+    lede: 'Most interviews for experienced professionals draw on the same handful of questions asked in different words. Answer each in under two minutes, with one specific example and its result, and end by connecting it to the job you are interviewing for.',
+    sections: [
+      {
+        h2: 'The questions that come up most',
+        bullets: [
+          '“Tell me about yourself.” Give a one-minute story: what you do now, two results that matter for this role, and why this job is the next step. Do not recite your resume.',
+          '“Why this role and this company?” Name something specific about the work or the team, and tie it to what you have already done.',
+          '“Tell me about a time you…” (led a project, handled conflict, failed, changed someone’s mind). Use the structure below.',
+          '“Why did you leave, or why are you leaving?” Keep it short, factual and forward-looking. For a layoff, see how to explain a layoff in an interview.',
+          '“What is your biggest weakness?” Pick a real one that does not undercut the job, and say what you do about it.',
+          '“What are your salary expectations?” Where the law allows, ask about the range for the role first. If you must give a number, give a range based on what the market pays for the role.',
+          '“Do you have any questions for us?” Always have three ready. See below.',
+        ],
+      },
+      {
+        h2: 'A structure for behavioral questions',
+        paragraphs: ['For any “tell me about a time” question, answer in three parts: the situation in one or two sentences, what you personally did, and the result with a number or a clear outcome. Choose examples from the last few years, and have five ready that between them cover leading others, a conflict, a failure, a deadline and a change you drove.'],
+      },
+      {
+        h2: 'Questions to ask the interviewer',
+        bullets: [
+          'What would success look like in the first six months?',
+          'What is the hardest part of this role that is not in the posting?',
+          'How does the team make decisions when people disagree?',
+          'What happened to the person who held this role before?',
+        ],
+      },
+      {
+        h2: 'How to practice',
+        paragraphs: ['Say your answers out loud and time them. Record one practice run and listen for rambling and filler. Practice the first minute of “tell me about yourself” until it is smooth, since it sets the tone for everything after it.'],
+      },
+    ],
+    faq: [
+      { q: 'How long should an interview answer be?', a: 'Aim for one to two minutes. Long enough to give an example and its result, short enough that the interviewer can ask a follow-up.' },
+      { q: 'How do I answer “tell me about yourself”?', a: 'Give a one-minute story: your current work, two results relevant to this role, and why this job is the logical next step.' },
+      { q: 'What do I do if I blank on a question?', a: 'Say “let me think about that for a moment”, take a breath, and answer. A short pause reads as careful. If nothing comes, offer a related example and ask if that helps.' },
+    ],
+    cta: { title: 'Practice with a coach', body: 'Get a free AI career coach, Victoria, and add a human executive coach when you want one.', label: 'See career coaching', href: '/coaching' },
+    updated: '2026-10-26',
+  },
+  {
+    slug: 'career-advice',
+    h1: 'Career advice for experienced professionals',
+    lede: 'The career advice that holds up in every industry is a short list: know what the market pays and wants for your skills before you need to, keep proof of your results current, keep your network warm, and make moves on a plan rather than a mood.',
+    sections: [
+      {
+        h2: 'Know your market before you need it',
+        paragraphs: ['Look at postings for the role you hold and the one above it every few months. Note the titles, the skills that repeat, and the pay where it is posted. If your skills are drifting away from what employers ask for, you want to find out while you still have a job.'],
+      },
+      {
+        h2: 'Keep proof of your results current',
+        paragraphs: ['Keep a running list of what you shipped, saved, grew or fixed, with numbers. Add to it monthly. It makes your resume, a raise conversation and a sudden job search far easier, and people who can show results are chosen over those who can only describe duties.'],
+      },
+      {
+        h2: 'Keep your network warm',
+        paragraphs: ['Reach out to former colleagues and managers when you have nothing to ask for: congratulate, share an article, make an introduction. Most senior roles are filled through someone who knew the person, and those relationships are hard to build in a hurry after a layoff.'],
+      },
+      {
+        h2: 'When to stay and when to go',
+        bullets: [
+          'Stay when you are still learning, your manager backs you and the pay is within the market range.',
+          'Start looking quietly when growth has stopped, you have been passed over twice, or the company’s direction worries you.',
+          'Move fast when the problem is your health, safety or ethics.',
+          'Whatever you decide, decide with offers or market data in hand, not only how last week felt.',
+        ],
+      },
+      {
+        h2: 'When advice is not enough',
+        paragraphs: ['If you are weighing a change of field, a layoff is near or a search has stalled, a plan built for your background is more useful than general advice. A career coach can pressure-test the plan.'],
+      },
+    ],
+    faq: [
+      { q: 'What is the most important career advice?', a: 'Build and document results you can point to, and keep relationships alive with people who have seen you work. Both make every later move easier.' },
+      { q: 'How often should I look at the job market?', a: 'Every few months, even when you are happy. It takes about an hour and tells you whether your pay and skills are still competitive.' },
+      { q: 'Is it too late to change careers at 45 or 50?', a: 'No. Most people who change fields in mid-career reuse what they already know. See the career pivot guide for how to choose the target and tell the story.' },
+    ],
+    cta: { title: 'See where you stand', body: 'The free Market Reality Assessment shows how the market reads your background and what to work on first.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-26',
+  },
+  {
+    slug: 'problems-at-work',
+    h1: 'Problems at work: a difficult boss, burnout, being passed over',
+    lede: 'Most work problems follow one path: write down what is happening, raise it directly, use the formal channel if it continues, and quietly line up your options in case it does not get better. Harassment, discrimination, retaliation and safety problems are different and go straight to HR in writing.',
+    sections: [
+      {
+        h2: 'First steps for any problem',
+        bullets: [
+          'Keep dated notes: what happened, who was there, what was said. Keep them on your own device, not a work one.',
+          'Raise it directly and specifically, once, in a calm conversation. Name the behavior and the effect on the work, not the person’s character.',
+          'If it continues, bring it to your manager’s manager or HR, in writing, with your notes.',
+          'Keep doing good work and keep copies of positive feedback and results.',
+        ],
+      },
+      {
+        h2: 'A difficult boss or micromanager',
+        paragraphs: ['Ask what a good outcome looks like and how they want to be updated. Many micromanagers relax when they get a predictable summary before they ask. If the pattern is insulting, unfair or retaliatory rather than just irritating, document it and use the formal channel.'],
+      },
+      {
+        h2: 'Burnout and overload',
+        paragraphs: ['Write down everything you own, rank it, and take the list to your manager with a request to drop or delay specific items. If the load does not change, or your health is suffering, treat it as a reason to start a quiet search and talk to a doctor. In the United States, the Family and Medical Leave Act may give eligible employees job-protected leave for a serious health condition.'],
+      },
+      {
+        h2: 'Passed over for a promotion',
+        paragraphs: ['Ask what specifically stood between you and the role and what the next opportunity looks like. If the answer is vague or the timeline keeps moving, check what the market offers at the next level. Moving outside is often the faster route.'],
+      },
+      {
+        h2: 'Harassment, discrimination or retaliation',
+        paragraphs: ['Report it to HR in writing and keep a copy. In the United States you can also file a charge with the Equal Employment Opportunity Commission, and the deadlines are short, so speak to an employment lawyer early. Retaliation for reporting is itself unlawful.'],
+      },
+      {
+        h2: 'When to start looking',
+        paragraphs: ['Start a confidential search when the problem has lasted months, the formal channel has not fixed it or your health is affected. Search while you are still employed, if you can, and check your state’s unemployment rules before you resign, because quitting can affect eligibility.'],
+      },
+    ],
+    faq: [
+      { q: 'Should I quit a job because of a bad boss?', a: 'Try a direct conversation and the formal channel first, and start a quiet search in parallel. Searching while employed gives you more leverage and more time.' },
+      { q: 'Can I get unemployment if I quit?', a: 'It depends on the state and the reason. Many states pay only when you left for “good cause”, so check your state’s rules before you resign.' },
+      { q: 'How do I document problems at work?', a: 'Write the date, what happened, who was present and any messages. Keep it factual and keep it on your own device.' },
+    ],
+    cta: { title: 'Know your options before you decide', body: 'See how the market reads your background, privately, before anyone at work knows you looked. Free.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-26',
+  },
 ]
 
 export const TOPIC_SLUGS = TOPICS.map((t) => t.slug)

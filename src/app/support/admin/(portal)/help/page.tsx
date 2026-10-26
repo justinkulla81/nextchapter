@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { PORTAL_LABEL } from '@/lib/help/constants'
+import { getNeedsHuman, OVERDUE_HOURS } from '@/lib/help/needs-human'
 
 const ago = (d: Date) => {
   const m = Math.round((Date.now() - d.getTime()) / 60000)
@@ -54,6 +55,7 @@ export default async function HelpInboxPage({ searchParams }: { searchParams: Pr
         },
       })
     : []
+  const needsHuman = await getNeedsHuman()
   const candidates = await prisma.candidateProfile.findMany({
     where: { id: { in: [...new Set(rows.flatMap((r) => (r.candidateId ? [r.candidateId] : [])))] } },
     select: { id: true, firstName: true, lastName: true, email: true },
@@ -69,6 +71,26 @@ export default async function HelpInboxPage({ searchParams }: { searchParams: Pr
           triaged in <Link href="/support/admin/vision/feedback" className="underline">Vision → Feedback</Link>.
         </p>
       </header>
+
+      {(needsHuman.crisis > 0 || needsHuman.overdue > 0) && (
+        <section aria-label="Needs a human" className={`rounded-lg border p-4 text-sm ${needsHuman.crisis > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-orange/40 bg-orange/10'}`}>
+          <p className="font-semibold text-foreground">
+            {needsHuman.crisis > 0 && <>{needsHuman.crisis} flagged for crisis language{needsHuman.overdue > 0 ? ', ' : ''}</>}
+            {needsHuman.overdue > 0 && <>{needsHuman.overdue} waiting over {OVERDUE_HOURS} hours</>}
+            {needsHuman.oldestHours !== null && needsHuman.oldestHours >= OVERDUE_HOURS ? <span className="font-normal text-muted-foreground"> · oldest {Math.round(needsHuman.oldestHours / 24 * 10) / 10 >= 2 ? `${Math.round(needsHuman.oldestHours / 24)} days` : `${needsHuman.oldestHours} hours`}</span> : null}
+          </p>
+          <ul className="mt-2 space-y-1">
+            {needsHuman.items.map((i) => (
+              <li key={i.id}>
+                <Link href={`/support/admin/help/${i.id}`} className="underline">
+                  {i.crisis && <span className="mr-1 font-semibold text-destructive">Check in:</span>}{i.subject}
+                </Link>
+                <span className="text-muted-foreground"> · {i.hours < 48 ? `${i.hours}h` : `${Math.round(i.hours / 24)}d`}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <nav className="flex flex-wrap gap-2 text-sm" aria-label="Filter">
         {TABS.map((t) => (
