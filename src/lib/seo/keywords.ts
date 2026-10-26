@@ -69,6 +69,14 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['nextchapter company', 'justin kulla', 'job transition company'],
   },
   {
+    id: 'careers',
+    intent: 'Jobs at NextChapter',
+    owner: '/careers',
+    kind: 'page',
+    primary: 'careers at NextChapter',
+    secondary: ['nextchapter jobs', 'work at nextchapter', 'nextchapter openings'],
+  },
+  {
     id: 'how-it-works',
     intent: 'How the product works',
     owner: '/how-it-works',

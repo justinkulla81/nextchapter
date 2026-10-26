@@ -4,18 +4,24 @@ import { notFound } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { RoleBadge } from '@/components/careers/RoleBadge'
+import { StructuredData } from '@/components/StructuredData'
+import { careerJobPostingJsonLd } from '@/lib/careers/job-posting-jsonld'
 import { CAREERS_LOCATION, CAREER_ROLES, KIND_EXPLAINER, getRole } from '@/lib/careers/roles'
 
 export function generateStaticParams() {
   return CAREER_ROLES.map((r) => ({ slug: r.slug }))
 }
 
-// Not for search engines: kept out of results here and disallowed in robots.ts.
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const role = getRole(slug)
   if (!role) return {}
-  return { title: `${role.title}: careers at NextChapter`, robots: { index: false, follow: false } }
+  return {
+    title: `${role.title}: careers at NextChapter`,
+    description: role.summary,
+    alternates: { canonical: `/careers/${role.slug}` },
+    openGraph: { title: `${role.title}: careers at NextChapter`, description: role.summary, url: `/careers/${role.slug}`, type: 'website' },
+  }
 }
 
 const H2 = 'text-xl font-semibold text-navy'
@@ -37,11 +43,13 @@ export default async function CareerRolePage({ params }: { params: Promise<{ slu
   if (!role) notFound()
 
   const isPlatform = role.kind === 'platform'
+  const jobPosting = careerJobPostingJsonLd(role)
   const applyHref = `/careers/apply?role=${encodeURIComponent(role.slug)}`
   const primary = 'inline-flex items-center justify-center rounded-lg bg-success px-5 py-3 text-sm font-semibold text-white hover:bg-success-hover'
 
   return (
     <div className="flex flex-1 flex-col bg-white">
+      {jobPosting && <StructuredData data={jobPosting} />}
       <PublicSiteHeader current="careers" />
 
       <main className="mx-auto w-full max-w-3xl px-6 py-14">
