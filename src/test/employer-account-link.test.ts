@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- the in-memory Prisma stand-ins take the library's loose where/data shapes */
 import { describe, expect, it, vi } from 'vitest'
 import { getEmployerAccess, type EmployerAccessDb } from '@/lib/employer/access'
 import {
