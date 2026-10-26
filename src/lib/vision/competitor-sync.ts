@@ -48,7 +48,52 @@ export async function orgFor(buyer: string, government: boolean): Promise<string
   return made.id
 }
 
-export async function recordWin(w: CrmWin, government: boolean, now: Date): Promise<boolean> {
+export const rebidLabel = (w: CrmWin) => `Likely re-bid: ${w.title.replace(/ won: /, "'s ")}`.slice(0, 200)
+
+/**
+ * Each upcoming re-bid becomes a real item in the Grants & programs pipeline, at the first stage, with the buyer as the
+ * organization, the incumbent competitor named in the title, the contract value, and the contract end date as the
+ * next-step date. The matching "Likely re-bid" deadline is linked to it. Idempotent.
+ */
+export async function syncRebidOpportunities(cards: Pick<ProductCompetitor, 'id' | 'name'>[], now = new Date(), maxNew = 300): Promise<number> {
+  const pipeline = await prisma.crmPipeline.findUnique({ where: { key: 'grants' }, include: { stages: { where: { key: 'identified' }, take: 1 } } })
+  const stage = pipeline?.stages[0]
+  if (!pipeline || !stage) return 0
+  const rows = await prisma.competitorAward.findMany({ where: { confidence: 'EXACT', endDate: { gt: now } }, take: 5000 })
+  const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, '')
+  const byName = new Map(cards.map((c) => [norm(c.name), c]))
+  let n = 0
+  for (const a of rows) {
+    if (n >= maxNew) break
+    if (!awardIsWorkforce(a)) continue
+    const c = (a.competitorId && cards.find((x) => x.id === a.competitorId)) || byName.get(norm(a.competitorName))
+    if (!c) continue
+    const [w] = winsFromAwards(c.name, [a], now)
+    if (!w?.rebidAt) continue
+    const org = await prisma.crmOrganization.findUnique({ where: { canonicalNameNormalized: normalizeOrgName(w.buyer) }, select: { id: true } })
+    if (!org) continue
+    const title = `Possible re-bid: ${w.title.replace(/ won: /, "'s contract: ")}`.slice(0, 200)
+    const dup = await prisma.crmOpportunity.findFirst({ where: { pipelineId: pipeline.id, orgId: org.id, title }, select: { id: true } })
+    let oppId = dup?.id
+    if (!oppId) {
+      const amount = w.amount ? Math.min(Math.round(w.amount), 2_147_483_647) : null
+      const opp = await prisma.crmOpportunity.create({
+        data: {
+          pipelineId: pipeline.id, stageId: stage.id, orgId: org.id, title, url: w.url, amountUsdMin: amount, amountUsdMax: amount,
+          nextStep: `${c.name} holds this contract until ${w.rebidAt.toISOString().slice(0, 10)}. Watch for the re-bid notice and decide whether to bid or partner.`,
+          nextStepDueAt: new Date(Math.max(now.getTime() + 86_400_000, w.rebidAt.getTime() - 180 * 86_400_000)),
+        },
+        select: { id: true },
+      })
+      oppId = opp.id
+      n++
+    }
+    await prisma.crmDeadline.updateMany({ where: { orgId: org.id, label: rebidLabel(w), opportunityId: null }, data: { opportunityId: oppId } })
+  }
+  return n
+}
+
+async function recordWin(w: CrmWin, government: boolean, now: Date): Promise<boolean> {
   const dup = await prisma.crmActivity.findFirst({ where: { sourceRef: w.ref }, select: { id: true } })
   if (dup) return false
   const orgId = await orgFor(w.buyer, government)
@@ -61,7 +106,7 @@ export async function recordWin(w: CrmWin, government: boolean, now: Date): Prom
     },
   })
   if (w.rebidAt) {
-    const label = `Likely re-bid: ${w.title.replace(/ won: /, "'s ")}`.slice(0, 200)
+    const label = rebidLabel(w)
     const has = await prisma.crmDeadline.findFirst({ where: { orgId, label }, select: { id: true } })
     if (!has) await prisma.crmDeadline.create({ data: { orgId, label, kind: 'CONTRACT_RENEWAL', dueAt: w.rebidAt, sourceUrl: w.url, rawText: 'Contract end date from the award record; the buyer may re-bid around then.' } })
   }
