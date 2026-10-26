@@ -83,6 +83,7 @@ export const EMPLOYERS: PortalPageDef = {
         a: 'Post a role to start Hiring. For Employees and Outplacement, use the form at the bottom of this page and we will set it up with you.',
       },
     ],
+    asset: 'outplacement-rfp-kit',
     finalCta: {
       title: 'Tell us what you are working on',
       intro: 'Tell us which stage you want help with, or post a role now.',
