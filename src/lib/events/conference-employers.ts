@@ -1,5 +1,5 @@
 import 'server-only'
-import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { EMPLOYER_MIN_OPEN_ROLES } from '@/lib/seo/employer-pages'
@@ -40,16 +40,33 @@ export async function employerPageSlugs(names: string[]): Promise<Map<string, st
   return new Map(rows.map((r) => [r.canonicalNameNormalized, employerSlug(r.canonicalNameNormalized, r.id)]))
 }
 
-const byEmployer = cache(() => {
+// Reverse index for employer pages: employer (normalized name) -> conferences where it exhibits, sponsors or speaks. Built from the bundled
+// file plus every ConferenceEmployer row and every named speaker's organization in the database; cached for an hour, because the table is small
+// (a few thousand rows) and read by many employer pages.
+async function loadByEmployer(): Promise<[string, { id: string; role: string }[]][]> {
   const m = new Map<string, { id: string; role: string }[]>()
-  for (const [id, rows] of Object.entries(FILE)) for (const r of rows) {
-    const k = normalizeOrgName(r.name)
-    m.set(k, [...(m.get(k) ?? []), { id, role: r.role }])
+  const add = (name: string | null, id: string, role: string) => {
+    const k = name ? normalizeOrgName(name) : ''
+    if (!k) return
+    const list = m.get(k) ?? []
+    if (!list.some((x) => x.id === id)) list.push({ id, role })
+    m.set(k, list)
   }
-  return m
-})
+  for (const [id, rows] of Object.entries(FILE)) for (const r of rows) add(r.name, id, r.role)
+  const [emps, spk] = await Promise.all([
+    prisma.conferenceEmployer.findMany({ select: { seriesId: true, name: true, role: true }, take: 20000 }).catch(() => []),
+    prisma.conferenceSpeaker.findMany({ where: { organization: { not: null } }, select: { seriesId: true, organization: true }, take: 20000 }).catch(() => []),
+  ])
+  for (const r of emps) add(r.name, r.seriesId, r.role)
+  for (const r of spk) add(r.organization, r.seriesId, 'SPEAKER')
+  return [...m]
+}
+
+const cachedByEmployer = unstable_cache(loadByEmployer, ['conference-by-employer-v1'], { revalidate: 3600 })
 
 /** Conferences (ids) where the employer is known to exhibit, sponsor or speak. */
-export function conferencesForEmployer(name: string): { id: string; role: string }[] {
-  return byEmployer().get(normalizeOrgName(name)) ?? []
+export async function conferencesForEmployer(name: string): Promise<{ id: string; role: string }[]> {
+  const key = normalizeOrgName(name)
+  const hit = (await cachedByEmployer().catch(() => [] as [string, { id: string; role: string }[]][])).find(([k]) => k === key)
+  return hit?.[1] ?? []
 }

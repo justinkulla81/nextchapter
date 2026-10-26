@@ -72,7 +72,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   const text = ins ? insightText(e.name, ins, e.industry) : { glance: [], faq: [] }
   const hq = [e.hqMetro, e.industry].filter(Boolean).join(' · ')
   const industryBucket = bucketFromIndustryText(e.industry)
-  const seenAt = conferencesForEmployer(e.name)
+  const seenAt = await conferencesForEmployer(e.name)
   const seenConfs = seenAt.length ? await prisma.conferenceEvent.findMany({ where: { id: { in: seenAt.map((x) => x.id) }, published: true }, select: { id: true, name: true }, orderBy: { name: 'asc' }, take: 12 }).catch(() => []) : []
   const topFunction = p?.topFunctions[0] ? functionByName(p.topFunctions[0].function) : null
 
