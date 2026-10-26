@@ -26,6 +26,7 @@ export function generateStaticParams() {
 
 const day = (d: Date | string) => new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 const EMPTY_JOBS: TopicJobs = { total: 0, jobs: [], functions: [], industries: [], employers: [] }
+const SPEAKER_GROUP = { KEYNOTE: 'Keynotes', MODERATOR: 'Moderators', PANELIST: 'Panelists', SPEAKER: 'Speakers' } as const
 const ROLE_LABEL: Record<string, string> = { EXHIBITOR: 'Exhibiting', SPONSOR: 'Sponsoring', SPEAKER: 'Speaking', ATTENDEE: 'Attending' }
 
 async function load(id: string) {
@@ -73,9 +74,11 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
   const { slug } = await params
   const d = await load(slug)
   if (!d) notFound()
-  const { conf: c, editions, opportunities, employers, association, related, jobs, primaryIndustry, organizerConfs, fieldFacts } = d
+  const { conf: c, editions, opportunities, employers, speakers, association, related, jobs, primaryIndustry, organizerConfs, fieldFacts } = d
   const path = conferencePath(c.id)
   const upcoming = hasUpcomingDates(c)
+  // Named keynotes and speakers only, as the event publishes them; panelists and moderators stay on the page without structured data.
+  const performers = speakers.filter((p) => p.kind === 'KEYNOTE' || p.kind === 'SPEAKER').slice(0, 10)
   const exact = c.industries.length > 0 ? c.industries.join(', ') : 'every industry'
   const speakingLine = SPEAKING_LABEL[c.speaking as Speaking] ?? SPEAKING_LABEL.UNKNOWN
   const event = upcoming
@@ -90,6 +93,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
         location: c.format === 'VIRTUAL' ? { '@type': 'VirtualLocation', url: c.url ?? `${SITE_URL}${path}` } : { '@type': 'Place', name: [c.city, c.state].filter(Boolean).join(', ') || c.name, address: { '@type': 'PostalAddress', ...(c.city ? { addressLocality: c.city } : {}), ...(c.state ? { addressRegion: c.state } : {}), addressCountry: c.country } },
         description: c.whyAttend ?? `${c.name}, a ${KIND_LABEL[c.kind as keyof typeof KIND_LABEL]?.toLowerCase() ?? 'conference'} for ${exact}.`,
         url: `${SITE_URL}${path}`,
+        ...(performers.length > 0 ? { performer: performers.map((p) => ({ '@type': 'Person', name: p.name, ...(p.title ? { jobTitle: p.title } : {}), ...(p.organization ? { worksFor: { '@type': 'Organization', name: p.organization } } : {}) })) } : {}),
         ...(c.organizer ? { organizer: { '@type': 'Organization', name: c.organizer, ...(c.url ? { url: c.url } : {}) } } : {}),
         ...(c.access === 'FREE' ? { isAccessibleForFree: true } : c.costLow != null ? { offers: { '@type': 'Offer', price: c.costLow, priceCurrency: 'USD', ...(c.url ? { url: c.url } : {}), availability: 'https://schema.org/InStock' } } : {}),
       }
@@ -99,6 +103,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
   const functionItems = effectiveFunctions(c).map((n) => functionChip(n))
   const employerSlugs = d.employerSlugs
   const employerSources = [...new Set(employers.map((e) => e.sourceUrl).filter((u): u is string => !!u && /^https:\/\//.test(u)))].slice(0, 4)
+  const speakerSources = [...new Set(speakers.map((p) => p.sourceUrl).filter((u) => /^https:\/\//.test(u)))].slice(0, 4)
   const hiringIndustryNote = primaryIndustry ? `${primaryIndustry} employers` : 'Employers'
 
   return (
@@ -190,6 +195,32 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
           <p className="text-sm text-muted-foreground">No employer list yet.</p>
         )}
       </Section>
+
+      {speakers.length > 0 && (
+        <Section id="speakers" title="Speakers and sessions" note="Named on the event’s own program. Titles and organizations are as the event lists them.">
+          {(['KEYNOTE', 'MODERATOR', 'PANELIST', 'SPEAKER'] as const).map((kind) => {
+            const group = speakers.filter((p) => p.kind === kind)
+            if (group.length === 0) return null
+            return (
+              <div key={kind} className="mt-4 first:mt-0">
+                <h3 className="text-sm font-semibold text-navy">{SPEAKER_GROUP[kind]}</h3>
+                <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {group.map((p) => (
+                    <li key={`${p.name}:${p.kind}`} className="rounded-xl border border-border bg-white p-3 text-sm">
+                      <p className="font-medium text-navy">{p.name}</p>
+                      {(p.title || p.organization) && <p className="text-muted-foreground">{[p.title, p.organization].filter(Boolean).join(', ')}</p>}
+                      {p.sessionTitle && <p className="mt-1 text-foreground">{p.sessionTitle}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+          {speakerSources.length > 0 && (
+            <p className="mt-3 text-xs text-muted-foreground">Read from the event’s own pages: {speakerSources.map((u, i) => <span key={u}>{i > 0 && ', '}<a href={u} rel="nofollow noopener noreferrer" target="_blank" className="underline underline-offset-2">{new URL(u).hostname.replace(/^www\./, '')}</a></span>)}</p>
+          )}
+        </Section>
+      )}
 
       {(industryItems.length > 0 || functionItems.length > 0) && (
         <Section id="topics" title="Industries and functions">
