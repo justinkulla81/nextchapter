@@ -1,5 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
+import { heavy, memoTtl } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { cityFromAddress } from '@/lib/workforce/places'
@@ -53,7 +54,7 @@ export interface PublicNotice {
 }
 
 /** Every WARN filing on the public record, newest first. Cached per request. */
-export const getPublicNotices = cache(async (): Promise<PublicNotice[]> => {
+async function loadPublicNotices(): Promise<PublicNotice[]> {
   const rows = await prisma.warnNotice.findMany({
     where: {
       dismissedAt: null,
@@ -92,7 +93,11 @@ export const getPublicNotices = cache(async (): Promise<PublicNotice[]> => {
       board: r.workforceBoardId ? boardById.get(r.workforceBoardId) ?? null : null,
     }
   })
-})
+}
+
+// One load per instance per five minutes, shared by every page that needs the record; the per-request cache sits on top.
+const sharedNotices = memoTtl(5 * 60_000, () => 'all', () => heavy(loadPublicNotices))
+export const getPublicNotices = cache(() => sharedNotices())
 
 export interface StateSummary {
   state: string

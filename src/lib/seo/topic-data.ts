@@ -1,5 +1,6 @@
 import 'server-only'
 import { cache } from 'react'
+import { heavy } from '@/lib/db/heavy'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -115,7 +116,7 @@ function mergeBuckets(rows: { name: string; n: number }[]): { name: string; coun
   return [...m].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
 }
 
-const cachedJobs = unstable_cache((f: string) => loadJobs(JSON.parse(f) as JobFilter), ['topic-jobs-v3'], { revalidate: 3600 })
+const cachedJobs = unstable_cache((f: string) => heavy(() => loadJobs(JSON.parse(f) as JobFilter)), ['topic-jobs-v3'], { revalidate: 3600 })
 
 /** Open public jobs for an industry rule or a function, with the functions/industries/employers they sit in. */
 export async function getTopicJobs(f: JobFilter): Promise<TopicJobs> {
