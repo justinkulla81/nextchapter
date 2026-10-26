@@ -6,6 +6,7 @@ import { HomepageVisitTracker } from "@/components/marketing/HomepageVisitTracke
 import "./globals.css";
 import { HOME_KEYWORDS, pageSeo } from '@/lib/seo/keywords'
 import { PortalCanonicalUrl } from '@/components/PortalCanonicalUrl'
+import { fitDescription } from '@/lib/seo/templates'
 
 // Self-hosted (fontsource) rather than next/font/google: a Google Fonts
 // hiccup at build time was failing production deploys.
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     default: title,
     template: "%s | NextChapter",
   },
-  description,
+  description: fitDescription(description),
   keywords: HOME_KEYWORDS,
   robots: {
     index: true,
