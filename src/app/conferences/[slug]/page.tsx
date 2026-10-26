@@ -33,7 +33,7 @@ async function load(id: string) {
   const d = await getConference(id)
   if (!d) return null
   const primary = d.conf.industries.map((n) => industryByName(n)).find((i) => i?.rule) ?? null
-  const employerSlugs = await employerPageSlugs(d.employers.map((e) => e.name))
+  const employerSlugs = await employerPageSlugs([...d.employers.map((e) => e.name), ...d.speakers.map((p) => p.organization ?? '').filter(Boolean)])
   const [jobs, stats, trends, organizerConfs] = await Promise.all([
     primary?.rule ? getTopicJobs({ rule: primary.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
     primary?.rule ? getJobStats({ rule: primary.rule }) : Promise.resolve(null),
@@ -208,7 +208,14 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
                   {group.map((p) => (
                     <li key={`${p.name}:${p.kind}`} className="rounded-xl border border-border bg-white p-3 text-sm">
                       <p className="font-medium text-navy">{p.name}</p>
-                      {(p.title || p.organization) && <p className="text-muted-foreground">{[p.title, p.organization].filter(Boolean).join(', ')}</p>}
+                      {(p.title || p.organization) && (
+                        <p className="text-muted-foreground">
+                          {p.title}{p.title && p.organization ? ', ' : ''}
+                          {p.organization && (employerSlugs.get(normalizeOrgName(p.organization))
+                            ? <Link href={`/employers/${employerSlugs.get(normalizeOrgName(p.organization))}`} className="underline underline-offset-2">{p.organization}</Link>
+                            : p.organization)}
+                        </p>
+                      )}
                       {p.sessionTitle && <p className="mt-1 text-foreground">{p.sessionTitle}</p>}
                     </li>
                   ))}
