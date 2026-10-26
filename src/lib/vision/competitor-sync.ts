@@ -93,7 +93,7 @@ export async function syncRebidOpportunities(cards: Pick<ProductCompetitor, 'id'
   return n
 }
 
-async function recordWin(w: CrmWin, government: boolean, now: Date): Promise<boolean> {
+export async function recordWin(w: CrmWin, government: boolean, now: Date): Promise<boolean> {
   const dup = await prisma.crmActivity.findFirst({ where: { sourceRef: w.ref }, select: { id: true } })
   if (dup) return false
   const orgId = await orgFor(w.buyer, government)
