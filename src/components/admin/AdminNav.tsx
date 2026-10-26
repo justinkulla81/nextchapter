@@ -125,6 +125,7 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
       links: [
         { href: '/support/admin/crm', label: 'People', badge: countFor('peopleTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm?role=RECRUITER_PROSPECT', label: 'Recruiters' },
+        { href: '/support/admin/crm/recruiters', label: 'Recruiters by state and industry' },
         { href: '/support/admin/crm?role=COACH_PROSPECT', label: 'Coaches' },
         { href: '/support/admin/crm/organizations', label: 'Organizations', badge: countFor('orgsTotal'), badgeTone: 'count' },
         { href: '/support/admin/crm/organizations?rel=all', label: 'Companies' },
@@ -158,7 +159,6 @@ function ecosystemSections(badges: Record<string, number>): NavSection[] {
         { href: '/support/admin/crm/warn', label: 'Layoff notices', badge: badgeFor('warnPending') },
         { href: '/support/admin/linkedin-drafts', label: 'LinkedIn post drafts' },
         { href: '/support/admin/network-leads', label: 'Candidate-surfaced leads' },
-        { href: '/support/admin/crm/recruiters', label: 'Recruiters by state and industry' },
       ],
     },
     {

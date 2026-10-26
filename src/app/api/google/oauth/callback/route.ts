@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { exchangeCodeForTokens, fetchGoogleUserEmail } from '@/lib/google/oauth'
 import { prisma } from '@/lib/prisma'
 import { ADMIN_HOST } from '@/proxy'
@@ -53,6 +54,8 @@ export async function GET(request: NextRequest) {
     }
 
     const email = await fetchGoogleUserEmail(tokens.access_token)
+    // A fresh grant may now cover Search Console; drop the cached "reconnect" answer.
+    revalidateTag('admin-search-console', { expire: 0 })
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000)
 
     // One consent grant, two connections — the requested scope (see
