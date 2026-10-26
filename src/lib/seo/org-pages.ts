@@ -14,6 +14,7 @@ import { getStateCityPlaces, getStateCounties, type CityPlace, type County } fro
 import { employerSlug } from '@/lib/seo/employer-slug'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { claimSlug } from '@/lib/org-claims/urls'
+import { uniqueClaimSlugs } from '@/lib/org-claims/org'
 import {
   type OrgPageFacts, type OrgPageKind, cleanOrgName, groupPartnerDuplicates, meetsOrgPageBar, orgPagePath, orgSlugs,
 } from '@/lib/seo/org-page-rules'
@@ -308,7 +309,8 @@ export async function claimSlugFor(kind: OrgPageKind, sourceId: string, aliasIds
     const link = links.find((l) => l.sourceId === sourceId) ?? links[0]
     if (!link?.crmOrgId) return null
     const org = await prisma.crmOrganization.findUnique({ where: { id: link.crmOrgId }, select: { canonicalNameNormalized: true } })
-    return org ? claimSlug(org.canonicalNameNormalized) : null
+    const slug = org ? claimSlug(org.canonicalNameNormalized) : null
+    return slug && (await uniqueClaimSlugs([slug])).has(slug) ? slug : null
   } catch {
     return null
   }
