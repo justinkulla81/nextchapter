@@ -9,7 +9,7 @@ import { JobsViewedTracker } from '@/components/home/JobsViewedTracker'
 import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 import { PersonalizePanel, PERSONALIZE_HREF } from '@/components/home/PersonalizePanel'
 import { allowByIp, HOUR_MS } from '@/lib/security/rate-limit'
-import { cleanPublicQuery, searchPublicBoard, type PublicBoardResult } from '@/lib/jobs/public-board'
+import { cleanPublicQuery, searchPublicBoardCached, type PublicBoardResult } from '@/lib/jobs/public-board'
 import { formatRelativeTime } from '@/lib/format-relative-time'
 
 // Search results for the homepage job box. Anonymous and unpersonalized by design: newest
@@ -50,7 +50,7 @@ export default async function JobsPage({ searchParams }: { searchParams: SearchP
     problem = 'You have searched a lot this hour. Create a free account to keep searching.'
   } else {
     try {
-      result = await searchPublicBoard(query)
+      result = await searchPublicBoardCached(query)
     } catch (error) {
       console.error('public job search failed:', error instanceof Error ? error.message : error)
       problem = 'Search is unavailable right now. Try again in a minute.'

@@ -8,6 +8,7 @@ import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { looksLikeCorporateDomain } from '@/lib/text/email-domain'
+import { posthog } from '@/lib/posthog/client'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -93,6 +94,7 @@ export function CreateAccountForm({
     try {
       const availability = await checkEmailAvailableForSignup(targetEmail)
       if (availability.blocked) {
+        posthog.capture('account_confirmation_blocked', { surface: 'onboarding', reason: 'existing_account' })
         setBlocked({ needsPassword: availability.needsPassword })
         return
       }
@@ -114,6 +116,7 @@ export function CreateAccountForm({
         return
       }
 
+      posthog.capture('account_confirmation_sent', { surface: 'onboarding' })
       setSent(true)
     } catch {
       setError('Something went wrong sending your confirmation email. Try again below.')
@@ -161,6 +164,7 @@ export function CreateAccountForm({
       setResendError(error.message)
       return
     }
+    posthog.capture('account_confirmation_resent', { surface: 'onboarding' })
     setResent(true)
   }
 

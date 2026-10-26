@@ -5,6 +5,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { saveAppliedJob, type ApplySaveState } from '@/lib/leads/apply-save'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { CreateAccountPrompt } from '@/components/jobs/CreateAccountPrompt'
 
 // The Apply button on a public job page plus the one-field "save this job" box under it.
 // Apply still opens the employer's page in a new tab; this page stays open behind it and the
@@ -49,11 +50,14 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
 
       {open &&
         (state?.saved ? (
-          <p role="status" className="mt-4 rounded-2xl border border-success/30 bg-success/5 px-4 py-3 text-sm">
-            {state.emailed
-              ? <>Saved. We emailed <span className="font-medium">{state.email}</span> a link back to this job.</>
-              : <>Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. Keep this page open to come back to the job.</>}
-          </p>
+          <div className="mt-4">
+            <p role="status" className="rounded-2xl border border-success/30 bg-success/5 px-4 py-3 text-sm">
+              {state.emailed
+                ? <>Saved. We emailed <span className="font-medium">{state.email}</span> a link back to this job.</>
+                : <>Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. Keep this page open to come back to the job.</>}
+            </p>
+            <CreateAccountPrompt what="job" properties={{ placement: 'job_saved', jobId, company, trigger }} />
+          </div>
         ) : (
           <form
             action={action}
@@ -61,8 +65,8 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
             className={cn('mt-4 rounded-2xl border border-border bg-white p-4', pending && 'cursor-wait')}
             onSubmit={() => posthog.capture('job_save_submitted_client', { jobId, company, trigger })}
           >
-            <p className="text-sm font-semibold">{trigger === 'apply_click' ? `Applying to ${company}? Keep a link to this job.` : 'Keep a link to this job.'}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{emailOn ? 'We email you the job so you can find it again. No account or password.' : 'Save it with your email. No account or password.'}</p>
+            <p className="text-sm font-semibold">{trigger === 'apply_click' ? `Applying to ${company}? Keep this job and see how you fit.` : 'Keep this job and see how you fit.'}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{emailOn ? 'We email you the job so you can find it again. Then create a free account to see your fit.' : 'Save it with your email, then create a free account to see your fit.'}</p>
             <input type="hidden" name="jobId" value={jobId} />
             <input type="hidden" name="trigger" value={trigger} />
             <div className="hidden" aria-hidden>

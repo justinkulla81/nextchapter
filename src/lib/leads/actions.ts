@@ -9,15 +9,16 @@ import { PERSONAS } from '@/lib/constants/personas'
 import { planFor } from '@/lib/leads/first-week-plans'
 import { cleanPublicQuery } from '@/lib/jobs/public-board'
 import JourneyPlanEmail from '@/emails/journey-plan'
+import { sendJobAlertConfirmation } from '@/lib/leads/job-alerts'
 
 // Homepage lead capture, no account needed. Two forms:
 //  - the journey picker: where you are in your search, and a one-time first-week plan email
 //    (the whole cost is one email per new address, at most one a week; no AI)
-//  - a saved job search on /jobs: stored for the alert emails, which are off. Nothing is
-//    sent for it yet.
+//  - a saved job search on /jobs: stored, then (when JOB_ALERT_EMAILS=1) one confirmation email;
+//    alerts start only after the confirm click (see lib/leads/job-alerts.ts).
 
 export type JourneyState = { error?: string; done?: boolean; email?: string; slug?: string; capped?: boolean } | undefined
-export type SavedSearchState = { error?: string; saved?: boolean; email?: string } | undefined
+export type SavedSearchState = { error?: string; saved?: boolean; email?: string; confirmEmailed?: boolean } | undefined
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const FOLLOWUPS = new Set(['just_starting', 'weeks', 'months', 'long'])
@@ -138,15 +139,22 @@ export async function saveJobSearchAlert(_prev: SavedSearchState, formData: Form
     const key = { email, kind: 'job_alert', situation: '', searchQ: query.q.toLowerCase(), searchLoc: query.loc.toLowerCase(), searchRemote: query.remote }
     const existing = await prisma.homepageLead.findUnique({
       where: { email_kind_situation_searchQ_searchLoc_searchRemote: key },
-      select: { id: true },
+      select: { id: true, unsubscribeToken: true, confirmedAt: true, confirmSentAt: true },
     })
-    if (existing) {
-      await prisma.homepageLead.update({ where: { id: existing.id }, data: { unsubscribedAt: null } })
-    } else {
-      await prisma.homepageLead.create({ data: { ...key, source: 'jobs', ip } })
-    }
+    const lead = existing
+      ? await prisma.homepageLead.update({ where: { id: existing.id }, data: { unsubscribedAt: null }, select: { id: true, unsubscribeToken: true, confirmedAt: true, confirmSentAt: true } })
+      : await prisma.homepageLead.create({ data: { ...key, source: 'jobs', ip }, select: { id: true, unsubscribeToken: true, confirmedAt: true, confirmSentAt: true } })
+
+    // Double opt-in: one confirmation email per saved search (again after a day if it was never clicked).
+    // Sends only when JOB_ALERT_EMAILS=1 and under the daily cap.
+    const dayAgo = Date.now() - DAY_MS
+    const needsConfirm = !lead.confirmedAt && (!lead.confirmSentAt || lead.confirmSentAt.getTime() < dayAgo)
+    const confirmEmailed = needsConfirm
+      ? await sendJobAlertConfirmation({ id: lead.id, email, unsubscribeToken: lead.unsubscribeToken, searchQ: key.searchQ, searchLoc: key.searchLoc, searchRemote: key.searchRemote })
+      : false
     captureServerEvent(email, 'job_alert_signup_submitted', { q: query.q, loc: query.loc, remote: query.remote, returning: !!existing })
-    return { saved: true, email }
+    captureServerEvent(email, 'alert_subscribed', { q: query.q, loc: query.loc, remote: query.remote, confirmEmailed, returning: !!existing })
+    return { saved: true, email, confirmEmailed }
   } catch (error) {
     console.error('job alert signup failed:', error instanceof Error ? error.message : error)
     return { error: GENERIC_ERROR, email }

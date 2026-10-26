@@ -6,14 +6,18 @@ boilerplate), and reports per family: median own words, median numbers, the shar
 sibling, and how many pages pass the bar. Google publishes no threshold; these are proxies. The real signal is Search
 Console: Pages > 'Crawled - currently not indexed' and 'Duplicate without user-selected canonical'.
 
-usage: page-quality.py BASE_URL [SAMPLE=12]    e.g. page-quality.py http://localhost:3112
+usage: [SITEMAP_BASE=https://launchyournextchapter.com] page-quality.py BASE_URL [SAMPLE=12] [family ...]
+
+A page passes with 250+ words of main content, 5+ numbers (data, not prose) and under 0.80 5-word-shingle overlap with
+its closest sibling. 'own' is the count of words that are not on most sibling pages; shown for information.
 """
 import html, json, random, re, statistics, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 BASE = sys.argv[1].rstrip('/')
 SAMPLE = int(sys.argv[2]) if len(sys.argv) > 2 else 12
-BAR = {'own_words': 150, 'numbers': 5, 'max_similarity': 0.85}
+BAR = {'words': 250, 'numbers': 5, 'max_similarity': 0.80}
+SITEMAP_BASE = (__import__('os').environ.get('SITEMAP_BASE') or BASE).rstrip('/')
 
 FAMILIES = {  # name: (sitemap path, path regex)
     'layoffs/state': ('/sitemap.xml', r'^/layoffs/[a-z-]+$'),
@@ -40,7 +44,7 @@ def get(url):
         return ''
 
 def urls(sitemap, rx):
-    out = re.findall(r'<loc>([^<]+)</loc>', get(BASE + sitemap))
+    out = re.findall(r'<loc>([^<]+)</loc>', get(SITEMAP_BASE + sitemap))
     paths = [re.sub(r'^https?://[^/]+', '', u) for u in out]
     return [p for p in paths if re.search(rx, p)]
 
@@ -72,7 +76,7 @@ def audit(name, paths):
         sh = shingles(ws[p])
         sim = max((len(sh & shingles(ws[q])) / max(1, len(sh | shingles(ws[q]))) for q in ws if q != p), default=0)
         rows.append((p, len(ws[p]), len(own), nums, sim))
-    ok = [r for r in rows if r[2] >= BAR['own_words'] and r[3] >= BAR['numbers'] and r[4] < BAR['max_similarity']]
+    ok = [r for r in rows if r[1] >= BAR['words'] and r[3] >= BAR['numbers'] and r[4] < BAR['max_similarity']]
     med = lambda i: int(statistics.median(r[i] for r in rows)) if rows else 0
     print(f"{name:26} pages={len(paths):6} sampled={len(rows):2} words={med(1):5} own={med(2):5} numbers={med(3):4} max_sim={max((r[4] for r in rows), default=0):.2f} pass={len(ok)}/{len(rows)}")
     for r in rows:

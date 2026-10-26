@@ -5,17 +5,25 @@ import { Button } from '@/components/ui/button'
 import { saveJobSearchAlert, type SavedSearchState } from '@/lib/leads/actions'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
+import { CreateAccountPrompt } from '@/components/jobs/CreateAccountPrompt'
 
-// "Email me new jobs like this" on the results page. It saves the search with the email. The job
-// alert emails are not on yet, so the confirmation says that plainly and nothing is sent.
+// "Email me new jobs like this" on the results page. It saves the search with the email. While the alert
+// emails are off the confirmation says so plainly; once they are on it asks for the confirm click.
 export function SaveSearchForm({ q, loc, remote }: { q: string; loc: string; remote: boolean }) {
   const [state, action, pending] = useActionState<SavedSearchState, FormData>(saveJobSearchAlert, undefined)
 
   if (state?.saved) {
     return (
+      <div>
       <p role="status" className="rounded-2xl border border-success/30 bg-success/5 px-4 py-3 text-sm">
-        Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. New-job emails are turning on soon, and this search will be first in line.
+        {state.confirmEmailed ? (
+          <>Check your inbox{state.email ? <> at <span className="font-medium">{state.email}</span></> : ''} and click the link to start. If it is not there in a few minutes, check spam.</>
+        ) : (
+          <>Saved{state.email ? <> for <span className="font-medium">{state.email}</span></> : ''}. New-job emails are turning on soon, and this search will be first in line.</>
+        )}
       </p>
+      <CreateAccountPrompt what="search" properties={{ placement: 'search_saved', q, loc, remote }} />
+      </div>
     )
   }
 

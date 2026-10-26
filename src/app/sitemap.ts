@@ -1,3 +1,4 @@
+import { meetsCompanyLayoffBar, meetsStateBoardBar } from '@/lib/seo/page-bars'
 import { CAREER_ROLES } from '@/lib/careers/roles'
 import type { MetadataRoute } from 'next'
 import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
@@ -12,12 +13,13 @@ import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
-import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
+import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { TOPICS } from '@/lib/seo/explainers'
 import { ASSOCIATION_MIN_CONFERENCES, INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
+import { topicsWithSnapshot } from '@/lib/seo/topic-snapshot'
 import { boardSlugs } from '@/lib/seo/workforce-pages'
 import { visibleBoards } from '@/lib/workforce/board-area'
 import { getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
@@ -46,6 +48,8 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/glossary', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
   { path: '/tools', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
   { path: '/tools/severance-calculator', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/layoff-deadlines', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
+  { path: '/tools/pay-check', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
   { path: '/pricing', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
@@ -94,10 +98,12 @@ const DIRECTORY_UPDATED = '2026-10-25'
 // workforce, rapid-response and higher-education page from the sitemap.
 async function loadSeoStatePages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
   try {
-    const [rows, collegeStates] = await Promise.all([
+    const [rows, collegeStates, centerStates] = await Promise.all([
       prisma.workforceBoard.findMany({ select: { id: true, state: true, name: true, statewide: true }, orderBy: { name: 'asc' } }),
       prisma.localCollege.groupBy({ by: ['state'], where: { sector: { in: [1, 2, 4, 5] } }, _count: { _all: true } }),
+      prisma.americanJobCenter.groupBy({ by: ['state'], _count: { _all: true } }),
     ])
+    const centersIn = new Map(centerStates.map((c) => [c.state, c._count._all]))
     // A board page below the content bar (src/lib/seo/org-page-rules.ts) is noindex, so it stays out of the sitemap.
     const indexableBoards = new Set((await cachedIndexableOrgPages('WORKFORCE_BOARD').catch(() => null))?.map((p) => p.path))
     const hasColleges = new Set(collegeStates.map((c) => c.state))
@@ -110,8 +116,9 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
         const boards = visibleBoards(all)
         const slugs = boardSlugs(boards)
         return [
-          entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
-          entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
+          ...(meetsStateBoardBar(boards.length, centersIn.get(state) ?? 0)
+            ? [entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5), entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)]
+            : []),
           ...(hasColleges.has(state) ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
           ...boards.filter((b) => indexableBoards.size === 0 || indexableBoards.has(`/workforce-boards/${slug}/${slugs.get(b.id)}`)).map((b) => entry(`/workforce-boards/${slug}/${slugs.get(b.id)}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
         ]
@@ -156,9 +163,9 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
   // A page below its quality bar renders for visitors but is noindex, so it stays out of the sitemap too
   // (src/lib/seo/topic-quality.ts). It returns by itself once its data passes the bar. Conferences and associations are
   // judged from the catalog rows, so the sitemap and the page agree without rendering every page. Industry and function
-  // pages are built from thousands of live jobs and pass by construction; their on-page gate still applies.
+  // pages are listed once the topic-snapshots cron has stored their job figures; their on-page gate still applies.
   try {
-    const [catalog, assessments] = await Promise.all([getCatalogIndex(), getConferenceAssessments()])
+    const [catalog, assessments, snapshots] = await Promise.all([getCatalogIndex(), getConferenceAssessments(), topicsWithSnapshot()])
     const newest = new Map<string, string>()
     const byOrg = new Map<string, typeof catalog>()
     for (const c of catalog) if (c.organizer) {
@@ -171,8 +178,8 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
       .map(([slug]) => entry(`/associations/${slug}`, newest.get(slug) ?? TOPICS_UPDATED, 'weekly', 0.5))
     return [
       ...hubs,
-      ...INDUSTRIES.filter((i) => i.rule).map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
-      ...JOB_FUNCTIONS.map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+      ...INDUSTRIES.filter((i) => i.rule && snapshots.has(JSON.stringify({ rule: i.rule }))).map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+      ...JOB_FUNCTIONS.filter((f) => snapshots.has(JSON.stringify({ fn: f.name }))).map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
       ...catalog.filter((c) => assessments.get(c.id)?.indexable).map((c) => entry(`/conferences/${c.id}`, c.updatedAt, 'weekly', c.importance === 1 ? 0.6 : 0.5)),
       ...assocEntries,
     ]
@@ -251,7 +258,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(newestNotice ? [entry('/layoffs', newestNotice, 'daily', 0.7)] : []),
     ...layoffStates.map((s) => entry(`/layoffs/${stateSlug(s.state)}`, s.latest.toISOString(), 'daily', 0.6)),
     ...[...companies.values()]
-      .filter((c) => Date.now() - c.latest.getTime() <= TWENTY_FOUR_MONTHS_MS)
+      .filter((c) => meetsCompanyLayoffBar(c))
       .map((c) => entry(`/layoffs/company/${c.slug}`, c.latest.toISOString(), 'weekly', 0.4)),
 
     // Employer network pages: the same employers, kept only where the page qualifies (recent notice, enough workers).
