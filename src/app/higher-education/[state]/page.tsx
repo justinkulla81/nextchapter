@@ -71,14 +71,14 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
             </thead>
             <tbody>
               {d.colleges.map((c) => (
-                <tr key={c.id} className="border-b border-border last:border-0">
+                <tr key={c.unitid} className="border-b border-border last:border-0">
                   <td className="p-3 font-medium text-navy"><Link href={collegePath(state, c.slug)} className={LINK}>{c.name}</Link></td>
                   <td className="p-3">{c.city ?? ''}</td>
                   <td className="p-3">{[c.control, c.level].filter(Boolean).join(' ')}</td>
                   <td className="p-3">{c.enrollment ? c.enrollment.toLocaleString('en-US') : ''}</td>
                   <td className="p-3">
                     {c.claimSlug && (
-                      <TrackedLink href={`/prepared/${c.claimSlug}`} event="seo_claim_clicked" properties={{ page: 'higher_ed_state', audience: 'higher_ed', state: d.code, collegeId: c.id }} className={LINK} ariaLabel={`Claim the page for ${c.name}`}>
+                      <TrackedLink href={`/prepared/${c.claimSlug}`} event="seo_claim_clicked" properties={{ page: 'higher_ed_state', audience: 'higher_ed', state: d.code, collegeId: c.unitid }} className={LINK} ariaLabel={`Claim the page for ${c.name}`}>
                         Claim page
                       </TrackedLink>
                     )}
