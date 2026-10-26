@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import type { PortalSeo } from '@/lib/marketing/portal-seo'
 
 // /for-organizations: the hub. One card per portal (src/lib/marketing/portals.ts) linking to its page and its log in.
@@ -7,9 +8,7 @@ import type { PortalSeo } from '@/lib/marketing/portal-seo'
 export const HUB_PATH = '/for-organizations'
 
 export const HUB_SEO: PortalSeo = {
-  title: 'NextChapter for organizations',
-  description:
-    'Portals for colleges, workforce organizations, employers, recruiters and coaches. Each has its own page, its own plans and its own log in.',
+  ...pageSeo('/for-organizations'),
   path: HUB_PATH,
 }
 

@@ -1,3 +1,4 @@
+import { employerSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -7,6 +8,7 @@ import { getEmployerBySlug, type EmployerPage } from '@/lib/seo/employer-pages'
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { noticeDay } from '@/lib/warn/layoff-pages'
+import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 
 // One page per employer with something of its own to say: open roles from its career site, what it hires for and
 // pays, and its WARN layoff record. Built on first visit, refreshed daily. A page below the bar renders but is
@@ -28,11 +30,7 @@ const PAY_LEVEL: Record<string, string> = {
 }
 
 function title(e: EmployerPage): string {
-  const bits: string[] = []
-  if (e.profile && e.profile.openNow > 0) bits.push('jobs')
-  bits.push('pay')
-  if (e.notices.length > 0) bits.push('layoffs')
-  return `${e.name} ${bits.join(', ')}: ${e.profile && e.profile.openNow > 0 ? `${n0(e.profile.openNow)} open roles` : 'hiring and layoff record'}`
+  return employerSeo(e.name, e.profile?.openNow ?? null).title
 }
 
 function description(e: EmployerPage): string {
@@ -70,6 +68,8 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   const path = `/employers/${slug}`
   const totalWorkers = e.notices.reduce((s, n) => s + (n.employees ?? 0), 0)
   const hq = [e.hqMetro, e.industry].filter(Boolean).join(' · ')
+  const industryBucket = bucketFromIndustryText(e.industry)
+  const topFunction = p?.topFunctions[0] ? functionByName(p.topFunctions[0].function) : null
 
   const faq: { q: string; a: string }[] = []
   if (p && p.openNow > 0) {
@@ -102,9 +102,9 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
   return (
     <SeoPage
       trail={[{ name: 'Employers', path: '/employers' }, { name: e.name, path }]}
-      h1={`${e.name}: jobs, pay and layoffs`}
+      h1={employerSeo(e.name, null).h1}
       jsonLd={ld}
-      lede={<>{hq && <span className="block text-sm">{hq}</span>}{description(e)}</>}
+      lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}</>}
     >
       {p && p.openNow > 0 && (
         <section aria-labelledby="hiring" className="mt-10">

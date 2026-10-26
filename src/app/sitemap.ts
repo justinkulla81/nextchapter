@@ -12,6 +12,9 @@ import { STATE_NAMES } from '@/lib/workforce/places'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
+import { TOPICS } from '@/lib/seo/explainers'
+import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
+import { getAssociations, getCatalogIndex } from '@/lib/seo/topic-data'
 import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
 import { getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
 import { prisma } from '@/lib/prisma'
@@ -35,6 +38,9 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/about', updated: '2026-10-06', freq: 'monthly', priority: 0.7 },
   { path: '/how-it-works', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/why-stuck', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
+  { path: '/glossary', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
+  { path: '/tools', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
+  { path: '/tools/severance-calculator', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
   { path: '/pricing', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
@@ -69,6 +75,8 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
 // /start/[persona] content lives in personas.ts; /vs/[competitor] in competitor-comparisons.ts.
 const PERSONAS_UPDATED = '2026-10-02'
 const COMPARISONS_UPDATED = '2026-08-25'
+
+const EXPLAINERS_UPDATED = '2026-10-25'
 
 // /reports/replication mirrors the replication repository's README.
 const REPLICATION_UPDATED = '2026-10-07'
@@ -114,6 +122,35 @@ async function loadNonprofitPages(entry: (path: string, updated: string, freq: F
   }
 }
 
+// Industry, function, conference and association pages. A database failure leaves the conference and association
+// rows out rather than failing the sitemap; the industry and function pages are fixed lists.
+const TOPICS_UPDATED = '2026-10-25'
+async function loadTopicPages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
+  const fixed = [
+    entry('/industries', TOPICS_UPDATED, 'weekly', 0.7),
+    ...INDUSTRIES.map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+    entry('/functions', TOPICS_UPDATED, 'weekly', 0.7),
+    ...JOB_FUNCTIONS.map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+    entry('/conferences', TOPICS_UPDATED, 'daily', 0.7),
+    entry('/associations', TOPICS_UPDATED, 'weekly', 0.6),
+  ]
+  try {
+    const [catalog, associations] = await Promise.all([getCatalogIndex(), getAssociations()])
+    const newest = new Map<string, string>()
+    for (const c of catalog) if (c.organizer) {
+      const slug = associationSlug(c.organizer)
+      if (c.updatedAt > (newest.get(slug) ?? '')) newest.set(slug, c.updatedAt)
+    }
+    return [
+      ...fixed,
+      ...catalog.map((c) => entry(`/conferences/${c.id}`, c.updatedAt, 'weekly', c.importance === 1 ? 0.6 : 0.5)),
+      ...associations.map((a) => entry(`/associations/${a.slug}`, newest.get(a.slug) ?? TOPICS_UPDATED, 'weekly', 0.5)),
+    ]
+  } catch {
+    return fixed
+  }
+}
+
 const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), dates[0])
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -137,7 +174,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   })
 
-  const seoStatePages = [...(await loadSeoStatePages(entry)), await loadNonprofitPages(entry)]
+  const [stateAndWorkforcePages, topicPages, nonprofitPages] = await Promise.all([loadSeoStatePages(entry), loadTopicPages(entry), loadNonprofitPages(entry)])
+  const seoStatePages = [...stateAndWorkforcePages, nonprofitPages]
 
   return [
     // The homepage shows the latest News, so it changes when News does.
@@ -151,6 +189,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       : []),
     ...REPORT_EDITIONS.map((e) => entry(`/reports/${e.slug}`, e.updatedAt ?? e.publishedAt, 'monthly', 0.7)),
     entry('/reports/replication', REPLICATION_UPDATED, 'monthly', 0.5),
+
+    // Topic explainers: severance, resumes, job search strategy, career pivot, career exploration, recruiters.
+    entry('/topics', EXPLAINERS_UPDATED, 'monthly', 0.6),
+    ...TOPICS.map((t) => entry(`/topics/${t.slug}`, t.updated, 'monthly', 0.7)),
 
     // Guides.
     entry('/resources', newestGuide, 'monthly', 0.5),
@@ -196,6 +238,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/tools/warn-act-checker', DIRECTORY_UPDATED, 'yearly', 0.6),
     entry('/economic-development', DIRECTORY_UPDATED, 'monthly', 0.6),
     ...seoStatePages.flatMap((p) => p),
+
+    // Industry, function, conference and association pages.
+    ...topicPages,
 
     // Author pages.
     ...Object.keys(AUTHORS).map((slug) => entry(`/authors/${slug}`, latestOf([newestGuide, newestInsight, ...(newestReport ? [newestReport] : [])]), 'monthly', 0.4)),

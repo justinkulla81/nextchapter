@@ -3,14 +3,15 @@
 import { getClientIp } from '@/lib/http/client-ip'
 import { confirmOrgClaim, requestOrgClaim, type ConfirmResult } from '@/lib/org-claims/claim'
 
-export type OrgClaimState = { sent?: { email: string; needsReview: boolean }; error?: string; values?: { name: string; title: string; email: string } } | undefined
+export type OrgClaimState = { sent?: { email: string; needsReview: boolean }; error?: string; values?: { name: string; title: string; email: string; section?: string } } | undefined
 
 const text = (f: FormData, k: string) => ((f.get(k) as string | null) ?? '').trim()
 
 /** Generic organization pages: sends the one-time confirmation link. Nothing is claimed until the link is used. */
 export async function requestClaimAction(slug: string, _prev: OrgClaimState, formData: FormData): Promise<OrgClaimState> {
   if (text(formData, 'website')) return { sent: { email: text(formData, 'email'), needsReview: false } } // bots fill the hidden field
-  const values = { name: text(formData, 'name'), title: text(formData, 'title'), email: text(formData, 'email') }
+  const section = text(formData, 'section')
+  const values = { name: text(formData, 'name'), title: text(formData, 'title'), email: text(formData, 'email'), ...(section ? { section } : {}) }
   try {
     const r = await requestOrgClaim({ slug, ...values, ip: await getClientIp() })
     return r.ok ? { sent: { email: r.email, needsReview: r.needsReview } } : { error: r.error, values }

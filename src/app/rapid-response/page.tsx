@@ -1,17 +1,13 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
-import { canonical } from '@/lib/seo/canonical'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getStatesWithBoards } from '@/lib/seo/workforce-pages'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'Rapid response and layoff support for employers, by state',
-  description: 'Planning a layoff? Find your state’s workforce boards and American Job Centers, the federal WARN Act rules, and a free calculator to check whether notice applies.',
-  ...canonical('/rapid-response'),
-}
+export const metadata: Metadata = pageMetadata('/rapid-response')
 
 export default async function RapidResponseHubPage() {
   const states = (await getStatesWithBoards()).sort((a, b) => stateName(a.state).localeCompare(stateName(b.state)))

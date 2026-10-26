@@ -1,3 +1,6 @@
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { StructuredData } from '@/components/StructuredData'
+import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { X } from 'lucide-react'
@@ -8,12 +11,7 @@ import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
-export const metadata: Metadata = {
-  title: "Why You're Stuck",
-  description:
-    "You're not imagining it. Job searching is genuinely hard right now, and most of it happens before a human ever sees your name.",
-  alternates: { canonical: '/why-stuck' },
-}
+export const metadata: Metadata = pageMetadata('/why-stuck')
 
 const painPoints = [
   "Applications vanish into a void — you never learn why.",
@@ -27,12 +25,13 @@ const painPoints = [
 export default function WhyStuckPage() {
   return (
     <div className="flex flex-1 flex-col">
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Why your job search is stuck', path: '/why-stuck' }])} />
       <PublicSiteHeader />
 
       <section className="bg-white px-6 py-20">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">
-            Why you&apos;re stuck
+            {pageH1('/why-stuck', 'Why you’re stuck')}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
             You&apos;re not imagining it. Unemployment is unpleasant and the search process is

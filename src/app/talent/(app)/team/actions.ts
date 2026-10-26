@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { recordPartnerAudit } from '@/lib/partners/audit'
 import { sendEmployerSeatInviteEmail } from '@/lib/email/send-employer-seat-invite'
+import { lastAdminBlock } from '@/lib/employer/section-roles'
 
 export type SeatInviteState = { error?: string } | undefined
 
@@ -57,6 +58,12 @@ export async function revokeSeat(seatId: string) {
 
   const seat = await prisma.employerSeat.findUnique({ where: { id: seatId } })
   if (!seat || seat.employerId !== employer.id) return
+
+  // The rule every employer section shares (src/lib/employer/section-roles.ts): never yourself, never the last active admin.
+  // The account owner (EmployerProfile) is always an active admin, so only an accepted OWNER seat adds to the count.
+  const acceptedOwnerSeats = await prisma.employerSeat.count({ where: { employerId: employer.id, role: 'OWNER', acceptedAt: { not: null } } })
+  const blocked = lastAdminBlock(employer.userId, { userId: seat.userId, role: seat.role === 'OWNER' ? 'ADMIN' : 'VIEWER', active: !!seat.acceptedAt }, 1 + acceptedOwnerSeats, 'remove')
+  if (blocked) return
 
   await prisma.employerSeat.delete({ where: { id: seatId } })
   await recordPartnerAudit({ portal: 'HIRING', refId: employer.id, actorUserId: employer.userId, actorLabel: employer.contactName, action: 'team.removed', targetType: 'EmployerSeat', targetId: seatId })

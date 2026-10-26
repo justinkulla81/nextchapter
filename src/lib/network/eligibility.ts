@@ -4,6 +4,8 @@
 // last two years and the notices name at least NETWORK_MIN_WORKERS workers. Everything else redirects to
 // the layoff page, so no thin page is ever left indexed.
 
+import { networkCompanySeo } from '@/lib/seo/templates'
+
 export const NETWORK_MIN_WORKERS = 100
 /** Open professional jobs a state needs before its page can promise "jobs near you". */
 export const NETWORK_MIN_STATE_JOBS = 25
@@ -39,8 +41,7 @@ export function aboutCount(n: number): string {
   return `about ${n.toLocaleString('en-US')}`
 }
 
-/** Page title text; the site template adds " | NextChapter", so the whole title stays under about 60 characters. */
+/** Page title text; the wording lives in src/lib/seo/templates.ts. */
 export function networkTitle(name: string): string {
-  const long = `${name} layoffs and alumni: jobs and benefits`
-  return long.length <= 46 ? long : `${name} layoffs and alumni`
+  return networkCompanySeo(name).title
 }

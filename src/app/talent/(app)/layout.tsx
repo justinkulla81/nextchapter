@@ -6,6 +6,8 @@ import { getTalentDashboardData } from '@/lib/talent/get-talent-dashboard-data'
 import { getEmployerUnreadCount } from '@/lib/messaging/threads'
 import { brandStyle, type PartnerBrand } from '@/lib/partners/brand'
 import { talentBrand } from '@/lib/partners/resolve-brand'
+import { createClient } from '@/lib/supabase/server'
+import { employerSwitcherLinks, type SwitcherLink } from '@/lib/employer/switcher'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -14,9 +16,20 @@ export const metadata: Metadata = {
 // The unread count only feeds a nav badge, so it streams in its own Suspense
 // boundary: the nav and {children} paint without waiting on it.
 // getTalentDashboardData() has already run in the layout before this renders.
+// Decoration only: any failure leaves the nav exactly as it was.
+async function talentSwitcherLinks(): Promise<SwitcherLink[]> {
+  try {
+    const supabase = await createClient('talent')
+    const { data: { user } } = await supabase.auth.getUser()
+    return user ? await employerSwitcherLinks(user.id, user.email ?? null) : []
+  } catch {
+    return []
+  }
+}
+
 async function TalentNavWithBadges({ employerId, brand }: { employerId: string; brand: PartnerBrand }) {
-  const messagesUnreadCount = await getEmployerUnreadCount(employerId)
-  return <TalentNav messagesUnreadCount={messagesUnreadCount} brand={brand} />
+  const [messagesUnreadCount, sections] = await Promise.all([getEmployerUnreadCount(employerId), talentSwitcherLinks()])
+  return <TalentNav messagesUnreadCount={messagesUnreadCount} brand={brand} sections={sections} />
 }
 
 export default async function TalentLayout({ children }: { children: React.ReactNode }) {

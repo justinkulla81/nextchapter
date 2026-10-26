@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
+import { requireEmployeesRole } from '@/lib/employer/outplacement-auth'
 import { growthReport, listInternalRoles, orgProgramTypes } from '@/lib/employer/staff-programs'
 import { PROGRAM_TYPE_BLURB } from '@/lib/employer/program-type'
 import { NotOnProgram, StatTile, showCell } from '@/components/employer/StaffStats'
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 export const metadata: Metadata = { title: 'Growth' }
 
 export default async function EmployerGrowthPage() {
-  const orgUser = await requireOutplacementRole(['ADMIN', 'VIEWER'])
+  const orgUser = await requireEmployeesRole(['ADMIN', 'VIEWER'])
   if (!(await orgProgramTypes(orgUser.orgId)).has('GROWTH')) return <NotOnProgram program="Growth" what={PROGRAM_TYPE_BLURB.GROWTH} />
   const [r, roles] = await Promise.all([growthReport(orgUser.orgId), listInternalRoles(orgUser.orgId)])
   const isAdmin = orgUser.role === 'ADMIN'

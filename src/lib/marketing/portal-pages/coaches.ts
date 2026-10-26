@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
@@ -25,9 +26,7 @@ const log = shot('coach-session-log', {
 
 export const COACHES: PortalPageDef = {
   seo: {
-    title: 'Client workspace for career coaches',
-    description:
-      'Invite clients with a code, see what each client chooses to share, get a pre-session brief and keep session notes in one place, under your practice’s name. Free for now.',
+    ...pageSeo('/coaches'),
     path: '/coaches',
     image: { src: clients.src, width: clients.width, height: clients.height, alt: clients.alt },
   },

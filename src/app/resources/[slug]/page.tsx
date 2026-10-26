@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { StructuredData } from '@/components/StructuredData'
 import { GuideLandingPageTemplate } from '@/components/guides/GuideLandingPageTemplate'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
+import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/seo/jsonld'
 
 export function generateStaticParams() {
@@ -18,18 +19,8 @@ export async function generateMetadata({
   const content = GUIDE_LANDING_CONTENT.find((c) => c.slug === slug)
   if (!content) return {}
 
-  const url = `https://launchyournextchapter.com/resources/${slug}`
-  return {
-    title: content.title,
-    description: content.metaDescription,
-    alternates: { canonical: `/resources/${slug}` },
-    openGraph: {
-      title: content.title,
-      description: content.metaDescription,
-      url,
-      type: 'article',
-    },
-  }
+  const base = pageMetadata(`/resources/${slug}`)
+  return { ...base, openGraph: { ...base.openGraph, type: 'article' } }
 }
 
 export default async function GuideResourcePage({
@@ -47,7 +38,7 @@ export default async function GuideResourcePage({
     <>
       <StructuredData
         data={articleJsonLd({
-          headline: content.title,
+          headline: pageH1(`/resources/${slug}`, content.title),
           path,
           description: content.metaDescription,
           dateModified: content.lastUpdated,

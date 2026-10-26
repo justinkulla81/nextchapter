@@ -17,6 +17,8 @@ const LABELS: Record<string, string> = {
   'team.removed': 'Removed a teammate',
   'demo.access': 'Opened the demo as another role',
   'connection.toggled': 'Turned a connection between portals on or off',
+  'plan.set': 'Changed the plan of a section',
+  'enterprise.set': 'Turned the enterprise package on or off',
 }
 
 export function describeAuditAction(action: string): string {

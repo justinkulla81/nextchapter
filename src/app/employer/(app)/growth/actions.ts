@@ -2,13 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { captureServerEvent } from '@/lib/posthog/server'
-import { requireOutplacementRoleForAction } from '@/lib/employer/outplacement-auth'
+import { requireEmployeesRoleForAction } from '@/lib/employer/outplacement-auth'
 import { closeInternalRole, createInternalRole, orgProgramTypes, readInternalRole } from '@/lib/employer/staff-programs'
 
 export type StaffFormState = { error?: string; ok?: string } | undefined
 
 async function growthAdmin() {
-  const orgUser = await requireOutplacementRoleForAction(['ADMIN'])
+  const orgUser = await requireEmployeesRoleForAction(['ADMIN'])
   if (!orgUser) return { error: 'Only an admin on this account can manage internal roles.' } as const
   if (!(await orgProgramTypes(orgUser.orgId)).has('GROWTH')) return { error: 'Internal roles come with a Growth program. Ask your NextChapter contact to add one.' } as const
   return { orgUser } as const

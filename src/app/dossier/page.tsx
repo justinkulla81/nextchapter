@@ -1,15 +1,11 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { StructuredData } from '@/components/StructuredData'
 import { SampleDossier } from '@/components/marketing/SampleDossier'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
-import { canonical } from '@/lib/seo/canonical'
 
-export const metadata = {
-  ...canonical('/dossier'),
-  title: 'The Executive Dossier',
-  description: 'What the Executive Dossier contains, who sees it, and what you keep — the whole product in one page.',
-}
+export const metadata = pageMetadata('/dossier')
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -32,9 +28,8 @@ export default function DossierPage() {
           Your resume says what you did. This proves how you work.
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-          Five structured references. A skills and personality assessment for better job matches.
-          One document you build once and keep forever — through this job search, and every one
-          after it.
+          Structured references from people who know your work. A skills and personality assessment for better job matches.
+          One document you build once and keep, through this job search and the next.
         </p>
 
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">

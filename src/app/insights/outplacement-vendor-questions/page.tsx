@@ -10,11 +10,11 @@ import { RFP_QUESTIONS } from '@/lib/marketing/rfp-template-content'
 export const metadata: Metadata = {
   title: 'The questions to ask an outplacement vendor',
   description:
-    'Eight questions that separate a real outplacement evaluation from a sales pitch — deliverable retention, reporting latency, reference completion, and more.',
+    'Eight questions to put to every outplacement vendor: deliverable retention, reporting latency, reference completion, and more.',
   alternates: { canonical: '/insights/outplacement-vendor-questions' },
   openGraph: {
     title: 'The questions to ask an outplacement vendor',
-    description: 'Eight questions that separate a real outplacement evaluation from a sales pitch.',
+    description: 'Eight questions to put to every outplacement vendor you evaluate.',
     url: 'https://launchyournextchapter.com/insights/outplacement-vendor-questions',
     type: 'article',
   },
@@ -60,10 +60,9 @@ export default function OutplacementVendorQuestionsArticlePage() {
 
         <div className="mt-8 space-y-4 text-base leading-relaxed text-foreground">
           <p>
-            Most outplacement RFPs ask about years in business, client logos, and caseload capacity. Those
-            questions are easy for any established vendor to answer well, and they don&apos;t tell you much
-            about what a departing employee will actually experience. The eight questions below are harder to
-            answer — and the answers actually differentiate one program from another.
+            Years in business, client logos and caseload capacity are reasonable things to ask about, but they
+            don&apos;t tell you much about what a departing employee will experience. The eight questions
+            below are about that experience, and the answers let you compare one program with another.
           </p>
           <p>
             Ask every finalist the same eight questions, in writing, and compare the answers side by side
@@ -89,17 +88,16 @@ export default function OutplacementVendorQuestionsArticlePage() {
 
         <div className="mt-10 space-y-4 text-base leading-relaxed text-foreground">
           <p>
-            One pattern worth naming: references are commonly collected late in a search, often only once an
-            offer is already on the table. Structuring reference collection earlier — before you&apos;re
-            meeting with a client or hiring manager — is a design choice a program either makes or doesn&apos;t,
-            and it&apos;s worth asking about directly (question 4 above).
+            One thing worth asking about is when references are collected. Collecting them early in a search,
+            before you are meeting a client or hiring manager, is a design choice a program makes or doesn&apos;t,
+            so ask each vendor directly (question 4 above).
           </p>
         </div>
 
         <div className="mt-12 rounded-xl border border-light-gray bg-off-white p-6">
           <p className="text-sm font-semibold text-navy">See how a specific vendor stacks up</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Honest, two-sided comparisons — including where each provider is genuinely stronger — at{' '}
+            Side-by-side comparisons, with the questions to ask each provider, at{' '}
             <Link href="/vs" className="text-primary underline underline-offset-4">
               /vs
             </Link>

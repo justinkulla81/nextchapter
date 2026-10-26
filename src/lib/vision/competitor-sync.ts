@@ -5,6 +5,7 @@ import { withAudienceHtml } from '@/lib/email/audience-tag'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import type { ProductCompetitor } from '@prisma/client'
 import type { NamedEntry, WinEntry } from './competitor-areas'
+import { awardIsWorkforce } from '@/lib/bids/relevance'
 import { addSeenAt, downloadEmail, gapIdeas, winsFromAwards, winsFromCard, type CrmWin } from './competitor-sync-core'
 
 const SITE = 'https://launchyournextchapter.com'
@@ -35,7 +36,7 @@ export async function syncProductGaps(c: ProductCompetitor): Promise<number> {
   return created
 }
 
-async function orgFor(buyer: string, government: boolean): Promise<string | null> {
+export async function orgFor(buyer: string, government: boolean): Promise<string | null> {
   const canonical = normalizeOrgName(buyer)
   if (!canonical) return null
   const found = await prisma.crmOrganization.findUnique({ where: { canonicalNameNormalized: canonical }, select: { id: true } })
@@ -47,7 +48,7 @@ async function orgFor(buyer: string, government: boolean): Promise<string | null
   return made.id
 }
 
-async function recordWin(w: CrmWin, government: boolean, now: Date): Promise<boolean> {
+export async function recordWin(w: CrmWin, government: boolean, now: Date): Promise<boolean> {
   const dup = await prisma.crmActivity.findFirst({ where: { sourceRef: w.ref }, select: { id: true } })
   if (dup) return false
   const orgId = await orgFor(w.buyer, government)
@@ -74,6 +75,8 @@ export async function syncCrmWins(cards: Pick<ProductCompetitor, 'id' | 'name' |
   let n = 0
   for (const a of rows) {
     if (n >= maxNew) break
+    // Only workforce-relevant awards reach the CRM: a competitor's contract with the FBI is not a lead for us.
+    if (!awardIsWorkforce(a)) continue
     const c = (a.competitorId && cards.find((x) => x.id === a.competitorId)) || byName.get(a.competitorName.toLowerCase().replace(/[^a-z0-9]+/g, ''))
     if (!c) continue
     for (const w of winsFromAwards(c.name, [a], now)) if (await recordWin(w, true, now)) n++

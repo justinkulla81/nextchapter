@@ -1,3 +1,4 @@
+import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronRight, Check } from 'lucide-react'
@@ -19,12 +20,7 @@ const SUGGESTED_QUESTIONS = [
   'Help me tighten my LinkedIn headline.',
 ]
 
-export const metadata: Metadata = {
-  title: 'A Real Human Executive Coach, When You Want One',
-  description:
-    'NextChapter gives everyone Victoria, our free AI coach. Executive Coach adds a real human career coach on top, for candidates who want it — waitlist open now.',
-  alternates: { canonical: '/coaching' },
-}
+export const metadata: Metadata = pageMetadata('/coaching')
 
 const INCLUDED = [
   'A dedicated human career coach, matched to your background and target role',
@@ -108,7 +104,7 @@ export default async function CoachingPage() {
               Meet Victoria
             </p>
             <h1 className="mt-3 text-2xl font-bold tracking-tight text-navy sm:text-3xl">
-              Your free AI coach — chat with her right now
+              {pageH1('/coaching', 'Your free AI coach — chat with her right now')}
             </h1>
             <p className="mt-3 text-base text-muted-foreground">
               Victoria is included free for every candidate. Tell her how the search is going and

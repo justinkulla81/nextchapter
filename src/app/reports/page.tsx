@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -9,21 +10,7 @@ import { LONGER_SEARCH_BODY, LONGER_SEARCH_FIGURES, LONGER_SEARCH_HEADLINE } fro
 
 const URL = `${SITE_URL}/reports`
 
-export const metadata: Metadata = {
-  title: { absolute: 'White Collar Employment Report: White-Collar Labor Data | NextChapter' },
-  description:
-    'The NextChapter White Collar Employment Report is a monthly, independent read on the U.S. white-collar labor market — hiring, job changes, search length, AI attribution, what public programs are adding, and the White-Collar Long-Search Index.',
-  alternates: { canonical: '/reports' },
-  openGraph: {
-    type: 'website',
-    title: 'NextChapter White Collar Employment Report',
-    description: 'Monthly, independent data on how people are working, being hired and changing jobs, AI and public programs.',
-    url: URL,
-    siteName: 'NextChapter',
-    images: [{ url: `${SITE_URL}/reports/white-collar-employment-report-2026-09-og.png`, width: 1200, height: 630 }],
-  },
-  twitter: { card: 'summary_large_image', title: 'NextChapter White Collar Employment Report' },
-}
+export const metadata: Metadata = pageMetadata('/reports')
 
 const monthShortLabel = (iso: string) =>
   new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })

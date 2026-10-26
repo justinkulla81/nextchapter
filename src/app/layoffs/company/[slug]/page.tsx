@@ -1,3 +1,4 @@
+import { layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -9,6 +10,8 @@ import { canonical } from '@/lib/seo/canonical'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
+import { getRecentNotices } from '@/lib/seo/topic-data'
+import { industryPath } from '@/lib/seo/topics'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay } from '@/lib/warn/layoff-pages'
 
 // Pages are built on first visit and refreshed daily; there are over a
@@ -33,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // out of search results: it no longer helps anyone affected now.
   const stale = Date.now() - c.latest.getTime() > TWENTY_FOUR_MONTHS_MS
   return {
-    title: `${c.name} layoffs: WARN notices and dates`,
+    title: layoffsCompanySeo(c.name).title,
     description,
     ...canonical(`/layoffs/company/${slug}`),
     ...(stale ? { robots: { index: false, follow: true } } : {}),
@@ -47,6 +50,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const { slug } = await params
   const c = await load(slug)
   if (!c) notFound()
+  const bucket = (await getRecentNotices().catch(() => [])).find((n) => n.slug === slug && n.bucket)?.bucket ?? null
   const mentions = await getNewsMentions(c)
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const unknownCounts = c.notices.some((n) => n.workers == null)
@@ -62,7 +66,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <span aria-hidden> › </span>
             <span className="text-foreground">{c.name}</span>
           </nav>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{c.name} layoffs: WARN notices and dates</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{layoffsCompanySeo(c.name).h1}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             {c.name} has filed {c.notices.length.toLocaleString()} WARN {c.notices.length === 1 ? 'notice' : 'notices'} with{' '}
             {c.states.length === 1 ? `the ${stateName(c.states[0])} labor department` : `labor departments in ${c.states.length} states`}
@@ -110,6 +114,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               {isNetworkCompany(c) && (
                 <li><Link href={`/network/company/${slug}`} className={LINK}>Jobs, benefits and retraining for {c.name} employees and alumni</Link></li>
+              )}
+              {bucket && (
+                <li><Link href={industryPath(bucket)} className={LINK}>{bucket}: open jobs, conferences and other recent layoffs</Link></li>
               )}
               <li><Link href="/start/laid-off" className={LINK}>Start here: a plan for the weeks after a layoff</Link></li>
               {c.states.map((s) => (

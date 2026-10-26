@@ -191,13 +191,18 @@ async function main() {
   const domainByCanon = new Map(crmOrgs.map((o) => [o.canonicalNameNormalized, cleanDomain(o.emailDomain)]))
   const orgById = new Map(crmOrgs.map((o) => [o.id, o.canonicalNameNormalized]))
   const orgByName = new Set(crmOrgs.map((o) => o.canonicalNameNormalized))
-  const claimPageFor = (name: string, orgId?: string): string => {
-    const canon = (orgId ? orgById.get(orgId) : undefined) ?? (orgByName.has(normalizeOrgName(name)) ? normalizeOrgName(name) : '')
+  const claimCanon = (name: string, orgId?: string, stateName?: string): string => {
+    const plain = normalizeOrgName(name), withState = stateName ? normalizeOrgName(`${name} (${stateName})`) : ''
+    // The same name in two states has a record per state, "Name (State)"; that one wins over a plain record only when the plain one is not this state's.
+    return (orgId ? orgById.get(orgId) : undefined) ?? (withState && orgByName.has(withState) ? withState : orgByName.has(plain) ? plain : '')
+  }
+  const claimPageFor = (name: string, orgId?: string, stateName?: string): string => {
+    const canon = claimCanon(name, orgId, stateName)
     return (canon && claimUrlFor(canon)) || ''
   }
   /** Whether this recipient's own address could claim the page: 'ok' (at the org's domain), 'review' (org has no known domain, a person reviews), 'other-domain' (they would use a different work address). */
-  const claimCheck = (name: string, email: string, orgId?: string): string => {
-    const canon = (orgId ? orgById.get(orgId) : undefined) ?? (orgByName.has(normalizeOrgName(name)) ? normalizeOrgName(name) : '')
+  const claimCheck = (name: string, email: string, orgId?: string, stateName?: string): string => {
+    const canon = claimCanon(name, orgId, stateName)
     if (!canon) return ''
     const od = domainByCanon.get(canon)
     return !od ? 'review' : domainMatches(email.split('@')[1]?.toLowerCase() ?? '', od) ? 'ok' : 'other-domain'
@@ -212,7 +217,7 @@ async function main() {
     const row: Row = {
       template, first_name: who.first, email: who.email, recipient_org: who.org, recipient_title: who.title, org: who.org,
       // Booking link for the follow-ups. It goes through our own /book route, which counts the click and forwards to the Google Calendar booking page; the query holds only the template and step, nothing about the person.
-      claim_url: claimPageFor(who.org, who.orgId), claim_check: claimCheck(who.org, who.email, who.orgId),
+      claim_url: claimPageFor(who.org, who.orgId, stateName), claim_check: claimCheck(who.org, who.email, who.orgId, stateName),
       book_link_1: `${BOOK_BASE}?t=${template}&s=2`, book_link_2: `${BOOK_BASE}?t=${template}&s=3`,
       company: ctx.notice && ctx.notice.employer.length <= 45 ? ctx.notice.employer : '', employees: ctx.notice ? n0(ctx.notice.employees) : '',
       county: area?.name ?? ctx.notice?.county ?? (cityOf(ctx.notice, state) ? `${cityOf(ctx.notice, state)}, ${stateName}` : stateName), state: stateName, state_code: state,
@@ -358,12 +363,12 @@ async function main() {
     where: { deletedAt: null, mergedIntoId: null, email: { not: null }, OR: [
       { notes: { contains: 'State Rapid Response Coordinators page' } }, { notes: { contains: 'Found by web search' } }, { notes: { contains: 'buys, funds, refers or advises' } },
     ] },
-    select: { fullName: true, firstName: true, email: true, notes: true, affiliations: { where: { isCurrent: true }, select: { title: true, org: { select: { name: true, usState: true, orgTypes: true } } }, take: 1 } },
+    select: { fullName: true, firstName: true, email: true, notes: true, affiliations: { where: { isCurrent: true }, select: { title: true, orgId: true, org: { select: { name: true, usState: true, orgTypes: true } } }, take: 1 } },
   })
   for (const p of ppl) {
     const a = p.affiliations[0]; if (!a) continue
     const notes = p.notes ?? '', title = a.title ?? '', state = a.org.usState ?? ''
-    const who = { first: first(p.fullName, p.firstName), email: p.email!, org: a.org.name, title }
+    const who = { first: first(p.fullName, p.firstName), email: p.email!, org: a.org.name, title, orgId: a.orgId }
     if (/State Rapid Response Coordinators page/.test(notes)) { if (state) add('rr', who, { notice: byState.get(state), state }); continue }
     if (/Found by web search/.test(notes) && a.org.orgTypes.includes('GOVERNMENT') && state && !/which filed a WARN/.test(notes)) {
       const template = /unemployment|reemployment|\bRESEA\b/i.test(title) ? 'state_ui' : /labor market|information|career|pathway|adult learner|research/i.test(title) ? 'state_career' : 'state_agency'
