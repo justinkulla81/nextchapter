@@ -15,7 +15,7 @@ export async function generateSitemaps() {
 
 export default async function sitemap(props: { id: Promise<string> }): Promise<MetadataRoute.Sitemap> {
   const shard = Number(await props.id)
-  const all = await cachedIndexableOrgPages('ECON_DEV').catch(() => [])
+  const all = await cachedIndexableOrgPages('ECON_DEV')
   return all.slice(shard * ORG_SITEMAP_SHARD_SIZE, (shard + 1) * ORG_SITEMAP_SHARD_SIZE).map((p) => ({
     url: `${SITE_URL}${p.path}`,
     lastModified: p.lastModified,
