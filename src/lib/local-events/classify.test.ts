@@ -24,4 +24,12 @@ describe('local event classification', () => {
     expect(isNoise('Workforce Board committee meeting')).toBe(true)
     expect(isNoise('Spring Career Fair')).toBe(false)
   })
+  it('lets the title decide and drops campus and ribbon-cutting noise', () => {
+    expect(classifyKind('Peter Relic Lecture', 'a grant from the foundation')).toBe('OTHER')
+    expect(classifyKind('Career Information Session')).toBe('OTHER')
+    expect(isNoise('11:30am Ribbon Cutting ✂️ Integrity Urgent Care')).toBe(true)
+    expect(isNoise('Virtual Info Session: BA in Liberal Arts')).toBe(true)
+    expect(isNoise('Chapel: Thanksgiving – Testimony & Music')).toBe(true)
+    expect(classifyKind('Start Smart: A Guide to Building a Business', 'free SBA loan info')).toBe('STARTUP_WORKSHOP')
+  })
 })

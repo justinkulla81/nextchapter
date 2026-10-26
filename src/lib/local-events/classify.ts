@@ -9,18 +9,22 @@ export const ENTREPRENEUR_KINDS: LocalEventKind[] = ['STARTUP_WORKSHOP', 'SMALL_
 const RULES: [LocalEventKind, RegExp][] = [
   ['RAPID_RESPONSE', /rapid response|laid.?off|layoff|dislocated worker|transition(?:ing)? workers?/i],
   ['PITCH', /pitch (?:night|competition|day|contest)|demo day|shark tank|startup showcase/i],
-  ['FUNDING', /funding|capital|grant|loan|sba |investor|angel|financing/i],
-  ['SMALL_BUSINESS_COUNSELING', /small business|sbdc|score |mentor(?:ing)? (?:session|hours)|business counsel|business plan|one-on-one|office hours/i],
-  ['STARTUP_WORKSHOP', /start(?:ing)? (?:a|your) (?:own )?(?:business|company)|startup|entrepreneur|founder|launch(?:ing)? your|business owner|franchis/i],
+  ['FUNDING', /\bfunding\b|\bcapital\b|\bgrants?\b|\bloans?\b|\bsba\b|\binvestors?\b|\bangel\b|\bfinancing\b/i],
+  ['SMALL_BUSINESS_COUNSELING', /small business|\bsbdc\b|\bscore\b|mentor(?:ing)? (?:session|hours)|business counsel|business plan/i],
+  ['STARTUP_WORKSHOP', /start(?:ing)? (?:a|your) (?:own )?(?:business|company)|(?:building|grow(?:ing)?|run(?:ning)?) (?:a|your) (?:own )?(?:small )?business|start smart|startup|entrepreneur|founder|launch(?:ing)? your|business owner|franchis/i],
   ['JOB_FAIR', /job fair|career fair|hiring fair|recruitment fair|employment expo|career expo|job expo|hiring expo/i],
-  ['HIRING_EVENT', /hiring event|hiring day|open house|recruiting event|meet (?:the )?employers?|employer (?:panel|showcase)|on-?the-?spot interview|interview day/i],
+  ['HIRING_EVENT', /hiring event|hiring day|recruiting event|meet (?:the )?employers?|employer (?:panel|showcase)|on-?the-?spot interview|interview day/i],
   ['CAREER_WORKSHOP', /resume|r[eé]sum[eé]|linkedin|interview(?:ing)? (?:skills|prep|workshop)|career (?:workshop|coach|transition|change|exploration)|job search|networking for job|salary negotiation/i],
   ['BUSINESS_NETWORKING', /business (?:after hours|mixer|networking)|chamber (?:mixer|luncheon|breakfast)|ribbon cutting|business card exchange|networking (?:breakfast|lunch|luncheon|mixer)|after hours/i],
   ['NETWORKING', /networking|meetup|professional(?:s)? (?:night|social)|young professionals/i],
 ]
 
-export function classifyKind(text: string): LocalEventKind {
-  for (const [k, re] of RULES) if (re.test(text)) return k
+const STRONG: LocalEventKind[] = ['RAPID_RESPONSE', 'PITCH', 'JOB_FAIR', 'HIRING_EVENT', 'STARTUP_WORKSHOP']
+
+/** The title decides. Only when it says nothing do the body text's strongest signals count, so a lecture that mentions "grant" is not a funding event. */
+export function classifyKind(title: string, body = ''): LocalEventKind {
+  for (const [k, re] of RULES) if (re.test(title)) return k
+  for (const [k, re] of RULES) if (STRONG.includes(k) && re.test(body.slice(0, 600))) return k
   return 'OTHER'
 }
 
@@ -44,7 +48,7 @@ export function proScore(text: string, kind: LocalEventKind): number {
 
 export const PUBLISH_MIN_SCORE = 35
 
-const NOISE = /^(?:office |center |centre )?closed\b|closed (?:in observance|for|on)|holiday|observance|office hours? (?:at|in)|^openmeansjobs at\b|^ohiomeansjobs at\b|at the library\b|mobile job center|^cancel+ed|postponed|board meeting|committee meeting|commission meeting|public hearing/i
+const NOISE = /^(?:office |center |centre )?closed\b|closed (?:in observance|for|on)|holiday|observance|office hours? (?:at|in)|^openmeansjobs at\b|^ohiomeansjobs at\b|at the library\b|mobile job center|^cancel+ed|postponed|board meeting|committee meeting|commission meeting|public hearing|campus visit|info(?:rmation)? session:? ?(?:ba|bs|ma|ms|mba|phd|associate|bachelor|master)|chapel|lecture|commencement|admissions?\b|ribbon cutting|ribbon-cutting|advocacy office|group visit|testimony|worship|convocation|\bgrad(?:uate)? (?:school|program)\b/i
 
 /** Closures, drop-in office schedules and governance meetings: on a calendar but not an event a member would attend. */
 export const isNoise = (title: string): boolean => NOISE.test(title.trim())
