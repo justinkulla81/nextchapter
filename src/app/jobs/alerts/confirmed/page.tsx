@@ -5,6 +5,7 @@ import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { getPersona } from '@/lib/constants/personas'
 import { journeyChoices, inferJourney } from '@/lib/leads/infer-journey'
 import { searchLabel } from '@/lib/leads/job-alerts'
+import { layoffWatchLabel } from '@/lib/leads/layoff-alerts'
 
 export const metadata: Metadata = { title: 'Job alerts confirmed', robots: { index: false, follow: false } }
 export const dynamic = 'force-dynamic'
@@ -18,8 +19,10 @@ export default async function JobAlertsConfirmedPage({ searchParams }: { searchP
         .findUnique({ where: { unsubscribeToken: t }, select: { kind: true, searchQ: true, searchLoc: true, searchRemote: true, journeySlug: true, confirmedAt: true } })
         .catch(() => null)
     : null
-  const ok = lead && lead.kind === 'job_alert' && lead.confirmedAt
+  const ok = lead && (lead.kind === 'job_alert' || lead.kind === 'layoff_alert' || lead.kind === 'deadline_reminders') && lead.confirmedAt
   const suggested = ok ? lead.journeySlug || inferJourney({ q: lead.searchQ }).slug : 'thinking-about-a-move'
+  const layoff = ok && lead.kind === 'layoff_alert'
+  const deadlines = ok && lead.kind === 'deadline_reminders'
   const choices = journeyChoices(suggested).map((s) => getPersona(s)).filter((p): p is NonNullable<ReturnType<typeof getPersona>> => !!p)
 
   return (
@@ -30,7 +33,11 @@ export default async function JobAlertsConfirmedPage({ searchParams }: { searchP
           <>
             <h1 className="text-3xl font-bold tracking-tight text-navy">You&apos;re in.</h1>
             <p className="mt-3 text-muted-foreground">
-              We&apos;ll email you new jobs for <span className="font-medium text-foreground">{searchLabel(lead)}</span>, at most once a day and only when there is something new.
+              {deadlines ? (
+                <>We&apos;ll email you a reminder as each deadline after your last day comes up. Dates are a guide: confirm the exact date on your own paperwork.</>
+              ) : (
+                <>We&apos;ll email you {layoff ? 'new layoff notices for' : 'new jobs for'} <span className="font-medium text-foreground">{layoff ? layoffWatchLabel(lead) : searchLabel(lead)}</span>, at most once a day and only when there is something new.</>
+              )}
             </p>
             <h2 className="mt-10 text-xl font-semibold text-navy">Which sounds most like you?</h2>
             <p className="mt-1 text-sm text-muted-foreground">One tap sets up your free profile so these jobs come back ranked for you. No résumé needed to start.</p>

@@ -2,7 +2,8 @@ import { emailStyles } from '@/lib/email/email-styles'
 import { AudienceTag } from '@/lib/email/audience-tag'
 
 interface JobAlertConfirmEmailProps {
-  searchLabel: string
+  /** What they asked for, as a phrase: "new jobs matching marketing manager in Chicago". */
+  what: string
   confirmUrl: string
   unsubscribeUrl: string
 }
@@ -29,16 +30,16 @@ const button: React.CSSProperties = {
 const footer: React.CSSProperties = { marginTop: '32px', ...emailStyles.muted }
 
 /** Sent once after someone saves a job search. Alerts start only after they click. */
-export default function JobAlertConfirmEmail({ searchLabel, confirmUrl, unsubscribeUrl }: JobAlertConfirmEmailProps) {
+export default function JobAlertConfirmEmail({ what, confirmUrl, unsubscribeUrl }: JobAlertConfirmEmailProps) {
   return (
     <div style={container}>
       <p style={logo}>NextChapter</p>
       <p>
-        <strong>Confirm your job alerts</strong>
+        <strong>Confirm your email alerts</strong>
       </p>
-      <p>You asked for new jobs matching {searchLabel}. One click and we start. We send at most one email a day, and only when there is something new.</p>
+      <p>You asked for {what}. One click and we start. We send at most one email a day, and only when there is something new.</p>
       <a href={confirmUrl} style={button}>
-        Yes, send me new jobs →
+        Yes, send me the alerts →
       </a>
       <p style={footer}>
         If you did not ask for this, ignore this email and nothing will be sent. <a href={unsubscribeUrl}>Unsubscribe</a>

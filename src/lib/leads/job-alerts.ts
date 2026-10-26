@@ -38,43 +38,59 @@ const startOfDay = () => {
   return d
 }
 
-async function sentToday(): Promise<number> {
+export async function sentToday(): Promise<number> {
   const since = startOfDay()
   const [confirms, alerts] = await Promise.all([
-    prisma.homepageLead.count({ where: { kind: 'job_alert', confirmSentAt: { gte: since } } }),
-    prisma.homepageLead.count({ where: { kind: 'job_alert', lastAlertAt: { gte: since } } }),
+    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'deadline_reminders'] }, confirmSentAt: { gte: since } } }),
+    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'deadline_reminders'] }, lastAlertAt: { gte: since } } }),
   ])
   return confirms + alerts
 }
 
-/** Sends the one-time confirmation email for a saved search. Returns whether it went out. */
-export async function sendJobAlertConfirmation(lead: { id: string; email: string; unsubscribeToken: string } & AlertSearch): Promise<boolean> {
-  if (!jobAlertEmailsOn() || !process.env.RESEND_API_KEY || isUndeliverableAddress(lead.email)) return false
+/** Alert emails that can be confirmed: a saved job search, or a layoff watch. */
+export interface ConfirmableLead {
+  id: string
+  email: string
+  unsubscribeToken: string
+}
+
+/** Sends the one-time confirmation email. `what` is the phrase after "You asked for". Returns whether it went out. */
+export async function sendAlertConfirmation(lead: ConfirmableLead, opts: { what: string; subject: string; enabled: boolean }): Promise<boolean> {
+  if (!opts.enabled || !process.env.RESEND_API_KEY || isUndeliverableAddress(lead.email)) return false
   if ((await sentToday()) >= jobAlertDailyCap()) return false
   try {
     const { error } = await createResend(process.env.RESEND_API_KEY, 'candidate').emails.send({
       from: FROM,
       replyTo: 'support@launchyournextchapter.com',
       to: lead.email,
-      subject: `Confirm your job alerts: ${searchLabel(lead)}`,
+      subject: opts.subject,
       react: JobAlertConfirmEmail({
-        searchLabel: searchLabel(lead),
+        what: opts.what,
         confirmUrl: `${APP_URL()}/api/job-alerts/confirm/${lead.unsubscribeToken}`,
         unsubscribeUrl: `${APP_URL()}/api/unsubscribe/lead/${lead.unsubscribeToken}`,
       }),
       headers: { 'List-Unsubscribe': `<${APP_URL()}/api/unsubscribe/lead/${lead.unsubscribeToken}>` },
     })
     if (error) {
-      console.error('job alert confirmation failed:', error)
+      console.error('alert confirmation failed:', error)
       return false
     }
     await prisma.homepageLead.update({ where: { id: lead.id }, data: { confirmSentAt: new Date() } })
     captureServerEvent(lead.email, 'alert_confirmation_sent', {})
     return true
   } catch (e) {
-    console.error('job alert confirmation failed:', e)
+    console.error('alert confirmation failed:', e)
     return false
   }
+}
+
+/** The confirmation email for a saved job search. */
+export function sendJobAlertConfirmation(lead: ConfirmableLead & AlertSearch): Promise<boolean> {
+  return sendAlertConfirmation(lead, {
+    what: `new jobs matching ${searchLabel(lead)}`,
+    subject: `Confirm your job alerts: ${searchLabel(lead)}`,
+    enabled: jobAlertEmailsOn(),
+  })
 }
 
 export interface JobAlertRunSummary {

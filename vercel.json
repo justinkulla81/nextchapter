@@ -5,6 +5,14 @@
   "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]",
   "crons": [
     {
+      "path": "/api/cron/deadline-reminders",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/layoff-alerts",
+      "schedule": "45 14 * * *"
+    },
+    {
       "path": "/api/cron/job-alerts",
       "schedule": "30 14 * * *"
     },

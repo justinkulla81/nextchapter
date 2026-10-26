@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const slug = persona?.slug ?? 'thinking-about-a-move'
   try {
     const lead = await prisma.homepageLead.findUnique({ where: { unsubscribeToken: token }, select: { id: true, email: true, kind: true } })
-    if (lead && lead.kind === 'job_alert') {
+    if (lead && ['job_alert', 'layoff_alert', 'pay_check', 'deadline_reminders'].includes(lead.kind)) {
       await prisma.homepageLead.update({ where: { id: lead.id }, data: { journeySlug: slug } })
       captureServerEvent(lead.email, 'onboarding_started_from_alert', { situation: slug, via })
     }

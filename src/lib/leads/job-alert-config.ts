@@ -9,3 +9,12 @@ export const jobAlertDailyCap = () => {
 }
 
 export const JOB_ALERT_MAX_JOBS = 5
+
+// Layoff watch emails (a layoff notice at an employer or in a state) have their own switch, off by default.
+export const layoffAlertEmailsOn = () => process.env.LAYOFF_ALERT_EMAILS === '1'
+
+// The one result email after a pay check (when someone asks for it). Off by default, like the others.
+export const payCheckEmailsOn = () => process.env.PAY_CHECK_EMAIL === '1'
+
+// Deadline reminder emails after a layoff. Off by default.
+export const deadlineEmailsOn = () => process.env.DEADLINE_REMINDER_EMAILS === '1'
