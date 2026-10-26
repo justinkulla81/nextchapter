@@ -86,3 +86,11 @@ ALTER TABLE "ConferenceInterest" ADD COLUMN IF NOT EXISTS "spokeCount" INTEGER N
 ALTER TABLE "ConferenceNudge" ADD COLUMN IF NOT EXISTS "edition" TEXT NOT NULL DEFAULT '';
 DROP INDEX IF EXISTS "ConferenceNudge_candidateId_eventId_stage_key";
 CREATE UNIQUE INDEX IF NOT EXISTS "ConferenceNudge_candidateId_eventId_stage_edition_key" ON "ConferenceNudge"("candidateId","eventId","stage","edition");
+
+-- Which bundled catalog the table was last loaded from (exact version, not a timestamp comparison).
+CREATE TABLE IF NOT EXISTS "EventsCatalogSeed" (
+  "id" TEXT PRIMARY KEY,
+  "builtAt" TEXT NOT NULL,
+  "appliedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+ALTER TABLE "EventsCatalogSeed" ENABLE ROW LEVEL SECURITY;
