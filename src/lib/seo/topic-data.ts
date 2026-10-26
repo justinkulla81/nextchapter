@@ -14,6 +14,7 @@ import { employerSlug } from '@/lib/seo/employer-slug'
 import { EMPLOYER_MIN_OPEN_ROLES } from '@/lib/seo/employer-pages'
 import { hasUpcomingDates } from '@/lib/events/format'
 import { employersForConference } from '@/lib/events/conference-employers'
+import { speakersForConference, type ConferenceSpeakerRow } from '@/lib/events/conference-speakers'
 import { effectiveFunctions, inferFunctions } from '@/lib/seo/function-inference'
 import { assessConference, type Assessment } from '@/lib/seo/topic-quality'
 import type { ConferenceRow } from '@/lib/events/types'
@@ -292,6 +293,7 @@ export interface ConferenceDetail {
   editions: { year: number; startDate: Date | null; endDate: Date | null; city: string | null; state: string | null; status: string }[]
   opportunities: { id: string; type: string; title: string; url: string | null; opensAt: Date | null; deadline: Date | null; eligibility: string | null; notes: string | null }[]
   employers: { name: string; role: string; year: number | null; sourceUrl: string | null }[]
+  speakers: ConferenceSpeakerRow[]
   association: Association | null
   related: Conf[]
 }
@@ -301,7 +303,7 @@ export async function getConference(id: string): Promise<ConferenceDetail | null
   const conf = (await prisma.conferenceEvent.findFirst({ where: { id, published: true } })) as unknown as Conf | null
   if (!conf) return null
   const today = startOfToday()
-  const [editions, opportunities, employers, associations, related] = await Promise.all([
+  const [editions, opportunities, employers, speakers, associations, related] = await Promise.all([
     prisma.conferenceEdition.findMany({ where: { seriesId: id, status: { not: 'CANCELLED' } }, orderBy: { year: 'desc' }, take: 6, select: { year: true, startDate: true, endDate: true, city: true, state: true, status: true } }),
     prisma.conferenceOpportunity.findMany({
       where: { seriesId: id, published: true, OR: [{ deadline: null }, { deadline: { gte: today } }] },
@@ -311,6 +313,7 @@ export async function getConference(id: string): Promise<ConferenceDetail | null
     }),
     // The table is applied by hand (prisma/manual/conference-employers.sql); a deploy that lands first must not 500.
     employersForConference(id),
+    speakersForConference(id),
     getAssociations().catch(() => [] as Association[]),
     conf.industries.length
       ? prisma.conferenceEvent.findMany({ where: { published: true, id: { not: id }, industries: { hasSome: conf.industries } }, orderBy: [{ importance: 'asc' }], take: 120 })
@@ -322,6 +325,7 @@ export async function getConference(id: string): Promise<ConferenceDetail | null
     editions,
     opportunities,
     employers,
+    speakers,
     association: associations.find((a) => a.slug === slug) ?? null,
     related: sortConferences(related as unknown as Conf[]).slice(0, 6),
   }
