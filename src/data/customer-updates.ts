@@ -36,9 +36,21 @@ export const CUSTOMER_UPDATES: CustomerUpdate[] = [
     summary: 'When we answer a question or problem you sent from your portal, just reply to that email. Your answer is added to the same conversation, so nothing gets lost in a separate inbox.',
   },
   {
+    date: '2026-10-24',
+    audiences: ['institution'],
+    title: 'Your free workspace is set up when you claim your page',
+    summary: 'When you claim your college, workforce board or economic development page and your email matches the organization\'s website, we now create your free workspace right away, with you as its administrator.',
+  },
+  {
     date: '2026-10-23',
     audiences: ['employer', 'recruiter', 'coach', 'institution'],
     title: 'Help & feedback, from inside your portal',
     summary: 'A Help & feedback button is now in every employer, recruiter, coach and institution portal. Ask a question, report a problem with a screenshot, or send us an idea, and we reply by email.',
+  },
+  {
+    date: '2026-10-16',
+    audiences: ['employer'],
+    title: 'A one-page quarterly review you can print',
+    summary: 'Administrators can open a one-page quarterly review from the employer portal and print it or save it as a PDF for your own leadership. It uses the same rounded, counts-only numbers as Reporting, with small groups hidden.',
   },
 ]
