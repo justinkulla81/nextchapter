@@ -1,5 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
+import { after } from 'next/server'
+import { heavy } from '@/lib/db/heavy'
 import { prisma } from '@/lib/prisma'
 import { INDUSTRIES, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import type { JobFilter } from '@/lib/seo/topic-data'
@@ -25,6 +27,49 @@ const rowsByKey = cache(async () => {
 export async function readSnapshot<T>(key: string): Promise<T | null> {
   return ((await rowsByKey()).get(key)?.data as T | undefined) ?? null
 }
+
+const inFlight = new Map<string, Promise<unknown>>()
+
+async function computeAndStore<T>(key: string, compute: () => Promise<T>): Promise<T> {
+  const running = inFlight.get(key)
+  if (running) return running as Promise<T>
+  const p = (async () => {
+    const value = await heavy(compute)
+    await prisma.topicSnapshot.upsert({ where: { key }, create: { key, data: value as object }, update: { data: value as object, updatedAt: new Date() } })
+    return value
+  })()
+  inFlight.set(key, p)
+  p.then(() => inFlight.delete(key), () => inFlight.delete(key))
+  return p
+}
+
+function refreshInBackground<T>(key: string, compute: () => Promise<T>) {
+  if (inFlight.has(key)) return
+  const run = () => computeAndStore(key, compute).catch((e) => console.error('TopicSnapshot refresh failed', key, e))
+  try {
+    after(run)
+  } catch {
+    void run()
+  }
+}
+
+/**
+ * A heavy result kept in TopicSnapshot. A view reads one row and never waits for the scan: a stored value is returned even
+ * when it is older than `ttlMs` (a refresh then runs after the response, one at a time per instance, under the heavy-scan
+ * limit). A failed compute stores nothing and the next view tries again. Only a key never stored computes inline, once.
+ * The value must be JSON.
+ */
+export async function persisted<T>(key: string, ttlMs: number, compute: () => Promise<T>): Promise<T> {
+  const row = await prisma.topicSnapshot.findUnique({ where: { key } }).catch(() => null)
+  if (row) {
+    if (Date.now() - row.updatedAt.getTime() > ttlMs) refreshInBackground(key, compute)
+    return row.data as T
+  }
+  return computeAndStore(key, compute)
+}
+
+/** Recomputes and stores a key now (the cron and the seed script), whatever its age. */
+export const storeNow = computeAndStore
 
 /** Which topic filters have a stored snapshot (jobs and stats both), for the sitemap. */
 export async function topicsWithSnapshot(): Promise<Set<string>> {
