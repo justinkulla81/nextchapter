@@ -5,9 +5,9 @@ import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
-import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
-import { collegePath } from '@/lib/seo/college-bar'
-import { getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
+import { stateFromSlug } from '@/lib/seo/states'
+import { collegePath, territoryFromSlug } from '@/lib/seo/college-bar'
+import { areaName, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
 import { functionByName, functionPath } from '@/lib/seo/topics'
 
 // One page per college: IPEDS and College Scorecard facts, the job market in its county, the workforce board and
@@ -33,7 +33,7 @@ function description(c: CollegePageData, st: string): string {
 }
 
 async function load(state: string, college: string) {
-  const code = stateFromSlug(state)
+  const code = stateFromSlug(state) ?? territoryFromSlug(state)
   if (!code) return null
   const c = await getCollegePage(code, college)
   return c ? { code, c } : null
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const { c } = d
   return {
     title: `${c.name}: programs, outcomes and local jobs`,
-    description: description(c, stateName(d.code)),
+    description: description(c, areaName(d.code)),
     ...canonical(collegePath(state, c.canonicalSlug)),
     ...(c.indexable ? {} : { robots: { index: false, follow: true } }),
   }
@@ -58,7 +58,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   if (!d) notFound()
   const { code, c } = d
   if (c.canonicalSlug !== college) permanentRedirect(collegePath(state, c.canonicalSlug))
-  const st = stateName(code)
+  const st = areaName(code)
   const path = collegePath(state, c.canonicalSlug)
   const m = c.market
   const topFn = m?.topFunctions[0] ? functionByName(m.topFunctions[0].function) : null
