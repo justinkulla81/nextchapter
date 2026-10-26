@@ -8,6 +8,8 @@ import { createResend, isUndeliverableAddress } from '@/lib/email/resend-client'
 import { getPublicJob } from '@/lib/jobs/public-job-page-server'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import JobSavedEmail from '@/emails/job-saved'
+import { cookies } from 'next/headers'
+import { addToSavedJobsCookie, SAVED_JOBS_COOKIE, SAVED_JOBS_MAX_AGE_SECONDS } from '@/lib/leads/claim-saved-jobs'
 
 // "Save this job" on a public job page, no account needed. It stores the email with the job id
 // and, only when APPLY_SAVE_EMAIL=1, sends one email: the job, the way back to it, and the way to see how well they fit. One
@@ -90,6 +92,14 @@ export async function saveAppliedJob(_prev: ApplySaveState, formData: FormData):
           console.error('job saved email failed:', e)
         }
       }
+    }
+
+    // Remember the job on this browser too, so it follows the person into an account made with another email.
+    try {
+      const jar = await cookies()
+      jar.set(SAVED_JOBS_COOKIE, addToSavedJobsCookie(jar.get(SAVED_JOBS_COOKIE)?.value, job.id), { httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: SAVED_JOBS_MAX_AGE_SECONDS })
+    } catch (e) {
+      console.error('saved jobs cookie failed:', e)
     }
 
     captureServerEvent(email, 'lead_captured', { kind: 'apply_save', source: 'job_page', trigger, jobId: job.id, company: job.companyName, emailed, returning: !!existing })

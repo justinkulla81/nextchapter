@@ -12,6 +12,8 @@ const NOT_INCLUDED = [
   'A fit score on every job',
   'Career pivot paths from your experience',
   'Introductions and references into companies',
+  'Who to contact at each company',
+  'Your saved jobs and applications in one tracker',
 ]
 
 const STEPS = [
