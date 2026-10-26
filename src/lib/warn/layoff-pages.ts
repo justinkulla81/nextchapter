@@ -23,7 +23,21 @@ export const TWENTY_FOUR_MONTHS_MS = 2 * 365 * DAY_MS
  */
 export function employerSlug(rawEmployer: string, matchedCompanyName: string | null): string {
   const name = cleanEmployer(rawEmployer.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+-\s+.*$/, ''), matchedCompanyName)
-  return stripSlugSuffixes(normalizeOrgName(name).replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')).slice(0, 80)
+  return mergedSlug(stripSlugSuffixes(normalizeOrgName(name).replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')).slice(0, 80))
+}
+
+/**
+ * Subsidiaries Justin ruled belong on their parent's page (2026-10-26). An explicit list, never a rule:
+ * which legal entities share an employer is a judgment, so a new pair is added here by hand.
+ */
+const MERGED_SLUGS: Record<string, string> = {
+  'oracle-america': 'oracle',
+  'meta-platforms': 'meta',
+}
+
+/** The page a slug's filings live on; the old spelling redirects there. */
+export function mergedSlug(slug: string): string {
+  return MERGED_SLUGS[slug] ?? slug
 }
 
 const SLUG_SUFFIXES = new Set(['incorporated', 'inc', 'llc', 'ltd', 'limited', 'corporation', 'corp', 'company', 'co', 'plc'])
