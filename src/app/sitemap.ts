@@ -95,10 +95,12 @@ const DIRECTORY_UPDATED = '2026-10-25'
 // workforce, rapid-response and higher-education page from the sitemap.
 async function loadSeoStatePages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
   try {
-    const [rows, collegeStates] = await Promise.all([
+    const [rows, collegeStates, centerStates] = await Promise.all([
       prisma.workforceBoard.findMany({ select: { id: true, state: true, name: true, statewide: true }, orderBy: { name: 'asc' } }),
       prisma.localCollege.groupBy({ by: ['state'], where: { sector: { in: [1, 2, 4, 5] } }, _count: { _all: true } }),
+      prisma.americanJobCenter.groupBy({ by: ['state'], _count: { _all: true } }),
     ])
+    const centersIn = new Map(centerStates.map((c) => [c.state, c._count._all]))
     // A board page below the content bar (src/lib/seo/org-page-rules.ts) is noindex, so it stays out of the sitemap.
     const indexableBoards = new Set((await cachedIndexableOrgPages('WORKFORCE_BOARD').catch(() => null))?.map((p) => p.path))
     const hasColleges = new Set(collegeStates.map((c) => c.state))
@@ -111,7 +113,7 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
         const boards = visibleBoards(all)
         const slugs = boardSlugs(boards)
         return [
-          ...(meetsStateBoardBar(s.boards, s.centers)
+          ...(meetsStateBoardBar(boards.length, centersIn.get(state) ?? 0)
             ? [entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5), entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)]
             : []),
           ...(hasColleges.has(state) ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
