@@ -77,3 +77,43 @@ const TERRITORY_BY_SLUG = Object.fromEntries(Object.entries(COLLEGE_TERRITORIES)
 /** The territory a slug stands for ("puerto-rico" → "PR"), or null. */
 export const territoryFromSlug = (slug: string): string | null => TERRITORY_BY_SLUG[slug] ?? null
 export const territorySlug = (code: string): string => slugify(COLLEGE_TERRITORIES[code])
+
+/**
+ * Which job functions (the board's `targetFunction` values) hire for what graduates of an IPEDS field of study usually
+ * do. Deliberately short and professional-only: fields with no clear white-collar path (trades, general studies,
+ * theology) are left out rather than guessed.
+ */
+export const MAJOR_FUNCTIONS: Record<string, string[]> = {
+  'Business & management': ['Finance', 'Sales', 'Operations', 'Marketing', 'Human Resources', 'Strategy'],
+  'Computer & information sciences': ['Engineering', 'Data & Analytics', 'Security', 'Product'],
+  Engineering: ['Engineering', 'Operations'],
+  'Engineering technologies': ['Engineering', 'Operations'],
+  'Health professions': ['Clinical'],
+  Education: ['Academic', 'Programs'],
+  Psychology: ['Human Resources', 'Research', 'Programs'],
+  'Social sciences': ['Research', 'Programs', 'Human Resources'],
+  'Biological sciences': ['Research'],
+  'Physical sciences': ['Research'],
+  'Mathematics & statistics': ['Data & Analytics', 'Finance', 'Research'],
+  'Communication & journalism': ['Marketing', 'Design'],
+  'Communications technology': ['Marketing', 'Design'],
+  'Visual & performing arts': ['Design'],
+  Architecture: ['Design'],
+  'Legal studies': ['Legal'],
+  'Public administration & social work': ['Programs', 'Administration'],
+  'Security & protective services': ['Security'],
+}
+
+/** The functions to show for a college: those of its largest mapped fields, in order, no repeats, at most `max`. */
+export function functionsForMajors(majors: { field: string; share: number }[], max = 6): { functions: string[]; fields: string[] } {
+  const functions: string[] = []
+  const fields: string[] = []
+  for (const m of [...majors].sort((a, b) => b.share - a.share)) {
+    const fns = MAJOR_FUNCTIONS[m.field]
+    if (!fns) continue
+    fields.push(m.field)
+    for (const f of fns) if (!functions.includes(f)) functions.push(f)
+    if (fields.length >= 3) break
+  }
+  return { functions: functions.slice(0, max), fields }
+}
