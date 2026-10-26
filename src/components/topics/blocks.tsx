@@ -160,3 +160,34 @@ export function JoinBand({ source, what }: { source: string; what: string }) {
 
 export const industryChip = (name: string, count?: number) => ({ href: industryPath(name), label: name, detail: count != null ? count.toLocaleString() : undefined })
 export const functionChip = (name: string, count?: number) => ({ href: functionPath(name), label: name, detail: count != null ? count.toLocaleString() : undefined })
+
+/** Sourced facts: every number says where it comes from and for what period. */
+export function FactGrid({ facts }: { facts: { key: string; label: string; value: string; source: string; period?: string }[] }) {
+  if (facts.length === 0) return null
+  return (
+    <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {facts.map((f) => (
+        <div key={f.key} className={CARD}>
+          <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{f.label}</dt>
+          <dd className="mt-1 text-base font-semibold text-navy">{f.value}</dd>
+          <p className="mt-1 text-xs text-muted-foreground">Source: {f.source}{f.period ? `, ${f.period}` : ''}.</p>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+/** Top skills / states as plain lists with counts. */
+export function RankList({ title, items }: { title: string; items: { label: string; detail?: string }[] }) {
+  if (items.length === 0) return null
+  return (
+    <div className={CARD}>
+      <h3 className="text-sm font-semibold text-navy">{title}</h3>
+      <ol className="mt-2 space-y-1 text-sm text-muted-foreground">
+        {items.map((i, idx) => (
+          <li key={i.label} className="flex justify-between gap-3"><span>{idx + 1}. {i.label}</span>{i.detail && <span className="tabular-nums">{i.detail}</span>}</li>
+        ))}
+      </ol>
+    </div>
+  )
+}
