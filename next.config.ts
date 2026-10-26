@@ -42,6 +42,8 @@ const nextConfig: NextConfig = {
   // this redirect exists only for already-external references.
   async redirects() {
     return [
+      // /feeds has no page of its own (the feeds are files under it); someone typing it wants the jobs.
+      { source: '/feeds', destination: '/jobs', permanent: false },
       // Retired 2026-10-23: the website shows plans, not prices.
       {
         source: '/insights/outplacement-cost-per-employee',

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { PROSPECTS } from '@/lib/prospects/config'
 import { getArea, getCollege, getHub, getMarket, getNotices, getReadiness } from '@/lib/prospects/market'
 import { LongSearchCard, PrivacyNote, Section, StatStrip } from '@/components/prospects/Sections'
@@ -25,6 +25,9 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
   if (!p) {
     // Any other organization in the CRM gets the generic claim page; a slug that matches nothing is a 404.
     const org = await resolveClaimableOrg(slug)
+    // An address cut off in the middle of a name ("/prepared/central-", a link a mail program or a person shortened) is not a
+    // missing page: send it to where an organization finds its own page rather than to a dead end.
+    if (!org && slug.endsWith('-')) redirect('/for-organizations')
     if (!org) notFound()
     const stats = await communityStatsFor({ crmOrgId: org.id })
     captureServerEvent(`org-claim:${org.id}`, 'org_claim_page_viewed', { orgId: org.id, slug, hasStats: !!stats?.warn, scope: stats?.scope ?? null, needsReviewDomain: !org.emailDomain })
