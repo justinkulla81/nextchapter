@@ -54,19 +54,24 @@ async function loadByEmployer(): Promise<[string, { id: string; role: string }[]
   }
   for (const [id, rows] of Object.entries(FILE)) for (const r of rows) add(r.name, id, r.role)
   const [emps, spk] = await Promise.all([
-    prisma.conferenceEmployer.findMany({ select: { seriesId: true, name: true, role: true }, take: 20000 }).catch(() => []),
-    prisma.conferenceSpeaker.findMany({ where: { organization: { not: null } }, select: { seriesId: true, organization: true }, take: 20000 }).catch(() => []),
+    // A failed read throws, so unstable_cache does not store a file-only index for an hour; the caller falls back to the file for that request.
+    prisma.conferenceEmployer.findMany({ select: { seriesId: true, name: true, role: true }, take: 20000 }),
+    prisma.conferenceSpeaker.findMany({ where: { organization: { not: null } }, select: { seriesId: true, organization: true }, take: 20000 }),
   ])
   for (const r of emps) add(r.name, r.seriesId, r.role)
   for (const r of spk) add(r.organization, r.seriesId, 'SPEAKER')
   return [...m]
 }
 
-const cachedByEmployer = unstable_cache(loadByEmployer, ['conference-by-employer-v1'], { revalidate: 3600 })
+const cachedByEmployer = unstable_cache(loadByEmployer, ['conference-by-employer-v2'], { revalidate: 3600 })
 
 /** Conferences (ids) where the employer is known to exhibit, sponsor or speak. */
 export async function conferencesForEmployer(name: string): Promise<{ id: string; role: string }[]> {
   const key = normalizeOrgName(name)
-  const hit = (await cachedByEmployer().catch(() => [] as [string, { id: string; role: string }[]][])).find(([k]) => k === key)
-  return hit?.[1] ?? []
+  try {
+    const hit = (await cachedByEmployer()).find(([k]) => k === key)
+    return hit?.[1] ?? []
+  } catch {
+    return Object.entries(FILE).flatMap(([id, rows]) => rows.filter((r) => normalizeOrgName(r.name) === key).slice(0, 1).map((r) => ({ id, role: r.role })))
+  }
 }
