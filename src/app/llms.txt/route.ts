@@ -31,6 +31,7 @@ export function GET() {
 - [Employees](${u('/employees')}): retention, and learning and development, reported as counts by team, never by person.
 - [Outplacement](${u('/outplacement')}): seats for departing employees, reporting in counts for HR and a compliance record for each seat. Set up by contract.
 - [Higher education](${u('/higher-education')}): a workspace for career services and alumni relations; a free workspace is created when staff claim the institution's page with a work email at its domain.
+- [College pages](${u('/higher-education/llms.txt')}): a page for each college, listed by state: enrollment, degrees by field, graduation, earnings and net price, the job market in its county, and the nearby workforce board and American Job Centers.
 - [Government & Workforce](${u('/government-workforce')}): a workspace for workforce boards, economic development organizations and chambers, with live counts from our own data.
 - [Nonprofits & community organizations](${u('/nonprofits')}): the same free workspace after a verified claim; research partnerships are set up one at a time.
 - [Recruiters](${u('/recruiters')}): search candidates who chose to be found and submit them in your firm's logo.
