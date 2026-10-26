@@ -7,6 +7,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, industryBySlug, INDUSTRIES } from '@/lib/seo/topics'
 import { conferencesForIndustry, getAssociations, getIndustryNotices, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
 import { associationSlug } from '@/lib/seo/topics'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     d.notices.length ? `${d.notices.length.toLocaleString()} recent layoff notices` : null,
   ].filter(Boolean)
   return {
-    title: `${d.industry.name}: jobs, conferences and layoffs`,
+    title: titleMeta(`${d.industry.name}: jobs, conferences and layoffs`),
     description: fitDescription(`${d.industry.blurb} ${bits.length ? `${bits.join(', ')}, ` : ''}industry associations and the job functions that make it up.`.replace(/\s+/g, ' ').trim(), 165),
     ...canonical(`/industries/${slug}`),
   }

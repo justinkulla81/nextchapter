@@ -13,6 +13,7 @@
 
 import type { Metadata } from 'next'
 import { SITE_URL } from './facts'
+import { titleMeta } from '@/lib/seo/title'
 
 export interface PageSeo {
   /** Without the " | NextChapter" suffix. 30-56 characters. */
@@ -1321,6 +1322,12 @@ export function pageSeo(path: string): PageSeo {
   return seo
 }
 
+/** `{ title, description }` as page metadata: the title gets the brand only when it fits in 60 (see title.ts). */
+export function pageSeoMeta(path: string): { title: Metadata['title']; description: string } {
+  const { title, description } = pageSeo(path)
+  return { title: titleMeta(title), description }
+}
+
 /** The headline a page shows: the keyword map's H1 when it sets one, else the page's own. */
 export function pageH1(path: string, fallback: string): string {
   return clusterFor(path).seo?.h1 ?? fallback
@@ -1334,7 +1341,7 @@ export function pageMetadata(path: string): Metadata {
   const { title, description } = pageSeo(path)
   const url = path === '/' ? SITE_URL : `${SITE_URL}${path}`
   return {
-    title,
+    title: titleMeta(title),
     description,
     alternates: { canonical: path },
     openGraph: { type: 'website', siteName: 'NextChapter', locale: 'en_US', title, description, url },

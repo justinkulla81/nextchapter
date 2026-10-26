@@ -1,4 +1,4 @@
-import { higherEdStateSeo } from '@/lib/seo/templates'
+import { fitDescription, higherEdStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -7,6 +7,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
 import { COLLEGE_SECTORS, COLLEGE_SIZES, getStateColleges, getStateLabor, getStateLayoffs, periodLabel, rateText } from '@/lib/seo/workforce-pages'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -28,8 +29,8 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   return {
-    title: higherEdStateSeo(d.name).title,
-    description: `${d.colleges.length} public and private nonprofit colleges in ${d.name} and the job market their graduates enter: unemployment, layoff notices and a free alumni workspace for career services.`,
+    title: titleMeta(higherEdStateSeo(d.name).title),
+    description: fitDescription(`${d.colleges.length} public and private nonprofit colleges in ${d.name} and the job market their graduates enter: unemployment, layoff notices and a free alumni workspace for career services.`),
     ...canonical(`/higher-education/${state}`),
   }
 }

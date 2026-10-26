@@ -5,6 +5,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { LOOKS_LIKE_ASSOCIATION } from '@/lib/seo/topics'
 import { conferencesForOrganizer, getAssociation } from '@/lib/seo/topic-data'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const d = await load(slug)
   if (!d) return { title: 'Organizer not found', robots: { index: false, follow: true } }
   return {
-    title: `${d.a.name}: conferences, dates and speaking opportunities`,
+    title: titleMeta(`${d.a.name}: conferences, dates and speaking opportunities`),
     description: `${d.a.name} runs ${d.confs.total} conferences we track. Dates, costs, calls for speakers and the industries and functions they serve.`,
     ...canonical(`/associations/${slug}`),
   }
