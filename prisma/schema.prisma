@@ -14383,6 +14383,9 @@ model CollegeProfile {
   careerContactEmail   String?
   alumniContactName    String?
   alumniContactEmail   String?
+  /// AI, data science, data analytics and robotics degrees and certificates awarded (IPEDS completions by program code):
+  /// {year, programs:[{track, level, awards}]}. Empty programs = none reported. scripts/colleges/load-ai-programs.ts
+  aiPrograms           Json?
   dataYear             String?
   researchedAt         DateTime?
   updatedAt            DateTime  @default(now())

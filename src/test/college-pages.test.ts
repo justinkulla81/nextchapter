@@ -93,3 +93,21 @@ describe('majors to job functions', () => {
     expect(functionsForMajors([{ field: 'Theology', share: 1 }])).toEqual({ functions: [], fields: [] })
   })
 })
+
+describe('AI programs', () => {
+  it('maps IPEDS award levels', async () => {
+    const { aiLevelOf } = await import('@/lib/seo/college-bar')
+    expect(['1', '2', '3', '5', '7', '17', '9', '21'].map(aiLevelOf)).toEqual(['certificate', 'certificate', 'associate', 'bachelor', 'master', 'doctorate', null, 'certificate'])
+  })
+  it('reads stored JSON defensively and writes one sentence', async () => {
+    const { parseAiPrograms, aiProgramSentence } = await import('@/lib/seo/college-bar')
+    expect(parseAiPrograms(null)).toBeNull()
+    expect(parseAiPrograms({ year: 2024 })).toBeNull()
+    const none = parseAiPrograms({ year: 2024, programs: [] })
+    expect(none).toEqual({ year: 2024, programs: [] })
+    expect(aiProgramSentence(none)).toBeNull()
+    const a = parseAiPrograms({ year: 2024, programs: [{ track: 'ai', level: 'master', awards: 12 }, { track: 'bogus', level: 'master', awards: 3 }, { track: 'datasci', level: 'bachelor', awards: 40 }, { track: 'ai', level: 'bachelor', awards: 0 }] })
+    expect(a?.programs).toHaveLength(2)
+    expect(aiProgramSentence(a)).toBe('artificial intelligence, data science (bachelor, master)')
+  })
+})

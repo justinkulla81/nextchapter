@@ -19,6 +19,7 @@ export const areaSlug = (code: string): string => (isCollegeTerritory(code) ? te
 export const areaName = (code: string): string => COLLEGE_TERRITORIES[code] ?? stateName(code)
 const COLLEGE_AREAS = [...ALL_STATE_CODES, ...Object.keys(COLLEGE_TERRITORIES)]
 import { getStateBoards, type PublicBoard } from '@/lib/seo/workforce-pages'
+import { parseAiPrograms, type AiPrograms } from '@/lib/seo/college-bar'
 import { COLLEGE_SLUG_RE, COLLEGE_TERRITORIES, collegeIndexable, collegePath, collegeSlugs, functionsForMajors, isCollegeTerritory, territorySlug, unitidFromSlug } from '@/lib/seo/college-bar'
 
 // Public college pages (/higher-education/<state>/<college>): IPEDS and College Scorecard facts for the college, the
@@ -51,6 +52,8 @@ export interface CollegeFacts {
   hasExecEd: boolean | null
   hasRetraining: boolean | null
   topMajors: { field: string; share: number; awards: number }[]
+  /** AI/data/robotics degrees and certificates (IPEDS program codes); null = not loaded for this college. */
+  aiPrograms: AiPrograms | null
   dataYear: string | null
   updatedAt: Date
   crmOrgId: string | null
@@ -131,6 +134,7 @@ export const getStateCollegeListings = cache(async (state: string): Promise<Coll
       enrollment: p.enrollment, annualAwards: p.annualAwards, alumniReported: p.alumniReported, tuitionInState: p.tuitionInState, tuitionOutState: p.tuitionOutState,
       netPrice: p.netPrice, earnings6: p.earnings6, earnings10: p.earnings10, employedShare10: p.employedShare10,
       completionRate: p.completionRate, hasExecEd: p.hasExecEd, hasRetraining: p.hasRetraining, topMajors: asMajors(p.topMajors),
+      aiPrograms: parseAiPrograms(p.aiPrograms),
       dataYear: p.dataYear, updatedAt: p.updatedAt, crmOrgId: l?.crmOrgId ?? null,
     }
   })
@@ -142,7 +146,7 @@ export const getStateCollegeListings = cache(async (state: string): Promise<Coll
     facts.push({
       unitid: l.id, state, name: l.name, city: l.city, zip: l.zip, countyFips: l.countyFips, website: l.website, control, level, carnegie: l.carnegie,
       enrollment: null, annualAwards: null, alumniReported: null, tuitionInState: null, tuitionOutState: null, netPrice: null, earnings6: null, earnings10: null,
-      employedShare10: null, completionRate: null, hasExecEd: null, hasRetraining: null, topMajors: [], dataYear: null, updatedAt: l.updatedAt, crmOrgId: l.crmOrgId,
+      employedShare10: null, completionRate: null, hasExecEd: null, hasRetraining: null, topMajors: [], aiPrograms: null, dataYear: null, updatedAt: l.updatedAt, crmOrgId: l.crmOrgId,
     })
   }
   const slugs = collegeSlugs(facts.map((f) => ({ unitid: f.unitid, name: f.name, city: f.city })))
