@@ -93,6 +93,10 @@
       "schedule": "30 11 * * *"
     },
     {
+      "path": "/api/cron/indexnow-org-pages",
+      "schedule": "40 11 * * *"
+    },
+    {
       "path": "/api/cron/google-indexing-jobs",
       "schedule": "45 11 * * *"
     },

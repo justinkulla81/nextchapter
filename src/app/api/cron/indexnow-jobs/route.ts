@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { withCronRun } from '@/lib/cron/run'
 import { runIndexNow } from '@/lib/syndication/indexnow-server'
+import { runCollegeIndexNow } from '@/lib/syndication/indexnow-colleges'
 import { runEmployerIndexNow } from '@/lib/syndication/indexnow-employers'
 import { runSearchFirmIndexNow } from '@/lib/syndication/search-firm-indexnow'
 
@@ -15,5 +16,7 @@ export const GET = withCronRun('indexnow-jobs', async () => {
   // Employer and search-firm pages ride the same daily run; a failure in one must not hide the others.
   const employers = await runEmployerIndexNow().catch((e) => ({ error: String(e?.message ?? e).slice(0, 200) }))
   const searchFirms = await runSearchFirmIndexNow().catch((e) => ({ error: String(e) }))
-  return NextResponse.json({ ...jobs, employers, searchFirms })
+  // College pages (/higher-education/<state>/<college>) too, when new or reloaded.
+  const colleges = await runCollegeIndexNow().catch((e) => ({ error: e instanceof Error ? e.message : String(e) }))
+  return NextResponse.json({ ...jobs, employers, searchFirms, colleges })
 })

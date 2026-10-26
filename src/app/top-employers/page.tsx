@@ -5,13 +5,15 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { getEmployerRankings, getFunctionRankings, SHARE_MIN_ROLES } from '@/lib/seo/employer-rankings'
+import { titleMeta } from '@/lib/seo/title'
+import { fitDescription } from '@/lib/seo/templates'
 
 export const revalidate = 3600
 
 const TITLE = 'Top employers: entry-level hiring, no experience needed and AI hiring'
 const DESCRIPTION =
   'Which employers have the most open entry-level jobs, the most jobs that need no experience, and the highest share of AI jobs, plus the biggest hirers in each function. Counted daily from verified open jobs.'
-export const metadata: Metadata = { title: TITLE, description: DESCRIPTION, ...canonical('/top-employers') }
+export const metadata: Metadata = { title: titleMeta(TITLE), description: fitDescription(DESCRIPTION), ...canonical('/top-employers') }
 
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 

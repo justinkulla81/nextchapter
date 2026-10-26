@@ -1,47 +1,24 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
+import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
-import { prisma } from '@/lib/prisma'
-import { stateName, stateSlug } from '@/lib/seo/states'
-
-export const revalidate = 86400
+import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 
 export const metadata: Metadata = {
-  title: 'Economic development organizations and districts by state',
-  description: 'State economic development agencies, economic development districts and local organizations, by state, with each state’s labor market and layoff picture.',
+  title: 'Economic development organizations by state',
+  description: 'Economic development organizations in every state: the counties each serves, the professional jobs open there and how to reach it.',
   ...canonical('/economic-development'),
 }
 
-export default async function EconomicDevelopmentHubPage() {
-  const rows = await prisma.localPartnerOrg.groupBy({ by: ['state'], where: { OR: [{ confidence: null }, { confidence: { not: 'low' } }] }, _count: { _all: true } })
-  const states = rows.filter((r) => { try { return !!stateName(r.state) && stateSlug(r.state) } catch { return false } }).sort((a, b) => stateName(a.state).localeCompare(stateName(b.state)))
-  const total = states.reduce((s, r) => s + r._count._all, 0)
+export default function Page() {
   return (
-    <SeoPage
-      trail={[{ name: 'Economic development', path: '/economic-development' }]}
-      h1="Economic development organizations and districts"
-      lede={<>{total.toLocaleString()} state agencies, economic development districts and local organizations across {states.length} states. Pick a state to see its organizations and its labor market.</>}
-    >
+    <SeoPage trail={[{ name: 'Economic development organizations', path: '/economic-development' }]} h1="Economic development organizations" lede={<>The regional and state economic development organizations that bring employers to each area, with the counties each serves, the professional jobs open there and how to reach it.</>}>
       <section aria-labelledby="states" className="mt-10">
-        <h2 id="states" className={H2}>Browse by state</h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {states.map((s) => (
-            <li key={s.state} className="rounded-xl border border-border bg-white p-4 text-sm">
-              <Link href={`/economic-development/${stateSlug(s.state)}`} className={`${LINK} font-medium`}>{stateName(s.state)}</Link>
-              <p className="mt-1 text-xs text-muted-foreground">{s._count._all} {s._count._all === 1 ? 'organization' : 'organizations'}</p>
-            </li>
-          ))}
+        <h2 id="states" className={H2}>Choose a state</h2>
+        <ul className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">
+          {ALL_STATE_CODES.map((c) => <li key={c}><Link href={`/economic-development/${stateSlug(c)}`} className={LINK}>{stateName(c)}</Link></li>)}
         </ul>
       </section>
-      <ActionBand
-        title="Run an economic development organization?"
-        body="Claim your organization’s page and set up a free workspace. Use a work email at your organization’s domain."
-        label="See how an organization claims its page"
-        href="/government-workforce#claim"
-        event="seo_claim_clicked"
-        properties={{ page: 'economic_development_hub', audience: 'economic_development' }}
-      />
     </SeoPage>
   )
 }

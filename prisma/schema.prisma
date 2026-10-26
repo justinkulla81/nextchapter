@@ -17285,6 +17285,43 @@ model CoachSessionTopic {
   @@index([candidateId, status])
 }
 
+/// A college's organization in the CRM, one row per IPEDS id, written by scripts/colleges/link-crm.ts. MATCHED: an
+/// organization with the same name or domain already existed. ADDED: we created it. REVIEW: a similarly named
+/// organization exists and a person decides on the Review List (reviewOrgId): never guessed. The public college page
+/// reads crmOrgId only for its claim link and falls back to a name match while this table is empty or missing.
+model CollegeOrgLink {
+  unitid       String   @id
+  crmOrgId     String?
+  matchStatus  String   @default("REVIEW")
+  reviewOrgId  String?
+  reviewReason String?
+  updatedAt    DateTime @updatedAt
+
+  @@index([matchStatus])
+  @@index([crmOrgId])
+}
+
+/// Ties a public organization page (American Job Center, economic development organization, workforce
+/// board) to its CRM organization. LINKED = matched to an existing organization, CREATED = added by the
+/// backfill, REVIEW = unsure: waits on the CRM Review List for a person to decide, never guessed.
+/// prisma/manual/2026-10-25-public-org-pages.sql
+model PublicOrgPage {
+  /// JOB_CENTER | ECON_DEV | WORKFORCE_BOARD
+  kind          String
+  sourceId      String
+  state         String
+  crmOrgId      String?
+  matchStatus   String   @default("NONE")
+  reviewOrgId   String?
+  reviewReason  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@id([kind, sourceId])
+  @@index([crmOrgId])
+  @@index([matchStatus])
+}
+
 /// Employee counts with year and source (scripts/companies/import-wikidata-headcount.ts). SQL: prisma/manual/2026-10-26-company-headcount.sql
 model CompanyHeadcount {
   companyId   String   @id
@@ -17296,4 +17333,32 @@ model CompanyHeadcount {
   checkedAt   DateTime @default(now())
 
   @@index([employees(sort: Desc)])
+}
+
+/// A statement an employer adds next to one of its WARN layoff notices on the layoff pages (/layoffs/company/<slug>). The state filing is never
+/// changed or hidden. A statement is shown only when APPROVED: the author first confirms a work email (PENDING_EMAIL ->
+/// PENDING_REVIEW), then a person on the team approves it. Applied by hand: prisma/manual/2026-10-26-employer-statement.sql.
+model EmployerStatement {
+  id              String    @id @default(cuid())
+  /// The layoff-page slug of the employer (getCompanies()), not a Company id: a notice need not be matched to one.
+  companySlug     String
+  warnNoticeId    String
+  body            String    @db.Text
+  authorName      String
+  authorTitle     String
+  authorEmail     String
+  emailDomain     String
+  tokenHash       String    @unique
+  tokenExpiresAt  DateTime
+  emailVerifiedAt DateTime?
+  /// PENDING_EMAIL | PENDING_REVIEW | APPROVED | REJECTED
+  status          String    @default("PENDING_EMAIL")
+  reviewedAt      DateTime?
+  reviewNote      String?
+  ipHash          String?
+  createdAt       DateTime  @default(now())
+
+  @@index([companySlug, status])
+  @@index([warnNoticeId])
+  @@index([status, createdAt])
 }

@@ -1,7 +1,7 @@
 import { layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -12,8 +12,10 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
-import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay } from '@/lib/warn/layoff-pages'
+import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
+import { StatementForm } from '@/components/employers/StatementForm'
+import { approvedStatementMap } from '@/lib/employer-statements/store'
 
 // Pages are built on first visit and refreshed daily; there are over a
 // thousand employers, too many to prerender on every deploy.
@@ -24,7 +26,13 @@ export function generateStaticParams() {
 }
 
 async function load(slug: string) {
-  return (await getCompanies()).get(slug) ?? null
+  const companies = await getCompanies()
+  const c = companies.get(slug)
+  if (c) return c
+  // A spelling from before one employer's filings were merged ("intel-corporation" → "intel").
+  const merged = stripSlugSuffixes(slug)
+  if (merged !== slug && companies.has(merged)) permanentRedirect(`/layoffs/company/${merged}`)
+  return null
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -52,7 +60,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const c = await load(slug)
   if (!c) notFound()
   const bucket = (await getRecentNotices().catch(() => [])).find((n) => n.slug === slug && n.bucket)?.bucket ?? null
-  const mentions = await getNewsMentions(c)
+  const [mentions, statements] = await Promise.all([getNewsMentions(c), approvedStatementMap(slug, c.name)])
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const unknownCounts = c.notices.some((n) => n.workers == null)
 
@@ -78,8 +86,13 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
           <section aria-labelledby="notices" className="mt-10">
             <h2 id="notices" className={H2}>Notices</h2>
             <div className="mt-4">
-              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" />
+              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
             </div>
+            <StatementForm
+              slug={slug}
+              companyName={c.name}
+              notices={c.notices.slice(0, 15).map((n) => ({ id: n.id, label: `${noticeDay(n.noticeDate)}, ${stateName(n.state)}${n.workers != null ? `, ${n.workers.toLocaleString()} workers` : ''}` }))}
+            />
           </section>
 
           {mentions.length > 0 && (

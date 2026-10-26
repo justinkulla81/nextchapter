@@ -7,6 +7,9 @@ const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.postho
 const posthogAssetHost = posthogHost.replace("https://", "https://").replace(/^https:\/\/(\w+)\./, "https://$1-assets.");
 
 const nextConfig: NextConfig = {
+  // /places/sitemap.xml queries every state's counties and the qualifying cities while the build prerenders it, and takes
+  // longer than Next's 60 second default; every production deploy since 2026-10-26 failed on it. It refreshes every 6 hours at runtime.
+  staticPageGenerationTimeout: 300,
   // Lets verification builds run into a throwaway directory
   // (NEXT_DIST_DIR=.next-verify-foo next build) instead of overwriting the
   // real .next a dev server or the deployed build might be using — this

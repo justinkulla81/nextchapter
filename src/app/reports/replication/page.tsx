@@ -8,6 +8,7 @@ import {
   OPEN_DATA_LEAVE_BEHIND, OPEN_DATA_LIMITATIONS, OPEN_DATA_SCRIPTS, OPEN_DATA_SOURCES, REPLICATION_REPO_URL,
 } from '@/lib/marketing/open-data'
 import { titleMeta } from '@/lib/seo/title'
+import { fitDescription } from '@/lib/seo/templates'
 
 const URL = `${SITE_URL}/reports/replication`
 const REPO_URL = REPLICATION_REPO_URL
@@ -18,7 +19,7 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   title: titleMeta('White Collar Employment Report: replication materials'),
-  description: DESCRIPTION,
+  description: fitDescription(DESCRIPTION),
   alternates: { canonical: URL },
   openGraph: {
     type: 'website',
