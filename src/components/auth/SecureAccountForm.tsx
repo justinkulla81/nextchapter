@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { posthog } from '@/lib/posthog/client'
 
 interface SecureAccountFormProps {
   // Present when reached via a token_hash link (see CreateAccountForm) —
@@ -84,6 +85,8 @@ export function SecureAccountForm({ tokenHash, otpType, nextPath = '/onboarding'
     // Leave loading true — we're navigating away, so there's no moment where
     // the button should look idle again before the new page appears.
     await markPasswordSet()
+    // The first moment the confirmation email has been clicked and the account is permanent.
+    posthog.capture('account_confirmed', { method: 'password', portal: portal ?? 'candidate' })
     router.push(nextPath)
   }
 

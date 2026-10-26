@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { GoogleButton } from './GoogleButton'
+import { posthog } from '@/lib/posthog/client'
 
 export function SignupForm() {
   const router = useRouter()
@@ -44,6 +45,7 @@ export function SignupForm() {
     // Without this check we'd tell someone to check an email Supabase never
     // actually sends.
     if (data.user && data.user.identities?.length === 0) {
+      posthog.capture('account_confirmation_blocked', { surface: 'signup_page', reason: 'existing_account' })
       setLoading(false)
       setExistingAccount(true)
       return
@@ -61,6 +63,7 @@ export function SignupForm() {
       return
     }
 
+    posthog.capture('account_confirmation_sent', { surface: 'signup_page' })
     setLoading(false)
     setSent(true)
   }
