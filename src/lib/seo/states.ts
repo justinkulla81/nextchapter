@@ -2,7 +2,7 @@ import { STATE_NAMES } from '@/lib/workforce/places'
 
 /** URL slug for a state: "NY" → "new-york". */
 export function stateSlug(code: string): string {
-  return STATE_NAMES[code].toLowerCase().replace(/[^a-z]+/g, '-')
+  return (STATE_NAMES[code] ?? code).toLowerCase().replace(/[^a-z]+/g, '-')
 }
 
 const BY_SLUG = Object.fromEntries(Object.keys(STATE_NAMES).map((c) => [stateSlug(c), c]))

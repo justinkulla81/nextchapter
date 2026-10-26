@@ -7,6 +7,7 @@ import { PUBLIC_JOB_SELECT } from '@/lib/jobs/public-job-page-server'
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { stateName, stateSlug } from '@/lib/seo/states'
+import { STATE_NAMES } from '@/lib/workforce/places'
 import { TITLE_MIN_JOBS, TITLE_MIN_PAY, displayTitle, titleSlug, GENERIC_TITLES } from '@/lib/seo/job-title-rules'
 
 // Data for the salary pages (/salaries/<title>) and the job-title pages (/jobs/title/<title>), and the job-type pages
@@ -196,7 +197,8 @@ export async function getTitleDetail(slug: string): Promise<TitleDetail | null> 
   return {
     stat,
     jobs: await newestJobs([...rows].sort((a, b) => b.posted.getTime() - a.posted.getTime()).slice(0, 60).map((r) => r.id), 15),
-    states: [...byState].sort((a, b) => b[1].jobs - a[1].jobs).slice(0, 12).map(([code, e]) => ({ code, name: stateName(code), slug: stateSlug(code), jobs: e.jobs, median: e.pay.length >= 8 ? round(median(e.pay)) : null, payCount: e.pay.length })),
+    // A listing can carry a code that is not a state or DC (a territory, a typo); those have no state page.
+    states: [...byState].filter(([code]) => code in STATE_NAMES).sort((a, b) => b[1].jobs - a[1].jobs).slice(0, 12).map(([code, e]) => ({ code, name: stateName(code), slug: stateSlug(code), jobs: e.jobs, median: e.pay.length >= 8 ? round(median(e.pay)) : null, payCount: e.pay.length })),
     employers: [...byEmployer].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, jobs]) => ({ name, jobs })),
     related: data.stats.filter((t) => t.slug !== slug && t.base.split(' ').slice(-1)[0] === last).slice(0, 8),
   }
