@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
-import { getStateSummaries } from '@/lib/warn/layoff-pages'
+import { getLargestRecentEmployers, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { getNationalLaborData } from '@/lib/market/bls-national'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 
@@ -16,7 +16,12 @@ export const metadata: Metadata = pageMetadata('/layoffs')
 const LINK = 'text-brand underline underline-offset-4'
 
 export default async function LayoffsHubPage() {
-  const [tracker, national, states] = await Promise.all([getLayoffTracker(60), getNationalLaborData(), getStateSummaries().catch(() => [])])
+  const [tracker, national, states, employers] = await Promise.all([
+    getLayoffTracker(60),
+    getNationalLaborData(),
+    getStateSummaries().catch(() => []),
+    getLargestRecentEmployers(60).catch(() => []),
+  ])
   const withNotices = new Set(states.map((s) => s.state))
   const without = ALL_STATE_CODES.filter((c) => !withNotices.has(c))
   const byName = [...states].sort((a, b) => stateName(a.state).localeCompare(stateName(b.state)))
@@ -63,6 +68,39 @@ export default async function LayoffsHubPage() {
                 <Link href="/unemployment-benefits" className={LINK}>unemployment benefits pages</Link> are still available.
               </p>
             )}
+          </section>
+
+          {employers.length > 0 && (
+            <section aria-labelledby="employers" className="mt-16">
+              <h2 id="employers" className="text-2xl font-bold tracking-tight text-navy">Employers with the most workers named in WARN notices</h2>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                Over the last 12 months. Each page lists that employer’s notices by state, with dates, locations and the state record.
+              </p>
+              <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {employers.map((e) => (
+                  <li key={e.slug}>
+                    <Link href={`/layoffs/company/${e.slug}`} className="flex items-baseline justify-between gap-3 rounded-lg border border-border bg-white px-4 py-3 text-sm hover:border-brand">
+                      <span className="font-medium text-navy">{e.name} layoffs</span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">{e.workers > 0 ? `${e.workers.toLocaleString()} workers` : `${e.notices} ${e.notices === 1 ? 'notice' : 'notices'}`}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section aria-labelledby="local" className="mt-16">
+            <h2 id="local" className="text-2xl font-bold tracking-tight text-navy">Layoffs, jobs and workforce help by county and city</h2>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Every state, county and city page puts its layoff notices next to local unemployment, open jobs, the employers
+              hiring most, colleges and the nearest job centers.
+            </p>
+            <ul className="mt-6 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              {ALL_STATE_CODES.map((c) => (
+                <li key={c}><Link href={`/places/${stateSlug(c)}`} className={LINK}>{stateName(c)}</Link></li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm"><Link href="/places" className={LINK}>All local job markets</Link></p>
           </section>
 
           <section aria-labelledby="next" className="mt-16 rounded-xl border border-border bg-white p-6">

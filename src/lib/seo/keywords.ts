@@ -13,6 +13,8 @@
 
 import type { Metadata } from 'next'
 import { SITE_URL } from './facts'
+import { titleMeta } from '@/lib/seo/title'
+import { fitDescription } from '@/lib/seo/templates'
 
 export interface PageSeo {
   /** Without the " | NextChapter" suffix. 30-56 characters. */
@@ -65,6 +67,14 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     kind: 'page',
     primary: 'about NextChapter',
     secondary: ['nextchapter company', 'justin kulla', 'job transition company'],
+  },
+  {
+    id: 'careers',
+    intent: 'Jobs at NextChapter',
+    owner: '/careers',
+    kind: 'page',
+    primary: 'careers at NextChapter',
+    secondary: ['nextchapter jobs', 'work at nextchapter', 'nextchapter openings'],
   },
   {
     id: 'how-it-works',
@@ -316,7 +326,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/rapid-response',
     kind: 'page',
     primary: 'rapid response layoff services',
-    secondary: ['rapid response', 'rapid response team', 'layoff aversion', 'layoff support for employers', 'how to lay off employees', 'plan a layoff', 'state rapid response coordinator'],
+    secondary: ['rapid response', 'rapid response team', 'layoff aversion', 'layoff support for employers', 'plan a layoff', 'state rapid response coordinator'],
     seo: {
       title: 'Rapid Response and Layoff Support for Employers by State',
       description: 'Planning a layoff? Find your state’s rapid response team, workforce boards and American Job Centers, the federal WARN Act rules, and a free calculator for notice.',
@@ -493,7 +503,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/topics/resume-tips',
     kind: 'page',
     primary: 'resume tips for experienced professionals',
-    secondary: ['resume review', 'resume help', 'resume after layoff', 'executive resume', 'resume writing', 'resume summary', 'how to write a resume'],
+    secondary: ['resume help', 'resume after layoff', 'executive resume', 'resume writing', 'resume summary', 'how to write a resume'],
     seo: {
       title: 'Resume Tips for Experienced Professionals After a Layoff',
       description: 'What a resume has to do for an experienced professional: lead with results, explain a layoff or gap in one line, pass the screen and set up the interview.',
@@ -529,7 +539,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/resources/interview-prep',
     kind: 'page',
     primary: 'interview prep',
-    secondary: ['how to prepare for an interview', 'interview questions', 'behavioral interview', 'phone screen', 'final round interview', 'executive interview'],
+    secondary: ['how to prepare for an interview', 'behavioral interview', 'phone screen', 'final round interview', 'executive interview'],
     seo: {
       title: 'Interview Prep for Experienced Professionals, Stage by Stage',
       description: 'How to prepare for interviews at every stage, from the phone screen to the final round, and what changes as you move through the process.',
@@ -1003,6 +1013,58 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['{association} events', '{association} speaking opportunities'],
   },
 
+  // ---- Salaries and jobs by title and type (built from the open job listings) -------------------------------------
+  {
+    id: 'salaries-hub',
+    intent: 'What does a job pay',
+    owner: '/salaries',
+    kind: 'page',
+    primary: 'salary by job title',
+    secondary: ['average salary by job title', 'professional salaries', 'how much do jobs pay', 'job salary lookup', 'pay by profession'],
+    seo: {
+      title: 'Salary by Job Title: Median and Pay Range',
+      description: 'What professional jobs pay, from current listings that state a pay range: the median and middle half for each job title, annual in US dollars.',
+      h1: 'Salary by job title',
+    },
+  },
+  {
+    id: 'salary-page',
+    intent: 'What one job title pays',
+    owner: '/salaries/:slug',
+    kind: 'family',
+    primary: '{title} salary',
+    secondary: ['{title} average salary', '{title} pay range', 'how much does a {title} make', '{title} salary by state', '{title} median pay'],
+  },
+  {
+    id: 'jobs-title-hub',
+    intent: 'Browse open jobs by title',
+    owner: '/jobs/title',
+    kind: 'page',
+    primary: 'jobs by title',
+    secondary: ['job titles', 'open jobs by job title', 'job openings by profession'],
+    seo: {
+      title: 'Jobs by Title: Open Professional Roles',
+      description: 'Open professional jobs by job title, from employers’ own career sites and checked to still be open, with pay where listed.',
+      h1: 'Jobs by title',
+    },
+  },
+  {
+    id: 'jobs-title-page',
+    intent: 'Open jobs for one title',
+    owner: '/jobs/title/:slug',
+    kind: 'family',
+    primary: '{title} jobs',
+    secondary: ['{title} job openings', '{title} openings', '{title} jobs hiring now', '{title} jobs with salary'],
+  },
+  {
+    id: 'jobs-type-page',
+    intent: 'Remote, hybrid, contract, part-time or interim jobs',
+    owner: '/jobs/type/:type',
+    kind: 'family',
+    primary: '{type} professional jobs',
+    secondary: ['{type} jobs', 'remote jobs for managers', 'remote director jobs', 'contract jobs for professionals', 'part-time professional jobs', 'interim executive jobs', 'hybrid jobs'],
+  },
+
   // ---- Coaching and recruiters (candidate side) ------------------------------------------------------------------
   {
     id: 'career-coach',
@@ -1015,6 +1077,66 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
       title: 'Career Coach: Free AI Coach and a Human Executive Coach',
       description: 'Get a free AI career coach, Victoria, and add a human executive and professional career coach matched to your background and target role. Waitlist open.',
       h1: 'Career coach: a free AI coach, and a human executive coach when you want one',
+    },
+  },
+  {
+    id: 'laid-off-over-40',
+    intent: 'Laid off later in a career',
+    owner: '/topics/laid-off-over-40',
+    kind: 'page',
+    primary: 'laid off at 50',
+    secondary: ['laid off at 40', 'laid off over 50', 'laid off after 20 years', 'laid off later in life', 'age discrimination layoff', 'job search after 50'],
+    seo: {
+      title: 'Laid Off at 40, 50 or Older: What to Do Next',
+      description: 'Laid off later in a career? The protections that apply at 40 and older, how to run the search through your network, and how to show your skills are current.',
+    },
+  },
+  {
+    id: 'laid-off-no-savings',
+    intent: 'Laid off with little saved',
+    owner: '/topics/laid-off-no-savings',
+    kind: 'page',
+    primary: 'laid off with no savings',
+    secondary: ['laid off no money', 'help paying bills after layoff', 'laid off and need income now', 'laid off and a mortgage'],
+    seo: {
+      title: 'Laid Off With No Savings: What to Do First',
+      description: 'Laid off with little saved? Start income, protect your health coverage, cut costs and find programs that pay for what you need, in the right order.',
+    },
+  },
+  {
+    id: 'explain-a-layoff',
+    intent: 'Answer why you were laid off in an interview',
+    owner: '/topics/explain-a-layoff',
+    kind: 'page',
+    primary: 'how to explain a layoff in an interview',
+    secondary: ['why were you laid off interview answer', 'how to talk about a layoff', 'explain being laid off', 'interview question laid off'],
+    seo: {
+      title: 'How to Explain a Layoff in an Interview',
+      description: 'Say it in two sentences: the role was eliminated, what you delivered, what you want next. A simple structure, what to avoid, and what to say if you were fired.',
+    },
+  },
+  {
+    id: 'how-to-lay-off',
+    intent: 'Employer plans a layoff',
+    owner: '/topics/how-to-lay-off-employees',
+    kind: 'page',
+    primary: 'how to lay off employees',
+    secondary: ['layoff checklist for employers', 'layoff communication plan', 'layoff process', 'how to conduct a layoff', 'layoff meeting script'],
+    seo: {
+      title: 'How to Lay Off Employees: A Checklist for Employers',
+      description: 'A layoff checklist for employers: check WARN notice, choose roles by documented criteria, run the conversations plainly and support the people leaving.',
+    },
+  },
+  {
+    id: 'cover-letter',
+    intent: 'Write a cover letter',
+    owner: '/topics/cover-letter-tips',
+    kind: 'page',
+    primary: 'cover letter tips',
+    secondary: ['cover letter for experienced professionals', 'cover letter after layoff', 'cover letter for career change', 'how long should a cover letter be', 'do I need a cover letter'],
+    seo: {
+      title: 'Cover Letter Tips for Experienced Professionals',
+      description: 'A good cover letter is short: why this role, two results that match it and what you will do first. When to write one and how to explain a change or a layoff.',
     },
   },
   {
@@ -1039,6 +1161,54 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     seo: {
       title: 'Reverse Recruiter: What It Is and How It Compares',
       description: 'A reverse recruiter represents the job seeker instead of the employer. What they do, how they charge, what to ask, and how it compares with recruiters and coaches.',
+    },
+  },
+  {
+    id: 'resume-review',
+    intent: 'Get my resume reviewed',
+    owner: '/topics/resume-review',
+    kind: 'page',
+    primary: 'free resume review',
+    secondary: ['resume review', 'resume feedback', 'review my resume', 'is my resume good', 'resume critique', 'ats resume checker'],
+    seo: {
+      title: 'Free Resume Review: What to Check and Where to Get One',
+      description: 'How to review your resume yourself in fifteen minutes, where to get a free outside review, and what a good review should tell you before you apply.',
+    },
+  },
+  {
+    id: 'interview-questions',
+    intent: 'Answer common interview questions',
+    owner: '/topics/interview-questions-and-answers',
+    kind: 'page',
+    primary: 'interview questions and answers',
+    secondary: ['interview questions', 'common interview questions', 'tell me about yourself', 'behavioral interview questions', 'what is your biggest weakness', 'questions to ask the interviewer'],
+    seo: {
+      title: 'Common Interview Questions and How to Answer Them',
+      description: 'The interview questions experienced professionals get most, how to answer each in under two minutes, a structure for behavioral questions and what to ask back.',
+    },
+  },
+  {
+    id: 'career-advice',
+    intent: 'General career advice',
+    owner: '/topics/career-advice',
+    kind: 'page',
+    primary: 'career advice',
+    secondary: ['career advice for professionals', 'career guidance', 'career help', 'career development advice', 'how to advance your career', 'when to change jobs'],
+    seo: {
+      title: 'Career Advice for Experienced Professionals',
+      description: 'Practical career advice for experienced professionals: know your market, keep proof of your results current, stay connected and decide when to stay or move.',
+    },
+  },
+  {
+    id: 'problems-at-work',
+    intent: 'Deal with a problem at work',
+    owner: '/topics/problems-at-work',
+    kind: 'page',
+    primary: 'problems at work',
+    secondary: ['work problems', 'difficult boss', 'bad boss', 'micromanager', 'toxic workplace', 'burnout at work', 'passed over for promotion', 'conflict with coworker'],
+    seo: {
+      title: 'Problems at Work: Difficult Boss, Burnout, Passed Over',
+      description: 'What to do about a difficult boss, burnout, a micromanager or a missed promotion: document it, talk first, use the formal channel and line up options early.',
     },
   },
   {
@@ -1321,6 +1491,12 @@ export function pageSeo(path: string): PageSeo {
   return seo
 }
 
+/** `{ title, description }` as page metadata: the title gets the brand only when it fits in 60 (see title.ts). */
+export function pageSeoMeta(path: string): { title: Metadata['title']; description: string } {
+  const { title, description } = pageSeo(path)
+  return { title: titleMeta(title), description: fitDescription(description) }
+}
+
 /** The headline a page shows: the keyword map's H1 when it sets one, else the page's own. */
 export function pageH1(path: string, fallback: string): string {
   return clusterFor(path).seo?.h1 ?? fallback
@@ -1334,8 +1510,8 @@ export function pageMetadata(path: string): Metadata {
   const { title, description } = pageSeo(path)
   const url = path === '/' ? SITE_URL : `${SITE_URL}${path}`
   return {
-    title,
-    description,
+    title: titleMeta(title),
+    description: fitDescription(description),
     alternates: { canonical: path },
     openGraph: { type: 'website', siteName: 'NextChapter', locale: 'en_US', title, description, url },
     twitter: { card: 'summary_large_image', title, description },
@@ -1360,6 +1536,8 @@ export const ANCHORS: Record<string, string> = {
   '/resources/network-scripts': 'Networking email and message scripts',
   '/resources/narrative-workshop': 'Your career story: “tell me about yourself”',
   '/resources': 'Job search and layoff guides',
+  '/salaries': 'Salary by job title',
+  '/jobs/title': 'Jobs by title',
   '/tools': 'Free job search and layoff tools',
   '/tools/severance-calculator': 'Severance calculator',
   '/glossary': 'Layoff and job search glossary',
@@ -1367,6 +1545,11 @@ export const ANCHORS: Record<string, string> = {
   '/industries': 'Jobs by industry',
   '/functions': 'Jobs by function',
   '/conferences': 'Conferences and trade shows',
+  '/topics/laid-off-over-40': 'Laid off at 40, 50 or older',
+  '/topics/laid-off-no-savings': 'Laid off with no savings',
+  '/topics/explain-a-layoff': 'How to explain a layoff in an interview',
+  '/topics/how-to-lay-off-employees': 'How to lay off employees: employer checklist',
+  '/topics/cover-letter-tips': 'Cover letter tips',
   '/topics/severance': 'Severance package: what it is and how to negotiate',
   '/topics/job-search-strategy': 'Job search strategy',
   '/topics/resume-tips': 'Resume tips for experienced professionals',
@@ -1374,6 +1557,10 @@ export const ANCHORS: Record<string, string> = {
   '/topics/career-exploration': 'Career exploration',
   '/topics/executive-recruiters': 'Executive recruiters and search firms',
   '/topics/reverse-recruiter': 'Reverse recruiter',
+  '/topics/resume-review': 'Free resume review',
+  '/topics/interview-questions-and-answers': 'Common interview questions and answers',
+  '/topics/career-advice': 'Career advice for experienced professionals',
+  '/topics/problems-at-work': 'Problems at work',
   '/start/career-change': 'Career change',
   '/coaching': 'Career coach: free AI coach and human executive coach',
   '/submit-resume': 'Submit your resume to recruiters',
@@ -1420,18 +1607,27 @@ export const RELATED: Record<string, string[]> = {
   '/resources/network-activation': ['/resources/network-scripts', '/resources/ask-for-help', '/topics/job-search-strategy', '/topics/executive-recruiters'],
   '/resources/ask-for-help': ['/resources/network-scripts', '/resources/network-activation', '/resources/narrative-workshop'],
   '/resources/network-scripts': ['/resources/network-activation', '/resources/ask-for-help', '/topics/executive-recruiters'],
-  '/resources/interview-prep': ['/resources/post-interview', '/resources/narrative-workshop', '/resources/offer-letter', '/coaching'],
+  '/resources/interview-prep': ['/topics/interview-questions-and-answers', '/resources/post-interview', '/resources/narrative-workshop', '/resources/offer-letter', '/coaching'],
   '/resources/post-interview': ['/resources/interview-prep', '/resources/offer-letter', '/topics/job-search-strategy'],
   '/resources/thought-leadership': ['/resources/narrative-workshop', '/resources/network-activation', '/dossier'],
   '/resources/first-90-days': ['/resources/offer-letter', '/resources/interview-prep', '/coaching'],
+  '/topics/laid-off-over-40': ['/start/laid-off', '/topics/severance', '/topics/executive-recruiters', '/topics/resume-tips'],
+  '/topics/laid-off-no-savings': ['/unemployment-benefits', '/funding', '/resources/cobra-aca', '/resources/bridge-income'],
+  '/topics/explain-a-layoff': ['/topics/resume-tips', '/resources/interview-prep', '/resources/narrative-workshop', '/coaching'],
+  '/topics/how-to-lay-off-employees': ['/tools/warn-act-checker', '/rapid-response', '/outplacement', '/glossary'],
+  '/topics/cover-letter-tips': ['/topics/resume-tips', '/resources/narrative-workshop', '/resources/interview-prep'],
   '/topics/severance': ['/tools/severance-calculator', '/glossary', '/unemployment-benefits', '/resources/cobra-aca', '/resources/pre-exit', '/resources/72-hours', '/coaching'],
   '/tools/severance-calculator': ['/topics/severance', '/unemployment-benefits', '/resources/cobra-aca', '/resources/72-hours'],
   '/topics/job-search-strategy': ['/places', '/resources/unemployed', '/why-stuck', '/resources/network-activation', '/topics/resume-tips', '/jobs', '/coaching'],
-  '/topics/resume-tips': ['/resources/gatekeeper', '/resources/narrative-workshop', '/dossier', '/submit-resume', '/topics/job-search-strategy'],
+  '/topics/resume-tips': ['/topics/resume-review', '/resources/gatekeeper', '/resources/narrative-workshop', '/dossier', '/submit-resume', '/topics/job-search-strategy'],
   '/topics/career-pivot': ['/start/career-change', '/topics/career-exploration', '/funding', '/resources/narrative-workshop', '/coaching'],
   '/topics/career-exploration': ['/topics/career-pivot', '/start/career-change', '/ai-skills', '/funding', '/coaching'],
   '/topics/executive-recruiters': ['/topics/reverse-recruiter', '/submit-resume', '/resources/gatekeeper', '/resources/network-activation', '/scam-watch'],
   '/topics/reverse-recruiter': ['/topics/executive-recruiters', '/coaching', '/submit-resume', '/scam-watch', '/dossier'],
+  '/topics/resume-review': ['/topics/resume-tips', '/resources/gatekeeper', '/dossier', '/coaching', '/submit-resume'],
+  '/topics/interview-questions-and-answers': ['/resources/interview-prep', '/topics/explain-a-layoff', '/resources/narrative-workshop', '/resources/post-interview', '/coaching'],
+  '/topics/career-advice': ['/start/managing-my-career', '/topics/career-exploration', '/topics/career-pivot', '/topics/job-search-strategy', '/coaching'],
+  '/topics/problems-at-work': ['/start/thinking-about-a-move', '/start/promotion', '/start/managing-my-career', '/unemployment-benefits', '/coaching'],
 }
 
 /** The related links for an owner page, as { href, label } in the order the map lists them. */

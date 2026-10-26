@@ -19,7 +19,17 @@ const UTM_SOURCE_LABELS: Record<string, string> = {
   google: 'Google',
   youtube: 'YouTube',
   chatgpt: 'ChatGPT',
+  // ChatGPT appends ?utm_source=chatgpt.com to links it cites, so the domain
+  // form is the common one in the wild.
+  'chatgpt.com': 'ChatGPT',
   openai: 'ChatGPT',
+  perplexity: 'Perplexity',
+  'perplexity.ai': 'Perplexity',
+  gemini: 'Gemini',
+  claude: 'Claude',
+  copilot: 'Copilot',
+  // Set by Google's own job listings (Google for Jobs structured data), not by us.
+  google_jobs_apply: 'Google for Jobs',
   email: 'Email',
   facebook: 'Facebook',
   linkedin: 'LinkedIn',
@@ -41,9 +51,14 @@ const REFERRER_DOMAIN_LABELS: [domain: string, label: string][] = [
   ['chatgpt.com', 'ChatGPT'],
   ['chat.openai.com', 'ChatGPT'],
   ['perplexity.ai', 'Perplexity'],
+  ['claude.ai', 'Claude'],
   ['gemini.google.com', 'Gemini'],
   ['copilot.microsoft.com', 'Copilot'],
   ['bing.com', 'Bing'],
+  ['duckduckgo.com', 'DuckDuckGo'],
+  ['search.yahoo.com', 'Yahoo'],
+  ['ecosia.org', 'Ecosia'],
+  ['search.brave.com', 'Brave Search'],
   ['google.com', 'Google'],
   ['facebook.com', 'Facebook'],
   ['instagram.com', 'Instagram'],
@@ -109,4 +124,32 @@ export function classifyTrafficSource(path: string | null, referrer: string | nu
   }
 
   return `Other (${hostname})`
+}
+
+// Rolls the specific labels above into the handful of buckets the admin
+// Visitors report charts. Anything not named here (an "Other (host)" label,
+// a custom utm_source) lands in 'Other sites' so nothing silently vanishes.
+export type TrafficSourceGroup =
+  | 'AI assistants'
+  | 'Google for Jobs'
+  | 'Search engines'
+  | 'Social'
+  | 'Email'
+  | 'Direct'
+  | 'Internal'
+  | 'Other sites'
+
+const AI_ASSISTANTS = new Set(['ChatGPT', 'Perplexity', 'Gemini', 'Claude', 'Copilot'])
+const SEARCH_ENGINES = new Set(['Google', 'Bing', 'DuckDuckGo', 'Yahoo', 'Ecosia', 'Brave Search'])
+const SOCIAL = new Set(['YouTube', 'Facebook', 'Instagram', 'LinkedIn', 'Twitter/X', 'Reddit'])
+
+export function trafficSourceGroup(label: string): TrafficSourceGroup {
+  if (AI_ASSISTANTS.has(label)) return 'AI assistants'
+  if (label === 'Google for Jobs') return 'Google for Jobs'
+  if (SEARCH_ENGINES.has(label)) return 'Search engines'
+  if (SOCIAL.has(label)) return 'Social'
+  if (label === 'Email') return 'Email'
+  if (label === 'Direct') return 'Direct'
+  if (label === 'Internal') return 'Internal'
+  return 'Other sites'
 }

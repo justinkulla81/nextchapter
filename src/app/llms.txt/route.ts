@@ -25,6 +25,7 @@ export function GET() {
 ## For organizations
 
 - [For Organizations](${u('/for-organizations')}): one card for each portal: higher education, workforce, hiring, employees, outplacement, recruiters and coaches, each with its page and log in.
+- [Top employers](${u('/top-employers')}): which employers have the most open entry-level jobs, the most jobs that need no experience, the highest share of AI-skill jobs, and the biggest hirers in each function. Counted daily from verified open jobs; staffing and search firms excluded.
 - [Employers](${u('/employers')}): the three employer sections by employee lifecycle: Hiring for future employees, Employees for current ones, Outplacement for departing ones.
 - [Hiring](${u('/talent')}): post a role and see candidates who chose to be seen, with an evidence brief for each.
 - [Employees](${u('/employees')}): retention, and learning and development, reported as counts by team, never by person.
@@ -33,9 +34,12 @@ export function GET() {
 - [Government & Workforce](${u('/government-workforce')}): a workspace for workforce boards, economic development organizations and chambers, with live counts from our own data.
 - [Nonprofits & community organizations](${u('/nonprofits')}): the same free workspace after a verified claim; research partnerships are set up one at a time.
 - [Recruiters](${u('/recruiters')}): search candidates who chose to be found and submit them in your firm's logo.
+- [Search firms](${u('/search-firms')}): search firms, recruiting firms and staffing companies with open searches: a page for each with the roles it is recruiting for, specialties, places, posted pay and how long its searches stay open.
 - [Coaches](${u('/coaches')}): invite clients with a code, a pre-session brief and session notes.
 
 ## Research and data
+
+- [Employer pages](${u('/employers')}): one page per employer at /employers/<name>: open professional roles from its career site, what it hires for, posted pay against the market, where it hires. Updated daily; employers can claim their page.
 
 - [AI skills in job postings](${u('/ai-skills')}): which functions ask for AI skills, the advertised pay premium raw and like for like, and independent research by seniority. Updated weekly.
 - [AI training](${u('/ai-training')}): for colleges, workforce boards and employers, a measured AI-skill gap and the short courses that close it.
@@ -44,6 +48,9 @@ export function GET() {
 ${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${report.dek}\n` : ''}- [Layoff tracker](${u('/layoffs')}): WARN notices filed with state labor agencies, this year's totals, coverage notes and the BLS context, with a page for each state and employer.
 - [Local job markets](${u('/places')}): a page for every state and county and for each city with jobs, layoff notices, a college or a job center: unemployment, WARN layoff notices, open jobs, the employers hiring most, colleges, the workforce board and American Job Centers.
 - [Employer pages for current and former employees](${u('/layoffs')}): for each employer with a recent, sizeable WARN filing, the notices, open professional jobs in its state, unemployment benefits, retraining help and a way to join. Linked from each employer's layoff page.
+- [American Job Centers](${u('/job-centers')}): a page for each American Job Center, by state: the counties it serves, open professional jobs and entry-level roles there, colleges and other local help, address, hours and phone.
+- [Economic development organizations](${u('/economic-development')}): a page for each regional, county and state economic development organization, by state, with the area it serves and the jobs open there.
+- [Workforce boards](${u('/workforce-boards')}): a page for each local workforce development board with its counties, local unemployment, open jobs and job centers.
 - [Unemployment benefits by state](${u('/unemployment-benefits')}): maximum and minimum weekly benefit, weeks, waiting week, severance rules and where to file, for all 50 states and DC, from Department of Labor and state agency sources.
 - [Editorial standards](${u('/editorial-standards')}): how NextChapter researches and sources content, keeps it separate from what it sells, and handles corrections.
 

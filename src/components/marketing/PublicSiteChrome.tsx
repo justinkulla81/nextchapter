@@ -37,6 +37,9 @@ export function SiteNav({ current }: { current?: 'about' | 'news' | 'reports' })
         <Link href="/about" aria-current={current === 'about' ? 'page' : undefined} className={`${NAV_LINK} lg:inline-block`}>
           About
         </Link>
+        <TrackedLink href="/careers" event="careers_link_clicked" properties={{ placement: 'nav' }} className={`${NAV_LINK} lg:inline-block`}>
+          Careers
+        </TrackedLink>
         <Link href="/for-organizations" className="hidden text-sm font-semibold text-brand hover:text-navy sm:inline-block">
           For organizations →
         </Link>
@@ -93,11 +96,13 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           © {new Date().getFullYear()} NextChapter
           {' · '}<Link href="/about" className="underline underline-offset-4">About</Link>
           {' · '}<Link href="/contact" className="underline underline-offset-4">Contact</Link>
-          {' · '}<Link href="/careers" rel="nofollow" className="underline underline-offset-4">Careers</Link>
+          {' · '}<Link href="/careers" className="underline underline-offset-4">Careers</Link>
           {' · '}<Link href="/pricing" className="underline underline-offset-4">Plans</Link>
           {' · '}<Link href="/security" className="underline underline-offset-4">Security</Link>
           {' · '}<Link href="/scam-watch" className="underline underline-offset-4">Scam watch</Link>
           {' · '}<Link href="/news" className="underline underline-offset-4">News</Link>
+          {' · '}<Link href="/layoffs" className="underline underline-offset-4">Layoff tracker</Link>
+          {' · '}<Link href="/places" className="underline underline-offset-4">Local job markets</Link>
           {' · '}<Link href="/reports/latest" className="underline underline-offset-4">White Collar Employment Report</Link>
           {' · '}<Link href="/ai-skills" className="underline underline-offset-4">AI skills data</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>

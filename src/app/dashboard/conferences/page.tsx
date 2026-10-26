@@ -53,7 +53,6 @@ export default async function ConferencesPage() {
                   <div className="flex flex-wrap gap-2">
                     {pendingChanges > 0 && <Chip tone="warm">New details to confirm</Chip>}
                     {activeOpportunities > 0 && <Chip>{activeOpportunities} {activeOpportunities === 1 ? 'opportunity' : 'opportunities'} in progress</Chip>}
-                    {!series.published && <Chip>Waiting for review</Chip>}
                   </div>
                 </div>
                 <StatusSelect

@@ -54,7 +54,7 @@ export async function opportunitiesView(candidateId: string, f: OpportunityFilte
 
 export async function seriesDetail(candidateId: string, id: string) {
   const series = await prisma.conferenceEvent.findUnique({ where: { id } })
-  if (!series) return null
+  if (!series || series.rejectedAt) return null
   const uc = await prisma.userConference.findUnique({ where: { candidateId_seriesId: { candidateId, seriesId: id } }, include: { contactsMet: true } })
   // Unpublished entries (a Quick Add awaiting review) are visible only to members tracking them.
   if (!series.published && !uc) return null

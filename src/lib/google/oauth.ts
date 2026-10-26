@@ -7,6 +7,9 @@ import { adminGoogleClient } from '@/lib/google/admin-client'
 // redirect URI on whichever client is active, in Google Cloud Console.
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
+// webmasters.readonly (Search Console, read-only) feeds the admin Visitors page's
+// search-terms view; it is deliberately NOT in the callback's required-scopes list, so a
+// grant without it still connects Gmail/Calendar and only that one panel asks to reconnect.
 // Gmail read-only, Calendar write, plus openid+email — one consent grant
 // covers both GoogleInboxConnection (Market Pulse's inbox sweep, CRM's
 // email-activity sweep) and AdminGoogleCalendarConnection (CRM's meeting
@@ -22,7 +25,7 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 // sendGmailMessage will 403 until the admin reconnects (prompt=consent below
 // forces a fresh grant covering the new scope rather than silently reusing
 // the old one).
-const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/documents.readonly openid email'
+const SCOPE = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/webmasters.readonly openid email'
 
 function getRedirectUri(): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

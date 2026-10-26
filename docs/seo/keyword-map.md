@@ -9,12 +9,13 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-104 clusters, 633 phrases.
+119 clusters, 722 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
 | `/` | page | job transition platform | Find help after a layoff or while changing jobs; brand searches | job transition; job search help; free job search tools; help finding a job after a layoff; white collar job search; job search for experienced professionals; market reality assessment; nextchapter |
 | `/about` | page | about NextChapter | Who is NextChapter | nextchapter company; justin kulla; job transition company |
+| `/careers` | page | careers at NextChapter | Jobs at NextChapter | nextchapter jobs; work at nextchapter; nextchapter openings |
 | `/how-it-works` | page | how NextChapter works | How the product works | weekly job search plan; search sprint; job search action plan; job search score |
 | `/faq` | page | NextChapter FAQ | Product questions | is nextchapter free; nextchapter privacy |
 | `/pricing` | page | plans and pricing | What it costs | free job search platform; nextchapter plans; job search tools free |
@@ -35,7 +36,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/layoffs/company/:slug` | family | {company} layoffs | Layoffs at one employer | {company} WARN notice; {company} layoff dates; {company} layoff 2026 |
 | `/network/company/:slug` | family | {company} laid-off workers | What happens to workers laid off from one employer | former {company} employees; {company} laid off employees jobs; {company} severance and benefits; {company} alumni |
 | `/tools/warn-act-checker` | page | WARN Act checker | Employer asks whether WARN notice is required | WARN Act; WARN Act requirements; WARN Act 60 day notice; WARN Act calculator; mass layoff notice; reduction in force notice; plant closing notice; do I need to give WARN notice |
-| `/rapid-response` | page | rapid response layoff services | Employer planning a layoff looks for state support | rapid response; rapid response team; layoff aversion; layoff support for employers; how to lay off employees; plan a layoff; state rapid response coordinator |
+| `/rapid-response` | page | rapid response layoff services | Employer planning a layoff looks for state support | rapid response; rapid response team; layoff aversion; layoff support for employers; plan a layoff; state rapid response coordinator |
 | `/rapid-response/:state` | family | {state} rapid response layoff support | Employer layoff support in one state | {state} rapid response; {state} layoff support for employers; {state} WARN Act |
 | `/news` | page | layoff and job market news | Layoff and job-market news | layoff news; hiring news; job market news; AI layoffs news; labor market news |
 | `/reports` | page | white collar employment report | White-collar job market data | white collar jobs report; white collar job market; job market report; professional jobs report; hiring trends; job market 2026; unemployment rate for professionals |
@@ -50,10 +51,10 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/why-stuck` | page | why your job search isn’t working | Why is my search not working | why cant i find a job; not getting interviews; applications going nowhere; ghosted after applying; ats rejection; hard to find a job right now |
 | `/start/searching-too-long` | page | job search taking too long | Search has dragged on for months | been looking for a job for months; long-term unemployed; job search stalled; unemployed for a year |
 | `/resources/gatekeeper` | page | getting past ATS screens and recruiters | Get past recruiters and resume screening | applicant tracking system; ATS resume; resume screening; how recruiters screen resumes; get an interview; getting past the gatekeeper |
-| `/topics/resume-tips` | page | resume tips for experienced professionals | Write or fix a resume | resume review; resume help; resume after layoff; executive resume; resume writing; resume summary; how to write a resume |
+| `/topics/resume-tips` | page | resume tips for experienced professionals | Write or fix a resume | resume help; resume after layoff; executive resume; resume writing; resume summary; how to write a resume |
 | `/dossier` | page | executive dossier | Proof of work beyond a resume | professional portfolio; proof of work; verified references; career portfolio; resume alternative; candidate evidence |
 | `/membership` | page | membership between jobs | Keep a profile current between jobs | keep your dossier current; alumni membership; career maintenance |
-| `/resources/interview-prep` | page | interview prep | Prepare for interviews | how to prepare for an interview; interview questions; behavioral interview; phone screen; final round interview; executive interview |
+| `/resources/interview-prep` | page | interview prep | Prepare for interviews | how to prepare for an interview; behavioral interview; phone screen; final round interview; executive interview |
 | `/resources/post-interview` | page | follow up after an interview | What to do after an interview | thank you email after interview; interview thank you note; waiting to hear back; second interview follow up |
 | `/resources/offer-letter` | page | how to negotiate a job offer | Read and negotiate an offer | salary negotiation; offer letter; total compensation; negotiation script; job offer red flags; counteroffer |
 | `/resources/first-90-days` | page | first 90 days in a new job | Start well in a new job | new job first 90 days plan; starting a new role; onboarding yourself; first month at a new job |
@@ -92,9 +93,23 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/conferences/:slug` | family | {conference} dates and cost | One conference | {conference} speakers; {conference} call for speakers; {conference} registration |
 | `/associations` | page | industry associations | Industry associations and organizers | professional associations; conference organizers; event organizers |
 | `/associations/:slug` | family | {association} conferences | One association | {association} events; {association} speaking opportunities |
+| `/salaries` | page | salary by job title | What does a job pay | average salary by job title; professional salaries; how much do jobs pay; job salary lookup; pay by profession |
+| `/salaries/:slug` | family | {title} salary | What one job title pays | {title} average salary; {title} pay range; how much does a {title} make; {title} salary by state; {title} median pay |
+| `/jobs/title` | page | jobs by title | Browse open jobs by title | job titles; open jobs by job title; job openings by profession |
+| `/jobs/title/:slug` | family | {title} jobs | Open jobs for one title | {title} job openings; {title} openings; {title} jobs hiring now; {title} jobs with salary |
+| `/jobs/type/:type` | family | {type} professional jobs | Remote, hybrid, contract, part-time or interim jobs | {type} jobs; remote jobs for managers; remote director jobs; contract jobs for professionals; part-time professional jobs; interim executive jobs; hybrid jobs |
 | `/coaching` | page | career coach | Find a career coach | professional coach; executive coach; career coaching; AI career coach; job search coach; executive coaching for job seekers; find a career coach; online career coach; free career coach |
+| `/topics/laid-off-over-40` | page | laid off at 50 | Laid off later in a career | laid off at 40; laid off over 50; laid off after 20 years; laid off later in life; age discrimination layoff; job search after 50 |
+| `/topics/laid-off-no-savings` | page | laid off with no savings | Laid off with little saved | laid off no money; help paying bills after layoff; laid off and need income now; laid off and a mortgage |
+| `/topics/explain-a-layoff` | page | how to explain a layoff in an interview | Answer why you were laid off in an interview | why were you laid off interview answer; how to talk about a layoff; explain being laid off; interview question laid off |
+| `/topics/how-to-lay-off-employees` | page | how to lay off employees | Employer plans a layoff | layoff checklist for employers; layoff communication plan; layoff process; how to conduct a layoff; layoff meeting script |
+| `/topics/cover-letter-tips` | page | cover letter tips | Write a cover letter | cover letter for experienced professionals; cover letter after layoff; cover letter for career change; how long should a cover letter be; do I need a cover letter |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
 | `/topics/reverse-recruiter` | page | reverse recruiter | Have someone represent me to employers | reverse recruiting; reverse recruiting services; candidate marketing; job search representation; someone to find jobs for me; recruiter that works for the candidate |
+| `/topics/resume-review` | page | free resume review | Get my resume reviewed | resume review; resume feedback; review my resume; is my resume good; resume critique; ats resume checker |
+| `/topics/interview-questions-and-answers` | page | interview questions and answers | Answer common interview questions | interview questions; common interview questions; tell me about yourself; behavioral interview questions; what is your biggest weakness; questions to ask the interviewer |
+| `/topics/career-advice` | page | career advice | General career advice | career advice for professionals; career guidance; career help; career development advice; how to advance your career; when to change jobs |
+| `/topics/problems-at-work` | page | problems at work | Deal with a problem at work | work problems; difficult boss; bad boss; micromanager; toxic workplace; burnout at work; passed over for promotion; conflict with coworker |
 | `/submit-resume` | page | submit resume to recruiters | Put my resume in front of recruiters | send my resume to recruiters; get recruiters to find me; resume submission; recruiter introductions |
 | `/scam-watch` | page | fake recruiter scams | Is this recruiter or job offer fake | job scam; recruiter scam; fake job offer; is this recruiter real; linkedin recruiter scam; job offer scam email |
 | `/for-managers/give-a-reference` | page | give a reference for an employee you let go | Manager wants to give a reference after a layoff | reference for a former employee; write a reference after a layoff; manager reference; recommendation for a laid off employee |
@@ -487,11 +502,48 @@ Title is shown before the site suffix " | NextChapter".
 - Description: Industry associations and event organizers that run two or more conferences in the NextChapter catalog, with their dates, costs and calls for speakers.
 - H1: Industry associations and conference organizers
 
+### `/salaries`
+
+- Title: Salary by Job Title: Median and Pay Range
+- Description: What professional jobs pay, from current listings that state a pay range: the median and middle half for each job title, annual in US dollars.
+- H1: Salary by job title
+
+### `/jobs/title`
+
+- Title: Jobs by Title: Open Professional Roles
+- Description: Open professional jobs by job title, from employers’ own career sites and checked to still be open, with pay where listed.
+- H1: Jobs by title
+
 ### `/coaching`
 
 - Title: Career Coach: Free AI Coach and a Human Executive Coach
 - Description: Get a free AI career coach, Victoria, and add a human executive and professional career coach matched to your background and target role. Waitlist open.
 - H1: Career coach: a free AI coach, and a human executive coach when you want one
+
+### `/topics/laid-off-over-40`
+
+- Title: Laid Off at 40, 50 or Older: What to Do Next
+- Description: Laid off later in a career? The protections that apply at 40 and older, how to run the search through your network, and how to show your skills are current.
+
+### `/topics/laid-off-no-savings`
+
+- Title: Laid Off With No Savings: What to Do First
+- Description: Laid off with little saved? Start income, protect your health coverage, cut costs and find programs that pay for what you need, in the right order.
+
+### `/topics/explain-a-layoff`
+
+- Title: How to Explain a Layoff in an Interview
+- Description: Say it in two sentences: the role was eliminated, what you delivered, what you want next. A simple structure, what to avoid, and what to say if you were fired.
+
+### `/topics/how-to-lay-off-employees`
+
+- Title: How to Lay Off Employees: A Checklist for Employers
+- Description: A layoff checklist for employers: check WARN notice, choose roles by documented criteria, run the conversations plainly and support the people leaving.
+
+### `/topics/cover-letter-tips`
+
+- Title: Cover Letter Tips for Experienced Professionals
+- Description: A good cover letter is short: why this role, two results that match it and what you will do first. When to write one and how to explain a change or a layoff.
 
 ### `/topics/executive-recruiters`
 
@@ -502,6 +554,26 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: Reverse Recruiter: What It Is and How It Compares
 - Description: A reverse recruiter represents the job seeker instead of the employer. What they do, how they charge, what to ask, and how it compares with recruiters and coaches.
+
+### `/topics/resume-review`
+
+- Title: Free Resume Review: What to Check and Where to Get One
+- Description: How to review your resume yourself in fifteen minutes, where to get a free outside review, and what a good review should tell you before you apply.
+
+### `/topics/interview-questions-and-answers`
+
+- Title: Common Interview Questions and How to Answer Them
+- Description: The interview questions experienced professionals get most, how to answer each in under two minutes, a structure for behavioral questions and what to ask back.
+
+### `/topics/career-advice`
+
+- Title: Career Advice for Experienced Professionals
+- Description: Practical career advice for experienced professionals: know your market, keep proof of your results current, stay connected and decide when to stay or move.
+
+### `/topics/problems-at-work`
+
+- Title: Problems at Work: Difficult Boss, Burnout, Passed Over
+- Description: What to do about a difficult boss, burnout, a micromanager or a missed promotion: document it, talk first, use the formal channel and line up options early.
 
 ### `/submit-resume`
 

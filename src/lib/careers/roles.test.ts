@@ -53,6 +53,18 @@ describe('career roles', () => {
     expect(tech?.required.join(' ')).toMatch(/required/i)
   })
 
+  it('asks for AI in every job, and says no experience is needed in every junior one', () => {
+    for (const r of JOBS) {
+      expect(r.required.join(' '), `${r.slug} AI`).toMatch(/\bAI\b/)
+      if (r.yearsMin === null) expect(r.required.join(' '), `${r.slug} no experience`).toMatch(/no experience needed/i)
+    }
+    for (const slug of ['sales-development-representative', 'internship', 'associate-program']) {
+      const r = getRole(slug)!
+      expect(r.yearsMin, slug).toBeNull()
+      expect(r.summary, slug).toMatch(/No experience needed/)
+    }
+  })
+
   it('finds a role by slug and returns undefined for an unknown one', () => {
     expect(getRole('editorial-lead')?.title).toBe('Editorial lead')
     expect(getRole('nope')).toBeUndefined()
