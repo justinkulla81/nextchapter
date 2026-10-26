@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { PORTAL_APP_SUBROUTES } from '@/lib/supabase/portal'
+import { HEAVY_PAGES_PAUSED, PAUSED_HEAVY_PREFIXES } from '@/lib/paused-pages'
 
 const siteUrl = 'https://launchyournextchapter.com'
 
@@ -31,12 +32,14 @@ const disallow = [
 ]
 
 export default function robots(): MetadataRoute.Robots {
+  // While the heavy pages are paused (see src/proxy.ts), tell crawlers not to ask for them.
+  const paused = HEAVY_PAGES_PAUSED() ? PAUSED_HEAVY_PREFIXES : []
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow,
+        disallow: [...disallow, ...paused],
       },
       // Explicitly welcome AI answer-engine / assistant crawlers — several
       // of these are conservative and skip sites that don't explicitly
@@ -74,7 +77,7 @@ export default function robots(): MetadataRoute.Robots {
           'Bingbot',
         ])],
         allow: '/',
-        disallow,
+        disallow: [...disallow, ...paused],
       },
       // Aggressive, low-value crawlers: one request every few seconds is enough. Google ignores Crawl-delay (its
       // rate is set in Search Console); Bing and these honor it, which keeps the database free for visitors.
