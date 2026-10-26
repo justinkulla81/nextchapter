@@ -1,4 +1,5 @@
 import { claimSlug } from '@/lib/org-claims/urls'
+import { isUsableFirmSlug } from '@/lib/seo/search-firm-bar'
 
 export const STAFFING_INDUSTRY = 'Staffing & Human Capital'
 
@@ -11,5 +12,5 @@ export function isSearchFirmOrg(o: { orgTypes: string[]; hasSearchFirm: boolean;
 export function searchFirmPublicPath(o: { canonicalNameNormalized: string; orgTypes: string[]; hasSearchFirm: boolean; companyIndustry: string | null }): string | null {
   if (!isSearchFirmOrg(o)) return null
   const slug = claimSlug(o.canonicalNameNormalized)
-  return slug ? `/search-firms/${slug}` : null
+  return isUsableFirmSlug(slug) ? `/search-firms/${slug}` : null
 }

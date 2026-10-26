@@ -7,11 +7,12 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { JOB_TYPES, getJobTypeDetail } from '@/lib/seo/job-titles'
 import { usd } from '@/lib/seo/job-title-rules'
 import { jobTypeSeo } from '@/lib/seo/templates'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 3600
 export const dynamicParams = true
 export function generateStaticParams() {
-  return JOB_TYPES.map((t) => ({ type: t.slug }))
+  return []
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ type: string }> }): Promise<Metadata> {
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ type: str
   const d = await getJobTypeDetail(type)
   if (!d) return { title: 'Jobs not found', robots: { index: false, follow: true } }
   const seo = jobTypeSeo(d.type.name, d.type.noun, d.total)
-  return { title: seo.title, description: seo.description, ...canonical(`/jobs/type/${type}`) }
+  return { title: titleMeta(seo.title), description: seo.description, ...canonical(`/jobs/type/${type}`) }
 }
 
 export default async function JobTypePage({ params }: { params: Promise<{ type: string }> }) {

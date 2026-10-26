@@ -1,11 +1,13 @@
 import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
+import Link from 'next/link'
+import { LINK, JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, associationSlug, functionBySlug, JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { conferencesForFunction, getAssociations, getFunctionNotices, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -41,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     d.notices.length ? `${d.notices.length.toLocaleString()} layoff notices at employers hiring for it` : null,
   ].filter(Boolean)
   return {
-    title: `${d.fn.name} jobs, conferences and layoffs`,
+    title: titleMeta(`${d.fn.name} jobs, conferences and layoffs`),
     description: fitDescription(`${d.fn.blurb} ${bits.length ? `${bits.join(', ')}, ` : ''}associations and the industries that hire for it.`.replace(/\s+/g, ' ').trim(), 165),
     ...canonical(`/functions/${slug}`),
   }
@@ -78,6 +80,7 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
           <Chips kind="function_to_employer" event="topic_link_clicked" items={jobs.employers.map((e) => ({ href: `/employers/${e.slug}`, label: e.name, detail: `${e.count.toLocaleString()} open` }))} />
         </Section>
       )}
+      <p className="mt-4 text-sm"><Link href={`/top-employers/${slug}`} className={LINK}>Ranked: the employers hiring the most {fn.name.toLowerCase()} jobs</Link></p>
       <Section id="conferences" title={`${fn.name} conferences`} note="Conferences organizers tag for this function. Many events are not tagged to a function yet, so this list is a floor.">
         <ConferenceList rows={confs.rows} total={confs.total} upcoming={confs.upcoming} source={`function:${slug}`} />
       </Section>

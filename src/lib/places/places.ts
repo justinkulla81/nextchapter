@@ -315,24 +315,35 @@ async function recentJobs(state: string, cityNames: string[], limit = 10): Promi
 }
 
 const SIZE_LABEL: Record<string, string> = { MID_LARGE: '1,001–5,000 employees', LARGE: '5,001–20,000 employees', ENTERPRISE: '20,001–100,000 employees', MEGA: '100,000+ employees' }
-const SIZE_ORDER = ['MEGA', 'ENTERPRISE', 'LARGE', 'MID_LARGE']
 
-export interface HqEmployer { name: string; size: string; href: string | null }
+export interface HqEmployer { name: string; size: string; href: string | null; employees: number | null }
 
-/** Large employers headquartered in a state (or a city in it), from the company directory's size bands. Estimated sizes. */
+const roundedCount = (n: number) => (n >= 10_000 ? Math.round(n / 1000) * 1000 : n >= 1000 ? Math.round(n / 100) * 100 : n)
+
+/**
+ * Large employers headquartered in a state (or a city in it). Ranked by a published employee count where we have one
+ * (CompanyHeadcount: figure, year and source), then by the company directory's estimated size band.
+ */
 async function largeEmployersHeadquartered(state: string, cityKeyNames: string[] | null, limit = 12): Promise<HqEmployer[]> {
-  const rows = await prisma.$queryRaw<{ name: string; band: string; cn: string; cid: string; linkable: boolean | null }[]>`
-    SELECT c.name, c."sizeBand"::text AS band, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable
+  const rows = await prisma.$queryRaw<{ name: string; band: string | null; cn: string; cid: string; linkable: boolean | null; emp: number | null; yr: number | null }[]>`
+    SELECT c.name, c."sizeBand"::text AS band, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable,
+           hc.employees AS emp, hc."asOfYear" AS yr
     FROM "CompanyHq" h
     JOIN "Company" c ON c.id = h."companyId"
     LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
+    LEFT JOIN "CompanyHeadcount" hc ON hc."companyId" = c.id
     WHERE h.state = ${state} AND h.confidence IN ('high', 'medium')
-      AND c."sizeBand"::text IN ('MID_LARGE', 'LARGE', 'ENTERPRISE', 'MEGA')
+      AND (c."sizeBand"::text IN ('MID_LARGE', 'LARGE', 'ENTERPRISE', 'MEGA') OR hc.employees >= 1000)
       ${cityKeyNames ? Prisma.sql`AND lower(h.city) = ANY(${cityKeyNames})` : Prisma.empty}
-    ORDER BY array_position(ARRAY['MEGA','ENTERPRISE','LARGE','MID_LARGE'], c."sizeBand"::text), c.name
+    ORDER BY hc.employees DESC NULLS LAST,
+             array_position(ARRAY['MEGA','ENTERPRISE','LARGE','MID_LARGE'], c."sizeBand"::text), c.name
     LIMIT ${limit}`
-  void SIZE_ORDER
-  return rows.map((r) => ({ name: r.name, size: SIZE_LABEL[r.band] ?? '', href: r.linkable ? `/employers/${employerSlug(r.cn, r.cid)}` : null }))
+  return rows.map((r) => ({
+    name: r.name,
+    employees: r.emp,
+    size: r.emp ? `about ${roundedCount(r.emp).toLocaleString('en-US')} employees (${r.yr})` : SIZE_LABEL[r.band ?? ''] ?? '',
+    href: r.linkable ? `/employers/${employerSlug(r.cn, r.cid)}` : null,
+  }))
 }
 
 /** Lowercase spellings a city might carry on a job: Census key and display name. */

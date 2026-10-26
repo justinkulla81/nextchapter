@@ -98,6 +98,8 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           {' · '}<Link href="/security" className="underline underline-offset-4">Security</Link>
           {' · '}<Link href="/scam-watch" className="underline underline-offset-4">Scam watch</Link>
           {' · '}<Link href="/news" className="underline underline-offset-4">News</Link>
+          {' · '}<Link href="/layoffs" className="underline underline-offset-4">Layoff tracker</Link>
+          {' · '}<Link href="/places" className="underline underline-offset-4">Local job markets</Link>
           {' · '}<Link href="/reports/latest" className="underline underline-offset-4">White Collar Employment Report</Link>
           {' · '}<Link href="/ai-skills" className="underline underline-offset-4">AI skills data</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>

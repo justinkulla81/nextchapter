@@ -13,6 +13,7 @@ import {
   SEARCH_FIRM_MIN_PUBLIC_ROLES,
   firmKind,
   isSearchFirmIndexable,
+  isUsableFirmSlug,
   summarizeSearches,
   yearlyRange,
   type FirmKind,
@@ -58,6 +59,7 @@ function toRow(r: Prisma.ExclusiveJobPostingGetPayload<{ select: typeof SELECT }
 const SELECT = { ...PUBLIC_JOB_SELECT, level: true, targetFunction: true, industry: true, aiSkillGroups: true } satisfies Prisma.ExclusiveJobPostingSelect
 
 export const getSearchFirmBySlug = cache(async (slug: string): Promise<SearchFirmPage | null> => {
+  if (!isUsableFirmSlug(slug)) return null
   const claim = await resolveClaimableOrg(slug)
   if (!claim) return null
   const org = await prisma.crmOrganization.findUnique({
@@ -166,7 +168,7 @@ async function loadFirmListings(): Promise<FirmListing[]> {
     const publicRoles = rows.length
     if (!isSearchFirmIndexable(publicRoles)) continue
     const slug = claimSlug(rows[0].canon)
-    if (!slug) continue
+    if (!isUsableFirmSlug(slug)) continue
     const count = (pick: (r: HitRow) => string | null, take: number) => {
       const m = new Map<string, number>()
       for (const r of rows) { const v = pick(r); if (v) m.set(v, (m.get(v) ?? 0) + 1) }

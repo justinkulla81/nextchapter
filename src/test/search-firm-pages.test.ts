@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  SEARCH_FIRM_MIN_PUBLIC_ROLES, firmKind, isSearchFirmIndexable, specialties, summarizeSearches, yearlyRange, type SearchRow,
+  SEARCH_FIRM_MIN_PUBLIC_ROLES, firmKind, isSearchFirmIndexable, isUsableFirmSlug, specialties, summarizeSearches, yearlyRange, type SearchRow,
 } from '@/lib/seo/search-firm-bar'
 import { planSearchFirmPings } from '@/lib/syndication/search-firm-ping'
 import { isSearchFirmOrg, searchFirmPublicPath } from '@/lib/seo/search-firm-link'
@@ -16,6 +16,14 @@ describe('page bar', () => {
     expect(isSearchFirmIndexable(SEARCH_FIRM_MIN_PUBLIC_ROLES - 1)).toBe(false)
     expect(isSearchFirmIndexable(SEARCH_FIRM_MIN_PUBLIC_ROLES)).toBe(true)
     expect(isSearchFirmIndexable(0)).toBe(false)
+  })
+})
+
+describe('usable slug', () => {
+  it('rejects empty and scraped-text slugs', () => {
+    expect(isUsableFirmSlug('robert-half')).toBe(true)
+    expect(isUsableFirmSlug(null)).toBe(false)
+    expect(isUsableFirmSlug('a-'.repeat(60) + 'b')).toBe(false)
   })
 })
 

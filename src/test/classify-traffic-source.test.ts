@@ -43,3 +43,24 @@ describe('classifyTrafficSource', () => {
     expect(classifyTrafficSource('/', 'not-a-real-url')).toBe('Direct')
   })
 })
+
+import { trafficSourceGroup } from '@/lib/marketing/classify-traffic-source'
+
+describe('AI and search sources', () => {
+  it('labels Gemini, Claude, Perplexity and DuckDuckGo referrers', () => {
+    expect(classifyTrafficSource('/', 'https://gemini.google.com/')).toBe('Gemini')
+    expect(classifyTrafficSource('/', 'https://claude.ai/')).toBe('Claude')
+    expect(classifyTrafficSource('/', 'https://www.perplexity.ai/search')).toBe('Perplexity')
+    expect(classifyTrafficSource('/', 'https://duckduckgo.com/')).toBe('DuckDuckGo')
+  })
+  it('reads the utm_source ChatGPT appends and the Google for Jobs tag', () => {
+    expect(classifyTrafficSource('/jobs/abc?utm_source=chatgpt.com', null)).toBe('ChatGPT')
+    expect(classifyTrafficSource('/jobs/abc?utm_source=google_jobs_apply&utm_campaign=x', 'https://www.google.com/')).toBe('Google for Jobs')
+  })
+  it('rolls labels into groups', () => {
+    expect(trafficSourceGroup('Gemini')).toBe('AI assistants')
+    expect(trafficSourceGroup('Google')).toBe('Search engines')
+    expect(trafficSourceGroup('Google for Jobs')).toBe('Google for Jobs')
+    expect(trafficSourceGroup('Other (jooble.org)')).toBe('Other sites')
+  })
+})

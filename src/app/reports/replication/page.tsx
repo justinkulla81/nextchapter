@@ -7,6 +7,7 @@ import { SITE_URL } from '@/lib/reports'
 import {
   OPEN_DATA_LEAVE_BEHIND, OPEN_DATA_LIMITATIONS, OPEN_DATA_SCRIPTS, OPEN_DATA_SOURCES, REPLICATION_REPO_URL,
 } from '@/lib/marketing/open-data'
+import { titleMeta } from '@/lib/seo/title'
 
 const URL = `${SITE_URL}/reports/replication`
 const REPO_URL = REPLICATION_REPO_URL
@@ -16,7 +17,7 @@ const DESCRIPTION =
   'Code, parameters and derived data to reproduce the NextChapter White Collar Employment Report: the White-Collar Long-Search Index, CPS breakdowns, margins of error, SEC AI coding and more.'
 
 export const metadata: Metadata = {
-  title: { absolute: 'White Collar Employment Report: replication materials | NextChapter' },
+  title: titleMeta('White Collar Employment Report: replication materials'),
   description: DESCRIPTION,
   alternates: { canonical: URL },
   openGraph: {
