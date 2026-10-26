@@ -1,16 +1,14 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { SITE_URL } from '@/lib/seo/facts'
-import { employerSlug } from '@/lib/seo/employer-slug'
 import { stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { NONPROFIT_MIN_REVENUE, nonprofitSlug } from '@/lib/seo/nonprofit-pages'
-import { EMPLOYER_MIN_OPEN_ROLES } from '@/lib/seo/employer-pages'
 
-// The public page a CRM organization has on launchyournextchapter.com, for the "Public page" link on its CRM
-// record: the employer page, the workforce board page, the college's state page, the nonprofit page or the
-// state's economic development page. Null when the organization has none. Admin-only: nothing here is shown
+// The public page a CRM organization has on launchyournextchapter.com, for the link under its name on the CRM
+// record: the workforce board page, the college's state page, the nonprofit page or the state's economic
+// development page (employer and claim pages are in src/lib/crm/public-page.ts). Null when the organization has none. Admin-only: nothing here is shown
 // to candidates.
 
 export interface PublicPageLink { url: string; label: string; indexed: boolean }
@@ -21,17 +19,7 @@ const cleanPartner = (n: string) => n.replace(/\s*\((listed by[^)]*|[A-Z]{2} DLG
 const link = (path: string, label: string, indexed = true): PublicPageLink => ({ url: `${SITE_URL}${path}`, label, indexed })
 
 export async function publicPageForOrg(org: OrgRef): Promise<PublicPageLink | null> {
-  // Employer: its page exists when it has any hiring profile or layoff record; it is indexed past the bar.
-  if (org.companyId) {
-    const c = await prisma.company.findUnique({
-      where: { id: org.companyId },
-      select: { id: true, canonicalNameNormalized: true, hiringProfile: { select: { openNow: true } }, _count: { select: { warnNotices: { where: { dismissedAt: null, source: 'WARN_FILING' } } } } },
-    })
-    if (c && (c.hiringProfile || c._count.warnNotices > 0)) {
-      const open = c.hiringProfile?.openNow ?? 0
-      return link(`/employers/${employerSlug(c.canonicalNameNormalized, c.id)}`, 'Employer page', open >= EMPLOYER_MIN_OPEN_ROLES || c._count.warnNotices > 0)
-    }
-  }
+  // Employer pages are listed by the "Public page" field in the Data section (src/lib/crm/public-page.ts).
 
   if (org.orgTypes.includes('UNIVERSITY')) {
     const col = await prisma.localCollege.findFirst({ where: { crmOrgId: org.id }, select: { state: true, sector: true } })

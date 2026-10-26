@@ -43,6 +43,14 @@ export function GET() {
     )
   }
 
+  parts.push(
+    [
+      '# Search firm pages',
+      `URL: ${SITE_URL}/search-firms`,
+      `Every search firm, recruiting firm and staffing company with open searches on our job board has a page at ${SITE_URL}/search-firms/<name>. A page shows the roles the firm is recruiting for now (only roles with a public listing), the specialties its live searches point to (function and industry), the states it recruits in, how many searches are entry level or name AI skills, the median posted pay where roles state one, and how many days its searches have been open. Searches a firm runs in confidence, and their clients, are never shown. The hub lists firms by type (retained, contingent, nonprofit and higher-ed, staffing, outplacement) and by state. Pages refresh daily from our own job board.`,
+    ].join('\n\n'),
+  )
+
   for (const t of TOPICS) {
     parts.push(
       [

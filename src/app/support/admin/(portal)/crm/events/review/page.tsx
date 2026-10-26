@@ -3,19 +3,19 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { nameKey } from '@/lib/conferences/canonical'
 import { OPPORTUNITY_LABEL, type OpportunityType } from '@/lib/conferences/constants'
-import { approveEntry, mergeEntry, resolveChangeAdmin } from './actions'
+import { approveEntry, mergeEntry, rejectEntry, resolveChangeAdmin } from './actions'
 import { SectionTitle } from '@/components/admin/Collapsible'
 
 export const maxDuration = 30
 
 /** Catalog review: new Quick Add entries, likely duplicates, and changes the weekly re-check found. */
-export default async function ReviewPage({ searchParams }: { searchParams: Promise<{ merged?: string; error?: string }> }) {
+export default async function ReviewPage({ searchParams }: { searchParams: Promise<{ merged?: string; error?: string; rejected?: string; failed?: string }> }) {
   await requireAdmin()
   const sp = await searchParams
   const [pending, changes, all] = await Promise.all([
-    prisma.conferenceEvent.findMany({ where: { source: 'quick-add', published: false }, orderBy: { createdAt: 'asc' }, include: { opportunities: { select: { type: true, title: true } }, _count: { select: { editions: true } } }, take: 100 }),
+    prisma.conferenceEvent.findMany({ where: { source: 'quick-add', published: false, rejectedAt: null }, orderBy: { createdAt: 'asc' }, include: { opportunities: { select: { type: true, title: true } }, _count: { select: { editions: true } } }, take: 100 }),
     prisma.conferenceChange.findMany({ where: { status: 'PENDING' }, orderBy: { createdAt: 'asc' }, include: { series: { select: { id: true, name: true } } }, take: 100 }),
-    prisma.conferenceEvent.findMany({ select: { id: true, name: true, urlKey: true, published: true } }),
+    prisma.conferenceEvent.findMany({ where: { rejectedAt: null }, select: { id: true, name: true, urlKey: true, published: true } }),
   ]).catch(() => [[], [], []] as const)
   const trackers = pending.length ? await prisma.userConference.groupBy({ by: ['seriesId'], where: { seriesId: { in: pending.map((p) => p.id) } }, _count: { _all: true } }) : []
   const tracked = new Map(trackers.map((t) => [t.seriesId, t._count._all]))
@@ -35,10 +35,12 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Conference catalog review</h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Entries members added by link wait here, unpublished. Approve what you have checked, merge duplicates, and confirm what the weekly re-check found.
+          Entries members added by link are on those members&apos; lists straight away and wait here, unpublished, for your review. Approve what you have checked, merge duplicates, and confirm what the weekly re-check found.
           Fix tags first in <Link href="/support/admin/crm/events" className="underline">Events</Link>. Only public conference facts are ever shared; members&apos; status and notes never are.
         </p>
         {sp.merged && <p className="text-sm font-medium">{sp.merged === '1' ? 'Merged.' : 'Nothing merged: pick a different event to keep.'}</p>}
+        {sp.rejected !== undefined && <p className="text-sm font-medium">Rejected. {sp.rejected} {sp.rejected === '1' ? 'member was' : 'members were'} told{sp.failed && sp.failed !== '0' ? `, but ${sp.failed} email${sp.failed === '1' ? '' : 's'} could not be sent` : ''}.</p>}
+        {sp.error === 'reason' && <p className="text-sm text-red-700">To reject, write the reason. It goes to the members who added it.</p>}
         {sp.error === 'merge' && <p className="text-sm text-red-700">To merge, choose the event to keep and tick the confirmation box.</p>}
       </header>
 
@@ -53,6 +55,11 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
               <div className="flex flex-wrap items-center gap-2">
                 <form action={approveEntry}><input type="hidden" name="id" value={p.id} /><button className={btn}>Approve and publish</button></form>
                 <Link href={`/support/admin/crm/events/${p.id}`} className={btn}>Edit tags</Link>
+                <form action={rejectEntry} className="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="id" value={p.id} />
+                  <input name="reason" placeholder="Why (sent to the members who added it)" aria-label={`Reason for rejecting ${p.name}`} className={`${input} w-72`} />
+                  <button className={btn}>Reject and tell them</button>
+                </form>
                 <form action={mergeEntry} className="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="sourceId" value={p.id} />
                   <select name="targetId" defaultValue="" aria-label={`Merge ${p.name} into`} className={input}>

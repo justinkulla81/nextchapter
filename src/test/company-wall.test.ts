@@ -144,7 +144,8 @@ describe('no indirect route from CRM data to a candidate', () => {
     // Organization claim pages (owner-requested 2026-10-23). They show a public page for a CRM organization: its name, the state/county its
     // layoff figures are for, and (as a hint) the email domain a claimant must use. No CRM person, note, status or contact is read for display.
     'src/lib/seo/nonprofit-pages.ts': 'public nonprofit pages: reads only the linked CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
-    'src/lib/seo/employer-pages.ts':'public employer pages: reads only the linked CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
+    'src/lib/seo/search-firm-pages.ts': "public search-firm pages (approved by Justin, 2026-10-26): reads a recruiting firm's CRM organization record for its public business facts only (name, claim slug, website, headquarters city and region, team page URL, kind) and the firm's own open searches from postings that already have a public job page; it returns no CRM person, contact, note, status or email, and never the client a search is run for",
+    'src/lib/seo/employer-pages.ts': 'public employer pages: reads only the linked CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
     'src/lib/seo/workforce-pages.ts':'public college pages: reads only the CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
     'src/lib/org-claims/org.ts':'public claim page: resolves a CRM organization by slug; returns its name, type and email domain only',
     'src/lib/org-claims/community-stats.ts': 'public claim page and mailing merge field: reads the organization name to find its place, then public WARN filing counts',

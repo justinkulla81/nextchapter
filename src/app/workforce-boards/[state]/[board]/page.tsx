@@ -8,6 +8,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getBoardCounties, placeUrl } from '@/lib/places/places'
 import { getBoardLabor, getStateBoards, getStateCenters, periodLabel, rateText } from '@/lib/seo/workforce-pages'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state, board)
   if (!d) return {}
   return {
-    title: workforceBoardSeo(d.board.name, d.code).title,
+    title: titleMeta(workforceBoardSeo(d.board.name, d.code).title),
     description: `${d.board.name} in ${d.name}: the area it serves, local unemployment and the American Job Centers where job seekers and employers get help.`,
     ...canonical(`/workforce-boards/${state}/${board}`),
   }
