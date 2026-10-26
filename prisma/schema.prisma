@@ -575,13 +575,13 @@ enum CandidateInterestStatus {
 // ── CANDIDATE SIDE ───────────────────────────────────────────────────────────
 
 model CandidateProfile {
-  id        String   @id @default(cuid())
+  id                 String        @id @default(cuid())
   partnerLinksOwned  PartnerLink[] @relation("PartnerLinkOwner")
   partnerLinksJoined PartnerLink[] @relation("PartnerLinkPartner")
   movePlaces         MovePlace[]   @relation("MovePlaceOwner")
-  userId    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId             String        @unique
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   // Outcomes release: last day of the most recent job. Weeks unemployed at
   // enrollment is derived from this and bucketed (see src/lib/outcomes). Null
@@ -1072,7 +1072,7 @@ model CandidateProfile {
   // Board Advisory Work section, so this is one field, not two. Optional/
   // best-effort — deliberately NOT part of isSearchStrategyGateComplete.
   boardAdvisoryWillingness        Boolean?
-  isPivoting                      Boolean   @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
+  isPivoting                      Boolean                @default(false) // orthogonal to currentJobStatus — e.g. LAID_OFF + pivoting functions
   // Job board breadth the member chose: 'narrow' (their field, pivots, close skills
   // matches) or 'wide' (more adjacent work). Null = not chosen: the board defaults by
   // career stage (senior Narrow, junior Wide) and job emails use Narrow
@@ -1083,7 +1083,7 @@ model CandidateProfile {
   // Industries the member confirmed on Search Strategy (industry-buckets.ts names) when their
   // free-text industry read as several or none (src/lib/profile/industry-reading.ts).
   // Empty = not confirmed: the reading of industryContext is used. prisma/manual/2026-10-16-relevance-and-ghost-review.sql.
-  industryBuckets                 String[]  @default([])
+  industryBuckets                 String[]               @default([])
   industryBucketsConfirmedAt      DateTime?
   // When they last confirmed their tools ("Tools you use", skills page); the tools go into
   // confirmedSkillsHave. Null = never: the board nudges once. prisma/manual/2026-10-16-tools-confirmed.sql.
@@ -1096,7 +1096,7 @@ model CandidateProfile {
   // Candidate-curated tag list, edited on the Skills & Behavioral
   // Assessments page (moved off Search Strategy) — a TagInput like
   // targetIndustries, seeded from suggestions rather than freeform text.
-  skillsToBuild                   String[]  @default([])
+  skillsToBuild                   String[]               @default([])
   // Cached LLM-generated suggestions for the box above — {resumeGaps,
   // roleGaps, modernSkills}, each a string[]. Regenerated only when
   // skillGapSuggestionsFingerprint no longer matches the candidate's
@@ -1112,16 +1112,16 @@ model CandidateProfile {
   // the candidate-facing, candidate-editable copy shown on the Skills
   // Assessment/hub pages. Empty + skillsHaveConfirmedAt null means "never
   // confirmed yet" — falls back to displaying resumeKeywords directly.
-  confirmedSkillsHave             String[]  @default([])
+  confirmedSkillsHave             String[]               @default([])
   skillsHaveConfirmedAt           DateTime?
   // The skills matrix (src/lib/profile/skill-matrix.ts): the person's own
   // level per skill and skills they removed, keyed by lowercase skill.
   // Everything else in the matrix is derived from resumeKeywords,
   // confirmedSkillsHave and certifications on read.
-  skillLevels                     Json      @default("{}")
+  skillLevels                     Json                   @default("{}")
   // Work profile (src/lib/profile/work-profile.ts): the person's own answers
   // on the ten "this or that" dimensions, -2..+2, with when they answered.
-  workStyleAnswers                Json      @default("{}")
+  workStyleAnswers                Json                   @default("{}")
   // Strengths (src/lib/profile/strengths.ts): the last computed peaks and the
   // AI-written "why hire me", keyed by an input fingerprint so it is only
   // rewritten when the inputs change.
@@ -1130,14 +1130,14 @@ model CandidateProfile {
   // Search expansions the person opted into from the addressable-market
   // check (src/lib/profile/addressable-market.ts): extra roles, industries,
   // states and remote, added to their job search.
-  searchExpansion                 Json      @default("{}")
+  searchExpansion                 Json                   @default("{}")
   // Candidate-authored, edited on My Profile — "what could you help another
   // NextChapter member with" (interview prep for a function, a specific
   // tool, negotiating, breaking into an industry, ...), shown on their
   // Contacts profile page. Same free-tag idiom as targetIndustries/
   // skillsToBuild, not seeded from anything.
-  canTeach                        String[]  @default([])
-  interimConsultingInterest       Boolean   @default(false)
+  canTeach                        String[]               @default([])
+  interimConsultingInterest       Boolean                @default(false)
   searchStrategyConfirmedAt       DateTime?
   // Restrictive covenant from a current/former employer (non-compete,
   // non-solicit, non-disparagement, garden leave, etc.) — a real Red Line
@@ -1168,13 +1168,13 @@ model CandidateProfile {
   clearanceLevel                  String?
   clearanceActive                 Boolean?
   clearancePolygraph              String?
-  licensesHeld                    String[]  @default([])
+  licensesHeld                    String[]               @default([])
   licensesAnsweredAt              DateTime?
   // Fields last filled from the résumé and not yet confirmed by the member
   // (src/lib/resume/resume-prefill.ts): shown as "From your résumé — confirm",
   // and the only non-blank fields a later résumé may replace.
   // prisma/manual/2026-10-16-resume-prefill.sql.
-  resumePrefilledFields           String[]  @default([])
+  resumePrefilledFields           String[]               @default([])
   redFlagsBonusAt                 DateTime?
 
   // Benefits & Compensation Priorities — moved off Search Strategy
@@ -1505,7 +1505,7 @@ model CandidateProfile {
   // interviewsBucket to zero and collapses them, per spec. Kept as its own
   // boolean rather than inferred from the bucket values so the funnel
   // diagnostic (§10) can short-circuit to "fresh" without parsing strings.
-  justStartedSearch                 Boolean   @default(false)
+  justStartedSearch                 Boolean            @default(false)
   // New fields, deliberately NOT reusing the dashboard Search Strategy
   // page's existing jobsAppliedBucket ("0-20"|"20-100"|"100+") /
   // interviewsReceivedCount (Int) — those already have 7 live consumers
@@ -1532,14 +1532,14 @@ model CandidateProfile {
   // Treated as stale after REPORT_GENERATION_CLAIM_STALE_MS — see report-generation-lock.ts.
   reportGenerationClaimedAt         DateTime?
   lastReminderSentAt                DateTime?
-  reminderEmailCount                Int       @default(0)
-  reminderEmailsOptedOut            Boolean   @default(false)
+  reminderEmailCount                Int                @default(0)
+  reminderEmailsOptedOut            Boolean            @default(false)
   // "You're A-grade, unlock the Recruiter Database" nudge — separate from
   // reminderEmailsOptedOut above (account-setup reminders), a different
   // email a candidate might want off independently.
-  recruiterUnlockNudgeOptedOut      Boolean   @default(false)
-  upgradeOfferOptedOut              Boolean   @default(false) // the usage-triggered coaching upgrade offer (upgrade-offer cron)
-  seniorBriefOptedOut               Boolean   @default(false) // the senior Monday brief (senior-brief cron)
+  recruiterUnlockNudgeOptedOut      Boolean            @default(false)
+  upgradeOfferOptedOut              Boolean            @default(false) // the usage-triggered coaching upgrade offer (upgrade-offer cron)
+  seniorBriefOptedOut               Boolean            @default(false) // the senior Monday brief (senior-brief cron)
   seniorBriefPausedUntil            DateTime? // "Not for me": no brief drafts until this date (90 days)
   seniorBriefDrafts                 SeniorBriefDraft[]
 
@@ -1811,9 +1811,9 @@ model CandidateProfile {
   // ordinary page read — same pattern as categoryBaselineScores above.
   // MUST NEVER be rendered on any candidate/recruiter/coach/employer-facing
   // surface.
-  levelRankScore     Int?
-  levelRankLabel     String?
-  levelRankUpdatedAt DateTime?
+  levelRankScore      Int?
+  levelRankLabel      String?
+  levelRankUpdatedAt  DateTime?
   conferenceInterests ConferenceInterest[]
 
   // Phase 8, Partners Master Build Script §A2.4 (Membership) and §A4
@@ -1873,11 +1873,11 @@ model CandidateProfile {
   inWorkEmailSends    InWorkEmailSend[]
   searchSupporters    SearchSupporter[]
   accessGrants        AccessGrant[]
+  memberNotifications MemberNotification[]
 
   @@index([privacyTier])
   @@index([currentJobStatus])
   @@index([currentState, currentCity])
-  memberNotifications MemberNotification[]
 }
 
 // One row per real login "sitting" — recordCandidateLoginIfDue (called from
@@ -3653,7 +3653,6 @@ model JobPosting {
   skillSnapshot ApplicationSkillSnapshot?
 
   @@unique([candidateId, selfReportKey])
-
   @@index([candidateId, createdAt])
 }
 
@@ -5233,7 +5232,7 @@ model ExclusiveJobPosting {
   // vocabulary scan — no AI, no per-use cost). Kept instead of the description itself,
   // of which only a short excerpt is stored: ~15 MB for the whole board instead of
   // ~125 MB, and skills are what the skills gap and fit scoring actually use.
-  skills String[] @default([])
+  skills   String[] @default([])
   // O*NET skills and tools (Skill.id, via SkillAlias) the title, description and skills name —
   // the board's skills criterion (src/lib/jobs/relevance.ts). prisma/manual/2026-10-16-job-skill-ids.sql.
   skillIds String[] @default([])
@@ -5278,74 +5277,74 @@ model ExclusiveJobPosting {
   // geo coverage and local counts. externalJobId / requisitionId are the
   // source's own ids; repostKey groups re-posts of the same role and descHash
   // identical texts. prisma/manual/2026-10-15-import-fields.sql.
-  locationCity      String?
-  locationState     String?
-  locationCountry   String?
-  locationStates    String[]  @default([])
-  externalJobId     String?
-  requisitionId     String?
-  repostKey         String?
+  locationCity       String?
+  locationState      String?
+  locationCountry    String?
+  locationStates     String[]  @default([])
+  externalJobId      String?
+  requisitionId      String?
+  repostKey          String?
   // The crawler's own row id (ncrawl jobs.fingerprint), sent by the import. Every crawler
   // backfill joins on it first (url as the fallback): a listing's url can change after import
   // (re-issued aggregator ids, tracking urls). prisma/manual/2026-10-20-crawler-fingerprint.sql
   crawlerFingerprint String?
-  descHash          String?
+  descHash           String?
   // Years-of-experience requirement read at import from the FULL posting text
   // (src/lib/jobs/years-required.ts) — only an excerpt of the text is stored, and
   // requirements often sit past it. Null = not read (older rows: parse the excerpt).
-  yearsRequired     Json?
+  yearsRequired      Json?
   // O*NET-SOC occupation the crawler matched the title to (ncrawl scripts/onet_tag_jobs.py:
   // O*NET alternate titles, local, no API call per job), e.g. "13-2051.00" / "Financial and
   // Investment Analysts". Null = not placed. prisma/manual/2026-10-15-job-soc.sql.
-  socCode           String?
-  socTitle          String?
+  socCode            String?
+  socTitle           String?
   // Sub-function (src/lib/jobs/sub-functions.ts, e.g. 'ops_facilities'): allowlisted title
   // patterns and O*NET codes within the job's function, set at import and backfilled
   // (scripts/careers/backfill-sub-functions.ts). Null = not split / not on the lists.
-  subFunction       String?
+  subFunction        String?
   // Current vs past (src/lib/jobs/job-status.ts): why the listing was archived —
   // 'removed' | 'aged_out' | 'expired' | 'filtered' | 'manual' — and how many times
   // the crawler saw it close and come back. prisma/manual/2026-10-15-job-lifecycle.sql.
-  closeReason       String?
-  reopenCount       Int?
+  closeReason        String?
+  reopenCount        Int?
   // The same role seen before / listed twice (crawler repost_groups.py): times it
   // came back, its original first-seen date, and on the copy shown, how many other
   // listings of it were collapsed into this one (those are archived 'duplicate').
-  repostCount       Int?
-  repostFirstSeenAt DateTime?
-  duplicateCount    Int?
+  repostCount        Int?
+  repostFirstSeenAt  DateTime?
+  duplicateCount     Int?
   // The person the source names as this job's contact or poster (ncrawl jobs.recruiter_name,
   // e.g. SchoolSpring's contact). Public on the listing; shown in "Who to contact".
   // Null = the source named no one. prisma/manual/2026-10-16-who-to-contact.sql.
-  recruiterName     String?
+  recruiterName      String?
   // Employer sector for the board's sector filter and the member's sector
   // preference (src/lib/jobs/employer-sector.ts): 'private' | 'government' |
   // 'nonprofit' | 'academia', from the crawler's ncrawl/sector.py (USAJOBS and
   // state/local sources, IRS NTEE / 990 filers, IPEDS institutions). Null = not
   // sent (read as private). prisma/manual/2026-10-16-board-function-requirements.sql.
-  employerSector    String?
+  employerSector     String?
   // Hard requirements the crawler read from the full posting text with phrase
   // patterns (ncrawl/requirements.py): clearance (level, active vs obtain,
   // polygraph), US citizens only, no visa sponsorship, required licenses, travel %,
   // relocation, onsite. requirementFlags is the list with labels and evidence;
   // requirementTags the same as a compact comma list the board filters on in
   // memory (src/lib/jobs/requirements.ts). Null = none found / not sent.
-  requirementFlags  Json?
-  requirementTags   String?
+  requirementFlags   Json?
+  requirementTags    String?
   // AI skills the posting asks for, read by the crawler from the FULL posting text
   // (ncrawl/ai_skills.py: 24 items in 3 groups — builder / applied / leadership — after a
   // boilerplate filter; ~86% precision hand-checked). Ids and labels: src/lib/skills/ai-skills.ts.
   // aiToolsNamed / aiCertsNamed are the AI tools and certifications the text names. Empty =
   // none found or not read yet. prisma/manual/2026-10-17-ai-skills.sql.
-  aiSkillGroups     String[] @default([])
-  aiSkillItems      String[] @default([])
-  aiToolsNamed      String[] @default([])
-  aiCertsNamed      String[] @default([])
+  aiSkillGroups      String[]  @default([])
+  aiSkillItems       String[]  @default([])
+  aiToolsNamed       String[]  @default([])
+  aiCertsNamed       String[]  @default([])
   // Who the posting says it welcomes (crawler ncrawl/posting_signals.py, read from the FULL text):
   // career_changer_welcome / ai_upskilled_welcome / high_eq (src/lib/jobs/posting-signals.ts). Empty = none
   // found. Board tag, "Open to career changers / AI-upskilled" filter, welcome lift.
   // prisma/manual/2026-10-20-posting-signals.sql.
-  postingSignals    String[] @default([])
+  postingSignals     String[]  @default([])
   // The posting's own words that set postingSignals' no_experience_ok (crawler ncrawl/entry_signals.py, an
   // allowlist of phrases such as "no experience required", "recent graduates", "we will train you"), at most
   // ~160 characters, quoted on the open job and the public job page. Null = not flagged.
@@ -5356,16 +5355,16 @@ model ExclusiveJobPosting {
   // programs, apprenticeships, "comprehensive training provided" …), at most ~160 characters, quoted on the open
   // job and the public job page. Its own column so a job with both entry flags quotes each cleanly.
   // Null = not flagged. prisma/manual/2026-10-23-training-provided.sql.
-  trainingPhrase String?
+  trainingPhrase     String?
   // The broader "AI-exposed" metric (crawler ai_profile, prisma/manual/2026-10-20-ai-exposure.sql):
   // a specific AI skill, an AI/ML title term, a data & AI role whose role text mentions AI, or an AI
   // tool named in the role text. aiExposureWhy lists which rules fired (skill | title | function |
   // tools). aiMention = any AI word anywhere (pay baseline: full-text rows without it). aiBasis =
   // full | twin | excerpt — the text the AI fields were read from; null = not read yet.
-  aiExposed         Boolean  @default(false)
-  aiExposureWhy     String[] @default([])
-  aiMention         Boolean?
-  aiBasis           String?
+  aiExposed          Boolean   @default(false)
+  aiExposureWhy      String[]  @default([])
+  aiMention          Boolean?
+  aiBasis            String?
 
   @@index([archivedAt, createdAt])
   @@index([createdAt])
@@ -5525,16 +5524,16 @@ model JobDismissPreference {
 // ('too_good') or has red flags ('red_flags'). Feeds ghost risk (ghost-risk.ts) and the
 // admin review list (/support/admin/job-flags). No FK on postingId: a flag outlives the posting.
 model JobPostingFlag {
-  id          String    @id @default(cuid())
-  postingId   String
-  candidateId String
-  kind        String
-  note        String?
-  reviewedAt  DateTime?
+  id            String    @id @default(cuid())
+  postingId     String
+  candidateId   String
+  kind          String
+  note          String?
+  reviewedAt    DateTime?
   // An admin's call (/support/admin/job-flags): 'confirmed_ghost' hides the job for everyone, 'dismissed' keeps it.
   adminDecision String?
   decidedAt     DateTime?
-  createdAt   DateTime  @default(now())
+  createdAt     DateTime  @default(now())
 
   @@unique([postingId, candidateId, kind])
   @@index([kind, createdAt])
@@ -7844,15 +7843,15 @@ model CompanyJobOpening {
   payVsMarket     String? // 'above' | 'in_line' | 'below' — only when pay is posted
   payRatio        Float? // posted midpoint / market median
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  countyFips      String? // county of the posting's location (Census place-to-county crosswalk); see prisma/manual/2026-10-22-geo-county.sql
+  countyAmbiguous Boolean? // place spans several counties
 
   @@index([companyId, firstSeenAt])
   @@index([companyId, closedAt])
   @@index([function, seniorityGroup])
   @@index([closedAt])
-  countyFips      String? // county of the posting's location (Census place-to-county crosswalk); see prisma/manual/2026-10-22-geo-county.sql
-  countyAmbiguous Boolean? // place spans several counties
 }
 
 // The company's rolled-up hiring profile, recomputed nightly from CompanyJobOpening,
@@ -11812,13 +11811,13 @@ model ProductFeedback {
   candidateId String?
   candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
 
-  rawText     String  @db.Text
+  rawText      String  @db.Text
   /// Where to tell a partner-portal sender what happened to their idea (employer,
   /// recruiter, coach, institution). Candidates are reached through candidateId.
   contactEmail String?
-  channel     String? // 'call' | 'email' | 'in person' | 'survey' | 'in-app idea' | 'in-app feedback' | ...
+  channel      String? // 'call' | 'email' | 'in person' | 'survey' | 'in-app idea' | 'in-app feedback' | ...
   /// The portal page a candidate was on when they sent it in-app.
-  contextPath String?
+  contextPath  String?
 
   /// When they SAID it, distinct from when you logged it. Those differ, and
   /// the gap is worth seeing.
@@ -11872,7 +11871,7 @@ model ProductCompetitor {
 
   /// DIRECT | ADJACENT | PARTNER | SUPPLIER. A data supplier or a possible partner is not a rival, and the
   /// page says so rather than leaving them out.
-  relationship String @default("DIRECT")
+  relationship String   @default("DIRECT")
   /// Where they compete, from the fixed vocabulary in src/lib/vision/competitor-areas.ts.
   areas        String[] @default([])
   keyFeatures  String[] @default([])
@@ -11906,17 +11905,17 @@ model ProductCompetitor {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cells ProductCompetitorFeature[]
-  capabilityCells CompetitorCapability[]
-  events          CompetitorEvent[]
-  cellProposals   CompetitorCellProposal[]
+  cells            ProductCompetitorFeature[]
+  capabilityCells  CompetitorCapability[]
+  events           CompetitorEvent[]
+  cellProposals    CompetitorCellProposal[]
   /// Last time the monthly refresh / weekly news watch read this card.
   watchRefreshedAt DateTime?
   watchNewsAt      DateTime?
   /// Free-mode website snapshot: visible text lines (capped), customer-logo names, hash, and when it was read.
-  siteText         String?  @db.Text
+  siteText         String?                    @db.Text
   siteHash         String?
-  siteLogos        String[] @default([])
+  siteLogos        String[]                   @default([])
   siteReadAt       DateTime?
 
   @@index([lastReviewedAt])
@@ -12181,31 +12180,31 @@ model LayoffNewsMention {
 /// which makes it the public partner for any WARN notice there.
 model WorkforceBoard {
   /// CareerOneStop's own id for the board.
-  id                String    @id
-  state             String
-  name              String
-  address           String?
-  zip               String?
-  website           String?
+  id                   String    @id
+  state                String
+  name                 String
+  address              String?
+  zip                  String?
+  website              String?
   /// Service-area counties, lower case, without "County"/"Parish".
-  counties          String[]  @default([])
-  serviceArea       String?
+  counties             String[]  @default([])
+  serviceArea          String?
   /// Covers the whole state (a state board, or a single-area state).
-  statewide         Boolean   @default(false)
-  directorName      String?
-  directorTitle     String?
-  directorEmail     String?
-  directorPhone     String?
-  chairName         String?
-  chairEmail        String?
-  chairPhone        String?
-  detailsUrl        String?
-  updatedAt         DateTime  @default(now())
+  statewide            Boolean   @default(false)
+  directorName         String?
+  directorTitle        String?
+  directorEmail        String?
+  directorPhone        String?
+  chairName            String?
+  chairEmail           String?
+  chairPhone           String?
+  detailsUrl           String?
+  updatedAt            DateTime  @default(now())
   /// Counties a board drawn by city or town covers, found from its places —
   /// so its unemployment and colleges can be looked up by county too.
-  placeCounties     String[]  @default([])
-  partnersCheckedAt DateTime?
-  newsCheckedAt     DateTime?
+  placeCounties        String[]  @default([])
+  partnersCheckedAt    DateTime?
+  newsCheckedAt        DateTime?
   /// The board's own bids / RFP / procurement page, found by scripts/boards/crawl-procurement.py.
   procurementUrl       String?
   /// solicitations (open items seen), procurement_page, or none
@@ -14665,23 +14664,23 @@ model FundingOpportunity {
 
 /// A federal award a competitor won (USAspending.gov, free). Applied by hand: prisma/manual/bid-finder.sql.
 model CompetitorAward {
-  id             String    @id
-  competitorName String
-  competitorId   String?
-  recipientName  String
-  kind           String
-  confidence     String    @default("EXACT")
-  awardKey       String
-  awardId        String?
-  description    String?
-  agency         String?
-  subAgency      String?
-  amount         Float     @default(0)
-  startDate      DateTime?
-  endDate        DateTime?
-  url            String
-  firstSeenAt    DateTime  @default(now())
-  lastSeenAt     DateTime  @default(now())
+  id              String    @id
+  competitorName  String
+  competitorId    String?
+  recipientName   String
+  kind            String
+  confidence      String    @default("EXACT")
+  awardKey        String
+  awardId         String?
+  description     String?
+  agency          String?
+  subAgency       String?
+  amount          Float     @default(0)
+  startDate       DateTime?
+  endDate         DateTime?
+  url             String
+  firstSeenAt     DateTime  @default(now())
+  lastSeenAt      DateTime  @default(now())
   /// CRM organizations: the competitor, and the agency that bought.
   competitorOrgId String?
   buyerOrgId      String?
@@ -14771,47 +14770,47 @@ model BenefitProgram {
 // rows show to candidates at /dashboard/network/events. One row per recurring event: the dates
 // move forward each year. Applied by hand: prisma/manual/conference-events.sql.
 model ConferenceEvent {
-  id               String               @id
+  id               String                  @id
   name             String
   organizer        String?
   url              String?
   /// CONFERENCE | TRADE_SHOW | SUMMIT | WORKSHOP
-  kind             String               @default("CONFERENCE")
+  kind             String                  @default("CONFERENCE")
   /// IN_PERSON | VIRTUAL | HYBRID
-  format           String               @default("IN_PERSON")
+  format           String                  @default("IN_PERSON")
   startDate        DateTime?
   endDate          DateTime?
   /// False until the dates for the next edition are announced on the event's own site.
-  datesConfirmed   Boolean              @default(false)
+  datesConfirmed   Boolean                 @default(false)
   /// "March": shown when no dates are confirmed.
   typicalMonth     String?
   city             String?
   state            String?
-  country          String               @default("US")
+  country          String                  @default("US")
   /// INDUSTRY_BUCKET_NAMES; empty = every industry.
-  industries       String[]             @default([])
+  industries       String[]                @default([])
   /// PRIMARY_FUNCTION_OPTIONS; empty = every function.
-  functions        String[]             @default([])
+  functions        String[]                @default([])
   /// Segments from src/lib/events/taxonomy.ts (sub-industries, communities); empty = the whole industry.
-  segments         String[]             @default([])
+  segments         String[]                @default([])
   /// JourneyType values the event suits (ENTREPRENEUR, FRACTIONAL, NEXT_ACT, ...); empty = any journey.
-  journeys         String[]             @default([])
+  journeys         String[]                @default([])
   /// What the program has: KEYNOTE | PANEL | WORKSHOP | BREAKOUT | EXPO | NETWORKING. Sessions imply speakers.
-  programFormats   String[]             @default([])
+  programFormats   String[]                @default([])
   /// Specific jobs the event is for, from the taxonomy ("school principal", "claims adjuster").
-  roles            String[]             @default([])
+  roles            String[]                @default([])
   /// EARLY | MID | SENIOR | EXECUTIVE; empty = every level.
-  seniorities      String[]             @default([])
+  seniorities      String[]                @default([])
   /// 1 flagship, 2 major, 3 niche.
-  importance       Int                  @default(2)
+  importance       Int                     @default(2)
   whyAttend        String?
   /// PAID | FREE | INVITE | APPLY | MIXED
-  access           String               @default("PAID")
+  access           String                  @default("PAID")
   costLow          Int?
   costHigh         Int?
   costNote         String?
   /// OPEN_CFP | BY_INVITE | NONE | UNKNOWN
-  speaking         String               @default("UNKNOWN")
+  speaking         String                  @default("UNKNOWN")
   speakingUrl      String?
   speakingDeadline DateTime?
   speakingNote     String?
@@ -14820,16 +14819,16 @@ model ConferenceEvent {
   applyUrl         String?
   applyDeadline    DateTime?
   /// Candidates see it only when true.
-  published        Boolean              @default(false)
+  published        Boolean                 @default(false)
   /// Confirmed against the event's own site.
-  verified         Boolean              @default(false)
+  verified         Boolean                 @default(false)
   checkedAt        DateTime?
   /// Set when someone edits the row in the CRM: the bundled catalog no longer overwrites it.
-  locked           Boolean              @default(false)
+  locked           Boolean                 @default(false)
   /// OK | BROKEN | BLOCKED | ERROR, from the free link check (src/lib/events/refresh.ts).
   linkStatus       String?
   linkCheckedAt    DateTime?
-  linkFailures     Int                  @default(0)
+  linkFailures     Int                     @default(0)
   adminNote        String?
   source           String?
   /// Canonical home URL (lowercased host, no www, no tracking params, no trailing slash): the dedupe key for Quick Add.
@@ -14842,8 +14841,8 @@ model ConferenceEvent {
   /// Set when an admin rejects an entry. Members who tracked it are told why and it is removed from their list.
   rejectedAt       DateTime?
   rejectedNote     String?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @default(now()) @updatedAt
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @default(now()) @updatedAt
   interests        ConferenceInterest[]
   editions         ConferenceEdition[]
   opportunities    ConferenceOpportunity[]
@@ -14857,22 +14856,22 @@ model ConferenceEvent {
 }
 
 model ConferenceInterest {
-  id          String           @id @default(cuid())
-  candidateId String
-  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  eventId     String
-  event       ConferenceEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id            String           @id @default(cuid())
+  candidateId   String
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  eventId       String
+  event         ConferenceEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   /// SAVED | GOING | SPEAKING | FOLLOWING (went or spoke before, or wants next year's dates)
-  status      String
+  status        String
   /// End of the edition the member marked interest in; after it passes we ask how it went.
-  editionEnd  DateTime?
+  editionEnd    DateTime?
   /// ATTENDED | SPOKE | DID_NOT_GO, from the check-in. Cleared when the next edition is announced.
-  outcome     String?
-  outcomeAt   DateTime?
-  attendedCount Int      @default(0)
-  spokeCount  Int        @default(0)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @default(now()) @updatedAt
+  outcome       String?
+  outcomeAt     DateTime?
+  attendedCount Int              @default(0)
+  spokeCount    Int              @default(0)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @default(now()) @updatedAt
 
   @@unique([candidateId, eventId])
   @@index([eventId])
@@ -15794,16 +15793,16 @@ model InstitutionSystemUser {
 // A member's partner, invited to search together (mostly for a move). The partner joins with their own account, matched by the
 // email the invite went to. SQL: prisma/manual/2026-10-23-partner-search.sql.
 model PartnerLink {
-  id           String           @id @default(cuid())
+  id           String            @id @default(cuid())
   ownerId      String
-  owner        CandidateProfile @relation("PartnerLinkOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner        CandidateProfile  @relation("PartnerLinkOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   partnerName  String
   partnerEmail String
   partnerId    String?
   partner      CandidateProfile? @relation("PartnerLinkPartner", fields: [partnerId], references: [id], onDelete: SetNull)
-  sharePlaces  Boolean          @default(true)
-  shareJobsPay Boolean          @default(true)
-  createdAt    DateTime         @default(now())
+  sharePlaces  Boolean           @default(true)
+  shareJobsPay Boolean           @default(true)
+  createdAt    DateTime          @default(now())
   joinedAt     DateTime?
   revokedAt    DateTime?
 
@@ -16150,22 +16149,22 @@ model CoachAvailabilityWindow {
 }
 
 model CoachBooking {
-  id            String           @id @default(cuid())
-  coachId       String
-  coach         Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
-  candidateId   String
-  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  startsAt      DateTime
-  endsAt        DateTime
+  id               String           @id @default(cuid())
+  coachId          String
+  coach            Coach            @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  candidateId      String
+  candidate        CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  startsAt         DateTime
+  endsAt           DateTime
   // CONFIRMED | CANCELLED
-  status        String           @default("CONFIRMED")
-  cancelledBy   String? // COACH | CANDIDATE
-  meetUrl       String?
-  googleEventId String?
+  status           String           @default("CONFIRMED")
+  cancelledBy      String? // COACH | CANDIDATE
+  meetUrl          String?
+  googleEventId    String?
   // Which calendar googleEventId lives on: null = NextChapter's shared calendar (the original flow),
   // otherwise the id of one of the coach's own calendars ("primary" or an address). prisma/manual/2026-10-24-coach-google.sql.
   googleCalendarId String?
-  createdAt     DateTime         @default(now())
+  createdAt        DateTime         @default(now())
 
   @@index([coachId, startsAt])
   @@index([candidateId, startsAt])
@@ -16451,9 +16450,9 @@ model Organization {
   updatedAt DateTime @updatedAt
 
   // Brand shown in every portal this organization owns.
-  brandName   String?
-  logoUrl     String?
-  accentColor String?
+  brandName       String?
+  logoUrl         String?
+  accentColor     String?
   // Secondary (buttons, chips, highlights) and page background; any #rrggbb.
   secondaryColor  String?
   backgroundColor String?
@@ -16720,8 +16719,8 @@ model CareerEvent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([candidateId])
   @@unique([candidateId, sourceRef])
+  @@index([candidateId])
 }
 
 // A model's written review of one AI work sample (src/lib/evidence/ai-sample-review.ts), shown only to the
@@ -16729,21 +16728,21 @@ model CareerEvent {
 // review; the weekly cap and the monthly budget are counted from here. Plain ids, no relations: the foreign
 // keys (cascade on delete) live in the hand-applied SQL, prisma/manual/2026-10-19-ai-sample-review.sql.
 model AiSampleReview {
-  id          String   @id @default(cuid())
-  candidateId String
-  sampleId    String
-  model       String
+  id           String   @id @default(cuid())
+  candidateId  String
+  sampleId     String
+  model        String
   // 'needs_work' | 'solid' | 'strong'
-  verdict     String
+  verdict      String
   // [{ key, met, reason }] in the sample type's check order (ai-work-samples.ts)
-  checks      Json
-  summary     String
-  suggestions String[] @default([])
+  checks       Json
+  summary      String
+  suggestions  String[] @default([])
   inputTokens  Int
   outputTokens Int
   // Cost in millionths of a dollar (tokens x $/MTok), so a sum is exact.
-  costMicros  Int
-  createdAt   DateTime @default(now())
+  costMicros   Int
+  createdAt    DateTime @default(now())
 
   @@index([candidateId, createdAt])
   @@index([sampleId, createdAt])
@@ -16842,7 +16841,6 @@ model AiMarketSnapshot {
   @@index([computedAt])
 }
 
-
 enum LinkedInDraftStatus {
   DRAFT
   POSTED
@@ -16855,33 +16853,33 @@ enum LinkedInDraftStatus {
 /// layoff-post-rules.ts; never published anywhere automatically, and never
 /// shown on the website.
 model LinkedInPostDraft {
-  id          String              @id @default(cuid())
-  noticeId    String              @unique
-  notice      WarnNotice          @relation(fields: [noticeId], references: [id], onDelete: Cascade)
-  status      LinkedInDraftStatus @default(DRAFT)
+  id           String              @id @default(cuid())
+  noticeId     String              @unique
+  notice       WarnNotice          @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  status       LinkedInDraftStatus @default(DRAFT)
   /// Which angle the post takes (offer-help, first-week, ...), rotated so
   /// consecutive posts differ.
-  angle       String
+  angle        String
   /// Which image layout was used, rotated the same way.
-  layout      Int
+  layout       Int
   /// The post text, editable in the admin before posting.
-  body        String
+  body         String
   /// Posted as the first comment, where the link does not cost the post reach.
   firstComment String
   /// LinkedIn's id for the post once it was published from the queue, so it can be opened.
-  postUrn     String?
+  postUrn      String?
   /// When to post it: a staggered weekday slot picked when the draft was made.
   scheduledFor DateTime
   /// Set when the morning rewrite replaced the template wording.
-  rewrittenAt DateTime?
+  rewrittenAt  DateTime?
   /// The facts the text and image were built from, so a reviewer can check
   /// them: employer, employees, place, source URL, stats and where each came from.
-  facts       Json
+  facts        Json
   /// Why it passed the gate: warn-filing, sec-filing, two-publishers, trusted-outlet.
-  credibility String
-  createdAt   DateTime            @default(now())
-  postedAt    DateTime?
-  skippedAt   DateTime?
+  credibility  String
+  createdAt    DateTime            @default(now())
+  postedAt     DateTime?
+  skippedAt    DateTime?
 
   @@index([status, scheduledFor])
 }
@@ -16891,17 +16889,17 @@ model LinkedInPostDraft {
 /// lasts about 60 days (LinkedIn issues no refresh token for this product), so
 /// a lapsed connection is reconnected, not refreshed.
 model LinkedInAdminConnection {
-  id             String    @id @default(cuid())
-  adminEmail     String    @unique
-  accessToken    String    @db.Text
-  personUrn      String
-  memberName     String?
+  id               String    @id @default(cuid())
+  adminEmail       String    @unique
+  accessToken      String    @db.Text
+  personUrn        String
+  memberName       String?
   /// The company page posts go out as (urn:li:organization:...), found when the admin connects the page. Null until then.
   organizationUrn  String?
   organizationName String?
-  expiresAt      DateTime
-  connectedAt    DateTime  @default(now())
-  disconnectedAt DateTime?
+  expiresAt        DateTime
+  connectedAt      DateTime  @default(now())
+  disconnectedAt   DateTime?
 }
 
 // One row per senior Monday brief draft: the message, who it is for, and what the single model call cost.
@@ -16909,26 +16907,26 @@ model LinkedInAdminConnection {
 // src/lib/senior-brief/rules.ts. Test sends (isTest) use a unique weekKey and never count against a member's cap.
 // SQL: prisma/manual/senior-brief.sql
 model SeniorBriefDraft {
-  id            String           @id @default(cuid())
-  candidateId   String
-  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  weekKey       String
-  isTest        Boolean          @default(false)
-  itemKind      String // recruiter_follow_up | intro_request
-  contactId     String?
-  contactName   String?
-  companyName   String?
-  toEmail       String?
-  subject       String?
-  body          String?          @db.Text
-  model         String?
-  inputTokens   Int              @default(0)
-  outputTokens  Int              @default(0)
-  estCostUsd    Float            @default(0)
-  status        String           @default("DRAFTING") // DRAFTING | DRAFTED | EMAILED | FAILED
-  emailedAt     DateTime?
-  openedAt      DateTime?
-  createdAt     DateTime         @default(now())
+  id           String           @id @default(cuid())
+  candidateId  String
+  candidate    CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  weekKey      String
+  isTest       Boolean          @default(false)
+  itemKind     String // recruiter_follow_up | intro_request
+  contactId    String?
+  contactName  String?
+  companyName  String?
+  toEmail      String?
+  subject      String?
+  body         String?          @db.Text
+  model        String?
+  inputTokens  Int              @default(0)
+  outputTokens Int              @default(0)
+  estCostUsd   Float            @default(0)
+  status       String           @default("DRAFTING") // DRAFTING | DRAFTED | EMAILED | FAILED
+  emailedAt    DateTime?
+  openedAt     DateTime?
+  createdAt    DateTime         @default(now())
 
   @@unique([candidateId, weekKey])
   @@index([createdAt])
@@ -17049,15 +17047,15 @@ model ConferenceSpeaker {
 /// sponsor pages and speaker lines; the page never invents attendance. Applied by hand: prisma/manual/conference-employers.sql.
 /// role: EXHIBITOR | SPONSOR | SPEAKER | ATTENDEE
 model ConferenceEmployer {
-  id         String          @id @default(cuid())
-  seriesId   String
-  series     ConferenceEvent @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  name       String
-  companyId  String?
-  role       String          @default("EXHIBITOR")
-  year       Int?
-  sourceUrl  String?
-  createdAt  DateTime        @default(now())
+  id        String          @id @default(cuid())
+  seriesId  String
+  series    ConferenceEvent @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  name      String
+  companyId String?
+  role      String          @default("EXHIBITOR")
+  year      Int?
+  sourceUrl String?
+  createdAt DateTime        @default(now())
 
   @@unique([seriesId, name, role])
   @@index([seriesId])
@@ -17271,18 +17269,18 @@ model CompetitorEvent {
 /// A matrix cell the model suggests. Never written to the matrix until a person accepts it (which sets the
 /// cell with its evidence link and today's date). A pending proposal is replaced by a newer one for the same cell.
 model CompetitorCellProposal {
-  id           String            @id @default(cuid())
+  id           String                     @id @default(cuid())
   competitorId String
-  competitor   ProductCompetitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  competitor   ProductCompetitor          @relation(fields: [competitorId], references: [id], onDelete: Cascade)
   capabilityId String
   status       CompetitorCapabilityStatus
-  note         String?           @db.Text
+  note         String?                    @db.Text
   evidenceUrl  String
   /// PENDING | ACCEPTED | REJECTED
-  state        String            @default("PENDING")
+  state        String                     @default("PENDING")
   decidedBy    String?
   decidedAt    DateTime?
-  createdAt    DateTime          @default(now())
+  createdAt    DateTime                   @default(now())
 
   @@unique([competitorId, capabilityId, state])
   @@index([state, createdAt])
@@ -17387,15 +17385,15 @@ model CollegeOrgLink {
 /// prisma/manual/2026-10-25-public-org-pages.sql
 model PublicOrgPage {
   /// JOB_CENTER | ECON_DEV | WORKFORCE_BOARD
-  kind          String
-  sourceId      String
-  state         String
-  crmOrgId      String?
-  matchStatus   String   @default("NONE")
-  reviewOrgId   String?
-  reviewReason  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  kind         String
+  sourceId     String
+  state        String
+  crmOrgId     String?
+  matchStatus  String   @default("NONE")
+  reviewOrgId  String?
+  reviewReason String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@id([kind, sourceId])
   @@index([crmOrgId])
@@ -17450,4 +17448,88 @@ model TopicSnapshot {
   key       String   @id
   data      Json
   updatedAt DateTime @default(now())
+}
+
+/// A local job fair, hiring event, career workshop, or business / entrepreneurship event run by a chamber, job center, workforce board,
+/// economic-development org, rapid-response team, city or state agency, college, SCORE chapter or SBDC. Mostly professional / white-collar.
+/// Filled by scripts/local-events/crawl.ts through /api/admin/local-events/import; finished events are hidden, never deleted.
+/// SQL: prisma/manual/2026-10-26-local-events.sql
+model LocalEvent {
+  id          String    @id @default(cuid())
+  /// Stable hash of host + title + start day, so a re-crawl updates the row instead of adding one.
+  dedupeKey   String    @unique
+  title       String
+  description String?   @db.Text
+  /// JOB_FAIR | HIRING_EVENT | CAREER_WORKSHOP | NETWORKING | RAPID_RESPONSE | STARTUP_WORKSHOP | SMALL_BUSINESS_COUNSELING | PITCH | FUNDING | BUSINESS_NETWORKING | OTHER
+  kind        String
+  /// JOBS | ENTREPRENEUR: which part of the product it feeds (job-search journeys or the entrepreneur journeys).
+  track       String
+  /// IN_PERSON | VIRTUAL | HYBRID
+  format      String    @default("IN_PERSON")
+  startsAt    DateTime
+  endsAt      DateTime?
+  venue       String?
+  city        String?
+  state       String?
+  /// placeKey(city) and countyKey(county), for the place pages.
+  cityKey     String?
+  countyKey   String?
+  url         String?
+  registerUrl String?
+  cost        String?
+  /// 0-100: how professional / white-collar it looks (keywords in the title and text). Hourly-only fairs score low and are not published.
+  proScore    Int       @default(50)
+  published   Boolean   @default(true)
+  /// Hand-edited in the CRM: the crawler no longer overwrites it.
+  locked      Boolean   @default(false)
+  /// ld+json | ics | rss | manual | score
+  sourceType  String
+  sourceUrl   String?
+  firstSeenAt DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  links LocalEventLink[]
+
+  @@index([state, startsAt])
+  @@index([cityKey, startsAt])
+  @@index([countyKey, startsAt])
+  @@index([track, startsAt])
+}
+
+/// Who an event is tied to: the org that hosts it, partners, and the companies that sponsor or hire at it. targetKind says which table targetId points at.
+model LocalEventLink {
+  eventId    String
+  event      LocalEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  /// CHAMBER | JOB_CENTER | WORKFORCE_BOARD | ECON_DEV | RAPID_RESPONSE | CITY | STATE_AGENCY | COLLEGE | SCORE | SBDC | COMPANY
+  targetKind String
+  /// AmericanJobCenter.id, WorkforceBoard.id, LocalPartnerOrg.id, Institution unitid, Company.id, or LocalEventSource.id.
+  targetId   String
+  targetName String
+  /// HOST | PARTNER | SPONSOR | EMPLOYER
+  role       String     @default("HOST")
+
+  @@id([eventId, targetKind, targetId, role])
+  @@index([targetKind, targetId])
+}
+
+/// An organization whose events page we read: where it is, its events page or feed, and when it was last checked.
+model LocalEventSource {
+  id         String    @id
+  /// CHAMBER | JOB_CENTER | WORKFORCE_BOARD | ECON_DEV | RAPID_RESPONSE | CITY | STATE_AGENCY | COLLEGE | SCORE | SBDC
+  kind       String
+  name       String
+  state      String
+  city       String?
+  countyKey  String?
+  website    String
+  eventsUrl  String?
+  /// ld+json | ics | rss | none | blocked | error
+  feedType   String?
+  checkedAt  DateTime?
+  eventCount Int       @default(0)
+  note       String?
+
+  @@index([kind, state])
 }

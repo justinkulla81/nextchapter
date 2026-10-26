@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
@@ -84,6 +85,9 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
       {d.centerCount > 0 && (
         <p className="mt-4 text-sm"><Link href={`/workforce-boards/${state}`} className={LINK}>{d.centerCount.toLocaleString()} American Job Centers in {name}</Link></p>
       )}
+
+      <LocalEventSection id="local-events" title={`Job fairs and business events in ${name}`} intro={`Hiring events, career workshops, small-business counseling and startup events from chambers, job centers, workforce boards, colleges and economic-development groups in ${name}.`} scope={{ state: code }} take={16} />
+
 
       <ConferenceSection id="conferences" title={`Conferences in ${name}`} intro={`Industry conferences and trade shows held in ${name}, the ones worth a trip for hiring managers and job seekers.`}
         source={`place:state:${code}`} load={() => conferencesAtPlace('state', code, null, 24)} more={{ href: '/conferences', label: 'All conferences' }} />

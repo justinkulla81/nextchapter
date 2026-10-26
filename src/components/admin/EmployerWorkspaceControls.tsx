@@ -268,6 +268,7 @@ function RecordPicker({ workspaceId, onPick, onCancel }: { workspaceId: string; 
   useEffect(() => {
     const term = q.trim()
     if (term.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing results when the search box empties is intentional
       setOptions(null)
       setError(null)
       setSearching(false)
