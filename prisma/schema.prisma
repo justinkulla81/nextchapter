@@ -17318,3 +17318,31 @@ model CompanyHeadcount {
 
   @@index([employees(sort: Desc)])
 }
+
+/// A statement an employer adds next to one of its WARN layoff notices on the layoff pages (/layoffs/company/<slug>). The state filing is never
+/// changed or hidden. A statement is shown only when APPROVED: the author first confirms a work email (PENDING_EMAIL ->
+/// PENDING_REVIEW), then a person on the team approves it. Applied by hand: prisma/manual/2026-10-26-employer-statement.sql.
+model EmployerStatement {
+  id              String    @id @default(cuid())
+  /// The layoff-page slug of the employer (getCompanies()), not a Company id: a notice need not be matched to one.
+  companySlug     String
+  warnNoticeId    String
+  body            String    @db.Text
+  authorName      String
+  authorTitle     String
+  authorEmail     String
+  emailDomain     String
+  tokenHash       String    @unique
+  tokenExpiresAt  DateTime
+  emailVerifiedAt DateTime?
+  /// PENDING_EMAIL | PENDING_REVIEW | APPROVED | REJECTED
+  status          String    @default("PENDING_EMAIL")
+  reviewedAt      DateTime?
+  reviewNote      String?
+  ipHash          String?
+  createdAt       DateTime  @default(now())
+
+  @@index([companySlug, status])
+  @@index([warnNoticeId])
+  @@index([status, createdAt])
+}
