@@ -41,8 +41,8 @@ const startOfDay = () => {
 export async function sentToday(): Promise<number> {
   const since = startOfDay()
   const [confirms, alerts] = await Promise.all([
-    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'deadline_reminders'] }, confirmSentAt: { gte: since } } }),
-    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'deadline_reminders'] }, lastAlertAt: { gte: since } } }),
+    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'resume_check', 'deadline_reminders'] }, confirmSentAt: { gte: since } } }),
+    prisma.homepageLead.count({ where: { kind: { in: ['job_alert', 'layoff_alert', 'pay_check', 'resume_check', 'deadline_reminders'] }, lastAlertAt: { gte: since } } }),
   ])
   return confirms + alerts
 }
