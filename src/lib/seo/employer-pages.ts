@@ -2,22 +2,19 @@ import 'server-only'
 import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { orgSlug } from '@/lib/crm/org-slug'
-import { buildLayoffTimeline, type LayoffTimeline } from '@/lib/companies/layoff-timeline'
 import { summarizePay, type PayGroup } from '@/lib/companies/pay-ranges'
 import { PUBLIC_JOB_SELECT, getConfirmedGhostIdsForPage } from '@/lib/seo/employer-jobs'
 import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { canonicalFromEmployerSlug, employerSlug, idSuffixFromSlug } from '@/lib/seo/employer-slug'
 
-// Public employer pages (/employers/<slug>): what an employer is hiring for, what it pays, and its layoff
-// record, from our own tables (the nightly company hiring index, the live board, the WARN record). Public
+// Public employer pages (/employers/<slug>): what an employer is hiring for, what it pays, from our own tables
+// (the nightly company hiring index and the live board). Layoff records are deliberately not shown. Public
 // business facts only: nothing from the CRM except the slug of the organization's claim page.
 
 /** Open roles an employer needs before its page is offered to search engines. */
 export const EMPLOYER_MIN_OPEN_ROLES = 3
-const TWO_YEARS_MS = 2 * 365 * 86_400_000
 
 export interface EmployerJob { id: string; title: string; location: string | null; pay: string | null }
-export interface EmployerNotice { state: string | null; county: string | null; noticeDate: Date; employees: number | null; layoffType: string | null; sourceUrl: string | null }
 
 export interface EmployerPage {
   id: string
@@ -39,8 +36,6 @@ export interface EmployerPage {
   } | null
   jobs: EmployerJob[]
   pay: PayGroup[]
-  notices: EmployerNotice[]
-  timeline: LayoffTimeline | null
   claimSlug: string | null
   /** True when the page has enough of its own content to be offered to search engines. */
   indexable: boolean
@@ -67,7 +62,7 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
   }
   if (!company || employerSlug(company.canonicalNameNormalized, company.id) !== slug) return null
 
-  const [rows, ghosts, warn, firstPosting] = await Promise.all([
+  const [rows, ghosts] = await Promise.all([
     prisma.exclusiveJobPosting.findMany({
       where: { companyId: company.id, status: 'approved', archivedAt: null },
       select: PUBLIC_JOB_SELECT,
@@ -75,13 +70,6 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
       take: 60,
     }),
     getConfirmedGhostIdsForPage(),
-    prisma.warnNotice.findMany({
-      where: { companyId: company.id, dismissedAt: null, source: 'WARN_FILING', noticeDate: { not: null } },
-      select: { state: true, county: true, noticeDate: true, employees: true, layoffType: true, sourceUrl: true },
-      orderBy: { noticeDate: 'desc' },
-      take: 40,
-    }),
-    prisma.companyJobOpening.findFirst({ where: { companyId: company.id }, orderBy: { firstSeenAt: 'asc' }, select: { firstSeenAt: true } }),
   ])
 
   const now = Date.now()
@@ -94,18 +82,8 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
   }))
   const pay = summarizePay(live.map((r) => ({ title: r.title, salaryMin: r.salaryMin, salaryMax: r.salaryMax, salaryCurrency: r.salaryCurrency }))).filter((g) => g.postings >= 2).slice(0, 6)
 
-  const notices: EmployerNotice[] = warn.map((w) => ({ state: w.state, county: w.county, noticeDate: w.noticeDate!, employees: w.employees, layoffType: w.layoffType, sourceUrl: w.sourceUrl }))
-  const timeline = notices.length
-    ? buildLayoffTimeline({
-        notices: notices.map((n) => ({ noticeDate: n.noticeDate, employees: n.employees, layoffType: n.layoffType, sourceUrl: n.sourceUrl })),
-        postings: [],
-        trackingStart: firstPosting?.firstSeenAt ?? null,
-      })
-    : null
-
   const p = company.hiringProfile
   const openNow = p?.openNow ?? 0
-  const recentNotice = notices.some((n) => now - n.noticeDate.getTime() <= TWO_YEARS_MS)
   const crm = company.crmOrganizations[0]
   return {
     id: company.id,
@@ -125,10 +103,8 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
       : null,
     jobs,
     pay,
-    notices,
-    timeline,
     claimSlug: crm ? orgSlug(crm.canonicalNameNormalized) : null,
-    indexable: openNow >= EMPLOYER_MIN_OPEN_ROLES || recentNotice,
+    indexable: openNow >= EMPLOYER_MIN_OPEN_ROLES,
   }
 })
 
@@ -136,8 +112,7 @@ export const EMPLOYER_SITEMAP_SHARD_SIZE = 10_000
 
 /** The condition behind the employer sitemap: the same rule as `indexable`, in SQL. */
 const ELIGIBLE = `FROM "Company" c LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
-  WHERE p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
-     OR EXISTS (SELECT 1 FROM "WarnNotice" w WHERE w."companyId" = c.id AND w."dismissedAt" IS NULL AND w.source = 'WARN_FILING' AND w."noticeDate" > now() - interval '2 years')`
+  WHERE p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}`
 
 export async function countEmployerPages(): Promise<number> {
   const [row] = await prisma.$queryRawUnsafe<{ n: number }[]>(`SELECT count(*)::int AS n ${ELIGIBLE}`)
