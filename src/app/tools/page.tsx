@@ -8,6 +8,7 @@ export const metadata: Metadata = pageMetadata('/tools')
 const TOOLS = [
   { href: '/tools/layoff-deadlines', name: 'Layoff deadlines', body: 'Enter your last day to see when to file for unemployment and choose health coverage.' },
   { href: '/tools/pay-check', name: 'Pay check', body: 'See where your salary sits against what employers list for your job title.' },
+  { href: '/tools/resume-check', name: 'Résumé check', body: 'Paste your résumé to get a score out of 100 and see what to fix.' },
   { href: '/tools/severance-calculator', name: 'Severance calculator', body: 'Turn years of service and pay into the common range of one to two weeks per year.' },
   { href: '/tools/warn-act-checker', name: 'WARN Act checker', body: 'For employers: is 60 days’ notice of a layoff likely required?' },
   { href: '/unemployment-benefits', name: 'Unemployment benefits by state', body: 'Weekly amount, weeks, waiting week and where to file, for every state.' },
