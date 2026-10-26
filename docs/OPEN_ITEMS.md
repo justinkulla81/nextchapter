@@ -2,7 +2,7 @@
 
 Living document. Compiled from everything flagged during the Phase 2 / Partners / Search-Visibility build session. Update this file as items get resolved — don't let it go stale.
 
-Last updated: 2026-08-14 (during active build session).
+Last updated: 2026-10-26 (SEO and indexing items added).
 
 ---
 
@@ -21,6 +21,14 @@ These are referenced as if real by one or more spec documents, but have zero imp
 - **Resume Studio (built 2026-10-14, `/dashboard/resume/studio`; DDL in `prisma/manual/2026-10-14-resume-studio.sql`).** A free-form editor over the same document the PDF/Word templates render, with saved drafts, free writing checks, a plain-text ATS view and a job-posting keyword check. Still open: drafts start from profile data (one bullet per role) or blank, there is no AI import of an uploaded resume into sections; and "Resume Studio save" is not yet wired into the `ResumeIssue` capture pipeline, so the Part B/Part Four items that referenced it remain N/A.
 - **A real 4-value persona field.** `CandidateProfile` has no `persona` field — only the pre-existing `currentJobStatus` (7-value `CurrentJobStatus` enum), set once at onboarding. Confidential Search Mode's persona-based default (ON for Worried/Resigned) is a lossy reverse-map from this enum, not an exact match (per explicit user decision — documented in code comments where the mapping lives).
 - **A comment/reply model on `CommunityPost`.** Doesn't exist — only reactions. The Weekly Leaderboards' Contribution board is scoped to reactions-only per explicit user decision, not the spec's literal "reply or reaction."
+
+## SEO and indexing (2026-10-26)
+
+- **Submit the sitemap index in Search Console.** `https://launchyournextchapter.com/sitemap-index.xml` (needs the owner's Google login; the app's Search Console grant is read-only). Then watch Pages > "Crawled - currently not indexed" and "Duplicate without user-selected canonical" after 2 to 4 weeks. That count is the real test of whether Google finds the pages strong enough; `scripts/seo/page-quality.py` is the stand-in until then.
+- **Employer layoff pages held back from the index.** 404 of 1,772 `/layoffs/company/<name>` pages (one filing naming under 50 workers, about 220 words) are `noindex` and out of the sitemap (`src/lib/seo/page-bars.ts`). They come back on their own when the employer gets a second filing, reaches 50 named workers, or reaches the employer-page bar (100 named workers). The DC and Delaware rapid-response and workforce-board state pages are held back the same way (fewer than 5 job centers and fewer than 3 boards). Re-run the page-quality audit after the bar changes.
+- **Post-deploy warm-up** (`.github/workflows/warm-pages.yml`, `scripts/seo/warm-pages.sh`): requests about 149 key pages one at a time after each production deploy. The layoff-state part of its list is read from the sitemap, so it only holds states that have a page. Check the run's last line ("warmed N pages: ... not 200") after a deploy.
+- **Cold first request** to salary, job-title and job-type pages is still 15 to 90 seconds on a server that has not run the shared scan yet (`src/lib/seo/job-titles.ts`). A precomputed nightly table would remove it.
+- **Not audited:** `higher-education/<state>` pages timed out in the page-quality audit, so they have no thin-or-not reading yet.
 
 ## Resolved during this session
 

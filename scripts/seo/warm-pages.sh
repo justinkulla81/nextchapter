@@ -21,8 +21,11 @@ urls+=(/ /layoffs /unemployment-benefits /salaries /jobs/title /jobs /places /wo
 for t in remote hybrid contract part-time interim; do urls+=("/jobs/type/$t"); done
 # 2. The busiest states
 for s in california texas new-york florida illinois pennsylvania ohio georgia; do
-  urls+=("/layoffs/$s" "/unemployment-benefits/$s" "/places/$s" "/workforce-boards/$s" "/rapid-response/$s" "/higher-education/$s")
+  urls+=("/unemployment-benefits/$s" "/places/$s" "/workforce-boards/$s" "/rapid-response/$s" "/higher-education/$s")
 done
+# A state's layoff page exists only while it has a notice from the last 12 months, so take those states from the sitemap.
+layoff_states=$(get "$BASE/sitemap.xml" | grep -o "<loc>[^<]*/layoffs/[a-z-]*</loc>" | grep -v "/layoffs/company" | sed -E 's#<loc>https?://[^/]+##; s#</loc>##' | head -n 12)
+for p in $layoff_states; do urls+=("$p"); done
 # 3. The most listed job titles (the salaries sitemap lists them most listed first)
 salaries=$(get "$BASE/salaries/sitemap.xml" | grep -o "<loc>[^<]*/salaries/[^<]*" | sed -E 's#<loc>https?://[^/]+##' | head -n "$TITLES")
 for p in $salaries; do urls+=("$p" "${p/salaries/jobs/title}"); done
