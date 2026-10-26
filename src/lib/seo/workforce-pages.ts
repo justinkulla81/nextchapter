@@ -1,6 +1,6 @@
 import 'server-only'
-import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
+import { memoTtl, retryOnPoolTimeout } from '@/lib/db/heavy'
 import { boardCountyKeys, visibleBoards } from '@/lib/workforce/board-area'
 import { boardLabor, type BoardLabor } from '@/lib/workforce/labor'
 import { orgSlug } from '@/lib/crm/org-slug'
@@ -58,7 +58,12 @@ export function boardSlugs(boards: { id: string; name: string }[]): Map<string, 
   return new Map(boards.map((b) => [b.id, (count.get(slugify(b.name)) ?? 0) > 1 ? `${slugify(b.name)}-${slugify(b.id)}` : slugify(b.name)]))
 }
 
-export const getStateBoards = cache(async (state: string): Promise<PublicBoard[]> => {
+// A crawl renders hundreds of cold pages that need the same few per-state reads (a state's boards, centers, colleges and
+// labor figures), so each is remembered for a few minutes on the instance and shared between concurrent renders, and a
+// read that fails only because the connection pool is busy is retried. See src/lib/db/heavy.ts.
+const TTL = 5 * 60_000
+
+export const getStateBoards = memoTtl(TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<PublicBoard[]> => {
   const rows = await prisma.workforceBoard.findMany({
     where: { state },
     select: { id: true, state: true, name: true, website: true, zip: true, serviceArea: true, statewide: true, counties: true, placeCounties: true },
@@ -67,33 +72,34 @@ export const getStateBoards = cache(async (state: string): Promise<PublicBoard[]
   const shown = visibleBoards(rows)
   const slugs = boardSlugs(shown)
   return shown.map((b) => ({ ...b, slug: slugs.get(b.id)! }))
-})
+}))
 
-export const getStateCenters = cache(async (state: string): Promise<PublicCenter[]> => {
+export const getStateCenters = memoTtl(TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<PublicCenter[]> => {
   const rows = await prisma.americanJobCenter.findMany({
     where: { state },
     select: { id: true, name: true, centerType: true, city: true, phone: true, hours: true, detailsUrl: true, workforceBoardId: true },
     orderBy: [{ city: 'asc' }, { name: 'asc' }],
   })
   return rows.map((r) => ({ id: r.id, name: r.name, kind: r.centerType, city: r.city, phone: r.phone, hours: r.hours, detailsUrl: r.detailsUrl, boardId: r.workforceBoardId }))
-})
+}))
 
 const keyOf = (k: string) => k.replace(/\s+/g, '')
 
+const countyRowsFor = memoTtl(TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(() =>
+  prisma.countyLabor.findMany({ where: { state }, select: { nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true } }),
+))
+
 export async function getBoardLabor(b: PublicBoard): Promise<BoardLabor | null> {
   const keys = boardCountyKeys(b)
-  const rows = await prisma.countyLabor.findMany({ where: { state: b.state }, select: { nameKey: true, laborForce: true, unemployed: true, rateYearAgo: true, period: true } })
+  const rows = await countyRowsFor(b.state)
   const mine = keys === 'all' ? rows : rows.filter((r) => keys.includes(keyOf(r.nameKey)))
   return boardLabor(mine)
 }
 
-export const getStateLabor = cache(async (state: string): Promise<BoardLabor | null> => {
-  const rows = await prisma.countyLabor.findMany({ where: { state }, select: { laborForce: true, unemployed: true, rateYearAgo: true, period: true } })
-  return boardLabor(rows)
-})
+export const getStateLabor = async (state: string): Promise<BoardLabor | null> => boardLabor(await countyRowsFor(state))
 
 /** Colleges in a state from the IPEDS directory, with the claim slug for those linked to a CRM organization. */
-export const getStateColleges = cache(async (state: string): Promise<PublicCollege[]> => {
+export const getStateColleges = memoTtl(TTL, (state: string) => state, (state: string) => retryOnPoolTimeout(async (): Promise<PublicCollege[]> => {
   const rows = await prisma.localCollege.findMany({
     where: { state, sector: { in: [1, 2, 4, 5] } },
     select: { id: true, name: true, city: true, sector: true, size: true, website: true, crmOrgId: true },
@@ -108,7 +114,7 @@ export const getStateColleges = cache(async (state: string): Promise<PublicColle
     id: r.id, name: r.name, city: r.city, sector: r.sector, size: r.size, website: r.website,
     claimSlug: r.crmOrgId ? (slugByOrg.get(r.crmOrgId) ?? null) : null,
   }))
-})
+}))
 
 export interface StateLayoffs { notices: number; workers: number; employers: number }
 
@@ -119,14 +125,14 @@ export async function getStateLayoffs(state: string): Promise<StateLayoffs> {
 }
 
 /** States that have at least one board, for the hub and the sitemap. */
-export const getStatesWithBoards = cache(async (): Promise<{ state: string; boards: number; centers: number }[]> => {
+export const getStatesWithBoards = memoTtl(TTL, () => 'all', () => retryOnPoolTimeout(async (): Promise<{ state: string; boards: number; centers: number }[]> => {
   const [boards, centers] = await Promise.all([
     prisma.workforceBoard.groupBy({ by: ['state'], _count: { _all: true } }),
     prisma.americanJobCenter.groupBy({ by: ['state'], _count: { _all: true } }),
   ])
   const c = new Map(centers.map((x) => [x.state, x._count._all]))
   return boards.map((b) => ({ state: b.state, boards: b._count._all, centers: c.get(b.state) ?? 0 }))
-})
+}))
 
 export const rateText = (l: BoardLabor) => `${l.rate.toFixed(1)}%`
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

@@ -97,6 +97,10 @@
       "schedule": "40 11 * * *"
     },
     {
+      "path": "/api/cron/indexnow-seo-pages",
+      "schedule": "50 11 * * *"
+    },
+    {
       "path": "/api/cron/google-indexing-jobs",
       "schedule": "45 11 * * *"
     },
