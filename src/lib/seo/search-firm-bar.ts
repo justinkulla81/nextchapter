@@ -13,6 +13,10 @@ export function isSearchFirmIndexable(publicRoles: number): boolean {
   return publicRoles >= SEARCH_FIRM_MIN_PUBLIC_ROLES
 }
 
+/** A real firm name makes a short address. A longer slug means the CRM name is scraped page text (one was a whole HTML page), so the firm gets no page. */
+export const SEARCH_FIRM_MAX_SLUG = 80
+export const isUsableFirmSlug = (slug: string | null): slug is string => !!slug && slug.length <= SEARCH_FIRM_MAX_SLUG
+
 export type FirmKind = 'retained' | 'contingent' | 'nonprofit_higher_ed' | 'staffing' | 'outplacement' | 'search'
 
 export const FIRM_KIND_LABEL: Record<FirmKind, string> = {
