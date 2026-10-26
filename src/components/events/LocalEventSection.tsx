@@ -35,6 +35,12 @@ function Row({ e, links }: { e: LocalEventRow; links: Map<string, string> }) {
   )
 }
 
+/** A list of events with host links, for pages that load their own rows. */
+export async function LocalEventList({ rows }: { rows: LocalEventRow[] }) {
+  const links = await hostLinkMap(rows)
+  return <ul className="mt-4 grid gap-3 md:grid-cols-2">{rows.map((e) => <Row key={e.id} e={e} links={links} />)}</ul>
+}
+
 /** Job fairs, hiring events and entrepreneurship events for a place or an org. Renders nothing when there are none. */
 export async function LocalEventSection({ id, title, intro, scope, take = 12 }: {
   id: string; title: string; intro?: string; take?: number

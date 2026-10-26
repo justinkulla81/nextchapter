@@ -57,10 +57,11 @@ async function main() {
     const cm = loc.match(/(?:St\.?|Street|Ave\.?|Avenue|Rd\.?|Road|Blvd\.?|Boulevard|Hwy\.?|Highway|Dr\.?|Drive|Ln\.?|Lane|Way|Pkwy|Parkway|Ct\.?|Court|Pl\.?|Plaza|Loop|Cir\.?|Trail|Suite\s*\w+|Ste\.?\s*\w+|Floor|Fl\.?)\s+([A-Za-z][A-Za-z.' -]+?)\s*,\s*[A-Z]{2}\s*\d{5}/)
     const city = cm?.[1]?.replace(/^[NSEW]\.?\s+/, '').toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase())
     if (!state) { const hit = Object.keys(STATES).find((n) => new RegExp(`\\b${n}\\b`).test(`${t.title} ${host} ${d.match(/data-test-district-office="([^"]*)"/)?.[1] ?? ''}`)); if (hit) state = STATES[hit] }
-    if (!state) continue
+    if (!state && t.mode !== 'online') continue
+    const homeState = state ?? 'US'
     const hostName = host || 'SBA resource partner'
-    const sid = `${hostKind(hostName)}:sba-${slug(hostName)}-${state}`
-    sources.set(sid, { id: sid, kind: hostKind(hostName), name: hostName, state, city: city ?? null, website: 'https://www.sba.gov/events', eventsUrl: 'https://www.sba.gov/events', feedType: 'ld+json', eventCount: (sources.get(sid)?.eventCount ?? 0) + 1 })
+    const sid = `${hostKind(hostName)}:sba-${slug(hostName)}-${homeState}`
+    sources.set(sid, { id: sid, kind: hostKind(hostName), name: hostName, state: homeState, city: city ?? null, website: 'https://www.sba.gov/events', eventsUrl: 'https://www.sba.gov/events', feedType: 'ld+json', eventCount: (sources.get(sid)?.eventCount ?? 0) + 1 })
     events.push({ title: t.title, description: desc, startsAt: t.start, endsAt: t.end, format: t.mode === 'online' ? 'VIRTUAL' : t.mode === 'hybrid' ? 'HYBRID' : 'IN_PERSON', venue: t.mode === 'online' ? undefined : loc.replace(/^Location\s*/i, '').slice(0, 160), city, state, url: `https://www.sba.gov/event/${t.id}`, registerUrl: reg && /^https?:/.test(reg) ? reg : undefined, cost: t.cost, sourceType: 'ld+json', sourceUrl: `https://www.sba.gov/event/${t.id}`, hostIds: [sid] })
     if (events.length % 50 === 0) console.log(`${events.length} detailed`)
   }

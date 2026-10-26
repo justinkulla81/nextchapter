@@ -8,9 +8,10 @@ export interface LocalEventRow {
   hosts: { kind: string; id: string; name: string; role: string }[]
 }
 
-export type LocalEventScope = { state?: string; cityKey?: string; countyKey?: string; link?: { kind: string; id: string }; track?: 'JOBS' | 'ENTREPRENEUR' }
+export type LocalEventScope = { online?: boolean; state?: string; cityKey?: string; countyKey?: string; link?: { kind: string; id: string }; track?: 'JOBS' | 'ENTREPRENEUR' }
 
 const whereOf = (s: LocalEventScope) => ({
+  ...(s.online ? { format: 'VIRTUAL', state: null } : {}),
   ...(s.state ? { state: s.state } : {}), ...(s.cityKey ? { cityKey: s.cityKey } : {}), ...(s.countyKey ? { countyKey: s.countyKey } : {}),
   ...(s.track ? { track: s.track } : {}), ...(s.link ? { links: { some: { targetKind: s.link.kind, targetId: s.link.id } } } : {}),
 })
@@ -36,3 +37,16 @@ export async function localEvents(scope: LocalEventScope, take = 12): Promise<Lo
   // unstable_cache stores JSON, so dates come back as strings.
   return (await cached(JSON.stringify(scope), take)).map((r) => ({ ...r, startsAt: new Date(r.startsAt), endsAt: r.endsAt ? new Date(r.endsAt) : null }))
 }
+
+/** A state hub page is offered to search engines once it lists at least this many upcoming events. */
+export const EVENTS_STATE_MIN = 8
+
+const countsCached = unstable_cache(async (): Promise<Record<string, number>> => {
+  try {
+    const rows = await prisma.localEvent.groupBy({ by: ['state'], where: { published: true, state: { not: null }, startsAt: { gte: new Date(Date.now() - 86_400_000) } }, _count: { _all: true } })
+    return Object.fromEntries(rows.filter((r) => r.state).map((r) => [r.state!, r._count._all]))
+  } catch { return {} }
+}, ['local-event-state-counts'], { revalidate: 3600 })
+
+/** Upcoming published events per state code. */
+export const eventStateCounts = () => countsCached()

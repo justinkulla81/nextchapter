@@ -8,6 +8,7 @@ import { effectiveJourney } from '@/lib/journey/journey'
 import { currentStartStage, getStartStage, hasStartDetails, missingStartFields, startDetailsOf } from '@/lib/journey/start-business'
 import { PageHeader } from '@/components/candidate/PageHeader'
 import { ActionSubmit } from '@/components/candidate/ActionSubmit'
+import { StartEventsTab } from '@/components/dashboard/start/StartEventsTab'
 import { StartFundingTab, StartHelpTab, StartPlanTab } from '@/components/dashboard/start/StartTabs'
 import { startBuilding } from './actions'
 
@@ -17,6 +18,7 @@ const TABS = [
   { key: 'plan', label: 'Your plan' },
   { key: 'help', label: 'Get help' },
   { key: 'funding', label: 'Fund it' },
+  { key: 'events', label: 'Events near you' },
 ] as const
 type TabKey = (typeof TABS)[number]['key']
 
@@ -69,6 +71,7 @@ export default async function StartBusinessPage({ searchParams }: { searchParams
       {tab === 'plan' && <StartPlanTab details={details} stage={stage} started={started} schoolName={edu?.schoolName ?? null} venture={venture} runwayMonths={runwayMonths} />}
       {tab === 'help' && <StartHelpTab details={details} stage={stage} />}
       {tab === 'funding' && <StartFundingTab details={details} stage={stage} />}
+      {tab === 'events' && <StartEventsTab state={profile.currentState ?? null} />}
     </div>
   )
 }
