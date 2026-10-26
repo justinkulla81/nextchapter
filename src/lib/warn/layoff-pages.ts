@@ -22,7 +22,19 @@ export const TWENTY_FOUR_MONTHS_MS = 2 * 365 * DAY_MS
  */
 export function employerSlug(rawEmployer: string, matchedCompanyName: string | null): string {
   const name = cleanEmployer(rawEmployer.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+-\s+.*$/, ''), matchedCompanyName)
-  return normalizeOrgName(name).replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+  return stripSlugSuffixes(normalizeOrgName(name).replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')).slice(0, 80)
+}
+
+const SLUG_SUFFIXES = new Set(['incorporated', 'inc', 'llc', 'ltd', 'limited', 'corporation', 'corp', 'company', 'co', 'plc'])
+
+/**
+ * normalizeOrgName drops one trailing suffix; "Intel Corporation, Inc." leaves "intel-corporation".
+ * Dropping them all keeps one employer on one page (the old spelling redirects).
+ */
+export function stripSlugSuffixes(slug: string): string {
+  const parts = slug.split('-')
+  while (parts.length > 1 && SLUG_SUFFIXES.has(parts[parts.length - 1])) parts.pop()
+  return parts.join('-')
 }
 
 export interface PublicNotice {
@@ -150,3 +162,16 @@ export async function getNewsMentions(company: CompanySummary) {
 /** "Oct 1, 2026", as a calendar date. */
 export const noticeDay = (d: Date) =>
   d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+
+
+/** The employers with the most workers named in notices over the last 12 months, for the hub's links to their pages. */
+export async function getLargestRecentEmployers(limit: number): Promise<{ slug: string; name: string; workers: number; notices: number }[]> {
+  const cutoff = Date.now() - TWELVE_MONTHS_MS
+  const out: { slug: string; name: string; workers: number; notices: number }[] = []
+  for (const c of (await getCompanies()).values()) {
+    const recent = c.notices.filter((n) => n.noticeDate.getTime() >= cutoff)
+    if (!recent.length) continue
+    out.push({ slug: c.slug, name: c.name, workers: recent.reduce((t, n) => t + (n.workers ?? 0), 0), notices: recent.length })
+  }
+  return out.sort((a, b) => b.workers - a.workers || b.notices - a.notices).slice(0, limit)
+}

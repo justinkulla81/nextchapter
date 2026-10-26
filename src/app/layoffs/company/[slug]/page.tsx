@@ -1,7 +1,7 @@
 import { layoffsCompanySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -12,7 +12,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getRecentNotices } from '@/lib/seo/topic-data'
 import { industryPath } from '@/lib/seo/topics'
-import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay } from '@/lib/warn/layoff-pages'
+import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay, stripSlugSuffixes } from '@/lib/warn/layoff-pages'
 import { titleMeta } from '@/lib/seo/title'
 
 // Pages are built on first visit and refreshed daily; there are over a
@@ -24,7 +24,13 @@ export function generateStaticParams() {
 }
 
 async function load(slug: string) {
-  return (await getCompanies()).get(slug) ?? null
+  const companies = await getCompanies()
+  const c = companies.get(slug)
+  if (c) return c
+  // A spelling from before one employer's filings were merged ("intel-corporation" → "intel").
+  const merged = stripSlugSuffixes(slug)
+  if (merged !== slug && companies.has(merged)) permanentRedirect(`/layoffs/company/${merged}`)
+  return null
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
