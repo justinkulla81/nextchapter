@@ -11,12 +11,19 @@ import { tokenDefaultsExtension } from '@/lib/security/token-defaults-extension'
 // once, and a crawler hitting thousands of uncached public pages made them wait out the 10 seconds and fail with a 500 ("Timed out fetching a new
 // connection from the connection pool", seen 2026-10-26). DATABASE_URL goes through Supabase's transaction pooler (pgbouncer=true), which hands out a
 // server connection only for the length of a query, so a larger client-side pool and a longer wait are safe. A value already in the URL wins.
-export function withPoolSettings(url: string | undefined): string | undefined {
+//
+// During `next build` the pool is small (BUILD_POOL_SIZE) and waits longer. A build renders many pages in several worker processes at once, each
+// with its own pool, so at 15 a single build could hold hundreds of the pooler's 600 client slots and, with other deploys running, push every
+// real request into "max client connections reached" (a five-minute burst on 2026-10-26 rejected 7,733 connections and returned 500s to Googlebot).
+export const BUILD_POOL_SIZE = 3
+const isBuild = () => process.env.NEXT_PHASE === 'phase-production-build'
+
+export function withPoolSettings(url: string | undefined, building: boolean = isBuild()): string | undefined {
   if (!url) return url
   const [base, query = ''] = url.split('?')
   const params = new URLSearchParams(query)
-  if (!params.has('connection_limit')) params.set('connection_limit', '15')
-  if (!params.has('pool_timeout')) params.set('pool_timeout', '30')
+  if (!params.has('connection_limit')) params.set('connection_limit', String(building ? BUILD_POOL_SIZE : 15))
+  if (!params.has('pool_timeout')) params.set('pool_timeout', building ? '120' : '30')
   return `${base}?${params.toString()}`
 }
 
