@@ -1,12 +1,12 @@
 import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { LINK, JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
+import { notFound } from 'next/navigation'
+import { LINK, FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
-import { associationPath, associationSlug, functionBySlug, JOB_FUNCTIONS } from '@/lib/seo/topics'
-import { conferencesForFunction, getAssociations, getFunctionNotices, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { associationPath, JOB_FUNCTIONS } from '@/lib/seo/topics'
+import { loadFunction } from '@/lib/seo/topic-load'
 import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 3600
@@ -15,51 +15,29 @@ export function generateStaticParams() {
   return []
 }
 
-const EMPTY_JOBS: TopicJobs = { total: 0, jobs: [], functions: [], industries: [], employers: [] }
-
-async function load(slug: string) {
-  const fn = functionBySlug(slug)
-  if (!fn) return null
-  const [jobs, confs, notices, associations] = await Promise.all([
-    getTopicJobs({ fn: fn.name }).catch(() => EMPTY_JOBS),
-    conferencesForFunction(fn.name, 24).catch(() => ({ total: 0, upcoming: 0, rows: [] })),
-    getFunctionNotices(fn.name).catch(() => []),
-    getAssociations().catch(() => []),
-  ])
-  const assocSlugs = new Set(associations.map((a) => a.slug))
-  const orgCounts = new Map<string, number>()
-  for (const c of confs.rows) if (c.organizer && assocSlugs.has(associationSlug(c.organizer))) orgCounts.set(c.organizer, (orgCounts.get(c.organizer) ?? 0) + 1)
-  const orgs = [...orgCounts].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([name]) => name)
-  return { fn, jobs, confs, notices, orgs }
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const d = await load(slug)
+  const d = await loadFunction(slug)
   if (!d) return { title: 'Function not found', robots: { index: false, follow: true } }
-  const bits = [
-    d.jobs.total ? `about ${d.jobs.total.toLocaleString()} verified open jobs` : null,
-    d.confs.total ? `${d.confs.total.toLocaleString()} conferences` : null,
-    d.notices.length ? `${d.notices.length.toLocaleString()} layoff notices at employers hiring for it` : null,
-  ].filter(Boolean)
   return {
     title: titleMeta(`${d.fn.name} jobs, conferences and layoffs`),
-    description: fitDescription(`${d.fn.blurb} ${bits.length ? `${bits.join(', ')}, ` : ''}associations and the industries that hire for it.`.replace(/\s+/g, ' ').trim(), 165),
+    description: fitDescription(d.intro, 165),
+    robots: { index: d.assessment.indexable, follow: true },
     ...canonical(`/functions/${slug}`),
   }
 }
 
 export default async function FunctionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const d = await load(slug)
+  const d = await loadFunction(slug)
   if (!d) notFound()
-  const { fn, jobs, confs, notices, orgs } = d
+  const { fn, jobs, stats, confs, notices, orgs, facts, intro } = d
   const path = `/functions/${slug}`
   return (
     <TopicShell
       trail={[{ name: 'Functions', path: '/functions' }, { name: fn.name, path }]}
       title={`${fn.name} jobs, conferences and layoffs`}
-      intro={`${fn.blurb} Open jobs, conferences, associations, the industries that hire for this function and the employers hiring for it that have also filed layoff notices.`}
+      intro={intro}
       jsonLd={[
         {
           '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${fn.name} jobs, conferences and layoffs`, url: `${SITE_URL}${path}`,
@@ -67,6 +45,15 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
         },
       ]}
     >
+      <Section id="snapshot" title={`${fn.name} market snapshot`} note="Every figure names its source and period. Estimates are labeled as estimates; AI exposure is what AI could do in principle, not a measured job loss.">
+        <FactGrid facts={facts} />
+        {stats && (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <RankList title="Skills most often named in openings" items={stats.skills.slice(0, 8).map((x) => ({ label: x.name, detail: `${Math.round((x.count / stats.sample) * 100)}%` }))} />
+            <RankList title="States with the most openings" items={stats.states.map((x) => ({ label: x.state, detail: `${Math.round((x.count / stats.sample) * 100)}%` }))} />
+          </div>
+        )}
+      </Section>
       <Section id="jobs" title={`Open ${fn.name} jobs`} note="Verified against the employer’s own career site within the last week.">
         <JobList jobs={jobs.jobs} total={jobs.total} source={`function:${slug}`} />
       </Section>

@@ -184,3 +184,29 @@ export const associationPath = (organizer: string) => `/associations/${associati
 export const LOOKS_LIKE_ASSOCIATION = /association|society|institute|council|federation|league|chamber|alliance|guild|academy|foundation|union|coalition|consortium|\bcollege\b|\bAICPA\b|\bSIFMA\b/i
 
 export const conferencePath = (id: string) => `/conferences/${id}`
+
+/**
+ * The Census occupation major group (SOC) closest to a job function, for the report's AI-exposure and employment-change
+ * figures. A function is not an occupation group, so pages say "closest group" and only the confident pairs are listed.
+ */
+export const FUNCTION_SOC_GROUP: Record<string, string> = {
+  Engineering: '17',
+  'Data & Analytics': '15',
+  Security: '15',
+  Product: '11',
+  Finance: '13',
+  'Human Resources': '13',
+  Marketing: '13',
+  Strategy: '13',
+  Investment: '13',
+  Sales: '41',
+  Legal: '23',
+  Design: '27',
+  Administration: '43',
+  'Executive Leadership': '11',
+  Operations: '11',
+  Clinical: '29',
+  Research: '19',
+  Academic: '25',
+  Programs: '21',
+}
