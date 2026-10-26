@@ -1,3 +1,5 @@
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
@@ -13,8 +15,7 @@ import { StructuredData } from '@/components/StructuredData'
 const SITE = 'https://launchyournextchapter.com'
 
 export const metadata: Metadata = {
-  title: 'News',
-  description: 'Articles, videos, podcasts and posts on the job market and searching for a job, picked by NextChapter.',
+  ...pageMetadata('/news'),
   alternates: { canonical: '/news', types: { 'application/rss+xml': '/news/feed.xml' } },
 }
 
@@ -44,10 +45,11 @@ export default async function NewsPage() {
           })),
         },
       }} />
+      <StructuredData data={breadcrumbJsonLd([{ name: 'News', path: '/news' }])} />
       <PublicSiteHeader current="news" />
       <main className="flex-1 bg-off-white py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <h1 className="text-4xl font-bold tracking-tight text-navy">News</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-navy">{pageH1('/news', 'News')}</h1>
           <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
             Articles, videos, podcasts and posts on the job market and searching for a job. For our own data, read the
             monthly{' '}

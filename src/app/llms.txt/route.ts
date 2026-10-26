@@ -1,6 +1,7 @@
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { latestReport, reportPath } from '@/lib/reports'
 import { FACTS, SITE_URL } from '@/lib/seo/facts'
+import { llmsPageLines } from '@/lib/seo/keywords'
 
 // /llms.txt — the site map for AI answer engines (llmstxt.org). Generated at
 // build time from the same facts, guides and report registry the pages use,
@@ -19,11 +20,12 @@ export function GET() {
 
 - [Home](${u('/')}): overview of the Market Reality Assessment, the weekly Search Sprint system, and how the platform works end to end.
 - [FAQ](${u('/faq')}): plans (free for candidates), privacy, how the Market Reality Assessment works, and how employer matching works.
-- [Executive Coach](${u('/coaching')}): an optional human career coach on top of Victoria, the free AI coach — mock interviews, resume review, negotiation support. Plans are on [Plans](${u('/pricing')}).
+- [Career coach](${u('/coaching')}): Victoria, the free AI career coach, and an optional human executive and professional career coach on top — mock interviews, resume review, negotiation support. Plans are on [Plans](${u('/pricing')}).
 
 ## For organizations
 
 - [For Organizations](${u('/for-organizations')}): one card for each portal: higher education, workforce, hiring, employees, outplacement, recruiters and coaches, each with its page and log in.
+- [Top employers](${u('/top-employers')}): which employers have the most open entry-level jobs, the most jobs that need no experience, the highest share of AI-skill jobs, and the biggest hirers in each function. Counted daily from verified open jobs; staffing and search firms excluded.
 - [Employers](${u('/employers')}): the three employer sections by employee lifecycle: Hiring for future employees, Employees for current ones, Outplacement for departing ones.
 - [Hiring](${u('/talent')}): post a role and see candidates who chose to be seen, with an evidence brief for each.
 - [Employees](${u('/employees')}): retention, and learning and development, reported as counts by team, never by person.
@@ -33,9 +35,12 @@ export function GET() {
 - [Government & Workforce](${u('/government-workforce')}): a workspace for workforce boards, economic development organizations and chambers, with live counts from our own data.
 - [Nonprofits & community organizations](${u('/nonprofits')}): the same free workspace after a verified claim; research partnerships are set up one at a time.
 - [Recruiters](${u('/recruiters')}): search candidates who chose to be found and submit them in your firm's logo.
+- [Search firms](${u('/search-firms')}): search firms, recruiting firms and staffing companies with open searches: a page for each with the roles it is recruiting for, specialties, places, posted pay and how long its searches stay open.
 - [Coaches](${u('/coaches')}): invite clients with a code, a pre-session brief and session notes.
 
 ## Research and data
+
+- [Employer pages](${u('/employers')}): one page per employer at /employers/<name>: open professional roles from its career site, what it hires for, posted pay against the market, where it hires. Updated daily; employers can claim their page.
 
 - [AI skills in job postings](${u('/ai-skills')}): which functions ask for AI skills, the advertised pay premium raw and like for like, and independent research by seniority. Updated weekly.
 - [AI training](${u('/ai-training')}): for colleges, workforce boards and employers, a measured AI-skill gap and the short courses that close it.
@@ -46,6 +51,12 @@ ${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${rep
 - [Employer pages for current and former employees](${u('/layoffs')}): for each employer with a recent, sizeable WARN filing, the notices, open professional jobs in its state, unemployment benefits, retraining help and a way to join. Linked from each employer's layoff page.
 - [Unemployment benefits by state](${u('/unemployment-benefits')}): maximum and minimum weekly benefit, weeks, waiting week, severance rules and where to file, for all 50 states and DC, from Department of Labor and state agency sources.
 - [Editorial standards](${u('/editorial-standards')}): how NextChapter researches and sources content, keeps it separate from what it sells, and handles corrections.
+
+## Find what you need, by topic
+
+The main page for each topic people search for: layoffs, severance, unemployment benefits, job search, resumes, career change, career pivot, career exploration, career coaches, executive recruiters, reverse recruiters, outplacement and more.
+
+${llmsPageLines(SITE_URL).join('\n')}
 
 ## Guides
 

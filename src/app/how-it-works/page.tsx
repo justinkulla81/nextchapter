@@ -1,3 +1,6 @@
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { StructuredData } from '@/components/StructuredData'
+import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import { STAGE_GUIDE, STAGE_ORDER, stageName } from '@/lib/journey/stage-guide'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -8,12 +11,7 @@ import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
 
-export const metadata: Metadata = {
-  title: 'How It Works',
-  description:
-    "From an honest baseline grade to a verified profile hiring managers trust: the five-step flow that gets you hired, promoted, or ready for what's next, on NextChapter, the leading job transition platform, free for candidates.",
-  alternates: { canonical: '/how-it-works' },
-}
+export const metadata: Metadata = pageMetadata('/how-it-works')
 
 interface Step {
   icon: LucideIcon
@@ -70,11 +68,12 @@ const EXAMPLE_ACTIONS = [
 export default function HowItWorksPage() {
   return (
     <div className="flex flex-1 flex-col">
+      <StructuredData data={breadcrumbJsonLd([{ name: 'How it works', path: '/how-it-works' }])} />
       <PublicSiteHeader />
 
       <div className="mx-auto max-w-5xl px-6 py-20">
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">How it works</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-navy sm:text-5xl">{pageH1('/how-it-works', 'How it works')}</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
             A clear path from &quot;I don&apos;t know where I stand&quot; to a job offer — five steps,
             each one building proof the last one didn&apos;t have. NextChapter is a free job

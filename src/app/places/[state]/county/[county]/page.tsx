@@ -1,3 +1,4 @@
+import { placeCountySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -7,6 +8,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getCountyPage, getPlaceLinker, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -33,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     d.layoffs.notices ? `${d.layoffs.notices} layoff notices in 12 months` : null,
   ].filter(Boolean)
   return {
-    title: `${c.name}, ${s.code}: jobs, layoffs, colleges and workforce help`,
+    title: titleMeta(placeCountySeo(c.name, s.code).title),
     description: `${c.name}, ${name}: ${bits.length ? bits.join(', ') + '. ' : ''}Employers, colleges, the local workforce board and American Job Centers.`,
     ...canonical(placeUrl.county(state, county)),
   }
@@ -51,7 +53,7 @@ export default async function CountyPlacePage({ params }: { params: Promise<{ st
   return (
     <SeoPage
       trail={[{ name: 'Local job markets', path: '/places' }, { name, path: placeUrl.state(state) }, { name: c.name, path }]}
-      h1={`${c.name}, ${name}: jobs, layoffs, colleges and workforce help`}
+      h1={placeCountySeo(c.name, s.code).h1}
       lede={<>
         {c.unemploymentRate != null && <>{c.name}’s unemployment rate is {c.unemploymentRate.toFixed(1)}%. </>}
         {d.layoffs.notices > 0 ? <>Employers filed {d.layoffs.notices.toLocaleString()} layoff notices here in the last 12 months. </> : <>No WARN layoff notices here in the last 12 months. </>}

@@ -1,3 +1,4 @@
+import { placeCitySeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -7,6 +8,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getCityPage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -32,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     d.colleges.length ? `${d.colleges.length} ${d.colleges.length === 1 ? 'college' : 'colleges'}` : null,
   ].filter(Boolean)
   return {
-    title: `${d.place.name}, ${code}: jobs, layoffs, colleges and workforce help`,
+    title: titleMeta(placeCitySeo(d.place.name, code).title),
     description: `${d.place.name}, ${s.name}: ${bits.length ? bits.join(', ') + '. ' : ''}Employers hiring, the local workforce board and American Job Centers.`,
     ...canonical(placeUrl.city(state, city)),
   }
@@ -52,7 +54,7 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
   return (
     <SeoPage
       trail={trail}
-      h1={`${p.name}, ${name}: jobs, layoffs, colleges and workforce help`}
+      h1={placeCitySeo(p.name, code).h1}
       lede={<>
         {d.jobsOpen > 0 && <>{d.jobsOpen.toLocaleString()} open professional jobs in {p.name}. </>}
         {d.layoffs.notices > 0 && <>Employers filed {d.layoffs.notices.toLocaleString()} layoff notices here in the last 12 months. </>}

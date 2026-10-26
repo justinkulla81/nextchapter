@@ -11,6 +11,7 @@ import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
+import { TOPICS } from '@/lib/seo/explainers'
 import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { getAssociations, getCatalogIndex } from '@/lib/seo/topic-data'
 import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
@@ -34,6 +35,9 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
   { path: '/about', updated: '2026-10-06', freq: 'monthly', priority: 0.7 },
   { path: '/how-it-works', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
   { path: '/why-stuck', updated: '2026-10-02', freq: 'monthly', priority: 0.6 },
+  { path: '/glossary', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
+  { path: '/tools', updated: '2026-10-26', freq: 'monthly', priority: 0.6 },
+  { path: '/tools/severance-calculator', updated: '2026-10-26', freq: 'yearly', priority: 0.7 },
   { path: '/funding', updated: '2026-10-23', freq: 'monthly', priority: 0.8 },
   { path: '/pricing', updated: '2026-10-24', freq: 'monthly', priority: 0.6 },
   { path: '/ai-skills', updated: '2026-10-20', freq: 'weekly', priority: 0.7 },
@@ -69,6 +73,8 @@ const STATIC_PAGES: { path: string; updated: string; freq: Freq; priority: numbe
 const PERSONAS_UPDATED = '2026-10-02'
 const COMPARISONS_UPDATED = '2026-08-25'
 
+const EXPLAINERS_UPDATED = '2026-10-25'
+
 // /reports/replication mirrors the replication repository's README.
 const REPLICATION_UPDATED = '2026-10-07'
 
@@ -103,6 +109,8 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
     entry('/industries', TOPICS_UPDATED, 'weekly', 0.7),
     ...INDUSTRIES.map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
     entry('/functions', TOPICS_UPDATED, 'weekly', 0.7),
+    entry('/top-employers', TOPICS_UPDATED, 'daily', 0.8),
+    ...JOB_FUNCTIONS.map((f) => entry(`/top-employers/${f.slug}`, TOPICS_UPDATED, 'daily', 0.6)),
     ...JOB_FUNCTIONS.map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
     entry('/conferences', TOPICS_UPDATED, 'daily', 0.7),
     entry('/associations', TOPICS_UPDATED, 'weekly', 0.6),
@@ -161,6 +169,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       : []),
     ...REPORT_EDITIONS.map((e) => entry(`/reports/${e.slug}`, e.updatedAt ?? e.publishedAt, 'monthly', 0.7)),
     entry('/reports/replication', REPLICATION_UPDATED, 'monthly', 0.5),
+
+    // Topic explainers: severance, resumes, job search strategy, career pivot, career exploration, recruiters.
+    entry('/topics', EXPLAINERS_UPDATED, 'monthly', 0.6),
+    ...TOPICS.map((t) => entry(`/topics/${t.slug}`, t.updated, 'monthly', 0.7)),
 
     // Guides.
     entry('/resources', newestGuide, 'monthly', 0.5),

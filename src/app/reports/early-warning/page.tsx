@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -7,6 +8,7 @@ import { AuthorByline } from '@/components/seo/AuthorByline'
 import { EarlyWarningPanels, buildEarlyWarning } from '@/components/reports/EarlyWarningPanels'
 import { SITE_URL, latestReport } from '@/lib/reports'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { titleMeta } from '@/lib/seo/title'
 
 const SLUG = 'early-warning'
 const URL = `${SITE_URL}/reports/${SLUG}`
@@ -17,9 +19,9 @@ const LICENSE = 'https://creativecommons.org/licenses/by/4.0/'
 const { lead: LEAD } = buildEarlyWarning()
 
 export function generateMetadata(): Metadata {
-  const title = 'Are young graduates the canary? Early-warning labor indicators | NextChapter'
+  const title = pageSeo('/reports/early-warning').title
   return {
-    title: { absolute: title },
+    title: titleMeta(title),
     description: LEAD,
     alternates: { canonical: `/reports/${SLUG}` },
     openGraph: { type: 'article', title, description: LEAD, url: URL, siteName: 'NextChapter' },

@@ -1,6 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
-import { conferenceSuggestions, DEADLINE_HORIZON_DAYS, type ConferenceSuggestion } from './sprint'
+import { conferenceSuggestions, REGISTER_HORIZON_DAYS, type ConferenceSuggestion } from './sprint'
 
 const DAY = 86_400_000
 
@@ -13,7 +13,8 @@ export async function loadConferenceSuggestions(candidateId: string, now = new D
   const [series, opps, tracks] = await Promise.all([
     prisma.conferenceEvent.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, startDate: true, endDate: true, datesConfirmed: true } }),
     prisma.conferenceOpportunity.findMany({
-      where: { seriesId: { in: ids }, published: true, deadline: { gte: today, lte: new Date(today.getTime() + DEADLINE_HORIZON_DAYS * DAY) } },
+      // Followed series only, so an entry still waiting for our review counts for the members who added it.
+      where: { seriesId: { in: ids }, deadline: { gte: today, lte: new Date(today.getTime() + REGISTER_HORIZON_DAYS * DAY) } },
       select: { id: true, seriesId: true, type: true, title: true, deadline: true },
     }),
     prisma.conferenceOpportunityTrack.findMany({ where: { candidateId }, select: { opportunityId: true, status: true } }),

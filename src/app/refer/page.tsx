@@ -1,22 +1,22 @@
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { StructuredData } from '@/components/StructuredData'
+import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import { ReferralForm } from '@/components/marketing/ReferralForm'
 import { ReferralShareBox } from '@/components/marketing/ReferralShareBox'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
-export const metadata: Metadata = {
-  title: 'Refer Someone',
-  description: 'Someone you care about is going through a career transition. Give them a head start.',
-  alternates: { canonical: '/refer' },
-}
+export const metadata: Metadata = pageMetadata('/refer')
 
 export default function ReferPage() {
   return (
     <div className="flex flex-1 flex-col">
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Refer someone', path: '/refer' }])} />
       <PublicSiteHeader />
 
       <div className="mx-auto max-w-xl px-6 py-16 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-          Someone you care about is going through this.
+          {pageH1('/refer', 'Someone you care about is going through this.')}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
           Give them a head start. NextChapter is free for candidates — always. Send them a direct

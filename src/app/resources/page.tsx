@@ -1,22 +1,22 @@
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { StructuredData } from '@/components/StructuredData'
+import { pageH1, pageMetadata } from '@/lib/seo/keywords'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Card, CardContent } from '@/components/ui/card'
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
 
-export const metadata: Metadata = {
-  title: 'Resources',
-  description: 'Free guides for every stage of a job search — from your first 72 hours to your first 90 days in a new role.',
-  alternates: { canonical: '/resources' },
-}
+export const metadata: Metadata = pageMetadata('/resources')
 
 export default function ResourcesIndexPage() {
   return (
     <div className="flex flex-1 flex-col">
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Resources', path: '/resources' }])} />
       <PublicSiteHeader />
 
       <main className="mx-auto w-full max-w-5xl px-6 py-16">
-        <h1 className="text-3xl font-bold tracking-tight text-navy">Resources</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-navy">{pageH1('/resources', 'Resources')}</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Guides for every stage of a job search — from your first 72 hours to your first 90 days in
           a new role.

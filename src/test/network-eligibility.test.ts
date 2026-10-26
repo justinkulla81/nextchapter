@@ -25,8 +25,9 @@ describe('primaryState', () => {
 
 describe('copy helpers', () => {
   it('keeps titles short', () => {
-    expect(networkTitle('Netflix')).toBe('Netflix layoffs and alumni: jobs and benefits')
-    expect(networkTitle('The Very Long Name Of A Holding Company Inc')).toBe('The Very Long Name Of A Holding Company Inc layoffs and alumni')
+    expect(networkTitle('Netflix')).toBe('Netflix Laid-Off Workers: Jobs and Benefits')
+    expect(networkTitle('The Very Long Name Of A Holding Company Inc')).toBe('The Very Long Name Of A Holding Company Inc Laid-Off Workers')
+    expect(networkTitle('Netflix')).not.toMatch(/layoffs/i)
   })
   it('never states a false precision', () => {
     expect(aboutCount(1200)).toBe('about 1,200')

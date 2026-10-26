@@ -1,3 +1,5 @@
+import { fitDescription } from '@/lib/seo/templates'
+import { pageSeo } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StructuredData } from '@/components/StructuredData'
@@ -7,6 +9,7 @@ import { SITE_URL, latestReport } from '@/lib/reports'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { readWcIndex, wcIndexSummary, monthLabel, monthShort, type WcIndexPoint } from '@/lib/reports-wc-index'
+import { titleMeta } from '@/lib/seo/title'
 
 const SLUG = 'white-collar-index'
 const URL = `${SITE_URL}/reports/${SLUG}`
@@ -25,10 +28,8 @@ export function generateMetadata(): Metadata {
     ? `The NextChapter White-Collar Long-Search Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100), up from ${YEAR_AGO_INDEX} a year earlier. A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
     : `The NextChapter White-Collar Long-Search Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100). A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
   return {
-    title: {
-      absolute: 'White-Collar Long-Search Index | NextChapter',
-    },
-    description,
+    title: titleMeta(pageSeo('/reports/white-collar-index').title),
+    description: fitDescription(description, 160),
     alternates: { canonical: `/reports/${SLUG}` },
     openGraph: {
       type: 'article',

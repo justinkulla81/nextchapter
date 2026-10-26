@@ -1,3 +1,4 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
@@ -5,20 +6,12 @@ import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
 import { getStateSummaries } from '@/lib/warn/layoff-pages'
 import { getNationalLaborData } from '@/lib/market/bls-national'
-import { canonical } from '@/lib/seo/canonical'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 
 export const revalidate = 86400
 
-const DESCRIPTION =
-  'WARN Act layoff notices filed with US state labor departments, collected daily: this year’s totals, the latest filings, and a page for every state and employer with a recent notice.'
 
-export const metadata: Metadata = {
-  title: 'Layoff tracker: WARN notices by state',
-  description: DESCRIPTION,
-  ...canonical('/layoffs'),
-  openGraph: { title: 'NextChapter layoff tracker: WARN notices by state', description: DESCRIPTION, type: 'website' },
-}
+export const metadata: Metadata = pageMetadata('/layoffs')
 
 const LINK = 'text-brand underline underline-offset-4'
 
@@ -70,6 +63,20 @@ export default async function LayoffsHubPage() {
                 <Link href="/unemployment-benefits" className={LINK}>unemployment benefits pages</Link> are still available.
               </p>
             )}
+          </section>
+
+          <section aria-labelledby="local" className="mt-16">
+            <h2 id="local" className="text-2xl font-bold tracking-tight text-navy">Layoffs, jobs and workforce help by county and city</h2>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Every state, county and city page puts its layoff notices next to local unemployment, open jobs, the employers
+              hiring most, colleges and the nearest job centers.
+            </p>
+            <ul className="mt-6 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              {ALL_STATE_CODES.map((c) => (
+                <li key={c}><Link href={`/places/${stateSlug(c)}`} className={LINK}>{stateName(c)}</Link></li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm"><Link href="/places" className={LINK}>All local job markets</Link></p>
           </section>
 
           <section aria-labelledby="next" className="mt-16 rounded-xl border border-border bg-white p-6">

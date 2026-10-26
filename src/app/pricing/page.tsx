@@ -1,3 +1,5 @@
+import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
+import { pageH1, pageSeo } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PlanCard } from '@/components/marketing/PortalMarketingPage'
@@ -9,11 +11,7 @@ import { hubJsonLd, portalMetadata } from '@/lib/marketing/portal-seo'
 // Every plan from src/lib/marketing/plans.ts: the individual plans, then each portal's plans under the portal's name with a
 // link to its page, then the plan that spans the employer sections. Names and what each includes, never an amount.
 
-const SEO = {
-  title: 'Plans',
-  description: 'The plans NextChapter offers for candidates, colleges, workforce organizations, employers, recruiters and coaches, and what each includes.',
-  path: '/pricing',
-}
+const SEO = { ...pageSeo('/pricing'), path: '/pricing' }
 
 export const metadata: Metadata = portalMetadata(SEO)
 
@@ -33,11 +31,12 @@ export default function PlansPage() {
           trail: [{ name: 'Plans', path: SEO.path }],
         })}
       />
+      <StructuredData data={breadcrumbJsonLd([{ name: 'Plans and pricing', path: '/pricing' }])} />
       <PublicSiteHeader />
 
       <main className="mx-auto w-full max-w-4xl px-6 py-16">
         <div className="text-center">
-          <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Plans</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">{pageH1('/pricing', 'Plans')}</h1>
           <p className="mx-auto mt-3 max-w-xl text-lg text-muted-foreground">
             NextChapter is free for candidates. Here is what each plan includes, for every kind of organization.
           </p>

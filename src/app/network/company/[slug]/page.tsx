@@ -13,7 +13,9 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getCompanies, noticeDay } from '@/lib/warn/layoff-pages'
 import { getNetworkCompany } from '@/lib/network/company'
+import { networkCompanySeo } from '@/lib/seo/templates'
 import { aboutCount, networkTitle, totalWorkers } from '@/lib/network/eligibility'
+import { titleMeta } from '@/lib/seo/title'
 
 // One page per employer with a recent, sizeable WARN filing: what was filed, where the jobs are, which
 // benefits and retraining apply, and a two-tap way in. Built on first visit, refreshed daily. An employer
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!c) return {}
   const states = c.states.map(stateName).join(', ')
   return {
-    title: networkTitle(c.name),
+    title: titleMeta(networkTitle(c.name)),
     description: `${c.name} filed ${c.notices.length} WARN layoff ${c.notices.length === 1 ? 'notice' : 'notices'} in ${states}, most recently ${noticeDay(c.latest)}. Open jobs, unemployment benefits, retraining and what to do first.`,
     ...canonical(`/network/company/${slug}`),
   }
@@ -115,7 +117,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
             <span className="text-foreground">{c.name}</span>
           </nav>
           <h1 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight text-navy sm:text-4xl">
-            {c.name} layoffs and alumni: jobs, benefits and retraining
+            {networkCompanySeo(c.name).h1}
           </h1>
 
           {/* The answer first, in plain sentences, so a reader or an answer engine gets it without scrolling. */}
