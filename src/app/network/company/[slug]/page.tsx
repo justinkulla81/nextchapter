@@ -15,6 +15,7 @@ import { getCompanies, noticeDay } from '@/lib/warn/layoff-pages'
 import { getNetworkCompany } from '@/lib/network/company'
 import { networkCompanySeo } from '@/lib/seo/templates'
 import { aboutCount, networkTitle, totalWorkers } from '@/lib/network/eligibility'
+import { approvedStatementMap } from '@/lib/employer-statements/store'
 import { titleMeta } from '@/lib/seo/title'
 
 // One page per employer with a recent, sizeable WARN filing: what was filed, where the jobs are, which
@@ -53,6 +54,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
   if (!data) permanentRedirect(`/layoffs/company/${slug}`)
 
   const { company: c, state, atEmployer, inState } = data
+  const statements = await approvedStatementMap(slug, c.name)
   const workers = totalWorkers(c)
   const stateLabel = stateName(state)
   const path = `/network/company/${slug}`
@@ -145,7 +147,7 @@ export default async function NetworkCompanyPage({ params }: { params: Promise<{
               A WARN notice gives the number of workers and the dates the employer reported. It does not say why. Notices are published by each state.
             </p>
             <div className="mt-4">
-              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" />
+              <NoticeTable notices={c.notices} caption={`WARN notices filed by ${c.name}, newest first`} showState={c.states.length > 1} page="company" statements={statements} />
             </div>
             <p className="mt-3 text-sm">
               <Link href={`/layoffs/company/${slug}`} className={LINK}>Full notice record and news mentions for {c.name}</Link>
