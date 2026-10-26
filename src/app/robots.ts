@@ -28,8 +28,6 @@ const disallow = [
   '/ref/',
   '/auth/callback',
   '/auth/magic-link',
-  // Careers pages are for people we point to, not for search engines.
-  '/careers',
 ]
 
 export default function robots(): MetadataRoute.Robots {
@@ -47,11 +45,18 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: [
           'GPTBot',
           'ChatGPT-User',
+          'OAI-SearchBot',
           'Google-Extended',
           'ClaudeBot',
+          'Claude-SearchBot',
+          'Claude-User',
           'anthropic-ai',
           'Claude-Web',
           'PerplexityBot',
+          'Perplexity-User',
+          'meta-externalagent',
+          'meta-externalfetcher',
+          'Bingbot',
           'CCBot',
           'Applebot-Extended',
           // Search and assistant fetchers named in each vendor's crawler docs.

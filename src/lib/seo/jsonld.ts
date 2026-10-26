@@ -24,9 +24,12 @@ export function organizationJsonLd(extra: Record<string, unknown> = {}) {
     '@type': 'Organization',
     '@id': ORGANIZATION_ID,
     name: FACTS.name,
+    // Several unrelated products share the name "Next Chapter"; these tell an answer engine which one this is.
+    alternateName: [...FACTS.alternateNames],
     url: SITE_URL,
     logo: FACTS.logo,
     description: FACTS.tagline,
+    disambiguatingDescription: FACTS.disambiguation,
     email: FACTS.contactEmail,
     sameAs: [FACTS.linkedIn],
     ...(FACTS.foundingYear ? { foundingDate: String(FACTS.foundingYear) } : {}),

@@ -57,6 +57,9 @@ export interface CareerRole {
 
 export const CAREERS_LOCATION = 'New York City, or remote'
 
+/** The day these openings were first published. Changes only when a role is reposted. */
+export const CAREERS_POSTED = '2026-10-26'
+
 export const KIND_LABEL: Record<RoleKind, string> = {
   lead: 'Lead',
   contributor: 'Contributor',
@@ -124,6 +127,7 @@ export const CAREER_ROLES: CareerRole[] = [
       '8+ years of experience writing or editing for publication, with results you can point to.',
       'Strong judgment about accuracy, and comfort reading data and charts.',
       'A portfolio of published work.',
+      'Everyday use of AI tools for drafting and research, and the judgment to edit and fact-check what they produce.',
     ],
     preferred: [
       'Experience with press, or with a B2B audience.',
@@ -164,6 +168,7 @@ export const CAREER_ROLES: CareerRole[] = [
       '8+ years of experience in B2B sales, with a record of closing deals with HR, talent, education or workforce buyers.',
       'Experience selling a product that is still proving itself.',
       'Honest, clear forecasting.',
+      'Everyday use of AI tools for prospect research and drafting outreach, with your own edit before anything is sent.',
     ],
     preferred: [
       'Experience selling outplacement, HR technology, higher-education technology or workforce services.',
@@ -185,13 +190,13 @@ export const CAREER_ROLES: CareerRole[] = [
     kind: 'contributor',
     group: 'sales',
     employment: 'Full-time',
-    summary: 'Research prospects, send outreach and book meetings for the B2B sales lead.',
+    summary: 'Research prospects, send outreach and book meetings for the B2B sales lead. No experience needed.',
     about:
       'The sales development representative finds the right people at workforce boards, colleges, outplacement firms and employers and starts the conversation. You work for the B2B sales lead. AI tools draft; you edit and send.',
     seniority: 'Early-career individual contributor. Reports to the B2B sales lead. Comparable titles: Business Development Representative.',
     function: 'Sales',
     rung: 'ENTRY_IC',
-    yearsMin: 1,
+    yearsMin: null,
     focus: BUYERS,
     responsibilities: [
       'Work the ranked lead list and personalize outreach.',
@@ -199,11 +204,12 @@ export const CAREER_ROLES: CareerRole[] = [
       'Book qualified meetings and hand them off with clear notes.',
     ],
     required: [
-      '1+ years of experience in sales development, business development, recruiting or customer-facing work.',
+      'No experience needed. We teach the job.',
       'Excellent written communication.',
       'A habit of tracking your own results.',
+      'Comfort using AI tools to draft and research, and the habit of editing what they produce before it is sent.',
     ],
-    preferred: ['Experience with outbound email and a CRM.', 'You are comfortable using AI to draft and research.'],
+    preferred: ['Experience in sales development, recruiting or customer-facing work.', 'Experience with outbound email and a CRM.'],
     skills: ['crm', 'hubspot', 'pipeline management', 'demand generation'],
     knowledge: ['Outbound email and follow-up cadence', 'Researching an organization and its decision makers'],
     howYouWork: [
@@ -238,6 +244,7 @@ export const CAREER_ROLES: CareerRole[] = [
       '8+ years of experience building partnerships or alliances.',
       'Credibility with public, education or professional-services institutions.',
       'Experience negotiating partnership terms.',
+      'Everyday use of AI tools to research partners and prepare materials.',
     ],
     preferred: ['Experience with workforce boards, community colleges or universities.', 'Experience with research or academic collaborations.'],
     skills: ['channel partnerships', 'contract negotiation', 'stakeholder management', 'go-to-market', 'strategic planning'],
@@ -274,6 +281,7 @@ export const CAREER_ROLES: CareerRole[] = [
       '8+ years of experience in product management, including software products you shipped and the outcomes they produced.',
       'Strong user research and data habits.',
       'Judgment about privacy in a sensitive area.',
+      'Hands-on use of AI tools in product work: research, specs and analysis.',
     ],
     preferred: ['Experience with both consumer and B2B products.', 'You have built AI-assisted products.'],
     skills: ['roadmapping', 'a/b testing', 'agile', 'figma', 'sql', 'google analytics', 'cross-functional leadership'],
@@ -350,6 +358,7 @@ export const CAREER_ROLES: CareerRole[] = [
       '7+ years of experience in marketing, including B2B campaigns you ran and their results.',
       'Comfort with analytics and testing.',
       'Care about accuracy in everything you publish.',
+      'Everyday use of AI tools for drafting, research and campaign analysis, and knowing where they fail.',
     ],
     preferred: ['Experience with LinkedIn and email marketing at a small company.', 'You use AI tools to draft and research, and you know where they fail.'],
     skills: ['seo', 'google analytics', 'hubspot', 'demand generation', 'account-based marketing', 'content strategy', 'crm'],
@@ -368,7 +377,7 @@ export const CAREER_ROLES: CareerRole[] = [
     kind: 'contributor',
     group: 'early-career',
     employment: 'Internship',
-    summary: 'Work on a real project with one of our leads and learn how a small company runs.',
+    summary: 'Work on a real project with one of our leads and learn how a small company runs. No experience needed.',
     about:
       'An intern joins one team (editorial, marketing, sales, partnerships, product or technology) and works on a defined project with that team’s lead, then presents what they learned and made.',
     seniority: 'Entry level. Reports to the lead of the team you join. No prior experience is required.',
@@ -379,8 +388,8 @@ export const CAREER_ROLES: CareerRole[] = [
       'Work on a defined project with one team.',
       'Present what you learned and made at the end.',
     ],
-    required: ['Currently studying, or recently finished studying.', 'Clear writing.', 'Evidence you finish what you start.'],
-    preferred: ['You are comfortable using AI tools.'],
+    required: ['No experience needed.', 'Currently studying, or recently finished studying.', 'Clear writing.', 'Evidence you finish what you start.', 'Comfort using AI tools every day. We will show you how we use them.'],
+    preferred: [],
     skills: ['excel', 'project management'],
     knowledge: ['Willingness to learn a new field quickly'],
     howYouWork: ['You ask questions early.', 'You take feedback well.', 'You tell your lead when you are stuck.'],
@@ -392,7 +401,7 @@ export const CAREER_ROLES: CareerRole[] = [
     kind: 'contributor',
     group: 'early-career',
     employment: 'Associate program',
-    summary: 'A first full-time job for new college graduates, working alongside a lead on one team.',
+    summary: 'A first full-time job for new college graduates, working alongside a lead on one team. No experience needed.',
     about:
       'The associate program is a first full-time job for new college graduates. You join one team and work alongside its lead on real work, with regular time with the founder, and take on more ownership as you show what you can do.',
     seniority: 'Entry-level individual contributor. Reports to the lead of the team you join.',
@@ -404,8 +413,8 @@ export const CAREER_ROLES: CareerRole[] = [
       'Learn the whole business, with regular time with the founder.',
       'Take on more ownership as you show what you can do.',
     ],
-    required: ['A recent college degree, or finishing one soon.', 'Evidence of what you can do: projects, work, writing or leadership.', 'Clear writing.'],
-    preferred: ['You are comfortable using AI tools.'],
+    required: ['No experience needed.', 'A recent college degree, or finishing one soon.', 'Evidence of what you can do: projects, work, writing or leadership.', 'Clear writing.', 'Comfort using AI tools every day. We will show you how we use them.'],
+    preferred: [],
     skills: ['excel', 'project management', 'crm'],
     knowledge: ['Willingness to learn a new field quickly'],
     howYouWork: ['You take ownership of small things and finish them.', 'You ask for feedback often.', 'You share what you are learning.'],
