@@ -4,7 +4,7 @@
 //
 //   node --env-file=.env.local --conditions=react-server --import tsx scripts/crm/competitor-card-wins-cleanup.ts            (dry run)
 //   node --env-file=.env.local --conditions=react-server --import tsx scripts/crm/competitor-card-wins-cleanup.ts --apply
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { writeFileSync, mkdirSync, chmodSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { prisma } from '../../src/lib/prisma'
@@ -17,6 +17,17 @@ const FUNDING_WHAT = /\b(series [a-f]\b|seed|pre-seed|raised?\b|raises\b|funding
 const INVESTOR_ORG = /\b(ventures?|capital|partners|funds?|investors?|angels?|equity|growth|holdings|syndicate|accelerator|foundation|philanthrop\w*|endowment|trust|bancorp|family office|scott|donors?|y combinator|techstars)\b/i
 // A garbled buyer: a list of several parties, a parenthetical status, or a sentence.
 const GARBLED = /,|\(|\bacquired\b|\bpartnership\b| and \w+ \w+ /i
+
+// Exports are never overwritten: every run writes new, timestamped, read-only files (flag "wx" refuses an existing file),
+// and an empty export is not written at all. A run that deletes anything must have written its export first.
+const RUN_STAMP = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
+function exportFile(name: string, content: string): string | null {
+  if (!content) return null
+  const dir = join(homedir(), 'nc-exports'); mkdirSync(dir, { recursive: true })
+  const file = join(dir, `${RUN_STAMP}-competitor-card-wins-cleanup-${APPLY ? 'apply' : 'dryrun'}-${name}`)
+  writeFileSync(file, content, { flag: 'wx' }); chmodSync(file, 0o444)
+  return file
+}
 const csv = (rows: Record<string, unknown>[]) => {
   if (!rows.length) return ''
   const cols = Object.keys(rows[0])
@@ -74,10 +85,9 @@ async function main() {
   }
   const delOrgs = orgRows.filter((o) => o.deletable)
 
-  const dir = join(homedir(), 'nc-hunter-results'); mkdirSync(dir, { recursive: true })
-  const stamp = '2026-10-26-competitor-card-wins-cleanup'
-  writeFileSync(join(dir, `${stamp}-notes.csv`), csv(del.map(({ n, reason }) => ({ id: n.id, org: org.get(n.orgId ?? '')?.name, reason, subject: n.subject, body: n.body, sourceRef: n.sourceRef, occurredAt: n.occurredAt.toISOString() }))))
-  writeFileSync(join(dir, `${stamp}-orgs.csv`), csv(orgRows))
+  const notesFile = exportFile('notes.csv', csv(del.map(({ n, reason }) => ({ id: n.id, org: org.get(n.orgId ?? '')?.name, reason, subject: n.subject, body: n.body, sourceRef: n.sourceRef, occurredAt: n.occurredAt.toISOString() }))))
+  exportFile('orgs.csv', csv(orgRows))
+
 
   const reasons: Record<string, number> = {}
   for (const x of del) reasons[x.reason!] = (reasons[x.reason!] ?? 0) + 1
@@ -87,7 +97,9 @@ async function main() {
   console.log('KEPT SAMPLE (buyer | subject):')
   for (const n of keepNotes.filter((_, i) => i % Math.max(1, Math.floor(keepNotes.length / 25)) === 0).slice(0, 25)) console.log(`- ${org.get(n.orgId ?? '')?.name} | ${(n.subject ?? '').slice(0, 90)}`)
 
+  console.log(`export written: ${notesFile ?? '(nothing to export)'}`)
   if (!APPLY) return
+  if (del.length > 0 && !notesFile) throw new Error('Refusing to delete: no export file was written for this run.')
   const r2 = await prisma.crmActivity.deleteMany({ where: { id: { in: [...delIds] }, isAutoLogged: true, sourceRef: { startsWith: 'competitor-win:card:' } } })
   let orgsDeleted = 0
   for (const o of delOrgs) {

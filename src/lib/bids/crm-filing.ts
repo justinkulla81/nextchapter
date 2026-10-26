@@ -2,7 +2,7 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import type { CrmOrgType } from '@prisma/client'
-import { bidFitsUs } from './relevance'
+import { awardIsWorkforce, bidFitsUs } from './relevance'
 import { bidNote, winNote } from './crm-core'
 import { orgFor, recordWin } from '@/lib/vision/competitor-sync'
 import { winsFromAwards } from '@/lib/vision/competitor-sync-core'
@@ -115,9 +115,13 @@ export async function fileAwardsToCrm(opts: { max?: number; deadlineMs?: number;
     }
     // The buyer's side uses the competitor-sync writer (same note key and re-bid date rule), so neither path doubles it.
     let buyerOrgId: string | null = null
-    for (const w of winsFromAwards(a.competitorName, [{ awardKey: a.awardKey, description: a.description, agency: a.agency, subAgency: a.subAgency, amount: a.amount, startDate: a.startDate, endDate: a.endDate, url: a.url }], now)) {
-      await recordWin(w, true, now)
-      buyerOrgId = await orgFor(w.buyer, true)
+    // Only workforce-relevant awards reach the buyer's organization: a competitor's contract with the FBI is not a lead for us
+    // (the notes for such awards were cleaned out of the CRM on 2026-10-26, so they must not be written again).
+    if (awardIsWorkforce(a)) {
+      for (const w of winsFromAwards(a.competitorName, [{ awardKey: a.awardKey, description: a.description, agency: a.agency, subAgency: a.subAgency, amount: a.amount, startDate: a.startDate, endDate: a.endDate, url: a.url }], now)) {
+        await recordWin(w, true, now)
+        buyerOrgId = await orgFor(w.buyer, true)
+      }
     }
     await prisma.competitorAward.update({ where: { id: a.id }, data: { competitorOrgId, buyerOrgId, filedAt: now } })
     res.filed++
