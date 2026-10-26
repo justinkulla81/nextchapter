@@ -99,8 +99,25 @@ export async function upsertCatalogRows(rows: Record<string, unknown>[]): Promis
  * the catalog was built, so a catalog update reaches production on the next admin visit.
  */
 export async function seedCatalogIfStale(): Promise<number> {
-  const [{ n, last }] = await prisma.$queryRaw<{ n: bigint; last: Date | null }[]>`SELECT COUNT(*) AS n, MAX("updatedAt") AS last FROM "ConferenceEvent"`
   const catalog = (await import('./catalog.json')).default as unknown as { builtAt: string; rows: Record<string, unknown>[] }
-  if (Number(n) > 0 && last && last >= new Date(catalog.builtAt)) return 0
-  return upsertCatalogRows(catalog.rows)
+  // The exact catalog version last loaded is kept in EventsCatalogSeed. (Comparing timestamps failed once: an older catalog was
+  // loaded after a newer one was built, so the table looked up to date and the newer catalog was never applied.)
+  let seeded: string | null = null
+  let marker = true
+  try {
+    const rows = await prisma.$queryRaw<{ builtAt: string }[]>`SELECT "builtAt" FROM "EventsCatalogSeed" WHERE "id" = 'catalog'`
+    seeded = rows[0]?.builtAt ?? null
+  } catch {
+    marker = false // table not applied yet: load once per call only when the event table is empty
+  }
+  if (seeded === catalog.builtAt) return 0
+  if (!marker) {
+    const [{ n }] = await prisma.$queryRaw<{ n: bigint }[]>`SELECT COUNT(*) AS n FROM "ConferenceEvent"`
+    if (Number(n) > 0) return 0
+  }
+  const written = await upsertCatalogRows(catalog.rows)
+  if (marker) {
+    await prisma.$executeRaw`INSERT INTO "EventsCatalogSeed" ("id", "builtAt") VALUES ('catalog', ${catalog.builtAt}) ON CONFLICT ("id") DO UPDATE SET "builtAt" = EXCLUDED."builtAt", "appliedAt" = now()`
+  }
+  return written
 }
