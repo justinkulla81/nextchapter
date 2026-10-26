@@ -9,6 +9,7 @@ import type { OutplacementRole, RoleGrantRole } from '@prisma/client'
 import type { CurrentOutplacementOrgUser } from '@/lib/employer/outplacement-auth'
 import { ORG_ROLE_LABEL } from '@/lib/employer/outplacement-org-role-labels'
 import { callbackOriginForAppPath } from '@/lib/portal-hosts'
+import { lastAdminBlock } from '@/lib/employer/section-roles'
 
 export { ORG_ROLE_LABEL }
 
@@ -123,10 +124,10 @@ export async function finishAcceptingOutplacementOrgInvite(inviteToken: string):
 export async function removeOrgUser(orgUser: CurrentOutplacementOrgUser, id: string): Promise<{ error?: string }> {
   const row = await prisma.outplacementOrgUser.findFirst({ where: { id, orgId: orgUser.orgId }, select: { id: true, userId: true, role: true, acceptedAt: true } })
   if (!row) return { error: 'Already removed.' }
-  if (row.userId && row.userId === orgUser.userId) return { error: 'You can’t remove yourself. Ask another admin.' }
-  if (row.role === 'ADMIN' && row.acceptedAt && (await prisma.outplacementOrgUser.count({ where: { orgId: orgUser.orgId, role: 'ADMIN', acceptedAt: { not: null } } })) <= 1) {
-    return { error: 'This is the only active admin. Invite another admin first.' }
-  }
+  // The rule every employer section shares (section-roles.ts): never yourself, never the last active admin.
+  const activeAdmins = row.role === 'ADMIN' && row.acceptedAt ? await prisma.outplacementOrgUser.count({ where: { orgId: orgUser.orgId, role: 'ADMIN', acceptedAt: { not: null } } }) : 0
+  const blocked = lastAdminBlock(orgUser.userId, { userId: row.userId, role: row.role, active: !!row.acceptedAt }, activeAdmins, 'remove')
+  if (blocked) return { error: blocked }
   await prisma.outplacementOrgUser.delete({ where: { id: row.id } })
   captureServerEvent(orgUser.userId, 'outplacement_org_user_removed', { orgId: orgUser.orgId, role: row.role, pending: !row.acceptedAt })
   return {}

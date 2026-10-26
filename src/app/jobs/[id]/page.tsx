@@ -13,6 +13,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
 import { datePostedOf, descriptionParagraphs, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
 import { getPublicJob } from '@/lib/jobs/public-job-page-server'
+import { prisma } from '@/lib/prisma'
+import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { cn } from '@/lib/utils'
 
 // A public, indexable page for one live job, with Google for Jobs structured data.
@@ -60,6 +62,10 @@ export default async function PublicJobPage({ params }: { params: Params }) {
   // their next import; only those point to the employer's page for the rest.
   const excerpt = isExcerpt(job.description)
   const remote = isRemoteJob(job)
+  // Where the job sits on the industry and function pages. A failed read just leaves the links out.
+  const tags = await prisma.exclusiveJobPosting.findUnique({ where: { id: job.id }, select: { industry: true, targetFunction: true } }).catch(() => null)
+  const industry = bucketFromIndustryText(tags?.industry)
+  const fn = functionByName(tags?.targetFunction)
 
   return (
     <div className="theme-redesign flex flex-1 flex-col bg-white text-ink">
@@ -93,6 +99,15 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             >
               Apply on employer site
             </TrackedLink>
+
+            {(industry || fn) && (
+              <p className="mt-6 text-sm text-muted-foreground">
+                More in{' '}
+                {industry && <Link href={industryPath(industry)} className="underline underline-offset-4">{industry}</Link>}
+                {industry && fn && ' · '}
+                {fn && <Link href={functionPath(fn.name)} className="underline underline-offset-4">{fn.name} jobs</Link>}
+              </p>
+            )}
 
             <h2 className="mt-10 font-display text-xl font-semibold">About the job</h2>
             <div className="mt-3 space-y-4 text-[15px] leading-relaxed">

@@ -9,6 +9,9 @@ import { prisma } from '@/lib/prisma'
 import { frontDoorUrl } from '@/lib/organizations/front-door'
 import { organizationOverview } from '@/lib/organizations/overview'
 import { describeAuditAction } from '@/lib/partners/audit-labels'
+import { EmployerSectionPlans } from '@/components/admin/EmployerSectionPlans'
+import { WORKSPACE_PLANS } from '@/lib/employer/plans'
+import { EMPLOYER_SECTIONS, sectionForWorkspaceType } from '@/lib/employer/sections'
 
 export const metadata = { title: 'Organization' }
 
@@ -26,6 +29,12 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
   const on = resolveIntegrations(org.features, owned)
   const refs = org.workspaces.filter((w) => w.refId).map((w) => ({ portal: w.type, refId: w.refId as string }))
   const overview = await organizationOverview(org.workspaces)
+  const sectionRows = EMPLOYER_SECTIONS.flatMap((sec) => {
+    const w = org.workspaces.find((x) => sectionForWorkspaceType(x.type)?.key === sec.key)
+    return w
+      ? [{ workspaceId: w.id, label: sec.label, employees: sec.employees, status: w.status, plan: w.plan, planNote: w.planNote, planUpdatedAt: w.planUpdatedAt ? w.planUpdatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null }]
+      : []
+  })
   const activity = refs.length
     ? await prisma.partnerAuditEvent.findMany({ where: { OR: refs }, orderBy: { createdAt: 'desc' }, take: 15 })
     : []
@@ -67,6 +76,20 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
           })}
         </ul>
       </section>
+
+      {(sectionRows.length > 0 || org.enterprise) && (
+        <section className="space-y-3" aria-labelledby="sections">
+          <h2 id="sections" className="text-lg font-semibold">Employer sections and plans</h2>
+          <p className="text-sm text-muted-foreground">Hiring, Employees and Outplacement are claimed and paid for separately, or together as the enterprise package. This records the plan only; no payment is taken here.</p>
+          <EmployerSectionPlans
+            organizationId={org.id}
+            enterprise={org.enterprise}
+            enterpriseSince={org.enterpriseSince ? org.enterpriseSince.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null}
+            rows={sectionRows}
+            plans={WORKSPACE_PLANS}
+          />
+        </section>
+      )}
 
       {overview.length > 0 && (
         <section className="space-y-3" aria-labelledby="glance">

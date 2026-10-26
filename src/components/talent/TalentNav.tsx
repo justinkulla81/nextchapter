@@ -9,6 +9,7 @@ import { signOut } from '@/app/dashboard/actions'
 import { PartnerTopBar, chromeFor } from '@/components/partners/PartnerTopBar'
 import type { PartnerBrand } from '@/lib/partners/brand'
 import { SignOutForm } from '@/components/auth/SignOutForm'
+import { SectionSwitcher, type SwitcherLinkItem } from '@/components/employer/SectionSwitcher'
 
 function SignOutButton() {
   const { pending } = useFormStatus()
@@ -61,15 +62,19 @@ function NavContent({
   pathname,
   links,
   onNavigate,
+  sections = [],
 }: {
   pathname: string
   links: NavLink[]
   onNavigate?: () => void
+  sections?: SwitcherLinkItem[]
 }) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
 
   return (
     <nav className="flex h-full flex-col gap-2 overflow-y-auto px-4 py-6">
+      {/* The top bar carries the switcher from md up; the drawer carries it below that. */}
+      <SectionSwitcher items={sections} className="flex-wrap px-2 pb-3 md:hidden" />
       <div className="space-y-0.5">
         {links.map((link) => (
           <Link
@@ -101,7 +106,7 @@ function NavContent({
   )
 }
 
-export function TalentNav({ messagesUnreadCount = 0, brand }: { messagesUnreadCount?: number; brand?: PartnerBrand }) {
+export function TalentNav({ messagesUnreadCount = 0, brand, sections = [] }: { messagesUnreadCount?: number; brand?: PartnerBrand; sections?: SwitcherLinkItem[] }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const links = buildLinks(messagesUnreadCount)
@@ -109,7 +114,7 @@ export function TalentNav({ messagesUnreadCount = 0, brand }: { messagesUnreadCo
 
   return (
     <>
-      <PartnerTopBar surface="employer" use="Hiring" brand={brand}>
+      <PartnerTopBar surface="employer" use="Hiring" brand={brand} switcher={<SectionSwitcher items={sections} />}>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -126,7 +131,7 @@ export function TalentNav({ messagesUnreadCount = 0, brand }: { messagesUnreadCo
 
       <aside className="fixed inset-y-0 top-14 left-0 z-30 hidden w-64 lg:block" style={{ backgroundColor: chromeFor('employer') }}>
         <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
-        <NavContent pathname={pathname} links={links} />
+        <NavContent pathname={pathname} links={links} sections={sections} />
       </aside>
 
       {open && (
@@ -134,7 +139,7 @@ export function TalentNav({ messagesUnreadCount = 0, brand }: { messagesUnreadCo
           <div className="fixed inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 shadow-xl" style={{ backgroundColor: chromeFor('employer') }}>
             <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-accent-employer" style={brand?.accent ? { backgroundColor: brand.accent } : undefined} />
-            <NavContent pathname={pathname} links={links} onNavigate={() => setOpen(false)} />
+            <NavContent pathname={pathname} links={links} sections={sections} onNavigate={() => setOpen(false)} />
           </div>
         </div>
       )}

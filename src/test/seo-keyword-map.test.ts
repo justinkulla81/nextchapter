@@ -5,7 +5,7 @@ import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { PERSONAS } from '@/lib/constants/personas'
 import { KEYWORD_CLUSTERS, NO_TARGET_PAGES, ANCHORS, RELATED } from '@/lib/seo/keywords'
 import { keywordMapMarkdown } from '@/lib/seo/keyword-map-md'
-import { TOPICS } from '@/lib/seo/topics'
+import { TOPICS } from '@/lib/seo/explainers'
 
 const root = process.cwd()
 const norm = (s: string) => s.toLowerCase().replace(/[“”"’']/g, '').replace(/\s+/g, ' ').trim()

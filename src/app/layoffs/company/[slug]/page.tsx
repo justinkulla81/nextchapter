@@ -10,6 +10,8 @@ import { canonical } from '@/lib/seo/canonical'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { stateName, stateSlug } from '@/lib/seo/states'
+import { getRecentNotices } from '@/lib/seo/topic-data'
+import { industryPath } from '@/lib/seo/topics'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getNewsMentions, noticeDay } from '@/lib/warn/layoff-pages'
 
 // Pages are built on first visit and refreshed daily; there are over a
@@ -48,6 +50,7 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
   const { slug } = await params
   const c = await load(slug)
   if (!c) notFound()
+  const bucket = (await getRecentNotices().catch(() => [])).find((n) => n.slug === slug && n.bucket)?.bucket ?? null
   const mentions = await getNewsMentions(c)
   const workers = c.notices.reduce((s, n) => s + (n.workers ?? 0), 0)
   const unknownCounts = c.notices.some((n) => n.workers == null)
@@ -111,6 +114,9 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               {isNetworkCompany(c) && (
                 <li><Link href={`/network/company/${slug}`} className={LINK}>Jobs, benefits and retraining for {c.name} employees and alumni</Link></li>
+              )}
+              {bucket && (
+                <li><Link href={industryPath(bucket)} className={LINK}>{bucket}: open jobs, conferences and other recent layoffs</Link></li>
               )}
               <li><Link href="/start/laid-off" className={LINK}>Start here: a plan for the weeks after a layoff</Link></li>
               {c.states.map((s) => (

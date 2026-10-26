@@ -5,7 +5,7 @@ import { RelatedLinks } from '@/components/seo/RelatedLinks'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { articleJsonLd } from '@/lib/seo/jsonld'
 import { pageH1, pageMetadata, pageSeo } from '@/lib/seo/keywords'
-import { TOPICS, getTopic } from '@/lib/seo/topics'
+import { TOPICS, getTopic } from '@/lib/seo/explainers'
 
 export function generateStaticParams() {
   return TOPICS.map((t) => ({ slug: t.slug }))

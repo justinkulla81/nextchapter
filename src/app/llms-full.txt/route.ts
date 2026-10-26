@@ -2,7 +2,7 @@ import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { reportsNewestFirst, reportPath } from '@/lib/reports'
 import { FACTS, SITE_URL } from '@/lib/seo/facts'
 import { pageSeo } from '@/lib/seo/keywords'
-import { TOPICS } from '@/lib/seo/topics'
+import { TOPICS } from '@/lib/seo/explainers'
 import { htmlToPlainText } from '@/lib/seo/plain-text'
 import { REPORT_BODY_HTML as SEPTEMBER_2026 } from '../reports/white-collar-employment-report-september-2026/report-body'
 

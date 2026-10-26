@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { requireOutplacementRole } from '@/lib/employer/outplacement-auth'
+import { requireEmployeesRole } from '@/lib/employer/outplacement-auth'
 import { INTERNAL_ROLE_STATUS, interestedPeople } from '@/lib/employer/staff-programs'
 import { captureServerEvent } from '@/lib/posthog/server'
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Interested in this role' }
 // these are names, which they chose to share by pressing "I'm interested".
 export default async function InternalRoleInterestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const orgUser = await requireOutplacementRole(['ADMIN'])
+  const orgUser = await requireEmployeesRole(['ADMIN'])
   const role = await prisma.exclusiveJobPosting.findFirst({ where: { id, orgScopeId: orgUser.orgId, status: INTERNAL_ROLE_STATUS }, select: { id: true, title: true, location: true, archivedAt: true } })
   if (!role) notFound()
   const people = await interestedPeople(orgUser.orgId, role.id)

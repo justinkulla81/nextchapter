@@ -11,7 +11,9 @@ import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { TWENTY_FOUR_MONTHS_MS, getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
-import { TOPICS } from '@/lib/seo/topics'
+import { TOPICS } from '@/lib/seo/explainers'
+import { INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
+import { getAssociations, getCatalogIndex } from '@/lib/seo/topic-data'
 import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
 
 // Rebuilt on a timer so a newly published take reaches the sitemap.
@@ -96,6 +98,35 @@ async function loadSeoStatePages(entry: (path: string, updated: string, freq: Fr
   }
 }
 
+// Industry, function, conference and association pages. A database failure leaves the conference and association
+// rows out rather than failing the sitemap; the industry and function pages are fixed lists.
+const TOPICS_UPDATED = '2026-10-25'
+async function loadTopicPages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
+  const fixed = [
+    entry('/industries', TOPICS_UPDATED, 'weekly', 0.7),
+    ...INDUSTRIES.map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+    entry('/functions', TOPICS_UPDATED, 'weekly', 0.7),
+    ...JOB_FUNCTIONS.map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+    entry('/conferences', TOPICS_UPDATED, 'daily', 0.7),
+    entry('/associations', TOPICS_UPDATED, 'weekly', 0.6),
+  ]
+  try {
+    const [catalog, associations] = await Promise.all([getCatalogIndex(), getAssociations()])
+    const newest = new Map<string, string>()
+    for (const c of catalog) if (c.organizer) {
+      const slug = associationSlug(c.organizer)
+      if (c.updatedAt > (newest.get(slug) ?? '')) newest.set(slug, c.updatedAt)
+    }
+    return [
+      ...fixed,
+      ...catalog.map((c) => entry(`/conferences/${c.id}`, c.updatedAt, 'weekly', c.importance === 1 ? 0.6 : 0.5)),
+      ...associations.map((a) => entry(`/associations/${a.slug}`, newest.get(a.slug) ?? TOPICS_UPDATED, 'weekly', 0.5)),
+    ]
+  } catch {
+    return fixed
+  }
+}
+
 const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), dates[0])
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -119,7 +150,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   })
 
-  const seoStatePages = await loadSeoStatePages(entry)
+  const [seoStatePages, topicPages] = await Promise.all([loadSeoStatePages(entry), loadTopicPages(entry)])
 
   return [
     // The homepage shows the latest News, so it changes when News does.
@@ -181,6 +212,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/rapid-response', DIRECTORY_UPDATED, 'monthly', 0.6),
     entry('/tools/warn-act-checker', DIRECTORY_UPDATED, 'yearly', 0.6),
     ...seoStatePages.flatMap((p) => p),
+
+    // Industry, function, conference and association pages.
+    ...topicPages,
 
     // Author pages.
     ...Object.keys(AUTHORS).map((slug) => entry(`/authors/${slug}`, latestOf([newestGuide, newestInsight, ...(newestReport ? [newestReport] : [])]), 'monthly', 0.4)),

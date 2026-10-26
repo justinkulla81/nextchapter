@@ -3,7 +3,7 @@ import { PUBLIC_JOB_SITEMAP_SHARDS } from '@/lib/jobs/public-job-page'
 import { EMPLOYER_SITEMAP_SHARD_SIZE, countEmployerPages } from '@/lib/seo/employer-pages'
 
 // The sitemap index: the main sitemap, the job sitemaps (src/app/jobs/sitemap.ts) and the employer sitemaps
-// (src/app/employers/sitemap.ts).
+// (src/app/employers/sitemap.ts) and the place pages (src/app/places/sitemap.ts).
 // Next does not write an index for generateSitemaps, so this lists them. This is the
 // one URL to submit in Search Console; robots.txt points at it too.
 // Rebuilt hourly: the number of employer files follows the number of employers that pass the page bar.
@@ -14,6 +14,7 @@ export async function GET() {
   const employerShards = Math.max(1, Math.ceil(employers / EMPLOYER_SITEMAP_SHARD_SIZE))
   const maps = [
     `${SITE_URL}/sitemap.xml`,
+    `${SITE_URL}/places/sitemap.xml`,
     ...Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => `${SITE_URL}/jobs/sitemap/${i}.xml`),
     ...Array.from({ length: employerShards }, (_, i) => `${SITE_URL}/employers/sitemap/${i}.xml`),
   ]

@@ -65,7 +65,7 @@ export async function getPublicJob(id: string): Promise<PublicJobRow | null> {
 // The allowlist's fixed rules — IDENTICAL to the WHERE of the partial index
 // "ExclusiveJobPosting_public_page_shard_idx" (prisma/manual/2026-10-22-public-job-pages.sql),
 // or the planner won't use it.
-const PUBLIC_JOB_STATIC_SQL = Prisma.sql`
+export const PUBLIC_JOB_STATIC_SQL = Prisma.sql`
   status = 'approved'
   AND "archivedAt" IS NULL
   AND "closeReason" IS NULL
@@ -82,7 +82,7 @@ const PUBLIC_JOB_STATIC_SQL = Prisma.sql`
   AND COALESCE("repostCount", 0) < 2`
 
 // The time-dependent rules, applied on top of the index.
-const PUBLIC_JOB_LIVE_SQL = Prisma.sql`
+export const PUBLIC_JOB_LIVE_SQL = Prisma.sql`
   "lastVerifiedAt" > now() - make_interval(days => ${PUBLIC_JOB_VERIFIED_DAYS}::int)
   AND ("expiresAt" IS NULL OR "expiresAt" > now())
   AND ("createdAt" > now() - make_interval(days => ${PUBLIC_JOB_GHOST_AGE_DAYS}::int)

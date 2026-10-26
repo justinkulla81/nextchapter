@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { LINK, SeoPage } from '@/components/seo/SeoPage'
 import { pageMetadata } from '@/lib/seo/keywords'
-import { TOPICS } from '@/lib/seo/topics'
+import { TOPICS } from '@/lib/seo/explainers'
 import { ANCHORS } from '@/lib/seo/keywords'
 
 export const metadata = pageMetadata('/topics')
