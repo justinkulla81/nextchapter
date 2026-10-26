@@ -11,7 +11,7 @@ import { cleanAreas, cleanRelationship, cleanStatus, hostOf, homepageOf, parseCu
 import { enrichCompetitor, type EnrichedCompetitor } from '@/lib/vision/competitor-enrich'
 import { mergeRefresh } from '@/lib/vision/competitor-watch'
 import { sendCompetitorDownload, syncNewCompetitor } from '@/lib/vision/competitor-sync'
-import { notifyCandidateFeedbackAddressed } from '@/lib/help/notify'
+import { notifyFeedbackAddressed } from '@/lib/help/notify'
 import type {
   ProductItemKind, ProductItemArea, ProductItemStatus, ProductRoadmapBucket, ProductEffort,
   ProductFeedbackSource, ProductCompetitorOverlap, CrmPortfolioOverlap,
@@ -286,9 +286,9 @@ export async function markFeedbackAddressed(feedbackId: string, formData: FormDa
       responseNote: String(formData.get('responseNote') ?? '').trim() || null,
     },
   })
-  // In-app ideas and feedback: tell the candidate what happened, when there's a note.
-  const notified = await notifyCandidateFeedbackAddressed(feedbackId)
-  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_addressed', { feedbackId, candidateNotified: notified })
+  // In-app and partner-portal ideas and feedback: tell the sender what happened, when there's a note.
+  const notified = await notifyFeedbackAddressed(feedbackId)
+  captureServerEvent(admin.email ?? 'admin', 'vision_feedback_addressed', { feedbackId, candidateNotified: notified, notified })
   revalidatePath(`${V}/feedback`)
 }
 

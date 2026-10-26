@@ -4,7 +4,7 @@ import { PROTECTED_APP_PATH_PREFIXES, pathStartsWith } from '@/lib/supabase/port
 import { APP_TOP_LEVEL, PORTAL_ROOT_PAGES } from '@/lib/app-top-level'
 import { CANDIDATE_ORG_PAGES, HOSTS, LEGACY_EMPLOYER_HOST_PREFIX, appPathFor, cookieForAppPath, hostForAppPath, portalHostFor, portalHostOn, portalOrigin, publicPathFor, type PortalHost } from '@/lib/portal-hosts'
 import { CUSTOMER_SUBDOMAINS_ON, customerSlugForHost } from '@/lib/organizations/front-door'
-import { HEAVY_PAGES_PAUSED, PAUSED_HEAVY_PREFIXES } from '@/lib/paused-pages'
+import { pausedPrefixes } from '@/lib/paused-pages'
 import { MAIN_SITE_SEGMENTS, ORG_SUBDOMAINS_ON, mainOrigin, orgKindForHost, orgOrigin } from '@/lib/org-hosts'
 
 export const ADMIN_HOST = 'admin.launchyournextchapter.com'
@@ -22,7 +22,7 @@ export async function proxy(request: NextRequest) {
   // Emergency brake for the heavy public SEO pages (2026-10-26). Their big aggregate queries exhausted the database
   // connection pool and made /jobs time out. With PAUSE_HEAVY_PAGES=1 they answer 503 + Retry-After instantly and never
   // touch the database, so crawlers back off. Remove the env var and redeploy to switch them back on.
-  if (HEAVY_PAGES_PAUSED() && MAIN_HOSTS.has(host) && PAUSED_HEAVY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+  if (MAIN_HOSTS.has(host) && pausedPrefixes().some((p) => pathname === p || pathname.startsWith(p + '/'))) {
     return new NextResponse('These pages are temporarily unavailable. Please try again later.', {
       status: 503,
       headers: { 'Retry-After': '86400', 'Cache-Control': 'no-store', 'Content-Type': 'text/plain; charset=utf-8' },
