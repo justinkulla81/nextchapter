@@ -47,7 +47,7 @@ describe('Sprint credit on a conference status change', () => {
 
 describe('Sprint credit on an opportunity stage', () => {
   beforeEach(() => {
-    db.conferenceOpportunity.findFirst.mockResolvedValue({ id: 'o1', seriesId: 's1', type: 'CALL_FOR_SPEAKERS', title: 'Speak', series: { id: 's1', name: 'HR Tech' } })
+    db.conferenceOpportunity.findUnique.mockResolvedValue({ id: 'o1', seriesId: 's1', type: 'CALL_FOR_SPEAKERS', title: 'Speak', published: true, series: { id: 's1', name: 'HR Tech', published: true, rejectedAt: null } })
     db.conferenceTalk.findFirst.mockResolvedValue(null)
     db.userConference.findUnique.mockResolvedValue(null)
   })
