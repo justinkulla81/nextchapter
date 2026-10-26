@@ -13,6 +13,8 @@ vi.mock('@/lib/employer/access', () => ({ getEmployerAccess: (i: unknown) => acc
 vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: () => ({ auth: { admin: { generateLink: (a: unknown) => generateLink(a) } } }) }))
 vi.mock('@/lib/posthog/server', () => ({ captureServerEvent: (...a: unknown[]) => capture(...a) }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
+const linkedIdentity = vi.fn()
+vi.mock('@/lib/employer/account-link-server', () => ({ linkedIdentityFor: (...a: unknown[]) => linkedIdentity(...a) }))
 
 import { ARRIVAL_TTL_SECONDS, CSRF_TTL_SECONDS, issueArrival, issueCsrf, parseBridgeTarget, sameOrigin, verifyArrival, verifyCsrf } from '@/lib/employer/section-bridge'
 import { POST } from '@/app/api/employer/section-switch/route'
@@ -126,6 +128,40 @@ describe('POST /api/employer/section-switch', () => {
     generateLink.mockResolvedValue({ data: { properties: { action_link: 'https://evil.example/steal' } }, error: null })
     const res = await POST(asNext(req({ to: 'outplacement', csrf: issueCsrf('u1')! })))
     expect(res.headers.get('location')).toContain('switch=unavailable')
+  })
+
+  describe('a section held only through a linked account', () => {
+    beforeEach(() => {
+      access.mockResolvedValue({ userId: 'u1', sections: ['hiring', 'outplacement'], grants: [{ section: 'hiring' }, { section: 'outplacement', viaUserId: 'u2', viaLinkId: 'l1' }] })
+    })
+
+    it('mints the sign-in link for the linked account, bound to that account, when it is a verified party to an active link', async () => {
+      linkedIdentity.mockResolvedValue({ id: 'u2', email: 'pat@outplace.com' })
+      const res = await POST(asNext(req({ to: 'outplacement', csrf: issueCsrf('u1')! })))
+      expect(linkedIdentity).toHaveBeenCalledWith('u1', 'u2')
+      expect(generateLink.mock.calls[0][0].email).toBe('pat@outplace.com')
+      const arrival = new URL(generateLink.mock.calls[0][0].options.redirectTo).searchParams.get('arrival')!
+      expect(verifyArrival('u2', 'outplacement', arrival)).toBe('ok')
+      expect(verifyArrival('u1', 'outplacement', arrival)).toBe('invalid')
+      expect(res.headers.get('location')).toBe('https://proj.supabase.co/auth/v1/verify?token=abc')
+    })
+
+    it('mints nothing when the link is gone or the linked account is not verified', async () => {
+      linkedIdentity.mockResolvedValue(null)
+      const res = await POST(asNext(req({ to: 'outplacement', csrf: issueCsrf('u1')! })))
+      expect(res.headers.get('location')).toContain('switch=no_access')
+      expect(generateLink).not.toHaveBeenCalled()
+    })
+
+    it('uses the person\'s own sign-in, not the linked one, for a section they hold themselves', async () => {
+      peek.mockImplementation(async () => null)
+      peek.mockImplementationOnce(async () => ({ id: 'u1', email: 'pat@acme.com' }))
+      access.mockResolvedValue({ userId: 'u1', sections: ['outplacement'], grants: [{ section: 'outplacement' }, { section: 'outplacement', viaUserId: 'u2' }] })
+      const res = await POST(asNext(req({ to: 'outplacement', csrf: issueCsrf('u1')! })))
+      expect(res.status).toBe(303)
+      expect(linkedIdentity).not.toHaveBeenCalled()
+      expect(generateLink.mock.calls[0][0].email).toBe('pat@acme.com')
+    })
   })
 
   it('sends a signed-out visitor back to the front door', async () => {

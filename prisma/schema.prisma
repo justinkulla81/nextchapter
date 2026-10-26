@@ -16481,6 +16481,29 @@ model OrgWorkspaceAdmin {
   @@index([userId])
 }
 
+// A person who holds employer sections under two sign-in emails links them once (build plan decision 6). userId is the
+// account that asked, otherUserId the account whose address got the single-use token. ACTIVE means both sides proved
+// control: userId by being signed in when the token was confirmed, otherUserId by receiving it. A link only lets
+// getEmployerAccess include the other account's grants in the chooser and bridge. It grants nothing, merges nothing, and
+// either side can remove it. The token is stored hashed; no email is stored.
+// Applied by hand: prisma/manual/2026-10-26-employer-account-links.sql.
+model EmployerAccountLink {
+  id             String    @id @default(cuid())
+  userId         String
+  otherUserId    String
+  tokenHash      String    @unique
+  tokenExpiresAt DateTime
+  // PENDING | ACTIVE | REMOVED
+  status         String    @default("PENDING")
+  createdAt      DateTime  @default(now())
+  verifiedAt     DateTime?
+  removedAt      DateTime?
+  removedBy      String?
+
+  @@index([userId, status])
+  @@index([otherUserId, status])
+}
+
 // Internships (owner rule: internships only appear in Higher Ed portals). Their
 // own table, never ExclusiveJobPosting, so no member board, email, alert, pivot
 // or company count can read one by accident. Written by the ncrawl internship

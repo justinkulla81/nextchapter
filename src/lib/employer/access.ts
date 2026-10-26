@@ -12,7 +12,10 @@ import { EMPLOYER_SECTION_ORDER, type EmployerSectionKey } from '@/lib/employer/
 //        Employees     the same OutplacementOrgUser when its role is ADMIN or VIEWER and the org has an ACTIVE
 //                      GROWTH or LEARNING contract                              (the Growth and Learning pages)
 //   2. New: OrgWorkspaceAdmin rows for the person (getWorkspaceGrants), by user id, or by email while the row has no user id yet.
-// The new table only ever adds access. A person who holds a section today holds it here, with the same role.
+//   3. Opt-in (includeLinked): the same two checks for accounts the person has linked with "Link my other account"
+//      (EmployerAccountLink, status ACTIVE, either side). Those grants carry viaUserId so the bridge knows whose sign-in
+//      they belong to. A link grants nothing itself; it only lets the chooser and bridge see the other account's grants.
+// The new tables only ever add access. A person who holds a section today holds it here, with the same role.
 // scripts/employer/access-diff.ts proves that against a database, read only.
 
 export type AccessSource = 'hiring_owner' | 'hiring_seat' | 'outplacement_org_user' | 'workspace_admin'
@@ -36,6 +39,10 @@ export interface SectionGrant {
   plan?: string
   /** The organization has the enterprise package, which unlocks every section the person already holds. */
   enterprise?: boolean
+  /** Set only on a grant that comes from a linked account: the user id that really holds it. Never set on the person's own grants. */
+  viaUserId?: string
+  /** The EmployerAccountLink that brought it in. */
+  viaLinkId?: string
 }
 
 export interface EmployerAccess {
@@ -51,10 +58,12 @@ export interface EmployerAccessInput {
   userId: string
   /** The signed-in user's own email, used only to match OrgWorkspaceAdmin rows that have no user id yet. */
   email?: string | null
+  /** Also include the grants of accounts linked to this one (default false: only the person's own, exactly as before). */
+  includeLinked?: boolean
 }
 
 /** Only the read methods these functions use, so a caller (the diff script) can hand them a client that cannot write. */
-export type EmployerAccessDb = Pick<PrismaClient, 'employerProfile' | 'employerSeat' | 'outplacementOrgUser' | 'outplacementContract' | 'orgWorkspaceAdmin'>
+export type EmployerAccessDb = Pick<PrismaClient, 'employerProfile' | 'employerSeat' | 'outplacementOrgUser' | 'outplacementContract' | 'orgWorkspaceAdmin' | 'employerAccountLink'>
 
 interface WorkspaceAdminRow {
   role: string
@@ -152,12 +161,41 @@ export async function getWorkspaceGrants(input: EmployerAccessInput, db: Employe
   return { grants, warnings }
 }
 
+/** New, additive, opt-in: the grants of accounts linked to this one. Only ACTIVE links count. Fails soft. */
+export async function getLinkedGrants(input: EmployerAccessInput, db: EmployerAccessDb = prisma): Promise<{ grants: SectionGrant[]; warnings: string[] }> {
+  const { userId } = input
+  const grants: SectionGrant[] = []
+  const warnings: string[] = []
+  try {
+    const links = await db.employerAccountLink.findMany({
+      where: { status: 'ACTIVE', OR: [{ userId }, { otherUserId: userId }] },
+      select: { id: true, userId: true, otherUserId: true },
+      take: 5,
+    })
+    const seen = new Set<string>()
+    for (const l of links) {
+      const other = l.userId === userId ? l.otherUserId : l.userId
+      if (!other || other === userId || seen.has(other)) continue
+      seen.add(other)
+      const [legacy, workspace] = await Promise.all([getLegacyGrants({ userId: other }, db), getWorkspaceGrants({ userId: other }, db)])
+      warnings.push(...workspace.warnings)
+      for (const g of [...legacy, ...workspace.grants]) grants.push({ ...g, viaUserId: other, viaLinkId: l.id })
+    }
+  } catch (e) {
+    warnings.push(`EmployerAccountLink not readable: ${e instanceof Error ? e.message.split('\n').pop() : 'unknown error'}`)
+    return { grants: [], warnings }
+  }
+  return { grants, warnings }
+}
+
 export async function getEmployerAccess(input: EmployerAccessInput, db: EmployerAccessDb = prisma): Promise<EmployerAccess> {
   const legacy = await getLegacyGrants(input, db)
   const { grants: added, warnings } = await getWorkspaceGrants(input, db)
-  const grants = [...legacy, ...added]
+  const linked = input.includeLinked ? await getLinkedGrants(input, db) : { grants: [] as SectionGrant[], warnings: [] as string[] }
+  const grants = [...legacy, ...added, ...linked.grants]
+  const allWarnings = [...warnings, ...linked.warnings]
   const held = new Set(grants.map((g) => g.section))
-  return { userId: input.userId, sections: EMPLOYER_SECTION_ORDER.filter((s) => held.has(s)), grants, ...(warnings.length ? { warnings } : {}) }
+  return { userId: input.userId, sections: EMPLOYER_SECTION_ORDER.filter((s) => held.has(s)), grants, ...(allWarnings.length ? { warnings: allWarnings } : {}) }
 }
 
 /** The grants a person holds in one section. Legacy grants come first, so the first one is the one today's checks give. */
