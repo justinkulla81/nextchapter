@@ -19,7 +19,12 @@ export interface IncomingEvent {
 }
 
 const FORMATS = ['IN_PERSON', 'VIRTUAL', 'HYBRID']
-const clip = (s: string | null | undefined, n: number) => (s ? s.replace(/\s+/g, ' ').trim().slice(0, n) || null : null)
+const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ndash: '–', mdash: '—', rsquo: '’', lsquo: '‘', ldquo: '“', rdquo: '”', hellip: '…' }
+export const decodeEntities = (s: string) => s.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e: string) => {
+  if (e[0] === '#') { const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10); return Number.isFinite(n) && n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m }
+  return ENTITIES[e.toLowerCase()] ?? m
+})
+const clip = (s: string | null | undefined, n: number) => (s ? decodeEntities(s).replace(/\s+/g, ' ').trim().slice(0, n) || null : null)
 
 export function dedupeKeyOf(hostKey: string, title: string, startsAt: Date): string {
   const day = startsAt.toISOString().slice(0, 10)
@@ -42,7 +47,7 @@ export async function importLocalEvents(sources: IncomingSource[], events: Incom
     if (!title || isNoise(title) || Number.isNaN(startsAt.getTime()) || startsAt.getTime() < now.getTime() - 86_400_000) { stats.skipped++; continue }
     const hosts = (e.hostIds ?? []).map((id) => src.get(id)).filter((x): x is NonNullable<typeof x> => !!x)
     const text = `${title} ${e.description ?? ''}`
-    const kind: LocalEventKind = classifyKind(text)
+    const kind: LocalEventKind = classifyKind(title, e.description ?? '')
     const score = proScore(text, kind)
     const state = (e.state ?? hosts[0]?.state ?? null)?.toUpperCase().slice(0, 2) || null
     const city = clip(e.city ?? hosts[0]?.city, 80)
