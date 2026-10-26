@@ -7,7 +7,7 @@ import { NPS_ANSWERED_COOLDOWN_DAYS, npsCategory, summarizeNps } from '@/lib/nps
 
 export const maxDuration = 30
 
-const AUDIENCES: PortalAudience[] = ['CANDIDATE', 'EMPLOYER', 'COACH']
+const AUDIENCES: PortalAudience[] = ['CANDIDATE', 'EMPLOYER', 'COACH', 'RECRUITER']
 const DAY = 24 * 60 * 60 * 1000
 const WINDOW_DAYS = NPS_ANSWERED_COOLDOWN_DAYS
 /** Below this many answers a score moves by whole points on one reply. */
@@ -57,7 +57,7 @@ export default async function NpsPage() {
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((c) => {
           const now90 = summarizeNps(scores(current, c.audience))
           const prev90 = summarizeNps(scores(previous, c.audience))

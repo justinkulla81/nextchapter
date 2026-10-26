@@ -23,7 +23,7 @@ const KINDS = new Set<HelpFormKind>(['help', 'problem', 'idea', 'feedback'])
 const currentRequester = (formData: FormData): Promise<Requester | null> =>
   resolveRequester(parseHelpAudience(formData.get('audience')))
 
-const SOURCE_BY_AUDIENCE = { CANDIDATE: 'CANDIDATE', EMPLOYER: 'EMPLOYER', COACH: 'COACH' } as const
+const SOURCE_BY_AUDIENCE = { CANDIDATE: 'CANDIDATE', EMPLOYER: 'EMPLOYER', COACH: 'COACH', RECRUITER: 'RECRUITER' } as const
 
 /** Stores a problem screenshot in a private bucket, creating the bucket the first time. */
 async function storeScreenshot(candidateId: string, file: File): Promise<string | 'too_big' | 'bad_type' | null> {

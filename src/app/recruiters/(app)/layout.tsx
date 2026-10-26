@@ -8,6 +8,8 @@ import { prisma } from '@/lib/prisma'
 import { RoleContextBanner } from '@/components/auth/RoleContextBanner'
 import { brandStyle, type PartnerBrand } from '@/lib/partners/brand'
 import { recruiterBrand } from '@/lib/partners/resolve-brand'
+import { PortalHelpLauncher } from '@/components/help/PortalHelpLauncher'
+import { NpsPromptLoader } from '@/components/nps/NpsPromptLoader'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -64,6 +66,13 @@ export default async function RecruiterAppLayout({ children }: { children: React
           accessToken={recruiter.accessToken}
           brand={brand}
         />
+      </Suspense>
+      {/* Help & feedback in the corner of every page, and the NPS question when it is due. */}
+      <Suspense fallback={null}>
+        <PortalHelpLauncher audience="RECRUITER" requesterId={recruiter.id} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <NpsPromptLoader audience="RECRUITER" />
       </Suspense>
       {/* pt-14 clears the fixed top bar exactly once, whether or not the
           banner below renders — see RoleContextBanner's comment for why an

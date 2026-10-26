@@ -53,6 +53,7 @@ function buildLinks(accessToken: string, messagesUnreadCount: number, actionCoun
     { href: `/recruiters/job-board/submissions/${accessToken}`, label: 'My Postings' },
     { href: `/recruiters/calibrate/${accessToken}`, label: 'Search Calibration Memo' },
     { href: '/recruiters/activity', label: 'Downloads and activity' },
+    { href: '/recruiters/help', label: 'Help and feedback' },
     { href: '/recruiters/settings', label: 'Settings' },
   ]
 }

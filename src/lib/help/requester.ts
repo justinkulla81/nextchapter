@@ -43,6 +43,13 @@ export async function resolveRequester(audience: HelpAudience): Promise<Requeste
     if (!c) return null
     return { audience, id: c.id, name: c.fullName, email: c.workEmail, orgName: null, since: c.createdAt, isSample: c.isSampleData }
   }
+  if (audience === 'RECRUITER') {
+    const { data: { user } } = await (await createClient('recruiter')).auth.getUser()
+    if (!user) return null
+    const r = await prisma.recruiter.findUnique({ where: { userId: user.id }, select: { id: true, fullName: true, workEmail: true, createdAt: true, isSampleData: true } })
+    if (!r) return null
+    return { audience, id: r.id, name: r.fullName, email: r.workEmail, orgName: null, since: r.createdAt, isSample: r.isSampleData }
+  }
   const { data: { user } } = await (await createClient()).auth.getUser()
   if (!user) return null
   const p = await getOrCreateCandidateProfile(user.id)
@@ -58,6 +65,10 @@ export async function lookupRequester(audience: HelpAudience, id: string): Promi
   if (audience === 'COACH') {
     const c = await prisma.coach.findUnique({ where: { id }, select: { fullName: true, workEmail: true } })
     return c ? { name: c.fullName, firstName: c.fullName.split(' ')[0] ?? null, email: c.workEmail } : null
+  }
+  if (audience === 'RECRUITER') {
+    const r = await prisma.recruiter.findUnique({ where: { id }, select: { fullName: true, workEmail: true } })
+    return r ? { name: r.fullName, firstName: r.fullName.split(' ')[0] ?? null, email: r.workEmail } : null
   }
   const p = await prisma.candidateProfile.findUnique({ where: { id }, select: { firstName: true, lastName: true, email: true } })
   return p ? { name: fullName(p.firstName, p.lastName) || p.email || 'A candidate', firstName: p.firstName, email: p.email } : null

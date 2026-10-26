@@ -24,7 +24,7 @@ export default async function HelpThreadPage({ params }: { params: Promise<{ id:
     ? [c?.firstName, c?.lastName].filter(Boolean).join(' ') || c?.email || 'Candidate'
     : r.requesterName || HELP_AUDIENCES[r.audience].label
   const email = isCandidate ? c?.email : r.requesterEmail
-  const profileHref = isCandidate ? `/support/admin/candidates/${r.candidateId}` : r.audience === 'COACH' ? `/support/admin/coaches/${r.candidateId}` : null
+  const profileHref = isCandidate ? `/support/admin/candidates/${r.candidateId}` : r.audience === 'COACH' ? `/support/admin/coaches/${r.candidateId}` : r.audience === 'RECRUITER' ? `/support/admin/recruiters/${r.candidateId}` : null
   let screenshotUrl: string | null = null
   if (r.screenshotPath) {
     const { data } = await createAdminClient().storage.from(HELP_SCREENSHOT_BUCKET).createSignedUrl(r.screenshotPath, 60 * 30)

@@ -72,7 +72,8 @@ export async function notifyCandidateOfReply(requestId: string, body: string): P
   const r = await prisma.helpRequest.findUnique({ where: { id: requestId }, select: { candidateId: true, audience: true, subject: true, requesterEmail: true } })
   if (!r) return false
   const who = await lookupRequester(r.audience, r.candidateId)
-  const to = who?.email ?? r.requesterEmail
+  // For employer, coach and recruiter users, the address saved when they sent it is the one they use.
+  const to = (r.audience !== 'CANDIDATE' ? r.requesterEmail : null) ?? who?.email
   if (!to) return false
   const link = `${APP_URL}${HELP_AUDIENCES[r.audience].helpPath}?request=${requestId}`
   return send({
@@ -92,7 +93,7 @@ export async function notifyCandidateFeedbackAddressed(feedbackId: string): Prom
     where: { id: feedbackId },
     select: { candidateId: true, portalUserId: true, source: true, channel: true, rawText: true, responseNote: true },
   })
-  const audience: HelpAudience = fb?.source === 'EMPLOYER' ? 'EMPLOYER' : fb?.source === 'COACH' ? 'COACH' : 'CANDIDATE'
+  const audience: HelpAudience = fb?.source === 'EMPLOYER' ? 'EMPLOYER' : fb?.source === 'COACH' ? 'COACH' : fb?.source === 'RECRUITER' ? 'RECRUITER' : 'CANDIDATE'
   const senderId = audience === 'CANDIDATE' ? fb?.candidateId : fb?.portalUserId
   if (!fb || !senderId || !fb.responseNote || !fb.channel?.startsWith('in-app')) return false
   // A problem report sent to Vision was already answered in its conversation.

@@ -13269,6 +13269,7 @@ enum PortalAudience {
   CANDIDATE
   EMPLOYER
   COACH
+  RECRUITER
 }
 
 /// One answer to "How likely are you to recommend NextChapter?", or a dismissal
