@@ -43,6 +43,9 @@ export function GET() {
 ${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${report.dek}\n` : ''}- [Layoff tracker](${u('/layoffs')}): WARN notices filed with state labor agencies, this year's totals, coverage notes and the BLS context, with a page for each state and employer.
 - [Local job markets](${u('/places')}): a page for every state and county and for each city with jobs, layoff notices, a college or a job center: unemployment, WARN layoff notices, open jobs, the employers hiring most, colleges, the workforce board and American Job Centers.
 - [Employer pages for current and former employees](${u('/layoffs')}): for each employer with a recent, sizeable WARN filing, the notices, open professional jobs in its state, unemployment benefits, retraining help and a way to join. Linked from each employer's layoff page.
+- [American Job Centers](${u('/job-centers')}): a page for each American Job Center, by state: the counties it serves, open professional jobs and entry-level roles there, colleges and other local help, address, hours and phone.
+- [Economic development organizations](${u('/economic-development')}): a page for each regional, county and state economic development organization, by state, with the area it serves and the jobs open there.
+- [Workforce boards](${u('/workforce-boards')}): a page for each local workforce development board with its counties, local unemployment, open jobs and job centers.
 - [Unemployment benefits by state](${u('/unemployment-benefits')}): maximum and minimum weekly benefit, weeks, waiting week, severance rules and where to file, for all 50 states and DC, from Department of Labor and state agency sources.
 - [Editorial standards](${u('/editorial-standards')}): how NextChapter researches and sources content, keeps it separate from what it sells, and handles corrections.
 

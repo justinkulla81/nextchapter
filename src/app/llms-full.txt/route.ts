@@ -2,6 +2,7 @@ import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { reportsNewestFirst, reportPath } from '@/lib/reports'
 import { FACTS, SITE_URL } from '@/lib/seo/facts'
 import { htmlToPlainText } from '@/lib/seo/plain-text'
+import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { REPORT_BODY_HTML as SEPTEMBER_2026 } from '../reports/white-collar-employment-report-september-2026/report-body'
 
 // /llms-full.txt — plain-text bodies of every guide and report, no navigation
@@ -40,6 +41,15 @@ export function GET() {
         .join('\n\n'),
     )
   }
+
+  const directory = (title: string, root: string, what: string) =>
+    `# ${title}\n\nURL: ${SITE_URL}${root}\n${what} Each page lists the counties served, open professional jobs and entry-level roles in the area, contact details as the organization publishes them, colleges and other local help.\n\n` +
+    ALL_STATE_CODES.map((c) => `- ${stateName(c)}: ${SITE_URL}${root}/${stateSlug(c)}`).join('\n')
+  parts.push(
+    directory('American Job Centers by state', '/job-centers', 'One page for each American Job Center.'),
+    directory('Economic development organizations by state', '/economic-development', 'One page for each regional, county and state economic development organization.'),
+    directory('Workforce boards by state', '/workforce-boards', 'One page for each local workforce development board.'),
+  )
 
   return new Response(parts.join('\n\n---\n\n') + '\n', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
 }

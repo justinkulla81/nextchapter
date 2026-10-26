@@ -17279,3 +17279,24 @@ model CoachSessionTopic {
   @@unique([sessionId, topic])
   @@index([candidateId, status])
 }
+
+/// Ties a public organization page (American Job Center, economic development organization, workforce
+/// board) to its CRM organization. LINKED = matched to an existing organization, CREATED = added by the
+/// backfill, REVIEW = unsure: waits on the CRM Review List for a person to decide, never guessed.
+/// prisma/manual/2026-10-25-public-org-pages.sql
+model PublicOrgPage {
+  /// JOB_CENTER | ECON_DEV | WORKFORCE_BOARD
+  kind          String
+  sourceId      String
+  state         String
+  crmOrgId      String?
+  matchStatus   String   @default("NONE")
+  reviewOrgId   String?
+  reviewReason  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@id([kind, sourceId])
+  @@index([crmOrgId])
+  @@index([matchStatus])
+}
