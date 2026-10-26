@@ -16,7 +16,8 @@ import { TOPICS } from '@/lib/seo/explainers'
 import { ASSOCIATION_MIN_CONFERENCES, INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
-import { getStateBoards, getStateColleges, getStatesWithBoards } from '@/lib/seo/workforce-pages'
+import { boardSlugs } from '@/lib/seo/workforce-pages'
+import { visibleBoards } from '@/lib/workforce/board-area'
 import { getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
 import { prisma } from '@/lib/prisma'
 
@@ -85,22 +86,33 @@ const REPLICATION_UPDATED = '2026-10-07'
 // The board and college directories are refreshed from CareerOneStop and IPEDS about monthly.
 const DIRECTORY_UPDATED = '2026-10-25'
 
+// Two queries for every state (all boards, and which states have colleges), not one pair per state: this loader
+// ran fifty-odd concurrent reads beside the topic and nonprofit loaders and, failing quietly, dropped every
+// workforce, rapid-response and higher-education page from the sitemap.
 async function loadSeoStatePages(entry: (path: string, updated: string, freq: Freq, priority: number) => MetadataRoute.Sitemap[number]) {
   try {
-    const states = await getStatesWithBoards()
-    return await Promise.all(
-      states.map(async (s) => {
-        const slug = stateSlug(s.state)
-        const [boards, colleges] = await Promise.all([getStateBoards(s.state), getStateColleges(s.state)])
+    const [rows, collegeStates] = await Promise.all([
+      prisma.workforceBoard.findMany({ select: { id: true, state: true, name: true, statewide: true }, orderBy: { name: 'asc' } }),
+      prisma.localCollege.groupBy({ by: ['state'], where: { sector: { in: [1, 2, 4, 5] } }, _count: { _all: true } }),
+    ])
+    const hasColleges = new Set(collegeStates.map((c) => c.state))
+    const byState = new Map<string, typeof rows>()
+    for (const r of rows) byState.set(r.state, [...(byState.get(r.state) ?? []), r])
+    return [...byState.entries()]
+      .filter(([state]) => state in STATE_NAMES)
+      .map(([state, all]) => {
+        const slug = stateSlug(state)
+        const boards = visibleBoards(all)
+        const slugs = boardSlugs(boards)
         return [
           entry(`/workforce-boards/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
           entry(`/rapid-response/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5),
-          ...(colleges.length ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
-          ...boards.map((b) => entry(`/workforce-boards/${slug}/${b.slug}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
+          ...(hasColleges.has(state) ? [entry(`/higher-education/${slug}`, DIRECTORY_UPDATED, 'monthly', 0.5)] : []),
+          ...boards.map((b) => entry(`/workforce-boards/${slug}/${slugs.get(b.id)}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
         ]
-      }),
-    )
-  } catch {
+      })
+  } catch (e) {
+    console.error('sitemap: workforce state pages left out', e)
     return []
   }
 }
@@ -118,7 +130,8 @@ async function loadNonprofitPages(entry: (path: string, updated: string, freq: F
       ...orgs.filter((o) => o.state in STATE_NAMES).map((o) => entry(`/nonprofits/${stateSlug(o.state)}/${o.slug}`, DIRECTORY_UPDATED, 'monthly', 0.4)),
       ...edo.filter((e) => e.state in STATE_NAMES).map((e) => entry(`/economic-development/${stateSlug(e.state)}`, DIRECTORY_UPDATED, 'monthly', 0.5)),
     ]
-  } catch {
+  } catch (e) {
+    console.error('sitemap: nonprofit and economic development pages left out', e)
     return []
   }
 }
