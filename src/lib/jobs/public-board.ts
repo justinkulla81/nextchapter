@@ -1,4 +1,5 @@
 import 'server-only'
+import { unstable_cache } from 'next/cache'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { classifyLocation } from '@/lib/jobs/us-location'
@@ -148,4 +149,12 @@ function roundCount(n: number): number {
   if (n < 100) return n
   const step = n < 1000 ? 10 : n < 10000 ? 100 : 1000
   return Math.round(n / step) * step
+}
+
+// The count and the newest-first read scan the whole board with title filters; run once per query every five minutes and shared by every
+// visitor and crawler, instead of on each request (the bare /jobs page took 14 to 39 seconds under crawl, 2026-10-26).
+const cachedSearch = unstable_cache((q: string) => searchPublicBoard(JSON.parse(q) as PublicBoardQuery), ['public-board-search-v1'], { revalidate: 300 })
+
+export function searchPublicBoardCached(query: PublicBoardQuery): Promise<PublicBoardResult> {
+  return cachedSearch(JSON.stringify(query))
 }
