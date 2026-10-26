@@ -7,7 +7,7 @@
 //   set -a; . ./.env.local; set +a
 //   npx tsx scripts/local-events/crawl.ts --kinds=WORKFORCE_BOARD,ECON_DEV,CHAMBER,COLLEGE --limit=200 --out=/tmp/local-events.json
 //   NC_ATS_API_KEY=... npx tsx scripts/local-events/crawl.ts --post=https://launchyournextchapter.com/api/admin/local-events/import --kinds=...
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { PrismaClient } from '@prisma/client'
 
 const arg = (k: string, d = '') => process.argv.find((a) => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d
@@ -35,6 +35,8 @@ async function loadSources(): Promise<Src[]> {
   }
   if (KINDS.includes('CHAMBER')) for (const r of await db.$queryRawUnsafe<any[]>(`select g.id, g.name, g.state, g.city, g.website, a.name as county from "GeoOrgLead" g left join "GeoArea" a on a.id = g."geoAreaId" where g.kind = 'CHAMBER' and g.website is not null and g."dismissedAt" is null`)) out.push({ id: `CHAMBER:${r.id}`, kind: 'CHAMBER', name: r.name, state: r.state, city: r.city, county: r.county, website: r.website })
   if (KINDS.includes('COLLEGE')) for (const r of await db.$queryRawUnsafe<any[]>(`select id, name, state, city, website from "LocalCollege" where website is not null`)) out.push({ id: `COLLEGE:${r.id}`, kind: 'COLLEGE', name: r.name, state: r.state, city: r.city, county: null, website: r.website })
+  // City governments (Wikidata, towns over 25,000 people): data/local-events/city-sources.json.
+  if (KINDS.includes('CITY')) for (const c of JSON.parse(readFileSync(new URL('../../data/local-events/city-sources.json', import.meta.url), 'utf8')) as { name: string; state: string; website: string }[]) out.push({ id: `CITY:${c.state}-${c.name}`, kind: 'CITY', name: `City of ${c.name}`, state: c.state, city: c.name, county: null, website: c.website })
   return out.filter((s) => cleanUrl(s.website) && (!STATES || STATES.includes(s.state))).slice(0, LIMIT)
 }
 
@@ -60,7 +62,7 @@ function politeFetch(url: string, accept = 'text/html,application/xhtml+xml,appl
   return p as Promise<{ ok: boolean; status: number; type: string; text: string } | null>
 }
 
-const EVENT_LINK = /event|calendar|job-?fair|career-?fair|hiring|workshop|networking|small-?business|entrepreneur|start-?up|score|sbdc|programs?\b/i
+const EVENT_LINK = /event|calendar|rapid|dislocated|layoff|job-?fair|career-?fair|hiring|workshop|networking|small-?business|entrepreneur|start-?up|score|sbdc|programs?\b/i
 const strip = (h: string) => h.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#0?39;|&rsquo;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim()
 
 function jsonLdEvents(html: string, pageUrl: string): Ev[] {
@@ -136,7 +138,8 @@ function findLinks(html: string, base: string, origin: string): { events: string
     if (EVENT_LINK.test(u.pathname) || /event|calendar|job fair|career fair|workshop/i.test(strip(m[2]))) events.add(u.href)
   }
   for (const m of html.matchAll(/<link[^>]+type=["'](?:application\/rss\+xml|text\/calendar)["'][^>]*href=["']([^"']+)["']/gi)) { try { feeds.add(new URL(m[1], base).href) } catch {} }
-  return { events: [...events].slice(0, 4), feeds: [...feeds].slice(0, 3) }
+  const rank = (u: string) => (/event|calendar/i.test(u) ? 0 : 1)
+  return { events: [...events].sort((a, b) => rank(a) - rank(b)).slice(0, 4), feeds: [...feeds].slice(0, 3) }
 }
 
 async function crawl(s: Src): Promise<{ events: Ev[]; eventsUrl?: string; feedType: string }> {
@@ -158,7 +161,11 @@ async function crawl(s: Src): Promise<{ events: Ev[]; eventsUrl?: string; feedTy
     links.feeds.push(...l2.feeds)
     if (!events.length && /tribe-events/i.test(r.text)) take(await tribe(origin), u, 'ld+json')
   }
-  if (!events.length) for (const f of [...new Set(links.feeds)].slice(0, 3)) {
+  // CivicPlus (most city and county sites) publishes its calendar at fixed feed URLs.
+  if (!events.length && /calendar\.aspx|civicplus|civicengage|Calendar\.aspx/i.test(home.text + links.events.join(' '))) {
+    links.feeds.push(`${origin}/common/modules/iCalendar/iCalendar.aspx?feed=calendar`, `${origin}/RSSFeed.aspx?ModID=58&CID=All-calendar.xml`)
+  }
+  if (!events.length) for (const f of [...new Set(links.feeds)].slice(0, 4)) {
     const r = await politeFetch(f, 'text/calendar,application/rss+xml,text/xml')
     if (!r?.ok) continue
     take(/BEGIN:VCALENDAR/.test(r.text) ? icsEvents(r.text, f) : rssEvents(r.text, f), f, /BEGIN:VCALENDAR/.test(r.text) ? 'ics' : 'rss')

@@ -1,0 +1,6620 @@
+[
+{
+"name": "Fairbanks",
+"state": "AK",
+"website": "https://www.fairbanksalaska.us/",
+"pop": 32515
+},
+{
+"name": "Alabaster",
+"state": "AL",
+"website": "http://www.cityofalabaster.com/",
+"pop": 33284
+},
+{
+"name": "Athens",
+"state": "AL",
+"website": "http://www.athensal.us/",
+"pop": 25406
+},
+{
+"name": "Auburn",
+"state": "AL",
+"website": "http://www.auburnalabama.org/",
+"pop": 76143
+},
+{
+"name": "Bessemer",
+"state": "AL",
+"website": "https://www.bessemeral.org/",
+"pop": 26019
+},
+{
+"name": "Birmingham",
+"state": "AL",
+"website": "https://www.birminghamal.gov/",
+"pop": 200733
+},
+{
+"name": "Daphne",
+"state": "AL",
+"website": "http://www.daphneal.com/",
+"pop": 27462
+},
+{
+"name": "Decatur",
+"state": "AL",
+"website": "https://www.cityofdecatural.com/",
+"pop": 57938
+},
+{
+"name": "Dothan",
+"state": "AL",
+"website": "https://www.dothan.org/",
+"pop": 71072
+},
+{
+"name": "Enterprise",
+"state": "AL",
+"website": "http://www.cityofenterprise.net/",
+"pop": 28711
+},
+{
+"name": "Florence",
+"state": "AL",
+"website": "https://florenceal.org/",
+"pop": 40184
+},
+{
+"name": "Gadsden",
+"state": "AL",
+"website": "http://www.cityofgadsden.com",
+"pop": 33945
+},
+{
+"name": "Homewood",
+"state": "AL",
+"website": "http://www.homewoodal.net/",
+"pop": 26414
+},
+{
+"name": "Hoover",
+"state": "AL",
+"website": "http://www.hooveral.org/",
+"pop": 92606
+},
+{
+"name": "Huntsville",
+"state": "AL",
+"website": "https://www.huntsvilleal.gov/",
+"pop": 215006
+},
+{
+"name": "Madison",
+"state": "AL",
+"website": "http://www.madisonal.gov/",
+"pop": 56933
+},
+{
+"name": "Mobile",
+"state": "AL",
+"website": "https://cityofmobile.org",
+"pop": 187041
+},
+{
+"name": "Montgomery",
+"state": "AL",
+"website": "https://www.montgomeryal.gov/",
+"pop": 200603
+},
+{
+"name": "Northport",
+"state": "AL",
+"website": "http://www.cityofnorthport.org/",
+"pop": 31125
+},
+{
+"name": "Opelika",
+"state": "AL",
+"website": "http://www.opelika.org/",
+"pop": 30995
+},
+{
+"name": "Phenix City",
+"state": "AL",
+"website": "https://phenixcityal.us/",
+"pop": 38816
+},
+{
+"name": "Prattville",
+"state": "AL",
+"website": "https://www.prattvilleal.gov/",
+"pop": 37781
+},
+{
+"name": "Trussville",
+"state": "AL",
+"website": "http://www.trussville.org/",
+"pop": 26123
+},
+{
+"name": "Tuscaloosa",
+"state": "AL",
+"website": "http://www.tuscaloosa.com/",
+"pop": 99600
+},
+{
+"name": "Vestavia Hills",
+"state": "AL",
+"website": "http://www.vestaviahills.net/",
+"pop": 39102
+},
+{
+"name": "Bella Vista",
+"state": "AR",
+"website": "http://www.cityofbellavista.com/",
+"pop": 30104
+},
+{
+"name": "Benton",
+"state": "AR",
+"website": "http://www.benton.ar.gov/",
+"pop": 35014
+},
+{
+"name": "Bentonville",
+"state": "AR",
+"website": "https://www.bentonvillear.com/",
+"pop": 54164
+},
+{
+"name": "Cabot",
+"state": "AR",
+"website": "http://www.cabotar.gov/",
+"pop": 26569
+},
+{
+"name": "Conway",
+"state": "AR",
+"website": "https://conwayarkansas.org/",
+"pop": 64134
+},
+{
+"name": "Fayetteville",
+"state": "AR",
+"website": "http://www.accessfayetteville.org",
+"pop": 93949
+},
+{
+"name": "Fort Smith",
+"state": "AR",
+"website": "https://www.fortsmithar.gov",
+"pop": 89142
+},
+{
+"name": "Hot Springs",
+"state": "AR",
+"website": "http://www.cityhs.net",
+"pop": 37930
+},
+{
+"name": "Jacksonville",
+"state": "AR",
+"website": "https://www.cityofjacksonville.net/",
+"pop": 29477
+},
+{
+"name": "Jonesboro",
+"state": "AR",
+"website": "https://www.jonesboro.org/",
+"pop": 78576
+},
+{
+"name": "North Little Rock",
+"state": "AR",
+"website": "http://www.northlittlerock.ar.gov/",
+"pop": 64591
+},
+{
+"name": "Paragould",
+"state": "AR",
+"website": "http://www.paragouldarkansas.com/",
+"pop": 29537
+},
+{
+"name": "Pine Bluff",
+"state": "AR",
+"website": "http://www.cityofpinebluff.com/",
+"pop": 41253
+},
+{
+"name": "Rogers",
+"state": "AR",
+"website": "http://www.rogersarkansas.com/",
+"pop": 69908
+},
+{
+"name": "Russellville",
+"state": "AR",
+"website": "http://www.russellvillearkansas.org/",
+"pop": 28940
+},
+{
+"name": "Sherwood",
+"state": "AR",
+"website": "http://www.ci.sherwood.ar.us/",
+"pop": 32731
+},
+{
+"name": "Springdale",
+"state": "AR",
+"website": "http://www.springdalear.gov/",
+"pop": 84161
+},
+{
+"name": "Texarkana",
+"state": "AR",
+"website": "http://arkansas.txkusa.org/",
+"pop": 29387
+},
+{
+"name": "Apache Junction",
+"state": "AZ",
+"website": "https://www.apachejunctionaz.gov/",
+"pop": 38499
+},
+{
+"name": "Avondale",
+"state": "AZ",
+"website": "http://www.avondale.org",
+"pop": 89334
+},
+{
+"name": "Buckeye",
+"state": "AZ",
+"website": "https://buckeyeaz.gov",
+"pop": 91502
+},
+{
+"name": "Bullhead City",
+"state": "AZ",
+"website": "http://www.bullheadcity.com",
+"pop": 41348
+},
+{
+"name": "Casa Grande",
+"state": "AZ",
+"website": "http://www.casagrandeaz.gov/",
+"pop": 53658
+},
+{
+"name": "Chandler",
+"state": "AZ",
+"website": "http://www.chandleraz.gov",
+"pop": 275987
+},
+{
+"name": "El Mirage",
+"state": "AZ",
+"website": "http://www.cityofelmirage.org",
+"pop": 35805
+},
+{
+"name": "Flagstaff",
+"state": "AZ",
+"website": "https://www.flagstaff.az.gov/",
+"pop": 76831
+},
+{
+"name": "Glendale",
+"state": "AZ",
+"website": "https://www.glendaleaz.com/",
+"pop": 248325
+},
+{
+"name": "Goodyear",
+"state": "AZ",
+"website": "http://www.ci.goodyear.az.us",
+"pop": 95294
+},
+{
+"name": "Kingman",
+"state": "AZ",
+"website": "https://www.cityofkingman.gov/",
+"pop": 32689
+},
+{
+"name": "Mesa",
+"state": "AZ",
+"website": "https://www.mesaaz.gov/",
+"pop": 504258
+},
+{
+"name": "Peoria",
+"state": "AZ",
+"website": "http://www.peoriaaz.gov",
+"pop": 190985
+},
+{
+"name": "Prescott",
+"state": "AZ",
+"website": "http://www.prescott-az.gov/",
+"pop": 45827
+},
+{
+"name": "San Luis",
+"state": "AZ",
+"website": "http://www.cityofsanluis.org",
+"pop": 35257
+},
+{
+"name": "Scottsdale",
+"state": "AZ",
+"website": "https://www.scottsdaleaz.gov/",
+"pop": 241361
+},
+{
+"name": "Surprise",
+"state": "AZ",
+"website": "http://www.surpriseaz.gov/",
+"pop": 143148
+},
+{
+"name": "Tempe",
+"state": "AZ",
+"website": "https://www.tempe.gov/",
+"pop": 180587
+},
+{
+"name": "Tucson",
+"state": "AZ",
+"website": "http://www.tucsonaz.gov/",
+"pop": 542629
+},
+{
+"name": "Yuma",
+"state": "AZ",
+"website": "http://www.yumaaz.gov",
+"pop": 95548
+},
+{
+"name": "Adelanto",
+"state": "CA",
+"website": "http://www.ci.adelanto.ca.us",
+"pop": 38046
+},
+{
+"name": "Alhambra",
+"state": "CA",
+"website": "http://www.cityofalhambra.org",
+"pop": 82868
+},
+{
+"name": "Atascadero",
+"state": "CA",
+"website": "http://www.atascadero.org",
+"pop": 29773
+},
+{
+"name": "Atwater",
+"state": "CA",
+"website": "http://www.atwater.org",
+"pop": 31970
+},
+{
+"name": "Azusa",
+"state": "CA",
+"website": "http://www.ci.azusa.ca.us",
+"pop": 50000
+},
+{
+"name": "Baldwin Park",
+"state": "CA",
+"website": "http://www.baldwinpark.com",
+"pop": 72176
+},
+{
+"name": "Banning",
+"state": "CA",
+"website": "http://www.ci.banning.ca.us",
+"pop": 29505
+},
+{
+"name": "Barstow",
+"state": "CA",
+"website": "http://www.barstowca.org",
+"pop": 25415
+},
+{
+"name": "Beaumont",
+"state": "CA",
+"website": "http://www.ci.beaumont.ca.us",
+"pop": 53036
+},
+{
+"name": "Bell",
+"state": "CA",
+"website": "http://www.cityofbell.org",
+"pop": 33559
+},
+{
+"name": "Bell Gardens",
+"state": "CA",
+"website": "http://www.bellgardens.org",
+"pop": 39501
+},
+{
+"name": "Bellflower",
+"state": "CA",
+"website": "http://www.bellflower.org/",
+"pop": 79190
+},
+{
+"name": "Beverly Hills",
+"state": "CA",
+"website": "https://www.beverlyhills.org/",
+"pop": 32701
+},
+{
+"name": "Brawley",
+"state": "CA",
+"website": "http://www.brawley-ca.gov",
+"pop": 26416
+},
+{
+"name": "Brea",
+"state": "CA",
+"website": "http://www.ci.brea.ca.us",
+"pop": 47325
+},
+{
+"name": "Calexico",
+"state": "CA",
+"website": "https://www.calexico.ca.gov",
+"pop": 38633
+},
+{
+"name": "Camarillo",
+"state": "CA",
+"website": "https://www.ci.camarillo.ca.us/",
+"pop": 70741
+},
+{
+"name": "Carlsbad",
+"state": "CA",
+"website": "http://www.carlsbadca.gov",
+"pop": 114746
+},
+{
+"name": "Cathedral City",
+"state": "CA",
+"website": "http://www.cathedralcity.gov",
+"pop": 51493
+},
+{
+"name": "Ceres",
+"state": "CA",
+"website": "http://www.ci.ceres.ca.us/",
+"pop": 49302
+},
+{
+"name": "Cerritos",
+"state": "CA",
+"website": "http://www.ci.cerritos.ca.us",
+"pop": 49578
+},
+{
+"name": "Chico",
+"state": "CA",
+"website": "https://chico.ca.us/",
+"pop": 101475
+},
+{
+"name": "Chino",
+"state": "CA",
+"website": "http://www.cityofchino.org",
+"pop": 91403
+},
+{
+"name": "Claremont",
+"state": "CA",
+"website": "http://www.ci.claremont.ca.us",
+"pop": 37266
+},
+{
+"name": "Coachella",
+"state": "CA",
+"website": "http://www.coachella.org",
+"pop": 41941
+},
+{
+"name": "Colton",
+"state": "CA",
+"website": "http://www.ci.colton.ca.us",
+"pop": 53909
+},
+{
+"name": "Compton",
+"state": "CA",
+"website": "http://www.comptoncity.org/",
+"pop": 95740
+},
+{
+"name": "Corona",
+"state": "CA",
+"website": "http://www.ci.corona.ca.us",
+"pop": 157136
+},
+{
+"name": "Covina",
+"state": "CA",
+"website": "http://www.ci.covina.ca.us",
+"pop": 51268
+},
+{
+"name": "Davis",
+"state": "CA",
+"website": "http://cityofdavis.org/",
+"pop": 66850
+},
+{
+"name": "Delano",
+"state": "CA",
+"website": "http://www.cityofdelano.org",
+"pop": 51428
+},
+{
+"name": "Desert Hot Springs",
+"state": "CA",
+"website": "https://www.cityofdhs.org/",
+"pop": 32512
+},
+{
+"name": "Diamond Bar",
+"state": "CA",
+"website": "http://www.ci.diamond-bar.ca.us",
+"pop": 55072
+},
+{
+"name": "El Cajon",
+"state": "CA",
+"website": "http://www.ci.el-cajon.ca.us/",
+"pop": 106215
+},
+{
+"name": "El Centro",
+"state": "CA",
+"website": "http://www.cityofelcentro.org",
+"pop": 44322
+},
+{
+"name": "El Monte",
+"state": "CA",
+"website": "http://www.ci.el-monte.ca.us",
+"pop": 109450
+},
+{
+"name": "Elk Grove",
+"state": "CA",
+"website": "http://www.elkgrovecity.org/",
+"pop": 176124
+},
+{
+"name": "Encinitas",
+"state": "CA",
+"website": "https://www.encinitasca.gov/",
+"pop": 62007
+},
+{
+"name": "Escondido",
+"state": "CA",
+"website": "http://www.escondido.org",
+"pop": 151038
+},
+{
+"name": "Fontana",
+"state": "CA",
+"website": "https://www.fontanaca.gov/",
+"pop": 208393
+},
+{
+"name": "Galt",
+"state": "CA",
+"website": "http://www.ci.galt.ca.us",
+"pop": 25383
+},
+{
+"name": "Garden Grove",
+"state": "CA",
+"website": "https://ggcity.org",
+"pop": 171949
+},
+{
+"name": "Glendora",
+"state": "CA",
+"website": "http://www.ci.glendora.ca.us",
+"pop": 52558
+},
+{
+"name": "Goleta",
+"state": "CA",
+"website": "https://cityofgoleta.org",
+"pop": 32690
+},
+{
+"name": "Hanford",
+"state": "CA",
+"website": "https://www.cityofhanfordca.com/",
+"pop": 57990
+},
+{
+"name": "Hawthorne",
+"state": "CA",
+"website": "https://www.cityofhawthorne.org",
+"pop": 88083
+},
+{
+"name": "Hemet",
+"state": "CA",
+"website": "http://www.cityofhemet.org",
+"pop": 89833
+},
+{
+"name": "Hesperia",
+"state": "CA",
+"website": "http://www.cityofhesperia.us",
+"pop": 99818
+},
+{
+"name": "Highland",
+"state": "CA",
+"website": "http://www.ci.highland.ca.us",
+"pop": 56999
+},
+{
+"name": "Huntington Beach",
+"state": "CA",
+"website": "https://www.huntingtonbeachca.gov",
+"pop": 198711
+},
+{
+"name": "Huntington Park",
+"state": "CA",
+"website": "http://www.huntingtonpark.org",
+"pop": 54883
+},
+{
+"name": "Imperial Beach",
+"state": "CA",
+"website": "http://www.imperialbeachca.gov/",
+"pop": 26137
+},
+{
+"name": "Inglewood",
+"state": "CA",
+"website": "https://www.cityofinglewood.org/",
+"pop": 107762
+},
+{
+"name": "La Habra",
+"state": "CA",
+"website": "http://www.ci.la-habra.ca.us",
+"pop": 63097
+},
+{
+"name": "La Mesa",
+"state": "CA",
+"website": "http://www.cityoflamesa.com",
+"pop": 61121
+},
+{
+"name": "La Mirada",
+"state": "CA",
+"website": "http://www.cityoflamirada.org",
+"pop": 48008
+},
+{
+"name": "La Puente",
+"state": "CA",
+"website": "http://www.lapuente.org",
+"pop": 38062
+},
+{
+"name": "La Quinta",
+"state": "CA",
+"website": "http://www.la-quinta.org/",
+"pop": 37558
+},
+{
+"name": "La Verne",
+"state": "CA",
+"website": "https://cityoflaverne.org",
+"pop": 31334
+},
+{
+"name": "Lake Elsinore",
+"state": "CA",
+"website": "http://www.lake-elsinore.org",
+"pop": 70265
+},
+{
+"name": "Lake Forest",
+"state": "CA",
+"website": "http://www.city-lakeforest.com",
+"pop": 85858
+},
+{
+"name": "Lakewood",
+"state": "CA",
+"website": "http://www.lakewoodcity.org",
+"pop": 82496
+},
+{
+"name": "Lancaster",
+"state": "CA",
+"website": "https://www.cityoflancasterca.org/",
+"pop": 173516
+},
+{
+"name": "Lathrop",
+"state": "CA",
+"website": "http://www.ci.lathrop.ca.us",
+"pop": 28701
+},
+{
+"name": "Lawndale",
+"state": "CA",
+"website": "https://www.lawndalecity.org",
+"pop": 31807
+},
+{
+"name": "Lemon Grove",
+"state": "CA",
+"website": "http://www.lemongrove.ca.gov",
+"pop": 27627
+},
+{
+"name": "Lemoore",
+"state": "CA",
+"website": "http://www.lemoore.com",
+"pop": 27038
+},
+{
+"name": "Lincoln",
+"state": "CA",
+"website": "http://www.ci.lincoln.ca.us",
+"pop": 49757
+},
+{
+"name": "Lodi",
+"state": "CA",
+"website": "http://www.lodi.gov/",
+"pop": 66348
+},
+{
+"name": "Lompoc",
+"state": "CA",
+"website": "http://www.cityoflompoc.com",
+"pop": 44444
+},
+{
+"name": "Los Banos",
+"state": "CA",
+"website": "http://www.losbanos.org",
+"pop": 45532
+},
+{
+"name": "Lynwood",
+"state": "CA",
+"website": "http://www.lynwood.ca.us",
+"pop": 67265
+},
+{
+"name": "Madera",
+"state": "CA",
+"website": "https://www.madera.gov/",
+"pop": 66224
+},
+{
+"name": "Manhattan Beach",
+"state": "CA",
+"website": "https://www.manhattanbeach.gov",
+"pop": 35506
+},
+{
+"name": "Maywood",
+"state": "CA",
+"website": "http://www.cityofmaywood.com",
+"pop": 25138
+},
+{
+"name": "Menifee",
+"state": "CA",
+"website": "http://www.cityofmenifee.us",
+"pop": 102527
+},
+{
+"name": "Merced",
+"state": "CA",
+"website": "https://www.cityofmerced.gov/",
+"pop": 86333
+},
+{
+"name": "Monrovia",
+"state": "CA",
+"website": "http://www.ci.monrovia.ca.us",
+"pop": 37931
+},
+{
+"name": "Montclair",
+"state": "CA",
+"website": "https://www.cityofmontclair.org/",
+"pop": 37865
+},
+{
+"name": "Montebello",
+"state": "CA",
+"website": "https://www.cityofmontebello.com/",
+"pop": 62640
+},
+{
+"name": "Monterey Park",
+"state": "CA",
+"website": "http://ci.monterey-park.ca.us",
+"pop": 61096
+},
+{
+"name": "Moorpark",
+"state": "CA",
+"website": "http://www.moorparkca.gov",
+"pop": 36284
+},
+{
+"name": "Murrieta",
+"state": "CA",
+"website": "https://www.murrietaca.gov",
+"pop": 110949
+},
+{
+"name": "Norco",
+"state": "CA",
+"website": "http://www.ci.norco.ca.us",
+"pop": 26316
+},
+{
+"name": "Norwalk",
+"state": "CA",
+"website": "http://www.norwalk.org",
+"pop": 102773
+},
+{
+"name": "Oakland",
+"state": "CA",
+"website": "https://www.oaklandca.gov/",
+"pop": 440646
+},
+{
+"name": "Oceanside",
+"state": "CA",
+"website": "https://www.ci.oceanside.ca.us/",
+"pop": 174068
+},
+{
+"name": "Oxnard",
+"state": "CA",
+"website": "https://oxnard.gov",
+"pop": 202063
+},
+{
+"name": "Palm Desert",
+"state": "CA",
+"website": "https://www.palmdesert.gov/",
+"pop": 51163
+},
+{
+"name": "Palmdale",
+"state": "CA",
+"website": "http://www.cityofpalmdale.org",
+"pop": 169450
+},
+{
+"name": "Paramount",
+"state": "CA",
+"website": "http://www.paramountcity.com",
+"pop": 53733
+},
+{
+"name": "Paso Robles",
+"state": "CA",
+"website": "http://www.prcity.com",
+"pop": 31490
+},
+{
+"name": "Perris",
+"state": "CA",
+"website": "http://www.cityofperris.org",
+"pop": 78700
+},
+{
+"name": "Pico Rivera",
+"state": "CA",
+"website": "http://www.ci.pico-rivera.ca.us",
+"pop": 62088
+},
+{
+"name": "Placentia",
+"state": "CA",
+"website": "http://www.placentia.org",
+"pop": 51824
+},
+{
+"name": "Pomona",
+"state": "CA",
+"website": "http://www.ci.pomona.ca.us/",
+"pop": 151713
+},
+{
+"name": "Porterville",
+"state": "CA",
+"website": "http://www.ci.porterville.ca.us",
+"pop": 62623
+},
+{
+"name": "Poway",
+"state": "CA",
+"website": "http://www.poway.org",
+"pop": 48841
+},
+{
+"name": "Rancho Cordova",
+"state": "CA",
+"website": "https://www.cityofranchocordova.org/",
+"pop": 79332
+},
+{
+"name": "Rancho Cucamonga",
+"state": "CA",
+"website": "http://www.CityofRC.us",
+"pop": 174453
+},
+{
+"name": "Rancho Palos Verdes",
+"state": "CA",
+"website": "https://www.rpvca.gov",
+"pop": 42287
+},
+{
+"name": "Rancho Santa Margarita",
+"state": "CA",
+"website": "http://www.cityofrsm.org",
+"pop": 47949
+},
+{
+"name": "Redlands",
+"state": "CA",
+"website": "http://www.ci.redlands.ca.us",
+"pop": 73168
+},
+{
+"name": "Redondo Beach",
+"state": "CA",
+"website": "https://www.redondo.org",
+"pop": 71576
+},
+{
+"name": "Reedley",
+"state": "CA",
+"website": "http://www.reedley.com",
+"pop": 25227
+},
+{
+"name": "Rialto",
+"state": "CA",
+"website": "http://www.rialtoca.gov",
+"pop": 104026
+},
+{
+"name": "Ridgecrest",
+"state": "CA",
+"website": "https://www.ridgecrest-ca.gov/",
+"pop": 27959
+},
+{
+"name": "Rocklin",
+"state": "CA",
+"website": "http://www.ci.rocklin.ca.us",
+"pop": 71601
+},
+{
+"name": "Rosemead",
+"state": "CA",
+"website": "http://www.cityofrosemead.org",
+"pop": 51185
+},
+{
+"name": "Roseville",
+"state": "CA",
+"website": "http://www.roseville.ca.us",
+"pop": 147773
+},
+{
+"name": "Sacramento",
+"state": "CA",
+"website": "https://www.cityofsacramento.gov/",
+"pop": 524943
+},
+{
+"name": "San Diego",
+"state": "CA",
+"website": "https://www.sandiego.gov/",
+"pop": 1386932
+},
+{
+"name": "San Dimas",
+"state": "CA",
+"website": "http://www.cityofsandimas.com",
+"pop": 34924
+},
+{
+"name": "San Gabriel",
+"state": "CA",
+"website": "http://www.sangabrielcity.com",
+"pop": 39568
+},
+{
+"name": "San Jacinto",
+"state": "CA",
+"website": "https://www.sanjacintoca.gov",
+"pop": 53898
+},
+{
+"name": "San Marcos",
+"state": "CA",
+"website": "http://www.ci.san-marcos.ca.us",
+"pop": 94833
+},
+{
+"name": "Santa Barbara",
+"state": "CA",
+"website": "https://santabarbaraca.gov/",
+"pop": 88665
+},
+{
+"name": "Santa Clara",
+"state": "CA",
+"website": "http://www.santaclaraca.gov/",
+"pop": 127647
+},
+{
+"name": "Santa Maria",
+"state": "CA",
+"website": "http://www.ci.santa-maria.ca.us",
+"pop": 109707
+},
+{
+"name": "Santa Paula",
+"state": "CA",
+"website": "http://www.ci.santa-paula.ca.us",
+"pop": 30657
+},
+{
+"name": "Santee",
+"state": "CA",
+"website": "http://www.ci.santee.ca.us",
+"pop": 60037
+},
+{
+"name": "Seal Beach",
+"state": "CA",
+"website": "https://www.sealbeachca.gov/",
+"pop": 25242
+},
+{
+"name": "Seaside",
+"state": "CA",
+"website": "http://www.ci.seaside.ca.us",
+"pop": 32366
+},
+{
+"name": "Simi Valley",
+"state": "CA",
+"website": "https://www.simivalley.org/",
+"pop": 126356
+},
+{
+"name": "South Pasadena",
+"state": "CA",
+"website": "http://www.southpasadenaca.gov",
+"pop": 26943
+},
+{
+"name": "Stanton",
+"state": "CA",
+"website": "http://www.ci.stanton.ca.us",
+"pop": 37962
+},
+{
+"name": "Temecula",
+"state": "CA",
+"website": "http://www.cityoftemecula.org",
+"pop": 110003
+},
+{
+"name": "Thousand Oaks",
+"state": "CA",
+"website": "https://www.toaks.org/",
+"pop": 126966
+},
+{
+"name": "Tracy",
+"state": "CA",
+"website": "http://www.ci.tracy.ca.us",
+"pop": 93000
+},
+{
+"name": "Tulare",
+"state": "CA",
+"website": "https://www.tulare.ca.gov/",
+"pop": 68875
+},
+{
+"name": "Turlock",
+"state": "CA",
+"website": "https://www.cityofturlock.org/",
+"pop": 72740
+},
+{
+"name": "Upland",
+"state": "CA",
+"website": "http://www.ci.upland.ca.us",
+"pop": 79040
+},
+{
+"name": "Victorville",
+"state": "CA",
+"website": "http://ci.victorville.ca.us",
+"pop": 134810
+},
+{
+"name": "Vista",
+"state": "CA",
+"website": "https://www.cityofvista.com/",
+"pop": 98381
+},
+{
+"name": "Walnut",
+"state": "CA",
+"website": "http://www.cityofwalnut.org/",
+"pop": 28430
+},
+{
+"name": "Wasco",
+"state": "CA",
+"website": "http://www.ci.wasco.ca.us",
+"pop": 27047
+},
+{
+"name": "West Covina",
+"state": "CA",
+"website": "http://www.westcovina.org",
+"pop": 109501
+},
+{
+"name": "West Hollywood",
+"state": "CA",
+"website": "https://www.weho.org/",
+"pop": 35757
+},
+{
+"name": "West Sacramento",
+"state": "CA",
+"website": "http://www.cityofwestsacramento.org",
+"pop": 53915
+},
+{
+"name": "Westminster",
+"state": "CA",
+"website": "http://www.westminster-ca.gov",
+"pop": 90911
+},
+{
+"name": "Whittier",
+"state": "CA",
+"website": "http://www.cityofwhittier.org",
+"pop": 87306
+},
+{
+"name": "Wildomar",
+"state": "CA",
+"website": "http://www.cityofwildomar.org",
+"pop": 36875
+},
+{
+"name": "Woodland",
+"state": "CA",
+"website": "http://www.cityofwoodland.org/",
+"pop": 61032
+},
+{
+"name": "Yorba Linda",
+"state": "CA",
+"website": "https://www.yorbalindaca.gov/",
+"pop": 68336
+},
+{
+"name": "Yuba City",
+"state": "CA",
+"website": "https://www.yubacity.net/",
+"pop": 70117
+},
+{
+"name": "Yucaipa",
+"state": "CA",
+"website": "http://www.yucaipa.org",
+"pop": 54542
+},
+{
+"name": "Arvada",
+"state": "CO",
+"website": "http://arvada.org",
+"pop": 124402
+},
+{
+"name": "Aurora",
+"state": "CO",
+"website": "https://www.auroragov.org",
+"pop": 386261
+},
+{
+"name": "Boulder",
+"state": "CO",
+"website": "https://bouldercolorado.gov/",
+"pop": 108250
+},
+{
+"name": "Brighton",
+"state": "CO",
+"website": "http://www.brightonco.gov",
+"pop": 40083
+},
+{
+"name": "Centennial",
+"state": "CO",
+"website": "https://www.centennialco.gov/Home",
+"pop": 108418
+},
+{
+"name": "Colorado Springs",
+"state": "CO",
+"website": "https://coloradosprings.gov/",
+"pop": 478961
+},
+{
+"name": "Commerce City",
+"state": "CO",
+"website": "http://www.ci.commerce-city.co.us/",
+"pop": 62418
+},
+{
+"name": "Englewood",
+"state": "CO",
+"website": "https://www.englewoodco.gov",
+"pop": 33659
+},
+{
+"name": "Fort Collins",
+"state": "CO",
+"website": "https://www.fcgov.com/",
+"pop": 169810
+},
+{
+"name": "Fountain",
+"state": "CO",
+"website": "http://www.fountaincolorado.org/",
+"pop": 29802
+},
+{
+"name": "Greeley",
+"state": "CO",
+"website": "http://greeleygov.com/",
+"pop": 108795
+},
+{
+"name": "Lafayette",
+"state": "CO",
+"website": "http://www.cityoflafayette.com",
+"pop": 30411
+},
+{
+"name": "Lakewood",
+"state": "CO",
+"website": "https://www.lakewood.org",
+"pop": 155984
+},
+{
+"name": "Littleton",
+"state": "CO",
+"website": "https://www.littletonco.gov",
+"pop": 45652
+},
+{
+"name": "Longmont",
+"state": "CO",
+"website": "http://www.ci.longmont.co.us/",
+"pop": 98885
+},
+{
+"name": "Loveland",
+"state": "CO",
+"website": "http://www.ci.loveland.co.us/",
+"pop": 76378
+},
+{
+"name": "Northglenn",
+"state": "CO",
+"website": "http://www.northglenn.org/",
+"pop": 38131
+},
+{
+"name": "Thornton",
+"state": "CO",
+"website": "http://www.cityofthornton.net/",
+"pop": 141867
+},
+{
+"name": "Westminster",
+"state": "CO",
+"website": "http://www.ci.westminster.co.us/",
+"pop": 116317
+},
+{
+"name": "Wheat Ridge",
+"state": "CO",
+"website": "http://www.ci.wheatridge.co.us",
+"pop": 32398
+},
+{
+"name": "Bridgeport",
+"state": "CT",
+"website": "http://www.bridgeportct.gov/",
+"pop": 148654
+},
+{
+"name": "Bristol",
+"state": "CT",
+"website": "http://www.ci.bristol.ct.us/",
+"pop": 60833
+},
+{
+"name": "Danbury",
+"state": "CT",
+"website": "http://www.danbury-ct.gov/",
+"pop": 86518
+},
+{
+"name": "Hartford",
+"state": "CT",
+"website": "http://www.hartford.gov",
+"pop": 121054
+},
+{
+"name": "Meriden",
+"state": "CT",
+"website": "http://www.cityofmeriden.org/",
+"pop": 60850
+},
+{
+"name": "Middletown",
+"state": "CT",
+"website": "http://www.cityofmiddletown.com/",
+"pop": 47717
+},
+{
+"name": "Milford",
+"state": "CT",
+"website": "https://www.milfordct.us/",
+"pop": 50558
+},
+{
+"name": "New Britain",
+"state": "CT",
+"website": "http://www.newbritainct.gov/",
+"pop": 74135
+},
+{
+"name": "New Haven",
+"state": "CT",
+"website": "https://www.newhavenct.gov/",
+"pop": 134023
+},
+{
+"name": "New London",
+"state": "CT",
+"website": "https://newlondonct.gov/",
+"pop": 27367
+},
+{
+"name": "Norwalk",
+"state": "CT",
+"website": "https://www.norwalkct.org/",
+"pop": 91184
+},
+{
+"name": "Norwich",
+"state": "CT",
+"website": "http://www.norwichct.org/",
+"pop": 40125
+},
+{
+"name": "Shelton",
+"state": "CT",
+"website": "http://www.cityofshelton.org/",
+"pop": 40869
+},
+{
+"name": "Stamford",
+"state": "CT",
+"website": "https://www.stamfordct.gov/",
+"pop": 135470
+},
+{
+"name": "Torrington",
+"state": "CT",
+"website": "https://www.torringtonct.org/",
+"pop": 35515
+},
+{
+"name": "Waterbury",
+"state": "CT",
+"website": "https://www.waterburyct.org",
+"pop": 114403
+},
+{
+"name": "West Haven",
+"state": "CT",
+"website": "http://www.cityofwesthaven.com/",
+"pop": 55584
+},
+{
+"name": "Dover",
+"state": "DE",
+"website": "https://www.cityofdover.com/",
+"pop": 39403
+},
+{
+"name": "Newark",
+"state": "DE",
+"website": "https://newarkde.gov/",
+"pop": 30601
+},
+{
+"name": "Wilmington",
+"state": "DE",
+"website": "https://www.wilmingtonde.gov/",
+"pop": 70898
+},
+{
+"name": "Altamonte Springs",
+"state": "FL",
+"website": "http://www.altamonte.org",
+"pop": 46231
+},
+{
+"name": "Apopka",
+"state": "FL",
+"website": "http://www.apopka.net/",
+"pop": 54873
+},
+{
+"name": "Aventura",
+"state": "FL",
+"website": "http://www.cityofaventura.com/",
+"pop": 40242
+},
+{
+"name": "Boca Raton",
+"state": "FL",
+"website": "https://myboca.us/",
+"pop": 97422
+},
+{
+"name": "Bonita Springs",
+"state": "FL",
+"website": "http://www.cityofbonitasprings.org/",
+"pop": 53644
+},
+{
+"name": "Boynton Beach",
+"state": "FL",
+"website": "https://www.boynton-beach.org/",
+"pop": 80380
+},
+{
+"name": "Bradenton",
+"state": "FL",
+"website": "http://www.cityofbradenton.com",
+"pop": 55698
+},
+{
+"name": "Cape Coral",
+"state": "FL",
+"website": "http://www.capecoral.net",
+"pop": 194016
+},
+{
+"name": "Casselberry",
+"state": "FL",
+"website": "https://www.casselberry.org/",
+"pop": 28794
+},
+{
+"name": "Clearwater",
+"state": "FL",
+"website": "http://www.myclearwater.com",
+"pop": 117292
+},
+{
+"name": "Clermont",
+"state": "FL",
+"website": "http://www.cityofclermontfl.com",
+"pop": 43021
+},
+{
+"name": "Coconut Creek",
+"state": "FL",
+"website": "http://www.coconutcreek.net/",
+"pop": 57833
+},
+{
+"name": "Cooper City",
+"state": "FL",
+"website": "http://www.coopercityfl.org",
+"pop": 34401
+},
+{
+"name": "Coral Gables",
+"state": "FL",
+"website": "http://www.coralgables.com/",
+"pop": 49248
+},
+{
+"name": "Coral Springs",
+"state": "FL",
+"website": "http://www.coralsprings.org/",
+"pop": 134394
+},
+{
+"name": "Crestview",
+"state": "FL",
+"website": "https://www.cityofcrestview.org/",
+"pop": 27134
+},
+{
+"name": "Dania Beach",
+"state": "FL",
+"website": "http://www.daniabeachfl.gov",
+"pop": 31723
+},
+{
+"name": "Daytona Beach",
+"state": "FL",
+"website": "https://www.codb.us/",
+"pop": 72647
+},
+{
+"name": "DeLand",
+"state": "FL",
+"website": "http://www.deland.org",
+"pop": 37351
+},
+{
+"name": "Deerfield Beach",
+"state": "FL",
+"website": "http://www.deerfield-beach.com",
+"pop": 86859
+},
+{
+"name": "Delray Beach",
+"state": "FL",
+"website": "https://www.delraybeachfl.gov/",
+"pop": 66846
+},
+{
+"name": "Deltona",
+"state": "FL",
+"website": "http://www.deltonafl.gov",
+"pop": 93692
+},
+{
+"name": "Doral",
+"state": "FL",
+"website": "http://www.cityofdoral.com",
+"pop": 75874
+},
+{
+"name": "Dunedin",
+"state": "FL",
+"website": "http://www.dunedingov.com",
+"pop": 36068
+},
+{
+"name": "Fort Lauderdale",
+"state": "FL",
+"website": "https://www.fortlauderdale.gov",
+"pop": 182760
+},
+{
+"name": "Fort Myers",
+"state": "FL",
+"website": "https://www.cityftmyers.com/",
+"pop": 86395
+},
+{
+"name": "Fort Pierce",
+"state": "FL",
+"website": "http://www.cityoffortpierce.com",
+"pop": 47297
+},
+{
+"name": "Gainesville",
+"state": "FL",
+"website": "https://www.gainesvillefl.gov/",
+"pop": 141085
+},
+{
+"name": "Greenacres",
+"state": "FL",
+"website": "http://greenacresfl.gov/",
+"pop": 43990
+},
+{
+"name": "Haines City",
+"state": "FL",
+"website": "https://hainescity.com/",
+"pop": 26669
+},
+{
+"name": "Hallandale Beach",
+"state": "FL",
+"website": "http://www.hallandalebeachfl.gov",
+"pop": 41217
+},
+{
+"name": "Hialeah",
+"state": "FL",
+"website": "http://www.hialeahfl.gov",
+"pop": 223109
+},
+{
+"name": "Hollywood",
+"state": "FL",
+"website": "http://www.hollywoodfl.org",
+"pop": 153067
+},
+{
+"name": "Homestead",
+"state": "FL",
+"website": "http://www.cityofhomestead.com",
+"pop": 80737
+},
+{
+"name": "Key West",
+"state": "FL",
+"website": "http://www.keywestcity.com",
+"pop": 26444
+},
+{
+"name": "Kissimmee",
+"state": "FL",
+"website": "http://www.kissimmee.org/",
+"pop": 79226
+},
+{
+"name": "Lake Worth Beach",
+"state": "FL",
+"website": "https://lakeworthbeachfl.gov",
+"pop": 42219
+},
+{
+"name": "Lakeland",
+"state": "FL",
+"website": "http://www.lakelandgov.net",
+"pop": 112641
+},
+{
+"name": "Largo",
+"state": "FL",
+"website": "https://www.largo.com/",
+"pop": 82485
+},
+{
+"name": "Lauderdale Lakes",
+"state": "FL",
+"website": "http://www.lauderdalelakes.org",
+"pop": 35954
+},
+{
+"name": "Lauderhill",
+"state": "FL",
+"website": "http://www.lauderhill-fl.gov/",
+"pop": 74482
+},
+{
+"name": "Leesburg",
+"state": "FL",
+"website": "http://www.leesburgflorida.gov",
+"pop": 27000
+},
+{
+"name": "Margate",
+"state": "FL",
+"website": "http://www.margatefl.com",
+"pop": 58712
+},
+{
+"name": "Melbourne",
+"state": "FL",
+"website": "https://www.melbourneflorida.org/",
+"pop": 84678
+},
+{
+"name": "Miami",
+"state": "FL",
+"website": "https://www.miami.gov/",
+"pop": 442241
+},
+{
+"name": "Miami Beach",
+"state": "FL",
+"website": "https://www.miamibeachfl.gov/",
+"pop": 82890
+},
+{
+"name": "Miami Gardens",
+"state": "FL",
+"website": "https://www.miamigardens-fl.gov/",
+"pop": 111640
+},
+{
+"name": "Miramar",
+"state": "FL",
+"website": "https://www.miramarfl.gov/",
+"pop": 134721
+},
+{
+"name": "New Smyrna Beach",
+"state": "FL",
+"website": "http://www.cityofnsb.com",
+"pop": 30142
+},
+{
+"name": "North Lauderdale",
+"state": "FL",
+"website": "https://www.nlauderdale.org/",
+"pop": 44794
+},
+{
+"name": "North Miami",
+"state": "FL",
+"website": "http://www.northmiamifl.gov/",
+"pop": 60191
+},
+{
+"name": "North Miami Beach",
+"state": "FL",
+"website": "http://www.citynmb.com",
+"pop": 43676
+},
+{
+"name": "North Port",
+"state": "FL",
+"website": "http://www.cityofnorthport.com",
+"pop": 74793
+},
+{
+"name": "Oakland Park",
+"state": "FL",
+"website": "http://www.oaklandparkfl.org/",
+"pop": 44229
+},
+{
+"name": "Ocala",
+"state": "FL",
+"website": "http://www.ocalafl.org/",
+"pop": 63591
+},
+{
+"name": "Ocoee",
+"state": "FL",
+"website": "https://www.ocoee.org/",
+"pop": 47295
+},
+{
+"name": "Orlando",
+"state": "FL",
+"website": "https://www.orlando.gov/",
+"pop": 334854
+},
+{
+"name": "Ormond Beach",
+"state": "FL",
+"website": "http://www.ormondbeach.org",
+"pop": 43080
+},
+{
+"name": "Oviedo",
+"state": "FL",
+"website": "http://www.cityofoviedo.net",
+"pop": 40059
+},
+{
+"name": "Palm Bay",
+"state": "FL",
+"website": "https://www.palmbayflorida.org/",
+"pop": 119760
+},
+{
+"name": "Palm Beach Gardens",
+"state": "FL",
+"website": "http://www.pbgfl.com",
+"pop": 59182
+},
+{
+"name": "Palm Coast",
+"state": "FL",
+"website": "http://www.palmcoastgov.com",
+"pop": 89258
+},
+{
+"name": "Panama City",
+"state": "FL",
+"website": "http://www.pcgov.org/",
+"pop": 32939
+},
+{
+"name": "Parkland",
+"state": "FL",
+"website": "http://www.cityofparkland.org",
+"pop": 34670
+},
+{
+"name": "Pembroke Pines",
+"state": "FL",
+"website": "http://www.ppines.com",
+"pop": 171178
+},
+{
+"name": "Pensacola",
+"state": "FL",
+"website": "http://cityofpensacola.com",
+"pop": 54312
+},
+{
+"name": "Pinellas Park",
+"state": "FL",
+"website": "http://www.pinellas-park.com",
+"pop": 53093
+},
+{
+"name": "Plant City",
+"state": "FL",
+"website": "http://www.plantcitygov.com",
+"pop": 39764
+},
+{
+"name": "Plantation",
+"state": "FL",
+"website": "https://www.plantation.org",
+"pop": 91750
+},
+{
+"name": "Pompano Beach",
+"state": "FL",
+"website": "https://www.pompanobeachfl.gov/",
+"pop": 112046
+},
+{
+"name": "Port Orange",
+"state": "FL",
+"website": "http://www.port-orange.org",
+"pop": 62596
+},
+{
+"name": "Port St. Lucie",
+"state": "FL",
+"website": "https://www.cityofpsl.com/",
+"pop": 204851
+},
+{
+"name": "Riviera Beach",
+"state": "FL",
+"website": "http://www.rivierabch.com",
+"pop": 37604
+},
+{
+"name": "Rockledge",
+"state": "FL",
+"website": "http://www.cityofrockledge.org",
+"pop": 27678
+},
+{
+"name": "Sanford",
+"state": "FL",
+"website": "http://www.sanfordfl.gov",
+"pop": 61051
+},
+{
+"name": "Sarasota",
+"state": "FL",
+"website": "http://www.sarasotagov.org/",
+"pop": 54842
+},
+{
+"name": "Sebastian",
+"state": "FL",
+"website": "http://www.cityofsebastian.org",
+"pop": 25054
+},
+{
+"name": "St. Cloud",
+"state": "FL",
+"website": "http://www.stcloud.org",
+"pop": 58964
+},
+{
+"name": "St. Petersburg",
+"state": "FL",
+"website": "https://www.stpete.org/",
+"pop": 258308
+},
+{
+"name": "Sunrise",
+"state": "FL",
+"website": "http://www.sunrisefl.gov",
+"pop": 97335
+},
+{
+"name": "Tallahassee",
+"state": "FL",
+"website": "http://www.talgov.com/",
+"pop": 196169
+},
+{
+"name": "Tamarac",
+"state": "FL",
+"website": "https://www.tamarac.org/",
+"pop": 71897
+},
+{
+"name": "Tarpon Springs",
+"state": "FL",
+"website": "http://www.ctsfl.us",
+"pop": 25117
+},
+{
+"name": "Temple Terrace",
+"state": "FL",
+"website": "https://www.templeterrace.com/",
+"pop": 26690
+},
+{
+"name": "Titusville",
+"state": "FL",
+"website": "http://www.titusville.com/",
+"pop": 48789
+},
+{
+"name": "Venice",
+"state": "FL",
+"website": "http://www.venicegov.com",
+"pop": 25463
+},
+{
+"name": "Wellington",
+"state": "FL",
+"website": "http://www.wellingtonfl.gov",
+"pop": 61637
+},
+{
+"name": "West Melbourne",
+"state": "FL",
+"website": "http://www.westmelbourne.org",
+"pop": 25924
+},
+{
+"name": "West Palm Beach",
+"state": "FL",
+"website": "https://www.wpb.org/",
+"pop": 117415
+},
+{
+"name": "Weston",
+"state": "FL",
+"website": "http://www.westonfl.org",
+"pop": 68107
+},
+{
+"name": "Winter Garden",
+"state": "FL",
+"website": "http://www.cwgdn.com",
+"pop": 46964
+},
+{
+"name": "Winter Haven",
+"state": "FL",
+"website": "http://www.mywinterhaven.com",
+"pop": 49219
+},
+{
+"name": "Winter Park",
+"state": "FL",
+"website": "http://cityofwinterpark.org",
+"pop": 29795
+},
+{
+"name": "Winter Springs",
+"state": "FL",
+"website": "http://www.winterspringsfl.org",
+"pop": 38342
+},
+{
+"name": "Albany",
+"state": "GA",
+"website": "https://www.albanyga.gov/",
+"pop": 69647
+},
+{
+"name": "Alpharetta",
+"state": "GA",
+"website": "https://www.alpharetta.ga.us/",
+"pop": 65818
+},
+{
+"name": "Athens",
+"state": "GA",
+"website": "https://www.accgov.com/",
+"pop": 127315
+},
+{
+"name": "Atlanta",
+"state": "GA",
+"website": "https://discoveratlanta.com/",
+"pop": 498715
+},
+{
+"name": "Brookhaven",
+"state": "GA",
+"website": "http://brookhavenga.gov",
+"pop": 55161
+},
+{
+"name": "Canton",
+"state": "GA",
+"website": "http://www.canton-georgia.com/",
+"pop": 32973
+},
+{
+"name": "Carrollton",
+"state": "GA",
+"website": "http://www.carrollton-ga.gov/",
+"pop": 26738
+},
+{
+"name": "Chamblee",
+"state": "GA",
+"website": "http://www.chambleega.com/",
+"pop": 30164
+},
+{
+"name": "Columbus",
+"state": "GA",
+"website": "https://www.columbusga.org",
+"pop": 206922
+},
+{
+"name": "Dalton",
+"state": "GA",
+"website": "http://www.cityofdalton-ga.gov/",
+"pop": 34417
+},
+{
+"name": "Douglasville",
+"state": "GA",
+"website": "http://www.ci.douglasville.ga.us/",
+"pop": 34650
+},
+{
+"name": "Duluth",
+"state": "GA",
+"website": "http://www.duluthga.net/",
+"pop": 31873
+},
+{
+"name": "Dunwoody",
+"state": "GA",
+"website": "http://www.dunwoodyga.gov/splash.aspx",
+"pop": 51683
+},
+{
+"name": "East Point",
+"state": "GA",
+"website": "http://www.eastpointcity.org/",
+"pop": 38358
+},
+{
+"name": "Gainesville",
+"state": "GA",
+"website": "http://www.gainesville.org/",
+"pop": 42296
+},
+{
+"name": "Hinesville",
+"state": "GA",
+"website": "http://www.cityofhinesville.org/",
+"pop": 34891
+},
+{
+"name": "Johns Creek",
+"state": "GA",
+"website": "http://www.JohnsCreekGA.gov",
+"pop": 82453
+},
+{
+"name": "Kennesaw",
+"state": "GA",
+"website": "http://www.kennesaw-ga.gov/",
+"pop": 33036
+},
+{
+"name": "LaGrange",
+"state": "GA",
+"website": "http://www.lagrange-ga.org/",
+"pop": 30858
+},
+{
+"name": "Lawrenceville",
+"state": "GA",
+"website": "http://www.lawrencevillega.org/",
+"pop": 30629
+},
+{
+"name": "Macon",
+"state": "GA",
+"website": "https://www.maconbibb.us",
+"pop": 157346
+},
+{
+"name": "Marietta",
+"state": "GA",
+"website": "https://www.mariettaga.gov/",
+"pop": 60972
+},
+{
+"name": "McDonough",
+"state": "GA",
+"website": "http://www.mcdonoughga.org",
+"pop": 29051
+},
+{
+"name": "Milton",
+"state": "GA",
+"website": "http://www.cityofmiltonga.us/",
+"pop": 41296
+},
+{
+"name": "Newnan",
+"state": "GA",
+"website": "https://www.newnanga.gov/",
+"pop": 42549
+},
+{
+"name": "Peachtree City",
+"state": "GA",
+"website": "http://www.peachtree-city.org/",
+"pop": 38244
+},
+{
+"name": "Peachtree Corners",
+"state": "GA",
+"website": "http://peachtreecornersga.gov/",
+"pop": 42243
+},
+{
+"name": "Pooler",
+"state": "GA",
+"website": "http://pooler-ga.us/",
+"pop": 25711
+},
+{
+"name": "Rome",
+"state": "GA",
+"website": "http://www.romefloyd.com/",
+"pop": 37713
+},
+{
+"name": "Roswell",
+"state": "GA",
+"website": "https://www.roswellgov.com/",
+"pop": 92833
+},
+{
+"name": "Sandy Springs",
+"state": "GA",
+"website": "http://www.sandyspringsga.org",
+"pop": 108080
+},
+{
+"name": "Savannah",
+"state": "GA",
+"website": "https://visitsavannah.com/",
+"pop": 147780
+},
+{
+"name": "Smyrna",
+"state": "GA",
+"website": "http://www.smyrnacity.com/",
+"pop": 55663
+},
+{
+"name": "South Fulton",
+"state": "GA",
+"website": "https://cityofsouthfultonga.gov/",
+"pop": 107436
+},
+{
+"name": "Statesboro",
+"state": "GA",
+"website": "http://www.sboro.net/",
+"pop": 33438
+},
+{
+"name": "Stockbridge",
+"state": "GA",
+"website": "https://stockbridgega.org/",
+"pop": 28973
+},
+{
+"name": "Stonecrest",
+"state": "GA",
+"website": "http://(www.stonecrestga.gov)",
+"pop": 59194
+},
+{
+"name": "Sugar Hill",
+"state": "GA",
+"website": "http://www.cityofsugarhill.com/",
+"pop": 25076
+},
+{
+"name": "Tucker",
+"state": "GA",
+"website": "http://tuckerga.gov/",
+"pop": 37005
+},
+{
+"name": "Union City",
+"state": "GA",
+"website": "http://www.unioncityga.org",
+"pop": 26830
+},
+{
+"name": "Valdosta",
+"state": "GA",
+"website": "http://www.valdostacity.com/",
+"pop": 55378
+},
+{
+"name": "Warner Robins",
+"state": "GA",
+"website": "https://www.wrga.gov/",
+"pop": 80308
+},
+{
+"name": "Woodstock",
+"state": "GA",
+"website": "http://www.woodstockga.gov/",
+"pop": 35065
+},
+{
+"name": "Ames",
+"state": "IA",
+"website": "https://www.cityofames.org",
+"pop": 66427
+},
+{
+"name": "Ankeny",
+"state": "IA",
+"website": "https://www.ankenyiowa.gov/",
+"pop": 67887
+},
+{
+"name": "Bettendorf",
+"state": "IA",
+"website": "http://www.bettendorf.org/",
+"pop": 39102
+},
+{
+"name": "Cedar Falls",
+"state": "IA",
+"website": "http://www.ci.cedar-falls.ia.us/",
+"pop": 40713
+},
+{
+"name": "Cedar Rapids",
+"state": "IA",
+"website": "https://www.cedar-rapids.org",
+"pop": 137710
+},
+{
+"name": "Council Bluffs",
+"state": "IA",
+"website": "https://www.councilbluffs-ia.gov/",
+"pop": 62799
+},
+{
+"name": "Davenport",
+"state": "IA",
+"website": "http://www.cityofdavenportiowa.com",
+"pop": 101724
+},
+{
+"name": "Des Moines",
+"state": "IA",
+"website": "https://www.catchdesmoines.com/",
+"pop": 214133
+},
+{
+"name": "Dubuque",
+"state": "IA",
+"website": "https://www.cityofdubuque.org/",
+"pop": 59667
+},
+{
+"name": "Marion",
+"state": "IA",
+"website": "https://www.cityofmarion.org/",
+"pop": 41535
+},
+{
+"name": "Marshalltown",
+"state": "IA",
+"website": "http://www.ci.marshalltown.ia.us/",
+"pop": 27591
+},
+{
+"name": "Mason City",
+"state": "IA",
+"website": "https://www.masoncity.net/",
+"pop": 27338
+},
+{
+"name": "Ottumwa",
+"state": "IA",
+"website": "http://www.cityofottumwa.org/",
+"pop": 25529
+},
+{
+"name": "Sioux City",
+"state": "IA",
+"website": "https://www.sioux-city.org",
+"pop": 85797
+},
+{
+"name": "Urbandale",
+"state": "IA",
+"website": "https://www.urbandale.org/",
+"pop": 45580
+},
+{
+"name": "Waterloo",
+"state": "IA",
+"website": "http://www.ci.waterloo.ia.us/",
+"pop": 67314
+},
+{
+"name": "West Des Moines",
+"state": "IA",
+"website": "https://www.wdm.iowa.gov/",
+"pop": 68723
+},
+{
+"name": "Boise",
+"state": "ID",
+"website": "http://www.cityofboise.org/",
+"pop": 235684
+},
+{
+"name": "Caldwell",
+"state": "ID",
+"website": "http://www.cityofcaldwell.com/",
+"pop": 59996
+},
+{
+"name": "Coeur d'Alene",
+"state": "ID",
+"website": "http://www.cdaid.org/",
+"pop": 54628
+},
+{
+"name": "Eagle",
+"state": "ID",
+"website": "http://www.cityofeagle.org/",
+"pop": 30346
+},
+{
+"name": "Idaho Falls",
+"state": "ID",
+"website": "https://www.idahofallsidaho.gov/",
+"pop": 64818
+},
+{
+"name": "Lewiston",
+"state": "ID",
+"website": "http://www.cityoflewiston.org",
+"pop": 34203
+},
+{
+"name": "Meridian",
+"state": "ID",
+"website": "https://meridiancity.org",
+"pop": 75092
+},
+{
+"name": "Nampa",
+"state": "ID",
+"website": "https://www.cityofnampa.us/",
+"pop": 100200
+},
+{
+"name": "Pocatello",
+"state": "ID",
+"website": "http://www.pocatello.us",
+"pop": 56320
+},
+{
+"name": "Post Falls",
+"state": "ID",
+"website": "http://www.postfallsidaho.org/",
+"pop": 38485
+},
+{
+"name": "Rexburg",
+"state": "ID",
+"website": "https://www.rexburg.org/",
+"pop": 39409
+},
+{
+"name": "Twin Falls",
+"state": "ID",
+"website": "http://www.tfid.org/",
+"pop": 51807
+},
+{
+"name": "Alton",
+"state": "IL",
+"website": "https://www.cityofaltonil.gov/",
+"pop": 25676
+},
+{
+"name": "Batavia",
+"state": "IL",
+"website": "http://www.cityofbatavia.net/",
+"pop": 26098
+},
+{
+"name": "Belleville",
+"state": "IL",
+"website": "https://www.belleville.net/",
+"pop": 42404
+},
+{
+"name": "Belvidere",
+"state": "IL",
+"website": "http://www.ci.belvidere.il.us/",
+"pop": 25339
+},
+{
+"name": "Berwyn",
+"state": "IL",
+"website": "http://www.berwyn-il.gov/",
+"pop": 57250
+},
+{
+"name": "Burbank",
+"state": "IL",
+"website": "http://www.burbankil.gov/",
+"pop": 29439
+},
+{
+"name": "Calumet City",
+"state": "IL",
+"website": "http://www.calumetcity.org",
+"pop": 36033
+},
+{
+"name": "Champaign",
+"state": "IL",
+"website": "https://champaignil.gov",
+"pop": 88302
+},
+{
+"name": "Chicago Heights",
+"state": "IL",
+"website": "http://chicagoheights.net/",
+"pop": 27480
+},
+{
+"name": "Crystal Lake",
+"state": "IL",
+"website": "http://www.crystallake.org/",
+"pop": 40269
+},
+{
+"name": "Danville",
+"state": "IL",
+"website": "http://www.cityofdanville.org",
+"pop": 29204
+},
+{
+"name": "DeKalb",
+"state": "IL",
+"website": "http://www.cityofdekalb.com/",
+"pop": 40290
+},
+{
+"name": "Decatur",
+"state": "IL",
+"website": "http://www.ci.decatur.il.us/",
+"pop": 70522
+},
+{
+"name": "Des Plaines",
+"state": "IL",
+"website": "http://www.desplaines.org/",
+"pop": 60675
+},
+{
+"name": "Edwardsville",
+"state": "IL",
+"website": "http://www.cityofedwardsville.com/",
+"pop": 27000
+},
+{
+"name": "Galesburg",
+"state": "IL",
+"website": "http://www.ci.galesburg.il.us/",
+"pop": 30052
+},
+{
+"name": "Granite City",
+"state": "IL",
+"website": "http://www.granitecity.illinois.gov/",
+"pop": 27549
+},
+{
+"name": "Highland Park",
+"state": "IL",
+"website": "http://www.cityhpil.com",
+"pop": 30176
+},
+{
+"name": "Joliet",
+"state": "IL",
+"website": "https://www.joliet.gov/",
+"pop": 150362
+},
+{
+"name": "Lockport",
+"state": "IL",
+"website": "http://www.lockport.org/",
+"pop": 26094
+},
+{
+"name": "McHenry",
+"state": "IL",
+"website": "http://www.ci.mchenry.il.us",
+"pop": 27135
+},
+{
+"name": "Moline",
+"state": "IL",
+"website": "http://www.moline.il.us",
+"pop": 42985
+},
+{
+"name": "North Chicago",
+"state": "IL",
+"website": "http://www.northchicago.org/",
+"pop": 30759
+},
+{
+"name": "O'Fallon",
+"state": "IL",
+"website": "http://www.ofallon.org/",
+"pop": 32289
+},
+{
+"name": "Oak Forest",
+"state": "IL",
+"website": "http://www.oak-forest.org/",
+"pop": 27478
+},
+{
+"name": "Pekin",
+"state": "IL",
+"website": "http://www.ci.pekin.il.us/",
+"pop": 31731
+},
+{
+"name": "Quincy",
+"state": "IL",
+"website": "http://www.quincyil.gov/",
+"pop": 39463
+},
+{
+"name": "Rock Island",
+"state": "IL",
+"website": "https://rigov.org",
+"pop": 37108
+},
+{
+"name": "Springfield",
+"state": "IL",
+"website": "https://springfield.il.us",
+"pop": 114394
+},
+{
+"name": "St. Charles",
+"state": "IL",
+"website": "http://www.ci.st-charles.il.us/",
+"pop": 33081
+},
+{
+"name": "West Chicago",
+"state": "IL",
+"website": "http://www.westchicago.org/",
+"pop": 25614
+},
+{
+"name": "Woodstock",
+"state": "IL",
+"website": "http://www.woodstockil.gov/",
+"pop": 25630
+},
+{
+"name": "Anderson",
+"state": "IN",
+"website": "http://www.cityofanderson.com/",
+"pop": 54788
+},
+{
+"name": "Bloomington",
+"state": "IN",
+"website": "http://bloomington.in.gov/",
+"pop": 79168
+},
+{
+"name": "Carmel",
+"state": "IN",
+"website": "https://www.carmel.in.gov/",
+"pop": 99757
+},
+{
+"name": "Columbus",
+"state": "IN",
+"website": "http://www.columbus.in.gov",
+"pop": 50474
+},
+{
+"name": "Crown Point",
+"state": "IN",
+"website": "http://www.crownpoint.in.gov",
+"pop": 33899
+},
+{
+"name": "East Chicago",
+"state": "IN",
+"website": "https://www.eastchicago.com",
+"pop": 26370
+},
+{
+"name": "Elkhart",
+"state": "IN",
+"website": "http://www.elkhartindiana.org",
+"pop": 53923
+},
+{
+"name": "Evansville",
+"state": "IN",
+"website": "http://www.evansvillegov.org",
+"pop": 117298
+},
+{
+"name": "Fishers",
+"state": "IN",
+"website": "http://www.fishers.in.us",
+"pop": 98977
+},
+{
+"name": "Fort Wayne",
+"state": "IN",
+"website": "https://www.cityoffortwayne.org",
+"pop": 263886
+},
+{
+"name": "Franklin",
+"state": "IN",
+"website": "http://www.franklin-in.gov/",
+"pop": 25313
+},
+{
+"name": "Gary",
+"state": "IN",
+"website": "https://gary.gov/",
+"pop": 69093
+},
+{
+"name": "Goshen",
+"state": "IN",
+"website": "http://www.goshenindiana.org/",
+"pop": 34517
+},
+{
+"name": "Greenwood",
+"state": "IN",
+"website": "http://www.greenwood.in.gov",
+"pop": 63830
+},
+{
+"name": "Hammond",
+"state": "IN",
+"website": "https://www.gohammond.com",
+"pop": 77879
+},
+{
+"name": "Hobart",
+"state": "IN",
+"website": "http://www.city.hobart.in.us/",
+"pop": 29752
+},
+{
+"name": "Indianapolis",
+"state": "IN",
+"website": "https://www.indy.gov",
+"pop": 887642
+},
+{
+"name": "Jeffersonville",
+"state": "IN",
+"website": "https://cityofjeff.net/",
+"pop": 49447
+},
+{
+"name": "Kokomo",
+"state": "IN",
+"website": "http://www.cityofkokomo.org",
+"pop": 59604
+},
+{
+"name": "Lafayette",
+"state": "IN",
+"website": "http://www.lafayette.in.gov/",
+"pop": 70783
+},
+{
+"name": "Lawrence",
+"state": "IN",
+"website": "http://www.cityoflawrence.org",
+"pop": 49370
+},
+{
+"name": "Marion",
+"state": "IN",
+"website": "http://www.cityofmarion.in.gov/",
+"pop": 28310
+},
+{
+"name": "Michigan City",
+"state": "IN",
+"website": "http://www.emichigancity.com",
+"pop": 32075
+},
+{
+"name": "Mishawaka",
+"state": "IN",
+"website": "https://www.mishawaka.in.gov/",
+"pop": 51063
+},
+{
+"name": "Muncie",
+"state": "IN",
+"website": "http://www.cityofmuncie.com/",
+"pop": 65194
+},
+{
+"name": "New Albany",
+"state": "IN",
+"website": "http://www.cityofnewalbany.com/",
+"pop": 37841
+},
+{
+"name": "Noblesville",
+"state": "IN",
+"website": "http://www.cityofnoblesville.org/",
+"pop": 69604
+},
+{
+"name": "Portage",
+"state": "IN",
+"website": "http://www.ci.portage.in.us",
+"pop": 37926
+},
+{
+"name": "Richmond",
+"state": "IN",
+"website": "https://www.richmondindiana.gov/",
+"pop": 35720
+},
+{
+"name": "South Bend",
+"state": "IN",
+"website": "http://www.southbendin.gov/",
+"pop": 103453
+},
+{
+"name": "Terre Haute",
+"state": "IN",
+"website": "https://terrehaute.in.gov",
+"pop": 58389
+},
+{
+"name": "Valparaiso",
+"state": "IN",
+"website": "http://www.ci.valparaiso.in.us/",
+"pop": 34151
+},
+{
+"name": "West Lafayette",
+"state": "IN",
+"website": "http://www.city.west-lafayette.in.us",
+"pop": 44595
+},
+{
+"name": "Westfield",
+"state": "IN",
+"website": "http://www.westfield.in.gov",
+"pop": 46410
+},
+{
+"name": "Derby",
+"state": "KS",
+"website": "http://www.derbyweb.com/",
+"pop": 25625
+},
+{
+"name": "Dodge City",
+"state": "KS",
+"website": "https://www.dodgecity.org/",
+"pop": 27788
+},
+{
+"name": "Garden City",
+"state": "KS",
+"website": "https://www.garden-city.org/",
+"pop": 28151
+},
+{
+"name": "Hutchinson",
+"state": "KS",
+"website": "http://www.hutchgov.com/",
+"pop": 40006
+},
+{
+"name": "Kansas City",
+"state": "KS",
+"website": "https://www.wycokck.org/",
+"pop": 156607
+},
+{
+"name": "Lawrence",
+"state": "KS",
+"website": "https://lawrenceks.org/",
+"pop": 94934
+},
+{
+"name": "Leavenworth",
+"state": "KS",
+"website": "https://www.leavenworthks.org/",
+"pop": 37351
+},
+{
+"name": "Leawood",
+"state": "KS",
+"website": "http://www.leawood.org/",
+"pop": 33902
+},
+{
+"name": "Lenexa",
+"state": "KS",
+"website": "https://www.lenexa.com/",
+"pop": 57434
+},
+{
+"name": "Manhattan",
+"state": "KS",
+"website": "https://cityofmhk.com",
+"pop": 54100
+},
+{
+"name": "Olathe",
+"state": "KS",
+"website": "https://www.olatheks.org",
+"pop": 141290
+},
+{
+"name": "Overland Park",
+"state": "KS",
+"website": "https://www.opkansas.org",
+"pop": 197238
+},
+{
+"name": "Salina",
+"state": "KS",
+"website": "https://www.salina-ks.gov/",
+"pop": 46889
+},
+{
+"name": "Shawnee",
+"state": "KS",
+"website": "http://www.cityofshawnee.org/",
+"pop": 67311
+},
+{
+"name": "Topeka",
+"state": "KS",
+"website": "http://www.topeka.org/",
+"pop": 126587
+},
+{
+"name": "Wichita",
+"state": "KS",
+"website": "https://www.wichita.gov/",
+"pop": 397532
+},
+{
+"name": "Bowling Green",
+"state": "KY",
+"website": "http://www.bgky.org",
+"pop": 72294
+},
+{
+"name": "Elizabethtown",
+"state": "KY",
+"website": "http://www.elizabethtownky.org/",
+"pop": 31394
+},
+{
+"name": "Florence",
+"state": "KY",
+"website": "http://www.florence-ky.gov/",
+"pop": 31946
+},
+{
+"name": "Frankfort",
+"state": "KY",
+"website": "http://www.frankfort.ky.gov/",
+"pop": 28602
+},
+{
+"name": "Georgetown",
+"state": "KY",
+"website": "http://www.georgetownky.gov/",
+"pop": 37086
+},
+{
+"name": "Henderson",
+"state": "KY",
+"website": "http://www.cityofhendersonky.org/",
+"pop": 27981
+},
+{
+"name": "Hopkinsville",
+"state": "KY",
+"website": "http://www.hoptown.org/",
+"pop": 31180
+},
+{
+"name": "Independence",
+"state": "KY",
+"website": "http://www.cityofindependence.org/",
+"pop": 28676
+},
+{
+"name": "Jeffersontown",
+"state": "KY",
+"website": "http://www.jeffersontownky.com",
+"pop": 28474
+},
+{
+"name": "Louisville",
+"state": "KY",
+"website": "https://louisvilleky.gov/",
+"pop": 246161
+},
+{
+"name": "Nicholasville",
+"state": "KY",
+"website": "https://www.nicholasville.org/",
+"pop": 31093
+},
+{
+"name": "Owensboro",
+"state": "KY",
+"website": "https://www.owensboro.org",
+"pop": 60183
+},
+{
+"name": "Richmond",
+"state": "KY",
+"website": "http://www.richmond.ky.us/",
+"pop": 34585
+},
+{
+"name": "Alexandria",
+"state": "LA",
+"website": "http://www.cityofalexandriala.com/",
+"pop": 45275
+},
+{
+"name": "Baton Rouge",
+"state": "LA",
+"website": "https://www.brla.gov/",
+"pop": 227470
+},
+{
+"name": "Bossier City",
+"state": "LA",
+"website": "http://www.bossiercity.org/",
+"pop": 62701
+},
+{
+"name": "Central",
+"state": "LA",
+"website": "http://centralgov.com",
+"pop": 29565
+},
+{
+"name": "Kenner",
+"state": "LA",
+"website": "http://www.kenner.la.us/",
+"pop": 66448
+},
+{
+"name": "Lafayette",
+"state": "LA",
+"website": "https://www.lafayettetravel.com/",
+"pop": 121374
+},
+{
+"name": "Lake Charles",
+"state": "LA",
+"website": "http://www.cityoflakecharles.com",
+"pop": 84872
+},
+{
+"name": "Monroe",
+"state": "LA",
+"website": "https://monroela.us/",
+"pop": 47702
+},
+{
+"name": "New Iberia",
+"state": "LA",
+"website": "https://www.cityofnewiberia.com/",
+"pop": 28555
+},
+{
+"name": "New Orleans",
+"state": "LA",
+"website": "https://nola.gov/",
+"pop": 383997
+},
+{
+"name": "Shreveport",
+"state": "LA",
+"website": "https://www.shreveportla.gov",
+"pop": 187593
+},
+{
+"name": "Slidell",
+"state": "LA",
+"website": "https://myslidell.com/",
+"pop": 28781
+},
+{
+"name": "Agawam",
+"state": "MA",
+"website": "http://www.agawam.ma.us/",
+"pop": 28692
+},
+{
+"name": "Attleboro",
+"state": "MA",
+"website": "https://www.cityofattleboro.us/",
+"pop": 46461
+},
+{
+"name": "Beverly",
+"state": "MA",
+"website": "http://www.beverlyma.gov/",
+"pop": 42670
+},
+{
+"name": "Boston",
+"state": "MA",
+"website": "https://www.boston.gov/",
+"pop": 675647
+},
+{
+"name": "Braintree",
+"state": "MA",
+"website": "https://braintreema.gov/",
+"pop": 39143
+},
+{
+"name": "Brockton",
+"state": "MA",
+"website": "http://www.ci.brockton.ma.us/",
+"pop": 105643
+},
+{
+"name": "Cambridge",
+"state": "MA",
+"website": "https://www.cambridgema.gov/",
+"pop": 118403
+},
+{
+"name": "Chelsea",
+"state": "MA",
+"website": "http://www.chelseama.gov/",
+"pop": 40787
+},
+{
+"name": "Chicopee",
+"state": "MA",
+"website": "http://www.chicopeema.gov/",
+"pop": 55560
+},
+{
+"name": "Dartmouth",
+"state": "MA",
+"website": "https://town.dartmouth.ma.us",
+"pop": 33783
+},
+{
+"name": "Everett",
+"state": "MA",
+"website": "http://www.cityofeverett.com/",
+"pop": 49075
+},
+{
+"name": "Fall River",
+"state": "MA",
+"website": "http://www.fallriverma.org/",
+"pop": 94000
+},
+{
+"name": "Fitchburg",
+"state": "MA",
+"website": "http://www.fitchburgma.gov/",
+"pop": 41946
+},
+{
+"name": "Franklin",
+"state": "MA",
+"website": "http://franklinma.virtualtownhall.net/",
+"pop": 33261
+},
+{
+"name": "Gloucester",
+"state": "MA",
+"website": "https://www.gloucester-ma.gov/",
+"pop": 29729
+},
+{
+"name": "Haverhill",
+"state": "MA",
+"website": "http://www.ci.haverhill.ma.us/",
+"pop": 67787
+},
+{
+"name": "Holyoke",
+"state": "MA",
+"website": "http://www.holyoke.org/",
+"pop": 38238
+},
+{
+"name": "Lawrence",
+"state": "MA",
+"website": "http://www.cityoflawrence.com/",
+"pop": 89143
+},
+{
+"name": "Leominster",
+"state": "MA",
+"website": "http://www.leominster-ma.gov/",
+"pop": 43782
+},
+{
+"name": "Lowell",
+"state": "MA",
+"website": "https://www.lowellma.gov/",
+"pop": 115554
+},
+{
+"name": "Lynn",
+"state": "MA",
+"website": "http://www.ci.lynn.ma.us/",
+"pop": 101253
+},
+{
+"name": "Malden",
+"state": "MA",
+"website": "http://www.cityofmalden.org/",
+"pop": 66263
+},
+{
+"name": "Marlborough",
+"state": "MA",
+"website": "http://www.marlborough-ma.gov/",
+"pop": 41793
+},
+{
+"name": "Medford",
+"state": "MA",
+"website": "http://www.medford.org/",
+"pop": 59659
+},
+{
+"name": "Melrose",
+"state": "MA",
+"website": "http://www.cityofmelrose.org/",
+"pop": 29817
+},
+{
+"name": "Methuen",
+"state": "MA",
+"website": "http://www.ci.methuen.ma.us/",
+"pop": 53059
+},
+{
+"name": "New Bedford",
+"state": "MA",
+"website": "https://www.newbedford-ma.gov/",
+"pop": 101079
+},
+{
+"name": "Newton",
+"state": "MA",
+"website": "https://www.newtonma.gov/",
+"pop": 88923
+},
+{
+"name": "Northampton",
+"state": "MA",
+"website": "https://www.northamptonma.gov/",
+"pop": 29571
+},
+{
+"name": "Peabody",
+"state": "MA",
+"website": "https://www.peabody-ma.gov/",
+"pop": 54481
+},
+{
+"name": "Pittsfield",
+"state": "MA",
+"website": "http://www.pittsfield-ma.org/",
+"pop": 43927
+},
+{
+"name": "Quincy",
+"state": "MA",
+"website": "http://www.quincyma.gov/",
+"pop": 101636
+},
+{
+"name": "Randolph",
+"state": "MA",
+"website": "http://www.randolph-ma.gov/",
+"pop": 34984
+},
+{
+"name": "Revere",
+"state": "MA",
+"website": "http://www.revere.org/",
+"pop": 62186
+},
+{
+"name": "Salem",
+"state": "MA",
+"website": "https://salem.com",
+"pop": 44480
+},
+{
+"name": "Somerville",
+"state": "MA",
+"website": "https://somervillema.gov/",
+"pop": 81045
+},
+{
+"name": "Springfield",
+"state": "MA",
+"website": "https://www.springfield-ma.gov",
+"pop": 155929
+},
+{
+"name": "Taunton",
+"state": "MA",
+"website": "http://www.taunton-ma.gov",
+"pop": 59408
+},
+{
+"name": "Waltham",
+"state": "MA",
+"website": "https://www.city.waltham.ma.us/",
+"pop": 65218
+},
+{
+"name": "Watertown",
+"state": "MA",
+"website": "http://www.watertown-ma.gov/",
+"pop": 35329
+},
+{
+"name": "West Springfield",
+"state": "MA",
+"website": "http://www.west-springfield.ma.us/",
+"pop": 28835
+},
+{
+"name": "Westfield",
+"state": "MA",
+"website": "http://www.cityofwestfield.org",
+"pop": 40834
+},
+{
+"name": "Weymouth",
+"state": "MA",
+"website": "http://www.weymouth.ma.us/",
+"pop": 57437
+},
+{
+"name": "Woburn",
+"state": "MA",
+"website": "https://woburnma.gov/",
+"pop": 40876
+},
+{
+"name": "Worcester",
+"state": "MA",
+"website": "https://www.worcesterma.gov/",
+"pop": 206518
+},
+{
+"name": "Annapolis",
+"state": "MD",
+"website": "https://www.annapolis.gov/",
+"pop": 40812
+},
+{
+"name": "Bowie",
+"state": "MD",
+"website": "https://www.cityofbowie.org/",
+"pop": 58329
+},
+{
+"name": "College Park",
+"state": "MD",
+"website": "https://www.collegeparkmd.gov/",
+"pop": 34740
+},
+{
+"name": "Frederick",
+"state": "MD",
+"website": "http://www.cityoffrederick.com/",
+"pop": 78171
+},
+{
+"name": "Gaithersburg",
+"state": "MD",
+"website": "https://www.gaithersburgmd.gov/",
+"pop": 69657
+},
+{
+"name": "Hagerstown",
+"state": "MD",
+"website": "https://www.hagerstownmd.org/",
+"pop": 43527
+},
+{
+"name": "Laurel",
+"state": "MD",
+"website": "https://www.cityoflaurel.org/",
+"pop": 30060
+},
+{
+"name": "Rockville",
+"state": "MD",
+"website": "https://www.rockvillemd.gov/",
+"pop": 67117
+},
+{
+"name": "Salisbury",
+"state": "MD",
+"website": "http://www.ci.salisbury.md.us/",
+"pop": 33050
+},
+{
+"name": "Bangor",
+"state": "ME",
+"website": "https://www.bangormaine.gov",
+"pop": 31753
+},
+{
+"name": "Lewiston",
+"state": "ME",
+"website": "https://www.lewistonmaine.gov/",
+"pop": 37121
+},
+{
+"name": "Portland",
+"state": "ME",
+"website": "https://www.portlandmaine.gov/",
+"pop": 68408
+},
+{
+"name": "South Portland",
+"state": "ME",
+"website": "https://www.southportland.org/",
+"pop": 26498
+},
+{
+"name": "Allen Park",
+"state": "MI",
+"website": "http://www.cityofallenpark.org/",
+"pop": 28638
+},
+{
+"name": "Ann Arbor",
+"state": "MI",
+"website": "https://www.a2gov.org/",
+"pop": 123851
+},
+{
+"name": "Battle Creek",
+"state": "MI",
+"website": "http://www.battlecreekmi.gov/",
+"pop": 52721
+},
+{
+"name": "Dearborn",
+"state": "MI",
+"website": "https://dearborn.gov/",
+"pop": 109976
+},
+{
+"name": "Dearborn Heights",
+"state": "MI",
+"website": "http://www.ci.dearborn-heights.mi.us/",
+"pop": 63292
+},
+{
+"name": "Detroit",
+"state": "MI",
+"website": "https://detroitmi.gov",
+"pop": 639111
+},
+{
+"name": "East Lansing",
+"state": "MI",
+"website": "https://www.cityofeastlansing.com",
+"pop": 47741
+},
+{
+"name": "Eastpointe",
+"state": "MI",
+"website": "http://www.cityofeastpointe.net/",
+"pop": 34318
+},
+{
+"name": "Farmington Hills",
+"state": "MI",
+"website": "https://fhgov.com/",
+"pop": 83986
+},
+{
+"name": "Flint",
+"state": "MI",
+"website": "http://www.cityofflint.com/",
+"pop": 81252
+},
+{
+"name": "Garden City",
+"state": "MI",
+"website": "https://www.gardencitymi.org/department.asp",
+"pop": 27380
+},
+{
+"name": "Grand Rapids",
+"state": "MI",
+"website": "https://grandrapidsmi.gov",
+"pop": 198917
+},
+{
+"name": "Hamtramck",
+"state": "MI",
+"website": "https://hamtramckcity.gov",
+"pop": 28433
+},
+{
+"name": "Holland",
+"state": "MI",
+"website": "https://www.cityofholland.com/",
+"pop": 34378
+},
+{
+"name": "Inkster",
+"state": "MI",
+"website": "http://www.cityofinkster.com/",
+"pop": 26088
+},
+{
+"name": "Jackson",
+"state": "MI",
+"website": "http://www.cityofjackson.org/",
+"pop": 31309
+},
+{
+"name": "Kalamazoo",
+"state": "MI",
+"website": "http://www.kalamazoocity.org/",
+"pop": 73598
+},
+{
+"name": "Kentwood",
+"state": "MI",
+"website": "http://www.ci.kentwood.mi.us/",
+"pop": 54304
+},
+{
+"name": "Lincoln Park",
+"state": "MI",
+"website": "http://lincolnpark.govoffice.com/",
+"pop": 40245
+},
+{
+"name": "Livonia",
+"state": "MI",
+"website": "https://www.livonia.gov/",
+"pop": 95535
+},
+{
+"name": "Madison Heights",
+"state": "MI",
+"website": "http://www.madison-heights.org",
+"pop": 28468
+},
+{
+"name": "Midland",
+"state": "MI",
+"website": "https://cityofmidlandmi.gov",
+"pop": 42547
+},
+{
+"name": "Muskegon",
+"state": "MI",
+"website": "https://www.muskegon-mi.gov/",
+"pop": 38318
+},
+{
+"name": "Norton Shores",
+"state": "MI",
+"website": "http://www.nortonshores.org",
+"pop": 25030
+},
+{
+"name": "Novi",
+"state": "MI",
+"website": "http://www.cityofnovi.org/",
+"pop": 66243
+},
+{
+"name": "Oak Park",
+"state": "MI",
+"website": "https://www.oakparkmi.gov/",
+"pop": 29560
+},
+{
+"name": "Pontiac",
+"state": "MI",
+"website": "https://www.pontiac.mi.us",
+"pop": 61606
+},
+{
+"name": "Port Huron",
+"state": "MI",
+"website": "https://www.porthuron.org/",
+"pop": 28983
+},
+{
+"name": "Portage",
+"state": "MI",
+"website": "http://www.portagemi.com/",
+"pop": 48891
+},
+{
+"name": "Rochester Hills",
+"state": "MI",
+"website": "https://www.rochesterhills.org/",
+"pop": 76300
+},
+{
+"name": "Romulus",
+"state": "MI",
+"website": "http://www.romulusgov.com",
+"pop": 25178
+},
+{
+"name": "Roseville",
+"state": "MI",
+"website": "https://www.roseville-mi.gov/",
+"pop": 47710
+},
+{
+"name": "Royal Oak",
+"state": "MI",
+"website": "http://www.ci.royal-oak.mi.us/",
+"pop": 58211
+},
+{
+"name": "Southfield",
+"state": "MI",
+"website": "http://www.cityofsouthfield.com/",
+"pop": 76618
+},
+{
+"name": "Southgate",
+"state": "MI",
+"website": "http://www.southgate-mi.org",
+"pop": 30014
+},
+{
+"name": "St. Clair Shores",
+"state": "MI",
+"website": "http://www.scsmi.net/",
+"pop": 58874
+},
+{
+"name": "Sterling Heights",
+"state": "MI",
+"website": "https://www.sterlingheights.gov/",
+"pop": 134346
+},
+{
+"name": "Taylor",
+"state": "MI",
+"website": "http://www.cityoftaylor.com/",
+"pop": 63409
+},
+{
+"name": "Troy",
+"state": "MI",
+"website": "https://troymi.gov/",
+"pop": 87294
+},
+{
+"name": "Walker",
+"state": "MI",
+"website": "http://www.ci.walker.mi.us/",
+"pop": 25132
+},
+{
+"name": "Warren",
+"state": "MI",
+"website": "https://cityofwarren.org",
+"pop": 139387
+},
+{
+"name": "Westland",
+"state": "MI",
+"website": "https://www.cityofwestland.com/",
+"pop": 85420
+},
+{
+"name": "Wyandotte",
+"state": "MI",
+"website": "http://www.wyandotte.net/",
+"pop": 25058
+},
+{
+"name": "Wyoming",
+"state": "MI",
+"website": "https://www.wyomingmi.gov/",
+"pop": 76501
+},
+{
+"name": "Andover",
+"state": "MN",
+"website": "https://www.andovermn.gov/",
+"pop": 32601
+},
+{
+"name": "Apple Valley",
+"state": "MN",
+"website": "http://www.ci.apple-valley.mn.us/",
+"pop": 56374
+},
+{
+"name": "Austin",
+"state": "MN",
+"website": "http://www.ci.austin.mn.us/",
+"pop": 26174
+},
+{
+"name": "Blaine",
+"state": "MN",
+"website": "http://www.ci.blaine.mn.us/",
+"pop": 70222
+},
+{
+"name": "Bloomington",
+"state": "MN",
+"website": "https://www.bloomingtonmn.gov/",
+"pop": 89987
+},
+{
+"name": "Brooklyn Center",
+"state": "MN",
+"website": "http://www.ci.brooklyn-center.mn.us/",
+"pop": 33782
+},
+{
+"name": "Brooklyn Park",
+"state": "MN",
+"website": "https://www.brooklynpark.org/",
+"pop": 86478
+},
+{
+"name": "Burnsville",
+"state": "MN",
+"website": "http://www.ci.burnsville.mn.us/",
+"pop": 64317
+},
+{
+"name": "Chanhassen",
+"state": "MN",
+"website": "http://www.ci.chanhassen.mn.us/",
+"pop": 25947
+},
+{
+"name": "Chaska",
+"state": "MN",
+"website": "http://mn-chaska.civicplus.com",
+"pop": 27810
+},
+{
+"name": "Coon Rapids",
+"state": "MN",
+"website": "https://www.coonrapidsmn.gov/",
+"pop": 63599
+},
+{
+"name": "Cottage Grove",
+"state": "MN",
+"website": "http://www.cottage-grove.org",
+"pop": 38839
+},
+{
+"name": "Duluth",
+"state": "MN",
+"website": "http://www.duluthmn.gov/",
+"pop": 86697
+},
+{
+"name": "Eagan",
+"state": "MN",
+"website": "https://www.ci.eagan.mn.us/",
+"pop": 68855
+},
+{
+"name": "Eden Prairie",
+"state": "MN",
+"website": "http://www.edenprairie.org/",
+"pop": 64198
+},
+{
+"name": "Edina",
+"state": "MN",
+"website": "https://www.edinamn.gov/",
+"pop": 53494
+},
+{
+"name": "Elk River",
+"state": "MN",
+"website": "http://www.ElkRiverMN.gov/",
+"pop": 25835
+},
+{
+"name": "Fridley",
+"state": "MN",
+"website": "https://www.ci.fridley.mn.us/",
+"pop": 29590
+},
+{
+"name": "Inver Grove Heights",
+"state": "MN",
+"website": "https://www.ighmn.gov/",
+"pop": 35801
+},
+{
+"name": "Lakeville",
+"state": "MN",
+"website": "http://www.ci.lakeville.mn.us/",
+"pop": 69490
+},
+{
+"name": "Mankato",
+"state": "MN",
+"website": "http://www.ci.mankato.mn.us/",
+"pop": 44488
+},
+{
+"name": "Maple Grove",
+"state": "MN",
+"website": "https://www.maplegrovemn.gov/",
+"pop": 70253
+},
+{
+"name": "Maplewood",
+"state": "MN",
+"website": "http://www.ci.maplewood.mn.us/",
+"pop": 42088
+},
+{
+"name": "Minneapolis",
+"state": "MN",
+"website": "https://www.minneapolismn.gov/",
+"pop": 429954
+},
+{
+"name": "Minnetonka",
+"state": "MN",
+"website": "http://eminnetonka.com/",
+"pop": 53781
+},
+{
+"name": "Oakdale",
+"state": "MN",
+"website": "http://www.ci.oakdale.mn.us/",
+"pop": 28303
+},
+{
+"name": "Owatonna",
+"state": "MN",
+"website": "http://www.ci.owatonna.mn.us/",
+"pop": 26420
+},
+{
+"name": "Plymouth",
+"state": "MN",
+"website": "http://www.ci.plymouth.mn.us/",
+"pop": 81026
+},
+{
+"name": "Prior Lake",
+"state": "MN",
+"website": "http://www.cityofpriorlake.com/",
+"pop": 27617
+},
+{
+"name": "Ramsey",
+"state": "MN",
+"website": "http://www.ci.ramsey.mn.us/",
+"pop": 27646
+},
+{
+"name": "Richfield",
+"state": "MN",
+"website": "http://www.cityofrichfield.org/",
+"pop": 36994
+},
+{
+"name": "Rochester",
+"state": "MN",
+"website": "https://rochestermn.gov",
+"pop": 121395
+},
+{
+"name": "Rosemount",
+"state": "MN",
+"website": "http://www.ci.rosemount.mn.us/",
+"pop": 25650
+},
+{
+"name": "Roseville",
+"state": "MN",
+"website": "http://www.ci.roseville.mn.us",
+"pop": 36254
+},
+{
+"name": "Saint Paul",
+"state": "MN",
+"website": "https://www.stpaul.gov/",
+"pop": 311527
+},
+{
+"name": "Savage",
+"state": "MN",
+"website": "http://www.cityofsavage.com",
+"pop": 32465
+},
+{
+"name": "Shakopee",
+"state": "MN",
+"website": "http://www.ci.shakopee.mn.us/",
+"pop": 43698
+},
+{
+"name": "Shoreview",
+"state": "MN",
+"website": "http://www.shoreviewmn.gov/",
+"pop": 26921
+},
+{
+"name": "St. Cloud",
+"state": "MN",
+"website": "http://www.ci.stcloud.mn.us/",
+"pop": 68881
+},
+{
+"name": "St. Louis Park",
+"state": "MN",
+"website": "https://www.stlouispark.org/",
+"pop": 50010
+},
+{
+"name": "Winona",
+"state": "MN",
+"website": "http://www.cityofwinona-mn.com/",
+"pop": 25948
+},
+{
+"name": "Woodbury",
+"state": "MN",
+"website": "https://www.woodburymn.gov/",
+"pop": 75102
+},
+{
+"name": "Ballwin",
+"state": "MO",
+"website": "http://www.ballwin.mo.us/",
+"pop": 31103
+},
+{
+"name": "Blue Springs",
+"state": "MO",
+"website": "http://www.bluespringsgov.com",
+"pop": 58603
+},
+{
+"name": "Cape Girardeau",
+"state": "MO",
+"website": "http://www.cityofcapegirardeau.org/",
+"pop": 39540
+},
+{
+"name": "Chesterfield",
+"state": "MO",
+"website": "https://www.chesterfield.mo.us/",
+"pop": 49999
+},
+{
+"name": "Columbia",
+"state": "MO",
+"website": "https://www.como.gov/",
+"pop": 126254
+},
+{
+"name": "Florissant",
+"state": "MO",
+"website": "https://www.florissantmo.com/",
+"pop": 52533
+},
+{
+"name": "Gladstone",
+"state": "MO",
+"website": "http://www.gladstone.mo.us/",
+"pop": 27063
+},
+{
+"name": "Grandview",
+"state": "MO",
+"website": "http://www.grandview.org/",
+"pop": 26209
+},
+{
+"name": "Hazelwood",
+"state": "MO",
+"website": "http://www.hazelwoodmo.org",
+"pop": 25458
+},
+{
+"name": "Independence",
+"state": "MO",
+"website": "https://www.independencemo.gov/",
+"pop": 123011
+},
+{
+"name": "Jefferson City",
+"state": "MO",
+"website": "https://www.jeffersoncitymo.gov/",
+"pop": 43228
+},
+{
+"name": "Joplin",
+"state": "MO",
+"website": "https://www.joplinmo.org/",
+"pop": 51762
+},
+{
+"name": "Kansas City",
+"state": "MO",
+"website": "https://www.kcmo.gov/",
+"pop": 508090
+},
+{
+"name": "Kirkwood",
+"state": "MO",
+"website": "http://www.kirkwoodmo.org",
+"pop": 29461
+},
+{
+"name": "Lee's Summit",
+"state": "MO",
+"website": "http://www.lees-summit.mo.us/",
+"pop": 101108
+},
+{
+"name": "Liberty",
+"state": "MO",
+"website": "http://www.ci.liberty.mo.us/",
+"pop": 30167
+},
+{
+"name": "Maryland Heights",
+"state": "MO",
+"website": "http://www.marylandheights.com",
+"pop": 28284
+},
+{
+"name": "O'Fallon",
+"state": "MO",
+"website": "http://www.ofallon.mo.us/",
+"pop": 91316
+},
+{
+"name": "Raytown",
+"state": "MO",
+"website": "http://www.raytown.mo.us/",
+"pop": 30012
+},
+{
+"name": "Springfield",
+"state": "MO",
+"website": "https://www.springfieldmo.gov/",
+"pop": 169176
+},
+{
+"name": "St. Charles",
+"state": "MO",
+"website": "http://www.stcharlescity.com/",
+"pop": 70493
+},
+{
+"name": "St. Joseph",
+"state": "MO",
+"website": "https://www.stjosephmo.gov/",
+"pop": 72473
+},
+{
+"name": "St. Peters",
+"state": "MO",
+"website": "http://www.stpetersmo.net/",
+"pop": 57732
+},
+{
+"name": "University City",
+"state": "MO",
+"website": "http://www.ucitymo.org/",
+"pop": 35065
+},
+{
+"name": "Wentzville",
+"state": "MO",
+"website": "http://www.wentzvillemo.org/",
+"pop": 44372
+},
+{
+"name": "Wildwood",
+"state": "MO",
+"website": "http://www.cityofwildwood.com",
+"pop": 35417
+},
+{
+"name": "Biloxi",
+"state": "MS",
+"website": "http://www.biloxi.ms.us/",
+"pop": 49449
+},
+{
+"name": "Brandon",
+"state": "MS",
+"website": "http://www.cityofbrandon.net/",
+"pop": 25138
+},
+{
+"name": "Clinton",
+"state": "MS",
+"website": "http://www.clintonms.org/",
+"pop": 28100
+},
+{
+"name": "Greenville",
+"state": "MS",
+"website": "http://www.greenville.ms.us/",
+"pop": 29670
+},
+{
+"name": "Gulfport",
+"state": "MS",
+"website": "http://www.gulfport-ms.gov",
+"pop": 72926
+},
+{
+"name": "Hattiesburg",
+"state": "MS",
+"website": "https://www.hattiesburgms.com/",
+"pop": 48730
+},
+{
+"name": "Horn Lake",
+"state": "MS",
+"website": "https://www.hornlake.org/",
+"pop": 26736
+},
+{
+"name": "Jackson",
+"state": "MS",
+"website": "http://www.jacksonms.gov",
+"pop": 153701
+},
+{
+"name": "Madison",
+"state": "MS",
+"website": "http://www.madisonthecity.com/",
+"pop": 27747
+},
+{
+"name": "Meridian",
+"state": "MS",
+"website": "http://www.meridianms.org/",
+"pop": 35052
+},
+{
+"name": "Olive Branch",
+"state": "MS",
+"website": "http://www.obms.us/",
+"pop": 39711
+},
+{
+"name": "Oxford",
+"state": "MS",
+"website": "https://www.oxfordms.net/",
+"pop": 25416
+},
+{
+"name": "Pearl",
+"state": "MS",
+"website": "http://www.cityofpearl.com",
+"pop": 27115
+},
+{
+"name": "Southaven",
+"state": "MS",
+"website": "http://www.southaven.org",
+"pop": 54648
+},
+{
+"name": "Tupelo",
+"state": "MS",
+"website": "https://www.tupeloms.gov/",
+"pop": 37923
+},
+{
+"name": "Billings",
+"state": "MT",
+"website": "https://www.billingsmt.gov/",
+"pop": 117116
+},
+{
+"name": "Bozeman",
+"state": "MT",
+"website": "https://www.bozeman.net/",
+"pop": 53293
+},
+{
+"name": "Butte",
+"state": "MT",
+"website": "https://www.co.silverbow.mt.us/",
+"pop": 34494
+},
+{
+"name": "Great Falls",
+"state": "MT",
+"website": "http://www.greatfallsmt.net",
+"pop": 60442
+},
+{
+"name": "Helena",
+"state": "MT",
+"website": "https://www.helenamt.gov",
+"pop": 32091
+},
+{
+"name": "Missoula",
+"state": "MT",
+"website": "http://ci.missoula.mt.us",
+"pop": 73489
+},
+{
+"name": "Asheboro",
+"state": "NC",
+"website": "http://www.ci.asheboro.nc.us",
+"pop": 27156
+},
+{
+"name": "Asheville",
+"state": "NC",
+"website": "https://www.ashevillenc.gov/",
+"pop": 94589
+},
+{
+"name": "Burlington",
+"state": "NC",
+"website": "http://www.burlingtonnc.gov/",
+"pop": 57303
+},
+{
+"name": "Charlotte",
+"state": "NC",
+"website": "https://www.charlottenc.gov/",
+"pop": 874579
+},
+{
+"name": "Concord",
+"state": "NC",
+"website": "http://www.concordnc.gov/",
+"pop": 105240
+},
+{
+"name": "Durham",
+"state": "NC",
+"website": "https://www.durhamnc.gov/",
+"pop": 283506
+},
+{
+"name": "Fuquay-Varina",
+"state": "NC",
+"website": "http://www.fuquay-varina.org",
+"pop": 34152
+},
+{
+"name": "Gastonia",
+"state": "NC",
+"website": "https://gastonianc.gov/",
+"pop": 80411
+},
+{
+"name": "Goldsboro",
+"state": "NC",
+"website": "https://www.goldsboronc.gov/",
+"pop": 33657
+},
+{
+"name": "Greensboro",
+"state": "NC",
+"website": "https://greensboro-nc.gov",
+"pop": 299035
+},
+{
+"name": "Greenville",
+"state": "NC",
+"website": "http://www.greenvillenc.gov",
+"pop": 87521
+},
+{
+"name": "High Point",
+"state": "NC",
+"website": "https://www.highpointnc.gov/",
+"pop": 114059
+},
+{
+"name": "Jacksonville",
+"state": "NC",
+"website": "http://www.ci.jacksonville.nc.us",
+"pop": 72723
+},
+{
+"name": "Kannapolis",
+"state": "NC",
+"website": "http://www.ci.kannapolis.nc.us/",
+"pop": 53114
+},
+{
+"name": "Monroe",
+"state": "NC",
+"website": "http://www.monroenc.org",
+"pop": 34562
+},
+{
+"name": "New Bern",
+"state": "NC",
+"website": "https://www.newbernnc.gov/",
+"pop": 31291
+},
+{
+"name": "Rocky Mount",
+"state": "NC",
+"website": "http://www.rockymountnc.gov",
+"pop": 54341
+},
+{
+"name": "Salisbury",
+"state": "NC",
+"website": "http://www.salisburync.gov",
+"pop": 35540
+},
+{
+"name": "Sanford",
+"state": "NC",
+"website": "http://www.sanfordnc.net/",
+"pop": 30261
+},
+{
+"name": "Statesville",
+"state": "NC",
+"website": "https://www.statesvillenc.net/",
+"pop": 28419
+},
+{
+"name": "Thomasville",
+"state": "NC",
+"website": "http://thomasville-nc.gov/",
+"pop": 27183
+},
+{
+"name": "Wilmington",
+"state": "NC",
+"website": "http://www.wilmingtonnc.gov/",
+"pop": 115451
+},
+{
+"name": "Winston-Salem",
+"state": "NC",
+"website": "http://www.cityofws.org/",
+"pop": 249545
+},
+{
+"name": "Bismarck",
+"state": "ND",
+"website": "https://www.bismarcknd.gov",
+"pop": 73622
+},
+{
+"name": "Fargo",
+"state": "ND",
+"website": "http://ci.fargo.nd.us",
+"pop": 105548
+},
+{
+"name": "Grand Forks",
+"state": "ND",
+"website": "https://www.grandforksgov.com",
+"pop": 59166
+},
+{
+"name": "Minot",
+"state": "ND",
+"website": "https://www.minotnd.gov/",
+"pop": 48377
+},
+{
+"name": "West Fargo",
+"state": "ND",
+"website": "http://www.westfargond.gov",
+"pop": 38626
+},
+{
+"name": "Williston",
+"state": "ND",
+"website": "https://www.cityofwilliston.com/",
+"pop": 29160
+},
+{
+"name": "Bellevue",
+"state": "NE",
+"website": "http://www.bellevue.net/",
+"pop": 64176
+},
+{
+"name": "Fremont",
+"state": "NE",
+"website": "http://www.fremont.ne.gov/",
+"pop": 27141
+},
+{
+"name": "Grand Island",
+"state": "NE",
+"website": "http://www.grand-island.com",
+"pop": 53131
+},
+{
+"name": "Hastings",
+"state": "NE",
+"website": "http://www.cityofhastings.org/",
+"pop": 25152
+},
+{
+"name": "Kearney",
+"state": "NE",
+"website": "http://www.cityofkearney.org",
+"pop": 33790
+},
+{
+"name": "Lincoln",
+"state": "NE",
+"website": "https://www.lincoln.ne.gov/Home",
+"pop": 258379
+},
+{
+"name": "Omaha",
+"state": "NE",
+"website": "https://www.cityofomaha.org/",
+"pop": 486051
+},
+{
+"name": "Concord",
+"state": "NH",
+"website": "https://concordnh.gov/",
+"pop": 43976
+},
+{
+"name": "Dover",
+"state": "NH",
+"website": "http://www.ci.dover.nh.us",
+"pop": 32741
+},
+{
+"name": "Manchester",
+"state": "NH",
+"website": "http://www.manchesternh.gov/",
+"pop": 115644
+},
+{
+"name": "Nashua",
+"state": "NH",
+"website": "http://www.nashuanh.gov",
+"pop": 91322
+},
+{
+"name": "Rochester",
+"state": "NH",
+"website": "http://www.rochesternh.net/",
+"pop": 32492
+},
+{
+"name": "Alamogordo",
+"state": "NM",
+"website": "http://ci.alamogordo.nm.us/",
+"pop": 30898
+},
+{
+"name": "Albuquerque",
+"state": "NM",
+"website": "https://www.cabq.gov/",
+"pop": 564559
+},
+{
+"name": "Carlsbad",
+"state": "NM",
+"website": "http://www.cityofcarlsbadnm.com/",
+"pop": 32238
+},
+{
+"name": "Clovis",
+"state": "NM",
+"website": "http://www.cityofclovis.org/",
+"pop": 38567
+},
+{
+"name": "Farmington",
+"state": "NM",
+"website": "http://www.fmtn.org/",
+"pop": 46624
+},
+{
+"name": "Hobbs",
+"state": "NM",
+"website": "http://www.hobbsnm.org/",
+"pop": 40508
+},
+{
+"name": "Las Cruces",
+"state": "NM",
+"website": "https://www.lascruces.gov",
+"pop": 111385
+},
+{
+"name": "Rio Rancho",
+"state": "NM",
+"website": "https://www.rrnm.gov/",
+"pop": 104046
+},
+{
+"name": "Roswell",
+"state": "NM",
+"website": "https://roswell-nm.gov/",
+"pop": 48422
+},
+{
+"name": "Santa Fe",
+"state": "NM",
+"website": "https://santafenm.gov",
+"pop": 87505
+},
+{
+"name": "Henderson",
+"state": "NV",
+"website": "https://www.cityofhenderson.com",
+"pop": 317610
+},
+{
+"name": "Las Vegas",
+"state": "NV",
+"website": "https://www.lasvegasnevada.gov",
+"pop": 641903
+},
+{
+"name": "North Las Vegas",
+"state": "NV",
+"website": "https://www.cityofnorthlasvegas.com",
+"pop": 262527
+},
+{
+"name": "Reno",
+"state": "NV",
+"website": "https://www.reno.gov/",
+"pop": 264165
+},
+{
+"name": "Sparks",
+"state": "NV",
+"website": "https://www.cityofsparks.us/",
+"pop": 108445
+},
+{
+"name": "Jamestown",
+"state": "NY",
+"website": "http://www.jamestownny.net/",
+"pop": 28712
+},
+{
+"name": "Middletown",
+"state": "NY",
+"website": "http://www.middletown-ny.com/",
+"pop": 30345
+},
+{
+"name": "Mount Vernon",
+"state": "NY",
+"website": "https://cmvny.com/",
+"pop": 73893
+},
+{
+"name": "New Rochelle",
+"state": "NY",
+"website": "https://www.newrochelleny.com",
+"pop": 79726
+},
+{
+"name": "Newburgh",
+"state": "NY",
+"website": "https://www.cityofnewburgh-ny.gov/",
+"pop": 28856
+},
+{
+"name": "Niagara Falls",
+"state": "NY",
+"website": "https://niagarafallsusa.org/",
+"pop": 48671
+},
+{
+"name": "North Tonawanda",
+"state": "NY",
+"website": "https://www.northtonawanda.gov/",
+"pop": 30496
+},
+{
+"name": "Rome",
+"state": "NY",
+"website": "http://romenewyork.com/",
+"pop": 32127
+},
+{
+"name": "Akron",
+"state": "OH",
+"website": "https://www.visitakron-summit.org/",
+"pop": 190469
+},
+{
+"name": "Avon Lake",
+"state": "OH",
+"website": "http://www.avonlake.org/",
+"pop": 25206
+},
+{
+"name": "Barberton",
+"state": "OH",
+"website": "http://www.cityofbarberton.com/oc/index.shtml",
+"pop": 25191
+},
+{
+"name": "Bowling Green",
+"state": "OH",
+"website": "http://www.bgohio.org/",
+"pop": 30808
+},
+{
+"name": "Brunswick",
+"state": "OH",
+"website": "http://www.brunswick.oh.us/",
+"pop": 35426
+},
+{
+"name": "Canton",
+"state": "OH",
+"website": "http://www.cantonohio.gov/",
+"pop": 70872
+},
+{
+"name": "Cleveland Heights",
+"state": "OH",
+"website": "http://www.clevelandheights.gov",
+"pop": 45312
+},
+{
+"name": "Dayton",
+"state": "OH",
+"website": "https://daytonohio.gov/",
+"pop": 137644
+},
+{
+"name": "Dublin",
+"state": "OH",
+"website": "https://www.visitdublinohio.com/",
+"pop": 49328
+},
+{
+"name": "Elyria",
+"state": "OH",
+"website": "https://www.cityofelyria.org/",
+"pop": 52656
+},
+{
+"name": "Euclid",
+"state": "OH",
+"website": "http://www.ci.euclid.oh.us/",
+"pop": 49692
+},
+{
+"name": "Fairborn",
+"state": "OH",
+"website": "http://ci.fairborn.oh.us",
+"pop": 34510
+},
+{
+"name": "Fairfield",
+"state": "OH",
+"website": "http://www.fairfield-city.org/",
+"pop": 44907
+},
+{
+"name": "Findlay",
+"state": "OH",
+"website": "http://www.ci.findlay.oh.us/",
+"pop": 40313
+},
+{
+"name": "Gahanna",
+"state": "OH",
+"website": "http://www.gahanna.gov/",
+"pop": 35726
+},
+{
+"name": "Garfield Heights",
+"state": "OH",
+"website": "http://www.garfieldhts.org",
+"pop": 29781
+},
+{
+"name": "Green",
+"state": "OH",
+"website": "http://www.cityofgreen.org/",
+"pop": 27475
+},
+{
+"name": "Grove City",
+"state": "OH",
+"website": "https://www.grovecityohio.gov",
+"pop": 41252
+},
+{
+"name": "Hamilton",
+"state": "OH",
+"website": "https://hamilton-oh.gov",
+"pop": 63399
+},
+{
+"name": "Huber Heights",
+"state": "OH",
+"website": "http://www.hhoh.org",
+"pop": 43439
+},
+{
+"name": "Kettering",
+"state": "OH",
+"website": "http://www.ketteringoh.org/",
+"pop": 57862
+},
+{
+"name": "Lorain",
+"state": "OH",
+"website": "https://cityoflorain.org",
+"pop": 65211
+},
+{
+"name": "Marion",
+"state": "OH",
+"website": "http://www.marionohio.us/",
+"pop": 35999
+},
+{
+"name": "Marysville",
+"state": "OH",
+"website": "http://www.marysvilleohio.org/",
+"pop": 25571
+},
+{
+"name": "Massillon",
+"state": "OH",
+"website": "http://www.massillonohio.com/",
+"pop": 32146
+},
+{
+"name": "Mentor",
+"state": "OH",
+"website": "http://www.cityofmentor.com/",
+"pop": 47450
+},
+{
+"name": "Newark",
+"state": "OH",
+"website": "http://www.ci.newark.oh.us/",
+"pop": 49934
+},
+{
+"name": "North Royalton",
+"state": "OH",
+"website": "https://www.northroyalton.org/",
+"pop": 31322
+},
+{
+"name": "Parma",
+"state": "OH",
+"website": "http://www.cityofparma-oh.gov/",
+"pop": 81146
+},
+{
+"name": "Perrysburg",
+"state": "OH",
+"website": "http://ww1.ci.perrysburg.oh.us/",
+"pop": 25041
+},
+{
+"name": "Sandusky",
+"state": "OH",
+"website": "http://www.ci.sandusky.oh.us/",
+"pop": 25095
+},
+{
+"name": "Shaker Heights",
+"state": "OH",
+"website": "https://shakeronline.com/",
+"pop": 29439
+},
+{
+"name": "Stow",
+"state": "OH",
+"website": "http://www.stow.oh.us/",
+"pop": 34483
+},
+{
+"name": "Upper Arlington",
+"state": "OH",
+"website": "http://www.uaoh.net/",
+"pop": 36800
+},
+{
+"name": "Warren",
+"state": "OH",
+"website": "https://warren.org",
+"pop": 39201
+},
+{
+"name": "Westlake",
+"state": "OH",
+"website": "http://www.cityofwestlake.org",
+"pop": 34228
+},
+{
+"name": "Wooster",
+"state": "OH",
+"website": "http://www.woosteroh.com/",
+"pop": 27232
+},
+{
+"name": "Xenia",
+"state": "OH",
+"website": "http://www.ci.xenia.oh.us/",
+"pop": 25441
+},
+{
+"name": "Bartlesville",
+"state": "OK",
+"website": "http://www.cityofbartlesville.org/",
+"pop": 37290
+},
+{
+"name": "Bixby",
+"state": "OK",
+"website": "https://www.bixbyok.gov/",
+"pop": 28609
+},
+{
+"name": "Broken Arrow",
+"state": "OK",
+"website": "https://www.brokenarrowok.gov/",
+"pop": 113540
+},
+{
+"name": "Edmond",
+"state": "OK",
+"website": "http://edmondok.com/",
+"pop": 94428
+},
+{
+"name": "Enid",
+"state": "OK",
+"website": "http://www.enid.org",
+"pop": 51308
+},
+{
+"name": "Jenks",
+"state": "OK",
+"website": "http://www.jenks.com/",
+"pop": 25949
+},
+{
+"name": "Lawton",
+"state": "OK",
+"website": "https://www.lawtonok.gov/",
+"pop": 90381
+},
+{
+"name": "Midwest City",
+"state": "OK",
+"website": "http://www.midwestcityok.org/",
+"pop": 58409
+},
+{
+"name": "Moore",
+"state": "OK",
+"website": "https://www.cityofmoore.com",
+"pop": 62793
+},
+{
+"name": "Muskogee",
+"state": "OK",
+"website": "https://www.muskogeeonline.org/",
+"pop": 36878
+},
+{
+"name": "Norman",
+"state": "OK",
+"website": "https://www.normanok.gov/",
+"pop": 128026
+},
+{
+"name": "Oklahoma City",
+"state": "OK",
+"website": "https://www.okc.gov/",
+"pop": 681054
+},
+{
+"name": "Owasso",
+"state": "OK",
+"website": "http://www.cityofowasso.com/",
+"pop": 38240
+},
+{
+"name": "Shawnee",
+"state": "OK",
+"website": "http://www.shawneeok.org",
+"pop": 31377
+},
+{
+"name": "Stillwater",
+"state": "OK",
+"website": "http://www.stillwater.org/",
+"pop": 48394
+},
+{
+"name": "Eugene",
+"state": "OR",
+"website": "https://www.eugene-or.gov/",
+"pop": 176654
+},
+{
+"name": "Cranston",
+"state": "RI",
+"website": "http://www.cranstonri.gov",
+"pop": 82934
+},
+{
+"name": "East Providence",
+"state": "RI",
+"website": "http://www.eastprovidenceri.net",
+"pop": 47139
+},
+{
+"name": "Newport",
+"state": "RI",
+"website": "https://www.cityofnewport.com",
+"pop": 25163
+},
+{
+"name": "Pawtucket",
+"state": "RI",
+"website": "http://www.pawtucketri.com",
+"pop": 75604
+},
+{
+"name": "Providence",
+"state": "RI",
+"website": "https://www.providenceri.gov/",
+"pop": 190934
+},
+{
+"name": "Warwick",
+"state": "RI",
+"website": "http://www.warwickri.gov",
+"pop": 82823
+},
+{
+"name": "Woonsocket",
+"state": "RI",
+"website": "https://www.woonsocketri.org/",
+"pop": 43240
+},
+{
+"name": "Aiken",
+"state": "SC",
+"website": "http://www.cityofaikensc.gov",
+"pop": 32025
+},
+{
+"name": "Anderson",
+"state": "SC",
+"website": "http://www.cityofandersonsc.com",
+"pop": 28106
+},
+{
+"name": "Charleston",
+"state": "SC",
+"website": "https://www.charleston-sc.gov/",
+"pop": 150227
+},
+{
+"name": "Columbia",
+"state": "SC",
+"website": "https://columbiasc.gov/",
+"pop": 136632
+},
+{
+"name": "Florence",
+"state": "SC",
+"website": "http://www.cityofflorence.com/",
+"pop": 39899
+},
+{
+"name": "Goose Creek",
+"state": "SC",
+"website": "http://www.cityofgoosecreek.com/",
+"pop": 45946
+},
+{
+"name": "Greenville",
+"state": "SC",
+"website": "http://www.greenvillesc.gov",
+"pop": 70720
+},
+{
+"name": "Greer",
+"state": "SC",
+"website": "https://www.cityofgreer.org/",
+"pop": 35308
+},
+{
+"name": "Myrtle Beach",
+"state": "SC",
+"website": "http://www.cityofmyrtlebeach.com",
+"pop": 35682
+},
+{
+"name": "North Charleston",
+"state": "SC",
+"website": "http://www.northcharleston.org",
+"pop": 114852
+},
+{
+"name": "Rock Hill",
+"state": "SC",
+"website": "https://www.cityofrockhill.com/",
+"pop": 74372
+},
+{
+"name": "Spartanburg",
+"state": "SC",
+"website": "http://www.cityofspartanburg.org",
+"pop": 38732
+},
+{
+"name": "Sumter",
+"state": "SC",
+"website": "http://www.sumter-sc.com/",
+"pop": 43463
+},
+{
+"name": "Aberdeen",
+"state": "SD",
+"website": "http://www.aberdeen.sd.us",
+"pop": 28495
+},
+{
+"name": "Rapid City",
+"state": "SD",
+"website": "https://www.rcgov.org/",
+"pop": 74703
+},
+{
+"name": "Sioux Falls",
+"state": "SD",
+"website": "https://www.siouxfalls.gov",
+"pop": 192517
+},
+{
+"name": "Bartlett",
+"state": "TN",
+"website": "http://www.cityofbartlett.org/",
+"pop": 57786
+},
+{
+"name": "Brentwood",
+"state": "TN",
+"website": "http://www.brentwood-tn.org/",
+"pop": 45373
+},
+{
+"name": "Bristol",
+"state": "TN",
+"website": "https://www.bristoltn.org/",
+"pop": 27147
+},
+{
+"name": "Chattanooga",
+"state": "TN",
+"website": "https://www.chattanooga.gov",
+"pop": 181099
+},
+{
+"name": "Clarksville",
+"state": "TN",
+"website": "http://www.cityofclarksville.com",
+"pop": 166722
+},
+{
+"name": "Cleveland",
+"state": "TN",
+"website": "http://www.cityofclevelandtn.com/",
+"pop": 47356
+},
+{
+"name": "Columbia",
+"state": "TN",
+"website": "http://www.columbiatn.com/",
+"pop": 41690
+},
+{
+"name": "Cookeville",
+"state": "TN",
+"website": "http://www.cookeville-tn.org",
+"pop": 34842
+},
+{
+"name": "Franklin",
+"state": "TN",
+"website": "https://www.franklintn.gov/",
+"pop": 83454
+},
+{
+"name": "Gallatin",
+"state": "TN",
+"website": "http://www.gallatin-tn.gov/",
+"pop": 44431
+},
+{
+"name": "Germantown",
+"state": "TN",
+"website": "http://www.germantown-tn.gov/",
+"pop": 41333
+},
+{
+"name": "Hendersonville",
+"state": "TN",
+"website": "http://www.hvilletn.org",
+"pop": 61753
+},
+{
+"name": "Jackson",
+"state": "TN",
+"website": "https://www.jacksontn.gov/",
+"pop": 68205
+},
+{
+"name": "Johnson City",
+"state": "TN",
+"website": "https://www.johnsoncitytn.org/",
+"pop": 71046
+},
+{
+"name": "Kingsport",
+"state": "TN",
+"website": "https://www.kingsporttn.gov/",
+"pop": 55442
+},
+{
+"name": "Knoxville",
+"state": "TN",
+"website": "https://www.knoxvilletn.gov/",
+"pop": 190740
+},
+{
+"name": "La Vergne",
+"state": "TN",
+"website": "https://www.lavergnetn.gov/",
+"pop": 38719
+},
+{
+"name": "Lebanon",
+"state": "TN",
+"website": "http://www.lebanontn.org",
+"pop": 38431
+},
+{
+"name": "Maryville",
+"state": "TN",
+"website": "http://www.maryvillegov.com/",
+"pop": 31907
+},
+{
+"name": "Memphis",
+"state": "TN",
+"website": "https://www.memphistn.gov/",
+"pop": 633104
+},
+{
+"name": "Morristown",
+"state": "TN",
+"website": "http://www.mymorristown.com",
+"pop": 30431
+},
+{
+"name": "Mt. Juliet",
+"state": "TN",
+"website": "http://www.cityofmtjuliet.org/",
+"pop": 39289
+},
+{
+"name": "Murfreesboro",
+"state": "TN",
+"website": "https://www.murfreesborotn.gov/",
+"pop": 152769
+},
+{
+"name": "Oak Ridge",
+"state": "TN",
+"website": "http://www.cortn.org/",
+"pop": 31402
+},
+{
+"name": "Spring Hill",
+"state": "TN",
+"website": "http://www.springhilltn.org",
+"pop": 50005
+},
+{
+"name": "Abilene",
+"state": "TX",
+"website": "http://www.abilenetx.com/",
+"pop": 125182
+},
+{
+"name": "Allen",
+"state": "TX",
+"website": "http://www.cityofallen.org",
+"pop": 104627
+},
+{
+"name": "Alvin",
+"state": "TX",
+"website": "http://www.alvin-tx.gov/",
+"pop": 27098
+},
+{
+"name": "Amarillo",
+"state": "TX",
+"website": "https://www.amarillo.gov",
+"pop": 200393
+},
+{
+"name": "Arlington",
+"state": "TX",
+"website": "http://www.arlingtontx.gov/",
+"pop": 394266
+},
+{
+"name": "Balch Springs",
+"state": "TX",
+"website": "http://www.cityofbalchsprings.com/",
+"pop": 27685
+},
+{
+"name": "Baytown",
+"state": "TX",
+"website": "http://www.baytown.org",
+"pop": 83701
+},
+{
+"name": "Beaumont",
+"state": "TX",
+"website": "https://www.beaumonttexas.gov",
+"pop": 115282
+},
+{
+"name": "Bedford",
+"state": "TX",
+"website": "http://www.bedfordtx.gov/",
+"pop": 49928
+},
+{
+"name": "Big Spring",
+"state": "TX",
+"website": "http://www.mybigspring.com/",
+"pop": 26144
+},
+{
+"name": "Brownsville",
+"state": "TX",
+"website": "http://www.cob.us/",
+"pop": 186738
+},
+{
+"name": "Bryan",
+"state": "TX",
+"website": "https://bryantx.gov",
+"pop": 83980
+},
+{
+"name": "Burleson",
+"state": "TX",
+"website": "http://www.burlesontx.com/",
+"pop": 47641
+},
+{
+"name": "Carrollton",
+"state": "TX",
+"website": "http://www.cityofcarrollton.com/",
+"pop": 133434
+},
+{
+"name": "Cedar Hill",
+"state": "TX",
+"website": "http://ci.cedarhill.tx.us/",
+"pop": 49148
+},
+{
+"name": "Cedar Park",
+"state": "TX",
+"website": "http://www.cedarparktx.us/",
+"pop": 77595
+},
+{
+"name": "Cibolo",
+"state": "TX",
+"website": "http://www.cibolotx.gov",
+"pop": 32276
+},
+{
+"name": "Cleburne",
+"state": "TX",
+"website": "http://www.cleburne.net/",
+"pop": 31352
+},
+{
+"name": "College Station",
+"state": "TX",
+"website": "http://www.cstx.gov/",
+"pop": 120511
+},
+{
+"name": "Colleyville",
+"state": "TX",
+"website": "http://www.colleyville.com/",
+"pop": 26057
+},
+{
+"name": "Conroe",
+"state": "TX",
+"website": "http://www.cityofconroe.org/",
+"pop": 89956
+},
+{
+"name": "Converse",
+"state": "TX",
+"website": "http://www.conversetx.net",
+"pop": 27466
+},
+{
+"name": "Coppell",
+"state": "TX",
+"website": "http://www.coppelltx.gov/",
+"pop": 42983
+},
+{
+"name": "Copperas Cove",
+"state": "TX",
+"website": "http://www.copperascovetx.gov/",
+"pop": 36670
+},
+{
+"name": "Corpus Christi",
+"state": "TX",
+"website": "http://www.cctexas.com/",
+"pop": 317863
+},
+{
+"name": "Corsicana",
+"state": "TX",
+"website": "http://www.ci.corsicana.tx.us/",
+"pop": 25109
+},
+{
+"name": "Dallas",
+"state": "TX",
+"website": "https://dallascityhall.com",
+"pop": 1304379
+},
+{
+"name": "DeSoto",
+"state": "TX",
+"website": "http://www.ci.desoto.tx.us/",
+"pop": 56145
+},
+{
+"name": "Deer Park",
+"state": "TX",
+"website": "http://www.deerparktx.gov/",
+"pop": 34495
+},
+{
+"name": "Del Rio",
+"state": "TX",
+"website": "https://www.cityofdelrio.com/",
+"pop": 34673
+},
+{
+"name": "Denton",
+"state": "TX",
+"website": "https://www.cityofdenton.com/",
+"pop": 139869
+},
+{
+"name": "Duncanville",
+"state": "TX",
+"website": "http://www.duncanville.com/",
+"pop": 40706
+},
+{
+"name": "Eagle Pass",
+"state": "TX",
+"website": "http://www.eaglepasstx.us/",
+"pop": 28130
+},
+{
+"name": "Edinburg",
+"state": "TX",
+"website": "https://cityofedinburg.com/",
+"pop": 100243
+},
+{
+"name": "El Paso",
+"state": "TX",
+"website": "https://www.elpasotexas.gov/",
+"pop": 678815
+},
+{
+"name": "Euless",
+"state": "TX",
+"website": "http://www.eulesstx.gov/",
+"pop": 61032
+},
+{
+"name": "Farmers Branch",
+"state": "TX",
+"website": "http://www.farmersbranch.info/",
+"pop": 35991
+},
+{
+"name": "Fort Worth",
+"state": "TX",
+"website": "https://www.fortworthtexas.gov/",
+"pop": 918915
+},
+{
+"name": "Friendswood",
+"state": "TX",
+"website": "http://www.ci.friendswood.tx.us",
+"pop": 41213
+},
+{
+"name": "Frisco",
+"state": "TX",
+"website": "https://www.friscotexas.gov/",
+"pop": 200509
+},
+{
+"name": "Galveston",
+"state": "TX",
+"website": "https://galvestontx.gov",
+"pop": 53695
+},
+{
+"name": "Garland",
+"state": "TX",
+"website": "https://www.garlandtx.gov/",
+"pop": 246018
+},
+{
+"name": "Georgetown",
+"state": "TX",
+"website": "http://www.georgetown.org/",
+"pop": 67176
+},
+{
+"name": "Grand Prairie",
+"state": "TX",
+"website": "http://www.gptx.org/",
+"pop": 196100
+},
+{
+"name": "Grapevine",
+"state": "TX",
+"website": "http://www.grapevinetexas.gov/",
+"pop": 50631
+},
+{
+"name": "Greenville",
+"state": "TX",
+"website": "https://www.ci.greenville.tx.us/",
+"pop": 28164
+},
+{
+"name": "Harker Heights",
+"state": "TX",
+"website": "http://www.ci.harker-heights.tx.us/",
+"pop": 33097
+},
+{
+"name": "Harlingen",
+"state": "TX",
+"website": "http://www.myharlingen.us/",
+"pop": 71829
+},
+{
+"name": "Houston",
+"state": "TX",
+"website": "https://www.houstontx.gov/",
+"pop": 2304580
+},
+{
+"name": "Huntsville",
+"state": "TX",
+"website": "http://www.huntsvilletx.gov/",
+"pop": 45941
+},
+{
+"name": "Hurst",
+"state": "TX",
+"website": "http://www.ci.hurst.tx.us/",
+"pop": 40413
+},
+{
+"name": "Irving",
+"state": "TX",
+"website": "https://www.irvingtexas.com/",
+"pop": 256684
+},
+{
+"name": "Keller",
+"state": "TX",
+"website": "http://www.cityofkeller.com/",
+"pop": 45776
+},
+{
+"name": "Killeen",
+"state": "TX",
+"website": "http://www.ci.killeen.tx.us/",
+"pop": 153095
+},
+{
+"name": "Kingsville",
+"state": "TX",
+"website": "https://www.cityofkingsville.com/",
+"pop": 25402
+},
+{
+"name": "La Porte",
+"state": "TX",
+"website": "http://www.ci.la-porte.tx.us/",
+"pop": 35124
+},
+{
+"name": "Lake Jackson",
+"state": "TX",
+"website": "https://www.lakejackson-tx.gov/",
+"pop": 28177
+},
+{
+"name": "Lancaster",
+"state": "TX",
+"website": "http://www.lancaster-tx.com/",
+"pop": 41275
+},
+{
+"name": "League City",
+"state": "TX",
+"website": "http://www.leaguecity.com/",
+"pop": 114392
+},
+{
+"name": "Leander",
+"state": "TX",
+"website": "http://www.ci.leander.tx.us",
+"pop": 59202
+},
+{
+"name": "Lewisville",
+"state": "TX",
+"website": "http://www.cityoflewisville.com/",
+"pop": 111822
+},
+{
+"name": "Little Elm",
+"state": "TX",
+"website": "http://www.littleelm.org",
+"pop": 46453
+},
+{
+"name": "Longview",
+"state": "TX",
+"website": "https://longviewtexas.gov/",
+"pop": 81638
+},
+{
+"name": "Lubbock",
+"state": "TX",
+"website": "http://www.ci.lubbock.tx.us/",
+"pop": 257141
+},
+{
+"name": "Lufkin",
+"state": "TX",
+"website": "http://www.cityoflufkin.com/",
+"pop": 34143
+},
+{
+"name": "Mansfield",
+"state": "TX",
+"website": "http://www.mansfield-tx.gov/",
+"pop": 72602
+},
+{
+"name": "McAllen",
+"state": "TX",
+"website": "http://www.mcallen.net/",
+"pop": 142210
+},
+{
+"name": "McKinney",
+"state": "TX",
+"website": "https://www.mckinneytexas.org/",
+"pop": 195308
+},
+{
+"name": "Mesquite",
+"state": "TX",
+"website": "https://www.cityofmesquite.com",
+"pop": 150108
+},
+{
+"name": "Midland",
+"state": "TX",
+"website": "http://www.midlandtexas.gov",
+"pop": 132524
+},
+{
+"name": "Midlothian",
+"state": "TX",
+"website": "http://www.midlothian.tx.us/",
+"pop": 35125
+},
+{
+"name": "Mission",
+"state": "TX",
+"website": "https://missiontexas.us/",
+"pop": 85778
+},
+{
+"name": "Nacogdoches",
+"state": "TX",
+"website": "http://www.ci.nacogdoches.tx.us/",
+"pop": 32147
+},
+{
+"name": "New Braunfels",
+"state": "TX",
+"website": "https://newbraunfels.gov/",
+"pop": 90403
+},
+{
+"name": "Odessa",
+"state": "TX",
+"website": "http://www.odessa-tx.gov/",
+"pop": 114428
+},
+{
+"name": "Pasadena",
+"state": "TX",
+"website": "https://www.pasadenatx.gov/",
+"pop": 151950
+},
+{
+"name": "Pearland",
+"state": "TX",
+"website": "https://www.pearlandtx.gov/",
+"pop": 125828
+},
+{
+"name": "Pflugerville",
+"state": "TX",
+"website": "http://www.cityofpflugerville.com",
+"pop": 65191
+},
+{
+"name": "Pharr",
+"state": "TX",
+"website": "https://www.pharr-tx.gov/",
+"pop": 79715
+},
+{
+"name": "Plano",
+"state": "TX",
+"website": "http://www.plano.gov",
+"pop": 285494
+},
+{
+"name": "Port Arthur",
+"state": "TX",
+"website": "https://www.portarthurtx.gov/",
+"pop": 56039
+},
+{
+"name": "Richardson",
+"state": "TX",
+"website": "https://www.cor.net",
+"pop": 119469
+},
+{
+"name": "Rockwall",
+"state": "TX",
+"website": "http://www.rockwall.com/",
+"pop": 47251
+},
+{
+"name": "Rosenberg",
+"state": "TX",
+"website": "http://www.ci.rosenberg.tx.us/",
+"pop": 38282
+},
+{
+"name": "Round Rock",
+"state": "TX",
+"website": "http://www.roundrocktexas.gov/",
+"pop": 119468
+},
+{
+"name": "Rowlett",
+"state": "TX",
+"website": "http://www.ci.rowlett.tx.us/",
+"pop": 62535
+},
+{
+"name": "Sachse",
+"state": "TX",
+"website": "http://www.cityofsachse.com/",
+"pop": 27103
+},
+{
+"name": "San Angelo",
+"state": "TX",
+"website": "https://www.cosatx.us/",
+"pop": 99893
+},
+{
+"name": "San Marcos",
+"state": "TX",
+"website": "https://www.sanmarcostx.gov/",
+"pop": 67553
+},
+{
+"name": "Schertz",
+"state": "TX",
+"website": "http://schertz.com",
+"pop": 42002
+},
+{
+"name": "Seguin",
+"state": "TX",
+"website": "http://www.seguintexas.gov/",
+"pop": 29433
+},
+{
+"name": "Sherman",
+"state": "TX",
+"website": "https://www.ci.sherman.tx.us/",
+"pop": 43645
+},
+{
+"name": "Socorro",
+"state": "TX",
+"website": "http://www.ci.socorro.tx.us",
+"pop": 34306
+},
+{
+"name": "Sugar Land",
+"state": "TX",
+"website": "https://www.sugarlandtx.gov/",
+"pop": 111026
+},
+{
+"name": "Temple",
+"state": "TX",
+"website": "https://www.templetx.gov/",
+"pop": 82073
+},
+{
+"name": "Texarkana",
+"state": "TX",
+"website": "http://www.ci.texarkana.tx.us/",
+"pop": 36193
+},
+{
+"name": "The Colony",
+"state": "TX",
+"website": "https://www.thecolonytx.gov",
+"pop": 44534
+},
+{
+"name": "Tyler",
+"state": "TX",
+"website": "https://www.cityoftyler.org",
+"pop": 105995
+},
+{
+"name": "University Park",
+"state": "TX",
+"website": "http://www.uptexas.org/",
+"pop": 25278
+},
+{
+"name": "Victoria",
+"state": "TX",
+"website": "http://www.cob.us/",
+"pop": 65534
+},
+{
+"name": "Waco",
+"state": "TX",
+"website": "http://www.waco-texas.com/",
+"pop": 138486
+},
+{
+"name": "Waxahachie",
+"state": "TX",
+"website": "https://www.waxahachie.com",
+"pop": 41140
+},
+{
+"name": "Weatherford",
+"state": "TX",
+"website": "http://www.ci.weatherford.tx.us",
+"pop": 30854
+},
+{
+"name": "Weslaco",
+"state": "TX",
+"website": "http://www.weslacotx.gov/",
+"pop": 40160
+},
+{
+"name": "Wichita Falls",
+"state": "TX",
+"website": "http://www.wichitafallstx.gov/",
+"pop": 102316
+},
+{
+"name": "Wylie",
+"state": "TX",
+"website": "http://www.ci.wylie.tx.us",
+"pop": 57526
+},
+{
+"name": "American Fork",
+"state": "UT",
+"website": "http://www.afcity.org/",
+"pop": 33337
+},
+{
+"name": "Bountiful",
+"state": "UT",
+"website": "https://www.bountifulutah.gov/",
+"pop": 45762
+},
+{
+"name": "Cedar City",
+"state": "UT",
+"website": "http://www.cedarcity.org/",
+"pop": 35235
+},
+{
+"name": "Clearfield",
+"state": "UT",
+"website": "http://www.clearfieldcity.org/",
+"pop": 31909
+},
+{
+"name": "Cottonwood Heights",
+"state": "UT",
+"website": "http://www.cottonwoodheights.utah.gov/",
+"pop": 33617
+},
+{
+"name": "Draper",
+"state": "UT",
+"website": "https://www.draperutah.gov/",
+"pop": 51017
+},
+{
+"name": "Eagle Mountain",
+"state": "UT",
+"website": "http://www.eaglemountaincity.com/",
+"pop": 43623
+},
+{
+"name": "Herriman",
+"state": "UT",
+"website": "http://www.herriman.gov",
+"pop": 55144
+},
+{
+"name": "Holladay",
+"state": "UT",
+"website": "http://www.cityofholladay.com/",
+"pop": 31965
+},
+{
+"name": "Kaysville",
+"state": "UT",
+"website": "http://www.kaysvillecity.com/",
+"pop": 32945
+},
+{
+"name": "Layton",
+"state": "UT",
+"website": "http://www.laytoncity.org/",
+"pop": 81773
+},
+{
+"name": "Lehi",
+"state": "UT",
+"website": "https://www.lehi-ut.gov",
+"pop": 75907
+},
+{
+"name": "Logan",
+"state": "UT",
+"website": "http://www.loganutah.org/",
+"pop": 52778
+},
+{
+"name": "Magna",
+"state": "UT",
+"website": "http://www.magnautah.org",
+"pop": 29251
+},
+{
+"name": "Midvale",
+"state": "UT",
+"website": "http://www.midvalecity.org/",
+"pop": 36028
+},
+{
+"name": "Millcreek",
+"state": "UT",
+"website": "https://millcreekut.org/",
+"pop": 63380
+},
+{
+"name": "Murray",
+"state": "UT",
+"website": "https://www.murray.utah.gov/",
+"pop": 50637
+},
+{
+"name": "Orem",
+"state": "UT",
+"website": "https://orem.org/",
+"pop": 98129
+},
+{
+"name": "Pleasant Grove",
+"state": "UT",
+"website": "http://www.plgrove.org/",
+"pop": 37726
+},
+{
+"name": "Provo",
+"state": "UT",
+"website": "https://www.provo.org/",
+"pop": 115162
+},
+{
+"name": "Riverton",
+"state": "UT",
+"website": "https://www.rivertoncity.com",
+"pop": 45285
+},
+{
+"name": "Roy",
+"state": "UT",
+"website": "http://www.royutah.org/",
+"pop": 39306
+},
+{
+"name": "Sandy",
+"state": "UT",
+"website": "http://www.sandy.utah.gov/",
+"pop": 96904
+},
+{
+"name": "Saratoga Springs",
+"state": "UT",
+"website": "https://www.saratogaspringscity.com/",
+"pop": 37696
+},
+{
+"name": "South Jordan",
+"state": "UT",
+"website": "https://www.sjc.utah.gov",
+"pop": 77487
+},
+{
+"name": "South Salt Lake",
+"state": "UT",
+"website": "http://www.southsaltlakecity.com/",
+"pop": 26777
+},
+{
+"name": "Spanish Fork",
+"state": "UT",
+"website": "https://www.spanishfork.org/",
+"pop": 42602
+},
+{
+"name": "Springville",
+"state": "UT",
+"website": "http://www.springville.org/",
+"pop": 35268
+},
+{
+"name": "St. George",
+"state": "UT",
+"website": "https://www.sgcity.org/",
+"pop": 95342
+},
+{
+"name": "Syracuse",
+"state": "UT",
+"website": "http://www.syracuseut.com/",
+"pop": 32141
+},
+{
+"name": "Taylorsville",
+"state": "UT",
+"website": "http://www.taylorsvilleut.gov/",
+"pop": 60448
+},
+{
+"name": "Tooele",
+"state": "UT",
+"website": "https://www.tooelecity.gov/",
+"pop": 35742
+},
+{
+"name": "Washington",
+"state": "UT",
+"website": "http://www.washingtoncity.org/",
+"pop": 27993
+},
+{
+"name": "West Jordan",
+"state": "UT",
+"website": "https://www.westjordan.utah.gov/",
+"pop": 116961
+},
+{
+"name": "West Valley City",
+"state": "UT",
+"website": "https://www.wvc-ut.gov/",
+"pop": 140230
+},
+{
+"name": "Burlington",
+"state": "VT",
+"website": "https://www.burlingtonvt.gov/",
+"pop": 44743
+},
+{
+"name": "Auburn",
+"state": "WA",
+"website": "https://www.auburnwa.gov/",
+"pop": 87256
+},
+{
+"name": "Bellevue",
+"state": "WA",
+"website": "https://bellevuewa.gov",
+"pop": 151854
+},
+{
+"name": "Bellingham",
+"state": "WA",
+"website": "https://cob.org/",
+"pop": 91482
+},
+{
+"name": "Bothell",
+"state": "WA",
+"website": "https://bothellwa.gov",
+"pop": 48161
+},
+{
+"name": "Bremerton",
+"state": "WA",
+"website": "https://bremertonwa.gov",
+"pop": 43505
+},
+{
+"name": "Burien",
+"state": "WA",
+"website": "https://burienwa.gov",
+"pop": 52066
+},
+{
+"name": "Camas",
+"state": "WA",
+"website": "https://www.cityofcamas.us/",
+"pop": 26065
+},
+{
+"name": "Des Moines",
+"state": "WA",
+"website": "https://desmoineswa.gov",
+"pop": 32888
+},
+{
+"name": "Edmonds",
+"state": "WA",
+"website": "https://www.edmondswa.gov/",
+"pop": 42853
+},
+{
+"name": "Everett",
+"state": "WA",
+"website": "https://everettwa.gov",
+"pop": 110629
+},
+{
+"name": "Federal Way",
+"state": "WA",
+"website": "https://federalwaywa.gov",
+"pop": 101030
+},
+{
+"name": "Issaquah",
+"state": "WA",
+"website": "https://issaquahwa.gov/",
+"pop": 40051
+},
+{
+"name": "Kennewick",
+"state": "WA",
+"website": "https://www.go2kennewick.com/",
+"pop": 83921
+},
+{
+"name": "Kent",
+"state": "WA",
+"website": "https://kentwa.gov",
+"pop": 136588
+},
+{
+"name": "Kirkland",
+"state": "WA",
+"website": "http://www.kirklandwa.gov/",
+"pop": 92175
+},
+{
+"name": "Lacey",
+"state": "WA",
+"website": "https://cityoflacey.org/",
+"pop": 53526
+},
+{
+"name": "Lake Stevens",
+"state": "WA",
+"website": "http://www.lakestevenswa.gov/",
+"pop": 35630
+},
+{
+"name": "Lakewood",
+"state": "WA",
+"website": "http://www.cityoflakewood.us/",
+"pop": 63612
+},
+{
+"name": "Longview",
+"state": "WA",
+"website": "https://www.mylongview.com/",
+"pop": 37818
+},
+{
+"name": "Lynnwood",
+"state": "WA",
+"website": "http://www.lynnwoodwa.gov/",
+"pop": 38568
+},
+{
+"name": "Maple Valley",
+"state": "WA",
+"website": "https://maplevalleywa.gov",
+"pop": 28013
+},
+{
+"name": "Marysville",
+"state": "WA",
+"website": "http://www.marysvillewa.gov/",
+"pop": 70714
+},
+{
+"name": "Mercer Island",
+"state": "WA",
+"website": "https://mercerisland.gov",
+"pop": 25748
+},
+{
+"name": "Moses Lake",
+"state": "WA",
+"website": "http://www.cityofml.com/",
+"pop": 25146
+},
+{
+"name": "Mount Vernon",
+"state": "WA",
+"website": "https://mountvernonwa.gov",
+"pop": 35219
+},
+{
+"name": "Olympia",
+"state": "WA",
+"website": "https://olympiawa.gov",
+"pop": 55605
+},
+{
+"name": "Pasco",
+"state": "WA",
+"website": "http://www.pasco-wa.gov/",
+"pop": 77108
+},
+{
+"name": "Pullman",
+"state": "WA",
+"website": "http://www.pullman-wa.gov/",
+"pop": 32901
+},
+{
+"name": "Puyallup",
+"state": "WA",
+"website": "http://www.cityofpuyallup.org/",
+"pop": 42973
+},
+{
+"name": "Redmond",
+"state": "WA",
+"website": "https://redmond.gov",
+"pop": 73256
+},
+{
+"name": "Renton",
+"state": "WA",
+"website": "http://www.rentonwa.gov/",
+"pop": 106785
+},
+{
+"name": "Richland",
+"state": "WA",
+"website": "http://www.ci.richland.wa.us/",
+"pop": 60560
+},
+{
+"name": "Sammamish",
+"state": "WA",
+"website": "http://www.ci.sammamish.wa.us/",
+"pop": 67455
+},
+{
+"name": "SeaTac",
+"state": "WA",
+"website": "https://www.seatacwa.gov/",
+"pop": 31454
+},
+{
+"name": "Seattle",
+"state": "WA",
+"website": "https://seattle.gov",
+"pop": 737015
+},
+{
+"name": "Shoreline",
+"state": "WA",
+"website": "https://www.shorelinewa.gov/",
+"pop": 58608
+},
+{
+"name": "Spokane",
+"state": "WA",
+"website": "http://www.spokanecity.org/",
+"pop": 228989
+},
+{
+"name": "Spokane Valley",
+"state": "WA",
+"website": "https://www.spokanevalley.org/",
+"pop": 102976
+},
+{
+"name": "Tacoma",
+"state": "WA",
+"website": "https://www.cityoftacoma.org/",
+"pop": 219346
+},
+{
+"name": "Tumwater",
+"state": "WA",
+"website": "http://www.ci.tumwater.wa.us",
+"pop": 25350
+},
+{
+"name": "University Place",
+"state": "WA",
+"website": "http://cityofup.com/",
+"pop": 34866
+},
+{
+"name": "Vancouver",
+"state": "WA",
+"website": "https://www.cityofvancouver.us/",
+"pop": 190915
+},
+{
+"name": "Walla Walla",
+"state": "WA",
+"website": "https://www.wallawallawa.gov/",
+"pop": 34060
+},
+{
+"name": "Wenatchee",
+"state": "WA",
+"website": "http://www.wenatcheewa.gov",
+"pop": 35508
+},
+{
+"name": "Yakima",
+"state": "WA",
+"website": "http://www.ci.yakima.wa.us/",
+"pop": 96968
+},
+{
+"name": "Appleton",
+"state": "WI",
+"website": "https://www.appleton.org/",
+"pop": 75644
+},
+{
+"name": "Beloit",
+"state": "WI",
+"website": "http://www.beloitwi.gov",
+"pop": 36657
+},
+{
+"name": "Brookfield",
+"state": "WI",
+"website": "https://www.ci.brookfield.wi.us/",
+"pop": 41464
+},
+{
+"name": "De Pere",
+"state": "WI",
+"website": "http://www.de-pere.org/",
+"pop": 25410
+},
+{
+"name": "Eau Claire",
+"state": "WI",
+"website": "http://www.eauclairewi.gov",
+"pop": 69421
+},
+{
+"name": "Fitchburg",
+"state": "WI",
+"website": "http://city.fitchburg.wi.us/",
+"pop": 29609
+},
+{
+"name": "Fond du Lac",
+"state": "WI",
+"website": "https://www.fdl.wi.gov/",
+"pop": 44678
+},
+{
+"name": "Franklin",
+"state": "WI",
+"website": "http://www.franklinwi.gov/",
+"pop": 36816
+},
+{
+"name": "Green Bay",
+"state": "WI",
+"website": "http://www.ci.green-bay.wi.us",
+"pop": 107395
+},
+{
+"name": "Greenfield",
+"state": "WI",
+"website": "http://www.ci.greenfield.wi.us/",
+"pop": 37803
+},
+{
+"name": "Janesville",
+"state": "WI",
+"website": "https://www.ci.janesville.wi.us/",
+"pop": 65615
+},
+{
+"name": "Kenosha",
+"state": "WI",
+"website": "https://www.kenosha.org/",
+"pop": 99986
+},
+{
+"name": "La Crosse",
+"state": "WI",
+"website": "https://www.cityoflacrosse.org/",
+"pop": 52680
+},
+{
+"name": "Manitowoc",
+"state": "WI",
+"website": "https://www.manitowoc.org/",
+"pop": 34626
+},
+{
+"name": "Menomonee Falls",
+"state": "WI",
+"website": "https://www.menomoneefalls.gov/",
+"pop": 38527
+},
+{
+"name": "Mequon",
+"state": "WI",
+"website": "http://www.ci.mequon.wi.us",
+"pop": 25142
+},
+{
+"name": "Muskego",
+"state": "WI",
+"website": "http://www.cityofmuskego.org/",
+"pop": 25032
+},
+{
+"name": "Neenah",
+"state": "WI",
+"website": "http://www.ci.neenah.wi.us/",
+"pop": 27319
+},
+{
+"name": "New Berlin",
+"state": "WI",
+"website": "https://www.newberlin.org/",
+"pop": 40451
+},
+{
+"name": "Oak Creek",
+"state": "WI",
+"website": "http://www.oakcreekwi.org/",
+"pop": 36497
+},
+{
+"name": "Racine",
+"state": "WI",
+"website": "http://www.cityofracine.org",
+"pop": 77816
+},
+{
+"name": "Stevens Point",
+"state": "WI",
+"website": "http://www.stevenspoint.com/",
+"pop": 25666
+},
+{
+"name": "Superior",
+"state": "WI",
+"website": "http://www.ci.superior.wi.us/",
+"pop": 26751
+},
+{
+"name": "Waukesha",
+"state": "WI",
+"website": "http://www.ci.waukesha.wi.us",
+"pop": 71158
+},
+{
+"name": "Wausau",
+"state": "WI",
+"website": "http://www.ci.wausau.wi.us/",
+"pop": 39994
+},
+{
+"name": "Wauwatosa",
+"state": "WI",
+"website": "http://www.wauwatosa.net/",
+"pop": 48387
+},
+{
+"name": "West Allis",
+"state": "WI",
+"website": "http://www.ci.west-allis.wi.us/",
+"pop": 60325
+},
+{
+"name": "West Bend",
+"state": "WI",
+"website": "https://www.westbendwi.gov/",
+"pop": 31752
+},
+{
+"name": "Charleston",
+"state": "WV",
+"website": "https://www.charlestonwv.gov/",
+"pop": 48864
+},
+{
+"name": "Huntington",
+"state": "WV",
+"website": "https://www.cityofhuntington.com/",
+"pop": 46842
+},
+{
+"name": "Morgantown",
+"state": "WV",
+"website": "https://www.morgantownwv.gov/",
+"pop": 30347
+},
+{
+"name": "Parkersburg",
+"state": "WV",
+"website": "http://www.parkersburg-wv.com",
+"pop": 29738
+},
+{
+"name": "Wheeling",
+"state": "WV",
+"website": "http://www.wheelingwv.gov",
+"pop": 27052
+},
+{
+"name": "Casper",
+"state": "WY",
+"website": "http://www.casperwy.gov",
+"pop": 59038
+},
+{
+"name": "Cheyenne",
+"state": "WY",
+"website": "https://www.cheyennecity.org/",
+"pop": 65132
+},
+{
+"name": "Gillette",
+"state": "WY",
+"website": "https://www.gillettewy.gov/",
+"pop": 33403
+},
+{
+"name": "Laramie",
+"state": "WY",
+"website": "https://www.cityoflaramie.org",
+"pop": 31407
+}
+]
