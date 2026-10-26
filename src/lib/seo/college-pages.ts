@@ -19,7 +19,7 @@ export const areaSlug = (code: string): string => (isCollegeTerritory(code) ? te
 export const areaName = (code: string): string => COLLEGE_TERRITORIES[code] ?? stateName(code)
 const COLLEGE_AREAS = [...ALL_STATE_CODES, ...Object.keys(COLLEGE_TERRITORIES)]
 import { getStateBoards, type PublicBoard } from '@/lib/seo/workforce-pages'
-import { COLLEGE_SLUG_RE, COLLEGE_TERRITORIES, collegeIndexable, collegePath, collegeSlugs, isCollegeTerritory, territorySlug, unitidFromSlug } from '@/lib/seo/college-bar'
+import { COLLEGE_SLUG_RE, COLLEGE_TERRITORIES, collegeIndexable, collegePath, collegeSlugs, functionsForMajors, isCollegeTerritory, territorySlug, unitidFromSlug } from '@/lib/seo/college-bar'
 
 // Public college pages (/higher-education/<state>/<college>): IPEDS and College Scorecard facts for the college, the
 // job market in its county, the workforce board and American Job Centers that serve it, and peer colleges in its
@@ -40,6 +40,7 @@ export interface CollegeFacts {
   carnegie: number | null
   enrollment: number | null
   annualAwards: number | null
+  alumniReported: number | null
   tuitionInState: number | null
   tuitionOutState: number | null
   netPrice: number | null
@@ -62,11 +63,17 @@ export interface CollegeListing extends CollegeFacts {
 }
 
 export interface LocalMarket {
-  county: { name: string; slug: string; fips: string; unemploymentRate: number | null; asOf: string | null; population: number | null }
+  county: {
+    name: string; slug: string; fips: string; unemploymentRate: number | null; unemploymentRatePrior: number | null; asOf: string | null; population: number | null
+    medianHouseholdIncome: number | null; whiteCollarShare: number | null; wcUnemploymentEst: number | null
+  }
   jobsOpen: number
   entryLevel: number
   noExperience: number
   aiSkill: number
+  /** Open jobs in the functions that hire for this college's biggest fields of study. */
+  matchedFunctions: { function: string; count: number }[]
+  matchedFields: string[]
   topFunctions: { function: string; count: number }[]
   topEmployers: { name: string; openRoles: number; href: string | null }[]
 }
@@ -121,7 +128,7 @@ export const getStateCollegeListings = cache(async (state: string): Promise<Coll
       unitid: p.unitid, state, name: p.name, city: p.city ?? l?.city ?? null, zip: p.zip ?? l?.zip ?? null,
       countyFips: p.countyFips ?? l?.countyFips ?? null, website: p.website ?? l?.website ?? null,
       control: p.control, level: p.level, carnegie: l?.carnegie ?? null,
-      enrollment: p.enrollment, annualAwards: p.annualAwards, tuitionInState: p.tuitionInState, tuitionOutState: p.tuitionOutState,
+      enrollment: p.enrollment, annualAwards: p.annualAwards, alumniReported: p.alumniReported, tuitionInState: p.tuitionInState, tuitionOutState: p.tuitionOutState,
       netPrice: p.netPrice, earnings6: p.earnings6, earnings10: p.earnings10, employedShare10: p.employedShare10,
       completionRate: p.completionRate, hasExecEd: p.hasExecEd, hasRetraining: p.hasRetraining, topMajors: asMajors(p.topMajors),
       dataYear: p.dataYear, updatedAt: p.updatedAt, crmOrgId: l?.crmOrgId ?? null,
@@ -134,7 +141,7 @@ export const getStateCollegeListings = cache(async (state: string): Promise<Coll
     const level = l.sector ? ([1, 2, 3].includes(l.sector) ? '4-year' : [4, 5, 6].includes(l.sector) ? '2-year' : null) : null
     facts.push({
       unitid: l.id, state, name: l.name, city: l.city, zip: l.zip, countyFips: l.countyFips, website: l.website, control, level, carnegie: l.carnegie,
-      enrollment: null, annualAwards: null, tuitionInState: null, tuitionOutState: null, netPrice: null, earnings6: null, earnings10: null,
+      enrollment: null, annualAwards: null, alumniReported: null, tuitionInState: null, tuitionOutState: null, netPrice: null, earnings6: null, earnings10: null,
       employedShare10: null, completionRate: null, hasExecEd: null, hasRetraining: null, topMajors: [], dataYear: null, updatedAt: l.updatedAt, crmOrgId: l.crmOrgId,
     })
   }
@@ -161,7 +168,7 @@ export const getStateCollegeListings = cache(async (state: string): Promise<Coll
 
 const citySpellings = (name: string, key: string) => [...new Set([key, name.toLowerCase(), name.toLowerCase().replace(/\bsaint\b/g, 'st').replace(/\bst\.\s*/g, 'st ')])]
 
-async function localMarket(state: string, county: County): Promise<LocalMarket | null> {
+async function localMarket(state: string, county: County, majors: CollegeFacts['topMajors']): Promise<LocalMarket | null> {
   const places = (await getStateCityPlaces(state)).filter((p) => p.county === county.name)
   const spellings = [...new Set(places.flatMap((p) => citySpellings(p.name, p.key)))]
   if (spellings.length === 0) return null
@@ -175,7 +182,7 @@ async function localMarket(state: string, county: County): Promise<LocalMarket |
       FROM "ExclusiveJobPosting" ${where}`,
     prisma.$queryRaw<{ f: string; n: number }[]>`
       SELECT "targetFunction" AS f, count(*)::int AS n FROM "ExclusiveJobPosting" ${where} AND "targetFunction" IS NOT NULL
-      GROUP BY 1 ORDER BY n DESC, f LIMIT 6`,
+      GROUP BY 1 ORDER BY n DESC, f`,
     prisma.$queryRaw<{ name: string; n: number; cn: string | null; cid: string | null; linkable: boolean | null }[]>`
       SELECT g.name, g.n, c."canonicalNameNormalized" AS cn, c.id AS cid, (p."openNow" >= 3) AS linkable
       FROM (SELECT "companyName" AS name, "companyId" AS cid, count(*)::int AS n FROM "ExclusiveJobPosting" ${where} AND "companyName" !~* '^(confidential|undisclosed|stealth)'
@@ -184,10 +191,18 @@ async function localMarket(state: string, county: County): Promise<LocalMarket |
       LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
       ORDER BY g.n DESC, g.name`,
   ])
+  const byFunction = new Map(fns.map((r) => [r.f, r.n]))
+  const match = functionsForMajors(majors)
   return {
-    county: { name: county.name, slug: county.slug, fips: county.fips, unemploymentRate: county.unemploymentRate, asOf: county.asOf, population: county.population },
+    county: {
+      name: county.name, slug: county.slug, fips: county.fips, unemploymentRate: county.unemploymentRate, unemploymentRatePrior: county.unemploymentRatePrior,
+      asOf: county.asOf, population: county.population, medianHouseholdIncome: county.medianHouseholdIncome, whiteCollarShare: county.whiteCollarShare,
+      wcUnemploymentEst: county.wcUnemploymentEst,
+    },
     jobsOpen: tot?.n ?? 0, entryLevel: tot?.entry ?? 0, noExperience: tot?.noexp ?? 0, aiSkill: tot?.ai ?? 0,
-    topFunctions: fns.map((r) => ({ function: r.f, count: r.n })),
+    matchedFunctions: match.functions.map((f) => ({ function: f, count: byFunction.get(f) ?? 0 })).filter((x) => x.count > 0),
+    matchedFields: match.fields,
+    topFunctions: fns.slice(0, 6).map((r) => ({ function: r.f, count: r.n })),
     topEmployers: emps.map((r) => ({ name: r.name, openRoles: r.n, href: r.linkable && r.cn && r.cid ? `/employers/${employerSlug(r.cn, r.cid)}` : null })),
   }
 }
@@ -208,7 +223,7 @@ export async function getCollegePage(stateCode: string, slug: string): Promise<(
   const counties = c.countyFips ? await getStateCounties(stateCode) : []
   const county = counties.find((x) => x.fips === c.countyFips) ?? null
   const [market, boards, centers] = await Promise.all([
-    county ? localMarket(stateCode, county) : Promise.resolve(null),
+    county ? localMarket(stateCode, county, c.topMajors) : Promise.resolve(null),
     county ? getStateBoards(stateCode) : Promise.resolve([]),
     c.countyFips ? prisma.americanJobCenter.findMany({ where: { countyFips: c.countyFips }, select: { name: true, city: true, phone: true, hours: true, detailsUrl: true }, orderBy: { name: 'asc' }, take: 6 }) : Promise.resolve([]),
   ])

@@ -26,6 +26,11 @@ export function generateStaticParams() {
 const n0 = (n: number) => n.toLocaleString('en-US')
 const usd = (n: number) => `$${n0(Math.round(n))}`
 const pct = (x: number) => `${Math.round(x * 100)}%`
+const trend = (now: number, prior: number | null) => {
+  if (prior == null) return ''
+  const d = Math.round((now - prior) * 10) / 10
+  return d === 0 ? 'unchanged from a year earlier' : `${d > 0 ? 'up' : 'down'} ${Math.abs(d).toFixed(1)} points from a year earlier`
+}
 const kind = (c: CollegePageData) => [c.control, c.level].filter(Boolean).join(' ').toLowerCase()
 
 function description(c: CollegePageData, st: string): string {
@@ -110,6 +115,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
         <h2 id="facts" className={H2}>{c.name} at a glance</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {c.enrollment != null && <Stat value={n0(c.enrollment)} label="students enrolled" />}
+          {c.alumniReported != null && <Stat value={n0(c.alumniReported)} label="alumni, as the college reports" />}
           {c.annualAwards != null && <Stat value={n0(c.annualAwards)} label="degrees and certificates a year" />}
           {c.completionRate != null && <Stat value={pct(c.completionRate)} label="of students complete" note="College Scorecard" />}
           {c.netPrice != null && <Stat value={usd(c.netPrice)} label="average net price a year" note={c.tuitionInState != null ? `Tuition ${usd(c.tuitionInState)}${c.tuitionOutState != null && c.tuitionOutState !== c.tuitionInState ? ` in state, ${usd(c.tuitionOutState)} out of state` : ''}` : undefined} />}
@@ -154,8 +160,16 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
             <Stat value={n0(m.jobsOpen)} label="open professional jobs" />
             <Stat value={n0(m.entryLevel)} label="entry level" note={m.noExperience > 0 ? `${n0(m.noExperience)} say no experience is needed` : undefined} />
             <Stat value={m.jobsOpen > 0 ? pct(m.aiSkill / m.jobsOpen) : '0%'} label="ask for AI skills" note={`${n0(m.aiSkill)} jobs`} />
-            {m.county.unemploymentRate != null && <Stat value={`${m.county.unemploymentRate.toFixed(1)}%`} label={`unemployment in ${m.county.name}`} note={m.county.asOf ?? undefined} />}
+            {m.county.unemploymentRate != null && <Stat value={`${m.county.unemploymentRate.toFixed(1)}%`} label={`unemployment in ${m.county.name}`} note={[m.county.asOf, trend(m.county.unemploymentRate, m.county.unemploymentRatePrior)].filter(Boolean).join(' · ') || undefined} />}
+            {m.county.medianHouseholdIncome != null && <Stat value={usd(m.county.medianHouseholdIncome)} label="median household income" note={m.county.name} />}
+            {m.county.whiteCollarShare != null && <Stat value={pct(m.county.whiteCollarShare)} label="of workers are in professional jobs" note={m.county.wcUnemploymentEst != null ? `estimated ${m.county.wcUnemploymentEst.toFixed(1)}% unemployment among them` : undefined} />}
           </ul>
+          {m.matchedFunctions.length > 0 && (
+            <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">Jobs that fit what students study here:</span> most degrees are in {m.matchedFields.map((f) => f.toLowerCase()).join(', ')}, which lead to{' '}
+              {m.matchedFunctions.map((f, i) => <span key={f.function}>{i > 0 && ', '}<Link href={functionPath(f.function)} className={LINK}>{f.function.toLowerCase()}</Link> ({n0(f.count)} open)</span>)}.
+            </p>
+          )}
           {m.topEmployers.length > 0 && (
             <p className="mt-4 max-w-3xl text-sm text-muted-foreground">
               <span className="font-medium text-foreground">Hiring most:</span>{' '}

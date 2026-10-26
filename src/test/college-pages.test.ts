@@ -73,3 +73,23 @@ describe('territories', () => {
     expect(territoryFromSlug('kentucky')).toBeNull()
   })
 })
+
+describe('majors to job functions', () => {
+  it('maps the largest mapped fields, skips unmapped ones, no repeats', async () => {
+    const { functionsForMajors } = await import('@/lib/seo/college-bar')
+    const r = functionsForMajors([
+      { field: 'Liberal arts & general studies', share: 0.4 },
+      { field: 'Business & management', share: 0.3 },
+      { field: 'Engineering', share: 0.2 },
+      { field: 'Computer & information sciences', share: 0.1 },
+    ])
+    expect(r.fields).toEqual(['Business & management', 'Engineering', 'Computer & information sciences'])
+    expect(r.functions.slice(0, 3)).toEqual(['Finance', 'Sales', 'Operations'])
+    expect(new Set(r.functions).size).toBe(r.functions.length)
+    expect(r.functions.length).toBeLessThanOrEqual(6)
+  })
+  it('returns nothing for a college with only unmapped fields', async () => {
+    const { functionsForMajors } = await import('@/lib/seo/college-bar')
+    expect(functionsForMajors([{ field: 'Theology', share: 1 }])).toEqual({ functions: [], fields: [] })
+  })
+})
