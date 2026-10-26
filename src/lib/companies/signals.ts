@@ -15,7 +15,7 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 // additive-and-minimal), every "open roles as of date X" query below fetches
 // the whole date-windowed row set once and groups it in memory by
 // normalizeOrgName(companyName) — three bulk queries total for the entire
-// nightly run, not one query per company.
+// nightly run (the two older dates are counted in SQL), not one query per company.
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -63,6 +63,26 @@ async function openPostingsAsOfGrouped(asOf: Date): Promise<Map<string, PostingR
     else grouped.set(key, [row])
   }
   return grouped
+}
+
+// The 4- and 12-week comparisons only need how many roles an employer had then, not the postings
+// themselves, so count in SQL (one row per employer name) instead of pulling every open posting
+// of that date into memory. Same grouping key and same exclusions as openPostingsAsOfGrouped.
+async function openCountsAsOf(asOf: Date): Promise<Map<string, number>> {
+  const rows = await prisma.$queryRaw<{ companyName: string; n: number }[]>`
+    SELECT "companyName", count(*)::int AS n
+    FROM public."ExclusiveJobPosting"
+    WHERE "institutionScopeId" IS NULL AND "createdAt" <= ${asOf}
+      AND ("archivedAt" IS NULL OR "archivedAt" > ${asOf})
+    GROUP BY "companyName"`
+
+  const counts = new Map<string, number>()
+  for (const row of rows) {
+    const key = normalizeOrgName(row.companyName)
+    if (!key) continue
+    counts.set(key, (counts.get(key) ?? 0) + row.n)
+  }
+  return counts
 }
 
 // rolesDelta12wk relative-change thresholds — a company needs BOTH a 15%
@@ -147,10 +167,10 @@ export async function computeAllCompanySignals(asOf: Date = new Date()): Promise
   const fourWeeksAgo = new Date(asOf.getTime() - 28 * DAY_MS)
   const twelveWeeksAgo = new Date(asOf.getTime() - 84 * DAY_MS)
 
-  const [currentGrouped, fourWeeksAgoGrouped, twelveWeeksAgoGrouped] = await Promise.all([
+  const [currentGrouped, fourWeeksAgoCounts, twelveWeeksAgoCounts] = await Promise.all([
     openPostingsAsOfGrouped(asOf),
-    openPostingsAsOfGrouped(fourWeeksAgo),
-    openPostingsAsOfGrouped(twelveWeeksAgo),
+    openCountsAsOf(fourWeeksAgo),
+    openCountsAsOf(twelveWeeksAgo),
   ])
 
   const results: ComputedCompanySignal[] = []
@@ -159,8 +179,8 @@ export async function computeAllCompanySignals(asOf: Date = new Date()): Promise
   for (const [companyNameNormalized, current] of currentGrouped) {
     const openRolesTotal = current.length
     const openRolesDirectorPlus = current.filter((p) => isDirectorPlus(p.level)).length
-    const past4wk = fourWeeksAgoGrouped.get(companyNameNormalized)?.length ?? 0
-    const past12wk = twelveWeeksAgoGrouped.get(companyNameNormalized)?.length ?? 0
+    const past4wk = fourWeeksAgoCounts.get(companyNameNormalized) ?? 0
+    const past12wk = twelveWeeksAgoCounts.get(companyNameNormalized) ?? 0
     const rolesDelta4wk = openRolesTotal - past4wk
     const rolesDelta12wk = openRolesTotal - past12wk
     // No roles 12 weeks ago: only call it growing if we were plausibly already
