@@ -10,6 +10,8 @@ import { frontDoorUrl } from '@/lib/organizations/front-door'
 import { organizationOverview } from '@/lib/organizations/overview'
 import { describeAuditAction } from '@/lib/partners/audit-labels'
 import { EmployerSectionPlans } from '@/components/admin/EmployerSectionPlans'
+import { EmployerWorkspaceControls } from '@/components/admin/EmployerWorkspaceControls'
+import { loadStaffSectionViews } from '@/lib/employer/staff-workspaces'
 import { WORKSPACE_PLANS } from '@/lib/employer/plans'
 import { EMPLOYER_SECTIONS, sectionForWorkspaceType } from '@/lib/employer/sections'
 
@@ -27,7 +29,12 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
   if (!org) notFound()
   const owned = ownedTypes(org)
   const on = resolveIntegrations(org.features, owned)
-  const refs = org.workspaces.filter((w) => w.refId).map((w) => ({ portal: w.type, refId: w.refId as string }))
+  // Sections that are not linked to a portal record yet keep their audit entries under the workspace's own id.
+  const refs = org.workspaces.flatMap((w) => [
+    ...(w.refId ? [{ portal: w.type, refId: w.refId }] : []),
+    ...(sectionForWorkspaceType(w.type) ? [{ portal: w.type, refId: w.id }] : []),
+  ])
+  const staffViews = await loadStaffSectionViews(org.id)
   const overview = await organizationOverview(org.workspaces)
   const sectionRows = EMPLOYER_SECTIONS.flatMap((sec) => {
     const w = org.workspaces.find((x) => sectionForWorkspaceType(x.type)?.key === sec.key)
@@ -88,6 +95,9 @@ export default async function OrganizationPage({ params }: { params: Promise<{ i
             rows={sectionRows}
             plans={WORKSPACE_PLANS}
           />
+          <h3 className="pt-4 text-base font-semibold">Section access</h3>
+          <p className="text-sm text-muted-foreground">A verified claim creates a pending section. Activate it, link its employer record and choose who is on its team here. Nothing is granted automatically, and no contract or seat is created.</p>
+          <EmployerWorkspaceControls views={staffViews.views} loadError={staffViews.error ?? null} />
         </section>
       )}
 
