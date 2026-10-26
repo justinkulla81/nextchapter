@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
+import { readJsonGz, STATE_BUCKET, writeJsonGz } from '@/lib/syndication/storage'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { PUBLIC_JOB_LIVE_SQL, PUBLIC_JOB_STATIC_SQL } from '@/lib/jobs/public-job-page-server'
@@ -349,13 +350,30 @@ export async function indexableOrgPages(kind: OrgPageKind): Promise<SitemapOrg[]
   return (await summarizeOrgPages())[kind].indexable
 }
 
-const cachedSummary = unstable_cache(async () => {
-  const all = await summarizeOrgPages()
-  return Object.fromEntries(Object.entries(all).map(([k, v]) => [k, { pages: v.pages, indexable: v.indexable.map((p) => ({ path: p.path, lastModified: p.lastModified.toISOString() })) }]))
-}, ['org-pages-summary'], { revalidate: 21600 })
+const serialize = (all: Record<OrgPageKind, OrgPageSummary>) =>
+  Object.fromEntries(Object.entries(all).map(([k, v]) => [k, { pages: v.pages, indexable: v.indexable.map((p) => ({ path: p.path, lastModified: p.lastModified.toISOString() })) }]))
+type SavedSummary = Record<string, { pages: number; indexable: { path: string; lastModified: string }[] }>
 
-/** The sitemap list, kept for six hours: it walks every state once for all three kinds. */
+const SUMMARY_PATH = 'org-pages/summary.json.gz'
+
+/** Walks every state and saves the list where the sitemaps read it. The daily cron (indexnow-org-pages) calls this. */
+export async function saveOrgPageSummary(): Promise<Record<OrgPageKind, OrgPageSummary>> {
+  const all = await summarizeOrgPages()
+  await writeJsonGz(STATE_BUCKET, SUMMARY_PATH, { v: 1, builtAt: new Date().toISOString(), summary: serialize(all) })
+  return all
+}
+
+// Fallback when nothing has been saved yet (first deploy, or storage unavailable): walk the states, once per six hours.
+const walkedSummary = unstable_cache(async () => serialize(await summarizeOrgPages()), ['org-pages-summary'], { revalidate: 21600 })
+
+const savedSummary = unstable_cache(
+  async (): Promise<SavedSummary | null> => (await readJsonGz<{ summary: SavedSummary }>(STATE_BUCKET, SUMMARY_PATH).catch(() => null))?.summary ?? null,
+  ['org-pages-saved-summary'],
+  { revalidate: 600 },
+)
+
+/** The sitemap list: the copy the daily cron saved (read in milliseconds), else a walk of the states. */
 export async function cachedIndexableOrgPages(kind: OrgPageKind): Promise<SitemapOrg[]> {
-  const all = (await cachedSummary()) as Record<string, { indexable: { path: string; lastModified: string }[] }>
+  const all = (await savedSummary()) ?? ((await walkedSummary()) as SavedSummary)
   return all[kind].indexable.map((p) => ({ path: p.path, lastModified: new Date(p.lastModified) }))
 }
