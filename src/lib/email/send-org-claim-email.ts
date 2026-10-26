@@ -53,3 +53,14 @@ export function sendOrgClaimAdminEmail(p: { orgName: string; name: string; title
     'organization claim admin',
   )
 }
+
+/** The one-time link that confirms the work email behind an employer statement. */
+export function sendEmployerStatementLinkEmail(p: { to: string; name: string; orgName: string; verifyUrl: string; days: number }): Promise<boolean> {
+  return send(
+    'organization', p.to, `Confirm your statement on the ${p.orgName} page`,
+    shell(
+      `<p>Hi ${esc(p.name)},</p><p>Someone asked to add a statement next to a layoff notice on the ${esc(p.orgName)} page on NextChapter with this email address. To confirm it was you, use the button below. A person on our team reads every statement before it is shown.</p><p><a href="${esc(p.verifyUrl)}" style="display:inline-block;margin-top:8px;padding:12px 20px;background:#2e7d5b;color:#ffffff;border-radius:999px;text-decoration:none;font-weight:600">Confirm my statement</a></p><p style="color:#485872;font-size:13px">The link works once and expires in ${p.days} days. If it was not you, ignore this email and nothing happens.</p>`,
+    ),
+    'employer statement link',
+  )
+}
