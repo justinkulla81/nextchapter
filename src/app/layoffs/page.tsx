@@ -46,6 +46,7 @@ export default async function LayoffsHubPage() {
             <h2 id="use-data" className="text-xl font-semibold tracking-tight text-navy">Use the layoff data</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               <li><Link href="/layoffs/this-week" className={LINK}>Layoffs this week</Link>: notices filed in the last seven days.</li>
+              <li><Link href="/layoffs/week" className={LINK}>Layoffs by week</Link>, every week of the last two years.</li>
               <li><Link href="/data" className={LINK}>Download the WARN record</Link> as CSV or JSON, free to reuse with a link back.</li>
               <li><Link href="/data/embed" className={LINK}>Embed layoff notices</Link> for any state on your site, or <Link href="/feeds/layoffs" className={LINK}>subscribe by RSS</Link>.</li>
             </ul>

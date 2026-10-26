@@ -7,6 +7,9 @@ export const metadata: Metadata = pageMetadata('/tools')
 
 const TOOLS = [
   { href: '/tools/layoff-deadlines', name: 'Layoff deadlines', body: 'Enter your last day to see when to file for unemployment and choose health coverage.' },
+  { href: '/tools/layoff-runway', name: 'Layoff runway', body: 'See how many months your savings, severance and benefits will last.' },
+  { href: '/tools/unemployment-estimator', name: 'Unemployment benefit estimator', body: 'A planning estimate of your weekly benefit and the weeks it can last, by state.' },
+  { href: '/tools/salary-converter', name: 'Salary converter', body: 'Hourly to yearly, monthly, weekly and back, for any schedule.' },
   { href: '/tools/pay-check', name: 'Pay check', body: 'See where your salary sits against what employers list for your job title.' },
   { href: '/tools/resume-check', name: 'Résumé check', body: 'Paste your résumé to get a score out of 100 and see what to fix.' },
   { href: '/tools/severance-calculator', name: 'Severance calculator', body: 'Turn years of service and pay into the common range of one to two weeks per year.' },
