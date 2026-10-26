@@ -14849,6 +14849,7 @@ model ConferenceEvent {
   opportunities    ConferenceOpportunity[]
   changes          ConferenceChange[]
   employers        ConferenceEmployer[]
+  speakers         ConferenceSpeaker[]
 
   @@index([published, startDate])
   @@index([importance])
@@ -17021,6 +17022,27 @@ model CompetitorCapability {
 
 // ---- Conferences v2: editions, opportunities, member tracking, change review (prisma/manual/conferences-v2.sql) ----
 // ConferenceEvent above IS the series (one row per recurring event); these tables hang off it.
+
+/// A named speaker on a conference's own program: keynote, panelist, moderator or session speaker, with the page it was read from.
+/// Shown on the public conference page (/conferences/<id>). Names, titles and organizations are copied as the event publishes them, never inferred.
+/// Applied by hand: prisma/manual/conference-speakers.sql.
+/// kind: KEYNOTE | PANELIST | MODERATOR | SPEAKER
+model ConferenceSpeaker {
+  id           String          @id @default(cuid())
+  seriesId     String
+  series       ConferenceEvent @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  name         String
+  title        String?
+  organization String?
+  kind         String          @default("SPEAKER")
+  sessionTitle String?
+  year         Int?
+  sourceUrl    String
+  createdAt    DateTime        @default(now())
+
+  @@unique([seriesId, name, kind])
+  @@index([seriesId])
+}
 
 /// An employer known to exhibit at, sponsor, speak at or attend a conference, with where we read it.
 /// Shown on the public conference page (/conferences/<id>). Empty until filled from exhibitor lists,
