@@ -140,6 +140,7 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
               <th className="pb-1 text-right font-normal">Reached</th>
               <th className="pb-1 text-right font-normal">Gave</th>
               <th className="pb-1 text-right font-normal">Rate</th>
+              <th className="pb-1 text-right font-normal">Later registered</th>
             </tr>
           </thead>
           <tbody>
@@ -154,6 +155,7 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
                   <td className="py-1.5 text-right tabular-nums">{o.reached.toLocaleString('en-US')}</td>
                   <td className="py-1.5 text-right tabular-nums">{o.captured.toLocaleString('en-US')}</td>
                   <td className="py-1.5 text-right tabular-nums">{pct(o.captured, o.reached)}</td>
+                  <td className="py-1.5 text-right tabular-nums">{o.becameMembers === null ? '–' : o.becameMembers}</td>
                 </tr>
               ))}
           </tbody>

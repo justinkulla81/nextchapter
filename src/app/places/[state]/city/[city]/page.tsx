@@ -12,6 +12,7 @@ import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getCityPage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
 import { titleMeta } from '@/lib/seo/title'
+import { SaveSearchForm } from '@/components/home/SaveSearchForm'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -68,6 +69,10 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       <JobList id="jobs" title={`Jobs in ${p.name}`} jobs={d.jobs}
         searchHref={`/jobs?loc=${encodeURIComponent(`${p.name}, ${code}`)}`} searchLabel={`Search all jobs in ${p.name}`}
         event="place_jobs_search_clicked" properties={{ level: 'city', state: code, city: p.slug }} />
+
+      <div className="mt-8">
+        <SaveSearchForm q="" loc={`${p.name}, ${code}`} remote={false} source="page:place" heading={`Get new jobs in ${p.name} by email`} blurb="We’ll email you when new jobs are posted here. No account needed." cta="Email me new jobs" />
+      </div>
 
       <EmployerList id="hiring" title={`Employers hiring most in ${p.name}`} items={d.hiring} />
       <HeadquarteredList id="largest" title={`Largest employers headquartered in ${p.name}`} items={d.headquartered} />

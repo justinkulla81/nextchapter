@@ -40,3 +40,17 @@ export async function claimSavedJobs(candidateId: string, email: string | null):
   if (claimed > 0) captureServerEvent(candidateId, 'saved_jobs_claimed', { count: claimed, fromCookie: fromCookie.length, fromEmail: fromEmail.length })
   return claimed
 }
+
+// Which offer a new member first came in through: their earliest saved lead by this email, if any. One
+// server event (mirrored to AnalyticsEvent) so the admin funnel can count members per offer. Never blocks registration.
+export async function recordLeadConversion(candidateId: string, email: string | null): Promise<void> {
+  if (!email) return
+  const lead = await prisma.homepageLead.findFirst({
+    where: { email: email.toLowerCase() },
+    orderBy: { createdAt: 'asc' },
+    select: { kind: true, source: true, createdAt: true },
+  })
+  if (!lead) return
+  const days = Math.max(0, Math.round((Date.now() - lead.createdAt.getTime()) / 86_400_000))
+  captureServerEvent(candidateId, 'lead_became_member', { kind: lead.kind, source: lead.source, daysToRegister: days })
+}

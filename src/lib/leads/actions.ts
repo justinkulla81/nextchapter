@@ -129,6 +129,8 @@ export async function saveJobSearchAlert(_prev: SavedSearchState, formData: Form
   const email = text(formData, 'email', 200).toLowerCase()
   if (!EMAIL.test(email)) return { error: 'Enter a valid email address.', email }
   const query = cleanPublicQuery({ q: text(formData, 'q', 100), loc: text(formData, 'loc', 100), remote: text(formData, 'remote', 5) })
+  // Which page's box: the search results ('jobs') or an employer, job-title, salary or place page. Anything else is 'jobs'.
+  const alertSource = /^page:(employer|title|salary|place)$/.test(text(formData, 'source', 30)) ? text(formData, 'source', 30) : 'jobs'
 
   if (!(await allowByIp('job-alert', 10, HOUR_MS)) || !(await allowByTarget('job-alert', email, 5, DAY_MS))) {
     return { error: 'Too many requests from this network. Try again later.', email }
@@ -143,7 +145,7 @@ export async function saveJobSearchAlert(_prev: SavedSearchState, formData: Form
     })
     const lead = existing
       ? await prisma.homepageLead.update({ where: { id: existing.id }, data: { unsubscribedAt: null }, select: { id: true, unsubscribeToken: true, confirmedAt: true, confirmSentAt: true } })
-      : await prisma.homepageLead.create({ data: { ...key, source: 'jobs', ip }, select: { id: true, unsubscribeToken: true, confirmedAt: true, confirmSentAt: true } })
+      : await prisma.homepageLead.create({ data: { ...key, source: alertSource, ip }, select: { id: true, unsubscribeToken: true, confirmedAt: true, confirmSentAt: true } })
 
     // Double opt-in: one confirmation email per saved search (again after a day if it was never clicked).
     // Sends only when JOB_ALERT_EMAILS=1 and under the daily cap.
@@ -152,7 +154,7 @@ export async function saveJobSearchAlert(_prev: SavedSearchState, formData: Form
     const confirmEmailed = needsConfirm
       ? await sendJobAlertConfirmation({ id: lead.id, email, unsubscribeToken: lead.unsubscribeToken, searchQ: key.searchQ, searchLoc: key.searchLoc, searchRemote: key.searchRemote })
       : false
-    captureServerEvent(email, 'job_alert_signup_submitted', { q: query.q, loc: query.loc, remote: query.remote, returning: !!existing })
+    captureServerEvent(email, 'job_alert_signup_submitted', { source: alertSource, q: query.q, loc: query.loc, remote: query.remote, returning: !!existing })
     captureServerEvent(email, 'alert_subscribed', { q: query.q, loc: query.loc, remote: query.remote, confirmEmailed, returning: !!existing })
     return { saved: true, email, confirmEmailed }
   } catch (error) {

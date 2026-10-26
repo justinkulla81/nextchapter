@@ -9,7 +9,24 @@ import { SaveJourneyStep } from '@/components/jobs/SaveJourneyStep'
 
 // "Email me new jobs like this" on the results page. It saves the search with the email. While the alert
 // emails are off the confirmation says so plainly; once they are on it asks for the confirm click.
-export function SaveSearchForm({ q, loc, remote }: { q: string; loc: string; remote: boolean }) {
+export function SaveSearchForm({
+  q,
+  loc,
+  remote,
+  source,
+  heading = 'Email me new jobs like this',
+  blurb = 'We save this search and tell you when new matches are ready. No account needed.',
+  cta = 'Save this search',
+}: {
+  q: string
+  loc: string
+  remote: boolean
+  /** The page type whose box this is: 'page:employer' | 'page:title' | 'page:salary' | 'page:place'. Search results leave it out. */
+  source?: string
+  heading?: string
+  blurb?: string
+  cta?: string
+}) {
   const [state, action, pending] = useActionState<SavedSearchState, FormData>(saveJobSearchAlert, undefined)
 
   if (state?.saved) {
@@ -32,10 +49,11 @@ export function SaveSearchForm({ q, loc, remote }: { q: string; loc: string; rem
       action={action}
       noValidate
       className={cn('rounded-2xl border border-border bg-white p-4', pending && 'cursor-wait')}
-      onSubmit={() => posthog.capture('job_alert_signup_submitted_client', { q, loc, remote })}
+      onSubmit={() => posthog.capture('job_alert_signup_submitted_client', { q, loc, remote, source: source ?? 'jobs' })}
     >
-      <p className="text-sm font-semibold">Email me new jobs like this</p>
-      <p className="mt-0.5 text-xs text-muted-foreground">We save this search and tell you when new matches are ready. No account needed.</p>
+      <p className="text-sm font-semibold">{heading}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{blurb}</p>
+      {source && <input type="hidden" name="source" value={source} />}
       <input type="hidden" name="q" value={q} />
       <input type="hidden" name="loc" value={loc} />
       <input type="hidden" name="remote" value={remote ? '1' : ''} />
@@ -57,7 +75,7 @@ export function SaveSearchForm({ q, loc, remote }: { q: string; loc: string; rem
           className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base"
         />
         <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
-          {pending ? 'Saving…' : 'Save this search'}
+          {pending ? 'Saving…' : cta}
         </Button>
       </div>
       {state?.error && (
