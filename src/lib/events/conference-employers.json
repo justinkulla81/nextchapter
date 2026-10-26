@@ -21702,5 +21702,1673 @@
 "year": 2027,
 "sourceUrl": "https://www.world-hydrogen-summit.com/americas/en-gb/about/supporters.html"
 }
+],
+"icba-live": [
+{
+"name": "Potomac Bank",
+"role": "SPEAKER",
+"year": 2027,
+"sourceUrl": "https://www.icba.org/speakers-at-icba-live"
+},
+{
+"name": "ChoiceOne Bank",
+"role": "SPEAKER",
+"year": 2027,
+"sourceUrl": "https://www.icba.org/speakers-at-icba-live"
+}
+],
+"pdac-convention": [
+{
+"name": "BHP",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://pdac.ca/convention-2027/sponsorship-2027"
+},
+{
+"name": "Teck",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://pdac.ca/convention-2027/sponsorship-2027"
+},
+{
+"name": "Agnico Eagle",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://pdac.ca/convention-2027/sponsorship-2027"
+},
+{
+"name": "Anglo American",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://pdac.ca/convention-2027/sponsorship-2027"
+},
+{
+"name": "South32",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://pdac.ca/convention-2027/sponsorship-2027"
+},
+{
+"name": "Vale Base Metals",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://pdac.ca/convention-2027/sponsorship-2027"
+}
+],
+"imex-america": [
+{
+"name": "AIPC",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "ASAE",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Destinations International",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "IAEE",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "IAPCO",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "ICCA",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "PCMA",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "SITE",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "ExpoFP",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Expo Platform",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Snapsight",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Northstar",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Prevue",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Skal",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Smart Meetings",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Travel2Latam",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Travel and Tour World",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "USAE",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Voyages Afriq",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Black Meetings & Tourism",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "ConventionPlanit",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Eventoplus",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Eventos",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "EventPoint",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Evintra",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Facilities and Destinations",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "GrupoPuntoMICE",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Informa",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Mash Media",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "MEETINGSNET",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Meetings Today",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "AFR",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "AMC Institute",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Caesars",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "City Destinations Alliance",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Conference Direct",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "CORT Events",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Maritz Global Events",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "Meet Green",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+},
+{
+"name": "GES",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://america.imexevents.com/all-partners"
+}
+],
+"awwa-annual-conference-exposition-ace27": [
+{
+"name": "Mueller",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Xylem",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Kamstrup",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Brita",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Arup",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Garney Construction",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "M.E. Simpson",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Birchtech",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Black & Veatch",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "CDM Smith",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "HDR",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "DIPRA",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Jacobs",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "ZENNER",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Autodesk",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "LoRa Alliance",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Metron",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Schneider Electric",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "QuenchBuggy",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Neptune",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Geospace",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "J & S Valve",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "American Cast Iron Pipe",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+},
+{
+"name": "Badger Meter",
+"role": "SPONSOR",
+"year": 2026,
+"sourceUrl": "https://ace.awwa.org/sponsors/"
+}
+],
+"icra": [
+{
+"name": "Holiday Robotics",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "Genrobot",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "TARS",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "AeiROBOT",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "CMES KOREA",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "maxon motor Korea",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "KIRO",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "Ningbo Boden AI Technology Co., Ltd",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "ROBROS",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+},
+{
+"name": "Neuromeka",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://2027.ieee-icra.org/partners/confirmed-partners-and-exhibitors/"
+}
+],
+"adlm-annual-meeting": [
+{
+"name": "77 Elektronika Ltd.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Aalto Scientific, Ltd.- Audit MicroControls",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "AB Medical, Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Abbott",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "ABLE Labs Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Access Bio, Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Acenth",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Acon Laboratories, Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "ADLM",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Advy Biosciences Private Limited",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Affinity Biologicals",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "AFP",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Agappe  Diagnostics Switzerland GmbH",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Agilent Technologies",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Ahlstrom Filtration LLC",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Akuratemp LLC",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Aladdin Scientific",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "ALCOR Scientific LLC",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Alfa Scientific Designs, Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "ALine, Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "AliveDx",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Alltrista Plastics",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Alps Dx Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "altona Diagnostics USA, Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Aluris Sciences",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Amano Enzyme USA Co., Ltd.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "American Proficiency Institute",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Analyticon Biotechnologies GmbH",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "ANHUI DEEPBLUE MEDICAL TECHNOLOGY CO., LTD.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Aniara Diagnostica",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Ansh Labs, LLC",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "AnteoTech Ltd",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Antibodies Incorporated",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Applied Biocode, Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "APTEC Diagnostics NV",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Aptitude Medical Systems Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Apto-Gen",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Arcmed Group",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "Arete Biosciences",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+},
+{
+"name": "ARK Diagnostics, Inc.",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://events.jspargo.com/ADLM27/public/eventmap.aspx?shMode=E"
+}
+],
+"ata-nexus": [
+{
+"name": "Foley & Lardner LLP",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://ata-nexus.org/sponsors/"
+},
+{
+"name": "Health Recovery Solutions",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://ata-nexus.org/sponsors/"
+},
+{
+"name": "hellocare",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://ata-nexus.org/sponsors/"
+},
+{
+"name": "Logitech",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://ata-nexus.org/sponsors/"
+},
+{
+"name": "Ziegler",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://ata-nexus.org/sponsors/"
+}
+],
+"cleanpower": [
+{
+"name": "Vestas",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "Black & Veatch",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "Blattner Energy",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "Invenergy",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "MasTec",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "Mortenson",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "RNWBL",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "SMA America",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "Training Center of Central Texas",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "TruGrid",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "JFECC",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "Lykos Energy",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "Pack Power",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "SOLV Energy",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+},
+{
+"name": "PowerVotes",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://cleanpower.org/expo"
+}
+],
+"connect-x": [
+{
+"name": "American Tower",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Crown Castle",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Diamond Communications",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Phoenix Tower International",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "SBA Communications",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Vertical Bridge",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Inorsa",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Pacific Technical Solutions",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Array Digital Infrastructure",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Harmoni Towers",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "PerfectVision",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Boldyn Networks",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Sitetracker",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Symphony Wireless",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Galtronics",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Gugli Corporation",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Helium",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Towerco",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "ADB",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Matsing",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Radix IoT",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Solid Technologies",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Tectonic Engineering",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Thayer Wireless Solutions",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "5x5 Technologies",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Airspan",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Andrew",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "APC Towers",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "CCI Systems",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "JMA Wireless",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Tessco",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Wesco",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Valmont Telecom",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Telamon",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Meter",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "OneVizion",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "McGriff Insurance",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Peppertree Capital Management",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+},
+{
+"name": "Everest Infrastructure Partners",
+"role": "SPONSOR",
+"year": null,
+"sourceUrl": "https://connectivityexpo.com/sponsors/"
+}
+],
+"fia-boca": [
+{
+"name": "CME Group",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Coinbase",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "DTCC",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Eurex Frankfurt AG",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "FMX",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Google Cloud",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "ICE",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Kalshi",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "MIAX",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Nasdaq",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "NinjaTrader",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Polymarket",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Topstep",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Trading Technologies International",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Clear Street LLC",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "GuavaTech",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "National Stock Exchange of India",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Kraken",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Ripple",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "A&O Shearman",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Exegy",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "HKEX",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Korn Ferry",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "KRM22",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "LME",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "LSEG",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "MEMX",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "OCC",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "SGX",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "StoneX",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Susquehanna",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Tradeweb Markets",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Abaxx",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Behavox",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Cumulus",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Devexperts",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Exactpro Systems",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "PureStream",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+},
+{
+"name": "Quanthouse",
+"role": "EXHIBITOR",
+"year": 2027,
+"sourceUrl": "https://www.fia.org/fia/events/fia-global-cleared-markets-conference"
+}
+],
+"food-safety-summit": [
+{
+"name": "Elisa",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "Instant Recall",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "Certus",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "Everidge",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "FlexXray",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "GS1",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "Lubriplate",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "NSF",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "Nulogy",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "Provision",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "SGS",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "Testo",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "Trustwell",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "WorkForge",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit"
+},
+{
+"name": "7-Eleven",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "3-A Sanitary Standards Inc.",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "4 Foxes Food Safety",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "80 Acres Farms/Soli Organic",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "A&W Food Services of Canada",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "AB InBev",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "ABM Equipment",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "ACH Food Companies Inc",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "Active Food Safety",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "Advanced Food Diagnostics",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "AFDO",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "AgencyIQ by POLITICO",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "Agropur",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "Algood Food Company",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "Allera Tech",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "Alliance for Advanced Sanitation",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "Alliance to Stop Foodborne Illness",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "American Halal Foundation",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "American Sprinkle Company Inc.",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+},
+{
+"name": "Amerisan",
+"role": "ATTENDEE",
+"year": 2026,
+"sourceUrl": "https://www.food-safety.com/food-safety-summit/registered-companies"
+}
+],
+"geoint-symposium": [
+{
+"name": "Vantor",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Amazon Web Services",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "IonQ",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Capella",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Leidos",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "NVIDIA",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Carahsoft",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "WWT",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Dell",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Esri",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Arcfield",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "KBR",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "MapLarge",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Niantic Spatial",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "GeoSTL",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "ManTech",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Planet",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Riverside Research",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "L3Harris",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+},
+{
+"name": "Peraton",
+"role": "SPONSOR",
+"year": 2027,
+"sourceUrl": "https://usgif.org/geoint-symposium/2027-symposium/"
+}
 ]
 }

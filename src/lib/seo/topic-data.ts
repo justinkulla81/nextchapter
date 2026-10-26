@@ -16,6 +16,7 @@ import { hasUpcomingDates } from '@/lib/events/format'
 import { employersForConference } from '@/lib/events/conference-employers'
 import { speakersForConference, type ConferenceSpeakerRow } from '@/lib/events/conference-speakers'
 import { effectiveFunctions, inferFunctions } from '@/lib/seo/function-inference'
+import { placeLinkCount } from '@/lib/events/conference-place-map'
 import { assessConference, type Assessment } from '@/lib/seo/topic-quality'
 import type { ConferenceRow } from '@/lib/events/types'
 import {
@@ -384,7 +385,7 @@ export const getConferenceAssessments = cache(async (): Promise<Map<string, Asse
   for (const c of catalog) {
     const related = c.industries.length ? Math.max(0, ...c.industries.map((i) => (perIndustry.get(i) ?? 1) - 1)) : 0
     const hasAssoc = !!c.organizer && assocSlugs.has(associationSlug(c.organizer))
-    out.set(c.id, assessConference(c, hasAssoc, related, extraById.get(c.id)))
+    out.set(c.id, assessConference(c, hasAssoc, related, placeLinkCount(c.id, c.state), extraById.get(c.id)))
   }
   return out
 })

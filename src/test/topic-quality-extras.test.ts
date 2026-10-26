@@ -13,13 +13,13 @@ describe('assessConference with employers and speakers', () => {
   })
   it('a sourced employer list and a sourced speaker list each add a fact, and the employer list a link', () => {
     const base = assessConference(thin, false, 0)
-    const richer = assessConference(thin, false, 0, { employers: 12, speakers: 8 })
+    const richer = assessConference(thin, false, 0, 0, { employers: 12, speakers: 8 })
     expect(richer.facts).toBe(base.facts + 2)
     expect(richer.links).toBe(base.links + 1)
   })
   it('crosses the bar when the row is one fact short and has both lists', () => {
     const nearly = { ...thin, seniorities: ['SENIOR'] , whyAttend: 'x'.repeat(50) }
-    const a = assessConference(nearly, false, 0), b = assessConference(nearly, false, 0, { employers: 5, speakers: 5 })
+    const a = assessConference(nearly, false, 0), b = assessConference(nearly, false, 0, 0, { employers: 5, speakers: 5 })
     expect(b.facts).toBeGreaterThan(a.facts)
   })
 })

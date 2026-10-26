@@ -64,17 +64,17 @@ export function conferenceFactCount(c: ConferenceFactInput): number {
 }
 
 /** Internal links the page will carry beyond its breadcrumb: its industries, functions, its organizer's page, and up to three related conferences. */
-export function conferenceLinkCount(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number): number {
-  return c.industries.length + c.functions.length + (hasAssociationPage ? 1 : 0) + Math.min(3, relatedCount)
+export function conferenceLinkCount(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number, placeLinks = 0): number {
+  return c.industries.length + c.functions.length + (hasAssociationPage ? 1 : 0) + Math.min(3, relatedCount) + placeLinks
 }
 
-/** What the page holds beyond the catalog row: employers and named speakers read from the event's own pages, and the place page it links to. */
+/** What the page holds beyond the catalog row: employers and named speakers read from the event's own pages. */
 export interface ConferenceExtras { employers: number; speakers: number }
 
-export function assessConference(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number, extras: ConferenceExtras = { employers: 0, speakers: 0 }): Assessment {
-  // A sourced employer list and a sourced speaker list are each a fact of their own; the page links to its state's place page and, when it has employers, to their pages.
+export function assessConference(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number, placeLinks = 0, extras: ConferenceExtras = { employers: 0, speakers: 0 }): Assessment {
+  // A sourced employer list and a sourced speaker list are each a fact of their own; an employer list also gives the page links to employer pages.
   const facts = conferenceFactCount(c) + (extras.employers > 0 ? 1 : 0) + (extras.speakers > 0 ? 1 : 0)
-  const links = conferenceLinkCount(c, hasAssociationPage, relatedCount) + (c.state ? 1 : 0) + (extras.employers > 0 ? 1 : 0)
+  const links = conferenceLinkCount(c, hasAssociationPage, relatedCount, placeLinks) + (extras.employers > 0 ? 1 : 0)
   return assess(facts, links, CONFERENCE_BAR)
 }
 
