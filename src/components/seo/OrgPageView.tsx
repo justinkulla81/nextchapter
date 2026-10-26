@@ -1,3 +1,4 @@
+import { LocalEventSection } from '@/components/events/LocalEventSection'
 import Link from 'next/link'
 import { H2, LINK, SeoPage, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -55,6 +56,8 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1 }: {
         </ul>
         <p className="mt-3 max-w-3xl text-sm text-muted-foreground">Counts are live postings from employers’ own career sites in the area’s cities, checked daily.</p>
       </section>
+
+      <LocalEventSection id="local-events" title={`Events hosted by ${row.name}`} intro="Job fairs, workshops and business events this organization runs or co-hosts." scope={{ link: { kind: row.kind, id: row.id } }} />
 
       <section aria-labelledby="contact" className="mt-12">
         <h2 id="contact" className={H2}>How to reach it</h2>

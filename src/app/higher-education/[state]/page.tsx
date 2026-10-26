@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { higherEdConferencesIn } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { collegePath } from '@/lib/seo/college-bar'
@@ -94,6 +95,9 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
           </table>
         </div>
       </section>
+
+      <LocalEventSection id="local-events" title={`College career fairs and employer events in ${d.name}`} intro="Career fairs and employer events at colleges, plus hiring and business events nearby." scope={{ state: d.code }} />
+
 
       <ConferenceSection id="conferences" title={`Higher education conferences in ${d.name}`} intro={`Conferences for college and university staff held in ${d.name}: admissions, student affairs, advancement, institutional leadership.`}
         source={`higher_ed_state:${d.code}`} load={() => higherEdConferencesIn(d.code, 24)} more={{ href: '/conferences', label: 'All conferences' }} />

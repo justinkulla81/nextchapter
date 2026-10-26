@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { SeoPage, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, JobList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
@@ -74,6 +75,9 @@ export default async function CityPlacePage({ params }: { params: Promise<{ stat
       <LayoffsSection id="layoffs" title={`${p.name} layoffs`} scope={p.name} stats={d.layoffs} notices={d.notices} trackerHref={`/layoffs/${state}`} />
 
       <CollegeTable id="colleges" title={`Colleges in ${p.name}`} colleges={d.colleges} showCity={false} />
+
+      <LocalEventSection id="local-events" title={`Job fairs and business events in ${p.name}`} intro={`Hiring events, career workshops and business events in ${p.name}.`} scope={{ state: code, cityKey: p.key }} />
+
 
       <ConferenceSection id="conferences" title={`Conferences in ${p.name}`} intro={`Industry conferences and trade shows held in ${p.name}.`}
         source={`place:city:${code}:${p.slug}`} load={() => conferencesAtPlace('city', code, p.slug, 12)} more={{ href: '/conferences', label: 'All conferences' }} />

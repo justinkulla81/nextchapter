@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { conferencesHostedBy, hasHostedConferences } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
@@ -195,6 +196,9 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
           <p className="mt-2 text-xs text-muted-foreground">American Job Centers are free, public career offices.</p>
         </section>
       )}
+
+      <LocalEventSection id="local-events" title={`Job fairs and events with ${c.name}`} intro="Career fairs, employer events and business events this college hosts or joins." scope={{ link: { kind: 'COLLEGE', id: c.unitid } }} />
+
 
       {hasHostedConferences(c.unitid) && (
         <ConferenceSection id="conferences" title={`Conferences hosted by ${c.name}`} intro="Events this college organizes, as named on the event’s own site."
