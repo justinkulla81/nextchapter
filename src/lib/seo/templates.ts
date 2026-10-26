@@ -105,3 +105,29 @@ export const placeCitySeo = (city: string, code: string) => ({
   title: pick(`${city}, ${code} Jobs, Layoffs and Employers`, `${city}, ${code} Jobs and Layoffs`, `${city}, ${code} Jobs`),
   h1: `${city}, ${code} jobs, layoffs and employers`,
 })
+
+/** /salaries/[slug]: the owner of "<title> salary". */
+export const salarySeo = (name: string, median: number | null, payCount: number) => ({
+  title: fit(median ? `${name} Salary: Median $${Math.round(median / 1000)}k, Pay Range` : `${name} Salary and Pay Range`, 60),
+  h1: median ? `${name} salary: median $${Math.round(median).toLocaleString('en-US')} a year` : `${name} salary and pay range`,
+  description: fitDescription(
+    median
+      ? `${name} pay from ${payCount.toLocaleString('en-US')} open job listings that state it: the typical range, median and the states that pay most. Plus current ${name.toLowerCase()} jobs.`
+      : `What ${name.toLowerCase()} roles pay, from current job listings, and the open jobs to apply to.`,
+    160,
+  ),
+})
+
+/** /jobs/title/[slug]: the owner of "<title> jobs". */
+export const titleJobsSeo = (name: string, jobs: number) => ({
+  title: fit(`${name} Jobs: ${jobs.toLocaleString('en-US')} Open Roles`, 60),
+  h1: `${name} jobs: ${jobs.toLocaleString('en-US')} open roles`,
+  description: fitDescription(`${jobs.toLocaleString('en-US')} open ${name.toLowerCase()} jobs from employers’ own career sites, checked within the last week: pay where listed, top employers and states.`, 160),
+})
+
+/** /jobs/type/[type]: remote, hybrid, contract, part-time and interim professional jobs. */
+export const jobTypeSeo = (name: string, noun: string, jobs: number) => ({
+  title: fit(`${name} Professional Jobs: ${jobs.toLocaleString('en-US')} Open Roles`, 60),
+  h1: `${name} professional jobs: ${jobs.toLocaleString('en-US')} open roles`,
+  description: fitDescription(`${jobs.toLocaleString('en-US')} open ${noun} jobs for experienced professionals from employers’ own career sites, checked within the last week. Top titles, states and pay where listed.`, 160),
+})

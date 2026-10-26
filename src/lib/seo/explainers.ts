@@ -193,6 +193,164 @@ export const TOPICS: TopicContent[] = [
     updated: '2026-10-25',
   },
   {
+    slug: 'laid-off-over-40',
+    h1: 'Laid off at 40, 50 or older: what to do next',
+    lede: 'Being laid off later in a career is common, and the law gives workers 40 and older specific protections. The job search itself changes in a few ways: you lean more on your network, you lead with results and you show that your skills are current.',
+    sections: [
+      {
+        h2: 'Know the protections that apply at 40 and older',
+        paragraphs: ['The federal Age Discrimination in Employment Act protects workers 40 and older from age-based discrimination in layoffs and hiring. When an employer asks a worker 40 or older to sign a release in exchange for severance, the Older Workers Benefit Protection Act generally requires at least 21 days to consider it (45 in a group layoff) and 7 days to revoke after signing, and the agreement must be written in plain language.'],
+      },
+      {
+        h2: 'Run the search through people, not only applications',
+        bullets: [
+          'Tell former colleagues, bosses and clients exactly what role you want, and ask who they would introduce you to.',
+          'Reach executive recruiters and search firms in your function with a short note and your resume.',
+          'Use your depth: pitch the problems you have solved, with numbers.',
+        ],
+      },
+      {
+        h2: 'Show that your skills are current',
+        paragraphs: ['Put current tools, methods and recent results near the top of your resume, trim roles older than 15 years to a line, and name the AI and software tools you work with. A recent course or project is a concrete signal.'],
+      },
+    ],
+    faq: [
+      { q: 'Is it harder to find a job after 50?', a: 'Searches for senior professionals often take longer, and they depend more on referrals. Direct outreach to people who know your work usually shortens it.' },
+      { q: 'How long do I have to sign a severance agreement at 50?', a: 'Federal law generally gives workers 40 and older at least 21 days to consider a release (45 days in a group layoff) and 7 days to revoke it after signing.' },
+      { q: 'Should I remove old jobs from my resume?', a: 'Detail the last 10 to 15 years. List earlier roles briefly or leave them off.' },
+    ],
+    cta: { title: 'See how the market reads your background', body: 'The free Market Reality Assessment shows where your experience is strongest and gives you a weekly plan.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-26',
+  },
+  {
+    slug: 'laid-off-no-savings',
+    h1: 'Laid off with no savings: what to do first',
+    lede: 'If you were laid off and have little saved, the order matters: get income started, keep your health coverage from lapsing, cut the costs you can and look for programs that pay for what you need. Do these in the first week, in parallel with your search.',
+    sections: [
+      {
+        h2: 'Start income in the first days',
+        bullets: [
+          'File for unemployment the day you lose the job; benefits generally begin from the date you file.',
+          'Ask the employer for final pay, accrued vacation payout where your state requires it, and any severance in writing.',
+          'Look at interim, contract or part-time work to bridge the gap while you search.',
+        ],
+      },
+      {
+        h2: 'Protect your health coverage',
+        paragraphs: ['You have 60 days to elect COBRA, and coverage is retroactive once you elect it. Compare it with marketplace plans, where losing job-based coverage opens a special enrollment period, and with coverage through a spouse.'],
+      },
+      {
+        h2: 'Find help that pays for things',
+        paragraphs: ['Your local American Job Center and workforce board can point you to training money, and some programs cover relocation, tuition and certifications for laid-off workers. Call your lenders early; many have hardship options.'],
+      },
+    ],
+    faq: [
+      { q: 'What should I do first if I have no savings after a layoff?', a: 'File for unemployment immediately, confirm your final pay, and get your health coverage decision made before the 60-day COBRA deadline.' },
+      { q: 'Can I get help paying bills after a layoff?', a: 'Contact your lenders and utilities about hardship options, and ask your local American Job Center about programs for dislocated workers.' },
+      { q: 'Should I take any job right away?', a: 'A bridge job that covers essentials can be a good call if it leaves time to search. Keep it from crowding out the search itself.' },
+    ],
+    cta: { title: 'Find money and programs you qualify for', body: 'Join NextChapter free and see relocation, tuition and training funding ranked for you.', label: 'See funding for me', href: '/funding' },
+    updated: '2026-10-26',
+  },
+  {
+    slug: 'explain-a-layoff',
+    h1: 'How to explain a layoff in an interview',
+    lede: 'Say it in two sentences: the company cut your role, what you did before and after, and what you want next. Interviewers hear about layoffs often; what they listen for is a calm, factual answer that moves on to your work.',
+    sections: [
+      {
+        h2: 'A simple structure',
+        bullets: [
+          'The fact: “My role was eliminated when the company reduced its team by about a fifth.”',
+          'Your result: one line on what you delivered before that.',
+          'The turn: what you are looking for next and why this role fits.',
+        ],
+      },
+      {
+        h2: 'What to avoid',
+        bullets: [
+          'Criticizing the former employer or colleagues.',
+          'Over-explaining or apologizing; a layoff is not a performance event.',
+          'Vague language that makes it sound like a firing. Say “laid off” or “role eliminated.”',
+        ],
+      },
+      {
+        h2: 'If you were fired, not laid off',
+        paragraphs: ['Keep it just as short and honest: what did not work, what you learned and what you do differently. Then return to your results.'],
+      },
+    ],
+    faq: [
+      { q: 'Should I bring up the layoff or wait to be asked?', a: 'Mention it briefly when you walk through your work history, so it does not seem hidden, and then move on.' },
+      { q: 'What do I say if the company lays off many people?', a: 'Say so. “The company cut about 20 percent of staff” shows the layoff was not about you.' },
+      { q: 'How do I put a layoff on a resume?', a: 'One line is enough, such as “Position eliminated in a reduction in force.” See the resume tips guide.' },
+    ],
+    cta: { title: 'Practice with a coach', body: 'Victoria, the free AI career coach, can run you through the question and tighten your answer.', label: 'Meet the coach', href: '/coaching' },
+    updated: '2026-10-26',
+  },
+  {
+    slug: 'how-to-lay-off-employees',
+    h1: 'How to lay off employees: a checklist for employers',
+    lede: 'A layoff goes best with decisions made once, communicated plainly and backed by support for the people leaving. Check legal notice first, then plan the conversations, the paperwork and the help you offer.',
+    sections: [
+      {
+        h2: 'Before you announce',
+        bullets: [
+          'Check whether the federal WARN Act applies: generally employers with 100 or more employees and a mass layoff or plant closing, which requires 60 days’ written notice. Some states have their own rules.',
+          'Choose the roles by documented, job-related criteria and review the list for disparate impact.',
+          'Decide severance, benefits continuation and the release terms, and the dates that apply.',
+        ],
+      },
+      {
+        h2: 'The day',
+        bullets: [
+          'Tell each person directly, privately and early in the day, with their manager and an HR representative present.',
+          'Say the decision is made, give the facts and the dates, and hand over a written summary of pay, benefits and next steps.',
+          'Tell the remaining team the same day what happened and what changes.',
+        ],
+      },
+      {
+        h2: 'Support for people leaving',
+        paragraphs: ['Point people to unemployment filing, COBRA and their state’s rapid response team, and consider outplacement. Giving a reference and a clear explanation of what you will say to future employers helps them most.'],
+      },
+    ],
+    faq: [
+      { q: 'Do I need to give 60 days’ notice of a layoff?', a: 'Under the federal WARN Act, covered employers must give 60 days’ written notice of a plant closing or mass layoff. Use the WARN Act checker to see whether yours is likely covered.' },
+      { q: 'What is rapid response?', a: 'A state service that helps employers and workers when a layoff is planned. Every state has a team; see the rapid response page for yours.' },
+      { q: 'Should I offer outplacement?', a: 'It is common and helps departing employees find work faster, and it can be part of the severance package.' },
+    ],
+    cta: { title: 'Check whether WARN notice applies', body: 'Enter your headcount and the jobs being cut to see whether 60 days’ notice is likely required.', label: 'Open the WARN Act checker', href: '/tools/warn-act-checker' },
+    updated: '2026-10-26',
+  },
+  {
+    slug: 'cover-letter-tips',
+    h1: 'Cover letter tips for experienced professionals',
+    lede: 'A good cover letter is short: three or four paragraphs that say why this role, why you and what you will do first. Write one when the application invites it, when you are changing fields or when you can name a real connection.',
+    sections: [
+      {
+        h2: 'A structure that works',
+        bullets: [
+          'Opening: the role, and one sentence on why this employer.',
+          'Evidence: two results from your past work that match what the job needs, with numbers.',
+          'Close: what you would do in the first months, and a plain request for a conversation.',
+        ],
+      },
+      {
+        h2: 'Use it to explain what the resume cannot',
+        paragraphs: ['A cover letter is the place to explain a career change, a relocation, a layoff or a gap in two sentences, and to tie your background to the role in your own words.'],
+      },
+      {
+        h2: 'Keep it short',
+        paragraphs: ['Stay under one page, address a person where you can find one, and do not repeat the resume line by line.'],
+      },
+    ],
+    faq: [
+      { q: 'Do I need a cover letter?', a: 'Not always. If the application makes it optional and you have a strong resume, a referral is worth more. Write one when you are changing fields or can add something the resume cannot.' },
+      { q: 'How long should a cover letter be?', a: 'Under one page: three or four short paragraphs.' },
+      { q: 'How do I mention a layoff in a cover letter?', a: 'One factual sentence, then move to what you offer.' },
+    ],
+    cta: { title: 'See how the market reads your background', body: 'The free Market Reality Assessment shows where your experience fits best.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
+    updated: '2026-10-26',
+  },
+  {
     slug: 'executive-recruiters',
     h1: 'Executive recruiters: how to work with search firms',
     lede: 'Executive recruiters, also called headhunters or search firms, are hired by employers to fill senior roles. They are paid by the employer, so they work for the company, not for you. A legitimate recruiter does not charge candidates a fee.',
