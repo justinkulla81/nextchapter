@@ -3,7 +3,8 @@ import { catalogConferences, type CatalogRow } from '@/lib/seo/topic-data'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { collegePath } from '@/lib/seo/college-bar'
 import { getStateCollegeListings } from '@/lib/seo/college-pages'
-import places from './conference-places.json'
+import { PLACES, isHigherEd } from './conference-place-map'
+export { isHigherEd }
 import hosted from './conference-colleges.json'
 
 // Cross-references between conferences and the place and higher-education pages. Nothing here reads the database except through the
@@ -14,7 +15,6 @@ import hosted from './conference-colleges.json'
 //  - Higher education: a conference links to a college page only when the college is its organizer (conference-colleges.json,
 //    exact name match against IPEDS, unambiguous only). Everything else links to the higher-education hub and the state's college list.
 
-const PLACES = places as Record<string, { c?: string; cn?: string; k?: string; kn?: string }>
 const HOSTS = hosted as Record<string, { state: string; unitid: string }>
 
 type Located = { id: string; state: string | null }
@@ -40,14 +40,6 @@ export function conferencesAtPlace(level: 'state' | 'city' | 'county', stateCode
     const p = PLACES[r.id]
     return level === 'city' ? p?.c === slug : p?.k === slug
   }, take)
-}
-
-const K12_ONLY = /k-12|early childhood|education policy|career and technical|adult education/i
-
-/** An education conference for colleges and universities: education industry, unless every segment it names is K-12, early childhood, policy or technical education. */
-export function isHigherEd(r: Pick<CatalogRow, 'industries' | 'segments'>): boolean {
-  if (!r.industries.includes('Education & EdTech')) return false
-  return r.segments.length === 0 || r.segments.some((s) => !K12_ONLY.test(s))
 }
 
 export const higherEdConferencesIn = (stateCode: string, take: number) => catalogConferences((r) => r.state === stateCode && isHigherEd(r), take)

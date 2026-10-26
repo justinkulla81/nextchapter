@@ -3,9 +3,25 @@
   "state": "IN",
   "unitid": "151111"
  },
- "smallsat-conference": {
-  "state": "UT",
-  "unitid": "230728"
+ "carnegie-mellon-sports-analytics-conference": {
+  "state": "PA",
+  "unitid": "211440"
+ },
+ "harvard-women-on-boards": {
+  "state": "MA",
+  "unitid": "166027"
+ },
+ "heckerling-institute": {
+  "state": "FL",
+  "unitid": "135726"
+ },
+ "international-columbia-coaching-conference": {
+  "state": "NY",
+  "unitid": "196468"
+ },
+ "ivmf-v-wise": {
+  "state": "NY",
+  "unitid": "196413"
  },
  "leadership-connections": {
   "state": "IL",
@@ -15,20 +31,52 @@
   "state": "IL",
   "unitid": "147536"
  },
+ "lilly-conference-oxford": {
+  "state": "OH",
+  "unitid": "204024"
+ },
  "menus-of-change": {
   "state": "NY",
   "unitid": "190503"
  },
- "worlds-of-flavor": {
+ "nyu-institute-on-federal-taxation": {
   "state": "NY",
-  "unitid": "190503"
+  "unitid": "193900"
  },
- "carnegie-mellon-sports-analytics-conference": {
-  "state": "PA",
-  "unitid": "211440"
+ "rice-business-plan-competition": {
+  "state": "TX",
+  "unitid": "227757"
+ },
+ "rocky-mountain-eta-conference": {
+  "state": "CO",
+  "unitid": "126614"
+ },
+ "shingo-conference": {
+  "state": "UT",
+  "unitid": "230728"
+ },
+ "shingo-connect-usa": {
+  "state": "UT",
+  "unitid": "230728"
+ },
+ "smallsat-conference": {
+  "state": "UT",
+  "unitid": "230728"
  },
  "u-s-precision-livestock-farming-conference": {
   "state": "GA",
   "unitid": "139959"
+ },
+ "uf-law-e-discovery-conference": {
+  "state": "FL",
+  "unitid": "134130"
+ },
+ "utah-conference-community-engagement": {
+  "state": "UT",
+  "unitid": "230728"
+ },
+ "worlds-of-flavor": {
+  "state": "NY",
+  "unitid": "190503"
  }
 }
