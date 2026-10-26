@@ -7,7 +7,7 @@ import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, conferencePath, industryByName, industryPath } from '@/lib/seo/topics'
-import { conferencesForOrganizer, getConference, getConferenceAssessments, getJobStats, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { catalogConferences, getConference, getConferenceAssessments, getJobStats, getTopicJobs, type Conf, type TopicJobs } from '@/lib/seo/topic-data'
 import { hostCollege, isHigherEd, placeRefs } from '@/lib/events/conference-places'
 import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
 import { employerPageSlugs } from '@/lib/events/conference-employers'
@@ -40,7 +40,7 @@ async function load(id: string) {
     primary?.rule ? getTopicJobs({ rule: primary.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
     primary?.rule ? getJobStats({ rule: primary.rule }) : Promise.resolve(null),
     getIndustryTrends(),
-    d.association ? conferencesForOrganizer(d.association.organizers).then((l) => l.rows.filter((r) => r.id !== d.conf.id).slice(0, 4)).catch(() => []) : Promise.resolve([]),
+    d.association ? catalogConferences((r) => !!r.organizer && d.association!.organizers.includes(r.organizer) && r.id !== d.conf.id, 4).then((l) => l.rows).catch(() => [] as Conf[]) : Promise.resolve([]),
     hostCollege(id),
   ])
   const fieldFacts = [...jobFacts(jobs.total, stats).filter((f) => ['open', 'pay', 'entry'].includes(f.key)), ...[trendFact(primary ? trends[primary.name] : undefined, primary?.name)].filter((x): x is NonNullable<ReturnType<typeof trendFact>> => !!x)]
