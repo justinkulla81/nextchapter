@@ -28,10 +28,8 @@ const PAY_LEVEL: Record<string, string> = {
 }
 
 function title(e: EmployerPage): string {
-  const bits: string[] = []
-  if (e.profile && e.profile.openNow > 0) bits.push('jobs')
-  bits.push('pay')
-  return `${e.name} ${bits.join(', ')}: ${e.profile && e.profile.openNow > 0 ? `${n0(e.profile.openNow)} open roles` : 'hiring and pay'}`
+  const open = e.profile?.openNow ?? 0
+  return open > 0 ? `${e.name} jobs and pay: ${n0(open)} open roles` : `${e.name}: open roles and pay`
 }
 
 function description(e: EmployerPage): string {
@@ -42,13 +40,14 @@ function description(e: EmployerPage): string {
     parts.push(`${e.name} has ${n0(p.openNow)} open professional roles${fn ? `, most in ${fn.toLowerCase()}` : ''}`)
     if (p.opened90d > 0) parts.push(`${n0(p.opened90d)} opened in the last 90 days`)
   }
+  if (parts.length === 0) return `${e.name}: open roles, posted pay and hiring history from its career site, updated daily.`
   return `${parts.join('; ')}. Posted pay, where it hires and how to apply.`.replace(/^./, (c) => c.toUpperCase())
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const e = await getEmployerBySlug(slug)
-  if (!e || !e.profile) return {}
+  if (!e) return {}
   return {
     title: title(e),
     description: description(e),
@@ -60,7 +59,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function EmployerPublicPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const e = await getEmployerBySlug(slug)
-  if (!e || !e.profile) notFound()
+  if (!e) notFound()
   const p = e.profile
   const path = `/employers/${slug}`
   const hq = [e.hqMetro, e.industry].filter(Boolean).join(' · ')
@@ -74,6 +73,12 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       a: `${e.name} has ${n0(p.openNow)} open professional roles on its career site as of the last check. ${p.opened90d > 0 ? `${n0(p.opened90d)} opened in the last 90 days and ${n0(p.opened12mo)} in the last 12 months.` : ''}${p.topFunctions[0] ? ` The most common function is ${p.topFunctions[0].function.toLowerCase()}.` : ''}`.trim(),
     })
   }
+  if (!p || p.openNow === 0) {
+    faq.push({
+      q: `Is ${e.name} hiring?`,
+      a: `${e.name} has no open professional roles on its career site as of the last check.${p && p.opened12mo > 0 ? ` It opened ${n0(p.opened12mo)} in the last 12 months.` : ''} This page updates daily.`,
+    })
+  }
   if (p && p.payLevel in PAY_LEVEL && p.payLevelSample >= 5) {
     faq.push({ q: `How well does ${e.name} pay?`, a: `Across ${n0(p.payLevelSample)} postings with a posted salary range, ${e.name}'s pay is ${PAY_LEVEL[p.payLevel]}. We compare each posted range with the market range for the same title, function and area.` })
   }
@@ -84,8 +89,22 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       '@type': 'Organization',
       '@id': `${SITE_URL}${path}#org`,
       name: e.name,
-      ...(e.website ? { url: e.website } : {}),
+      ...(e.website ? { url: e.website, sameAs: [e.website] } : {}),
+      ...(e.hqMetro ? { address: { '@type': 'PostalAddress', addressLocality: e.hqMetro } } : {}),
+      ...(e.industry ? { knowsAbout: e.industry } : {}),
     },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': `${SITE_URL}${path}`,
+      url: `${SITE_URL}${path}`,
+      name: title(e),
+      description: description(e),
+      dateModified: new Date().toISOString().slice(0, 10),
+      about: { '@id': `${SITE_URL}${path}#org` },
+      isPartOf: { '@type': 'WebSite', name: 'NextChapter', url: SITE_URL },
+    },
+    ...(e.jobs.length ? [{ '@context': 'https://schema.org', '@type': 'ItemList', name: `Open roles at ${e.name}`, itemListElement: e.jobs.map((j, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}/jobs/${j.id}`, name: j.title })) }] : []),
     ...(faq.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) }] : []),
   ]
 

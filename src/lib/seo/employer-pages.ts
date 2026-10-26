@@ -13,6 +13,18 @@ import { canonicalFromEmployerSlug, employerSlug, idSuffixFromSlug } from '@/lib
 
 /** Open roles an employer needs before its page is offered to search engines. */
 export const EMPLOYER_MIN_OPEN_ROLES = 3
+/**
+ * Every company has a page (so each can be claimed and linked from the CRM), but a page is offered to search engines
+ * only when it has data of its own: 3+ open roles, or 1-2 open roles plus a real hiring history (3+ roles opened in the
+ * last 12 months) and a known industry. Thinner pages render with noindex and stay out of the sitemap until they qualify.
+ */
+export function isEmployerIndexable(p: { openNow: number; opened12mo: number } | null, industry: string | null): boolean {
+  if (!p) return false
+  return p.openNow >= EMPLOYER_MIN_OPEN_ROLES || (p.openNow >= 1 && p.opened12mo >= 3 && !!industry)
+}
+
+/** The public path of an employer page. */
+export const employerPath = (canonicalNameNormalized: string, id: string) => `/employers/${employerSlug(canonicalNameNormalized, id)}`
 
 export interface EmployerJob { id: string; title: string; location: string | null; pay: string | null }
 
@@ -104,15 +116,16 @@ export const getEmployerBySlug = cache(async (slug: string): Promise<EmployerPag
     jobs,
     pay,
     claimSlug: crm ? orgSlug(crm.canonicalNameNormalized) : null,
-    indexable: openNow >= EMPLOYER_MIN_OPEN_ROLES,
+    indexable: isEmployerIndexable(p, company.industry ?? p?.industry ?? null),
   }
 })
 
 export const EMPLOYER_SITEMAP_SHARD_SIZE = 10_000
 
 /** The condition behind the employer sitemap: the same rule as `indexable`, in SQL. */
-const ELIGIBLE = `FROM "Company" c LEFT JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
-  WHERE p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}`
+const ELIGIBLE = `FROM "Company" c JOIN "CompanyHiringProfile" p ON p."companyId" = c.id
+  WHERE p."openNow" >= ${EMPLOYER_MIN_OPEN_ROLES}
+     OR (p."openNow" >= 1 AND p."opened12mo" >= 3 AND COALESCE(c.industry, p.industry) IS NOT NULL)`
 
 export async function countEmployerPages(): Promise<number> {
   const [row] = await prisma.$queryRawUnsafe<{ n: number }[]>(`SELECT count(*)::int AS n ${ELIGIBLE}`)
@@ -130,4 +143,9 @@ export async function employersInShard(shard: number): Promise<{ id: string; can
 export async function employerPageCompanyIds(): Promise<Set<string>> {
   const rows = await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT c.id ${ELIGIBLE}`)
   return new Set(rows.map((r) => r.id))
+}
+
+/** Canonical name and id of every company whose page is offered to search engines. */
+export async function employerPageCanonicalRows(): Promise<{ id: string; canonical: string }[]> {
+  return prisma.$queryRawUnsafe<{ id: string; canonical: string }[]>(`SELECT c.id, c."canonicalNameNormalized" AS canonical ${ELIGIBLE}`)
 }
