@@ -7,7 +7,7 @@ import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { costLabel, whenLabel, whereLabel } from '@/lib/events/format'
 import { SPEAKING_LABEL, type Speaking } from '@/lib/events/types'
 import { conferencePath, functionPath, industryPath } from '@/lib/seo/topics'
-import type { Conf, TopicJob, TopicNotice } from '@/lib/seo/topic-data'
+import type { Conf, TopicJob } from '@/lib/seo/topic-data'
 
 export const LINK = 'text-brand underline underline-offset-4'
 export const H2 = 'text-2xl font-bold tracking-tight text-navy'
@@ -118,28 +118,6 @@ export function ConferenceList({ rows, total, upcoming, source }: { rows: Conf[]
           Showing {rows.length} of {total.toLocaleString()} conferences{upcoming != null ? `, ${upcoming.toLocaleString()} with dates announced` : ''}.
         </p>
       )}
-    </>
-  )
-}
-
-export function NoticeList({ notices, source, limit = 12 }: { notices: TopicNotice[]; source: string; limit?: number }) {
-  if (notices.length === 0) return <p className="text-sm text-muted-foreground">No WARN layoff notices matched here in the last 12 months.</p>
-  const shown = notices.slice(0, limit)
-  const workers = notices.reduce((s, n) => s + (n.workers ?? 0), 0)
-  return (
-    <>
-      <p className="mb-3 text-sm text-muted-foreground">{notices.length.toLocaleString()} notices in the last 12 months{workers ? `, naming ${workers.toLocaleString()} workers` : ''}.</p>
-      <ul className="divide-y divide-border rounded-xl border border-border bg-white">
-        {shown.map((n) => (
-          <li key={n.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 py-3 text-sm">
-            <TrackedLink href={`/layoffs/company/${n.slug}`} event="topic_layoff_clicked" properties={{ source, slug: n.slug }} className="font-medium text-navy hover:underline">{n.employer}</TrackedLink>
-            <span className="tabular-nums text-muted-foreground">
-              {n.workers ? `${n.workers.toLocaleString()} workers · ` : ''}{n.state} · {day(n.noticeDate)}
-            </span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-3 text-sm text-muted-foreground">Source: state WARN filings. <Link href="/layoffs" className={LINK}>See the full layoff tracker</Link></p>
     </>
   )
 }

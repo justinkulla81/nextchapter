@@ -4,7 +4,7 @@ import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
 import { getGroupWages } from '@/lib/market/bls-wages'
 import { associationSlug, functionBySlug, industryBySlug } from '@/lib/seo/topics'
 import {
-  conferencesForFunction, conferencesForIndustry, getAssociations, getFunctionNotices, getIndustryNotices, getJobStats, getTopicJobs,
+  conferencesForFunction, conferencesForIndustry, getAssociations, getIndustryNotices, getJobStats, getTopicJobs,
   type ConfList, type TopicJobs,
 } from '@/lib/seo/topic-data'
 import { conferenceFacts, exposureFacts, jobFacts, layoffFacts, openingParagraph, trendFact } from '@/lib/seo/topic-facts'
@@ -50,24 +50,23 @@ export const loadIndustry = cache(async (slug: string) => {
 export const loadFunction = cache(async (slug: string) => {
   const fn = functionBySlug(slug)
   if (!fn) return null
-  const [wages, jobs, stats, confs, notices] = await Promise.all([
+  const [wages, jobs, stats, confs] = await Promise.all([
     getGroupWages(),
     getTopicJobs({ fn: fn.name }).catch(() => EMPTY_JOBS),
     getJobStats({ fn: fn.name }),
     conferencesForFunction(fn.name, 24).catch(() => EMPTY_CONFS),
-    getFunctionNotices(fn.name).catch(() => []),
   ])
+  // Layoffs are not shown by employer on a function page (too shaming, owner decision 2026-10-26), so none are read here.
   const orgs = await organizersWithPages(confs)
   const facts: Fact[] = [
     ...jobFacts(jobs.total, stats),
     ...exposureFacts(fn.name, wages),
-    ...layoffFacts(notices, `employers hiring ${fn.name}`),
     ...conferenceFacts(confs.summary, fn.name),
   ]
   const links = jobs.industries.length + jobs.employers.length + Math.min(3, confs.rows.length) + orgs.length
   const assessment: Assessment = assess(facts.length, links)
-  const intro = openingParagraph({ name: fn.name, kind: 'function', blurb: fn.blurb, total: jobs.total, stats, notices: notices.length, confs: confs.total, upcomingConfs: confs.upcoming })
-  return { fn, jobs, stats, confs, notices, orgs, facts, assessment, intro }
+  const intro = openingParagraph({ name: fn.name, kind: 'function', blurb: fn.blurb, total: jobs.total, stats, notices: 0, confs: confs.total, upcomingConfs: confs.upcoming })
+  return { fn, jobs, stats, confs, orgs, facts, assessment, intro }
 })
 
 export const loadAssociation = cache(async (slug: string) => {

@@ -1,7 +1,7 @@
 import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, functionChip } from '@/components/topics/blocks'
+import { FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, functionChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, INDUSTRIES } from '@/lib/seo/topics'
@@ -30,7 +30,7 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
   const { slug } = await params
   const d = await loadIndustry(slug)
   if (!d) notFound()
-  const { industry, jobs, stats, confs, notices, orgs, facts, intro } = d
+  const { industry, jobs, stats, confs, orgs, facts, intro } = d
   const path = `/industries/${slug}`
   return (
     <TopicShell
@@ -76,9 +76,6 @@ export default async function IndustryPage({ params }: { params: Promise<{ slug:
           <Chips kind="industry_to_association" event="topic_link_clicked" items={orgs.map((o) => ({ href: associationPath(o), label: o }))} />
         </Section>
       )}
-      <Section id="layoffs" title={`${industry.name} layoffs`} note="WARN notices filed with state labor departments. Industry comes from the filing’s own classification where it gives one.">
-        <NoticeList notices={notices} source={`industry:${slug}`} />
-      </Section>
       <Section id="more" title="Other industries">
         <Chips kind="industry_to_industry" event="topic_link_clicked" items={INDUSTRIES.filter((i) => i.slug !== slug).map((i) => ({ href: `/industries/${i.slug}`, label: i.name }))} />
       </Section>
