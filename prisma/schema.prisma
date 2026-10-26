@@ -11812,6 +11812,9 @@ model ProductFeedback {
   candidate   CandidateProfile? @relation(fields: [candidateId], references: [id], onDelete: SetNull)
 
   rawText     String  @db.Text
+  /// Where to tell a partner-portal sender what happened to their idea (employer,
+  /// recruiter, coach, institution). Candidates are reached through candidateId.
+  contactEmail String?
   channel     String? // 'call' | 'email' | 'in person' | 'survey' | 'in-app idea' | 'in-app feedback' | ...
   /// The portal page a candidate was on when they sent it in-app.
   contextPath String?

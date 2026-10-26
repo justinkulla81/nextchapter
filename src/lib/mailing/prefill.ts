@@ -2,6 +2,8 @@ import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { escapeHtml } from './render'
 import { appUrl } from './editions'
+import { CUSTOMER_UPDATES } from '@/data/customer-updates'
+import { CUSTOMER_UPDATES_LIST_KEY, customerUpdatesBody, updatesSince } from './customer-updates-body'
 
 /**
  * A first draft for a new edition, from what the database already knows —
@@ -71,6 +73,23 @@ function sinceBlock(items: string[]): string {
 }
 
 export async function prefillEdition({ listId, listName, periodLabel }: PrefillInput): Promise<Prefill> {
+  // The customer product-updates list is built fresh each time from the
+  // updates file (what changed since the last one went out), never copied from
+  // the last email: last month's bullets must not carry over.
+  const listRow = await prisma.mailingList.findUnique({ where: { id: listId }, select: { key: true } })
+  if (listRow?.key === CUSTOMER_UPDATES_LIST_KEY) {
+    const prev = await prisma.mailingEdition.findFirst({
+      where: { lists: { some: { listId } }, sentAt: { not: null } }, orderBy: { sentAt: 'desc' }, select: { sentAt: true },
+    })
+    const since = prev?.sentAt ?? new Date(Date.now() - 45 * 86_400_000)
+    return {
+      subject: periodLabel ? `What's new at NextChapter: ${periodLabel}` : "What's new at NextChapter",
+      previewText: 'What we added or changed for your account.',
+      bodyHtml: customerUpdatesBody(updatesSince(CUSTOMER_UPDATES, since), periodLabel),
+      copiedFromId: null,
+    }
+  }
+
   const last = await prisma.mailingEdition.findFirst({
     where: { lists: { some: { listId } } },
     orderBy: { createdAt: 'desc' },
