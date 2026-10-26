@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     items.push({ uid: `conf-${id}-${series.startDate.getUTCFullYear()}`, title: series.name, start: series.startDate, end: series.endDate, url: series.url, description: 'Added from NextChapter' })
   }
   const opps = await prisma.conferenceOpportunity.findMany({
-    where: { seriesId: id, published: true, deadline: { not: null }, tracks: { some: { candidateId: profile.id, status: { in: ['WATCHING', 'DRAFTING'] } } } },
+    where: { seriesId: id, deadline: { not: null }, tracks: { some: { candidateId: profile.id, status: { in: ['WATCHING', 'DRAFTING'] } } } },
   })
   for (const o of opps) items.push({ uid: `opp-${o.id}`, title: `Deadline: ${o.title} (${series.name})`, start: o.deadline!, url: o.url })
   captureServerEvent(profile.id, 'conference_calendar_downloaded', { seriesId: id, items: items.length })

@@ -14787,6 +14787,11 @@ model ConferenceEvent {
   /// Hash of the page text at the last weekly re-check; a change triggers extraction of new dates and opportunities.
   contentHash      String?
   recheckedAt      DateTime?
+  /// The member who added it by link (Quick Add). They can edit it until it is approved.
+  addedBy          String?
+  /// Set when an admin rejects an entry. Members who tracked it are told why and it is removed from their list.
+  rejectedAt       DateTime?
+  rejectedNote     String?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @default(now()) @updatedAt
   interests        ConferenceInterest[]
