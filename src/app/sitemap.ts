@@ -109,6 +109,8 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
   const hubs = [
     entry('/industries', TOPICS_UPDATED, 'weekly', 0.7),
     entry('/functions', TOPICS_UPDATED, 'weekly', 0.7),
+    entry('/top-employers', TOPICS_UPDATED, 'daily', 0.8),
+    ...JOB_FUNCTIONS.map((f) => entry(`/top-employers/${f.slug}`, TOPICS_UPDATED, 'daily', 0.6)),
     entry('/conferences', TOPICS_UPDATED, 'daily', 0.7),
     entry('/associations', TOPICS_UPDATED, 'weekly', 0.6),
   ]

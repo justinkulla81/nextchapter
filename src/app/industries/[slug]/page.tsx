@@ -6,6 +6,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, INDUSTRIES } from '@/lib/seo/topics'
 import { loadIndustry } from '@/lib/seo/topic-load'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const d = await loadIndustry(slug)
   if (!d) return { title: 'Industry not found', robots: { index: false, follow: true } }
   return {
-    title: `${d.industry.name}: jobs, conferences and layoffs`,
+    title: titleMeta(`${d.industry.name}: jobs, conferences and layoffs`),
     description: fitDescription(d.intro, 165),
     robots: { index: d.assessment.indexable, follow: true },
     ...canonical(`/industries/${slug}`),

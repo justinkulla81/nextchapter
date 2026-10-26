@@ -13,6 +13,7 @@ import { jobFacts, trendFact } from '@/lib/seo/topic-facts'
 import { ACCESS_LABEL, FORMAT_LABEL, JOURNEY_LABEL, KIND_LABEL, PROGRAM_LABEL, SENIORITY_LABEL, SPEAKING_LABEL, type Seniority, type Speaking } from '@/lib/events/types'
 import { OPPORTUNITY_LABEL } from '@/lib/conferences/constants'
 import { costLabel, hasUpcomingDates, whenLabel, whereLabel } from '@/lib/events/format'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -49,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const where = whereLabel(c)
   const speak = c.speaking === 'OPEN_CFP' ? ' Open call for speakers.' : ''
   return {
-    title: `${c.name}: dates, cost, speakers and employers`,
+    title: titleMeta(`${c.name}: dates, cost, speakers and employers`),
     description: fitDescription(`${c.name}${c.organizer ? ` by ${c.organizer}` : ''}. ${when}${where ? `, ${where}` : ''}. ${costLabel(c)}.${speak} Industries, functions and speaking opportunities.`.replace(/\s+/g, ' '), 165),
     robots: { index: indexable, follow: true },
     ...canonical(conferencePath(c.id)),

@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/admin/auth'
 import { prisma } from '@/lib/prisma'
 import { orgSlug, canonicalFromSlug } from '@/lib/crm/org-slug'
+import { publicPagesFor } from '@/lib/crm/public-page'
 import { searchFirmPublicPath } from '@/lib/seo/search-firm-link'
 import { CrmIntroPaths } from '@/components/admin/CrmIntroPaths'
 import { SectionTitle } from '@/components/admin/Collapsible'
@@ -56,7 +57,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
       outplacementProfile: true,
       partnerProfile: true,
       researchProfile: true,
-      company: { select: { id: true, name: true, chroName: true, chroEmail: true, chroLinkedinUrl: true, industry: true } },
+      company: { select: { id: true, name: true, canonicalNameNormalized: true, chroName: true, chroEmail: true, chroLinkedinUrl: true, industry: true } },
       searchFirms: { select: { id: true }, take: 1 },
     },
   })
@@ -778,6 +779,17 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
         <dl className="grid gap-x-6 gap-y-4 rounded-lg border border-border p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Industry" value={org.industry} />
+          <Field
+            label="Public page"
+            value={(() => {
+              const pages = publicPagesFor(org)
+              return pages.length ? (
+                <span className="flex flex-col gap-1">
+                  {pages.map((pg) => <a key={pg.path} href={`https://launchyournextchapter.com${pg.path}`} target="_blank" rel="noreferrer" className="underline">{pg.label} ↗</a>)}
+                </span>
+              ) : null
+            })()}
+          />
           <Field
             label="Company intel"
             value={org.company ? <Link href={`/support/admin/companies/${org.company.id}`} className="underline">Open</Link> : null}
