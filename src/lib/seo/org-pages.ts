@@ -15,7 +15,7 @@ import { employerSlug } from '@/lib/seo/employer-slug'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { claimSlug } from '@/lib/org-claims/urls'
 import {
-  type OrgPageFacts, type OrgPageKind, cleanOrgName, meetsOrgPageBar, orgPagePath, orgSlugs,
+  type OrgPageFacts, type OrgPageKind, cleanOrgName, groupPartnerDuplicates, meetsOrgPageBar, orgPagePath, orgSlugs,
 } from '@/lib/seo/org-page-rules'
 
 // Public pages for American Job Centers, economic development organizations and (extra sections for) workforce boards.
@@ -47,6 +47,8 @@ export interface OrgRow {
   email: string | null
   countyFips: string | null
   detailsUrl: string | null
+  /** Other source records for the same organization, folded into this page. */
+  aliasIds?: string[]
   /** A board's own service-area text ("Towns: Abington, Avon"). */
   serviceArea?: string | null
   /** County tokens the organization says it serves; 'all' = the whole state. */
@@ -158,13 +160,26 @@ async function loadStateData(state: string): Promise<StateData> {
     website: null, street: r.street, zip: r.zip, phone: r.phone, hours: r.hours, email: r.generalEmail, countyFips: r.countyFips, detailsUrl: r.detailsUrl,
     countyTokens: [], boardId: r.workforceBoardId, updatedAt: r.updatedAt, sourceNote: 'CareerOneStop, U.S. Department of Labor',
   }))
-  const partnerSlugs = orgSlugs(partnerRows)
-  const econDev: OrgRow[] = partnerRows.map((r) => ({
+  // One page per organization: an EDA district and the state directory's copy of it are folded together, keeping the
+  // district's county list, and either record's CRM link finds the page.
+  const merged = groupPartnerDuplicates(partnerRows).map(({ primary, aliases }) => {
+    const all = [primary, ...aliases]
+    return {
+      ...primary,
+      counties: [...new Set(all.flatMap((r) => r.counties))],
+      website: all.map((r) => r.website).find((w) => !!w) ?? null,
+      city: all.map((r) => r.city).find((c) => !!c) ?? null,
+      // A phone only where an official directory published it; research-found numbers stay off the page.
+      phone: all.filter((r) => r.source !== 'RESEARCH').map((r) => r.phone).find((x) => !!x) ?? null,
+      updatedAt: all.reduce((m, r) => (r.updatedAt > m ? r.updatedAt : m), primary.updatedAt),
+      aliasIds: aliases.map((r) => r.id),
+    }
+  })
+  const partnerSlugs = orgSlugs(merged)
+  const econDev: OrgRow[] = merged.map((r) => ({
     kind: 'ECON_DEV', id: r.id, state, name: cleanOrgName(r.name), slug: partnerSlugs.get(r.id)!, city: r.city, label: EDO_LABEL[r.kind] ?? 'Economic development organization',
-    website: r.website, street: null, zip: null,
-    // A phone only where an official directory published it; research-found numbers stay off the page.
-    phone: r.source === 'RESEARCH' ? null : r.phone, hours: null, email: null, countyFips: null, detailsUrl: r.sourceUrl,
-    countyTokens: r.kind === 'STATE_AGENCY' ? 'all' : r.counties.map(keyOf), boardId: null, updatedAt: r.updatedAt,
+    website: r.website, street: null, zip: null, phone: r.phone, hours: null, email: null, countyFips: null, detailsUrl: r.sourceUrl,
+    countyTokens: r.kind === 'STATE_AGENCY' ? 'all' : r.counties.map(keyOf), boardId: null, updatedAt: r.updatedAt, aliasIds: r.aliasIds,
     sourceNote: EDO_SOURCE[r.source] ?? 'public directories',
   }))
   const boards: OrgRow[] = boardRows.map((b) => {
@@ -287,9 +302,10 @@ const sharedAreaHiring = memoTtl(10 * 60_000, (state: string, area: Area) => `${
 export const areaHiring = (state: string, area: Area) => sharedAreaHiring(state, area)
 
 /** The slug of the CRM organization's claim page, when the organization is linked to one. Fail-soft until the link table exists. */
-export async function claimSlugFor(kind: OrgPageKind, sourceId: string): Promise<string | null> {
+export async function claimSlugFor(kind: OrgPageKind, sourceId: string, aliasIds: string[] = []): Promise<string | null> {
   try {
-    const link = await prisma.publicOrgPage.findUnique({ where: { kind_sourceId: { kind, sourceId } }, select: { crmOrgId: true } })
+    const links = await prisma.publicOrgPage.findMany({ where: { kind, sourceId: { in: [sourceId, ...aliasIds] }, crmOrgId: { not: null } }, select: { sourceId: true, crmOrgId: true } })
+    const link = links.find((l) => l.sourceId === sourceId) ?? links[0]
     if (!link?.crmOrgId) return null
     const org = await prisma.crmOrganization.findUnique({ where: { id: link.crmOrgId }, select: { canonicalNameNormalized: true } })
     return org ? claimSlug(org.canonicalNameNormalized) : null
