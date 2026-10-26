@@ -11,7 +11,7 @@ import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { hasLayoffStatePage } from '@/lib/warn/layoff-pages'
-import { getCountyPage, getPlaceLinker, placeUrl } from '@/lib/places/places'
+import { getCountyPage, getPlaceLinker, meetsCountyBar, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
 import { titleMeta } from '@/lib/seo/title'
 
@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     title: titleMeta(placeCountySeo(c.name, s.code).title),
     description: `${c.name}, ${name}: ${bits.length ? bits.join(', ') + '. ' : ''}Employers, colleges, the local workforce board and American Job Centers.`,
     ...canonical(placeUrl.county(state, county)),
+    ...(meetsCountyBar(c.population, d.cities.length) ? {} : { robots: { index: false, follow: true } }),
   }
 }
 

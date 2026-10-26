@@ -338,6 +338,19 @@ export async function getOrgPage(kind: OrgPageKind, stateSlugParam: string, slug
   return row ? buildOrgPage(row, sd) : null
 }
 
+/**
+ * The current slug for a page address that no longer resolves because the organization's slug changed (two records were
+ * merged, so the city or id suffix that told them apart is gone). Only a longer address that starts with exactly one
+ * current slug and a hyphen counts; anything else stays a 404.
+ */
+export async function renamedOrgSlug(kind: OrgPageKind, stateSlugParam: string, slug: string): Promise<string | null> {
+  const code = ALL_STATE_CODES.find((c) => stateSlug(c) === stateSlugParam)
+  if (!code) return null
+  const sd = await getStateData(code)
+  const matches = rowsOf(sd, kind).filter((r) => slug.startsWith(`${r.slug}-`))
+  return matches.length === 1 ? matches[0].slug : null
+}
+
 export async function getStateOrgList(kind: OrgPageKind, stateSlugParam: string) {
   const code = ALL_STATE_CODES.find((c) => stateSlug(c) === stateSlugParam)
   if (!code) return null

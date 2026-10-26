@@ -24,8 +24,9 @@ describe('quality bar', () => {
     expect(assess(5, 3).indexable).toBe(true)
   })
   it('judges an association from its conferences', () => {
-    expect(assessAssociation([full, { ...full }]).indexable).toBe(true)
-    expect(assessAssociation([bare, bare]).indexable).toBe(false)
+    expect(assessAssociation([full, { ...full }, { ...full }, { ...full }]).indexable).toBe(true)
+    expect(assessAssociation([full, { ...full }]).indexable).toBe(false) // too few conferences for a page of its own
+    expect(assessAssociation([bare, bare, bare, bare]).indexable).toBe(false)
   })
 })
 
