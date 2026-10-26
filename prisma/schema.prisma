@@ -16748,11 +16748,19 @@ model HomepageLead {
   /// When the one-time plan email went out (journey only). Null = not sent.
   planSentAt       DateTime?
   unsubscribedAt   DateTime?
+  /// Saved search (job_alert): the confirmation email went out, and the click that turned alerts on.
+  confirmSentAt    DateTime?
+  confirmedAt      DateTime?
+  /// Saved search: when the last alert email went out. New jobs are "since this", or since confirmedAt.
+  lastAlertAt      DateTime?
+  /// The journey (persona slug) we guessed from the search or the person chose after confirming. Empty = unknown.
+  journeySlug      String    @default("")
   createdAt        DateTime  @default(now())
 
   @@unique([email, kind, situation, searchQ, searchLoc, searchRemote])
   @@index([ip, createdAt])
   @@index([kind, createdAt])
+  @@index([kind, confirmedAt])
 }
 
 // What each applied job asked for and how the member's skills lined up, frozen at application time
