@@ -64,13 +64,11 @@ export function layoffFacts(notices: TopicNotice[], scope: string): Fact[] {
   const states = new Map<string, number>()
   for (const n of notices) states.set(n.state, (states.get(n.state) ?? 0) + 1)
   const top = [...states].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([s, c]) => `${s} (${c})`).join(', ')
-  const biggest = [...notices].filter((n) => n.workers).sort((a, b) => b.workers! - a.workers!)[0]
   const f: Fact[] = [
     { key: 'warn', label: `WARN layoff notices, ${scope}`, value: `${n0(notices.length)} notices${workers ? ` naming ${n0(workers)} workers` : ''}`, source: 'State WARN filings collected by NextChapter', period: 'last 12 months' },
     { key: 'warn-states', label: 'States with the most notices', value: top, source: 'State WARN filings collected by NextChapter', period: 'last 12 months' },
     { key: 'warn-latest', label: 'Most recent notice', value: shortDay(notices[0].noticeDate), source: 'State WARN filings collected by NextChapter' },
   ]
-  if (biggest) f.push({ key: 'warn-biggest', label: 'Largest single notice', value: `${biggest.employer}, ${n0(biggest.workers!)} workers (${shortDay(biggest.noticeDate)})`, source: 'State WARN filings collected by NextChapter', period: 'last 12 months' })
   return f
 }
 

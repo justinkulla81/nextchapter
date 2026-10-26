@@ -2,7 +2,7 @@ import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { LINK, FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, NoticeList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
+import { LINK, FactGrid, RankList, JoinBand, Chips, ConferenceList, JobList, Section, TopicShell, industryChip } from '@/components/topics/blocks'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, JOB_FUNCTIONS } from '@/lib/seo/topics'
@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const d = await loadFunction(slug)
   if (!d) return { title: 'Function not found', robots: { index: false, follow: true } }
   return {
-    title: titleMeta(`${d.fn.name} jobs, conferences and layoffs`),
+    title: titleMeta(`${d.fn.name} jobs and conferences`),
     description: fitDescription(d.intro, 165),
     robots: { index: d.assessment.indexable, follow: true },
     ...canonical(`/functions/${slug}`),
@@ -31,16 +31,16 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
   const { slug } = await params
   const d = await loadFunction(slug)
   if (!d) notFound()
-  const { fn, jobs, stats, confs, notices, orgs, facts, intro } = d
+  const { fn, jobs, stats, confs, orgs, facts, intro } = d
   const path = `/functions/${slug}`
   return (
     <TopicShell
       trail={[{ name: 'Functions', path: '/functions' }, { name: fn.name, path }]}
-      title={`${fn.name} jobs, conferences and layoffs`}
+      title={`${fn.name} jobs and conferences`}
       intro={intro}
       jsonLd={[
         {
-          '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${fn.name} jobs, conferences and layoffs`, url: `${SITE_URL}${path}`,
+          '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${fn.name} jobs and conferences`, url: `${SITE_URL}${path}`,
           mainEntity: { '@type': 'ItemList', itemListElement: jobs.jobs.map((j, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}/jobs/${j.id}`, name: `${j.title} at ${j.company}` })) },
         },
       ]}
@@ -76,9 +76,6 @@ export default async function FunctionPage({ params }: { params: Promise<{ slug:
           <Chips kind="function_to_association" event="topic_link_clicked" items={orgs.map((o) => ({ href: associationPath(o), label: o }))} />
         </Section>
       )}
-      <Section id="layoffs" title="Layoffs at employers hiring for this function" note="WARN notices from the last 12 months at employers that also have open verified jobs in this function.">
-        <NoticeList notices={notices} source={`function:${slug}`} />
-      </Section>
       <Section id="more" title="Other functions">
         <Chips kind="function_to_function" event="topic_link_clicked" items={JOB_FUNCTIONS.filter((f) => f.slug !== slug).map((f) => ({ href: `/functions/${f.slug}`, label: f.name }))} />
       </Section>

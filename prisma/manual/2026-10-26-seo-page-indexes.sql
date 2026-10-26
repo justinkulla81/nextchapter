@@ -8,7 +8,7 @@ SET lock_timeout = '5s';
 
 -- A. Topic pages (src/lib/seo/topic-data.ts PUBLIC filter): count, newest, and group by function / industry / employer.
 -- v2 also carries id, so the "newest 80" read needs no table fetch. (v1, "ExclusiveJobPosting_seo_topic_idx", was built
--- first without id; once v2 is in use it can be dropped: DROP INDEX CONCURRENTLY "ExclusiveJobPosting_seo_topic_idx";)
+-- first without id; dropped from production on 2026-10-26 once v2 was in use: DROP INDEX CONCURRENTLY "ExclusiveJobPosting_seo_topic_idx".)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS "ExclusiveJobPosting_seo_topic_v2_idx"
   ON "ExclusiveJobPosting" ("lastVerifiedAt")
   INCLUDE (id, "targetFunction", industry, "companyId", "postedAt")

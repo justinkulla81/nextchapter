@@ -2,12 +2,12 @@ import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Chips, ConferenceList, FactGrid, H2, JoinBand, LINK, NoticeList, Section, TopicShell, functionChip, industryChip } from '@/components/topics/blocks'
+import { Chips, ConferenceList, FactGrid, H2, JoinBand, LINK, Section, TopicShell, functionChip, industryChip } from '@/components/topics/blocks'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, conferencePath, industryByName, industryPath } from '@/lib/seo/topics'
-import { conferencesForOrganizer, getConference, getConferenceAssessments, getIndustryNotices, getJobStats, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { conferencesForOrganizer, getConference, getConferenceAssessments, getJobStats, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
 import { employerPageSlugs } from '@/lib/events/conference-employers'
 import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
@@ -33,15 +33,14 @@ async function load(id: string) {
   if (!d) return null
   const primary = d.conf.industries.map((n) => industryByName(n)).find((i) => i?.rule) ?? null
   const employerSlugs = await employerPageSlugs(d.employers.map((e) => e.name))
-  const [jobs, stats, trends, notices, organizerConfs] = await Promise.all([
+  const [jobs, stats, trends, organizerConfs] = await Promise.all([
     primary?.rule ? getTopicJobs({ rule: primary.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
     primary?.rule ? getJobStats({ rule: primary.rule }) : Promise.resolve(null),
     getIndustryTrends(),
-    d.conf.industries[0] ? getIndustryNotices(d.conf.industries[0]) : Promise.resolve([]),
     d.association ? conferencesForOrganizer(d.association.organizers).then((l) => l.rows.filter((r) => r.id !== d.conf.id).slice(0, 4)).catch(() => []) : Promise.resolve([]),
   ])
   const fieldFacts = [...jobFacts(jobs.total, stats).filter((f) => ['open', 'pay', 'entry'].includes(f.key)), ...[trendFact(primary ? trends[primary.name] : undefined, primary?.name)].filter((x): x is NonNullable<ReturnType<typeof trendFact>> => !!x)]
-  return { ...d, jobs, notices, organizerConfs, fieldFacts, employerSlugs, primaryIndustry: primary?.name ?? null }
+  return { ...d, jobs, organizerConfs, fieldFacts, employerSlugs, primaryIndustry: primary?.name ?? null }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -74,7 +73,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
   const { slug } = await params
   const d = await load(slug)
   if (!d) notFound()
-  const { conf: c, editions, opportunities, employers, association, related, jobs, notices, primaryIndustry, organizerConfs, fieldFacts } = d
+  const { conf: c, editions, opportunities, employers, association, related, jobs, primaryIndustry, organizerConfs, fieldFacts } = d
   const path = conferencePath(c.id)
   const upcoming = hasUpcomingDates(c)
   const exact = c.industries.length > 0 ? c.industries.join(', ') : 'every industry'
@@ -199,11 +198,6 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
         </Section>
       )}
 
-      {notices.length > 0 && (
-        <Section id="layoffs" title={`Recent ${c.industries[0]} layoffs`} note="WARN filings in this conference’s main industry.">
-          <NoticeList notices={notices} source={`conference:${c.id}`} limit={6} />
-        </Section>
-      )}
 
       {editions.length > 0 && (
         <Section id="editions" title="Past and planned editions">
