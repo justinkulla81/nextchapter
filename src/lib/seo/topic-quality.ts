@@ -64,12 +64,12 @@ export function conferenceFactCount(c: ConferenceFactInput): number {
 }
 
 /** Internal links the page will carry beyond its breadcrumb: its industries, functions, its organizer's page, and up to three related conferences. */
-export function conferenceLinkCount(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number): number {
-  return c.industries.length + c.functions.length + (hasAssociationPage ? 1 : 0) + Math.min(3, relatedCount)
+export function conferenceLinkCount(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number, placeLinks = 0): number {
+  return c.industries.length + c.functions.length + (hasAssociationPage ? 1 : 0) + Math.min(3, relatedCount) + placeLinks
 }
 
-export function assessConference(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number): Assessment {
-  return assess(conferenceFactCount(c), conferenceLinkCount(c, hasAssociationPage, relatedCount), CONFERENCE_BAR)
+export function assessConference(c: ConferenceFactInput, hasAssociationPage: boolean, relatedCount: number, placeLinks = 0): Assessment {
+  return assess(conferenceFactCount(c), conferenceLinkCount(c, hasAssociationPage, relatedCount, placeLinks), CONFERENCE_BAR)
 }
 
 /** An association page is judged on what its conferences give it, so the sitemap can decide from the catalog rows alone. */
