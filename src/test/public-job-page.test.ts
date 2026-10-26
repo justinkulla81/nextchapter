@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isPublicJob, jobPostingJsonLd, payLabel, type PublicJobRow } from '@/lib/jobs/public-job-page'
+import { PUBLIC_JOB_MIN_INDEX_DESCRIPTION, isIndexableJob, isPublicJob, jobPostingJsonLd, payLabel, type PublicJobRow } from '@/lib/jobs/public-job-page'
 
 const NOW = Date.parse('2026-10-22T12:00:00Z')
 const DAY = 86_400_000
@@ -113,5 +113,22 @@ describe('payLabel', () => {
     expect(payLabel(180000, 220000, 'year')).toBe('$180k–$220k a year')
     expect(payLabel(45, 60, 'hour')).toBe('$45–$60 an hour')
     expect(payLabel(null, null, 'year')).toBeNull()
+  })
+})
+
+describe('isIndexableJob', () => {
+  it('keeps a snippet-only job out of search and a full posting in', () => {
+    expect(isIndexableJob(job({ description: 'x'.repeat(280) }))).toBe(false)
+    expect(isIndexableJob(job({ description: 'x'.repeat(PUBLIC_JOB_MIN_INDEX_DESCRIPTION - 1) }))).toBe(false)
+    expect(isIndexableJob(job({ description: 'x'.repeat(PUBLIC_JOB_MIN_INDEX_DESCRIPTION) }))).toBe(true)
+    expect(isIndexableJob(job({ description: 'x'.repeat(4000) }))).toBe(true)
+  })
+  it('counts bytes, as the sitemap SQL does', () => {
+    // 1,000 curly quotes are 3 bytes each: 3,000 bytes, over the bar, though only 1,000 characters
+    expect(isIndexableJob(job({ description: '’'.repeat(1000) }))).toBe(true)
+    expect(isIndexableJob(job({ description: null as unknown as string }))).toBe(false)
+  })
+  it('does not change who gets a page at all', () => {
+    expect(isPublicJob(job({ description: 'x'.repeat(280) }), NOW)).toBe(true)
   })
 })

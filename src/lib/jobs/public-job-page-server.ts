@@ -7,6 +7,7 @@ import { bucketFromIndustryText, functionByName, functionPath, industryPath } fr
 import { getConfirmedGhostIds } from '@/lib/jobs/job-dismiss-server'
 import {
   PUBLIC_JOB_GHOST_AGE_DAYS,
+  PUBLIC_JOB_MIN_INDEX_DESCRIPTION,
   PUBLIC_JOB_SITEMAP_SHARDS,
   PUBLIC_JOB_SOURCES,
   PUBLIC_JOB_VERIFIED_DAYS,
@@ -102,18 +103,20 @@ export async function publicJobsInShard(shard: number): Promise<{ id: string; la
     SELECT id, "lastVerifiedAt" FROM "ExclusiveJobPosting"
     WHERE ${PUBLIC_JOB_STATIC_SQL}
       AND (hashtext(id) & 15) = ${shard}::int
+      AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
       AND ${PUBLIC_JOB_LIVE_SQL}
     ORDER BY id
     LIMIT 50000`
 }
 
-/** Every public job in shard `shard` (0–15) with its dates — the syndication crons' (src/lib/syndication) view of the allowlist. */
+/** Every indexable public job (the same bar as the sitemap) in shard `shard` (0–15) with its dates — the syndication crons' (src/lib/syndication) view of the allowlist. */
 export async function publicJobIdsInShard(shard: number): Promise<{ id: string; createdAt: Date; postedAt: Date | null }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
   return prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null }[]>`
     SELECT id, "createdAt", "postedAt" FROM "ExclusiveJobPosting"
     WHERE ${PUBLIC_JOB_STATIC_SQL}
       AND (hashtext(id) & 15) = ${shard}::int
+      AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
       AND ${PUBLIC_JOB_LIVE_SQL}
     ORDER BY id`
 }

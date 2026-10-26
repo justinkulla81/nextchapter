@@ -14,7 +14,7 @@ import { PersonalizePanel } from '@/components/home/PersonalizePanel'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
 import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
-import { datePostedOf, descriptionParagraphs, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
+import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
 import { closedJobRedirectTarget, getPublicJob } from '@/lib/jobs/public-job-page-server'
 import { prisma } from '@/lib/prisma'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
@@ -47,7 +47,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     title: `${job.title} at ${job.companyName}${place ? ` · ${place}` : ''}`,
     description: `${job.companyName} is hiring a ${job.title}${place ? ` (${place})` : ''}. ${lead}…`,
     alternates: { canonical: `/jobs/${job.id}` },
-    robots: { index: true, follow: true },
+    // A job with only a snippet of the posting stays visible to visitors but is kept out of search (see isIndexableJob).
+    robots: { index: isIndexableJob(job), follow: true },
   }
 }
 

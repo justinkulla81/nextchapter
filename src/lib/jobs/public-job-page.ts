@@ -26,6 +26,13 @@
 export const PUBLIC_JOB_SOURCES = ['ats_feed', 'admin', 'employer', 'recruiter'] as const
 export const PUBLIC_JOB_VERIFIED_DAYS = 7
 export const PUBLIC_JOB_MIN_DESCRIPTION = 200
+/**
+ * A job page is offered to search engines only when it holds the real posting text, not a ~280-character snippet from an
+ * aggregator feed (about 40% of live jobs on 2026-10-26; Google had crawled them and indexed none). In bytes, so the
+ * sitemap SQL (octet_length) and the page agree. Lengths of live jobs split cleanly: under 1,000 is snippet or excerpt,
+ * almost none between 1,000 and 1,500, and about 60% are 1,500 or more.
+ */
+export const PUBLIC_JOB_MIN_INDEX_DESCRIPTION = 1500
 export const PUBLIC_JOB_GHOST_AGE_DAYS = 90
 /** validThrough when the posting has no expiry of its own: last verified + this. */
 export const PUBLIC_JOB_VALID_DAYS = 30
@@ -75,6 +82,11 @@ export interface PublicJobRow {
   externalJobId: string | null
   requisitionId: string | null
   company: { website: string | null } | null
+}
+
+/** True when the page has the posting's own text, enough to stand on its own in search (see PUBLIC_JOB_MIN_INDEX_DESCRIPTION). */
+export function isIndexableJob(job: Pick<PublicJobRow, 'description'>): boolean {
+  return new TextEncoder().encode(job.description ?? '').length >= PUBLIC_JOB_MIN_INDEX_DESCRIPTION
 }
 
 /** The allowlist above. `confirmedGhost`: an admin confirmed member ghost flags on it. */
