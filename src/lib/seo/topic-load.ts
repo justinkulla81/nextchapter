@@ -1,12 +1,14 @@
 import 'server-only'
 import { cache } from 'react'
 import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
+import { getGroupWages } from '@/lib/market/bls-wages'
 import { associationSlug, functionBySlug, industryBySlug } from '@/lib/seo/topics'
 import {
   conferencesForFunction, conferencesForIndustry, getAssociations, getFunctionNotices, getIndustryNotices, getJobStats, getTopicJobs,
   type ConfList, type TopicJobs,
 } from '@/lib/seo/topic-data'
 import { conferenceFacts, exposureFacts, jobFacts, layoffFacts, openingParagraph, trendFact } from '@/lib/seo/topic-facts'
+import { effectiveFunctions } from '@/lib/seo/function-inference'
 import { assess, assessAssociation, type Assessment, type Fact } from '@/lib/seo/topic-quality'
 
 // One loader per page type, shared by the page and the sitemap so both apply the same quality bar.
@@ -48,7 +50,8 @@ export const loadIndustry = cache(async (slug: string) => {
 export const loadFunction = cache(async (slug: string) => {
   const fn = functionBySlug(slug)
   if (!fn) return null
-  const [jobs, stats, confs, notices] = await Promise.all([
+  const [wages, jobs, stats, confs, notices] = await Promise.all([
+    getGroupWages(),
     getTopicJobs({ fn: fn.name }).catch(() => EMPTY_JOBS),
     getJobStats({ fn: fn.name }),
     conferencesForFunction(fn.name, 24).catch(() => EMPTY_CONFS),
@@ -57,7 +60,7 @@ export const loadFunction = cache(async (slug: string) => {
   const orgs = await organizersWithPages(confs)
   const facts: Fact[] = [
     ...jobFacts(jobs.total, stats),
-    ...exposureFacts(fn.name),
+    ...exposureFacts(fn.name, wages),
     ...layoffFacts(notices, `employers hiring ${fn.name}`),
     ...conferenceFacts(confs.summary, fn.name),
   ]
@@ -78,7 +81,7 @@ export const loadAssociation = cache(async (slug: string) => {
     return [...m].sort((x, y) => y[1] - x[1]).slice(0, 10)
   }
   const industries = tally((c) => c.industries)
-  const functions = tally((c) => c.functions)
+  const functions = tally((c) => effectiveFunctions(c))
   const sm = confs.summary
   const facts: Fact[] = [
     ...conferenceFacts(sm, a.name),

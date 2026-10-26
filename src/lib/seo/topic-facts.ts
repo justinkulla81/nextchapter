@@ -3,6 +3,8 @@
 
 import { OCCUPATION_TRENDS, OCCUPATION_TRENDS_SOURCE } from '@/lib/market/occupation-trends-data'
 import { CES_SERIES_BY_BUCKET } from '@/lib/market/bls-industry-trends'
+import { AEI_OBSERVED_EXPOSURE, AEI_SOURCE } from '@/lib/market/aei-observed-exposure'
+import type { GroupWage } from '@/lib/market/bls-wages'
 import { FUNCTION_SOC_GROUP } from '@/lib/seo/topics'
 import type { Fact } from '@/lib/seo/topic-quality'
 import type { ConfSummary, JobStats, TopicNotice } from '@/lib/seo/topic-data'
@@ -40,12 +42,16 @@ export function trendFact(trend: { yoyPct: number; asOf: string } | undefined, b
   return { key: 'ces', label: 'Employment, year over year', value: `${trend.yoyPct >= 0 ? '+' : '−'}${Math.abs(trend.yoyPct)}%${sector ? ` in ${sector}, the closest BLS sector` : ' in the closest BLS sector'}`, source: 'BLS Current Employment Statistics, seasonally adjusted payroll employment', period }
 }
 
-export function exposureFacts(fn: string): Fact[] {
+export function exposureFacts(fn: string, wages: Record<string, GroupWage> = {}): Fact[] {
   const code = FUNCTION_SOC_GROUP[fn]
   const row = code ? OCCUPATION_TRENDS.find((r) => r.socGroup === code) : null
   if (!row) return []
+  const aei = AEI_OBSERVED_EXPOSURE[code]
+  const wage = wages[code]
   const src = `${OCCUPATION_TRENDS_SOURCE.title}, ${OCCUPATION_TRENDS_SOURCE.edition}`
   return [
+    ...(wage ? [{ key: 'wage', label: `Median annual wage, ${row.name} occupations`, value: usd(wage.median), source: 'BLS Occupational Employment and Wage Statistics, national, all industries', period: `May ${wage.year}` }] : []),
+    ...(aei ? [{ key: 'aei', label: `Observed AI exposure, ${row.name} occupations`, value: `${Math.round(aei.exposure * 100)}% of tasks show work-related Claude usage (average across ${aei.occupations} occupations)`, source: `${AEI_SOURCE.title}, ${AEI_SOURCE.published}: coverage of tasks, not job loss`, period: 'estimate' }] : []),
     { key: 'exposure', label: `AI task exposure, closest group (${row.name})`, value: `${row.aiExposure} out of 100: what AI could do in principle, not a measured job loss`, source: `${src}; Eloundou et al. (2024) task-exposure score`, period: 'estimate' },
     { key: 'emp-change', label: `Employment change, ${row.name}`, value: `${row.employmentChangePct >= 0 ? '+' : '−'}${Math.abs(row.employmentChangePct)}% from 2022 to 2026`, source: `${src}, Census CPS (NextChapter calculation)`, period: 'January to August, 2022 and 2026' },
     { key: 'long-search', label: `Unemployed 27+ weeks, last job in ${row.name}`, value: `${row.longSearchSharePct}% of unemployed people`, source: `${src}, Census CPS (NextChapter calculation)`, period: `January to August 2026, ${n0(row.respondents)} respondents` },

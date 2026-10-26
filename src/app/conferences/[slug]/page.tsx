@@ -8,10 +8,13 @@ import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { associationPath, conferencePath, industryByName, industryPath } from '@/lib/seo/topics'
 import { conferencesForOrganizer, getConference, getConferenceAssessments, getIndustryNotices, getJobStats, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { employerPageSlugs } from '@/lib/events/conference-employers'
+import { normalizeOrgName } from '@/lib/text/org-name-match'
 import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
 import { jobFacts, trendFact } from '@/lib/seo/topic-facts'
 import { ACCESS_LABEL, FORMAT_LABEL, JOURNEY_LABEL, KIND_LABEL, PROGRAM_LABEL, SENIORITY_LABEL, SPEAKING_LABEL, type Seniority, type Speaking } from '@/lib/events/types'
 import { OPPORTUNITY_LABEL } from '@/lib/conferences/constants'
+import { effectiveFunctions } from '@/lib/seo/function-inference'
 import { costLabel, hasUpcomingDates, whenLabel, whereLabel } from '@/lib/events/format'
 import { titleMeta } from '@/lib/seo/title'
 
@@ -29,6 +32,7 @@ async function load(id: string) {
   const d = await getConference(id)
   if (!d) return null
   const primary = d.conf.industries.map((n) => industryByName(n)).find((i) => i?.rule) ?? null
+  const employerSlugs = await employerPageSlugs(d.employers.map((e) => e.name))
   const [jobs, stats, trends, notices, organizerConfs] = await Promise.all([
     primary?.rule ? getTopicJobs({ rule: primary.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
     primary?.rule ? getJobStats({ rule: primary.rule }) : Promise.resolve(null),
@@ -37,7 +41,7 @@ async function load(id: string) {
     d.association ? conferencesForOrganizer(d.association.organizers).then((l) => l.rows.filter((r) => r.id !== d.conf.id).slice(0, 4)).catch(() => []) : Promise.resolve([]),
   ])
   const fieldFacts = [...jobFacts(jobs.total, stats).filter((f) => ['open', 'pay', 'entry'].includes(f.key)), ...[trendFact(primary ? trends[primary.name] : undefined, primary?.name)].filter((x): x is NonNullable<ReturnType<typeof trendFact>> => !!x)]
-  return { ...d, jobs, notices, organizerConfs, fieldFacts, primaryIndustry: primary?.name ?? null }
+  return { ...d, jobs, notices, organizerConfs, fieldFacts, employerSlugs, primaryIndustry: primary?.name ?? null }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -93,7 +97,9 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
     : null
   const trail = [{ name: 'Conferences', path: '/conferences' }, { name: c.name, path }]
   const industryItems = c.industries.map((n) => industryChip(n))
-  const functionItems = c.functions.map((n) => functionChip(n))
+  const functionItems = effectiveFunctions(c).map((n) => functionChip(n))
+  const employerSlugs = d.employerSlugs
+  const employerSources = [...new Set(employers.map((e) => e.sourceUrl).filter((u): u is string => !!u && /^https:\/\//.test(u)))].slice(0, 4)
   const hiringIndustryNote = primaryIndustry ? `${primaryIndustry} employers` : 'Employers'
 
   return (
@@ -166,13 +172,19 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
 
       <Section id="employers" title={employers.length > 0 ? 'Employers at this conference' : `${hiringIndustryNote} hiring now`} note={employers.length > 0 ? 'Exhibitors, sponsors and speakers we have found on the event’s own lists.' : 'We have not yet published an exhibitor or attendee list for this event. These employers in its industry have open verified jobs, so they are the ones worth meeting.'}>
         {employers.length > 0 ? (
+          <>
           <ul className="flex flex-wrap gap-2">
             {employers.map((e) => (
               <li key={`${e.name}:${e.role}`} className="rounded-full border border-border bg-white px-3 py-1.5 text-sm text-navy">
-                {e.name} <span className="text-xs text-muted-foreground">{ROLE_LABEL[e.role] ?? e.role}{e.year ? ` ${e.year}` : ''}</span>
+                {employerSlugs.get(normalizeOrgName(e.name)) ? <Link href={`/employers/${employerSlugs.get(normalizeOrgName(e.name))}`} className="underline underline-offset-2">{e.name}</Link> : e.name}{' '}
+                <span className="text-xs text-muted-foreground">{ROLE_LABEL[e.role] ?? e.role}{e.year ? ` ${e.year}` : ''}</span>
               </li>
             ))}
           </ul>
+          {employerSources.length > 0 && (
+            <p className="mt-3 text-xs text-muted-foreground">Read from the event’s own pages: {employerSources.map((u, i) => <span key={u}>{i > 0 && ', '}<a href={u} rel="nofollow noopener noreferrer" target="_blank" className="underline underline-offset-2">{new URL(u).hostname}</a></span>)}.</p>
+          )}
+          </>
         ) : jobs.employers.length > 0 ? (
           <Chips kind="conference_to_employer" event="topic_link_clicked" items={jobs.employers.map((e) => ({ href: `/employers/${e.slug}`, label: e.name, detail: `${e.count.toLocaleString()} open` }))} />
         ) : (
