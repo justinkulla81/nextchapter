@@ -54,6 +54,7 @@ describe('readPlatformEmail — work', () => {
   it('reads vetting', () => {
     expect(read('Your AI interview is ready').stage).toBe('IN_VETTING')
     expect(read('Complete your assessment to continue').stage).toBe('IN_VETTING')
+    expect(read('Appointment booked: 15-Minute Meeting with Ilanna Feldman (Justin Kulla)').stage).toBe('IN_VETTING')
   })
   it('reads acceptance', () => {
     expect(read('Congratulations, you’ve been approved!').stage).toBe('ACCEPTED')

@@ -92,6 +92,10 @@ const WORK_STAGES: [PlatformStageKey, RegExp[]][] = [
     re("\\binterview (?:invitation|invite|scheduled|confirmation|is confirmed|request)\\b"),
     re("\\b(?:schedule|book|complete|take|start) (?:your |the )?(?:interview|assessment|test|screening)\\b"),
     re("\\bunder review\\b"),
+    // A short meeting booked with the platform's own staff ("Appointment
+    // booked: 15-Minute Meeting with …" from AlphaSights) is their intake
+    // call. A paid client call reads as WORKING above.
+    re("\\b(?:appointment|meeting|intro call|onboarding call) (?:booked|scheduled|confirmed)\\b"),
     re("\\bwe(?:'ve| have) received your application\\b"),
   ]],
   ['SIGNED_UP', [
