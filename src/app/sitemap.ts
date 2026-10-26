@@ -13,6 +13,7 @@ import { INSIGHT_ARTICLES } from '@/lib/seo/insights'
 import { ALL_STATE_CODES, stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { UI_LAST_VERIFIED } from '@/lib/data/state-ui'
+import { getAnnouncements, hasRecentAnnouncement } from '@/lib/warn/company-announcements'
 import { getCompanies, getStateSummaries } from '@/lib/warn/layoff-pages'
 import { isNetworkCompany } from '@/lib/network/eligibility'
 import { TOPICS } from '@/lib/seo/explainers'
@@ -194,11 +195,14 @@ const latestOf = (dates: string[]) => dates.reduce((a, b) => (b > a ? b : a), da
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // News items that have their own page — the ones with our take.
-  const [news, layoffStates, companies] = await Promise.all([
+  const [news, layoffStates, companies, announcements] = await Promise.all([
     getPublishedNews(500),
     getStateSummaries().catch(() => []),
     getCompanies().catch(() => new Map()),
+    getAnnouncements().catch(() => new Map()),
   ])
+  // Employers with a recent announcement are listed even without a WARN filing (their page exists and is indexable).
+  const announced = [...announcements.values()].filter((a) => hasRecentAnnouncement(a))
   const newestNotice = layoffStates.length ? latestOf(layoffStates.map((s) => s.latest.toISOString())) : null
   const newsPages = news.filter((i) => i.slug)
   const newestNews = news.length ? latestOf(news.map((i) => i.liveAt)) : null
@@ -259,8 +263,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(newestNotice ? [entry('/layoffs', newestNotice, 'daily', 0.7)] : []),
     ...layoffStates.map((s) => entry(`/layoffs/${stateSlug(s.state)}`, s.latest.toISOString(), 'daily', 0.6)),
     ...[...companies.values()]
-      .filter((c) => meetsCompanyLayoffBar(c))
+      .filter((c) => meetsCompanyLayoffBar(c) && !announced.some((a) => a.slug === c.slug))
       .map((c) => entry(`/layoffs/company/${c.slug}`, c.latest.toISOString(), 'weekly', 0.4)),
+    ...announced.map((a) => {
+      const c = companies.get(a.slug)
+      const newest = c && c.latest > a.latest ? c.latest : a.latest
+      return entry(`/layoffs/company/${a.slug}`, newest.toISOString(), 'daily', 0.6)
+    }),
 
     // Employer network pages: the same employers, kept only where the page qualifies (recent notice, enough workers).
     ...[...companies.values()]
