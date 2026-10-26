@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-104 clusters, 633 phrases.
+109 clusters, 662 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -92,6 +92,11 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/conferences/:slug` | family | {conference} dates and cost | One conference | {conference} speakers; {conference} call for speakers; {conference} registration |
 | `/associations` | page | industry associations | Industry associations and organizers | professional associations; conference organizers; event organizers |
 | `/associations/:slug` | family | {association} conferences | One association | {association} events; {association} speaking opportunities |
+| `/salaries` | page | salary by job title | What does a job pay | average salary by job title; professional salaries; how much do jobs pay; job salary lookup; pay by profession |
+| `/salaries/:slug` | family | {title} salary | What one job title pays | {title} average salary; {title} pay range; how much does a {title} make; {title} salary by state; {title} median pay |
+| `/jobs/title` | page | jobs by title | Browse open jobs by title | job titles; open jobs by job title; job openings by profession |
+| `/jobs/title/:slug` | family | {title} jobs | Open jobs for one title | {title} job openings; {title} openings; {title} jobs hiring now; {title} jobs with salary |
+| `/jobs/type/:type` | family | {type} professional jobs | Remote, hybrid, contract, part-time or interim jobs | {type} jobs; remote jobs for managers; remote director jobs; contract jobs for professionals; part-time professional jobs; interim executive jobs; hybrid jobs |
 | `/coaching` | page | career coach | Find a career coach | professional coach; executive coach; career coaching; AI career coach; job search coach; executive coaching for job seekers; find a career coach; online career coach; free career coach |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
 | `/topics/reverse-recruiter` | page | reverse recruiter | Have someone represent me to employers | reverse recruiting; reverse recruiting services; candidate marketing; job search representation; someone to find jobs for me; recruiter that works for the candidate |
@@ -486,6 +491,18 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Industry Associations and Conference Organizers
 - Description: Industry associations and event organizers that run two or more conferences in the NextChapter catalog, with their dates, costs and calls for speakers.
 - H1: Industry associations and conference organizers
+
+### `/salaries`
+
+- Title: Salary by Job Title: Median and Pay Range
+- Description: What professional jobs pay, from current listings that state a pay range: the median and middle half for each job title, annual in US dollars.
+- H1: Salary by job title
+
+### `/jobs/title`
+
+- Title: Jobs by Title: Open Professional Roles
+- Description: Open professional jobs by job title, from employers’ own career sites and checked to still be open, with pay where listed.
+- H1: Jobs by title
 
 ### `/coaching`
 

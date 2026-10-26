@@ -1003,6 +1003,58 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['{association} events', '{association} speaking opportunities'],
   },
 
+  // ---- Salaries and jobs by title and type (built from the open job listings) -------------------------------------
+  {
+    id: 'salaries-hub',
+    intent: 'What does a job pay',
+    owner: '/salaries',
+    kind: 'page',
+    primary: 'salary by job title',
+    secondary: ['average salary by job title', 'professional salaries', 'how much do jobs pay', 'job salary lookup', 'pay by profession'],
+    seo: {
+      title: 'Salary by Job Title: Median and Pay Range',
+      description: 'What professional jobs pay, from current listings that state a pay range: the median and middle half for each job title, annual in US dollars.',
+      h1: 'Salary by job title',
+    },
+  },
+  {
+    id: 'salary-page',
+    intent: 'What one job title pays',
+    owner: '/salaries/:slug',
+    kind: 'family',
+    primary: '{title} salary',
+    secondary: ['{title} average salary', '{title} pay range', 'how much does a {title} make', '{title} salary by state', '{title} median pay'],
+  },
+  {
+    id: 'jobs-title-hub',
+    intent: 'Browse open jobs by title',
+    owner: '/jobs/title',
+    kind: 'page',
+    primary: 'jobs by title',
+    secondary: ['job titles', 'open jobs by job title', 'job openings by profession'],
+    seo: {
+      title: 'Jobs by Title: Open Professional Roles',
+      description: 'Open professional jobs by job title, from employers’ own career sites and checked to still be open, with pay where listed.',
+      h1: 'Jobs by title',
+    },
+  },
+  {
+    id: 'jobs-title-page',
+    intent: 'Open jobs for one title',
+    owner: '/jobs/title/:slug',
+    kind: 'family',
+    primary: '{title} jobs',
+    secondary: ['{title} job openings', '{title} openings', '{title} jobs hiring now', '{title} jobs with salary'],
+  },
+  {
+    id: 'jobs-type-page',
+    intent: 'Remote, hybrid, contract, part-time or interim jobs',
+    owner: '/jobs/type/:type',
+    kind: 'family',
+    primary: '{type} professional jobs',
+    secondary: ['{type} jobs', 'remote jobs for managers', 'remote director jobs', 'contract jobs for professionals', 'part-time professional jobs', 'interim executive jobs', 'hybrid jobs'],
+  },
+
   // ---- Coaching and recruiters (candidate side) ------------------------------------------------------------------
   {
     id: 'career-coach',
@@ -1360,6 +1412,8 @@ export const ANCHORS: Record<string, string> = {
   '/resources/network-scripts': 'Networking email and message scripts',
   '/resources/narrative-workshop': 'Your career story: “tell me about yourself”',
   '/resources': 'Job search and layoff guides',
+  '/salaries': 'Salary by job title',
+  '/jobs/title': 'Jobs by title',
   '/tools': 'Free job search and layoff tools',
   '/tools/severance-calculator': 'Severance calculator',
   '/glossary': 'Layoff and job search glossary',

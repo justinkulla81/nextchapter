@@ -15,6 +15,7 @@ export async function GET() {
   const maps = [
     `${SITE_URL}/sitemap.xml`,
     `${SITE_URL}/places/sitemap.xml`,
+    `${SITE_URL}/salaries/sitemap.xml`,
     ...Array.from({ length: PUBLIC_JOB_SITEMAP_SHARDS }, (_, i) => `${SITE_URL}/jobs/sitemap/${i}.xml`),
     ...Array.from({ length: employerShards }, (_, i) => `${SITE_URL}/employers/sitemap/${i}.xml`),
   ]

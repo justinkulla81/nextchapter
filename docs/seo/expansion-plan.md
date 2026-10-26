@@ -16,6 +16,14 @@ Owner request (2026-10-26): more traffic, an expansive keyword list, and the tac
 | Trust signals | Reviews link, partner logos | Not added: no reviews or logos we can substantiate |
 | Owned-domain acquisition | Bought Job-Applications.com | Not applicable |
 
+## Built 2026-10-26 from the job database
+
+- `/salaries` and `/salaries/<title>`: median and middle half of stated pay, by state, with Occupation salary markup. About 450 titles (40+ open listings, 25+ with usable annual pay).
+- `/jobs/title` and `/jobs/title/<title>`: open jobs by title, about 1,300 titles with 40+ open listings.
+- `/jobs/type/<remote|hybrid|contract|part-time|interim>`.
+- Listed in `/salaries/sitemap.xml`. Thresholds are in `src/lib/seo/job-title-rules.ts`; lowering them adds pages but thins them.
+- Not built yet from the list below: items 3 to 10 (the title/type/salary part of items 1 and 2 is done).
+
 ## Keyword backlog (not built yet; each needs one owner page before the phrase is claimed in `keywords.ts`)
 
 Build order is by search demand times how well our own data can answer it. All are factual pages from data we hold; none needs a metered API.
