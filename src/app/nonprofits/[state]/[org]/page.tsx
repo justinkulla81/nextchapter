@@ -5,7 +5,7 @@ import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { NONPROFIT_KINDS, getNonprofit, getNonprofitFunding, money } from '@/lib/seo/nonprofit-pages'
-import { getStateBoards, getStateLabor, getStateLayoffs, periodLabel, rateText } from '@/lib/seo/workforce-pages'
+import { getStateBoards, getStateLabor, periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import { STATE_FIGURES, STATE_FIGURES_EDITION } from '@/lib/report-state-figures'
 
 // One page per nonprofit with $1 million or more in revenue, from its IRS record, set in its state's job market.
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   if (!o) return {}
   return {
     title: `${o.name}${o.city ? `, ${o.city}` : ''}: IRS record, local jobs picture and open grants`,
-    description: `${o.name} is a ${NONPROFIT_KINDS[o.kind]?.label ?? 'nonprofit'} in ${o.city ? `${o.city}, ` : ''}${stateName(o.state)}${o.revenue ? ` with ${money(o.revenue)} in annual revenue` : ''}. The ${stateName(o.state)} labor market, layoff notices, open grants and workforce boards.`,
+    description: `${o.name} is a ${NONPROFIT_KINDS[o.kind]?.label ?? 'nonprofit'} in ${o.city ? `${o.city}, ` : ''}${stateName(o.state)}${o.revenue ? ` with ${money(o.revenue)} in annual revenue` : ''}. The ${stateName(o.state)} labor market, open grants and workforce boards.`,
     ...canonical(`/nonprofits/${state}/${org}`),
     ...(o.indexable ? {} : { robots: { index: false, follow: true } }),
   }
@@ -34,7 +34,7 @@ export default async function NonprofitPage({ params }: { params: Promise<{ stat
   const code = stateFromSlug(state)
   const o = code ? await getNonprofit(code, org) : null
   if (!code || !o) notFound()
-  const [labor, layoffs, funding, boards] = await Promise.all([getStateLabor(code), getStateLayoffs(code), getNonprofitFunding(code), getStateBoards(code)])
+  const [labor, funding, boards] = await Promise.all([getStateLabor(code), getNonprofitFunding(code), getStateBoards(code)])
   const name = stateName(code)
   const figures = STATE_FIGURES[code]
   const path = `/nonprofits/${state}/${org}`
@@ -59,12 +59,11 @@ export default async function NonprofitPage({ params }: { params: Promise<{ stat
         <h2 id="market" className={H2}>The {name} job market</h2>
         <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {labor && <Stat value={rateText(labor)} label={`unemployment, ${periodLabel(labor.period)}`} note="BLS, counties summed" />}
-          <Stat value={layoffs.notices.toLocaleString()} label="WARN layoff notices, last 12 months" note={layoffs.workers > 0 ? `naming ${layoffs.workers.toLocaleString()} workers` : undefined} />
           {figures?.unemploymentRate != null && <Stat value={`${figures.unemploymentRate.toFixed(1)}%`} label={`state unemployment, ${STATE_FIGURES_EDITION.month}`} note="seasonally adjusted" />}
           {figures?.payrollChange && <Stat value={`${figures.payrollChange.jobs >= 0 ? '+' : '−'}${Math.abs(figures.payrollChange.jobs).toLocaleString()}`} label="jobs, over the year" note={STATE_FIGURES_EDITION.period} />}
         </ul>
         <p className="mt-3 text-sm">
-          <Link href={`/layoffs/${state}`} className={LINK}>{name} layoff notices</Link> · <Link href={`/reports/${STATE_FIGURES_EDITION.slug}`} className={LINK}>White Collar Employment Report</Link>
+          <Link href={`/reports/${STATE_FIGURES_EDITION.slug}`} className={LINK}>White Collar Employment Report</Link>
         </p>
       </section>
 
@@ -106,7 +105,7 @@ export default async function NonprofitPage({ params }: { params: Promise<{ stat
         properties={{ page: 'nonprofit', audience: 'nonprofit', ein: o.ein, state: code, kind: o.kind }}
       />
       <p className="mt-10 max-w-3xl text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Sources:</span> IRS tax-exempt organization records; Bureau of Labor Statistics; {name}’s published WARN record; Grants.gov and SAM.gov.
+        <span className="font-medium text-foreground">Sources:</span> IRS tax-exempt organization records; Bureau of Labor Statistics; Grants.gov and SAM.gov.
       </p>
     </SeoPage>
   )
