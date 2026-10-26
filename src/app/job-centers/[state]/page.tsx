@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
+import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { getStateOrgList } from '@/lib/seo/org-pages'
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
 export default async function Page({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params
   const d = await getStateOrgList('JOB_CENTER', state)
-  if (!d) notFound()
+  if (!d) emptyStateOrNotFound(state, '/job-centers')
   const byCity = new Map<string, typeof d.rows>()
   for (const r of d.rows) (byCity.get(r.city ?? 'Statewide and regional') ?? byCity.set(r.city ?? 'Statewide and regional', []).get(r.city ?? 'Statewide and regional')!).push(r)
   return (

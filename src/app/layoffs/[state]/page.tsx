@@ -1,7 +1,7 @@
 import { fitDescription, layoffsStateSeo } from '@/lib/seo/templates'
+import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { StructuredData } from '@/components/StructuredData'
@@ -52,7 +52,7 @@ const H2 = 'text-2xl font-bold tracking-tight text-navy'
 export default async function StateLayoffsPage({ params }: { params: Promise<{ state: string }> }) {
   const { state } = await params
   const d = await load(state)
-  if (!d) notFound()
+  if (!d) emptyStateOrNotFound(state, '/layoffs')
 
   const [linkPlace, counties] = await Promise.all([getPlaceLinker(d.code), getStateCounties(d.code)])
   const placesWithPages = [...new Set(d.recent.map((n) => n.place))]
