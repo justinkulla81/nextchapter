@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { PortalHelpLauncher } from '@/components/portal/PortalHelpLauncher'
+import { NpsPromptLoader } from '@/components/nps/NpsPromptLoader'
 import { PortalActivityTracker } from '@/components/portal/PortalActivityTracker'
 import type { RoleGrantRole } from '@prisma/client'
 import { EmployerNav } from '@/components/employer/EmployerNav'
@@ -32,6 +34,9 @@ export default async function EmployerAppLayout({ children }: { children: React.
     <div className="theme-partner min-h-screen" style={brandStyle(brand)}>
       <PortalActivityTracker portal="EMPLOYER" />
       <PortalHelpLauncher portal="EMPLOYER" />
+      <Suspense fallback={null}>
+        <NpsPromptLoader audience="EMPLOYER" />
+      </Suspense>
       <EmployerNav role={orgUser.role} brand={brand} programs={[...programs]} sections={sections} employeesOnly={orgUser.employeesOnly} />
       {/* pt-14 clears the fixed top bar — see RecruiterAppLayout's identical comment. */}
       <div className="pt-14">

@@ -13329,6 +13329,33 @@ enum HelpRequestStatus {
   RESOLVED
 }
 
+/// Which portal a person is in when they answer the NPS question.
+enum PortalAudience {
+  CANDIDATE
+  EMPLOYER
+  COACH
+  RECRUITER
+}
+
+/// One answer to "How likely are you to recommend NextChapter?", or a dismissal
+/// (score null). A row of either kind starts the cooldown before the next ask.
+model NpsResponse {
+  id              String         @id @default(cuid())
+  audience        PortalAudience
+  /// CandidateProfile id, OutplacementOrgUser id, Recruiter id or Coach id, by audience.
+  respondentId    String
+  /// Name and organization at the time, so the admin page needs no join.
+  respondentLabel String?
+  /// 0-10. Null when the person dismissed the prompt without answering.
+  score           Int?
+  comment         String?        @db.Text
+  contextPath     String?
+  createdAt       DateTime       @default(now())
+
+  @@index([audience, respondentId, createdAt])
+  @@index([createdAt])
+}
+
 /// A candidate's help request or problem report, and the conversation that
 /// follows (HelpMessage). Ideas and feedback don't come here: they go to
 /// ProductFeedback (Vision → Feedback). Answered from the admin Help inbox.
