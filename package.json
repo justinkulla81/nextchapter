@@ -114,6 +114,7 @@
     "@react-pdf/renderer": "^4.6.1",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.2",
+    "@vercel/oidc": "^4.0.3",
     "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

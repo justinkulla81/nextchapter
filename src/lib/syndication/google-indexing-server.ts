@@ -1,13 +1,16 @@
 import 'server-only'
 import { importPKCS8, SignJWT } from 'jose'
+import { getVercelOidcToken } from '@vercel/oidc'
 import { loadLiveJobs, readAnnounced, writeAnnounced } from '@/lib/syndication/indexnow-server'
-import { googleIndexingEnabled, googleIndexingQuota, jobPageUrl, planGoogle } from '@/lib/syndication/syndication'
+import { googleIndexingEnabled, googleIndexingQuota, googleKeylessConfig, impersonationUrl, jobPageUrl, planGoogle, type GoogleKeylessConfig } from '@/lib/syndication/syndication'
 
 // Google Indexing API (https://developers.google.com/search/apis/indexing-api/v3/quickstart),
-// which Google supports for JobPosting pages. Off unless GOOGLE_INDEXING_ENABLED is on
-// and GOOGLE_INDEXING_SA_JSON holds a service account key whose email is an Owner of the
-// launchyournextchapter.com property in Search Console. 200 publish requests a day by
-// default (GOOGLE_INDEXING_DAILY_QUOTA if Google raises it).
+// which Google supports for JobPosting pages. Off unless GOOGLE_INDEXING_ENABLED is on and one sign-in is set up; either
+// way the service account's email must be an Owner of the launchyournextchapter.com property in Search Console:
+//   - keyless (used when the organization blocks keys): GOOGLE_INDEXING_WIF_PROVIDER (the Workload Identity provider's
+//     resource name) and GOOGLE_INDEXING_SA_EMAIL; the site's Vercel OIDC token is exchanged for a Google token
+//   - key: GOOGLE_INDEXING_SA_JSON holds a service account key
+// 200 publish requests a day by default (GOOGLE_INDEXING_DAILY_QUOTA if Google raises it).
 
 const STATE_PATH = 'google-indexing/sent.json.gz'
 const SCOPE = 'https://www.googleapis.com/auth/indexing'
@@ -37,6 +40,37 @@ async function accessToken(sa: ServiceAccount): Promise<string> {
   })
   if (!res.ok) throw new Error(`Google token: ${res.status} ${(await res.text()).slice(0, 300)}`)
   return ((await res.json()) as { access_token: string }).access_token
+}
+
+/** The request that swaps a Vercel OIDC token for a Google token (Security Token Service). */
+function stsExchangeBody(provider: string, oidcToken: string) {
+  return {
+    grantType: 'urn:ietf:params:oauth:grant-type:token-exchange',
+    audience: provider,
+    scope: 'https://www.googleapis.com/auth/cloud-platform',
+    requestedTokenType: 'urn:ietf:params:oauth:token-type:access_token',
+    subjectToken: oidcToken,
+    subjectTokenType: 'urn:ietf:params:oauth:token-type:jwt',
+  }
+}
+
+/** Keyless: Vercel OIDC token -> Google Security Token Service -> a token that acts as the service account, scoped to the Indexing API. */
+async function keylessAccessToken(cfg: GoogleKeylessConfig): Promise<string> {
+  const oidc = await getVercelOidcToken()
+  const sts = await fetch('https://sts.googleapis.com/v1/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(stsExchangeBody(cfg.provider, oidc)),
+  })
+  if (!sts.ok) throw new Error(`Google STS: ${sts.status} ${(await sts.text()).slice(0, 300)}`)
+  const federated = ((await sts.json()) as { access_token: string }).access_token
+  const res = await fetch(impersonationUrl(cfg.serviceAccountEmail), {
+    method: 'POST',
+    headers: { authorization: `Bearer ${federated}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ scope: [SCOPE] }),
+  })
+  if (!res.ok) throw new Error(`Google impersonation: ${res.status} ${(await res.text()).slice(0, 300)}`)
+  return ((await res.json()) as { accessToken: string }).accessToken
 }
 
 export interface GoogleIndexingResult {
@@ -76,8 +110,8 @@ export async function runGoogleIndexing(opts: { dryRun?: boolean } = {}): Promis
   }
   if (dryRun) return result
 
-  const sa = JSON.parse(process.env.GOOGLE_INDEXING_SA_JSON!) as ServiceAccount
-  const token = await accessToken(sa)
+  const keyless = googleKeylessConfig()
+  const token = process.env.GOOGLE_INDEXING_SA_JSON ? await accessToken(JSON.parse(process.env.GOOGLE_INDEXING_SA_JSON) as ServiceAccount) : await keylessAccessToken(keyless!)
   const jobs = [...plan.deleted.map((id) => ({ id, type: 'URL_DELETED' as const })), ...plan.updated.map((id) => ({ id, type: 'URL_UPDATED' as const }))]
   // One at a time: 200 requests is a few seconds, and a 429 stops the run cleanly.
   for (const j of jobs) {

@@ -6,6 +6,8 @@ import {
   FEED_TAIL,
   googleIndexingEnabled,
   googleIndexingQuota,
+  googleKeylessConfig,
+  impersonationUrl,
   INDEXNOW_KEY,
   indexNowBody,
   planChanges,
@@ -47,6 +49,26 @@ describe('planGoogle', () => {
     expect(googleIndexingEnabled({ GOOGLE_INDEXING_ENABLED: 'true' })).toBe(false)
     expect(googleIndexingEnabled({ GOOGLE_INDEXING_ENABLED: 'true', GOOGLE_INDEXING_SA_JSON: '{}' })).toBe(true)
     expect(googleIndexingQuota({})).toBe(200)
+  })
+})
+
+describe('Google keyless sign-in', () => {
+  const provider = '//iam.googleapis.com/projects/1000356071369/locations/global/workloadIdentityPools/vercel/providers/vercel-production'
+  const email = 'nextchapter-indexing@nextchapter-admin.iam.gserviceaccount.com'
+  it('needs both the provider and the service account email', () => {
+    expect(googleKeylessConfig({})).toBeNull()
+    expect(googleKeylessConfig({ GOOGLE_INDEXING_WIF_PROVIDER: provider })).toBeNull()
+    expect(googleKeylessConfig({ GOOGLE_INDEXING_WIF_PROVIDER: 'not a provider', GOOGLE_INDEXING_SA_EMAIL: email })).toBeNull()
+    expect(googleKeylessConfig({ GOOGLE_INDEXING_WIF_PROVIDER: provider, GOOGLE_INDEXING_SA_EMAIL: email })).toEqual({ provider, serviceAccountEmail: email })
+    expect(googleKeylessConfig({ GOOGLE_INDEXING_WIF_PROVIDER: `https:${provider}`, GOOGLE_INDEXING_SA_EMAIL: email })?.provider).toBe(provider)
+  })
+  it('turns the job on with the flag and either sign-in', () => {
+    const keyless = { GOOGLE_INDEXING_WIF_PROVIDER: provider, GOOGLE_INDEXING_SA_EMAIL: email }
+    expect(googleIndexingEnabled(keyless)).toBe(false)
+    expect(googleIndexingEnabled({ ...keyless, GOOGLE_INDEXING_ENABLED: '1' })).toBe(true)
+  })
+  it('addresses the impersonation request to the service account', () => {
+    expect(impersonationUrl(email)).toBe(`https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/nextchapter-indexing%40nextchapter-admin.iam.gserviceaccount.com:generateAccessToken`)
   })
 })
 

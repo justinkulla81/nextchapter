@@ -53,9 +53,30 @@ export function planChanges(live: LiveJob[], announced: ReadonlySet<string>, new
 // ── Google Indexing API ───────────────────────────────────────────────────────
 export const GOOGLE_INDEXING_DEFAULT_QUOTA = 200
 
-export function googleIndexingEnabled(env: Record<string, string | undefined> = process.env): boolean {
-  return /^(1|true|on|yes)$/i.test(env.GOOGLE_INDEXING_ENABLED ?? '') && !!env.GOOGLE_INDEXING_SA_JSON
+/**
+ * Keyless sign-in (Workload Identity Federation): the site proves who it is with the short-lived Vercel OIDC token, Google swaps it
+ * for a token that acts as the service account. Used when the organization blocks service account keys. Needs the provider's
+ * full resource name and the service account's email.
+ */
+export interface GoogleKeylessConfig {
+  provider: string
+  serviceAccountEmail: string
 }
+
+export function googleKeylessConfig(env: Record<string, string | undefined> = process.env): GoogleKeylessConfig | null {
+  const provider = (env.GOOGLE_INDEXING_WIF_PROVIDER ?? '').trim().replace(/^https?:/, '')
+  const serviceAccountEmail = (env.GOOGLE_INDEXING_SA_EMAIL ?? '').trim()
+  if (!/^\/\/iam\.googleapis\.com\/projects\/\d+\/locations\/global\/workloadIdentityPools\/[^/]+\/providers\/[^/]+$/.test(provider)) return null
+  if (!/^[^@\s]+@[^@\s]+\.iam\.gserviceaccount\.com$/.test(serviceAccountEmail)) return null
+  return { provider, serviceAccountEmail }
+}
+
+export function googleIndexingEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return /^(1|true|on|yes)$/i.test(env.GOOGLE_INDEXING_ENABLED ?? '') && (!!env.GOOGLE_INDEXING_SA_JSON || googleKeylessConfig(env) !== null)
+}
+
+export const impersonationUrl = (serviceAccountEmail: string) =>
+  `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${encodeURIComponent(serviceAccountEmail)}:generateAccessToken`
 
 export function googleIndexingQuota(env: Record<string, string | undefined> = process.env): number {
   const n = Number(env.GOOGLE_INDEXING_DAILY_QUOTA)
