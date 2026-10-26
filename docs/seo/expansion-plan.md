@@ -22,7 +22,9 @@ Owner request (2026-10-26): more traffic, an expansive keyword list, and the tac
 - `/jobs/title` and `/jobs/title/<title>`: open jobs by title, about 1,300 titles with 40+ open listings.
 - `/jobs/type/<remote|hybrid|contract|part-time|interim>`.
 - Listed in `/salaries/sitemap.xml`. Thresholds are in `src/lib/seo/job-title-rules.ts`; lowering them adds pages but thins them.
-- Not built yet from the list below: items 3 to 10 (the title/type/salary part of items 1 and 2 is done).
+- Life-situation and how-to topics added under `/topics`: laid off at 40/50, laid off with no savings, explain a layoff in an interview, how to lay off employees (employer side), cover letter tips.
+- `noexperience/full`, `/lesson` and `/test` set to noindex (quiz steps); the `/noexperience` and `/eqoveriq` landing pages stay indexable with their own titles.
+- Not built, with reasons: layoffs by industry (the `/industries/<slug>` pages already carry the layoff list), "layoffs this week" (the tracker hub lists the newest filings), per-state "how to file" pages (would duplicate the state benefit pages), career change by origin and target (needs the skills matrix and reviewed copy).
 
 ## Keyword backlog (not built yet; each needs one owner page before the phrase is claimed in `keywords.ts`)
 
