@@ -17305,3 +17305,16 @@ model PublicOrgPage {
   @@index([crmOrgId])
   @@index([matchStatus])
 }
+
+/// Employee counts with year and source (scripts/companies/import-wikidata-headcount.ts). SQL: prisma/manual/2026-10-26-company-headcount.sql
+model CompanyHeadcount {
+  companyId   String   @id
+  employees   Int
+  asOfYear    Int
+  source      String
+  sourceUrl   String?
+  matchedName String?
+  checkedAt   DateTime @default(now())
+
+  @@index([employees(sort: Desc)])
+}

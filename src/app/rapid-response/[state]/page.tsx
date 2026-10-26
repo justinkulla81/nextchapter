@@ -6,6 +6,7 @@ import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getStateBoards, getStateCenters, getStateLayoffs } from '@/lib/seo/workforce-pages'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const d = await load(state)
   if (!d) return {}
   return {
-    title: rapidResponseStateSeo(d.name).title,
+    title: titleMeta(rapidResponseStateSeo(d.name).title),
     description: `Planning a layoff in ${d.name}? The federal WARN Act rules, the ${d.boards.length} local workforce ${d.boards.length === 1 ? 'board' : 'boards'} and ${d.centers.length} American Job Centers that help affected workers, and a free notice checker.`,
     ...canonical(`/rapid-response/${state}`),
   }

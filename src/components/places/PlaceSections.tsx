@@ -67,7 +67,7 @@ export function HeadquarteredList({ id, title, intro, items }: { id: string; tit
           </li>
         ))}
       </ul>
-      <p className="mt-2 text-xs text-muted-foreground">Company sizes are estimates from our company directory, not payroll counts.</p>
+      <p className="mt-2 text-xs text-muted-foreground">Employee counts with a year are published figures (Wikidata). Other sizes are estimates from our company directory, not payroll counts.</p>
     </section>
   )
 }

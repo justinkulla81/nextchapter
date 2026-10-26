@@ -7,6 +7,7 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { getTitleDetail, hasSalaryPage } from '@/lib/seo/job-titles'
 import { usd } from '@/lib/seo/job-title-rules'
 import { salarySeo } from '@/lib/seo/templates'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 21600
 export const dynamicParams = true
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const d = await getTitleDetail(slug)
   if (!d || !hasSalaryPage(d.stat)) return { title: 'Salary not found', robots: { index: false, follow: true } }
   const seo = salarySeo(d.stat.name, d.stat.median, d.stat.payCount)
-  return { title: seo.title, description: seo.description, ...canonical(`/salaries/${slug}`) }
+  return { title: titleMeta(seo.title), description: seo.description, ...canonical(`/salaries/${slug}`) }
 }
 
 export default async function SalaryPage({ params }: { params: Promise<{ slug: string }> }) {

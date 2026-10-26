@@ -5,6 +5,7 @@ import { OrgPageView } from '@/components/seo/OrgPageView'
 import { canonical } from '@/lib/seo/canonical'
 import { areaHiring, claimSlugFor, getOrgPage } from '@/lib/seo/org-pages'
 import { stateName } from '@/lib/seo/states'
+import { titleMeta } from '@/lib/seo/title'
 
 // A workforce board's page: who it is and what it serves, plus (shared with the job center and economic development
 // pages, src/components/seo/OrgPageView.tsx) the jobs open in its area, the employers hiring, colleges and the
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!p) return {}
   const { row, blocks } = p
   return {
-    title: workforceBoardSeo(row.name, row.state).title,
+    title: titleMeta(workforceBoardSeo(row.name, row.state).title),
     description: `${row.name} in ${stateName(row.state)}: the area it serves, ${blocks.jobsOpen.toLocaleString('en-US')} open professional jobs there, local unemployment and the American Job Centers where job seekers and employers get help.`,
     ...canonical(`/workforce-boards/${state}/${board}`),
     ...(p.indexable ? {} : { robots: { index: false, follow: true } }),

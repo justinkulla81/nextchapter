@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { SITE_URL } from '@/lib/seo/facts'
+import { titleMeta } from '@/lib/seo/title'
 
 // SEO for the portal pages built on PortalMarketingPage: metadata (title, description, canonical, Open Graph,
 // Twitter) and one JSON-LD graph (Service, FAQPage, BreadcrumbList). The graph carries plan names only: no price,
@@ -19,7 +20,7 @@ export function portalMetadata(seo: PortalSeo): Metadata {
   const url = `${SITE_URL}${seo.path}`
   const images = seo.image ? [{ url: `${SITE_URL}${seo.image.src}`, width: seo.image.width, height: seo.image.height, alt: seo.image.alt }] : undefined
   return {
-    title: seo.title,
+    title: titleMeta(seo.title),
     description: seo.description,
     alternates: { canonical: seo.path },
     openGraph: { type: 'website', siteName: 'NextChapter', locale: 'en_US', title: seo.title, description: seo.description, url, images },

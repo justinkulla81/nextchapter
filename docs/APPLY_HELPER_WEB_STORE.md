@@ -25,9 +25,10 @@ Fill job application forms on Greenhouse, Ashby and Lever from the user's NextCh
 - Privacy policy URL: https://launchyournextchapter.com/privacy-policy
 - Support: support@launchyournextchapter.com
 
-## Assets still needed (not in repo)
-- 128x128 icon (add to manifest `icons`), at least one 1280x800 screenshot of the fill box on an application page, 440x280 promo tile (optional).
-- Review will check the site list in `host_permissions` against the description; keep them in step.
+## Assets
+- Icon: `extensions/apply-helper/icons/` (16, 48, 128 px, already in the manifest).
+- Screenshot (1280x800): `docs/web-store-assets/screenshot-1-fill-box-1280x800.png`, a mock application page with a made-up applicant and a made-up company (no real employer's branding).
+- Store review checks the site list in `host_permissions` against the description; keep them in step.
 
 ## After approval
 1. Change the install steps on `/dashboard/apply-helper` (`src/components/dashboard/ApplyHelperPage.tsx`) to a single "Add to Chrome" button linking to the store listing; keep the manual download under "Show more" for people on managed browsers.

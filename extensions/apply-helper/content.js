@@ -120,9 +120,10 @@
 
   document.addEventListener('click', (e) => {
     const b = e.target.closest && e.target.closest('button, input[type=submit]')
-    if (!b || !b.closest('form')) return
+    if (!b) return
     const label = (b.innerText || b.value || '').toLowerCase()
-    if (b.type !== 'submit' && !/submit|apply/.test(label)) return
+    // Ashby has no <form>, so there the button's own words (Submit Application) are the test.
+    if (!(b.closest('form') ? b.type === 'submit' || /submit|apply/.test(label) : /submit/.test(label))) return
     chrome.storage.local.set({ [PENDING]: { url: M.canonicalJobUrl(location.href), title: jobTitle(), company: M.companyFromUrl(location.href), at: Date.now() } })
   }, true)
 
@@ -139,16 +140,29 @@
     if (panel) say(r.ok ? 'Logged in My jobs on NextChapter.' : 'We could not log this one. Add it in My jobs yourself.')
   }
 
+  // Application forms are drawn by scripts after the page loads (Ashby, Greenhouse), and some pages rebuild the
+  // page body, so the box is added when a real form shows up and put back if the page removes it.
+  // Ashby draws its form without a <form> element, so look for the fields themselves: three or more inputs, one of
+  // them a name or email.
+  function hasApplicationForm() {
+    const fields = Array.from(document.querySelectorAll('input:not([type=hidden]), textarea'))
+    if (fields.length < 3) return false
+    return fields.some((el) => ['first_name', 'full_name', 'email'].includes(M.classifyField(describe(el))))
+  }
+
   async function start() {
     const cfg = await send({ type: 'settings' })
     if (cfg.enabled === false) return
-    if (document.querySelector('form input, form textarea')) {
-      mountPanel()
-      say(cfg.code ? 'Fills your name, contact details, current job and resume. You review and submit.' : 'Not connected yet. Click the puzzle-piece icon, open Apply Helper and paste your connect code.')
-      track('apply_helper_page_seen', { connected: !!cfg.code })
-    }
-    setInterval(checkConfirmation, 1500)
-    checkConfirmation()
+    let announced = false
+    setInterval(() => {
+      if ((!panel || !panel.isConnected) && hasApplicationForm()) {
+        panel = null
+        mountPanel()
+        say(cfg.code ? 'Fills your name, contact details, current job and resume. You review and submit.' : 'Not connected yet. Click the puzzle-piece icon, open Apply Helper and paste your connect code.')
+        if (!announced) { announced = true; track('apply_helper_page_seen', { connected: !!cfg.code }) }
+      }
+      checkConfirmation()
+    }, 1000)
   }
   start()
 })()

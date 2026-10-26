@@ -8,6 +8,7 @@ import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getPlaceLinker, getStatePage, placeUrl } from '@/lib/places/places'
 import { placeJsonLd } from '@/lib/places/jsonld'
+import { titleMeta } from '@/lib/seo/title'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
     d.layoffs.notices ? `${d.layoffs.notices} WARN layoff notices in 12 months` : null,
   ].filter(Boolean)
   return {
-    title: placeStateSeo(name).title,
+    title: titleMeta(placeStateSeo(name).title),
     description: `${name} job market by county and city: ${bits.join(', ')}. Largest employers, colleges, workforce boards and American Job Centers.`,
     ...canonical(placeUrl.state(state)),
   }

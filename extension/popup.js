@@ -537,7 +537,15 @@ async function readPage() {
       const bodyEl = msg.m.querySelector('.a3s.aiL') || msg.m.querySelector('.a3s')
       const copy = bodyEl.cloneNode(true)
       copy.querySelectorAll('.gmail_quote, blockquote, .gmail_extra').forEach((n) => n.remove())
-      const all = (copy.innerText || copy.textContent || '').split('\n').map(clean)
+      // innerText keeps line breaks only for rendered nodes; read from a detached
+      // clone it is flat textContent and the whole signature becomes one line.
+      const holder = document.createElement('div')
+      holder.style.cssText = 'position:fixed;left:-99999px;top:0;width:600px;pointer-events:none'
+      holder.appendChild(copy)
+      document.body.appendChild(holder)
+      const bodyText = copy.innerText || copy.textContent || ''
+      holder.remove()
+      const all = bodyText.split('\n').map(clean)
       // Signature: after the last "--" line; without one, the message's tail.
       const dash = all.map((t, i) => (/^(--|—|__+)$/.test(t) ? i : -1)).filter((i) => i >= 0).pop()
       const sig = (dash !== undefined ? all.slice(dash + 1) : all.slice(-14)).filter(Boolean).slice(0, 14)
