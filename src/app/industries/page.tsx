@@ -2,13 +2,11 @@ import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Section, TopicShell } from '@/components/topics/blocks'
-import { canonical } from '@/lib/seo/canonical'
 import { INDUSTRIES } from '@/lib/seo/topics'
 import { industryConferenceCounts, noticeCountsByBucket } from '@/lib/seo/topic-data'
 
 export const revalidate = 3600
 
-const DESCRIPTION = 'Every industry NextChapter tracks: open jobs, upcoming conferences, recent layoff notices, industry associations and the functions inside it.'
 export const metadata: Metadata = pageMetadata('/industries')
 
 export default async function IndustriesHub() {

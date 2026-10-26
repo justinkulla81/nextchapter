@@ -2,7 +2,6 @@ import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import { SeoPage } from '@/components/seo/SeoPage'
 import { PlaceLinks } from '@/components/places/PlaceSections'
-import { canonical } from '@/lib/seo/canonical'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { getStateIndex, placeUrl } from '@/lib/places/places'
 

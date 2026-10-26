@@ -1,7 +1,6 @@
 import { pageMetadata } from '@/lib/seo/keywords'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { canonical } from '@/lib/seo/canonical'
 import { StructuredData } from '@/components/StructuredData'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 

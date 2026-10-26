@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
 import { WarnActChecker } from '@/components/tools/WarnActChecker'
-import { canonical } from '@/lib/seo/canonical'
 
 export const metadata: Metadata = pageMetadata('/tools/warn-act-checker')
 

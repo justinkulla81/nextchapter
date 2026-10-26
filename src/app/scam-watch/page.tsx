@@ -5,7 +5,6 @@ import { ShieldAlert, MailWarning, Link2, BellRing } from 'lucide-react'
 import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
-import { canonical } from '@/lib/seo/canonical'
 
 export const metadata: Metadata = pageMetadata('/scam-watch')
 

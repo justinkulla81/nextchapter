@@ -1,7 +1,6 @@
 import { pageMetadata } from '@/lib/seo/keywords'
 import { AudienceSection, AudienceShell, Disclosure } from '@/components/organizations/AudienceShell'
 import { StructuredData } from '@/components/StructuredData'
-import { canonical } from '@/lib/seo/canonical'
 
 export const metadata = pageMetadata('/membership')
 

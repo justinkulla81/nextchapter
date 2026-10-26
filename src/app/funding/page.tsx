@@ -5,10 +5,7 @@ import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { FUNDING_STATS } from '@/lib/benefits/public-stats'
 import { MARKET_REALITY_START_HREF } from '@/lib/onboarding/resume-rule'
-import { canonical } from '@/lib/seo/canonical'
 
-const DESCRIPTION =
-  'Relocation grants, tuition aid, federal training money and free courses, ranked for you. Join NextChapter free and see the programs you qualify for, best fit first.'
 
 export const metadata: Metadata = pageMetadata('/funding')
 

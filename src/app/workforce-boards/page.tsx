@@ -2,7 +2,6 @@ import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
-import { canonical } from '@/lib/seo/canonical'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getStatesWithBoards } from '@/lib/seo/workforce-pages'
 

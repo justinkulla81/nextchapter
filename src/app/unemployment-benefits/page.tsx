@@ -7,7 +7,6 @@ import { AuthorByline, formatContentDate } from '@/components/seo/AuthorByline'
 import { StateBenefitsTable, type BenefitsRow } from '@/components/benefits/StateBenefitsTable'
 import { STATE_UI, UI_LAST_VERIFIED } from '@/lib/data/state-ui'
 import { latestReport, reportPath } from '@/lib/reports'
-import { canonical } from '@/lib/seo/canonical'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 
 const DESCRIPTION =

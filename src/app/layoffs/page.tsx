@@ -6,13 +6,10 @@ import { LayoffTracker } from '@/components/news/LayoffTracker'
 import { getLayoffTracker } from '@/lib/warn/public-tracker'
 import { getStateSummaries } from '@/lib/warn/layoff-pages'
 import { getNationalLaborData } from '@/lib/market/bls-national'
-import { canonical } from '@/lib/seo/canonical'
 import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 
 export const revalidate = 86400
 
-const DESCRIPTION =
-  'WARN Act layoff notices filed with US state labor departments, collected daily: this year’s totals, the latest filings, and a page for every state and employer with a recent notice.'
 
 export const metadata: Metadata = pageMetadata('/layoffs')
 

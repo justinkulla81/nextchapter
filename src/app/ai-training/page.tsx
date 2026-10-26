@@ -5,7 +5,6 @@ import { StructuredData } from '@/components/StructuredData'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { SITE_URL } from '@/lib/reports'
-import { canonical } from '@/lib/seo/canonical'
 
 const TITLE = 'AI training for colleges, workforce boards and employers'
 const DESCRIPTION =

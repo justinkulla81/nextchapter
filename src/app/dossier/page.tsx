@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { StructuredData } from '@/components/StructuredData'
 import { SampleDossier } from '@/components/marketing/SampleDossier'
 import { PublicSiteHeader } from '@/components/marketing/PublicSiteChrome'
-import { canonical } from '@/lib/seo/canonical'
 
 export const metadata = pageMetadata('/dossier')
 

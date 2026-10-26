@@ -2,13 +2,11 @@ import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Section, TopicShell } from '@/components/topics/blocks'
-import { canonical } from '@/lib/seo/canonical'
 
 import { getAssociations } from '@/lib/seo/topic-data'
 
 export const revalidate = 3600
 
-const DESCRIPTION = 'Industry associations and event organizers that run two or more conferences in the NextChapter catalog, with their dates, costs and calls for speakers.'
 export const metadata: Metadata = pageMetadata('/associations')
 
 export default async function AssociationsHub() {
