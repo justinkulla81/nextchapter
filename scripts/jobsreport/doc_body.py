@@ -61,6 +61,10 @@ Anthropic rates each occupation's observed exposure to AI, which weighs real usa
 {table(['Highly exposed occupations with the most openings', 'Postings'], [(x['title'], f"{x['n']:,}") for x in fx['top_high_exposure'][:8]])}
 
 Directional only. Retraining paths (related occupations with lower exposure and stronger projected growth) are the next addition."""
+_er = f"{H}/out/{a.geo}/employer-rankings.json"
+if os.path.exists(_er):
+    from employers_section import render as _render_emp
+    feed_block += "\n\n" + _render_emp(json.load(open(_er)), place=d.get("place") or a.geo.replace("-", " ").title())
 entry_block = ""
 _p = f"{H}/out/{a.geo}/entry-sample.json"
 if os.path.exists(_p):

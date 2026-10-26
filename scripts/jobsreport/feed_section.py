@@ -13,6 +13,10 @@ def main():
     out = json.load(urllib.request.urlopen(req, timeout=300))
     os.makedirs(os.path.join(HERE, "out", a.geo), exist_ok=True)
     json.dump(out, open(os.path.join(HERE, "out", a.geo, "feed-exposure.json"), "w"), indent=1)
+    req = urllib.request.Request(f"{base}/rest/v1/rpc/jobsfeed_employer_rankings", data=json.dumps({"p_states": g["states"], "p_cities": cities, "p_rank": 10, "p_fn_rank": 5}).encode(),
+                                 headers={"apikey": key, "Authorization": "Bearer " + key, "Content-Type": "application/json"})
+    rk = json.load(urllib.request.urlopen(req, timeout=300))
+    json.dump(rk, open(os.path.join(HERE, "out", a.geo, "employer-rankings.json"), "w"), indent=1)
     print(f"{a.geo}: {out['live']} live feed postings, {out['white_collar']} white-collar")
 if __name__ == "__main__":
     main()
