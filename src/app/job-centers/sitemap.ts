@@ -6,7 +6,8 @@ import { cachedIndexableOrgPages } from '@/lib/seo/org-pages'
 // American Job Centers sitemaps: /job-centers/sitemap/0.xml, 1.xml … (ORG_SITEMAP_SHARD_SIZE URLs a file), listed in the sitemap index
 // (src/app/sitemap-index.xml/route.ts). Only pages that meet the content bar (src/lib/seo/org-page-rules.ts);
 // lastmod is the newer of the organization's own record and the newest job posted in its area.
-export const revalidate = 21600
+// Rendered on request, never at build: the page list comes from the copy the daily cron saves (org-pages.ts).
+export const dynamic = 'force-dynamic'
 
 export async function generateSitemaps() {
   const n = (await cachedIndexableOrgPages('JOB_CENTER').catch(() => [])).length

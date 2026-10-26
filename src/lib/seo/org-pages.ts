@@ -384,8 +384,16 @@ const savedSummary = unstable_cache(
   { revalidate: 600 },
 )
 
-/** The sitemap list: the copy the daily cron saved (read in milliseconds), else a walk of the states. */
+/**
+ * The sitemap list: the copy the daily cron saved (read in milliseconds), else a walk of the states. The walk never
+ * runs during `next build`: the build prerenders sitemaps beside the job sitemaps and the walk would starve the
+ * database pool and fail the deploy. During the build the list is simply empty, and the sitemap routes that use it
+ * render on request.
+ */
 export async function cachedIndexableOrgPages(kind: OrgPageKind): Promise<SitemapOrg[]> {
-  const all = (await savedSummary()) ?? ((await walkedSummary()) as SavedSummary)
+  const building = process.env.NEXT_PHASE === 'phase-production-build'
+  const saved = await savedSummary()
+  const all = saved ?? (building ? null : ((await walkedSummary()) as SavedSummary))
+  if (!all) return []
   return all[kind].indexable.map((p) => ({ path: p.path, lastModified: new Date(p.lastModified) }))
 }
