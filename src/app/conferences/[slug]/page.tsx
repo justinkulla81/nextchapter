@@ -2,12 +2,14 @@ import { fitDescription } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Chips, ConferenceList, H2, JoinBand, LINK, NoticeList, Section, TopicShell, functionChip, industryChip } from '@/components/topics/blocks'
+import { Chips, ConferenceList, FactGrid, H2, JoinBand, LINK, NoticeList, Section, TopicShell, functionChip, industryChip } from '@/components/topics/blocks'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
-import { associationPath, conferencePath, industryByName } from '@/lib/seo/topics'
-import { getConference, getIndustryNotices, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { associationPath, conferencePath, industryByName, industryPath } from '@/lib/seo/topics'
+import { conferencesForOrganizer, getConference, getConferenceAssessments, getIndustryNotices, getJobStats, getTopicJobs, type TopicJobs } from '@/lib/seo/topic-data'
+import { getIndustryTrends } from '@/lib/market/bls-industry-trends'
+import { jobFacts, trendFact } from '@/lib/seo/topic-facts'
 import { ACCESS_LABEL, FORMAT_LABEL, JOURNEY_LABEL, KIND_LABEL, PROGRAM_LABEL, SENIORITY_LABEL, SPEAKING_LABEL, type Seniority, type Speaking } from '@/lib/events/types'
 import { OPPORTUNITY_LABEL } from '@/lib/conferences/constants'
 import { costLabel, hasUpcomingDates, whenLabel, whereLabel } from '@/lib/events/format'
@@ -27,11 +29,15 @@ async function load(id: string) {
   const d = await getConference(id)
   if (!d) return null
   const primary = d.conf.industries.map((n) => industryByName(n)).find((i) => i?.rule) ?? null
-  const [jobs, notices] = await Promise.all([
+  const [jobs, stats, trends, notices, organizerConfs] = await Promise.all([
     primary?.rule ? getTopicJobs({ rule: primary.rule }).catch(() => EMPTY_JOBS) : Promise.resolve(EMPTY_JOBS),
+    primary?.rule ? getJobStats({ rule: primary.rule }) : Promise.resolve(null),
+    getIndustryTrends(),
     d.conf.industries[0] ? getIndustryNotices(d.conf.industries[0]) : Promise.resolve([]),
+    d.association ? conferencesForOrganizer(d.association.organizers).then((l) => l.rows.filter((r) => r.id !== d.conf.id).slice(0, 4)).catch(() => []) : Promise.resolve([]),
   ])
-  return { ...d, jobs, notices, primaryIndustry: primary?.name ?? null }
+  const fieldFacts = [...jobFacts(jobs.total, stats).filter((f) => ['open', 'pay', 'entry'].includes(f.key)), ...[trendFact(primary ? trends[primary.name] : undefined, primary?.name)].filter((x): x is NonNullable<ReturnType<typeof trendFact>> => !!x)]
+  return { ...d, jobs, notices, organizerConfs, fieldFacts, primaryIndustry: primary?.name ?? null }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -39,12 +45,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const d = await getConference(slug)
   if (!d) return { title: 'Conference not found', robots: { index: false, follow: true } }
   const c = d.conf
+  const indexable = (await getConferenceAssessments().catch(() => null))?.get(c.id)?.indexable ?? true
   const when = whenLabel(c)
   const where = whereLabel(c)
   const speak = c.speaking === 'OPEN_CFP' ? ' Open call for speakers.' : ''
   return {
     title: titleMeta(`${c.name}: dates, cost, speakers and employers`),
     description: fitDescription(`${c.name}${c.organizer ? ` by ${c.organizer}` : ''}. ${when}${where ? `, ${where}` : ''}. ${costLabel(c)}.${speak} Industries, functions and speaking opportunities.`.replace(/\s+/g, ' '), 165),
+    robots: { index: indexable, follow: true },
     ...canonical(conferencePath(c.id)),
   }
 }
@@ -62,7 +70,7 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
   const { slug } = await params
   const d = await load(slug)
   if (!d) notFound()
-  const { conf: c, editions, opportunities, employers, association, related, jobs, notices, primaryIndustry } = d
+  const { conf: c, editions, opportunities, employers, association, related, jobs, notices, primaryIndustry, organizerConfs, fieldFacts } = d
   const path = conferencePath(c.id)
   const upcoming = hasUpcomingDates(c)
   const exact = c.industries.length > 0 ? c.industries.join(', ') : 'every industry'
@@ -141,6 +149,21 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
         )}
       </section>
 
+      {(c.roles.length > 0 || c.segments.length > 0 || c.seniorities.length > 0) && (
+        <Section id="audience" title="Who goes" note="Roles and segments the organizer or our research tag this event for.">
+          {c.segments.length > 0 && <p className="text-sm text-navy"><span className="font-medium">Segments:</span> {c.segments.join(', ')}</p>}
+          {c.roles.length > 0 && <p className="mt-2 text-sm text-navy"><span className="font-medium">Roles:</span> {c.roles.join(', ')}</p>}
+          {c.seniorities.length > 0 && <p className="mt-2 text-sm text-navy"><span className="font-medium">Levels:</span> {c.seniorities.map((x) => SENIORITY_LABEL[x as Seniority] ?? x).join(', ')}</p>}
+        </Section>
+      )}
+
+      {primaryIndustry && fieldFacts.length > 0 && (
+        <Section id="field" title={`The field it serves: ${primaryIndustry}`}>
+          <FactGrid facts={fieldFacts} />
+          <p className="mt-3 text-sm"><Link href={industryPath(primaryIndustry)} className={LINK}>Full {primaryIndustry} snapshot: jobs, pay, layoffs and conferences</Link></p>
+        </Section>
+      )}
+
       <Section id="employers" title={employers.length > 0 ? 'Employers at this conference' : `${hiringIndustryNote} hiring now`} note={employers.length > 0 ? 'Exhibitors, sponsors and speakers we have found on the event’s own lists.' : 'We have not yet published an exhibitor or attendee list for this event. These employers in its industry have open verified jobs, so they are the ones worth meeting.'}>
         {employers.length > 0 ? (
           <ul className="flex flex-wrap gap-2">
@@ -177,6 +200,13 @@ export default async function ConferencePage({ params }: { params: Promise<{ slu
               <li key={e.year}>{e.year}: {e.startDate ? `${day(e.startDate)}${e.endDate && e.endDate.getTime() !== e.startDate.getTime() ? ` to ${day(e.endDate)}` : ''}` : 'dates not announced'}{[e.city, e.state].filter(Boolean).length ? `, ${[e.city, e.state].filter(Boolean).join(', ')}` : ''}</li>
             ))}
           </ul>
+        </Section>
+      )}
+
+      {association && organizerConfs.length > 0 && (
+        <Section id="organizer" title={`More from ${c.organizer}`}>
+          <ConferenceList rows={organizerConfs} total={organizerConfs.length} source={`conference:${c.id}:organizer`} />
+          <p className="mt-3 text-sm"><Link href={associationPath(c.organizer!)} className={LINK}>All {association.count} {c.organizer} conferences</Link></p>
         </Section>
       )}
 

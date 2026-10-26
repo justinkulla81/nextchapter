@@ -6,6 +6,7 @@ import { requireAdmin } from '@/lib/admin/auth'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { notifyCandidateOfReply } from '@/lib/help/notify'
 import { HELP_MESSAGE_MAX } from '@/lib/help/constants'
+import { syncContactFromHelp } from '@/lib/help/contact-sync'
 
 export type AdminHelpState = { error?: string; sent?: boolean; emailed?: boolean; message?: string } | undefined
 
@@ -28,6 +29,7 @@ export async function replyToHelp(requestId: string, _prev: AdminHelpState, form
       ...(resolve ? { status: 'RESOLVED', resolvedAt: now } : {}),
     },
   })
+  if (resolve) await syncContactFromHelp(requestId, true, admin.email ?? null)
   const emailed = await notifyCandidateOfReply(requestId, message)
   captureServerEvent(admin.email ?? 'admin', 'help_reply_sent', {
     requestId, from: 'admin', resolved: resolve, emailed,
@@ -44,6 +46,7 @@ export async function setHelpResolved(requestId: string, resolved: boolean): Pro
     where: { id: requestId },
     data: resolved ? { status: 'RESOLVED', resolvedAt: new Date() } : { status: 'OPEN', resolvedAt: null },
   })
+  await syncContactFromHelp(requestId, resolved, admin.email ?? null)
   captureServerEvent(admin.email ?? 'admin', resolved ? 'help_request_resolved' : 'help_request_reopened', { requestId })
   revalidatePath(BASE)
   revalidatePath(`${BASE}/${requestId}`)

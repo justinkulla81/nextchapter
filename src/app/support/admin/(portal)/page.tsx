@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getAdminHomepageSummary } from '@/lib/admin/homepage-summary'
+import { getNeedsHuman, OVERDUE_HOURS } from '@/lib/help/needs-human'
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
@@ -26,7 +27,7 @@ function ApprovalRow({ href, label, count }: { href: string; label: string; coun
 }
 
 export default async function AdminHomePage() {
-  const { approvalsNeeded, recentActivity, stats } = await getAdminHomepageSummary()
+  const [{ approvalsNeeded, recentActivity, stats }, needsHuman] = await Promise.all([getAdminHomepageSummary(), getNeedsHuman()])
 
   const totalApprovals =
     approvalsNeeded.pendingJobBoardListings +
@@ -44,8 +45,14 @@ export default async function AdminHomePage() {
 
       <section>
         <h2 className="text-sm font-semibold tracking-widest text-muted-foreground uppercase">Needs your attention</h2>
+        {(needsHuman.crisis > 0 || needsHuman.overdue > 0) && (
+          <div className="mt-3 space-y-2">
+            <ApprovalRow href="/support/admin/help?tab=needs" label="Help: flagged for crisis language, reply first" count={needsHuman.crisis} />
+            <ApprovalRow href="/support/admin/help?tab=needs" label={`Help: waiting over ${OVERDUE_HOURS} hours for a reply`} count={needsHuman.overdue} />
+          </div>
+        )}
         {totalApprovals === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Nothing waiting on approval right now.</p>
+          needsHuman.crisis > 0 || needsHuman.overdue > 0 ? null : <p className="mt-3 text-sm text-muted-foreground">Nothing waiting on approval right now.</p>
         ) : (
           <div className="mt-3 space-y-2">
             <ApprovalRow

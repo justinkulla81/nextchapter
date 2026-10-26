@@ -10,6 +10,7 @@ import { organizationRef, personRef } from '@/lib/seo/jsonld'
 import { REPORT_CSS } from './report-styles'
 import { REPORT_BODY_HTML } from './report-body'
 import { titleMeta } from '@/lib/seo/title'
+import { fitDescription } from '@/lib/seo/templates'
 
 const SLUG = 'white-collar-employment-report-september-2026'
 const URL = `${SITE_URL}/reports/${SLUG}`
@@ -23,8 +24,9 @@ const MODIFIED = '2026-10-13'
 
 export const metadata: Metadata = {
   title: titleMeta('September 2026 White Collar Employment Report: Jobs, Hiring and AI'),
-  description:
+  description: fitDescription(
     'September 2026 NextChapter White Collar Employment Report: how people are working, being hired, changing jobs and starting businesses. 612,000 jobs added in the first nine months of 2026, about one opening per unemployed person, 5.0% raises for job changers, and longer searches for some white-collar workers (White-Collar Long-Search Index 162, 2019=100). Includes job cuts and AI attribution in SEC filings, a Q3 addendum on revenue per employee, productivity, career ladders, college AI programs, states, and what public programs, funding and technology are adding.',
+  ),
   alternates: { canonical: `/reports/${SLUG}` },
   openGraph: {
     type: 'article',

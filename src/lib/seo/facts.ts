@@ -16,6 +16,11 @@ export const FACTS = {
   url: SITE_URL,
   /** One line: what it is. */
   tagline: `${POSITIONING[0].toUpperCase()}${POSITIONING.slice(1)} for white-collar workers.`,
+  /** How people write the name when they mean this company; the bare name is shared with unrelated products. */
+  alternateNames: ['Launch Your NextChapter', 'launchyournextchapter.com'],
+  /** One line that separates this NextChapter from the others that share the name. */
+  disambiguation:
+    'NextChapter at launchyournextchapter.com is a U.S. job transition platform for laid-off and career-changing white-collar professionals, with a free Market Reality Assessment, a weekly Search Sprint plan and an AI career coach.',
   /** Who it is for. */
   audience:
     'Experienced professionals between jobs or planning a move, and the organizations that serve them: employers running layoffs, outplacement buyers, recruiters, coaches, workforce boards and nonprofits.',
