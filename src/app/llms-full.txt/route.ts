@@ -1,6 +1,8 @@
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { reportsNewestFirst, reportPath } from '@/lib/reports'
 import { FACTS, SITE_URL } from '@/lib/seo/facts'
+import { pageSeo } from '@/lib/seo/keywords'
+import { TOPICS } from '@/lib/seo/explainers'
 import { htmlToPlainText } from '@/lib/seo/plain-text'
 import { REPORT_BODY_HTML as SEPTEMBER_2026 } from '../reports/white-collar-employment-report-september-2026/report-body'
 
@@ -38,6 +40,19 @@ export function GET() {
       ]
         .filter(Boolean)
         .join('\n\n'),
+    )
+  }
+
+  for (const t of TOPICS) {
+    parts.push(
+      [
+        `# ${t.h1}`,
+        `URL: ${SITE_URL}/topics/${t.slug}\nLast updated: ${t.updated}\nAuthor: ${FACTS.founder.name}`,
+        pageSeo(`/topics/${t.slug}`).description,
+        t.lede,
+        ...t.sections.map((s) => [`## ${s.h2}`, ...(s.paragraphs ?? []), ...(s.bullets ?? []).map((b) => `- ${b}`)].join('\n\n')),
+        `## Frequently asked questions\n\n${t.faq.map((f) => `Q: ${f.q}\nA: ${f.a}`).join('\n\n')}`,
+      ].join('\n\n'),
     )
   }
 

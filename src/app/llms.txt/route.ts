@@ -1,6 +1,7 @@
 import { GUIDE_LANDING_CONTENT } from '@/lib/constants/guide-landing-content'
 import { latestReport, reportPath } from '@/lib/reports'
 import { FACTS, SITE_URL } from '@/lib/seo/facts'
+import { llmsPageLines } from '@/lib/seo/keywords'
 
 // /llms.txt — the site map for AI answer engines (llmstxt.org). Generated at
 // build time from the same facts, guides and report registry the pages use,
@@ -19,7 +20,7 @@ export function GET() {
 
 - [Home](${u('/')}): overview of the Market Reality Assessment, the weekly Search Sprint system, and how the platform works end to end.
 - [FAQ](${u('/faq')}): plans (free for candidates), privacy, how the Market Reality Assessment works, and how employer matching works.
-- [Executive Coach](${u('/coaching')}): an optional human career coach on top of Victoria, the free AI coach — mock interviews, resume review, negotiation support. Plans are on [Plans](${u('/pricing')}).
+- [Career coach](${u('/coaching')}): Victoria, the free AI career coach, and an optional human executive and professional career coach on top — mock interviews, resume review, negotiation support. Plans are on [Plans](${u('/pricing')}).
 
 ## For organizations
 
@@ -45,6 +46,12 @@ ${report ? `- [Latest edition: ${report.month}](${u(reportPath(report))}): ${rep
 - [Employer pages for current and former employees](${u('/layoffs')}): for each employer with a recent, sizeable WARN filing, the notices, open professional jobs in its state, unemployment benefits, retraining help and a way to join. Linked from each employer's layoff page.
 - [Unemployment benefits by state](${u('/unemployment-benefits')}): maximum and minimum weekly benefit, weeks, waiting week, severance rules and where to file, for all 50 states and DC, from Department of Labor and state agency sources.
 - [Editorial standards](${u('/editorial-standards')}): how NextChapter researches and sources content, keeps it separate from what it sells, and handles corrections.
+
+## Find what you need, by topic
+
+The main page for each topic people search for: layoffs, severance, unemployment benefits, job search, resumes, career change, career pivot, career exploration, career coaches, executive recruiters, reverse recruiters, outplacement and more.
+
+${llmsPageLines(SITE_URL).join('\n')}
 
 ## Guides
 

@@ -1,3 +1,4 @@
+import { pageSeo } from '@/lib/seo/keywords'
 import { PORTALS } from '@/lib/marketing/portals'
 import { shot } from '@/lib/marketing/screenshots'
 import type { PortalPageDef } from './types'
@@ -25,9 +26,7 @@ const compliance = shot('outplacement-compliance', {
 
 export const OUTPLACEMENT: PortalPageDef = {
   seo: {
-    title: 'Outplacement that relaunches careers',
-    description:
-      'Outplacement for departing employees: a Dossier each person keeps, reporting in counts for HR and a compliance record for each seat for legal. Set up by contract.',
+    ...pageSeo('/outplacement'),
     path: '/outplacement',
     image: { src: reporting.src, width: reporting.width, height: reporting.height, alt: reporting.alt },
   },

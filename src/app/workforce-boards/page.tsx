@@ -1,17 +1,13 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SeoPage, H2, LINK, ActionBand } from '@/components/seo/SeoPage'
-import { canonical } from '@/lib/seo/canonical'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { getStatesWithBoards } from '@/lib/seo/workforce-pages'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'Workforce development boards and American Job Centers by state',
-  description: 'Every local workforce development board and American Job Center, by state: the counties each board serves, local unemployment, the colleges in the area and recent layoff notices.',
-  ...canonical('/workforce-boards'),
-}
+export const metadata: Metadata = pageMetadata('/workforce-boards')
 
 export default async function WorkforceHubPage() {
   const states = (await getStatesWithBoards()).sort((a, b) => stateName(a.state).localeCompare(stateName(b.state)))

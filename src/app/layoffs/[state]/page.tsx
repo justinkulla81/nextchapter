@@ -1,3 +1,4 @@
+import { fitDescription, layoffsStateSeo } from '@/lib/seo/templates'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -37,8 +38,8 @@ export async function generateMetadata({ params }: { params: Promise<{ state: st
   const workers = d.recent.reduce((s, n) => s + (n.workers ?? 0), 0)
   const description = `${d.recent.length} WARN layoff notices filed in ${d.name} in the last 12 months, naming ${workers.toLocaleString()} workers: dates, employers, locations and the state record for each, plus local job centers.`
   return {
-    title: `${d.name} layoffs: WARN notices`,
-    description,
+    title: layoffsStateSeo(d.name).title,
+    description: fitDescription(description, 165),
     ...canonical(`/layoffs/${state}`),
   }
 }
@@ -72,7 +73,7 @@ export default async function StateLayoffsPage({ params }: { params: Promise<{ s
             <span aria-hidden> › </span>
             <span className="text-foreground">{d.name}</span>
           </nav>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{d.name} layoffs: WARN notices</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">{layoffsStateSeo(d.name).h1}</h1>
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">
             Employers filed {d.recent.length.toLocaleString()} layoff notices in {d.name} in the last 12 months, naming{' '}
             {workers.toLocaleString()} workers. The most recent was filed {noticeDay(latest)}.

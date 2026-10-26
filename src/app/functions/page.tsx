@@ -1,14 +1,13 @@
+import { pageMetadata } from '@/lib/seo/keywords'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Section, TopicShell } from '@/components/topics/blocks'
-import { canonical } from '@/lib/seo/canonical'
 import { JOB_FUNCTIONS } from '@/lib/seo/topics'
 import { getCatalogIndex } from '@/lib/seo/topic-data'
 
 export const revalidate = 3600
 
-const DESCRIPTION = 'Every job function NextChapter tracks, from finance and engineering to marketing and legal: open jobs, conferences, associations and the industries that hire.'
-export const metadata: Metadata = { title: 'Job functions: jobs, conferences and layoffs', description: DESCRIPTION, ...canonical('/functions') }
+export const metadata: Metadata = pageMetadata('/functions')
 
 export default async function FunctionsHub() {
   const index = await getCatalogIndex().catch(() => [])
