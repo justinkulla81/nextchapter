@@ -18,6 +18,7 @@ import { TOPICS } from '@/lib/seo/explainers'
 import { ASSOCIATION_MIN_CONFERENCES, INDUSTRIES, JOB_FUNCTIONS, associationSlug } from '@/lib/seo/topics'
 import { getCatalogIndex, getConferenceAssessments } from '@/lib/seo/topic-data'
 import { assessAssociation } from '@/lib/seo/topic-quality'
+import { topicsWithSnapshot } from '@/lib/seo/topic-snapshot'
 import { boardSlugs } from '@/lib/seo/workforce-pages'
 import { visibleBoards } from '@/lib/workforce/board-area'
 import { getStateNonprofitCounts, nonprofitsForSitemap } from '@/lib/seo/nonprofit-pages'
@@ -156,9 +157,9 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
   // A page below its quality bar renders for visitors but is noindex, so it stays out of the sitemap too
   // (src/lib/seo/topic-quality.ts). It returns by itself once its data passes the bar. Conferences and associations are
   // judged from the catalog rows, so the sitemap and the page agree without rendering every page. Industry and function
-  // pages are built from thousands of live jobs and pass by construction; their on-page gate still applies.
+  // pages are listed once the topic-snapshots cron has stored their job figures; their on-page gate still applies.
   try {
-    const [catalog, assessments] = await Promise.all([getCatalogIndex(), getConferenceAssessments()])
+    const [catalog, assessments, snapshots] = await Promise.all([getCatalogIndex(), getConferenceAssessments(), topicsWithSnapshot()])
     const newest = new Map<string, string>()
     const byOrg = new Map<string, typeof catalog>()
     for (const c of catalog) if (c.organizer) {
@@ -171,8 +172,8 @@ async function loadTopicPages(entry: (path: string, updated: string, freq: Freq,
       .map(([slug]) => entry(`/associations/${slug}`, newest.get(slug) ?? TOPICS_UPDATED, 'weekly', 0.5))
     return [
       ...hubs,
-      ...INDUSTRIES.filter((i) => i.rule).map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
-      ...JOB_FUNCTIONS.map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+      ...INDUSTRIES.filter((i) => i.rule && snapshots.has(JSON.stringify({ rule: i.rule }))).map((i) => entry(`/industries/${i.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
+      ...JOB_FUNCTIONS.filter((f) => snapshots.has(JSON.stringify({ fn: f.name }))).map((f) => entry(`/functions/${f.slug}`, TOPICS_UPDATED, 'daily', 0.7)),
       ...catalog.filter((c) => assessments.get(c.id)?.indexable).map((c) => entry(`/conferences/${c.id}`, c.updatedAt, 'weekly', c.importance === 1 ? 0.6 : 0.5)),
       ...assocEntries,
     ]

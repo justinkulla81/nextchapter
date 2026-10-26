@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { heavy } from '@/lib/db/heavy'
+import { readSnapshot } from '@/lib/seo/topic-snapshot'
 import { unstable_cache } from 'next/cache'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -116,11 +117,14 @@ function mergeBuckets(rows: { name: string; n: number }[]): { name: string; coun
   return [...m].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
 }
 
-const cachedJobs = unstable_cache((f: string) => heavy(() => loadJobs(JSON.parse(f) as JobFilter)), ['topic-jobs-v3'], { revalidate: 3600 })
+export const EMPTY_TOPIC_JOBS: TopicJobs = { total: 0, jobs: [], functions: [], industries: [], employers: [] }
 
-/** Open public jobs for an industry rule or a function, with the functions/industries/employers they sit in. */
+/** The scan itself. Run only by the topic-snapshots cron (topic-snapshot.ts); pages read the stored result. */
+export const computeTopicJobs = (f: JobFilter) => heavy(() => loadJobs(f))
+
+/** Open public jobs for an industry rule or a function, with the functions/industries/employers they sit in. Read from the snapshot; empty until the cron has stored one. */
 export async function getTopicJobs(f: JobFilter): Promise<TopicJobs> {
-  return cachedJobs(JSON.stringify(f))
+  return (await readSnapshot<TopicJobs>(`jobs:${JSON.stringify(f)}`)) ?? EMPTY_TOPIC_JOBS
 }
 
 // ---- layoffs ---------------------------------------------------------------------------------------------
@@ -161,7 +165,7 @@ async function loadNotices(): Promise<TopicNotice[]> {
   })
 }
 
-const cachedNotices = unstable_cache(loadNotices, ['topic-notices-v1'], { revalidate: 3600 })
+const cachedNotices = unstable_cache(() => heavy(loadNotices), ['topic-notices-v1'], { revalidate: 3600 })
 export const getRecentNotices = cache(() => cachedNotices().catch(() => [] as TopicNotice[]))
 
 export async function getIndustryNotices(bucket: string): Promise<TopicNotice[]> {
@@ -395,8 +399,11 @@ async function loadJobStats(f: JobFilter): Promise<JobStats | null> {
   }
 }
 
-const cachedStats = unstable_cache((f: string) => loadJobStats(JSON.parse(f) as JobFilter), ['topic-job-stats-v1'], { revalidate: 3600 })
-export const getJobStats = (f: JobFilter) => cachedStats(JSON.stringify(f)).catch(() => null)
+/** The scan itself. Run only by the topic-snapshots cron. */
+export const computeJobStats = (f: JobFilter) => heavy(() => loadJobStats(f))
+
+/** Read from the snapshot; null until the cron has stored one. */
+export const getJobStats = (f: JobFilter) => readSnapshot<JobStats>(`stats:${JSON.stringify(f)}`)
 
 // ---- conference summary for a list ----------------------------------------------------------------------
 

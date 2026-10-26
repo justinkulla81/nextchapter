@@ -319,6 +319,10 @@
     {
       "path": "/api/cron/monthly-user-report",
       "schedule": "0 23 28-31 * *"
+    },
+    {
+      "path": "/api/cron/topic-snapshots",
+      "schedule": "*/10 * * * *"
     }
   ]
 }
