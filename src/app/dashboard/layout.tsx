@@ -27,6 +27,7 @@ import { earlyCareerAudience } from '@/lib/early-career/audience'
 import { isInWorkMember } from '@/lib/in-work/constants'
 import { getFreshJobsPeek } from '@/lib/jobs/fresh-jobs-peek'
 import { timed } from '@/lib/perf/timed'
+import { NotificationBellLoader } from '@/components/notifications/NotificationBellLoader'
 import { RedesignNav } from '@/components/dashboard/RedesignNav'
 import { RedesignParts } from '@/components/dashboard/RedesignParts'
 import { JourneyCheckInDialog } from '@/components/dashboard/JourneyCheckInDialog'
@@ -174,6 +175,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         personName={personName}
         className="lg:pl-[calc(18rem+1.5rem)]"
       />
+      {/* The bell: layoffs, deadlines and matches worth a look. */}
+      <Suspense fallback={null}>
+        <NotificationBellLoader candidateId={profile.id} />
+      </Suspense>
       {/* Higher Ed: the member's college brand, when they joined through one. */}
       <Suspense fallback={null}>
         <CollegeBar candidateId={profile.id} className="lg:pl-[calc(18rem+1.5rem)]" />
