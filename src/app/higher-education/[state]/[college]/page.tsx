@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
+import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { conferencesHostedBy, hasHostedConferences } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
@@ -192,6 +194,11 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
           )}
           <p className="mt-2 text-xs text-muted-foreground">American Job Centers are free, public career offices.</p>
         </section>
+      )}
+
+      {hasHostedConferences(c.unitid) && (
+        <ConferenceSection id="conferences" title={`Conferences hosted by ${c.name}`} intro="Events this college organizes, as named on the event’s own site."
+          source={`college:${c.unitid}`} load={() => conferencesHostedBy(c.unitid)} />
       )}
 
       {c.peers.length > 0 && (

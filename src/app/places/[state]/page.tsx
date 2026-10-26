@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { CollegeTable, EconomySection, EmployerList, HeadquarteredList, LayoffsSection, PlaceLinks, WorkforceSection } from '@/components/places/PlaceSections'
+import { ConferenceSection } from '@/components/events/ConferenceSection'
+import { conferencesAtPlace } from '@/lib/events/conference-places'
 import { canonical } from '@/lib/seo/canonical'
 import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getPlaceLinker, getStatePage, placeUrl } from '@/lib/places/places'
@@ -82,6 +84,9 @@ export default async function StatePlacePage({ params }: { params: Promise<{ sta
       {d.centerCount > 0 && (
         <p className="mt-4 text-sm"><Link href={`/workforce-boards/${state}`} className={LINK}>{d.centerCount.toLocaleString()} American Job Centers in {name}</Link></p>
       )}
+
+      <ConferenceSection id="conferences" title={`Conferences in ${name}`} intro={`Industry conferences and trade shows held in ${name}, the ones worth a trip for hiring managers and job seekers.`}
+        source={`place:state:${code}`} load={() => conferencesAtPlace('state', code, null, 24)} more={{ href: '/conferences', label: 'All conferences' }} />
 
       <PlaceLinks id="counties" title={`${name} counties`} intro="Each county page has its own unemployment, layoffs, job openings, employers, colleges and job centers."
         links={byPop.map((c) => ({ href: placeUrl.county(state, c.slug), label: c.name, note: c.unemploymentRate != null ? `${c.unemploymentRate.toFixed(1)}% unemployed` : undefined }))} />
