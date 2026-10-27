@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/PublicSiteChrome'
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
+import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
+import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
@@ -176,6 +178,16 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
             </p>
             <div className="mt-4"><BoardList notices={c.notices} page="company" /></div>
           </section>}
+
+          <CompanyLayoffGuide
+            name={c.name}
+            states={c.states}
+            guide={buildLayoffGuide({
+              name: c.name,
+              notices: c.notices,
+              announcements: ann?.items.map((a) => ({ kind: a.kind, date: a.date })) ?? [],
+            })}
+          />
 
           <section aria-labelledby="affected" className="mt-12 rounded-xl border border-border bg-white p-6">
             <h2 id="affected" className="text-xl font-semibold tracking-tight text-navy">What to do if you’re affected</h2>
