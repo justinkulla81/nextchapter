@@ -245,6 +245,19 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     },
   },
   {
+    id: 'severance-pay-explainer',
+    intent: 'Understand how severance is taxed, how long I have to sign, and what to ask for',
+    owner: '/resources/severance-pay',
+    kind: 'page',
+    primary: 'is severance taxed',
+    secondary: ['severance pay taxes', 'severance tax withholding', 'is severance taxed at 22%', 'is severance taxed at a higher rate', 'how long do i have to sign a severance agreement', 'do i have to sign a severance agreement', 'severance agreement over 40', 'severance agreement 21 days 7 days', 'lump sum severance or salary continuation', 'what to ask for in a severance package', 'is severance pay required by law'],
+    seo: {
+      title: 'Severance Pay: Taxes, Your Agreement, What Is Typical',
+      description: 'How severance is taxed, how many days you have to review and sign an agreement, what to ask for, and how it affects unemployment in your state. Sourced.',
+      h1: 'Severance pay: taxes, your agreement and what is typical',
+    },
+  },
+  {
     id: 'bridge-income',
     intent: 'Earn while searching',
     owner: '/resources/bridge-income',
@@ -289,7 +302,7 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/unemployment-benefits/:state',
     kind: 'family',
     primary: '{state} unemployment benefits',
-    secondary: ['{state} unemployment', 'file for unemployment in {state}', '{state} weekly unemployment benefit', '{state} unemployment eligibility', '{state} unemployment weeks'],
+    secondary: ['{state} unemployment', 'file for unemployment in {state}', '{state} weekly unemployment benefit', '{state} unemployment eligibility', '{state} unemployment weeks', 'does severance affect unemployment in {state}', 'can i collect unemployment if i get severance in {state}', '{state} severance and unemployment'],
   },
 
   // ---- Layoff tracking -------------------------------------------------------------------------------------------
@@ -950,10 +963,10 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/tools/severance-calculator',
     kind: 'page',
     primary: 'severance calculator',
-    secondary: ['severance pay calculator', 'how much severance should I get', 'severance by years of service', 'severance weeks per year', 'severance estimate'],
+    secondary: ['severance pay calculator', 'how much severance should I get', 'severance by years of service', 'severance weeks per year', 'severance estimate', 'severance calculator after taxes', 'severance pay tax calculator', 'net severance pay'],
     seo: {
       title: 'Severance Calculator: Pay by Years of Service',
-      description: 'Free severance calculator: enter your pay and years of service to see the common one-to-two weeks per year range, and what paid health coverage adds.',
+      description: 'Free severance calculator: the common one-to-two weeks per year range from your pay, what is left after withholding, and your state’s unemployment rule.',
       h1: 'Severance calculator',
     },
   },
