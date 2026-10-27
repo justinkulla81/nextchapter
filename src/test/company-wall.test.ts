@@ -168,6 +168,7 @@ describe('no indirect route from CRM data to a candidate', () => {
     'src/lib/workforce/college-crm.ts': 'admin workforce tooling',
     'src/lib/workforce/college-rank.ts': 'admin workforce tooling',
     'src/lib/workforce/college-org-link.ts': 'admin workforce tooling: links each college to its CRM organization (scripts/colleges/link-crm.ts and the Review List actions)',
+    'src/components/admin/CrmCompetitorContracts.tsx': 'admin-only (rendered only on the admin CRM organization page): competitor awards, open bids and re-bid opportunities tied to one organization',
     'src/components/admin/CollegeReviewSection.tsx': 'admin Review List: colleges whose CRM match needs a person to decide',
     'src/lib/seo/college-pages.ts': 'public college pages: reads only the CRM organization name to build the /prepared claim slug; returns the slug, nothing else',
     'src/lib/higher-ed/demo-seed.ts': "not the CRM: writes crmExchangeRun, a college's CSV import log (Higher Ed)",
