@@ -86,6 +86,24 @@ const HEADCOUNT = new RegExp(
 /** Words that make the subject a description rather than a company's name. */
 const NOT_A_NAME = /\b(firm|giant|maker|makers|retailer|chain|plant|startup|employer|employers|company|companies|agency|district|city|county|state|states|government|federal|tech|more|mass|new|major|another|local|dozens|hundreds|thousands|layoffs|layoff|health|global|banking|workers|employees|report|reports|why|how|what|here|these|this|after|amid|as|area|bay|region|industry|sector|hospital|school|schools|university|us|u\.s\.|trump|congress|prepares|preparing|plans|announces|confirms|reveals|begins|starts)\b/i
 
+/**
+ * What survives the shapes above but is still not a company: a bare article or abbreviation ("The", "AI", "U.S."), a clause that
+ * ended mid-sentence ("Mosaic to", "Cisco posts record revenue and"), a headline fragment with a verb in it ("Mikel Arteta defends
+ * Arsenal's decision"), or a place or thing ("South Fort Meade facility", "LC4 budget proposal"). Found in the news-reported layoffs on
+ * 2026-10-27: about 30 of 137 had a name like these.
+ */
+const BARE_WORD = /^(?:the|a|an|ai|us|u\.s\.|usa|announcing|announces|corporate jobs|jobs|job cuts|layoffs?|more|big four bank|australian bank)$/i
+const FRAGMENT = /\b(?:to|expects?|expected|blamed|blames?|posts?|defends?|defend|aims?|discontinues?|shuts?|closes?|closing|decision|proposal|budget|calls?|will|would|could|reorganization|says?|said|says|names?|hits?|falls?|rises?)\b/i
+const PLACE_OR_THING = /\b(?:facility|factory|plant|operator|manufacturer|contractor|council|dev|news|skill games)\b/i
+const DANGLING_END = /\b(?:to|and|for|of|at|in|on|with|by|as|the|a)$/i
+export function isPlausibleCompany(name: string): boolean {
+  const n = name.trim()
+  if (n.length < 2 || BARE_WORD.test(n) || DANGLING_END.test(n)) return false
+  if (n.split(/\s+/).length > 5) return false
+  if (FRAGMENT.test(n) || PLACE_OR_THING.test(n)) return false
+  return true
+}
+
 function count(n: string | undefined, k: string | undefined): number | null {
   if (!n) return null
   const v = parseFloat(n.replace(/,/g, ''))
@@ -117,8 +135,8 @@ export function readLayoffHeadline(headline: string): HeadlineLayoff | null {
     ?? h.match(SHARE_PCT) ?? h.match(SHARE_WORDS) ?? h.match(LARGE_PART) ?? h.match(HEADCOUNT)
   const raw = (m?.groups?.co ?? m?.groups?.tco?.replace(/\s+(?:teams?|staff|workforce|employees|workers)$/i, ''))?.trim()
   if (!raw) return null
-  const company = raw.replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').trim()
-  if (company.length < 2 || NOT_A_NAME.test(company)) return null
+  const company = raw.replace(/\s+(?:CEO|CFO|COO|CTO|founder|co-founder|chief\b).*$/i, '').replace(/^the /i, '').replace(/[,:]$/, '').replace(/['’]s$/i, '').trim()
+  if (company.length < 2 || NOT_A_NAME.test(company) || !isPlausibleCompany(company)) return null
   const companyKey = normalizeOrgName(company)
   if (!companyKey) return null
   return { company, companyKey, employees: count(m!.groups?.n, m!.groups?.k), percent: readPercent(h) }
