@@ -45,7 +45,8 @@ async function distinctIps(query: Prisma.Sql): Promise<number> {
   return Number(rows[0]?.n ?? 0)
 }
 
-export async function computeClaimFunnel(since: Date): Promise<ClaimFunnelData> {
+export async function computeClaimFunnel(windowDays: number): Promise<ClaimFunnelData> {
+  const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000)
   const kinds = await Promise.all(
     KINDS.map(async (k): Promise<ClaimKindRow> => {
       const [visitors, toClaimPage] = await Promise.all([

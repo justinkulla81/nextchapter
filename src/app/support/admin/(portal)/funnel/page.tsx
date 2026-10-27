@@ -87,7 +87,7 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
   await requireAdmin()
   const { days } = await searchParams
   const windowDays = parseWindow(days)
-  const [data, claims] = await Promise.all([computeFunnel(windowDays), computeClaimFunnel(new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000))])
+  const [data, claims] = await Promise.all([computeFunnel(windowDays), computeClaimFunnel(windowDays)])
 
   return (
     <div className="mx-auto max-w-4xl space-y-10 p-6">
