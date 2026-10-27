@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/admin/auth'
 import { computeFunnel, type FunnelStage, type FunnelWindowDays } from '@/lib/admin/funnel'
+import { computeClaimFunnel } from '@/lib/admin/claim-funnel'
+import { ClaimFunnel } from '@/components/admin/ClaimFunnel'
 
 export const metadata = { title: 'Funnel' }
 export const maxDuration = 30
@@ -85,7 +87,7 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
   await requireAdmin()
   const { days } = await searchParams
   const windowDays = parseWindow(days)
-  const data = await computeFunnel(windowDays)
+  const [data, claims] = await Promise.all([computeFunnel(windowDays), computeClaimFunnel(new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000))])
 
   return (
     <div className="mx-auto max-w-4xl space-y-10 p-6">
@@ -194,6 +196,8 @@ export default async function AdminFunnelPage({ searchParams }: { searchParams: 
           </tbody>
         </table>
       </section>
+
+      <ClaimFunnel data={claims} />
 
       <section className="space-y-3">
         <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
