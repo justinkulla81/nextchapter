@@ -10,7 +10,7 @@ import { defaultAreaForKind } from '@/lib/vision/labels'
 import { cleanAreas, cleanRelationship, cleanStatus, hostOf, homepageOf, parseCustomers, parseLines, parseWins, parseUsd } from '@/lib/vision/competitor-areas'
 import { enrichCompetitor, type EnrichedCompetitor } from '@/lib/vision/competitor-enrich'
 import { mergeRefresh } from '@/lib/vision/competitor-watch'
-import { sendCompetitorDownload, syncNewCompetitor } from '@/lib/vision/competitor-sync'
+import { sendCompetitorDownload, syncNewCompetitor, syncAllGaps } from '@/lib/vision/competitor-sync'
 import { notifyFeedbackAddressed } from '@/lib/help/notify'
 import type {
   ProductItemKind, ProductItemArea, ProductItemStatus, ProductRoadmapBucket, ProductEffort,
@@ -402,6 +402,15 @@ export async function quickAddCompetitor(formData: FormData) {
   revalidatePath(`${V}/competitors`)
   if (created) return back(`added=${created.id}`)
   return back(`error=${encodeURIComponent(`Could not read ${host}: ${failure}. Try again, or add it by hand below.`)}`)
+}
+
+/** Puts every active competitor's "what we would need" gaps on the product list as ideas (repeats only add the competitor's name). */
+export async function addAllGapsToProductList() {
+  const admin = await requireAdmin()
+  const made = await syncAllGaps()
+  captureServerEvent(admin.email ?? 'admin', 'vision_gaps_synced', { ideas: made })
+  revalidatePath(`${V}/competitors`)
+  return redirect(`${V}/competitors?gaps=${made}`)
 }
 
 /** Reads the site again. Fills blanks, adds new customers and wins, refreshes the public numbers; never deletes what is there. */

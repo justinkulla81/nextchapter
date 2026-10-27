@@ -19,6 +19,7 @@ import { CrmAddOrgOpportunity } from '@/components/admin/CrmOrgOpportunities'
 import { BenefitsPanel } from '@/components/admin/BenefitsPanel'
 import { programsForEmployer } from '@/lib/benefits/store'
 import { CrmFundingMatches } from '@/components/admin/CrmFundingMatches'
+import { CrmCompetitorContracts } from '@/components/admin/CrmCompetitorContracts'
 import { kindsForOrg } from '@/lib/funding-opportunities/eligibility'
 import { opportunitiesForKinds } from '@/lib/funding-opportunities/store'
 import { OPPORTUNITY_KINDS, kindForPipeline } from '@/lib/crm/opportunity-kinds'
@@ -861,6 +862,7 @@ export default async function CrmOrganizationPage({ params }: { params: Promise<
 
         <BenefitsPanel title="Benefits this company offers" note="Relocation packages and incentives this employer itself offers, from the Benefits catalog." groups={[{ label: org.name, rows: employerBenefits }]} />
         <CrmFundingMatches opportunities={funding} />
+        <Suspense fallback={null}><CrmCompetitorContracts orgId={org.id} /></Suspense>
 
         {org.orgTypes.includes('OUTPLACEMENT_LEAD') && (
           <div>
