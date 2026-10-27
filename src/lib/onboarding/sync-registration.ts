@@ -9,6 +9,7 @@ import { findIdentityMatchesForCandidate } from '@/lib/onboarding/identity-match
 import { findCrmInviteMatches, inferLeadSource } from '@/lib/candidates/lead-source'
 import { applyReferralCookie } from '@/lib/candidates/referral'
 import { claimSavedJobs, recordLeadConversion } from '@/lib/leads/claim-saved-jobs'
+import { claimEmployerFollows } from '@/lib/company-tracker/follow-from-email'
 
 // Registration completes the moment the candidate's Supabase auth user
 // stops being anonymous — whether via clicking the "create your account"
@@ -104,6 +105,8 @@ export async function syncRegistrationCompletion(
   // Jobs they saved on a public job page before signing up land in their saved jobs. Read in the
   // request (the cookie), best effort.
   await claimSavedJobs(updated.id, confirmedEmail ?? null).catch((error) => console.error('Failed to claim saved jobs:', error))
+  // Employer pages' "openings by email" boxes they used with this email become companies they follow.
+  await claimEmployerFollows(updated.id, confirmedEmail ?? null).catch((error) => console.error('Failed to claim employer follows:', error))
   await recordLeadConversion(updated.id, confirmedEmail ?? null).catch((error) => console.error('Failed to record lead conversion:', error))
   after(async () => {
     await findCrmInviteMatches(updated.id).catch((error) => console.error('Failed to check CRM invites:', error))

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { inferJourney } from '@/lib/leads/infer-journey'
+import { followFromConfirmedLead } from '@/lib/company-tracker/follow-from-email'
 
 const KINDS = new Set(['job_alert', 'layoff_alert', 'deadline_reminders'])
 
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const lead = await prisma.homepageLead.findUnique({
       where: { unsubscribeToken: token },
-      select: { id: true, email: true, kind: true, searchQ: true, searchLoc: true, confirmedAt: true, journeySlug: true },
+      select: { id: true, email: true, kind: true, source: true, searchQ: true, searchLoc: true, confirmedAt: true, journeySlug: true },
     })
     if (lead && KINDS.has(lead.kind) && !lead.confirmedAt) {
       // An answer the same email gave in the journey picker beats a guess from the search words.
@@ -26,6 +27,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       await prisma.homepageLead.update({ where: { id: lead.id }, data: { confirmedAt: new Date(), unsubscribedAt: null, journeySlug: lead.journeySlug || guess.slug } })
       captureServerEvent(lead.email, 'alert_confirmed', { kind: lead.kind })
       captureServerEvent(lead.email, 'journey_inferred', { situation: guess.slug, basis: guess.basis })
+      // An employer page's box is a follow: a member with this email now has the company on their profile.
+      await followFromConfirmedLead(lead)
     }
   } catch (error) {
     console.error('job alert confirm failed:', error instanceof Error ? error.message : error)
