@@ -1,3 +1,4 @@
+import { BrowseTheSite } from './BrowseTheSite'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
@@ -68,6 +69,9 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
         <div className="mx-auto max-w-4xl px-6 py-8">
           <NewsletterSignup source="site-footer" variant="compact" />
         </div>
+      </div>
+      <div className="pt-12">
+        <BrowseTheSite tone="dark" />
       </div>
       <div className="mx-auto max-w-4xl px-6 py-16 text-center">
         <h2 className="text-3xl font-bold tracking-tight">Ready to start your next chapter?</h2>
