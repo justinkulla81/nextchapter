@@ -499,8 +499,11 @@ export function SuccessSprintCard({
   hasUnresolvedResumeIssues,
   title = 'Weekly Search Sprint',
   hidePoints = false,
+  googleConnectOn = true,
 }: {
   hidePoints?: boolean
+  /** False while Google connect is off (src/lib/google/connect-switch.ts): nothing is locked behind connecting, and the connect rows are not shown. */
+  googleConnectOn?: boolean
   // "Weekly Search Sprint" for people searching; "Your weekly plan" for people
   // growing in a job, where "search" would be the wrong word.
   title?: string
@@ -535,7 +538,7 @@ export function SuccessSprintCard({
   // (networking, matching, auto-detection) only make sense once there's a
   // real "who is this candidate, what are they looking for" to act on.
   const gmailCalendarConnected = hasEmailConnection && hasCalendarConnection
-  const connectionsUnlocked = gmailCalendarConnected && linkedInConnected
+  const connectionsUnlocked = !googleConnectOn || (gmailCalendarConnected && linkedInConnected)
   const profileComplete = PROFILE_UNLOCK_TYPES.every(
     (type) => profileChecklistItems.find((item) => item.actionType === type)?.complete
   )
@@ -782,6 +785,7 @@ export function SuccessSprintCard({
   // disappears rather than sticking around as done-and-struck-through
   // chrome.
   const getStartedRows: Row[] = [
+    ...(googleConnectOn ? [
     {
       text: 'Connect Gmail and Calendar to activate jobs features',
       points: 0,
@@ -800,6 +804,7 @@ export function SuccessSprintCard({
       recurring: false,
       priority: false,
     },
+    ] as Row[] : []),
     ...(['PROFILE_CONFIRM', 'SEARCH_STRATEGY_CHECKLIST', 'RESUME_UPDATE'] as const)
       .map((type) => consolidatedOpenRows.find((r) => r.actionType === type))
       .filter((r): r is Row => !!r),

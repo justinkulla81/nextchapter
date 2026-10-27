@@ -49,6 +49,7 @@ import { getNeedsFollowUpList } from '@/lib/network/needs-follow-up'
 import { getEmailReminders } from '@/lib/network/reminders'
 import { DashboardNetworkCard } from '@/components/dashboard/DashboardNetworkCard'
 import { PreConnectDailyMessage } from '@/components/dashboard/PreConnectDailyMessage'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 import { getHardGateStatus, isSearchStrategyGateComplete } from '@/lib/dashboard/access-gate'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { firstWeekStep } from '@/lib/onboarding/first-week'
@@ -278,6 +279,7 @@ async function HomeWeeklyPlan({
         hasEmailConnection={hasEmailConnection}
         hasCalendarConnection={hasCalendarConnection}
         linkedInConnected={linkedInConnected}
+        googleConnectOn={isGoogleConnectOn()}
         profileChecklistItems={profileChecklistItems}
         searchStrategyChecklist={searchStrategyChecklist}
         completedReferencesCount={completedReferencesCount}
@@ -419,7 +421,10 @@ export default async function DashboardPage() {
   // Calendar/LinkedIn-derived activity, so there's nothing honest for her to
   // say before both are connected.
   const linkedInConnected = isLinkedInConnected(profile)
-  const bothConnectedUnlocked = !!emailConnection && !!calendarConnection && linkedInConnected
+  // While Google connect is off (until CASA, src/lib/google/connect-switch.ts) nothing here waits on a connection: Victoria's weekly
+  // advice and the rest are open, and the connect-accounts note is not shown.
+  const googleConnectOn = isGoogleConnectOn()
+  const bothConnectedUnlocked = !googleConnectOn || (!!emailConnection && !!calendarConnection && linkedInConnected)
 
   // Takes priority over PreConnectDailyMessage below — a candidate who just
   // earned the Market Reality Assessment badge (their first-ever badge, in

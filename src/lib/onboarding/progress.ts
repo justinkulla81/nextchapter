@@ -4,6 +4,7 @@
 
 import { BUNDLES_MARKER_KEY, BUNDLES_MARKER_VALUE } from '@/lib/onboarding/flag'
 import { BUNDLE_ORDER, BUNDLE_ROUTE, type BundleId } from '@/lib/onboarding/bundles'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 
 const KEY = 'onboardingBundles'
 
@@ -40,12 +41,17 @@ export function progressPatch(journeyDetails: unknown, change: { completed?: Bun
 }
 
 export const CONNECT_PATH = '/onboarding/connect'
+/** The account step while Google connect is off (src/lib/google/connect-switch.ts): an email and a password, confirmed by a link. */
+export const CREATE_ACCOUNT_PATH = '/onboarding/create-account'
+
+/** The page that creates the account, for the current state of the Google switch. */
+export const accountStepPath = (googleOn: boolean = isGoogleConnectOn()): string => (googleOn ? CONNECT_PATH : CREATE_ACCOUNT_PATH)
 export const FINISH_PATH = '/onboarding/finish'
 
 /**
  * Where the hub sends a member in the bundles flow who has not created an account yet. After the five question steps
- * comes one required step, "Continue with Google", which creates the account and connects Gmail and Calendar; the
- * payoff (finish) comes after it.
+ * comes one required step that creates the account: "Continue with Google" (which also connects Gmail and Calendar) when
+ * Google connect is on, otherwise an email and a password. The payoff (finish) comes after it.
  */
 export function nextPreAccountPath(p: {
   desireComplete: boolean
@@ -53,22 +59,23 @@ export function nextPreAccountPath(p: {
   onboardingResumeConfirmedAt: unknown
   onboardingLocationConfirmedAt: unknown
   journeyDetails: unknown
-}): string {
+}, googleOn: boolean = isGoogleConnectOn()): string {
   if (!p.desireComplete) return BUNDLE_ROUTE.where_you_are
   if (!p.resumeStepComplete) return BUNDLE_ROUTE.resume
   if (!p.onboardingResumeConfirmedAt) return BUNDLE_ROUTE.aiming
   if (!p.onboardingLocationConfirmedAt) return BUNDLE_ROUTE.where
   const done = progressOf(p.journeyDetails)
   if (!done.completed.includes('coach')) return BUNDLE_ROUTE.coach
-  return CONNECT_PATH
+  return accountStepPath(googleOn)
 }
 
 /**
  * Where the hub sends a member in the bundles flow who has an account. The payoff first; members who registered
- * under the earlier order (account, then an optional Google reveal) still get that reveal once; then welcome.
+ * under the earlier order (account, then an optional Google reveal) still get that reveal once, unless Google connect
+ * is off; then welcome.
  */
-export function afterAccountPath(p: { finishedAt: string | null; googleRevealAt: string | null; introCommitted: boolean }): string {
+export function afterAccountPath(p: { finishedAt: string | null; googleRevealAt: string | null; introCommitted: boolean }, googleOn: boolean = isGoogleConnectOn()): string {
   if (!p.finishedAt) return FINISH_PATH
-  if (!p.googleRevealAt) return '/onboarding/google'
+  if (googleOn && !p.googleRevealAt) return '/onboarding/google'
   return p.introCommitted ? '/dashboard' : '/onboarding/welcome'
 }

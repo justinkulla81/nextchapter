@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { flowOfProfile } from '@/lib/onboarding/flag'
-import { progressOf } from '@/lib/onboarding/progress'
+import { CREATE_ACCOUNT_PATH, progressOf } from '@/lib/onboarding/progress'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 import { joinErrorMessage } from '@/lib/onboarding/join-errors'
 import { Meter } from '@/components/candidate/ui'
 import { JoinWithGoogle } from '@/components/onboarding/JoinWithGoogle'
@@ -16,6 +17,8 @@ export const metadata: Metadata = { title: 'Continue with Google', robots: { ind
 export default async function ConnectPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const profile = await getCandidateProfileForUser()
 
+  // Google connect is off until CASA (src/lib/google/connect-switch.ts): the account is created with an email and a password instead.
+  if (!isGoogleConnectOn()) redirect(flowOfProfile(profile) === 'bundles' && !profile.registrationCompletedAt ? CREATE_ACCOUNT_PATH : '/onboarding')
   if (flowOfProfile(profile) !== 'bundles') redirect('/onboarding')
   // Already has an account: the hub knows where they go next.
   if (profile.registrationCompletedAt) redirect('/onboarding')

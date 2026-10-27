@@ -11,6 +11,7 @@ import 'server-only'
 import { cache } from 'react'
 import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { computeCurrentSprintStreak } from '@/lib/scoring/market-reality/effort'
 import { getLifetimeEffortMinutes, sumEffortMinutes } from '@/lib/scoring/effort-minutes'
@@ -577,15 +578,20 @@ export async function getModuleGateStatus(candidateId: string): Promise<ModuleGa
         ? 'Unlocked — you\'ve done real work here.'
         : 'Earn any qualifying badge to unlock (~8 min) — Connected (LinkedIn/Gmail) alone doesn\'t count.',
     },
-    {
-      key: 'linkedInGmailConnected',
-      label: 'Your Network / Marketing Plan / My Contacts (one-click connect)',
-      unlocked: isLinkedInConnected(linkedIn) || gmailConnected,
-      reason:
-        isLinkedInConnected(linkedIn) || gmailConnected
-          ? 'Unlocked — LinkedIn or Gmail connected.'
-          : 'Connect LinkedIn or Gmail to unlock (1 click).',
-    },
+    // While Google connect is off (until CASA, src/lib/google/connect-switch.ts) nothing waits on a connection, so this lock is not listed.
+    ...(isGoogleConnectOn()
+      ? [
+          {
+            key: 'linkedInGmailConnected',
+            label: 'Your Network / Marketing Plan / My Contacts (one-click connect)',
+            unlocked: isLinkedInConnected(linkedIn) || gmailConnected,
+            reason:
+              isLinkedInConnected(linkedIn) || gmailConnected
+                ? 'Unlocked — LinkedIn or Gmail connected.'
+                : 'Connect LinkedIn or Gmail to unlock (1 click).',
+          },
+        ]
+      : []),
   ]
 }
 
@@ -641,7 +647,8 @@ export async function getReportSlotStatus(candidateId: string): Promise<ReportSl
     {
       key: 'whoYouKnow',
       label: 'Who you already know',
-      unlocked: Boolean(linkedIn.linkedinConnectionsImportedAt) && gmailConnected,
+      // Gmail counts toward this only while Google connect is on (src/lib/google/connect-switch.ts); the LinkedIn import is the part that matters.
+      unlocked: Boolean(linkedIn.linkedinConnectionsImportedAt) && (gmailConnected || !isGoogleConnectOn()),
     },
     { key: 'whatYoureDrawnTo', label: "What you're drawn to", unlocked: jobsReviewedCount >= 5 },
     { key: 'howYourSearchConverts', label: 'How your search is converting', unlocked: gmailConnected || outreachOrApplicationLogged },
