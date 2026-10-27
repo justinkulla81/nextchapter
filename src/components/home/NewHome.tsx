@@ -1,3 +1,4 @@
+import { BROWSE_LINKS } from '@/lib/seo/browse-links'
 import Link from 'next/link'
 import { SiteNav } from '@/components/marketing/PublicSiteChrome'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
@@ -58,6 +59,7 @@ const TOPIC_LINKS = [
   { label: 'Severance calculator', href: '/tools/severance-calculator' },
   { label: 'Local job markets', href: '/places' },
   { label: 'Glossary', href: '/glossary' },
+  ...BROWSE_LINKS.filter((l) => !['/places', '/layoffs', '/tools'].includes(l.href)),
 ]
 
 // The homepage test (src/lib/home-ab.ts): 'control' is the page as it was; 'picker' puts the journey picker's first question in

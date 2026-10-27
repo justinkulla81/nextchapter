@@ -17,6 +17,8 @@ import { isExcerpt } from '@/lib/jobs/posting-text'
 import { datePostedOf, descriptionParagraphs, isIndexableJob, isRemoteJob, jobPostingJsonLd, payLabel, placeLabel } from '@/lib/jobs/public-job-page'
 import { closedJobRedirectTarget, getPublicJob } from '@/lib/jobs/public-job-page-server'
 import { prisma } from '@/lib/prisma'
+import { BrowseTheSite } from '@/components/marketing/BrowseTheSite'
+import { ALL_STATE_CODES, stateName, stateSlug } from '@/lib/seo/states'
 import { bucketFromIndustryText, functionByName, functionPath, industryPath } from '@/lib/seo/topics'
 import { cn } from '@/lib/utils'
 
@@ -102,9 +104,15 @@ export default async function PublicJobPage({ params }: { params: Params }) {
 
             <ApplyAndSave jobId={job.id} company={job.companyName} applyUrl={job.url} emailOn={applySaveEmailOn()} />
 
-            {(industry || fn) && (
+            {(industry || fn || job.locationState) && (
               <p className="mt-6 text-sm text-muted-foreground">
                 More in{' '}
+                {job.locationState && ALL_STATE_CODES.includes(job.locationState) && (
+                  <>
+                    <Link href={`/places/${stateSlug(job.locationState)}`} className="underline underline-offset-4">{stateName(job.locationState)} job market</Link>
+                    {(industry || fn) && ' · '}
+                  </>
+                )}
                 {industry && <Link href={industryPath(industry)} className="underline underline-offset-4">{industry}</Link>}
                 {industry && fn && ' · '}
                 {fn && <Link href={functionPath(fn.name)} className="underline underline-offset-4">{fn.name} jobs</Link>}
@@ -146,6 +154,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             mobileFirst={false}
           />
         </div>
+        <BrowseTheSite />
       </main>
     </div>
   )
