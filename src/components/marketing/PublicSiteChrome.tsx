@@ -109,6 +109,7 @@ export function PublicSiteFooter({ page }: { page: 'about' | 'contact' | 'news' 
           {' · '}<Link href="/places" className="underline underline-offset-4">Local job markets</Link>
           {' · '}<Link href="/reports/latest" className="underline underline-offset-4">White Collar Employment Report</Link>
           {' · '}<Link href="/ai-skills" className="underline underline-offset-4">AI skills data</Link>
+          {' · '}<Link href="/press" className="underline underline-offset-4">Press and data</Link>
           {' · '}<Link href="/faq" className="underline underline-offset-4">FAQ</Link>
           {' · '}<Link href="/editorial-standards" className="underline underline-offset-4">Editorial standards</Link>
           {' · '}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>

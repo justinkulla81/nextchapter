@@ -353,6 +353,19 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     secondary: ['layoffs {week}', 'WARN notices week of {date}'],
   },
   {
+    id: 'press-data',
+    intent: 'Cite and download our labor-market data',
+    owner: '/press',
+    kind: 'page',
+    primary: 'white-collar unemployment data to cite',
+    secondary: ['white-collar long-search index', 'long-term unemployment white-collar data', 'how to cite layoff data'],
+    seo: {
+      title: 'Press and Data: Cite Our Labor-Market Figures',
+      description: 'The White-Collar Long-Search Index, layoff counts and AI-skill pay premium, each with its method, margin of error, license, citation and download.',
+      h1: 'Press and data',
+    },
+  },
+  {
     id: 'layoff-data',
     intent: 'Download layoff data',
     owner: '/data',

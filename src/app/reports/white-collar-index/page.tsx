@@ -10,7 +10,7 @@ import { AuthorByline } from '@/components/seo/AuthorByline'
 import { ShareBar } from '@/components/marketing/ShareBar'
 import { ReportNextSteps } from '@/components/reports/ReportNextSteps'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
-import { readWcIndex, wcIndexSummary, monthLabel, monthShort, type WcIndexPoint } from '@/lib/reports-wc-index'
+import { INDEX_ROUNDING_RULE, headlineChange, headlineIndex, readWcIndex, wcIndexSummary, monthLabel, monthShort, type WcIndexPoint } from '@/lib/reports-wc-index'
 import { titleMeta } from '@/lib/seo/title'
 
 const SLUG = 'white-collar-index'
@@ -21,8 +21,8 @@ const LICENSE = 'https://creativecommons.org/licenses/by/4.0/'
 // Headline figures are read from the published CSV at build time, so the page,
 // its metadata and the downloadable file never disagree.
 const { latest, yearAgo, last13 } = wcIndexSummary()
-const LATEST_INDEX = Math.round(latest.index)
-const YEAR_AGO_INDEX = yearAgo ? Math.round(yearAgo.index) : null
+const LATEST_INDEX = headlineIndex(latest.index)
+const YEAR_AGO_INDEX = yearAgo ? headlineIndex(yearAgo.index) : null
 const LATEST_MONTH = monthLabel(latest.month)
 
 export function generateMetadata(): Metadata {
@@ -46,7 +46,8 @@ export function generateMetadata(): Metadata {
   }
 }
 
-const CHANGE = YEAR_AGO_INDEX !== null ? LATEST_INDEX - YEAR_AGO_INDEX : null
+// Computed from the unrounded readings (161.6 - 128.2 = 33.4), not from the two rounded levels (162 - 128 = 34).
+const CHANGE = yearAgo ? headlineChange(latest.index, yearAgo.index) : null
 // The one-sentence answer the page opens with, and the first FAQ answer.
 const LEAD =
   CHANGE === null
@@ -241,8 +242,8 @@ export default function WhiteCollarIndexPage() {
           {YEAR_AGO_INDEX !== null && (
             <div>
               <div className="text-2xl font-semibold tabular-nums text-navy">
-                {LATEST_INDEX - YEAR_AGO_INDEX >= 0 ? '+' : '−'}
-                {Math.abs(LATEST_INDEX - YEAR_AGO_INDEX)}
+                {(CHANGE ?? 0) >= 0 ? '+' : '−'}
+                {Math.abs(CHANGE ?? 0)}
               </div>
               <div className="mt-1 text-sm text-muted-foreground">vs. {YEAR_AGO_INDEX} a year earlier</div>
             </div>
@@ -315,6 +316,9 @@ export default function WhiteCollarIndexPage() {
         <section className="mt-12">
           <h2 className="text-xl font-bold tracking-tight text-navy">Methodology</h2>
           <ul className="mt-4 max-w-2xl list-disc space-y-2 pl-5 text-sm leading-relaxed text-foreground">
+            <li>
+              <strong>Rounding.</strong> {INDEX_ROUNDING_RULE} The latest reading is {latest.index.toFixed(1)} in the data file and {LATEST_INDEX} here.
+            </li>
             <li>
               <strong>Source.</strong> U.S. Census Bureau Current Population Survey (CPS) basic monthly public-use
               microdata. No NextChapter customer data is used.

@@ -29,6 +29,20 @@ function num(v: string | undefined): number {
   return Number.isFinite(n) ? n : NaN
 }
 
+/**
+ * The rounding rule for the index, stated on the index page and on /press. Headline levels are rounded to the nearest whole
+ * point (161.6 reads 162); the data file keeps one decimal. A change is computed from the one-decimal values and then rounded,
+ * so it can differ from the difference of the two rounded levels (161.6 - 128.2 = 33.4, shown as 33, not 162 - 128 = 34).
+ */
+export const INDEX_ROUNDING_RULE =
+  'Headline index levels are rounded to the nearest whole point; the data file keeps one decimal. A change is worked out from the one-decimal values and then rounded, so it can differ from the difference of the two rounded levels.'
+
+/** An index level as it is shown in a headline. */
+export const headlineIndex = (value: number): number => Math.round(value)
+
+/** A change between two index levels as it is shown in a headline: computed from the unrounded values, then rounded. */
+export const headlineChange = (latest: number, earlier: number): number => Math.round(latest - earlier)
+
 /** Every month in the published series, oldest first. */
 export function readWcIndex(): WcIndexPoint[] {
   const rows = parseCsv(fs.readFileSync(CSV_PATH, 'utf8'))

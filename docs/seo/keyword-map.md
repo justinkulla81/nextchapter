@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-143 clusters, 880 phrases.
+144 clusters, 884 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -38,6 +38,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/layoffs/this-week` | page | layoffs this week | Layoff notices filed in the last seven days | layoffs this week 2026; recent layoff notices; new WARN notices this week; latest layoff announcements |
 | `/layoffs/week` | page | layoffs by week | Layoff notices week by week | weekly layoffs; weekly layoff report; layoffs last week; WARN notices by week |
 | `/layoffs/week/:week` | family | layoffs week of {date} | Layoffs in one calendar week | layoffs {week}; WARN notices week of {date} |
+| `/press` | page | white-collar unemployment data to cite | Cite and download our labor-market data | white-collar long-search index; long-term unemployment white-collar data; how to cite layoff data |
 | `/data` | page | layoff data download | Download layoff data | WARN notices csv; WARN notice data; layoff data by state; layoffs dataset |
 | `/data/embed` | page | layoff widget for website | Embed layoff, jobs and benefits widgets | embed layoff tracker; unemployment benefits widget; jobs widget by industry |
 | `/layoffs/:state` | family | {state} layoffs | Layoffs in one state | {state} WARN notices; {state} layoff list; recent layoffs in {state}; {state} companies laying off |
@@ -274,6 +275,12 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Layoffs by Week: WARN Notices, Week by Week
 - Description: Every week of WARN layoff notices from the last two years: how many notices and workers, which states and employers, with the state record for each.
 - H1: Layoffs by week: WARN notices
+
+### `/press`
+
+- Title: Press and Data: Cite Our Labor-Market Figures
+- Description: The White-Collar Long-Search Index, layoff counts and AI-skill pay premium, each with its method, margin of error, license, citation and download.
+- H1: Press and data
 
 ### `/data`
 
