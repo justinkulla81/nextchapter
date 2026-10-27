@@ -8,6 +8,7 @@ import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 import { SITE_URL, latestReport } from '@/lib/reports'
 import { AuthorByline } from '@/components/seo/AuthorByline'
 import { ShareBar } from '@/components/marketing/ShareBar'
+import { ReportNextSteps } from '@/components/reports/ReportNextSteps'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
 import { readWcIndex, wcIndexSummary, monthLabel, monthShort, type WcIndexPoint } from '@/lib/reports-wc-index'
 import { titleMeta } from '@/lib/seo/title'
@@ -25,9 +26,10 @@ const YEAR_AGO_INDEX = yearAgo ? Math.round(yearAgo.index) : null
 const LATEST_MONTH = monthLabel(latest.month)
 
 export function generateMetadata(): Metadata {
+  // No "U.S." in the text: fitDescription ends a sentence at any period, so "U.S. managers" was cut to "...a year earlier. S." in results.
   const description = YEAR_AGO_INDEX
-    ? `The NextChapter White-Collar Long-Search Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100), up from ${YEAR_AGO_INDEX} a year earlier. A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
-    : `The NextChapter White-Collar Long-Search Index stood at ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100). A monthly measure of long-term unemployment among U.S. managers and professionals, from Census CPS microdata.`
+    ? `The White-Collar Long-Search Index was ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100), up from ${YEAR_AGO_INDEX} a year earlier. Long-term unemployment among managers and professionals.`
+    : `The White-Collar Long-Search Index was ${LATEST_INDEX} in ${LATEST_MONTH} (2019 = 100). Monthly long-term unemployment among managers and professionals, from Census data.`
   return {
     title: titleMeta(pageSeo('/reports/white-collar-index').title),
     description: fitDescription(description, 160),
@@ -361,6 +363,8 @@ export default function WhiteCollarIndexPage() {
           </p>
         </section>
       </main>
+
+      <ReportNextSteps page="white_collar_index" />
 
       <section className="border-t border-light-gray bg-white px-6 py-16">
         <NewsletterSignup source="employment-report" />

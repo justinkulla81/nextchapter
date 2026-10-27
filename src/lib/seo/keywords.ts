@@ -471,8 +471,8 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     primary: 'AI training for workforce programs',
     secondary: ['AI upskilling', 'AI reskilling', 'AI courses for laid off workers', 'AI training for colleges', 'AI training for employers', 'AI skills gap'],
     seo: {
-      title: 'AI Training for Colleges, Workforce Boards and Employers',
-      description: 'NextChapter measures the AI-skill gap for the people you serve and builds short courses that close it, for the budgets and grants that already pay for training.',
+      title: 'AI Training for Employees, Colleges and Workforce Boards',
+      description: 'AI training programs for employees and the people you serve: we measure the AI-skill gap and build short courses for budgets that already pay for training.',
     },
   },
 

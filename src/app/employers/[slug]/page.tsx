@@ -1,6 +1,8 @@
 import { LocalEventSection } from '@/components/events/LocalEventSection'
 import { LinkToUs } from '@/components/seo/LinkToUs'
-import { employerSeo } from '@/lib/seo/templates'
+import { employerSeo, fitDescription } from '@/lib/seo/templates'
+import { ClaimHint } from '@/components/seo/ClaimHint'
+import { hiringPlaces, listOf } from '@/lib/seo/employer-locations'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -51,7 +53,10 @@ function description(e: EmployerPage): string {
     if (p.opened90d > 0) parts.push(`${n0(p.opened90d)} opened in the last 90 days`)
   }
   if (parts.length === 0) return `${e.name}: open roles, posted pay and hiring history from its career site, updated daily.`
-  return `${parts.join('; ')}. Posted pay, where it hires and how to apply.`.replace(/^./, (c) => c.toUpperCase())
+  // The places it hires, by name: people search "<employer> <city>" (Search Console, 2026-10: "carvana fairfield ct", "qxo myrtle beach").
+  const places = hiringPlaces(p?.topLocations ?? [], 3)
+  const where = places.length ? ` Hiring in ${listOf(places)}.` : ''
+  return fitDescription(`${parts.join('; ')}.${where} Posted pay, hiring history and how to apply.`.replace(/^./, (c) => c.toUpperCase()))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -131,7 +136,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
       trail={[{ name: 'Employers', path: '/employers' }, { name: e.name, path }]}
       h1={employerSeo(e.name, null).h1}
       jsonLd={ld}
-      lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}</>}
+      lede={<>{hq && <span className="block text-sm">{hq}</span>}{(industryBucket || topFunction) && <span className="block text-sm">Explore: {industryBucket && <a href={industryPath(industryBucket)} className="underline underline-offset-2">{industryBucket}</a>}{industryBucket && topFunction && ' · '}{topFunction && <a href={functionPath(topFunction.name)} className="underline underline-offset-2">{topFunction.name} jobs</a>}</span>}{description(e)}<ClaimHint who={`Work at ${e.name}?`} href={e.claimSlug ? `/prepared/${e.claimSlug}` : '/for-organizations'} event="seo_claim_clicked" properties={{ page: 'employer', audience: 'employer', companyId: e.id, slug: e.slug, openRoles: p?.openNow ?? 0 }} /></>}
     >
       {p && p.openNow > 0 && (
         <section aria-labelledby="hiring" className="mt-10">
@@ -151,7 +156,7 @@ export default async function EmployerPublicPage({ params }: { params: Promise<{
           )}
           {p.topLocations.length > 0 && (
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Where:</span> {p.topLocations.slice(0, 6).map((l) => `${l.location} (${n0(l.count)})`).join(', ')}.
+              <span className="font-medium text-foreground">Where:</span> {p.topLocations.slice(0, 8).map((l) => `${l.location} (${n0(l.count)})`).join(', ')}.
             </p>
           )}
         </section>

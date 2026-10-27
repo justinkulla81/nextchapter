@@ -302,8 +302,8 @@ Title is shown before the site suffix " | NextChapter".
 
 ### `/ai-training`
 
-- Title: AI Training for Colleges, Workforce Boards and Employers
-- Description: NextChapter measures the AI-skill gap for the people you serve and builds short courses that close it, for the budgets and grants that already pay for training.
+- Title: AI Training for Employees, Colleges and Workforce Boards
+- Description: AI training programs for employees and the people you serve: we measure the AI-skill gap and build short courses for budgets that already pay for training.
 
 ### `/jobs`
 
