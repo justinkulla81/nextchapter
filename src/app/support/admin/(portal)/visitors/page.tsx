@@ -121,6 +121,9 @@ function SearchConsoleSection({ result }: { result: SearchConsoleResult }) {
         </div>
         <a href="/api/admin/search-console/export" className="inline-block rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted">
           Download all search terms (16 months, CSV)
+        </a>{' '}
+        <a href="/api/admin/search-console/index-audit" className="inline-block rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted">
+          Run indexing audit (takes a few minutes, CSV)
         </a>
       </div>
     )
