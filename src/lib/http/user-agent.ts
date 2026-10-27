@@ -39,6 +39,11 @@ export const BOT_SIGNATURES = [
   'petalbot',
   'bytespider',
   'applebot',
+  // Chrome on desktop Linux. On 2026-10-26 one automated browser with this exact string visited 413 different
+  // addresses in 78 minutes, one page each, with no referrer, and made up 56% of 30 days of "human" views. A user
+  // agent cannot tell it from a person on Linux Chrome, so real Linux Chrome visitors are counted as bots too, a few
+  // in a hundred on a site for white-collar job seekers. Linux Firefox and Android Chrome do not match this string.
+  '(x11; linux x86_64) applewebkit/537.36 (khtml, like gecko) chrome/',
 ]
 
 export type UserAgentClass = 'human' | 'bot' | 'unknown'
