@@ -3,6 +3,7 @@ import { Chips, JoinBand, Section, TopicShell } from '@/components/topics/blocks
 import { getTitleIndex, hasSalaryPage } from '@/lib/seo/job-titles'
 import { usd } from '@/lib/seo/job-title-rules'
 import { pageH1, pageMetadata } from '@/lib/seo/keywords'
+import { NewsletterSignup } from '@/components/marketing/NewsletterSignup'
 
 export const revalidate = 21600
 export const metadata: Metadata = pageMetadata('/salaries')
@@ -22,6 +23,9 @@ export default async function SalariesPage() {
       <Section id="all" title="All titles, A to Z" note={`${byName.length.toLocaleString('en-US')} titles with enough listings that state pay.`}>
         <Chips kind="salaries_hub_all" event="topic_link_clicked" items={byName.map((t) => ({ href: `/salaries/${t.slug}`, label: t.name }))} />
       </Section>
+      <div className="mt-10">
+        <NewsletterSignup source="salaries" />
+      </div>
       <JoinBand source="salaries_hub" what="what you are worth" />
     </TopicShell>
   )
