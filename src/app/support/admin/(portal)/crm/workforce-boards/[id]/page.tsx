@@ -16,6 +16,8 @@ import { getNationalLaborData, monthLabel } from '@/lib/market/bls-national'
 import { formatDate } from '@/lib/crm/labels'
 import { getAreaBrief } from '@/lib/workforce/area-brief-data'
 import { AreaBriefView } from '@/components/workforce/AreaBriefView'
+import { getOrgBrand } from '@/lib/branding/store'
+import { claimSlugFor } from '@/lib/seo/org-pages'
 
 export const maxDuration = 60
 
@@ -128,6 +130,12 @@ export default async function WorkforceBoardPage({
   const aiNews = news.filter((n) => n.topic === 'ai')
   const windowLabel = windowDef.label.toLowerCase()
   const brief = await getAreaBrief({ boardId: board.id }).catch(() => null)
+  // The board's brand colors (read from its website) and its launch kit, when they exist: the kit page is what gets sent to the board.
+  const [brand, claimSlug, kitLink] = await Promise.all([
+    getOrgBrand('WORKFORCE_BOARD', board.id),
+    claimSlugFor('WORKFORCE_BOARD', board.id),
+    prisma.referralLink.findFirst({ where: { label: `ob:${board.id}:print` }, select: { id: true } }).catch(() => null),
+  ])
 
   return (
     <div className="space-y-6">
@@ -148,6 +156,19 @@ export default async function WorkforceBoardPage({
           {board.procurementUrl && <a href={board.procurementUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">Bids and RFPs</a>}
           {board.address && <span className="text-muted-foreground">{board.address}</span>}
         </p>
+        {(brand || kitLink) && (
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            {brand && (
+              <span className="flex items-center gap-2 text-muted-foreground">
+                Brand colors
+                <span className="inline-block size-4 rounded border border-border" style={{ backgroundColor: brand.pair.primary }} title={brand.pair.primary} />
+                <span className="inline-block size-4 rounded border border-border" style={{ backgroundColor: brand.pair.secondary }} title={brand.pair.secondary} />
+                <span className="text-xs">{brand.pair.primary}, {brand.pair.secondary}{brand.pair.secondaryDerived ? ' (second one derived)' : ''} · {brand.source === 'MANUAL' ? 'set by hand' : 'read from its website'}</span>
+              </span>
+            )}
+            {kitLink && claimSlug && <a href={`/prepared/${claimSlug}/kit`} target="_blank" rel="noreferrer" className="text-primary hover:underline">Launch kit</a>}
+          </p>
+        )}
         {Array.isArray(board.procurementItems) && board.procurementItems.length > 0 && (
           <div className="mt-2 text-sm">
             <p className="text-xs font-medium text-muted-foreground">Open items seen on the procurement page (leads, check the page)</p>

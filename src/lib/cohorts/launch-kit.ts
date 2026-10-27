@@ -26,9 +26,9 @@ export function parseKitLabel(label: string): { cohortId: string; source: string
 }
 
 /** The public URL for a kit link: the tracked redirect, then the landing page, tagged with its source. */
-export function kitUrl(appUrl: string, code: string, source: string, landing = '/'): string {
+export function kitUrl(appUrl: string, code: string, source: string, landing = '/', medium = 'cohort_kit'): string {
   const sep = landing.includes('?') ? '&' : '?'
-  const to = `${landing}${sep}utm_source=${source}&utm_medium=cohort_kit`
+  const to = `${landing}${sep}utm_source=${source}&utm_medium=${medium}`
   return `${appUrl.replace(/\/$/, '')}/api/r/${code}?to=${encodeURIComponent(to)}`
 }
 
