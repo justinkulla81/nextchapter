@@ -1,3 +1,4 @@
+import { absoluteWebUrl } from '@/lib/http/external-url'
 import type { Metadata } from 'next'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import Link from 'next/link'
@@ -63,7 +64,7 @@ export default async function NonprofitStatePage({ params }: { params: Promise<{
           <ul className="mt-4 divide-y divide-border rounded-xl border border-border bg-white text-sm">
             {d.funding.map((f) => (
               <li key={f.id} className="p-4">
-                <a href={f.url} className={`${LINK} font-medium`} target="_blank" rel="noopener noreferrer">{f.title}</a>
+                <a href={absoluteWebUrl(f.url) ?? f.url} className={`${LINK} font-medium`} target="_blank" rel="noopener noreferrer">{f.title}</a>
                 <p className="mt-1 text-xs text-muted-foreground">{[f.agency, f.closesAt ? `closes ${f.closesAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : null, f.awardCeiling ? `up to ${money(f.awardCeiling)}` : null].filter(Boolean).join(' · ')}</p>
               </li>
             ))}
