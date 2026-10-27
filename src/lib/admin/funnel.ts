@@ -78,7 +78,7 @@ function offerKeyForLead(kind: string, source: string): string | null {
   }
   if (kind === 'apply_save') return 'jobSave'
   if (kind === 'layoff_alert' || kind === 'layoff_employer') return 'layoffAlert'
-  if (kind === 'deadline_reminders') return 'tools'
+  if (kind === 'deadline_reminders') return source.startsWith('cobra_vs_aca') ? 'cobra' : 'tools'
   return null
 }
 
@@ -186,7 +186,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
   const [
     marketRealityClicks, rHome, rJobs, rJobPage, rLayoffs, rResume, rGuides, rTools, rNews, rNetwork,
     cJourney, cJobAlert, cApplySave, cLayoff, cDeadline, cResume, cGuide, cNews, cNetwork,
-    rEmployer, rTitle, rPlace, cAlertEmployer, cAlertTitle, cAlertPlace, memberEvents,
+    rEmployer, rTitle, rPlace, cAlertEmployer, cAlertTitle, cAlertPlace, memberEvents, rCobra, cCobra,
   ] = await Promise.all([
     countRaw(Prisma.sql`
       SELECT COUNT(DISTINCT "ip")::bigint AS n FROM "HomepageVisitEvent"
@@ -205,7 +205,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     lead({ kind: 'job_alert', source: { notIn: ['page:employer', 'page:title', 'page:salary', 'page:place'] } }),
     lead({ kind: 'apply_save' }),
     lead({ kind: { in: ['layoff_alert', 'layoff_employer'] } }),
-    lead({ kind: 'deadline_reminders' }),
+    lead({ kind: 'deadline_reminders', NOT: { source: { startsWith: 'cobra_vs_aca' } } }),
     prisma.resumeSubmissionLead.count({ where: win }),
     prisma.guideLead.count({ where: win }),
     prisma.newsletterSubscriber.count({ where: win }),
@@ -220,6 +220,8 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
       SELECT "properties"->>'kind' AS kind, "properties"->>'source' AS source, COUNT(*)::bigint AS n
       FROM "AnalyticsEvent" WHERE "event" = 'lead_became_member' AND "createdAt" >= ${since}
       GROUP BY 1, 2`),
+    reachedByPath(since, '^/(resources/cobra-aca|tools/cobra-vs-aca-calculator)'),
+    lead({ kind: 'deadline_reminders', source: { startsWith: 'cobra_vs_aca' } }),
   ])
   const members = new Map<string, number>()
   for (const m of memberEvents) {
@@ -233,6 +235,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     { key: 'jobSearch', label: 'Saved job search', where: '/jobs', reached: rJobs, captured: cJobAlert, capturedMeans: 'emails', becameMembers: mem('jobSearch') },
     { key: 'jobSave', label: 'Save this job', where: 'Job detail pages', reached: rJobPage, captured: cApplySave, capturedMeans: 'emails', becameMembers: mem('jobSave') },
     { key: 'layoffAlert', label: 'Layoff alerts', where: '/layoffs', reached: rLayoffs, captured: cLayoff, capturedMeans: 'emails', becameMembers: mem('layoffAlert') },
+    { key: 'cobra', label: 'COBRA vs ACA pages', where: '/resources/cobra-aca (explainer and 51 state pages) and /tools/cobra-vs-aca-calculator', reached: rCobra, captured: cCobra, capturedMeans: 'emails (deadline reminders asked for on these pages)', becameMembers: mem('cobra') },
     { key: 'tools', label: 'Tools: deadline reminders', where: '/tools/*', reached: rTools, captured: cDeadline, capturedMeans: 'emails (reminders only; the calculators need no email)', becameMembers: mem('tools') },
     { key: 'guides', label: 'Guide downloads', where: '/resources/*', reached: rGuides, captured: cGuide, capturedMeans: 'emails', becameMembers: mem('guides') },
     { key: 'resumeRecruiters', label: 'Résumé to recruiters', where: '/submit-resume', reached: rResume, captured: cResume, capturedMeans: 'résumés (not the same offer as Market Reality)', becameMembers: mem('resumeRecruiters') },

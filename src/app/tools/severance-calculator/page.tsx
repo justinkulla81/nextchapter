@@ -34,7 +34,7 @@ export default function SeveranceCalculatorPage() {
           ))}
         </dl>
         <p className="mt-6 text-sm text-muted-foreground">
-          More: <Link href="/topics/severance" className={LINK}>severance package: what it is and how to negotiate</Link>, <Link href="/unemployment-benefits" className={LINK}>unemployment benefits by state</Link> and <Link href="/resources/cobra-aca" className={LINK}>health insurance after a layoff</Link>.
+          More: <Link href="/topics/severance" className={LINK}>severance package: what it is and how to negotiate</Link>, <Link href="/unemployment-benefits" className={LINK}>unemployment benefits by state</Link>, <Link href="/resources/cobra-aca" className={LINK}>health insurance after a layoff</Link> and <Link href="/tools/cobra-vs-aca-calculator" className={LINK}>the COBRA vs ACA calculator</Link>.
         </p>
       </section>
       <ActionBand title="Plan the weeks after a layoff" body="A free Market Reality Assessment and a weekly plan that starts with the deadlines." label="Get my free assessment" href={MARKET_REALITY_START_HREF} event="tool_page_cta_clicked" properties={{ tool: 'severance_calculator' }} />
