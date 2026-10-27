@@ -408,6 +408,20 @@ export const TOPICS: TopicContent[] = [
         paragraphs: ['No one can guarantee a job. Treat a promise of one as a warning sign.'],
       },
       {
+        h2: 'Doing reverse recruiting yourself',
+        bullets: [
+          'List 20 to 30 employers you would want, and find the person who leads the team you would join.',
+          'Write a short note that says who you are, one result that fits their work and what you are asking for. Keep it under 100 words.',
+          'Send it directly, follow up once after a week, and keep a record of every contact.',
+          'Ask for 15 minutes to learn about the team, not for a job. Roles often follow from the conversation.',
+        ],
+        paragraphs: ['This is the same work a paid service does, and the main thing you pay for is time. Our networking scripts guide has wording you can adapt.'],
+      },
+      {
+        h2: 'The other meaning of the term',
+        paragraphs: ['Some employers use “reverse recruiting” for the opposite: reaching out to candidates who have not applied, instead of posting a role and waiting. Check which meaning a page or a person is using before you act on their advice.'],
+      },
+      {
         h2: 'How it compares with other help',
         paragraphs: ['A career coach teaches you how to run the search and does not do it for you. An executive recruiter fills an employer’s role and is paid by the employer. A reverse recruiter does part of the work for you, for a fee. NextChapter is free for job seekers: a Market Reality Assessment, a weekly plan, an AI career coach, and a way to send your resume to recruiters in our network.'],
       },
@@ -415,6 +429,7 @@ export const TOPICS: TopicContent[] = [
     faq: [
       { q: 'What is a reverse recruiter?', a: 'A person or service that represents the job seeker to employers, usually for a fee paid by the job seeker, instead of being paid by the employer.' },
       { q: 'Is a reverse recruiter worth it?', a: 'It depends on what they actually do and what you would otherwise do yourself. Ask for the weekly work, the fee structure and examples at your level before you pay.' },
+      { q: 'Can I do reverse recruiting myself?', a: 'Yes. Pick target employers, write a short direct note to the person leading the team, follow up once and keep a record. A service does the same work for a fee.' },
       { q: 'How is a reverse recruiter different from a career coach?', a: 'A coach advises you and you do the search. A reverse recruiter does some of the search for you.' },
     ],
     cta: { title: 'Get recruiters to see your resume', body: 'Send your resume and we pass strong matches to recruiters in our network. Free, no obligation.', label: 'Submit my resume', href: '/submit-resume' },
@@ -590,6 +605,261 @@ export const TOPICS: TopicContent[] = [
     ],
     cta: { title: 'Know your options before you decide', body: 'See how the market reads your background, privately, before anyone at work knows you looked. Free.', label: 'Get my free assessment', href: MARKET_REALITY_START_HREF },
     updated: '2026-10-26',
+  },
+  {
+    slug: 'what-to-say-when-laid-off',
+    h1: 'What to say when you get laid off',
+    lede: 'Say little, ask for the details in writing and agree to nothing in the room. A layoff meeting is usually short and scripted, so the calm questions you ask matter more than anything you say about how you feel. You can respond to the paperwork later, once you have read it.',
+    sections: [
+      {
+        h2: 'In the meeting: four lines that cover it',
+        bullets: [
+          '“Thank you for telling me. Can I have the details in writing today?”',
+          '“What is my last day, and am I paid through the notice period?”',
+          '“How are severance, health coverage and unused vacation handled?”',
+          '“I will review the paperwork and get back to you by [date].”',
+        ],
+        paragraphs: ['You do not have to sign, argue your case or explain how you feel. If you are asked to sign something on the spot, say you need time to read it. That is a normal request.'],
+      },
+      {
+        h2: 'What to find out before you leave the room',
+        bullets: [
+          'Your last day, and the date and form of your final paycheck. State law sets the deadline for final pay.',
+          'Whether severance is offered, how it is calculated, and whether you must sign a release of legal claims to get it.',
+          'The date your health coverage ends and when the COBRA notice will arrive.',
+          'What happens to your bonus, unvested equity and 401(k) match.',
+          'How and when to return company property, and when your access ends.',
+          'Who your contact is for questions after today.',
+          'How your departure will be described to colleagues and to anyone who asks for a reference.',
+          'Whether you can apply for open roles inside the company before your last day.',
+        ],
+      },
+      {
+        h2: 'What not to say or do',
+        bullets: [
+          'Do not criticize the company or your manager in the meeting or in writing. It rarely helps and it can cost you goodwill and a reference.',
+          'Do not sign the same day. Read the whole agreement first.',
+          'Do not delete files, wipe a device or forward confidential material. Ask what you may keep.',
+          'Do not post about it while you are angry. Wait until you have read the paperwork.',
+          'Do not say you will “take whatever they offer.” Severance terms are often open to a question.',
+        ],
+      },
+      {
+        h2: 'If you want better terms',
+        paragraphs: ['Ask soon, in writing and for something specific. Raising it within a day or two is easier than weeks later, when the paperwork is settled.'],
+        bullets: [
+          '“I would like to ask for [more weeks of severance / health coverage through a set date]. Can we discuss that before I sign?”',
+          '“My bonus pays on [date]. Can it be paid out, or prorated?”',
+          '“Can the non-compete be waived, and can we agree how my departure is described?”',
+        ],
+      },
+      {
+        h2: 'The first 24 hours after',
+        bullets: [
+          'Write down what was said: the date, who was there and the terms you heard. Keep it on your own device.',
+          'Look up your state’s unemployment filing page and file this week, even if you expect severance.',
+          'Put your COBRA and marketplace deadlines on a calendar. Our deadlines tool counts them from your last day.',
+          'Tell your family plainly: “My job was eliminated. I have severance and a plan, and I will know more next week.”',
+          'When you tell your network: “My role at [company] was eliminated. I am looking for [role] in [field]. If you know a team that is hiring, I would appreciate an introduction.”',
+        ],
+      },
+    ],
+    faq: [
+      { q: 'Can I ask why I was selected?', a: 'Yes. You may not get a detailed answer, but asking calmly is reasonable and the reply can matter later. Write down what you are told.' },
+      { q: 'Do I have to sign the severance agreement right away?', a: 'No. The agreement sets the deadline. Workers 40 and over who are asked to waive age claims get a statutory review period of 21 days (45 in a group layoff), then a 7-day window to revoke after signing.' },
+      { q: 'Should I record the meeting?', a: 'Recording laws differ by state and some require everyone’s consent. Take written notes instead and write them up right after.' },
+      { q: 'Will severance affect my unemployment benefits?', a: 'It depends on the state. File right away either way. Your state’s page shows how it treats severance.' },
+    ],
+    cta: { title: 'Work out your dates', body: 'Enter your last day to see when to file for unemployment and when your health coverage choices close. Free, no account.', label: 'Get my deadlines', href: '/tools/layoff-deadlines' },
+    updated: '2026-10-27',
+  },
+  {
+    slug: 'acquisition-layoffs',
+    h1: 'Layoffs after an acquisition: what to expect and what to ask',
+    lede: 'Layoffs after an acquisition are common where the two companies do the same work, and they often come in stages, not all at once. The announcement alone will not tell you whether your role is safe. Specific questions show where you stand, and a few steps prepare you for either outcome.',
+    sections: [
+      {
+        h2: 'Why roles are cut after a deal',
+        bullets: [
+          'Duplicate functions. Finance, HR, IT, legal and sales operations exist at both companies, and one set is usually combined.',
+          'Overlapping offices and locations that the buyer consolidates.',
+          'Savings targets built into the price of the deal.',
+          'Leadership changes, which often bring reporting-line changes below them.',
+          'Product lines the buyer merges or ends.',
+        ],
+        paragraphs: ['Roles tied directly to customers, products or technology the buyer wants to keep are generally more secure than back-office roles that duplicate the buyer’s own.'],
+      },
+      {
+        h2: 'How the timing usually runs',
+        paragraphs: [
+          'There is no fixed schedule. Many buyers announce integration plans when the deal closes and cut in waves: first leadership and the plainest duplicates, then more as systems and teams are merged over the following months.',
+          'Large layoffs generally need 60 days’ notice under the federal WARN Act. In a sale of a business, the seller is responsible for notice up to the sale date and the buyer after it. State laws can add more, and New York and New Jersey set 90 days.',
+        ],
+      },
+      {
+        h2: 'Questions to ask your manager and HR',
+        bullets: [
+          'Is my function duplicated at the other company?',
+          'Who decides about my team, and by when?',
+          'Will my title, pay and location stay the same?',
+          'If my role is cut, does my current severance plan apply, or the buyer’s? Will existing terms be honored?',
+          'Are retention bonuses being offered, and to whom?',
+          'What happens to my unvested equity: does it vest, convert or end?',
+          'Will my years of service carry over for benefits and vacation?',
+          'Are there open roles at the combined company I can move to?',
+        ],
+        paragraphs: ['Ask in writing where you can, and read any employee FAQ the company publishes about the deal.'],
+      },
+      {
+        h2: 'Signs to watch for',
+        bullets: [
+          'A hiring freeze or open roles that quietly disappear.',
+          'Leaders on your side leaving or being replaced.',
+          'Tools and systems being merged into the buyer’s.',
+          'New reporting lines or integration planning meetings that include your team or exclude it.',
+        ],
+      },
+      {
+        h2: 'What to do now',
+        bullets: [
+          'Update your resume and write down your recent results while they are fresh.',
+          'Keep your own copies of pay records, reviews, equity documents and any agreement you signed.',
+          'Read your equity plan and any change-in-control or severance provisions in your agreement.',
+          'Know your number: how many months your savings cover. Our runway calculator does the arithmetic.',
+          'Reconnect with people outside the company now, while no one is asking why.',
+          'Do not resign in the first wave without checking what you would give up. Leaving on your own usually ends severance eligibility.',
+        ],
+      },
+    ],
+    faq: [
+      { q: 'How long after an acquisition do layoffs happen?', a: 'There is no rule. Cuts often come in waves over the first year or so, with the first round soon after closing. Your company’s integration plan, if shared, is the best guide.' },
+      { q: 'Will I get severance if my role is cut after an acquisition?', a: 'It depends on your contract and the severance plan. Ask whether the existing plan will be honored and in what form, and get the answer in writing.' },
+      { q: 'What happens to my stock when my company is acquired?', a: 'It depends on the plan and the deal. Unvested equity may vest early, convert into the buyer’s equity or be canceled. Your grant and plan documents say which.' },
+      { q: 'Should I leave before layoffs happen?', a: 'Weigh what you would give up. Quitting usually ends severance and can affect unemployment benefits. Many people wait for clarity while quietly preparing.' },
+    ],
+    cta: { title: 'Know how long you could cope', body: 'Enter your savings, spending and severance to see how many months they cover, and what your state’s benefits add.', label: 'Check my runway', href: '/tools/layoff-runway' },
+    updated: '2026-10-27',
+  },
+  {
+    slug: 'should-i-take-the-buyout',
+    h1: 'Should I take the buyout? What to weigh before you answer',
+    lede: 'A voluntary buyout is an offer to leave in exchange for pay and benefits, and you can say no. Take it when the package covers the time a search will realistically take and you would rather leave than stay. The deadline and the fine print matter as much as the amount.',
+    sections: [
+      {
+        h2: 'What a buyout is and is not',
+        paragraphs: [
+          'A buyout, also called a voluntary separation or voluntary severance program, lets employees choose to leave for a package. A layoff is the employer’s decision. A buyout is yours.',
+          'Packages often pay a lump sum or weeks of pay per year of service, plus a health coverage subsidy, a set treatment of bonus and equity, and sometimes extra service credit toward retirement. Most ask you to sign a release of legal claims. A deferred resignation is a variant: you are paid to stay on the payroll until an agreed date and then leave.',
+        ],
+      },
+      {
+        h2: 'Get these answers in writing first',
+        bullets: [
+          'The deadline to answer, and who is eligible.',
+          'Exactly what you receive and how it is calculated.',
+          'How many months of health coverage, and at what cost to you.',
+          'What happens to your bonus, unvested equity, pension credit and 401(k) match.',
+          'Whether you can change your mind after signing, and for how long.',
+          'What you give up: non-compete, non-solicitation, confidentiality and release terms.',
+          'Whether the company will rehire you.',
+          'What happens to your role and terms if you decline. Ask this plainly. Some companies follow a buyout with layoffs, and the offer itself will not tell you whether yours will.',
+        ],
+      },
+      {
+        h2: 'A way to compare it with staying',
+        bullets: [
+          'Start with what you would receive after tax. A lump sum is usually withheld at a flat rate that may be above or below what you will owe.',
+          'Add up your monthly costs, including health insurance you would now pay for yourself.',
+          'Divide the package by that monthly figure to see how many months it covers.',
+          'Compare that with how long a search for your kind of role realistically takes. Senior searches commonly take several months.',
+          'Count what you would give up by leaving: salary, bonus, equity that is about to vest, pension credit and the 401(k) match.',
+        ],
+        paragraphs: ['Our severance calculator and layoff runway tool do this arithmetic with your numbers.'],
+      },
+      {
+        h2: 'When it tends to make sense, and when it does not',
+        bullets: [
+          'It tends to make sense when you already wanted to leave, the package covers six or more months of costs, your role feels exposed and your skills are in demand.',
+          'It tends not to make sense when equity or a pension milestone is close, the package is thin next to your costs, hiring in your field is slow, or someone who depends on you needs the health coverage.',
+        ],
+      },
+      {
+        h2: 'Asking for more time or more money',
+        bullets: [
+          '“Thank you for the offer. I need the full terms in writing and until [date] to decide.”',
+          '“Before I decide, can we talk about [more weeks / health coverage through a set date / a vest date]? That would make this easier to accept.”',
+        ],
+        paragraphs: ['Some offers have room and some do not. Asking politely does not cost you the offer.'],
+      },
+    ],
+    faq: [
+      { q: 'Can I negotiate a buyout?', a: 'Sometimes. Ask for time to decide, and for specifics such as more weeks of pay, extra months of health coverage or a vest date. Get any change in writing.' },
+      { q: 'Will a buyout affect my unemployment benefits?', a: 'It can. States treat a voluntary separation differently from a layoff, and severance can count as income. Check with your state before you sign.' },
+      { q: 'Can I change my mind after I sign?', a: 'The agreement says. For workers 40 and over waiving age claims, the law adds a 7-day revocation window after signing, on top of a 21-day review period (45 in a group program).' },
+      { q: 'Is a buyout taxed?', a: 'Yes, generally as pay. Ask a tax professional how a lump sum, or payments spread over two tax years, would work for you.' },
+    ],
+    cta: { title: 'Price the offer', body: 'Estimate what a severance or buyout package is worth after tax, and what your state’s unemployment adds.', label: 'Open the severance calculator', href: '/tools/severance-calculator' },
+    updated: '2026-10-27',
+  },
+  {
+    slug: 'fired-vs-laid-off',
+    h1: 'Fired vs laid off: the difference and why it matters',
+    lede: 'A layoff ends your job because the employer cut the role or the headcount. A firing ends it because of something about you, such as conduct or performance. Both usually let you apply for unemployment, but the label can change your severance, how you explain it and what a former employer says about you.',
+    sections: [
+      {
+        h2: 'The difference in plain terms',
+        bullets: [
+          'Laid off: the position is eliminated for business reasons, such as cost, restructuring or a closing. It is not about your performance, and it often affects a group.',
+          'Fired: the employer ends your job for cause, such as misconduct or sustained poor performance.',
+          'Terminated is the broad word for any employer-ended job, so it does not tell you which one it was.',
+          '“Let go” is used for both. Ask which it was and what the paperwork says.',
+        ],
+      },
+      {
+        h2: 'Unemployment benefits',
+        paragraphs: [
+          'In most states a layoff qualifies you to claim. If you were fired, eligibility generally depends on whether the state finds misconduct. Poor performance on its own is often not misconduct, and the state decides, not your employer.',
+          'File either way, and answer the state’s questions plainly. Your employer’s description of the reason is not the final word.',
+        ],
+      },
+      {
+        h2: 'Severance and benefits',
+        bullets: [
+          'Severance is more common in a layoff, usually in exchange for a signed release. A firing rarely comes with it unless your contract provides for it.',
+          'COBRA health continuation applies after either, except when the termination was for gross misconduct.',
+          'Final pay and unused vacation are set by state law and apply in both cases.',
+        ],
+      },
+      {
+        h2: 'What your paperwork should say',
+        bullets: [
+          'Ask for the separation notice or letter, and read the stated reason.',
+          'Check that it matches what you were told. “Position eliminated” and “terminated for performance” lead to different places.',
+          'If it is wrong, reply in writing, politely and with dates, and keep a copy.',
+          'Keep your performance reviews, emails about your work and the dates of key events.',
+        ],
+      },
+      {
+        h2: 'How to say it in an interview',
+        bullets: [
+          'Laid off: “My role was eliminated when the company cut about [a fifth] of the team. Before that I [result]. I am looking for [role].”',
+          'Fired: “It was not a fit. I learned [one lesson] and now I [what you do differently]. Here is what I delivered in that role.”',
+        ],
+        paragraphs: ['Say what is true, keep it short and return to your results. Do not say “laid off” if you were fired. Our guide on explaining a layoff has more.'],
+      },
+      {
+        h2: 'If the label seems wrong or unfair',
+        paragraphs: ['If you believe the choice was discriminatory or a reprisal, talk to an employment lawyer soon. Charge deadlines with the federal Equal Employment Opportunity Commission are short: 180 days, extended to 300 days in many states.'],
+      },
+    ],
+    faq: [
+      { q: 'Can I collect unemployment if I was fired?', a: 'Often, yes. Most states disqualify you only for misconduct, which is more than poor performance. File and let the state decide.' },
+      { q: 'Can I get COBRA if I was fired?', a: 'Yes, unless you were terminated for gross misconduct. COBRA applies after most firings.' },
+      { q: 'What can a former employer tell a new employer?', a: 'Many confirm only dates and title, but policies and state laws vary. Ask HR what they would say and, in a layoff, ask for an agreed reference line.' },
+      { q: 'Should I say I was laid off if I was fired?', a: 'No. Describe what happened accurately and briefly. A reference check can contradict the wrong label, and that does more harm than the truth.' },
+    ],
+    cta: { title: 'See how your state treats it', body: 'Maximum weekly benefit, how many weeks, the waiting week, how severance counts and where to file, state by state.', label: 'Find your state', href: '/unemployment-benefits' },
+    updated: '2026-10-27',
   },
 ]
 

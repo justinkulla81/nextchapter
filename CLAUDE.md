@@ -141,3 +141,7 @@ fake test résumé (PDF, a made-up person and company names) with a fake email o
 (a real address trips the duplicate-account check). Make several copies with
 different emails (`...nctest1@example.com`, `nctest2`, `nctest3`) so a retry never
 collides, and attach them with SendUserFile in the same reply. Do not wait to be asked.
+
+## Build and 404 rules
+- A page must not need the live database to prerender if the query is heavy (a scan of jobs, companies or notices). `next build` runs seven workers at once against the database, and one statement timeout fails the whole deploy. Use `export const dynamic = 'force-dynamic'` and a `Cache-Control` header in `next.config.ts` (see `/salaries`, `/top-employers`), or `generateStaticParams() { return [] }` for dynamic routes.
+- A route folder with only `[slug]` children needs a redirect in `next.config.ts` for its parent address; `src/test/route-orphans.test.ts` fails otherwise. Unknown slugs redirect to the nearest real page (`resolveCompanySlug`), they do not 404.

@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-139 clusters, 851 phrases.
+143 clusters, 880 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -98,7 +98,7 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/layoffs/by-state` | page | WARN notices by state | Find every state’s WARN layoff notices in one place | WARN notice list by state; layoffs by state 2026; state WARN notice database; WARN notices by state 2026 |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
-| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; laid off vs fired; what is COBRA; what is outplacement; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
+| `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; what is COBRA; what is outplacement; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
 | `/events` | page | job fairs near me | Job fairs and business events near me | career fairs near me; hiring events near me; small business workshops near me; startup events near me |
 | `/events/:state` | family | {state} job fairs | Job fairs and business events in one state | {state} career fairs; {state} hiring events; {state} small business workshops; {state} startup events |
 | `/places` | page | local job markets | Job market in my area | jobs near me; job market by state and county; local unemployment rate; job openings by county; largest employers near me |
@@ -122,6 +122,10 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/topics/laid-off-over-40` | page | laid off at 50 | Laid off later in a career | laid off at 40; laid off over 50; laid off after 20 years; laid off later in life; age discrimination layoff; job search after 50 |
 | `/topics/laid-off-no-savings` | page | laid off with no savings | Laid off with little saved | laid off no money; help paying bills after layoff; laid off and need income now; laid off and a mortgage |
 | `/topics/explain-a-layoff` | page | how to explain a layoff in an interview | Answer why you were laid off in an interview | why were you laid off interview answer; how to talk about a layoff; explain being laid off; interview question laid off |
+| `/topics/what-to-say-when-laid-off` | page | what to say when you get laid off | Know what to say and ask in the layoff meeting and right after | what to say in a layoff meeting; what to say to hr when laid off; how to respond when you are laid off; what to ask when you are laid off; laid off what to say; how to react to being laid off |
+| `/topics/acquisition-layoffs` | page | layoffs after an acquisition | Judge the risk of layoffs after my company is acquired | will i be laid off after an acquisition; company acquired what happens to my job; layoffs after a merger; merger layoffs; acquisition layoffs timeline; what to ask if your company is acquired; worried about layoffs after acquisition |
+| `/topics/should-i-take-the-buyout` | page | should i take the buyout | Decide whether to accept a voluntary buyout offer | voluntary buyout; voluntary separation package; voluntary separation program; buyout offer from employer; voluntary severance; deferred resignation; is a buyout worth it |
+| `/topics/fired-vs-laid-off` | page | fired vs laid off | Understand the difference between being fired and laid off | difference between fired and laid off; laid off vs fired; terminated vs laid off; laid off or fired unemployment; fired vs let go; can i collect unemployment if i was fired |
 | `/topics/how-to-lay-off-employees` | page | how to lay off employees | Employer plans a layoff | layoff checklist for employers; layoff communication plan; layoff process; how to conduct a layoff; layoff meeting script |
 | `/topics/cover-letter-tips` | page | cover letter tips | Write a cover letter | cover letter for experienced professionals; cover letter after layoff; cover letter for career change; how long should a cover letter be; do I need a cover letter |
 | `/topics/executive-recruiters` | page | executive recruiters | Work with executive recruiters and search firms | executive search firms; retained search firms; headhunters; how to work with an executive recruiter; how to get on a recruiter’s radar; contingent vs retained recruiters; find an executive recruiter; executive search |
@@ -655,6 +659,26 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: How to Explain a Layoff in an Interview
 - Description: Say it in two sentences: the role was eliminated, what you delivered, what you want next. A simple structure, what to avoid, and what to say if you were fired.
+
+### `/topics/what-to-say-when-laid-off`
+
+- Title: What to Say When You Get Laid Off: Scripts and Questions
+- Description: Word-for-word lines for the layoff meeting, the questions to ask before you leave the room, what not to say, how to ask for better terms and the first 24 hours.
+
+### `/topics/acquisition-layoffs`
+
+- Title: Layoffs After an Acquisition: What to Expect and Ask
+- Description: Why roles are cut after a deal, how the timing usually runs, the questions to ask your manager and HR, and what to do now to protect your severance and your options.
+
+### `/topics/should-i-take-the-buyout`
+
+- Title: Should I Take the Buyout? What to Weigh Before You Answer
+- Description: What a voluntary buyout is, the answers to get in writing, a simple way to compare it with staying, when it makes sense and how to ask for more time or money.
+
+### `/topics/fired-vs-laid-off`
+
+- Title: Fired vs Laid Off: The Difference and Why It Matters
+- Description: How a layoff differs from a firing, what each means for unemployment, severance and COBRA, what the paperwork should say and how to explain either in an interview.
 
 ### `/topics/how-to-lay-off-employees`
 
