@@ -1,5 +1,6 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
+import { readBoardFigure } from '@/lib/jobs/stored-board-figures'
 import { resolveCandidateOccupation } from '@/lib/careers/candidate-occupation'
 import { exposureFor, summarizeJobsByExposure, type ExposureMap, type JobsByExposure, type OccupationExposure } from '@/lib/skills/ai-exposure'
 
@@ -49,6 +50,27 @@ const SPLIT_TTL_MS = 30 * 60 * 1000
 const SPLIT_MAX_ENTRIES = 200
 const splitMemo = new Map<string, { at: number; value: Promise<JobsByExposure | null> }>()
 
+/** Open postings counted by job function and 6-digit occupation: one row per pair. Null where the posting has no function or occupation. */
+export interface ExposureRow {
+  fn: string | null
+  soc6: string | null
+  count: number
+}
+
+/** One pass over the approved, unexpired board (10 s or more). Run by the cron /api/cron/board-figures, not by a page. */
+export async function buildExposureRows(): Promise<ExposureRow[]> {
+  const rows = await prisma.$queryRaw<{ fn: string | null; soc6: string | null; count: bigint }[]>`
+    SELECT "targetFunction" AS fn, left("socCode", 7) AS soc6, count(*)::bigint AS count FROM "ExclusiveJobPosting"
+    WHERE status = 'approved' AND ("expiresAt" IS NULL OR "expiresAt" > now())
+    GROUP BY 1, 2`
+  return rows.map((r) => ({ fn: r.fn, soc6: r.soc6, count: Number(r.count) }))
+}
+
+/** The stored rows (BoardFigure, refreshed by the cron); the live pass only when none is stored yet. */
+async function loadExposureRows(): Promise<ExposureRow[]> {
+  return (await readBoardFigure<ExposureRow[]>('exposure-rows')) ?? buildExposureRows()
+}
+
 /**
  * The approved, unexpired openings split by the exposure of the occupation each one is placed in. `fn` limits it to one
  * job function (the label the board already uses); omit it for every opening. Postings without an occupation, or whose
@@ -61,20 +83,11 @@ export function loadJobsByExposure(fn?: string | null): Promise<JobsByExposure |
   if (hit && now - hit.at <= SPLIT_TTL_MS) return hit.value
   const at = now
   const value = (async () => {
-    const [map, rows] = await Promise.all([
-      loadExposureMap(),
-      fn
-        ? prisma.$queryRaw<{ soc6: string | null; count: bigint }[]>`
-            SELECT left("socCode", 7) AS soc6, count(*)::bigint AS count FROM "ExclusiveJobPosting"
-            WHERE status = 'approved' AND ("expiresAt" IS NULL OR "expiresAt" > now()) AND "targetFunction" = ${fn}
-            GROUP BY 1`
-        : prisma.$queryRaw<{ soc6: string | null; count: bigint }[]>`
-            SELECT left("socCode", 7) AS soc6, count(*)::bigint AS count FROM "ExclusiveJobPosting"
-            WHERE status = 'approved' AND ("expiresAt" IS NULL OR "expiresAt" > now())
-            GROUP BY 1`,
-    ])
+    const [map, all] = await Promise.all([loadExposureMap(), loadExposureRows()])
     if (!map.size) return null
-    const split = summarizeJobsByExposure(rows.map((r) => ({ soc6: r.soc6, count: Number(r.count) })), map)
+    const bySoc = new Map<string | null, number>()
+    for (const r of all) if (!fn || r.fn === fn) bySoc.set(r.soc6, (bySoc.get(r.soc6) ?? 0) + r.count)
+    const split = summarizeJobsByExposure(Array.from(bySoc, ([soc6, count]) => ({ soc6, count })), map)
     return split.measured ? split : null
   })().catch((error) => {
     console.error('Jobs by AI exposure unavailable:', error)

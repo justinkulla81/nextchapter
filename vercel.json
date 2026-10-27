@@ -177,6 +177,10 @@
       "schedule": "45 23 * * *"
     },
     {
+      "path": "/api/cron/board-figures",
+      "schedule": "10 */6 * * *"
+    },
+    {
       "path": "/api/cron/market-size",
       "schedule": "50 8 * * *"
     },
