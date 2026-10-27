@@ -27,17 +27,23 @@ export async function pdfPages(buf: Buffer): Promise<PdfItem[][]> {
 export interface ColumnSpec { key: string; header: RegExp }
 
 /** The left edge of each column's header, then a boundary halfway to the next: data is not always aligned the way its header is. */
-export function columnEdges(items: PdfItem[], columns: ColumnSpec[]): { key: string; from: number; to: number }[] {
+export type ColumnEdges = { key: string; from: number; to: number; headerY: number }[]
+
+export function columnEdges(items: PdfItem[], columns: ColumnSpec[]): ColumnEdges {
   const xs = columns.map((c) => {
     const hit = items.filter((i) => c.header.test(i.s)).sort((a, b) => b.y - a.y)[0]
     if (!hit) throw new Error(`the table header "${c.header.source}" is no longer there; the PDF's layout has changed`)
-    return { key: c.key, x: hit.x }
+    return { key: c.key, x: hit.x, y: hit.y }
   })
+  // Where the header's lowest line sits: everything below it is data, everything above (the second line of a header such as
+  // "Notice / Date" included) is not.
+  const headerY = Math.min(...xs.map((c) => c.y))
   xs.sort((a, b) => a.x - b.x)
   return xs.map((c, i) => ({
     key: c.key,
     from: i === 0 ? -Infinity : (xs[i - 1].x + c.x) / 2,
     to: i === xs.length - 1 ? Infinity : (c.x + xs[i + 1].x) / 2,
+    headerY,
   }))
 }
 
@@ -46,22 +52,26 @@ const DATE_CELL = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/
 const MAX_WRAP = 45
 
 /**
+ * Lines of one cell are joined with a newline. A page that continues the table without a header is read with the first page's
+ * columns: pass them as `edgesFromHeader` for that page only.
+ *
  * One record per row that has a date in `anchorKey`; every other piece of text joins the nearest such row by height, so a name
  * that wraps above and below the line carrying the dates stays with its own record.
  */
-export function pdfTableRows(items: PdfItem[], columns: ColumnSpec[], anchorKey: string): Record<string, string>[] {
-  const edges = columnEdges(items, columns)
+export function pdfTableRows(items: PdfItem[], columns: ColumnSpec[], anchorKey: string, edgesFromHeader?: ColumnEdges): Record<string, string>[] {
+  const edges = edgesFromHeader ?? columnEdges(items, columns)
   const keyOf = (x: number) => edges.find((e) => x >= e.from && x < e.to)?.key ?? null
   const anchors = items.filter((i) => keyOf(i.x) === anchorKey && DATE_CELL.test(i.s))
   if (!anchors.length) return []
   const ys = [...new Set(anchors.map((a) => Math.round(a.y)))].sort((a, b) => b - a)
-  const topOfTable = Math.max(...ys)
+  // A page that continues the table has no header to cut at; its own top is data.
+  const dataTop = edgesFromHeader ? Infinity : edges[0].headerY - 6
   const byAnchor = new Map<number, PdfItem[]>(ys.map((y) => [y, []]))
   for (const it of items) {
     const key = keyOf(it.x)
     if (!key) continue
-    // Header text and anything above the first row is not data.
-    if (it.y > topOfTable + 12) continue
+    // The header and anything above it is not data.
+    if (it.y > dataTop) continue
     let best = ys[0]
     for (const y of ys) if (Math.abs(it.y - y) < Math.abs(it.y - best) || (Math.abs(it.y - y) === Math.abs(it.y - best) && y > best)) best = y
     // A wrapped cell is a few lines tall; a footer or page number is far from every row.
@@ -74,10 +84,8 @@ export function pdfTableRows(items: PdfItem[], columns: ColumnSpec[], anchorKey:
       row[e.key] = byAnchor.get(y)!
         .filter((i) => keyOf(i.x) === e.key)
         .sort((a, b) => b.y - a.y || a.x - b.x)
-        .map((i) => i.s)
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim()
+        .map((i) => i.s.replace(/\s+/g, ' ').trim())
+        .join('\n')
     }
     return row
   })

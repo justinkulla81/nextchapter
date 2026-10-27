@@ -3,7 +3,7 @@ import { readTables, columnOf, parseDate, parseCount, stripTags } from './html'
 import { parseCsv } from './csv'
 import { excelSerialToDate } from './xlsx'
 import type { WarnRow } from './sources'
-import { pdfPages, pdfTableRows, type ColumnSpec, type PdfItem } from './pdf-table'
+import { columnEdges, pdfPages, pdfTableRows, type ColumnEdges, type ColumnSpec, type PdfItem } from './pdf-table'
 
 /**
  * A state whose WARN page is a plain HTML table.
@@ -786,24 +786,46 @@ const LA_COLUMNS: ColumnSpec[] = [
   { key: 'company', header: /^Company Name$/ }, { key: 'address', header: /^Address$/ }, { key: 'notice', header: /^Notice$/ },
   { key: 'layoff', header: /^Layoff$/ }, { key: 'employees', header: /^Employees$/ }, { key: 'industry', header: /^Industry$/ },
 ]
+// The 2025 file has no Address column: the address sits under the company name in the same column.
+const LA_COLUMNS_NO_ADDRESS = LA_COLUMNS.filter((c) => c.key !== 'address')
+
+const oneLine = (v: string | undefined) => (v ?? '').replace(/\s+/g, ' ').trim()
 
 export function parseLouisianaItems(pages: PdfItem[][]): WarnRow[] {
   const out: WarnRow[] = []
+  let edges: ColumnEdges | undefined
+  let hasAddressColumn = true
   for (const items of pages) {
-    if (!items.some((i) => /^Company Name$/.test(i.s))) continue
-    for (const r of pdfTableRows(items, LA_COLUMNS, 'notice')) {
-      if (!r.company) continue
+    // A table that runs onto a second page does not repeat its header: that page reads with the first page's columns.
+    const hasHeader = items.some((i) => /^Company Name$/.test(i.s))
+    if (hasHeader) {
+      hasAddressColumn = items.some((i) => /^Address$/.test(i.s))
+      edges = columnEdges(items, hasAddressColumn ? LA_COLUMNS : LA_COLUMNS_NO_ADDRESS)
+    }
+    if (!edges) continue
+    for (const r of pdfTableRows(items, hasAddressColumn ? LA_COLUMNS : LA_COLUMNS_NO_ADDRESS, 'notice', hasHeader ? undefined : edges)) {
+      let company = r.company
+      let address = r.address
+      if (!hasAddressColumn) {
+        // Name lines first, then the street line (it starts with a number, or a bracket and a number) and the city under it.
+        const lines = (r.company ?? '').split('\n')
+        const street = lines.findIndex((l, i) => i > 0 && /^\(?\d/.test(l))
+        company = (street > 0 ? lines.slice(0, street) : lines).join(' ')
+        address = street > 0 ? lines.slice(street).join(' ') : ''
+      }
+      company = oneLine(company)
+      if (!company) continue
       out.push({
         state: 'LA',
-        employer: r.company,
-        normalizedEmployer: normalizeOrgName(r.company),
-        noticeDate: parseDate(r.notice),
-        effectiveDate: parseDate(r.layoff),
-        employees: parseCount(r.employees),
+        employer: company,
+        normalizedEmployer: normalizeOrgName(company),
+        noticeDate: parseDate(oneLine(r.notice)),
+        effectiveDate: parseDate(oneLine(r.layoff)),
+        employees: parseCount(oneLine(r.employees)),
         layoffType: null,
         county: null,
-        address: r.address || null,
-        industry: normalizeIndustry(r.industry || null, 'LA'),
+        address: oneLine(address) || null,
+        industry: normalizeIndustry(oneLine(r.industry) || null, 'LA'),
       })
     }
   }
@@ -838,20 +860,24 @@ const NM_COLUMNS: ColumnSpec[] = [
 
 export function parseNewMexicoItems(pages: PdfItem[][]): WarnRow[] {
   const out: WarnRow[] = []
+  let edges: ColumnEdges | undefined
   for (const items of pages) {
-    if (!items.some((i) => /^JOB SITE NAME$/i.test(i.s))) continue
-    for (const r of pdfTableRows(items, NM_COLUMNS, 'notice')) {
-      if (!r.site) continue
+    const hasHeader = items.some((i) => /^JOB SITE NAME$/i.test(i.s))
+    if (hasHeader) edges = columnEdges(items, NM_COLUMNS)
+    if (!edges) continue
+    for (const r of pdfTableRows(items, NM_COLUMNS, 'notice', hasHeader ? undefined : edges)) {
+      const site = oneLine(r.site)
+      if (!site) continue
       out.push({
         state: 'NM',
-        employer: r.site,
-        normalizedEmployer: normalizeOrgName(r.site),
-        noticeDate: parseDate(r.notice),
-        effectiveDate: parseDate(r.layoff),
-        employees: parseCount(r.total),
+        employer: site,
+        normalizedEmployer: normalizeOrgName(site),
+        noticeDate: parseDate(oneLine(r.notice)),
+        effectiveDate: parseDate(oneLine(r.layoff)),
+        employees: parseCount(oneLine(r.total)),
         layoffType: null,
-        county: r.county || null,
-        address: r.city || null,
+        county: oneLine(r.county) || null,
+        address: oneLine(r.city) || null,
         industry: null,
       })
     }
