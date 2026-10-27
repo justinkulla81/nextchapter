@@ -6,6 +6,7 @@ import { saveAppliedJob, type ApplySaveState } from '@/lib/leads/apply-save'
 import { posthog } from '@/lib/posthog/client'
 import { cn } from '@/lib/utils'
 import { SaveJourneyStep } from '@/components/jobs/SaveJourneyStep'
+import { JobFitCard } from '@/components/jobs/JobFitCard'
 
 // The Apply button on a public job page plus the one-field "save this job" box under it.
 // Apply still opens the employer's page in a new tab; this page stays open behind it and the
@@ -48,6 +49,12 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
         )}
       </div>
 
+      {/* Before Apply is clicked the fit offer sits here on phones (desktop has the side card); after it, the offer leads the box. */}
+      {!open && <JobFitCard jobId={jobId} placement="inline" className="mt-5 lg:hidden" />}
+      {open && trigger === 'apply_click' && !state?.saved && (
+        <JobFitCard jobId={jobId} placement="after_apply" heading={`Applied to ${company}? See if you’d get an interview.`} className="mt-4" />
+      )}
+
       {open &&
         (state?.saved ? (
           <div className="mt-4">
@@ -65,7 +72,7 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
             className={cn('mt-4 rounded-2xl border border-border bg-white p-4', pending && 'cursor-wait')}
             onSubmit={() => posthog.capture('job_save_submitted_client', { jobId, company, trigger })}
           >
-            <p className="text-sm font-semibold">{trigger === 'apply_click' ? `Applying to ${company}? Keep this job and see how you fit.` : 'Keep this job and see how you fit.'}</p>
+            <p className="text-sm font-semibold">{trigger === 'apply_click' ? 'Or keep this job for later.' : 'Keep this job and see how you fit.'}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">{emailOn ? 'We email you the job so you can find it again. Then create a free account to see your fit.' : 'Save it with your email, then create a free account to see your fit.'}</p>
             <input type="hidden" name="jobId" value={jobId} />
             <input type="hidden" name="trigger" value={trigger} />
@@ -87,7 +94,12 @@ export function ApplyAndSave({ jobId, company, applyUrl, emailOn }: { jobId: str
                 aria-invalid={state?.error ? true : undefined}
                 className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-base"
               />
-              <Button type="submit" disabled={pending} className="h-11 rounded-full bg-action px-5 text-action-foreground hover:brightness-95">
+              <Button
+                type="submit"
+                disabled={pending}
+                variant={trigger === 'apply_click' ? 'outline' : 'default'}
+                className={cn('h-11 rounded-full px-5', trigger !== 'apply_click' && 'bg-action text-action-foreground hover:brightness-95')}
+              >
                 {pending ? 'Saving…' : (emailOn ? 'Email me this job' : 'Save this job')}
               </Button>
             </div>

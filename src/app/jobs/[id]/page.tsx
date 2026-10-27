@@ -110,8 +110,6 @@ export default async function PublicJobPage({ params }: { params: Params }) {
 
             <ApplyAndSave jobId={job.id} company={job.companyName} applyUrl={job.url} emailOn={applySaveEmailOn()} />
 
-            <JobFitCard jobId={job.id} placement="inline" className="mt-5 lg:hidden" />
-
             {employerHref && (
               <p className="mt-6 text-sm">
                 <TrackedLink

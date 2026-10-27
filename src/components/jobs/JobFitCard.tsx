@@ -6,21 +6,32 @@ import { cn } from '@/lib/utils'
 // The fit offer on a public job page: one promise, one button, visible without scrolling.
 // It replaced a 6-point list and a 3-step explainer at the bottom of a long sidebar; in the
 // 14 days to 2026-10-27, 484 visitors viewed job pages, 85 clicked Apply and 2 clicked the old button.
-// `placement` separates the two copies (under Apply on every screen size's flow, and a sticky side card on desktop).
-export function JobFitCard({ jobId, placement, className }: { jobId: string; placement: 'inline' | 'side'; className?: string }) {
+// `placement` separates the copies: under Apply on phones ('inline'), a sticky card on desktop ('side'), and the one that
+// replaces 'inline' once someone clicks Apply and comes back to this page ('after_apply'). Events carry job_page_<placement>.
+export function JobFitCard({
+  jobId,
+  placement,
+  heading = 'Would you get an interview?',
+  className,
+}: {
+  jobId: string
+  placement: 'inline' | 'side' | 'after_apply'
+  heading?: string
+  className?: string
+}) {
   return (
     <aside className={cn('rounded-2xl border border-border bg-white p-4 sm:p-5', className)} aria-label="Check your fit for this job">
       <div className="flex items-center gap-4">
         <FitRing />
         <div className="min-w-0">
-          <p className="font-display text-lg leading-snug font-semibold">Would you get an interview?</p>
+          <p className="font-display text-lg leading-snug font-semibold">{heading}</p>
           <p className="mt-0.5 text-sm text-muted-foreground">Upload your résumé and see your match to this job. Free, about a minute.</p>
         </div>
       </div>
       <TrackedLink
         href={`${PERSONALIZE_HREF}&job=${encodeURIComponent(jobId)}`}
         event="jobs_page_personalize_clicked"
-        properties={{ placement: placement === 'inline' ? 'job_page_inline' : 'job_page_side', jobId }}
+        properties={{ placement: `job_page_${placement}`, jobId }}
         className={cn(buttonVariants({ size: 'lg' }), 'mt-4 h-12 w-full rounded-full bg-action text-action-foreground hover:brightness-95')}
       >
         Check my fit
