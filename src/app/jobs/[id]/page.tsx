@@ -10,7 +10,7 @@ import { ApplyAndSave } from '@/components/jobs/ApplyAndSave'
 import { applySaveEmailOn } from '@/lib/leads/apply-save-config'
 import { StructuredData } from '@/components/StructuredData'
 import { PayVsMarket } from '@/components/jobs/PayVsMarket'
-import { PersonalizePanel } from '@/components/home/PersonalizePanel'
+import { JobFitCard } from '@/components/jobs/JobFitCard'
 import { PublicJobViewTracker } from '@/components/home/PublicJobViewTracker'
 import { buttonVariants } from '@/components/ui/button'
 import { isExcerpt } from '@/lib/jobs/posting-text'
@@ -110,6 +110,8 @@ export default async function PublicJobPage({ params }: { params: Params }) {
 
             <ApplyAndSave jobId={job.id} company={job.companyName} applyUrl={job.url} emailOn={applySaveEmailOn()} />
 
+            <JobFitCard jobId={job.id} placement="inline" className="mt-5 lg:hidden" />
+
             {employerHref && (
               <p className="mt-6 text-sm">
                 <TrackedLink
@@ -164,14 +166,7 @@ export default async function PublicJobPage({ params }: { params: Params }) {
             )}
           </article>
 
-          <PersonalizePanel
-            heading="Know if you fit before you apply"
-            intro="Add your résumé once. With a free profile you get:"
-            positive
-            cta="Show me my fit"
-            properties={{ placement: 'job_page', jobId: job.id }}
-            mobileFirst={false}
-          />
+          <JobFitCard jobId={job.id} placement="side" className="hidden h-fit lg:sticky lg:top-6 lg:block" />
         </div>
         <BrowseTheSite />
       </main>
