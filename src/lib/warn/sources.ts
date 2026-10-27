@@ -35,6 +35,8 @@ import {
   parseNevadaWarn,
   parseMinnesotaList,
   WEST_VIRGINIA_PAGE,
+  HAWAII_PAGE,
+  parseHawaiiWarn,
   parseWestVirginiaWarn,
   NEW_JERSEY_FILE,
   parseNewJerseyWarn,
@@ -618,6 +620,13 @@ export const WARN_SOURCES: WarnSource[] = [
     },
     parse: (buf: Buffer) => parseNewMexicoWarn(buf),
     alsoUrls: async () => resolveNewMexicoPdfs(await fetchText(NEW_MEXICO_PAGE)).slice(1),
+    hasIndustry: false,
+  },
+  {
+    state: 'HI',
+    url: HAWAII_PAGE,
+    format: 'html',
+    parse: (buf: Buffer) => parseHawaiiWarn(buf.toString('utf8')),
     hasIndustry: false,
   },
   {
