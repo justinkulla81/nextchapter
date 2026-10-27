@@ -29,7 +29,17 @@ function formatDayLabel(dateKey: string): string {
 // legend appears whenever there's more than one), so two related daily
 // counts — e.g. human page views vs. unique visitors — can be compared
 // directly on one chart instead of two separately-scaled ones.
-export function VisitorsPerDayChart({ series, emptyMessage }: { series: ChartSeries[]; emptyMessage?: string }) {
+export function VisitorsPerDayChart({
+  series,
+  emptyMessage,
+  labelFor = formatDayLabel,
+  unitLabel = 'day',
+}: {
+  series: ChartSeries[]
+  emptyMessage?: string
+  labelFor?: (dateKey: string) => string
+  unitLabel?: string
+}) {
   const days = series[0]?.days ?? []
   const hasAnyData = series.some((s) => s.days.some((d) => d.count > 0))
 
@@ -53,7 +63,7 @@ export function VisitorsPerDayChart({ series, emptyMessage }: { series: ChartSer
     Array.from({ length: labelCount }, (_, i) => Math.round((i * (days.length - 1)) / Math.max(1, labelCount - 1)))
   )
 
-  const ariaLabel = series.map((s) => `${s.label} per day`).join(', ')
+  const ariaLabel = series.map((s) => `${s.label} per ${unitLabel}`).join(', ')
 
   return (
     <div>
@@ -92,7 +102,7 @@ export function VisitorsPerDayChart({ series, emptyMessage }: { series: ChartSer
               <path d={linePath} fill="none" stroke={s.color} strokeWidth={2} />
               {s.days.map((d, i) => (
                 <circle key={d.dateKey} cx={xFor(i)} cy={yFor(d.count)} r={3} fill={s.color}>
-                  <title>{`${formatDayLabel(d.dateKey)} — ${s.label}: ${d.count}`}</title>
+                  <title>{`${labelFor(d.dateKey)} — ${s.label}: ${d.count}`}</title>
                 </circle>
               ))}
             </g>
@@ -110,7 +120,7 @@ export function VisitorsPerDayChart({ series, emptyMessage }: { series: ChartSer
                 fontSize={10}
                 fill="var(--color-muted-foreground)"
               >
-                {formatDayLabel(d.dateKey)}
+                {labelFor(d.dateKey)}
               </text>
             )
         )}

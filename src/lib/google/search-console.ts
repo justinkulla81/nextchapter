@@ -15,6 +15,29 @@ const SITE_HOST = 'launchyournextchapter.com'
 // returns the same rows minus the missing days.
 const WINDOW_DAYS = 28
 
+// Why Google refused. A 403 has three very different causes and only the first
+// is fixed by reconnecting, so the page must not call them all "reconnect".
+export type ForbiddenReason = 'scope_missing' | 'api_disabled' | 'no_permission' | 'unknown'
+
+export function classifyForbidden(status: number, body: string): ForbiddenReason {
+  const text = body.toLowerCase()
+  if (text.includes('accessnotconfigured') || text.includes('service_disabled') || text.includes('has not been used in project') || text.includes('is disabled')) return 'api_disabled'
+  if (text.includes('insufficient') && text.includes('scope')) return 'scope_missing'
+  if (status === 401) return 'scope_missing'
+  if (text.includes('user does not have sufficient permission') || text.includes('sufficient permission')) return 'no_permission'
+  return 'unknown'
+}
+
+function googleMessage(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string } }
+    if (parsed.error?.message) return parsed.error.message
+  } catch {
+    // not JSON
+  }
+  return body.slice(0, 200)
+}
+
 export interface SearchRow {
   key: string
   clicks: number
@@ -26,7 +49,7 @@ export interface SearchRow {
 export type SearchConsoleResult =
   | { status: 'ok'; siteUrl: string; startDate: string; endDate: string; queries: SearchRow[]; pages: SearchRow[] }
   | { status: 'not_connected' }
-  | { status: 'needs_reconnect' }
+  | { status: 'needs_reconnect'; reason: ForbiddenReason; detail: string }
   | { status: 'no_site'; sites: string[] }
   | { status: 'error'; message: string }
 
@@ -67,7 +90,7 @@ async function query(token: string, siteUrl: string, dimension: 'query' | 'page'
 }
 
 class SearchConsoleHttpError extends Error {
-  constructor(readonly status: number, body: string) {
+  constructor(readonly status: number, readonly body: string) {
     super(`Search Console ${status}: ${body.slice(0, 300)}`)
   }
 }
@@ -76,7 +99,7 @@ async function load(): Promise<SearchConsoleResult> {
   const connections = await getAllGoogleConnections()
   if (connections.length === 0) return { status: 'not_connected' }
 
-  let sawForbidden = false
+  let forbidden: { reason: ForbiddenReason; detail: string } | null = null
   let lastSites: string[] = []
   for (const connection of connections) {
     try {
@@ -98,18 +121,42 @@ async function load(): Promise<SearchConsoleResult> {
       return { status: 'ok', siteUrl, startDate: isoDay(start), endDate: isoDay(end), queries, pages }
     } catch (err) {
       if (err instanceof SearchConsoleHttpError && (err.status === 401 || err.status === 403)) {
-        sawForbidden = true
+        forbidden = { reason: classifyForbidden(err.status, err.body), detail: `${connection.email}: ${googleMessage(err.body)}` }
         continue
       }
       console.error('Search Console load failed:', err)
       return { status: 'error', message: err instanceof Error ? err.message : 'Unknown error' }
     }
   }
-  if (sawForbidden) return { status: 'needs_reconnect' }
+  if (forbidden) return { status: 'needs_reconnect', ...forbidden }
   return { status: 'no_site', sites: lastSites }
 }
 
-// An hour is plenty: the data itself only updates daily, and every admin
-// page view would otherwise cost three Google calls. Errors are not cached
-// long-term by design — a reconnect should show up within the hour at most.
-export const loadSearchConsole = unstable_cache(load, ['admin-search-console'], { revalidate: 3600, tags: ['admin-search-console'] })
+// A working answer is cached for an hour: the data itself only updates daily
+// and every admin page view would otherwise cost three Google calls. Anything
+// other than "ok" is never cached (the cached function throws, which Next does
+// not store), so a reconnect or a fixed setting shows up on the next load.
+class NotCacheable extends Error {
+  constructor(readonly result: SearchConsoleResult) {
+    super('not cacheable')
+  }
+}
+
+const loadCached = unstable_cache(
+  async () => {
+    const result = await load()
+    if (result.status !== 'ok') throw new NotCacheable(result)
+    return result
+  },
+  ['admin-search-console'],
+  { revalidate: 3600, tags: ['admin-search-console'] }
+)
+
+export async function loadSearchConsole(): Promise<SearchConsoleResult> {
+  try {
+    return await loadCached()
+  } catch (err) {
+    if (err instanceof NotCacheable) return err.result
+    throw err
+  }
+}
