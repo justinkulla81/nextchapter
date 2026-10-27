@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
       data: {
         ip,
         eventType,
-        path: eventType === 'PAGE_VIEW' ? path : null,
+        // LINK_CLICK now records the page it happened on too (older click rows have null).
+        path,
         href: eventType === 'LINK_CLICK' ? href : stamp,
         referrer: eventType === 'PAGE_VIEW' ? referrer : null,
         userAgent: request.headers.get('user-agent'),

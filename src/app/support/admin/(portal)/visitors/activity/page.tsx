@@ -47,6 +47,44 @@ interface Row {
   inferredCandidate: { id: string; firstName: string | null; lastName: string | null } | null
   source: string
   device: string
+  // Per-IP totals across all of this visitor's recorded events (not just this row).
+  views: number
+  clicks: number
+  applyClicks: number
+  // Best email we have for this visitor: the signed-in or by-IP candidate's profile email, else an
+  // email they gave a lead form (saved job, alert) from the same IP. Empty when we have none.
+  emails: string[]
+  isApplyClick: boolean
+}
+
+const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://launchyournextchapter.com').replace(/\/$/, '')
+const OWN_HOST = new URL(SITE_URL).hostname.replace(/^www\./, '')
+const SOCIAL_HOST = /(^|\.)(linkedin|facebook|twitter|x|instagram|youtube|tiktok)\.com$/i
+
+function absoluteUrl(value: string): string {
+  if (/^https?:\/\//i.test(value)) return value
+  return `${SITE_URL}${value.startsWith('/') ? '' : '/'}${value}`
+}
+
+// A click on a job page (or an old click with no page recorded) that leaves for an outside, non-social site is the
+// Apply button — it opens the employer's own page. Clicks recorded before path tracking is the estimate part.
+function isApplyClick(eventType: string, href: string | null, path: string | null): boolean {
+  if (eventType !== 'LINK_CLICK' || !href || !/^https?:\/\//i.test(href)) return false
+  try {
+    const host = new URL(href).hostname.replace(/^www\./, '')
+    if (host === OWN_HOST || SOCIAL_HOST.test(host)) return false
+  } catch {
+    return false
+  }
+  return path === null || path.startsWith('/jobs/')
+}
+
+function FullUrl({ url }: { url: string }) {
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer nofollow" className="break-all text-primary underline underline-offset-4">
+      {url}
+    </a>
+  )
 }
 
 // Who visited and when: the traffic chart, the weekday and hour-of-day charts,
@@ -83,7 +121,7 @@ export default async function AdminVisitorActivityPage({
       orderBy: { createdAt: 'desc' },
       skip: params.skip,
       take: params.take,
-      include: { candidate: { select: { id: true, firstName: true, lastName: true } } },
+      include: { candidate: { select: { id: true, firstName: true, lastName: true, email: true } } },
     }),
     prisma.homepageVisitEvent.count({ where }),
     prisma.homepageVisitEvent.findMany({
@@ -150,7 +188,7 @@ export default async function AdminVisitorActivityPage({
     unmatchedIps.length > 0
       ? await prisma.candidateProfile.findMany({
           where: { signupIp: { in: unmatchedIps } },
-          select: { id: true, firstName: true, lastName: true, signupIp: true },
+          select: { id: true, firstName: true, lastName: true, signupIp: true, email: true },
         })
       : []
   const candidatesByIp = new Map<string, typeof signupMatches>()
@@ -166,6 +204,36 @@ export default async function AdminVisitorActivityPage({
       .map(([ip, candidates]) => [ip, candidates[0]])
   )
 
+  // Per-person totals: one row per IP, same bot rule as the log. "Person" is an IP — the best identity an
+  // anonymous visit carries.
+  const totalsByIp = new Map<string, { views: number; clicks: number; applyClicks: number }>()
+  const leadEmailsByIp = new Map<string, string[]>()
+  if (uniqueIps.length > 0) {
+    const [ipEvents, leads] = await Promise.all([
+      prisma.$queryRaw<{ ip: string; eventType: string; href: string | null; path: string | null }[]>(Prisma.sql`
+        SELECT "ip", "eventType"::text AS "eventType", "href", "path"
+        FROM "HomepageVisitEvent"
+        WHERE "ip" = ANY(${uniqueIps}) AND ${botFilter}`),
+      prisma.homepageLead.findMany({ where: { ip: { in: uniqueIps } }, select: { ip: true, email: true } }),
+    ])
+    for (const ev of ipEvents) {
+      const t = totalsByIp.get(ev.ip) ?? { views: 0, clicks: 0, applyClicks: 0 }
+      if (ev.eventType === 'PAGE_VIEW') t.views += 1
+      else {
+        t.clicks += 1
+        if (isApplyClick(ev.eventType, ev.href, ev.path)) t.applyClicks += 1
+      }
+      totalsByIp.set(ev.ip, t)
+    }
+    for (const l of leads) {
+      if (!l.ip) continue
+      const list = leadEmailsByIp.get(l.ip) ?? []
+      if (!list.includes(l.email)) list.push(l.email)
+      leadEmailsByIp.set(l.ip, list)
+    }
+  }
+  const inferredEmailByIp = new Map(signupMatches.filter((c) => c.signupIp && c.email).map((c) => [c.signupIp as string, c.email as string]))
+
   const rows: Row[] = events.map((e) => ({
     id: e.id,
     createdAt: e.createdAt,
@@ -180,6 +248,19 @@ export default async function AdminVisitorActivityPage({
     inferredCandidate: !e.candidate && e.ip ? (inferredCandidateByIp.get(e.ip) ?? null) : null,
     source: e.eventType === 'PAGE_VIEW' ? classifyTrafficSource(e.path, e.referrer) : '—',
     device: classifyDevice(e.userAgent),
+    views: e.ip ? (totalsByIp.get(e.ip)?.views ?? 0) : 0,
+    clicks: e.ip ? (totalsByIp.get(e.ip)?.clicks ?? 0) : 0,
+    applyClicks: e.ip ? (totalsByIp.get(e.ip)?.applyClicks ?? 0) : 0,
+    emails: Array.from(
+      new Set(
+        [
+          e.candidate?.email,
+          !e.candidate && e.ip ? inferredEmailByIp.get(e.ip) : null,
+          ...(e.ip ? (leadEmailsByIp.get(e.ip) ?? []) : []),
+        ].filter((v): v is string => !!v)
+      )
+    ),
+    isApplyClick: isApplyClick(e.eventType, e.href, e.path),
   }))
 
   const result = paginatedResult(rows, total, params)
@@ -213,23 +294,42 @@ export default async function AdminVisitorActivityPage({
         return cls === 'bot' ? '🤖 Bot' : cls === 'human' ? '🧑 Human' : '❓ Unknown'
       },
     },
+    { header: 'Email', render: (r) => (r.emails.length > 0 ? r.emails.join(', ') : '—') },
     { header: 'IP', render: (r) => r.ip ?? 'unknown' },
     { header: 'Location', render: (r) => r.location ?? '—' },
     {
-      header: 'Detail',
+      header: 'This person total',
+      className: 'px-3 py-2 tabular-nums',
+      render: (r) => (r.ip ? `${r.views} views · ${r.clicks} clicks · ${r.applyClicks} apply` : '—'),
+    },
+    {
+      header: 'Came from',
       render: (r) =>
-        r.eventType === 'LINK_CLICK' ? r.href ?? '—' : r.referrer ? `from ${r.referrer}` : 'direct / no referrer',
+        r.eventType === 'PAGE_VIEW' ? (r.referrer ? <FullUrl url={r.referrer} /> : 'direct / no referrer') : '—',
+    },
+    {
+      header: 'Clicked',
+      render: (r) =>
+        r.eventType === 'LINK_CLICK' && r.href ? (
+          <>
+            {r.isApplyClick && <span className="mr-1 font-medium text-success">Apply ✓</span>}
+            <FullUrl url={absoluteUrl(r.href)} />
+          </>
+        ) : (
+          '—'
+        ),
     },
     { header: 'Source', render: (r) => r.source },
     { header: 'Device', render: (r) => `${r.device} · ${classifyBrowser(r.userAgent)}` },
     {
       header: 'Page',
-      render: (r) => (r.eventType === 'PAGE_VIEW' ? (r.path ?? '/ (recorded before path tracking)') : '—'),
+      render: (r) =>
+        r.path ? <FullUrl url={absoluteUrl(r.path)} /> : r.eventType === 'PAGE_VIEW' ? '/ (recorded before path tracking)' : '—',
     },
   ]
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-[1800px] space-y-6 p-6">
       <TrafficRangeProvider>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Visitor activity</h1>
