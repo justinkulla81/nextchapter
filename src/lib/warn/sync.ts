@@ -6,7 +6,7 @@ import { strictOrgKey } from '@/lib/crm/normalize'
 import { matchOrCreateCompanyForEmployer, loadCompanyIndex, type CompanyIndex } from './company-match'
 import { WARN_SOURCES, WARN_USER_AGENT, RENDERED_STATES, FILE_STATES, SCRAPED_STATES, parseScrapedNotices, sourceUrl, isKnowledgeSector, type WarnRow, type ScrapedNotice } from './sources'
 import { toWarnRows, type LayoffsFyiRow } from './layoffs'
-import { TABLE_SPECS, makeTableParser } from './states'
+import { TABLE_SPECS, makeTableParser, enrichGeorgia, parseGeorgiaGrid } from './states'
 import { cleanEmployer } from './public-tracker'
 import { sameEmployer } from './news-headline'
 
@@ -497,7 +497,8 @@ export async function importRenderedState(state: string, html: string): Promise<
   const url = RENDERED_STATES[state] ?? ''
 
   try {
-    const rows = makeTableParser(spec)(Buffer.from(html, 'utf8'), url)
+    // Georgia's list has no county; each entry's page does (see enrichGeorgia).
+    const rows = state === 'GA' ? await enrichGeorgia(parseGeorgiaGrid(html)) : makeTableParser(spec)(Buffer.from(html, 'utf8'), url)
     result.fetched = rows.length
     if (!rows.length) throw new Error(`${state}: rendered page produced no rows — its table has changed`)
 

@@ -1193,3 +1193,66 @@ export async function parseSouthCarolinaWarn(buf: Buffer): Promise<WarnRow[]> {
   if (!rows.length) throw new Error('SC: the WARN PDF produced no rows; its layout has changed')
   return rows
 }
+
+/**
+ * Georgia's list (rendered by the browser job) has only the company, the date submitted and the number affected; the county,
+ * address, NAICS code, first date of separation and kind of layoff are on each entry's own page, which a script can read. Without
+ * the county a notice cannot be tied to a workforce board, so the newest are enriched when they are staged.
+ */
+export interface GeorgiaRow extends WarnRow { entryUrl: string | null }
+
+export function parseGeorgiaGrid(html: string): GeorgiaRow[] {
+  const out: GeorgiaRow[] = []
+  for (const tr of html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const tds = [...tr[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((c) => c[1])
+    if (tds.length < 4) continue
+    const link = tds[0].match(/href="([^"]*\/warn-public-view\/entry\/\d+\/?)"/i)?.[1] ?? null
+    const company = stripTags(tds[1]).replace(/\s+/g, ' ').trim()
+    const noticeDate = parseDate(stripTags(tds[2]).trim())
+    if (!company || company.length < 2 || !noticeDate) continue
+    out.push({
+      state: 'GA', employer: company, normalizedEmployer: normalizeOrgName(company), noticeDate, effectiveDate: null,
+      employees: parseCount(stripTags(tds[3])), layoffType: null, county: null, address: null, industry: null, entryUrl: link,
+    })
+  }
+  return out
+}
+
+/** The fields on one Georgia entry page. */
+export function parseGeorgiaEntry(html: string): { county: string | null; address: string | null; naics: string | null; separation: Date | null; kind: string | null } {
+  const text = stripTags(html.replace(/<\/(?:td|th|div|p|li|dt|dd|tr)>/gi, '|')).replace(/\s+/g, ' ')
+  const field = (label: string): string | null => {
+    const m = text.match(new RegExp(`(?:^|\\|)\\s*${label}\\s*\\|\\s*([^|]*)`, 'i'))
+    return m?.[1]?.trim() || null
+  }
+  const county = field('County')?.replace(/\s+County$/i, '') ?? null
+  const city = text.match(/Company Address\s*\|?\s*([^|]*)\|?\s*([^|]*?)\s*\|?\s*Map It/i)
+  const address = city ? [city[1], city[2]].map((x) => x.trim()).filter(Boolean).join(', ') || null : null
+  const kind = field('Type of Layoff or Closure')
+  return { county, address, naics: field('NAICS'), separation: parseDate(field('First Date of Separation')), kind: kind ? (/closure/i.test(kind) ? 'Closure' : /layoff|reduction/i.test(kind) ? 'Layoff' : kind) : null }
+}
+
+/** Fills the county, address, industry, separation date and kind from each entry page, newest first, up to `max` requests. */
+export async function enrichGeorgia(rows: GeorgiaRow[], max = Number(process.env.WARN_ENRICH_MAX) || 40): Promise<GeorgiaRow[]> {
+  const cutoff = Date.now() - 540 * 86_400_000
+  let budget = max
+  for (const row of rows) {
+    if (budget <= 0) break
+    if (!row.entryUrl || row.county || (row.noticeDate && row.noticeDate.getTime() < cutoff)) continue
+    budget--
+    await new Promise((r) => setTimeout(r, 250))
+    try {
+      const res = await fetch(row.entryUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/131.0 Safari/537.36' }, signal: AbortSignal.timeout(30_000) })
+      if (!res.ok) continue
+      const e = parseGeorgiaEntry(await res.text())
+      row.county = e.county
+      row.address = e.address
+      row.effectiveDate = e.separation
+      row.layoffType = e.kind
+      row.industry = normalizeIndustry(e.naics, 'GA')
+    } catch {
+      // A page that will not load leaves the row as the list gave it.
+    }
+  }
+  return rows
+}
