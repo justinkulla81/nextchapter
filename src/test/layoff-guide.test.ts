@@ -145,6 +145,7 @@ describe('CompanyLayoffGuide', () => {
     expect(html).toContain('/unemployment-benefits/new-york')
     expect(html).toContain('Settle these before your last day')
     expect(html).toContain('Transition grant')
+    expect(html).toContain('/topics/what-to-say-when-laid-off')
     expect(html).toContain('Make this guide yours')
     expect(html).toContain('layoffs:guide:acme')
   })
