@@ -60,7 +60,13 @@ export interface PublicNotice {
   /** City or county, whichever the filing gives. */
   place: string | null
   workers: number | null
+  /**
+   * When the notice was filed. A state that publishes only the effective date (Pennsylvania) gets that date minus the 60 days WARN
+   * requires, so the notice sorts and counts as recent; noticeDateKnown is false for those, and every place that shows the date
+   * says "effective" instead of "filed".
+   */
   noticeDate: Date
+  noticeDateKnown: boolean
   /** When we collected it: what the alert emails use, since a state can publish a notice days after it was filed. */
   fetchedAt: Date
   effectiveDate: Date | null
@@ -76,7 +82,7 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
       dismissedAt: null,
       source: 'WARN_FILING',
       state: { not: null },
-      noticeDate: { not: null, lte: new Date() },
+      OR: [{ noticeDate: { not: null, lte: new Date() } }, { noticeDate: null, effectiveDate: { not: null } }],
       NOT: { sourceUrl: { contains: 'layoffs.fyi', mode: 'insensitive' } },
     },
     select: {
@@ -84,14 +90,14 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
       noticeDate: true, fetchedAt: true, effectiveDate: true, layoffType: true, sourceUrl: true, workforceBoardId: true,
       companyMatchStatus: true, company: { select: { name: true } },
     },
-    orderBy: [{ noticeDate: 'desc' }, { employees: 'desc' }],
   })
   const boardIds = [...new Set(rows.map((r) => r.workforceBoardId).filter((x): x is string => !!x))]
   const boards = boardIds.length
     ? await prisma.workforceBoard.findMany({ where: { id: { in: boardIds } }, select: { id: true, name: true, website: true, zip: true } })
     : []
   const boardById = new Map(boards.map((b) => [b.id, b]))
-  return rows.map((r) => {
+  const now = Date.now()
+  const mapped = rows.map((r) => {
     const company = r.companyMatchStatus === 'MATCHED' ? r.company?.name ?? null : null
     const county = r.county?.replace(/\s+(County|Parish)$/i, '').trim() || null
     return {
@@ -102,7 +108,8 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
       // Florida writes the site address into the employer field instead.
       place: county ? `${county} County` : cityFromAddress(r.address, r.state) ?? cityFromAddress(r.employer, r.state),
       workers: r.employees,
-      noticeDate: r.noticeDate!,
+      noticeDate: r.noticeDate ?? new Date(Math.min(r.effectiveDate!.getTime() - 60 * DAY_MS, now)),
+      noticeDateKnown: r.noticeDate !== null,
       fetchedAt: r.fetchedAt,
       effectiveDate: r.effectiveDate,
       type: readableType(r.layoffType),
@@ -110,6 +117,7 @@ async function loadPublicNotices(): Promise<PublicNotice[]> {
       board: r.workforceBoardId ? boardById.get(r.workforceBoardId) ?? null : null,
     }
   })
+  return mapped.sort((a, b) => b.noticeDate.getTime() - a.noticeDate.getTime() || (b.workers ?? 0) - (a.workers ?? 0))
 }
 
 // One load per instance per five minutes, shared by every page that needs the record; the per-request cache sits on top.

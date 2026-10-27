@@ -14,7 +14,7 @@ export const LAYOFF_COLUMNS = ['state', 'employer', 'notice_date', 'effective_da
 export interface LayoffRow {
   state: string
   employer: string
-  notice_date: string
+  notice_date: string | null
   effective_date: string | null
   workers: number | null
   layoff_type: string | null
@@ -29,7 +29,7 @@ export function toRow(n: PublicNotice): LayoffRow {
   return {
     state: n.state,
     employer: n.employer,
-    notice_date: day(n.noticeDate),
+    notice_date: n.noticeDateKnown ? day(n.noticeDate) : null,
     effective_date: n.effectiveDate ? day(n.effectiveDate) : null,
     workers: n.workers,
     layoff_type: n.type,

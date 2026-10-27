@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function weekNotices() {
-  const all = await getPublicNotices().catch(() => [])
+  const all = (await getPublicNotices().catch(() => [])).filter((n) => n.noticeDateKnown)
   const now = Date.now()
   const inWindow = (from: number, to: number) => all.filter((n) => now - n.noticeDate.getTime() >= from && now - n.noticeDate.getTime() < to)
   return { thisWeek: inWindow(0, WEEK), lastWeek: inWindow(WEEK, 2 * WEEK) }
