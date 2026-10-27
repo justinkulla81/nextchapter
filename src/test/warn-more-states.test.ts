@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
+import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseMinnesotaList, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
 import type { PdfItem } from '@/lib/warn/pdf-table'
 
 const it_ = (s: string, x: number, y: number): PdfItem => ({ s, x, y })
@@ -122,5 +122,14 @@ describe('Mississippi quarterly PDFs', () => {
     const html = ['/media/1/warn-py2026-qtr-1-jul-sep-2026.pdf', '/media/2/warn-py2025-qtr-4-apr-jun-2026.pdf', '/media/3/warn-py2025-qtr-3-jan-mar-2026.pdf', '/media/3/warn-py2025-qtr-3-jan-mar-2026.pdf',
       '/media/4/warn-py2025-qtr-2-oct-dec-2025.pdf', '/media/5/warn-py2025-qtr-1-jul-sep-2025.pdf', '/media/6/warn-py2024-q4-warn-apr2025-jun2025.pdf'].map((h) => `<a href="${h}">x</a>`).join('')
     expect(resolveMississippiPdfs(html)).toEqual([1, 2, 3, 4, 5].map((n) => `https://mdes.ms.gov/media/${n}/${['warn-py2026-qtr-1-jul-sep-2026', 'warn-py2025-qtr-4-apr-jun-2026', 'warn-py2025-qtr-3-jan-mar-2026', 'warn-py2025-qtr-2-oct-dec-2025', 'warn-py2025-qtr-1-jul-sep-2025'][n - 1]}.pdf`))
+  })
+})
+
+describe('Minnesota list lines', () => {
+  it('reads "Employer - date" lines, with 2- and 4-digit years, and skips revisions and other text', () => {
+    const rows = parseMinnesotaList(['Pearson\'s Candy Company (Revision 2) - 10/20/2026', '3M Company - 10/19/2026', 'Pearson\'s Candy Company - 7/30/2026', 'Estee Lauder Companies, Inc. - 2/24/26', 'Not a notice', 'Chartwells - St Cloud State University - 4/24/2026'].join('\n'))
+    expect(rows.map((r) => r.employer)).toEqual(['3M Company', 'Pearson\'s Candy Company', 'Estee Lauder Companies, Inc.', 'Chartwells - St Cloud State University'])
+    expect(rows.map((r) => r.noticeDate?.toISOString().slice(0, 10))).toEqual(['2026-10-19', '2026-07-30', '2026-02-24', '2026-04-24'])
+    expect(rows.every((r) => r.state === 'MN' && r.employees === null)).toBe(true)
   })
 })

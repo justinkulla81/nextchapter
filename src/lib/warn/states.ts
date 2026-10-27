@@ -1003,3 +1003,31 @@ export async function parseNevadaWarn(buf: Buffer): Promise<WarnRow[]> {
   if (!rows.length) throw new Error('NV: the WARN PDF produced no WARN rows; its layout has changed')
   return rows
 }
+
+/**
+ * Minnesota (DEED) lists each notice as a line "Employer - M/D/YYYY" linking to the employer's letter, at
+ * https://mn.gov/deed/business/layoff-resources/. No headcount or place. Its site sits behind a bot check that refuses scripts but
+ * not a person's browser, so the lines are copied from a real browser and read with importFileState (see FILE_STATES). A
+ * "(Revision)" line updates a notice already listed, so it is skipped.
+ */
+export function parseMinnesotaList(text: string): WarnRow[] {
+  const out: WarnRow[] = []
+  for (const raw of text.split(/\r?\n/)) {
+    const m = raw.trim().match(/^(.{2,120}?)\s+-\s+(\d{1,2}\/\d{1,2}\/\d{2,4})$/)
+    if (!m || /\(revision/i.test(m[1])) continue
+    const employer = m[1].trim()
+    out.push({
+      state: 'MN',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate: parseDate(m[2]),
+      effectiveDate: null,
+      employees: null,
+      layoffType: null,
+      county: null,
+      address: null,
+      industry: null,
+    })
+  }
+  return out
+}

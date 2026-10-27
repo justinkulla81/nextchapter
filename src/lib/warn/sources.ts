@@ -33,6 +33,7 @@ import {
   resolveNewMexicoPdfs,
   parseNewMexicoWarn,
   parseNevadaWarn,
+  parseMinnesotaList,
   WEST_VIRGINIA_PAGE,
   parseWestVirginiaWarn,
   NEW_JERSEY_FILE,
@@ -292,6 +293,14 @@ export const FILE_STATES: Record<string, { page: string; link: string; parse: (b
     parse: (buf) => parseNevadaWarn(buf),
     hasIndustry: false,
   },
+  // Minnesota's list sits behind a bot check that refuses scripts but not a person's browser: the "Employer - M/D/YYYY" lines are
+  // copied from a real browser and imported by hand (2026-10-27; not in the weekly job). Revisions are skipped.
+  MN: {
+    page: 'https://mn.gov/deed/business/layoff-resources/',
+    link: 'warn',
+    parse: (buf) => parseMinnesotaList(buf.toString('utf8')),
+    hasIndustry: false,
+  },
   // Rhode Island began answering scripted requests with 403 in autumn 2026.
   RI: {
     page: RHODE_ISLAND_PAGE,
@@ -485,7 +494,7 @@ const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([
  *       HTML table has neither headcount nor industry and stops in April 2025.
  *       Covered by layoffs.fyi instead.
  *   NC  Tableau, same problem. Also covered by layoffs.fyi.
- *   MN  sits behind a Radware CAPTCHA.
+ *   MN  sits behind a bot check; read from lines copied by hand: see FILE_STATES.
  *   NH NV  return Akamai "Access Denied" even to a rendered browser, so this
  *       is not a matter of headers. NH also publishes no notice list of its own.
  *   WA  an ASP.NET search form inside an iframe; submitting it did not return
