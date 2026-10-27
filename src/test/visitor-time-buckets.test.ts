@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
+import { allTimeDayCount, byHourOfDay, byWeekday, perDaySeries, perHourSeries } from '@/lib/admin/visitor-time-buckets'
 import { classifyForbidden } from '@/lib/google/search-console'
 
 const HUMAN = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36'
@@ -37,6 +37,31 @@ describe('visitor time buckets', () => {
     const weekend = byHourOfDay(events, NOW, 14, false, 'weekend')
     expect(weekday[11].average).toBeCloseTo(1 / 10)
     expect(weekend[11].average).toBeCloseTo(1 / 4)
+  })
+})
+
+describe('all time', () => {
+  it('starts at the first human page view and counts both end days', () => {
+    // First human view Sat 2026-09-26 ET; NOW is Mon 2026-10-26 ET: 30 days apart, 31 days inclusive.
+    const events = [ev('2026-09-26T15:00:00Z', 'a'), ev('2026-10-26T15:00:00Z', 'b')]
+    expect(allTimeDayCount(events, NOW)).toBe(31)
+    const days = perDaySeries(events, NOW, allTimeDayCount(events, NOW), false)
+    expect(days).toHaveLength(31)
+    expect(days[0]).toEqual({ key: '2026-09-26', count: 1 })
+    expect(days.at(-1)).toEqual({ key: '2026-10-26', count: 1 })
+  })
+
+  it('ignores bots when finding the first visit, and never goes under the minimum', () => {
+    const events = [ev('2026-01-01T15:00:00Z', 'a', 'Googlebot/2.1'), ev('2026-10-25T15:00:00Z', 'b')]
+    expect(allTimeDayCount(events, NOW)).toBe(30)
+    expect(allTimeDayCount([], NOW)).toBe(30)
+  })
+
+  it('reaches past a year without dropping the oldest day', () => {
+    const events = [ev('2025-07-04T15:00:00Z', 'a')]
+    const n = allTimeDayCount(events, NOW)
+    expect(n).toBeGreaterThan(365)
+    expect(perDaySeries(events, NOW, n, false)[0]).toEqual({ key: '2025-07-04', count: 1 })
   })
 })
 

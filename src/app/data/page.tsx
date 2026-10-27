@@ -9,6 +9,8 @@ import { breadcrumbJsonLd, organizationRef } from '@/lib/seo/jsonld'
 import { ALL_STATE_CODES, stateName } from '@/lib/seo/states'
 import { LAYOFF_COLUMNS, LAYOFF_DATA_CITATION, LAYOFF_DATA_LICENSE, LAYOFF_DATA_LICENSE_URL, getLayoffRows } from '@/lib/data/layoff-export'
 import { noticeDay } from '@/lib/warn/layoff-pages'
+import { getLayoffCounts } from '@/lib/warn/layoff-counts'
+import { LayoffNumbersNote } from '@/components/layoffs/LayoffNumbersNote'
 
 export const revalidate = 3600
 
@@ -18,7 +20,7 @@ export const metadata: Metadata = pageMetadata('/data')
 const LINK = 'text-brand underline underline-offset-4'
 
 export default async function DataPage() {
-  const rows = await getLayoffRows(null).catch(() => [])
+  const [rows, counts] = await Promise.all([getLayoffRows(null).catch(() => []), getLayoffCounts()])
   const newest = rows[0]?.notice_date
   const oldest = rows[rows.length - 1]?.notice_date
   const states = [...new Set(rows.map((r) => r.state))].sort((a, b) => stateName(a).localeCompare(stateName(b)))
@@ -49,8 +51,10 @@ export default async function DataPage() {
         <div className="mx-auto max-w-4xl px-6">
           <h1 className="text-3xl font-bold tracking-tight text-navy sm:text-4xl">{pageH1('/data', 'Layoff data: download the WARN record')}</h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            {rows.length.toLocaleString('en-US')} WARN Act notices{oldest && newest ? `, ${noticeDay(new Date(oldest))} to ${noticeDay(new Date(newest))}` : ''}, one row per filing, collected from state labor departments and linked to each state’s own record.
+            {rows.length.toLocaleString('en-US')} WARN Act filings{oldest && newest ? `, ${noticeDay(new Date(oldest))} to ${noticeDay(new Date(newest))}` : ''}, one row per filing, collected from state labor departments and linked to each state’s own record.
           </p>
+
+          <LayoffNumbersNote counts={counts} className="mt-8 rounded-xl border border-border bg-white p-6" />
 
           <section aria-labelledby="files" className="mt-10">
             <h2 id="files" className="text-2xl font-bold tracking-tight text-navy">Files</h2>
