@@ -11,7 +11,7 @@ import type { Sourced, StateUI } from '@/lib/data/state-ui-types'
 import { prisma } from '@/lib/prisma'
 import { canonical } from '@/lib/seo/canonical'
 import { breadcrumbJsonLd } from '@/lib/seo/jsonld'
-import { ALL_STATE_CODES, stateFromSlug, stateName, stateSlug } from '@/lib/seo/states'
+import { stateFromSlug, stateName } from '@/lib/seo/states'
 import { getStateSummaries } from '@/lib/warn/layoff-pages'
 import { jobCentersUrl, stateBoardsUrl } from '@/lib/workforce/directory'
 import { titleMeta } from '@/lib/seo/title'
@@ -26,10 +26,12 @@ import { severanceByState } from '@/lib/severance/state-groups'
 // Facts are static; the daily refresh keeps the link to this state's layoff
 // page and its list of workforce boards current.
 export const revalidate = 86400
-export const dynamicParams = false
+// Built on first visit, not at build: 51 pages each reading the layoff and workforce-board tables ran at once in the build
+// workers and were the biggest share of its database load. An unknown state still returns 404 (notFound below).
+export const dynamicParams = true
 
 export function generateStaticParams() {
-  return ALL_STATE_CODES.map((c) => ({ state: stateSlug(c) }))
+  return []
 }
 
 const usd = (n: number) => `$${n.toLocaleString()}`
