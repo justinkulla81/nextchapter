@@ -14,6 +14,9 @@ import type { JobFilter } from '@/lib/seo/topic-data'
 
 export const SNAPSHOT_MAX_AGE_MS = 23 * 3600_000
 
+/** A page view refreshes a stored row only when it is this many times older than its max age; the cron does it before then. */
+const STALE_BACKSTOP = 3
+
 export function topicFilters(): JobFilter[] {
   return [...INDUSTRIES.filter((i) => i.rule).map((i) => ({ rule: i.rule! })), ...JOB_FUNCTIONS.map((f) => ({ fn: f.name }))]
 }
@@ -55,14 +58,16 @@ function refreshInBackground<T>(key: string, compute: () => Promise<T>) {
 
 /**
  * A heavy result kept in TopicSnapshot. A view reads one row and never waits for the scan: a stored value is returned even
- * when it is older than `ttlMs` (a refresh then runs after the response, one at a time per instance, under the heavy-scan
+ * when it is older than `ttlMs` (the cron refreshes it; a refresh runs after the response only past 3 x `ttlMs`, one at a time per instance, under the heavy-scan
  * limit). A failed compute stores nothing and the next view tries again. Only a key never stored computes inline, once.
  * The value must be JSON.
  */
 export async function persisted<T>(key: string, ttlMs: number, compute: () => Promise<T>): Promise<T> {
   const row = await prisma.topicSnapshot.findUnique({ where: { key } }).catch(() => null)
   if (row) {
-    if (Date.now() - row.updatedAt.getTime() > ttlMs) refreshInBackground(key, compute)
+    // The cron refreshes a row at `ttlMs`. A page view only steps in well past that, in case the cron has stopped: at `ttlMs` every
+    // server instance started its own full-board scan (one per instance, 163 runs of 37 s for the search-firm list alone).
+    if (Date.now() - row.updatedAt.getTime() > ttlMs * STALE_BACKSTOP) refreshInBackground(key, compute)
     return row.data as T
   }
   return computeAndStore(key, compute)
