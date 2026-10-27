@@ -97,6 +97,8 @@ export const getAdminHomepageSummary = cache(function getAdminHomepageSummary():
 async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
   const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS)
 
+  // Two batches, not one: a single Promise.all of all 17 asks for more connections than one instance's
+  // pool holds (15), so the 17th waited behind the first and one slow query starved every other page.
   const [
     jobCounts,
     pendingJobBoardListings,
@@ -106,6 +108,17 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     pendingImportedReviews,
     pendingScholarshipApplications,
     pendingIdentityMatches,
+  ] = await Promise.all([
+    loadJobPostingCounts(),
+    prisma.exclusiveJobPosting.count({ where: { status: 'pending', archivedAt: null } }),
+    prisma.bountyClaim.count({ where: { status: 'PENDING' } }),
+    prisma.reference.count({ where: { candidateDisputedAt: { not: null }, disputeResolvedAt: null } }),
+    prisma.jobBoardIntroRequest.count({ where: { status: 'pending' } }),
+    prisma.externalReviewStat.count({ where: { status: 'NEEDS_REVIEW' } }).catch(() => 0),
+    prisma.scholarshipApplication.count({ where: { status: 'PENDING' } }),
+    prisma.candidateIdentityMatch.count({ where: { status: 'PENDING' } }),
+  ])
+  const [
     pendingEqOverIqApplications,
     newCandidateSignups,
     newRecruiterOptIns,
@@ -116,14 +129,6 @@ async function loadAdminHomepageSummary(): Promise<AdminHomepageSummary> {
     totalEmployers,
     sprintTargetCount,
   ] = await Promise.all([
-    loadJobPostingCounts(),
-    prisma.exclusiveJobPosting.count({ where: { status: 'pending', archivedAt: null } }),
-    prisma.bountyClaim.count({ where: { status: 'PENDING' } }),
-    prisma.reference.count({ where: { candidateDisputedAt: { not: null }, disputeResolvedAt: null } }),
-    prisma.jobBoardIntroRequest.count({ where: { status: 'pending' } }),
-    prisma.externalReviewStat.count({ where: { status: 'NEEDS_REVIEW' } }).catch(() => 0),
-    prisma.scholarshipApplication.count({ where: { status: 'PENDING' } }),
-    prisma.candidateIdentityMatch.count({ where: { status: 'PENDING' } }),
     prisma.eqOverIqContributorProfile.count({ where: { submittedAt: { not: null }, status: 'PENDING' } }),
     prisma.candidateProfile.count({ where: { registrationCompletedAt: { gte: sevenDaysAgo } } }),
     prisma.candidateProfile.count({ where: { recruiterDatabaseRequestedAt: { gte: sevenDaysAgo } } }),
