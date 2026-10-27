@@ -13,8 +13,13 @@ describe('nextPreAccountPath', () => {
     expect(nextPreAccountPath({ ...answered, journeyDetails: null })).toBe('/onboarding/coach')
   })
 
-  it('goes straight from the last question to the required Google step, not to the payoff', () => {
-    expect(nextPreAccountPath({ ...answered, journeyDetails: withCoachDone })).toBe(CONNECT_PATH)
+  it('goes straight from the last question to the required Google step, not to the payoff, while Google connect is on', () => {
+    expect(nextPreAccountPath({ ...answered, journeyDetails: withCoachDone }, true)).toBe(CONNECT_PATH)
+  })
+
+  it('goes straight from the last question to the email and password step while Google connect is off', () => {
+    expect(nextPreAccountPath({ ...answered, journeyDetails: withCoachDone }, false)).toBe('/onboarding/create-account')
+    expect(nextPreAccountPath({ ...answered, journeyDetails: withCoachDone })).toBe('/onboarding/create-account')
   })
 
   it('treats a skipped résumé like an uploaded one: the step is complete', () => {
@@ -34,6 +39,12 @@ describe('afterAccountPath', () => {
   })
 
   it('still gives members who registered under the earlier order their one optional Google reveal', () => {
-    expect(afterAccountPath({ finishedAt: 'x', googleRevealAt: null, introCommitted: false })).toBe('/onboarding/google')
+    expect(afterAccountPath({ finishedAt: 'x', googleRevealAt: null, introCommitted: false }, true)).toBe('/onboarding/google')
+  })
+
+  it('skips that Google reveal while Google connect is off', () => {
+    expect(afterAccountPath({ finishedAt: 'x', googleRevealAt: null, introCommitted: false }, false)).toBe('/onboarding/welcome')
+    expect(afterAccountPath({ finishedAt: 'x', googleRevealAt: null, introCommitted: false })).toBe('/onboarding/welcome')
+    expect(afterAccountPath({ finishedAt: 'x', googleRevealAt: null, introCommitted: true })).toBe('/dashboard')
   })
 })

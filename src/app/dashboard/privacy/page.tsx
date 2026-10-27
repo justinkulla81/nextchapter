@@ -18,6 +18,7 @@ import { LeaderboardOptInSettings } from '@/components/dashboard/LeaderboardOptI
 import { JourneySelector } from '@/components/dashboard/JourneySelector'
 import { loadAffiliations } from '@/lib/affiliations/load'
 import { AffiliationVisibilityCard } from '@/components/dashboard/AffiliationVisibilityCard'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 import { effectiveJourney, effectiveStage, getJourney, moveDriverOf } from '@/lib/journey/journey'
 import { CoachAccessSettings } from '@/components/dashboard/CoachAccessSettings'
 import { DeleteAccountForm } from '@/components/dashboard/DeleteAccountForm'
@@ -127,6 +128,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <SeniorLeaderSwitch on={seniorOverlayOn(seniorMember(profile), readSeniorTrack(profile.journeyDetails).override)} detected={seniorMember(profile)} />,
       )}
 
+      {(isGoogleConnectOn() || gmailState.status !== 'not_connected' || calendarState.status !== 'not_connected') && (
       <section id="connected-accounts" aria-labelledby="connected-accounts-h" className="scroll-mt-4 space-y-3">
         <h2 id="connected-accounts-h" className="font-display text-xl font-semibold text-ink">What we can read</h2>
         <p className="max-w-xl text-base text-muted-foreground">Choose what NextChapter reads to count your search activity for you.</p>
@@ -134,6 +136,7 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         {connectError && <Callout tone="problem">{connectError}</Callout>}
         <ConnectedAccountsSettings gmail={gmailState} calendar={calendarState} connectHref={withOAuthReturnTo('/api/auth/google-connect/start', '/dashboard/privacy')} />
       </section>
+      )}
 
       <MoreDetails summary="Show more: your situation, email, coach access, your data and your account">
         <div className="space-y-8">

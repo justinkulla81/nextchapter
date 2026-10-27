@@ -2,13 +2,14 @@ import { redirect } from 'next/navigation'
 import { getCandidateProfileForUser } from '@/lib/onboarding/get-profile'
 import { hasSubmittedCoachingOnboardingForm } from '@/lib/coach/onboarding-form'
 import { flowOfProfile } from '@/lib/onboarding/flag'
-import { CONNECT_PATH, afterAccountPath, nextPreAccountPath, progressOf } from '@/lib/onboarding/progress'
+import { accountStepPath, afterAccountPath, nextPreAccountPath, progressOf } from '@/lib/onboarding/progress'
 
 export default async function OnboardingIndexPage() {
   const profile = await getCandidateProfileForUser()
 
-  // The short question bundles (docs/personalization-audit/bundles.md): five question steps, then one required step,
-  // "Continue with Google", which creates the account and connects Gmail and Calendar; then the payoff and the welcome.
+  // The short question bundles (docs/personalization-audit/bundles.md): five question steps, then one required step that creates
+  // the account ("Continue with Google" when Google connect is on, otherwise an email and a password; see
+  // src/lib/google/connect-switch.ts); then the payoff and the welcome.
   // Members on the classic screens fall through to the chain below, unchanged.
   if (flowOfProfile(profile) === 'bundles') {
     // This email already belongs to another registered account: that page says so and offers a way in.
@@ -17,13 +18,14 @@ export default async function OnboardingIndexPage() {
       redirect(afterAccountPath({ ...progressOf(profile.journeyDetails), introCommitted: !!profile.introCommittedAt }))
     }
     const next = nextPreAccountPath(profile)
-    if (next !== CONNECT_PATH) redirect(next)
+    const accountStep = accountStepPath()
+    if (next !== accountStep) redirect(next)
     // Coach-invited members still give consent and fill in their intake before the account step.
     if (profile.coachId && !profile.coachDossierConsentedAt) redirect('/onboarding/coach-consent')
     if (profile.coachId && profile.coachDossierConsentedAt && !(await hasSubmittedCoachingOnboardingForm(profile.id))) {
       redirect('/onboarding/coaching-form')
     }
-    redirect(CONNECT_PATH)
+    redirect(accountStep)
   }
 
   if (profile.assessmentComplete && profile.registrationCompletedAt) redirect('/dashboard')

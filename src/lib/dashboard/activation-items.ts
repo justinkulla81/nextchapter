@@ -1,6 +1,7 @@
 import 'server-only'
 import { prisma } from '@/lib/prisma'
 import { isGmailConnected } from '@/lib/dashboard/access-gate'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 import { isLinkedInConnected } from '@/lib/dashboard/linkedin-connection'
 import { isSearchGoalsComplete, isBlockersAndMotivationsComplete } from '@/lib/search-strategy'
 import { DOSSIER_REFERENCE_TARGET } from '@/lib/scoring/dossier-unlock'
@@ -93,11 +94,12 @@ export async function getActivationItems(candidateId: string): Promise<Activatio
     },
     {
       key: 'connectAccounts',
-      label: 'Connect LinkedIn and Gmail',
+      // Gmail is part of this only while Google connect is on (src/lib/google/connect-switch.ts).
+      label: isGoogleConnectOn() ? 'Connect LinkedIn and Gmail' : 'Connect LinkedIn',
       // Not really "minutes" (§12 spec: "1 click") — ActivationChecklistCard
       // special-cases this key to display "1 click" instead of "N min".
       estimatedMinutes: 1,
-      complete: linkedInConnected && gmailConnected,
+      complete: linkedInConnected && (gmailConnected || !isGoogleConnectOn()),
       href: '/dashboard/network',
     },
     {

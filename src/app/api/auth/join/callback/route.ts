@@ -21,6 +21,7 @@ import { consumeJoinState } from '@/lib/onboarding/join-state'
 import { progressOf, progressPatch } from '@/lib/onboarding/progress'
 import { syncRegistrationCompletion } from '@/lib/onboarding/sync-registration'
 import { captureServerEvent } from '@/lib/posthog/server'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 
 // The first inbox read is backgrounded with after() below and can run long on a heavy mailbox, so this gets the
 // same headroom as the Connect Gmail callback.
@@ -36,6 +37,8 @@ export async function GET(request: NextRequest) {
   const fail = (code: string) => go(`${CONNECT_PAGE}?error=${code}`)
 
   if (!isOnboardingBundlesOn(null)) return go('/onboarding')
+  // Off until CASA (src/lib/google/connect-switch.ts): no one should arrive here, and nothing is read from a stray return.
+  if (!isGoogleConnectOn()) return go('/onboarding/create-account')
 
   // The nonce from this browser's own start. Without it the callback may be an attacker's code fed to a victim, so
   // stop before exchanging anything.

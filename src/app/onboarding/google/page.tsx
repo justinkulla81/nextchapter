@@ -8,6 +8,7 @@ import { effectiveJourney } from '@/lib/journey/journey'
 import { flowOfProfile } from '@/lib/onboarding/flag'
 import { progressOf } from '@/lib/onboarding/progress'
 import { loadScanStatus } from '@/lib/onboarding/scan-counts'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 
 const GOOGLE_REVEAL_PATH = '/onboarding/google'
 
@@ -16,6 +17,8 @@ const GOOGLE_REVEAL_PATH = '/onboarding/google'
 export default async function GoogleRevealPage({ searchParams }: { searchParams: Promise<{ gmailError?: string; calendarError?: string }> }) {
   const profile = await getCandidateProfileForUser()
   if (!profile.registrationCompletedAt) redirect('/onboarding')
+  // Off until CASA (src/lib/google/connect-switch.ts): nothing to connect, so on to the welcome.
+  if (!isGoogleConnectOn()) redirect('/onboarding/welcome')
   if (flowOfProfile(profile) !== 'bundles' || progressOf(profile.journeyDetails).googleRevealAt) redirect('/onboarding/welcome')
 
   const params = await searchParams

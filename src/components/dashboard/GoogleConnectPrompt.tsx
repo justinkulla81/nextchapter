@@ -4,6 +4,7 @@ import { withOAuthReturnTo } from '@/lib/google/oauth-links'
 import { ConnectGmailCalendarButton } from '@/components/dashboard/ConnectGmailCalendarButton'
 import { connectReason } from '@/lib/journey/engagement'
 import { effectiveJourney } from '@/lib/journey/journey'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 
 // One-time Gmail + Calendar connect callout — surfaced inline on the pages
 // where the payoff is obvious (Network with My Contacts, Find Full-Time Jobs)
@@ -27,6 +28,8 @@ export async function GoogleConnectPrompt({
   returnTo: string
 }) {
   if (!email) return null
+  // Off until CASA (src/lib/google/connect-switch.ts): no one is asked to connect.
+  if (!isGoogleConnectOn()) return null
 
   const [emailConnection, calendarConnection, who] = await Promise.all([
     prisma.emailConnection.findFirst({ where: { candidateId, disconnectedAt: null } }),

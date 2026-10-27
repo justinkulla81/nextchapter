@@ -7,8 +7,8 @@ The owner has decided this order. Do not design against another order or re-add 
 3. Aiming, level and function (asked directly if there is no résumé).
 4. Where.
 5. Coach.
-6. One required "Continue with Google". It creates the account and connects Gmail and Calendar (personal Gmail only). No password and no separate sign-up screen. Answers given before sign-up carry over.
+6. The account step, one required screen that creates the account. **While Google connect is off (until CASA, set by `GOOGLE_CONNECT_ENABLED`, default off; `src/lib/google/connect-switch.ts`) it is an email and a password**, confirmed by a link (`/onboarding/create-account`); the Google reveal after sign-up is skipped. **When Google connect is on** it is one "Continue with Google" that creates the account and connects Gmail and Calendar (`/onboarding/connect`), followed by the optional Google reveal for members who registered under the earlier order. Nothing in the candidate area waits on a Google connection while it is off (Victoria's weekly advice, the Weekly Sprint rows, the connect-accounts note, the Network and activation locks).
 7. Payoff: what the scan found, what you gained, and the starting grade only if there is a résumé.
 8. Welcome.
 
-People with no personal Gmail leave their email on a waitlist. Limited to testers until Google approves the app. Setup: `docs/SETUP.md`.
+While Google connect is on, people with no personal Gmail leave their email on a waitlist, and connecting is limited to testers until Google approves the app. Setup: `docs/SETUP.md`.

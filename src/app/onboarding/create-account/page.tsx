@@ -4,6 +4,8 @@ import { CreateAccountForm } from '@/components/onboarding/CreateAccountForm'
 import { ExistingAccountNotice } from '@/components/auth/ExistingAccountNotice'
 import { findExistingRegisteredAccount } from '@/lib/onboarding/duplicate-check'
 import { flowOfProfile } from '@/lib/onboarding/flag'
+import { progressOf } from '@/lib/onboarding/progress'
+import { isGoogleConnectOn } from '@/lib/google/connect-switch'
 
 export default async function CreateAccountPage() {
   const profile = await getCandidateProfileForUser()
@@ -37,15 +39,22 @@ export default async function CreateAccountPage() {
     )
   }
 
-  // In the question bundles the required Google step creates the account, so this form is not part of that flow.
-  if (flowOfProfile(profile) === 'bundles') redirect('/onboarding')
+  // In the question bundles with Google connect on, the required Google step creates the account, so this form is not part of that
+  // flow. With it off (until CASA) this form is that step: it comes after the five question steps, and a coach-invited member gives
+  // consent before the account exists, the same order the Google step keeps.
+  const bundles = flowOfProfile(profile) === 'bundles'
+  if (bundles) {
+    if (isGoogleConnectOn()) redirect('/onboarding')
+    if (!progressOf(profile.journeyDetails).completed.includes('coach')) redirect('/onboarding')
+    if (profile.coachId && !profile.coachDossierConsentedAt) redirect('/onboarding')
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Your report is ready.</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{bundles ? 'Last step: create your account.' : 'Your report is ready.'}</h1>
         <p className="mt-1 text-muted-foreground">
-          Set a password to see it — we&apos;re emailing you a confirmation link now.
+          {bundles ? 'Set a password and we’ll email you a confirmation link. Then you’ll see what we found.' : 'Set a password to see it — we’re emailing you a confirmation link now.'}
         </p>
       </div>
       <CreateAccountForm email={profile.email} confidentialSearchMode={profile.confidentialSearchMode} />
