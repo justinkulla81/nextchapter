@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseHawaiiWarn, parseKentuckyWorkbook, parseMinnesotaList, resolveKentuckyFiles, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
+import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseHawaiiWarn, parseKentuckyWorkbook, parseSouthCarolinaItems, resolveSouthCarolinaPdfs, parseMinnesotaList, resolveKentuckyFiles, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
 import type { PdfItem } from '@/lib/warn/pdf-table'
+import { parseWashingtonGrid } from '@/lib/warn/washington'
 
 const it_ = (s: string, x: number, y: number): PdfItem => ({ s, x, y })
 
@@ -180,5 +181,44 @@ describe('Kentucky WARN workbooks', () => {
       current: 'https://kyworks.ky.gov/Services/Documents/Website-WARN%20Notice%20Report%2010262026.xlsx',
       prior: 'https://kyworks.ky.gov/Services/Documents/Prior%20Year%20Warn%20Notices.xlsx',
     })
+  })
+})
+
+describe('Washington WARN grid', () => {
+  it('reads company, layoff start, workers and the received date, and skips the pager and header rows', () => {
+    const html = `<table id="ucPSW_gvMain"><tr><td>1</td><td>2</td><td>3</td></tr><tr><th>Company</th><th>Location</th><th>Layoff Start Date</th><th># of Workers</th><th>Closure Layoff</th><th>Type of Layoff</th><th>Received Date</th><th>Notice</th></tr>
+      <tr><td>Starbucks</td><td>Seatac, Seattle</td><td>12/31/2026</td><td>135</td><td>Closure</td><td>Permanent</td><td>10/23/2026</td><td></td></tr>
+      <tr><td>1</td><td>x</td><td>3/1/2001</td><td>4</td><td>Layoff</td><td>Permanent</td><td>7/1/2001</td><td></td></tr></table>`
+    const rows = parseWashingtonGrid(html)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ state: 'WA', employer: 'Starbucks', employees: 135, layoffType: 'Closure - Permanent', address: 'Seatac, Seattle' })
+    expect(rows[0].noticeDate?.toISOString().slice(0, 10)).toBe('2026-10-23')
+    expect(rows[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2026-12-31')
+  })
+})
+
+describe('South Carolina WARN PDF', () => {
+  const header = (x: number[], y: number) => [it_('Company', x[0], y), it_('County', x[1], y), it_('Notice Date', x[2], y), it_('Layoff/Closure Date', x[3], y), it_('Impacted', x[4], y), it_('Layoff/Closure', x[5], y), it_('Address', x[6], y)]
+  it('reads the 2026 layout, and the 2025 layout, which is the same table on a wider page', () => {
+    const r26 = parseSouthCarolinaItems([[...header([102, 235, 284, 345, 439, 489, 648], 491),
+      it_('DP World', 20, 479), it_('Spartanburg', 224, 479), it_('9/1/2026', 292, 479), it_('10/31/2026', 370, 479), it_('205', 451, 479), it_('Permanent Layoff', 483, 479), it_('226 GSP Logistics Parkway, Greer, SC 29651', 556, 479),
+      it_('For more information about the Dislocated Worker Unit', 20, 300)]])
+    expect(r26).toHaveLength(1)
+    expect(r26[0]).toMatchObject({ state: 'SC', employer: 'DP World', employees: 205, layoffType: 'Layoff', county: 'Spartanburg', address: '226 GSP Logistics Parkway, Greer, SC 29651' })
+    expect(r26[0].noticeDate?.toISOString().slice(0, 10)).toBe('2026-09-01')
+    expect(r26[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2026-10-31')
+    const r25 = parseSouthCarolinaItems([[...header([122, 283, 342, 416, 529, 589, 781], 592),
+      it_('Tupperware', 24, 578), it_('Williamsburg', 270, 578), it_('6/11/2024', 349, 578), it_('9/28/2024 - 1/14/2025', 419, 578), it_('46', 546, 578), it_('Permanent Layoff', 582, 578), it_('248 Tupperware Rd., Hemingway, SC 29554', 670, 578)]])
+    expect(r25).toHaveLength(1)
+    expect(r25[0]).toMatchObject({ employer: 'Tupperware', employees: 46, county: 'Williamsburg' })
+    expect(r25[0].effectiveDate?.toISOString().slice(0, 10)).toBe('2024-09-28')
+  })
+  it('picks the newest file of each of the last two years from the page', () => {
+    const a = (n: string) => `<a href="/sites/scworks/files/${n.replace(/ /g, '%20')}.pdf">x</a>`
+    const html = [a('2026 South Carolina WARN_Report 10222026'), a('2025 South Carolina WARN_Report 12292025'), a('2025 South Carolina WARN_Report 01162026'), a('2024 South Carolina WARN_Report 01082025'), a('2023 South Carolina WARN_Report 01012024')].join('')
+    expect(resolveSouthCarolinaPdfs(html)).toEqual([
+      'https://scworks.org/sites/scworks/files/2026%20South%20Carolina%20WARN_Report%2010222026.pdf',
+      'https://scworks.org/sites/scworks/files/2025%20South%20Carolina%20WARN_Report%2001162026.pdf',
+    ])
   })
 })

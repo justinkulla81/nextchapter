@@ -64,7 +64,7 @@ const MAX_WRAP = 45
  * One record per row that has a date in `anchorKey`; every other piece of text joins the nearest such row by height, so a name
  * that wraps above and below the line carrying the dates stays with its own record.
  */
-export function pdfTableRows(items: PdfItem[], columns: ColumnSpec[], anchorKey: string, edgesFromHeader?: ColumnEdges, options: { dataTop?: number } = {}): Record<string, string>[] {
+export function pdfTableRows(items: PdfItem[], columns: ColumnSpec[], anchorKey: string, edgesFromHeader?: ColumnEdges, options: { dataTop?: number; maxWrap?: number } = {}): Record<string, string>[] {
   const edges = edgesFromHeader ?? columnEdges(items, columns)
   const keyOf = (x: number) => edges.find((e) => x >= e.from && x < e.to)?.key ?? null
   const anchors = items.filter((i) => keyOf(i.x) === anchorKey && DATE_CELL.test(i.s))
@@ -81,7 +81,7 @@ export function pdfTableRows(items: PdfItem[], columns: ColumnSpec[], anchorKey:
     let best = ys[0]
     for (const y of ys) if (Math.abs(it.y - y) < Math.abs(it.y - best) || (Math.abs(it.y - y) === Math.abs(it.y - best) && y > best)) best = y
     // A wrapped cell is a few lines tall; a footer or page number is far from every row.
-    if (Math.abs(it.y - best) > MAX_WRAP) continue
+    if (Math.abs(it.y - best) > (options.maxWrap ?? MAX_WRAP)) continue
     byAnchor.get(best)!.push(it)
   }
   return ys.map((y) => {

@@ -1131,3 +1131,65 @@ export function parseKentuckyWorkbook(sheets: XlsxSheet[]): WarnRow[] {
   }
   return out
 }
+
+/**
+ * South Carolina (SC Works) posts one PDF per year, "<year> South Carolina WARN_Report <MMDDYYYY>.pdf", linked from its layoff
+ * notification page, with a new file each time it is updated (the date in the name). Company, county, notice date, layoff or closure
+ * date, number impacted, kind, address. The daily Big Local News scraper stored the layoff date as the notice date for several
+ * notices (a notice on 9/1/2026 for a layoff on 10/31/2026 showed as filed 10/31), so the file is read directly.
+ */
+export const SOUTH_CAROLINA_PAGE = 'https://scworks.org/employer/employer-programs/risk-closing/layoff-notification-reports'
+
+/** The newest file of each of the last two years, newest year first. */
+export function resolveSouthCarolinaPdfs(pageHtml: string): string[] {
+  const best = new Map<number, { stamp: number; href: string }>()
+  for (const m of pageHtml.matchAll(/href="([^"]*?(20\d{2})(?:%20|\+| )South(?:%20|\+| )Carolina(?:%20|\+| )WARN_Report(?:%20|\+| )(\d{2})(\d{2})(\d{4})\.pdf)"/gi)) {
+    const year = parseInt(m[2], 10)
+    const stamp = parseInt(`${m[5]}${m[3]}${m[4]}`, 10) // YYYYMMDD from MMDDYYYY
+    if (!best.has(year) || stamp > best.get(year)!.stamp) best.set(year, { stamp, href: m[1] })
+  }
+  return [...best.entries()].sort((a, b) => b[0] - a[0]).slice(0, 2).map(([, v]) => (v.href.startsWith('http') ? v.href : new URL(v.href, 'https://scworks.org').toString()))
+}
+
+/** Column starts on the 2026 file's page; the 2025 file is the same table on a wider page, so they scale with the Address header. */
+const SC_BASE = [{ key: 'company', from: 0 }, { key: 'county', from: 200 }, { key: 'notice', from: 260 }, { key: 'layoff', from: 320 },
+  { key: 'impacted', from: 420 }, { key: 'kind', from: 470 }, { key: 'address', from: 540 }]
+const SC_ADDRESS_HEADER_X = 648
+
+export function parseSouthCarolinaItems(pages: PdfItem[][]): WarnRow[] {
+  const out: WarnRow[] = []
+  let scale = 1
+  for (const items of pages) {
+    const address = items.find((i) => /^Address$/.test(i.s))
+    if (address) scale = address.x / SC_ADDRESS_HEADER_X
+    const edges = fixedEdges(SC_BASE.map((c) => ({ key: c.key, from: c.from * scale })))
+    const anchors = items.filter((i) => /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(i.s) && i.x >= 260 * scale && i.x < 320 * scale)
+    if (!anchors.length) continue
+    const firstRowY = Math.max(...anchors.map((a) => a.y))
+    for (const r of pdfTableRows(items, [], 'notice', edges, { dataTop: firstRowY + 6, maxWrap: 16 })) {
+      const employer = oneLine(r.company)
+      if (!employer) continue
+      const kind = oneLine(r.kind)
+      out.push({
+        state: 'SC',
+        employer,
+        normalizedEmployer: normalizeOrgName(employer),
+        noticeDate: parseDate(oneLine(r.notice)),
+        // "5/1/2026 - 12/31/2026": the first date is when it starts.
+        effectiveDate: parseDate(oneLine(r.layoff).split(/\s+-\s+/)[0]),
+        employees: parseCount(oneLine(r.impacted)),
+        layoffType: /closure/i.test(kind) ? 'Closure' : /layoff/i.test(kind) ? 'Layoff' : null,
+        county: oneLine(r.county) || null,
+        address: oneLine(r.address) || null,
+        industry: null,
+      })
+    }
+  }
+  return out
+}
+
+export async function parseSouthCarolinaWarn(buf: Buffer): Promise<WarnRow[]> {
+  const rows = parseSouthCarolinaItems(await pdfPages(buf))
+  if (!rows.length) throw new Error('SC: the WARN PDF produced no rows; its layout has changed')
+  return rows
+}

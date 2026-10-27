@@ -59,26 +59,34 @@ export async function syncWarnState(stateCode: string, promote = true): Promise<
   const result: WarnSyncResult = { state: stateCode, fetched: 0, created: 0, promoted: 0, skippedSector: 0, skippedSmall: 0, skippedOld: 0, needsReview: 0 }
 
   try {
-    // A source that only links to its data resolves that link first.
-    const url = source.resolve ? await source.resolve() : sourceUrl(source)
+    let url: string
+    let rows: WarnRow[]
+    if (source.custom) {
+      // A source read by its own code (Washington's grid is posted page by page).
+      url = sourceUrl(source)
+      rows = await source.custom()
+    } else {
+      // A source that only links to its data resolves that link first.
+      url = source.resolve ? await source.resolve() : sourceUrl(source)
 
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(60_000),
-      // Several state sites reject an unfamiliar user agent outright, so this
-      // identifies as a browser rather than failing on half the country.
-      headers: { 'User-Agent': WARN_USER_AGENT },
-    })
-    if (!res.ok) throw new Error(`${source.state} WARN returned ${res.status}`)
-    const buf = Buffer.from(await res.arrayBuffer())
-    let rows = await source.parse(buf, url)
-    // A state that files a PDF a year is read for last year too; a file that will not load is skipped.
-    for (const extra of source.alsoUrls ? await source.alsoUrls(url) : []) {
-      try {
-        const r = await fetch(extra, { signal: AbortSignal.timeout(60_000), headers: { 'User-Agent': WARN_USER_AGENT } })
-        if (r.ok) rows = [...rows, ...(await source.parse(Buffer.from(await r.arrayBuffer()), extra))]
-      } catch (e) {
-        // The primary file loaded; the extra one is only a wider window. Say so in the log, so a changed layout is not silent.
-        console.error(`${stateCode}: extra WARN file ${extra} was skipped: ${e instanceof Error ? e.message : String(e)}`)
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(60_000),
+        // Several state sites reject an unfamiliar user agent outright, so this
+        // identifies as a browser rather than failing on half the country.
+        headers: { 'User-Agent': WARN_USER_AGENT },
+      })
+      if (!res.ok) throw new Error(`${source.state} WARN returned ${res.status}`)
+      const buf = Buffer.from(await res.arrayBuffer())
+      rows = await source.parse(buf, url)
+      // A state that files a PDF a year is read for last year too; a file that will not load is skipped.
+      for (const extra of source.alsoUrls ? await source.alsoUrls(url) : []) {
+        try {
+          const r = await fetch(extra, { signal: AbortSignal.timeout(60_000), headers: { 'User-Agent': WARN_USER_AGENT } })
+          if (r.ok) rows = [...rows, ...(await source.parse(Buffer.from(await r.arrayBuffer()), extra))]
+        } catch (e) {
+          // The primary file loaded; the extra one is only a wider window. Say so in the log, so a changed layout is not silent.
+          console.error(`${stateCode}: extra WARN file ${extra} was skipped: ${e instanceof Error ? e.message : String(e)}`)
+        }
       }
     }
     // A list shown a page at a time is read page by page, newest first, until a page is empty or older than the age limit.
