@@ -105,6 +105,10 @@
       "schedule": "50 11 * * *"
     },
     {
+      "path": "/api/cron/social-posts",
+      "schedule": "0 13 * * 1"
+    },
+    {
       "path": "/api/cron/google-indexing-jobs",
       "schedule": "45 11 * * *"
     },
