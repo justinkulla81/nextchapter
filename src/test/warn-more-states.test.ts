@@ -31,6 +31,24 @@ describe('Louisiana WARN PDF', () => {
   })
 })
 
+// Positions copied from https://www.laworks.net/Downloads/WFD/WarnNotices2025.pdf: no Address column (the address sits under the name),
+// and the table runs onto a second page that has no header.
+describe('Louisiana 2025 PDF layout', () => {
+  const head = [it_('Notice', 242, 707), it_('Layoff', 294, 707), it_('Employees', 354, 707), it_('Company Name', 103, 701), it_('Industry', 473, 701)]
+  const page1 = [...head,
+    it_('Dr. Reddy’s Laboratories', 58, 675), it_('8800 Line Ave', 58, 662), it_('1/7/25', 244, 662), it_('3/14/25', 293, 662), it_('107', 374, 662), it_('Manufacturing', 460, 662), it_('Shreveport, LA 71106', 58, 650),
+    it_('General Dynamics Information', 58, 542), it_('Technology', 58, 529), it_('3/7/25', 244, 523), it_('5/14/25', 293, 523), it_('77', 377, 523), it_('Information Technology', 438, 523),
+    it_('2251 Lakeshore Drive', 58, 517), it_('New Orleans', 58, 504)]
+  const page2 = [it_('Southern Glazer\'s Wine and Spirits', 58, 700), it_('of Louisiana', 58, 688), it_('939 W. Pont Des Mouton Rd', 58, 675), it_('3/14/25', 241, 681), it_('5/16/25', 293, 681), it_('48', 377, 681), it_('Lafayette, LA 70507', 58, 662)]
+  it('splits the name from the address in the one column, and reads a page that has no header with the first page\'s columns', () => {
+    const rows = parseLouisianaItems([page1, page2])
+    expect(rows.map((r) => r.employer)).toEqual(['Dr. Reddy’s Laboratories', 'General Dynamics Information Technology', 'Southern Glazer\'s Wine and Spirits of Louisiana'])
+    expect(rows[0]).toMatchObject({ employees: 107, address: '8800 Line Ave Shreveport, LA 71106' })
+    expect(rows[1].address).toBe('2251 Lakeshore Drive New Orleans')
+    expect(rows[2]).toMatchObject({ employees: 48, address: '939 W. Pont Des Mouton Rd Lafayette, LA 70507' })
+  })
+})
+
 // Positions copied from https://www.dws.nm.gov/Portals/0/2026_WARN.pdf.
 describe('New Mexico WARN PDF', () => {
   const header = [it_('NOTICE DATE', 36, 539), it_('JOB SITE NAME', 173, 532), it_('COUNTY NAME', 315, 532), it_('WDA NAME', 448, 532),

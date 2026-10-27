@@ -76,8 +76,9 @@ export async function syncWarnState(stateCode: string, promote = true): Promise<
       try {
         const r = await fetch(extra, { signal: AbortSignal.timeout(60_000), headers: { 'User-Agent': WARN_USER_AGENT } })
         if (r.ok) rows = [...rows, ...(await source.parse(Buffer.from(await r.arrayBuffer()), extra))]
-      } catch {
-        // The primary file loaded; the extra one is only a wider window.
+      } catch (e) {
+        // The primary file loaded; the extra one is only a wider window. Say so in the log, so a changed layout is not silent.
+        console.error(`${stateCode}: extra WARN file ${extra} was skipped: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
     // Sources that publish the headcount on a separate page fill it in here.
