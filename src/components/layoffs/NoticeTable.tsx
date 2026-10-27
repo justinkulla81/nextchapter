@@ -2,7 +2,8 @@ import { Fragment } from 'react'
 import Link from 'next/link'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { noticeDay, type PublicNotice } from '@/lib/warn/layoff-pages'
-import { stateName } from '@/lib/seo/states'
+import { stateName, stateSlug } from '@/lib/seo/states'
+import { getStateBoards } from '@/lib/seo/workforce-pages'
 import { jobCentersUrl } from '@/lib/workforce/directory'
 
 /**
@@ -102,7 +103,7 @@ export function NoticeTable({
 }
 
 /** The local workforce boards matched to these notices, each once, with its job-center finder. */
-export function BoardList({ notices, page }: { notices: PublicNotice[]; page: 'state' | 'company' }) {
+export async function BoardList({ notices, page }: { notices: PublicNotice[]; page: 'state' | 'company' }) {
   const boards = new Map<string, { board: NonNullable<PublicNotice['board']>; state: string; places: Set<string> }>()
   for (const n of notices) {
     if (!n.board) continue
@@ -111,6 +112,9 @@ export function BoardList({ notices, page }: { notices: PublicNotice[]; page: 's
     boards.set(n.board.id, b)
   }
   if (boards.size === 0) return <p className="text-sm text-muted-foreground">No local workforce board has been matched to these notices yet.</p>
+  // The board's own page on this site, when it has one.
+  const pageSlug = new Map<string, string>()
+  for (const state of new Set([...boards.values()].map((b) => b.state))) for (const b of await getStateBoards(state).catch(() => [])) pageSlug.set(b.id, b.slug)
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
       {[...boards.values()].sort((a, b) => a.board.name.localeCompare(b.board.name)).map(({ board, state, places }) => (
@@ -126,6 +130,11 @@ export function BoardList({ notices, page }: { notices: PublicNotice[]; page: 's
             >
               Find a job center
             </TrackedLink>
+            {pageSlug.get(board.id) && (
+              <Link href={`/workforce-boards/${stateSlug(state)}/${pageSlug.get(board.id)}`} className="text-primary hover:underline">
+                Board page: centers, jobs and notices
+              </Link>
+            )}
             {board.website && (
               <TrackedLink href={board.website} event="workforce_board_link_clicked" properties={{ boardId: board.id, state, page }} className="text-primary hover:underline">
                 Board website

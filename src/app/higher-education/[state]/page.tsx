@@ -2,6 +2,7 @@ import { fitDescription, higherEdStateSeo } from '@/lib/seo/templates'
 import { emptyStateOrNotFound } from '@/lib/seo/empty-state'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { layoffAndRapidLinks } from '@/lib/seo/layoff-links'
 import { SeoPage, H2, LINK, Stat, ActionBand } from '@/components/seo/SeoPage'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { ConferenceSection } from '@/components/events/ConferenceSection'
@@ -45,6 +46,7 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
   const { state } = await params
   const d = await load(state)
   if (!d) emptyStateOrNotFound(state, '/higher-education')
+  const layoffLinks = await layoffAndRapidLinks(d.code)
 
   return (
     <SeoPage
@@ -114,6 +116,11 @@ export default async function HigherEdStatePage({ params }: { params: Promise<{ 
         <span className="font-medium text-foreground">Sources:</span> college directory from IPEDS (U.S. Department of Education), 2-year and 4-year public, private nonprofit and for-profit institutions;
         unemployment from the Bureau of Labor Statistics.{!isCollegeTerritory(d.code) && <> <Link href={`/unemployment-benefits/${stateSlug(d.code)}`} className={LINK}>{d.name} unemployment benefits</Link>.</>}
       </p>
+          {layoffLinks.length > 0 && (
+        <p className="mt-10 flex max-w-3xl flex-wrap gap-x-4 gap-y-1 text-sm">
+          {layoffLinks.map((l) => <Link key={l.href} href={l.href} className={LINK}>{l.label}</Link>)}
+        </p>
+      )}
     </SeoPage>
   )
 }

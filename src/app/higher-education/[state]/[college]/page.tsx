@@ -11,6 +11,7 @@ import { conferencesHostedBy, hasHostedConferences } from '@/lib/events/conferen
 import { canonical } from '@/lib/seo/canonical'
 import { SITE_URL } from '@/lib/seo/facts'
 import { stateFromSlug } from '@/lib/seo/states'
+import { layoffAndRapidLinks } from '@/lib/seo/layoff-links'
 import { AI_LEVELS, AI_TRACK_LABEL, aiProgramSentence, collegePath, territoryFromSlug } from '@/lib/seo/college-bar'
 import { areaName, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
 import { functionByName, functionPath } from '@/lib/seo/topics'
@@ -73,6 +74,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   const st = areaName(code)
   const path = collegePath(state, c.canonicalSlug)
   const m = c.market
+  const layoffLinks = await layoffAndRapidLinks(code)
   const topFn = m?.topFunctions[0] ? functionByName(m.topFunctions[0].function) : null
   const where = c.city ? `${c.city}, ${st}` : st
 
@@ -200,6 +202,10 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
           <h2 id="market" className={H2}>The job market around {c.name}</h2>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
             Professional jobs listed in the cities of <Link href={`/places/${state}/county/${m.county.slug}`} className={LINK}>{m.county.name}</Link>, where the college is.
+          </p>
+          <p className="mt-2 flex max-w-3xl flex-wrap gap-x-4 gap-y-1 text-sm">
+            <Link href={`/places/${state}/county/${m.county.slug}#layoffs`} className={LINK}>Layoff notices in {m.county.name}</Link>
+            {layoffLinks.map((l) => <Link key={l.href} href={l.href} className={LINK}>{l.label}</Link>)}
           </p>
           <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Stat value={n0(m.jobsOpen)} label="open professional jobs" />
