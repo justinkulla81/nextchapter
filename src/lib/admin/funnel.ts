@@ -77,6 +77,7 @@ function offerKeyForLead(kind: string, source: string): string | null {
     return 'jobSearch'
   }
   if (kind === 'apply_save') return 'jobSave'
+  if (kind === 'layoff_alert' && /^(layoff_risk_check|warn_act)/.test(source)) return 'layoffGuide'
   if (kind === 'layoff_alert' || kind === 'layoff_employer') return 'layoffAlert'
   if (kind === 'deadline_reminders') return 'tools'
   return null
@@ -187,6 +188,8 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     marketRealityClicks, rHome, rJobs, rJobPage, rLayoffs, rResume, rGuides, rTools, rNews, rNetwork,
     cJourney, cJobAlert, cApplySave, cLayoff, cDeadline, cResume, cGuide, cNews, cNetwork,
     rEmployer, rTitle, rPlace, cAlertEmployer, cAlertTitle, cAlertPlace, memberEvents,
+    rLayoffGuide,
+    cLayoffGuide,
   ] = await Promise.all([
     countRaw(Prisma.sql`
       SELECT COUNT(DISTINCT "ip")::bigint AS n FROM "HomepageVisitEvent"
@@ -204,7 +207,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     lead({ kind: 'journey', NOT: { source: { startsWith: 'network:' } } }),
     lead({ kind: 'job_alert', source: { notIn: ['page:employer', 'page:title', 'page:salary', 'page:place'] } }),
     lead({ kind: 'apply_save' }),
-    lead({ kind: { in: ['layoff_alert', 'layoff_employer'] } }),
+    lead({ kind: { in: ['layoff_alert', 'layoff_employer'] }, NOT: [{ source: { startsWith: 'layoff_risk_check' } }, { source: { startsWith: 'warn_act' } }] }),
     lead({ kind: 'deadline_reminders' }),
     prisma.resumeSubmissionLead.count({ where: win }),
     prisma.guideLead.count({ where: win }),
@@ -220,6 +223,8 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
       SELECT "properties"->>'kind' AS kind, "properties"->>'source' AS source, COUNT(*)::bigint AS n
       FROM "AnalyticsEvent" WHERE "event" = 'lead_became_member' AND "createdAt" >= ${since}
       GROUP BY 1, 2`),
+    reachedByPath(since, '^/(tools/layoff-risk-check|resources/warn-act|layoffs/by-state)'),
+    lead({ kind: 'layoff_alert', OR: [{ source: { startsWith: 'layoff_risk_check' } }, { source: { startsWith: 'warn_act' } }] }),
   ])
   const members = new Map<string, number>()
   for (const m of memberEvents) {
@@ -240,6 +245,7 @@ async function computeOffers(since: Date, registered: number): Promise<OfferRow[
     { key: 'alertEmployer', label: 'Employer page job alerts', where: '/employers/*', reached: rEmployer, captured: cAlertEmployer, capturedMeans: 'emails', becameMembers: mem('alertEmployer') },
     { key: 'alertTitle', label: 'Job-title and salary page alerts', where: '/jobs/title/* and /salaries/*', reached: rTitle, captured: cAlertTitle, capturedMeans: 'emails', becameMembers: mem('alertTitle') },
     { key: 'alertPlace', label: 'City page job alerts', where: '/places/*/city/*', reached: rPlace, captured: cAlertPlace, capturedMeans: 'emails', becameMembers: mem('alertPlace') },
+    { key: 'layoffGuide', label: 'Layoff risk check, WARN Act guide and state index', where: '/tools/layoff-risk-check, /resources/warn-act, /layoffs/by-state', reached: rLayoffGuide, captured: cLayoffGuide, capturedMeans: 'emails (new-notice alerts asked for on the risk check and the WARN guide)', becameMembers: mem('layoffGuide') },
     { key: 'network', label: 'Network company pages', where: '/network/company/*', reached: rNetwork, captured: cNetwork, capturedMeans: 'emails', becameMembers: mem('network') },
   ]
 }

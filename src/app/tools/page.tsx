@@ -13,6 +13,8 @@ const TOOLS = [
   { href: '/tools/pay-check', name: 'Pay check', body: 'See where your salary sits against what employers list for your job title.' },
   { href: '/tools/resume-check', name: 'Résumé check', body: 'Paste your résumé to get a score out of 100 and see what to fix.' },
   { href: '/tools/severance-calculator', name: 'Severance calculator', body: 'Turn years of service and pay into the common range of one to two weeks per year.' },
+  { href: '/tools/layoff-risk-check', name: 'Layoff risk check', body: 'Check five warning signs against public layoff records. Not a prediction.' },
+  { href: '/resources/warn-act', name: 'WARN Act in plain language', body: 'Who is covered, when 60 days’ notice is due, what is owed, and five state laws.' },
   { href: '/tools/warn-act-checker', name: 'WARN Act checker', body: 'For employers: is 60 days’ notice of a layoff likely required?' },
   { href: '/unemployment-benefits', name: 'Unemployment benefits by state', body: 'Weekly amount, weeks, waiting week and where to file, for every state.' },
   { href: '/layoffs', name: 'Layoff tracker', body: 'Recent layoffs from WARN notices, by state and employer.' },

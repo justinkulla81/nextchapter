@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-132 clusters, 787 phrases.
+135 clusters, 807 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -89,6 +89,9 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/tools/layoff-runway` | page | layoff runway calculator | Work out how long money lasts after a layoff | how long will my savings last after a layoff; savings runway calculator; how many months of savings do I need; job loss budget calculator |
 | `/tools/unemployment-estimator` | page | unemployment benefit estimator | Estimate unemployment benefits | unemployment calculator; how much unemployment will I get; unemployment benefits calculator by state; estimate unemployment pay |
 | `/tools/layoff-deadlines` | page | deadlines after a layoff | Find the dates that matter after a layoff | layoff deadlines; cobra deadline after layoff; when to file for unemployment after layoff; what to do after being laid off by when; layoff checklist dates |
+| `/tools/layoff-risk-check` | page | layoff risk calculator | See whether there are warning signs of a layoff at an employer | layoff risk assessment; am I going to be laid off; signs of layoffs; my layoff risk; layoff risk check; is my job safe from layoffs |
+| `/resources/warn-act` | page | WARN Act rights | A worker asks what a WARN notice means and what an employer owes | WARN notice meaning; what is the WARN Act; WARN Act severance; WARN Act pay; WARN Act exceptions; WARN Act for employees; state WARN laws |
+| `/layoffs/by-state` | page | WARN notices by state | Find every state’s WARN layoff notices in one place | WARN notice list by state; layoffs by state 2026; state WARN notice database; WARN notices by state 2026 |
 | `/tools/pay-check` | page | am i paid fairly | Check whether a salary is in line for a job title | is my salary fair; salary check by job title; compare my salary to market; pay check tool |
 | `/tools/resume-check` | page | free resume check | Score my resume with a free tool | resume checker; resume score; check my resume; free resume score; resume analyzer |
 | `/glossary` | page | layoff and job search glossary | Define a layoff or job search term | what is a WARN notice; what is a reduction in force; laid off vs fired; what is COBRA; what is outplacement; what is a retained search; what is garden leave; what is an applicant tracking system; what is a dislocated worker; what is an american job center; what is a release agreement; what is fractional work; what are transferable skills; what is total compensation; what is a non-compete |
@@ -526,6 +529,24 @@ Title is shown before the site suffix " | NextChapter".
 - Title: Layoff Deadlines: What to Do and By When
 - Description: Free layoff deadline tool: enter your last day to see when to file for unemployment and when the usual 60-day COBRA and Marketplace windows run out.
 - H1: Layoff deadlines: what to do and by when
+
+### `/tools/layoff-risk-check`
+
+- Title: Layoff Risk Check: Are There Warning Signs at Your Employer?
+- Description: Check five warning signs against public layoff records: your employer’s WARN notices, your industry’s trend and AI exposure. Free, nothing saved, not a prediction.
+- H1: Layoff risk check: are there warning signs where you work?
+
+### `/resources/warn-act`
+
+- Title: WARN Notice Explained: 60 Days, Who Is Covered, Your Rights
+- Description: The federal WARN Act in plain language: who is covered, when 60 days of notice is due, the three exceptions, what is owed if notice is skipped, and five state laws.
+- H1: The WARN Act in plain language: 60 days’ notice and what it means for you
+
+### `/layoffs/by-state`
+
+- Title: WARN Notices by State: Layoffs Filed in the Last 12 Months
+- Description: Every state’s WARN layoff notices in one table: notices and workers named in the last 12 months, the latest filing and the state’s own record. Free to download.
+- H1: WARN notices by state: what each state’s record shows
 
 ### `/tools/pay-check`
 
