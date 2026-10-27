@@ -74,7 +74,7 @@ export default async function VisionBrainstormPage() {
         <h2 className="mb-2 text-lg font-semibold">Sparks ({sparks.length})</h2>
         {sparks.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Nothing captured yet.
+            {singleCount > 0 ? 'No ideas here yet. The competitor gaps are in the list below, until a second competitor shows the same one.' : 'Nothing captured yet.'}
           </p>
         ) : (
           <ul className="space-y-2">
