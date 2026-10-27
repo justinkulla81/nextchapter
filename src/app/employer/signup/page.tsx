@@ -4,6 +4,9 @@ import { PortalAuthCard } from '@/components/auth/PortalAuthCard'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NOINDEX } from '@/lib/seo/canonical'
+import { createClient } from '@/lib/supabase/server'
+import { signOutEmployer } from '@/app/auth/portal-sign-out'
+import { SignOutForm } from '@/components/auth/SignOutForm'
 
 export const metadata = NOINDEX
 
@@ -15,15 +18,33 @@ export const metadata = NOINDEX
 // inviteFirstOrgAdmin). This page is the honest landing spot for anyone who
 // reaches /employer without an accepted invite — a real explainer, not a
 // disabled form pretending self-serve signup exists.
-export default function EmployerSignupPage() {
+export default async function EmployerSignupPage() {
+  // Someone signed in with an account that isn't on any employer: say which one, and let them switch.
+  const supabase = await createClient('employer')
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   return (
     <PortalAuthCard
       icon={Building2}
       portalLabel="Employers"
       title="Employer accounts are set up with your contract"
-      description="NextChapter for Employers accounts aren't self-serve — they're provisioned when your company sets up a NextChapter contract (outplacement, growth or learning)."
+      description="NextChapter for Employers accounts aren't self-serve — they're provisioned when your company sets up a NextChapter contract (hiring, employees or outplacement)."
     >
       <div className="space-y-4 text-sm text-muted-foreground">
+        {user?.email && (
+          <div className="rounded-md border border-border bg-muted/40 p-3 text-foreground">
+            <p>
+              You’re signed in as <span className="font-medium">{user.email}</span>, which isn’t on an employer account yet.
+            </p>
+            <SignOutForm action={signOutEmployer} className="mt-2">
+              <button type="submit" className="text-sm font-medium text-brand underline underline-offset-4">
+                Sign out and use another account
+              </button>
+            </SignOutForm>
+          </div>
+        )}
         <p>
           If your company already has a NextChapter contract, check your email for an
           invite from NextChapter, or ask whoever set up the account to invite you from their Team page.
