@@ -1031,3 +1031,40 @@ export function parseMinnesotaList(text: string): WarnRow[] {
   }
   return out
 }
+
+/**
+ * Hawaii's Workforce Development Division lists the current notices on one page, each a link "Employer (what) – Month D, YYYY" to
+ * the notice's own page. The older notices sit on the Workforce Development Council's yearly pages, which the daily scraped-states job
+ * already reads; that job stopped at 31 July 2026, so this reads the current page. No headcount on the list.
+ */
+export const HAWAII_PAGE = 'https://labor.hawaii.gov/wdd/warn-notices/'
+
+export function parseHawaiiWarn(html: string): WarnRow[] {
+  const out: WarnRow[] = []
+  const seen = new Set<string>()
+  for (const m of html.matchAll(/<a\s[^>]*href="[^"]*\/wdd\/warn-notices\/warn-notice-[^"]*"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const text = stripTags(m[1]).replace(/\s+/g, ' ').trim()
+    const split = text.match(/^(.*\S)\s+[–—-]\s+([A-Z][a-z]+ \d{1,2}, \d{4})$/)
+    if (!split) continue
+    // "Hawaiian Airlines – Non-Union Workforce Reduction (Alaska Air Group merger)": the parenthesis says why, not who.
+    const employer = split[1].replace(/\s*\([^)]*\)\s*$/, '').trim()
+    const noticeDate = parseDate(split[2])
+    if (employer.length < 2 || !noticeDate) continue
+    const key = `${employer.toLowerCase()}|${noticeDate.toISOString().slice(0, 10)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push({
+      state: 'HI',
+      employer,
+      normalizedEmployer: normalizeOrgName(employer),
+      noticeDate,
+      effectiveDate: null,
+      employees: null,
+      layoffType: null,
+      county: null,
+      address: null,
+      industry: null,
+    })
+  }
+  return out
+}

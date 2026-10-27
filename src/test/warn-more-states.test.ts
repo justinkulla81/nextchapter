@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseMinnesotaList, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
+import { TABLE_SPECS, makeTableParser, parseLouisianaItems, parseHawaiiWarn, parseMinnesotaList, parseNevadaItems, parseNewMexicoItems, parseWestVirginiaWarn, resolveNewMexicoPdfs } from '@/lib/warn/states'
 import type { PdfItem } from '@/lib/warn/pdf-table'
 
 const it_ = (s: string, x: number, y: number): PdfItem => ({ s, x, y })
@@ -131,5 +131,21 @@ describe('Minnesota list lines', () => {
     expect(rows.map((r) => r.employer)).toEqual(['3M Company', 'Pearson\'s Candy Company', 'Estee Lauder Companies, Inc.', 'Chartwells - St Cloud State University'])
     expect(rows.map((r) => r.noticeDate?.toISOString().slice(0, 10))).toEqual(['2026-10-19', '2026-07-30', '2026-02-24', '2026-04-24'])
     expect(rows.every((r) => r.state === 'MN' && r.employees === null)).toBe(true)
+  })
+})
+
+describe('Hawaii current WARN list', () => {
+  const a = (slug: string, text: string) => `<a href="https://labor.hawaii.gov/wdd/warn-notices/warn-notice-${slug}/">${text}</a>`
+  it('takes the employer and date from each link, drops the parenthetical reason, and ignores other links', () => {
+    const html = [
+      a('ben-bridge', 'Ben Bridge Jeweler, Inc. (Rolex Boutique Closing/Transition to Bucherer Store) &#8211; October 15, 2026'),
+      a('hawaiian', 'Hawaiian Airlines – Non-Union Workforce Reduction (Alaska Air Group, Inc. merger) &#8211; October 2, 2026'),
+      a('laie', 'Laie Water Company, Inc. &#8211; September 25, 2026'),
+      '<a href="/wdd/about/">About WARN</a>',
+    ].join('')
+    const rows = parseHawaiiWarn(html)
+    expect(rows.map((r) => r.employer)).toEqual(['Ben Bridge Jeweler, Inc.', 'Hawaiian Airlines – Non-Union Workforce Reduction', 'Laie Water Company, Inc.'])
+    expect(rows.map((r) => r.noticeDate?.toISOString().slice(0, 10))).toEqual(['2026-10-15', '2026-10-02', '2026-09-25'])
+    expect(rows.every((r) => r.state === 'HI')).toBe(true)
   })
 })
