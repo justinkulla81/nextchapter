@@ -13,6 +13,8 @@ import { SITE_URL } from '@/lib/seo/facts'
 import { stateFromSlug } from '@/lib/seo/states'
 import { layoffAndRapidLinks } from '@/lib/seo/layoff-links'
 import { AI_LEVELS, AI_TRACK_LABEL, aiProgramSentence, collegePath, territoryFromSlug } from '@/lib/seo/college-bar'
+import { AreaNotices } from '@/components/seo/AreaNotices'
+import { noticesForCollege } from '@/lib/seo/org-notices'
 import { areaName, getCollegePage, type CollegePageData } from '@/lib/seo/college-pages'
 import { functionByName, functionPath } from '@/lib/seo/topics'
 
@@ -74,6 +76,7 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
   const st = areaName(code)
   const path = collegePath(state, c.canonicalSlug)
   const m = c.market
+  const collegeNotices = await noticesForCollege(c.name, code)
   const layoffLinks = await layoffAndRapidLinks(code)
   const topFn = m?.topFunctions[0] ? functionByName(m.topFunctions[0].function) : null
   const where = c.city ? `${c.city}, ${st}` : st
@@ -294,6 +297,15 @@ export default async function CollegePublicPage({ params }: { params: Promise<{ 
           </dl>
         </section>
       )}
+
+      <AreaNotices
+        id="notices"
+        title={`Layoff notices from ${c.name}`}
+        intro={`WARN notices ${c.name} has filed with ${st} as an employer.`}
+        notices={collegeNotices}
+        moreHref={`/layoffs/${state}`}
+        moreLabel={`All layoff notices in ${st}`}
+      />
 
       <ActionBand
         title={`Work in career services or alumni relations at ${c.name}?`}

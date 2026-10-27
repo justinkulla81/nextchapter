@@ -24,6 +24,13 @@ export interface CustomerUpdate {
 export const CUSTOMER_UPDATES: CustomerUpdate[] = [
   {
     date: '2026-10-27',
+    audiences: ['employer', 'institution'],
+    title: 'Your public page now shows layoff notices and company news from SEC filings',
+    summary: 'Employer, job center, economic development, workforce board and college pages list the layoff notices filed in their area or by that employer, plus acquisitions, leadership changes and capital raised from SEC filings, each linked to its source.',
+    href: 'https://launchyournextchapter.com/layoffs',
+  },
+  {
+    date: '2026-10-27',
     audiences: ['employer', 'recruiter', 'coach', 'institution'],
     title: 'Link to your free NextChapter page, or put our layoff and jobs widgets on your site',
     summary: 'Your organization\'s public page now has a copy-paste link and badge for your own website. We also publish the layoff record as a free download and as embeddable widgets (layoff notices, open jobs, unemployment benefits) you can place on any page.',

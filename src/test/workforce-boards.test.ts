@@ -25,6 +25,10 @@ describe('placeKey / countyKey', () => {
 })
 
 describe('cityFromAddress', () => {
+  it('reads Virginia\'s "City VA" with no comma, and not another state\'s', () => {
+    expect(cityFromAddress('Richmond VA', 'VA')).toBe('Richmond')
+    expect(cityFromAddress('Richmond VA', 'MD')).toBeNull()
+  })
   it('reads the city from a full address in the same state', () => {
     expect(cityFromAddress('3600 Cabover Drive Hanover MD 21076', 'MD')).toBe('Hanover')
     expect(cityFromAddress('2200 Mission College Boulevard  Santa Clara CA 95054', 'CA')).toBe('Santa Clara')

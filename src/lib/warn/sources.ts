@@ -1,3 +1,4 @@
+import { enrichFromLetters } from './letters'
 import { readXlsx, excelSerialToDate, type XlsxSheet } from './xlsx'
 import { pdfText } from './pdf'
 import { fetchWashington, WASHINGTON_PAGE } from './washington'
@@ -431,6 +432,8 @@ const TABLE_SOURCES: WarnSource[] = TABLE_SPECS.filter((spec) => !(spec.state in
 const ENRICH_WINDOW_DAYS = 180
 /** Overridable for a one-off backfill (WARN_ENRICH_MAX=200): a notice's headcount is on its own page, one request each. */
 const ENRICH_MAX = Number(process.env.WARN_ENRICH_MAX) || 25
+/** Hawaii, Minnesota and West Virginia: a notice's place and headcount are in its letter, one request each. */
+const LETTER_BUDGET = Number(process.env.WARN_ENRICH_MAX) || 40
 
 const GEOSOLINC_SOURCES: WarnSource[] = Object.entries(GEOSOLINC_PORTALS).map(([state, host]) => ({
   state,
@@ -671,6 +674,7 @@ export const WARN_SOURCES: WarnSource[] = [
     format: 'html',
     parse: (buf: Buffer) => parseHawaiiWarn(buf.toString('utf8')),
     hasIndustry: false,
+    enrich: (rows: WarnRow[]) => enrichFromLetters(rows, LETTER_BUDGET),
   },
   {
     state: 'WV',
@@ -678,6 +682,7 @@ export const WARN_SOURCES: WarnSource[] = [
     format: 'html',
     parse: (buf: Buffer) => parseWestVirginiaWarn(buf.toString('utf8')),
     hasIndustry: false,
+    enrich: (rows: WarnRow[]) => enrichFromLetters(rows, LETTER_BUDGET),
   },
   {
     state: 'NJ',

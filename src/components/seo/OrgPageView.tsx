@@ -11,6 +11,10 @@ import { ORG_PAGE_ROOT, orgPagePath } from '@/lib/seo/org-page-rules'
 import { placeUrl } from '@/lib/places/places'
 import { periodLabel, rateText } from '@/lib/seo/workforce-pages'
 import type { AreaJob, HiringEmployer, OrgPage } from '@/lib/seo/org-pages'
+import { AreaNotices } from '@/components/seo/AreaNotices'
+import { CompanyEvents } from '@/components/seo/CompanyEvents'
+import type { eventsForCompanyIds } from '@/lib/events/sec-events'
+import type { PageNotices } from '@/lib/seo/org-notices'
 
 const n0 = (n: number) => n.toLocaleString('en-US')
 /** The street line as the source gives it; the city, state and zip are added only when it does not already end with them. */
@@ -22,8 +26,10 @@ function addressLine(row: { street: string | null; city: string | null; state: s
 const ROOT_NAME = { JOB_CENTER: 'American Job Centers', ECON_DEV: 'Economic development', WORKFORCE_BOARD: 'Workforce boards' } as const
 
 /** The page for an American Job Center or an economic development organization. */
-export function OrgPageView({ page, path, hiring, claimSlug, h1 }: {
+export function OrgPageView({ page, path, hiring, claimSlug, h1, notices, events }: {
   h1?: string
+  notices: PageNotices
+  events: Awaited<ReturnType<typeof eventsForCompanyIds>>
   page: OrgPage
   path: string
   hiring: { employers: HiringEmployer[]; jobs: AreaJob[] }
@@ -59,6 +65,23 @@ export function OrgPageView({ page, path, hiring, claimSlug, h1 }: {
         </ul>
         <p className="mt-3 max-w-3xl text-sm text-muted-foreground">Counts are live postings from employers’ own career sites in the area’s cities, checked daily.</p>
       </section>
+
+      <AreaNotices
+        id="notices"
+        title={row.kind === 'WORKFORCE_BOARD' ? 'Layoff notices in this board’s area' : 'Layoff notices where it serves'}
+        intro={`WARN notices filed with ${st} for employers in the workforce area${area.statewide ? '' : ' this organization serves'}.`}
+        notices={notices}
+        moreHref={`/layoffs/${ss}`}
+        moreLabel={`All layoff notices in ${st}`}
+      />
+
+      <CompanyEvents
+        id="company-news"
+        title="Company news from SEC filings"
+        intro="Acquisitions, leadership changes and capital raised by the employers hiring most in this area, from their SEC filings in the last six months."
+        events={events}
+        showCompany
+      />
 
       <LocalEventSection id="local-events" title={`Events hosted by ${row.name}`} intro="Job fairs, workshops and business events this organization runs or co-hosts." scope={{ link: { kind: row.kind, id: row.id } }} />
 

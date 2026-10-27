@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
@@ -85,22 +85,17 @@ describe('CRM names and IndexNow plan', () => {
   })
 })
 
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((n) => {
-    const p = join(dir, n)
-    return statSync(p).isDirectory() ? walk(p) : p.endsWith('.ts') || p.endsWith('.tsx') ? [p] : []
-  })
-}
-
-describe('layoffs are never on these pages (owner decision 2026-10-25)', () => {
-  const files = [
-    'src/lib/seo/org-pages.ts', 'src/lib/seo/org-page-jsonld.ts', 'src/lib/seo/org-page-rules.ts', 'src/components/seo/OrgPageView.tsx',
-    ...['job-centers', 'economic-development'].flatMap((d) => walk(join('src/app', d))),
-    ...walk('src/app/workforce-boards/[state]/[board]'),
-    ...walk('src/app/nonprofits'),
+describe('layoff notices are on these pages (owner decision 2026-10-27, replacing the 2026-10-25 ban)', () => {
+  // Job center, economic development and workforce board pages share OrgPageView; the employer and college pages add their own section.
+  const pages = [
+    'src/components/seo/OrgPageView.tsx',
+    'src/app/employers/[slug]/page.tsx',
+    'src/app/higher-education/[state]/[college]/page.tsx',
   ]
-  it.each(files)('%s does not read or show layoff data', (f) => {
-    const text = readFileSync(f, 'utf8').replace(/^\s*(\/\/|\*|\/\*).*$/gm, '')
-    expect(text).not.toMatch(/warn|layoff/i)
+  it.each(pages)('%s shows the notices section', (f) => {
+    expect(readFileSync(f, 'utf8')).toContain('<AreaNotices')
+  })
+  it.each(['job-centers/[state]/[slug]', 'economic-development/[state]/[slug]', 'workforce-boards/[state]/[board]'])('%s passes the area notices to the page', (d) => {
+    expect(readFileSync(join('src/app', d, 'page.tsx'), 'utf8')).toContain('noticesForOrgPage')
   })
 })
