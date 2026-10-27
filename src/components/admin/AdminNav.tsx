@@ -345,6 +345,7 @@ function buildSections(badges: Record<string, number>): NavSection[] {
       links: [
         { href: `${A}/metrics`, label: 'Site metrics' },
         { href: `${A}/visitors`, label: 'Visitors' },
+        { href: `${A}/visitors/activity`, label: 'Visitor activity' },
         { href: `${A}/funnel`, label: 'Funnel' },
         { href: `${A}/action-counts`, label: 'Action counts' },
         { href: `${A}/population`, label: 'Population report' },

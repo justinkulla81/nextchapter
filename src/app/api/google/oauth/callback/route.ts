@@ -88,7 +88,9 @@ export async function GET(request: NextRequest) {
       create: { googleEmail: email.toLowerCase(), accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt, connectedByEmail: adminEmail ?? null },
     })
 
-    return NextResponse.redirect(adminUrl(`${returnPath}?googleConnected=1`))
+    // Unticking the Search Console box still "succeeds", so say so right away.
+    const searchConsole = granted.includes('https://www.googleapis.com/auth/webmasters.readonly') ? 'granted' : 'missing'
+    return NextResponse.redirect(adminUrl(`${returnPath}?googleConnected=1&searchConsole=${searchConsole}`))
   } catch (err) {
     console.error('Google OAuth callback failed:', err)
     // The failure reason is genuinely useful here and there's no server-log
