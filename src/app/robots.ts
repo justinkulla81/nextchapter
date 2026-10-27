@@ -76,13 +76,15 @@ export default function robots(): MetadataRoute.Robots {
           'meta-externalfetcher',
           'Bytespider',
           'Bingbot',
+          // Brave Search's crawler; its index also feeds several assistants.
+          'Bravebot',
         ])],
         allow: '/',
         disallow: [...disallow, ...paused],
       },
       // Aggressive, low-value crawlers: one request every few seconds is enough. Google ignores Crawl-delay (its
       // rate is set in Search Console); Bing and these honor it, which keeps the database free for visitors.
-      { userAgent: ['Bytespider', 'meta-externalagent', 'Amazonbot', 'CCBot'], crawlDelay: 5, allow: '/', disallow },
+      { userAgent: ['Bytespider', 'Amazonbot', 'CCBot'], crawlDelay: 5, allow: '/', disallow },
     ],
     // The index lists /sitemap.xml and the job sitemaps (/jobs/sitemap/N.xml).
     sitemap: [`${siteUrl}/sitemap-index.xml`, `${siteUrl}/sitemap.xml`],
