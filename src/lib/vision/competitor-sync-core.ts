@@ -37,6 +37,46 @@ export function addSeenAt(body: string | null, competitor: string): string {
   return (body ?? '').replace(m[0], `Seen at competitors: ${[...names, competitor].join(SEEN_SEP)}`)
 }
 
+export interface GapMatches {
+  /** New gap index -> existing idea index it restates. */
+  matches: Map<number, number>
+  /** New gaps that restate each other but nothing existing: one idea, titled with the capability. */
+  groups: { label: string; members: number[] }[]
+}
+
+export function gapMatchPrompt(existingTitles: string[], news: { title: string }[]): string {
+  return [
+    'NextChapter is a career-transition platform. Below are EXISTING product ideas (E, index, title) and NEW competitor gaps (N, index, title).',
+    'Decide, for each NEW gap, whether it describes the SAME product capability as an existing idea or as another new gap. Be strict: same capability, not merely the same topic.',
+    'Return JSON only: {"matches":[{"new":i,"existing":j}],"groups":[{"label":"short name of the capability","members":[i,j,...]}]}.',
+    '"matches" lists NEW gaps that restate an EXISTING idea. "groups" lists sets of 2+ NEW gaps that restate each other and match no existing idea. Leave unique gaps out.',
+    '', 'EXISTING', ...existingTitles.map((t, i) => `E${i}\t${t}`), '', 'NEW', ...news.map((n, i) => `N${i}\t${n.title}`),
+  ].join('\n')
+}
+
+/** Reads the model's answer, dropping anything out of range, repeated, or not a real group, so a bad answer can only under-match. */
+export function parseGapMatches(text: string, newCount: number, existingCount: number): GapMatches {
+  const out: GapMatches = { matches: new Map(), groups: [] }
+  const m = text.match(/\{[\s\S]*\}/)
+  if (!m) return out
+  let j: { matches?: unknown; groups?: unknown }
+  try { j = JSON.parse(m[0]) } catch { return out }
+  const idx = (v: unknown, max: number) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < max ? v : null)
+  for (const x of Array.isArray(j.matches) ? j.matches : []) {
+    const n = idx(x?.new, newCount), e = idx(x?.existing, existingCount)
+    if (n !== null && e !== null && !out.matches.has(n)) out.matches.set(n, e)
+  }
+  const used = new Set(out.matches.keys())
+  for (const g of Array.isArray(j.groups) ? j.groups : []) {
+    const label = typeof g?.label === 'string' ? g.label.replace(/\s+/g, ' ').trim().slice(0, 140) : ''
+    const members = [...new Set((Array.isArray(g?.members) ? g.members : []).map((v: unknown) => idx(v, newCount)).filter((v: number | null): v is number => v !== null && !used.has(v)))] as number[]
+    if (label.length < 8 || members.length < 2) continue
+    members.forEach((v) => used.add(v))
+    out.groups.push({ label, members })
+  }
+  return out
+}
+
 export interface AwardRow { awardKey: string; description: string | null; agency: string | null; subAgency: string | null; amount: number; startDate: Date | null; endDate: Date | null; url: string }
 
 export interface CrmWin {

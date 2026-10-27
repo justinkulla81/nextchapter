@@ -6,41 +6,95 @@ import { normalizeOrgName } from '@/lib/text/org-name-match'
 import type { ProductCompetitor } from '@prisma/client'
 import type { NamedEntry, WinEntry } from './competitor-areas'
 import { awardIsWorkforce } from '@/lib/bids/relevance'
-import { addSeenAt, downloadEmail, gapIdeas, winsFromAwards, winsFromCard, type CrmWin } from './competitor-sync-core'
+import { addSeenAt, downloadEmail, gapMatchPrompt, parseGapMatches, winsFromAwards, winsFromCard, type CrmWin, type GapMatches } from './competitor-sync-core'
+import { getAnthropicClient } from '@/lib/anthropic'
 
 const SITE = 'https://launchyournextchapter.com'
 const TO = 'justin@launchyournextchapter.com'
 
-/** The features we lack that an active competitor has become product-list ideas (status SPARK). The card lists its most important gaps first, so only the first few per card are taken: all of them from every card would put hundreds of near-duplicates on the list. Repeats add the competitor's name instead of a second idea. */
+/** The features we lack that an active competitor has become product-list ideas (status SPARK). The card lists its most important gaps first, so only the first few per card are taken: all of them from every card would put hundreds of near-duplicates on the list. A gap that restates an existing idea (same wording, or the same meaning) adds the competitor's name to it instead of making a second idea. */
 const GAPS_PER_CARD = 3
-export async function syncProductGaps(c: ProductCompetitor, perCard = GAPS_PER_CARD): Promise<number> {
-  if (c.status !== 'ACTIVE' || c.weNeed.length === 0) return 0
-  const needs = c.weNeed.slice(0, perCard)
+/** New gaps compared against the list in one call; the rest wait for the next run. */
+const MAX_NEW_PER_CALL = 200
+const MATCH_MODEL = 'claude-haiku-4-5-20251001'
+const MATCH_PRICE = { inPerM: 1, outPerM: 5 }
+
+type GapCard = Pick<ProductCompetitor, 'name' | 'status' | 'weNeed'>
+
+/** One model call: which new gaps restate an existing idea or each other. Fails soft (no matches) so the exact-wording path still runs. */
+async function matchGapsByMeaning(existingTitles: string[], news: { title: string }[]): Promise<{ result: GapMatches; costUsd: number }> {
+  const none = { result: { matches: new Map<number, number>(), groups: [] }, costUsd: 0 }
+  if (news.length === 0 || existingTitles.length === 0) return none
+  try {
+    const r = await getAnthropicClient().messages.create({
+      model: MATCH_MODEL, max_tokens: 4000, messages: [{ role: 'user', content: gapMatchPrompt(existingTitles, news) }],
+    })
+    const text = r.content.map((b) => (b.type === 'text' ? b.text : '')).join('')
+    const costUsd = (r.usage.input_tokens * MATCH_PRICE.inPerM + r.usage.output_tokens * MATCH_PRICE.outPerM) / 1e6
+    return { result: parseGapMatches(text, news.length, existingTitles.length), costUsd }
+  } catch (e) {
+    console.error('Gap matching by meaning failed; using exact wording only', e)
+    return none
+  }
+}
+
+export async function syncGapsFor(cards: GapCard[], perCard = GAPS_PER_CARD, maxNew = MAX_NEW_PER_CALL): Promise<{ created: number; matched: number; costUsd: number }> {
   const existing = await prisma.productItem.findMany({ where: { kind: 'FEATURE' }, select: { id: true, title: true, body: true } })
   const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
   const byKey = new Map(existing.map((e) => [key(e.title), e]))
-  let created = 0
-  for (const need of needs) {
-    const title = need.replace(/\s+/g, ' ').trim().replace(/[.;]+$/, '').slice(0, 140)
-    const seen = byKey.get(key(title))
-    if (seen && seen.body?.startsWith('Seen at competitors:')) {
-      const next = addSeenAt(seen.body, c.name)
-      if (next !== seen.body) await prisma.productItem.update({ where: { id: seen.id }, data: { body: next } })
+  const bodies = new Map(existing.map((e) => [e.id, e.body]))
+  const seenIdeas = existing.filter((e) => e.body?.startsWith('Seen at competitors: '))
+  const addName = async (id: string, names: string[]) => {
+    const was = bodies.get(id) ?? null
+    const next = names.reduce((b, n) => addSeenAt(b, n), was)
+    if (next !== was) { await prisma.productItem.update({ where: { id }, data: { body: next } }); bodies.set(id, next) }
+  }
+
+  const pending = new Map<string, { title: string; names: string[] }>()
+  let matched = 0
+  for (const c of cards) {
+    if (c.status !== 'ACTIVE') continue
+    for (const need of c.weNeed.slice(0, perCard)) {
+      const title = need.replace(/\s+/g, ' ').trim().replace(/[.;]+$/, '').slice(0, 140)
+      if (title.length < 8) continue
+      const k = key(title)
+      const seen = byKey.get(k)
+      if (seen) { if (seen.body?.startsWith('Seen at competitors: ')) await addName(seen.id, [c.name]); continue }
+      const dup = pending.get(k)
+      if (dup) { if (!dup.names.includes(c.name)) dup.names.push(c.name); continue }
+      if (pending.size < maxNew) pending.set(k, { title, names: [c.name] })
     }
   }
-  for (const title of gapIdeas(needs, existing.map((e) => e.title))) {
-    await prisma.productItem.create({ data: { kind: 'FEATURE', area: 'PRODUCT', title, status: 'SPARK', body: addSeenAt(null, c.name) } })
+
+  const news = [...pending.values()]
+  const { result, costUsd } = await matchGapsByMeaning(seenIdeas.map((e) => e.title), news)
+  const grouped = new Set(result.groups.flatMap((g) => g.members))
+  let created = 0
+  for (const [n, e] of result.matches) { await addName(seenIdeas[e].id, news[n].names); matched++ }
+  for (const g of result.groups) {
+    const names = [...new Set(g.members.flatMap((m) => news[m].names))]
+    const clash = byKey.get(key(g.label))
+    if (clash) { await addName(clash.id, names); matched++; continue }
+    await prisma.productItem.create({ data: { kind: 'FEATURE', area: 'PRODUCT', title: g.label, status: 'SPARK', body: names.reduce((b, n) => addSeenAt(b, n), null as string | null) } })
     created++
   }
-  return created
+  for (const [n, item] of news.entries()) {
+    if (result.matches.has(n) || grouped.has(n)) continue
+    await prisma.productItem.create({ data: { kind: 'FEATURE', area: 'PRODUCT', title: item.title, status: 'SPARK', body: item.names.reduce((b, nm) => addSeenAt(b, nm), null as string | null) } })
+    created++
+  }
+  if (news.length > 0) console.log(`[gap-match] new=${news.length} matched=${matched} created=${created} cost=$${costUsd.toFixed(4)}`)
+  return { created, matched, costUsd }
 }
 
-/** Every active competitor's gaps onto the product list in one pass (the Competitors page button). Idempotent; returns how many new ideas were made. */
-export async function syncAllGaps(perCard = 8): Promise<number> {
-  const cards = await prisma.productCompetitor.findMany({ where: { status: 'ACTIVE' } })
-  let n = 0
-  for (const c of cards) n += await syncProductGaps(c, perCard)
-  return n
+export async function syncProductGaps(c: ProductCompetitor, perCard = GAPS_PER_CARD): Promise<number> {
+  return (await syncGapsFor([c], perCard)).created
+}
+
+/** Every active competitor's gaps onto the product list in one pass (the Competitors page button). Idempotent. */
+export async function syncAllGaps(perCard = 8): Promise<{ created: number; matched: number; costUsd: number }> {
+  const cards = await prisma.productCompetitor.findMany({ where: { status: 'ACTIVE' }, select: { name: true, status: true, weNeed: true } })
+  return syncGapsFor(cards, perCard)
 }
 
 export async function orgFor(buyer: string, government: boolean): Promise<string | null> {
