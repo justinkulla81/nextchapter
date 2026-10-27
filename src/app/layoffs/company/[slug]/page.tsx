@@ -7,6 +7,7 @@ import { PublicSiteHeader, PublicSiteFooter } from '@/components/marketing/Publi
 import { LayoffAlertForm } from '@/components/layoffs/LayoffAlertForm'
 import { CompanyLayoffGuide } from '@/components/layoffs/CompanyLayoffGuide'
 import { buildLayoffGuide } from '@/lib/warn/layoff-guide'
+import { filingFacts, guidePrograms } from '@/lib/warn/layoff-guide-programs'
 import { StructuredData } from '@/components/StructuredData'
 import { TrackedLink } from '@/components/marketing/TrackedLink'
 import { BoardList, NoticeTable } from '@/components/layoffs/NoticeTable'
@@ -49,6 +50,17 @@ async function loadPage(slug: string): Promise<{ c: CompanySummary; ann: Company
   if (c) return { c, ann }
   if (ann) return { c: { slug, name: ann.name, notices: [], latest: ann.latest, states: [] }, ann }
   return null
+}
+
+/** The county or city named most often in a state's notices, to find programs for where the layoff is. */
+function guidePlaces(c: CompanySummary): Record<string, string | null> {
+  const out: Record<string, string | null> = {}
+  for (const state of c.states) {
+    const counts = new Map<string, number>()
+    for (const n of c.notices) if (n.state === state && n.place) counts.set(n.place, (counts.get(n.place) ?? 0) + 1)
+    out[state] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+  }
+  return out
 }
 
 const KIND_LABEL = { buyout: 'Voluntary buyout offer', layoff: 'Reported layoff' } as const
@@ -181,7 +193,10 @@ export default async function CompanyLayoffsPage({ params }: { params: Promise<{
 
           <CompanyLayoffGuide
             name={c.name}
+            slug={slug}
             states={c.states}
+            filing={filingFacts(c.states)}
+            programs={guidePrograms({ states: c.states, places: guidePlaces(c), industryBucket: bucket })}
             guide={buildLayoffGuide({
               name: c.name,
               notices: c.notices,

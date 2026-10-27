@@ -1,4 +1,5 @@
 import { timeline, type TimelineRow } from '@/lib/tools/layoff-deadlines'
+import { buildScripts, TOPIC_GROUPS, type Script, type TopicGroup } from './layoff-guide-topics'
 
 // The tailored guide on /layoffs/company/<slug>: what was announced, the dates that follow from it, and the questions to put
 // to the employer, built only from the record we hold for that employer. Pure and tested (src/test/layoff-guide.test.ts):
@@ -51,8 +52,10 @@ export interface Guide {
   /** States whose own notice rules go beyond the federal 60 days, with what they add. */
   stateNotes: { state: string; text: string }[]
   questions: GuideQuestionGroup[]
-  /** Short lines for the conversation with the employer. */
-  say: string[]
+  /** Money, agreements and property to settle before the last day; the same wherever you work. */
+  topics: TopicGroup[]
+  /** Word-for-word lines for the moments that come up, with the employer’s name filled in. */
+  scripts: Script[]
   reviewWindow: string
 }
 
@@ -146,18 +149,6 @@ const BUYOUT_QUESTIONS: GuideQuestionGroup[] = [
   },
 ]
 
-const SAY_LAYOFF = [
-  'In the meeting, take notes and ask for the details in writing. You do not have to agree to anything that day.',
-  'Ask for time to review any agreement and ask what is negotiable before you sign.',
-  'When you explain it later, give the date, say the role was eliminated, and move straight to what you want next.',
-]
-
-const SAY_BUYOUT = [
-  'Ask for the offer and its deadline in writing before you decide.',
-  'Compare the cash, benefits and timing against what you would earn staying and what a search would cost you.',
-  'You can ask questions and request time to think. Do not answer on the call.',
-]
-
 const REVIEW_WINDOW =
   'If you are 40 or older and are asked to sign a release of claims, federal law gives you at least 21 days to consider it (45 days when the layoff is part of a group program) and 7 days to revoke after you sign.'
 
@@ -195,6 +186,12 @@ function dateFacts(notices: GuideNotice[], now: Date): GuideFact[] {
   return out
 }
 
+/** The date of the event the guide is about: the newest notice or announcement. */
+function eventDate(input: Pick<GuideInput, 'notices' | 'announcements'>): Date | null {
+  const dates = [...input.notices.map((n) => n.noticeDate), ...input.announcements.map((a) => a.date)]
+  return dates.length ? dates.reduce((m, d) => (d > m ? d : m)) : null
+}
+
 export function buildLayoffGuide(input: GuideInput): Guide {
   const now = input.now ?? new Date()
   const kind = guideKind(input)
@@ -213,7 +210,8 @@ export function buildLayoffGuide(input: GuideInput): Guide {
     stepsFrom: from,
     stateNotes: states.filter((s) => STATE_RULES[s]).map((s) => ({ state: s, text: STATE_RULES[s] })),
     questions: kind === 'buyout' ? BUYOUT_QUESTIONS : LAYOFF_QUESTIONS,
-    say: kind === 'buyout' ? SAY_BUYOUT : SAY_LAYOFF,
+    topics: TOPIC_GROUPS,
+    scripts: buildScripts(input.name, kind, eventDate(input)),
     reviewWindow: REVIEW_WINDOW,
   }
 }
