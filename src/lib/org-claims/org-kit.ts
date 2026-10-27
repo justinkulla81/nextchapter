@@ -77,7 +77,7 @@ const NOTHING_SHARED = 'It is free, and nothing is shared with anyone unless you
 export function kitCopy(input: { kind: KitKind; name: string; area: string; links: Record<KitSource, string> }): KitCopy {
   const { kind, name, area, links } = input
   const independent = `NextChapter is an independent platform and is not run by ${name}.`
-  const assessment = (where: string) => `how your experience matches what employers ${where} are hiring for, the jobs open near you, and a plan for the weeks ahead`
+  const assessment = (where: string) => `how your experience matches what employers ${where ? `${where} ` : ''}are hiring for, the jobs open near you, and a plan for the weeks ahead`
 
   if (kind === 'EMPLOYER') {
     return {
@@ -85,17 +85,17 @@ export function kitCopy(input: { kind: KitKind; name: string; area: string; link
         subject: `Support for people affected by changes at ${name}`,
         body: [
           `If you are affected by the changes at ${name}, there is a free tool that shows where you stand in today's job market.`,
-          `You upload your resume and get a Market Reality Assessment: an honest read of ${assessment('are')}.`,
+          `You upload your resume and get a Market Reality Assessment: an honest read of ${assessment('')}.`,
           `It is free, and nothing is shared with ${name} unless you choose to share it.`,
           links.email,
           independent,
         ].join('\n\n'),
       },
-      newsletter: [`Free for people affected by changes at ${name}: a Market Reality Assessment from NextChapter.`, `Upload your resume to see ${assessment('are')}.`, links.web].join('\n\n'),
-      social: [`If you are affected by changes at ${name}, this free tool shows ${assessment('are')}.`, links.social].join('\n\n'),
+      newsletter: [`Free for people affected by changes at ${name}: a Market Reality Assessment from NextChapter.`, `Upload your resume to see ${assessment('')}.`, links.web].join('\n\n'),
+      social: [`If you are affected by changes at ${name}, this free tool shows ${assessment('')}.`, links.social].join('\n\n'),
       flyer: {
         headline: `Affected by changes at ${name}? See where you stand.`,
-        lines: ['A free Market Reality Assessment.', `Upload your resume. See ${assessment('are')}.`, `Free. Nothing is shared with ${name} unless you choose to share it.`],
+        lines: ['A free Market Reality Assessment.', `Upload your resume. See ${assessment('')}.`, `Free. Nothing is shared with ${name} unless you choose to share it.`],
         scan: 'Scan to start',
       },
     }

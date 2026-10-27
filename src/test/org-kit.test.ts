@@ -52,6 +52,12 @@ describe('kit copy', () => {
       expect(c.email.body, kind).toContain('not run by Test Org')
     }
   })
+  it('has no doubled words, for every kind and with or without an area', () => {
+    for (const kind of kinds) for (const area of ['', 'Marion County']) {
+      const all = JSON.stringify(kitCopy({ kind, name: 'Test Org', area, links }))
+      expect(all, `${kind} ${area}`).not.toMatch(/\b(\w+) \1\b/i)
+    }
+  })
   it('promises only what exists, for every kind', () => {
     for (const kind of kinds) {
       const all = JSON.stringify(kitCopy({ kind, name: 'Test Org', area: 'the Test area', links })).toLowerCase()

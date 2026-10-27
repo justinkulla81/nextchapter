@@ -54,7 +54,7 @@ export default async function BoardKitPage({ params }: { params: Promise<{ slug:
       <main className="mx-auto max-w-4xl space-y-10 px-4 py-10 sm:px-6">
         <section aria-labelledby="send-h" className="space-y-4">
           <h2 id="send-h" className="font-serif text-2xl font-semibold text-navy">What to send</h2>
-          <CopyBlock title={`Email: ${copy.email.subject}`} note="For your newsletter, a mailing to past participants, or a note to employers and partners." text={copy.email.body} kind={ctx.kind} orgId={ctx.id} block="email" />
+          <CopyBlock title={`Email: ${copy.email.subject}`} note="For your newsletter, a mailing to your own people, or a note to partners." text={copy.email.body} kind={ctx.kind} orgId={ctx.id} block="email" />
           <CopyBlock title="Your website or newsletter" note="A short line with the link. Put it on a page job seekers already visit." text={copy.newsletter} kind={ctx.kind} orgId={ctx.id} block="web" />
           <CopyBlock title="Social post" note="For LinkedIn, Facebook and the rest." text={copy.social} kind={ctx.kind} orgId={ctx.id} block="social" />
         </section>
