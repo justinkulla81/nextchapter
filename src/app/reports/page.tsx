@@ -111,6 +111,7 @@ export default function ReportsHubPage() {
             Margins of error are 90% intervals using the BLS generalized variance method. The report measures how long
             searches last and does not establish why. Methods and data are public on the{' '}
             <Link href="/reports/replication" className="text-brand underline underline-offset-4">replication page</Link>.
+            Writing about these figures? <Link href="/press" className="text-brand underline underline-offset-4">Press and data</Link> has the citations, files and the index chart to embed.
           </p>
         </section>
 
