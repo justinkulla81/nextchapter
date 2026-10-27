@@ -9,7 +9,7 @@ Page families (one page per state, employer, job and so on) get their title, des
 
 Pages with no target phrase (legal, security, editorial, per-item pages): `/privacy-policy`, `/terms`, `/security`, `/editorial-standards`, `/authors/:slug`, `/reports/replication`, `/news/:slug`, `/reports/:edition`, `/insights/:slug`, `/start`, `/network`.
 
-135 clusters, 825 phrases.
+136 clusters, 831 phrases.
 
 | Owner page | Kind | Primary phrase | Searcher wants | Other phrases it owns |
 | --- | --- | --- | --- | --- |
@@ -50,7 +50,8 @@ Pages with no target phrase (legal, security, editorial, per-item pages): `/priv
 | `/reports` | page | white collar employment report | White-collar job market data | white collar jobs report; white collar job market; job market report; professional jobs report; hiring trends; job market 2026; unemployment rate for professionals |
 | `/reports/white-collar-index` | page | how long a job search takes | How long does a job search take | average job search length; how long to find a job; long search index; time to hire white collar |
 | `/reports/early-warning` | page | young graduates unemployment | Are graduates and entry-level workers being hit | recent graduate unemployment rate; entry level jobs and AI; AI layoffs; early warning labor indicators; AI job cuts by country |
-| `/ai-skills` | page | AI skills in job postings | AI skills in demand and what they pay | AI jobs; AI skills salary premium; AI skills by function; in-demand AI skills; which jobs need AI skills; AI-proof careers; careers that use AI skills; AI jobs pay |
+| `/ai-skills` | page | AI skills in job postings | AI skills in demand and what they pay | AI jobs; AI skills by function; in-demand AI skills; which jobs need AI skills; AI-proof careers; careers that use AI skills; AI jobs pay |
+| `/resources/ai-skills-pay-premium` | page | AI skills salary premium | Do AI skills increase pay (explainer with a citable table) | do AI skills increase salary; AI skills salary increase; AI skills non tech jobs salary; how much do AI skills pay; AI pay premium by function; AI skills pay marketing |
 | `/ai-training` | page | AI training for workforce programs | Organizations buying AI upskilling | AI upskilling; AI reskilling; AI courses for laid off workers; AI training for colleges; AI training for employers; AI skills gap |
 | `/jobs` | page | job search | Find open jobs | find jobs; job board; white collar jobs; professional jobs; executive jobs; senior level jobs; remote professional jobs; jobs with salary; manager jobs; director jobs |
 | `/jobs/:id` | family | {job title} jobs at {company} | One specific opening | {job title} {city}; {company} {job title} salary; {job title} remote |
@@ -314,6 +315,11 @@ Title is shown before the site suffix " | NextChapter".
 
 - Title: AI Skills in Job Postings: How Common and What They Pay
 - Description: Which jobs ask for AI skills, how much more those postings advertise, and what research says about seniority. Measured on live U.S. job postings, limits stated.
+
+### `/resources/ai-skills-pay-premium`
+
+- Title: AI Skills Salary Premium: What U.S. Postings Advertise
+- Description: The AI skills salary premium by function: how much more U.S. postings that ask for an AI skill advertise, matched on level and industry, with sample sizes and a CSV.
 
 ### `/ai-training`
 

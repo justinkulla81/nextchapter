@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { BOT_SIGNATURES } from '@/lib/http/user-agent'
 import { homeAbOn, visitorsPerArm } from '@/lib/home-ab'
+import { computeAiPayOffers } from '@/lib/admin/funnel-ai-pay'
 
 // Admin funnel: traffic -> email/journey -> registration -> onboarding -> résumé
 // -> activation -> engagement -> Candidate+ -> hired.
@@ -318,6 +319,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
   ])
 
   const [offers, b2b, homeTest] = await Promise.all([computeOffers(since, registered), computeB2b(since), computeHomeTest(since)])
+  const aiPayOffers = await computeAiPayOffers(since)
 
   const landing = landingRows.map((r) => ({
     path: r.path,
@@ -351,7 +353,7 @@ export async function computeFunnel(windowDays: FunnelWindowDays): Promise<Funne
       .sort((a, b) => b.count - a.count)
       .slice(0, 15),
     landing,
-    offers,
+    offers: [...offers, ...aiPayOffers],
     b2b,
     homeTest,
   }

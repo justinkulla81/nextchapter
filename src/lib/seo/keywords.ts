@@ -491,10 +491,22 @@ export const KEYWORD_CLUSTERS: KeywordCluster[] = [
     owner: '/ai-skills',
     kind: 'page',
     primary: 'AI skills in job postings',
-    secondary: ['AI jobs', 'AI skills salary premium', 'AI skills by function', 'in-demand AI skills', 'which jobs need AI skills', 'AI-proof careers', 'careers that use AI skills', 'AI jobs pay'],
+    secondary: ['AI jobs', 'AI skills by function', 'in-demand AI skills', 'which jobs need AI skills', 'AI-proof careers', 'careers that use AI skills', 'AI jobs pay'],
     seo: {
       title: 'AI Skills in Job Postings: How Common and What They Pay',
       description: 'Which jobs ask for AI skills, how much more those postings advertise, and what research says about seniority. Measured on live U.S. job postings, limits stated.',
+    },
+  },
+  {
+    id: 'ai-skills-pay-premium',
+    intent: 'Do AI skills increase pay (explainer with a citable table)',
+    owner: '/resources/ai-skills-pay-premium',
+    kind: 'page',
+    primary: 'AI skills salary premium',
+    secondary: ['do AI skills increase salary', 'AI skills salary increase', 'AI skills non tech jobs salary', 'how much do AI skills pay', 'AI pay premium by function', 'AI skills pay marketing'],
+    seo: {
+      title: 'AI Skills Salary Premium: What U.S. Postings Advertise',
+      description: 'The AI skills salary premium by function: how much more U.S. postings that ask for an AI skill advertise, matched on level and industry, with sample sizes and a CSV.',
     },
   },
   {
@@ -1770,6 +1782,7 @@ export const ANCHORS: Record<string, string> = {
   '/dossier': 'Executive Dossier',
   '/why-stuck': 'Why your job search isn’t working',
   '/ai-skills': 'AI skills in job postings',
+  '/resources/ai-skills-pay-premium': 'AI skills salary premium',
   '/workforce-boards': 'Workforce development boards and American Job Centers',
   '/scam-watch': 'Fake recruiter and job scams',
   '/how-it-works': 'How NextChapter works',

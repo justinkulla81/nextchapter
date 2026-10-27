@@ -12,13 +12,26 @@ import { payCheckEmailsOn } from '@/lib/leads/job-alert-config'
 import { sentToday } from '@/lib/leads/job-alerts'
 import { jobAlertDailyCap } from '@/lib/leads/job-alert-config'
 import PayCheckResultEmail from '@/emails/pay-check-result'
+import { loadAiMarket } from '@/lib/skills/ai-market-live'
+import { aiIllustration, aiPremiumForFunction, aiPremiumSentence } from '@/lib/pay/ai-premium'
 
 // The pay check on /tools/pay-check: a title and an annual figure in, a plain comparison out, no account and no AI.
 // Optionally the result by email, which also puts the person on the lead path (the journey question).
 
+/** What AI skills add for the title's function (src/lib/pay/ai-premium.ts); present only when the function's premium rests on 30+ paid postings on each side. */
+export interface PayCheckAi {
+  label: string
+  sentence: string
+  nAi: number
+  nBase: number
+  asOf: string
+  /** The title's median listed pay moved by the like-for-like premium: an illustration, not a forecast. */
+  illustration?: { medianWithAi: number; pct: number }
+}
+
 export interface PayCheckState {
   error?: string
-  result?: { slug: string; name: string; sentence: string; p25: number; median: number; p75: number; payCount: number; pay: number; verdict: string }
+  result?: { slug: string; name: string; sentence: string; p25: number; median: number; p75: number; payCount: number; pay: number; verdict: string; ai?: PayCheckAi }
   /** After the email box: the token that ties the journey choice to this person. */
   token?: string
   emailed?: boolean
@@ -34,7 +47,7 @@ async function statFor(key: string): Promise<PayCheckStat | null> {
   const k = key.trim().toLowerCase()
   const t = (await getTitleIndex()).find((x) => x.slug === k || x.name.toLowerCase() === k)
   if (!t || !hasSalaryPage(t)) return null
-  return { name: t.name, slug: t.slug, payCount: t.payCount, p25: t.p25!, median: t.median!, p75: t.p75! }
+  return { name: t.name, slug: t.slug, payCount: t.payCount, p25: t.p25!, median: t.median!, p75: t.p75!, fn: t.fn }
 }
 
 export async function runPayCheck(_prev: PayCheckState | undefined, formData: FormData): Promise<PayCheckState> {
@@ -45,8 +58,14 @@ export async function runPayCheck(_prev: PayCheckState | undefined, formData: Fo
   if (!stat) return { error: 'Pick a job title from the list.' }
   const r = evaluatePay(pay, stat)
   if (!r) return { error: 'Something went wrong. Try again.' }
-  captureServerEvent(await anon(), 'pay_check_run', { title: stat.slug, verdict: r.verdict, band: r.band })
-  return { result: { slug: stat.slug, name: stat.name, sentence: payCheckSentence(pay, stat, r), p25: stat.p25, median: stat.median, p75: stat.p75, payCount: stat.payCount, pay, verdict: r.verdict } }
+  // The function's AI-skill premium, from the snapshot held on this instance (no query per check). Nothing when it is too thin.
+  const premium = aiPremiumForFunction(await loadAiMarket(), stat.fn)
+  const illustration = aiIllustration(stat, premium)
+  const ai: PayCheckAi | undefined = premium
+    ? { label: premium.label, sentence: aiPremiumSentence(premium), nAi: premium.nAi, nBase: premium.nBase, asOf: premium.asOf, ...(illustration ? { illustration } : {}) }
+    : undefined
+  captureServerEvent(await anon(), 'pay_check_run', { title: stat.slug, verdict: r.verdict, band: r.band, aiShown: !!ai, aiFunction: premium?.fn ?? null })
+  return { result: { slug: stat.slug, name: stat.name, sentence: payCheckSentence(pay, stat, r), p25: stat.p25, median: stat.median, p75: stat.p75, payCount: stat.payCount, pay, verdict: r.verdict, ...(ai ? { ai } : {}) } }
 }
 
 // No person is identified at this step, so each check gets its own throwaway id.

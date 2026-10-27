@@ -9,6 +9,7 @@ import { isPublicJob } from '@/lib/jobs/public-job-page'
 import { stateName, stateSlug } from '@/lib/seo/states'
 import { STATE_NAMES } from '@/lib/workforce/places'
 import { TITLE_MIN_JOBS, TITLE_MIN_PAY, displayTitle, titleSlug, GENERIC_TITLES } from '@/lib/seo/job-title-rules'
+import { modalFunction } from '@/lib/pay/ai-premium'
 
 // Data for the salary pages (/salaries/<title>) and the job-title pages (/jobs/title/<title>), and the job-type pages
 // (/jobs/type/<type>). Everything comes from the open public job listings: the same rows the job board shows, counted
@@ -47,6 +48,8 @@ export interface TitleStat {
   p25: number | null
   median: number | null
   p75: number | null
+  /** The function (crawler code) most of this title's listings are tagged with, when there is a clear majority: where its AI-skill premium comes from (src/lib/pay/ai-premium.ts). */
+  fn?: string | null
 }
 
 export interface TitleJob { id: string; title: string; company: string; location: string | null; postedAt: string; pay: string | null }
@@ -81,7 +84,7 @@ function percentile(sorted: number[], q: number): number | null {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo)
 }
 
-interface ScanRow { id: string; b: string; state: string | null; company: string; posted: Date; pay: number | null }
+interface ScanRow { id: string; b: string; state: string | null; company: string; posted: Date; pay: number | null; fn: string | null }
 
 interface TypeSummary { total: number; payCount: number; median: number | null; states: { st: string; n: number }[]; ids: string[]; bases: string[] }
 
@@ -93,12 +96,12 @@ interface Dataset {
 
 async function scan(): Promise<Dataset> {
   // Titles with enough listings are picked in the same query, so only their rows come back.
-  const rowsQuery = prisma.$queryRaw<{ id: string; b: string; state: string | null; company: string; posted: Date; pay: number | null }[]>`
+  const rowsQuery = prisma.$queryRaw<{ id: string; b: string; state: string | null; company: string; posted: Date; pay: number | null; fn: string | null }[]>`
     WITH t AS (
-      SELECT id, ${BASE} AS b, "locationState" AS state, "companyName" AS company, COALESCE("postedAt", "createdAt") AS posted, ${PAY} AS pay
+      SELECT id, ${BASE} AS b, "locationState" AS state, "companyName" AS company, COALESCE("postedAt", "createdAt") AS posted, ${PAY} AS pay, "targetFunction" AS fn
       FROM "ExclusiveJobPosting" WHERE ${PUBLIC}
     ), c AS (SELECT b FROM t WHERE length(b) BETWEEN 6 AND 60 AND b !~ '[0-9]' GROUP BY b HAVING count(*) >= ${TITLE_MIN_JOBS})
-    SELECT t.id, t.b, t.state, t.company, t.posted, t.pay::float8 AS pay FROM t JOIN c ON c.b = t.b`
+    SELECT t.id, t.b, t.state, t.company, t.posted, t.pay::float8 AS pay, t.fn FROM t JOIN c ON c.b = t.b`
   // Job types (remote, hybrid, contract, part-time, interim) are summed over all listings, not only those under a title page.
   const typesQuery = prisma.$queryRaw<{ ty: string; total: number; pay_n: number; med: number | null; states: { st: string; n: number }[] | null; ids: string[] | null; bases: string[] | null }[]>`
     WITH t AS (
@@ -117,7 +120,7 @@ async function scan(): Promise<Dataset> {
   const [rows, typeRows] = await Promise.all([rowsQuery, typesQuery])
   const rowsByBase = new Map<string, ScanRow[]>()
   for (const r of rows) {
-    const row: ScanRow = { id: r.id, b: r.b, state: r.state, company: r.company, posted: new Date(r.posted), pay: r.pay == null ? null : Number(r.pay) }
+    const row: ScanRow = { id: r.id, b: r.b, state: r.state, company: r.company, posted: new Date(r.posted), pay: r.pay == null ? null : Number(r.pay), fn: r.fn }
     ;(rowsByBase.get(r.b) ?? rowsByBase.set(r.b, []).get(r.b)!).push(row)
   }
   const stats: TitleStat[] = []
@@ -128,7 +131,7 @@ async function scan(): Promise<Dataset> {
     if (!slug || seen.has(slug)) continue
     seen.add(slug)
     const pay = list.flatMap((r) => (r.pay == null ? [] : [r.pay])).sort((a, b) => a - b)
-    stats.push({ slug, base, name: displayTitle(base), jobs: list.length, payCount: pay.length, p25: round(percentile(pay, 0.25)), median: round(percentile(pay, 0.5)), p75: round(percentile(pay, 0.75)) })
+    stats.push({ slug, base, name: displayTitle(base), jobs: list.length, payCount: pay.length, p25: round(percentile(pay, 0.25)), median: round(percentile(pay, 0.5)), p75: round(percentile(pay, 0.75)), fn: modalFunction(list.map((r) => r.fn)) })
   }
   stats.sort((a, b) => b.jobs - a.jobs)
   const types = new Map(typeRows.map((r) => [r.ty, { total: r.total, payCount: r.pay_n, median: r.med == null ? null : Number(r.med), states: r.states ?? [], ids: r.ids ?? [], bases: r.bases ?? [] }]))
@@ -139,7 +142,7 @@ const sharedScan = memoTtl(6 * 3600_000, () => 'scan', () => heavy(scan))
 
 // The title list and the job-type summaries are small, so they are also kept in the shared data cache: the index pages, the
 // sitemap and the type pages then do not wait for the scan on a server that has not run it yet, and they survive a deploy.
-const cachedStats = unstable_cache(async () => (await sharedScan()).stats, ['job-title-stats-v3'], { revalidate: 21600 })
+const cachedStats = unstable_cache(async () => (await sharedScan()).stats, ['job-title-stats-v4'], { revalidate: 21600 })
 const cachedTypes = unstable_cache(async () => [...(await sharedScan()).types], ['job-type-summaries-v3'], { revalidate: 21600 })
 
 /** Every title with enough open listings for a page, most listings first. */
