@@ -222,3 +222,17 @@ describe('South Carolina WARN PDF', () => {
     ])
   })
 })
+
+describe('Georgia entry pages', () => {
+  it('reads the county, address, NAICS, separation date and kind from an entry page', async () => {
+    const { parseGeorgiaEntry, parseGeorgiaGrid } = await import('@/lib/warn/states')
+    const entry = `<div><table><tr><th>GA WARN ID</th><td>GA202500103</td></tr><tr><th>Company Name</th><td>SDH Services East, LLC</td></tr><tr><th>NAICS</th><td>722310</td></tr><tr><th>County</th><td>Fulton County</td></tr>
+      <tr><th>Company Address</th><td>1030 Delta Blvd<br>Atlanta, Georgia</td><td>Map It</td></tr><tr><th>Type of Layoff or Closure</th><td>Permanent Layoff / Reduction in Force</td></tr><tr><th>First Date of Separation</th><td>08/08/2026</td></tr></table></div>`
+    const e = parseGeorgiaEntry(entry)
+    expect(e).toMatchObject({ county: 'Fulton', naics: '722310', kind: 'Layoff' })
+    expect(e.separation?.toISOString().slice(0, 10)).toBe('2026-08-08')
+    const rows = parseGeorgiaGrid(`<table><tbody><tr><td><a href="https://www.tcsg.edu/warn-public-view/entry/82458/">GA202500103</a></td><td>SDH Services East, LLC</td><td>August 8, 2026</td><td>70</td></tr></tbody></table>`)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ state: 'GA', employer: 'SDH Services East, LLC', employees: 70, entryUrl: 'https://www.tcsg.edu/warn-public-view/entry/82458/' })
+  })
+})
