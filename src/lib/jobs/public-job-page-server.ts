@@ -96,7 +96,18 @@ export const PUBLIC_JOB_LIVE_SQL = Prisma.sql`
     SELECT 1 FROM "JobPostingFlag" f WHERE f."postingId" = "ExclusiveJobPosting".id AND f."adminDecision" = 'confirmed_ghost'
   )`
 
-/** One job sitemap file: every public job in shard `shard` (0–15), with its last verification. */
+/**
+ * The jobs we ask search engines to take (the sitemap and the pushes to Google and Bing), a smaller set than every public job:
+ * the ones that state pay (Google for Jobs shows pay) or are entry-level or need no experience. Every other public job keeps
+ * its page and is still found through links; it is just not offered. On 2026-10-26 that was about 45,000 of 176,000 live jobs.
+ */
+export const PUBLIC_JOB_OFFERED_SQL = Prisma.sql`(
+  ("salaryMin" IS NOT NULL AND "payPeriod" IN ('year', 'hour'))
+  OR level = 'ENTRY_IC'
+  OR 'no_experience_ok' = ANY("postingSignals")
+)`
+
+/** One job sitemap file: every public job in shard `shard` (0–15) that is offered to search engines, with its last verification. */
 export async function publicJobsInShard(shard: number): Promise<{ id: string; lastVerifiedAt: Date }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
   return prisma.$queryRaw<{ id: string; lastVerifiedAt: Date }[]>`
@@ -105,15 +116,20 @@ export async function publicJobsInShard(shard: number): Promise<{ id: string; la
       AND (hashtext(id) & 15) = ${shard}::int
       AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}
       AND ${PUBLIC_JOB_LIVE_SQL}
+      AND ${PUBLIC_JOB_OFFERED_SQL}
     ORDER BY id
     LIMIT 50000`
 }
 
-/** Every indexable public job (the same bar as the sitemap) in shard `shard` (0–15) with its dates — the syndication crons' (src/lib/syndication) view of the allowlist. */
-export async function publicJobIdsInShard(shard: number): Promise<{ id: string; createdAt: Date; postedAt: Date | null }[]> {
+/**
+ * Every public job (the page allowlist) in shard `shard` (0–15) with its dates — the syndication crons' (src/lib/syndication)
+ * view of it. `offered` says whether it is also one we ask search engines to take; a job that is public but not offered must
+ * never be reported to a search engine as gone.
+ */
+export async function publicJobIdsInShard(shard: number): Promise<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean }[]> {
   if (!Number.isInteger(shard) || shard < 0 || shard >= PUBLIC_JOB_SITEMAP_SHARDS) return []
-  return prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null }[]>`
-    SELECT id, "createdAt", "postedAt" FROM "ExclusiveJobPosting"
+  return prisma.$queryRaw<{ id: string; createdAt: Date; postedAt: Date | null; offered: boolean }[]>`
+    SELECT id, "createdAt", "postedAt", ${PUBLIC_JOB_OFFERED_SQL} AS offered FROM "ExclusiveJobPosting"
     WHERE ${PUBLIC_JOB_STATIC_SQL}
       AND (hashtext(id) & 15) = ${shard}::int
       AND octet_length(description) >= ${PUBLIC_JOB_MIN_INDEX_DESCRIPTION}

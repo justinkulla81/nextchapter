@@ -34,6 +34,8 @@ export interface LiveJob {
   id: string
   /** postedAt ?? createdAt, ms — "newest" sorts on it. */
   at: number
+  /** Whether we ask search engines to take it (stated pay, entry-level or no experience). Only these are announced as new; a live job that is not offered is never announced as gone. Missing means yes. */
+  offered?: boolean
 }
 
 /**
@@ -45,7 +47,7 @@ export interface LiveJob {
 export function planChanges(live: LiveJob[], announced: ReadonlySet<string>, newCap: number): { removed: string[]; added: string[]; waiting: number } {
   const liveIds = new Set(live.map((j) => j.id))
   const removed = [...announced].filter((id) => !liveIds.has(id)).sort()
-  const fresh = live.filter((j) => !announced.has(j.id)).sort((a, b) => b.at - a.at || (a.id < b.id ? -1 : 1))
+  const fresh = live.filter((j) => !announced.has(j.id) && j.offered !== false).sort((a, b) => b.at - a.at || (a.id < b.id ? -1 : 1))
   const added = fresh.slice(0, Math.max(0, newCap)).map((j) => j.id)
   return { removed, added, waiting: fresh.length - added.length }
 }

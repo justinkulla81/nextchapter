@@ -17,7 +17,7 @@ import {
 export async function loadLiveJobs(): Promise<LiveJob[]> {
   const out: LiveJob[] = []
   for (let shard = 0; shard < PUBLIC_JOB_SITEMAP_SHARDS; shard++) {
-    for (const r of await publicJobIdsInShard(shard)) out.push({ id: r.id, at: (r.postedAt ?? r.createdAt).getTime() })
+    for (const r of await publicJobIdsInShard(shard)) out.push({ id: r.id, at: (r.postedAt ?? r.createdAt).getTime(), offered: r.offered })
   }
   return out
 }

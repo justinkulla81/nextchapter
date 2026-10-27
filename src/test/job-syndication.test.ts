@@ -38,6 +38,15 @@ describe('planChanges (IndexNow)', () => {
   it('nothing changed: nothing sent', () => expect(planChanges(live, new Set(['a', 'b', 'c']), 10)).toEqual({ removed: [], added: [], waiting: 0 }))
 })
 
+describe('jobs not offered to search engines', () => {
+  const live = [{ id: 'a', at: 3, offered: true }, { id: 'b', at: 2, offered: false }, { id: 'c', at: 1 }]
+  it('are never announced as new', () => expect(planChanges(live, new Set(), 10)).toEqual({ removed: [], added: ['a', 'c'], waiting: 0 }))
+  it('are not reported gone while their page is still public', () => {
+    expect(planChanges(live, new Set(['a', 'b', 'c']), 10)).toEqual({ removed: [], added: [], waiting: 0 })
+    expect(planGoogle(live, new Set(['b']), 5)).toEqual({ deleted: [], updated: ['a', 'c'] })
+  })
+})
+
 describe('planGoogle', () => {
   const live = [{ id: 'a', at: 1 }, { id: 'b', at: 3 }, { id: 'c', at: 2 }]
   it('closed jobs first, then newest, within quota', () => {
