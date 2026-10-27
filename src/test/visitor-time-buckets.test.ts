@@ -47,3 +47,17 @@ describe('classifyForbidden', () => {
     expect(classifyForbidden(403, '{"error":{"message":"User does not have sufficient permission for site"}}')).toBe('no_permission')
   })
 })
+
+import { searchTermsCsv } from '@/lib/google/search-console'
+
+describe('searchTermsCsv', () => {
+  it('quotes terms and defuses spreadsheet formulas', () => {
+    const csv = searchTermsCsv([
+      { query: 'cfo jobs, houston', clicks: 1, impressions: 20, ctr: 0.05, position: 3.26 },
+      { query: '=HYPERLINK("x")', clicks: 0, impressions: 2, ctr: 0, position: 11 },
+    ])
+    expect(csv.split('\n')[0]).toBe('query,clicks,impressions,ctr_percent,avg_position')
+    expect(csv).toContain('"cfo jobs, houston",1,20,5.00,3.3')
+    expect(csv).toContain(`"'=HYPERLINK(""x"")",0,2,0.00,11.0`)
+  })
+})

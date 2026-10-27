@@ -114,9 +114,14 @@ function SearchConsoleSection({ result }: { result: SearchConsoleResult }) {
   let body: ReactNode
   if (result.status === 'ok') {
     body = (
-      <div className="grid gap-6 md:grid-cols-2">
-        <SearchTermsTable title="Top search terms" rows={result.queries} />
-        <SearchTermsTable title="Top pages from Google search" rows={result.pages} />
+      <div className="space-y-4">
+        <div className="grid gap-6 md:grid-cols-2">
+          <SearchTermsTable title="Top search terms" rows={result.queries} />
+          <SearchTermsTable title="Top pages from Google search" rows={result.pages} />
+        </div>
+        <a href="/api/admin/search-console/export" className="inline-block rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-muted">
+          Download all search terms (16 months, CSV)
+        </a>
       </div>
     )
   } else if (result.status === 'not_connected') {
