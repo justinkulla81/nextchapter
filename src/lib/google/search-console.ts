@@ -132,6 +132,61 @@ async function load(): Promise<SearchConsoleResult> {
   return { status: 'no_site', sites: lastSites }
 }
 
+export interface ExportRow {
+  query: string
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
+const EXPORT_DAYS = 480 // Search Console keeps 16 months
+const EXPORT_PAGE = 25000
+const EXPORT_MAX_ROWS = 200000
+
+// Every search term Google reports for the property, up to 16 months back,
+// paged 25,000 at a time. Not cached: it is a one-off download, not a page view.
+export async function exportSearchTerms(): Promise<{ siteUrl: string; startDate: string; endDate: string; rows: ExportRow[] } | { error: string }> {
+  const connections = await getAllGoogleConnections()
+  if (connections.length === 0) return { error: 'No Google account is connected.' }
+  let lastError = 'No connected account can see the launchyournextchapter.com property.'
+  for (const connection of connections) {
+    try {
+      const token = await getValidAccessTokenFor(connection)
+      const sitesRes = await authedFetch(token, `${API}/sites`)
+      if (!sitesRes.ok) throw new SearchConsoleHttpError(sitesRes.status, await sitesRes.text())
+      const sites = ((await sitesRes.json()) as { siteEntry?: { siteUrl: string; permissionLevel: string }[] }).siteEntry ?? []
+      const siteUrl = pickSite(sites)
+      if (!siteUrl) continue
+      const end = new Date()
+      const start = new Date(end.getTime() - EXPORT_DAYS * 24 * 60 * 60 * 1000)
+      const rows: ExportRow[] = []
+      for (let startRow = 0; startRow < EXPORT_MAX_ROWS; startRow += EXPORT_PAGE) {
+        const res = await authedFetch(token, `${API}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+          method: 'POST',
+          body: JSON.stringify({ startDate: isoDay(start), endDate: isoDay(end), dimensions: ['query'], rowLimit: EXPORT_PAGE, startRow }),
+        })
+        if (!res.ok) throw new SearchConsoleHttpError(res.status, await res.text())
+        const page = ((await res.json()) as { rows?: { keys: string[]; clicks: number; impressions: number; ctr: number; position: number }[] }).rows ?? []
+        for (const r of page) rows.push({ query: r.keys[0], clicks: r.clicks, impressions: r.impressions, ctr: r.ctr, position: r.position })
+        if (page.length < EXPORT_PAGE) break
+      }
+      return { siteUrl, startDate: isoDay(start), endDate: isoDay(end), rows }
+    } catch (err) {
+      lastError = err instanceof SearchConsoleHttpError ? `Google said ${googleMessage(err.body)}` : err instanceof Error ? err.message : 'Unknown error'
+    }
+  }
+  return { error: lastError }
+}
+
+// One search term per row. A term that starts with = + - or @ is prefixed so a
+// spreadsheet reads it as text, not a formula.
+export function searchTermsCsv(rows: ExportRow[]): string {
+  const cell = (v: string) => `"${(/^[=+\-@]/.test(v) ? `'${v}` : v).replace(/"/g, '""')}"`
+  const lines = rows.map((r) => [cell(r.query), r.clicks, r.impressions, (r.ctr * 100).toFixed(2), r.position.toFixed(1)].join(','))
+  return ['query,clicks,impressions,ctr_percent,avg_position', ...lines].join('\n')
+}
+
 // A working answer is cached for an hour: the data itself only updates daily
 // and every admin page view would otherwise cost three Google calls. Anything
 // other than "ok" is never cached (the cached function throws, which Next does
